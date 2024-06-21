@@ -2,15 +2,24 @@ import math
 import random
 
 EARTH_RADIUS_KM = 6371
+SOLAR_CONSTANT = 1361  # W/m²
+AU_TO_KM = 1.496e8
+# Gravitational constant in m^3/kg/s^2
+G = 6.6743e-11
 
 planet_density = { # g per cubic centimeter
-    "Terrestrial": (3.93, 5.51), # Range from Mars to Earth
-    "Gas Giant": (0.69, 1.64)    # Range from Saturn to Neptune
+    "t": (3.93, 5.51), # Range from Mars to Earth
+    "g": (0.69, 1.64)    # Range from Saturn to Neptune
 }
 
 atmosphere_density = { # kg per cubic meter
-    "Terrestrial": (0.020, 67),  # Range from Mars to Venus (kg/m³)
-    "Gas Giant": (0.69, 1.33),   # Approximate range using Jupiter and Saturn's overall densities
+    "t": (0.020, 67),  # Range from Mars to Venus (kg/m³)
+    "g": (0.69, 1.33),   # Approximate range using Jupiter and Saturn's overall densities
+}
+
+atmospheric_molar_density = { # kg per mol
+    "t": (0.02897, 0.04347),  # Range from Earth to Venus (kg/mol)
+    "g": (0.00226, 0.00416),   # Range from Jupiter to Neptune (kg/mol)
 }
 
 planet_classes = {
@@ -301,9 +310,13 @@ class Planet:
 
         # Calculate additional properties.
         self.volume = (4/3) * math.pi * self.radius_km**3  # Calculate volume in km^3
-        self.mass = self.volume * self.density * (10**-12) # Convert density from g/cm^3 to kg/km^3 and calculate mass in Earth masses
 
-    def generate_planet(self, stellar_mass):
+        self.generate_planet()
+        self.calculate_surface_gravity()
+        self.calculate_atmospheric_pressure()
+        self.calculate_atmospheric_temperature()
+
+    def generate_planet(self):
         """
         Generates random planet properties (class, composition, atmosphere) based on distance and radius.
         """
@@ -369,7 +382,6 @@ class Planet:
             if not (min_radius <= self.radius * EARTH_RADIUS_KM <= max_radius):
                 raise ValueError("Radius out of range for the given planet class")
 
-
         # Get the properties for the chosen planet class
         class_data = planet_classes[self.planet_class]
 
@@ -399,3 +411,68 @@ class Planet:
         self.mass = self.volume * p_density * (10**-12)  # Update mass calculation
         self.density = p_density
         self.atm_density = a_density
+
+    def calculate_surface_gravity(self):
+        """
+        Calculates the surface gravity of the planet in g's (Earth's gravity).
+        """
+        # Conversion from kilometers to meters
+        radius_meters = self.radius_km * 1000
+
+        # Calculate surface gravity using Newton's law of universal gravitation
+        surface_gravity = (G * self.mass * 5.972e24) / (radius_meters ** 2)
+        surface_gravity_g = surface_gravity / 9.80665  # Convert to g's
+
+        self.gravity = surface_gravity_g
+
+    def calculate_atmospheric_pressure(self):
+        """
+        Calculates the atmospheric conditions of the planet in bars.
+        """
+
+        if self.atmosphere == "None":
+            self.atmospheric_pressure = 0.0
+            return  # No atmosphere, no pressure
+
+        # Calculate the orbital area (in square kilometers)
+        orbital_radius_km = self.orbital_distance * AU_TO_KM
+        orbital_area = 4 * math.pi * orbital_radius_km**2
+
+        # Calculate atmospheric mass (in kilograms) using scale height (approximate for simplicity)
+        scale_height = 8.5  # Approximate scale height for Earth-like atmospheres (km)
+        atmosphere_radius_km = self.radius_km + scale_height
+        atmosphere_volume = (4/3) * math.pi * atmosphere_radius_km**3
+        planet_volume = (4/3) * math.pi * self.radius_km**3
+        atm_mass_kg = (atmosphere_volume - planet_volume) * self.atm_density * 10**9  # Convert density to kg/km^3
+
+        # Calculate atmospheric pressure (in bars)
+        # This is a simplification, as atmospheric pressure is complex and depends on many factors
+        atmospheric_pressure = (atm_mass_kg * self.gravity) / orbital_area
+
+        self.atmospheric_pressure = atmospheric_pressure
+
+
+    def calculate_atmospheric_temperature(self):
+        """
+        Calculates the solar input at the planet's surface in Watts per square meter (W/m²),
+        taking into account atmospheric pressure.
+        """
+        # Calculate solar input without atmosphere (inverse square law)
+        solar_input_no_atm = SOLAR_CONSTANT * (1 / self.orbital_distance**2)
+
+        # Calculate effective solar input at the surface (adjusted for atmospheric pressure)
+        if self.atmosphere == "None":
+            solar_input = solar_input_no_atm
+        else:
+            # Calculate atmospheric pressure in Pascals (Pa)
+            atm_pressure_pa = self.atmospheric_pressure * 1e5  # 1 bar = 1e5 Pa
+
+            # Apply atmospheric attenuation factor (simplified approximation)
+            # Note: This is a very rough estimate, actual attenuation is more complex
+            attenuation_factor = 1 - (0.2 * math.log10(atm_pressure_pa))
+            solar_input = solar_input_no_atm * attenuation_factor
+
+        # Calculate surface radiation in W/m^2 adjusted for atmospheric pressure
+        surface_temperature = (solar_input / (5.67e-8))**(1/4)
+
+        self.surface_temperature = surface_temperature
