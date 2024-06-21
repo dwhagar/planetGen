@@ -308,9 +308,9 @@ class Planet:
         self.hab = hab_zone
 
         # Calculate additional properties.
+        self.generate_planet()
         self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
         self.period = math.sqrt(self.distance**3)
-        self.generate_planet()
         self.calculate_surface_gravity()
         self.calculate_atmospheric_pressure()
         self.calculate_atmospheric_temperature()
