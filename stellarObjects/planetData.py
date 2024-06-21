@@ -325,9 +325,9 @@ class Planet:
         outer_bound = self.hab[1]
 
         # Determine zone based on distance
-        if self.orbital_distance < inner_bound:
+        if self.distance < inner_bound:
             zone = 'h'
-        elif self.orbital_distance > outer_bound:
+        elif self.distance > outer_bound:
             zone = 'c'
         else:
             zone = 'e'
