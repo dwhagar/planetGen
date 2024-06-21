@@ -39,6 +39,8 @@ class StarSystem:
         inner_limit = INNER_LIMIT_FACTOR * self.star.mass
         outer_limit = OUTER_LIMIT_FACTOR * self.star.mass
 
+        print(inner_limit, outer_limit)
+
         self.inner_limit = inner_limit
         self.outer_limit = outer_limit
 
@@ -53,7 +55,7 @@ class StarSystem:
 
         total_space = self.outer_limit - self.inner_limit
         total_objects = object_density * total_space
-        print(object_density, total_space, total_objects)
+        print(total_objects)
         exit()
         return int(total_objects)
 
