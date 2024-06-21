@@ -1,6 +1,6 @@
 import random
-from .starData import Star  # Import your Star class from starData.py
-from .planetData import Planet  # Import your Planet class from planetData.py
+from .planetData import Planet
+from .starData import Star
 
 class StarSystem:
     """
