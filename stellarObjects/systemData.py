@@ -49,10 +49,10 @@ class StarSystem:
         """
         # Density of stellar objects within our solar system as a function of AU per object
         # a random factor is included to make it less predictable.
-        object_density = (30 / 9) * random.uniform(0.5, 2.0)
+        object_density = (9 / 30) * random.uniform(0.5, 2.0)
 
         total_space = self.outer_limit - self.inner_limit
-        total_objects = total_space / object_density
+        total_objects = object_density * total_space
         return int(total_objects)
 
     def estimate_distance(self, normalized_distance):
