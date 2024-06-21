@@ -493,4 +493,4 @@ class Planet:
         output.append(self.atmosphere)
         output.append(self.composition)
 
-        return '\n'.join(output.join)
+        return '\n'.join(output)

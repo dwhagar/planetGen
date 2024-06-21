@@ -77,4 +77,4 @@ class StarSystem:
         for planet in self.planets:
             output.append(str(planet))
         
-        return '\n'.join(output.join)
+        return '\n'.join(output)
