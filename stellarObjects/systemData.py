@@ -39,7 +39,7 @@ class StarSystem:
         inner_limit = INNER_LIMIT_FACTOR * self.star.mass
         outer_limit = OUTER_LIMIT_FACTOR * self.star.mass
 
-        print(inner_limit, outer_limit)
+        print(self.star.mass, inner_limit, outer_limit)
 
         self.inner_limit = inner_limit
         self.outer_limit = outer_limit
