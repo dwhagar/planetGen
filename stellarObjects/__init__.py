@@ -2,4 +2,4 @@
 
 from .planetData import Planet
 from .starData import Star
-from .systemData import SystemData
+from .systemData import StarSystem
