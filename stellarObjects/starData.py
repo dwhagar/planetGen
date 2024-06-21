@@ -76,6 +76,8 @@ class Star:
         radius = math.sqrt(luminosity / temperature**4)  # Approximate L-R-T relation
         mass = luminosity**(1/3.5)    # Approximate Mass-Luminosity Relation
 
+        print(luminosity, radius, mass)
+
         # Yerkes spectral classification based on luminosity and radius
         if luminosity > 10000:
             yerkes_class = "Ia+"
