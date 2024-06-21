@@ -13,7 +13,6 @@ class StarSystem:
         """
 
         self.star = Star()
-        self.star.generate_random_star()
         self.planets = []
 
         self.system_bounds()
