@@ -381,6 +381,8 @@ class Planet:
             if not (min_radius <= self.radius * EARTH_RADIUS_KM <= max_radius):
                 raise ValueError("Radius out of range for the given planet class")
 
+        self.radius = self.radius * EARTH_RADIUS_KM
+
         # Get the properties for the chosen planet class
         class_data = planet_classes[self.planet_class]
 
@@ -406,7 +408,7 @@ class Planet:
             a_density = random.uniform(min_a_density, max_a_density)
 
         # Recalculate mass based on the new density
-        self.volume = (4/3) * math.pi * self.radius_km**3  # Calculate volume in km^3
+        self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
         self.mass = self.volume * p_density * (10**-12)  # Update mass calculation
         self.density = p_density
         self.atm_density = a_density
