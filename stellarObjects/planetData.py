@@ -436,7 +436,7 @@ class Planet:
             return  # No atmosphere, no pressure
 
         # Calculate the orbital area (in square kilometers)
-        orbital_radius_km = self.orbital_distance * AU_TO_KM
+        orbital_radius_km = self.distance * AU_TO_KM
         orbital_area = 4 * math.pi * orbital_radius_km**2
 
         # Calculate atmospheric mass (in kilograms) using scale height (approximate for simplicity)
