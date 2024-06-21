@@ -418,7 +418,7 @@ class Planet:
         Calculates the surface gravity of the planet in g's (Earth's gravity).
         """
         # Conversion from kilometers to meters
-        radius_meters = self.radius_km * 1000
+        radius_meters = self.radius * 1000
 
         # Calculate surface gravity using Newton's law of universal gravitation
         surface_gravity = (G * self.mass * 5.972e24) / (radius_meters ** 2)
