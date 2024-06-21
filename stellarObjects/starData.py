@@ -3,8 +3,7 @@ import random
 
 class Star:
     """
-    A class representing a star with attributes for type, radius, mass,
-    temperature, luminosity, and location.
+    A class representing a star and it's properties.
     """
 
     def __init__(self, spectral_class=None, temperature=None):
@@ -18,8 +17,17 @@ class Star:
         """
         Returns a string representation of the star.
         """
+        output = []
+        output.append("{{Star Data")
+        output.append(f"|type={{self.type}}")
+        output.append(f"|radius={{self.radius}} km")
+        output.append(f"|mass={{self.mass}} kg")
+        output.append(f"|temp={{self.temperature}} K")
+        output.append(f"|lum={{self.luminosity}} W")
+        output.append(f"|hab=Between {{self.habitable_zone[0]}} and {{self.habitable_zone[1]}} AU")
+        output.append("}}")
 
-        return ("TODO")
+        return '\n'.join(output.join)
     
     def calculate_habitable_zone(self):
         """
@@ -29,6 +37,7 @@ class Star:
         """
         inner_radius = math.sqrt(self.luminosity / 1.1)  
         outer_radius = math.sqrt(self.luminosity / 0.53)
+        self.habitable_zone = (inner_radius, outer_radius)
 
     def generate_star(self, spectral_class=None, temperature=None):
         """

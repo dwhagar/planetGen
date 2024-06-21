@@ -300,7 +300,6 @@ class Planet:
             radius: The radius of the planet in Earth km.
             planet_class: The classification of the planet.
         """
-
         self.radius = radius
         self.planet_class = planet_class
         self.distance = distance
@@ -309,8 +308,8 @@ class Planet:
         self.hab = hab_zone
 
         # Calculate additional properties.
-        self.volume = (4/3) * math.pi * self.radius_km**3  # Calculate volume in km^3
-
+        self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
+        self.period = math.sqrt(self.distance**3)
         self.generate_planet()
         self.calculate_surface_gravity()
         self.calculate_atmospheric_pressure()
@@ -451,7 +450,6 @@ class Planet:
 
         self.atmospheric_pressure = atmospheric_pressure
 
-
     def calculate_atmospheric_temperature(self):
         """
         Calculates the solar input at the planet's surface in Watts per square meter (W/m²),
@@ -476,3 +474,21 @@ class Planet:
         surface_temperature = (solar_input / (5.67e-8))**(1/4)
 
         self.surface_temperature = surface_temperature
+
+    def __str__(self):
+        """
+        Returns the wiki template text for this object.
+        """
+        output = []
+        output.append("{{Planet Data")
+        output.append(f"|class={{self.planet_class}}")
+        output.append(f"|distance={{self.distance}} AU")
+        output.append(f"|period={{self.period}} Years")
+        output.append(f"|radius={{self.radius * EARTH_RADIUS_KM}} km")
+        output.append(f"|gravity={{self.gravity}} G")
+        output.append("}}")
+        output.append(f"Atmosphereic Conditions are an average of {{self.atmospheric_pressure * 100}} kPa and an average surface temperature of {{self.surface_temperature - 273.15}} degrees C.")
+        output.append(self.atmosphere)
+        output.append(self.composition)
+
+        return '\n'.join(output.join)

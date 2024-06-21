@@ -37,8 +37,8 @@ class StarSystem:
         OUTER_LIMIT_FACTOR = 30.0  # Neptune's distance in AU relative to the Sun's mass
 
         # Calculate inner and outer limits
-        inner_limit = INNER_LIMIT_FACTOR * self.stellar_mass
-        outer_limit = OUTER_LIMIT_FACTOR * self.stellar_mass
+        inner_limit = INNER_LIMIT_FACTOR * self.star.mass
+        outer_limit = OUTER_LIMIT_FACTOR * self.star.mass
 
         self.inner_limit = inner_limit
         self.outer_limit = outer_limit
@@ -78,4 +78,4 @@ class StarSystem:
         for planet in self.planets:
             output.append(str(planet))
         
-        return output.join('\n')
+        return '\n'.join(output.join)
