@@ -27,7 +27,7 @@ class Star:
         output.append(f"|hab=Between {{self.habitable_zone[0]}} and {{self.habitable_zone[1]}} AU")
         output.append("}}")
 
-        return '\n'.join(output.join)
+        return '\n'.join(output)
     
     def calculate_habitable_zone(self):
         """
