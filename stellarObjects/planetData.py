@@ -458,7 +458,7 @@ class Planet:
         taking into account atmospheric pressure.
         """
         # Calculate solar input without atmosphere (inverse square law)
-        solar_input_no_atm = SOLAR_CONSTANT * (1 / self.orbital_distance**2)
+        solar_input_no_atm = SOLAR_CONSTANT * (1 / self.distance**2)
 
         # Calculate effective solar input at the surface (adjusted for atmospheric pressure)
         if self.atmosphere == "None":
