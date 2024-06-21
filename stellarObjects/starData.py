@@ -19,12 +19,12 @@ class Star:
         """
         output = []
         output.append("{{Star Data")
-        output.append(f"|type={{self.type}}")
-        output.append(f"|radius={{self.radius}} km")
-        output.append(f"|mass={{self.mass}} kg")
-        output.append(f"|temp={{self.temperature}} K")
-        output.append(f"|lum={{self.luminosity}} W")
-        output.append(f"|hab=Between {{self.habitable_zone[0]}} and {{self.habitable_zone[1]}} AU")
+        output.append(f"|type={self.type}")
+        output.append(f"|radius={self.radius} km")
+        output.append(f"|mass={self.mass} kg")
+        output.append(f"|temp={self.temperature} K")
+        output.append(f"|lum={self.luminosity} W")
+        output.append(f"|hab=Between {self.habitable_zone[0]} and {self.habitable_zone[1]} AU")
         output.append("}}")
 
         return '\n'.join(output)

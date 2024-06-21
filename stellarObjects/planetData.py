@@ -483,13 +483,13 @@ class Planet:
         """
         output = []
         output.append("{{Planet Data")
-        output.append(f"|class={{self.planet_class}}")
-        output.append(f"|distance={{self.distance}} AU")
-        output.append(f"|period={{self.period}} Years")
-        output.append(f"|radius={{self.radius * EARTH_RADIUS_KM}} km")
-        output.append(f"|gravity={{self.gravity}} G")
+        output.append(f"|class={self.planet_class}")
+        output.append(f"|distance={self.distance} AU")
+        output.append(f"|period={self.period} Years")
+        output.append(f"|radius={self.radius * EARTH_RADIUS_KM} km")
+        output.append(f"|gravity={self.gravity} G")
         output.append("}}")
-        output.append(f"Atmosphereic Conditions are an average of {{self.atmospheric_pressure * 100}} kPa and an average surface temperature of {{self.surface_temperature - 273.15}} degrees C.")
+        output.append(f"Atmosphereic Conditions are an average of {self.atmospheric_pressure * 100} kPa and an average surface temperature of {self.surface_temperature - 273.15} degrees C.")
         output.append(self.atmosphere)
         output.append(self.composition)
 
