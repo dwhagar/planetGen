@@ -441,9 +441,9 @@ class Planet:
 
         # Calculate atmospheric mass (in kilograms) using scale height (approximate for simplicity)
         scale_height = 8.5  # Approximate scale height for Earth-like atmospheres (km)
-        atmosphere_radius_km = self.radius_km + scale_height
+        atmosphere_radius_km = self.radius + scale_height
         atmosphere_volume = (4/3) * math.pi * atmosphere_radius_km**3
-        planet_volume = (4/3) * math.pi * self.radius_km**3
+        planet_volume = (4/3) * math.pi * self.radius**3
         atm_mass_kg = (atmosphere_volume - planet_volume) * self.atm_density * 10**9  # Convert density to kg/km^3
 
         # Calculate atmospheric pressure (in bars)
