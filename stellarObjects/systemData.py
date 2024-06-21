@@ -53,6 +53,8 @@ class StarSystem:
 
         total_space = self.outer_limit - self.inner_limit
         total_objects = object_density * total_space
+        print(total_objects)
+        exit()
         return int(total_objects)
 
     def estimate_distance(self, normalized_distance):
