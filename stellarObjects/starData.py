@@ -5,6 +5,16 @@ STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # W/m²/K⁴
 SOLAR_MASS_TO_KG = 1.989e30
 SOLAR_LUMINOSITY = 3.82e26
 
+luminosity_ranges = {
+    'O': (30000, 1000000),
+    'B': (25, 30000),
+    'A': (5, 25),
+    'F': (1.5, 5),
+    'G': (0.6, 1.5),
+    'K': (0.08, 0.6),
+    'M': (0.00008, 0.08)
+}
+
 class Star:
     """
     A class representing a star and it's properties.
@@ -49,6 +59,47 @@ class Star:
         outer_radius = math.sqrt(solar_lum / 0.53)
         self.habitable_zone = (inner_radius, outer_radius)
 
+    def calculate_stellar_radius(self, luminosity, temperature):
+        """
+        Calculates the radius of a star in meters given its luminosity in watts and temperature in Kelvin.
+        @param luminosity: Luminosity in Watts
+        @param temperature: Temperature in Kelvin
+        @return: Radius in Meters
+        """
+        # Calculate radius in meters
+        radius_meters = math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
+
+        return radius_meters
+
+    def is_luminosity_reasonable(self, luminosity, temperature, spectral_class):
+        """
+        Checks if a luminosity is reasonable for a given temperature and spectral class.
+
+        Args:
+            luminosity (float): The luminosity of the star in solar luminosities.
+            temperature (float): The temperature of the star in Kelvin.
+            spectral_class (str): The spectral class of the star ('O', 'B', 'A', 'F', 'G', 'K', or 'M').
+
+        Returns:
+            bool: True if the luminosity is reasonable, False otherwise.
+        """
+
+        # Convert luminosity to watts (using solar luminosity)
+        luminosity_watts = luminosity * 3.828e26
+
+        # Calculate radius in meters using Stefan-Boltzmann Law
+        radius_meters = self.calculate_stellar_radius(luminosity_watts, temperature)
+
+        # Get allowed radius range for the spectral class
+        min_radius, max_radius = luminosity_ranges[spectral_class]
+
+        # Convert allowed radius range from solar radii to meters
+        min_radius_meters = min_radius * 6.957e8  # 1 solar radius = 6.957e8 meters
+        max_radius_meters = max_radius * 6.957e8
+
+        # Check if calculated radius falls within the allowed range
+        return min_radius_meters <= radius_meters <= max_radius_meters
+
     def generate_star(self, spectral_class=None, temperature=None):
         """
         Generates a random star's properties, optionally taking spectral class
@@ -78,9 +129,12 @@ class Star:
             raise ValueError("Invalid spectral class")
 
         if temperature is None:
-            temperature = random.uniform(*valid_temp_range)
+            temperature = int(round(random.uniform(*valid_temp_range), -2))
         elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
             raise ValueError("Temperature out of range for the given spectral class")
+
+        # Generate the Luminosity
+
 
         # Luminosity-Radius-Temperature Relation & Mass-Luminosity Relation approximations
         luminosity_watts = temperature**4  # Approximate Stefan-Boltzmann law
