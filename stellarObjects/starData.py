@@ -1,6 +1,8 @@
 import math
 import random
 
+STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # W/m²/K⁴
+
 class Star:
     """
     A class representing a star and it's properties.
@@ -73,7 +75,7 @@ class Star:
 
         # Luminosity-Radius-Temperature Relation & Mass-Luminosity Relation approximations
         luminosity = temperature**4  # Approximate Stefan-Boltzmann law
-        radius = math.sqrt(luminosity / temperature**4)  # Approximate L-R-T relation
+        radius = math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature**4))
         mass = luminosity**(1/3.5)    # Approximate Mass-Luminosity Relation
 
         print(temperature, luminosity, radius, mass)
