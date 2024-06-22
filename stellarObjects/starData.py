@@ -81,28 +81,33 @@ class Star:
         radius = math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature**4)) / 1000
         mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG) / 1000 # Approximate Mass-Luminosity Relation
         # Yerkes spectral classification based on luminosity and radius
-        if luminosity > 10000:
-            yerkes_class = "Ia+"
+        if luminosity > 100000:  
+            yerkes_class = "0"         # Hypergiant
+            yerkes_type = "Hypergiant"
+        elif luminosity > 30000: 
+            yerkes_class = "Ia+"       # Luminous Supergiant
             yerkes_type = "Luminous Supergiant"
-        elif luminosity > 1000:
-            yerkes_class = "Ia"
+        elif luminosity > 10000:       
+            yerkes_class = "Ia"        # Supergiant
             yerkes_type = "Supergiant"
-        elif luminosity > 100:
-            yerkes_class = "II"
+        elif luminosity > 1000:
+            yerkes_class = "Ib"         # Less Luminous Supergiant
+            yerkes_type = "Less Luminous Supergiant"
+        elif luminosity > 25:        
+            yerkes_class = "II"        # Bright Giant
             yerkes_type = "Bright Giant"
-        elif luminosity > 10:
-            yerkes_class = "III"
+        elif luminosity > 5:           
+            yerkes_class = "III"       # Giant
             yerkes_type = "Giant"
-        elif luminosity > 1:
-            yerkes_class = "IV"
+        elif luminosity > 1.5:          
+            yerkes_class = "IV"        # Subgiant
             yerkes_type = "Subgiant"
+        elif luminosity > 0.08:        
+            yerkes_class = "V"         # Dwarf (Main Sequence)
+            yerkes_type = "Main Sequence"
         else:
-            if radius > 10:
-                yerkes_class = "V"
-                yerkes_type = "Main Sequence"
-            else:
-                yerkes_class = "VI"
-                yerkes_type = "Subdwarf"
+            yerkes_class = "D"         # White Dwarf
+            yerkes_type = "White Dwarf" 
 
         # Create type string based on spectral class, luminosity class, and color
         color_descriptions = {
