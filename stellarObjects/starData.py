@@ -77,7 +77,7 @@ class Star:
         # Luminosity-Radius-Temperature Relation & Mass-Luminosity Relation approximations
         luminosity = temperature**4  # Approximate Stefan-Boltzmann law
         radius = math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature**4)) / 1000
-        mass = luminosity**(1/3.5) * SOLAR_MASS_TO_KG    # Approximate Mass-Luminosity Relation
+        mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG) / 1000 # Approximate Mass-Luminosity Relation
 
         # Yerkes spectral classification based on luminosity and radius
         if luminosity > 10000:
