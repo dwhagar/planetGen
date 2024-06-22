@@ -40,7 +40,7 @@ class StarSystem:
         inner_limit = INNER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
         outer_limit = OUTER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
 
-        print(self.star.mass / SOLAR_MASS_TO_KG)
+        print(self.star.mass)
 
         self.inner_limit = inner_limit
         self.outer_limit = outer_limit
