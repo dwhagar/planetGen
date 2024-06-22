@@ -39,8 +39,10 @@ class Star:
         luminosity measured as multiples of the sun's luminosity.  Using the Kopparapu et al. (2013)
         model for conservative habitable zone boundaries measured in AU.
         """
-        inner_radius = math.sqrt(self.luminosity / 1.1)  
-        outer_radius = math.sqrt(self.luminosity / 0.53)
+        solar_lum = self.luminosity / SOLAR_LUMINOSITY
+
+        inner_radius = math.sqrt(solar_lum / 1.1)  
+        outer_radius = math.sqrt(solar_lum / 0.53)
         self.habitable_zone = (inner_radius, outer_radius)
 
     def generate_star(self, spectral_class=None, temperature=None):
