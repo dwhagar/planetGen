@@ -2,6 +2,8 @@ import random
 from .planetData import Planet
 from .starData import Star
 
+SOLAR_MASS_TO_KG = 1.989e30
+
 class StarSystem:
     """
     A class representing a star system, containing a central star and a list of planets.
@@ -36,10 +38,8 @@ class StarSystem:
         OUTER_LIMIT_FACTOR = 30.0  # Neptune's distance in AU relative to the Sun's mass
 
         # Calculate inner and outer limits
-        inner_limit = INNER_LIMIT_FACTOR * self.star.mass
-        outer_limit = OUTER_LIMIT_FACTOR * self.star.mass
-
-        print(self.star.mass, inner_limit, outer_limit)
+        inner_limit = INNER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
+        outer_limit = OUTER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
 
         self.inner_limit = inner_limit
         self.outer_limit = outer_limit
