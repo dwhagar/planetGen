@@ -14,6 +14,12 @@ class Star:
         """
         Initializes a Star object with default values or user-provided values.
         """
+        self.luminosity = None
+        self.temperature = None
+        self.mass = None
+        self.radius = None
+        self.type = None
+        self.habitable_zone = None
         self.generate_star(spectral_class=spectral_class, temperature=temperature)
         self.calculate_habitable_zone()
 
@@ -21,15 +27,13 @@ class Star:
         """
         Returns a string representation of the star.
         """
-        output = []
-        output.append("{{Star Data")
-        output.append(f"|type={self.type}")
-        output.append(f"|radius={self.radius} km")
-        output.append(f"|mass={self.mass} kg")
-        output.append(f"|temp={self.temperature} K")
-        output.append(f"|lum={self.luminosity} W")
-        output.append(f"|hab=Between {self.habitable_zone[0]} and {self.habitable_zone[1]} AU")
-        output.append("}}")
+        output = ["{{Star Data", f"|type={self.type}",
+                  f"|radius={self.radius} km",
+                  f"|mass={self.mass} kg",
+                  f"|temp={self.temperature} K",
+                  f"|lum={self.luminosity} W",
+                  f"|hab=Between {self.habitable_zone[0]} and {self.habitable_zone[1]} AU",
+                  "}}"]
 
         return '\n'.join(output)
     
@@ -63,6 +67,7 @@ class Star:
 
         # Validate or generate spectral_class
         if spectral_class is None:
+            # noinspection PyTypeChecker
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
         elif spectral_class not in spectral_probabilities:
             raise ValueError("Invalid spectral class")

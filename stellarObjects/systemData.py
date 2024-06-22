@@ -14,6 +14,8 @@ class StarSystem:
         Initializes a StarSystem object.
         """
 
+        self.outer_limit = None
+        self.inner_limit = None
         self.star = Star()
         self.planets = []
 
@@ -56,8 +58,7 @@ class StarSystem:
 
         total_space = self.outer_limit - self.inner_limit
         total_objects = object_density * total_space
-        print(total_objects)
-        exit()
+
         return int(total_objects)
 
     def estimate_distance(self, normalized_distance):
@@ -76,8 +77,7 @@ class StarSystem:
         """
         Generates a string output for the system data.
         """
-        output = []
-        output.append(str(self.star))
+        output = [str(self.star)]
 
         for planet in self.planets:
             output.append(str(planet))

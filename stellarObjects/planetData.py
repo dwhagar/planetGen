@@ -300,6 +300,14 @@ class Planet:
             radius: The radius of the planet in Earth km.
             planet_class: The classification of the planet.
         """
+        self.gravity = None
+        self.atm_density = None
+        self.surface_temperature = None
+        self.density = None
+        self.atmospheric_pressure = None
+        self.mass = None
+        self.atmosphere = None
+        self.composition = None
         self.radius = radius
         self.planet_class = planet_class
         self.distance = distance
@@ -481,16 +489,15 @@ class Planet:
         """
         Returns the wiki template text for this object.
         """
-        output = []
-        output.append("{{Planet Data")
-        output.append(f"|class={self.planet_class}")
-        output.append(f"|distance={self.distance} AU")
-        output.append(f"|period={self.period} Years")
-        output.append(f"|radius={self.radius * EARTH_RADIUS_KM} km")
-        output.append(f"|gravity={self.gravity} G")
-        output.append("}}")
-        output.append(f"Atmosphereic Conditions are an average of {self.atmospheric_pressure * 100} kPa and an average surface temperature of {self.surface_temperature - 273.15} degrees C.")
-        output.append(self.atmosphere)
-        output.append(self.composition)
+        output = ["{{Planet Data",
+                  f"|class={self.planet_class}",
+                  f"|distance={self.distance} AU",
+                  f"|period={self.period} Years",
+                  f"|radius={self.radius * EARTH_RADIUS_KM} km",
+                  f"|gravity={self.gravity} G",
+                  "}}",
+                  f"Atmosphereic Conditions are an average of {self.atmospheric_pressure * 100} kPa and an average surface temperature of {self.surface_temperature - 273.15} degrees C.",
+                  self.atmosphere,
+                  self.composition]
 
         return '\n'.join(output)
