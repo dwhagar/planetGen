@@ -32,7 +32,6 @@ class StarSystem:
         """
         Estimates the inner and outer bounds of a planetary system based on the star's mass.
         """
-
         # Constants based on our solar system
         INNER_LIMIT_FACTOR = 0.05  # Mercury's distance in AU relative to the Sun's mass
         OUTER_LIMIT_FACTOR = 30.0  # Neptune's distance in AU relative to the Sun's mass
@@ -41,7 +40,7 @@ class StarSystem:
         inner_limit = INNER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
         outer_limit = OUTER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
 
-        print(inner_limit, outer_limit)
+        print(self.star.mass / SOLAR_MASS_TO_KG)
 
         self.inner_limit = inner_limit
         self.outer_limit = outer_limit
