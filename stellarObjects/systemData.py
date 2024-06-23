@@ -42,21 +42,15 @@ class StarSystem:
 
     def estimate_num_objects(self):
         """
-        Estimates the number of objects in a star system based on the star's mass and radius.
-
-        Returns:
-            int: The estimated number of objects in the system.
+        Estimates the number of objects in a star system based on the star's mass.
         """
+        solar_masses = self.star.mass / SOLAR_MASS
+        max_objects = 25 * solar_masses
 
-        # Calculate surface gravity
-        surface_gravity = ((GRAVITATIONAL_CONSTANT * self.star.mass) / ((1000 * self.star.radius) ** 2)) / EARTH_G
+        # Add some randomness for variation
+        num_objects = random.randint(0, math.ceil(max_objects))
 
-        # Estimate number of objects (this is a very simplified model)
-        # The following is a crude approximation based on observations in our solar system
-        # and the assumption that larger, more massive stars can hold more objects
-        num_objects = (surface_gravity / SOLAR_GRAVITY) * 10
-
-        return math.ceil(num_objects)  # Ensure the number of objects is not negative
+        return num_objects
 
     def estimate_distance(self, normalized_distance):
         """

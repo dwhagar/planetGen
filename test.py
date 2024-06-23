@@ -23,8 +23,7 @@ def main():
     earth.composition = "Silicon, Iron, Magnesium"
 
     earth.calculate_surface_gravity()
-    earth.calculate_atmospheric_pressure()
-    earth.calculate_atmospheric_temperature()
+    earth.calculate_atmospheric_conditions()
 
     # Calculate and print Earth's properties
     print(earth)

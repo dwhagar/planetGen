@@ -8,6 +8,7 @@ AU_TO_KM = 1.496e8
 G = 6.6743e-11
 R = 8.314
 BOLTZMANN = 1.381e-23 # in J/K
+STEFAN_BOLTZMANN = 5.67e-8 # in W/m^2 / K^4
 
 planet_density = { # g per cubic centimeter
     "t": (3.93, 5.51), # Range from Mars to Earth
@@ -382,8 +383,7 @@ class Planet:
         self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
         self.period = math.sqrt(self.distance**3)
         self.calculate_surface_gravity()
-        self.calculate_atmospheric_pressure()
-        self.calculate_atmospheric_temperature()
+        self.calculate_atmospheric_conditions()
 
     def generate_planet(self):
         """
@@ -506,45 +506,45 @@ class Planet:
 
         self.gravity = surface_gravity_g
 
-    def calculate_atmospheric_pressure(self):
+    def calculate_atmospheric_conditions(self):
         """
         Calculates the atmospheric conditions of the planet in bars.
         """
-
-        if self.atmosphere == "None":
-            self.atmospheric_pressure = 0.0
-            return  # No atmosphere, no pressure
-
         planet_volume = (4 * math.pi * self.radius ** 3) / 3
-        surface_temperature_low = self.star_temperature * ((self.radius * 1000) / (2 * self.distance * 1000)) ** (1/2)
-        scale_height = (R * surface_temperature_low) / (self.atm_molar_density * self.gravity * EARTH_GRAVITY)
-        atmosphere_volume = (4 * math.pi * (self.radius + scale_height) ** 3) / 3 - planet_volume
-        atmospheric_mass = atmosphere_volume * self.atm_density
-        atmospheric_force = atmospheric_mass * math.pi * (self.gravity * EARTH_GRAVITY) * 10 ** 3 # Measured in Newtons
-        planet_surface_area = 4 * math.pi * self.radius ** 2 # Measured in square kilometers
-        atmospheric_pressure = atmospheric_force / planet_surface_area # Measured in Pascals
-
-        self.atmospheric_pressure = atmospheric_pressure
-
-    def calculate_atmospheric_temperature(self):
-        """
-        Calculates the solar input at the planet's surface in Watts per square meter (W/m²),
-        taking into account atmospheric pressure.
-        """
-        # Calculate solar input without atmosphere (inverse square law)
         orbital_radius_km = self.distance * AU_TO_KM
-        orbital_area = 4 * math.pi * orbital_radius_km ** 2 # in square kilometers
-        SOLAR_CONSTANT = self.star_output / orbital_area # in Watts per square kilometer
-        surface_temperature_low = self.star_temperature * ((self.star_radius * 1000) / (2 * self.distance * 1000)) ** (1/2)
+        output_area = 4 * math.pi * orbital_radius_km ** 2     # Output of the star at orbit in square kilometers
+        # Start using watts per square meter here, as that is what the equations expect.
+        solar_output_at_orbit = (self.star_output / output_area) / 1e6   # in Watts per square meter <----
+        albedo = random.uniform(0.12, 0.35)
+        surface_temperature_no_atmosphere = ((1 - albedo) * solar_output_at_orbit / (4 * STEFAN_BOLTZMANN)) ** (1 / 4)
 
-        # Calculate effective solar input at the surface (adjusted for atmospheric pressure)
+        # Calculate effective solar input at the surface (adjusted for atmospheric pressure)\
         if self.atmosphere == "None":
-            self.surface_temperature = surface_temperature_low # This figure does not require an atmosphere.
+            self.surface_temperature = surface_temperature_no_atmosphere  # This figure does not require an atmosphere.
+            self.atmospheric_pressure = 0.0
         else:
-            # This is a gross, horrible, and completely unscientific way to come up with this.  It is not based
-            # in fact in any meaningful way but does produce good numbers.
-            surface_temperature_high = ((SOLAR_CONSTANT * 10 ** -6) / 5.67e-08) ** (1/4)
-            self.surface_temperature = (surface_temperature_low + surface_temperature_high) / 2.3
+            # Calculate the Pressure
+            scale_height = \
+                (R * surface_temperature_no_atmosphere) / (self.atm_molar_density * self.gravity * EARTH_GRAVITY)
+            atmosphere_thickness = scale_height * random.uniform(5, 7)
+
+            atmosphere_volume = (4 * math.pi * (self.radius + atmosphere_thickness) ** 3) / 3 - planet_volume
+            atmospheric_mass = atmosphere_volume * self.atm_density
+            atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)  # Force in Newtons (N)
+            planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2  # Surface area in square meters (m^2)
+            atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7600  # Pressure in Pascals (Pa)
+
+            # Assuming a linear relationship between CO₂ abundance and greenhouse effect
+            CO2_BASE_MOLAR_DENSITY = 0.04345  # kg/mol (approximate for Mars)
+            CO2_MAX_GREENHOUSE_FACTOR = 5  # Venus's greenhouse factor is much higher than Earth's
+
+            greenhouse_factor =\
+                abs((self.atm_molar_density - CO2_BASE_MOLAR_DENSITY) / CO2_BASE_MOLAR_DENSITY * CO2_MAX_GREENHOUSE_FACTOR)
+            surface_temperature_atmosphere =\
+                ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * STEFAN_BOLTZMANN)) ** (1 / 4)
+
+            self.surface_temperature = surface_temperature_atmosphere
+            self.atmospheric_pressure = atmospheric_pressure
 
     def __str__(self):
         """
@@ -563,7 +563,7 @@ class Planet:
         # Check if atmosphere exists before adding information
         if self.atmosphere != "None":
             output.append(
-                f"Atmospheric Conditions are an average of {self.atmospheric_pressure * 100:.1f} kPa and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                f"Atmospheric Conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101.325:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
             output.append(self.atmosphere)
         else:
             output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
