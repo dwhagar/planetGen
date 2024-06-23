@@ -37,7 +37,7 @@ class StarSystem:
                     max_distance = round(estimated_distance * 1.21, 3)
                     self.planets.append(f"An asteroid belt orbits roughly between {min_distance} AU and {max_distance} AU.")
                 else:
-                    planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius)
+                    planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius, self.star.temperature)
                     self.planets.append(planet)
 
     def estimate_num_objects(self):

@@ -127,7 +127,7 @@ class Star:
         """
 
         # Convert luminosity to watts (using solar luminosity)
-        luminosity_watts = luminosity * 3.828e26
+        luminosity_watts = luminosity * SOLAR_LUMINOSITY
 
         # Calculate radius in meters using Stefan-Boltzmann Law
         radius_meters = self.calculate_stellar_radius(luminosity_watts, temperature)
@@ -186,7 +186,7 @@ class Star:
 
         luminosity_watts = luminosity * SOLAR_LUMINOSITY
         radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
-        mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG) / 1000 # Approximate Mass-Luminosity Relation
+        mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG) # Approximate Mass-Luminosity Relation
 
         # Yerkes spectral classification based on luminosity and radius
         if luminosity > 100000:  
