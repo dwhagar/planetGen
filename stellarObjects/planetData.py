@@ -1,11 +1,13 @@
 import math
 import random
+from .starData import to_scientific_notation
 
 EARTH_RADIUS_KM = 6371
 SOLAR_CONSTANT = 1361  # W/m²
 AU_TO_KM = 1.496e8
 # Gravitational constant in m^3/kg/s^2
 G = 6.6743e-11
+R = 8.31
 
 planet_density = { # g per cubic centimeter
     "t": (3.93, 5.51), # Range from Mars to Earth
@@ -285,6 +287,37 @@ planet_classes = {
     }
 }
 
+def years_to_time_string(years):
+    """
+    Converts a decimal number of years into a human-readable string
+    like "x years y days z hours m minutes" (omitting any components with zero values).
+    """
+    total_minutes = round(years * 365.25 * 24 * 60)  # Approximate total minutes in a year
+
+    # Calculate individual time components
+    years = total_minutes // (365 * 24 * 60)
+    remaining_minutes = total_minutes % (365 * 24 * 60)
+    days = remaining_minutes // (24 * 60)
+    remaining_minutes %= 24 * 60
+    hours = remaining_minutes // 60
+    minutes = remaining_minutes % 60
+
+    time_parts = []
+    if years > 0:
+        time_parts.append(f"{years} year{'s' if years > 1 else ''}")
+    if days > 0:
+        time_parts.append(f"{days} day{'s' if days > 1 else ''}")
+    if hours > 0:
+        time_parts.append(f"{hours} hour{'s' if hours > 1 else ''}")
+    if minutes > 0:
+        time_parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
+
+    # Join the non-zero time parts with "and"
+    if len(time_parts) > 1:
+        time_parts[-1] = f"and {time_parts[-1]}"
+
+    return " ".join(time_parts)
+
 class Planet:
     """
     A Class representing a single planet and all of it's properties.
@@ -300,6 +333,7 @@ class Planet:
             radius: The radius of the planet in Earth km.
             planet_class: The classification of the planet.
         """
+        self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
         self.surface_temperature = None
@@ -352,7 +386,7 @@ class Planet:
 
             # Generate random radius within the allowed range for the chosen class
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
-            self.radius = random.uniform(min_radius, max_radius) / EARTH_RADIUS_KM # convert km radius to Earth radii
+            self.radius = random.uniform(min_radius, max_radius)
 
         # If planet_class is present but radius is None, generate radius based on class
         elif self.planet_class is not None and self.radius is None:
@@ -362,14 +396,14 @@ class Planet:
 
             # Generate random radius within the allowed range for the chosen class
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
-            self.radius = random.uniform(min_radius, max_radius) / EARTH_RADIUS_KM
+            self.radius = random.uniform(min_radius, max_radius)
 
         # If radius is present but planet_class is None, determine possible classes and choose randomly
         elif self.planet_class is None and self.radius is not None:
             # Filter possible planet classes based on zone and radius
             possible_classes = [
                 c for c, data in planet_classes.items()
-                if data[zone] and data["radius_range"][0] <= self.radius * EARTH_RADIUS_KM <= data["radius_range"][1]
+                if data[zone] and data["radius_range"][0] <= self.radius <= data["radius_range"][1]
             ]
 
             if not possible_classes:
@@ -386,10 +420,8 @@ class Planet:
 
             # Validate radius
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
-            if not (min_radius <= self.radius * EARTH_RADIUS_KM <= max_radius):
+            if not (min_radius <= self.radius <= max_radius):
                 raise ValueError("Radius out of range for the given planet class")
-
-        self.radius = self.radius * EARTH_RADIUS_KM
 
         # Get the properties for the chosen planet class
         class_data = planet_classes[self.planet_class]
@@ -407,19 +439,18 @@ class Planet:
         # Handle atmosphere (set to "None" if it's None in class_data)
         if class_data["atmosphere"] is None:
             self.atmosphere = "None"
-            a_density = 0.0  # No atmosphere, density is 0
         else:
             self.atmosphere = class_data["atmosphere"]
-
             # Approximate atmospheric density based on planet type (This can be refined later)
             min_a_density, max_a_density = atmosphere_density[planet_type]
-            a_density = random.uniform(min_a_density, max_a_density)
+            self.atm_density = random.uniform(min_a_density, max_a_density)
+            min_am_density, max_am_density = atmospheric_molar_density[planet_type]
+            self.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
         # Recalculate mass based on the new density
         self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
         self.mass = self.volume * p_density * (10**-12)  # Update mass calculation
         self.density = p_density
-        self.atm_density = a_density
 
     def calculate_surface_gravity(self):
         """
@@ -448,9 +479,9 @@ class Planet:
         orbital_area = 4 * math.pi * orbital_radius_km**2
 
         # Calculate atmospheric mass (in kilograms) using scale height (approximate for simplicity)
-        scale_height = 8.5  # Approximate scale height for Earth-like atmospheres (km)
-        atmosphere_radius_km = self.radius + scale_height
-        atmosphere_volume = (4/3) * math.pi * atmosphere_radius_km**3
+        solar_input_no_atm = SOLAR_CONSTANT * (1 / self.distance ** 2)
+        scale_height = (R * solar_input_no_atm * 1000) / (self.atm_molar_density * self.gravity * 9.81)
+        atmosphere_volume = (4/3) * math.pi * scale_height**3
         planet_volume = (4/3) * math.pi * self.radius**3
         atm_mass_kg = (atmosphere_volume - planet_volume) * self.atm_density * 10**9  # Convert density to kg/km^3
 
@@ -489,15 +520,25 @@ class Planet:
         """
         Returns the wiki template text for this object.
         """
-        output = ["{{Planet Data",
-                  f"|class={self.planet_class}",
-                  f"|distance={self.distance} AU",
-                  f"|period={self.period} Years",
-                  f"|radius={self.radius * EARTH_RADIUS_KM} km",
-                  f"|gravity={self.gravity} G",
-                  "}}",
-                  f"Atmosphereic Conditions are an average of {self.atmospheric_pressure * 100} kPa and an average surface temperature of {self.surface_temperature - 273.15} degrees C.",
-                  self.atmosphere,
-                  self.composition]
+        output = [
+            "{{Planet Data",
+            f"|class={self.planet_class}",
+            f"|distance={round(self.distance, 3)} AU",
+            f"|period={years_to_time_string(self.period)}",
+            f"|radius={round(self.radius, 1)} km",
+            f"|gravity={round(self.gravity, 2)} G",
+            "}}",
+        ]
+
+        # Check if atmosphere exists before adding information
+        if self.atmosphere != "None":
+            output.append(
+                f"Atmospheric Conditions are an average of {self.atmospheric_pressure * 100:.1f} kPa and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            output.append(self.atmosphere)
+        else:
+            output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+
+        if not output[-1] == self.composition:
+            output.append(self.composition)
 
         return '\n'.join(output)

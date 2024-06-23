@@ -15,6 +15,34 @@ luminosity_ranges = {
     'M': (0.00008, 0.08)
 }
 
+temp_ranges = {
+    'O': (30000, 60000),
+    'B': (10000, 30000),
+    'A': (7500, 10000),
+    'F': (6000, 7500),
+    'G': (5200, 6000),
+    'K': (3700, 5200),
+    'M': (2400, 3700)
+}
+
+def to_scientific_notation(number, precision=2):
+    """
+    Converts a number to scientific notation with the specified precision.
+
+    Args:
+        number (float): The number to convert.
+        precision (int, optional): The number of decimal places to show. Defaults to 2.
+
+    Returns:
+        str: The number in scientific notation (e.g., "1.23e+04").
+    """
+    if number == 0:
+        return "0"
+    exponent = int(math.floor(math.log10(abs(number))))
+    coefficient = number / 10**exponent
+    output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
+    return "{{" + output + "}}"
+
 class Star:
     """
     A class representing a star and it's properties.
@@ -37,12 +65,26 @@ class Star:
         """
         Returns a string representation of the star.
         """
+        if round(self.habitable_zone[0], 2) == round(self.habitable_zone[1], 2):
+            hab_lower = str(round(self.habitable_zone[0], 5))
+            hab_upper = str(round(self.habitable_zone[1], 5))
+        else:
+            if self.habitable_zone[0] < 0.01:
+                hab_lower = str(round(self.habitable_zone[0], 5))
+            else:
+                hab_lower = str(round(self.habitable_zone[0], 2))
+
+            if self.habitable_zone[1] < 0.01:
+                hab_upper = str(round(self.habitable_zone[1], 5))
+            else:
+                hab_upper = str(round(self.habitable_zone[1], 2))
+
         output = ["{{Star Data", f"|type={self.type}",
-                  f"|radius={self.radius} km",
-                  f"|mass={self.mass} kg",
+                  f"|radius={round(self.radius, 2)} km",
+                  f"|mass={to_scientific_notation(self.mass)} kg",
                   f"|temp={self.temperature} K",
-                  f"|lum={self.luminosity} W",
-                  f"|hab=Between {self.habitable_zone[0]} and {self.habitable_zone[1]} AU",
+                  f"|lum={to_scientific_notation(self.luminosity)} W",
+                  f"|hab=Between {hab_lower} and {hab_upper} AU",
                   "}}"]
 
         return '\n'.join(output)
@@ -110,12 +152,6 @@ class Star:
             'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45
         }
 
-        # Temperature range based on spectral class (Kelvin)
-        temp_ranges = {
-            'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000),
-            'F': (6000, 7500), 'G': (5200, 6000), 'K': (3700, 5200), 'M': (2400, 3700)
-        }
-
         # Validate or generate spectral_class
         if spectral_class is None:
             # noinspection PyTypeChecker
@@ -123,24 +159,35 @@ class Star:
         elif spectral_class not in spectral_probabilities:
             raise ValueError("Invalid spectral class")
 
-        # Validate or generate temperature
-        valid_temp_range = temp_ranges.get(spectral_class)
-        if valid_temp_range is None:
-            raise ValueError("Invalid spectral class")
+        luminosity = 0
+        luminosity_temp_valid = False
+        while not luminosity_temp_valid:
+            # Validate or generate temperature
+            valid_temp_range = temp_ranges.get(spectral_class)
+            if valid_temp_range is None:
+                raise ValueError("Invalid spectral class")
 
-        if temperature is None:
-            temperature = int(round(random.uniform(*valid_temp_range), -2))
-        elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
-            raise ValueError("Temperature out of range for the given spectral class")
+            if temperature is None:
+                temperature = int(round(random.uniform(*valid_temp_range), -2))
+            elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
+                raise ValueError("Temperature out of range for the given spectral class")
 
-        # Generate the Luminosity
+            # Generate the Luminosity
+            min_luminosity, max_luminosity = luminosity_ranges[spectral_class]
+            luminosity = random.uniform(min_luminosity, max_luminosity)
 
+            # Validate Luminosity and Temperature
+            luminosity_temp_valid = self.is_luminosity_reasonable(luminosity, temperature, spectral_class)
 
-        # Luminosity-Radius-Temperature Relation & Mass-Luminosity Relation approximations
-        luminosity_watts = temperature**4  # Approximate Stefan-Boltzmann law
-        luminosity = luminosity_watts / SOLAR_LUMINOSITY
-        radius = math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature**4)) / 1000
+        # Calculate spectral subclass (0-9) based on temperature
+        min_temp, max_temp = temp_ranges[spectral_class]
+        temp_range_size = max_temp - min_temp
+        subclass = 9 - round((temperature - min_temp) / temp_range_size * 9)  # Inverted scale (0 is hottest)
+
+        luminosity_watts = luminosity * SOLAR_LUMINOSITY
+        radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
         mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG) / 1000 # Approximate Mass-Luminosity Relation
+
         # Yerkes spectral classification based on luminosity and radius
         if luminosity > 100000:  
             yerkes_class = "0"         # Hypergiant
@@ -175,7 +222,7 @@ class Star:
             'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 
             'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'
         }
-        star_type = f"{spectral_class}{yerkes_class} {color_descriptions[spectral_class]} "
+        star_type = f"{spectral_class}{subclass}{yerkes_class} {color_descriptions[spectral_class]} "
         star_type += yerkes_type + " Star"
 
         # Set the star's properties

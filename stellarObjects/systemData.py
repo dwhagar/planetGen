@@ -1,8 +1,13 @@
 import random
+import math
 from .planetData import Planet
 from .starData import Star
 
-SOLAR_MASS_TO_KG = 1.989e30
+SOLAR_MASS = 1.989e30  # kg
+SOLAR_RADIUS = 6.9634e8  # m
+SOLAR_GRAVITY = 28 # g's
+GRAVITATIONAL_CONSTANT = 6.674e-11  # N(m/kg)^2
+EARTH_G = 9.80665 # m/s^2
 
 class StarSystem:
     """
@@ -18,48 +23,40 @@ class StarSystem:
         self.inner_limit = None
         self.star = Star()
         self.planets = []
+        system_objects = self.estimate_num_objects()
 
-        self.system_bounds()
-        system_objects = self.define_system_size()
+        if system_objects > 0:
+            for i in range(system_objects):
+                # 1 in 10 chance of an asteroid belt
+                normalized_distance = i / system_objects
+                estimated_distance = self.estimate_distance(normalized_distance)
+                estimated_distance *= random.uniform(0.5, 2.0)
 
-        for i in range(system_objects):
-            normalized_distance = i / (system_objects - 1)  # Calculate normalized distance
-            estimated_distance = self.estimate_distance(normalized_distance)
-            estimated_distance *= random.uniform(0.5, 2.0)  # Random multiplier for variation
+                if random.random() < 0.1:
+                    min_distance = round(estimated_distance * 0.79, 3)
+                    max_distance = round(estimated_distance * 1.21, 3)
+                    self.planets.append(f"Asteroid Belt between {min_distance} AU and {max_distance} AU")
+                else:
+                    planet = Planet(self.star.habitable_zone, estimated_distance)
+                    self.planets.append(planet)
 
-            planet = Planet(self.star.habitable_zone, estimated_distance)
-            self.planets.append(planet)
-
-    def system_bounds(self):
+    def estimate_num_objects(self):
         """
-        Estimates the inner and outer bounds of a planetary system based on the star's mass.
+        Estimates the number of objects in a star system based on the star's mass and radius.
+
+        Returns:
+            int: The estimated number of objects in the system.
         """
-        # Constants based on our solar system
-        INNER_LIMIT_FACTOR = 0.05  # Mercury's distance in AU relative to the Sun's mass
-        OUTER_LIMIT_FACTOR = 30.0  # Neptune's distance in AU relative to the Sun's mass
 
-        # Calculate inner and outer limits
-        inner_limit = INNER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
-        outer_limit = OUTER_LIMIT_FACTOR * (self.star.mass / SOLAR_MASS_TO_KG)
+        # Calculate surface gravity
+        surface_gravity = ((GRAVITATIONAL_CONSTANT * self.star.mass) / ((1000 * self.star.radius) ** 2)) / EARTH_G
 
-        print(self.star)
+        # Estimate number of objects (this is a very simplified model)
+        # The following is a crude approximation based on observations in our solar system
+        # and the assumption that larger, more massive stars can hold more objects
+        num_objects = (surface_gravity / SOLAR_GRAVITY) * 10
 
-        self.inner_limit = inner_limit
-        self.outer_limit = outer_limit
-
-    def define_system_size(self):
-        """
-        Based on size of the system in AU's, it generates the size of the system by number of
-        stellar objects.
-        """
-        # Density of stellar objects within our solar system as a function of AU per object
-        # a random factor is included to make it less predictable.
-        object_density = (9 / 30) * random.uniform(0.5, 2.0)
-
-        total_space = self.outer_limit - self.inner_limit
-        total_objects = object_density * total_space
-
-        return int(total_objects)
+        return math.ceil(num_objects)  # Ensure the number of objects is not negative
 
     def estimate_distance(self, normalized_distance):
         """
@@ -79,7 +76,10 @@ class StarSystem:
         """
         output = [str(self.star)]
 
-        for planet in self.planets:
-            output.append(str(planet))
+        if len(self.planets) > 0:
+            for planet in self.planets:
+                output.append(str(planet))
+        else:
+            output.append("There are no planets or asteroid belts in this system.")
         
         return '\n'.join(output)
