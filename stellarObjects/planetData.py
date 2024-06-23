@@ -1,21 +1,19 @@
 import math
 import random
-from .starData import to_scientific_notation
 
 EARTH_RADIUS_KM = 6371
-SOLAR_CONSTANT = 1361  # W/m²
 AU_TO_KM = 1.496e8
 # Gravitational constant in m^3/kg/s^2
 G = 6.6743e-11
-R = 8.31
+R = 8.314
 
 planet_density = { # g per cubic centimeter
-    "t": (3.93, 5.51), # Range from Mars to Earth
-    "g": (0.69, 1.64)    # Range from Saturn to Neptune
+    "t": (3930, 5510), # Range from Mars to Earth
+    "g": (690, 1640)  # Range from Saturn to Neptune
 }
 
 atmosphere_density = { # kg per cubic meter
-    "t": (0.020, 67),  # Range from Mars to Venus (kg/m³)
+    "t": (0.020, 67),    # Range from Mars to Venus (kg/m³)
     "g": (0.69, 1.33),   # Approximate range using Jupiter and Saturn's overall densities
 }
 
@@ -23,6 +21,8 @@ atmospheric_molar_density = { # kg per mol
     "t": (0.02897, 0.04347),  # Range from Earth to Venus (kg/mol)
     "g": (0.00226, 0.00416),   # Range from Jupiter to Neptune (kg/mol)
 }
+
+gas_giant_core_atmosphere_ratio = (0.03, 0.6) # average ratio of core to atmosphere
 
 planet_classes = {
     "A": {
@@ -287,6 +287,35 @@ planet_classes = {
     }
 }
 
+planet_class_probabilities = {
+    'A': 0.15,
+    'B': 0.08,
+    'C': 0.25,
+    'D': 0.02,
+    'E': 0.03,
+    'F': 0.04,
+    'G': 0.05,
+    'H': 0.10,
+    'I': 0.08,
+    'J': 0.06,
+    'K': 0.02,
+    'L': 0.02,
+    'M': 0.05,
+    'N': 0.03,
+    'O': 0.01,
+    'P': 0.01,
+    'Q': 0.001,
+    'R': 0.001,
+    'S': 0.001,
+    'T': 0.001,
+    'U': 0.001,
+    'V': 0.01,
+    'W': 0.001,
+    'X': 0.001,
+    'Z': 0.001,
+    'Y': 0.15,
+}
+
 def years_to_time_string(years):
     """
     Converts a decimal number of years into a human-readable string
@@ -323,7 +352,7 @@ class Planet:
     A Class representing a single planet and all of it's properties.
     """
 
-    def __init__(self, hab_zone, distance, radius=None, planet_class=None):
+    def __init__(self, hab_zone, distance, star_output, star_radius, radius=None, planet_class=None):
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
 
@@ -333,6 +362,8 @@ class Planet:
             radius: The radius of the planet in Earth km.
             planet_class: The classification of the planet.
         """
+        self.star_radius = star_radius * 1000 # in meters
+        self.star_output = star_output # in Watts
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
@@ -377,12 +408,19 @@ class Planet:
         # If planet_class and radius are None, generate them randomly
         if self.planet_class is None and self.radius is None:
             # Filter possible planet classes based on zone
-            possible_classes = [
+            valid_classes = [
                 c for c, data in planet_classes.items() if data[zone]
             ]
 
             # Choose a random planet class
-            self.planet_class = random.choice(possible_classes)
+            classes = list(planet_class_probabilities.keys())
+            probabilities = list(planet_class_probabilities.values())
+            class_valid = False
+            while not class_valid:
+                class_choice = random.choices(classes, weights=probabilities, k=1)[0]
+                if class_choice in valid_classes:
+                    self.planet_class = class_choice
+                    class_valid = True
 
             # Generate random radius within the allowed range for the chosen class
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
@@ -441,15 +479,21 @@ class Planet:
             self.atmosphere = "None"
         else:
             self.atmosphere = class_data["atmosphere"]
+
             # Approximate atmospheric density based on planet type (This can be refined later)
             min_a_density, max_a_density = atmosphere_density[planet_type]
             self.atm_density = random.uniform(min_a_density, max_a_density)
             min_am_density, max_am_density = atmospheric_molar_density[planet_type]
             self.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
+            gas_giant_classes = ["I", "J", "S", "T", "U"]
+            if self.planet_class in gas_giant_classes:
+                core_to_atmosphere_ratio = random.uniform(*gas_giant_core_atmosphere_ratio)
+                p_density = p_density * core_to_atmosphere_ratio + (core_to_atmosphere_ratio - 1) * (self.atm_density / 1000)
+
         # Recalculate mass based on the new density
-        self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
-        self.mass = self.volume * p_density * (10**-12)  # Update mass calculation
+        self.volume = (4/3) * math.pi * (self.radius * 1000) ** 3  # Calculate volume in m^3
+        self.mass = self.volume * p_density  # Update mass calculation
         self.density = p_density
 
     def calculate_surface_gravity(self):
@@ -460,7 +504,7 @@ class Planet:
         radius_meters = self.radius * 1000
 
         # Calculate surface gravity using Newton's law of universal gravitation
-        surface_gravity = (G * self.mass * 5.972e24) / (radius_meters ** 2)
+        surface_gravity = (G * self.mass) / (radius_meters ** 2)
         surface_gravity_g = surface_gravity / 9.80665  # Convert to g's
 
         self.gravity = surface_gravity_g
@@ -477,10 +521,11 @@ class Planet:
         # Calculate the orbital area (in square kilometers)
         orbital_radius_km = self.distance * AU_TO_KM
         orbital_area = 4 * math.pi * orbital_radius_km**2
+        SOLAR_CONSTANT = self.star_output / (4 * math.pi * (self.radius * 1000) ** 2)
 
         # Calculate atmospheric mass (in kilograms) using scale height (approximate for simplicity)
         solar_input_no_atm = SOLAR_CONSTANT * (1 / self.distance ** 2)
-        scale_height = (R * solar_input_no_atm * 1000) / (self.atm_molar_density * self.gravity * 9.81)
+        scale_height = (R * solar_input_no_atm) / (self.atm_molar_density * self.gravity * 9.81)
         atmosphere_volume = (4/3) * math.pi * scale_height**3
         planet_volume = (4/3) * math.pi * self.radius**3
         atm_mass_kg = (atmosphere_volume - planet_volume) * self.atm_density * 10**9  # Convert density to kg/km^3
@@ -497,7 +542,8 @@ class Planet:
         taking into account atmospheric pressure.
         """
         # Calculate solar input without atmosphere (inverse square law)
-        solar_input_no_atm = SOLAR_CONSTANT * (1 / self.distance**2)
+        SOLAR_CONSTANT = self.star_output / (4 * math.pi * (self.radius * 1000) ** 2)
+        solar_input_no_atm = SOLAR_CONSTANT * (1 / (self.distance * AU_TO_KM) ** 2)
 
         # Calculate effective solar input at the surface (adjusted for atmospheric pressure)
         if self.atmosphere == "None":
@@ -512,7 +558,7 @@ class Planet:
             solar_input = solar_input_no_atm * attenuation_factor
 
         # Calculate surface radiation in W/m^2 adjusted for atmospheric pressure
-        surface_temperature = (solar_input / (5.67e-8))**(1/4)
+        surface_temperature = (solar_input / 5.67e-8)**(1/4)
 
         self.surface_temperature = surface_temperature
 
