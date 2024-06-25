@@ -85,8 +85,7 @@ class Star:
                   f"|temp={self.temperature} K",
                   f"|lum={to_scientific_notation(self.luminosity)} W",
                   f"|hab=Between {hab_lower} and {hab_upper} AU",
-                  "}}"]
-
+                  "}}\n"]
         return '\n'.join(output)
     
     def calculate_habitable_zone(self):

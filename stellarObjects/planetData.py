@@ -583,4 +583,6 @@ class Planet:
         if not output[-1] == self.composition:
             output.append(self.composition)
 
+        output.append('\n')
+
         return '\n'.join(output)
