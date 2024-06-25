@@ -24,13 +24,13 @@ class StarSystem:
         self.star = Star()
         self.planets = []
         system_objects = self.estimate_num_objects()
+        star_factor = self.star.mass / SOLAR_MASS
 
         if system_objects > 0:
             for i in range(system_objects):
                 # 1 in 10 chance of an asteroid belt
                 normalized_distance = i / system_objects
-                estimated_distance = self.estimate_distance(normalized_distance)
-                estimated_distance *= random.uniform(0.5, 2.0)
+                estimated_distance =  0.72 * math.exp(0.18 * normalized_distance) * star_factor
 
                 if random.random() < 0.1:
                     min_distance = round(estimated_distance * 0.79, 3)
@@ -51,18 +51,6 @@ class StarSystem:
         num_objects = random.randint(0, math.ceil(max_objects))
 
         return num_objects
-
-    def estimate_distance(self, normalized_distance):
-        """
-        Estimates a planet's distance from the Sun based on a normalized distance.
-
-        Args:
-            normalized_distance (float): A value between 0 inner-most planet and 1 outer-most planet.
-
-        Returns:
-            float: The estimated distance from the main star in AU.
-        """
-        return 0.35 * 1.11**normalized_distance
     
     def __str__(self):
         """

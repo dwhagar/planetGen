@@ -215,7 +215,7 @@ class Star:
             yerkes_type = "Main Sequence"
         else:
             yerkes_class = "D"         # White Dwarf
-            yerkes_type = "White Dwarf" 
+            yerkes_type = "Dwarf"
 
         # Create type string based on spectral class, luminosity class, and color
         color_descriptions = {

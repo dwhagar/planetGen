@@ -273,8 +273,8 @@ planet_classes = {
         "composition": "Silicates, metals",
         "radius_range": (3000, 5000), 
         "h": True,
-        "e": True,
-        "c": True,
+        "e": False,
+        "c": False,
         "atmosphere": "Usually thin or absent",
         "type": "t"
     },
@@ -291,32 +291,32 @@ planet_classes = {
 }
 
 planet_class_probabilities = {
-    'A': 0.15,
-    'B': 0.08,
-    'C': 0.25,
-    'D': 0.02,
-    'E': 0.03,
-    'F': 0.04,
-    'G': 0.05,
-    'H': 0.10,
-    'I': 0.08,
-    'J': 0.06,
-    'K': 0.02,
-    'L': 0.02,
-    'M': 0.05,
-    'N': 0.03,
-    'O': 0.01,
-    'P': 0.01,
-    'Q': 0.001,
-    'R': 0.001,
-    'S': 0.001,
-    'T': 0.001,
-    'U': 0.001,
-    'V': 0.01,
-    'W': 0.001,
-    'X': 0.001,
-    'Z': 0.001,
-    'Y': 0.15,
+    'A': 0.1399,
+    'B': 0.0722,
+    'C': 0.2365,
+    'D': 0.0142,
+    'E': 0.0239,
+    'F': 0.0335,
+    'G': 0.0432,
+    'H': 0.0915,
+    'I': 0.0722,
+    'J': 0.0529,
+    'K': 0.0142,
+    'L': 0.0335,
+    'M': 0.0915,
+    'N': 0.0239,
+    'O': 0.0045,
+    'P': 0.0045,
+    'Q': 0.0001,
+    'R': 0.0001,
+    'S': 0.0001,
+    'T': 0.0001,
+    'U': 0.0001,
+    'V': 0.0045,
+    'W': 0.0001,
+    'X': 0.0001,
+    'Z': 0.0001,
+    'Y': 0.0432,
 }
 
 def years_to_time_string(years):
@@ -490,7 +490,7 @@ class Planet:
 
         # Recalculate mass based on the new density
         self.volume = (4/3) * math.pi * (self.radius * 1000) ** 3  # Calculate volume in m^3
-        self.mass = self.volume * p_density  # Update mass calculation
+        self.mass = self.volume * p_density * 1000 # Update mass calculation
         self.density = p_density
 
     def calculate_surface_gravity(self):
@@ -502,7 +502,10 @@ class Planet:
 
         # Calculate surface gravity using Newton's law of universal gravitation
         surface_gravity = (G * self.mass) / (radius_meters ** 2)
-        surface_gravity_g = surface_gravity / 9.80665  # Convert to g's
+        surface_gravity_g = surface_gravity / EARTH_GRAVITY  # Convert to g's
+
+        if surface_gravity_g <= 0:
+            raise ValueError('Invalid value for gravity.')
 
         self.gravity = surface_gravity_g
 
@@ -526,13 +529,25 @@ class Planet:
             # Calculate the Pressure
             scale_height = \
                 (R * surface_temperature_no_atmosphere) / (self.atm_molar_density * self.gravity * EARTH_GRAVITY)
-            atmosphere_thickness = scale_height * random.uniform(5, 7)
+            scale_factor = random.uniform(5, 7) # How many scale heights to calculate for
 
+            atmosphere_thickness = scale_height * random.uniform(5, 7)
             atmosphere_volume = (4 * math.pi * (self.radius + atmosphere_thickness) ** 3) / 3 - planet_volume
-            atmospheric_mass = atmosphere_volume * self.atm_density
+
+            atmospheric_mass = 0
+            for zone in range(round(scale_factor)):
+                zone_volume = atmosphere_volume + planet_volume - (4 * math.pi * (self.radius + (zone * scale_height)) ** 3) / 3
+                if zone < 1:
+                    zone_density = self.atm_density
+                else:
+                    zone_density = self.atm_density / (zone * 2.7)
+                atmospheric_mass += zone_volume * zone_density
             atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)  # Force in Newtons (N)
+
             planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2  # Surface area in square meters (m^2)
-            atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7600  # Pressure in Pascals (Pa)
+
+            # TODO: I'm almost positive most of my errors are coming from this right here.  No idea why.
+            atmospheric_pressure = (atmospheric_force / planet_surface_area) * 5000  # Pressure in Pascals (Pa)
 
             # Assuming a linear relationship between CO₂ abundance and greenhouse effect
             CO2_BASE_MOLAR_DENSITY = 0.04345  # kg/mol (approximate for Mars)
@@ -563,7 +578,7 @@ class Planet:
         # Check if atmosphere exists before adding information
         if self.atmosphere != "None":
             output.append(
-                f"Atmospheric Conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101.325:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                f"Atmospheric Conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
             output.append(self.atmosphere)
         else:
             output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
