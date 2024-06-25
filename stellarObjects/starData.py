@@ -81,11 +81,11 @@ class Star:
 
         output = ["{{Star Data", f"|type={self.type}",
                   f"|radius={round(self.radius, 2)} km",
-                  f"|mass={to_scientific_notation(self.mass)} kg",
+                  f"|mass={to_scientific_notation(self.mass)} kg ({round(self.mass / SOLAR_MASS_TO_KG * 100, 1)}% of Sol)",
                   f"|temp={self.temperature} K",
-                  f"|lum={to_scientific_notation(self.luminosity)} W",
+                  f"|lum={to_scientific_notation(self.luminosity)} W ({round(self.luminosity / SOLAR_LUMINOSITY * 100, 1)}% of Sol)",
                   f"|hab=Between {hab_lower} and {hab_upper} AU",
-                  "}}\n"]
+                  "}}"]
         return '\n'.join(output)
     
     def calculate_habitable_zone(self):

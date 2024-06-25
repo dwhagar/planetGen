@@ -359,6 +359,7 @@ class Planet:
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
         """
+        self.description = None
         self.star_radius = star_radius * 1000 # in meters
         self.star_output = star_output # in Watts
         self.star_temperature = star_temperature # in Kelvin
@@ -465,6 +466,7 @@ class Planet:
 
         # Update planet properties based on class data
         self.composition = class_data["composition"]
+        self.description = class_data["description"]
 
         # Determine planet type (Terrestrial or Gas Giant) based on class data
         planet_type = class_data["type"]  # Assuming the planet type is "t" or "g" in class_data
@@ -552,9 +554,9 @@ class Planet:
                 atmospheric_mass += zone_volume * zone_density
             atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)  # Force in Newtons (N)
             planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2  # Surface area in square meters (m^2)
-            atmospheric_pressure = (atmospheric_force / planet_surface_area) * 5000  # Pressure in Pascals (Pa)
+            atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500  # Pressure in Pascals (Pa)
 
-            # Assuming a linear relationship between CO₂ abundance and greenhouse effect
+            # Assuming a linear relationship between CO₂ abundance and greenhoused it effect
             CO2_BASE_MOLAR_DENSITY = 0.04345  # kg/mol (approximate for Mars)
             CO2_MAX_GREENHOUSE_FACTOR = 5  # Venus's greenhouse factor is much higher than Earth's
 
@@ -589,12 +591,12 @@ class Planet:
             else:
                 output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
         else:
-            output.append(f"Internal of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-            output.append(f"The atmosphere drops by half or as high as a third for every {self.scale_height / 1000:.1f} km from the surface.")
+            output.append(f"Internal conditions of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            output.append(f"The atmospheric pressure drops by half or as even a third for every {self.scale_height / 1000:.1f} km from the core.")
+
+        output.append(self.description)
 
         if not output[-1] == self.composition:
             output.append(self.composition)
-
-        output.append('\n')
 
         return '\n'.join(output)

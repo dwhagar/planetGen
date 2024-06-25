@@ -33,9 +33,9 @@ class StarSystem:
                 estimated_distance =  0.72 * math.exp(0.18 * normalized_distance) * star_factor
 
                 if random.random() < 0.1:
-                    min_distance = round(estimated_distance * 0.79, 3)
-                    max_distance = round(estimated_distance * 1.21, 3)
-                    self.planets.append(f"An asteroid belt orbits roughly between {min_distance} AU and {max_distance} AU.")
+                    min_distance = round(estimated_distance * star_factor * 0.99, 3)
+                    max_distance = round(estimated_distance * star_factor * 1.01, 3)
+                    self.planets.append(f"An asteroid belt orbits roughly between {min_distance} AU and {max_distance} AU.\n")
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius, self.star.temperature)
                     self.planets.append(planet)
