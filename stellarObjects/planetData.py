@@ -543,10 +543,7 @@ class Planet:
                     zone_density = self.atm_density / (zone * 2.7)
                 atmospheric_mass += zone_volume * zone_density
             atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)  # Force in Newtons (N)
-
             planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2  # Surface area in square meters (m^2)
-
-            # TODO: I'm almost positive most of my errors are coming from this right here.  No idea why.
             atmospheric_pressure = (atmospheric_force / planet_surface_area) * 5000  # Pressure in Pascals (Pa)
 
             # Assuming a linear relationship between CO₂ abundance and greenhouse effect
