@@ -374,6 +374,8 @@ class Planet:
         self.radius = radius
         self.planet_class = planet_class
         self.distance = distance
+        self.type = None
+        self.scale_height = None
 
         # From the star, should not be changed.
         self.hab = hab_zone
@@ -466,6 +468,7 @@ class Planet:
 
         # Determine planet type (Terrestrial or Gas Giant) based on class data
         planet_type = class_data["type"]  # Assuming the planet type is "t" or "g" in class_data
+        self.type = planet_type
 
         # Generate random density based on planet type
         min_density, max_density = planet_density[planet_type]
@@ -477,16 +480,20 @@ class Planet:
         else:
             self.atmosphere = class_data["atmosphere"]
 
-            # Approximate atmospheric density based on planet type (This can be refined later)
-            min_a_density, max_a_density = atmosphere_density[planet_type]
-            self.atm_density = random.uniform(min_a_density, max_a_density)
-            min_am_density, max_am_density = atmospheric_molar_density[planet_type]
-            self.atm_molar_density = random.uniform(min_am_density, max_am_density)
+            if self.planet_class == 'N':
+                self.atm_density = 65
+                min_am_density, max_am_density = atmospheric_molar_density[planet_type]
+                self.atm_molar_density =  max_am_density
+            else:
+                # Approximate atmospheric density based on planet type (This can be refined later)
+                min_a_density, max_a_density = atmosphere_density[planet_type]
+                self.atm_density = random.uniform(min_a_density, max_a_density)
+                min_am_density, max_am_density = atmospheric_molar_density[planet_type]
+                self.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-            gas_giant_classes = ["I", "J", "S", "T", "U"]
-            if self.planet_class in gas_giant_classes:
-                core_to_atmosphere_ratio = random.uniform(*gas_giant_core_atmosphere_ratio)
-                p_density = p_density * core_to_atmosphere_ratio + (core_to_atmosphere_ratio - 1) * (self.atm_density / 1000)
+                if self.type == 'g':
+                     core_to_atmosphere_ratio = random.uniform(*gas_giant_core_atmosphere_ratio)
+                     p_density = p_density * core_to_atmosphere_ratio + (core_to_atmosphere_ratio - 1) * (self.atm_density / 1000)
 
         # Recalculate mass based on the new density
         self.volume = (4/3) * math.pi * (self.radius * 1000) ** 3  # Calculate volume in m^3
@@ -530,6 +537,7 @@ class Planet:
             scale_height = \
                 (R * surface_temperature_no_atmosphere) / (self.atm_molar_density * self.gravity * EARTH_GRAVITY)
             scale_factor = random.uniform(5, 7) # How many scale heights to calculate for
+            self.scale_height = scale_height
 
             atmosphere_thickness = scale_height * random.uniform(5, 7)
             atmosphere_volume = (4 * math.pi * (self.radius + atmosphere_thickness) ** 3) / 3 - planet_volume
@@ -573,12 +581,16 @@ class Planet:
         ]
 
         # Check if atmosphere exists before adding information
-        if self.atmosphere != "None":
-            output.append(
-                f"Atmospheric Conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-            output.append(self.atmosphere)
+        if self.type == "t":
+            if self.atmosphere != "None":
+                output.append(
+                    f"Atmospheric Conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                output.append(self.atmosphere)
+            else:
+                output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
         else:
-            output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            output.append(f"Internal of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            output.append(f"The atmosphere drops by half or as high as a third for every {self.scale_height / 1000:.1f} km from the surface.")
 
         if not output[-1] == self.composition:
             output.append(self.composition)
