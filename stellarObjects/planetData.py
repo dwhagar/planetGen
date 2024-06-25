@@ -59,7 +59,7 @@ planet_classes = {
         "type": "t"
     },
     "D": {
-        "description": "Small icy bodies (not true planets)",
+        "description": "Small icy bodies (not true planets), often called dwarf or pseudo planets",
         "composition": "Frozen hydrocarbons, ice",
         "radius_range": (50, 3000),
         "h": True,
@@ -89,7 +89,7 @@ planet_classes = {
         "type": "t"
     },
     "G": {
-        "description": "Rocky, barren, simple life",
+        "description": "Rocky, barren, simple life, ocean worlds with > 90% of the surface is liquid water",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
         "h": True,
@@ -99,7 +99,7 @@ planet_classes = {
         "type": "t"
     },
     "H": {
-        "description": "Desert worlds, minimal water",
+        "description": "Desert worlds, minimal water, must be less than 10% liquid water",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
         "h": False,
@@ -480,7 +480,7 @@ class Planet:
         else:
             self.atmosphere = class_data["atmosphere"]
 
-            if self.planet_class == 'N':
+            if self.planet_class == 'N': # Class N worlds are basically life genus.
                 self.atm_density = 65
                 min_am_density, max_am_density = atmospheric_molar_density[planet_type]
                 self.atm_molar_density =  max_am_density
