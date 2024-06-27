@@ -1,5 +1,6 @@
 import math
 import random
+from .starData import to_scientific_notation
 
 EARTH_RADIUS_KM = 6371
 EARTH_GRAVITY = 9.807 # in m/s^2
@@ -592,13 +593,22 @@ class Planet:
         """
         Returns the wiki template text for this object.
         """
+        id_number = random.randint(1000,9999)
+        id_letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))
+
+        if self.distance < 1:
+            distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({round(self.distance, 3)} AU)"
+        else:
+            distance_text = f"|distance={round(self.distance, 3)} AU"
+
         output = [
+            f"== {id_number}-{id_letters} ==",
             "{{Planet Data",
             f"|class={self.planet_class}",
-            f"|distance={round(self.distance, 3)} AU",
+            distance_text,
             f"|period={years_to_time_string(self.period)}",
-            f"|radius={round(self.radius, 1)} km",
-            f"|gravity={round(self.gravity, 2)} G",
+            f"|radius={round(self.radius, 1):,} km",
+            f"|gravity={round(self.gravity, 2)} g",
             "}}",
         ]
 
@@ -611,7 +621,7 @@ class Planet:
             else:
                 output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
         else:
-            output.append(f"Internal conditions of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            output.append(f"Internal conditions of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average internal temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
             output.append(f"The atmospheric pressure drops by half or as even a third for every {self.scale_height / 1000:.1f} km from the core.")
 
         output.append(self.description)

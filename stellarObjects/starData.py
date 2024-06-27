@@ -79,11 +79,19 @@ class Star:
             else:
                 hab_upper = str(round(self.habitable_zone[1], 2))
 
+        sol_mass = round(self.mass / SOLAR_MASS_TO_KG * 100, 1)
+        sol_lum = round(self.luminosity / SOLAR_LUMINOSITY * 100, 1)
+
+        if sol_mass <= 0:
+            sol_mass = round(self.mass / SOLAR_MASS_TO_KG * 100, 4)
+        if sol_lum <= 0:
+            sol_lum = round(self.luminosity / SOLAR_LUMINOSITY * 100, 4)
+
         output = ["{{Star Data", f"|type={self.type}",
-                  f"|radius={round(self.radius, 2)} km",
-                  f"|mass={to_scientific_notation(self.mass)} kg ({round(self.mass / SOLAR_MASS_TO_KG * 100, 1)}% of Sol)",
+                  f"|radius={round(self.radius, 2):,} km",
+                  f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass}% of Sol)",
                   f"|temp={self.temperature} K",
-                  f"|lum={to_scientific_notation(self.luminosity)} W ({round(self.luminosity / SOLAR_LUMINOSITY * 100, 1)}% of Sol)",
+                  f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum}% of Sol)",
                   f"|hab=Between {hab_lower} and {hab_upper} AU",
                   "}}"]
         return '\n'.join(output)

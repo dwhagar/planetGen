@@ -131,12 +131,13 @@ class StarSystem:
         """
         Generates a string output for the system data.
         """
-        output = [str(self.star)]
+        output = [str(self.star), '']
 
         if len(self.planets) > 0:
             output.append(f"There are {len(self.planets)} stellar objects in the system.")
             for planet in self.planets:
                 output.append(str(planet))
+                output.append('')
         else:
             output.append("There are no planets or asteroid belts in this system.")
         
