@@ -26,15 +26,24 @@ class StarSystem:
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / SOLAR_MASS
 
+        # Distances here are arbitrary and the idea is to create a system that does not need correction later
+        # this is not scientific and it is highly probable I'm doing this wrong.
+
         if system_objects > 0:
             for i in range(system_objects):
-                # 1 in 10 chance of an asteroid belt
-                normalized_distance = i / system_objects
-                estimated_distance =  0.72 * math.exp(0.18 * normalized_distance) * star_factor
+                if i > 0:
+                    last_planet = self.planets[i - 1]
+                    if last_planet.type == 'a':
+                        estimated_distance = last_planet.distance + star_factor
+                    else:
+                        random_buffer = random.uniform(0, star_factor * 2)
+                        estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
+                else:
+                    estimated_distance = 0.5 * star_factor
 
                 if random.random() < 0.1:
-                    min_distance = round(estimated_distance * star_factor * 0.99, 3)
-                    max_distance = round(estimated_distance * star_factor * 1.01, 3)
+                    min_distance = round(estimated_distance * 0.70, 3)
+                    max_distance = round(estimated_distance * 1.30, 3)
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass)
@@ -109,12 +118,13 @@ class StarSystem:
             # If both are planets (most likely)
             else:
                 if planet.min_orbit_distance < last_planet.min_orbit_distance:
-                    additional_distance = planet.min_orbit_distance
+                    min_orbit = planet.min_orbit_distance
                 else:
-                    additional_distance = last_planet.min_orbit_distance
+                    min_orbit = last_planet.min_orbit_distance
 
-                planet.distance += additional_distance + additional_correction
-                planet.calculate_atmospheric_conditions()
+                if distance_to_last < min_orbit:
+                    planet.distance += min_orbit + additional_correction
+                    planet.calculate_atmospheric_conditions()
 
 
     def __str__(self):
