@@ -350,12 +350,26 @@ def years_to_time_string(years):
 
     return " ".join(time_parts)
 
+class Asteroid_Belt:
+    """
+    A basic class to store information for an asteroid belt.
+    """
+
+    def __init__(self, distance, lower_limit, upper_limit):
+        self.distance = distance
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+        self.type = 'a'
+
+    def __str__(self):
+        return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit} AU and {self.upper_limit} AU."
+
 class Planet:
     """
     A Class representing a single planet and all of its properties.
     """
 
-    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, radius=None, planet_class=None):
+    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass, radius=None, planet_class=None):
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
         """
@@ -377,6 +391,9 @@ class Planet:
         self.distance = distance
         self.type = None
         self.scale_height = None
+        self.star_mass = star_mass
+        self.hill_radius = None
+        self.min_orbit_distance = None
 
         # From the star, should not be changed.
         self.hab = hab_zone
@@ -501,6 +518,9 @@ class Planet:
         self.volume = (4/3) * math.pi * (self.radius * 1000) ** 3  # Calculate volume in m^3
         self.mass = self.volume * p_density * 1000 # Update mass calculation
         self.density = p_density
+
+        self.hill_radius = (self.distance * AU_TO_KM) * (self.mass / (3 * self.star_mass)) ** (1 / 3) # in km!
+        self.min_orbit_distance = (5 * self.hill_radius) / AU_TO_KM # Now back to AU
 
     def calculate_surface_gravity(self):
         """

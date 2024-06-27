@@ -1,6 +1,6 @@
 import random
 import math
-from .planetData import Planet
+from .planetData import Planet, Asteroid_Belt
 from .starData import Star
 
 SOLAR_MASS = 1.989e30  # kg
@@ -35,10 +35,12 @@ class StarSystem:
                 if random.random() < 0.1:
                     min_distance = round(estimated_distance * star_factor * 0.99, 3)
                     max_distance = round(estimated_distance * star_factor * 1.01, 3)
-                    self.planets.append(f"An asteroid belt orbits roughly between {min_distance} AU and {max_distance} AU.\n")
+                    self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
-                    planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius, self.star.temperature)
+                    planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass)
                     self.planets.append(planet)
+
+        self.validate_system()
 
     def estimate_num_objects(self):
         """
@@ -51,7 +53,70 @@ class StarSystem:
         num_objects = random.randint(0, math.ceil(max_objects))
 
         return num_objects
-    
+
+    def validate_system(self):
+        """
+        This function will validate (and adjust) the distances of stellar objects in a system.
+        """
+        # We are going to use the Hill Radius to determine how far out from a planet before
+        # the planet's gravity doesn't dominate over the stars own gravity.
+
+        # If there aren't at least 2 things in the system, no need to do this.
+        if len(self.planets) < 2:
+            return
+
+        for idx in range(len(self.planets)):
+            # If it's an asteroid belt it'll be a string.
+            planet = self.planets[idx]
+
+            if idx > 0:
+                last_planet = self.planets[idx - 1]
+                if last_planet.type == 'a' and planet.type == 'a':
+                    distance_to_last = planet.lower_limit - last_planet.upper_limit
+                elif last_planet.type == 'a':
+                    distance_to_last = planet.distance - last_planet.upper_limit
+                else:
+                    distance_to_last = planet.distance - last_planet.distance
+            else:
+                continue
+
+            # For large star systems it's possible this algorithm will move planets out of order
+            # this should correct that by adding a correction to all the values so that they will
+            # ensure the distance is corrected if negative.
+            if distance_to_last < 0:
+                distance_to_last = abs(distance_to_last)
+                additional_correction = last_planet.distance
+            else:
+                additional_correction = 0
+
+            # If both are asteroid belts (highly unlikely)
+            if planet.type == 'a' and last_planet.type == 'a':
+                if distance_to_last < 0.05:
+                    planet.distance += 0.05 + additional_correction
+                    planet.upper_limit += 0.05 + additional_correction
+                    planet.lower_limit += 0.05 + additional_correction
+            # If the current planet is an asteroid belt.
+            elif planet.type == 'a':
+                if distance_to_last < last_planet.min_orbit_distance:
+                    planet.distance += last_planet.min_orbit_distance + additional_correction
+                    planet.upper_limit += last_planet.min_orbit_distance + additional_correction
+                    planet.lower_limit += last_planet.min_orbit_distance + additional_correction
+            # If the last planet is an asteroid belt.
+            elif last_planet.type == 'a':
+                if distance_to_last < 0.05:
+                    planet.distance += 0.05 + additional_correction
+                    planet.calculate_atmospheric_conditions()
+            # If both are planets (most likely)
+            else:
+                if planet.min_orbit_distance < last_planet.min_orbit_distance:
+                    additional_distance = planet.min_orbit_distance
+                else:
+                    additional_distance = last_planet.min_orbit_distance
+
+                planet.distance += additional_distance + additional_correction
+                planet.calculate_atmospheric_conditions()
+
+
     def __str__(self):
         """
         Generates a string output for the system data.
