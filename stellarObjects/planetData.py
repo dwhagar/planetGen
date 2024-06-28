@@ -320,6 +320,52 @@ planet_class_probabilities = {
     'Y': 0.0432,
 }
 
+def get_planet_mass_ranges():
+    """
+    Calculates and returns a dictionary of valid mass ranges (in kg) for each planet class.
+
+    Returns:
+        dict: A dictionary where keys are planet classes and values are tuples of (min_mass, max_mass)
+    """
+
+    mass_ranges = {}
+    for planet_class, data in planet_classes.items():
+        min_radius, max_radius = data["radius_range"]
+        planet_type = data["type"]
+
+        min_density, max_density = planet_density[planet_type]  # g/cm^3
+
+        # Convert density from g/cm³ to kg/m³ for mass calculation
+        min_density *= 1000
+        max_density *= 1000
+
+        if planet_type == "t":  # Terrestrial planet
+            min_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density
+            max_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density
+
+        else:  # Gas giant
+            # Get atmosphere density
+            min_atm_density, max_atm_density = atmosphere_density[planet_type]  # kg/m³
+
+            # Core-to-atmosphere calculations (similar to generate_planet)
+            min_core_ratio, max_core_ratio = gas_giant_core_atmosphere_ratio
+
+            # Calculate core and atmosphere masses separately for min/max
+            min_core_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density * min_core_ratio
+            max_core_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density * max_core_ratio
+
+            min_atm_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_atm_density * (1 - min_core_ratio)
+            max_atm_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_atm_density * (1 - max_core_ratio)
+
+            min_mass = min_core_mass + min_atm_mass
+            max_mass = max_core_mass + max_atm_mass
+
+        mass_ranges[planet_class] = (min_mass, max_mass)  # Store as tuple
+
+    return mass_ranges
+
+planet_mass_ranges  = get_planet_mass_ranges()
+
 def years_to_time_string(years):
     """
     Converts a decimal number of years into a human-readable string
@@ -370,7 +416,7 @@ class Planet:
     A Class representing a single planet and all of its properties.
     """
 
-    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass, radius=None, planet_class=None):
+    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass, radius=None, planet_class=None, mass=None):
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
         """
@@ -384,7 +430,7 @@ class Planet:
         self.surface_temperature = None
         self.density = None
         self.atmospheric_pressure = None
-        self.mass = None
+        self.mass = mass
         self.atmosphere = None
         self.composition = None
         self.radius = radius
@@ -408,14 +454,12 @@ class Planet:
 
     def generate_planet(self):
         """
-        Generates random planet properties (class, composition, atmosphere) based on distance and radius.
+        Generates random planet properties (class, composition, atmosphere, mass) based on distance and optional radius/class/mass inputs.
         """
 
-        # Habitable Zone
-        inner_bound = self.hab[0]  
+        inner_bound = self.hab[0]
         outer_bound = self.hab[1]
 
-        # Determine zone based on distance
         if self.distance < inner_bound:
             zone = 'h'
         elif self.distance > outer_bound:
@@ -423,14 +467,11 @@ class Planet:
         else:
             zone = 'e'
 
-        # If planet_class and radius are None, generate them randomly
-        if self.planet_class is None and self.radius is None:
-            # Filter possible planet classes based on zone
-            valid_classes = [
-                c for c, data in planet_classes.items() if data[zone]
-            ]
+        # --- Input Validation and Random Generation ---
 
-            # Choose a random planet class
+        if self.planet_class is None and self.radius is None and self.mass is None:
+            # Fully random generation (no inputs provided)
+            valid_classes = [c for c, data in planet_classes.items() if data[zone]]
             classes = list(planet_class_probabilities.keys())
             probabilities = list(planet_class_probabilities.values())
             class_valid = False
@@ -440,23 +481,17 @@ class Planet:
                     self.planet_class = class_choice
                     class_valid = True
 
-            # Generate random radius within the allowed range for the chosen class
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
 
-        # If planet_class is present but radius is None, generate radius based on class
-        elif self.planet_class is not None and self.radius is None:
-            # Validate planet_class
-            if self.planet_class not in planet_classes:
-                raise ValueError("Invalid planet class")
-
-            # Generate random radius within the allowed range for the chosen class
+        elif self.planet_class is not None and self.radius is None and self.mass is None:
+            # Planet class given, generate radius
+            self._validate_planet_class(zone)
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
 
-        # If radius is present but planet_class is None, determine possible classes and choose randomly
-        elif self.planet_class is None and self.radius is not None:
-            # Filter possible planet classes based on zone and radius
+        elif self.planet_class is None and self.radius is not None and self.mass is None:
+            # Radius given, determine possible classes
             possible_classes = [
                 c for c, data in planet_classes.items()
                 if data[zone] and data["radius_range"][0] <= self.radius <= data["radius_range"][1]
@@ -465,21 +500,62 @@ class Planet:
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius in this zone")
 
-            # Choose a random planet class from the filtered list
             self.planet_class = random.choice(possible_classes)
-            
-        # If both planet_class and radius are present, validate them
-        else:
-            # Validate planet_class
-            if self.planet_class not in planet_classes:
-                raise ValueError("Invalid planet class")
+            self._validate_radius()
 
-            # Validate radius
+        elif self.planet_class is None and self.radius is None and self.mass is not None:
+            # Mass given, determine possible classes and radii
+            possible_classes = []
+
+            for planet_class, class_data in planet_classes.items():
+                min_mass, max_mass = planet_mass_ranges[planet_class]
+
+                if min_mass <= self.mass <= max_mass and class_data[zone]:
+                    possible_classes.append(planet_class)
+
+            self._validate_mass()
+
+        elif self.planet_class is not None and self.radius is not None and self.mass is None:
+            # Class and radius given, validate
+            self._validate_planet_class(zone)
+            self._validate_radius()
+
+        elif self.planet_class is not None and self.radius is None and self.mass is not None:
+            # Class and mass given, validate and generate radius
+            self._validate_planet_class(zone)
+            self._validate_mass()
             min_radius, max_radius = planet_classes[self.planet_class]["radius_range"]
-            if not (min_radius <= self.radius <= max_radius):
-                raise ValueError("Radius out of range for the given planet class")
+            self.radius = random.uniform(min_radius, max_radius)
+            self._validate_radius()
 
-        # Get the properties for the chosen planet class
+        elif self.planet_class is None and self.radius is not None and self.mass is not None:
+            # Radius and mass given, validate and determine possible classes
+            possible_classes = []
+
+            for planet_class, class_data in planet_classes.items():
+                min_mass, max_mass = planet_mass_ranges[planet_class]
+                min_radius, max_radius = class_data["radius_range"]
+
+                mass_valid = min_mass <= self.mass <= max_mass and class_data[zone]
+                radius_valid = min_radius <= self.radius <= max_radius and class_data[zone]
+
+                if mass_valid and radius_valid:
+                    possible_classes.append(planet_class)
+
+            if not possible_classes:
+                raise ValueError("No valid planet class for the given radius / mass in this zone")
+
+            self.planet_class = random.choice(possible_classes)
+            self._validate_radius()
+            self._validate_mass()
+
+        else:
+            # All inputs provided, fully validate
+            self._validate_planet_class(zone)
+            self._validate_radius()
+            self._validate_mass()
+
+            # Get the properties for the chosen planet class
         class_data = planet_classes[self.planet_class]
 
         # Update planet properties based on class data
@@ -588,6 +664,38 @@ class Planet:
 
             self.surface_temperature = surface_temperature_atmosphere
             self.atmospheric_pressure = atmospheric_pressure
+
+    def generate_moons(self):
+        """
+        Generates a system of moons for the given planet.  This function does not deal with probability.
+        """
+
+        # TODO: We're going to bases the number of moons on the mass of the planet, so we're going to use the
+        #   idea that the mass of the moon should be no more than 10% of the planet.  Using minimum and maximum
+        #   tables based on our own solar system, going to determine if a given world can have any moons, what kind
+        #   and their type.  Asteroid moons such as Phobos and Demos will not be well defined and simply mentioned
+        #   in the planet description.  Spherical moons, such as Earth's moon, will be well defined.  Moon classes
+        #   be any terrestrial planet class type that fits within the 10% range of the planet mass in question.
+
+        return
+
+    def _validate_planet_class(self, zone):
+        if self.planet_class not in planet_classes or not planet_classes[self.planet_class][zone]:
+            raise ValueError("Invalid planet class for this zone")
+
+    def _validate_radius(self):
+        radius_range = planet_classes[self.planet_class]["radius_range"]
+        valid = (radius_range[0] <= self.radius <= radius_range[0])
+
+        if not valid:
+            raise ValueError("Invalid radius for planet class")
+
+    def _validate_mass(self):
+        mass_range = planet_mass_ranges[self.planet_class]
+        valid = (mass_range[0] <= self.mass <= mass_range[0])
+
+        if not valid:
+            raise ValueError("Invalid mass for planet class")
 
     def __str__(self):
         """
