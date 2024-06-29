@@ -416,10 +416,12 @@ class Planet:
     A Class representing a single planet and all of its properties.
     """
 
-    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass, radius=None, planet_class=None, mass=None):
+    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
+                 radius=None, planet_class=None, mass=None, zone_override = None, distance_override = None):
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
         """
+        self.zone = None
         self.description = None
         self.star_radius = star_radius * 1000 # in meters
         self.star_output = star_output # in Watts
@@ -446,13 +448,13 @@ class Planet:
         self.hab = hab_zone
 
         # Calculate additional properties.
-        self.generate_planet()
+        self.generate_planet(zone_override)
         self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
         self.period = math.sqrt(self.distance**3)
         self.calculate_surface_gravity()
-        self.calculate_atmospheric_conditions()
+        self.calculate_atmospheric_conditions(distance_override)
 
-    def generate_planet(self):
+    def generate_planet(self, zone_override = None):
         """
         Generates random planet properties (class, composition, atmosphere, mass) based on distance and optional radius/class/mass inputs.
         """
@@ -466,6 +468,12 @@ class Planet:
             zone = 'c'
         else:
             zone = 'e'
+
+        if zone_override:
+            if zone_override.lower() in "hce":
+                zone = zone_override.lower()
+
+        self.zone = zone
 
         # --- Input Validation and Random Generation ---
 
@@ -615,10 +623,18 @@ class Planet:
 
         self.gravity = surface_gravity_g
 
-    def calculate_atmospheric_conditions(self):
+    def calculate_atmospheric_conditions(self, distance_override = 0.0):
         """
         Calculates the atmospheric conditions of the planet in bars.
         """
+        # This will give us the option to override the distance to generate atmospheric conditions for a moon
+        # based on the orbital distance of the planet.  This value will be the OFFSET for this object's distance
+        # and the distance you want it to be.  This function does not know the difference between a moon and a planet
+        # and will treat it like a planet of the appropriate class.
+
+        old_distance = float(self.distance)
+        self.distance = old_distance + distance_override
+
         planet_volume = (4 * math.pi * self.radius ** 3) / 3
         orbital_radius_km = self.distance * AU_TO_KM
         output_area = 4 * math.pi * orbital_radius_km ** 2     # Output of the star at orbit in square kilometers
@@ -664,18 +680,57 @@ class Planet:
 
             self.surface_temperature = surface_temperature_atmosphere
             self.atmospheric_pressure = atmospheric_pressure
+            self.distance = old_distance
 
     def generate_moons(self):
         """
         Generates a system of moons for the given planet.  This function does not deal with probability.
         """
 
-        # TODO: We're going to bases the number of moons on the mass of the planet, so we're going to use the
-        #   idea that the mass of the moon should be no more than 10% of the planet.  Using minimum and maximum
-        #   tables based on our own solar system, going to determine if a given world can have any moons, what kind
-        #   and their type.  Asteroid moons such as Phobos and Demos will not be well defined and simply mentioned
-        #   in the planet description.  Spherical moons, such as Earth's moon, will be well defined.  Moon classes
-        #   be any terrestrial planet class type that fits within the 10% range of the planet mass in question.
+        max_moon_mass = self.mass / 10
+
+        # Mass given, determine possible classes
+        possible_classes = [
+            c for c, data in planet_mass_ranges.items()
+            if data[self.zone] and data[0] <= max_moon_mass <= data[1]
+        ]
+
+        if not possible_classes:
+            return
+
+        moons = []
+
+        # Leaving these as kilometers to avoid precision errors for something so close to 0 as lunar distances in AU
+        low_orbit = self.hill_radius
+        high_orbit = self.min_orbit_distance * AU_TO_KM
+        total_orbit_distance = low_orbit
+        last_orbital_min = 0
+
+        while True:
+            moon_class = random.choice(possible_classes)
+            new_orbit_min = total_orbit_distance + last_orbital_min
+
+            if new_orbit_min >= self.min_orbit_distance:
+                break
+
+            # This is about choosing the distance, which must in in AU as that's what everything else works in.
+            # last_orbital_min is going to be the minimum orbital distance of the last object and should ensure that
+            # no two orbits overlap.
+
+            # This will be the distance of the moon from the planet.
+            moon_distance = random.uniform(new_orbit_min, high_orbit) / AU_TO_KM # Needs to be in AU
+            total_orbit_distance += moon_distance
+
+            moon_mass = random.uniform(planet_mass_ranges[moon_class][0], max_moon_mass)
+            moon_density = random.uniform(planet_density['t'][0], planet_density['t'][1])
+            moon_radius = ((3 * moon_mass) / (4 * math.pi * moon_density)) ** (1/3)
+            new_moon = Planet(self.hab, moon_distance,
+                              self.star_output, self.star_radius,
+                              self.star_temperature, self.star_mass,
+                              radius=moon_radius, planet_class=moon_class, mass=moon_mass,
+                              zone_override=self.zone, distance_override=self.distance)
+            last_orbital_min = new_moon.min_orbit_distance
+            moons.append(new_moon)
 
         return
 
