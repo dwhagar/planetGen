@@ -306,7 +306,7 @@ planet_class_probabilities = {
     'V': 0.0045,
     'W': 0.0001,
     'X': 0.0002,
-    'Y': 0.0432,
+    'Y': 0.0432
 }
 
 def get_planet_mass_ranges():
@@ -458,6 +458,14 @@ class Planet:
 
         # From the star, should not be changed.
         self.hab = hab_zone
+
+        if self.is_moon:
+            id_number = random.randint(100, 999)
+            self.id_string = f"{id_number}"
+        else:
+            id_number = random.randint(1000, 9999)
+            id_letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))
+            self.id_string = f"{id_number}-{id_letters}"
 
         # Calculate additional properties.
         self.generate_planet(zone_override)
@@ -735,7 +743,15 @@ class Planet:
             # last_orbital_min is going to be the minimum orbital distance of the last object and should ensure that
             # no two orbits overlap.
 
-            moon_class = random.choice(possible_classes)
+            classes = list(planet_class_probabilities.keys())
+            probabilities = list(planet_class_probabilities.values())
+            class_valid = False
+            moon_class = None
+            while not class_valid:
+                moon_class = random.choices(classes, weights=probabilities, k=1)[0]
+                if moon_class in possible_classes:
+                    class_valid = True
+
             if max_moon_radius > planet_classes[moon_class]['radius_range'][1]:
                 radius_limit = planet_classes[moon_class]['radius_range'][1]
             else:
@@ -779,9 +795,6 @@ class Planet:
         """
         Returns the wiki template text for this object.
         """
-        id_number = random.randint(1000,9999)
-        id_letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))
-
         if self.distance < 1:
             distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({round(self.distance, 3)} AU)"
         else:
@@ -792,7 +805,7 @@ class Planet:
         else:
             header_level = '=='
 
-        random_id = f"{header_level} {id_number}-{id_letters} {header_level}"
+        random_id = f"{header_level} {self.id_string} {header_level}"
 
         output = [
             random_id,
