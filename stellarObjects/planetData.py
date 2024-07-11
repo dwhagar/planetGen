@@ -694,7 +694,7 @@ class Planet:
             planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2  # Surface area in square meters (m^2)
             atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500  # Pressure in Pascals (Pa)
 
-            # Assuming a linear relationship between CO₂ abundance and greenhoused it effect
+            # Assuming a linear relationship between CO₂ abundance and greenhouse it causes
             CO2_BASE_MOLAR_DENSITY = 0.04345  # kg/mol (approximate for Mars)
             CO2_MAX_GREENHOUSE_FACTOR = 5  # Venus's greenhouse factor is much higher than Earth's
 
@@ -819,10 +819,17 @@ class Planet:
         ]
 
         # Check if atmosphere exists before adding information
+        if len(self.moons) > 1 and not self.is_moon:
+            output.append(f"There are {len(self.moons)} orbiting this planet.")
+        elif len(self.moons) == 1 and not self.is_moon:
+            output.append("There is 1 moon orbiting this planet.")
+        elif not self.is_moon:
+            output.append("There are no moons orbiting this planet.")
+
         if self.type == "t":
             if self.atmosphere != "None":
                 output.append(
-                    f"Atmospheric Conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                    f"Surface conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
                 output.append(self.atmosphere)
             else:
                 output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")

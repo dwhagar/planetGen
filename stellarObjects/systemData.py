@@ -134,7 +134,7 @@ class StarSystem:
         output = [str(self.star), '']
 
         if len(self.planets) > 0:
-            output.append(f"There are {len(self.planets)} stellar objects in the system.")
+            output.append(f"There are {len(self.planets)} stellar objects in the system, not including any moons.")
             for planet in self.planets:
                 output.append(str(planet))
                 output.append('')
