@@ -90,7 +90,7 @@ planet_classes = {
         "type": "t"
     },
     "G": {
-        "description": "Rocky, barren, simple life, ocean worlds with > 90% of the surface is liquid water",
+        "description": "Rocky, barren, simple life",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
         "h": True,
@@ -170,7 +170,7 @@ planet_classes = {
         "type": "t"
     },
     "O": {
-        "description": "Pelagic, mostly water",
+        "description": "Pelagic, mostly water, ocean worlds with > 90% of the surface is liquid water",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
         "h": False,
@@ -203,7 +203,7 @@ planet_classes = {
         "description": "Ejected, geologically active",
         "composition": "Silicate compounds, iron",
         "radius_range": (7500, 10000),
-        "h": False,  # Technically can be in any zone due to ejection
+        "h": False,  # Technically can't be in any zone due to ejection
         "e": False, 
         "c": False, 
         "atmosphere": "Volcanic outgassing",
@@ -270,16 +270,6 @@ planet_classes = {
         "type": "t"
     },
     "Y": {
-        "description": "Small, rocky planet", 
-        "composition": "Silicates, metals",
-        "radius_range": (3000, 5000), 
-        "h": True,
-        "e": False,
-        "c": False,
-        "atmosphere": "Usually thin or absent",
-        "type": "t"
-    },
-    "Z": {
         "description": "Demon class, toxic atmosphere",
         "composition": "Molten iron, sulfur, deuterium",
         "radius_range": (5000, 7500),
@@ -307,16 +297,15 @@ planet_class_probabilities = {
     'M': 0.0915,
     'N': 0.0239,
     'O': 0.0045,
-    'P': 0.0045,
+    'P': 0.0046,
     'Q': 0.0001,
-    'R': 0.0001,
+    'R': 0.0000,
     'S': 0.0001,
     'T': 0.0001,
     'U': 0.0001,
     'V': 0.0045,
     'W': 0.0001,
-    'X': 0.0001,
-    'Z': 0.0001,
+    'X': 0.0002,
     'Y': 0.0432,
 }
 
@@ -397,6 +386,26 @@ def years_to_time_string(years):
 
     return " ".join(time_parts)
 
+def calc_object_mass(object_class, object_radius, object_density = None):
+    """
+    Calculates the mass of an object in kg.
+
+    @param object_class: Class of the object (String)
+    @param object_radius: Radius of the object in km (float)
+    @param object_density: Density of the object in g/cm^3 (float)
+    @return: Tuple with the volume and the mass (volume, mass) in m^3 and kg
+    """
+    if object_density is None:
+        min_density, max_density = planet_density['type']
+        p_density = random.uniform(min_density, max_density)
+    else:
+        p_density = object_density
+
+    volume = (4 / 3) * math.pi * (object_radius * 1000) ** 3  # Calculate volume in m^3
+    mass = volume * p_density * 1000
+
+    return volume, mass
+
 class Asteroid_Belt:
     """
     A basic class to store information for an asteroid belt.
@@ -417,10 +426,13 @@ class Planet:
     """
 
     def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
-                 radius=None, planet_class=None, mass=None, zone_override = None, distance_override = None):
+                 radius=None, planet_class=None, mass=None, zone_override = None, distance_override = None,
+                 is_moon = False):
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
         """
+        self.is_moon = is_moon
+        self.moons = []
         self.zone = None
         self.description = None
         self.star_radius = star_radius * 1000 # in meters
@@ -576,7 +588,7 @@ class Planet:
 
         # Generate random density based on planet type
         min_density, max_density = planet_density[planet_type]
-        p_density = random.uniform(min_density, max_density)
+        self.density = random.uniform(min_density, max_density)
 
         # Handle atmosphere (set to "None" if it's None in class_data)
         if class_data["atmosphere"] is None:
@@ -595,17 +607,19 @@ class Planet:
                 min_am_density, max_am_density = atmospheric_molar_density[planet_type]
                 self.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-                if self.type == 'g':
-                     core_to_atmosphere_ratio = random.uniform(*gas_giant_core_atmosphere_ratio)
-                     p_density = p_density * core_to_atmosphere_ratio + (core_to_atmosphere_ratio - 1) * (self.atm_density / 1000)
+        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, self.density)
 
-        # Recalculate mass based on the new density
-        self.volume = (4/3) * math.pi * (self.radius * 1000) ** 3  # Calculate volume in m^3
-        self.mass = self.volume * p_density * 1000 # Update mass calculation
-        self.density = p_density
+        if self.type == 'g':
+             core_to_atmosphere_ratio = random.uniform(*gas_giant_core_atmosphere_ratio)
+             self.density = self.density * core_to_atmosphere_ratio + (core_to_atmosphere_ratio - 1) * (self.atm_density / 1000)
+
+        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, self.density)
 
         self.hill_radius = (self.distance * AU_TO_KM) * (self.mass / (3 * self.star_mass)) ** (1 / 3) # in km!
         self.min_orbit_distance = (5 * self.hill_radius) / AU_TO_KM # Now back to AU
+
+        if random.randint(0,1) == 1 and not self.is_moon:
+            self.generate_moons()
 
     def calculate_surface_gravity(self):
         """
@@ -623,7 +637,7 @@ class Planet:
 
         self.gravity = surface_gravity_g
 
-    def calculate_atmospheric_conditions(self, distance_override = 0.0):
+    def calculate_atmospheric_conditions(self, distance_override = None):
         """
         Calculates the atmospheric conditions of the planet in bars.
         """
@@ -631,6 +645,9 @@ class Planet:
         # based on the orbital distance of the planet.  This value will be the OFFSET for this object's distance
         # and the distance you want it to be.  This function does not know the difference between a moon and a planet
         # and will treat it like a planet of the appropriate class.
+
+        if distance_override is None:
+            distance_override = float(0)
 
         old_distance = float(self.distance)
         self.distance = old_distance + distance_override
@@ -687,18 +704,18 @@ class Planet:
         Generates a system of moons for the given planet.  This function does not deal with probability.
         """
 
+        moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'W', 'X', 'Y']
         max_moon_mass = self.mass / 10
 
-        # Mass given, determine possible classes
-        possible_classes = [
-            c for c, data in planet_mass_ranges.items()
-            if data[self.zone] and data[0] <= max_moon_mass <= data[1]
-        ]
+        possible_classes = []
+
+        for c, data in planet_mass_ranges.items():
+            if planet_classes[c][self.zone] and planet_classes[c]["type"] == 't' and not c in moon_blacklist:
+                if data[1] <= max_moon_mass:
+                    possible_classes.append(c)
 
         if not possible_classes:
             return
-
-        moons = []
 
         # Leaving these as kilometers to avoid precision errors for something so close to 0 as lunar distances in AU
         low_orbit = self.hill_radius
@@ -707,30 +724,33 @@ class Planet:
         last_orbital_min = 0
 
         while True:
-            moon_class = random.choice(possible_classes)
             new_orbit_min = total_orbit_distance + last_orbital_min
 
-            if new_orbit_min >= self.min_orbit_distance:
+            if new_orbit_min >= high_orbit:
                 break
 
-            # This is about choosing the distance, which must in in AU as that's what everything else works in.
+            # This is about choosing the distance, which must in AU as that's what everything else works in.
             # last_orbital_min is going to be the minimum orbital distance of the last object and should ensure that
             # no two orbits overlap.
 
+            moon_class = random.choice(possible_classes)
+
             # This will be the distance of the moon from the planet.
             moon_distance = random.uniform(new_orbit_min, high_orbit) / AU_TO_KM # Needs to be in AU
-            total_orbit_distance += moon_distance
+            total_orbit_distance += moon_distance * AU_TO_KM
 
-            moon_mass = random.uniform(planet_mass_ranges[moon_class][0], max_moon_mass)
-            moon_density = random.uniform(planet_density['t'][0], planet_density['t'][1])
-            moon_radius = ((3 * moon_mass) / (4 * math.pi * moon_density)) ** (1/3)
+            # Use the minimum density, as the density decreases radius increases
+            min_moon_density = planet_density['t'][0]
+            max_moon_radius = ((3 * max_moon_mass) / (4 * math.pi * min_moon_density)) ** (1 /2)
+            moon_radius = random.uniform(planet_classes[moon_class]['radius_range'][0], max_moon_radius)
+
             new_moon = Planet(self.hab, moon_distance,
                               self.star_output, self.star_radius,
                               self.star_temperature, self.star_mass,
-                              radius=moon_radius, planet_class=moon_class, mass=moon_mass,
-                              zone_override=self.zone, distance_override=self.distance)
+                              radius=moon_radius, planet_class=moon_class,
+                              zone_override=self.zone, distance_override=self.distance, is_moon=True)
             last_orbital_min = new_moon.min_orbit_distance
-            moons.append(new_moon)
+            self.moons.append(new_moon)
 
         return
 
@@ -740,14 +760,14 @@ class Planet:
 
     def _validate_radius(self):
         radius_range = planet_classes[self.planet_class]["radius_range"]
-        valid = (radius_range[0] <= self.radius <= radius_range[0])
+        valid = (radius_range[0] <= self.radius <= radius_range[1])
 
         if not valid:
             raise ValueError("Invalid radius for planet class")
 
     def _validate_mass(self):
         mass_range = planet_mass_ranges[self.planet_class]
-        valid = (mass_range[0] <= self.mass <= mass_range[0])
+        valid = (mass_range[0] <= self.mass <= mass_range[1])
 
         if not valid:
             raise ValueError("Invalid mass for planet class")
@@ -764,8 +784,15 @@ class Planet:
         else:
             distance_text = f"|distance={round(self.distance, 3)} AU"
 
+        if self.is_moon:
+            header_level = '==='
+        else:
+            header_level = '=='
+
+        random_id = f"{header_level} {id_number}-{id_letters} {header_level}"
+
         output = [
-            f"== {id_number}-{id_letters} ==",
+            random_id,
             "{{Planet Data",
             f"|class={self.planet_class}",
             distance_text,
@@ -788,6 +815,10 @@ class Planet:
             output.append(f"The atmospheric pressure drops by half or as even a third for every {self.scale_height / 1000:.1f} km from the core.")
 
         output.append(self.description)
+
+        if not self.moons is None:
+            for moon in self.moons:
+                output.append(str(moon))
 
         if not output[-1] == self.composition:
             output.append(self.composition)
