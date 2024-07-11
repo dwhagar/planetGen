@@ -793,7 +793,7 @@ class Planet:
         Returns the wiki template text for this object.
         """
         if self.is_moon:
-            distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 5)} km  ({round(self.distance, 10)} AU)"
+            distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 5)} km"
             header_level = '==='
         else:
             if self.distance < 1:
@@ -831,8 +831,8 @@ class Planet:
             else:
                 output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
         else:
-            output.append(f"Internal conditions of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and an average internal temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-            output.append(f"The atmospheric pressure drops by half or as even a third for every {self.scale_height / 1000:.1f} km from the core.")
+            output.append(f"The average internal conditions of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and {self.surface_temperature - 273.15:.1f} degrees C.")
+            output.append(f"The atmospheric pressure drops by a third to a half for every {self.scale_height / 1000:.1f} km from the core.")
 
         output.append(self.description)
 
