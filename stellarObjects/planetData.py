@@ -820,7 +820,7 @@ class Planet:
 
         # Check if atmosphere exists before adding information
         if len(self.moons) > 1 and not self.is_moon:
-            output.append(f"There are {len(self.moons)} orbiting this planet.")
+            output.append(f"There are {len(self.moons)} moons orbiting this planet.")
         elif len(self.moons) == 1 and not self.is_moon:
             output.append("There is 1 moon orbiting this planet.")
         elif not self.is_moon:
