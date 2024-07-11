@@ -98,6 +98,8 @@ class StarSystem:
             else:
                 additional_correction = 0
 
+            ## TODO: Asteroid belt orbital distances just don't work, need to find a way to validate
+
             # If both are asteroid belts (highly unlikely)
             if planet.type == 'a' and last_planet.type == 'a':
                 if distance_to_last < 0.05:

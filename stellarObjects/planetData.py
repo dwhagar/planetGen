@@ -473,6 +473,8 @@ class Planet:
         self.period = math.sqrt(self.distance**3)
         self.calculate_surface_gravity()
         self.calculate_atmospheric_conditions(distance_override)
+        if random.randint(0,1) == 1 and not self.is_moon:
+            self.generate_moons()
 
     def generate_planet(self, zone_override = None):
         """
@@ -626,9 +628,6 @@ class Planet:
         self.hill_radius = (self.distance * AU_TO_KM) * (self.mass / (3 * self.star_mass)) ** (1 / 3) # in km!
         self.min_orbit_distance = (5 * self.hill_radius) / AU_TO_KM # Now back to AU
 
-        if random.randint(0,1) == 1 and not self.is_moon:
-            self.generate_moons()
-
     def calculate_surface_gravity(self):
         """
         Calculates the surface gravity of the planet in g's (Earth's gravity).
@@ -654,11 +653,10 @@ class Planet:
         # and the distance you want it to be.  This function does not know the difference between a moon and a planet
         # and will treat it like a planet of the appropriate class.
 
-        if distance_override is None:
-            distance_override = float(0)
-
         old_distance = float(self.distance)
-        self.distance = old_distance + distance_override
+
+        if not distance_override is None:
+            self.distance = float(distance_override)
 
         planet_volume = (4 * math.pi * self.radius ** 3) / 3
         orbital_radius_km = self.distance * AU_TO_KM
@@ -705,7 +703,8 @@ class Planet:
 
             self.surface_temperature = surface_temperature_atmosphere
             self.atmospheric_pressure = atmospheric_pressure
-            self.distance = old_distance
+            if distance_override:
+                self.distance = float(old_distance)
 
     def generate_moons(self):
         """
@@ -728,15 +727,14 @@ class Planet:
             return
 
         # Leaving these as kilometers to avoid precision errors for something so close to 0 as lunar distances in AU
-        low_orbit = self.hill_radius
+        low_orbit = self.scale_height * 15
         high_orbit = self.min_orbit_distance * AU_TO_KM
         total_orbit_distance = low_orbit
-        last_orbital_min = 0
 
         while True:
-            new_orbit_min = total_orbit_distance + last_orbital_min
-
-            if new_orbit_min >= high_orbit:
+            if ((total_orbit_distance >= high_orbit
+                 or total_orbit_distance >= (self.distance * AU_TO_KM))
+                    or total_orbit_distance >= (self.min_orbit_distance * AU_TO_KM)):
                 break
 
             # This is about choosing the distance, which must in AU as that's what everything else works in.
@@ -758,8 +756,8 @@ class Planet:
                 radius_limit = max_moon_radius
 
             # This will be the distance of the moon from the planet.
-            moon_distance = random.uniform(new_orbit_min, high_orbit) / AU_TO_KM # Needs to be in AU
-            total_orbit_distance += moon_distance * AU_TO_KM
+            moon_distance = random.uniform(total_orbit_distance, high_orbit) / AU_TO_KM # Needs to be in AU
+            total_orbit_distance = moon_distance * AU_TO_KM
 
             moon_radius = random.uniform(planet_classes[moon_class]['radius_range'][0], radius_limit)
 
@@ -768,7 +766,6 @@ class Planet:
                               self.star_temperature, self.star_mass,
                               radius=moon_radius, planet_class=moon_class,
                               zone_override=self.zone, distance_override=self.distance, is_moon=True)
-            last_orbital_min = new_moon.min_orbit_distance
             self.moons.append(new_moon)
 
         return
