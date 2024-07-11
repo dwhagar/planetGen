@@ -396,7 +396,7 @@ def calc_object_mass(object_class, object_radius, object_density = None):
     @return: Tuple with the volume and the mass (volume, mass) in m^3 and kg
     """
     if object_density is None:
-        min_density, max_density = planet_density['type']
+        min_density, max_density = planet_density[planet_classes[object_class]['type']]
         p_density = random.uniform(min_density, max_density)
     else:
         p_density = object_density
@@ -704,14 +704,16 @@ class Planet:
         Generates a system of moons for the given planet.  This function does not deal with probability.
         """
 
+        # There is a cubic relationship between radius (volume ha radius cubed) and mass.
         moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'W', 'X', 'Y']
         max_moon_mass = self.mass / 10
+        max_moon_radius = self.radius / 10 ** (1 / 3) # Here the reduction factor is 1/10 of the mass
 
         possible_classes = []
 
         for c, data in planet_mass_ranges.items():
             if planet_classes[c][self.zone] and planet_classes[c]["type"] == 't' and not c in moon_blacklist:
-                if data[1] <= max_moon_mass:
+                if data[1] <= max_moon_mass and planet_classes[c]['radius_range'][1] <= max_moon_radius:
                     possible_classes.append(c)
 
         if not possible_classes:
@@ -734,15 +736,16 @@ class Planet:
             # no two orbits overlap.
 
             moon_class = random.choice(possible_classes)
+            if max_moon_radius > planet_classes[moon_class]['radius_range'][1]:
+                radius_limit = planet_classes[moon_class]['radius_range'][1]
+            else:
+                radius_limit = max_moon_radius
 
             # This will be the distance of the moon from the planet.
             moon_distance = random.uniform(new_orbit_min, high_orbit) / AU_TO_KM # Needs to be in AU
             total_orbit_distance += moon_distance * AU_TO_KM
 
-            # Use the minimum density, as the density decreases radius increases
-            min_moon_density = planet_density['t'][0]
-            max_moon_radius = ((3 * max_moon_mass) / (4 * math.pi * min_moon_density)) ** (1 /2)
-            moon_radius = random.uniform(planet_classes[moon_class]['radius_range'][0], max_moon_radius)
+            moon_radius = random.uniform(planet_classes[moon_class]['radius_range'][0], radius_limit)
 
             new_moon = Planet(self.hab, moon_distance,
                               self.star_output, self.star_radius,
@@ -816,11 +819,11 @@ class Planet:
 
         output.append(self.description)
 
-        if not self.moons is None:
-            for moon in self.moons:
-                output.append(str(moon))
-
         if not output[-1] == self.composition:
             output.append(self.composition)
+
+        if not self.moons is None and not self.is_moon:
+            for moon in self.moons:
+                output.append('\n' + str(moon))
 
         return '\n'.join(output)
