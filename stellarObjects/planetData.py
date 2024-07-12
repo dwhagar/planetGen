@@ -418,7 +418,7 @@ class Asteroid_Belt:
         self.type = 'a'
 
     def __str__(self):
-        return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {round(self.lower_limit, 3)} AU and {round(self.upper_limit, 3)} AU."
+        return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
 
 class Planet:
     """

@@ -37,7 +37,7 @@ class StarSystem:
                     last_planet = self.planets[i - 1]
                     random_buffer = random.uniform(0, star_factor)
                     if last_planet.type == 'a':
-                        estimated_distance = last_planet.upper_limit + random_buffer
+                        estimated_distance = last_planet.upper_limit + random_buffer * 2
                         last_asteroid = True
                     else:
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
@@ -46,7 +46,7 @@ class StarSystem:
 
                 if random.random() < 0.1 and not last_asteroid:
                     if star_factor < 1:
-                        min_distance = estimated_distance, 3
+                        min_distance = estimated_distance
                         max_distance = estimated_distance / star_factor
                     else:
                         min_distance = estimated_distance
