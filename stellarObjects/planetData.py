@@ -34,8 +34,8 @@ planet_classes = {
         "composition": "Igneous silica, basalt",
         "radius_range": (500, 5000), # In meters
         "h": True,  # Hot Zone
-        "e": True,  # Ecosphere
-        "c": True,  # Cold Zone
+        "e": False,  # Ecosphere
+        "c": False,  # Cold Zone
         "atmosphere": "Sulfur dioxide, carbon dioxide",
         "type": "t"
     },
@@ -73,9 +73,9 @@ planet_classes = {
         "description": "Molten core & crust, thin atmosphere",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
-        "h": True,
+        "h": False,
         "e": True,
-        "c": True,
+        "c": False,
         "atmosphere": "Hydrogen compounds",
         "type": "t"
     },
@@ -83,9 +83,9 @@ planet_classes = {
         "description": "Volcanic, shallow seas, bacterial life",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
-        "h": True,
+        "h": False,
         "e": True,
-        "c": True,
+        "c": False,
         "atmosphere": "Carbon dioxide, ammonia, methane",
         "type": "t"
     },
@@ -93,9 +93,9 @@ planet_classes = {
         "description": "Rocky, barren, simple life",
         "composition": "Silicon, iron, magnesium",
         "radius_range": (5000, 10000),
-        "h": True,
+        "h": False,
         "e": True,
-        "c": True,
+        "c": False,
         "atmosphere": "Carbon dioxide, oxygen, nitrogen",
         "type": "t"
     },
@@ -185,7 +185,7 @@ planet_classes = {
         "radius_range": (5000, 10000),
         "h": False,
         "e": True,
-        "c": True,
+        "c": False,
         "atmosphere": "Oxygen, nitrogen, argon (thinning with age)",
         "type": "t"
     },
@@ -243,9 +243,9 @@ planet_classes = {
         "description": "Super-Earth, high gravity",
         "composition": "Iron, iridium, tungsten, nickel",
         "radius_range": (10000, 15000),
-        "h": True,
+        "h": False,
         "e": True,
-        "c": True,
+        "c": False,
         "atmosphere": "Carbon dioxide, oxygen, hydrogen, helium",
         "type": "t"
     },

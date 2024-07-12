@@ -27,7 +27,7 @@ class StarSystem:
         star_factor = self.star.mass / SOLAR_MASS
 
         # Distances here are arbitrary and the idea is to create a system that does not need correction later
-        # this is not scientific and it is highly probable I'm doing this wrong.
+        # this is not scientific, it is highly probable I'm doing this wrong.
 
         if system_objects > 0:
             for i in range(system_objects):
@@ -36,7 +36,7 @@ class StarSystem:
                     if last_planet.type == 'a':
                         estimated_distance = last_planet.distance + star_factor
                     else:
-                        random_buffer = random.uniform(0, star_factor * 2)
+                        random_buffer = random.uniform(0, star_factor)
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
                 else:
                     estimated_distance = 0.5 * star_factor
@@ -46,7 +46,8 @@ class StarSystem:
                     max_distance = round(estimated_distance * 1.30, 3)
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
-                    planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass)
+                    planet = Planet(self.star.habitable_zone, estimated_distance,
+                                    self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass)
                     self.planets.append(planet)
 
         self.validate_system()
