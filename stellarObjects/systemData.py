@@ -31,19 +31,27 @@ class StarSystem:
 
         if system_objects > 0:
             for i in range(system_objects):
+                last_asteroid = False # Was the last system an asteroid belt?
+
                 if i > 0:
                     last_planet = self.planets[i - 1]
+                    random_buffer = random.uniform(0, star_factor)
                     if last_planet.type == 'a':
-                        estimated_distance = last_planet.distance + star_factor
+                        estimated_distance = last_planet.upper_limit + random_buffer
+                        last_asteroid = True
                     else:
-                        random_buffer = random.uniform(0, star_factor)
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
                 else:
                     estimated_distance = 0.5 * star_factor
 
-                if random.random() < 0.1:
-                    min_distance = round(estimated_distance * 0.70, 3)
-                    max_distance = round(estimated_distance * 1.30, 3)
+                if random.random() < 0.1 and not last_asteroid:
+                    if star_factor < 1:
+                        min_distance = estimated_distance, 3
+                        max_distance = estimated_distance / star_factor
+                    else:
+                        min_distance = estimated_distance
+                        max_distance = estimated_distance * star_factor
+
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance,
