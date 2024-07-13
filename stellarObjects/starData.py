@@ -161,7 +161,7 @@ class Star:
         else:
             # If set, the flag to force a large system should emphasize stars larger than Earth's Sun.
             spectral_probabilities = {
-                'O': 17.7, 'B': 17.8, 'A': 23.3, 'F': 25.7, 'G': 15.3, 'K': 0, 'M': 0
+                'O': 25, 'B': 25, 'A': 20, 'F': 20, 'G': 10, 'K': 0, 'M': 0
             }
 
         # Validate or generate spectral_class

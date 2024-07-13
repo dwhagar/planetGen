@@ -427,7 +427,7 @@ class Planet:
 
     def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override = None, distance_override = None,
-                 is_moon = False):
+                 is_moon = False, force_moons = False):
         """
         Initializes a Planet object with its radius and the spectral class of its host star.
         """
@@ -462,6 +462,7 @@ class Planet:
         if self.is_moon:
             id_number = random.randint(100, 999)
             self.id_string = f"{id_number}"
+            force_moons = False
         else:
             id_number = random.randint(1000, 9999)
             id_letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))
@@ -473,7 +474,8 @@ class Planet:
         self.period = math.sqrt(self.distance**3)
         self.calculate_surface_gravity()
         self.calculate_atmospheric_conditions(distance_override)
-        if random.randint(0,1) == 1 and not self.is_moon:
+
+        if (force_moons or random.randint(0,1) == 1) and not self.is_moon:
             self.generate_moons()
 
     def generate_planet(self, zone_override = None):

@@ -14,7 +14,7 @@ class StarSystem:
     A class representing a star system, containing a central star and a list of planets.
     """
 
-    def __init__(self, force_hab = False, force_belt = False, force_large = False):
+    def __init__(self, force_hab = False, force_belt = False, force_large = False, force_moons = False, force_planets = False):
         """
         Initializes a StarSystem object.
         """
@@ -23,7 +23,7 @@ class StarSystem:
         self.inner_limit = None
         self.star = Star(force_large = force_large)
         self.planets = []
-        system_objects = self.estimate_num_objects()
+        system_objects = self.estimate_num_objects(force_max = force_planets)
         star_factor = self.star.mass / SOLAR_MASS
 
         # Distances here are arbitrary and the idea is to create a system that does not need correction later
@@ -79,7 +79,7 @@ class StarSystem:
                             planet = Planet(self.star.habitable_zone, estimated_distance,
                                             self.star.luminosity, self.star.radius, self.star.temperature,
                                             self.star.mass,
-                                            planet_class="M")
+                                            planet_class="M", force_moons=force_moons)
                             self.planets[i - 1] = planet
                             i -= 1 # Walk in the index back since we've replaced the last planet
                             found_hab = True
@@ -92,7 +92,7 @@ class StarSystem:
                     if hz:
                         planet = Planet(self.star.habitable_zone, estimated_distance,
                                         self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass,
-                                        planet_class="M")
+                                        planet_class="M", force_moons=force_moons)
 
                         found_hab = True
                         self.planets.append(planet)
@@ -109,7 +109,8 @@ class StarSystem:
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance,
-                                    self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass)
+                                    self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass,
+                                    force_moons=force_moons)
 
                     if planet.planet_class == "M":
                         found_hab = True
@@ -118,7 +119,7 @@ class StarSystem:
 
         self.validate_system()
 
-    def estimate_num_objects(self):
+    def estimate_num_objects(self, force_max = False):
         """
         Estimates the number of objects in a star system based on the star's mass.
         """
@@ -126,7 +127,10 @@ class StarSystem:
         max_objects = 25 * solar_masses
 
         # Add some randomness for variation
-        num_objects = random.randint(0, math.ceil(max_objects))
+        if not force_max:
+            num_objects = random.randint(0, math.ceil(max_objects))
+        else:
+            num_objects = math.ceil(max_objects)
 
         return num_objects
 
