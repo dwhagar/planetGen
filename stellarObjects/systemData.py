@@ -65,11 +65,11 @@ class StarSystem:
                 if force_hab and not found_hab:
                     if not hz and i == 0:
                         if (estimated_distance > self.star.habitable_zone[1] or
-                                0 < self.star.habitable_zone[0] - estimated_distance < 0.2):
+                                0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
                             estimated_distance = random.uniform(self.star.habitable_zone[0],
                                                                 self.star.habitable_zone[1])
                             hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
-                    if not hz and i > 0:
+                    elif not hz and i > 0:
                         beyond_hz =\
                             (self.planets[i - 1].distance + self.planets[i - 1].min_orbit_distance >
                              self.star.habitable_zone[1])
@@ -84,6 +84,10 @@ class StarSystem:
                             i -= 1 # Walk in the index back since we've replaced the last planet
                             found_hab = True
                             continue
+
+                        elif i == system_objects - 1:
+                            estimated_distance = random.uniform(self.star.habitable_zone[0],
+                                                                self.star.habitable_zone[1])
 
                     if hz:
                         planet = Planet(self.star.habitable_zone, estimated_distance,
@@ -190,7 +194,6 @@ class StarSystem:
                 if distance_to_last < min_orbit:
                     planet.distance += min_orbit + additional_correction
                     planet.calculate_atmospheric_conditions()
-
 
     def __str__(self):
         """
