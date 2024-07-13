@@ -120,7 +120,7 @@ class Star:
 
         return radius_meters
 
-    def is_luminosity_reasonable(self, luminosity, temperature, spectral_class):
+    def set_radius_bounds(self, luminosity, temperature, spectral_class):
         """
         Checks if a luminosity is reasonable for a given temperature and spectral class.
 
@@ -130,7 +130,7 @@ class Star:
             spectral_class (str): The spectral class of the star ('O', 'B', 'A', 'F', 'G', 'K', or 'M').
 
         Returns:
-            bool: True if the luminosity is reasonable, False otherwise.
+            tuple: minimum radius in meters, maximum radius in meters
         """
 
         # Convert luminosity to watts (using solar luminosity)
@@ -146,8 +146,7 @@ class Star:
         min_radius_meters = min_radius * 6.957e8  # 1 solar radius = 6.957e8 meters
         max_radius_meters = max_radius * 6.957e8
 
-        # Check if calculated radius falls within the allowed range
-        return min_radius_meters <= radius_meters <= max_radius_meters
+        return min_radius_meters, max_radius_meters
 
     def generate_star(self, spectral_class=None, temperature=None, force_large=False):
         """
@@ -172,25 +171,22 @@ class Star:
         elif spectral_class not in spectral_probabilities:
             raise ValueError("Invalid spectral class")
 
-        luminosity = 0
-        luminosity_temp_valid = False
-        while not luminosity_temp_valid:
-            # Validate or generate temperature
-            valid_temp_range = temp_ranges.get(spectral_class)
-            if valid_temp_range is None:
-                raise ValueError("Invalid spectral class")
+        # Validate or generate temperature
+        valid_temp_range = temp_ranges.get(spectral_class)
+        if valid_temp_range is None:
+            raise ValueError("Invalid spectral class")
 
-            if temperature is None:
-                temperature = int(round(random.uniform(*valid_temp_range), -2))
-            elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
-                raise ValueError("Temperature out of range for the given spectral class")
+        if temperature is None:
+            temperature = int(round(random.uniform(*valid_temp_range), -2))
+        elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
+            raise ValueError("Temperature out of range for the given spectral class")
 
-            # Generate the Luminosity
-            min_luminosity, max_luminosity = luminosity_ranges[spectral_class]
-            luminosity = random.uniform(min_luminosity, max_luminosity)
+        # Generate the Luminosity
+        min_luminosity, max_luminosity = luminosity_ranges[spectral_class]
+        luminosity = random.uniform(min_luminosity, max_luminosity)
 
-            # Validate Luminosity and Temperature
-            luminosity_temp_valid = self.is_luminosity_reasonable(luminosity, temperature, spectral_class)
+        # Validate Luminosity and Temperature
+        radius_min, radius_max = self.set_radius_bounds(luminosity, temperature, spectral_class)
 
         # Calculate spectral subclass (0-9) based on temperature
         min_temp, max_temp = temp_ranges[spectral_class]
@@ -199,6 +195,11 @@ class Star:
 
         luminosity_watts = luminosity * SOLAR_LUMINOSITY
         radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
+        if radius > radius_max:
+            radius = radius_max
+        elif radius < radius_min:
+            radius = radius_min
+
         mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG) # Approximate Mass-Luminosity Relation
 
         # Yerkes spectral classification based on luminosity and radius
