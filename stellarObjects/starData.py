@@ -48,7 +48,7 @@ class Star:
     A class representing a star and it's properties.
     """
 
-    def __init__(self, spectral_class=None, temperature=None):
+    def __init__(self, spectral_class=None, temperature=None, force_large=False):
         """
         Initializes a Star object with default values or user-provided values.
         """
@@ -58,7 +58,7 @@ class Star:
         self.radius = None
         self.type = None
         self.habitable_zone = None
-        self.generate_star(spectral_class=spectral_class, temperature=temperature)
+        self.generate_star(force_large=force_large, spectral_class=spectral_class, temperature=temperature)
         self.calculate_habitable_zone()
 
     def __str__(self):
@@ -149,15 +149,21 @@ class Star:
         # Check if calculated radius falls within the allowed range
         return min_radius_meters <= radius_meters <= max_radius_meters
 
-    def generate_star(self, spectral_class=None, temperature=None):
+    def generate_star(self, spectral_class=None, temperature=None, force_large=False):
         """
         Generates a random star's properties, optionally taking spectral class
         and temperature as input.
         """
         # Spectral class probabilities (adjust as needed)
-        spectral_probabilities = {
-            'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45
-        }
+        if not force_large:
+            spectral_probabilities = {
+                'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45
+            }
+        else:
+            # If set, the flag to force a large system should emphasize stars larger than Earth's Sun.
+            spectral_probabilities = {
+                'O': 17.7, 'B': 17.8, 'A': 23.3, 'F': 25.7, 'G': 15.3, 'K': 0, 'M': 0
+            }
 
         # Validate or generate spectral_class
         if spectral_class is None:

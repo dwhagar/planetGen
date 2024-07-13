@@ -14,14 +14,14 @@ class StarSystem:
     A class representing a star system, containing a central star and a list of planets.
     """
 
-    def __init__(self):
+    def __init__(self, force_hab = False, force_belt = False, force_large = False):
         """
         Initializes a StarSystem object.
         """
 
         self.outer_limit = None
         self.inner_limit = None
-        self.star = Star()
+        self.star = Star(force_large = force_large)
         self.planets = []
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / SOLAR_MASS
@@ -29,7 +29,23 @@ class StarSystem:
         # Distances here are arbitrary and the idea is to create a system that does not need correction later
         # this is not scientific, it is highly probable I'm doing this wrong.
 
+        required_objects = 0
+        if force_hab:
+            required_objects += 1
+        if force_belt:
+            required_objects += 1
+
+        if system_objects < required_objects:
+            system_objects += required_objects
+
         if system_objects > 0:
+            if force_belt:
+                belt_index = random.randint(0, system_objects - 1)
+            else:
+                belt_index = -1
+
+            found_hab = False
+
             for i in range(system_objects):
                 last_asteroid = False # Was the last system an asteroid belt?
 
@@ -42,9 +58,43 @@ class StarSystem:
                     else:
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
                 else:
-                    estimated_distance = 0.5 * star_factor
+                    estimated_distance = 0.35 * star_factor
 
-                if random.random() < 0.1 and not last_asteroid:
+                hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
+
+                if force_hab and not found_hab:
+                    if not hz and i == 0:
+                        if (estimated_distance > self.star.habitable_zone[1] or
+                                0 < self.star.habitable_zone[0] - estimated_distance < 0.2):
+                            estimated_distance = random.uniform(self.star.habitable_zone[0],
+                                                                self.star.habitable_zone[1])
+                            hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
+                    if not hz and i > 0:
+                        beyond_hz =\
+                            (self.planets[i - 1].distance + self.planets[i - 1].min_orbit_distance >
+                             self.star.habitable_zone[1])
+                        if beyond_hz:
+                            estimated_distance = random.uniform(self.star.habitable_zone[0],
+                                                                self.star.habitable_zone[1])
+                            planet = Planet(self.star.habitable_zone, estimated_distance,
+                                            self.star.luminosity, self.star.radius, self.star.temperature,
+                                            self.star.mass,
+                                            planet_class="M")
+                            self.planets[i - 1] = planet
+                            i -= 1 # Walk in the index back since we've replaced the last planet
+                            found_hab = True
+                            continue
+
+                    if hz:
+                        planet = Planet(self.star.habitable_zone, estimated_distance,
+                                        self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass,
+                                        planet_class="M")
+
+                        found_hab = True
+                        self.planets.append(planet)
+                        continue
+
+                if (random.random() < 0.1 or i == belt_index) and not last_asteroid:
                     if star_factor < 1:
                         min_distance = estimated_distance
                         max_distance = estimated_distance / star_factor
@@ -56,6 +106,10 @@ class StarSystem:
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance,
                                     self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass)
+
+                    if planet.planet_class == "M":
+                        found_hab = True
+
                     self.planets.append(planet)
 
         self.validate_system()
@@ -154,5 +208,7 @@ class StarSystem:
                 output.append(str(planet) + '\n')
         else:
             output.append("There are no planets or asteroid belts in this system.")
+
+        output.append('\n[[Category:Star Systems]]')
         
         return '\n'.join(output)
