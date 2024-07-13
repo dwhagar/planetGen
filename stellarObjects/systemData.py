@@ -66,7 +66,7 @@ class StarSystem:
                     else:
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
                 else:
-                    estimated_distance = 0.35 * star_factor
+                    estimated_distance = 0.55 * star_factor
 
                 hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
 
@@ -130,6 +130,25 @@ class StarSystem:
                     self.planets.append(planet)
 
         self.validate_system()
+        self.planet_count , self.belt_count, self.moon_count = self.count_objects()
+
+    def count_objects(self):
+        """
+        Counts the number of objects in the system of different types.
+        @return: planets, asteroid belts, moons
+        """
+        planet_counter = 0
+        moon_counter = 0
+        belt_counter = 0
+
+        for planet in self.planets:
+            if not planet.type == 'a':
+                planet_counter += 1
+                moon_counter += len(planet.moons)
+            else:
+                belt_counter += 1
+
+        return planet_counter, belt_counter, moon_counter
 
     def estimate_num_objects(self, force_max = False):
         """
@@ -217,16 +236,61 @@ class StarSystem:
         """
         output = [str(self.star)]
 
-        if len(self.planets) == 1:
-            output.append(f"There is 1 stellar object in the system, not including any moons.\n")
-            for planet in self.planets:
-                output.append(str(planet) + '\n')
-        elif len(self.planets) > 1:
-            output.append(f"There are {len(self.planets)} stellar objects in the system, not including any moons.\n")
-            for planet in self.planets:
-                output.append(str(planet) + '\n')
+        segments = 0
+
+        if self.planet_count == 1:
+            planet_segment = "1 planet"
+            segments += 1
+        elif self.planet_count > 1:
+            planet_segment = f"{self.planet_count} planets"
+            segments += 1
         else:
-            output.append("There are no planets or asteroid belts in this system.")
+            planet_segment = ""
+
+        if self.belt_count == 1:
+            belt_segment = "1 asteroid belt"
+            segments += 1
+        elif self.belt_count > 1:
+            belt_segment = f"{self.belt_count} asteroid belts"
+            segments += 1
+        else:
+            belt_segment = ""
+
+        if self.moon_count == 1:
+            moon_segment = "1 moon"
+            segments += 1
+        elif self.moon_count > 1:
+            moon_segment = f"{self.moon_count} moons"
+            segments += 1
+        else:
+            moon_segment = ""
+
+        pre_string = "This system contains"
+
+        if segments == 3:
+            system_string = f"{pre_string} {planet_segment} with {moon_segment} and {belt_segment}."
+        elif segments == 2:
+            if self.planet_count > 0 and self.moon_count > 0:
+                system_string = f"{pre_string} {planet_segment} with {moon_segment}."
+            elif self.planet_count > 0 and self.belt_count > 0:
+                system_string = f"{pre_string} {planet_segment} and {belt_segment}."
+            else:
+                system_string = "Something went wrong, you should not see this.  Manually check the system contents."
+        elif segments == 1:
+            if self.planet_count > 0:
+                system_string = f"{pre_string} {planet_segment}."
+            elif self.belt_count > 0:
+                system_string = f"{pre_string} {belt_segment}."
+            else:
+                system_string = "Something went wrong, you should not see this.  Manually check the system contents."
+        else:
+            system_string = "There are no stellar objects in this system."
+
+        output.append(system_string + "\n")
+
+        if len(self.planets) > 0:
+            for planet in self.planets:
+                output.append(str(planet) + '\n')
 
         output.append('\n[[Category:Star Systems]]')
         
