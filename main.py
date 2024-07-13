@@ -1,13 +1,29 @@
 import argparse
 from stellarObjects import StarSystem
 
-def parse_args():
+def process_args():
     """Parses command-line arguments for boolean flags related to system generation.
 
     Returns:
         argparse.Namespace: An object containing parsed argument values as boolean attributes.
     """
-    parser = argparse.ArgumentParser(description="System Generation Options")
+    additional_info = [
+        "Additional Information:",
+        "This tool is designed as a personal tool for the Molten Aether FFRP game, the output is designed to be",
+        "simply cut and paste from the program output into the wiki, see https://wiki.moltenaether.com for wiki and",
+        "game information.  Using commands to force a habitable world and an asteroid belt will automatically force",
+        "a large star to ensure there is room for both objects. The most common stars are small dwarf stars which",
+        "make a smaller star system.  Forcing a large star as well as maximized planets will cause the generated",
+        "system to be very large with an extremely high and sometimes absurd number of planets.  Do not assume that",
+        "just because it is generated here, it is accurate or possible, such large systems may require editing as",
+        "some worlds may end up saying they are several thousand AU's from the central star."
+    ]
+
+    additional_info = " ".join(additional_info)
+
+    parser = argparse.ArgumentParser(
+        description="System Generation Options",
+        epilog=additional_info)
 
     # Force Habitable World
     parser.add_argument('--force-habitable-world', '-fhw', action='store_true',
@@ -37,7 +53,7 @@ def main():
     Main function to generate and display a star system.
     """
 
-    args = parse_args()
+    args = process_args()
 
     if args.force_habitable_world and args.force_asteroid_belt:
         args.force_large_star = True

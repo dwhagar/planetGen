@@ -46,7 +46,15 @@ class StarSystem:
 
             found_hab = False
 
-            for i in range(system_objects):
+            not_done = True
+            i = -1
+
+            while not_done:
+                i += 1
+                if i >= system_objects:
+                    not_done = False
+                    continue
+
                 last_asteroid = False # Was the last system an asteroid belt?
 
                 if i > 0:
@@ -70,9 +78,13 @@ class StarSystem:
                                                                 self.star.habitable_zone[1])
                             hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
                     elif not hz and i > 0:
-                        beyond_hz =\
-                            (self.planets[i - 1].distance + self.planets[i - 1].min_orbit_distance >
-                             self.star.habitable_zone[1])
+                        if self.planets[i - 1].type == 'a':
+                            beyond_hz = self.planets[i - 1].upper_limit > self.star.habitable_zone[1]
+                        else:
+                            beyond_hz =\
+                                (self.planets[i - 1].distance + self.planets[i - 1].min_orbit_distance >
+                                 self.star.habitable_zone[1])
+
                         if beyond_hz:
                             estimated_distance = random.uniform(self.star.habitable_zone[0],
                                                                 self.star.habitable_zone[1])
