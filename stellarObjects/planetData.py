@@ -806,14 +806,19 @@ class Planet:
 
         random_id = f"{header_level} {self.id_string} {header_level}"
 
+        if self.radius <= 100000:
+            radius_string = f"|radius={round(self.radius, 2):,} km"
+        else:
+            radius_string = f"|radius={to_scientific_notation(self.radius, 2)} km"
+
         output = [
             random_id,
             "{{Planet Data",
             f"|class={self.planet_class}",
             distance_text,
             f"|period={years_to_time_string(self.period)}",
-            f"|radius={round(self.radius, 1):,} km",
-            f"|gravity={round(self.gravity, 2)} g",
+            radius_string,
+            f"|gravity={round(self.gravity, 3)} g",
             "}}",
         ]
 

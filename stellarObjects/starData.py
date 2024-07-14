@@ -87,8 +87,13 @@ class Star:
         if sol_lum <= 0:
             sol_lum = round(self.luminosity / SOLAR_LUMINOSITY * 100, 4)
 
+        if self.radius <= 100000:
+            radius_string = f"|radius={round(self.radius, 2):,} km"
+        else:
+            radius_string = f"|radius={to_scientific_notation(self.radius, 2)} km"
+
         output = ["{{Star Data", f"|type={self.type}",
-                  f"|radius={round(self.radius, 2):,} km",
+                  radius_string,
                   f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass}% of Sol)",
                   f"|temp={self.temperature} K",
                   f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum}% of Sol)",
