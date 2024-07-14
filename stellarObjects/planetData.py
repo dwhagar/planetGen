@@ -465,7 +465,7 @@ class Planet:
             force_moons = False
         else:
             id_number = random.randint(1000, 9999)
-            id_letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=2))
+            id_letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXY", k=2))
             self.id_string = f"{id_number}-{id_letters}"
 
         # Calculate additional properties.

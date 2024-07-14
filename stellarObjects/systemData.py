@@ -45,13 +45,14 @@ class StarSystem:
                 belt_index = -1
 
             found_hab = False
-
             not_done = True
             i = -1
 
             while not_done:
                 i += 1
-                if i >= system_objects:
+                if i >= system_objects and force_hab and not found_hab:
+                    system_objects += 1
+                elif i >= system_objects:
                     not_done = False
                     continue
 
@@ -110,7 +111,7 @@ class StarSystem:
                         self.planets.append(planet)
                         continue
 
-                if (random.random() < 0.1 or i == belt_index) and not last_asteroid:
+                if (random.random() < 0.1 or i == belt_index) and not last_asteroid and not hz:
                     if star_factor < 1:
                         min_distance = estimated_distance
                         max_distance = estimated_distance / star_factor
@@ -131,6 +132,7 @@ class StarSystem:
 
         self.validate_system()
         self.planet_count , self.belt_count, self.moon_count = self.count_objects()
+        self.hab_count, self.m_count = self.count_habitable()
 
     def count_objects(self):
         """
@@ -149,6 +151,32 @@ class StarSystem:
                 belt_counter += 1
 
         return planet_counter, belt_counter, moon_counter
+
+    def count_habitable(self):
+        """
+        Counts the number of habitable bodies in the system.
+
+        @return: hab_count, m_count
+        """
+        habitable_classes = "HKLMOP"
+
+        hab_count = 0
+        m_count = 0
+
+        for planet in self.planets:
+            if not planet.type == 'a':
+                if planet.planet_class in habitable_classes:
+                    hab_count += 1
+                if planet.planet_class == "M":
+                    m_count +=1
+
+                for moon in planet.moons:
+                    if moon.planet_class in habitable_classes:
+                        hab_count += 1
+                    if moon.planet_class == "M":
+                        m_count += 1
+
+        return hab_count, m_count
 
     def estimate_num_objects(self, force_max = False):
         """
@@ -286,7 +314,28 @@ class StarSystem:
         else:
             system_string = "There are no stellar objects in this system."
 
-        output.append(system_string + "\n")
+        if self.m_count == 1:
+            m_string = "1 of which is class M"
+        elif self.m_count > 1:
+            m_string = f"{self.m_count} of which are class M"
+        else:
+            m_string = "none of which are class M"
+
+        if self.hab_count == 1 and self.m_count < 1:
+            habitable_string = f"There is 1 potentially habitable world in the system."
+        elif self.hab_count == 1 and self.m_count == 1:
+            habitable_string = f"There is 1 class M world in the system."
+        elif self.hab_count > 1 and self.hab_count == self.m_count:
+            habitable_string = f"There are {self.hab_count} class M worlds in the system."
+        elif self.hab_count > 1:
+            habitable_string = f"There are {self.hab_count} potentially habitable worlds ({m_string})"
+        elif self.hab_count == 0:
+            habitable_string = "There are no potentially habitable worlds in this system."
+        else:
+            habitable_string = "Something went wrong.  Check the system contents manually."
+
+        output.append(system_string)
+        output.append(habitable_string + "\n")
 
         if len(self.planets) > 0:
             for planet in self.planets:
