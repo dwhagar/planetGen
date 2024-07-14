@@ -14,14 +14,15 @@ class StarSystem:
     A class representing a star system, containing a central star and a list of planets.
     """
 
-    def __init__(self, force_hab = False, force_belt = False, force_large = False, force_moons = False, force_planets = False):
+    def __init__(self, force_hab = False, force_belt = False, force_large = False, force_moons = False,
+                 force_planets = False, absurd = False):
         """
         Initializes a StarSystem object.
         """
 
         self.outer_limit = None
         self.inner_limit = None
-        self.star = Star(force_large = force_large)
+        self.star = Star(force_large = force_large, absurd = absurd)
         self.planets = []
         system_objects = self.estimate_num_objects(force_max = force_planets)
         star_factor = self.star.mass / SOLAR_MASS
@@ -183,7 +184,16 @@ class StarSystem:
         Estimates the number of objects in a star system based on the star's mass.
         """
         solar_masses = self.star.mass / SOLAR_MASS
-        max_objects = 25 * solar_masses
+        # The computer can only go so high, so this adds a value to try and restrict the number of plants in the
+        # system to not have the orbital values become absurdly large.
+        mass_mag = int(math.log10(abs(solar_masses))) + 1
+
+        max_objects = (25 / mass_mag) * solar_masses
+
+        # This caps the number of stellar objects in a system at no more than 500, which I don't like doing
+        # but any higher than that and the computer can have trouble making all the calculations.
+        if max_objects > 500:
+            max_objects = 500
 
         # Add some randomness for variation
         if not force_max:

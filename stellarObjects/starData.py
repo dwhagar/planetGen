@@ -48,7 +48,7 @@ class Star:
     A class representing a star and it's properties.
     """
 
-    def __init__(self, spectral_class=None, temperature=None, force_large=False):
+    def __init__(self, spectral_class=None, temperature=None, force_large=False, absurd=False):
         """
         Initializes a Star object with default values or user-provided values.
         """
@@ -58,7 +58,7 @@ class Star:
         self.radius = None
         self.type = None
         self.habitable_zone = None
-        self.generate_star(force_large=force_large, spectral_class=spectral_class, temperature=temperature)
+        self.generate_star(force_large=force_large, spectral_class=spectral_class, temperature=temperature, absurd=absurd)
         self.calculate_habitable_zone()
 
     def __str__(self):
@@ -153,20 +153,25 @@ class Star:
 
         return min_radius_meters, max_radius_meters
 
-    def generate_star(self, spectral_class=None, temperature=None, force_large=False):
+    def generate_star(self, spectral_class=None, temperature=None, force_large=False, absurd=False):
         """
         Generates a random star's properties, optionally taking spectral class
         and temperature as input.
         """
         # Spectral class probabilities (adjust as needed)
-        if not force_large:
+        if absurd:
+            # If set, the flag to force a large system should emphasize stars larger than Earth's Sun.
             spectral_probabilities = {
-                'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45
+                'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0
             }
-        else:
+        elif force_large:
             # If set, the flag to force a large system should emphasize stars larger than Earth's Sun.
             spectral_probabilities = {
                 'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0
+            }
+        else:
+            spectral_probabilities = {
+                'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45
             }
 
         # Validate or generate spectral_class
@@ -182,13 +187,20 @@ class Star:
             raise ValueError("Invalid spectral class")
 
         if temperature is None:
-            temperature = int(round(random.uniform(*valid_temp_range), -2))
+            if absurd:
+                temperature = valid_temp_range[1]
+            else:
+                temperature = int(round(random.uniform(*valid_temp_range), -2))
         elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
             raise ValueError("Temperature out of range for the given spectral class")
 
         # Generate the Luminosity
         min_luminosity, max_luminosity = luminosity_ranges[spectral_class]
-        luminosity = random.uniform(min_luminosity, max_luminosity)
+
+        if absurd:
+            luminosity = max_luminosity
+        else:
+            luminosity = random.uniform(min_luminosity, max_luminosity)
 
         # Validate Luminosity and Temperature
         radius_min, radius_max = self.set_radius_bounds(luminosity, temperature, spectral_class)

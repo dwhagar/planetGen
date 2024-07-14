@@ -43,7 +43,11 @@ def process_args():
 
     # Force Maximum Planets
     parser.add_argument('--force-max-planets', '-fmp', action='store_true',
-                        help="Force the system  to maximized the number of planets.")
+                        help="Force the system to maximized the number of planets.")
+
+    # Make the biggest and most absurd system possible.
+    parser.add_argument('--absurd', action='store_true',
+    help="Force the system to generate the largest star possible w/ max planets and moons.")
 
     args = parser.parse_args()
     return args
@@ -55,14 +59,18 @@ def main():
 
     args = process_args()
 
-    if args.force_habitable_world and args.force_asteroid_belt:
+    if args.force_habitable_world and args.force_asteroid_belt and not args.absurd:
         args.force_large_star = True
+    elif args.absurd:
+        args.force_max_planets = True
+        args.force_moons = True
 
     system = StarSystem(force_hab=args.force_habitable_world,
                         force_belt=args.force_asteroid_belt,
                         force_large=args.force_large_star,
                         force_moons=args.force_moons,
-                        force_planets=args.force_max_planets)
+                        force_planets=args.force_max_planets,
+                        absurd=args.absurd)
     print(system)
 
 if __name__ == "__main__":
