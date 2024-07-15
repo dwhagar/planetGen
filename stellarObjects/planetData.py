@@ -712,6 +712,14 @@ class Planet:
             if self.planet_class == "M":
                 if self.atmospheric_pressure < 90000 or self.atmospheric_pressure > 112000:
                     self.atmospheric_pressure = random.uniform(90000, 112000)
+                if self.surface_temperature < 10 or self.surface_temperature > 17:
+                    self.surface_temperature = random.uniform(10, 17)
+            elif self.planet_class == "P":
+                if self.surface_temperature >= 10:
+                    if surface_temperature_no_atmosphere < 10:
+                        self.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 10)
+                    elif surface_temperature_no_atmosphere >= 10:
+                        self.surface_temperature = random.uniform(-surface_temperature_no_atmosphere, 10)
 
     def generate_moons(self):
         """
