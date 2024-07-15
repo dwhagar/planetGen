@@ -113,13 +113,8 @@ class StarSystem:
                         continue
 
                 if (random.random() < 0.1 or i == belt_index) and not last_asteroid and not hz:
-                    if star_factor < 1:
-                        min_distance = estimated_distance
-                        max_distance = estimated_distance / star_factor
-                    else:
-                        min_distance = estimated_distance
-                        max_distance = estimated_distance * star_factor
-
+                    min_distance = estimated_distance
+                    max_distance = estimated_distance * random.uniform(1.1, 2)
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance,
