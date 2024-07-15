@@ -706,20 +706,22 @@ class Planet:
             surface_temperature_atmosphere =\
                 ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * STEFAN_BOLTZMANN)) ** (1 / 4)
 
-            self.surface_temperature = surface_temperature_atmosphere
-            self.atmospheric_pressure = atmospheric_pressure
+            self.surface_temperature = surface_temperature_atmosphere # in Kelvin
+            self.atmospheric_pressure = atmospheric_pressure # in Pa
 
+            # Since we are dealing with a few classes that are specifically described in either the series (such as
+            # a class M planet) or in documentation (as with a Class P planet) we're going to have to do some checks.
             if self.planet_class == "M":
                 if self.atmospheric_pressure < 90000 or self.atmospheric_pressure > 112000:
                     self.atmospheric_pressure = random.uniform(90000, 112000)
-                if self.surface_temperature < 10 or self.surface_temperature > 17:
-                    self.surface_temperature = random.uniform(10, 17)
+                if self.surface_temperature < 283 or self.surface_temperature > 290:
+                    self.surface_temperature = random.uniform(283, 290)
             elif self.planet_class == "P":
-                if self.surface_temperature >= 10:
-                    if surface_temperature_no_atmosphere < 10:
-                        self.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 10)
-                    elif surface_temperature_no_atmosphere >= 10:
-                        self.surface_temperature = random.uniform(-surface_temperature_no_atmosphere, 10)
+                if self.surface_temperature >= 283:
+                    if surface_temperature_no_atmosphere < 283:
+                        self.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
+                    elif surface_temperature_no_atmosphere >= 283:
+                        self.surface_temperature = random.uniform(-surface_temperature_no_atmosphere, 283)
 
     def generate_moons(self):
         """
@@ -727,12 +729,14 @@ class Planet:
         """
 
         # There is a cubic relationship between radius (volume ha radius cubed) and mass.
-        moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'Y']
-        max_moon_mass = self.mass / 10
+        moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'Y'] # Some types of planet are just not reasonable for a moon
+        max_moon_mass = self.mass / 10 # Going to cap moons at 1/10th the size of the parent planet by mass
         max_moon_radius = self.radius / 10 ** (1 / 3) # Here the reduction factor is 1/10 of the mass
 
         possible_classes = []
 
+        # This allows us to quickly tell just how many possible classes there are based on figures above.
+        # We remove all gas giants, exclude the blacklist, and the most common moon should be D or C classes.
         for c, data in planet_mass_ranges.items():
             if planet_classes[c][self.zone] and planet_classes[c]["type"] == 't' and not c in moon_blacklist:
                 if data[1] <= max_moon_mass and planet_classes[c]['radius_range'][1] <= max_moon_radius:
