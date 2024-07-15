@@ -79,13 +79,29 @@ class Star:
             else:
                 hab_upper = str(round(self.habitable_zone[1], 2))
 
-        sol_mass = round(self.mass / SOLAR_MASS_TO_KG * 100, 1)
-        sol_lum = round(self.luminosity / SOLAR_LUMINOSITY * 100, 1)
+        sol_mass = round(self.mass / SOLAR_MASS_TO_KG, 1)
+        sol_lum = round(self.luminosity / SOLAR_LUMINOSITY, 1)
 
         if sol_mass <= 0:
             sol_mass = round(self.mass / SOLAR_MASS_TO_KG * 100, 4)
         if sol_lum <= 0:
             sol_lum = round(self.luminosity / SOLAR_LUMINOSITY * 100, 4)
+
+        if sol_mass <= 2:
+            mass_string = f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass * 100}% of Sol)"
+        elif sol_mass > 1000:
+            exponent = int(math.floor(math.log10(abs(sol_mass))))
+            mass_string = f"|mass={to_scientific_notation(self.mass)} kg (10<sup>{exponent}</sup>x Sol)"
+        else:
+            mass_string = f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass}x Sol)"
+
+        if sol_lum <= 2:
+            lum_string = f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum * 100}% of Sol)"
+        elif sol_lum > 1000:
+            exponent = int(math.floor(math.log10(abs(sol_lum))))
+            lum_string = f"|lum={to_scientific_notation(self.luminosity)} W (10<sup>{exponent}</sup>x Sol)"
+        else:
+            lum_string = f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum}x Sol)"
 
         if self.radius <= 100000:
             radius_string = f"|radius={round(self.radius, 2):,} km"
@@ -94,9 +110,9 @@ class Star:
 
         output = ["{{Star Data", f"|type={self.type}",
                   radius_string,
-                  f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass}% of Sol)",
+                  mass_string,
                   f"|temp={self.temperature} K",
-                  f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum}% of Sol)",
+                  lum_string,
                   f"|hab=Between {hab_lower} and {hab_upper} AU",
                   "}}"]
         return '\n'.join(output)
