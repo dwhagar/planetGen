@@ -294,7 +294,7 @@ planet_class_probabilities = {
     'J': 0.0529,
     'K': 0.0142,
     'L': 0.0335,
-    'M': 0.0915,
+    'M': 0.1345,
     'N': 0.0239,
     'O': 0.0045,
     'P': 0.0046,
@@ -306,7 +306,7 @@ planet_class_probabilities = {
     'V': 0.0045,
     'W': 0.0001,
     'X': 0.0002,
-    'Y': 0.0432
+    'Y': 0.0002
 }
 
 def get_planet_mass_ranges():
@@ -644,6 +644,10 @@ class Planet:
         if surface_gravity_g <= 0:
             raise ValueError('Invalid value for gravity.')
 
+        if self.planet_class == "M":
+            if surface_gravity_g < 0.75 or surface_gravity_g > 1.25:
+                surface_gravity_g = random.uniform(0.75, 1.25)
+
         self.gravity = surface_gravity_g
 
     def calculate_atmospheric_conditions(self, distance_override = None):
@@ -705,13 +709,17 @@ class Planet:
             self.surface_temperature = surface_temperature_atmosphere
             self.atmospheric_pressure = atmospheric_pressure
 
+            if self.planet_class == "M":
+                if self.atmospheric_pressure < 90000 or self.atmospheric_pressure > 112000:
+                    self.atmospheric_pressure = random.uniform(90000, 112000)
+
     def generate_moons(self):
         """
         Generates a system of moons for the given planet.  This function does not deal with probability.
         """
 
         # There is a cubic relationship between radius (volume ha radius cubed) and mass.
-        moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'W', 'X', 'Y']
+        moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'Y']
         max_moon_mass = self.mass / 10
         max_moon_radius = self.radius / 10 ** (1 / 3) # Here the reduction factor is 1/10 of the mass
 

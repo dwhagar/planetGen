@@ -89,7 +89,7 @@ class Star:
 
         if sol_mass <= 2:
             mass_string = f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass * 100}% of Sol)"
-        elif sol_mass > 1000:
+        elif sol_mass > 10:
             exponent = int(math.floor(math.log10(abs(sol_mass))))
             mass_string = f"|mass={to_scientific_notation(self.mass)} kg (10<sup>{exponent}</sup>x Sol)"
         else:
@@ -97,7 +97,7 @@ class Star:
 
         if sol_lum <= 2:
             lum_string = f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum * 100}% of Sol)"
-        elif sol_lum > 1000:
+        elif sol_lum > 10:
             exponent = int(math.floor(math.log10(abs(sol_lum))))
             lum_string = f"|lum={to_scientific_notation(self.luminosity)} W (10<sup>{exponent}</sup>x Sol)"
         else:
