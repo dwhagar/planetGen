@@ -2,8 +2,8 @@ import random
 import math
 from .planetData import Planet, Asteroid_Belt
 from .starData import Star
+from .constants import SOLAR_MASS_TO_KG
 
-SOLAR_MASS = 1.989e30  # kg
 SOLAR_RADIUS = 6.9634e8  # m
 SOLAR_GRAVITY = 28 # g's
 GRAVITATIONAL_CONSTANT = 6.674e-11  # N(m/kg)^2
@@ -25,7 +25,7 @@ class StarSystem:
         self.star = Star(force_large = force_large, absurd = absurd)
         self.planets = []
         system_objects = self.estimate_num_objects(force_max = force_planets)
-        star_factor = self.star.mass / SOLAR_MASS
+        star_factor = self.star.mass / SOLAR_MASS_TO_KG
 
         # Distances here are arbitrary and the idea is to create a system that does not need correction later
         # this is not scientific, it is highly probable I'm doing this wrong.
@@ -178,7 +178,7 @@ class StarSystem:
         """
         Estimates the number of objects in a star system based on the star's mass.
         """
-        solar_masses = self.star.mass / SOLAR_MASS
+        solar_masses = self.star.mass / SOLAR_MASS_TO_KG
         # The computer can only go so high, so this adds a value to try and restrict the number of plants in the
         # system to not have the orbital values become absurdly large.
         mass_mag = int(math.log10(abs(solar_masses))) + 1
