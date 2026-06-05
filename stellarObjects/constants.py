@@ -52,203 +52,203 @@ GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
 # habitable zone compatibility, atmosphere type, and planet type ('t' for terrestrial, 'g' for gas giant).
 PLANET_CLASSES = {
     "A": {
-        "description": "Small, barren, volcanic",
-        "composition": "Igneous silica, basalt",
+        "description": "a small, barren, and volcanic world",
+        "composition": "igneous silica and basalt",
         "radius_range": (500, 5000),
         "h": True, "e": False, "c": False,
-        "atmosphere": "Sulfur dioxide, carbon dioxide",
+        "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t"
     },
     "B": {
-        "description": "Small, molten, thin atmosphere",
-        "composition": "Iron, potassium, silicon",
+        "description": "a small, molten world with a thin atmosphere",
+        "composition": "iron, potassium, and silicon",
         "radius_range": (500, 5000),
         "h": True, "e": False, "c": False,
-        "atmosphere": "Helium, sodium, oxygen",
+        "atmosphere": "a mix of helium, sodium, and oxygen",
         "type": "t"
     },
     "C": {
-        "description": "Dead worlds, no atmosphere",
-        "composition": "Anthracite, basalt, hydrocarbons",
+        "description": "a dead world",
+        "composition": "anthracite, basalt, and hydrocarbons",
         "radius_range": (500, 10000),
         "h": True, "e": True, "c": True,
         "atmosphere": None,
         "type": "t"
     },
     "D": {
-        "description": "Small icy bodies (not true planets), often called dwarf or pseudo planets",
-        "composition": "Frozen hydrocarbons, ice",
+        "description": "a small icy body",
+        "composition": "frozen hydrocarbons and ice",
         "radius_range": (50, 3000),
         "h": True, "e": True, "c": True,
         "atmosphere": None,
         "type": "t"
     },
     "E": {
-        "description": "Molten core & crust, thin atmosphere",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a world with a molten core and crust, and a thin atmosphere",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Hydrogen compounds",
+        "atmosphere": "hydrogen compounds",
         "type": "t"
     },
     "F": {
-        "description": "Volcanic, shallow seas, bacterial life",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a volcanic world with shallow seas and bacterial life",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Carbon dioxide, ammonia, methane",
+        "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
         "type": "t"
     },
     "G": {
-        "description": "Rocky, barren, simple life",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a rocky, barren world with simple life",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Carbon dioxide, oxygen, nitrogen",
+        "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
         "type": "t"
     },
     "H": {
-        "description": "Desert worlds, minimal water, must be less than 10% liquid water",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a desert world with minimal water (less than 10% liquid water)",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Oxygen, nitrogen, argon, metals",
+        "atmosphere": "a mix of oxygen, nitrogen, argon, and metals",
         "type": "t"
     },
     "I": {
-        "description": "Ice giant, tilted magnetic field",
-        "composition": "Rock, ice, methane, ammonia",
+        "description": "an ice giant with a tilted magnetic field",
+        "composition": "rock, ice, methane, and ammonia",
         "radius_range": (15000, 50000),
         "h": False, "e": False, "c": True,
-        "atmosphere": "Hydrogen, helium",
+        "atmosphere": "a mix of hydrogen and helium",
         "type": "g"
     },
     "J": {
-        "description": "Gas giant, turbulent atmosphere, rings",
-        "composition": "Hydrogen, helium",
+        "description": "a gas giant with a turbulent atmosphere and rings",
+        "composition": "hydrogen and helium",
         "radius_range": (25000, 250000),
         "h": False, "e": False, "c": True,
-        "atmosphere": "Hydrogen, helium",
+        "atmosphere": "a mix of hydrogen and helium",
         "type": "g"
     },
     "K": {
-        "description": "Adaptable, thin atmosphere",
-        "composition": "Silicon, iron, magnesium",
+        "description": "an adaptable world with a thin atmosphere",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (2500, 7500),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Carbon dioxide",
+        "atmosphere": "carbon dioxide",
         "type": "t"
     },
     "L": {
-        "description": "Marginal, varied atmosphere, vegetation",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a marginally habitable world with vegetation",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 7500),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Argon, oxygen, trace elements",
+        "atmosphere": "a mix of argon, oxygen, and trace elements",
         "type": "t"
     },
     "M": {
-        "description": "Terrestrial, Earth-like",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a terrestrial Earth-like world",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Oxygen, nitrogen, argon",
+        "atmosphere": "a mix of oxygen, nitrogen, and argon",
         "type": "t"
     },
     "N": {
-        "description": "Reducing, hot, dense atmosphere",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a hot world with a dense, reducing atmosphere",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Carbon dioxide, sulfides",
+        "atmosphere": "a mix of carbon dioxide and sulfides",
         "type": "t"
     },
     "O": {
-        "description": "Pelagic, mostly water, ocean worlds with > 90% of the surface is liquid water",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a pelagic (ocean) world with greater than 90% of its surface covered in liquid water",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Oxygen, nitrogen, argon",
+        "atmosphere": "a mix of oxygen, nitrogen, and argon",
         "type": "t"
     },
     "P": {
-        "description": "Glaciated, cold",
-        "composition": "Silicon, iron, magnesium, ice",
+        "description": "a cold, glaciated world",
+        "composition": "silicon, iron, magnesium, and ice",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Oxygen, nitrogen, argon (thinning with age)",
+        "atmosphere": "a mix of oxygen, nitrogen, and argon (thinning with age)",
         "type": "t"
     },
     "Q": {
-        "description": "Eccentric orbit, extreme variations",
-        "composition": "Silicon, iron, magnesium",
+        "description": "a world with an eccentric orbit and extreme temperature variations",
+        "composition": "silicon, iron, and magnesium",
         "radius_range": (2000, 7500),
         "h": True, "e": True, "c": True,
-        "atmosphere": "Varies widely (nitrogen, oxygen, argon, thin to dense)",
+        "atmosphere": "a variable atmosphere (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t"
     },
     "R": {
-        "description": "Ejected, geologically active",
-        "composition": "Silicate compounds, iron",
+        "description": "an ejected, geologically active world",
+        "composition": "silicate compounds and iron",
         "radius_range": (7500, 10000),
         "h": False, "e": False, "c": False,
-        "atmosphere": "Volcanic outgassing",
+        "atmosphere": "volcanic outgassing",
         "type": "t"
     },
     "S": {
-        "description": "Supergiant, shield for inner planets",
-        "composition": "Hydrogen, helium",
+        "description": "a supergiant that shields the inner planets",
+        "composition": "hydrogen and helium",
         "radius_range": (250000, 50000000),
         "h": False, "e": False, "c": True,
-        "atmosphere": "Hydrogen, helium",
+        "atmosphere": "a mix of hydrogen and helium",
         "type": "g"
     },
     "T": {
-        "description": "Gas dwarf, thick atmosphere",
-        "composition": "Hydrogen, helium, hydrocarbons",
+        "description": "a gas dwarf with a thick atmosphere",
+        "composition": "hydrogen, helium, and hydrocarbons",
         "radius_range": (250000, 25000000),
         "h": False, "e": False, "c": True,
-        "atmosphere": "Hydrogen, helium, hydrocarbons",
+        "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
         "type": "g"
     },
     "U": {
-        "description": "Ultragiant, can become a star",
-        "composition": "Hydrogen, helium",
+        "description": "an ultragiant that could become a star",
+        "composition": "hydrogen and helium",
         "radius_range": (25000000, 60000000),
         "h": False, "e": False, "c": True,
-        "atmosphere": "Hydrogen, helium",
+        "atmosphere": "a mix of hydrogen and helium",
         "type": "g"
     },
     "V": {
-        "description": "Super-Earth, high gravity",
-        "composition": "Iron, iridium, tungsten, nickel",
+        "description": "a Super-Earth with high gravity",
+        "composition": "iron, iridium, tungsten, and nickel",
         "radius_range": (10000, 15000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "Carbon dioxide, oxygen, hydrogen, helium",
+        "atmosphere": "a mix of carbon dioxide, oxygen, hydrogen, and helium",
         "type": "t"
     },
     "W": {
-        "description": "Tidally locked, extreme variations",
-        "composition": "Iron, potassium, silicon",
+        "description": "a tidally locked world with extreme temperature variations",
+        "composition": "iron, potassium, and silicon",
         "radius_range": (500, 10000),
         "h": True, "e": True, "c": False,
-        "atmosphere": "Oxygen, sodium, hydrogen",
+        "atmosphere": "a mix of oxygen, sodium, and hydrogen",
         "type": "t"
     },
     "X": {
-        "description": "Stripped core, no atmosphere",
-        "composition": "Molten iron",
+        "description": "a stripped core from a gas giant with no atmosphere",
+        "composition": "molten iron",
         "radius_range": (500, 5000),
         "h": True, "e": False, "c": False,
         "atmosphere": None,
         "type": "t"
     },
     "Y": {
-        "description": "Demon class, toxic atmosphere",
-        "composition": "Molten iron, sulfur, deuterium",
+        "description": "a 'demon' class world with a toxic atmosphere",
+        "composition": "molten iron, sulfur, and deuterium",
         "radius_range": (5000, 7500),
         "h": True, "e": False, "c": False,
-        "atmosphere": "Turbulent, toxic, radiation",
+        "atmosphere": "a turbulent, toxic, and irradiated atmosphere",
         "type": "t"
     }
 }

@@ -6,10 +6,20 @@ from stellarObjects import StarSystem
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 def process_args():
-    """Parses command-line arguments for boolean flags related to system generation.
+    """
+    Parses command-line arguments for customizing the star system generation.
+
+    This function sets up an argument parser to handle various boolean flags that
+    allow the user to control aspects of the star system creation, such as forcing
+    the inclusion of a habitable world or an asteroid belt. It also provides
+    detailed help messages and additional information about the tool's usage and
+    the implications of different options.
 
     Returns:
-        argparse.Namespace: An object containing parsed argument values as boolean attributes.
+        argparse.Namespace: An object containing the parsed command-line arguments
+                            as boolean attributes. Each attribute corresponds to a
+                            specific flag and its value is True if the flag is
+                            present, and False otherwise.
     """
     additional_info = [
         "Additional Information:",
@@ -58,7 +68,14 @@ def process_args():
 
 def main():
     """
-    Main function to generate and display a star system.
+    The main entry point for the star system generation script.
+
+    This function orchestrates the process of generating a star system. It begins by
+    parsing command-line arguments to get user-specified options. Based on these
+    options, it may adjust the generation parameters, for example, by forcing a
+    large star if both a habitable world and an asteroid belt are requested. It
+    then instantiates the `StarSystem` class with the chosen settings and prints
+    the resulting system to the console.
     """
 
     args = process_args()

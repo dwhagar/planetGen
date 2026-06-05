@@ -109,47 +109,48 @@ WORD_SIZE_MEAN = round(sum(len(word) for word in DICTIONARY_WORDS) / len(DICTION
 with open(os.path.join(os.path.dirname(__file__), 'offensive_words.txt'), 'r') as f:
     NSFW_WORDS = {line.strip() for line in f}
 
-# A list of common English words to avoid generating as names.
-AVOIDED_NAMES = {
-    "and", "are", "for", "you", "not", "the", "all", "new", "was", "can", "has", "but", "our", "one", "may", 
-    "out", "use", "any", "see", "his", "who", "now", "get", "how", "its", "top", "had", "day", "two", "buy", 
-    "her", "add", "jan", "she", "set", "map", "way", "off", "did", "car", "own", "end", "him", "per", "big", 
-    "law", "art", "usa", "old", "non", "why", "low", "man", "job", "too", "men", "box", "air", "yes", "hot", 
-    "say", "dec", "san", "tax", "got", "let", "act", "red", "key", "few", "age", "oct", "pay", "war", "nov", 
-    "fax", "yet", "sun", "run", "net", "put", "try", "god", "log", "faq", "fun", "sep", "lot", "ask", "due", 
-    "mar", "pro", "aug", "ago", "apr", "via", "bad", "far", "jun", "oil", "from", "that", "this", "with", 
-    "your", "have", "more", "will", "home", "page", "free", "time", "they", "site", "what", "news", "only", 
-    "when", "here", "also", "help", "view", "been", "were", "some", "like", "than", "find", "date", "back", 
-    "list", "name", "just", "over", "year", "into", "next", "used", "work", "last", "most", "data", "make", 
-    "them", "post", "city", "such", "best", "then", "good", "info", "high", "each", "very", "book", "read", 
-    "need", "many", "user", "said", "does", "mail", "full", "life", "know", "days", "part", "real", "item", 
-    "must", "made", "line", "send", "type", "take", "area", "want", "long", "code", "show", "even", "much", 
-    "sign", "file", "link", "open", "case", "same", "both", "game", "care", "down", "size", "shop", "text", 
-    "rate", "form", "love", "john", "main", "time", "year", "people", "way", "day", "man", "thing", "woman", 
-    "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", 
-    "part", "place", "case", "week", "company", "system", "program", "question", "work", "government", 
-    "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", 
-    "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", 
-    "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", 
-    "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", 
-    "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", 
-    "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", 
-    "moment", "air", "teacher", "force", "education"
-}
-
 # --- Name Affixes ---
 
-# Prefixes for star names
-STAR_PREFIXES = ["Al", "El", "Il", "Ul", "O", "E", "A", "I"]
-# Suffixes for star names
-STAR_SUFFIXES = ["ia", "a", "os", "us", "is", "es", "e", "o"]
+# Prefixes for star names, intended to sound large, grand, or important.
+# Drawn from English, Latin, German, French, Spanish, and Portuguese.
+STAR_PREFIXES = [
+    "Al", "El", "Il", "Ul", "O", "E", "A", "I",  # Existing
+]
+# Suffixes for star names, following the grand/important theme.
+STAR_SUFFIXES = [
+    "ia", "a", "os", "us", "is", "es", "e", "o",  # Existing
+    "um", "or", "ex", "ion", "ius", "ae", "oris", "ax",  # Latin
+    "dras", "cyon", "nar", "tor"  # Other
+]
 
-# Prefixes for planet names
-PLANET_PREFIXES = ["Ze", "Xe", "Ve", "Ge", "Pe", "Te", "Ke", "Re"]
-# Suffixes for planet names
-PLANET_SUFFIXES = ["a", "i", "o", "u", "ia", "io", "iu", "ea"]
+# Prefixes for planet names, intended for more common or terrestrial themes.
+# Drawn from English, Latin, German, French, Spanish, and Italian.
+PLANET_PREFIXES = [
+    "Ze", "Xe", "Ve", "Ge", "Pe", "Te", "Ke", "Re",  # Existing
+    "Verd", "Azul", "Rojo", "Blanc", "Noir",  # Colors
+    "Erd", "Stein", "Wasser", "Wald",  # German
+    "Piedra", "Agua", "Bosque"  # Spanish/Italian
+]
+# Suffixes for planet names, with a common or place-like feel.
+PLANET_SUFFIXES = [
+    "a", "i", "o", "u", "ia", "io", "iu", "ea",  # Existing
+    "ara", "eth", "os", "ica", "or", "es", "ana", "is",  # Common
+    "dine", "tine", "don", "gan"  # Other
+]
 
-# Prefixes for moon names
-MOON_PREFIXES = ["Li", "Mi", "Ni", "Pi", "Si", "Ti", "Ki", "Ri"]
-# Suffixes for moon names
-MOON_SUFFIXES = ["a", "e", "i", "o", "u"]
+# Prefixes for moon names, with a whimsical or mystical theme.
+# Drawn from English, Latin, German, French, Spanish, and Italian.
+MOON_PREFIXES = [
+    "Li", "Mi", "Ni", "Pi", "Si", "Ti", "Ki", "Ri",  # Existing
+    "Whis", "Ech", "Sha", "Glim", "Gleam", "Fae", "Pix", "Spri", "Wyn",  # Whimsical
+    "Luni", "Umb", "Somni", "Ani", "Magi", "Rune",  # Mystical
+    "Traum", "Geist", "Seel",  # German
+    "Rêv", "Ombr",  # French
+    "Somb", "Sueñ", "Sogn"  # Spanish/Italian
+]
+# Suffixes for moon names, with a whimsical or mystical theme.
+MOON_SUFFIXES = [
+    "a", "e", "i", "o", "u",  # Existing
+    "elle", "ette", "ina", "ia", "is", "ie",  # Diminutive/Feminine
+    "ix", "yx", "ax", "ex", "ra", "la", "sa"  # Mystical
+]

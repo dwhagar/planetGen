@@ -5,24 +5,29 @@ Utilities
 =========
 
 This module contains utility functions for the planetGen package, including
-mathematical calculations, string formatting, and name generation.
+mathematical calculations, string formatting, and name generation. These
+functions support various aspects of the celestial body generation process,
+from calculating physical properties to creating unique and plausible names.
 """
 
 import math
 import random
 from .constants import SOLAR_LUMINOSITY, STEFAN_BOLTZMANN_CONSTANT
-from .names import VOWELS, BAD_CONSONANTS, AVOIDED_NAMES, NSFW_WORDS, WORD_SIZE_MEAN
+from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
 
 def to_scientific_notation(number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
+
+    This function is used for formatting large numbers in a compact and
+    standardized way, suitable for data templates and displays.
 
     Args:
         number (float): The number to convert.
         precision (int, optional): The number of decimal places to show. Defaults to 2.
 
     Returns:
-        str: The number in scientific notation (e.g., "1.23e+04").
+        str: The number in scientific notation (e.g., "{{Exp|1.23|4}}").
     """
     if number == 0:
         return "0"
@@ -34,8 +39,17 @@ def to_scientific_notation(number, precision=2):
 
 def years_to_time_string(years):
     """
-    Converts a decimal number of years into a human-readable string
-    like "x years y days z hours m minutes" (omitting any components with zero values).
+    Converts a decimal number of years into a human-readable string.
+
+    The output format is "x years y days z hours m minutes", with any zero-value
+    components omitted for brevity. This provides a more intuitive representation
+    of orbital periods.
+
+    Args:
+        years (float): The number of years to convert.
+
+    Returns:
+        str: A human-readable string representing the time duration.
     """
     total_minutes = round(years * 365.25 * 24 * 60)
     years = total_minutes // (365 * 24 * 60)
@@ -62,7 +76,21 @@ def years_to_time_string(years):
 
 def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY, object_density=None):
     """
-    Calculates the mass of an object in kg.
+    Calculates the mass of a celestial object in kilograms.
+
+    This function computes the mass based on the object's radius and density.
+    If the density is not provided, it is randomly determined based on the
+    object's class and type.
+
+    Args:
+        object_class (str): The class of the object (e.g., 'M', 'N').
+        object_radius (float): The radius of the object in kilometers.
+        PLANET_CLASSES (dict): A dictionary defining the properties of planet classes.
+        PLANET_DENSITY (dict): A dictionary of density ranges for planet types.
+        object_density (float, optional): The density of the object in g/cm³.
+
+    Returns:
+        tuple: A tuple containing the volume in km³ and the mass in kg.
     """
     if object_density is None:
         min_density, max_density = PLANET_DENSITY[PLANET_CLASSES[object_class]['type']]
@@ -78,6 +106,17 @@ def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY
 def calculate_habitable_zone(luminosity):
     """
     Calculates the inner and outer boundaries of the habitable zone for a star.
+
+    The habitable zone is defined as the region around a star where liquid
+    water could exist on a planet's surface. This calculation is based on the
+    star's luminosity.
+
+    Args:
+        luminosity (float): The luminosity of the star in Watts.
+
+    Returns:
+        tuple: A tuple containing the inner and outer radii of the habitable
+               zone in AU.
     """
     solar_lum = luminosity / SOLAR_LUMINOSITY
     inner_radius = math.sqrt(solar_lum / 1.1)
@@ -88,6 +127,16 @@ def calculate_habitable_zone(luminosity):
 def calculate_stellar_radius(luminosity, temperature):
     """
     Calculates the radius of a star in meters.
+
+    This function uses the Stefan-Boltzmann law to calculate the star's radius
+    from its luminosity and surface temperature.
+
+    Args:
+        luminosity (float): The luminosity of the star in Watts.
+        temperature (float): The surface temperature of the star in Kelvin.
+
+    Returns:
+        float: The radius of the star in meters.
     """
     return math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
 
@@ -95,6 +144,15 @@ def calculate_stellar_radius(luminosity, temperature):
 def split_into_syllables(name):
     """
     Splits a word into a list of syllables.
+
+    This is a basic syllable splitting function that helps in the process of
+    generating new names by rearranging syllables from existing names.
+
+    Args:
+        name (str): The word to be split into syllables.
+
+    Returns:
+        list: A list of strings, where each string is a syllable.
     """
     syllables = []
     current_syllable = ""
@@ -110,10 +168,26 @@ def split_into_syllables(name):
 
 def is_name_valid(name):
     """
-    Checks if a generated name is valid.
+    Checks if a generated name is valid based on multiple criteria.
+
+    This function ensures that the generated name is not a common English word,
+    does not contain any offensive terms, and follows basic phonetic rules.
+    The validation checks are as follows:
+    - The name should not exist in the NLTK dictionary of words.
+    - The name should not contain any substring from the NSFW (Not Safe For Work) word list.
+    - The name should not end with two consecutive vowels, which can be phonetically awkward.
+
+    These checks help in generating names that are unique, appropriate, and sound plausible.
+
+    Args:
+        name (str): The name to validate. The function expects a lowercase string.
+
+    Returns:
+        bool: Returns `True` if the name is valid according to all the rules,
+              otherwise returns `False`.
     """
     name_lower = name.lower()
-    if name_lower in AVOIDED_NAMES:
+    if name_lower in DICTIONARY_WORDS:
         return False
     for word in NSFW_WORDS:
         if word in name_lower:
@@ -126,6 +200,15 @@ def is_name_valid(name):
 def split_long_word(name):
     """
     Splits a long word into two, capitalizing the second word.
+
+    This function improves the readability of long generated names by splitting
+    them into two parts, creating a compound name effect.
+
+    Args:
+        name (str): The long word to be split.
+
+    Returns:
+        str: The split and capitalized name, or the original name if not long enough.
     """
     if len(name) > WORD_SIZE_MEAN:
         split_point = len(name) // 2
@@ -136,6 +219,18 @@ def split_long_word(name):
 def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
     """
     Generates a unique, phonetically pleasing name from a list of base names.
+
+    This function creates new names by taking a base name, shuffling its
+    syllables, and adding a prefix and suffix. It includes logic to ensure
+    the resulting name is phonetically plausible and passes validation checks.
+
+    Args:
+        name_list (list): A list of base names to choose from.
+        prefix_list (list): A list of possible prefixes.
+        suffix_list (list): A list of possible suffixes.
+
+    Returns:
+        str: A newly generated, unique name.
     """
     while True:
         name = random.choice(name_list)
@@ -181,5 +276,15 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
 def to_paragraph(sentences):
     """
     Converts a list of sentences into a single, well-formed paragraph.
+
+    This function is a simple utility to combine a list of strings into a
+    single paragraph, which is used for generating descriptive text for
+    celestial bodies.
+
+    Args:
+        sentences (list): A list of strings, where each string is a sentence.
+
+    Returns:
+        str: A single string representing the combined paragraph.
     """
     return " ".join(sentences)

@@ -5,7 +5,11 @@ Planet and Asteroid Belt Generation
 ===================================
 
 This module contains the `Planet` and `Asteroid_Belt` classes, which are used
-to generate and represent celestial bodies within a star system.
+to generate and represent celestial bodies within a star system. The `Planet`
+class is a comprehensive model that includes physical properties, atmospheric
+conditions, and orbital characteristics. It can also generate its own system
+of moons. The `Asteroid_Belt` class provides a simpler representation for
+asteroid belts within the system.
 """
 
 import math
@@ -25,11 +29,12 @@ def get_planet_mass_ranges():
 
     This function pre-calculates the minimum and maximum possible mass for each
     planet class based on its radius and density ranges. This is used for
-    validation when generating planets with a given mass.
+    validation when generating planets with a given mass. The calculations
+    account for the different compositions of terrestrial planets and gas giants.
 
     Returns:
-        dict: A dictionary where keys are planet classes and values are tuples
-              of (min_mass, max_mass).
+        dict: A dictionary where keys are planet classes (e.g., 'M', 'N') and
+              values are tuples of (min_mass, max_mass) in kilograms.
     """
     mass_ranges = {}
     for planet_class, data in PLANET_CLASSES.items():
@@ -68,28 +73,77 @@ planet_mass_ranges = get_planet_mass_ranges()
 class Asteroid_Belt:
     """
     A basic class to store information for an asteroid belt.
+
+    This class serves as a simple container for the properties of an asteroid
+    belt, primarily its orbital distance and boundaries.
+
+    Attributes:
+        distance (float): The average distance of the asteroid belt from the star in AU.
+        lower_limit (float): The inner boundary of the asteroid belt in AU.
+        upper_limit (float): The outer boundary of the asteroid belt in AU.
+        type (str): A character representing the object type, 'a' for asteroid belt.
     """
 
     def __init__(self, distance, lower_limit, upper_limit):
+        """
+        Initializes an Asteroid_Belt object.
+
+        Args:
+            distance (float): The average distance from the star in AU.
+            lower_limit (float): The inner boundary of the belt in AU.
+            upper_limit (float): The outer boundary of the belt in AU.
+        """
         self.distance = distance
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.type = 'a'
 
     def __str__(self):
+        """
+        Returns a string representation of the asteroid belt.
+
+        Returns:
+            str: A descriptive string for the asteroid belt, suitable for display.
+        """
         return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
 
 
 class Planet:
     """
     A class representing a single planet or moon and all of its properties.
+
+    This class encapsulates the generation and properties of a celestial body,
+    including its physical characteristics, orbital data, and atmospheric
+    conditions. It can represent both planets and moons, and includes logic
+    for generating a system of moons for a planet.
+
+    The generation process is flexible, allowing for fully random creation or
+    generation based on specified parameters like radius, mass, or class.
     """
 
     def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, force_moons=False):
         """
-        Initializes a Planet object with its radius and the spectral class of its host star.
+        Initializes a Planet object with its properties and orbital context.
+
+        Args:
+            hab_zone (tuple): A tuple containing the inner and outer bounds of the
+                              habitable zone in AU.
+            distance (float): The planet's distance from its star in AU.
+            star_output (float): The total energy output of the star in Watts.
+            star_radius (float): The radius of the star in kilometers.
+            star_temperature (float): The surface temperature of the star in Kelvin.
+            star_mass (float): The mass of the star in kilograms.
+            radius (float, optional): The radius of the planet in kilometers.
+            planet_class (str, optional): The class of the planet (e.g., 'M', 'N').
+            mass (float, optional): The mass of the planet in kilograms.
+            zone_override (str, optional): A single character ('h', 'c', 'e') to
+                                           override the planet's calculated zone.
+            distance_override (float, optional): An override for the planet's
+                                                 distance, used in specific calculations.
+            is_moon (bool, optional): Flag indicating if the object is a moon.
+            force_moons (bool, optional): Flag to force the generation of moons.
         """
         self.is_moon = is_moon
         self.moons = []
@@ -138,8 +192,18 @@ class Planet:
 
     def generate_planet(self, zone_override=None):
         """
-        Generates random planet properties (class, composition, atmosphere, mass)
-        based on distance and optional radius/class/mass inputs.
+        Generates random planet properties based on its location and any provided constraints.
+
+        This method is the core of the planet generation logic. It determines the
+        planet's properties such as class, composition, and atmosphere. The generation
+        can be fully random or guided by inputs like a specific radius, mass, or
+        planet class. It ensures that the generated properties are consistent with
+        each other and the planet's orbital zone.
+
+        Args:
+            zone_override (str, optional): A character ('h', 'c', 'e') to manually
+                                           set the planet's zone, overriding the
+                                           calculation based on distance.
         """
         # Determine the planet's zone (hot, ecosphere, or cold)
         inner_bound, outer_bound = self.hab
@@ -268,7 +332,11 @@ class Planet:
 
     def calculate_surface_gravity(self):
         """
-        Calculates the surface gravity of the planet in g's (Earth's gravity).
+        Calculates the surface gravity of the planet in g's (multiples of Earth's gravity).
+
+        This method computes the surface gravity based on the planet's mass and
+        radius. The result is normalized to Earth's gravity (g's). It includes
+        special adjustments for certain planet classes to ensure realistic values.
         """
         radius_meters = self.radius * 1000
         surface_gravity = (G * self.mass) / (radius_meters ** 2)
@@ -283,6 +351,16 @@ class Planet:
         """
         Calculates the atmospheric conditions of the planet, including surface
         temperature and atmospheric pressure.
+
+        This method models the planet's atmospheric conditions. It calculates the
+        surface temperature considering the star's output, the planet's distance,
+        and the greenhouse effect of its atmosphere. It also estimates the
+        atmospheric pressure based on the atmospheric mass and planet's gravity.
+
+        Args:
+            distance_override (float, optional): An override for the planet's
+                                                 distance, used for special cases
+                                                 like moons.
         """
         distance = float(distance_override) if distance_override is not None else float(self.distance)
         orbital_radius_km = distance * AU_TO_KM
@@ -336,6 +414,11 @@ class Planet:
     def generate_moons(self):
         """
         Generates a system of moons for the given planet.
+
+        This method procedurally generates moons for the planet. It determines the
+        number, size, and orbital distance of the moons based on the planet's
+        properties, such as its mass and Hill radius. The generated moons are
+        themselves instances of the `Planet` class, with the `is_moon` flag set.
         """
         moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'Y']
         max_moon_mass = self.mass / 10
@@ -371,22 +454,50 @@ class Planet:
             total_orbit_distance = (new_moon.distance * AU_TO_KM) + (new_moon.min_orbit_distance * AU_TO_KM)
 
     def _validate_planet_class(self, zone):
+        """
+        Validates if the planet's class is valid for its zone.
+
+        Args:
+            zone (str): The zone ('h', 'c', 'e') of the planet.
+
+        Raises:
+            ValueError: If the planet class is not valid for the given zone.
+        """
         if self.planet_class not in PLANET_CLASSES or not PLANET_CLASSES[self.planet_class][zone]:
             raise ValueError("Invalid planet class for this zone")
 
     def _validate_radius(self):
+        """
+        Validates if the planet's radius is within the allowed range for its class.
+
+        Raises:
+            ValueError: If the radius is outside the valid range for the planet's class.
+        """
         min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
         if not (min_radius <= self.radius <= max_radius):
             raise ValueError("Invalid radius for planet class")
 
     def _validate_mass(self):
+        """
+        Validates if the planet's mass is within the allowed range for its class.
+
+        Raises:
+            ValueError: If the mass is outside the valid range for the planet's class.
+        """
         min_mass, max_mass = planet_mass_ranges[self.planet_class]
         if not (min_mass <= self.mass <= max_mass):
             raise ValueError("Invalid mass for planet class")
 
     def __str__(self):
         """
-        Returns the wiki template text for this object.
+        Returns a formatted string representation of the planet for wiki templates.
+
+        This method generates a string that is formatted for use in a wiki. It
+        includes a header, a data template with key properties, and a descriptive
+        paragraph. If the planet has moons, their information is also included.
+
+        Returns:
+            str: A string containing the wiki-formatted text for the planet.
         """
         if self.is_moon:
             distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 5)} km"
@@ -399,7 +510,7 @@ class Planet:
         radius_string = f"|radius={round(self.radius, 2):,} km" if self.radius <= 100000 else f"|radius={to_scientific_notation(self.radius, 2)} km"
 
         template_data = [
-            header, "{{Planet Data", f"|name={self.name}", f"|class={self.planet_class}",
+            header, "{{Planet Data", f"|class={self.planet_class}",
             distance_text, f"|period={years_to_time_string(self.period)}",
             radius_string, f"|gravity={round(self.gravity, 3)} g", "}}",
         ]
@@ -417,15 +528,15 @@ class Planet:
             if self.atmosphere != "None":
                 sentences.append(
                     f"This planet has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-                sentences.append(f"It is a {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
+                sentences.append(f"It is {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
             else:
                 sentences.append(
                     f"This planet has no atmosphere and a surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-                sentences.append(f"It is a {self.description.lower()} with a composition of {self.composition.lower()}.")
+                sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
         else:
             sentences.append(
                 f"This gas giant has an internal pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-            sentences.append(f"It is a {self.description.lower()} with a composition of {self.composition.lower()}.")
+            sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
 
         output = template_data
         output.append(to_paragraph(sentences))
