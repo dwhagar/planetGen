@@ -45,4 +45,4 @@ Using commands to force a habitable world and an asteroid belt will automaticall
 
 ## License
 
-This project is licensed under the [CC0 1.0 Universal](LICENSE) license.
+This project is licensed under the [CC0 1.0 Universal](LICENSE.md) license.

@@ -1,3 +1,13 @@
+# stellarObjects/utils.py
+
+"""
+Utilities
+=========
+
+This module contains utility functions for the planetGen package, including
+mathematical calculations, string formatting, and name generation.
+"""
+
 import math
 import random
 from .constants import SOLAR_LUMINOSITY, STEFAN_BOLTZMANN_CONSTANT
@@ -21,14 +31,13 @@ def to_scientific_notation(number, precision=2):
     output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
     return "{{" + output + "}}"
 
+
 def years_to_time_string(years):
     """
     Converts a decimal number of years into a human-readable string
     like "x years y days z hours m minutes" (omitting any components with zero values).
     """
-    total_minutes = round(years * 365.25 * 24 * 60)  # Approximate total minutes in a year
-
-    # Calculate individual time components
+    total_minutes = round(years * 365.25 * 24 * 60)
     years = total_minutes // (365 * 24 * 60)
     remaining_minutes = total_minutes % (365 * 24 * 60)
     days = remaining_minutes // (24 * 60)
@@ -46,20 +55,14 @@ def years_to_time_string(years):
     if minutes > 0:
         time_parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
 
-    # Join the non-zero time parts with "and"
     if len(time_parts) > 1:
         time_parts[-1] = f"and {time_parts[-1]}"
-
     return " ".join(time_parts)
 
-def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY, object_density = None):
+
+def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY, object_density=None):
     """
     Calculates the mass of an object in kg.
-
-    @param object_class: Class of the object (String)
-    @param object_radius: Radius of the object in km (float)
-    @param object_density: Density of the object in g/cm^3 (float)
-    @return: Tuple with the volume and the mass (volume, mass) in m^3 and kg
     """
     if object_density is None:
         min_density, max_density = PLANET_DENSITY[PLANET_CLASSES[object_class]['type']]
@@ -67,36 +70,32 @@ def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY
     else:
         p_density = object_density
 
-    volume = (4 / 3) * math.pi * (object_radius * 1000) ** 3  # Calculate volume in m^3
+    volume = (4 / 3) * math.pi * (object_radius * 1000) ** 3
     mass = volume * p_density * 1000
-
     return volume, mass
+
 
 def calculate_habitable_zone(luminosity):
     """
-    Calculates the inner and outer boundaries of the habitable zone for a star based on its
-    luminosity measured as multiples of the sun's luminosity.  Using the Kopparapu et al. (2013)
-    model for conservative habitable zone boundaries measured in AU.
+    Calculates the inner and outer boundaries of the habitable zone for a star.
     """
     solar_lum = luminosity / SOLAR_LUMINOSITY
-
     inner_radius = math.sqrt(solar_lum / 1.1)
     outer_radius = math.sqrt(solar_lum / 0.53)
     return (inner_radius, outer_radius)
 
+
 def calculate_stellar_radius(luminosity, temperature):
     """
-    Calculates the radius of a star in meters given its luminosity in watts and temperature in Kelvin.
-    @param luminosity: Luminosity in Watts
-    @param temperature: Temperature in Kelvin
-    @return: Radius in Meters
+    Calculates the radius of a star in meters.
     """
-    # Calculate radius in meters
-    radius_meters = math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
+    return math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
 
-    return radius_meters
 
 def split_into_syllables(name):
+    """
+    Splits a word into a list of syllables.
+    """
     syllables = []
     current_syllable = ""
     for i, char in enumerate(name):
@@ -108,7 +107,11 @@ def split_into_syllables(name):
         syllables.append(current_syllable)
     return syllables
 
+
 def is_name_valid(name):
+    """
+    Checks if a generated name is valid.
+    """
     name_lower = name.lower()
     if name_lower in AVOIDED_NAMES:
         return False
@@ -119,13 +122,21 @@ def is_name_valid(name):
         return False
     return True
 
+
 def split_long_word(name):
+    """
+    Splits a long word into two, capitalizing the second word.
+    """
     if len(name) > WORD_SIZE_MEAN:
         split_point = len(name) // 2
         return name[:split_point] + " " + name[split_point:].capitalize()
     return name
 
+
 def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
+    """
+    Generates a unique, phonetically pleasing name from a list of base names.
+    """
     while True:
         name = random.choice(name_list)
         
@@ -134,7 +145,6 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
             random.shuffle(syllables)
             name = "".join(syllables)
 
-        # Add prefix
         prefix = random.choice(prefix_list)
         if prefix[-1] in VOWELS and name[0].lower() in VOWELS:
             name = prefix + name[1:]
@@ -146,7 +156,6 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
         else:
             name = prefix + name
 
-        # Add suffix
         suffix = random.choice(suffix_list)
         if name[-1] in VOWELS and suffix[0].lower() in VOWELS:
             name = name + suffix[1:]
@@ -158,7 +167,6 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
         else:
             name = name + suffix
             
-        # Normalize casing
         name = name.lower()
         
         if is_name_valid(name):
@@ -168,3 +176,10 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
                 parts = name.split("'")
                 name = "'".join([part[0].upper() + part[1:] for part in parts])
             return name
+
+
+def to_paragraph(sentences):
+    """
+    Converts a list of sentences into a single, well-formed paragraph.
+    """
+    return " ".join(sentences)

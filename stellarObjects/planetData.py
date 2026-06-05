@@ -10,13 +10,14 @@ to generate and represent celestial bodies within a star system.
 
 import math
 import random
-from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name
+from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name, to_paragraph
 from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
                         STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY,
                         ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
                         PLANET_CLASSES, PLANET_CLASS_PROBABILITIES)
-from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES, 
+from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
                     MOON_PREFIXES, MOON_SUFFIXES)
+
 
 def get_planet_mass_ranges():
     """
@@ -60,12 +61,15 @@ def get_planet_mass_ranges():
         mass_ranges[planet_class] = (min_mass, max_mass)
     return mass_ranges
 
+
 planet_mass_ranges = get_planet_mass_ranges()
+
 
 class Asteroid_Belt:
     """
     A basic class to store information for an asteroid belt.
     """
+
     def __init__(self, distance, lower_limit, upper_limit):
         self.distance = distance
         self.lower_limit = lower_limit
@@ -75,10 +79,12 @@ class Asteroid_Belt:
     def __str__(self):
         return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
 
+
 class Planet:
     """
     A class representing a single planet or moon and all of its properties.
     """
+
     def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, force_moons=False):
@@ -122,8 +128,8 @@ class Planet:
 
         # Calculate additional properties.
         self.generate_planet(zone_override)
-        self.volume = (4/3) * math.pi * self.radius**3  # Calculate volume in km^3
-        self.period = math.sqrt(self.distance**3)
+        self.volume = (4 / 3) * math.pi * self.radius ** 3  # Calculate volume in km^3
+        self.period = math.sqrt(self.distance ** 3)
         self.calculate_surface_gravity()
         self.calculate_atmospheric_conditions(distance_override)
 
@@ -246,13 +252,16 @@ class Planet:
                 min_am_density, max_am_density = ATMOSPHERIC_MOLAR_DENSITY[self.type]
                 self.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY, self.density)
+        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY,
+                                                  self.density)
 
         if self.type == 'g':
             core_to_atmosphere_ratio = random.uniform(*GAS_GIANT_CORE_ATMOSPHERE_RATIO)
-            self.density = self.density * core_to_atmosphere_ratio + (1 - core_to_atmosphere_ratio) * (self.atm_density / 1000)
+            self.density = self.density * core_to_atmosphere_ratio + (
+                        1 - core_to_atmosphere_ratio) * (self.atm_density / 1000)
 
-        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY, self.density)
+        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY,
+                                                  self.density)
 
         self.hill_radius = (self.distance * AU_TO_KM) * (self.mass / (3 * self.star_mass)) ** (1 / 3)
         self.min_orbit_distance = (5 * self.hill_radius) / AU_TO_KM
@@ -280,20 +289,25 @@ class Planet:
         output_area = 4 * math.pi * orbital_radius_km ** 2
         solar_output_at_orbit = (self.star_output / output_area) / 1e6
         albedo = random.uniform(0.12, 0.35)
-        surface_temperature_no_atmosphere = ((1 - albedo) * solar_output_at_orbit / (4 * STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
+        surface_temperature_no_atmosphere = (
+                                                    (1 - albedo) * solar_output_at_orbit / (4 * STEFAN_BOLTZMANN_CONSTANT)) ** (
+                                                        1 / 4)
 
         if self.atmosphere == "None":
             self.surface_temperature = surface_temperature_no_atmosphere
             self.atmospheric_pressure = 0.0
         else:
-            scale_height = (R * surface_temperature_no_atmosphere) / (self.atm_molar_density * self.gravity * EARTH_GRAVITY)
+            scale_height = (R * surface_temperature_no_atmosphere) / (
+                        self.atm_molar_density * self.gravity * EARTH_GRAVITY)
             self.scale_height = scale_height
             atmosphere_thickness = scale_height * random.uniform(5, 7)
             planet_volume = (4 * math.pi * self.radius ** 3) / 3
             atmosphere_volume = (4 * math.pi * (self.radius + atmosphere_thickness) ** 3) / 3 - planet_volume
             atmospheric_mass = 0
-            for zone in range(round(random.uniform(5, 7))):
-                zone_volume = atmosphere_volume + planet_volume - (4 * math.pi * (self.radius + (zone * scale_height)) ** 3) / 3
+            num_zones = round(random.uniform(5, 7)) # Consistent with atmosphere_thickness calculation
+            for zone in range(num_zones):
+                zone_volume = atmosphere_volume + planet_volume - (
+                            4 * math.pi * (self.radius + (zone * scale_height)) ** 3) / 3
                 zone_density = self.atm_density / (zone * 2.7) if zone >= 1 else self.atm_density
                 atmospheric_mass += zone_volume * zone_density
             atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)
@@ -312,7 +326,12 @@ class Planet:
                 if self.surface_temperature < 283 or self.surface_temperature > 290:
                     self.surface_temperature = random.uniform(283, 290)
             elif self.planet_class == "P" and self.surface_temperature >= 283:
-                self.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283) if surface_temperature_no_atmosphere < 283 else random.uniform(-surface_temperature_no_atmosphere, 283)
+                # If surface_temperature_no_atmosphere is already above 283, we need a different approach
+                # to ensure the P class planet remains cold.
+                if surface_temperature_no_atmosphere < 283:
+                    self.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
+                else:
+                    self.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
 
     def generate_moons(self):
         """
@@ -337,8 +356,10 @@ class Planet:
             moon_class = random.choices(classes, weights=probabilities, k=1)[0]
             while moon_class not in possible_classes:
                 moon_class = random.choices(classes, weights=probabilities, k=1)[0]
-            
-            radius_limit = PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > PLANET_CLASSES[moon_class]['radius_range'][1] else max_moon_radius
+
+            radius_limit = PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
+                                                                            PLANET_CLASSES[moon_class]['radius_range'][
+                                                                                1] else max_moon_radius
             moon_distance = random.uniform(total_orbit_distance, high_orbit) / AU_TO_KM
             moon_radius = random.uniform(PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
@@ -347,7 +368,7 @@ class Planet:
                               planet_class=moon_class, zone_override=self.zone,
                               distance_override=self.distance, is_moon=True)
             self.moons.append(new_moon)
-            total_orbit_distance = (new_moon.distance + new_moon.min_orbit_distance) * AU_TO_KM
+            total_orbit_distance = (new_moon.distance * AU_TO_KM) + (new_moon.min_orbit_distance * AU_TO_KM)
 
     def _validate_planet_class(self, zone):
         if self.planet_class not in PLANET_CLASSES or not PLANET_CLASSES[self.planet_class][zone]:
@@ -377,33 +398,37 @@ class Planet:
         header = f"{header_level} {self.name} {header_level}"
         radius_string = f"|radius={round(self.radius, 2):,} km" if self.radius <= 100000 else f"|radius={to_scientific_notation(self.radius, 2)} km"
 
-        output = [
+        template_data = [
             header, "{{Planet Data", f"|name={self.name}", f"|class={self.planet_class}",
             distance_text, f"|period={years_to_time_string(self.period)}",
             radius_string, f"|gravity={round(self.gravity, 3)} g", "}}",
         ]
 
+        sentences = []
         if not self.is_moon:
             if len(self.moons) > 1:
-                output.append(f"There are {len(self.moons)} moons orbiting this planet.")
+                sentences.append(f"There are {len(self.moons)} moons orbiting this planet.")
             elif len(self.moons) == 1:
-                output.append("There is 1 moon orbiting this planet.")
+                sentences.append("There is 1 moon orbiting this planet.")
             else:
-                output.append("There are no moons orbiting this planet.")
+                sentences.append("There are no moons orbiting this planet.")
 
         if self.type == "t":
             if self.atmosphere != "None":
-                output.append(f"Surface conditions are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and an average surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-                output.append(self.atmosphere)
+                sentences.append(
+                    f"This planet has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                sentences.append(f"It is a {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
             else:
-                output.append(f"There is no atmosphere and the surface has an average temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                sentences.append(
+                    f"This planet has no atmosphere and a surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                sentences.append(f"It is a {self.description.lower()} with a composition of {self.composition.lower()}.")
         else:
-            output.append(f"The average internal conditions of this gas giant are an average of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and {self.surface_temperature - 273.15:.1f} degrees C.")
-            output.append(f"The atmospheric pressure drops by a third to a half for every {self.scale_height / 1000:.1f} km from the core.")
+            sentences.append(
+                f"This gas giant has an internal pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            sentences.append(f"It is a {self.description.lower()} with a composition of {self.composition.lower()}.")
 
-        output.append(self.description)
-        if output[-1] != self.composition:
-            output.append(self.composition)
+        output = template_data
+        output.append(to_paragraph(sentences))
 
         if self.moons:
             for moon in self.moons:

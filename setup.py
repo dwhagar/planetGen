@@ -1,6 +1,8 @@
 import nltk
+import os
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
@@ -12,12 +14,15 @@ class PostInstallCommand(install):
         nltk.download('words', quiet=True)
         print("NLTK 'words' corpus downloaded successfully.")
 
+
 setup(
     name='planetGen',
     version='0.1.0',
     packages=find_packages(),
     install_requires=[
         'nltk',
+        'transformers',
+        'torch'
     ],
     cmdclass={
         'install': PostInstallCommand,

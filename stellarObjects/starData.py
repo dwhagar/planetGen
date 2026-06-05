@@ -122,6 +122,7 @@ class Star:
         Generates a random star's properties, optionally taking spectral class
         and temperature as input.
         """
+        # Set spectral class probabilities based on generation flags
         if absurd:
             spectral_probabilities = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
         elif force_large:
@@ -129,11 +130,13 @@ class Star:
         else:
             spectral_probabilities = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
 
+        # Validate or generate spectral class
         if spectral_class is None:
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
         elif spectral_class not in spectral_probabilities:
             raise ValueError("Invalid spectral class")
 
+        # Validate or generate temperature
         valid_temp_range = TEMP_RANGES.get(spectral_class)
         if valid_temp_range is None:
             raise ValueError("Invalid spectral class")
@@ -143,24 +146,28 @@ class Star:
         elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
             raise ValueError("Temperature out of range for the given spectral class")
 
+        # Generate luminosity
         min_luminosity, max_luminosity = LUMINOSITY_RANGES[spectral_class]
         luminosity = random.uniform(min_luminosity, max_luminosity) if not absurd else max_luminosity
 
+        # Validate radius
         radius_min, radius_max = self.set_radius_bounds(luminosity, temperature, spectral_class)
 
+        # Calculate spectral subclass
         min_temp, max_temp = TEMP_RANGES[spectral_class]
         temp_range_size = max_temp - min_temp
         subclass = 9 - round((temperature - min_temp) / temp_range_size * 9)
 
+        # Calculate final radius and mass
         luminosity_watts = luminosity * SOLAR_LUMINOSITY
         radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
         if radius > radius_max:
             radius = radius_max
         elif radius < radius_min:
             radius = radius_min
-
         mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG)
 
+        # Determine Yerkes spectral classification
         if luminosity > 100000:  
             yerkes_class, yerkes_type = "0", "Hypergiant"
         elif luminosity > 30000: 
@@ -180,9 +187,11 @@ class Star:
         else:
             yerkes_class, yerkes_type = "D", "Dwarf"
 
+        # Set star type string
         color_descriptions = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
         star_type = f"{spectral_class}{subclass}{yerkes_class} {color_descriptions[spectral_class]} {yerkes_type} Star"
 
+        # Set final star properties
         self.type = star_type
         self.radius = radius
         self.mass = mass

@@ -1,5 +1,9 @@
 import argparse
+import logging
 from stellarObjects import StarSystem
+
+# Suppress transformers warnings
+logging.getLogger("transformers").setLevel(logging.ERROR)
 
 def process_args():
     """Parses command-line arguments for boolean flags related to system generation.
