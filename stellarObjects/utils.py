@@ -14,27 +14,33 @@ import math
 import random
 from .constants import SOLAR_LUMINOSITY, STEFAN_BOLTZMANN_CONSTANT
 from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
+from . import config
 
 def to_scientific_notation(number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
 
     This function is used for formatting large numbers in a compact and
-    standardized way, suitable for data templates and displays.
+    standardized way, suitable for data templates and displays. It checks the
+    global `config.MARKDOWN` flag to determine the output format.
 
     Args:
         number (float): The number to convert.
         precision (int, optional): The number of decimal places to show. Defaults to 2.
 
     Returns:
-        str: The number in scientific notation (e.g., "{{Exp|1.23|4}}").
+        str: The number in scientific notation, either as a wikitext template
+             or as HTML for markdown.
     """
     if number == 0:
         return "0"
     exponent = int(math.floor(math.log10(abs(number))))
     coefficient = number / 10**exponent
-    output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
-    return "{{" + output + "}}"
+    if config.MARKDOWN:
+        return f"{coefficient:.{precision}f} × 10<sup>{exponent}</sup>"
+    else:
+        output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
+        return "{{" + output + "}}"
 
 
 def years_to_time_string(years):

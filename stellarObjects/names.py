@@ -6,7 +6,8 @@ Name Generation Constants
 
 This module contains all the data required for the procedural name generation
 of celestial bodies, including base names, prefixes, suffixes, and word lists
-for validation.
+for validation. The data is organized to provide a rich and varied source for
+creating unique and plausible-sounding names for stars, planets, and moons.
 """
 
 import os
@@ -14,12 +15,19 @@ import nltk
 from nltk.corpus import words
 
 # --- Phonetic and Syllable Constants ---
+
 VOWELS = "aeiou"
+"""A string containing the vowels of the English alphabet, used for syllable splitting."""
+
 BAD_CONSONANTS = ["sz", "dt", "bp", "fb", "td", "pb", "sz", "zs", "srs", "srl", "szl", "szr", "zsl", "zsr", "sch", "rsc", "lsc", "rsh", "lsh", "tsh", "dsh", "ksh", "gsh", "csh", "xsh", "qsh", "psh", "bsh", "fsh", "vsh", "msh", "nsh", "ssh", "zsh", "hsh", "wsh", "jsh", "ysch", "rsch", "lsch", "tsch", "dsch", "ksch", "gsch", "csch", "xsch", "qsch", "psch", "bsch", "fsch", "vsch", "msch", "nsch", "ssch", "zsch", "hsch", "wsch", "jsch"]
+"""
+A list of consonant clusters that are considered phonetically unpleasing or
+difficult to pronounce in generated names. This list helps ensure that the
+names are pronounceable and sound more natural.
+"""
 
 # --- Base Name Lists ---
 
-# A list of names to be used as a base for generating star names.
 STAR_NAMES = [
     "Mimosa", "Gacrux", "El Nath", "Miaplacidus", "Alnilam", "Alnair", "Alioth", "Dubhe", "Mirfak", 
     "Wezen", "Sargas", "Kaus", "Australis", "Avior", "Menkalinan", "Alkaid", "Ras", "Algethi", "Alhena", 
@@ -60,8 +68,12 @@ STAR_NAMES = [
     "Rangi", "Papa", "Tangaroa", "Tane", "Mahuta", "Maui", "Hina", "Pele", "Lono", "Ku",
     "Ukko", "Akka", "Tapio", "Mielikki", "Ahti", "Vellamo", "Ilmarinen", "Louhi", "Pekko", "Lemminkainen"
 ]
+"""
+A list of names to be used as a base for generating star names. These names are
+drawn from various mythologies, real star names, and other astronomical sources
+to provide a diverse and epic feel.
+"""
 
-# A list of names to be used as a base for generating planet names.
 PLANET_NAMES = [
     "Nix", "Hydra", "Styx", "Kerberos", "Adrastea", 
     "Amalthea", "Thebe", "Metis", "Aitne", "Ananke", "Aoede", "Arche", "Autonoe", "Callirrhoe", "Carme", 
@@ -86,8 +98,12 @@ PLANET_NAMES = [
     "Aztec", "Maya", "Inca", "Olmec", "Zapotec", "Mixtec", "Toltec", "Taino", "Arawak", "Carib",
     "Quetzalcoatl", "Itzamna", "Viracocha", "Huitzilopochtli", "Hunab", "Ku", "Inti", "Kukulkan", "Tlaloc", "Tezcatlipoca"
 ]
+"""
+A list of names to be used as a base for generating planet names. This list
+includes names of moons from our solar system, as well as names from various
+mythologies and ancient cultures, providing a wide range of naming conventions.
+"""
 
-# A list of names to be used as a base for generating moon names.
 MOON_NAMES = [
     "Dryad", "Naiad", "Nereid", "Oread", "Calliope", "Clio", "Erato", "Euterpe", "Melpomene", 
     "Polyhymnia", "Terpsichore", "Thalia", "Urania", "Charon", "Iris", "Janus", "Pan", "Brynhildr", 
@@ -95,51 +111,81 @@ MOON_NAMES = [
     "Banshee", "Puca", "Sidhe", "Amatsu", "Kunitsu", "Suijin", "Tenjin", "Kodama", "Tengu", "Kappa", 
     "Urvashi", "Menaka", "Rambha", "Tilottama", "Nandi", "Bhringi", "Chandesha", "Kokopelli", "Wendigo"
 ]
+"""
+A list of names to be used as a base for generating moon names. These names are
+often mythological or whimsical, suitable for smaller celestial bodies orbiting
+a planet.
+"""
 
 # --- Word Dictionaries and Validation ---
 
 # Load the NLTK words corpus
 nltk.download('words', quiet=True)
 DICTIONARY_WORDS = set(words.words())
+"""
+A set of common English words from the NLTK corpus. This is used to validate
+generated names and ensure they are not actual words, which helps in creating
+unique and fictional-sounding names.
+"""
 
-# Calculate the mean word size for splitting long words
 WORD_SIZE_MEAN = round(sum(len(word) for word in DICTIONARY_WORDS) / len(DICTIONARY_WORDS))
+"""
+The calculated mean (average) length of words in the `DICTIONARY_WORDS` set.
+This value is used to determine if a generated name is long enough to be split
+into two parts for better readability.
+"""
 
-# Load a list of NSFW words from a file.
 with open(os.path.join(os.path.dirname(__file__), 'offensive_words.txt'), 'r') as f:
     NSFW_WORDS = {line.strip() for line in f}
+"""
+A set of "Not Safe For Work" (NSFW) or offensive words, loaded from an external
+file. This list is used as a filter to prevent the generation of inappropriate
+or offensive names.
+"""
 
 # --- Name Affixes ---
 
-# Prefixes for star names, intended to sound large, grand, or important.
-# Drawn from English, Latin, German, French, Spanish, and Portuguese.
 STAR_PREFIXES = [
     "Al", "El", "Il", "Ul", "O", "E", "A", "I",  # Existing
 ]
-# Suffixes for star names, following the grand/important theme.
+"""
+A list of prefixes for star names. These prefixes are designed to sound grand,
+important, or celestial. They are drawn from various languages to add a sense
+of diversity and scale to the star names.
+"""
+
 STAR_SUFFIXES = [
     "ia", "a", "os", "us", "is", "es", "e", "o",  # Existing
     "um", "or", "ex", "ion", "ius", "ae", "oris", "ax",  # Latin
     "dras", "cyon", "nar", "tor"  # Other
 ]
+"""
+A list of suffixes for star names. Similar to the prefixes, these suffixes
+contribute to a grand and epic-sounding name, suitable for stars.
+"""
 
-# Prefixes for planet names, intended for more common or terrestrial themes.
-# Drawn from English, Latin, German, French, Spanish, and Italian.
 PLANET_PREFIXES = [
     "Ze", "Xe", "Ve", "Ge", "Pe", "Te", "Ke", "Re",  # Existing
     "Verd", "Azul", "Rojo", "Blanc", "Noir",  # Colors
     "Erd", "Stein", "Wasser", "Wald",  # German
     "Piedra", "Agua", "Bosque"  # Spanish/Italian
 ]
-# Suffixes for planet names, with a common or place-like feel.
+"""
+A list of prefixes for planet names. These prefixes are generally themed around
+terrestrial concepts like colors and natural elements (earth, stone, water),
+providing a more grounded feel compared to star names.
+"""
+
 PLANET_SUFFIXES = [
     "a", "i", "o", "u", "ia", "io", "iu", "ea",  # Existing
     "ara", "eth", "os", "ica", "or", "es", "ana", "is",  # Common
     "dine", "tine", "don", "gan"  # Other
 ]
+"""
+A list of suffixes for planet names. These suffixes often give a sense of place
+or commonality, fitting for planetary bodies.
+"""
 
-# Prefixes for moon names, with a whimsical or mystical theme.
-# Drawn from English, Latin, German, French, Spanish, and Italian.
 MOON_PREFIXES = [
     "Li", "Mi", "Ni", "Pi", "Si", "Ti", "Ki", "Ri",  # Existing
     "Whis", "Ech", "Sha", "Glim", "Gleam", "Fae", "Pix", "Spri", "Wyn",  # Whimsical
@@ -148,9 +194,18 @@ MOON_PREFIXES = [
     "Rêv", "Ombr",  # French
     "Somb", "Sueñ", "Sogn"  # Spanish/Italian
 ]
-# Suffixes for moon names, with a whimsical or mystical theme.
+"""
+A list of prefixes for moon names. The theme for these prefixes is whimsical and
+mystical, reflecting the smaller, often more enchanting nature of moons.
+"""
+
 MOON_SUFFIXES = [
     "a", "e", "i", "o", "u",  # Existing
     "elle", "ette", "ina", "ia", "is", "ie",  # Diminutive/Feminine
     "ix", "yx", "ax", "ex", "ra", "la", "sa"  # Mystical
 ]
+"""
+A list of suffixes for moon names. These suffixes complement the mystical and
+whimsical prefixes, often with diminutive or feminine endings to create
+delicate-sounding names.
+"""

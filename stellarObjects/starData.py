@@ -72,17 +72,17 @@ class Star:
             mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass * 100}% of Sol)"
         elif sol_mass > 100:
             exponent = int(math.floor(math.log10(abs(sol_mass))))
-            mass_string = f"{to_scientific_notation(self.mass)} kg (10<sup>{exponent}</sup>x Sol)"
+            mass_string = f"{to_scientific_notation(self.mass)} kg (10<sup>{exponent}</sup>× Sol)"
         else:
-            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass}x Sol)"
+            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass}× Sol)"
 
         if sol_lum <= 2:
             lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum * 100}% of Sol)"
         elif sol_lum > 100:
             exponent = int(math.floor(math.log10(abs(sol_lum))))
-            lum_string = f"{to_scientific_notation(self.luminosity)} W (10<sup>{exponent}</sup>x Sol)"
+            lum_string = f"{to_scientific_notation(self.luminosity)} W (10<sup>{exponent}</sup>× Sol)"
         else:
-            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum}x Sol)"
+            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum}× Sol)"
 
         if self.radius <= 100000:
             radius_string = f"{round(self.radius, 2):,} km"
