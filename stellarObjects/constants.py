@@ -21,6 +21,15 @@ STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # Stefan-Boltzmann constant in W/m²/K⁴
 # --- Astronomical Constants ---
 SOLAR_MASS_TO_KG = 1.989e30  # Solar mass to kilograms conversion factor
 SOLAR_LUMINOSITY = 3.82e26  # Solar luminosity in Watts
+MILKY_WAY_MASS = 1.15e12 * SOLAR_MASS_TO_KG  # Mass of the Milky Way in kg
+GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
+LY_TO_M = 9.461e+15  # Light-year to meters conversion factor
+AU_TO_M = 1.496e+11  # Astronomical Unit to meters conversion factor
+ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (N/m^2)
+SOLAR_RADIUS_M = 6.957e8  # Radius of the Sun in meters
+SOLAR_ESCAPE_VELOCITY = 617.7 * 1000  # Sun's escape velocity in m/s
+SOLAR_WIND_VELOCITY = 400 * 1000  # Average solar wind velocity in m/s
+SOLAR_MASS_LOSS_RATE = 2e-14 * SOLAR_MASS_TO_KG * (365.25 * 24 * 3600)  # Sun's mass loss rate in kg/s
 
 # --- Planet Generation Parameters ---
 

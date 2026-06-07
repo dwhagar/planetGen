@@ -14,9 +14,9 @@ asteroid belts within the system.
 
 import math
 import random
-from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name, to_paragraph
+from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name, to_paragraph, calculate_hill_sphere
 from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
-                        STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY,
+                        STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY, AU_TO_M,
                         ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
                         PLANET_CLASSES, PLANET_CLASS_PROBABILITIES)
 from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
@@ -103,13 +103,34 @@ class Asteroid_Belt:
         """
         Returns a string representation of the asteroid belt.
 
+        The output format for the orbital boundaries is dynamic. If the outer
+        boundary of the belt is less than 1.0 light-year from the star, the
+        distance is displayed in Astronomical Units (AU). Otherwise, it is
+        displayed in light-years to maintain readability for very large systems.
+
         Returns:
             str: A descriptive string for the asteroid belt, suitable for display.
         """
-        if config.MARKDOWN:
-            return f"## Asteroid Belt\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
+        # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
+        AU_TO_LY = 1 / 63241.1
+        LY_THRESHOLD = 1.0  # The distance in LY at which to switch from AU to LY display
+
+        # Convert the belt's boundaries to light-years to check against the threshold
+        upper_limit_ly = self.upper_limit * AU_TO_LY
+
+        if upper_limit_ly < LY_THRESHOLD:
+            # For smaller systems, display the boundaries in AU for better precision
+            distance_text = f"between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU"
         else:
-            return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
+            # For very large systems, display in light-years for readability
+            lower_limit_ly = self.lower_limit * AU_TO_LY
+            distance_text = f"between {lower_limit_ly:.4f} light-years and {upper_limit_ly:.4f} light-years"
+
+        # Construct the final output string based on the markdown configuration
+        if config.MARKDOWN:
+            return f"## Asteroid Belt\nAn asteroid belt orbits roughly {distance_text}."
+        else:
+            return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly {distance_text}."
 
 
 class Planet:
@@ -331,7 +352,8 @@ class Planet:
         self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY,
                                                   self.density)
 
-        self.hill_radius = (self.distance * AU_TO_KM) * (self.mass / (3 * self.star_mass)) ** (1 / 3)
+        distance_m = self.distance * AU_TO_M
+        self.hill_radius = calculate_hill_sphere(distance_m, self.mass, self.star_mass) / 1000  # Convert to km
         self.min_orbit_distance = (5 * self.hill_radius) / AU_TO_KM
 
     def calculate_surface_gravity(self):
@@ -499,15 +521,33 @@ class Planet:
         This method generates a string that is formatted for use in a wiki. It
         includes a header, a data template with key properties, and a descriptive
         paragraph. If the planet has moons, their information is also included.
+        The output for orbital distance is dynamic: for distances under 1.0
+        light-year, it uses AU (or km for moons). For larger distances, it
+        switches to light-years to ensure readability.
 
         Returns:
             str: A string containing the wiki-formatted text for the planet.
         """
+        # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
+        AU_TO_LY = 1 / 63241.1
+        LY_THRESHOLD = 1.0  # The distance in LY at which to switch from AU to LY display
+
         if self.is_moon:
-            distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 5)} km"
+            # Moons orbit their parent planet, so their distance is from the planet, not the star.
+            # This distance is typically much smaller and best represented in kilometers.
+            distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 4)} km"
             header_level = '###' if config.MARKDOWN else '==='
         else:
-            distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({round(self.distance, 3)} AU)" if self.distance < 1 else f"{round(self.distance, 3)} AU"
+            # For planets, the distance is from the star. We check if this distance
+            # is large enough to warrant using light-years.
+            distance_ly = self.distance * AU_TO_LY
+            if distance_ly < LY_THRESHOLD:
+                # For "normal" sized systems, display in AU.
+                # If less than 1 AU, also show in km for context.
+                distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU"
+            else:
+                # For very large systems, display in light-years.
+                distance_text = f"{distance_ly:.4f} light-years"
             header_level = '##' if config.MARKDOWN else '=='
 
         header = f"{header_level} {self.name} {header_level if not config.MARKDOWN else ''}"

@@ -147,6 +147,26 @@ def calculate_stellar_radius(luminosity, temperature):
     return math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
 
 
+def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
+    """
+    Calculates the Hill sphere radius for a celestial body.
+
+    The Hill sphere is the region around a celestial body where its own
+    gravity is the dominant force for attracting satellites. This function
+    calculates the radius of this sphere.
+
+    Args:
+        distance_m (float): The distance (semi-major axis) between the smaller
+                            body and the larger central body, in meters.
+        body_mass_kg (float): The mass of the smaller body (e.g., a planet) in kilograms.
+        central_mass_kg (float): The mass of the larger central body (e.g., a star) in kilograms.
+
+    Returns:
+        float: The radius of the Hill sphere in meters.
+    """
+    return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
+
+
 def split_into_syllables(name):
     """
     Splits a word into a list of syllables.

@@ -155,8 +155,15 @@ class StarSystem:
         Estimates the number of objects in a star system based on the star's mass.
         """
         solar_masses = self.star.mass / SOLAR_MASS_TO_KG
-        mass_mag = int(math.log10(abs(solar_masses))) + 1
-        max_objects = (25 / mass_mag) * solar_masses
+
+        # This provides a continuous scaling factor based on mass.
+        # For a 1 solar mass star, this is 1.
+        # For smaller stars, it's < 1; for larger stars, it's > 1.
+        # The logarithm helps temper the explosive growth for very massive stars.
+        scaling_factor = 1 + math.log10(solar_masses) if solar_masses >= 1 else solar_masses
+
+        # Base number of objects for a 1 solar mass star is 15.
+        max_objects = 15 * scaling_factor
         if max_objects > 500:
             max_objects = 500
         return math.ceil(max_objects) if force_max else random.randint(0, math.ceil(max_objects))
@@ -253,6 +260,20 @@ class StarSystem:
             habitable_string = "There are no potentially habitable worlds in this system."
 
         sentences = [system_string, habitable_string]
+
+        # Convert AU to Light-Years for the descriptive text (1 LY = 63241.1 AU)
+        perimeter_ly = self.star.system_perimeter / 63241.1
+
+        # Convert heliosphere radius to light-years to check the condition
+        heliosphere_ly = self.star.heliosphere_radius / 63241.1
+        if heliosphere_ly < 0.1:
+            heliosphere_text = f"{self.star.heliosphere_radius:.4f} AU"
+        else:
+            heliosphere_text = f"{heliosphere_ly:.4f} light-years"
+
+        sentences.append(f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
+        sentences.append(f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
+
         output.append(to_paragraph(sentences) + "\n")
 
         if self.planets:
