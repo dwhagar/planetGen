@@ -15,7 +15,7 @@ from nltk.corpus import words
 
 # --- Phonetic and Syllable Constants ---
 VOWELS = "aeiou"
-BAD_CONSONANTS = ["sz", "dt", "bp", "fb", "td", "pb"]
+BAD_CONSONANTS = ["sz", "dt", "bp", "fb", "td", "pb", "sz", "zs", "srs", "srl", "szl", "szr", "zsl", "zsr", "sch", "rsc", "lsc", "rsh", "lsh", "tsh", "dsh", "ksh", "gsh", "csh", "xsh", "qsh", "psh", "bsh", "fsh", "vsh", "msh", "nsh", "ssh", "zsh", "hsh", "wsh", "jsh", "ysch", "rsch", "lsch", "tsch", "dsch", "ksch", "gsch", "csch", "xsch", "qsch", "psch", "bsch", "fsch", "vsch", "msch", "nsch", "ssch", "zsch", "hsch", "wsch", "jsch"]
 
 # --- Base Name Lists ---
 
