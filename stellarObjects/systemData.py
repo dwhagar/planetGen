@@ -14,6 +14,7 @@ from .planetData import Planet, Asteroid_Belt
 from .starData import Star
 from .constants import SOLAR_MASS_TO_KG
 from .utils import to_paragraph
+from . import config
 
 class StarSystem:
     """
@@ -208,13 +209,22 @@ class StarSystem:
         details for each celestial body.
         """
         output = [str(self.star)]
+        
+        data = {
+            "planets": self.planet_count,
+            "belts": self.belt_count,
+            "moons": self.moon_count,
+            "habitable": self.hab_count,
+            "m_class": self.m_count
+        }
+
         segments = []
-        if self.planet_count > 0:
-            segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
-        if self.belt_count > 0:
-            segments.append(f"{self.belt_count} asteroid belt{'s' if self.belt_count > 1 else ''}")
-        if self.moon_count > 0:
-            segments.append(f"{self.moon_count} moon{'s' if self.moon_count > 1 else ''}")
+        if data['planets'] > 0:
+            segments.append(f"{data['planets']} planet{'s' if data['planets'] > 1 else ''}")
+        if data['belts'] > 0:
+            segments.append(f"{data['belts']} asteroid belt{'s' if data['belts'] > 1 else ''}")
+        if data['moons'] > 0:
+            segments.append(f"{data['moons']} moon{'s' if data['moons'] > 1 else ''}")
 
         if not segments:
             system_string = "There are no stellar objects in this system."
@@ -224,21 +234,21 @@ class StarSystem:
                 system_string = system_string.replace(f", {segments[-1]}", f" and {segments[-1]}")
             system_string += "."
 
-        if self.m_count == 1:
+        if data['m_class'] == 1:
             m_string = "1 of which is class M"
-        elif self.m_count > 1:
-            m_string = f"{self.m_count} of which are class M"
+        elif data['m_class'] > 1:
+            m_string = f"{data['m_class']} of which are class M"
         else:
             m_string = "none of which are class M"
 
-        if self.hab_count == 1 and self.m_count < 1:
+        if data['habitable'] == 1 and data['m_class'] < 1:
             habitable_string = "There is 1 potentially habitable world in the system."
-        elif self.hab_count == 1 and self.m_count == 1:
+        elif data['habitable'] == 1 and data['m_class'] == 1:
             habitable_string = "There is 1 class M world in the system."
-        elif self.hab_count > 1 and self.hab_count == self.m_count:
-            habitable_string = f"There are {self.hab_count} class M worlds in the system."
-        elif self.hab_count > 1:
-            habitable_string = f"There are {self.hab_count} potentially habitable worlds ({m_string})"
+        elif data['habitable'] > 1 and data['habitable'] == data['m_class']:
+            habitable_string = f"There are {data['habitable']} class M worlds in the system."
+        elif data['habitable'] > 1:
+            habitable_string = f"There are {data['habitable']} potentially habitable worlds ({m_string})"
         else:
             habitable_string = "There are no potentially habitable worlds in this system."
 
@@ -248,6 +258,6 @@ class StarSystem:
         if self.planets:
             for planet in self.planets:
                 output.append(str(planet) + '\n')
-
-        output.append('\n[[Category:Star Systems]]')
+        if not config.MARKDOWN:
+            output.append('\n[[Category:Star Systems]]')
         return '\n'.join(output)

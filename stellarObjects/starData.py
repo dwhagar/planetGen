@@ -14,6 +14,7 @@ from .utils import to_scientific_notation, calculate_habitable_zone, calculate_s
 from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMINOSITY,
                         LUMINOSITY_RANGES, TEMP_RANGES)
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from . import config
 
 class Star:
     """
@@ -42,7 +43,8 @@ class Star:
 
     def __str__(self):
         """
-        Returns a string representation of the star in the format of a wiki template.
+        Returns a string representation of the star in the format of a wiki template
+        or a markdown table, depending on the MARKDOWN flag.
         """
         if round(self.habitable_zone[0], 2) == round(self.habitable_zone[1], 2):
             hab_lower = str(round(self.habitable_zone[0], 5))
@@ -67,35 +69,56 @@ class Star:
             sol_lum = round(self.luminosity / SOLAR_LUMINOSITY * 100, 4)
 
         if sol_mass <= 2:
-            mass_string = f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass * 100}% of Sol)"
+            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass * 100}% of Sol)"
         elif sol_mass > 100:
             exponent = int(math.floor(math.log10(abs(sol_mass))))
-            mass_string = f"|mass={to_scientific_notation(self.mass)} kg (10<sup>{exponent}</sup>x Sol)"
+            mass_string = f"{to_scientific_notation(self.mass)} kg (10<sup>{exponent}</sup>x Sol)"
         else:
-            mass_string = f"|mass={to_scientific_notation(self.mass)} kg ({sol_mass}x Sol)"
+            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass}x Sol)"
 
         if sol_lum <= 2:
-            lum_string = f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum * 100}% of Sol)"
+            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum * 100}% of Sol)"
         elif sol_lum > 100:
             exponent = int(math.floor(math.log10(abs(sol_lum))))
-            lum_string = f"|lum={to_scientific_notation(self.luminosity)} W (10<sup>{exponent}</sup>x Sol)"
+            lum_string = f"{to_scientific_notation(self.luminosity)} W (10<sup>{exponent}</sup>x Sol)"
         else:
-            lum_string = f"|lum={to_scientific_notation(self.luminosity)} W ({sol_lum}x Sol)"
+            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum}x Sol)"
 
         if self.radius <= 100000:
-            radius_string = f"|radius={round(self.radius, 2):,} km"
+            radius_string = f"{round(self.radius, 2):,} km"
         else:
-            radius_string = f"|radius={to_scientific_notation(self.radius, 2)} km"
+            radius_string = f"{to_scientific_notation(self.radius, 2)} km"
 
-        output = ["{{Star Data", 
-                  f"|name={self.name}",
-                  f"|type={self.type}",
-                  radius_string,
-                  mass_string,
-                  f"|temp={self.temperature} K",
-                  lum_string,
-                  f"|hab=Between {hab_lower} and {hab_upper} AU",
-                  "}}"]
+        data = {
+            "name": self.name,
+            "type": self.type,
+            "radius": radius_string,
+            "mass": mass_string,
+            "temp": f"{self.temperature} K",
+            "lum": lum_string,
+            "hab": f"Between {hab_lower} and {hab_upper} AU"
+        }
+
+        if config.MARKDOWN:
+            output = ["# Star: " + data['name'],
+                      "| Property | Value |",
+                      "|---|---|",
+                      f"| Type | {data['type']} |",
+                      f"| Radius | {data['radius']} |",
+                      f"| Mass | {data['mass']} |",
+                      f"| Temperature | {data['temp']} |",
+                      f"| Luminosity | {data['lum']} |",
+                      f"| Habitable Zone | {data['hab']} |"]
+        else:
+            output = ["{{Star Data",
+                      f"|name={data['name']}",
+                      f"|type={data['type']}",
+                      f"|radius={data['radius']}",
+                      f"|mass={data['mass']}",
+                      f"|temp={data['temp']}",
+                      f"|lum={data['lum']}",
+                      f"|hab={data['hab']}",
+                      "}}"]
         return '\n'.join(output)
 
     def set_radius_bounds(self, luminosity, temperature, spectral_class):
@@ -168,21 +191,21 @@ class Star:
         mass = (luminosity**(1/3.5) * SOLAR_MASS_TO_KG)
 
         # Determine Yerkes spectral classification
-        if luminosity > 100000:  
+        if luminosity > 100000:
             yerkes_class, yerkes_type = "0", "Hypergiant"
-        elif luminosity > 30000: 
+        elif luminosity > 30000:
             yerkes_class, yerkes_type = "Ia+", "Luminous Supergiant"
-        elif luminosity > 10000:       
+        elif luminosity > 10000:
             yerkes_class, yerkes_type = "Ia", "Supergiant"
         elif luminosity > 1000:
             yerkes_class, yerkes_type = "Ib", "Less Luminous Supergiant"
-        elif luminosity > 25:        
+        elif luminosity > 25:
             yerkes_class, yerkes_type = "II", "Bright Giant"
-        elif luminosity > 5:           
+        elif luminosity > 5:
             yerkes_class, yerkes_type = "III", "Giant"
-        elif luminosity > 1.5:          
+        elif luminosity > 1.5:
             yerkes_class, yerkes_type = "IV", "Subgiant"
-        elif luminosity > 0.08:        
+        elif luminosity > 0.08:
             yerkes_class, yerkes_type = "V", "Main Sequence"
         else:
             yerkes_class, yerkes_type = "D", "Dwarf"

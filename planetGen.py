@@ -1,6 +1,6 @@
 import argparse
 import logging
-from stellarObjects import StarSystem
+from stellarObjects import StarSystem, config
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -63,6 +63,12 @@ def process_args():
     parser.add_argument('--absurd', action='store_true',
     help="Force the system to generate the largest star possible w/ max planets and moons.")
 
+    # Output to a file
+    parser.add_argument('--output', '-o', type=str, help="Output to a file.")
+
+    # Output in Markdown format
+    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
+
     args = parser.parse_args()
     return args
 
@@ -77,8 +83,10 @@ def main():
     then instantiates the `StarSystem` class with the chosen settings and prints
     the resulting system to the console.
     """
-
     args = process_args()
+
+    if args.markdown:
+        config.MARKDOWN = True
 
     if args.force_habitable_world and args.force_asteroid_belt and not args.absurd:
         args.force_large_star = True
@@ -92,7 +100,12 @@ def main():
                         force_moons=args.force_moons,
                         force_planets=args.force_max_planets,
                         absurd=args.absurd)
-    print(system)
+
+    if args.output:
+        with open(args.output, 'w') as f:
+            f.write(str(system))
+    else:
+        print(system)
 
 if __name__ == "__main__":
     main()

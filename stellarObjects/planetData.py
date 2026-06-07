@@ -21,6 +21,7 @@ from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
                         PLANET_CLASSES, PLANET_CLASS_PROBABILITIES)
 from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
                     MOON_PREFIXES, MOON_SUFFIXES)
+from . import config
 
 
 def get_planet_mass_ranges():
@@ -105,7 +106,10 @@ class Asteroid_Belt:
         Returns:
             str: A descriptive string for the asteroid belt, suitable for display.
         """
-        return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
+        if config.MARKDOWN:
+            return f"## Asteroid Belt\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
+        else:
+            return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU."
 
 
 class Planet:
@@ -500,20 +504,40 @@ class Planet:
             str: A string containing the wiki-formatted text for the planet.
         """
         if self.is_moon:
-            distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 5)} km"
-            header_level = '==='
+            distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 5)} km"
+            header_level = '###' if config.MARKDOWN else '==='
         else:
-            distance_text = f"|distance={to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({round(self.distance, 3)} AU)" if self.distance < 1 else f"|distance={round(self.distance, 3)} AU"
-            header_level = '=='
+            distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({round(self.distance, 3)} AU)" if self.distance < 1 else f"{round(self.distance, 3)} AU"
+            header_level = '##' if config.MARKDOWN else '=='
 
-        header = f"{header_level} {self.name} {header_level}"
-        radius_string = f"|radius={round(self.radius, 2):,} km" if self.radius <= 100000 else f"|radius={to_scientific_notation(self.radius, 2)} km"
+        header = f"{header_level} {self.name} {header_level if not config.MARKDOWN else ''}"
+        radius_string = f"{round(self.radius, 2):,} km" if self.radius <= 100000 else f"{to_scientific_notation(self.radius, 2)} km"
 
-        template_data = [
-            header, "{{Planet Data", f"|class={self.planet_class}",
-            distance_text, f"|period={years_to_time_string(self.period)}",
-            radius_string, f"|gravity={round(self.gravity, 3)} g", "}}",
-        ]
+        data = {
+            "class": self.planet_class,
+            "distance": distance_text,
+            "period": years_to_time_string(self.period),
+            "radius": radius_string,
+            "gravity": f"{round(self.gravity, 3)} g"
+        }
+
+        if config.MARKDOWN:
+            template_data = [
+                header,
+                "| Property | Value |",
+                "|---|---|",
+                f"| Class | {data['class']} |",
+                f"| Distance | {data['distance']} |",
+                f"| Period | {data['period']} |",
+                f"| Radius | {data['radius']} |",
+                f"| Gravity | {data['gravity']} |",
+            ]
+        else:
+            template_data = [
+                header, "{{Planet Data", f"|class={data['class']}",
+                f"|distance={data['distance']}", f"|period={data['period']}",
+                f"|radius={data['radius']}", f"|gravity={data['gravity']}", "}}",
+            ]
 
         sentences = []
         if not self.is_moon:
