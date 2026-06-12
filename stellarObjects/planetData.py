@@ -140,7 +140,8 @@ class Planet:
     This class encapsulates the generation and properties of a celestial body,
     including its physical characteristics, orbital data, and atmospheric
     conditions. It can represent both planets and moons, and includes logic
-    for generating a system of moons for a planet.
+    for generating a system of moons for a planet, influenced by settings in
+    the global `config` object.
 
     The generation process is flexible, allowing for fully random creation or
     generation based on specified parameters like radius, mass, or class.
@@ -148,7 +149,7 @@ class Planet:
 
     def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False, force_moons=False):
+                 is_moon=False):
         """
         Initializes a Planet object with its properties and orbital context.
 
@@ -168,7 +169,6 @@ class Planet:
             distance_override (float, optional): An override for the planet's
                                                  distance, used in specific calculations.
             is_moon (bool, optional): Flag indicating if the object is a moon.
-            force_moons (bool, optional): Flag to force the generation of moons.
         """
         self.is_moon = is_moon
         self.moons = []
@@ -201,7 +201,6 @@ class Planet:
 
         if self.is_moon:
             self.name = generate_phoneme_salad_name(MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES)
-            force_moons = False
         else:
             self.name = generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)
 
@@ -212,7 +211,7 @@ class Planet:
         self.calculate_surface_gravity()
         self.calculate_atmospheric_conditions(distance_override)
 
-        if (force_moons or random.randint(0, 1) == 1) and not self.is_moon:
+        if (config.FORCE_MOONS or random.randint(0, 1) == 1) and not self.is_moon:
             self.generate_moons()
 
     def generate_planet(self, zone_override=None):

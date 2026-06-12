@@ -6,6 +6,16 @@ Star System Generation
 
 This module contains the `StarSystem` class, which is used to generate and
 represent a full star system, including a central star and a list of planets.
+The `StarSystem` class orchestrates the creation of the star and its planets,
+applying a set of procedural generation rules to create a diverse and
+scientifically grounded star system.
+
+The generation process can be customized through a variety of parameters,
+allowing for the creation of specific types of systems, such as those with
+habitable worlds, asteroid belts, or a particular star type. The class also
+includes methods for validating the system's orbital mechanics, counting the
+number of celestial objects, and generating a detailed string representation of
+the system.
 """
 
 import random
@@ -19,37 +29,50 @@ from . import config
 class StarSystem:
     """
     A class representing a star system, containing a central star and a list of planets.
+
+    The `StarSystem` class is the main entry point for generating a complete star
+    system. It initializes a central star and then procedurally generates a list
+    of planets and other celestial objects orbiting it. The generation process
+    can be influenced by a variety of flags, allowing for fine-tuned control over
+    the final system's characteristics.
+
+    The class handles the complex logic of placing planets in stable orbits,
+    ensuring that the system is physically plausible. It also includes methods
+    for counting the number of different types of objects in the system and
+    generating a detailed, human-readable summary of the system's properties.
     """
 
-    def __init__(self, force_hab=False, force_belt=False, force_large=False, force_moons=False,
-                 force_planets=False, absurd=False):
+    def __init__(self):
         """
-        Initializes a StarSystem object.
+        Initializes a StarSystem object, generating a star and its planets.
 
-        Args:
-            force_hab (bool, optional): Whether to force the generation of a habitable world. Defaults to False.
-            force_belt (bool, optional): Whether to force the generation of an asteroid belt. Defaults to False.
-            force_large (bool, optional): Whether to force the generation of a large star. Defaults to False.
-            force_moons (bool, optional): Whether to force the generation of lots of moons. Defaults to False.
-            force_planets (bool, optional): Whether to force the system to have the maximum number of planets. Defaults to False.
-            absurd (bool, optional): Whether to generate an absurdly large system. Defaults to False.
+        This constructor orchestrates the entire star system generation process.
+        It begins by creating a `Star` instance, which can be customized with
+        flags to control its size and type. It then estimates the number of
+        celestial objects the system can support and proceeds to generate them,
+        placing them in orbit around the star.
+
+        The generation logic can be influenced by several parameters, allowing for
+        the creation of specific types of systems. For example, the `force_hab`
+        flag ensures that at least one habitable planet is generated, while the
+        `no_planets` flag can be used to create a star with no orbiting bodies.
         """
-        self.star = Star(force_large=force_large, absurd=absurd)
+        self.star = Star()
         self.planets = []
-        system_objects = self.estimate_num_objects(force_max=force_planets)
+        system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / SOLAR_MASS_TO_KG
 
         required_objects = 0
-        if force_hab:
+        if config.FORCE_HABITABLE_WORLD:
             required_objects += 1
-        if force_belt:
+        if config.FORCE_ASTEROID_BELT:
             required_objects += 1
 
         if system_objects < required_objects:
             system_objects = required_objects
 
         if system_objects > 0:
-            belt_index = random.randint(0, system_objects - 1) if force_belt else -1
+            belt_index = random.randint(0, system_objects - 1) if config.FORCE_ASTEROID_BELT else -1
             found_hab = False
             i = -1
 
@@ -69,7 +92,7 @@ class StarSystem:
 
                 hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
 
-                if force_hab and not found_hab:
+                if config.FORCE_HABITABLE_WORLD and not found_hab:
                     if not hz and i == 0:
                         if (estimated_distance > self.star.habitable_zone[1] or
                                 0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
@@ -84,7 +107,7 @@ class StarSystem:
                             estimated_distance = random.uniform(self.star.habitable_zone[0], self.star.habitable_zone[1])
                             planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity,
                                             self.star.radius, self.star.temperature, self.star.mass,
-                                            planet_class="M", force_moons=force_moons)
+                                            planet_class="M")
                             self.planets[i - 1] = planet
                             i -= 1
                             found_hab = True
@@ -96,7 +119,7 @@ class StarSystem:
                     if hz:
                         planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity,
                                         self.star.radius, self.star.temperature, self.star.mass,
-                                        planet_class="M", force_moons=force_moons)
+                                        planet_class="M")
                         found_hab = True
                         self.planets.append(planet)
                         continue
@@ -107,8 +130,7 @@ class StarSystem:
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
                     planet = Planet(self.star.habitable_zone, estimated_distance, self.star.luminosity,
-                                    self.star.radius, self.star.temperature, self.star.mass,
-                                    force_moons=force_moons)
+                                    self.star.radius, self.star.temperature, self.star.mass)
                     if planet.planet_class == "M":
                         found_hab = True
                     self.planets.append(planet)
@@ -120,6 +142,15 @@ class StarSystem:
     def count_objects(self):
         """
         Counts the number of planets, asteroid belts, and moons in the system.
+
+        This method iterates through the list of celestial objects in the system
+        and tallies the number of each type. It distinguishes between planets and
+        asteroid belts, and also counts the total number of moons orbiting the
+        planets.
+
+        Returns:
+            tuple: A tuple containing the total number of planets, asteroid belts,
+                   and moons in the system, in that order.
         """
         planet_counter, moon_counter, belt_counter = 0, 0, 0
         for planet in self.planets:
@@ -132,8 +163,16 @@ class StarSystem:
 
     def count_habitable(self):
         """
-        Counts the number of potentially habitable (Class H, K, L, M, O, P) and
-        Class M worlds in the system.
+        Counts the number of potentially habitable worlds in the system.
+
+        This method iterates through all planets and their moons, checking their
+        classification to determine if they are potentially habitable. It counts
+        worlds classified as Class H, K, L, M, O, or P, and also keeps a separate
+        count of Class M worlds, which are considered the most Earth-like.
+
+        Returns:
+            tuple: A tuple containing the total number of potentially habitable
+                   worlds and the total number of Class M worlds, in that order.
         """
         habitable_classes = "HKLMOP"
         hab_count, m_count = 0, 0
@@ -150,10 +189,21 @@ class StarSystem:
                         m_count += 1
         return hab_count, m_count
 
-    def estimate_num_objects(self, force_max=False):
+    def estimate_num_objects(self):
         """
         Estimates the number of objects in a star system based on the star's mass.
+
+        This method calculates the potential number of celestial objects a star
+        can support based on its mass. The number of objects scales with the
+        star's mass, with more massive stars being able to support more objects.
+        The calculation is tempered by a logarithmic function to prevent an
+        excessive number of objects for very massive stars.
+
+        Returns:
+            int: The estimated number of objects to be generated in the system.
         """
+        if config.NO_PLANETS:
+            return 0
         solar_masses = self.star.mass / SOLAR_MASS_TO_KG
 
         # This provides a continuous scaling factor based on mass.
@@ -166,12 +216,21 @@ class StarSystem:
         max_objects = 15 * scaling_factor
         if max_objects > 500:
             max_objects = 500
-        return math.ceil(max_objects) if force_max else random.randint(0, math.ceil(max_objects))
+        return math.ceil(max_objects) if config.FORCE_MAX_PLANETS else random.randint(0, math.ceil(max_objects))
 
     def validate_system(self):
         """
-        Validates and adjusts the distances of stellar objects in a system to
-        prevent orbital overlap.
+        Validates and adjusts the distances of stellar objects to prevent orbital overlap.
+
+        This method iterates through the generated planets and other celestial
+        objects, checking for any orbital overlaps. If two objects are too close
+        to each other, it adjusts their orbits to ensure a safe distance is
+        maintained. This is crucial for creating a physically plausible and stable
+        star system.
+
+        The method accounts for the different types of objects, such as planets
+        and asteroid belts, and applies appropriate corrections to ensure that
+        their orbits are not just non-overlapping, but also realistically spaced.
         """
         if len(self.planets) < 2:
             return
@@ -214,6 +273,19 @@ class StarSystem:
         """
         Generates a string output for the system data, including a summary and
         details for each celestial body.
+
+        This method compiles a comprehensive summary of the entire star system,
+        including details about the central star and each of its orbiting
+        objects. The output is formatted as a human-readable string, suitable for
+        display in a console or for writing to a file.
+
+        The method provides a high-level overview of the system, including the
+        total number of planets, asteroid belts, and moons, as well as the number
+        of potentially habitable worlds. It then lists each celestial body in
+        order, providing a detailed description of its properties.
+
+        Returns:
+            str: A formatted string representing the entire star system.
         """
         output = [str(self.star)]
         

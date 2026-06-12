@@ -273,14 +273,51 @@ PLANET_CLASS_PROBABILITIES = {
 
 # --- Star Generation Parameters ---
 
-# Luminosity ranges for each spectral class in solar luminosities
-LUMINOSITY_RANGES = {
-    'O': (30000, 1000000), 'B': (25, 30000), 'A': (5, 25), 'F': (1.5, 5),
-    'G': (0.6, 1.5), 'K': (0.08, 0.6), 'M': (0.00008, 0.08)
-}
+# The Chandrasekhar limit for white dwarf mass in solar masses.
+CHANDRASEKHAR_LIMIT_SOL = 1.44
+
+# A base radius for a 1 solar mass white dwarf, in kilometers.
+WHITE_DWARF_BASE_RADIUS_KM = 5800
 
 # Temperature ranges for each spectral class in Kelvin
 TEMP_RANGES = {
     'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000), 'F': (6000, 7500),
     'G': (5200, 6000), 'K': (3700, 5200), 'M': (2400, 3700)
+}
+
+# Luminosity ranges based on a star's spectral class (color/temperature).
+# This is primarily useful for Main Sequence (V) stars, where the relationship is strong.
+SPECTRAL_LUMINOSITY_RANGES = {
+    'O': (30000, 1000000), 'B': (25, 30000), 'A': (5, 25), 'F': (1.5, 5),
+    'G': (0.6, 1.5), 'K': (0.08, 0.6), 'M': (0.0001, 0.08)
+}
+
+# Approximate luminosity ranges for each Yerkes luminosity class, in solar luminosities.
+# This is the primary determinant of a star's energy output.
+YERKES_LUMINOSITY_RANGES = {
+    "0": (500000, 2000000),      # Hypergiants
+    "IA+": (500000, 2000000),    # Luminous Supergiants (upper end)
+    "IA": (50000, 500000),       # Luminous Supergiants
+    "IAB": (10000, 100000),      # Intermediate-size Luminous Supergiants
+    "IB": (1000, 50000),         # Less Luminous Supergiants
+    "II": (100, 10000),          # Bright Giants
+    "III": (50, 1000),           # Normal Giants
+    "IV": (2, 50),               # Subgiants
+    "V": (0.0001, 1000000),      # Main-sequence (very broad)
+    "VI": (0.00001, 0.1),        # Subdwarfs (dimmer than main sequence)
+    "VII": (0.0001, 0.1),        # White Dwarfs (standard)
+    "D": (0.0001, 0.1)           # Alias for White Dwarfs
+}
+
+# Physically allowed mass ranges for each Yerkes luminosity class, in solar masses.
+# This enforces realistic constraints on generated stars.
+YERKES_MASS_CONSTRAINTS = {
+    "0": (20, 150), "IA+": (20, 150), "IA": (10, 40), "IAB": (8, 20), "IB": (8, 20),
+    "II": (2, 15),
+    "III": (0.8, 8),
+    "IV": (1, 5),
+    "V": (0.08, 150),
+    "VI": (0.1, 0.8),
+    "VII": (0.5, CHANDRASEKHAR_LIMIT_SOL),
+    "D": (0.5, CHANDRASEKHAR_LIMIT_SOL)
 }

@@ -36,6 +36,13 @@ python planetGen.py [options]
 *   `--force-moons`, `-fm`: Force the generation of lots of moons in a system.
 *   `--force-max-planets`, `-fmp`: Force the system to maximized the number of planets.
 *   `--absurd`: Force the system to generate the largest star possible with the maximum number of planets and moons.
+*   `--no-planets`, `-np`: Skip planet generation and create only a star.
+*   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
+
+**Note on Incompatible Options:**
+
+*   `--no-planets` cannot be combined with `--force-moons`, `--force-max-planets`, `--absurd`, `--force-habitable-world`, or `--force-asteroid-belt`.
+*   `--star-type` cannot be combined with `--force-large-star`.
 
 ### Additional Information
 

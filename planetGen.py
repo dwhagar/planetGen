@@ -9,17 +9,36 @@ def process_args():
     """
     Parses command-line arguments for customizing the star system generation.
 
-    This function sets up an argument parser to handle various boolean flags that
-    allow the user to control aspects of the star system creation, such as forcing
-    the inclusion of a habitable world or an asteroid belt. It also provides
-    detailed help messages and additional information about the tool's usage and
-    the implications of different options.
+    This function sets up an argument parser to handle various flags and options
+    that allow the user to control the star system creation process. It includes
+    options to force the inclusion of specific features like a habitable world or
+    an asteroid belt, control the size and composition of the system, and specify
+    output formats.
+
+    The parser includes the following arguments:
+    - `--force-habitable-world` / `-fhw`: Ensures at least one habitable planet
+      is generated.
+    - `--force-asteroid-belt` / `-fab`: Ensures at least one asteroid belt is
+      generated.
+    - `--force-large-star` / `-fls`: Forces the generation of a larger, more
+      massive star.
+    - `--force-moons` / `-fm`: Increases the likelihood of planets having moons.
+    - `--force-max-planets` / `-fmp`: Generates the maximum number of planets
+      the system can support.
+    - `--absurd`: Creates an extremely large and dense system for creative
+      purposes.
+    - `--output` / `-o`: Specifies a file path to write the output to.
+    - `--markdown` / `-m`: Formats the output in Markdown instead of the default
+      wikitext.
+    - `--no-planets` / `-np`: Skips the planet generation process entirely,
+      creating only a star.
+    - `--star-type`: Allows specifying a precise star type to generate, such as
+      'G2V'.
 
     Returns:
         argparse.Namespace: An object containing the parsed command-line arguments
-                            as boolean attributes. Each attribute corresponds to a
-                            specific flag and its value is True if the flag is
-                            present, and False otherwise.
+                            as attributes. Each attribute corresponds to a specific
+                            flag or option and its value.
     """
     additional_info = [
         "Additional Information:",
@@ -69,37 +88,64 @@ def process_args():
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
 
+    # No Planets
+    parser.add_argument('--no-planets', '-np', action='store_true',
+                        help="Do not generate any planets, only the star.")
+
+    # Star Type
+    parser.add_argument('--star-type', type=str,
+                        help="Force the generation of a specific star type (e.g., G2V).")
+
+
     args = parser.parse_args()
+
+    if args.no_planets and (args.force_moons or args.force_max_planets or args.absurd or args.force_habitable_world or args.force_asteroid_belt):
+        parser.error("--no-planets cannot be combined with --force-moons, --force-max-planets, --absurd, --force-habitable-world, or --force-asteroid-belt.")
+
+    if args.star_type and args.force_large_star:
+        parser.error("--star-type cannot be combined with --force-large-star.")
+
     return args
 
 def main():
     """
     The main entry point for the star system generation script.
 
-    This function orchestrates the process of generating a star system. It begins by
-    parsing command-line arguments to get user-specified options. Based on these
-    options, it may adjust the generation parameters, for example, by forcing a
-    large star if both a habitable world and an asteroid belt are requested. It
-    then instantiates the `StarSystem` class with the chosen settings and prints
-    the resulting system to the console.
+    This function orchestrates the entire process of generating a star system. It
+    begins by parsing command-line arguments to retrieve user-specified options.
+    It then processes these options, adjusting generation parameters accordingly.
+    For instance, it can force the creation of a large star if both a habitable
+    world and an asteroid belt are requested, or it can create an "absurd" system
+    with maximum planets and moons.
+
+    The function then instantiates the `StarSystem` class, which uses the
+    centralized `config` object to guide the generation of the star and any
+    accompanying planets.
+
+    Finally, the script checks if an output file was specified. If so, it writes
+    the generated system's string representation to that file. Otherwise, it
+
+    prints the output directly to the console.
     """
     args = process_args()
 
-    if args.markdown:
-        config.MARKDOWN = True
+    config.MARKDOWN = args.markdown
+    config.FORCE_HABITABLE_WORLD = args.force_habitable_world
+    config.FORCE_ASTEROID_BELT = args.force_asteroid_belt
+    config.FORCE_LARGE_STAR = args.force_large_star
+    config.FORCE_MOONS = args.force_moons
+    config.FORCE_MAX_PLANETS = args.force_max_planets
+    config.ABSURD = args.absurd
+    config.NO_PLANETS = args.no_planets
+    config.STAR_TYPE = args.star_type
 
-    if args.force_habitable_world and args.force_asteroid_belt and not args.absurd:
-        args.force_large_star = True
-    elif args.absurd:
-        args.force_max_planets = True
-        args.force_moons = True
+    if config.FORCE_HABITABLE_WORLD and config.FORCE_ASTEROID_BELT and not config.ABSURD:
+        config.FORCE_LARGE_STAR = True
+    elif config.ABSURD:
+        config.FORCE_MAX_PLANETS = True
+        config.FORCE_MOONS = True
 
-    system = StarSystem(force_hab=args.force_habitable_world,
-                        force_belt=args.force_asteroid_belt,
-                        force_large=args.force_large_star,
-                        force_moons=args.force_moons,
-                        force_planets=args.force_max_planets,
-                        absurd=args.absurd)
+    system = StarSystem()
 
     if args.output:
         with open(args.output, 'w') as f:

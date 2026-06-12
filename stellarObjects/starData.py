@@ -19,10 +19,14 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 
 import math
 import random
+import re
 from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, to_paragraph
-from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMINOSITY, LUMINOSITY_RANGES, TEMP_RANGES, G,
-                        MILKY_WAY_MASS, GALACTIC_CENTER_DISTANCE_LY, LY_TO_M, AU_TO_M, ISM_PRESSURE, SOLAR_RADIUS_M,
-                        SOLAR_ESCAPE_VELOCITY, SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE)
+from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMINOSITY,
+                        SPECTRAL_LUMINOSITY_RANGES, YERKES_LUMINOSITY_RANGES, YERKES_MASS_CONSTRAINTS,
+                        WHITE_DWARF_BASE_RADIUS_KM, CHANDRASEKHAR_LIMIT_SOL,
+                        TEMP_RANGES, G, MILKY_WAY_MASS, GALACTIC_CENTER_DISTANCE_LY, LY_TO_M,
+                        AU_TO_M, ISM_PRESSURE, SOLAR_RADIUS_M, SOLAR_ESCAPE_VELOCITY,
+                        SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE)
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import config
 
@@ -35,7 +39,11 @@ class Star:
     gravitational and energetic center of a `StarSystem`, defining the context
     for all orbiting planets and other celestial bodies.
 
-    A class representing a star and its properties.
+    The generation process can be random or guided by specific parameters, such
+    as forcing a large star or specifying a precise star type (e.g., 'G2V').
+    Once the core properties are established, the class calculates derived
+    attributes, including the habitable zone, the system's gravitational
+    perimeter, and the heliosphere's radius.
     """
 
     def calculate_system_perimeter(self):
@@ -52,8 +60,6 @@ class Star:
         serves as a practical "end" for the system, beyond which interstellar
         space truly begins. The result is converted to Astronomical Units (AU) for
         consistency with other system-scale measurements.
-
-        Calculates the Hill sphere for the star system relative to the galaxy.
         """
         galactic_center_dist_m = GALACTIC_CENTER_DISTANCE_LY * LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, MILKY_WAY_MASS)
@@ -61,27 +67,18 @@ class Star:
 
     def calculate_heliosphere(self):
         """
-        Estimates the radius of the star's heliosphere (astrosphere) based on its physical properties.
+        Estimates the radius of the star's heliosphere (astrosphere).
 
-        The heliosphere is a vast "bubble" in space created by the stellar wind, a
-        stream of charged particles flowing outward from the star. The edge of this
-        bubble, called the heliopause, is the point where the pressure of the
-        stellar wind is balanced by the pressure of the surrounding interstellar
-        medium (ISM).
+        The heliosphere is a "bubble" in space created by the stellar wind, a
+        stream of charged particles flowing from the star. The edge of this
+        bubble, the heliopause, is where the stellar wind's pressure is balanced
+        by the interstellar medium (ISM).
 
-        The calculation involves several steps:
-        1.  **Determine Stellar Wind Properties**: The model first calculates the
-            star's mass-loss rate (how much mass it sheds via wind per year) and
-            the wind's terminal velocity. These properties vary significantly
-            between hot, massive stars (like O- and B-types) and cooler, less
-            massive stars.
-        2.  **Calculate Momentum Flux**: The momentum carried by the wind per second
-            is calculated (mass_loss_rate * wind_velocity).
-        3.  **Balance Pressures**: The heliopause radius is found by setting the
-            dynamic pressure of the wind equal to the static pressure of the ISM.
+        The calculation is based on the star's mass-loss rate and wind velocity,
+        which are determined by its spectral type and luminosity class. The
+        method uses a tiered approach to model these properties, from the intense
+        winds of hypergiants to the more gentle outflows of sun-like stars.
 
-        This provides a physically-grounded estimate for one of the key boundaries
-        of the star system.
         Returns:
             float: The estimated radius of the heliosphere in AU.
         """
@@ -110,7 +107,7 @@ class Star:
         # TIER 2: Supergiants (Class I) and Bright Giants (Class II)
         # For these highly evolved stars, the classic Reimers' Law provides a stable
         # and physically appropriate model for their powerful stellar winds.
-        elif yerkes_class in ["Ia+", "Ia", "Ib", "II"]:
+        elif yerkes_class in ["IA+", "IA", "IAB", "IB", "II"]:
             eta = 2.0  # Higher efficiency factor for these very luminous stars.
             # Reimers' Law: M-dot = 4e-13 * η * (L*R/M)
             mass_loss_rate_smyr = (4e-13) * eta * (lum_sol * radius_sol / mass_sol)
@@ -125,9 +122,9 @@ class Star:
             mass_loss_rate_smyr = (4e-13) * eta * (lum_sol * radius_sol / mass_sol)
             wind_velocity = 0.3 * escape_velocity
 
-        # TIER 4: Main Sequence (Class V) and Dwarfs (Class D)
-        # For sun-like stars, mass loss is very low. We scale directly from the Sun's
-        # known properties for a stable and physically grounded result.
+        # TIER 4: Main Sequence (Class V), Subdwarfs (VI), and White Dwarfs (VII)
+        # For sun-like stars and stellar remnants, mass loss is very low. We scale
+        # directly from the Sun's known properties for a stable, physically grounded result.
         else:
             # For cool main-sequence stars, mass loss is driven by magnetic activity, not
             # radiation pressure. The Reimers' law scaling (L*R/M) is inaccurate here.
@@ -165,24 +162,18 @@ class Star:
         # Convert the final radius from meters to Astronomical Units (AU) for output.
         return heliopause_radius_m / AU_TO_M
 
-    def __init__(self, spectral_class=None, temperature=None, force_large=False, absurd=False):
+    def __init__(self):
         """
         Initializes a Star object, generating its properties based on specified constraints.
 
         This constructor orchestrates the creation of a star. It can generate a
-        star randomly or be guided by specific parameters like spectral class or
-        temperature. Flags can be used to force the generation of particularly
-        large or even physically absurd stars for creative purposes.
+        star randomly or be guided by specific parameters. The `star_type`
+        parameter allows for the creation of a star with a specific spectral
+        class, subclass, and Yerkes classification (e.g., 'G2V').
 
-        Once the core properties (mass, radius, luminosity, temperature) are
-        established, it calculates derived properties such as the habitable zone,
-        system perimeter (Hill sphere), and the heliosphere radius.
-
-        Args:
-            spectral_class (str, optional): The spectral class of the star. Defaults to None.
-            temperature (int, optional): The temperature of the star in Kelvin. Defaults to None.
-            force_large (bool, optional): Whether to force the generation of a large star. Defaults to False.
-            absurd (bool, optional): Whether to generate an absurdly large star. Defaults to False.
+        Once the core properties are established, it calculates derived
+        properties such as the habitable zone, system perimeter (Hill sphere),
+        and the heliosphere radius.
         """
         self.name = generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.luminosity = None
@@ -194,15 +185,14 @@ class Star:
         self.habitable_zone = None
         self.system_perimeter = None
         self.heliosphere_radius = None
-        self.generate_star(force_large=force_large, spectral_class=spectral_class, temperature=temperature, absurd=absurd)
+        self.generate_star()
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter()
         self.heliosphere_radius = self.calculate_heliosphere()
 
     def __str__(self):
         """
-        Returns a string representation of the star in the format of a wiki template
-        or a markdown table.
+        Returns a string representation of the star's data.
 
         The output format is determined by the `config.MARKDOWN` flag. This method
         formats the star's key properties—such as its name, type, radius, mass,
@@ -215,7 +205,6 @@ class Star:
 
         Returns:
             str: A formatted string representing the star's data.
-
         """
         if round(self.habitable_zone[0], 2) == round(self.habitable_zone[1], 2):
             hab_lower = str(round(self.habitable_zone[0], 5))
@@ -236,7 +225,7 @@ class Star:
         if sol_mass_val < 0.01: # Less than 1%
             mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val * 100:.2f}% of Sol)"
         elif sol_mass_val < 2: # Between 1% and 200%
-            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val * 100:.1f}% of Sol)"
+            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val:.1f}% of Sol)"
         else: # Greater than 200%
             mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val:.1f}× Sol)"
 
@@ -286,142 +275,162 @@ class Star:
         
         return '\n'.join(output)
 
-    def set_radius_bounds(self, luminosity, temperature, spectral_class):
+    def generate_star(self):
         """
-        Calculates the theoretical minimum and maximum radius for a star of a given class.
+        Generates the physical properties of the star based on a hierarchical,
+        physically-constrained procedural model.
 
-        This function is not currently used to constrain the radius but serves as a
-        utility to understand the expected size range for a star based on its
-        spectral class's luminosity range. It uses the Stefan-Boltzmann law to
-        relate luminosity, temperature, and radius.
+        The generation process is fundamentally different for user-specified stars
+        (via `config.STAR_TYPE`) versus randomly generated ones.
 
-        Note: The current implementation calculates radius directly from luminosity
-        and temperature, making this function more of a validation or reference tool.
+        For specified stars:
+        1.  It parses the type (e.g., 'G2V') to get spectral class, subclass, and Yerkes class.
+        2.  Temperature is calculated from the spectral class and subclass.
+        3.  A valid luminosity range is found by taking the *intersection* of the
+            allowed luminosities for the spectral and Yerkes classes.
+        4.  A final luminosity is chosen from this valid range.
+        5.  Mass is then determined based on physical constraints for that Yerkes class.
+        6.  Radius is calculated last, using specific physics for the star type (e.g.,
+            white dwarf mass-radius relation vs. Stefan-Boltzmann law for others).
 
+        For random stars:
+        1.  A spectral class is chosen based on galactic population probabilities.
+        2.  A luminosity is randomly chosen from that spectral class's typical range.
+        3.  The Yerkes class is *determined* by this luminosity.
+        4.  Temperature, mass, and radius then follow from these properties.
 
-        Returns:
-            tuple: A tuple containing the minimum and maximum allowed radius in meters.
+        This ensures that all generated stars, whether specified or random, adhere
+        to the fundamental physical relationships between their core properties.
         """
-        luminosity_watts = luminosity * SOLAR_LUMINOSITY
-        radius_meters = calculate_stellar_radius(luminosity_watts, temperature)
-        min_radius, max_radius = LUMINOSITY_RANGES[spectral_class]
-        min_radius_meters = min_radius * 6.957e8
-        max_radius_meters = max_radius * 6.957e8
-        return min_radius_meters, max_radius_meters
+        yerkes_lookup = {
+            "0": "Hypergiant", "IA+": "Luminous Supergiant", "IA": "Supergiant",
+            "IAB": "Intermediate-size Luminous Supergiant", "IB": "Less Luminous Supergiant",
+            "II": "Bright Giant", "III": "Giant", "IV": "Subgiant", "V": "Main Sequence",
+            "VI": "Subdwarf", "VII": "White Dwarf", "D": "White Dwarf"
+        }
 
-    def generate_star(self, spectral_class=None, temperature=None, force_large=False, absurd=False):
-        """
-        Generates the physical properties of the star based on procedural rules.
+        if config.STAR_TYPE:
+            # --- GENERATE STAR FROM SPECIFIED TYPE ---
 
-        This is the core generation method for the `Star` class. It follows these steps:
-        1.  **Determine Spectral Class**: Selects a spectral class (O, B, A, etc.)
-            based on probabilities that can be modified by flags like `force_large`.
-        2.  **Determine Temperature**: Assigns a surface temperature within the
-            range of the chosen spectral class.
-        3.  **Determine Luminosity**: Assigns a luminosity within the range of the
-            spectral class.
-        4.  **Calculate Radius**: Computes the star's radius using the Stefan-Boltzmann
-            law from its luminosity and temperature.
-        5.  **Determine Luminosity Class**: Assigns a Yerkes classification (e.g.,
-            V for Main Sequence, III for Giant) based on the luminosity.
-        6.  **Calculate Mass**: Estimates the star's mass using an appropriate
-            mass-luminosity relation for its class.
-        7.  **Set Final Properties**: Assembles the final descriptive type string and
-            assigns all calculated properties to the `Star` object.
-        Generates a random star's properties, optionally taking spectral class
-        and temperature as constraints.
+            # 1. Parse and validate the specified star type string.
+            match = re.match(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)", config.STAR_TYPE.upper())
+            if not match:
+                raise ValueError("Invalid star type format. Expected format is e.g., G2V.")
+            spectral_class, subclass_str, yerkes_class_str = match.groups()
+            subclass = int(subclass_str)
+            self.yerkes_class = yerkes_class_str
+            yerkes_type = yerkes_lookup[yerkes_class_str]
 
-        Args:
-            spectral_class (str, optional): A specific spectral class ('O', 'B', etc.) to generate.
-            temperature (int, optional): A specific temperature in Kelvin to generate.
-            force_large (bool, optional): If True, biases generation towards larger, more massive stars.
-            absurd (bool, optional): If True, generates an extremely large 'O' type star.
-        """
-        # Set spectral class probabilities based on generation flags
-        if absurd:
-            spectral_probabilities = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
-        elif force_large:
-            spectral_probabilities = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
+            # 2. Calculate Temperature from spectral class and subclass.
+            min_temp, max_temp = TEMP_RANGES[spectral_class]
+            temp_range_size = max_temp - min_temp
+            temperature = min_temp + (9 - subclass) * (temp_range_size / 9)
+            temperature = int(round(temperature, -2))
+
+            # 3. Determine a physically valid Luminosity.
+            # Find the overlapping luminosity range between the spectral and Yerkes classes.
+            spec_min_lum, spec_max_lum = SPECTRAL_LUMINOSITY_RANGES[spectral_class]
+            yerkes_min_lum, yerkes_max_lum = YERKES_LUMINOSITY_RANGES[yerkes_class_str]
+            
+            # Special case for hot, young white dwarfs, which can be temporarily very luminous.
+            if yerkes_class_str in ["VII", "D"] and spectral_class in ["O", "B"]:
+                yerkes_min_lum, yerkes_max_lum = 0.1, 100
+
+            valid_min_lum = max(spec_min_lum, yerkes_min_lum)
+            valid_max_lum = min(spec_max_lum, yerkes_max_lum)
+            
+            if valid_min_lum > valid_max_lum:
+                # If there's no overlap, the combination is physically unlikely.
+                # We will prioritize the Yerkes class range, as it's the primary
+                # driver of luminosity for evolved stars.
+                valid_min_lum, valid_max_lum = yerkes_min_lum, yerkes_max_lum
+
+            luminosity = random.uniform(valid_min_lum, valid_max_lum)
+
         else:
-            spectral_probabilities = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
+            # --- GENERATE STAR RANDOMLY ---
 
-        # Validate or generate spectral class
-        if spectral_class is None:
-            spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
-        elif spectral_class not in spectral_probabilities:
-            raise ValueError("Invalid spectral class")
-
-        # Validate or generate temperature
-        valid_temp_range = TEMP_RANGES.get(spectral_class)
-        if valid_temp_range is None:
-            raise ValueError("Invalid spectral class")
-
-        if temperature is None:
-            temperature = int(round(random.uniform(*valid_temp_range), -2)) if not absurd else valid_temp_range[1]
-        elif not (valid_temp_range[0] <= temperature <= valid_temp_range[1]):
-            raise ValueError("Temperature out of range for the given spectral class")
-
-        # Generate luminosity
-        min_luminosity, max_luminosity = LUMINOSITY_RANGES[spectral_class]
-        luminosity = random.uniform(min_luminosity, max_luminosity) if not absurd else max_luminosity
-
-        # Validate radius
-        radius_min, radius_max = self.set_radius_bounds(luminosity, temperature, spectral_class)
-
-        # Calculate spectral subclass
-        min_temp, max_temp = TEMP_RANGES[spectral_class]
-        temp_range_size = max_temp - min_temp
-        subclass = 9 - round((temperature - min_temp) / temp_range_size * 9)
-
-        # Calculate final radius and mass
-        luminosity_watts = luminosity * SOLAR_LUMINOSITY
-        radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
-        if radius > radius_max:
-            radius = radius_max
-        elif radius < radius_min:
-            radius = radius_min
-
-        # Determine Yerkes spectral classification
-        if luminosity > 100000:
-            yerkes_class, yerkes_type = "0", "Hypergiant"
-        elif luminosity > 30000:
-            yerkes_class, yerkes_type = "Ia+", "Luminous Supergiant"
-        elif luminosity > 10000:
-            yerkes_class, yerkes_type = "Ia", "Supergiant"
-        elif luminosity > 1000:
-            yerkes_class, yerkes_type = "Ib", "Less Luminous Supergiant"
-        elif luminosity > 25:
-            yerkes_class, yerkes_type = "II", "Bright Giant"
-        elif luminosity > 5:
-            yerkes_class, yerkes_type = "III", "Giant"
-        elif luminosity > 1.5:
-            yerkes_class, yerkes_type = "IV", "Subgiant"
-        elif luminosity > 0.08:
-            yerkes_class, yerkes_type = "V", "Main Sequence"
-        else:
-            yerkes_class, yerkes_type = "D", "Dwarf"
-
-        # Calculate mass based on a more robust mass-luminosity relation
-        lum_sol = luminosity  # luminosity is already in solar units here
-        if yerkes_class == "V":  # Main Sequence
-            if lum_sol < 0.23:
-                mass = (0.23 * (lum_sol ** 2) + 0.75 * lum_sol + 0.02) * SOLAR_MASS_TO_KG
+            # 1. Generate Spectral Class based on galactic population.
+            if config.ABSURD:
+                spectral_probabilities = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
+            elif config.FORCE_LARGE_STAR:
+                spectral_probabilities = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
             else:
-                mass = (lum_sol ** (1 / 3.5)) * SOLAR_MASS_TO_KG
-        elif yerkes_class in ["III", "IV"]:  # Giants and Subgiants
-            # Giants have higher luminosity for a given mass than main sequence stars
-            mass = (lum_sol ** (1 / 3.0)) * SOLAR_MASS_TO_KG
-        else:  # Supergiants, Hypergiants
-            # Mass-luminosity relation is less steep for very massive stars
-            mass = (lum_sol ** (1 / 1.5)) * SOLAR_MASS_TO_KG
+                spectral_probabilities = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
+            spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
 
-        # Set star type string
+            # 2. Generate Luminosity from the spectral class's typical range.
+            min_luminosity, max_luminosity = SPECTRAL_LUMINOSITY_RANGES[spectral_class]
+            luminosity = max_luminosity if config.ABSURD else random.uniform(min_luminosity, max_luminosity)
+
+            # 3. Determine Yerkes Class from the resulting luminosity.
+            if luminosity > YERKES_LUMINOSITY_RANGES["0"][0]:
+                self.yerkes_class, yerkes_type = "0", "Hypergiant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["IA"][0]:
+                self.yerkes_class, yerkes_type = "IA", "Supergiant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["IAB"][0]:
+                self.yerkes_class, yerkes_type = "IAB", "Intermediate-size Luminous Supergiant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["IB"][0]:
+                self.yerkes_class, yerkes_type = "IB", "Less Luminous Supergiant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["II"][0]:
+                self.yerkes_class, yerkes_type = "II", "Bright Giant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["III"][0]:
+                self.yerkes_class, yerkes_type = "III", "Giant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["IV"][0]:
+                self.yerkes_class, yerkes_type = "IV", "Subgiant"
+            elif luminosity > YERKES_LUMINOSITY_RANGES["VI"][0]: # Check Subdwarf before Main Sequence
+                 self.yerkes_class, yerkes_type = "VI", "Subdwarf"
+            elif luminosity > SPECTRAL_LUMINOSITY_RANGES["M"][0]: # Check against dimmest main sequence
+                self.yerkes_class, yerkes_type = "V", "Main Sequence"
+            else:
+                self.yerkes_class, yerkes_type = "VII", "White Dwarf"
+
+            # 4. Calculate Temperature and Subclass.
+            min_temp, max_temp = TEMP_RANGES[spectral_class]
+            temperature = int(round(random.uniform(min_temp, max_temp), -2))
+            temp_range_size = max_temp - min_temp
+            subclass = 9 - round((temperature - min_temp) / temp_range_size * 9)
+
+        # --- CALCULATE FINAL PROPERTIES (COMMON TO BOTH PATHS) ---
+
+        # 5. Calculate Mass based on Yerkes class constraints.
+        min_mass, max_mass = YERKES_MASS_CONSTRAINTS[self.yerkes_class]
+        
+        if self.yerkes_class == "V":
+            # For main-sequence stars, the mass-luminosity relation is strong.
+            mass_sol = luminosity ** (1 / 3.5)
+        elif self.yerkes_class in ["VII", "D"]:
+            # For white dwarfs, mass is tightly constrained. Hotter (younger) ones
+            # are typically more massive, closer to the Chandrasekhar limit.
+            if spectral_class in ["O", "B"]:
+                mass_sol = random.uniform(1.1, CHANDRASEKHAR_LIMIT_SOL)
+            else:
+                mass_sol = random.uniform(min_mass, 1.0)
+        else:
+            # For giants and supergiants, mass is less predictable from luminosity alone.
+            # We choose a random mass within the physically allowed range for the class.
+            mass_sol = random.uniform(min_mass, max_mass)
+            
+        # Ensure the calculated mass is within the absolute physical bounds for its class.
+        mass_sol = max(min(mass_sol, max_mass), min_mass)
+        mass = mass_sol * SOLAR_MASS_TO_KG
+
+        # 6. Calculate Radius based on the star's type.
+        if self.yerkes_class in ["VII", "D"]:
+            # White dwarf radius follows an inverse mass-radius relationship.
+            # R ∝ M^(-1/3). A 1 solar mass WD is the base.
+            radius = WHITE_DWARF_BASE_RADIUS_KM * (mass_sol ** (-1/3))
+        else:
+            # For all other stars, radius is calculated from luminosity and temperature
+            # using the Stefan-Boltzmann law.
+            luminosity_watts = luminosity * SOLAR_LUMINOSITY
+            radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
+
+        # 7. Set final star properties.
         color_descriptions = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
-        star_type = f"{spectral_class}{subclass}{yerkes_class} {color_descriptions[spectral_class]} {yerkes_type} Star"
+        star_type_str = f"{spectral_class}{subclass}{self.yerkes_class} {color_descriptions[spectral_class]} {yerkes_type} Star"
 
-        # Set final star properties
-        self.type = star_type
-        self.yerkes_class = yerkes_class
+        self.type = star_type_str
         self.radius = radius
         self.mass = mass
         self.temperature = temperature
