@@ -65,6 +65,9 @@ class StarSystem:
         the creation of specific types of systems. For example, the `force_hab`
         flag ensures that at least one habitable planet is generated, while the
         `no_planets` flag can be used to create a star with no orbiting bodies.
+        The placement of planets is done sequentially, with each new planet's
+        orbit being determined based on the position of the previous one to ensure
+        a degree of realism in orbital spacing.
         """
         self.star = Star()
         self.planets = []
@@ -155,7 +158,8 @@ class StarSystem:
         This method iterates through the list of celestial objects in the system
         and tallies the number of each type. It distinguishes between planets and
         asteroid belts, and also counts the total number of moons orbiting the
-        planets.
+        planets. This information is used to provide a summary of the system's
+        composition in the `__str__` method.
 
         Returns:
             tuple: A tuple containing the total number of planets, asteroid belts,
@@ -177,7 +181,8 @@ class StarSystem:
         This method iterates through all planets and their moons, checking their
         classification to determine if they are potentially habitable. It counts
         worlds classified as Class H, K, L, M, O, or P, and also keeps a separate
-        count of Class M worlds, which are considered the most Earth-like.
+        count of Class M worlds, which are considered the most Earth-like. This
+        is used for the system summary output.
 
         Returns:
             tuple: A tuple containing the total number of potentially habitable
@@ -206,10 +211,13 @@ class StarSystem:
         can support based on its mass. The number of objects scales with the
         star's mass, with more massive stars being able to support more objects.
         The calculation is tempered by a logarithmic function to prevent an
-        excessive number of objects for very massive stars.
+        excessive number of objects for very massive stars. The final number can
+        be a random value up to the calculated maximum, or the maximum itself if
+        `FORCE_MAX_PLANETS` is enabled.
 
         Returns:
             int: The estimated number of objects to be generated in the system.
+                 Returns 0 if `NO_PLANETS` is enabled in the configuration.
         """
         if config.NO_PLANETS:
             return 0
@@ -240,6 +248,8 @@ class StarSystem:
         The method accounts for the different types of objects, such as planets
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
+        If an adjustment is made, the planet's atmospheric conditions are
+        recalculated to reflect its new orbital distance.
         """
         if len(self.planets) < 2:
             return
@@ -291,7 +301,8 @@ class StarSystem:
         The method provides a high-level overview of the system, including the
         total number of planets, asteroid belts, and moons, as well as the number
         of potentially habitable worlds. It then lists each celestial body in
-        order, providing a detailed description of its properties.
+        order, providing a detailed description of its properties. The final
+        output may also include a category tag for wiki-based systems.
 
         Returns:
             str: A formatted string representing the entire star system.

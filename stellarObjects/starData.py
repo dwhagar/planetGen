@@ -50,8 +50,21 @@ class Star:
         """
         Calculates the star's age and lifespan based on its spectral and Yerkes class.
 
+        This method determines the age and expected lifespan of the star by using
+        pre-defined evolutionary data from the `STAR_EVOLUTION` constant. The
+        lifespan is primarily based on the star's spectral class, but is then
+        adjusted based on its Yerkes luminosity class to account for different
+        evolutionary stages (e.g., giants, dwarfs).
+
+        For most stars, the age is randomly determined within a range appropriate
+        for its class. For example, giant stars are assumed to be near the end of
+        their lives, while main-sequence stars can be of any age. White dwarfs
+        are a special case, with a practically infinite lifespan representing their
+        cooling period.
+
         Returns:
             tuple: A tuple containing the star's age and lifespan in billions of years.
+                   The lifespan can be `float('inf')` for white dwarfs.
         """
         spectral_class = self.type[0]
         star_info = STAR_EVOLUTION.get(spectral_class, {})
@@ -91,6 +104,9 @@ class Star:
         serves as a practical "end" for the system, beyond which interstellar
         space truly begins. The result is converted to Astronomical Units (AU) for
         consistency with other system-scale measurements.
+
+        Returns:
+            float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         galactic_center_dist_m = GALACTIC_CENTER_DISTANCE_LY * LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, MILKY_WAY_MASS)
@@ -204,7 +220,9 @@ class Star:
 
         Once the core properties are established, it calculates derived
         properties such as the habitable zone, system perimeter (Hill sphere),
-        and the heliosphere radius.
+        and the heliosphere radius. These calculations are essential for the
+        subsequent generation of planets and other celestial bodies in the
+        `StarSystem` class.
         """
         self.name = generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.luminosity = None
@@ -334,6 +352,8 @@ class Star:
 
         For random stars:
         1.  A spectral class is chosen based on galactic population probabilities.
+            If `config.FORCE_HABITABLE_WORLD` is True, the choice is restricted
+            to star types that can support complex life (A, F, G, K, M).
         2.  A luminosity is randomly chosen from that spectral class's typical range.
         3.  The Yerkes class is *determined* by this luminosity.
         4.  Temperature, mass, and radius then follow from these properties.
@@ -394,6 +414,9 @@ class Star:
                 spectral_probabilities = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
             elif config.FORCE_LARGE_STAR:
                 spectral_probabilities = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
+            elif config.FORCE_HABITABLE_WORLD:
+                # If forcing a habitable world, restrict to stars that can support "normal" or "slow" evolution.
+                spectral_probabilities = {'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
             else:
                 spectral_probabilities = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
