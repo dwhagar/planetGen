@@ -66,7 +66,8 @@ PLANET_CLASSES = {
         "radius_range": (500, 5000),
         "h": True, "e": False, "c": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     },
     "B": {
         "description": "a small, molten world with a thin atmosphere",
@@ -74,7 +75,8 @@ PLANET_CLASSES = {
         "radius_range": (500, 5000),
         "h": True, "e": False, "c": False,
         "atmosphere": "a mix of helium, sodium, and oxygen",
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     },
     "C": {
         "description": "a dead world",
@@ -82,7 +84,8 @@ PLANET_CLASSES = {
         "radius_range": (500, 10000),
         "h": True, "e": True, "c": True,
         "atmosphere": None,
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     },
     "D": {
         "description": "a small icy body",
@@ -90,7 +93,8 @@ PLANET_CLASSES = {
         "radius_range": (50, 3000),
         "h": True, "e": True, "c": True,
         "atmosphere": None,
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     },
     "E": {
         "description": "a world with a molten core and crust, and a thin atmosphere",
@@ -98,7 +102,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "hydrogen compounds",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"]
     },
     "F": {
         "description": "a volcanic world with shallow seas and bacterial life",
@@ -106,7 +111,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"]
     },
     "G": {
         "description": "a rocky, barren world with simple life",
@@ -114,7 +120,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "H": {
         "description": "a desert world with minimal water (less than 10% liquid water)",
@@ -122,7 +129,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, argon, and metals",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "I": {
         "description": "an ice giant with a tilted magnetic field",
@@ -130,7 +138,8 @@ PLANET_CLASSES = {
         "radius_range": (15000, 50000),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
-        "type": "g"
+        "type": "g",
+        "life_chemical": None
     },
     "J": {
         "description": "a gas giant with a turbulent atmosphere and rings",
@@ -138,7 +147,8 @@ PLANET_CLASSES = {
         "radius_range": (25000, 250000),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
-        "type": "g"
+        "type": "g",
+        "life_chemical": None
     },
     "K": {
         "description": "an adaptable world with a thin atmosphere",
@@ -146,7 +156,8 @@ PLANET_CLASSES = {
         "radius_range": (2500, 7500),
         "h": False, "e": True, "c": False,
         "atmosphere": "carbon dioxide",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Retinal", "Melanin"]
     },
     "L": {
         "description": "a marginally habitable world with vegetation",
@@ -154,7 +165,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 7500),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of argon, oxygen, and trace elements",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "M": {
         "description": "a terrestrial Earth-like world",
@@ -162,7 +174,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, and argon",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "N": {
         "description": "a hot world with a dense, reducing atmosphere",
@@ -170,7 +183,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of carbon dioxide and sulfides",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"]
     },
     "O": {
         "description": "a pelagic (ocean) world with greater than 90% of its surface covered in liquid water",
@@ -178,7 +192,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, and argon",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "P": {
         "description": "a cold, glaciated world",
@@ -186,7 +201,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, and argon (thinning with age)",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "Q": {
         "description": "a world with an eccentric orbit and extreme temperature variations",
@@ -194,7 +210,8 @@ PLANET_CLASSES = {
         "radius_range": (2000, 7500),
         "h": True, "e": True, "c": True,
         "atmosphere": "a variable atmosphere (thin to dense) of nitrogen, oxygen, and argon",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"]
     },
     "R": {
         "description": "an ejected, geologically active world",
@@ -202,7 +219,8 @@ PLANET_CLASSES = {
         "radius_range": (7500, 10000),
         "h": False, "e": False, "c": False,
         "atmosphere": "volcanic outgassing",
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     },
     "S": {
         "description": "a supergiant that shields the inner planets",
@@ -210,7 +228,8 @@ PLANET_CLASSES = {
         "radius_range": (250000, 50000000),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
-        "type": "g"
+        "type": "g",
+        "life_chemical": None
     },
     "T": {
         "description": "a gas dwarf with a thick atmosphere",
@@ -218,7 +237,8 @@ PLANET_CLASSES = {
         "radius_range": (250000, 25000000),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
-        "type": "g"
+        "type": "g",
+        "life_chemical": None
     },
     "U": {
         "description": "an ultragiant that could become a star",
@@ -226,7 +246,8 @@ PLANET_CLASSES = {
         "radius_range": (25000000, 60000000),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
-        "type": "g"
+        "type": "g",
+        "life_chemical": None
     },
     "V": {
         "description": "a Super-Earth with high gravity",
@@ -234,7 +255,8 @@ PLANET_CLASSES = {
         "radius_range": (10000, 15000),
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of carbon dioxide, oxygen, hydrogen, and helium",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"]
     },
     "W": {
         "description": "a tidally locked world with extreme temperature variations",
@@ -242,7 +264,8 @@ PLANET_CLASSES = {
         "radius_range": (500, 10000),
         "h": True, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, sodium, and hydrogen",
-        "type": "t"
+        "type": "t",
+        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"]
     },
     "X": {
         "description": "a stripped core from a gas giant with no atmosphere",
@@ -250,7 +273,8 @@ PLANET_CLASSES = {
         "radius_range": (500, 5000),
         "h": True, "e": False, "c": False,
         "atmosphere": None,
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     },
     "Y": {
         "description": "a 'demon' class world with a toxic atmosphere",
@@ -258,7 +282,8 @@ PLANET_CLASSES = {
         "radius_range": (5000, 7500),
         "h": True, "e": False, "c": False,
         "atmosphere": "a turbulent, toxic, and irradiated atmosphere",
-        "type": "t"
+        "type": "t",
+        "life_chemical": None
     }
 }
 
@@ -320,4 +345,114 @@ YERKES_MASS_CONSTRAINTS = {
     "VI": (0.1, 0.8),
     "VII": (0.5, CHANDRASEKHAR_LIMIT_SOL),
     "D": (0.5, CHANDRASEKHAR_LIMIT_SOL)
+}
+
+# --- Life and Photosynthesis Data ---
+
+LIFE_CHEMICALS = {
+    "Retinal": {
+        "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
+        "evolutionary_time_scale": "fast",
+        "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
+        "reflection_spectrum_visible": ["Blue", "Red", "Purple", "Magenta"],
+        "reflection_spectrum_non_visible": ["Green edge (inverse of the standard Vegetation Red Edge)"],
+        "star_spectra_probabilities": {
+            "O": 10, "B": 10, "A": 15, "F": 20, "G": 35, "K": 35, "M": 20
+        }
+    },
+    "Melanin": {
+        "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
+        "evolutionary_time_scale": "normal",
+        "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
+        "reflection_spectrum_visible": ["None (Charcoal-black)"],
+        "reflection_spectrum_non_visible": ["Extremely low albedo across all bands"],
+        "star_spectra_probabilities": {
+            "O": 90, "B": 85, "A": 60, "F": 30, "G": 5, "K": 5, "M": 75
+        }
+    },
+    "Chlorophyll a": {
+        "description": "a standard porphyrin that drives oxygenic photosynthesis, requiring an oxygenated atmosphere as a climax ecology and stable, moderate radiation environments",
+        "evolutionary_time_scale": "slow",
+        "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
+        "reflection_spectrum_visible": ["Green"],
+        "reflection_spectrum_non_visible": ["Near-infrared edge (Canonical Vegetation Red Edge / VRE)"],
+        "star_spectra_probabilities": {
+            "O": 0, "B": 0, "A": 5, "F": 25, "G": 90, "K": 60, "M": 5
+        }
+    },
+    "Blue-Optimized Porphyrins": {
+        "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
+        "evolutionary_time_scale": "slow",
+        "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
+        "reflection_spectrum_visible": ["Red", "Orange", "Yellow", "Biofluorescent Green", "Biofluorescent Red"],
+        "reflection_spectrum_non_visible": ["Blue-shifted vegetation edge", "Strong UV absorption"],
+        "star_spectra_probabilities": {
+            "O": 5, "B": 10, "A": 40, "F": 85, "G": 15, "K": 0, "M": 0
+        }
+    },
+    "Bacteriochlorophylls": {
+        "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
+        "evolutionary_time_scale": "slow",
+        "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
+        "reflection_spectrum_visible": ["None (Black)"],
+        "reflection_spectrum_non_visible": ["Deep infrared edge (> 1.0 µm)"],
+        "star_spectra_probabilities": {
+            "O": 0, "B": 0, "A": 0, "F": 5, "G": 10, "K": 40, "M": 95
+        }
+    },
+    "Zinc-Bacteriochlorophyll": {
+        "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
+        "evolutionary_time_scale": "slow",
+        "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
+        "reflection_spectrum_visible": ["None (Black)"],
+        "reflection_spectrum_non_visible": ["Blue-shifted near-infrared edge"],
+        "star_spectra_probabilities": {
+            "O": 5, "B": 5, "A": 10, "F": 10, "G": 10, "K": 20, "M": 40
+        }
+    }
+}
+
+STAR_EVOLUTION = {
+    "O": {
+        "approximate_lifespan_years": "1,000,000 - 10,000,000",
+        "supported_evolutionary_scales": ["fast"],
+        "potentially_viable_chemicals": ["Retinal"],
+        "evolutionary_constraint_notes": "has an extremely short lifespan, as the star exhausts its fuel and goes supernova before planets can sufficiently cool to form stable liquid oceans, meaning only the absolute fastest, most primitive precursor photochemistry could theoretically occur"
+    },
+    "B": {
+        "approximate_lifespan_years": "10,000,000 - 100,000,000",
+        "supported_evolutionary_scales": ["fast"],
+        "potentially_viable_chemicals": ["Retinal"],
+        "evolutionary_constraint_notes": "is highly volatile and short-lived, providing barely enough time for planetary cooling and the emergence of single-celled life utilizing simple proton-motive gradients"
+    },
+    "A": {
+        "approximate_lifespan_years": "100,000,000 - 1,000,000,000",
+        "supported_evolutionary_scales": ["fast", "normal"],
+        "potentially_viable_chemicals": ["Retinal", "Melanin"],
+        "evolutionary_constraint_notes": "allows enough time for the development of early biospheres and radiotrophic organisms adapted to high-energy radiation, but likely dies before complex, slow-evolving porphyrin-based photosynthesis can be perfected"
+    },
+    "F": {
+        "approximate_lifespan_years": "2,000,000,000 - 4,000,000,000",
+        "supported_evolutionary_scales": ["fast", "normal", "slow"],
+        "potentially_viable_chemicals": ["Retinal", "Melanin", "Blue-Optimized Porphyrins (+ GFPs)", "Zinc-Bacteriochlorophyll"],
+        "evolutionary_constraint_notes": "possesses a main-sequence habitable zone lifespan spanning between 2 and 4 billion years, which provides sufficient time for complex biospheres to emerge, including advanced UV-shielding and biofluorescent adaptations"
+    },
+    "G": {
+        "approximate_lifespan_years": "8,000,000,000 - 12,000,000,000",
+        "supported_evolutionary_scales": ["fast", "normal", "slow"],
+        "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
+        "evolutionary_constraint_notes": "is the solar standard, providing stable, long-term conditions ideal for the slow evolution of highly complex, oxygenic photosynthesis based on the tetrapyrrole chlorin ring"
+    },
+    "K": {
+        "approximate_lifespan_years": "15,000,000,000 - 40,000,000,000",
+        "supported_evolutionary_scales": ["fast", "normal", "slow"],
+        "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
+        "evolutionary_constraint_notes": "is exceptionally stable and long-lived, offering tens of billions of years for slow-evolving biospheres to reach climax ecologies and adapt to slight red-shifts in the stellar spectrum"
+    },
+    "M": {
+        "approximate_lifespan_years": "100,000,000,000 - 1,000,000,000,000+",
+        "supported_evolutionary_scales": ["fast", "normal", "slow"],
+        "potentially_viable_chemicals": ["Retinal", "Melanin", "Bacteriochlorophylls (BChls)", "Zinc-Bacteriochlorophyll"],
+        "evolutionary_constraint_notes": "is the longest-lived star in the universe, and while early flaring requires rapid adaptation (e.g., radiotrophic melanin) during the initial hundreds of millions of years, their trillions of years of stability allow for deep-infrared anoxygenic photosynthesis to dominate permanently"
+    }
 }

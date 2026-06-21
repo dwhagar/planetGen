@@ -26,7 +26,7 @@ from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMIN
                         WHITE_DWARF_BASE_RADIUS_KM, CHANDRASEKHAR_LIMIT_SOL,
                         TEMP_RANGES, G, MILKY_WAY_MASS, GALACTIC_CENTER_DISTANCE_LY, LY_TO_M,
                         AU_TO_M, ISM_PRESSURE, SOLAR_RADIUS_M, SOLAR_ESCAPE_VELOCITY,
-                        SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE)
+                        SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE, STAR_EVOLUTION)
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import config
 
@@ -45,6 +45,37 @@ class Star:
     attributes, including the habitable zone, the system's gravitational
     perimeter, and the heliosphere's radius.
     """
+
+    def get_star_age(self):
+        """
+        Calculates the star's age and lifespan based on its spectral and Yerkes class.
+
+        Returns:
+            tuple: A tuple containing the star's age and lifespan in billions of years.
+        """
+        spectral_class = self.type[0]
+        star_info = STAR_EVOLUTION.get(spectral_class, {})
+        
+        base_lifespan = star_info.get("lifespan_gy", 10) # Default to 10 GY for G-class stars
+        
+        # Adjust lifespan based on Yerkes class
+        if self.yerkes_class in ["0", "IA+", "IA", "IAB", "IB", "II", "III"]: # Giants/Supergiants
+            lifespan = base_lifespan * 0.1 # Significantly shorter lifespan
+            age = random.uniform(lifespan * 0.8, lifespan) # Likely to be near the end of their life
+        elif self.yerkes_class == "IV": # Subgiants
+            lifespan = base_lifespan * 0.5
+            age = random.uniform(lifespan * 0.8, lifespan)
+        elif self.yerkes_class == "VI": # Subdwarfs
+            lifespan = base_lifespan * 1.2 # Longer lifespan
+            age = random.uniform(0.1, lifespan)
+        elif self.yerkes_class in ["VII", "D"]: # White Dwarfs
+            lifespan = float('inf') # Effectively infinite lifespan for cooling
+            age = random.uniform(0.1, 10) # Age represents cooling time
+        else: # Main Sequence (V)
+            lifespan = base_lifespan
+            age = random.uniform(0.1, lifespan)
+            
+        return age, lifespan
 
     def calculate_system_perimeter(self):
         """
@@ -186,6 +217,7 @@ class Star:
         self.system_perimeter = None
         self.heliosphere_radius = None
         self.generate_star()
+        self.age, self.lifespan = self.get_star_age()
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter()
         self.heliosphere_radius = self.calculate_heliosphere()
@@ -273,6 +305,13 @@ class Star:
                       f"|hab={data['hab']}",
                       "}}"]
         
+        sentences = []
+        if self.lifespan == float('inf'):
+            sentences.append(f"The star is approximately {self.age:.2f} billion years old and is now a white dwarf, which will cool for trillions of years.")
+        else:
+            sentences.append(f"The star is approximately {self.age:.2f} billion years old, with an expected lifespan of {self.lifespan:.2f} billion years.")
+        
+        output.append(to_paragraph(sentences))
         return '\n'.join(output)
 
     def generate_star(self):

@@ -18,7 +18,7 @@ from .utils import to_scientific_notation, years_to_time_string, calc_object_mas
 from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
                         STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY, AU_TO_M,
                         ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
-                        PLANET_CLASSES, PLANET_CLASS_PROBABILITIES)
+                        PLANET_CLASSES, PLANET_CLASS_PROBABILITIES, LIFE_CHEMICALS, STAR_EVOLUTION)
 from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
                     MOON_PREFIXES, MOON_SUFFIXES)
 from . import config
@@ -145,9 +145,39 @@ class Planet:
 
     The generation process is flexible, allowing for fully random creation or
     generation based on specified parameters like radius, mass, or class.
+
+    Attributes:
+        is_moon (bool): True if the object is a moon, False otherwise.
+        moons (list): A list of `Planet` objects representing the moons of this planet.
+        zone (str): The orbital zone of the planet ('h' for hot, 'e' for ecosphere, 'c' for cold).
+        description (str): A text description of the planet's class.
+        star_radius (float): The radius of the star in meters.
+        star_output (float): The total energy output of the star in Watts.
+        star_temperature (float): The surface temperature of the star in Kelvin.
+        atm_molar_density (float): The molar density of the atmosphere.
+        gravity (float): The surface gravity of the planet in g's.
+        atm_density (float): The density of the atmosphere.
+        surface_temperature (float): The surface temperature of the planet in Kelvin.
+        density (float): The overall density of the planet in g/cm³.
+        atmospheric_pressure (float): The atmospheric pressure at the surface in Pascals.
+        mass (float): The mass of the planet in kilograms.
+        atmosphere (str): The atmospheric composition.
+        composition (str): The chemical composition of the planet.
+        radius (float): The radius of the planet in kilometers.
+        planet_class (str): The classification of the planet (e.g., 'M', 'N').
+        distance (float): The distance from the star in AU.
+        type (str): The type of planet ('t' for terrestrial, 'g' for gas giant).
+        scale_height (float): The atmospheric scale height in kilometers.
+        star_mass (float): The mass of the star in kilograms.
+        hill_radius (float): The Hill radius of the planet in kilometers.
+        min_orbit_distance (float): The minimum stable orbit distance for a satellite in AU.
+        name (str): The generated name of the planet or moon.
+        life_chemical (str): The primary chemical basis for any potential life.
+        hab (tuple): The inner and outer bounds of the habitable zone in AU.
+        star_type (str): The spectral type of the star (e.g., 'G', 'M').
     """
 
-    def __init__(self, hab_zone, distance, star_output, star_radius, star_temperature, star_mass,
+    def __init__(self, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False):
         """
@@ -157,6 +187,7 @@ class Planet:
             hab_zone (tuple): A tuple containing the inner and outer bounds of the
                               habitable zone in AU.
             distance (float): The planet's distance from its star in AU.
+            star_type (str): The spectral type of the star (e.g., 'G', 'M').
             star_output (float): The total energy output of the star in Watts.
             star_radius (float): The radius of the star in kilometers.
             star_temperature (float): The surface temperature of the star in Kelvin.
@@ -195,9 +226,14 @@ class Planet:
         self.hill_radius = None
         self.min_orbit_distance = None
         self.name = None
+        self.life_chemical = None
+        self.evolution = None
+        self.reflection_spectrum_visible = None
+        self.reflection_spectrum_non_visible = None
 
         # From the star, should not be changed.
         self.hab = hab_zone
+        self.star_type = star_type
 
         if self.is_moon:
             self.name = generate_phoneme_salad_name(MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES)
@@ -350,6 +386,25 @@ class Planet:
 
         self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY,
                                                   self.density)
+        
+        # Get the dictionary of viable chemicals and their weights
+        viable_chems = self.get_viable_life_chemicals()
+        
+        if viable_chems:
+            # random.choices returns a list, so we grab the first [0] element
+            self.life_chemical = random.choices(
+                population=list(viable_chems.keys()),
+                weights=list(viable_chems.values()),
+                k=1
+            )[0]
+            life_chem_data = LIFE_CHEMICALS.get(self.life_chemical, {})
+            self.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
+            self.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
+        else:
+            self.life_chemical = None
+
+        # Determine the evolutionary speed based on the star and chosen chemical
+        self.evolution = self.get_evolutionary_speed()
 
         distance_m = self.distance * AU_TO_M
         self.hill_radius = calculate_hill_sphere(distance_m, self.mass, self.star_mass) / 1000  # Convert to km
@@ -371,6 +426,104 @@ class Planet:
         if self.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
             surface_gravity_g = random.uniform(0.75, 1.25)
         self.gravity = surface_gravity_g
+
+    def get_viable_life_chemicals(self):
+        """
+        Determines the viable life chemicals for the planet by finding the
+        intersection of chemicals supported by both the planet's class and
+        the star's spectral type. Normalizes the probabilities to sum to 1.0.
+
+        Returns:
+            dict: A dictionary mapping viable life chemical strings to their
+                  normalized float probabilities (e.g., {"Melanin": 0.6}).
+        """
+        # Retrieve the base list of possible chemicals for this specific planet class
+        planet_data = PLANET_CLASSES.get(self.planet_class)
+        if not planet_data or not planet_data.get("life_chemical"):
+            return {}
+
+        planet_chems = planet_data["life_chemical"]
+
+        # Determine the star's spectral class (e.g., 'G' from 'G2V')
+        if not self.star_type:
+            return {}
+
+        spectral_class = self.star_type[0].upper()
+
+        # Retrieve the potentially viable chemicals for the star's evolutionary scale
+        star_data = STAR_EVOLUTION.get(spectral_class)
+        if not star_data or not star_data.get("potentially_viable_chemicals"):
+            return {}
+
+        star_chems = star_data["potentially_viable_chemicals"]
+
+        raw_probabilities = {}
+        total_raw_prob = 0
+
+        # Intersect the lists using substring matching and collect raw probabilities
+        for p_chem in planet_chems:
+            if any(p_chem in s_chem for s_chem in star_chems):
+                chem_prob = LIFE_CHEMICALS.get(p_chem, {}).get(
+                    "star_spectra_probabilities", {}).get(spectral_class, 0)
+
+                if chem_prob > 0:
+                    raw_probabilities[p_chem] = chem_prob
+                    total_raw_prob += chem_prob
+
+        # Normalize the probabilities proportionally so they sum to 1.0
+        normalized_chemicals = {}
+        if total_raw_prob > 0:
+            for chem, prob in raw_probabilities.items():
+                normalized_chemicals[chem] = prob / total_raw_prob
+
+        return normalized_chemicals
+
+    def get_evolutionary_speed(self):
+        """
+        Determines the evolutionary speed for the planet's biosphere.
+        It finds the intersection of speeds supported by the star's lifespan
+        and the speed required by the planet's specific life chemical, then
+        chooses one randomly.
+
+        Returns:
+            str: The chosen evolutionary speed (e.g., 'fast', 'normal', 'slow'),
+                 or None if data is missing.
+        """
+        if not self.star_type:
+            return None
+
+        spectral_class = self.star_type[0].upper()
+
+        # 1. Get the speeds supported by the star
+        star_data = STAR_EVOLUTION.get(spectral_class)
+        if not star_data or not star_data.get("supported_evolutionary_scales"):
+            return None
+
+        star_speeds = star_data["supported_evolutionary_scales"]
+
+        # 2. Get the speeds supported by the chemical (if one is assigned)
+        if self.life_chemical:
+            chem_data = LIFE_CHEMICALS.get(self.life_chemical)
+            if chem_data and chem_data.get("evolutionary_time_scale"):
+                chem_speeds = chem_data["evolutionary_time_scale"]
+
+                # Ensure it's a list for intersection logic, even though
+                # constants.py currently stores it as a single string
+                if isinstance(chem_speeds, str):
+                    chem_speeds = [chem_speeds]
+
+                # Find the intersection
+                valid_speeds = [speed for speed in star_speeds if speed in chem_speeds]
+
+                if valid_speeds:
+                    return random.choice(valid_speeds)
+
+        # 3. Fallback: If no chemical is set (or if there's somehow no overlap),
+        # just pick a random speed supported by the star.
+        if star_speeds:
+            return random.choice(star_speeds)
+
+        return None
 
     def calculate_atmospheric_conditions(self, distance_override=None):
         """
@@ -471,7 +624,7 @@ class Planet:
             moon_distance = random.uniform(total_orbit_distance, high_orbit) / AU_TO_KM
             moon_radius = random.uniform(PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
-            new_moon = Planet(self.hab, moon_distance, self.star_output, self.star_radius,
+            new_moon = Planet(self.hab, moon_distance, self.star_type, self.star_output, self.star_radius,
                               self.star_temperature, self.star_mass, radius=moon_radius,
                               planet_class=moon_class, zone_override=self.zone,
                               distance_override=self.distance, is_moon=True)
@@ -600,6 +753,20 @@ class Planet:
             sentences.append(
                 f"This gas giant has an internal pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
             sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
+
+        if self.life_chemical:
+            if self.evolution:
+                sentences.append(
+                    f"The planet's conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolution} pace.")
+            else:
+                sentences.append(
+                    f"The planet's conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
+            if self.reflection_spectrum_visible:
+                visible_spectrum = ", ".join(self.reflection_spectrum_visible)
+                sentences.append(f"The visible reflection spectrum of the life on this planet is characterized by {visible_spectrum.lower()}.")
+            if self.reflection_spectrum_non_visible:
+                non_visible_spectrum = ", ".join(self.reflection_spectrum_non_visible)
+                sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")
 
         output = template_data
         output.append(to_paragraph(sentences))
