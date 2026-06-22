@@ -99,17 +99,10 @@ class Asteroid_Belt:
         self.upper_limit = upper_limit
         self.type = 'a'
 
-    def __str__(self):
+    def to_paragraph_list(self):
         """
-        Returns a string representation of the asteroid belt.
-
-        The output format for the orbital boundaries is dynamic. If the outer
-        boundary of the belt is less than 1.0 light-year from the star, the
-        distance is displayed in Astronomical Units (AU). Otherwise, it is
-        displayed in light-years to maintain readability for very large systems.
-
-        Returns:
-            str: A descriptive string for the asteroid belt, suitable for display.
+        Returns a list of strings, where each string is a paragraph describing
+        the asteroid belt.
         """
         # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
         AU_TO_LY = 1 / 63241.1
@@ -128,9 +121,16 @@ class Asteroid_Belt:
 
         # Construct the final output string based on the markdown configuration
         if config.MARKDOWN:
-            return f"## Asteroid Belt\nAn asteroid belt orbits roughly {distance_text}."
+            return [f"## Asteroid Belt", f"An asteroid belt orbits roughly {distance_text}."]
         else:
-            return f"== Asteroid Belt ==\nAn asteroid belt orbits roughly {distance_text}."
+            return [f"== Asteroid Belt ==", f"An asteroid belt orbits roughly {distance_text}."]
+
+    def __str__(self):
+        """
+        Returns a string representation of the asteroid belt, with paragraphs
+        separated by double newlines.
+        """
+        return "\n\n".join(self.to_paragraph_list())
 
 
 class Planet:
@@ -666,19 +666,10 @@ class Planet:
         if not (min_mass <= self.mass <= max_mass):
             raise ValueError("Invalid mass for planet class")
 
-    def __str__(self):
+    def to_paragraph_list(self):
         """
-        Returns a formatted string representation of the planet for wiki templates.
-
-        This method generates a string that is formatted for use in a wiki. It
-        includes a header, a data template with key properties, and a descriptive
-        paragraph. If the planet has moons, their information is also included.
-        The output for orbital distance is dynamic: for distances under 1.0
-        light-year, it uses AU (or km for moons). For larger distances, it
-        switches to light-years to ensure readability.
-
-        Returns:
-            str: A string containing the wiki-formatted text for the planet.
+        Returns a list of strings, where each string is a paragraph describing
+        the planet.
         """
         # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
         AU_TO_LY = 1 / 63241.1
@@ -702,34 +693,35 @@ class Planet:
                 distance_text = f"{distance_ly:.4f} light-years"
             header_level = '##' if config.MARKDOWN else '=='
 
+        output_paragraphs = []
         header = f"{header_level} {self.name} {header_level if not config.MARKDOWN else ''}"
+        output_paragraphs.append(header)
+
         radius_string = f"{round(self.radius, 2):,} km" if self.radius <= 100000 else f"{to_scientific_notation(self.radius, 2)} km"
 
-        data = {
-            "class": self.planet_class,
-            "distance": distance_text,
-            "period": years_to_time_string(self.period),
-            "radius": radius_string,
-            "gravity": f"{round(self.gravity, 3)} g"
-        }
-
+        # Join the table/template arrays with a single newline and append as a single block
         if config.MARKDOWN:
-            template_data = [
-                header,
+            markdown_table = "\n".join([
                 "| Property | Value |",
                 "|---|---|",
-                f"| Class | {data['class']} |",
-                f"| Distance | {data['distance']} |",
-                f"| Period | {data['period']} |",
-                f"| Radius | {data['radius']} |",
-                f"| Gravity | {data['gravity']} |",
-            ]
+                f"| Class | {self.planet_class} |",
+                f"| Distance | {distance_text} |",
+                f"| Period | {years_to_time_string(self.period)} |",
+                f"| Radius | {radius_string} |",
+                f"| Gravity | {round(self.gravity, 3)} g |",
+            ])
+            output_paragraphs.append(markdown_table)
         else:
-            template_data = [
-                header, "{{Planet Data", f"|class={data['class']}",
-                f"|distance={data['distance']}", f"|period={data['period']}",
-                f"|radius={data['radius']}", f"|gravity={data['gravity']}", "}}",
-            ]
+            wiki_template = "\n".join([
+                "{{Planet Data",
+                f"|class={self.planet_class}",
+                f"|distance={distance_text}",
+                f"|period={years_to_time_string(self.period)}",
+                f"|radius={radius_string}",
+                f"|gravity={round(self.gravity, 3)} g",
+                "}}",
+            ])
+            output_paragraphs.append(wiki_template)
 
         sentences = []
         if not self.is_moon:
@@ -744,7 +736,8 @@ class Planet:
             if self.atmosphere != "None":
                 sentences.append(
                     f"This planet has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
-                sentences.append(f"It is {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
+                sentences.append(
+                    f"It is {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
             else:
                 sentences.append(
                     f"This planet has no atmosphere and a surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
@@ -763,16 +756,23 @@ class Planet:
                     f"The planet's conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
             if self.reflection_spectrum_visible:
                 visible_spectrum = ", ".join(self.reflection_spectrum_visible)
-                sentences.append(f"The visible reflection spectrum of the life on this planet is characterized by {visible_spectrum.lower()}.")
+                sentences.append(
+                    f"The visible reflection spectrum of the life on this planet is characterized by {visible_spectrum.lower()}.")
             if self.reflection_spectrum_non_visible:
                 non_visible_spectrum = ", ".join(self.reflection_spectrum_non_visible)
                 sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")
 
-        output = template_data
-        output.append(to_paragraph(sentences))
+        output_paragraphs.append(to_paragraph(sentences))
 
         if self.moons:
             for moon in self.moons:
-                output.append('\n' + str(moon))
+                output_paragraphs.extend(moon.to_paragraph_list())  # Recursively get moon paragraphs
 
-        return '\n'.join(output)
+        return output_paragraphs
+
+    def __str__(self):
+        """
+        Returns a string representation of the planet, with paragraphs
+        separated by double newlines.
+        """
+        return "\n\n".join(self.to_paragraph_list())

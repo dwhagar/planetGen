@@ -42,6 +42,22 @@ def to_scientific_notation(number, precision=2):
         output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
         return "{{" + output + "}}"
 
+def _format_age_string(age_gy, precision=2):
+    """
+    Formats an age in billions of years (GY) into a human-readable string,
+    dynamically choosing between "Million Years" and "Billion Years".
+
+    Args:
+        age_gy (float): The age in billions of years.
+        precision (int, optional): The number of decimal places to show. Defaults to 2.
+
+    Returns:
+        str: A formatted string (e.g., "12.50 Billion Years" or "500 Million Years").
+    """
+    if age_gy >= 1.0:
+        return f"{age_gy:.{precision}f} Billion Years"
+    else:
+        return f"{age_gy * 1000:.{precision}f} Million Years"
 
 def years_to_time_string(years):
     """

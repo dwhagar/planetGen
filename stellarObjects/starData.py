@@ -26,7 +26,8 @@ from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMIN
                         WHITE_DWARF_BASE_RADIUS_KM, CHANDRASEKHAR_LIMIT_SOL,
                         TEMP_RANGES, G, MILKY_WAY_MASS, GALACTIC_CENTER_DISTANCE_LY, LY_TO_M,
                         AU_TO_M, ISM_PRESSURE, SOLAR_RADIUS_M, SOLAR_ESCAPE_VELOCITY,
-                        SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE, STAR_EVOLUTION)
+                        SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE, STAR_EVOLUTION,
+                        PLANET_CLASSES, EVOLUTIONARY_TIMELINES)
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import config
 
@@ -46,49 +47,91 @@ class Star:
     perimeter, and the heliosphere's radius.
     """
 
-    def get_star_age(self):
+    def _calculate_initial_star_age_and_lifespan(self):
         """
-        Calculates the star's age and lifespan based on its spectral and Yerkes class.
-
-        This method determines the age and expected lifespan of the star by using
-        pre-defined evolutionary data from the `STAR_EVOLUTION` constant. The
-        lifespan is primarily based on the star's spectral class, but is then
-        adjusted based on its Yerkes luminosity class to account for different
-        evolutionary stages (e.g., giants, dwarfs).
-
-        For most stars, the age is randomly determined within a range appropriate
-        for its class. For example, giant stars are assumed to be near the end of
-        their lives, while main-sequence stars can be of any age. White dwarfs
-        are a special case, with a practically infinite lifespan representing their
-        cooling period.
+        Calculates the star's initial age and lifespan based on its spectral class
+        and Yerkes class, using data from STAR_EVOLUTION.
 
         Returns:
-            tuple: A tuple containing the star's age and lifespan in billions of years.
-                   The lifespan can be `float('inf')` for white dwarfs.
+            tuple: A tuple containing the star's initial age and lifespan in billions of years.
         """
-        spectral_class = self.type[0]
-        star_info = STAR_EVOLUTION.get(spectral_class, {})
-        
-        base_lifespan = star_info.get("lifespan_gy", 10) # Default to 10 GY for G-class stars
-        
-        # Adjust lifespan based on Yerkes class
-        if self.yerkes_class in ["0", "IA+", "IA", "IAB", "IB", "II", "III"]: # Giants/Supergiants
-            lifespan = base_lifespan * 0.1 # Significantly shorter lifespan
-            age = random.uniform(lifespan * 0.8, lifespan) # Likely to be near the end of their life
-        elif self.yerkes_class == "IV": # Subgiants
-            lifespan = base_lifespan * 0.5
-            age = random.uniform(lifespan * 0.8, lifespan)
-        elif self.yerkes_class == "VI": # Subdwarfs
-            lifespan = base_lifespan * 1.2 # Longer lifespan
-            age = random.uniform(0.1, lifespan)
-        elif self.yerkes_class in ["VII", "D"]: # White Dwarfs
-            lifespan = float('inf') # Effectively infinite lifespan for cooling
-            age = random.uniform(0.1, 10) # Age represents cooling time
-        else: # Main Sequence (V)
-            lifespan = base_lifespan
-            age = random.uniform(0.1, lifespan)
-            
+        spectral_class_char = self.type[0]
+        star_info = STAR_EVOLUTION.get(spectral_class_char, {})
+
+        # Get lifespan range from STAR_EVOLUTION
+        if "lifespan_gy" in star_info:
+            min_lifespan, max_lifespan = star_info["lifespan_gy"]
+            lifespan = random.uniform(min_lifespan, max_lifespan)
+        else:
+            # Fallback if lifespan_gy is not defined for the spectral class
+            # Use the previous logic for Yerkes class based lifespan adjustment
+            base_lifespan = 10 # Default to 10 GY for G-class stars if not found
+
+            if self.yerkes_class in ["0", "IA+", "IA", "IAB", "IB", "II", "III"]: # Giants/Supergiants
+                lifespan = base_lifespan * 0.1 # Significantly shorter lifespan
+            elif self.yerkes_class == "IV": # Subgiants
+                lifespan = base_lifespan * 0.5
+            elif self.yerkes_class == "VI": # Subdwarfs
+                lifespan = base_lifespan * 1.2 # Longer lifespan
+            elif self.yerkes_class in ["VII", "D"]: # White Dwarfs
+                lifespan = float('inf') # Effectively infinite lifespan for cooling
+            else: # Main Sequence (V)
+                lifespan = base_lifespan
+
+        # Initial age is a random value within its lifespan, before planet-based adjustments
+        if lifespan == float('inf'):
+            age = random.uniform(0.1, 10) # For white dwarfs, age represents cooling time
+        else:
+            age = random.uniform(0.1, lifespan * 0.9) # Ensure age is less than lifespan
+
+        if age >= lifespan: # Final check to ensure age is always less than lifespan (unless infinite)
+            if lifespan != float('inf'):
+                age = lifespan * 0.95
+
         return age, lifespan
+
+    def adjust_age_for_planets(self, planets):
+        """
+        Adjusts the star's age to ensure it is at least as old as the minimum
+        age required for the most "evolved" planet in its system. This method
+        should be called by the StarSystem class after planets have been generated.
+
+        Args:
+            planets (list): A list of Planet objects in the system.
+        """
+        spectral_class_char = self.type[0]
+        star_evolution_data = STAR_EVOLUTION.get(spectral_class_char, {})
+        supported_scales = star_evolution_data.get("supported_evolutionary_scales", [])
+
+        min_required_age_for_system = 0.0
+
+        for planet in planets:
+            # Assuming planet has a 'planet_class' attribute
+            if hasattr(planet, 'planet_class') and planet.planet_class in PLANET_CLASSES:
+                planet_class_data = PLANET_CLASSES[planet.planet_class]
+                age_ranges = planet_class_data.get("age_ranges", {})
+
+                for scale in supported_scales:
+                    if scale in age_ranges:
+                        min_planet_age_for_scale, _ = age_ranges[scale]
+                        min_required_age_for_system = max(min_required_age_for_system, min_planet_age_for_scale)
+
+        # Ensure the star's age is at least the minimum required by its planets
+        if self.age < min_required_age_for_system:
+            # If the star's lifespan is too short to support the required age,
+            # we cap the age at a reasonable fraction of its lifespan.
+            if self.lifespan != float('inf') and self.lifespan < min_required_age_for_system:
+                # If lifespan is too short, set age to be near the end of its short life
+                self.age = random.uniform(min_required_age_for_system * 0.8, self.lifespan * 0.95)
+                if self.age > self.lifespan: # Final check
+                    self.age = self.lifespan * 0.95
+            else:
+                # Otherwise, set age to be between the required minimum and near end of lifespan
+                self.age = random.uniform(min_required_age_for_system, self.lifespan * 0.95 if self.lifespan != float('inf') else min_required_age_for_system + 5) # Add 5 GY for WD if no upper bound
+
+        # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
+        if self.lifespan != float('inf') and self.age >= self.lifespan:
+            self.age = self.lifespan * 0.95 # Star is near end of life
 
     def calculate_system_perimeter(self):
         """
@@ -104,9 +147,6 @@ class Star:
         serves as a practical "end" for the system, beyond which interstellar
         space truly begins. The result is converted to Astronomical Units (AU) for
         consistency with other system-scale measurements.
-
-        Returns:
-            float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         galactic_center_dist_m = GALACTIC_CENTER_DISTANCE_LY * LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, MILKY_WAY_MASS)
@@ -220,9 +260,7 @@ class Star:
 
         Once the core properties are established, it calculates derived
         properties such as the habitable zone, system perimeter (Hill sphere),
-        and the heliosphere radius. These calculations are essential for the
-        subsequent generation of planets and other celestial bodies in the
-        `StarSystem` class.
+        and the heliosphere radius.
         """
         self.name = generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.luminosity = None
@@ -235,27 +273,18 @@ class Star:
         self.system_perimeter = None
         self.heliosphere_radius = None
         self.generate_star()
-        self.age, self.lifespan = self.get_star_age()
+        self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter()
         self.heliosphere_radius = self.calculate_heliosphere()
 
-    def __str__(self):
+    def to_paragraph_list(self):
         """
-        Returns a string representation of the star's data.
-
-        The output format is determined by the `config.MARKDOWN` flag. This method
-        formats the star's key properties—such as its name, type, radius, mass,
-        temperature, luminosity, and habitable zone—into a clean, readable
-        summary suitable for display in either a markdown table or a wikitext
-        template.
-
-        It includes logic to format very large or small numbers into scientific
-        notation or percentages of solar values for improved readability.
-
-        Returns:
-            str: A formatted string representing the star's data.
+        Returns a list of strings, where each string is a paragraph describing
+        the star. This method is used by StarSystem to compile its full description.
         """
+        paragraphs = [] # This will contain the final list of "paragraphs" for the star.
+
         if round(self.habitable_zone[0], 2) == round(self.habitable_zone[1], 2):
             hab_lower = str(round(self.habitable_zone[0], 5))
             hab_upper = str(round(self.habitable_zone[1], 5))
@@ -302,35 +331,61 @@ class Star:
             "hab": f"Between {hab_lower} and {hab_upper} AU"
         }
 
+        star_block_lines = []
         if config.MARKDOWN:
-            output = ["# Star: " + data['name'],
-                      "| Property | Value |",
-                      "|---|---|",
-                      f"| Type | {data['type']} |",
-                      f"| Radius | {data['radius']} |",
-                      f"| Mass | {data['mass']} |",
-                      f"| Temperature | {data['temp']} |",
-                      f"| Luminosity | {data['lum']} |",
-                      f"| Habitable Zone | {data['hab']} |"]
+            star_block_lines.extend([
+                "# Star: " + data['name'],
+                "| Property | Value |",
+                "|---|---|",
+                f"| Type | {data['type']} |",
+                f"| Radius | {data['radius']} |",
+                f"| Mass | {data['mass']} |",
+                f"| Temperature | {data['temp']} |",
+                f"| Luminosity | {data['lum']} |",
+                f"| Habitable Zone | {data['hab']} |"
+            ])
         else:
-            output = ["{{Star Data",
-                      f"|name={data['name']}",
-                      f"|type={data['type']}",
-                      f"|radius={data['radius']}",
-                      f"|mass={data['mass']}",
-                      f"|temp={data['temp']}",
-                      f"|lum={data['lum']}",
-                      f"|hab={data['hab']}",
-                      "}}"]
-        
-        sentences = []
+            star_block_lines.extend([
+                "{{Star Data",
+                f"|name={data['name']}",
+                f"|type={data['type']}",
+                f"|radius={data['radius']}",
+                f"|mass={data['mass']}",
+                f"|temp={data['temp']}",
+                f"|lum={data['lum']}",
+                f"|hab={data['hab']}",
+                "}}"
+            ])
+
+        # Construct the age and evolutionary notes sentence
+        age_sentence_base = ""
         if self.lifespan == float('inf'):
-            sentences.append(f"The star is approximately {self.age:.2f} billion years old and is now a white dwarf, which will cool for trillions of years.")
+            age_sentence_base = f"The star is approximately {self.age:.2f} billion years old and is now a white dwarf, which will cool for trillions of years"
         else:
-            sentences.append(f"The star is approximately {self.age:.2f} billion years old, with an expected lifespan of {self.lifespan:.2f} billion years.")
+            age_sentence_base = f"The star is approximately {self.age:.2f} billion years old, with an expected lifespan of {self.lifespan:.2f} billion years"
+
+        spectral_class_char = self.type[0]
+        star_info = STAR_EVOLUTION.get(spectral_class_char, {})
         
-        output.append(to_paragraph(sentences))
-        return '\n'.join(output)
+        full_age_and_notes_sentence = age_sentence_base
+        if "evolutionary_constraint_notes" in star_info:
+            # Append notes directly as they are a continuation, ensuring a space and period at the end
+            full_age_and_notes_sentence += ". " + star_info["evolutionary_constraint_notes"]
+        full_age_and_notes_sentence += "." # Ensure the entire combined sentence ends with a period
+
+        # Combine the template/table block and the age/notes paragraph with a single newline.
+        # This entire combined string will be treated as one "paragraph" by systemData.py's __str__.
+        combined_star_description = '\n'.join(star_block_lines) + '\n' + full_age_and_notes_sentence + '\n'
+        paragraphs.append(combined_star_description)
+
+        return paragraphs
+
+    def __str__(self):
+        """
+        Returns a string representation of the star, with paragraphs
+        separated by double newlines.
+        """
+        return '\n\n'.join(self.to_paragraph_list())
 
     def generate_star(self):
         """
@@ -352,8 +407,6 @@ class Star:
 
         For random stars:
         1.  A spectral class is chosen based on galactic population probabilities.
-            If `config.FORCE_HABITABLE_WORLD` is True, the choice is restricted
-            to star types that can support complex life (A, F, G, K, M).
         2.  A luminosity is randomly chosen from that spectral class's typical range.
         3.  The Yerkes class is *determined* by this luminosity.
         4.  Temperature, mass, and radius then follow from these properties.
@@ -414,9 +467,6 @@ class Star:
                 spectral_probabilities = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
             elif config.FORCE_LARGE_STAR:
                 spectral_probabilities = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
-            elif config.FORCE_HABITABLE_WORLD:
-                # If forcing a habitable world, restrict to stars that can support "normal" or "slow" evolution.
-                spectral_probabilities = {'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
             else:
                 spectral_probabilities = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]

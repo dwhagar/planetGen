@@ -148,6 +148,7 @@ class StarSystem:
                     self.planets.append(planet)
 
         self.validate_system()
+        self.star.adjust_age_for_planets(self.planets) # Corrected line: changed to adjust_age_for_planets
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
 
@@ -307,51 +308,49 @@ class StarSystem:
         Returns:
             str: A formatted string representing the entire star system.
         """
-        output = [str(self.star)]
-        
-        data = {
-            "planets": self.planet_count,
-            "belts": self.belt_count,
-            "moons": self.moon_count,
-            "habitable": self.hab_count,
-            "m_class": self.m_count
-        }
+        all_output_parts = []
 
+        # 1. Add star description block (which now includes age/lifespan/notes with single newlines)
+        # Star.to_paragraph_list() returns a list with a single string element.
+        all_output_parts.extend(self.star.to_paragraph_list())
+        
+        # 2. Generate system summary sentences
+        system_summary_sentences = []
+        
         segments = []
-        if data['planets'] > 0:
-            segments.append(f"{data['planets']} planet{'s' if data['planets'] > 1 else ''}")
-        if data['belts'] > 0:
-            segments.append(f"{data['belts']} asteroid belt{'s' if data['belts'] > 1 else ''}")
-        if data['moons'] > 0:
-            segments.append(f"{data['moons']} moon{'s' if data['moons'] > 1 else ''}")
+        if self.planet_count > 0:
+            segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
+        if self.belt_count > 0:
+            segments.append(f"{self.belt_count} asteroid belt{'s' if self.belt_count > 1 else ''}")
+        if self.moon_count > 0:
+            segments.append(f"{self.moon_count} moon{'s' if self.moon_count > 1 else ''}")
 
         if not segments:
-            system_string = "There are no stellar objects in this system."
+            system_summary_sentences.append("There are no stellar objects in this system.")
         else:
             system_string = "This system contains " + ", ".join(segments)
             if len(segments) > 1:
                 system_string = system_string.replace(f", {segments[-1]}", f" and {segments[-1]}")
             system_string += "."
+            system_summary_sentences.append(system_string)
 
-        if data['m_class'] == 1:
+        if self.m_count == 1:
             m_string = "1 of which is class M"
-        elif data['m_class'] > 1:
-            m_string = f"{data['m_class']} of which are class M"
+        elif self.m_count > 1:
+            m_string = f"{self.m_count} of which are class M"
         else:
             m_string = "none of which are class M"
 
-        if data['habitable'] == 1 and data['m_class'] < 1:
-            habitable_string = "There is 1 potentially habitable world in the system."
-        elif data['habitable'] == 1 and data['m_class'] == 1:
-            habitable_string = "There is 1 class M world in the system."
-        elif data['habitable'] > 1 and data['habitable'] == data['m_class']:
-            habitable_string = f"There are {data['habitable']} class M worlds in the system."
-        elif data['habitable'] > 1:
-            habitable_string = f"There are {data['habitable']} potentially habitable worlds ({m_string})"
+        if self.hab_count == 1 and self.m_count < 1:
+            system_summary_sentences.append("There is 1 potentially habitable world in the system.")
+        elif self.hab_count == 1 and self.m_count == 1:
+            system_summary_sentences.append("There is 1 class M world in the system.")
+        elif self.hab_count > 1 and self.hab_count == self.m_count:
+            system_summary_sentences.append(f"There are {self.hab_count} class M worlds in the system.")
+        elif self.hab_count > 1:
+            system_summary_sentences.append(f"There are {self.hab_count} potentially habitable worlds ({m_string})")
         else:
-            habitable_string = "There are no potentially habitable worlds in this system."
-
-        sentences = [system_string, habitable_string]
+            system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
         # Convert AU to Light-Years for the descriptive text (1 LY = 63241.1 AU)
         perimeter_ly = self.star.system_perimeter / 63241.1
@@ -363,14 +362,24 @@ class StarSystem:
         else:
             heliosphere_text = f"{heliosphere_ly:.4f} light-years"
 
-        sentences.append(f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
-        sentences.append(f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
+        system_summary_sentences.append(f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
+        system_summary_sentences.append(f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
+        
+        # Join all system summary sentences into a single paragraph using to_paragraph.
+        combined_system_summary_paragraph = to_paragraph(system_summary_sentences)
 
-        output.append(to_paragraph(sentences) + "\n")
+        # Add a single newline before the combined system summary paragraph.
+        all_output_parts.append('\n' + combined_system_summary_paragraph)
 
+        # 3. Add planet/belt paragraphs, each separated by a double newline from the previous.
         if self.planets:
             for planet in self.planets:
-                output.append(str(planet) + '\n')
+                # planet.to_paragraph_list() returns a list of strings, which we join with double newlines
+                # and then add a double newline before the entire block.
+                all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
+
+        # 4. Add category tag if not markdown
         if not config.MARKDOWN:
-            output.append('\n[[Category:Star Systems]]')
-        return '\n'.join(output)
+            all_output_parts.append('\n\n' + '[[Category:Star Systems]]')
+
+        return ''.join(all_output_parts)
