@@ -22,6 +22,7 @@ from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
 from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
                     MOON_PREFIXES, MOON_SUFFIXES)
 from . import config
+from .evolution import get_evolutionary_timeline # Import the evolutionary timeline function
 
 
 def get_planet_mass_ranges():
@@ -175,15 +176,18 @@ class Planet:
         life_chemical (str): The primary chemical basis for any potential life.
         hab (tuple): The inner and outer bounds of the habitable zone in AU.
         star_type (str): The spectral type of the star (e.g., 'G', 'M').
+        star (Star): The Star object this planet orbits.
+        evolutionary_data (list): A list of strings describing the evolutionary timeline.
     """
 
-    def __init__(self, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
+    def __init__(self, star, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False):
         """
         Initializes a Planet object with its properties and orbital context.
 
         Args:
+            star (Star): The Star object this planet orbits.
             hab_zone (tuple): A tuple containing the inner and outer bounds of the
                               habitable zone in AU.
             distance (float): The planet's distance from its star in AU.
@@ -230,10 +234,12 @@ class Planet:
         self.evolution = None
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
+        self.evolutionary_data = [] # Initialize evolutionary data
 
         # From the star, should not be changed.
         self.hab = hab_zone
         self.star_type = star_type
+        self.star = star # Store the Star object
 
         if self.is_moon:
             self.name = generate_phoneme_salad_name(MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES)
@@ -246,6 +252,10 @@ class Planet:
         self.period = math.sqrt(self.distance ** 3)
         self.calculate_surface_gravity()
         self.calculate_atmospheric_conditions(distance_override)
+
+        # Generate evolutionary timeline data if the planet is habitable and not a moon
+        if self.zone == 'e' and not self.is_moon: # Only for habitable planets
+            self.evolutionary_data = get_evolutionary_timeline(self.star)
 
         if (config.FORCE_MOONS or random.randint(0, 1) == 1) and not self.is_moon:
             self.generate_moons()
@@ -624,7 +634,7 @@ class Planet:
             moon_distance = random.uniform(total_orbit_distance, high_orbit) / AU_TO_KM
             moon_radius = random.uniform(PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
-            new_moon = Planet(self.hab, moon_distance, self.star_type, self.star_output, self.star_radius,
+            new_moon = Planet(self.star, self.hab, moon_distance, self.star_type, self.star_output, self.star_radius,
                               self.star_temperature, self.star_mass, radius=moon_radius,
                               planet_class=moon_class, zone_override=self.zone,
                               distance_override=self.distance, is_moon=True)
@@ -763,6 +773,10 @@ class Planet:
                 sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")
 
         output_paragraphs.append(to_paragraph(sentences))
+
+        # Add the evolutionary timeline data if available
+        if self.evolutionary_data:
+            output_paragraphs.extend(self.evolutionary_data)
 
         if self.moons:
             for moon in self.moons:

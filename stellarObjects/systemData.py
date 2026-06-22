@@ -117,7 +117,7 @@ class StarSystem:
 
                         if beyond_hz:
                             estimated_distance = random.uniform(self.star.habitable_zone[0], self.star.habitable_zone[1])
-                            planet = Planet(self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
+                            planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
                                             self.star.radius, self.star.temperature, self.star.mass,
                                             planet_class="M")
                             self.planets[i - 1] = planet
@@ -129,7 +129,7 @@ class StarSystem:
                             hz = True
 
                     if hz:
-                        planet = Planet(self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
+                        planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
                                         self.star.radius, self.star.temperature, self.star.mass,
                                         planet_class="M")
                         found_hab = True
@@ -141,7 +141,7 @@ class StarSystem:
                     max_distance = estimated_distance * random.uniform(1.1, 2)
                     self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
                 else:
-                    planet = Planet(self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
+                    planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
                                     self.star.radius, self.star.temperature, self.star.mass)
                     if planet.planet_class == "M":
                         found_hab = True

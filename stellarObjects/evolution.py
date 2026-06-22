@@ -15,7 +15,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 """
 
 import random
-from .constants import EVOLUTIONARY_TIMELINES, STAR_EVOLUTION
+from .constants import EVOLUTIONARY_TIMELINES, STAR_EVOLUTION, EVOLUTIONARY_TEXT
 from .utils import to_paragraph, _format_age_string # Import the new utility function
 
 def get_evolutionary_timeline(star):
@@ -53,9 +53,6 @@ def get_evolutionary_timeline(star):
 
     timeline = EVOLUTIONARY_TIMELINES[evolutionary_scale]
 
-    # star_lifespan is now directly a float in billions of years
-    star_lifespan_value = timeline['star_lifespan']
-
     # The current system age should be the star's actual age, not a randomly generated one
     current_system_age = star.age
 
@@ -77,33 +74,22 @@ def get_evolutionary_timeline(star):
             most_recent_milestone_name = name
 
     # Constructing the paragraph output
-    output_parts = []
+    output_sentences = []
 
-    output_parts.append(
-        f"A speculative evolutionary timeline for a planet orbiting this star indicates a star lifespan of "
-        f"{_format_age_string(star_lifespan_value)} and an evolutionary pace described as {timeline['evolutionary_pace'].lower()}. "
+    output_sentences.append(
+        f"A speculative evolutionary timeline for a planet orbiting this star indicates an evolutionary pace described as {timeline['evolutionary_pace'].lower()}. "
         f"The current estimated age of the system is {_format_age_string(current_system_age)}."
     )
 
     if most_recent_milestone_age > -1.0:
-        output_parts.append(
+        output_sentences.append(
             f"The most recent significant evolutionary milestone prior to this age would have been "
-            f"{most_recent_milestone_name} at {_format_age_string(most_recent_milestone_age)}."
+            f"{most_recent_milestone_name} at {_format_age_string(most_recent_milestone_age)}. {EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
         )
     else:
-        output_parts.append(
+        output_sentences.append(
             f"No significant evolutionary milestones are predicted to have occurred yet at this system's age."
         )
 
-    summary_text = (
-        f"The star's spectral class of '{spectral_class}' suggests a {timeline['evolutionary_pace'].lower()} "
-        f"evolutionary timeline. The star's lifespan of {_format_age_string(star_lifespan_value)} would likely have a "
-        f"significant impact on the development of life on any orbiting planets. "
-    )
-    output_parts.append(summary_text)
-
-    constraint_notes = star_info.get('evolutionary_constraint_notes', '')
-    if constraint_notes:
-        output_parts.append(constraint_notes) # Append the constraint notes directly
-
-    return output_parts
+    # Join the sentences into a single paragraph
+    return [to_paragraph(output_sentences)]

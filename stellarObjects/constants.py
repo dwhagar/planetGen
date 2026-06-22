@@ -611,3 +611,36 @@ EVOLUTIONARY_TIMELINES = {
         "technological_civilization": 35.0 # Billion Years
     }
 }
+
+EVOLUTIONARY_TEXT = {
+    "abiogenesis": (
+        "Life is in its absolute infancy, consisting entirely of simple, single-celled organisms "
+        "without a nucleus. There is no true flora or fauna. The biosphere is largely limited to "
+        "chemotrophs and extremophiles thriving in nutrient-rich primordial pools or around "
+        "hydrothermal vents, feeding on chemical reactions."
+    ),
+    "photosynthesis": (
+        "The biosphere is dominated by simple, light-harvesting microbes. While macroscopic flora "
+        "and fauna still do not exist, vast microbial mats and stony biological structures (similar "
+        "to stromatolites) line the shallow waters and coastlines. These organisms are actively "
+        "terraforming the planet by releasing oxygen into the atmosphere."
+    ),
+    "complex_cells": (
+        "Microscopic life has evolved distinct internal structures and nuclei (eukaryotes). This stage "
+        "introduces the first single-celled protozoa-analogues (early microscopic 'fauna') and "
+        "planktonic autotrophs (early microscopic 'flora'). The land remains barren, but the oceans "
+        "teem with a complex microscopic food web of tiny predators and prey."
+    ),
+    "multicellularity": (
+        "Cells have cooperated to form complex, macroscopic organisms, marking the true arrival of "
+        "flora and fauna. The oceans are populated by macro-algae, sponges, and early invertebrates "
+        "like arthropod or jellyfish analogues. On land, pioneering flora—such as moss, ferns, and "
+        "primitive vascular plants—have taken root, supporting emerging land-dwelling animals."
+    ),
+    "technological_civilization": (
+        "The planet boasts a fully mature, highly complex biosphere featuring diverse ecosystems, "
+        "topped by at least one sapient, tool-using species. Complex flora forms sprawling forests "
+        "and varied biomes, while highly evolved fauna occupy vast ecological niches. The sapient "
+        "population actively reshapes the world through agriculture, architecture, and industry."
+    )
+}
