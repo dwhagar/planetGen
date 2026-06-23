@@ -343,3 +343,49 @@ def to_paragraph(sentences):
         str: A single string representing the combined paragraph.
     """
     return " ".join(sentences)
+
+
+def properties_to_string(properties: dict, template_name: str, markdown_header: str = None, markdown_key_map: dict = None) -> str:
+    """
+    Converts a dictionary of properties into either a Markdown table or a Wiki template block,
+    based on the `config.MARKDOWN` flag.
+
+    Args:
+        properties (dict): A dictionary where keys are property names (str) in Wikitext format
+                           and values are their corresponding values (str or any type convertible to str).
+        template_name (str): The name of the template to use for Wiki format (e.g., "Planet Data").
+        markdown_header (str, optional): An optional header to prepend to the Markdown table.
+                                         Defaults to None.
+        markdown_key_map (dict, optional): A dictionary mapping Wikitext property keys to their
+                                            desired Markdown table header names. If a key is not
+                                            found in this map, it will be converted from
+                                            lower_snake_case to Title Case for Markdown.
+
+    Returns:
+        str: A string formatted as either a Markdown table or a Wiki template block.
+    """
+    output_lines = []
+
+    if config.MARKDOWN:
+        if markdown_header:
+            output_lines.append(markdown_header)
+        output_lines.extend([
+            "| Property | Value |",
+            "|---|---|"
+        ])
+        for prop_key, value in properties.items():
+            # Determine the Markdown header name
+            if markdown_key_map and prop_key in markdown_key_map:
+                markdown_prop_name = markdown_key_map[prop_key]
+            else:
+                # Default to converting lower_snake_case to Title Case
+                markdown_prop_name = prop_key.replace('_', ' ').title()
+            output_lines.append(f"| {markdown_prop_name} | {value} |")
+        return "\n".join(output_lines)
+    else:
+        output_lines.append(f"{{{{{template_name}")
+        for prop_key, value in properties.items():
+            # For Wikitext, the keys are already in the correct format
+            output_lines.append(f"|{prop_key}={value}")
+        output_lines.append("}}")
+        return "\n".join(output_lines)

@@ -4,17 +4,17 @@
 Planet and Asteroid Belt Generation
 ===================================
 
-This module contains the `Planet` and `Asteroid_Belt` classes, which are used
+This module contains the `Planet` and `AsteroidBelt` classes, which are used
 to generate and represent celestial bodies within a star system. The `Planet`
 class is a comprehensive model that includes physical properties, atmospheric
 conditions, and orbital characteristics. It can also generate its own system
-of moons. The `Asteroid_Belt` class provides a simpler representation for
+of moons. The `AsteroidBelt` class provides a simpler representation for
 asteroid belts within the system.
 """
 
 import math
 import random
-from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name, to_paragraph, calculate_hill_sphere
+from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name, to_paragraph, calculate_hill_sphere, _format_age_string, properties_to_string
 from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
                         STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY, AU_TO_M,
                         ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
@@ -72,68 +72,6 @@ def get_planet_mass_ranges():
 planet_mass_ranges = get_planet_mass_ranges()
 
 
-class Asteroid_Belt:
-    """
-    A basic class to store information for an asteroid belt.
-
-    This class serves as a simple container for the properties of an asteroid
-    belt, primarily its orbital distance and boundaries.
-
-    Attributes:
-        distance (float): The average distance of the asteroid belt from the star in AU.
-        lower_limit (float): The inner boundary of the asteroid belt in AU.
-        upper_limit (float): The outer boundary of the asteroid belt in AU.
-        type (str): A character representing the object type, 'a' for asteroid belt.
-    """
-
-    def __init__(self, distance, lower_limit, upper_limit):
-        """
-        Initializes an Asteroid_Belt object.
-
-        Args:
-            distance (float): The average distance from the star in AU.
-            lower_limit (float): The inner boundary of the belt in AU.
-            upper_limit (float): The outer boundary of the belt in AU.
-        """
-        self.distance = distance
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
-        self.type = 'a'
-
-    def to_paragraph_list(self):
-        """
-        Returns a list of strings, where each string is a paragraph describing
-        the asteroid belt.
-        """
-        # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
-        AU_TO_LY = 1 / 63241.1
-        LY_THRESHOLD = 1.0  # The distance in LY at which to switch from AU to LY display
-
-        # Convert the belt's boundaries to light-years to check against the threshold
-        upper_limit_ly = self.upper_limit * AU_TO_LY
-
-        if upper_limit_ly < LY_THRESHOLD:
-            # For smaller systems, display the boundaries in AU for better precision
-            distance_text = f"between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU"
-        else:
-            # For very large systems, display in light-years for readability
-            lower_limit_ly = self.lower_limit * AU_TO_LY
-            distance_text = f"between {lower_limit_ly:.4f} light-years and {upper_limit_ly:.4f} light-years"
-
-        # Construct the final output string based on the markdown configuration
-        if config.MARKDOWN:
-            return [f"## Asteroid Belt", f"An asteroid belt orbits roughly {distance_text}."]
-        else:
-            return [f"== Asteroid Belt ==", f"An asteroid belt orbits roughly {distance_text}."]
-
-    def __str__(self):
-        """
-        Returns a string representation of the asteroid belt, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
-
 class Planet:
     """
     A class representing a single planet or moon and all of its properties.
@@ -167,7 +105,7 @@ class Planet:
         radius (float): The radius of the planet in kilometers.
         planet_class (str): The classification of the planet (e.g., 'M', 'N').
         distance (float): The distance from the star in AU.
-        type (str): The type of planet ('t' for terrestrial, 'g' for gas giant).
+        type (str): The type of planet ('t' for terrestrial, 'g' for gas giant').
         scale_height (float): The atmospheric scale height in kilometers.
         star_mass (float): The mass of the star in kilograms.
         hill_radius (float): The Hill radius of the planet in kilometers.
@@ -462,7 +400,7 @@ class Planet:
 
         # Retrieve the potentially viable chemicals for the star's evolutionary scale
         star_data = STAR_EVOLUTION.get(spectral_class)
-        if not star_data or not star_data.get("potentially_viable_chemicals"):
+        if not star_data or not star_data.get("supported_evolutionary_scales"):
             return {}
 
         star_chems = star_data["potentially_viable_chemicals"]
@@ -685,6 +623,8 @@ class Planet:
         AU_TO_LY = 1 / 63241.1
         LY_THRESHOLD = 1.0  # The distance in LY at which to switch from AU to LY display
 
+        object_type_desc = "moon" if self.is_moon else "planet"
+
         if self.is_moon:
             # Moons orbit their parent planet, so their distance is from the planet, not the star.
             # This distance is typically much smaller and best represented in kilometers.
@@ -709,29 +649,15 @@ class Planet:
 
         radius_string = f"{round(self.radius, 2):,} km" if self.radius <= 100000 else f"{to_scientific_notation(self.radius, 2)} km"
 
-        # Join the table/template arrays with a single newline and append as a single block
-        if config.MARKDOWN:
-            markdown_table = "\n".join([
-                "| Property | Value |",
-                "|---|---|",
-                f"| Class | {self.planet_class} |",
-                f"| Distance | {distance_text} |",
-                f"| Period | {years_to_time_string(self.period)} |",
-                f"| Radius | {radius_string} |",
-                f"| Gravity | {round(self.gravity, 3)} g |",
-            ])
-            output_paragraphs.append(markdown_table)
-        else:
-            wiki_template = "\n".join([
-                "{{Planet Data",
-                f"|class={self.planet_class}",
-                f"|distance={distance_text}",
-                f"|period={years_to_time_string(self.period)}",
-                f"|radius={radius_string}",
-                f"|gravity={round(self.gravity, 3)} g",
-                "}}",
-            ])
-            output_paragraphs.append(wiki_template)
+        planet_properties = {
+            "class": self.planet_class,
+            "distance": distance_text,
+            "period": years_to_time_string(self.period),
+            "radius": radius_string,
+            "gravity": f"{round(self.gravity, 3)} g",
+        }
+
+        output_paragraphs.append(properties_to_string(planet_properties, "Planet Data"))
 
         sentences = []
         if not self.is_moon:
@@ -745,12 +671,12 @@ class Planet:
         if self.type == "t":
             if self.atmosphere != "None":
                 sentences.append(
-                    f"This planet has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                    f"This {object_type_desc} has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
                 sentences.append(
                     f"It is {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
             else:
                 sentences.append(
-                    f"This planet has no atmosphere and a surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                    f"This {object_type_desc} has no atmosphere and a surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
                 sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
         else:
             sentences.append(
@@ -760,14 +686,14 @@ class Planet:
         if self.life_chemical:
             if self.evolution:
                 sentences.append(
-                    f"The planet's conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolution} pace.")
+                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolution} pace.")
             else:
                 sentences.append(
-                    f"The planet's conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
+                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
             if self.reflection_spectrum_visible:
                 visible_spectrum = ", ".join(self.reflection_spectrum_visible)
                 sentences.append(
-                    f"The visible reflection spectrum of the life on this planet is characterized by {visible_spectrum.lower()}.")
+                    f"The visible reflection spectrum of the life on this {object_type_desc} is characterized by {visible_spectrum.lower()}.")
             if self.reflection_spectrum_non_visible:
                 non_visible_spectrum = ", ".join(self.reflection_spectrum_non_visible)
                 sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")

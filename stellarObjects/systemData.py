@@ -20,11 +20,13 @@ the system.
 
 import random
 import math
-from .planetData import Planet, Asteroid_Belt
+from .planetData import Planet
+from .asteroidData import AsteroidBelt
 from .starData import Star
 from .constants import SOLAR_MASS_TO_KG
 from .utils import to_paragraph
 from . import config
+
 
 class StarSystem:
     """
@@ -43,7 +45,7 @@ class StarSystem:
 
     Attributes:
         star (Star): The central star of the system.
-        planets (list): A list of `Planet` and `Asteroid_Belt` objects orbiting the star.
+        planets (list): A list of `Planet` and `AsteroidBelt` objects orbiting the star.
         planet_count (int): The total number of planets in the system.
         belt_count (int): The total number of asteroid belts in the system.
         moon_count (int): The total number of moons in the system.
@@ -108,16 +110,20 @@ class StarSystem:
                     if not hz and i == 0:
                         if (estimated_distance > self.star.habitable_zone[1] or
                                 0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
-                            estimated_distance = random.uniform(self.star.habitable_zone[0], self.star.habitable_zone[1])
+                            estimated_distance = random.uniform(self.star.habitable_zone[0],
+                                                                self.star.habitable_zone[1])
                             hz = True
                     elif not hz and i > 0:
                         last_planet = self.planets[i - 1]
-                        beyond_hz = last_planet.upper_limit > self.star.habitable_zone[1] if last_planet.type == 'a' else \
-                            (last_planet.distance + last_planet.min_orbit_distance > self.star.habitable_zone[1])
+                        beyond_hz = last_planet.type == 'a' and last_planet.upper_limit > self.star.habitable_zone[1] or \
+                                    last_planet.type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
+                                                                 self.star.habitable_zone[1])
 
                         if beyond_hz:
-                            estimated_distance = random.uniform(self.star.habitable_zone[0], self.star.habitable_zone[1])
-                            planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
+                            estimated_distance = random.uniform(self.star.habitable_zone[0],
+                                                                self.star.habitable_zone[1])
+                            planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
+                                            self.star.luminosity,
                                             self.star.radius, self.star.temperature, self.star.mass,
                                             planet_class="M")
                             self.planets[i - 1] = planet
@@ -125,11 +131,13 @@ class StarSystem:
                             found_hab = True
                             continue
                         elif i == system_objects - 1:
-                            estimated_distance = random.uniform(self.star.habitable_zone[0], self.star.habitable_zone[1])
+                            estimated_distance = random.uniform(self.star.habitable_zone[0],
+                                                                self.star.habitable_zone[1])
                             hz = True
 
                     if hz:
-                        planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
+                        planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
+                                        self.star.luminosity,
                                         self.star.radius, self.star.temperature, self.star.mass,
                                         planet_class="M")
                         found_hab = True
@@ -139,16 +147,17 @@ class StarSystem:
                 if (random.random() < 0.1 or i == belt_index) and not last_asteroid and not hz:
                     min_distance = estimated_distance
                     max_distance = estimated_distance * random.uniform(1.1, 2)
-                    self.planets.append(Asteroid_Belt(estimated_distance, min_distance, max_distance))
+                    self.planets.append(AsteroidBelt(estimated_distance, min_distance, max_distance))
                 else:
-                    planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], self.star.luminosity,
+                    planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
+                                    self.star.luminosity,
                                     self.star.radius, self.star.temperature, self.star.mass)
                     if planet.planet_class == "M":
                         found_hab = True
                     self.planets.append(planet)
 
         self.validate_system()
-        self.star.adjust_age_for_planets(self.planets) # Corrected line: changed to adjust_age_for_planets
+        self.star.adjust_age_for_planets(self.planets)
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
 
@@ -310,13 +319,25 @@ class StarSystem:
         """
         all_output_parts = []
 
-        # 1. Add star description block (which now includes age/lifespan/notes with single newlines)
-        # Star.to_paragraph_list() returns a list with a single string element.
-        all_output_parts.extend(self.star.to_paragraph_list())
-        
+        # Add level 1 header for the star's name
+        if config.MARKDOWN:
+            all_output_parts.append(f"# {self.star.name}\n\n")
+        else:
+            all_output_parts.append(f"= {self.star.name} =\n\n")
+
+        # 1. Add star description block and age/lifespan/notes
+        star_paragraphs = self.star.to_paragraph_list()
+
+        # The first item is the Star Data template
+        all_output_parts.append(star_paragraphs[0])
+        # Add a double newline after the Star Data template
+        all_output_parts.append('\n\n')
+        # The second item is the age and evolutionary notes sentence
+        all_output_parts.append(star_paragraphs[1])
+
         # 2. Generate system summary sentences
         system_summary_sentences = []
-        
+
         segments = []
         if self.planet_count > 0:
             segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
@@ -362,14 +383,16 @@ class StarSystem:
         else:
             heliosphere_text = f"{heliosphere_ly:.4f} light-years"
 
-        system_summary_sentences.append(f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
-        system_summary_sentences.append(f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
-        
+        system_summary_sentences.append(
+            f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
+        system_summary_sentences.append(
+            f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
+
         # Join all system summary sentences into a single paragraph using to_paragraph.
         combined_system_summary_paragraph = to_paragraph(system_summary_sentences)
 
-        # Add a single newline before the combined system summary paragraph.
-        all_output_parts.append('\n' + combined_system_summary_paragraph)
+        # Add a double newline before the combined system summary paragraph.
+        all_output_parts.append('\n\n' + combined_system_summary_paragraph)
 
         # 3. Add planet/belt paragraphs, each separated by a double newline from the previous.
         if self.planets:

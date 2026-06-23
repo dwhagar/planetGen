@@ -20,7 +20,7 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 import math
 import random
 import re
-from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, to_paragraph
+from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, to_paragraph, properties_to_string
 from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMINOSITY,
                         SPECTRAL_LUMINOSITY_RANGES, YERKES_LUMINOSITY_RANGES, YERKES_MASS_CONSTRAINTS,
                         WHITE_DWARF_BASE_RADIUS_KM, CHANDRASEKHAR_LIMIT_SOL,
@@ -234,11 +234,7 @@ class Star:
 
         # The heliopause radius is where the stellar wind's momentum flux balances the ISM pressure.
         # R = sqrt( (M-dot * v_inf) / (4 * pi * P_ism) )
-        momentum_flux = mass_loss_rate_kgs * wind_velocity
-
-        # Add a small floor value to prevent math domain errors for stars with near-zero wind.
-        # This represents a minimal, residual pressure.
-        momentum_flux = max(momentum_flux, 1e15)
+        momentum_flux = max(mass_loss_rate_kgs * wind_velocity, 1e-15) # Ensure momentum_flux is not zero or negative
 
         try:
             heliopause_radius_m = math.sqrt(momentum_flux / (4 * math.pi * ISM_PRESSURE))
@@ -321,41 +317,28 @@ class Star:
         else:
             radius_string = f"{to_scientific_notation(self.radius, 2)} km"
 
-        data = {
-            "name": self.name,
+        star_properties = {
             "type": self.type,
             "radius": radius_string,
             "mass": mass_string,
             "temp": f"{self.temperature} K",
             "lum": lum_string,
-            "hab": f"Between {hab_lower} and {hab_upper} AU"
+            "hab": f"Between {hab_lower} and {hab_upper} AU",
+            "loc": self.name # Adding the star's name as location
         }
 
-        star_block_lines = []
-        if config.MARKDOWN:
-            star_block_lines.extend([
-                "# Star: " + data['name'],
-                "| Property | Value |",
-                "|---|---|",
-                f"| Type | {data['type']} |",
-                f"| Radius | {data['radius']} |",
-                f"| Mass | {data['mass']} |",
-                f"| Temperature | {data['temp']} |",
-                f"| Luminosity | {data['lum']} |",
-                f"| Habitable Zone | {data['hab']} |"
-            ])
-        else:
-            star_block_lines.extend([
-                "{{Star Data",
-                f"|name={data['name']}",
-                f"|type={data['type']}",
-                f"|radius={data['radius']}",
-                f"|mass={data['mass']}",
-                f"|temp={data['temp']}",
-                f"|lum={data['lum']}",
-                f"|hab={data['hab']}",
-                "}}"
-            ])
+        markdown_key_map = {
+            "type": "Type",
+            "radius": "Radius",
+            "mass": "Mass",
+            "temp": "Temperature",
+            "lum": "Luminosity",
+            "hab": "Habitable Zone",
+            "loc": "Location"
+        }
+        
+        star_block = properties_to_string(star_properties, "Star Data", markdown_key_map=markdown_key_map)
+        paragraphs.append(star_block)
 
         # Construct the age and evolutionary notes sentence
         age_sentence_base = ""
@@ -373,10 +356,7 @@ class Star:
             full_age_and_notes_sentence += ". " + star_info["evolutionary_constraint_notes"]
         full_age_and_notes_sentence += "." # Ensure the entire combined sentence ends with a period
 
-        # Combine the template/table block and the age/notes paragraph with a single newline.
-        # This entire combined string will be treated as one "paragraph" by systemData.py's __str__.
-        combined_star_description = '\n'.join(star_block_lines) + '\n' + full_age_and_notes_sentence + '\n'
-        paragraphs.append(combined_star_description)
+        paragraphs.append(full_age_and_notes_sentence)
 
         return paragraphs
 
