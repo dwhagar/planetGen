@@ -36,13 +36,22 @@ python planetGen.py [options]
 *   `--force-moons`, `-fm`: Force the generation of lots of moons in a system.
 *   `--force-max-planets`, `-fmp`: Force the system to maximized the number of planets.
 *   `--absurd`: Force the system to generate the largest star possible with the maximum number of planets and moons.
+*   `--output`, `-o <file_path>`: Specifies a file path to write the output to.
+*   `--markdown`, `-m`: Formats the output in Markdown instead of the default wikitext.
 *   `--no-planets`, `-np`: Skip planet generation and create only a star.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
+*   `--name <name>`: Specifies a name for the star system, overriding the default random generation.
+*   `--age <young|old>`: Specifies the age of the star system, either "young" or "old".
+*   `--force-intelligent-life`, `-fil`: Ensures at least one planet with intelligent life is generated. Implies `--force-habitable-world`.
+*   `--no-intelligent-life`, `-nil`: Ensures no planet with intelligent life is generated. Implies `--force-habitable-world`.
+*   `--no-habitable-world`, `-nhw`: Ensures no habitable world is generated in the system.
 
 **Note on Incompatible Options:**
 
-*   `--no-planets` cannot be combined with `--force-moons`, `--force-max-planets`, `--absurd`, `--force-habitable-world`, or `--force-asteroid-belt`.
+*   `--no-planets` cannot be combined with `--force-moons`, `--force-max-planets`, `--absurd`, or `--force-habitable-world`.
 *   `--star-type` cannot be combined with `--force-large-star`.
+*   `--force-intelligent-life` and `--no-intelligent-life` cannot be used together.
+*   `--force-habitable-world` and `--no-habitable-world` cannot be used together.
 
 ### Additional Information
 
