@@ -36,6 +36,11 @@ def process_args():
       'G2V'.
     - `--name`: Specifies a name for the star system, overriding the default
       random generation.
+    - `--age`: Specifies the age of the star system, either "young" or "old".
+    - `--force-intelligent-life` / `-fil`: Ensures at least one planet with
+      intelligent life is generated. Implies --force-habitable-world.
+    - `--no-intelligent-life` / `-nil`: Ensures no planet with intelligent life
+      is generated. Implies --force-habitable-world.
 
     Returns:
         argparse.Namespace: An object containing the parsed command-line arguments
@@ -102,14 +107,28 @@ def process_args():
     parser.add_argument('--name', type=str,
                         help="Force the name of the star system.")
 
+    # System Age
+    parser.add_argument('--age', type=str, choices=['young', 'old'],
+                        help="Specify the age of the star system (young or old).")
+
+    # Force Intelligent Life
+    parser.add_argument('--force-intelligent-life', '-fil', action='store_true',
+                        help="Force the generation of intelligent life on a planet. Implies --force-habitable-world.")
+
+    # No Intelligent Life
+    parser.add_argument('--no-intelligent-life', '-nil', action='store_true',
+                        help="Ensure no intelligent life is generated on any planet. Implies --force-habitable-world.")
 
     args = parser.parse_args()
 
-    if args.no_planets and (args.force_moons or args.force_max_planets or args.absurd or args.force_habitable_world or args.force_asteroid_belt):
-        parser.error("--no-planets cannot be combined with --force-moons, --force-max-planets, --absurd, --force-habitable-world, or --force-asteroid-belt.")
+    if args.no_planets and (args.force_moons or args.force_max_planets or args.absurd or args.force_habitable_world):
+        parser.error("--no-planets cannot be combined with --force-moons, --force-max-planets, --absurd, or --force-habitable-world.")
 
     if args.star_type and args.force_large_star:
         parser.error("--star-type cannot be combined with --force-large-star.")
+
+    if args.force_intelligent_life and args.no_intelligent_life:
+        parser.error("--force-intelligent-life and --no-intelligent-life cannot be used together.")
 
     return args
 
@@ -145,6 +164,12 @@ def main():
     config.NO_PLANETS = args.no_planets
     config.STAR_TYPE = args.star_type
     config.NAME = args.name
+    config.AGE = args.age
+    config.FORCE_INT = args.force_intelligent_life
+    config.NO_INT = args.no_intelligent_life
+
+    if config.FORCE_INT or config.NO_INT:
+        config.FORCE_HABITABLE_WORLD = True
 
     if config.FORCE_HABITABLE_WORLD and config.FORCE_ASTEROID_BELT and not config.ABSURD:
         config.FORCE_LARGE_STAR = True

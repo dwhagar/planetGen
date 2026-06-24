@@ -16,7 +16,8 @@ purposes. They are not based on any established scientific models of astrobiolog
 
 import random
 from .constants import EVOLUTIONARY_TIMELINES, STAR_EVOLUTION, EVOLUTIONARY_TEXT
-from .utils import to_paragraph, _format_age_string # Import the new utility function
+from .utils import to_paragraph, _format_age_string
+from . import config # Import the config module
 
 def get_evolutionary_timeline(star):
     """
@@ -56,6 +57,14 @@ def get_evolutionary_timeline(star):
     # The current system age should be the star's actual age, not a randomly generated one
     current_system_age = star.age
 
+    # If FORCE_INT is true, ensure the star's age is sufficient for technological civilization
+    if config.FORCE_INT:
+        tech_civ_age = timeline['technological_civilization']
+        if current_system_age < tech_civ_age:
+            # Nudge the star's age to be just enough for technological civilization
+            # Add a small random increment to avoid exact boundary issues
+            current_system_age = tech_civ_age + (random.random() * 0.1) # Add up to 0.1 billion years
+
     milestones = {
         "Abiogenesis": timeline['abiogenesis'],
         "Photosynthesis": timeline['photosynthesis'],
@@ -72,6 +81,15 @@ def get_evolutionary_timeline(star):
         if age <= current_system_age and age > most_recent_milestone_age:
             most_recent_milestone_age = age
             most_recent_milestone_name = name
+
+    # Apply FORCE_INT and NO_INT logic
+    if config.FORCE_INT:
+        most_recent_milestone_name = "Technological Civilization"
+        most_recent_milestone_age = milestones["Technological Civilization"]
+    elif config.NO_INT:
+        if most_recent_milestone_name == "Technological Civilization":
+            most_recent_milestone_name = "Multicellularity"
+            most_recent_milestone_age = milestones["Multicellularity"]
 
     # Constructing the paragraph output
     output_sentences = []

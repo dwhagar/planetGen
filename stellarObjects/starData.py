@@ -50,43 +50,40 @@ class Star:
     def _calculate_initial_star_age_and_lifespan(self):
         """
         Calculates the star's initial age and lifespan based on its spectral class
-        and Yerkes class, using data from STAR_EVOLUTION.
+        and Yerkes class, using data from `STAR_EVOLUTION`.
+
+        The lifespan is primarily determined by the star's spectral class, with
+        adjustments made for its Yerkes luminosity class (e.g., giants have
+        shorter lifespans than main-sequence stars of the same spectral type).
+        For white dwarfs, the lifespan is considered effectively infinite as they
+        slowly cool.
+
+        The initial age is randomly chosen to be a fraction of its total lifespan,
+        ensuring the star is in a plausible evolutionary stage. This age can be
+        further adjusted later by `adjust_age_for_planets` to accommodate the
+        evolutionary requirements of its planets.
 
         Returns:
-            tuple: A tuple containing the star's initial age and lifespan in billions of years.
+            tuple: A tuple containing:
+                - age (float): The initial age of the star in billions of years (GY).
+                - lifespan (float): The total expected lifespan of the star in
+                                    billions of years (GY), or `float('inf')` for white dwarfs.
         """
         spectral_class_char = self.type[0]
         star_info = STAR_EVOLUTION.get(spectral_class_char, {})
 
-        # Get lifespan range from STAR_EVOLUTION
-        if "lifespan_gy" in star_info:
-            min_lifespan, max_lifespan = star_info["lifespan_gy"]
-            lifespan = random.uniform(min_lifespan, max_lifespan)
-        else:
-            # Fallback if lifespan_gy is not defined for the spectral class
-            # Use the previous logic for Yerkes class based lifespan adjustment
-            base_lifespan = 10 # Default to 10 GY for G-class stars if not found
+        min_lifespan, max_lifespan = star_info["lifespan_gy"]
+        lifespan = random.uniform(min_lifespan, max_lifespan)
 
-            if self.yerkes_class in ["0", "IA+", "IA", "IAB", "IB", "II", "III"]: # Giants/Supergiants
-                lifespan = base_lifespan * 0.1 # Significantly shorter lifespan
-            elif self.yerkes_class == "IV": # Subgiants
-                lifespan = base_lifespan * 0.5
-            elif self.yerkes_class == "VI": # Subdwarfs
-                lifespan = base_lifespan * 1.2 # Longer lifespan
-            elif self.yerkes_class in ["VII", "D"]: # White Dwarfs
-                lifespan = float('inf') # Effectively infinite lifespan for cooling
-            else: # Main Sequence (V)
-                lifespan = base_lifespan
+        min_age = 0.1
+        max_age = lifespan * 0.9
 
-        # Initial age is a random value within its lifespan, before planet-based adjustments
-        if lifespan == float('inf'):
-            age = random.uniform(0.1, 10) # For white dwarfs, age represents cooling time
-        else:
-            age = random.uniform(0.1, lifespan * 0.9) # Ensure age is less than lifespan
+        if config.AGE == "old":
+            min_age = lifespan * 0.5
+        elif config.AGE == "young":
+            max_age = lifespan * (1/3)
 
-        if age >= lifespan: # Final check to ensure age is always less than lifespan (unless infinite)
-            if lifespan != float('inf'):
-                age = lifespan * 0.95
+        age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
 
         return age, lifespan
 
@@ -94,10 +91,22 @@ class Star:
         """
         Adjusts the star's age to ensure it is at least as old as the minimum
         age required for the most "evolved" planet in its system. This method
-        should be called by the StarSystem class after planets have been generated.
+        should be called by the `StarSystem` class after planets have been generated.
+
+        The star's age is a crucial factor in planetary evolution. This function
+        iterates through all generated planets, identifies their minimum required
+        ages based on their `planet_class` and the star's `supported_evolutionary_scales`,
+        and then ensures the star's age meets or exceeds the highest of these
+        minimum requirements. This prevents scenarios where a young star might
+        host an "old" planet (e.g., a terraformed world requiring billions of years
+        of development).
+
+        If the star's initial lifespan is too short to accommodate the required
+        planetary age, the star's age is set to be near the end of its lifespan,
+        reflecting a system that has evolved rapidly.
 
         Args:
-            planets (list): A list of Planet objects in the system.
+            planets (list): A list of `Planet` objects in the system.
         """
         spectral_class_char = self.type[0]
         star_evolution_data = STAR_EVOLUTION.get(spectral_class_char, {})
@@ -137,16 +146,19 @@ class Star:
         """
         Calculates the Hill sphere for the star system relative to the galaxy.
 
-        The Hill sphere is the region around a celestial body (in this case, the
-        star) where its own gravity is the dominant force for attracting satellites.
-        Objects orbiting within this sphere are gravitationally bound to the star,
-        not the larger body it orbits (the galactic center).
+        The Hill sphere defines the gravitational sphere of influence of the star
+        within the larger galactic environment. Any object orbiting the star
+        beyond this radius would be more strongly perturbed by the galaxy's
+        gravity than by the star's, making it unlikely to be gravitationally
+        bound to the star system.
 
-        This method models the star's position relative to the Milky Way's center
-        to determine the ultimate gravitational boundary of the star system. It
-        serves as a practical "end" for the system, beyond which interstellar
-        space truly begins. The result is converted to Astronomical Units (AU) for
-        consistency with other system-scale measurements.
+        This method uses the star's mass, the estimated mass of the Milky Way,
+        and the star's distance from the galactic center to compute this boundary.
+        The result is converted from meters to Astronomical Units (AU) for
+        convenience and consistency with other system-scale measurements.
+
+        Returns:
+            float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         galactic_center_dist_m = GALACTIC_CENTER_DISTANCE_LY * LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, MILKY_WAY_MASS)
@@ -161,13 +173,18 @@ class Star:
         bubble, the heliopause, is where the stellar wind's pressure is balanced
         by the interstellar medium (ISM).
 
-        The calculation is based on the star's mass-loss rate and wind velocity,
-        which are determined by its spectral type and luminosity class. The
-        method uses a tiered approach to model these properties, from the intense
-        winds of hypergiants to the more gentle outflows of sun-like stars.
+        This function employs a tiered approach to model the stellar wind's
+        mass-loss rate and velocity, which are highly dependent on the star's
+        evolutionary stage (Yerkes luminosity class) and spectral type.
+        Different physical models (e.g., power-laws for hypergiants, Reimers'
+        Law for giants, and empirical scalings for main-sequence stars) are
+        applied to ensure physically plausible results across the stellar spectrum.
+
+        The heliopause radius is then calculated based on the balance between
+        the stellar wind's momentum flux and the pressure of the interstellar medium.
 
         Returns:
-            float: The estimated radius of the heliosphere in AU.
+            float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
         # --- 1. Get Fundamental Stellar Properties ---
         radius_m = self.radius * 1000  # Convert radius from km to meters
@@ -250,16 +267,20 @@ class Star:
         Initializes a Star object, generating its properties based on specified constraints.
 
         This constructor orchestrates the creation of a star. It can generate a
-        star randomly or be guided by specific parameters. The `star_type`
-        parameter allows for the creation of a star with a specific spectral
-        class, subclass, and Yerkes classification (e.g., 'G2V').
+        star randomly or be guided by specific parameters provided through the
+        `config` module. The `config.STAR_TYPE` parameter allows for the creation
+        of a star with a specific spectral class, subclass, and Yerkes
+        classification (e.g., 'G2V'). If `config.FORCE_LARGE_STAR` or `config.ABSURD`
+        are set, these influence the star's initial generation to favor larger,
+        more massive stars.
 
         If a `name` is provided, it will be used for the star; otherwise, a
-        random name will be generated.
+        random name will be generated using `generate_phoneme_salad_name`.
 
-        Once the core properties are established, it calculates derived
-        properties such as the habitable zone, system perimeter (Hill sphere),
-        and the heliosphere radius.
+        Once the core properties (`type`, `radius`, `mass`, `temperature`, `luminosity`)
+        are established by `generate_star()`, this constructor calculates derived
+        properties such as the `age`, `lifespan`, `habitable_zone`,
+        `system_perimeter` (Hill sphere), and `heliosphere_radius`.
 
         Args:
             name (str, optional): The name to assign to the star. If None, a
@@ -283,8 +304,20 @@ class Star:
 
     def to_paragraph_list(self):
         """
-        Returns a list of strings, where each string is a paragraph describing
-        the star. This method is used by StarSystem to compile its full description.
+        Generates a list of descriptive paragraphs about the star's properties.
+
+        This method formats the star's physical characteristics (type, radius,
+        mass, temperature, luminosity, habitable zone) into a structured block
+        using `properties_to_string`. It also constructs a sentence describing
+        the star's age and expected lifespan, incorporating evolutionary notes
+        from `STAR_EVOLUTION` if available.
+
+        The output is designed to be human-readable and can be formatted either
+        as Wikitext or Markdown based on the `config.MARKDOWN` flag.
+
+        Returns:
+            list: A list of strings, where each string represents a paragraph
+                  or a formatted data block describing the star.
         """
         paragraphs = [] # This will contain the final list of "paragraphs" for the star.
 
@@ -369,8 +402,14 @@ class Star:
 
     def __str__(self):
         """
-        Returns a string representation of the star, with paragraphs
-        separated by double newlines.
+        Returns a complete string representation of the star, suitable for display.
+
+        This method compiles all the descriptive paragraphs generated by
+        `to_paragraph_list()` and joins them with double newlines to create
+        a well-formatted, multi-paragraph string.
+
+        Returns:
+            str: A formatted string describing the star and its properties.
         """
         return '\n\n'.join(self.to_paragraph_list())
 
@@ -382,24 +421,53 @@ class Star:
         The generation process is fundamentally different for user-specified stars
         (via `config.STAR_TYPE`) versus randomly generated ones.
 
-        For specified stars:
-        1.  It parses the type (e.g., 'G2V') to get spectral class, subclass, and Yerkes class.
-        2.  Temperature is calculated from the spectral class and subclass.
-        3.  A valid luminosity range is found by taking the *intersection* of the
-            allowed luminosities for the spectral and Yerkes classes.
-        4.  A final luminosity is chosen from this valid range.
-        5.  Mass is then determined based on physical constraints for that Yerkes class.
-        6.  Radius is calculated last, using specific physics for the star type (e.g.,
-            white dwarf mass-radius relation vs. Stefan-Boltzmann law for others).
+        For specified stars (when `config.STAR_TYPE` is set):
+        1.  **Parsing Input**: The method first parses the `config.STAR_TYPE` string
+            (e.g., 'G2V') to extract the spectral class (O, B, A, F, G, K, M),
+            subclass (0-9), and Yerkes luminosity class (e.g., V for Main Sequence).
+            It raises a `ValueError` if the format is invalid.
+        2.  **Temperature Calculation**: The star's surface temperature is calculated
+            based on its spectral class and subclass, interpolating within the
+            `TEMP_RANGES` data.
+        3.  **Luminosity Determination**: A valid luminosity range is established
+            by finding the *intersection* of the allowed luminosity ranges for
+            both the spectral class (`SPECTRAL_LUMINOSITY_RANGES`) and the
+            Yerkes class (`YERKES_LUMINOSITY_RANGES`). A random luminosity is
+            then chosen from this overlapping range. Special handling is included
+            for white dwarfs, which can have temporarily high luminosities.
+        4.  **Mass Calculation**: The star's mass is determined based on the
+            physical constraints defined for its Yerkes class in `YERKES_MASS_CONSTRAINTS`.
+            For main-sequence stars, a mass-luminosity relation is used. For white
+            dwarfs, an inverse mass-radius relation is considered, with mass
+            constrained by the Chandrasekhar limit. For giants and supergiants,
+            mass is randomly selected within their class-specific bounds.
+        5.  **Radius Calculation**: The star's radius is calculated last. For white
+            dwarfs, an inverse mass-radius relationship is applied. For all other
+            star types, the Stefan-Boltzmann law is used, deriving radius from
+            luminosity and temperature.
 
-        For random stars:
-        1.  A spectral class is chosen based on galactic population probabilities.
-        2.  A luminosity is randomly chosen from that spectral class's typical range.
-        3.  The Yerkes class is *determined* by this luminosity.
-        4.  Temperature, mass, and radius then follow from these properties.
+        For random stars (when `config.STAR_TYPE` is None):
+        1.  **Spectral Class Selection**: A spectral class is chosen probabilistically
+            based on their prevalence in the galactic population. `config.ABSURD`
+            or `config.FORCE_LARGE_STAR` can bias this selection towards hotter,
+            more massive stars.
+        2.  **Luminosity Generation**: A luminosity is randomly chosen from the
+            typical range for the selected spectral class. `config.ABSURD` forces
+            the maximum luminosity for the chosen class.
+        3.  **Yerkes Class Determination**: The Yerkes luminosity class (e.g.,
+            Supergiant, Main Sequence, White Dwarf) is *derived* from the
+            generated luminosity, using thresholds defined in `YERKES_LUMINOSITY_RANGES`.
+        4.  **Temperature and Subclass Calculation**: The star's surface temperature
+            is randomly selected within the `TEMP_RANGES` for its spectral class,
+            and the subclass is then derived from this temperature.
+        5.  **Mass and Radius Calculation**: Similar to the specified star path,
+            mass is determined based on Yerkes class constraints and luminosity,
+            and radius is calculated using the appropriate physical laws.
 
-        This ensures that all generated stars, whether specified or random, adhere
-        to the fundamental physical relationships between their core properties.
+        This comprehensive approach ensures that all generated stars, whether
+        user-specified or randomly created, adhere to the fundamental physical
+        relationships between their core properties, resulting in astrophysically
+        plausible stellar objects.
         """
         yerkes_lookup = {
             "0": "Hypergiant", "IA+": "Luminous Supergiant", "IA": "Supergiant",
