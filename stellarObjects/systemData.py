@@ -32,7 +32,10 @@ from .constants import (
     BASE_MAX_SYSTEM_OBJECTS,
     ABSOLUTE_MAX_SYSTEM_OBJECTS,
     MIN_ASTEROID_BELT_SEPARATION,
-    AU_TO_LY # Changed from LY_TO_AU
+    AU_TO_LY,
+    FLAVOR_CHANCE_SYSTEM,
+    SYSTEM_FLAVOR,
+    MAX_FLAVOR_TOTAL
 )
 from .utils import to_paragraph
 from . import config
@@ -61,6 +64,7 @@ class StarSystem:
         moon_count (int): The total number of moons in the system.
         hab_count (int): The total number of potentially habitable worlds.
         m_count (int): The total number of Class M worlds.
+        system_flavor_count (int): Tracks the total number of flavor texts added across the system.
     """
 
     def __init__(self):
@@ -86,6 +90,7 @@ class StarSystem:
         """
         self.star = Star(name=config.NAME)
         self.planets = []
+        self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / SOLAR_MASS_TO_KG
 
@@ -388,10 +393,10 @@ class StarSystem:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
         # Convert AU to Light-Years for the descriptive text (1 LY = 63241.1 AU)
-        perimeter_ly = self.star.system_perimeter * AU_TO_LY # Changed to multiply by AU_TO_LY
+        perimeter_ly = self.star.system_perimeter * AU_TO_LY
 
         # Convert heliosphere radius to light-years to check the condition
-        heliosphere_ly = self.star.heliosphere_radius * AU_TO_LY # Changed to multiply by AU_TO_LY
+        heliosphere_ly = self.star.heliosphere_radius * AU_TO_LY
         if heliosphere_ly < 0.1:
             heliosphere_text = f"{self.star.heliosphere_radius:.4f} AU"
         else:
@@ -407,6 +412,13 @@ class StarSystem:
 
         # Add a double newline before the combined system summary paragraph.
         all_output_parts.append('\n\n' + combined_system_summary_paragraph)
+
+        # Add flavor text if the random chance passes and total flavor text limit is not exceeded
+        if random.random() < FLAVOR_CHANCE_SYSTEM and self.system_flavor_count < MAX_FLAVOR_TOTAL:
+            flavor_text = random.choice(SYSTEM_FLAVOR)
+            all_output_parts.append(f"\n\nSensors show {flavor_text}")
+            self.system_flavor_count += 1
+            self.star.system_flavor_count += 1
 
         # 3. Add planet/belt paragraphs, each separated by a double newline from the previous.
         if self.planets:

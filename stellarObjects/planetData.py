@@ -20,7 +20,9 @@ from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
                         ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
                         PLANET_CLASSES, PLANET_CLASS_PROBABILITIES, LIFE_CHEMICALS, STAR_EVOLUTION,
                         HABITABLE_PLANET_CLASSES, MOON_BLACKLIST, CO2_BASE_MOLAR_DENSITY,
-                        CO2_MAX_GREENHOUSE_FACTOR, AU_TO_LY, LY_THRESHOLD)
+                        CO2_MAX_GREENHOUSE_FACTOR, AU_TO_LY, LY_THRESHOLD,
+                        FLAVOR_CHANCE_PLANET, PLANET_FLAVOR, HABITABLE_FLAVOR, EVOLUTIONARY_TIMELINES,
+                        MAX_FLAVOR_TOTAL, MAX_FLAVOR_PLANET)
 from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
                     MOON_PREFIXES, MOON_SUFFIXES)
 from . import config
@@ -118,6 +120,8 @@ class Planet:
         star_type (str): The spectral type of the star (e.g., 'G', 'M').
         star (Star): The Star object this planet orbits.
         evolutionary_data (list): A list of strings describing the evolutionary timeline.
+        flavor_text (str): A randomly selected flavor text for the planet.
+        flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
     def __init__(self, star, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
@@ -175,6 +179,8 @@ class Planet:
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
         self.evolutionary_data = [] # Initialize evolutionary data
+        self.flavor_text = None # Initialize flavor text
+        self.flavor_text_count = 0 # Initialize flavor text count for this planet
 
         # From the star, should not be changed.
         self.hab = hab_zone
@@ -714,8 +720,31 @@ class Planet:
         output_paragraphs.append(to_paragraph(sentences))
 
         # Add the evolutionary timeline data if available
-        if self.evolutionary_data:
+        if self.evolutionary_data and self.planet_class in HABITABLE_PLANET_CLASSES:
             output_paragraphs.extend(self.evolutionary_data)
+
+        # Add flavor text if the random chance passes and limits are not exceeded
+        if random.random() < FLAVOR_CHANCE_PLANET and self.star.system_flavor_count < MAX_FLAVOR_TOTAL and self.flavor_text_count < MAX_FLAVOR_PLANET:
+            selected_flavor = None
+            # Check for habitable and multicellular/technological life
+            is_habitable = self.planet_class in HABITABLE_PLANET_CLASSES
+            has_multicellular_life = False
+            if is_habitable and self.evolutionary_data:
+                for stage_paragraph in self.evolutionary_data:
+                    if "multicellularity" in stage_paragraph.lower() or "technological_civilization" in stage_paragraph.lower():
+                        has_multicellular_life = True
+                        break
+
+            if is_habitable and has_multicellular_life:
+                selected_flavor = random.choice(HABITABLE_FLAVOR)
+            else:
+                selected_flavor = random.choice(PLANET_FLAVOR)
+
+            if selected_flavor:
+                self.flavor_text = selected_flavor
+                output_paragraphs.append(f"Sensors show {self.flavor_text}")
+                self.star.system_flavor_count += 1
+                self.flavor_text_count += 1
 
         if self.moons:
             for moon in self.moons:

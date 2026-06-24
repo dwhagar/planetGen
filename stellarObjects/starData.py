@@ -281,7 +281,7 @@ class Star:
         # Convert the final radius from meters to Astronomical Units (AU) for output.
         return heliopause_radius_m / AU_TO_M
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, system_flavor_count = 0):
         """
         Initializes a Star object, generating its properties based on specified constraints.
 
@@ -320,6 +320,7 @@ class Star:
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter()
         self.heliosphere_radius = self.calculate_heliosphere()
+        self.system_flavor_count = system_flavor_count
 
     def to_paragraph_list(self):
         """

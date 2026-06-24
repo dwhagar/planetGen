@@ -793,3 +793,45 @@ CO2_MAX_GREENHOUSE_FACTOR = 5
 """
 int: The maximum greenhouse effect factor for CO2 in atmospheric calculations.
 """
+
+FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
+FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
+MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
+MAX_FLAVOR_PLANET = 1 # The maximum flavor text for a single planet.
+
+SYSTEM_FLAVOR = [
+    "a derelict chain of deep-space platforms firing concentrated energy beams into the void for an unknown purpose.",
+    "an automated buoy equipped with a mass-driver that catches physical data pods and flings them toward inner-system hubs.",
+    "a massive, ultra-thin sheet of reflective foil drifting through the system, originally deployed to shade a now-dead world.",
+    "thousands of small, passive reflectors scattered across the system to bounce electromagnetic waves back and forth.",
+    "an ancient, nuclear-powered navigational beacon at the system's edge, driven and maintained by a local artificial intelligence.",
+    "a drifting, chaotic cloud of uncoordinated mirror tiles arrayed like a fragmented automated radiation collection swarm.",
+    "a system-wide network of navigational satellites that constantly shift and optimize their orbits using a decentralized swarm intelligence.",
+    "an invisible mass sitting in an empty orbit that clearly registers on navigation sensors, warping the local space-time.",
+    "a spherical dead-zone in deep space where all electromagnetic scans, communication signals, and radiation instantly drop to absolute zero.",
+    "a jagged, glowing fracture in the vacuum that continuously vents raw static energy into the surrounding void."
+]
+
+PLANET_FLAVOR = [ # Flavor text for any planet.
+    "a massive hollow metallic cylinder embedded in the crust.",
+    "an orbital gravity pocket trapped with vast swarms of dead delivery drones and cargo pods.",
+    "a primitive interstellar probe caught in orbit.",
+    "the crashed hull of a derelict pre-warp ship.",
+    "the crashed hull of a derelict primitive warp ship.",
+    "a solar-powered mountain beacon looping a brief audio distress call.",
+    "automated crater radio dishes stubbornly tracking the empty coordinates in deep space.",
+    "a vast, precise grid of ancient cargo containers showing faint energy readings.",
+    "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs."
+]
+
+HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
+    "microscopic airborne organisms that cause nighttime clouds to glow with blue bioluminescence.",
+    "armored, tortoise-like animals that eat raw rock and excrete exceptionally fine glass sand.",
+    "high-altitude predators with hyper-thin membranous wings that ride the solar wind.",
+    "jagged, forest-like continental structures built from the hard mineral shells of colonial insects.",
+    "massive, lighter-than-air floating beasts that use natural gas bladders to filter-feed on atmospheric plankton.",
+    "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids.",
+    "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods.",
+    "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases.",
+    "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers."
+]
