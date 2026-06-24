@@ -14,15 +14,50 @@ from . import config
 
 # Define common asteroid components
 ASTEROID_COMPONENTS = [
-    "carbon", "oxygen", "silicon", "magnesium", "aluminum", "calcium",
-    "sulfur", "phosphorus", "hydrogen", "nitrogen", "iron", "nickel",
+    "carbon", "silicon", "magnesium", "aluminum", "calcium",
+    "sulfur", "phosphorus", "iron", "nickel",
     "iridium", "palladium", "platinum", "gold", "osmium", "ruthenium",
-    "rhodium", "olivine", "pyroxene", "plagioplase feldspars", "kamacite",
+    "rhodium", "olivine", "pyroxene", "plagioclase feldspars", "kamacite",
     "taenite", "troilite", "schreibersite", "cohenite", "serpentine",
-    "magnetite", "hematite", "chromite", "carbon monoxide", "carbon dioxide",
-    "silicon carbide", "iron sulfide"
+    "magnetite", "hematite", "chromite", "silicon carbide",
+    # Rare earth element compounds
+    "bastnasite", "monazite", "xenotime", "cerite", "gadolinite", "samarskite",
+    "fergusonite", "euxenite",
+    # Platinum-group metal compounds
+    "osmiridium", "sperrylite", "cooperite", "braggite",
+    "laurite", "vysotskite",
+    # Naturally occurring radioactive material compounds
+    "uraninite", "thorianite", "carnotite", "autunite", "brannerite",
+    "torbernite", "coffinite",
+    # Titanium and titanium compounds
+    "titanium", "rutile", "ilmenite", "titanite", "perovskite",
+    "brookite", "anatase",
+    # Rock, crystal, and gem compounds
+    "silicon dioxide", # Quartz, amethyst, citrine
+    "aluminum oxide", # Corundum, ruby, sapphire
+    "beryllium aluminum cyclosilicate", # Beryl, emerald, aquamarine
+    "aluminum silicate fluoride hydroxide", # Topaz
+    "magnesium aluminum oxide", # Spinel
+    "zirconium silicate", # Zircon
+    "borosilicate", # Tourmaline
+    "potassium aluminum silicate", # Orthoclase
+    "calcium carbonate", # Calcite, aragonite
+    "sodium chloride", # Halite
+    "calcium fluoride", # Fluorite
+    "calcium fluorophosphate", # Apatite
+    "hydrated copper aluminum phosphate", # Turquoise
+    "copper carbonate hydroxide", # Malachite
+    "almandine", # Iron aluminum silicate (garnet)
+    "pyrope", # Magnesium aluminum silicate (garnet)
+    "spessartine", # Manganese aluminum silicate (garnet)
+    "grossular", # Calcium aluminum silicate (garnet)
+    "muscovite", # Hydrated potassium aluminum silicate (mica)
+    "biotite", # Iron magnesium potassium aluminum silicate (mica)
+    "chrysoberyl", # Beryllium aluminum oxide
+    # Solid Hydrocarbons (Polycyclic Aromatic Hydrocarbons)
+    "naphthalene", "anthracene", "phenanthrene", "pyrene",
+    "coronene", "fluoranthene"
 ]
-
 
 class AsteroidBelt:
     """
@@ -37,7 +72,7 @@ class AsteroidBelt:
         upper_limit (float): The outer boundary of the asteroid belt in AU.
         type (str): A character representing the object type, 'a' for asteroid belt.
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical').
-        composition (list): A list of common compounds found in the belt.
+        composition (list): A list of tuples, each containing (component, concentration).
     """
 
     def __init__(self, distance, lower_limit, upper_limit):
@@ -58,18 +93,31 @@ class AsteroidBelt:
 
     def _generate_composition(self):
         """
-        Generates a list of common compounds for the asteroid belt.
-        Includes at least 3 random components, plus frozen water and hydrocarbons.
+        Generates a list of common compounds for the asteroid belt,
+        including random components with unique, ordered concentrations.
+        Returns a list of (component, concentration) tuples.
         """
-        selected_components = random.sample(ASTEROID_COMPONENTS, k=min(3, len(ASTEROID_COMPONENTS)))
+        all_concentrations = ["high", "moderate", "small", "trace"]
+        
+        # Determine how many components to select (up to 4)
+        num_components_to_select = min(len(all_concentrations), len(ASTEROID_COMPONENTS))
+        
+        # Select unique components
+        selected_components = random.sample(ASTEROID_COMPONENTS, k=num_components_to_select)
+        
+        # Shuffle selected components to randomize which concentration they get
+        random.shuffle(selected_components)
+        
+        # Take only the necessary number of concentrations
+        concentrations_for_use = all_concentrations[:num_components_to_select]
+        
+        composition_data = []
+        for i in range(num_components_to_select):
+            component = selected_components[i]
+            concentration = concentrations_for_use[i]
+            composition_data.append((component, concentration))
 
-        # Ensure frozen water and hydrocarbons are always included
-        if "frozen water" not in selected_components:
-            selected_components.append("frozen water")
-        if "various long and short chain hydrocarbons" not in selected_components:
-            selected_components.append("various long and short chain hydrocarbons")
-
-        return selected_components
+        return composition_data
 
     def to_paragraph_list(self):
         """
@@ -96,8 +144,25 @@ class AsteroidBelt:
         header = f"{header_level} Asteroid Belt {header_level if not config.MARKDOWN else ''}"
         output_paragraphs.append(header)
 
-        composition_text = ", ".join(self.composition)
-        description_sentence = f"This is a {self.density} asteroid belt, primarily composed of {composition_text}."
+        composition_phrases = []
+        for component, concentration in self.composition:
+            if concentration == "trace":
+                composition_phrases.append(f"trace amounts of {component}")
+            else:
+                composition_phrases.append(f"{concentration} concentrations of {component}")
+
+        composition_text = ""
+        if composition_phrases:
+            if len(composition_phrases) == 1:
+                composition_text = composition_phrases[0]
+            elif len(composition_phrases) == 2:
+                composition_text = f"{composition_phrases[0]} and {composition_phrases[1]}"
+            else:
+                composition_text = ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
+        else:
+            composition_text = "various unknown materials" # Fallback if no components are selected
+
+        description_sentence = f"This is a {self.density} asteroid belt, composed of {composition_text}."
 
         output_paragraphs.append(f"An asteroid belt orbits roughly {distance_text}. {description_sentence}")
 
