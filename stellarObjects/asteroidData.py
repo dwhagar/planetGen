@@ -11,53 +11,7 @@ related to planet mass ranges, which are used by both planets and asteroid belts
 
 import random
 from . import config
-
-# Define common asteroid components
-ASTEROID_COMPONENTS = [
-    "carbon", "silicon", "magnesium", "aluminum", "calcium",
-    "sulfur", "phosphorus", "iron", "nickel",
-    "iridium", "palladium", "platinum", "gold", "osmium", "ruthenium",
-    "rhodium", "olivine", "pyroxene", "plagioclase feldspars", "kamacite",
-    "taenite", "troilite", "schreibersite", "cohenite", "serpentine",
-    "magnetite", "hematite", "chromite", "silicon carbide",
-    # Rare earth element compounds
-    "bastnasite", "monazite", "xenotime", "cerite", "gadolinite", "samarskite",
-    "fergusonite", "euxenite",
-    # Platinum-group metal compounds
-    "osmiridium", "sperrylite", "cooperite", "braggite",
-    "laurite", "vysotskite",
-    # Naturally occurring radioactive material compounds
-    "uraninite", "thorianite", "carnotite", "autunite", "brannerite",
-    "torbernite", "coffinite",
-    # Titanium and titanium compounds
-    "titanium", "rutile", "ilmenite", "titanite", "perovskite",
-    "brookite", "anatase",
-    # Rock, crystal, and gem compounds
-    "silicon dioxide", # Quartz, amethyst, citrine
-    "aluminum oxide", # Corundum, ruby, sapphire
-    "beryllium aluminum cyclosilicate", # Beryl, emerald, aquamarine
-    "aluminum silicate fluoride hydroxide", # Topaz
-    "magnesium aluminum oxide", # Spinel
-    "zirconium silicate", # Zircon
-    "borosilicate", # Tourmaline
-    "potassium aluminum silicate", # Orthoclase
-    "calcium carbonate", # Calcite, aragonite
-    "sodium chloride", # Halite
-    "calcium fluoride", # Fluorite
-    "calcium fluorophosphate", # Apatite
-    "hydrated copper aluminum phosphate", # Turquoise
-    "copper carbonate hydroxide", # Malachite
-    "almandine", # Iron aluminum silicate (garnet)
-    "pyrope", # Magnesium aluminum silicate (garnet)
-    "spessartine", # Manganese aluminum silicate (garnet)
-    "grossular", # Calcium aluminum silicate (garnet)
-    "muscovite", # Hydrated potassium aluminum silicate (mica)
-    "biotite", # Iron magnesium potassium aluminum silicate (mica)
-    "chrysoberyl", # Beryllium aluminum oxide
-    # Solid Hydrocarbons (Polycyclic Aromatic Hydrocarbons)
-    "naphthalene", "anthracene", "phenanthrene", "pyrene",
-    "coronene", "fluoranthene"
-]
+from . import constants
 
 class AsteroidBelt:
     """
@@ -100,10 +54,10 @@ class AsteroidBelt:
         all_concentrations = ["high", "moderate", "small", "trace"]
         
         # Determine how many components to select (up to 4)
-        num_components_to_select = min(len(all_concentrations), len(ASTEROID_COMPONENTS))
+        num_components_to_select = min(len(all_concentrations), len(constants.ASTEROID_COMPONENTS))
         
         # Select unique components
-        selected_components = random.sample(ASTEROID_COMPONENTS, k=num_components_to_select)
+        selected_components = random.sample(constants.ASTEROID_COMPONENTS, k=num_components_to_select)
         
         # Shuffle selected components to randomize which concentration they get
         random.shuffle(selected_components)
@@ -124,19 +78,15 @@ class AsteroidBelt:
         Returns a list of strings, where each string is a paragraph describing
         the asteroid belt.
         """
-        # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
-        AU_TO_LY = 1 / 63241.1
-        LY_THRESHOLD = 1.0  # The distance in LY at which to switch from AU to LY display
-
         # Convert the belt's boundaries to light-years to check against the threshold
-        upper_limit_ly = self.upper_limit * AU_TO_LY
+        upper_limit_ly = self.upper_limit * constants.AU_TO_LY
 
-        if upper_limit_ly < LY_THRESHOLD:
+        if upper_limit_ly < constants.LY_THRESHOLD:
             # For smaller systems, display the boundaries in AU for better precision
             distance_text = f"between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU"
         else:
             # For very large systems, display in light-years for readability
-            lower_limit_ly = self.lower_limit * AU_TO_LY
+            lower_limit_ly = self.lower_limit * constants.AU_TO_LY
             distance_text = f"between {lower_limit_ly:.4f} light-years and {upper_limit_ly:.4f} light-years"
 
         output_paragraphs = []

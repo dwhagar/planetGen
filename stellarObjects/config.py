@@ -87,3 +87,9 @@ NO_INT = False
 bool: If True, the system generation will ensure no planet with intelligent
 life is generated. Implies FORCE_HABITABLE_WORLD. Defaults to False.
 """
+
+NO_HABITABLE_WORLD = False
+"""
+bool: If True, the system generation will ensure no habitable world is generated
+in the system. Defaults to False.
+"""

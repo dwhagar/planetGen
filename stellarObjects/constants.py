@@ -9,6 +9,8 @@ for calculations within the planetGen package. All constants are in SI units
 unless otherwise specified.
 """
 
+import math
+
 # --- Physical Constants ---
 EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
 EARTH_GRAVITY = 9.807  # Standard Earth gravity in m/s^2
@@ -53,6 +55,132 @@ ATMOSPHERIC_MOLAR_DENSITY = {
 
 # The average ratio of a gas giant's core mass to its total mass
 GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
+
+# --- Star System Generation Parameters ---
+INITIAL_PLANET_DISTANCE_FACTOR = 0.55
+ASTEROID_BELT_PROBABILITY = 0.1
+ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
+ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
+BASE_MAX_SYSTEM_OBJECTS = 15
+ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
+MIN_ASTEROID_BELT_SEPARATION = 0.05
+
+# Renamed AU_TO_LIGHT_YEAR to LY_TO_AU for clarity and consistency.
+LY_TO_AU = 63241.1
+"""
+float: Conversion factor from Light-Years (LY) to Astronomical Units (AU).
+1 Light-Year is approximately 63241.1 AU.
+"""
+AU_TO_LY = 1 / LY_TO_AU
+"""
+float: Conversion factor from Astronomical Units (AU) to Light-Years (LY).
+1 AU is approximately 1/63241.1 Light-Years.
+"""
+
+# Asteroid Belt Configuration
+ASTEROID_COMPONENTS = [
+    "carbon", "silicon", "magnesium", "aluminum", "calcium",
+    "sulfur", "phosphorus", "iron", "nickel",
+    "iridium", "palladium", "platinum", "gold", "osmium", "ruthenium",
+    "rhodium", "olivine", "pyroxene", "plagioclase feldspars", "kamacite",
+    "taenite", "troilite", "schreibersite", "cohenite", "serpentine",
+    "magnetite", "hematite", "chromite", "silicon carbide",
+    # Rare earth element compounds
+    "bastnasite", "monazite", "xenotime", "cerite", "gadolinite", "samarskite",
+    "fergusonite", "euxenite",
+    # Platinum-group metal compounds
+    "osmiridium", "sperrylite", "cooperite", "braggite",
+    "laurite", "vysotskite",
+    # Naturally occurring radioactive material compounds
+    "uraninite", "thorianite", "carnotite", "autunite", "brannerite",
+    "torbernite", "coffinite",
+    # Titanium and titanium compounds
+    "titanium", "rutile", "ilmenite", "titanite", "perovskite",
+    "brookite", "anatase",
+    # Rock, crystal, and gem compounds
+    "silicon dioxide", # Quartz, amethyst, citrine
+    "aluminum oxide", # Corundum, ruby, sapphire
+    "beryllium aluminum cyclosilicate", # Beryl, emerald, aquamarine
+    "aluminum silicate fluoride hydroxide", # Topaz
+    "magnesium aluminum oxide", # Spinel
+    "zirconium silicate", # Zircon
+    "borosilicate", # Tourmaline
+    "potassium aluminum silicate", # Orthoclase
+    "calcium carbonate", # Calcite, aragonite
+    "sodium chloride", # Halite
+    "calcium fluoride", # Fluorite
+    "calcium fluorophosphate", # Apatite
+    "hydrated copper aluminum phosphate", # Turquoise
+    "copper carbonate hydroxide", # Malachite
+    "almandine", # Iron aluminum silicate (garnet)
+    "pyrope", # Magnesium aluminum silicate (garnet)
+    "spessartine", # Manganese aluminum silicate (garnet)
+    "grossular", # Calcium aluminum silicate (garnet)
+    "muscovite", # Hydrated potassium aluminum silicate (mica)
+    "biotite", # Iron magnesium potassium aluminum silicate (mica)
+    "chrysoberyl", # Beryllium aluminum oxide
+    # Solid Hydrocarbons (Polycyclic Aromatic Hydrocarbons)
+    "naphthalene", "anthracene", "phenanthrene", "pyrene",
+    "coronene", "fluoranthene"
+]
+"""
+list: A comprehensive list of various components that can be found in asteroids.
+These components are used to generate the composition of asteroid belts.
+"""
+
+LY_THRESHOLD = 1.0
+"""
+float: The distance in Light-Years (LY) at which the display format for
+asteroid belt distances switches from AU to LY for better readability.
+"""
+
+# --- Star Calculation Parameters ---
+HABITABLE_ZONE_BUFFER_AU = 0.2
+HELIOSPHERE_DISPLAY_THRESHOLD_LY = 0.1
+KM_TO_M_FACTOR = 1000
+ESCAPE_VELOCITY_CONSTANT = 2
+HYPERGIANT_MASS_LOSS_RATE_FACTOR = 10**-5.0
+HYPERGIANT_MASS_LOSS_RATE_EXPONENT = 1.5
+RADIUS_SOL_EXPONENT = 2
+LUMINOSITY_SOL_EXPONENT = -0.5
+MASS_SOL_EXPONENT = -1.0
+SECONDS_PER_YEAR = 365.25 * 24 * 3600
+HELIOPAUSE_RADIUS_DEFAULT_M = 0
+ROUND_HABITABLE_ZONE_AU = 2
+ROUND_HABITABLE_ZONE_AU_SMALL = 5
+ROUND_RADIUS_KM = 2
+SCIENTIFIC_NOTATION_DECIMAL_PLACES = 2
+ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
+
+# --- Star Generation Parameters ---
+MIN_INITIAL_STAR_AGE_GY = 0.1
+MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.9
+OLD_STAR_AGE_LIFESPAN_RATIO = 0.5
+YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
+MIN_PLANET_AGE_ADJUSTMENT_FACTOR = 0.8
+MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
+WHITE_DWARF_AGE_ADDITION_GY = 5
+HYPERGIANT_WIND_VELOCITY_FACTOR = 2.6
+REIMERS_LAW_CONSTANT = 4e-13
+SUPERGIANT_REIMERS_ETA = 2.0
+GIANT_WIND_VELOCITY_FACTOR = 0.3
+STANDARD_REIMERS_ETA = 1.0
+SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR = 2e-14
+MIN_MOMENTUM_FLUX = 1e-15
+FOUR_PI = 4 * math.pi
+PERCENT_SOL_THRESHOLD_LOW = 0.01
+PERCENT_SOL_THRESHOLD_HIGH = 2
+RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
+PERCENT_MULTIPLIER = 100
+SUBCLASS_MAX_VALUE = 9
+MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT = 3.5
+HOT_WHITE_DWARF_MIN_MASS_SOL = 1.1
+COOL_WHITE_DWARF_MAX_MASS_SOL = 1.0
+WHITE_DWARF_MASS_RADIUS_EXPONENT = -1/3
+SPECTRAL_CLASS_COLORS = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
+SPECTRAL_PROBABILITIES_ABSURD = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
+SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
+SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
 
 # --- Planet Classification Data ---
 
@@ -644,3 +772,24 @@ EVOLUTIONARY_TEXT = {
         "population actively reshapes the world through agriculture, architecture, and industry."
     )
 }
+
+# --- Planet Generation Specific Constants ---
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
+"""
+list: A list of planet class codes that are considered habitable.
+"""
+
+MOON_BLACKLIST = ['Q', 'R', 'V', 'W', 'X', 'Y']
+"""
+list: A list of planet class codes that cannot be generated as moons.
+"""
+
+CO2_BASE_MOLAR_DENSITY = 0.04345
+"""
+float: The base molar density of CO2 used in atmospheric calculations.
+"""
+
+CO2_MAX_GREENHOUSE_FACTOR = 5
+"""
+int: The maximum greenhouse effect factor for CO2 in atmospheric calculations.
+"""

@@ -27,7 +27,26 @@ from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMIN
                         TEMP_RANGES, G, MILKY_WAY_MASS, GALACTIC_CENTER_DISTANCE_LY, LY_TO_M,
                         AU_TO_M, ISM_PRESSURE, SOLAR_RADIUS_M, SOLAR_ESCAPE_VELOCITY,
                         SOLAR_WIND_VELOCITY, SOLAR_MASS_LOSS_RATE, STAR_EVOLUTION,
-                        PLANET_CLASSES, EVOLUTIONARY_TIMELINES)
+                        PLANET_CLASSES, EVOLUTIONARY_TIMELINES,
+                        MIN_INITIAL_STAR_AGE_GY, MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO,
+                        OLD_STAR_AGE_LIFESPAN_RATIO, YOUNG_STAR_AGE_LIFESPAN_RATIO,
+                        MIN_PLANET_AGE_ADJUSTMENT_FACTOR, MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                        WHITE_DWARF_AGE_ADDITION_GY, HYPERGIANT_WIND_VELOCITY_FACTOR,
+                        REIMERS_LAW_CONSTANT, SUPERGIANT_REIMERS_ETA, GIANT_WIND_VELOCITY_FACTOR,
+                        STANDARD_REIMERS_ETA, SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR,
+                        MIN_MOMENTUM_FLUX, FOUR_PI, PERCENT_SOL_THRESHOLD_LOW,
+                        PERCENT_SOL_THRESHOLD_HIGH, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
+                        PERCENT_MULTIPLIER, SUBCLASS_MAX_VALUE, MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT,
+                        HOT_WHITE_DWARF_MIN_MASS_SOL, COOL_WHITE_DWARF_MAX_MASS_SOL,
+                        WHITE_DWARF_MASS_RADIUS_EXPONENT, SPECTRAL_CLASS_COLORS,
+                        SPECTRAL_PROBABILITIES_ABSURD, SPECTRAL_PROBABILITIES_LARGE_STAR,
+                        SPECTRAL_PROBABILITIES_NORMAL, HABITABLE_ZONE_BUFFER_AU,
+                        HELIOSPHERE_DISPLAY_THRESHOLD_LY, KM_TO_M_FACTOR, ESCAPE_VELOCITY_CONSTANT,
+                        HYPERGIANT_MASS_LOSS_RATE_FACTOR, HYPERGIANT_MASS_LOSS_RATE_EXPONENT,
+                        RADIUS_SOL_EXPONENT, LUMINOSITY_SOL_EXPONENT, MASS_SOL_EXPONENT,
+                        SECONDS_PER_YEAR, HELIOPAUSE_RADIUS_DEFAULT_M, ROUND_HABITABLE_ZONE_AU,
+                        ROUND_HABITABLE_ZONE_AU_SMALL, ROUND_RADIUS_KM, SCIENTIFIC_NOTATION_DECIMAL_PLACES,
+                        ROUND_TEMPERATURE_NEAREST_HUNDRED)
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import config
 
@@ -75,13 +94,13 @@ class Star:
         min_lifespan, max_lifespan = star_info["lifespan_gy"]
         lifespan = random.uniform(min_lifespan, max_lifespan)
 
-        min_age = 0.1
-        max_age = lifespan * 0.9
+        min_age = MIN_INITIAL_STAR_AGE_GY
+        max_age = lifespan * MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO
 
         if config.AGE == "old":
-            min_age = lifespan * 0.5
+            min_age = lifespan * OLD_STAR_AGE_LIFESPAN_RATIO
         elif config.AGE == "young":
-            max_age = lifespan * (1/3)
+            max_age = lifespan * YOUNG_STAR_AGE_LIFESPAN_RATIO
 
         age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
 
@@ -131,16 +150,16 @@ class Star:
             # we cap the age at a reasonable fraction of its lifespan.
             if self.lifespan != float('inf') and self.lifespan < min_required_age_for_system:
                 # If lifespan is too short, set age to be near the end of its short life
-                self.age = random.uniform(min_required_age_for_system * 0.8, self.lifespan * 0.95)
+                self.age = random.uniform(min_required_age_for_system * MIN_PLANET_AGE_ADJUSTMENT_FACTOR, self.lifespan * MAX_PLANET_AGE_ADJUSTMENT_FACTOR)
                 if self.age > self.lifespan: # Final check
-                    self.age = self.lifespan * 0.95
+                    self.age = self.lifespan * MAX_PLANET_AGE_ADJUSTMENT_FACTOR
             else:
                 # Otherwise, set age to be between the required minimum and near end of lifespan
-                self.age = random.uniform(min_required_age_for_system, self.lifespan * 0.95 if self.lifespan != float('inf') else min_required_age_for_system + 5) # Add 5 GY for WD if no upper bound
+                self.age = random.uniform(min_required_age_for_system, self.lifespan * MAX_PLANET_AGE_ADJUSTMENT_FACTOR if self.lifespan != float('inf') else min_required_age_for_system + WHITE_DWARF_AGE_ADDITION_GY) # Add 5 GY for WD if no upper bound
 
         # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
         if self.lifespan != float('inf') and self.age >= self.lifespan:
-            self.age = self.lifespan * 0.95 # Star is near end of life
+            self.age = self.lifespan * MAX_PLANET_AGE_ADJUSTMENT_FACTOR # Star is near end of life
 
     def calculate_system_perimeter(self):
         """
@@ -187,7 +206,7 @@ class Star:
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
         # --- 1. Get Fundamental Stellar Properties ---
-        radius_m = self.radius * 1000  # Convert radius from km to meters
+        radius_m = self.radius * KM_TO_M_FACTOR  # Convert radius from km to meters
         lum_sol = self.luminosity / SOLAR_LUMINOSITY
         mass_sol = self.mass / SOLAR_MASS_TO_KG
         radius_sol = radius_m / SOLAR_RADIUS_M
@@ -196,7 +215,7 @@ class Star:
         # A single formula for mass loss is insufficient. We use a tiered system based on
         # the star's Yerkes luminosity class (evolutionary stage) and spectral type.
 
-        escape_velocity = math.sqrt(2 * G * self.mass / radius_m)
+        escape_velocity = math.sqrt(ESCAPE_VELOCITY_CONSTANT * G * self.mass / radius_m)
         yerkes_class = self.yerkes_class
 
         # TIER 1: Hypergiants (Class 0)
@@ -204,27 +223,27 @@ class Star:
         # more stable than other models at this high-luminosity extreme.
         if yerkes_class == "0":
             # M-dot ~ L^1.5. This avoids the runaway effect of steeper power laws.
-            mass_loss_rate_smyr = (10**-5.0) * (lum_sol**1.5)
+            mass_loss_rate_smyr = HYPERGIANT_MASS_LOSS_RATE_FACTOR * (lum_sol**HYPERGIANT_MASS_LOSS_RATE_EXPONENT)
             # Wind velocity is a high multiple of escape velocity.
-            wind_velocity = 2.6 * escape_velocity
+            wind_velocity = HYPERGIANT_WIND_VELOCITY_FACTOR * escape_velocity
 
         # TIER 2: Supergiants (Class I) and Bright Giants (Class II)
         # For these highly evolved stars, the classic Reimers' Law provides a stable
         # and physically appropriate model for their powerful stellar winds.
         elif yerkes_class in ["IA+", "IA", "IAB", "IB", "II"]:
-            eta = 2.0  # Higher efficiency factor for these very luminous stars.
+            eta = SUPERGIANT_REIMERS_ETA  # Higher efficiency factor for these very luminous stars.
             # Reimers' Law: M-dot = 4e-13 * η * (L*R/M)
-            mass_loss_rate_smyr = (4e-13) * eta * (lum_sol * radius_sol / mass_sol)
+            mass_loss_rate_smyr = REIMERS_LAW_CONSTANT * eta * (lum_sol * radius_sol / mass_sol)
             # Wind velocity is a smaller fraction of escape velocity for these cooler giants.
-            wind_velocity = 0.3 * escape_velocity
+            wind_velocity = GIANT_WIND_VELOCITY_FACTOR * escape_velocity
 
         # TIER 3: Giants (Class III) and Subgiants (Class IV)
         # These are less luminous evolved stars. Reimers' Law is still the best model,
         # but with a standard efficiency factor.
         elif yerkes_class in ["III", "IV"]:
-            eta = 1.0  # Standard eta for giants.
-            mass_loss_rate_smyr = (4e-13) * eta * (lum_sol * radius_sol / mass_sol)
-            wind_velocity = 0.3 * escape_velocity
+            eta = STANDARD_REIMERS_ETA  # Standard eta for giants.
+            mass_loss_rate_smyr = REIMERS_LAW_CONSTANT * eta * (lum_sol * radius_sol / mass_sol)
+            wind_velocity = GIANT_WIND_VELOCITY_FACTOR * escape_velocity
 
         # TIER 4: Main Sequence (Class V), Subdwarfs (VI), and White Dwarfs (VII)
         # For sun-like stars and stellar remnants, mass loss is very low. We scale
@@ -238,8 +257,8 @@ class Star:
             # This results in a scaling relationship of M-dot ~ R^2 * L^-0.5
             # We normalize this to the Sun's known mass-loss rate.
             # The mass term is added to account for gravitational binding.
-            scaling_factor = (radius_sol**2) * (lum_sol**-0.5) * (mass_sol**-1.0)
-            mass_loss_rate_smyr = (2e-14) * scaling_factor # 2e-14 is the Sun's M-dot in M_sol/yr
+            scaling_factor = (radius_sol**RADIUS_SOL_EXPONENT) * (lum_sol**LUMINOSITY_SOL_EXPONENT) * (mass_sol**MASS_SOL_EXPONENT)
+            mass_loss_rate_smyr = SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR * scaling_factor # 2e-14 is the Sun's M-dot in M_sol/yr
 
             # Scale wind velocity based on the star's escape velocity relative to the Sun's.
             wind_velocity = SOLAR_WIND_VELOCITY * (escape_velocity / SOLAR_ESCAPE_VELOCITY)
@@ -247,17 +266,17 @@ class Star:
         # --- 3. Convert and Calculate Final Radius ---
 
         # Convert M-dot from (solar masses/year) to (kg/s)
-        mass_loss_rate_kgs = mass_loss_rate_smyr * SOLAR_MASS_TO_KG / (365.25 * 24 * 3600)
+        mass_loss_rate_kgs = mass_loss_rate_smyr * SOLAR_MASS_TO_KG / SECONDS_PER_YEAR
 
         # The heliopause radius is where the stellar wind's momentum flux balances the ISM pressure.
         # R = sqrt( (M-dot * v_inf) / (4 * pi * P_ism) )
-        momentum_flux = max(mass_loss_rate_kgs * wind_velocity, 1e-15) # Ensure momentum_flux is not zero or negative
+        momentum_flux = max(mass_loss_rate_kgs * wind_velocity, MIN_MOMENTUM_FLUX) # Ensure momentum_flux is not zero or negative
 
         try:
-            heliopause_radius_m = math.sqrt(momentum_flux / (4 * math.pi * ISM_PRESSURE))
+            heliopause_radius_m = math.sqrt(momentum_flux / (FOUR_PI * ISM_PRESSURE))
         except ValueError:
             # This should not happen with the floor value, but as a final safety net.
-            heliopause_radius_m = 0
+            heliopause_radius_m = HELIOPAUSE_RADIUS_DEFAULT_M
 
         # Convert the final radius from meters to Astronomical Units (AU) for output.
         return heliopause_radius_m / AU_TO_M
@@ -321,41 +340,41 @@ class Star:
         """
         paragraphs = [] # This will contain the final list of "paragraphs" for the star.
 
-        if round(self.habitable_zone[0], 2) == round(self.habitable_zone[1], 2):
-            hab_lower = str(round(self.habitable_zone[0], 5))
-            hab_upper = str(round(self.habitable_zone[1], 5))
+        if round(self.habitable_zone[0], ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], ROUND_HABITABLE_ZONE_AU):
+            hab_lower = str(round(self.habitable_zone[0], ROUND_HABITABLE_ZONE_AU_SMALL))
+            hab_upper = str(round(self.habitable_zone[1], ROUND_HABITABLE_ZONE_AU_SMALL))
         else:
-            if self.habitable_zone[0] < 0.01:
-                hab_lower = str(round(self.habitable_zone[0], 5))
+            if self.habitable_zone[0] < PERCENT_SOL_THRESHOLD_LOW:
+                hab_lower = str(round(self.habitable_zone[0], ROUND_HABITABLE_ZONE_AU_SMALL))
             else:
-                hab_lower = str(round(self.habitable_zone[0], 2))
+                hab_lower = str(round(self.habitable_zone[0], ROUND_HABITABLE_ZONE_AU))
 
-            if self.habitable_zone[1] < 0.01:
-                hab_upper = str(round(self.habitable_zone[1], 5))
+            if self.habitable_zone[1] < PERCENT_SOL_THRESHOLD_LOW:
+                hab_upper = str(round(self.habitable_zone[1], ROUND_HABITABLE_ZONE_AU_SMALL))
             else:
-                hab_upper = str(round(self.habitable_zone[1], 2))
+                hab_upper = str(round(self.habitable_zone[1], ROUND_HABITABLE_ZONE_AU))
 
         # Refactored mass and luminosity string generation for clarity and correctness
         sol_mass_val = self.mass / SOLAR_MASS_TO_KG
-        if sol_mass_val < 0.01: # Less than 1%
-            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val * 100:.2f}% of Sol)"
-        elif sol_mass_val < 2: # Between 1% and 200%
+        if sol_mass_val < PERCENT_SOL_THRESHOLD_LOW: # Less than 1%
+            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val * PERCENT_MULTIPLIER:.2f}% of Sol)"
+        elif sol_mass_val < PERCENT_SOL_THRESHOLD_HIGH: # Between 1% and 200%
             mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val:.1f}% of Sol)"
         else: # Greater than 200%
             mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val:.1f}× Sol)"
 
         sol_lum_val = self.luminosity / SOLAR_LUMINOSITY
-        if sol_lum_val < 0.01: # Less than 1%
-            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val * 100:.4f}% of Sol)"
-        elif sol_lum_val < 2: # Between 1% and 200%
-            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val * 100:.1f}% of Sol)"
+        if sol_lum_val < PERCENT_SOL_THRESHOLD_LOW: # Less than 1%
+            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val * PERCENT_MULTIPLIER:.4f}% of Sol)"
+        elif sol_lum_val < PERCENT_SOL_THRESHOLD_HIGH: # Between 1% and 200%
+            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val * PERCENT_MULTIPLIER:.1f}% of Sol)"
         else: # Greater than 200%
             lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val:.1f}× Sol)"
 
-        if self.radius <= 100000:
-            radius_string = f"{round(self.radius, 2):,} km"
+        if self.radius <= RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD:
+            radius_string = f"{round(self.radius, ROUND_RADIUS_KM):,} km"
         else:
-            radius_string = f"{to_scientific_notation(self.radius, 2)} km"
+            radius_string = f"{to_scientific_notation(self.radius, SCIENTIFIC_NOTATION_DECIMAL_PLACES)} km"
 
         star_properties = {
             "type": self.type,
@@ -491,8 +510,8 @@ class Star:
             # 2. Calculate Temperature from spectral class and subclass.
             min_temp, max_temp = TEMP_RANGES[spectral_class]
             temp_range_size = max_temp - min_temp
-            temperature = min_temp + (9 - subclass) * (temp_range_size / 9)
-            temperature = int(round(temperature, -2))
+            temperature = min_temp + (SUBCLASS_MAX_VALUE - subclass) * (temp_range_size / SUBCLASS_MAX_VALUE)
+            temperature = int(round(temperature, ROUND_TEMPERATURE_NEAREST_HUNDRED))
 
             # 3. Determine a physically valid Luminosity.
             # Find the overlapping luminosity range between the spectral and Yerkes classes.
@@ -519,11 +538,11 @@ class Star:
 
             # 1. Generate Spectral Class based on galactic population.
             if config.ABSURD:
-                spectral_probabilities = {'O': 100, 'B': 0, 'A': 0, 'F': 0, 'G': 0, 'K': 0, 'M': 0}
+                spectral_probabilities = SPECTRAL_PROBABILITIES_ABSURD
             elif config.FORCE_LARGE_STAR:
-                spectral_probabilities = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
+                spectral_probabilities = SPECTRAL_PROBABILITIES_LARGE_STAR
             else:
-                spectral_probabilities = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
+                spectral_probabilities = SPECTRAL_PROBABILITIES_NORMAL
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
 
             # 2. Generate Luminosity from the spectral class's typical range.
@@ -554,9 +573,9 @@ class Star:
 
             # 4. Calculate Temperature and Subclass.
             min_temp, max_temp = TEMP_RANGES[spectral_class]
-            temperature = int(round(random.uniform(min_temp, max_temp), -2))
+            temperature = int(round(random.uniform(min_temp, max_temp), ROUND_TEMPERATURE_NEAREST_HUNDRED))
             temp_range_size = max_temp - min_temp
-            subclass = 9 - round((temperature - min_temp) / temp_range_size * 9)
+            subclass = SUBCLASS_MAX_VALUE - round((temperature - min_temp) / temp_range_size * SUBCLASS_MAX_VALUE)
 
         # --- CALCULATE FINAL PROPERTIES (COMMON TO BOTH PATHS) ---
 
@@ -565,14 +584,14 @@ class Star:
         
         if self.yerkes_class == "V":
             # For main-sequence stars, the mass-luminosity relation is strong.
-            mass_sol = luminosity ** (1 / 3.5)
+            mass_sol = luminosity ** (1 / MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT)
         elif self.yerkes_class in ["VII", "D"]:
             # For white dwarfs, mass is tightly constrained. Hotter (younger) ones
             # are typically more massive, closer to the Chandrasekhar limit.
             if spectral_class in ["O", "B"]:
-                mass_sol = random.uniform(1.1, CHANDRASEKHAR_LIMIT_SOL)
+                mass_sol = random.uniform(HOT_WHITE_DWARF_MIN_MASS_SOL, CHANDRASEKHAR_LIMIT_SOL)
             else:
-                mass_sol = random.uniform(min_mass, 1.0)
+                mass_sol = random.uniform(min_mass, COOL_WHITE_DWARF_MAX_MASS_SOL)
         else:
             # For giants and supergiants, mass is less predictable from luminosity alone.
             # We choose a random mass within the physically allowed range for the class.
@@ -586,15 +605,15 @@ class Star:
         if self.yerkes_class in ["VII", "D"]:
             # White dwarf radius follows an inverse mass-radius relationship.
             # R ∝ M^(-1/3). A 1 solar mass WD is the base.
-            radius = WHITE_DWARF_BASE_RADIUS_KM * (mass_sol ** (-1/3))
+            radius = WHITE_DWARF_BASE_RADIUS_KM * (mass_sol ** WHITE_DWARF_MASS_RADIUS_EXPONENT)
         else:
             # For all other stars, radius is calculated from luminosity and temperature
             # using the Stefan-Boltzmann law.
             luminosity_watts = luminosity * SOLAR_LUMINOSITY
-            radius = math.sqrt(luminosity_watts / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / 1000
+            radius = math.sqrt(luminosity_watts / (FOUR_PI * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / KM_TO_M_FACTOR
 
         # 7. Set final star properties.
-        color_descriptions = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
+        color_descriptions = SPECTRAL_CLASS_COLORS
         star_type_str = f"{spectral_class}{subclass}{self.yerkes_class} {color_descriptions[spectral_class]} {yerkes_type} Star"
 
         self.type = star_type_str

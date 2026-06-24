@@ -23,7 +23,17 @@ import math
 from .planetData import Planet
 from .asteroidData import AsteroidBelt
 from .starData import Star
-from .constants import SOLAR_MASS_TO_KG
+from .constants import (
+    SOLAR_MASS_TO_KG,
+    INITIAL_PLANET_DISTANCE_FACTOR,
+    ASTEROID_BELT_PROBABILITY,
+    ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN,
+    ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX,
+    BASE_MAX_SYSTEM_OBJECTS,
+    ABSOLUTE_MAX_SYSTEM_OBJECTS,
+    MIN_ASTEROID_BELT_SEPARATION,
+    AU_TO_LY # Changed from LY_TO_AU
+)
 from .utils import to_paragraph
 from . import config
 
@@ -105,7 +115,7 @@ class StarSystem:
                     else:
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
                 else:
-                    estimated_distance = 0.55 * star_factor
+                    estimated_distance = INITIAL_PLANET_DISTANCE_FACTOR * star_factor
 
                 hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
 
@@ -147,9 +157,9 @@ class StarSystem:
                         self.planets.append(planet)
                         continue
 
-                if (random.random() < 0.1 or i == belt_index) and not last_asteroid and not hz:
+                if (random.random() < ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
                     min_distance = estimated_distance
-                    max_distance = estimated_distance * random.uniform(1.1, 2)
+                    max_distance = estimated_distance * random.uniform(ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     self.planets.append(AsteroidBelt(estimated_distance, min_distance, max_distance))
                 else:
                     planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
@@ -243,9 +253,9 @@ class StarSystem:
         scaling_factor = 1 + math.log10(solar_masses) if solar_masses >= 1 else solar_masses
 
         # Base number of objects for a 1 solar mass star is 15.
-        max_objects = 15 * scaling_factor
-        if max_objects > 500:
-            max_objects = 500
+        max_objects = BASE_MAX_SYSTEM_OBJECTS * scaling_factor
+        if max_objects > ABSOLUTE_MAX_SYSTEM_OBJECTS:
+            max_objects = ABSOLUTE_MAX_SYSTEM_OBJECTS
         return math.ceil(max_objects) if config.FORCE_MAX_PLANETS else random.randint(0, math.ceil(max_objects))
 
     def validate_system(self):
@@ -283,23 +293,24 @@ class StarSystem:
 
             if planet.type == 'a':
                 if last_planet.type == 'a':
-                    if distance_to_last < 0.05:
-                        planet.distance += 0.05 + additional_correction
-                        planet.upper_limit += 0.05 + additional_correction
-                        planet.lower_limit += 0.05 + additional_correction
+                    if distance_to_last < MIN_ASTEROID_BELT_SEPARATION:
+                        planet.distance += MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                        planet.upper_limit += MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                        planet.lower_limit += MIN_ASTEROID_BELT_SEPARATION + additional_correction
                 elif distance_to_last < last_planet.min_orbit_distance:
                     planet.distance += last_planet.min_orbit_distance + additional_correction
                     planet.upper_limit += last_planet.min_orbit_distance + additional_correction
                     planet.lower_limit += last_planet.min_orbit_distance + additional_correction
-            elif last_planet.type == 'a':
-                if distance_to_last < 0.05:
-                    planet.distance += 0.05 + additional_correction
-                    planet.calculate_atmospheric_conditions()
             else:
-                min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
-                if distance_to_last < min_orbit:
-                    planet.distance += min_orbit + additional_correction
-                    planet.calculate_atmospheric_conditions()
+                if last_planet.type == 'a':
+                    if distance_to_last < MIN_ASTEROID_BELT_SEPARATION:
+                        planet.distance += MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                        planet.calculate_atmospheric_conditions()
+                else:
+                    min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
+                    if distance_to_last < min_orbit:
+                        planet.distance += min_orbit + additional_correction
+                        planet.calculate_atmospheric_conditions()
 
     def __str__(self):
         """
@@ -377,10 +388,10 @@ class StarSystem:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
         # Convert AU to Light-Years for the descriptive text (1 LY = 63241.1 AU)
-        perimeter_ly = self.star.system_perimeter / 63241.1
+        perimeter_ly = self.star.system_perimeter * AU_TO_LY # Changed to multiply by AU_TO_LY
 
         # Convert heliosphere radius to light-years to check the condition
-        heliosphere_ly = self.star.heliosphere_radius / 63241.1
+        heliosphere_ly = self.star.heliosphere_radius * AU_TO_LY # Changed to multiply by AU_TO_LY
         if heliosphere_ly < 0.1:
             heliosphere_text = f"{self.star.heliosphere_radius:.4f} AU"
         else:

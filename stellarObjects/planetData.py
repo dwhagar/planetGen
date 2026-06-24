@@ -18,7 +18,9 @@ from .utils import to_scientific_notation, years_to_time_string, calc_object_mas
 from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
                         STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY, AU_TO_M,
                         ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
-                        PLANET_CLASSES, PLANET_CLASS_PROBABILITIES, LIFE_CHEMICALS, STAR_EVOLUTION)
+                        PLANET_CLASSES, PLANET_CLASS_PROBABILITIES, LIFE_CHEMICALS, STAR_EVOLUTION,
+                        HABITABLE_PLANET_CLASSES, MOON_BLACKLIST, CO2_BASE_MOLAR_DENSITY,
+                        CO2_MAX_GREENHOUSE_FACTOR, AU_TO_LY, LY_THRESHOLD)
 from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
                     MOON_PREFIXES, MOON_SUFFIXES)
 from . import config
@@ -234,6 +236,9 @@ class Planet:
         if self.planet_class is None and self.radius is None and self.mass is None:
             # Fully random generation
             valid_classes = [c for c, data in PLANET_CLASSES.items() if data[zone]]
+            if config.NO_HABITABLE_WORLD and zone == 'e':
+                valid_classes = [c for c in valid_classes if c not in HABITABLE_PLANET_CLASSES]
+            
             classes = list(PLANET_CLASS_PROBABILITIES.keys())
             probabilities = list(PLANET_CLASS_PROBABILITIES.values())
             class_valid = False
@@ -248,6 +253,8 @@ class Planet:
         elif self.planet_class is not None and self.radius is None and self.mass is None:
             # Class given, generate radius
             self._validate_planet_class(zone)
+            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
 
@@ -255,6 +262,8 @@ class Planet:
             # Radius given, determine possible classes
             possible_classes = [c for c, data in PLANET_CLASSES.items()
                                 if data[zone] and data["radius_range"][0] <= self.radius <= data["radius_range"][1]]
+            if config.NO_HABITABLE_WORLD and zone == 'e':
+                possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius in this zone")
             self.planet_class = random.choice(possible_classes)
@@ -264,6 +273,8 @@ class Planet:
             # Mass given, determine possible classes
             possible_classes = [c for c, data in PLANET_CLASSES.items()
                                 if planet_mass_ranges[c][0] <= self.mass <= planet_mass_ranges[c][1] and data[zone]]
+            if config.NO_HABITABLE_WORLD and zone == 'e':
+                possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given mass in this zone")
             self.planet_class = random.choice(possible_classes)
@@ -272,11 +283,15 @@ class Planet:
         elif self.planet_class is not None and self.radius is not None and self.mass is None:
             # Class and radius given, validate
             self._validate_planet_class(zone)
+            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_radius()
 
         elif self.planet_class is not None and self.radius is None and self.mass is not None:
             # Class and mass given, validate and generate radius
             self._validate_planet_class(zone)
+            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_mass()
             min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
@@ -290,6 +305,8 @@ class Planet:
                 min_radius, max_radius = data["radius_range"]
                 if min_mass <= self.mass <= max_mass and min_radius <= self.radius <= max_radius and data[zone]:
                     possible_classes.append(c)
+            if config.NO_HABITABLE_WORLD and zone == 'e':
+                possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius/mass in this zone")
             self.planet_class = random.choice(possible_classes)
@@ -299,6 +316,8 @@ class Planet:
         else:
             # All inputs provided, fully validate
             self._validate_planet_class(zone)
+            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_radius()
             self._validate_mass()
 
@@ -517,8 +536,7 @@ class Planet:
             atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)
             planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2
             atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500
-            CO2_BASE_MOLAR_DENSITY = 0.04345
-            CO2_MAX_GREENHOUSE_FACTOR = 5
+            
             greenhouse_factor = abs((self.atm_molar_density - CO2_BASE_MOLAR_DENSITY) / CO2_BASE_MOLAR_DENSITY * CO2_MAX_GREENHOUSE_FACTOR)
             surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
             self.surface_temperature = surface_temperature_atmosphere
@@ -546,11 +564,10 @@ class Planet:
         properties, such as its mass and Hill radius. The generated moons are
         themselves instances of the `Planet` class, with the `is_moon` flag set.
         """
-        moon_blacklist = ['Q', 'R', 'V', 'W', 'X', 'Y']
         max_moon_mass = self.mass / 10
         max_moon_radius = self.radius / (10 ** (1 / 3))
         possible_classes = [c for c, data in planet_mass_ranges.items()
-                            if PLANET_CLASSES[c][self.zone] and PLANET_CLASSES[c]["type"] == 't' and c not in moon_blacklist
+                            if PLANET_CLASSES[c][self.zone] and PLANET_CLASSES[c]["type"] == 't' and c not in MOON_BLACKLIST
                             and data[1] <= max_moon_mass and PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
         if not possible_classes:
             return
@@ -619,10 +636,6 @@ class Planet:
         Returns a list of strings, where each string is a paragraph describing
         the planet.
         """
-        # Conversion factor from AU to Light-Years. 1 LY = 63241.1 AU
-        AU_TO_LY = 1 / 63241.1
-        LY_THRESHOLD = 1.0  # The distance in LY at which to switch from AU to LY display
-
         object_type_desc = "moon" if self.is_moon else "planet"
 
         if self.is_moon:

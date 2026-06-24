@@ -41,6 +41,8 @@ def process_args():
       intelligent life is generated. Implies --force-habitable-world.
     - `--no-intelligent-life` / `-nil`: Ensures no planet with intelligent life
       is generated. Implies --force-habitable-world.
+    - `--no-habitable-world` / `-nhw`: Ensures no habitable world is generated
+      in the system.
 
     Returns:
         argparse.Namespace: An object containing the parsed command-line arguments
@@ -119,6 +121,10 @@ def process_args():
     parser.add_argument('--no-intelligent-life', '-nil', action='store_true',
                         help="Ensure no intelligent life is generated on any planet. Implies --force-habitable-world.")
 
+    # No Habitable World
+    parser.add_argument('--no-habitable-world', '-nhw', action='store_true',
+                        help="Ensures no habitable world is generated in the system.")
+
     args = parser.parse_args()
 
     if args.no_planets and (args.force_moons or args.force_max_planets or args.absurd or args.force_habitable_world):
@@ -129,6 +135,9 @@ def process_args():
 
     if args.force_intelligent_life and args.no_intelligent_life:
         parser.error("--force-intelligent-life and --no-intelligent-life cannot be used together.")
+
+    if args.force_habitable_world and args.no_habitable_world:
+        parser.error("--force-habitable-world and --no-habitable-world cannot be used together.")
 
     return args
 
@@ -167,6 +176,7 @@ def main():
     config.AGE = args.age
     config.FORCE_INT = args.force_intelligent_life
     config.NO_INT = args.no_intelligent_life
+    config.NO_HABITABLE_WORLD = args.no_habitable_world
 
     if config.FORCE_INT or config.NO_INT:
         config.FORCE_HABITABLE_WORLD = True
