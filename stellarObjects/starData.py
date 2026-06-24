@@ -42,7 +42,7 @@ class Star:
 
     The generation process can be random or guided by specific parameters, such
     as forcing a large star or specifying a precise star type (e.g., 'G2V').
-    Once the core properties are established, the class calculates derived
+    Once the core properties are established, it calculates derived
     attributes, including the habitable zone, the system's gravitational
     perimeter, and the heliosphere's radius.
     """
@@ -245,7 +245,7 @@ class Star:
         # Convert the final radius from meters to Astronomical Units (AU) for output.
         return heliopause_radius_m / AU_TO_M
 
-    def __init__(self):
+    def __init__(self, name=None):
         """
         Initializes a Star object, generating its properties based on specified constraints.
 
@@ -254,11 +254,18 @@ class Star:
         parameter allows for the creation of a star with a specific spectral
         class, subclass, and Yerkes classification (e.g., 'G2V').
 
+        If a `name` is provided, it will be used for the star; otherwise, a
+        random name will be generated.
+
         Once the core properties are established, it calculates derived
         properties such as the habitable zone, system perimeter (Hill sphere),
         and the heliosphere radius.
+
+        Args:
+            name (str, optional): The name to assign to the star. If None, a
+                                  random name will be generated. Defaults to None.
         """
-        self.name = generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.luminosity = None
         self.temperature = None
         self.mass = None

@@ -70,8 +70,11 @@ class StarSystem:
         The placement of planets is done sequentially, with each new planet's
         orbit being determined based on the position of the previous one to ensure
         a degree of realism in orbital spacing.
+
+        If `config.NAME` is provided, it will be used as the name for the star
+        system, overriding the default random name generation.
         """
-        self.star = Star()
+        self.star = Star(name=config.NAME)
         self.planets = []
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / SOLAR_MASS_TO_KG

@@ -34,6 +34,8 @@ def process_args():
       creating only a star.
     - `--star-type`: Allows specifying a precise star type to generate, such as
       'G2V'.
+    - `--name`: Specifies a name for the star system, overriding the default
+      random generation.
 
     Returns:
         argparse.Namespace: An object containing the parsed command-line arguments
@@ -96,6 +98,10 @@ def process_args():
     parser.add_argument('--star-type', type=str,
                         help="Force the generation of a specific star type (e.g., G2V).")
 
+    # System Name
+    parser.add_argument('--name', type=str,
+                        help="Force the name of the star system.")
+
 
     args = parser.parse_args()
 
@@ -138,6 +144,7 @@ def main():
     config.ABSURD = args.absurd
     config.NO_PLANETS = args.no_planets
     config.STAR_TYPE = args.star_type
+    config.NAME = args.name
 
     if config.FORCE_HABITABLE_WORLD and config.FORCE_ASTEROID_BELT and not config.ABSURD:
         config.FORCE_LARGE_STAR = True

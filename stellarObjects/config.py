@@ -13,3 +13,4 @@ FORCE_MAX_PLANETS = False
 ABSURD = False
 NO_PLANETS = False
 STAR_TYPE = None
+NAME = None
