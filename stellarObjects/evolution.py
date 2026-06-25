@@ -17,7 +17,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 import random
 from .constants import EVOLUTIONARY_TIMELINES, STAR_EVOLUTION, EVOLUTIONARY_TEXT
 from .utils import to_paragraph, _format_age_string
-from . import config # Import the config module
+# Removed: from . import config # Import the config module
 
 def get_evolutionary_timeline(star):
     """
@@ -58,7 +58,7 @@ def get_evolutionary_timeline(star):
     current_system_age = star.age
 
     # If FORCE_INT is true, ensure the star's age is sufficient for technological civilization
-    if config.FORCE_INT:
+    if star.system_config.FORCE_INT: # Use star.system_config
         tech_civ_age = timeline['technological_civilization']
         if current_system_age < tech_civ_age:
             # Nudge the star's age to be just enough for technological civilization
@@ -83,10 +83,10 @@ def get_evolutionary_timeline(star):
             most_recent_milestone_name = name
 
     # Apply FORCE_INT and NO_INT logic
-    if config.FORCE_INT:
+    if star.system_config.FORCE_INT: # Use star.system_config
         most_recent_milestone_name = "Technological Civilization"
         most_recent_milestone_age = milestones["Technological Civilization"]
-    elif config.NO_INT:
+    elif star.system_config.NO_INT: # Use star.system_config
         if most_recent_milestone_name == "Technological Civilization":
             most_recent_milestone_name = "Multicellularity"
             most_recent_milestone_age = milestones["Multicellularity"]

@@ -14,9 +14,9 @@ import math
 import random
 from .constants import SOLAR_LUMINOSITY, STEFAN_BOLTZMANN_CONSTANT
 from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
-from . import config
+from .config import SystemConfig # Import SystemConfig
 
-def to_scientific_notation(number, precision=2):
+def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
 
@@ -25,6 +25,7 @@ def to_scientific_notation(number, precision=2):
     global `config.MARKDOWN` flag to determine the output format.
 
     Args:
+        system_config (SystemConfig): The shared SystemConfig object.
         number (float): The number to convert.
         precision (int, optional): The number of decimal places to show. Defaults to 2.
 
@@ -36,7 +37,7 @@ def to_scientific_notation(number, precision=2):
         return "0"
     exponent = int(math.floor(math.log10(abs(number))))
     coefficient = number / 10**exponent
-    if config.MARKDOWN:
+    if system_config.MARKDOWN:
         return f"{coefficient:.{precision}f} × 10<sup>{exponent}</sup>"
     else:
         output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
@@ -345,12 +346,13 @@ def to_paragraph(sentences):
     return " ".join(sentences)
 
 
-def properties_to_string(properties: dict, template_name: str, markdown_header: str = None, markdown_key_map: dict = None) -> str:
+def properties_to_string(system_config: SystemConfig, properties: dict, template_name: str, markdown_header: str = None, markdown_key_map: dict = None) -> str:
     """
     Converts a dictionary of properties into either a Markdown table or a Wiki template block,
-    based on the `config.MARKDOWN` flag.
+    based on the `system_config.MARKDOWN` flag.
 
     Args:
+        system_config (SystemConfig): The shared SystemConfig object.
         properties (dict): A dictionary where keys are property names (str) in Wikitext format
                            and values are their corresponding values (str or any type convertible to str).
         template_name (str): The name of the template to use for Wiki format (e.g., "Planet Data").
@@ -366,7 +368,7 @@ def properties_to_string(properties: dict, template_name: str, markdown_header: 
     """
     output_lines = []
 
-    if config.MARKDOWN:
+    if system_config.MARKDOWN:
         if markdown_header:
             output_lines.append(markdown_header)
         output_lines.extend([

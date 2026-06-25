@@ -48,7 +48,7 @@ from .constants import (STEFAN_BOLTZMANN_CONSTANT, SOLAR_MASS_TO_KG, SOLAR_LUMIN
                         ROUND_HABITABLE_ZONE_AU_SMALL, ROUND_RADIUS_KM, SCIENTIFIC_NOTATION_DECIMAL_PLACES,
                         ROUND_TEMPERATURE_NEAREST_HUNDRED)
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import config
+from .config import SystemConfig # Updated import
 
 class Star:
     """
@@ -97,9 +97,9 @@ class Star:
         min_age = MIN_INITIAL_STAR_AGE_GY
         max_age = lifespan * MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO
 
-        if config.AGE == "old":
+        if self.system_config.AGE == "old":
             min_age = lifespan * OLD_STAR_AGE_LIFESPAN_RATIO
-        elif config.AGE == "young":
+        elif self.system_config.AGE == "young":
             max_age = lifespan * YOUNG_STAR_AGE_LIFESPAN_RATIO
 
         age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
@@ -281,7 +281,7 @@ class Star:
         # Convert the final radius from meters to Astronomical Units (AU) for output.
         return heliopause_radius_m / AU_TO_M
 
-    def __init__(self, name=None, system_flavor_count = 0):
+    def __init__(self, system_config: SystemConfig, name=None):
         """
         Initializes a Star object, generating its properties based on specified constraints.
 
@@ -302,9 +302,11 @@ class Star:
         `system_perimeter` (Hill sphere), and `heliosphere_radius`.
 
         Args:
+            system_config (SystemConfig): The shared SystemConfig object for the system.
             name (str, optional): The name to assign to the star. If None, a
                                   random name will be generated. Defaults to None.
         """
+        self.system_config = system_config # Storing the SystemConfig instance
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.luminosity = None
         self.temperature = None
@@ -320,7 +322,6 @@ class Star:
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter()
         self.heliosphere_radius = self.calculate_heliosphere()
-        self.system_flavor_count = system_flavor_count
 
     def to_paragraph_list(self):
         """
@@ -358,24 +359,24 @@ class Star:
         # Refactored mass and luminosity string generation for clarity and correctness
         sol_mass_val = self.mass / SOLAR_MASS_TO_KG
         if sol_mass_val < PERCENT_SOL_THRESHOLD_LOW: # Less than 1%
-            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val * PERCENT_MULTIPLIER:.2f}% of Sol)"
+            mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val * PERCENT_MULTIPLIER:.2f}% of Sol)"
         elif sol_mass_val < PERCENT_SOL_THRESHOLD_HIGH: # Between 1% and 200%
-            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val:.1f}% of Sol)"
+            mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val:.1f}% of Sol)"
         else: # Greater than 200%
-            mass_string = f"{to_scientific_notation(self.mass)} kg ({sol_mass_val:.1f}× Sol)"
+            mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val:.1f}× Sol)"
 
         sol_lum_val = self.luminosity / SOLAR_LUMINOSITY
         if sol_lum_val < PERCENT_SOL_THRESHOLD_LOW: # Less than 1%
-            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val * PERCENT_MULTIPLIER:.4f}% of Sol)"
+            lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val * PERCENT_MULTIPLIER:.4f}% of Sol)"
         elif sol_lum_val < PERCENT_SOL_THRESHOLD_HIGH: # Between 1% and 200%
-            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val * PERCENT_MULTIPLIER:.1f}% of Sol)"
+            lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val * PERCENT_MULTIPLIER:.1f}% of Sol)"
         else: # Greater than 200%
-            lum_string = f"{to_scientific_notation(self.luminosity)} W ({sol_lum_val:.1f}× Sol)"
+            lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val:.1f}× Sol)"
 
         if self.radius <= RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD:
             radius_string = f"{round(self.radius, ROUND_RADIUS_KM):,} km"
         else:
-            radius_string = f"{to_scientific_notation(self.radius, SCIENTIFIC_NOTATION_DECIMAL_PLACES)} km"
+            radius_string = f"{to_scientific_notation(self.system_config, self.radius, SCIENTIFIC_NOTATION_DECIMAL_PLACES)} km"
 
         star_properties = {
             "type": self.type,
@@ -397,7 +398,7 @@ class Star:
             "loc": "Location"
         }
         
-        star_block = properties_to_string(star_properties, "Star Data", markdown_key_map=markdown_key_map)
+        star_block = properties_to_string(self.system_config, star_properties, "Star Data", markdown_key_map=markdown_key_map)
         paragraphs.append(star_block)
 
         # Construct the age and evolutionary notes sentence
@@ -468,11 +469,13 @@ class Star:
 
         For random stars (when `config.STAR_TYPE` is None):
         1.  **Spectral Class Selection**: A spectral class is chosen probabilistically
-            based on their prevalence in the galactic population. `config.ABSURD`
-            or `config.FORCE_LARGE_STAR` can bias this selection towards hotter,
+            based on their prevalence in the galactic population. `self.system_config.ABSURD`
+            or `self.system_config.FORCE_LARGE_STAR`
+            can bias this selection towards hotter,
             more massive stars.
         2.  **Luminosity Generation**: A luminosity is randomly chosen from the
-            typical range for the selected spectral class. `config.ABSURD` forces
+            typical range for the selected spectral class. `self.system_config.ABSURD`
+            forces
             the maximum luminosity for the chosen class.
         3.  **Yerkes Class Determination**: The Yerkes luminosity class (e.g.,
             Supergiant, Main Sequence, White Dwarf) is *derived* from the
@@ -496,11 +499,11 @@ class Star:
             "VI": "Subdwarf", "VII": "White Dwarf", "D": "White Dwarf"
         }
 
-        if config.STAR_TYPE:
+        if self.system_config.STAR_TYPE:
             # --- GENERATE STAR FROM SPECIFIED TYPE ---
 
             # 1. Parse and validate the specified star type string.
-            match = re.match(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)", config.STAR_TYPE.upper())
+            match = re.match(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)", self.system_config.STAR_TYPE.upper())
             if not match:
                 raise ValueError("Invalid star type format. Expected format is e.g., G2V.")
             spectral_class, subclass_str, yerkes_class_str = match.groups()
@@ -538,9 +541,9 @@ class Star:
             # --- GENERATE STAR RANDOMLY ---
 
             # 1. Generate Spectral Class based on galactic population.
-            if config.ABSURD:
+            if self.system_config.ABSURD:
                 spectral_probabilities = SPECTRAL_PROBABILITIES_ABSURD
-            elif config.FORCE_LARGE_STAR:
+            elif self.system_config.FORCE_LARGE_STAR:
                 spectral_probabilities = SPECTRAL_PROBABILITIES_LARGE_STAR
             else:
                 spectral_probabilities = SPECTRAL_PROBABILITIES_NORMAL
@@ -548,7 +551,7 @@ class Star:
 
             # 2. Generate Luminosity from the spectral class's typical range.
             min_luminosity, max_luminosity = SPECTRAL_LUMINOSITY_RANGES[spectral_class]
-            luminosity = max_luminosity if config.ABSURD else random.uniform(min_luminosity, max_luminosity)
+            luminosity = max_luminosity if self.system_config.ABSURD else random.uniform(min_luminosity, max_luminosity)
 
             # 3. Determine Yerkes Class from the resulting luminosity.
             if luminosity > YERKES_LUMINOSITY_RANGES["0"][0]:
@@ -565,8 +568,6 @@ class Star:
                 self.yerkes_class, yerkes_type = "III", "Giant"
             elif luminosity > YERKES_LUMINOSITY_RANGES["IV"][0]:
                 self.yerkes_class, yerkes_type = "IV", "Subgiant"
-            elif luminosity > YERKES_LUMINOSITY_RANGES["VI"][0]: # Check Subdwarf before Main Sequence
-                 self.yerkes_class, yerkes_type = "VI", "Subdwarf"
             elif luminosity > SPECTRAL_LUMINOSITY_RANGES["M"][0]: # Check against dimmest main sequence
                 self.yerkes_class, yerkes_type = "V", "Main Sequence"
             else:

@@ -14,19 +14,24 @@ asteroid belts within the system.
 
 import math
 import random
-from .utils import to_scientific_notation, years_to_time_string, calc_object_mass, generate_phoneme_salad_name, to_paragraph, calculate_hill_sphere, _format_age_string, properties_to_string
-from .constants import (EARTH_RADIUS_KM, EARTH_GRAVITY, AU_TO_KM, G, R,
-                        STEFAN_BOLTZMANN_CONSTANT, PLANET_DENSITY, ATMOSPHERE_DENSITY, AU_TO_M,
-                        ATMOSPHERIC_MOLAR_DENSITY, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
-                        PLANET_CLASSES, PLANET_CLASS_PROBABILITIES, LIFE_CHEMICALS, STAR_EVOLUTION,
-                        HABITABLE_PLANET_CLASSES, MOON_BLACKLIST, CO2_BASE_MOLAR_DENSITY,
-                        CO2_MAX_GREENHOUSE_FACTOR, AU_TO_LY, LY_THRESHOLD,
-                        FLAVOR_CHANCE_PLANET, PLANET_FLAVOR, HABITABLE_FLAVOR, EVOLUTIONARY_TIMELINES,
-                        MAX_FLAVOR_TOTAL, MAX_FLAVOR_PLANET)
-from .names import (PLANET_NAMES, MOON_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
-                    MOON_PREFIXES, MOON_SUFFIXES)
-from . import config
-from .evolution import get_evolutionary_timeline # Import the evolutionary timeline function
+
+from .config import SystemConfig # Updated import
+from .constants import (ATMOSPHERE_DENSITY, ATMOSPHERIC_MOLAR_DENSITY, AU_TO_KM,
+                        AU_TO_LY, AU_TO_M, CO2_BASE_MOLAR_DENSITY,
+                        CO2_MAX_GREENHOUSE_FACTOR, EARTH_GRAVITY,
+                        EARTH_RADIUS_KM, EVOLUTIONARY_TIMELINES,
+                        FLAVOR_CHANCE_PLANET, G, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
+                        HABITABLE_FLAVOR, HABITABLE_PLANET_CLASSES, LIFE_CHEMICALS,
+                        LY_THRESHOLD, MAX_FLAVOR_PLANET, MAX_FLAVOR_TOTAL,
+                        MOON_BLACKLIST, PLANET_CLASSES, PLANET_CLASS_PROBABILITIES,
+                        PLANET_DENSITY, PLANET_FLAVOR, R, STAR_EVOLUTION,
+                        STEFAN_BOLTZMANN_CONSTANT)
+from .evolution import get_evolutionary_timeline
+from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
+                    PLANET_PREFIXES, PLANET_SUFFIXES)
+from .utils import (calc_object_mass, calculate_hill_sphere, _format_age_string,
+                    generate_phoneme_salad_name, properties_to_string,
+                    to_paragraph, to_scientific_notation, years_to_time_string)
 
 
 def get_planet_mass_ranges():
@@ -124,13 +129,14 @@ class Planet:
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
-    def __init__(self, star, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
+    def __init__(self, system_config: SystemConfig, star, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False):
         """
         Initializes a Planet object with its properties and orbital context.
 
         Args:
+            system_config (SystemConfig): The shared SystemConfig object for the system.
             star (Star): The Star object this planet orbits.
             hab_zone (tuple): A tuple containing the inner and outer bounds of the
                               habitable zone in AU.
@@ -149,6 +155,7 @@ class Planet:
                                                  distance, used in specific calculations.
             is_moon (bool, optional): Flag indicating if the object is a moon.
         """
+        self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
         self.moons = []
         self.zone = None
@@ -203,7 +210,7 @@ class Planet:
         if self.zone == 'e' and not self.is_moon: # Only for habitable planets
             self.evolutionary_data = get_evolutionary_timeline(self.star)
 
-        if (config.FORCE_MOONS or random.randint(0, 1) == 1) and not self.is_moon:
+        if (self.system_config.FORCE_MOONS or random.randint(0, 1) == 1) and not self.is_moon: # Use self.system_config
             self.generate_moons()
 
     def generate_planet(self, zone_override=None):
@@ -242,7 +249,7 @@ class Planet:
         if self.planet_class is None and self.radius is None and self.mass is None:
             # Fully random generation
             valid_classes = [c for c, data in PLANET_CLASSES.items() if data[zone]]
-            if config.NO_HABITABLE_WORLD and zone == 'e':
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
                 valid_classes = [c for c in valid_classes if c not in HABITABLE_PLANET_CLASSES]
             
             classes = list(PLANET_CLASS_PROBABILITIES.keys())
@@ -259,7 +266,7 @@ class Planet:
         elif self.planet_class is not None and self.radius is None and self.mass is None:
             # Class given, generate radius
             self._validate_planet_class(zone)
-            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
@@ -268,7 +275,7 @@ class Planet:
             # Radius given, determine possible classes
             possible_classes = [c for c, data in PLANET_CLASSES.items()
                                 if data[zone] and data["radius_range"][0] <= self.radius <= data["radius_range"][1]]
-            if config.NO_HABITABLE_WORLD and zone == 'e':
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
                 possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius in this zone")
@@ -279,7 +286,7 @@ class Planet:
             # Mass given, determine possible classes
             possible_classes = [c for c, data in PLANET_CLASSES.items()
                                 if planet_mass_ranges[c][0] <= self.mass <= planet_mass_ranges[c][1] and data[zone]]
-            if config.NO_HABITABLE_WORLD and zone == 'e':
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
                 possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given mass in this zone")
@@ -289,14 +296,14 @@ class Planet:
         elif self.planet_class is not None and self.radius is not None and self.mass is None:
             # Class and radius given, validate
             self._validate_planet_class(zone)
-            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_radius()
 
         elif self.planet_class is not None and self.radius is None and self.mass is not None:
             # Class and mass given, validate and generate radius
             self._validate_planet_class(zone)
-            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_mass()
             min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
@@ -311,7 +318,7 @@ class Planet:
                 min_radius, max_radius = data["radius_range"]
                 if min_mass <= self.mass <= max_mass and min_radius <= self.radius <= max_radius and data[zone]:
                     possible_classes.append(c)
-            if config.NO_HABITABLE_WORLD and zone == 'e':
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
                 possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius/mass in this zone")
@@ -322,7 +329,7 @@ class Planet:
         else:
             # All inputs provided, fully validate
             self._validate_planet_class(zone)
-            if config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES:
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_radius()
             self._validate_mass()
@@ -370,7 +377,7 @@ class Planet:
                 weights=list(viable_chems.values()),
                 k=1
             )[0]
-            life_chem_data = LIFE_CHEMICALS.get(self.life_chemical, {})
+            life_chem_data = LIFE_CHEMICALS.get(self.life_chemical, {}).get("reflection_spectrum_visible")
             self.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
             self.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
         else:
@@ -595,7 +602,7 @@ class Planet:
             moon_distance = random.uniform(total_orbit_distance, high_orbit) / AU_TO_KM
             moon_radius = random.uniform(PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
-            new_moon = Planet(self.star, self.hab, moon_distance, self.star_type, self.star_output, self.star_radius,
+            new_moon = Planet(self.system_config, self.star, self.hab, moon_distance, self.star_type, self.star_output, self.star_radius, # Pass system_config
                               self.star_temperature, self.star_mass, radius=moon_radius,
                               planet_class=moon_class, zone_override=self.zone,
                               distance_override=self.distance, is_moon=True)
@@ -647,8 +654,8 @@ class Planet:
         if self.is_moon:
             # Moons orbit their parent planet, so their distance is from the planet, not the star.
             # This distance is typically much smaller and best represented in kilometers.
-            distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 4)} km"
-            header_level = '###' if config.MARKDOWN else '==='
+            distance_text = f"{to_scientific_notation(self.system_config, self.distance * AU_TO_KM, 4)} km" # Pass system_config
+            header_level = '###' if self.system_config.MARKDOWN else '===' # Use self.system_config
         else:
             # For planets, the distance is from the star. We check if this distance
             # is large enough to warrant using light-years.
@@ -656,17 +663,17 @@ class Planet:
             if distance_ly < LY_THRESHOLD:
                 # For "normal" sized systems, display in AU.
                 # If less than 1 AU, also show in km for context.
-                distance_text = f"{to_scientific_notation(self.distance * AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU"
+                distance_text = f"{to_scientific_notation(self.system_config, self.distance * AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
             else:
                 # For very large systems, display in light-years.
                 distance_text = f"{distance_ly:.4f} light-years"
-            header_level = '##' if config.MARKDOWN else '=='
+            header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
 
         output_paragraphs = []
-        header = f"{header_level} {self.name} {header_level if not config.MARKDOWN else ''}"
+        header = f"{header_level} {self.name} {header_level if not self.system_config.MARKDOWN else ''}" # Use self.system_config
         output_paragraphs.append(header)
 
-        radius_string = f"{round(self.radius, 2):,} km" if self.radius <= 100000 else f"{to_scientific_notation(self.radius, 2)} km"
+        radius_string = f"{round(self.radius, 2):,} km" if self.radius <= 100000 else f"{to_scientific_notation(self.system_config, self.radius, 2)} km" # Pass system_config
 
         planet_properties = {
             "class": self.planet_class,
@@ -676,7 +683,7 @@ class Planet:
             "gravity": f"{round(self.gravity, 3)} g",
         }
 
-        output_paragraphs.append(properties_to_string(planet_properties, "Planet Data"))
+        output_paragraphs.append(properties_to_string(self.system_config, planet_properties, "Planet Data")) # Pass system_config
 
         sentences = []
         if not self.is_moon:
@@ -724,7 +731,7 @@ class Planet:
             output_paragraphs.extend(self.evolutionary_data)
 
         # Add flavor text if the random chance passes and limits are not exceeded
-        if random.random() < FLAVOR_CHANCE_PLANET and self.star.system_flavor_count < MAX_FLAVOR_TOTAL and self.flavor_text_count < MAX_FLAVOR_PLANET:
+        if random.random() < FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < MAX_FLAVOR_TOTAL and self.flavor_text_count < MAX_FLAVOR_PLANET: # Use self.system_config
             selected_flavor = None
             # Check for habitable and multicellular/technological life
             is_habitable = self.planet_class in HABITABLE_PLANET_CLASSES
@@ -737,18 +744,27 @@ class Planet:
 
             if is_habitable and has_multicellular_life:
                 selected_flavor = random.choice(HABITABLE_FLAVOR)
-            else:
+            elif self.planet_class != "A" and self.type != "t":
                 selected_flavor = random.choice(PLANET_FLAVOR)
 
             if selected_flavor:
                 self.flavor_text = selected_flavor
                 output_paragraphs.append(f"Sensors show {self.flavor_text}")
-                self.star.system_flavor_count += 1
+                self.system_config.system_flavor_count += 1 # Use self.system_config
                 self.flavor_text_count += 1
 
         if self.moons:
             for moon in self.moons:
                 output_paragraphs.extend(moon.to_paragraph_list())  # Recursively get moon paragraphs
+
+        # Post-processing: Replace "planet" with "moon" if the object is a moon
+        if self.is_moon:
+            processed_paragraphs = []
+            for paragraph in output_paragraphs:
+                paragraph = paragraph.replace("planet", "moon")
+                paragraph = paragraph.replace("Planet", "Moon")
+                processed_paragraphs.append(paragraph)
+            output_paragraphs = processed_paragraphs
 
         return output_paragraphs
 

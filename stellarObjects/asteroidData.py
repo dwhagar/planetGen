@@ -10,7 +10,7 @@ related to planet mass ranges, which are used by both planets and asteroid belts
 """
 
 import random
-from . import config
+from .config import SystemConfig # Updated import
 from . import constants
 
 class AsteroidBelt:
@@ -29,15 +29,17 @@ class AsteroidBelt:
         composition (list): A list of tuples, each containing (component, concentration).
     """
 
-    def __init__(self, distance, lower_limit, upper_limit):
+    def __init__(self, system_config: SystemConfig, distance, lower_limit, upper_limit): # Added system_config
         """
         Initializes an AsteroidBelt object.
 
         Args:
+            system_config (SystemConfig): The shared SystemConfig object for the system.
             distance (float): The average distance from the star in AU.
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
         """
+        self.system_config = system_config # Store system_config
         self.distance = distance
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
@@ -90,8 +92,8 @@ class AsteroidBelt:
             distance_text = f"between {lower_limit_ly:.4f} light-years and {upper_limit_ly:.4f} light-years"
 
         output_paragraphs = []
-        header_level = '##' if config.MARKDOWN else '=='
-        header = f"{header_level} Asteroid Belt {header_level if not config.MARKDOWN else ''}"
+        header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
+        header = f"{header_level} Asteroid Belt {header_level if not self.system_config.MARKDOWN else ''}" # Use self.system_config
         output_paragraphs.append(header)
 
         composition_phrases = []

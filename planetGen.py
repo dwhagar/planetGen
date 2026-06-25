@@ -1,6 +1,7 @@
 import argparse
 import logging
-from stellarObjects import StarSystem, config
+from stellarObjects.systemData import StarSystem
+from stellarObjects.config import SystemConfig
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -127,6 +128,7 @@ def process_args():
 
     args = parser.parse_args()
 
+    # Argument validation logic
     if args.no_planets and (args.force_moons or args.force_max_planets or args.absurd or args.force_habitable_world):
         parser.error("--no-planets cannot be combined with --force-moons, --force-max-planets, --absurd, or --force-habitable-world.")
 
@@ -163,31 +165,35 @@ def main():
     """
     args = process_args()
 
-    config.MARKDOWN = args.markdown
-    config.FORCE_HABITABLE_WORLD = args.force_habitable_world
-    config.FORCE_ASTEROID_BELT = args.force_asteroid_belt
-    config.FORCE_LARGE_STAR = args.force_large_star
-    config.FORCE_MOONS = args.force_moons
-    config.FORCE_MAX_PLANETS = args.force_max_planets
-    config.ABSURD = args.absurd
-    config.NO_PLANETS = args.no_planets
-    config.STAR_TYPE = args.star_type
-    config.NAME = args.name
-    config.AGE = args.age
-    config.FORCE_INT = args.force_intelligent_life
-    config.NO_INT = args.no_intelligent_life
-    config.NO_HABITABLE_WORLD = args.no_habitable_world
+    system_config = SystemConfig() # Create an instance of SystemConfig
 
-    if config.FORCE_INT or config.NO_INT:
-        config.FORCE_HABITABLE_WORLD = True
+    # Assign parsed arguments to the SystemConfig object
+    system_config.MARKDOWN = args.markdown
+    system_config.FORCE_HABITABLE_WORLD = args.force_habitable_world
+    system_config.FORCE_ASTEROID_BELT = args.force_asteroid_belt
+    system_config.FORCE_LARGE_STAR = args.force_large_star
+    system_config.FORCE_MOONS = args.force_moons
+    system_config.FORCE_MAX_PLANETS = args.force_max_planets
+    system_config.ABSURD = args.absurd
+    system_config.NO_PLANETS = args.no_planets
+    system_config.STAR_TYPE = args.star_type
+    system_config.NAME = args.name
+    system_config.AGE = args.age
+    system_config.FORCE_INT = args.force_intelligent_life
+    system_config.NO_INT = args.no_intelligent_life
+    system_config.NO_HABITABLE_WORLD = args.no_habitable_world
 
-    if config.FORCE_HABITABLE_WORLD and config.FORCE_ASTEROID_BELT and not config.ABSURD:
-        config.FORCE_LARGE_STAR = True
-    elif config.ABSURD:
-        config.FORCE_MAX_PLANETS = True
-        config.FORCE_MOONS = True
+    # Apply conditional logic based on SystemConfig flags
+    if system_config.FORCE_INT or system_config.NO_INT:
+        system_config.FORCE_HABITABLE_WORLD = True
 
-    system = StarSystem()
+    if system_config.FORCE_HABITABLE_WORLD and system_config.FORCE_ASTEROID_BELT and not system_config.ABSURD:
+        system_config.FORCE_LARGE_STAR = True
+    elif system_config.ABSURD:
+        system_config.FORCE_MAX_PLANETS = True
+        system_config.FORCE_MOONS = True
+
+    system = StarSystem(system_config=system_config) # Pass the SystemConfig instance
 
     if args.output:
         with open(args.output, 'w') as f:

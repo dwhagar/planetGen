@@ -13,7 +13,6 @@ This package exports the following classes:
     - StarSystem: Represents a full star system, including a central star and a list of planets.
 """
 
-from . import config
 from .planetData import Planet
 from .starData import Star
 from .systemData import StarSystem

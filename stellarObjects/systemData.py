@@ -38,8 +38,7 @@ from .constants import (
     MAX_FLAVOR_TOTAL
 )
 from .utils import to_paragraph
-from . import config
-
+from .config import SystemConfig # Updated import
 
 class StarSystem:
     """
@@ -67,7 +66,7 @@ class StarSystem:
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
     """
 
-    def __init__(self):
+    def __init__(self, system_config: SystemConfig): # Updated signature to accept system_config
         """
         Initializes a StarSystem object, generating a star and its planets.
 
@@ -88,23 +87,24 @@ class StarSystem:
         If `config.NAME` is provided, it will be used as the name for the star
         system, overriding the default random name generation.
         """
-        self.star = Star(name=config.NAME)
+        self.system_config = system_config # Assign the passed SystemConfig instance
+        self.star = Star(self.system_config, name=self.system_config.NAME) # Pass system_config and use its NAME
         self.planets = []
-        self.system_flavor_count = 0 # Initialize system flavor count
+        # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / SOLAR_MASS_TO_KG
 
         required_objects = 0
-        if config.FORCE_HABITABLE_WORLD:
+        if self.system_config.FORCE_HABITABLE_WORLD: # Use self.system_config
             required_objects += 1
-        if config.FORCE_ASTEROID_BELT:
+        if self.system_config.FORCE_ASTEROID_BELT: # Use self.system_config
             required_objects += 1
 
         if system_objects < required_objects:
             system_objects = required_objects
 
         if system_objects > 0:
-            belt_index = random.randint(0, system_objects - 1) if config.FORCE_ASTEROID_BELT else -1
+            belt_index = random.randint(0, system_objects - 1) if self.system_config.FORCE_ASTEROID_BELT else -1 # Use self.system_config
             found_hab = False
             i = -1
 
@@ -124,7 +124,7 @@ class StarSystem:
 
                 hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
 
-                if config.FORCE_HABITABLE_WORLD and not found_hab:
+                if self.system_config.FORCE_HABITABLE_WORLD and not found_hab: # Use self.system_config
                     if not hz and i == 0:
                         if (estimated_distance > self.star.habitable_zone[1] or
                                 0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
@@ -140,7 +140,7 @@ class StarSystem:
                         if beyond_hz:
                             estimated_distance = random.uniform(self.star.habitable_zone[0],
                                                                 self.star.habitable_zone[1])
-                            planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
+                            planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
                                             self.star.luminosity,
                                             self.star.radius, self.star.temperature, self.star.mass,
                                             planet_class="M")
@@ -154,7 +154,7 @@ class StarSystem:
                             hz = True
 
                     if hz:
-                        planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
+                        planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
                                         self.star.luminosity,
                                         self.star.radius, self.star.temperature, self.star.mass,
                                         planet_class="M")
@@ -165,9 +165,9 @@ class StarSystem:
                 if (random.random() < ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
                     min_distance = estimated_distance
                     max_distance = estimated_distance * random.uniform(ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
-                    self.planets.append(AsteroidBelt(estimated_distance, min_distance, max_distance))
+                    self.planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
                 else:
-                    planet = Planet(self.star, self.star.habitable_zone, estimated_distance, self.star.type[0],
+                    planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
                                     self.star.luminosity,
                                     self.star.radius, self.star.temperature, self.star.mass)
                     if planet.planet_class == "M":
@@ -247,7 +247,7 @@ class StarSystem:
             int: The estimated number of objects to be generated in the system.
                  Returns 0 if `NO_PLANETS` is enabled in the configuration.
         """
-        if config.NO_PLANETS:
+        if self.system_config.NO_PLANETS: # Use self.system_config
             return 0
         solar_masses = self.star.mass / SOLAR_MASS_TO_KG
 
@@ -261,7 +261,7 @@ class StarSystem:
         max_objects = BASE_MAX_SYSTEM_OBJECTS * scaling_factor
         if max_objects > ABSOLUTE_MAX_SYSTEM_OBJECTS:
             max_objects = ABSOLUTE_MAX_SYSTEM_OBJECTS
-        return math.ceil(max_objects) if config.FORCE_MAX_PLANETS else random.randint(0, math.ceil(max_objects))
+        return math.ceil(max_objects) if self.system_config.FORCE_MAX_PLANETS else random.randint(0, math.ceil(max_objects)) # Use self.system_config
 
     def validate_system(self):
         """
@@ -339,7 +339,7 @@ class StarSystem:
         all_output_parts = []
 
         # Add level 1 header for the star's name
-        if config.MARKDOWN:
+        if self.system_config.MARKDOWN: # Use self.system_config
             all_output_parts.append(f"# {self.star.name}\n\n")
         else:
             all_output_parts.append(f"= {self.star.name} =\n\n")
@@ -414,11 +414,11 @@ class StarSystem:
         all_output_parts.append('\n\n' + combined_system_summary_paragraph)
 
         # Add flavor text if the random chance passes and total flavor text limit is not exceeded
-        if random.random() < FLAVOR_CHANCE_SYSTEM and self.system_flavor_count < MAX_FLAVOR_TOTAL:
+        if random.random() < FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < MAX_FLAVOR_TOTAL: # Use self.system_config
             flavor_text = random.choice(SYSTEM_FLAVOR)
             all_output_parts.append(f"\n\nSensors show {flavor_text}")
-            self.system_flavor_count += 1
-            self.star.system_flavor_count += 1
+            self.system_config.system_flavor_count += 1 # Use self.system_config
+            # Removed: self.star.system_flavor_count += 1
 
         # 3. Add planet/belt paragraphs, each separated by a double newline from the previous.
         if self.planets:
@@ -428,7 +428,7 @@ class StarSystem:
                 all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
 
         # 4. Add category tag if not markdown
-        if not config.MARKDOWN:
+        if not self.system_config.MARKDOWN: # Use self.system_config
             all_output_parts.append('\n\n' + '[[Category:Star Systems]]')
 
         return ''.join(all_output_parts)
