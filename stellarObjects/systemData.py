@@ -358,7 +358,7 @@ class StarSystem:
         system_summary_sentences = []
 
         segments = []
-        if self.planet_count > 0:
+        if 0 < self.planet_count != self.m_count and self.hab_count != self.planet_count:
             segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
         if self.belt_count > 0:
             segments.append(f"{self.belt_count} asteroid belt{'s' if self.belt_count > 1 else ''}")
@@ -369,8 +369,10 @@ class StarSystem:
             system_summary_sentences.append("There are no stellar objects in this system.")
         else:
             system_string = "This system contains " + ", ".join(segments)
-            if len(segments) > 1:
+            if len(segments) == 2:
                 system_string = system_string.replace(f", {segments[-1]}", f" and {segments[-1]}")
+            elif len(segments) > 2:
+                system_string = system_string.replace(f", {segments[-1]}", f", and {segments[-1]}")
             system_string += "."
             system_summary_sentences.append(system_string)
 

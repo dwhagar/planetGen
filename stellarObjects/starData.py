@@ -97,10 +97,13 @@ class Star:
         min_age = MIN_INITIAL_STAR_AGE_GY
         max_age = lifespan * MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO
 
+        # Values are calculated to be either in last ratio of the
+        # lifespan (i.e. the last 1/3 of the star's life or the
+        # first 1/3 of a star's life).
         if self.system_config.AGE == "old":
-            min_age = lifespan * OLD_STAR_AGE_LIFESPAN_RATIO
+            min_age = min_age + lifespan * OLD_STAR_AGE_LIFESPAN_RATIO
         elif self.system_config.AGE == "young":
-            max_age = lifespan * YOUNG_STAR_AGE_LIFESPAN_RATIO
+            max_age = max_age - lifespan * (1 - YOUNG_STAR_AGE_LIFESPAN_RATIO)
 
         age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
 
@@ -403,10 +406,25 @@ class Star:
 
         # Construct the age and evolutionary notes sentence
         age_sentence_base = ""
-        if self.lifespan == float('inf'):
-            age_sentence_base = f"The star is approximately {self.age:.2f} billion years old and is now a white dwarf, which will cool for trillions of years"
+
+        if self.age < 1:
+            star_age = self.age * 1000
+            age_term = "million"
         else:
-            age_sentence_base = f"The star is approximately {self.age:.2f} billion years old, with an expected lifespan of {self.lifespan:.2f} billion years"
+            star_age = self.age
+            age_term = "billion"
+
+        if self.lifespan == float('inf'):
+            age_sentence_base = f"The star is approximately {star_age:.2f} {age_term} years old and is now a white dwarf, which will cool for trillions of years"
+        else:
+            if self.lifespan < 1:
+                star_lifespan = self.lifespan * 1000
+                lifespan_term = "million"
+            else:
+                star_lifespan = self.lifespan
+                lifespan_term = "billion"
+
+            age_sentence_base = f"The star is approximately {star_age:.2f} {age_term} years old, with an expected lifespan of {star_lifespan:.2f} {lifespan_term} years"
 
         spectral_class_char = self.type[0]
         star_info = STAR_EVOLUTION.get(spectral_class_char, {})
@@ -414,7 +432,7 @@ class Star:
         full_age_and_notes_sentence = age_sentence_base
         if "evolutionary_constraint_notes" in star_info:
             # Append notes directly as they are a continuation, ensuring a space and period at the end
-            full_age_and_notes_sentence += ". " + star_info["evolutionary_constraint_notes"]
+            full_age_and_notes_sentence += " and " + star_info["evolutionary_constraint_notes"]
         full_age_and_notes_sentence += "." # Ensure the entire combined sentence ends with a period
 
         paragraphs.append(full_age_and_notes_sentence)

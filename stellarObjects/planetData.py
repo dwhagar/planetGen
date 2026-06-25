@@ -377,7 +377,7 @@ class Planet:
                 weights=list(viable_chems.values()),
                 k=1
             )[0]
-            life_chem_data = LIFE_CHEMICALS.get(self.life_chemical, {}).get("reflection_spectrum_visible")
+            life_chem_data = LIFE_CHEMICALS.get(self.life_chemical, {})
             self.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
             self.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
         else:
