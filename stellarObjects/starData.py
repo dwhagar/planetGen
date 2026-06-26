@@ -18,7 +18,7 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 """
 
 import math
-import random
+import random, secrets
 import re
 from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, to_paragraph, properties_to_string
 from stellarObjects import constants
@@ -63,6 +63,7 @@ class Star:
                 - lifespan (float): The total expected lifespan of the star in
                                     billions of years (GY), or `float('inf')` for white dwarfs.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         spectral_class_char = self.type[0]
         star_info = constants.STAR_EVOLUTION.get(spectral_class_char, {})
 
@@ -105,6 +106,7 @@ class Star:
         Args:
             planets (list): A list of `Planet` objects in the system.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         spectral_class_char = self.type[0]
         star_evolution_data = constants.STAR_EVOLUTION.get(spectral_class_char, {})
         supported_scales = star_evolution_data.get("supported_evolutionary_scales", [])
@@ -485,6 +487,7 @@ class Star:
         relationships between their core properties, resulting in astrophysically
         plausible stellar objects.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         yerkes_lookup = {
             "0": "Hypergiant", "IA+": "Luminous Supergiant", "IA": "Supergiant",
             "IAB": "Intermediate-size Luminous Supergiant", "IB": "Less Luminous Supergiant",

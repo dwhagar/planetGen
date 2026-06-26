@@ -11,7 +11,7 @@ from calculating physical properties to creating unique and plausible names.
 """
 
 import math
-import random
+import random, secrets
 from stellarObjects import constants
 from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
 from .config import SystemConfig # Import SystemConfig
@@ -115,6 +115,7 @@ def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY
     Returns:
         tuple: A tuple containing the volume in km³ and the mass in kg.
     """
+    random.seed(secrets.randbits(128)) # Re-seed at the start of the function
     if object_density is None:
         min_density, max_density = PLANET_DENSITY[PLANET_CLASSES[object_class]['type']]
         p_density = random.uniform(min_density, max_density)
@@ -288,15 +289,16 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
     Returns:
         str: A newly generated, unique name.
     """
+    random.seed(secrets.randbits(128)) # Re-seed at the start of the function
     while True:
-        name = random.choice(name_list)
+        name = secrets.choice(name_list)
         
         syllables = split_into_syllables(name)
         if len(syllables) > 1:
             random.shuffle(syllables)
             name = "".join(syllables)
 
-        prefix = random.choice(prefix_list)
+        prefix = secrets.choice(prefix_list)
         if prefix[-1] in VOWELS and name[0].lower() in VOWELS:
             name = prefix + name[1:]
         elif prefix[-1] not in VOWELS and name[0].lower() not in VOWELS:
@@ -307,7 +309,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
         else:
             name = prefix + name
 
-        suffix = random.choice(suffix_list)
+        suffix = secrets.choice(suffix_list)
         if name[-1] in VOWELS and suffix[0].lower() in VOWELS:
             name = name + suffix[1:]
         elif name[-1] not in VOWELS and suffix[0].lower() not in VOWELS:

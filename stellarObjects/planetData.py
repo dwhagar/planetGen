@@ -13,7 +13,7 @@ asteroid belts within the system.
 """
 
 import math
-import random
+import random, secrets
 
 from .config import SystemConfig # Updated import
 from stellarObjects import constants
@@ -201,7 +201,7 @@ class Planet:
         if self.zone == 'e' and not self.is_moon: # Only for habitable planets
             self.evolutionary_data = get_evolutionary_timeline(self.star)
 
-        if (self.system_config.FORCE_MOONS or random.randint(0, 1) == 1) and not self.is_moon: # Use self.system_config
+        if (self.system_config.FORCE_MOONS or secrets.randbelow(2) == 1) and not self.is_moon: # Use self.system_config
             self.generate_moons()
 
     def generate_planet(self, zone_override=None):
@@ -219,6 +219,7 @@ class Planet:
                                            set the planet's zone, overriding the
                                            calculation based on distance.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         # Determine the planet's zone (hot, ecosphere, or cold)
         inner_bound, outer_bound = self.hab
         if self.distance < inner_bound:
@@ -270,7 +271,7 @@ class Planet:
                 possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius in this zone")
-            self.planet_class = random.choice(possible_classes)
+            self.planet_class = secrets.choice(possible_classes)
             self._validate_radius()
 
         elif self.planet_class is None and self.radius is None and self.mass is not None:
@@ -281,7 +282,7 @@ class Planet:
                 possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given mass in this zone")
-            self.planet_class = random.choice(possible_classes)
+            self.planet_class = secrets.choice(possible_classes)
             self._validate_mass()
 
         elif self.planet_class is not None and self.radius is not None and self.mass is None:
@@ -299,7 +300,6 @@ class Planet:
             self._validate_mass()
             min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
-            self._validate_radius()
 
         elif self.planet_class is None and self.radius is not None and self.mass is not None:
             # Radius and mass given, determine possible classes
@@ -313,7 +313,7 @@ class Planet:
                 possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius/mass in this zone")
-            self.planet_class = random.choice(possible_classes)
+            self.planet_class = secrets.choice(possible_classes)
             self._validate_radius()
             self._validate_mass()
 
@@ -389,6 +389,7 @@ class Planet:
         radius. The result is normalized to Earth's gravity (g's). It includes
         special adjustments for certain planet classes to ensure realistic values.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         radius_meters = self.radius * 1000
         surface_gravity = (constants.G * self.mass) / (radius_meters ** 2)
         surface_gravity_g = surface_gravity / constants.EARTH_GRAVITY
@@ -487,12 +488,12 @@ class Planet:
                 valid_speeds = [speed for speed in star_speeds if speed in chem_speeds]
 
                 if valid_speeds:
-                    return random.choice(valid_speeds)
+                    return secrets.choice(valid_speeds)
 
         # 3. Fallback: If no chemical is set (or if there's somehow no overlap),
         # just pick a random speed supported by the star.
         if star_speeds:
-            return random.choice(star_speeds)
+            return secrets.choice(star_speeds)
 
         return None
 
@@ -511,6 +512,7 @@ class Planet:
                                                  distance, used for special cases
                                                  like moons.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         distance = float(distance_override) if distance_override is not None else float(self.distance)
         orbital_radius_km = distance * constants.AU_TO_KM
         output_area = 4 * math.pi * orbital_radius_km ** 2
@@ -568,6 +570,7 @@ class Planet:
         properties, such as its mass and Hill radius. The generated moons are
         themselves instances of the `Planet` class, with the `is_moon` flag set.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         max_moon_mass = self.mass / 10
         max_moon_radius = self.radius / (10 ** (1 / 3))
         possible_classes = [c for c, data in planet_mass_ranges.items()
@@ -646,6 +649,7 @@ class Planet:
         Returns:
             list: A list of generated paragraphs.
         """
+        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
         life_paragraphs = []
 
         if self.life_chemical:
@@ -682,9 +686,9 @@ class Planet:
                         break
 
             if is_habitable and has_multicellular_life:
-                selected_flavor = random.choice(constants.HABITABLE_FLAVOR)
+                selected_flavor = secrets.choice(constants.HABITABLE_FLAVOR)
             elif self.type == "t":
-                selected_flavor = random.choice(constants.PLANET_FLAVOR)
+                selected_flavor = secrets.choice(constants.PLANET_FLAVOR)
 
             if selected_flavor:
                 self.flavor_text = selected_flavor

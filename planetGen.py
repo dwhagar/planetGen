@@ -1,5 +1,6 @@
 import argparse
 import logging
+import random, secrets
 from stellarObjects import constants
 from stellarObjects.systemData import StarSystem
 from stellarObjects.config import SystemConfig
@@ -185,6 +186,9 @@ def main():
 
     prints the output directly to the console.
     """
+    # Seed the random number generator with a cryptographically secure seed
+    random.seed(secrets.randbits(128))
+
     args = process_args()
 
     # Override global constants at module level before initializing system configurations.

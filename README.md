@@ -41,10 +41,13 @@ python planetGen.py [options]
 *   `--no-planets`, `-np`: Skip planet generation and create only a star.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
 *   `--name <name>`: Specifies a name for the star system, overriding the default random generation.
-*   `--age <young|old>`: Specifies the age of the star system, either "young" or "old".
+*   `--age <young|old>`: Specifies the age of the star system (young or old).
 *   `--force-intelligent-life`, `-fil`: Ensures at least one planet with intelligent life is generated. Implies `--force-habitable-world`.
 *   `--no-intelligent-life`, `-nil`: Ensures no planet with intelligent life is generated. Implies `--force-habitable-world`.
 *   `--no-habitable-world`, `-nhw`: Ensures no habitable world is generated in the system.
+*   `--flavor-chance-system <float>`: Overrides the default system-level flavor text chance (0.0 to 1.0).
+*   `--flavor-chance-planet <float>`: Overrides the default planet-level flavor text chance (0.0 to 1.0).
+*   `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.
 
 **Note on Incompatible Options:**
 
@@ -52,6 +55,17 @@ python planetGen.py [options]
 *   `--star-type` cannot be combined with `--force-large-star`.
 *   `--force-intelligent-life` and `--no-intelligent-life` cannot be used together.
 *   `--force-habitable-world` and `--no-habitable-world` cannot be used together.
+*   `--flavor-chance-system` must be a float between 0.0 and 1.0.
+*   `--flavor-chance-planet` must be a float between 0.0 and 1.0.
+
+### Random Number Generation
+
+This project utilizes a hybrid approach to random number generation to balance unpredictability with the need for statistical distributions.
+
+*   **Cryptographically Secure Randomness**: For choices that benefit from high unpredictability (e.g., simple selections from lists), Python's `secrets` module is used directly via `secrets.choice()` and `secrets.randbelow()`.
+*   **Pseudo-randomness with Secure Seeding**: For functions that require statistical distributions (e.g., `random.uniform()` for floating-point ranges, `random.choices()` for weighted selections, `random.shuffle()` for shuffling), the standard `random` module is employed. To enhance the unpredictability of these operations, the `random` module is re-seeded with a cryptographically secure 128-bit random number from `secrets.randbits(128)` at the beginning of every function where these `random` functions are used.
+
+This strategy ensures that each individual random operation is seeded with a fresh, unpredictable value, making the output of each call highly variable and difficult to predict, even though the underlying `random` module's algorithms are not cryptographically strong.
 
 ### Additional Information
 
