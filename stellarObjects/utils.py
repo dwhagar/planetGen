@@ -12,7 +12,7 @@ from calculating physical properties to creating unique and plausible names.
 
 import math
 import random
-from .constants import SOLAR_LUMINOSITY, STEFAN_BOLTZMANN_CONSTANT
+from stellarObjects import constants
 from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
 from .config import SystemConfig # Import SystemConfig
 
@@ -141,7 +141,7 @@ def calculate_habitable_zone(luminosity):
         tuple: A tuple containing the inner and outer radii of the habitable
                zone in AU.
     """
-    solar_lum = luminosity / SOLAR_LUMINOSITY
+    solar_lum = luminosity / constants.SOLAR_LUMINOSITY
     inner_radius = math.sqrt(solar_lum / 1.1)
     outer_radius = math.sqrt(solar_lum / 0.53)
     return (inner_radius, outer_radius)
@@ -161,7 +161,7 @@ def calculate_stellar_radius(luminosity, temperature):
     Returns:
         float: The radius of the star in meters.
     """
-    return math.sqrt(luminosity / (4 * math.pi * STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
+    return math.sqrt(luminosity / (4 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
 
 
 def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):

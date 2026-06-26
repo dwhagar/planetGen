@@ -11,7 +11,7 @@ related to planet mass ranges, which are used by both planets and asteroid belts
 
 import random
 from .config import SystemConfig # Updated import
-from . import constants
+from stellarObjects import constants
 
 class AsteroidBelt:
     """

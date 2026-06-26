@@ -1,5 +1,6 @@
 import argparse
 import logging
+from stellarObjects import constants
 from stellarObjects.systemData import StarSystem
 from stellarObjects.config import SystemConfig
 
@@ -44,6 +45,9 @@ def process_args():
       is generated. Implies --force-habitable-world.
     - `--no-habitable-world` / `-nhw`: Ensures no habitable world is generated
       in the system.
+    - `--flavor-chance-system`: Overrides the default system-level flavor text chance.
+    - `--flavor-chance-planet`: Overrides the default planet-level flavor text chance.
+    - `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.
 
     Returns:
         argparse.Namespace: An object containing the parsed command-line arguments
@@ -126,6 +130,18 @@ def process_args():
     parser.add_argument('--no-habitable-world', '-nhw', action='store_true',
                         help="Ensures no habitable world is generated in the system.")
 
+    # Override Flavor Chance System
+    parser.add_argument('--flavor-chance-system', type=float,
+                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
+
+    # Override Flavor Chance Planet
+    parser.add_argument('--flavor-chance-planet', type=float,
+                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
+
+    # Max Planet Flavor
+    parser.add_argument('--max-planet-flavor', action='store_true',
+                        help="Sets the maximum flavor text total for planets to 99.")
+
     args = parser.parse_args()
 
     # Argument validation logic
@@ -140,6 +156,12 @@ def process_args():
 
     if args.force_habitable_world and args.no_habitable_world:
         parser.error("--force-habitable-world and --no-habitable-world cannot be used together.")
+
+    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
+        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
+
+    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
+        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
 
     return args
 
@@ -164,6 +186,17 @@ def main():
     prints the output directly to the console.
     """
     args = process_args()
+
+    # Override global constants at module level before initializing system configurations.
+    if args.flavor_chance_system is not None:
+        constants.FLAVOR_CHANCE_SYSTEM = args.flavor_chance_system
+
+    if args.flavor_chance_planet is not None:
+        constants.FLAVOR_CHANCE_PLANET = args.flavor_chance_planet
+
+    if args.max_planet_flavor:
+        constants.MAX_FLAVOR_TOTAL = 99
+        constants.FLAVOR_CHANCE_PLANET = 1
 
     system_config = SystemConfig() # Create an instance of SystemConfig
 

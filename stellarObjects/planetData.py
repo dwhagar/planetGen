@@ -16,16 +16,7 @@ import math
 import random
 
 from .config import SystemConfig # Updated import
-from .constants import (ATMOSPHERE_DENSITY, ATMOSPHERIC_MOLAR_DENSITY, AU_TO_KM,
-                        AU_TO_LY, AU_TO_M, CO2_BASE_MOLAR_DENSITY,
-                        CO2_MAX_GREENHOUSE_FACTOR, EARTH_GRAVITY,
-                        EARTH_RADIUS_KM, EVOLUTIONARY_TIMELINES,
-                        FLAVOR_CHANCE_PLANET, G, GAS_GIANT_CORE_ATMOSPHERE_RATIO,
-                        HABITABLE_FLAVOR, HABITABLE_PLANET_CLASSES, LIFE_CHEMICALS,
-                        LY_THRESHOLD, MAX_FLAVOR_PLANET, MAX_FLAVOR_TOTAL,
-                        MOON_BLACKLIST, PLANET_CLASSES, PLANET_CLASS_PROBABILITIES,
-                        PLANET_DENSITY, PLANET_FLAVOR, R, STAR_EVOLUTION,
-                        STEFAN_BOLTZMANN_CONSTANT)
+from stellarObjects import constants
 from .evolution import get_evolutionary_timeline
 from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
                     PLANET_PREFIXES, PLANET_SUFFIXES)
@@ -48,11 +39,11 @@ def get_planet_mass_ranges():
               values are tuples of (min_mass, max_mass) in kilograms.
     """
     mass_ranges = {}
-    for planet_class, data in PLANET_CLASSES.items():
+    for planet_class, data in constants.PLANET_CLASSES.items():
         min_radius, max_radius = data["radius_range"]
         planet_type = data["type"]
 
-        min_density, max_density = PLANET_DENSITY[planet_type]  # g/cm^3
+        min_density, max_density = constants.PLANET_DENSITY[planet_type]  # g/cm^3
 
         # Convert density from g/cm³ to kg/m³ for mass calculation
         min_density *= 1000
@@ -62,8 +53,8 @@ def get_planet_mass_ranges():
             min_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density
             max_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density
         else:  # Gas giant
-            min_atm_density, max_atm_density = ATMOSPHERE_DENSITY[planet_type]
-            min_core_ratio, max_core_ratio = GAS_GIANT_CORE_ATMOSPHERE_RATIO
+            min_atm_density, max_atm_density = constants.ATMOSPHERE_DENSITY[planet_type]
+            min_core_ratio, max_core_ratio = constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO
 
             min_core_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density * min_core_ratio
             max_core_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density * max_core_ratio
@@ -248,35 +239,35 @@ class Planet:
 
         if self.planet_class is None and self.radius is None and self.mass is None:
             # Fully random generation
-            valid_classes = [c for c, data in PLANET_CLASSES.items() if data[zone]]
+            valid_classes = [c for c, data in constants.PLANET_CLASSES.items() if data[zone]]
             if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                valid_classes = [c for c in valid_classes if c not in HABITABLE_PLANET_CLASSES]
+                valid_classes = [c for c in valid_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             
-            classes = list(PLANET_CLASS_PROBABILITIES.keys())
-            probabilities = list(PLANET_CLASS_PROBABILITIES.values())
+            classes = list(constants.PLANET_CLASS_PROBABILITIES.keys())
+            probabilities = list(constants.PLANET_CLASS_PROBABILITIES.values())
             class_valid = False
             while not class_valid:
                 class_choice = random.choices(classes, weights=probabilities, k=1)[0]
                 if class_choice in valid_classes:
                     self.planet_class = class_choice
                     class_valid = True
-            min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
+            min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
 
         elif self.planet_class is not None and self.radius is None and self.mass is None:
             # Class given, generate radius
             self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
-            min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
+            min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
 
         elif self.planet_class is None and self.radius is not None and self.mass is None:
             # Radius given, determine possible classes
-            possible_classes = [c for c, data in PLANET_CLASSES.items()
+            possible_classes = [c for c, data in constants.PLANET_CLASSES.items()
                                 if data[zone] and data["radius_range"][0] <= self.radius <= data["radius_range"][1]]
             if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
+                possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius in this zone")
             self.planet_class = random.choice(possible_classes)
@@ -284,10 +275,10 @@ class Planet:
 
         elif self.planet_class is None and self.radius is None and self.mass is not None:
             # Mass given, determine possible classes
-            possible_classes = [c for c, data in PLANET_CLASSES.items()
+            possible_classes = [c for c, data in constants.PLANET_CLASSES.items()
                                 if planet_mass_ranges[c][0] <= self.mass <= planet_mass_ranges[c][1] and data[zone]]
             if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
+                possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given mass in this zone")
             self.planet_class = random.choice(possible_classes)
@@ -296,30 +287,30 @@ class Planet:
         elif self.planet_class is not None and self.radius is not None and self.mass is None:
             # Class and radius given, validate
             self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_radius()
 
         elif self.planet_class is not None and self.radius is None and self.mass is not None:
             # Class and mass given, validate and generate radius
             self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_mass()
-            min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
+            min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
             self.radius = random.uniform(min_radius, max_radius)
             self._validate_radius()
 
         elif self.planet_class is None and self.radius is not None and self.mass is not None:
             # Radius and mass given, determine possible classes
             possible_classes = []
-            for c, data in PLANET_CLASSES.items():
+            for c, data in constants.PLANET_CLASSES.items():
                 min_mass, max_mass = planet_mass_ranges[c]
                 min_radius, max_radius = data["radius_range"]
                 if min_mass <= self.mass <= max_mass and min_radius <= self.radius <= max_radius and data[zone]:
                     possible_classes.append(c)
             if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                possible_classes = [c for c in possible_classes if c not in HABITABLE_PLANET_CLASSES]
+                possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
             if not possible_classes:
                 raise ValueError("No valid planet class for the given radius/mass in this zone")
             self.planet_class = random.choice(possible_classes)
@@ -329,17 +320,17 @@ class Planet:
         else:
             # All inputs provided, fully validate
             self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in HABITABLE_PLANET_CLASSES: # Use self.system_config
+            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
                 raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
             self._validate_radius()
             self._validate_mass()
 
-        class_data = PLANET_CLASSES[self.planet_class]
+        class_data = constants.PLANET_CLASSES[self.planet_class]
         self.composition = class_data["composition"]
         self.description = class_data["description"]
         self.type = class_data["type"]
 
-        min_density, max_density = PLANET_DENSITY[self.type]
+        min_density, max_density = constants.PLANET_DENSITY[self.type]
         self.density = random.uniform(min_density, max_density)
 
         if class_data["atmosphere"] is None:
@@ -348,23 +339,23 @@ class Planet:
             self.atmosphere = class_data["atmosphere"]
             if self.planet_class == 'N':
                 self.atm_density = 65
-                min_am_density, max_am_density = ATMOSPHERIC_MOLAR_DENSITY[self.type]
+                min_am_density, max_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[self.type]
                 self.atm_molar_density = max_am_density
             else:
-                min_a_density, max_a_density = ATMOSPHERE_DENSITY[self.type]
+                min_a_density, max_a_density = constants.ATMOSPHERE_DENSITY[self.type]
                 self.atm_density = random.uniform(min_a_density, max_a_density)
-                min_am_density, max_am_density = ATMOSPHERIC_MOLAR_DENSITY[self.type]
+                min_am_density, max_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[self.type]
                 self.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY,
+        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, constants.PLANET_CLASSES, constants.PLANET_DENSITY,
                                                   self.density)
 
         if self.type == 'g':
-            core_to_atmosphere_ratio = random.uniform(*GAS_GIANT_CORE_ATMOSPHERE_RATIO)
+            core_to_atmosphere_ratio = random.uniform(*constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
             self.density = self.density * core_to_atmosphere_ratio + (
                         1 - core_to_atmosphere_ratio) * (self.atm_density / 1000)
 
-        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, PLANET_CLASSES, PLANET_DENSITY,
+        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, constants.PLANET_CLASSES, constants.PLANET_DENSITY,
                                                   self.density)
         
         # Get the dictionary of viable chemicals and their weights
@@ -377,7 +368,7 @@ class Planet:
                 weights=list(viable_chems.values()),
                 k=1
             )[0]
-            life_chem_data = LIFE_CHEMICALS.get(self.life_chemical, {})
+            life_chem_data = constants.LIFE_CHEMICALS.get(self.life_chemical, {})
             self.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
             self.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
         else:
@@ -386,9 +377,9 @@ class Planet:
         # Determine the evolutionary speed based on the star and chosen chemical
         self.evolution = self.get_evolutionary_speed()
 
-        distance_m = self.distance * AU_TO_M
+        distance_m = self.distance * constants.AU_TO_M
         self.hill_radius = calculate_hill_sphere(distance_m, self.mass, self.star_mass) / 1000  # Convert to km
-        self.min_orbit_distance = (5 * self.hill_radius) / AU_TO_KM
+        self.min_orbit_distance = (5 * self.hill_radius) / constants.AU_TO_KM
 
     def calculate_surface_gravity(self):
         """
@@ -399,8 +390,8 @@ class Planet:
         special adjustments for certain planet classes to ensure realistic values.
         """
         radius_meters = self.radius * 1000
-        surface_gravity = (G * self.mass) / (radius_meters ** 2)
-        surface_gravity_g = surface_gravity / EARTH_GRAVITY
+        surface_gravity = (constants.G * self.mass) / (radius_meters ** 2)
+        surface_gravity_g = surface_gravity / constants.EARTH_GRAVITY
         if surface_gravity_g <= 0:
             raise ValueError('Invalid value for gravity.')
         if self.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
@@ -418,7 +409,7 @@ class Planet:
                   normalized float probabilities (e.g., {"Melanin": 0.6}).
         """
         # Retrieve the base list of possible chemicals for this specific planet class
-        planet_data = PLANET_CLASSES.get(self.planet_class)
+        planet_data = constants.PLANET_CLASSES.get(self.planet_class)
         if not planet_data or not planet_data.get("life_chemical"):
             return {}
 
@@ -431,7 +422,7 @@ class Planet:
         spectral_class = self.star_type[0].upper()
 
         # Retrieve the potentially viable chemicals for the star's evolutionary scale
-        star_data = STAR_EVOLUTION.get(spectral_class)
+        star_data = constants.STAR_EVOLUTION.get(spectral_class)
         if not star_data or not star_data.get("supported_evolutionary_scales"):
             return {}
 
@@ -443,7 +434,7 @@ class Planet:
         # Intersect the lists using substring matching and collect raw probabilities
         for p_chem in planet_chems:
             if any(p_chem in s_chem for s_chem in star_chems):
-                chem_prob = LIFE_CHEMICALS.get(p_chem, {}).get(
+                chem_prob = constants.LIFE_CHEMICALS.get(p_chem, {}).get(
                     "star_spectra_probabilities", {}).get(spectral_class, 0)
 
                 if chem_prob > 0:
@@ -475,7 +466,7 @@ class Planet:
         spectral_class = self.star_type[0].upper()
 
         # 1. Get the speeds supported by the star
-        star_data = STAR_EVOLUTION.get(spectral_class)
+        star_data = constants.STAR_EVOLUTION.get(spectral_class)
         if not star_data or not star_data.get("supported_evolutionary_scales"):
             return None
 
@@ -483,7 +474,7 @@ class Planet:
 
         # 2. Get the speeds supported by the chemical (if one is assigned)
         if self.life_chemical:
-            chem_data = LIFE_CHEMICALS.get(self.life_chemical)
+            chem_data = constants.LIFE_CHEMICALS.get(self.life_chemical)
             if chem_data and chem_data.get("evolutionary_time_scale"):
                 chem_speeds = chem_data["evolutionary_time_scale"]
 
@@ -521,20 +512,20 @@ class Planet:
                                                  like moons.
         """
         distance = float(distance_override) if distance_override is not None else float(self.distance)
-        orbital_radius_km = distance * AU_TO_KM
+        orbital_radius_km = distance * constants.AU_TO_KM
         output_area = 4 * math.pi * orbital_radius_km ** 2
         solar_output_at_orbit = (self.star_output / output_area) / 1e6
         albedo = random.uniform(0.12, 0.35)
         surface_temperature_no_atmosphere = (
-                                                    (1 - albedo) * solar_output_at_orbit / (4 * STEFAN_BOLTZMANN_CONSTANT)) ** (
+                                                    (1 - albedo) * solar_output_at_orbit / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
                                                         1 / 4)
 
         if self.atmosphere == "None":
             self.surface_temperature = surface_temperature_no_atmosphere
             self.atmospheric_pressure = 0.0
         else:
-            scale_height = (R * surface_temperature_no_atmosphere) / (
-                        self.atm_molar_density * self.gravity * EARTH_GRAVITY)
+            scale_height = (constants.R * surface_temperature_no_atmosphere) / (
+                        self.atm_molar_density * self.gravity * constants.EARTH_GRAVITY)
             self.scale_height = scale_height
             atmosphere_thickness = scale_height * random.uniform(5, 7)
             planet_volume = (4 * math.pi * self.radius ** 3) / 3
@@ -546,12 +537,12 @@ class Planet:
                             4 * math.pi * (self.radius + (zone * scale_height)) ** 3) / 3
                 zone_density = self.atm_density / (zone * 2.7) if zone >= 1 else self.atm_density
                 atmospheric_mass += zone_volume * zone_density
-            atmospheric_force = atmospheric_mass * (self.gravity * EARTH_GRAVITY)
+            atmospheric_force = atmospheric_mass * (self.gravity * constants.EARTH_GRAVITY)
             planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2
             atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500
             
-            greenhouse_factor = abs((self.atm_molar_density - CO2_BASE_MOLAR_DENSITY) / CO2_BASE_MOLAR_DENSITY * CO2_MAX_GREENHOUSE_FACTOR)
-            surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
+            greenhouse_factor = abs((self.atm_molar_density - constants.CO2_BASE_MOLAR_DENSITY) / constants.CO2_BASE_MOLAR_DENSITY * constants.CO2_MAX_GREENHOUSE_FACTOR)
+            surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
             self.surface_temperature = surface_temperature_atmosphere
             self.atmospheric_pressure = atmospheric_pressure
 
@@ -580,34 +571,34 @@ class Planet:
         max_moon_mass = self.mass / 10
         max_moon_radius = self.radius / (10 ** (1 / 3))
         possible_classes = [c for c, data in planet_mass_ranges.items()
-                            if PLANET_CLASSES[c][self.zone] and PLANET_CLASSES[c]["type"] == 't' and c not in MOON_BLACKLIST
-                            and data[1] <= max_moon_mass and PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
+                            if constants.PLANET_CLASSES[c][self.zone] and constants.PLANET_CLASSES[c]["type"] == 't' and c not in constants.MOON_BLACKLIST
+                            and data[1] <= max_moon_mass and constants.PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
         if not possible_classes:
             return
 
         low_orbit = self.scale_height * 15 if self.scale_height else 100
-        high_orbit = self.min_orbit_distance * AU_TO_KM
+        high_orbit = self.min_orbit_distance * constants.AU_TO_KM
         total_orbit_distance = low_orbit
 
-        while total_orbit_distance < high_orbit and total_orbit_distance < (self.distance * AU_TO_KM):
-            classes = list(PLANET_CLASS_PROBABILITIES.keys())
-            probabilities = list(PLANET_CLASS_PROBABILITIES.values())
+        while total_orbit_distance < high_orbit and total_orbit_distance < (self.distance * constants.AU_TO_KM):
+            classes = list(constants.PLANET_CLASS_PROBABILITIES.keys())
+            probabilities = list(constants.PLANET_CLASS_PROBABILITIES.values())
             moon_class = random.choices(classes, weights=probabilities, k=1)[0]
             while moon_class not in possible_classes:
                 moon_class = random.choices(classes, weights=probabilities, k=1)[0]
 
-            radius_limit = PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
-                                                                            PLANET_CLASSES[moon_class]['radius_range'][
+            radius_limit = constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
+                                                                            constants.PLANET_CLASSES[moon_class]['radius_range'][
                                                                                 1] else max_moon_radius
-            moon_distance = random.uniform(total_orbit_distance, high_orbit) / AU_TO_KM
-            moon_radius = random.uniform(PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
+            moon_distance = random.uniform(total_orbit_distance, high_orbit) / constants.AU_TO_KM
+            moon_radius = random.uniform(constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
             new_moon = Planet(self.system_config, self.star, self.hab, moon_distance, self.star_type, self.star_output, self.star_radius, # Pass system_config
                               self.star_temperature, self.star_mass, radius=moon_radius,
                               planet_class=moon_class, zone_override=self.zone,
                               distance_override=self.distance, is_moon=True)
             self.moons.append(new_moon)
-            total_orbit_distance = (new_moon.distance * AU_TO_KM) + (new_moon.min_orbit_distance * AU_TO_KM)
+            total_orbit_distance = (new_moon.distance * constants.AU_TO_KM) + (new_moon.min_orbit_distance * constants.AU_TO_KM)
 
     def _validate_planet_class(self, zone):
         """
@@ -619,7 +610,7 @@ class Planet:
         Raises:
             ValueError: If the planet class is not valid for the given zone.
         """
-        if self.planet_class not in PLANET_CLASSES or not PLANET_CLASSES[self.planet_class][zone]:
+        if self.planet_class not in constants.PLANET_CLASSES or not constants.PLANET_CLASSES[self.planet_class][zone]:
             raise ValueError("Invalid planet class for this zone")
 
     def _validate_radius(self):
@@ -629,7 +620,7 @@ class Planet:
         Raises:
             ValueError: If the radius is outside the valid range for the planet's class.
         """
-        min_radius, max_radius = PLANET_CLASSES[self.planet_class]["radius_range"]
+        min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
         if not (min_radius <= self.radius <= max_radius):
             raise ValueError("Invalid radius for planet class")
 
@@ -644,6 +635,65 @@ class Planet:
         if not (min_mass <= self.mass <= max_mass):
             raise ValueError("Invalid mass for planet class")
 
+    def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
+        """
+        Generates paragraphs related to life, evolution, and flavor text for the planet.
+
+        Args:
+            object_type_desc (str): Description of the object type ("planet" or "moon").
+            sentences (list): A list of sentences to append life-related descriptions to.
+
+        Returns:
+            list: A list of generated paragraphs.
+        """
+        life_paragraphs = []
+
+        if self.life_chemical:
+            if self.evolution:
+                sentences.append(
+                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolution} pace.")
+            else:
+                sentences.append(
+                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
+            if self.reflection_spectrum_visible:
+                visible_spectrum = ", ".join(self.reflection_spectrum_visible)
+                sentences.append(
+                    f"The visible reflection spectrum of the life on this {object_type_desc} is characterized by {visible_spectrum.lower()}.")
+            if self.reflection_spectrum_non_visible:
+                non_visible_spectrum = ", ".join(self.reflection_spectrum_non_visible)
+                sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")
+
+        life_paragraphs.append(to_paragraph(sentences))
+
+        # Add the evolutionary timeline data if available
+        if self.evolutionary_data and self.planet_class in constants.HABITABLE_PLANET_CLASSES:
+            life_paragraphs.extend(self.evolutionary_data)
+
+        # Add flavor text if the random chance passes and limits are not exceeded
+        if random.random() < constants.FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
+            selected_flavor = None
+            # Check for habitable and multicellular/technological life
+            is_habitable = self.planet_class in constants.HABITABLE_PLANET_CLASSES
+            has_multicellular_life = False
+            if is_habitable and self.evolutionary_data:
+                for stage_paragraph in self.evolutionary_data:
+                    if "multicellularity" in stage_paragraph.lower() or "technological_civilization" in stage_paragraph.lower():
+                        has_multicellular_life = True
+                        break
+
+            if is_habitable and has_multicellular_life:
+                selected_flavor = random.choice(constants.HABITABLE_FLAVOR)
+            elif self.type == "t":
+                selected_flavor = random.choice(constants.PLANET_FLAVOR)
+
+            if selected_flavor:
+                self.flavor_text = selected_flavor
+                life_paragraphs.append(f"Sensors show {self.flavor_text}")
+                self.system_config.system_flavor_count += 1
+                self.flavor_text_count += 1
+        
+        return life_paragraphs
+
     def to_paragraph_list(self):
         """
         Returns a list of strings, where each string is a paragraph describing
@@ -654,16 +704,16 @@ class Planet:
         if self.is_moon:
             # Moons orbit their parent planet, so their distance is from the planet, not the star.
             # This distance is typically much smaller and best represented in kilometers.
-            distance_text = f"{to_scientific_notation(self.system_config, self.distance * AU_TO_KM, 4)} km" # Pass system_config
+            distance_text = f"{to_scientific_notation(self.system_config, self.distance * constants.AU_TO_KM, 4)} km" # Pass system_config
             header_level = '###' if self.system_config.MARKDOWN else '===' # Use self.system_config
         else:
             # For planets, the distance is from the star. We check if this distance
             # is large enough to warrant using light-years.
-            distance_ly = self.distance * AU_TO_LY
-            if distance_ly < LY_THRESHOLD:
+            distance_ly = self.distance * constants.AU_TO_LY
+            if distance_ly < constants.LY_THRESHOLD:
                 # For "normal" sized systems, display in AU.
                 # If less than 1 AU, also show in km for context.
-                distance_text = f"{to_scientific_notation(self.system_config, self.distance * AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
+                distance_text = f"{to_scientific_notation(self.system_config, self.distance * constants.AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
             else:
                 # For very large systems, display in light-years.
                 distance_text = f"{distance_ly:.4f} light-years"
@@ -709,49 +759,8 @@ class Planet:
                 f"This gas giant has an internal pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
             sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
 
-        if self.life_chemical:
-            if self.evolution:
-                sentences.append(
-                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolution} pace.")
-            else:
-                sentences.append(
-                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
-            if self.reflection_spectrum_visible:
-                visible_spectrum = ", ".join(self.reflection_spectrum_visible)
-                sentences.append(
-                    f"The visible reflection spectrum of the life on this {object_type_desc} is characterized by {visible_spectrum.lower()}.")
-            if self.reflection_spectrum_non_visible:
-                non_visible_spectrum = ", ".join(self.reflection_spectrum_non_visible)
-                sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")
-
-        output_paragraphs.append(to_paragraph(sentences))
-
-        # Add the evolutionary timeline data if available
-        if self.evolutionary_data and self.planet_class in HABITABLE_PLANET_CLASSES:
-            output_paragraphs.extend(self.evolutionary_data)
-
-        # Add flavor text if the random chance passes and limits are not exceeded
-        if random.random() < FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < MAX_FLAVOR_TOTAL and self.flavor_text_count < MAX_FLAVOR_PLANET: # Use self.system_config
-            selected_flavor = None
-            # Check for habitable and multicellular/technological life
-            is_habitable = self.planet_class in HABITABLE_PLANET_CLASSES
-            has_multicellular_life = False
-            if is_habitable and self.evolutionary_data:
-                for stage_paragraph in self.evolutionary_data:
-                    if "multicellularity" in stage_paragraph.lower() or "technological_civilization" in stage_paragraph.lower():
-                        has_multicellular_life = True
-                        break
-
-            if is_habitable and has_multicellular_life:
-                selected_flavor = random.choice(HABITABLE_FLAVOR)
-            elif self.planet_class != "A" and self.type != "t":
-                selected_flavor = random.choice(PLANET_FLAVOR)
-
-            if selected_flavor:
-                self.flavor_text = selected_flavor
-                output_paragraphs.append(f"Sensors show {self.flavor_text}")
-                self.system_config.system_flavor_count += 1 # Use self.system_config
-                self.flavor_text_count += 1
+        # Call the new method to get life and flavor text paragraphs
+        output_paragraphs.extend(self._generate_life_and_flavor_paragraphs(object_type_desc, sentences))
 
         if self.moons:
             for moon in self.moons:
@@ -763,6 +772,7 @@ class Planet:
             for paragraph in output_paragraphs:
                 paragraph = paragraph.replace("planet", "moon")
                 paragraph = paragraph.replace("Planet", "Moon")
+                paragraph = paragraph.replace("{{Moon Data", "{{Class Data")
                 processed_paragraphs.append(paragraph)
             output_paragraphs = processed_paragraphs
 
