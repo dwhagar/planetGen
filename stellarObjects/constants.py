@@ -804,13 +804,13 @@ SYSTEM_FLAVOR = [ # System-only flavor text.
     "a derelict chain of deep-space platforms firing concentrated energy beams into the void for an unknown purpose.",
     "an automated buoy equipped with a mass-driver that catches physical data pods and flings them toward inner-system hubs.",
     "a massive, ultra-thin sheet of reflective foil drifting through the system, originally deployed to shade a now-dead world.",
-    "thousands of small, passive reflectors scattered across the system to bounce electromagnetic waves back and forth.",
+    "thousands of small, passive reflectors scattered across the system that reflect electromagnetic waves back and forth.",
     "an ancient, nuclear-powered navigational beacon at the system's edge, driven and maintained by a local artificial intelligence.",
     "a drifting, chaotic cloud of uncoordinated mirror tiles arrayed like a fragmented automated radiation collection swarm.",
     "a system-wide network of navigational satellites that constantly shift and optimize their orbits using a decentralized swarm intelligence.",
     "an invisible mass sitting in an empty orbit that clearly registers on navigation sensors, warping the local space-time.",
     "a spherical dead-zone in deep space where all electromagnetic scans, communication signals, and radiation instantly drop to absolute zero.",
-    "a jagged, glowing fracture in the vacuum that continuously vents raw static energy into the surrounding void.",
+    "a jagged, glowing fracture in space-time that continuously vents electromagnetic energy into the surrounding void.",
     "a decentralized network of automated defensive satellites arrayed across the system.",
     "an array of laser transceivers locked in continuous, high-bandwidth optical communication with one another.",
     "a swarm of automated solar collectors skimming the star's corona, routing steady power into massive, fully charged battery arrays."
@@ -820,24 +820,24 @@ PLANET_FLAVOR = [ # Flavor text for any planet.
     "a massive hollow metallic cylinder embedded in the crust.",
     "the crashed hull of a derelict pre-warp ship.",
     "the crashed hull of a derelict primitive warp ship.",
-    "a solar-powered mountain beacon looping a brief audio distress call.",
-    "automated crater radio dishes stubbornly tracking the empty coordinates in deep space.",
+    "a solar-powered beacon looping a brief audio distress call.",
+    "an array of automated radio dishes tracking empty coordinates in deep space.",
     "a vast, precise grid of ancient cargo containers showing faint energy readings.",
     "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs.",
     "a vast, perfectly smooth glass crater with refined materials fused into its center.",
-    "an automated surface rover actively sorting stones by size into perfectly straight lines."
+    "an automated surface rover actively sorting stones by size and composition into a grid."
 ]
 
 ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
-    "vast swarms of dead delivery drones and cargo pods stuck in stable orbits.",
+    "several dead delivery drones and cargo pods in stable orbits.",
     "a dense debris ring consisting of shattered hull wreckage, dormant escape pods, and thousands of desiccated corpses in identical hazard suits.",
     "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels as requiring extensive repairs.",
     "a primitive interstellar probe caught in orbit.",
     "a derelict light cruiser venting plasma slowly into an orbital ring of plasma.",
-    "a transport ship whose severed bow tracks forty kilometers directly behind its own stern.",
+    "a derelict transport ship whose severed bow tracks forty kilometers directly behind its own stern.",
     "a dense ring of cobalt-ferrite dust, in a thick fog of ionized sodium-potassium gas broadcasting radio signals across a variety of frequencies.",
-    "a massive stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north.",
-    "a constellation solar mirrors suspended in a rough orbital grid."
+    "a monolithic stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north.",
+    "a constellation large solar mirrors suspended in a rough orbital grid."
 ]
 
 HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
