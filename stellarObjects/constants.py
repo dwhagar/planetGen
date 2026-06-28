@@ -799,7 +799,7 @@ FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
 MAX_FLAVOR_PLANET = 1 # The maximum flavor text for a single planet.
 
-SYSTEM_FLAVOR = [
+SYSTEM_FLAVOR = [ # System-only flavor text.
     "a derelict chain of deep-space platforms firing concentrated energy beams into the void for an unknown purpose.",
     "an automated buoy equipped with a mass-driver that catches physical data pods and flings them toward inner-system hubs.",
     "a massive, ultra-thin sheet of reflective foil drifting through the system, originally deployed to shade a now-dead world.",
@@ -809,19 +809,34 @@ SYSTEM_FLAVOR = [
     "a system-wide network of navigational satellites that constantly shift and optimize their orbits using a decentralized swarm intelligence.",
     "an invisible mass sitting in an empty orbit that clearly registers on navigation sensors, warping the local space-time.",
     "a spherical dead-zone in deep space where all electromagnetic scans, communication signals, and radiation instantly drop to absolute zero.",
-    "a jagged, glowing fracture in the vacuum that continuously vents raw static energy into the surrounding void."
+    "a jagged, glowing fracture in the vacuum that continuously vents raw static energy into the surrounding void.",
+    "a decentralized network of automated defensive satellites arrayed across the system.",
+    "an array of laser transceivers locked in continuous, high-bandwidth optical communication with one another.",
+    "a swarm of automated solar collectors skimming the star's corona, routing steady power into massive, fully charged battery arrays."
 ]
 
 PLANET_FLAVOR = [ # Flavor text for any planet.
     "a massive hollow metallic cylinder embedded in the crust.",
-    "an orbital gravity pocket trapped with vast swarms of dead delivery drones and cargo pods.",
-    "a primitive interstellar probe caught in orbit.",
     "the crashed hull of a derelict pre-warp ship.",
     "the crashed hull of a derelict primitive warp ship.",
     "a solar-powered mountain beacon looping a brief audio distress call.",
     "automated crater radio dishes stubbornly tracking the empty coordinates in deep space.",
     "a vast, precise grid of ancient cargo containers showing faint energy readings.",
-    "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs."
+    "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs.",
+    "a vast, perfectly smooth glass crater with refined materials fused into its center.",
+    "an automated surface rover actively sorting river stones by size into perfectly straight, mile-long lines."
+]
+
+ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
+    "vast swarms of dead delivery drones and cargo pods stuck in stable orbits.",
+    "a dense debris ring consisting of shattered hull wreckage, dormant escape pods, and thousands of desiccated corpses in identical hazard suits.",
+    "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels as requiring extensive repairs.",
+    "a primitive interstellar probe caught in orbit.",
+    "a derelict light cruiser venting plasma slowly into an orbital ring of plasma.",
+    "a transport ship whose severed bow tracks forty kilometers directly behind its own stern.",
+    "a ring of silicate and gold dust broadcasting a sustained B-flat major chord across standard radio frequencies.",
+    "a massive stone sculpture of a humanoid hand, its index finger locked pointing at magnetic north.",
+    "a constellation solar mirrors suspended in a rough orbital grid."
 ]
 
 HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
@@ -833,5 +848,7 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
     "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids.",
     "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods.",
     "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases.",
-    "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers."
+    "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers.",
+    "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources.",
+    "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust."
 ]

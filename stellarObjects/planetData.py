@@ -687,8 +687,10 @@ class Planet:
 
             if is_habitable and has_multicellular_life:
                 selected_flavor = secrets.choice(constants.HABITABLE_FLAVOR)
-            elif self.type == "t":
+            elif self.type == "t" and self.planet_class != "A":
                 selected_flavor = secrets.choice(constants.PLANET_FLAVOR)
+            elif self.type == "g" or self.planet_class == "A":
+                selected_flavor = secrets.choice(constants.ORBITAL_FLAVOR)
 
             if selected_flavor:
                 self.flavor_text = selected_flavor

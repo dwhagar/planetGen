@@ -58,15 +58,6 @@ python planetGen.py [options]
 *   `--flavor-chance-system` must be a float between 0.0 and 1.0.
 *   `--flavor-chance-planet` must be a float between 0.0 and 1.0.
 
-### Random Number Generation
-
-This project utilizes a hybrid approach to random number generation to balance unpredictability with the need for statistical distributions.
-
-*   **Cryptographically Secure Randomness**: For choices that benefit from high unpredictability (e.g., simple selections from lists), Python's `secrets` module is used directly via `secrets.choice()` and `secrets.randbelow()`.
-*   **Pseudo-randomness with Secure Seeding**: For functions that require statistical distributions (e.g., `random.uniform()` for floating-point ranges, `random.choices()` for weighted selections, `random.shuffle()` for shuffling), the standard `random` module is employed. To enhance the unpredictability of these operations, the `random` module is re-seeded with a cryptographically secure 128-bit random number from `secrets.randbits(128)` at the beginning of every function where these `random` functions are used.
-
-This strategy ensures that each individual random operation is seeded with a fresh, unpredictable value, making the output of each call highly variable and difficult to predict, even though the underlying `random` module's algorithms are not cryptographically strong.
-
 ### Additional Information
 
 This tool is designed as a personal tool for the Molten Aether FFRP game. The output is designed to be simply cut and paste from the program output into the wiki. See https://wiki.moltenaether.com for wiki and game information.
