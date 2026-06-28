@@ -12,6 +12,7 @@ in `planetGen.py` or directly within the code for specific scenarios.
 class SystemConfig:
     def __init__(self):
         self.system_flavor_count = 0
+        self.recent_flavor_texts = [] # Stores recently used flavor texts to avoid repetition
         self.MARKDOWN = False
         """
         bool: If True, output will be formatted in Markdown. If False, output will be

@@ -798,6 +798,7 @@ FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
 FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
 MAX_FLAVOR_PLANET = 1 # The maximum flavor text for a single planet.
+MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
 
 SYSTEM_FLAVOR = [ # System-only flavor text.
     "a derelict chain of deep-space platforms firing concentrated energy beams into the void for an unknown purpose.",
@@ -824,7 +825,7 @@ PLANET_FLAVOR = [ # Flavor text for any planet.
     "a vast, precise grid of ancient cargo containers showing faint energy readings.",
     "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs.",
     "a vast, perfectly smooth glass crater with refined materials fused into its center.",
-    "an automated surface rover actively sorting river stones by size into perfectly straight, mile-long lines."
+    "an automated surface rover actively sorting stones by size into perfectly straight lines."
 ]
 
 ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
@@ -834,8 +835,8 @@ ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
     "a primitive interstellar probe caught in orbit.",
     "a derelict light cruiser venting plasma slowly into an orbital ring of plasma.",
     "a transport ship whose severed bow tracks forty kilometers directly behind its own stern.",
-    "a ring of silicate and gold dust broadcasting a sustained B-flat major chord across standard radio frequencies.",
-    "a massive stone sculpture of a humanoid hand, its index finger locked pointing at magnetic north.",
+    "a dense ring of cobalt-ferrite dust, in a thick fog of ionized sodium-potassium gas broadcasting radio signals across a variety of frequencies.",
+    "a massive stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north.",
     "a constellation solar mirrors suspended in a rough orbital grid."
 ]
 

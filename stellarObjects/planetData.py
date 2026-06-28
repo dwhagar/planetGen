@@ -641,6 +641,7 @@ class Planet:
     def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
         """
         Generates paragraphs related to life, evolution, and flavor text for the planet.
+        It also ensures that recently used flavor texts are not repeated.
 
         Args:
             object_type_desc (str): Description of the object type ("planet" or "moon").
@@ -676,6 +677,20 @@ class Planet:
         # Add flavor text if the random chance passes and limits are not exceeded
         if random.random() < constants.FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
             selected_flavor = None
+            
+            # Filter out recently used flavor texts
+            available_habitable_flavor = [f for f in constants.HABITABLE_FLAVOR if f not in self.system_config.recent_flavor_texts]
+            available_planet_flavor = [f for f in constants.PLANET_FLAVOR if f not in self.system_config.recent_flavor_texts]
+            available_orbital_flavor = [f for f in constants.ORBITAL_FLAVOR if f not in self.system_config.recent_flavor_texts]
+
+            # If all flavors of a category have been recently used, reset to the full list
+            if not available_habitable_flavor:
+                available_habitable_flavor = constants.HABITABLE_FLAVOR
+            if not available_planet_flavor:
+                available_planet_flavor = constants.PLANET_FLAVOR
+            if not available_orbital_flavor:
+                available_orbital_flavor = constants.ORBITAL_FLAVOR
+
             # Check for habitable and multicellular/technological life
             is_habitable = self.planet_class in constants.HABITABLE_PLANET_CLASSES
             has_multicellular_life = False
@@ -686,17 +701,23 @@ class Planet:
                         break
 
             if is_habitable and has_multicellular_life:
-                selected_flavor = secrets.choice(constants.HABITABLE_FLAVOR)
+                selected_flavor = secrets.choice(available_habitable_flavor)
             elif self.type == "t" and self.planet_class != "A":
-                selected_flavor = secrets.choice(constants.PLANET_FLAVOR)
+                selected_flavor = secrets.choice(available_planet_flavor)
             elif self.type == "g" or self.planet_class == "A":
-                selected_flavor = secrets.choice(constants.ORBITAL_FLAVOR)
+                selected_flavor = secrets.choice(available_orbital_flavor)
 
             if selected_flavor:
                 self.flavor_text = selected_flavor
                 life_paragraphs.append(f"Sensors show {self.flavor_text}")
                 self.system_config.system_flavor_count += 1
                 self.flavor_text_count += 1
+                
+                # Add the selected flavor text to the recent list
+                self.system_config.recent_flavor_texts.append(selected_flavor)
+                # Keep the recent_flavor_texts list to a maximum size
+                if len(self.system_config.recent_flavor_texts) > constants.MAX_RECENT_FLAVOR_TEXTS:
+                    self.system_config.recent_flavor_texts.pop(0) # Remove the oldest entry
         
         return life_paragraphs
 
