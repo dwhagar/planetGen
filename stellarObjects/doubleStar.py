@@ -37,6 +37,7 @@ class BinaryStarProxy(Star):
         stars (list): A list containing both primary and secondary Star objects.
         _effective_mass (float): The combined mass of both stars in kilograms.
         _effective_luminosity (float): The combined luminosity of both stars in Watts.
+        _binary_separation_au (float): The orbital separation between the two stars in AU.
     """
 
     def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star):
@@ -52,13 +53,29 @@ class BinaryStarProxy(Star):
         # The name will be overridden, and other properties will be handled by getters.
         super().__init__(system_config, name=f"{primary_star.name} Binary System", _skip_property_init=True)
 
+        if secondary_star.mass > primary_star.mass:
+            temp_star = secondary_star
+            secondary_star = primary_star
+            primary_star = temp_star
+
         self._primary = primary_star
         self._secondary = secondary_star
+
+        if self._primary.age >= self._secondary.age:
+            self.age = primary_star.age
+            self.lifespan = primary_star.lifespan
+        else:
+            self.age = secondary_star.age
+            self.lifespan = secondary_star.lifespan
+
         self.stars = [primary_star, secondary_star]
 
         # Calculate combined properties
         self._effective_mass = sum(s.mass for s in self.stars)
         self._effective_luminosity = sum(s.luminosity for s in self.stars)
+
+        # Generate binary separation (0.05 to 0.25 AU for P-type systems)
+        self._binary_separation_au = random.uniform(0.05, 0.25)
 
         # Override base Star properties with effective values
         # Changed this line to only use the primary star's name for the system name
@@ -66,7 +83,6 @@ class BinaryStarProxy(Star):
         self.type = f"Binary ({primary_star.type.split(' ')[0]}/{secondary_star.type.split(' ')[0]})" # Simplified type
         self.temperature = (primary_star.temperature + secondary_star.temperature) / 2 # Simple average
         self.radius = max(primary_star.radius, secondary_star.radius) # Use the larger radius for approximation
-        self.age = primary_star.age # Assume binary system age is tied to primary
         self.lifespan = primary_star.lifespan # Assume binary system lifespan is tied to primary
 
         # Recalculate derived properties based on effective values
@@ -91,6 +107,11 @@ class BinaryStarProxy(Star):
     def luminosity(self):
         """Returns the combined luminosity of the binary system."""
         return self._effective_luminosity
+
+    @property
+    def binary_separation_au(self):
+        """Returns the orbital separation between the two stars in AU."""
+        return self._binary_separation_au
 
     def adjust_age_for_planets(self, planets):
         """
@@ -123,11 +144,12 @@ class BinaryStarProxy(Star):
             "mass": mass_string,
             "lum": lum_string,
             "hab": f"Between {hab_lower} and {hab_upper} AU",
+            "separation": f"{self.binary_separation_au:.2f} AU",
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "lum": "Luminosity",
-            "hab": "Habitable Zone", "loc": "Location"
+            "hab": "Habitable Zone", "separation": "Stellar Separation", "loc": "Location"
         }
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 
