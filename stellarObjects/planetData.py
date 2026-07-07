@@ -16,6 +16,7 @@ import math
 import random, secrets
 
 from .config import SystemConfig # Updated import
+from .doubleStar import BinaryStarProxy # New import for binary star systems
 from stellarObjects import constants
 from .evolution import get_evolutionary_timeline
 from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
@@ -414,9 +415,14 @@ class Planet:
         if not planet_data or not planet_data.get("life_chemical"):
             return {}
 
-        planet_chems = planet_data["life_chemical"]
+        planet_chems = planet_data["life_chemical"] #
 
         # Determine the star's spectral class (e.g., 'G' from 'G2V')
+        if isinstance(self.star, BinaryStarProxy):
+            spectral_class = self.star._primary.type[0].upper()
+        else:
+            spectral_class = self.star.type[0].upper()
+
         if not self.star_type:
             return {}
 
@@ -464,7 +470,11 @@ class Planet:
         if not self.star_type:
             return None
 
-        spectral_class = self.star_type[0].upper()
+        # Determine the star's spectral class (e.g., 'G' from 'G2V')
+        if isinstance(self.star, BinaryStarProxy):
+            spectral_class = self.star._primary.type[0].upper()
+        else:
+            spectral_class = self.star.type[0].upper()
 
         # 1. Get the speeds supported by the star
         star_data = constants.STAR_EVOLUTION.get(spectral_class)

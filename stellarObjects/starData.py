@@ -20,7 +20,7 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 import math
 import random, secrets
 import re
-from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, to_paragraph, properties_to_string
+from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, properties_to_string
 from stellarObjects import constants
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .config import SystemConfig # Updated import
@@ -163,7 +163,7 @@ class Star:
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, constants.MILKY_WAY_MASS)
         return hill_radius_m / constants.AU_TO_M
 
-    def calculate_heliosphere(self):
+    def _calculate_heliosphere_radius_static(mass, luminosity, radius_km, star_type, yerkes_class):
         """
         Estimates the radius of the star's heliosphere (astrosphere).
 
@@ -185,18 +185,17 @@ class Star:
         Returns:
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
-        # --- 1. Get Fundamental Stellar Properties ---
-        radius_m = self.radius * constants.KM_TO_M_FACTOR  # Convert radius from km to meters
-        lum_sol = self.luminosity / constants.SOLAR_LUMINOSITY
-        mass_sol = self.mass / constants.SOLAR_MASS_TO_KG
+        # --- 1. Get Fundamental Stellar Properties (from arguments) ---
+        radius_m = radius_km * constants.KM_TO_M_FACTOR  # Convert radius from km to meters
+        lum_sol = luminosity / constants.SOLAR_LUMINOSITY
+        mass_sol = mass / constants.SOLAR_MASS_TO_KG
         radius_sol = radius_m / constants.SOLAR_RADIUS_M
 
         # --- 2. Calculate Mass-Loss Rate (M-dot) and Wind Velocity (v_inf) ---
         # A single formula for mass loss is insufficient. We use a tiered system based on
         # the star's Yerkes luminosity class (evolutionary stage) and spectral type.
-
-        escape_velocity = math.sqrt(constants.ESCAPE_VELOCITY_CONSTANT * constants.G * self.mass / radius_m)
-        yerkes_class = self.yerkes_class
+        escape_velocity = math.sqrt(constants.ESCAPE_VELOCITY_CONSTANT * constants.G * mass / radius_m)
+        
 
         # TIER 1: Hypergiants (Class 0)
         # These stars have extreme radiation-driven winds. We use a power-law that is
@@ -233,7 +232,7 @@ class Star:
             # radiation pressure. The Reimers' law scaling (L*R/M) is inaccurate here.
             # We use a more modern, empirically-derived formula from Wood et al. (2005),
             # which relates mass-loss rate to surface X-ray flux.
-            # M-dot ~ R^2 * F_x^1.34, and F_x ~ L^-1.5
+            # M-dot ~ R^2 * F_x^1.34, and F_x ~ L^-0.5
             # This results in a scaling relationship of M-dot ~ R^2 * L^-0.5
             # We normalize this to the Sun's known mass-loss rate.
             # The mass term is added to account for gravitational binding.
@@ -261,7 +260,13 @@ class Star:
         # Convert the final radius from meters to Astronomical Units (AU) for output.
         return heliopause_radius_m / constants.AU_TO_M
 
-    def __init__(self, system_config: SystemConfig, name=None):
+    def calculate_heliosphere(self):
+        """
+        Estimates the radius of the star's heliosphere (astrosphere) using the static helper.
+        """
+        return Star._calculate_heliosphere_radius_static(self.mass, self.luminosity, self.radius, self.type, self.yerkes_class)
+
+    def __init__(self, system_config: SystemConfig, name=None, _skip_property_init=False, **kwargs):
         """
         Initializes a Star object, generating its properties based on specified constraints.
 
@@ -285,25 +290,31 @@ class Star:
             system_config (SystemConfig): The shared SystemConfig object for the system.
             name (str, optional): The name to assign to the star. If None, a
                                   random name will be generated. Defaults to None.
+            _skip_property_init (bool): If True, skips initialization of properties
+                                        that might be managed by a subclass (e.g., BinaryStarProxy).
+                                        Defaults to False.
         """
         self.system_config = system_config # Storing the SystemConfig instance
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
-        self.luminosity = None
-        self.temperature = None
-        self.mass = None
-        self.radius = None
-        self.type = None
-        self.yerkes_class = None
-        self.habitable_zone = None
-        self.system_perimeter = None
-        self.heliosphere_radius = None
-        self.generate_star()
-        self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
-        self.habitable_zone = calculate_habitable_zone(self.luminosity)
-        self.system_perimeter = self.calculate_system_perimeter()
-        self.heliosphere_radius = self.calculate_heliosphere()
+        
+        if not _skip_property_init:
+            self.luminosity = None
+            self.temperature = None
+            self.mass = None
+            self.radius = None
+            self.type = None
+            self.yerkes_class = None
+            self.habitable_zone = None
+            self.system_perimeter = None
+            self.heliosphere_radius = None
+            # Added mass_override for secondary star generation in binary systems
+            self.generate_star(mass_override=kwargs.get('mass_override'))
+            self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
+            self.habitable_zone = calculate_habitable_zone(self.luminosity)
+            self.system_perimeter = self.calculate_system_perimeter()
+            self.heliosphere_radius = self.calculate_heliosphere()
 
-    def to_paragraph_list(self):
+    def to_paragraph_list(self, is_sub_star=False):
         """
         Generates a list of descriptive paragraphs about the star's properties.
 
@@ -320,7 +331,7 @@ class Star:
             list: A list of strings, where each string represents a paragraph
                   or a formatted data block describing the star.
         """
-        paragraphs = [] # This will contain the final list of "paragraphs" for the star.
+        paragraphs = []
 
         if round(self.habitable_zone[0], constants.ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], constants.ROUND_HABITABLE_ZONE_AU):
             hab_lower = str(round(self.habitable_zone[0], constants.ROUND_HABITABLE_ZONE_AU_SMALL))
@@ -429,7 +440,7 @@ class Star:
         """
         return '\n\n'.join(self.to_paragraph_list())
 
-    def generate_star(self):
+    def generate_star(self, mass_override=None):
         """
         Generates the physical properties of the star based on a hierarchical,
         physically-constrained procedural model.
@@ -492,7 +503,7 @@ class Star:
             "0": "Hypergiant", "IA+": "Luminous Supergiant", "IA": "Supergiant",
             "IAB": "Intermediate-size Luminous Supergiant", "IB": "Less Luminous Supergiant",
             "II": "Bright Giant", "III": "Giant", "IV": "Subgiant", "V": "Main Sequence",
-            "VI": "Subdwarf", "VII": "White Dwarf", "D": "White Dwarf"
+            "VI": "Subdwarf", "VII": "White Dwarf", "D": "White Dwarf" # D is an alias for VII
         }
 
         if self.system_config.STAR_TYPE:
@@ -582,7 +593,10 @@ class Star:
         
         if self.yerkes_class == "V":
             # For main-sequence stars, the mass-luminosity relation is strong.
-            mass_sol = luminosity ** (1 / constants.MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT)
+            if mass_override:
+                mass_sol = mass_override / constants.SOLAR_MASS_TO_KG
+            else:
+                mass_sol = luminosity ** (1 / constants.MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT)
         elif self.yerkes_class in ["VII", "D"]:
             # For white dwarfs, mass is tightly constrained. Hotter (younger) ones
             # are typically more massive, closer to the Chandrasekhar limit.
@@ -590,11 +604,17 @@ class Star:
                 mass_sol = random.uniform(constants.HOT_WHITE_DWARF_MIN_MASS_SOL, constants.CHANDRASEKHAR_LIMIT_SOL)
             else:
                 mass_sol = random.uniform(min_mass, constants.COOL_WHITE_DWARF_MAX_MASS_SOL)
+            if mass_override: # If mass is overridden for a WD, ensure it's within limits
+                mass_sol = max(min(mass_override / constants.SOLAR_MASS_TO_KG, constants.CHANDRASEKHAR_LIMIT_SOL), min_mass)
         else:
             # For giants and supergiants, mass is less predictable from luminosity alone.
             # We choose a random mass within the physically allowed range for the class.
-            mass_sol = random.uniform(min_mass, max_mass)
-            
+            if mass_override:
+                mass_sol = mass_override / constants.SOLAR_MASS_TO_KG
+            else:
+                mass_sol = random.uniform(min_mass, max_mass)
+
+
         # Ensure the calculated mass is within the absolute physical bounds for its class.
         mass_sol = max(min(mass_sol, max_mass), min_mass)
         mass = mass_sol * constants.SOLAR_MASS_TO_KG

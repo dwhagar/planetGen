@@ -21,6 +21,7 @@ the system.
 import random
 import math
 from .planetData import Planet
+from .doubleStar import BinaryStarProxy # New import for binary star systems
 from .asteroidData import AsteroidBelt
 from .starData import Star
 from stellarObjects import constants
@@ -64,9 +65,9 @@ class StarSystem:
         placing them in orbit around the star.
 
         The generation logic can be influenced by several parameters, allowing for
-        the creation of specific types of systems. For example, the `force_hab`
-        flag ensures that at least one habitable planet is generated, while the
-        `no_planets` flag can be used to create a star with no orbiting bodies.
+        fine-tuned control over the final system's characteristics. For example,
+        the `force_hab` flag ensures that at least one habitable planet is generated,
+        while the `no_planets` flag can be used to create a star with no orbiting bodies.
         The placement of planets is done sequentially, with each new planet's
         orbit being determined based on the position of the previous one to ensure
         a degree of realism in orbital spacing.
@@ -76,7 +77,21 @@ class StarSystem:
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         self.star = Star(self.system_config, name=self.system_config.NAME) # Pass system_config and use its NAME
+        self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
+        self.stars = [self.primary_star] # Keep track of individual stars
+
+        if self.system_config.IS_BINARY_SYSTEM:
+            # Logic to generate a secondary star (e.g., random mass relative to primary)
+            # This is new generation logic, but contained.
+            # For simplicity, secondary mass is a fraction of primary mass.
+            secondary_mass_factor = random.uniform(0.1, 0.8)
+            secondary_mass = self.primary_star.mass * secondary_mass_factor
+            # Create secondary star, potentially with a different name or type if desired
+            self.secondary_star = Star(self.system_config, name=f"{self.primary_star.name} B", mass_override=secondary_mass)
+            self.stars.append(self.secondary_star)
+            self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star) # self.star now points to the proxy
+
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / constants.SOLAR_MASS_TO_KG
@@ -325,25 +340,14 @@ class StarSystem:
         """
         all_output_parts = []
 
-        # Add level 1 header for the star's name
-        if self.system_config.MARKDOWN: # Use self.system_config
+        # Add level 1 header for the system name
+        if self.system_config.MARKDOWN:
             all_output_parts.append(f"# {self.star.name}\n\n")
         else:
             all_output_parts.append(f"= {self.star.name} =\n\n")
 
-        # 1. Add star description block and age/lifespan/notes
-        star_paragraphs = self.star.to_paragraph_list()
-
-        # The first item is the Star Data template
-        all_output_parts.append(star_paragraphs[0])
-        # Add a double newline after the Star Data template
-        all_output_parts.append('\n\n')
-        # The second item is the age and evolutionary notes sentence
-        all_output_parts.append(star_paragraphs[1])
-
-        # 2. Generate system summary sentences
+        # Generate system summary sentences (needed before star details for binary systems)
         system_summary_sentences = []
-
         segments = []
         if 0 < self.planet_count != self.m_count and self.hab_count != self.planet_count:
             segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
@@ -381,10 +385,7 @@ class StarSystem:
         else:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
-        # Convert AU to Light-Years for the descriptive text (1 LY = 63241.1 AU)
         perimeter_ly = self.star.system_perimeter * constants.AU_TO_LY
-
-        # Convert heliosphere radius to light-years to check the condition
         heliosphere_ly = self.star.heliosphere_radius * constants.AU_TO_LY
         if heliosphere_ly < 0.1:
             heliosphere_text = f"{self.star.heliosphere_radius:.4f} AU"
@@ -396,28 +397,75 @@ class StarSystem:
         system_summary_sentences.append(
             f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
 
-        # Join all system summary sentences into a single paragraph using to_paragraph.
         combined_system_summary_paragraph = to_paragraph(system_summary_sentences)
 
-        # Add a double newline before the combined system summary paragraph.
-        all_output_parts.append('\n\n' + combined_system_summary_paragraph)
 
-        # Add flavor text if the random chance passes and total flavor text limit is not exceeded
-        if random.random() < constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL: # Use self.system_config
-            flavor_text = random.choice(constants.SYSTEM_FLAVOR)
-            all_output_parts.append(f"\n\nSensors show {flavor_text}")
-            self.system_config.system_flavor_count += 1 # Use self.system_config
-            # Removed: self.star.system_flavor_count += 1
+        if isinstance(self.star, BinaryStarProxy):
+            # Get combined binary system data and age from the proxy
+            # BinaryStarProxy.to_paragraph_list() now returns [data_block, "", age_sentence, ""]
+            binary_proxy_paragraphs = self.star.to_paragraph_list()
 
-        # 3. Add planet/belt paragraphs, each separated by a double newline from the previous.
+            # 1. Append the combined binary system data block
+            all_output_parts.append(binary_proxy_paragraphs[0]) # Binary System Data
+            all_output_parts.append('\n\n')
+
+            # 2. Append the system summary
+            all_output_parts.append(combined_system_summary_paragraph)
+            all_output_parts.append('\n\n')
+
+            # 3. Append the combined age sentence for the binary system
+            all_output_parts.append(binary_proxy_paragraphs[1]) # Binary System Age sentence
+
+            # Add flavor text if the random chance passes and total flavor text limit is not exceeded
+            if random.random() < constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
+                flavor_text = random.choice(constants.SYSTEM_FLAVOR)
+                all_output_parts.append(f"\n\nSensors show {flavor_text}")
+                self.system_config.system_flavor_count += 1
+
+            # all_output_parts.append('\n\n')
+
+            # 4. Append individual star details for primary and secondary stars
+            for star_obj in self.stars: # self.stars contains primary and secondary Star objects
+                all_output_parts.append('\n\n') # Blank line after age sentence
+                header_level = '===' if not self.system_config.MARKDOWN else '###'
+                all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}")
+                all_output_parts.append('\n') # Add a newline after the header
+
+                # Each individual star's to_paragraph_list() returns [data_block, "", age_sentence, ""]
+                individual_star_details = star_obj.to_paragraph_list()
+                all_output_parts.append(individual_star_details[0]) # Individual Star Data block
+                all_output_parts.append('\n\n') # Blank line after data block
+                all_output_parts.append(individual_star_details[1]) # Individual Star Age sentence
+
+        else:
+            # For single star:
+            # Get single star data and age from the star object
+            # Star.to_paragraph_list() returns [data_block, "", age_sentence, ""]
+            single_star_paragraphs = self.star.to_paragraph_list()
+
+            # 1. Append the single star data block
+            all_output_parts.append(single_star_paragraphs[0])
+            all_output_parts.append('\n\n')
+            # 2. Append the single star age sentence
+            all_output_parts.append(single_star_paragraphs[1])
+            all_output_parts.append('\n\n')
+            # 3. Append the system summary
+            all_output_parts.append(combined_system_summary_paragraph)
+            # all_output_parts.append('\n\n')
+
+            # Add flavor text if the random chance passes and total flavor text limit is not exceeded
+            if random.random() < constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
+                flavor_text = random.choice(constants.SYSTEM_FLAVOR)
+                all_output_parts.append(f"\n\nSensors show {flavor_text}")
+                self.system_config.system_flavor_count += 1
+
+        # Add planet/belt paragraphs, each separated by a double newline from the previous.
         if self.planets:
             for planet in self.planets:
-                # planet.to_paragraph_list() returns a list of strings, which we join with double newlines
-                # and then add a double newline before the entire block.
                 all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
 
-        # 4. Add category tag if not markdown
-        if not self.system_config.MARKDOWN: # Use self.system_config
+        # Add category tag if not markdown
+        if not self.system_config.MARKDOWN:
             all_output_parts.append('\n\n' + '[[Category:Star Systems]]')
 
         return ''.join(all_output_parts)

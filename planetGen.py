@@ -131,6 +131,10 @@ def process_args():
     parser.add_argument('--no-habitable-world', '-nhw', action='store_true',
                         help="Ensures no habitable world is generated in the system.")
 
+    # Binary System
+    parser.add_argument('--binary-system', '-bs', action='store_true',
+                        help="Generates a binary star system (P-type).")
+
     # Override Flavor Chance System
     parser.add_argument('--flavor-chance-system', type=float,
                         help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
@@ -219,6 +223,7 @@ def main():
     system_config.FORCE_INT = args.force_intelligent_life
     system_config.NO_INT = args.no_intelligent_life
     system_config.NO_HABITABLE_WORLD = args.no_habitable_world
+    system_config.IS_BINARY_SYSTEM = args.binary_system
 
     # Apply conditional logic based on SystemConfig flags
     if system_config.FORCE_INT or system_config.NO_INT:

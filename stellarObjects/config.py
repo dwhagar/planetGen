@@ -97,3 +97,9 @@ class SystemConfig:
         bool: If True, the system generation will ensure no habitable world is generated
         in the system. Defaults to False.
         """
+
+        self.IS_BINARY_SYSTEM = False
+        """
+        bool: If True, the system generation will attempt to create a binary star system.
+        Defaults to False.
+        """
