@@ -75,7 +75,13 @@ class BinaryStarProxy(Star):
         self._effective_luminosity = sum(s.luminosity for s in self.stars)
 
         # Generate binary separation (0.05 to 0.25 AU for P-type systems)
-        self._binary_separation_au = random.uniform(0.05, 0.25)
+        # Add the radii of both stars to the separation to ensure they don't overlap
+        # and to account for their physical size in the orbital distance.
+        base_separation = random.uniform(0.05, 0.25)
+        # Convert star radii from kilometers to AU before adding to separation
+        self._binary_separation_au = base_separation + \
+                                     (self._primary.radius / constants.AU_TO_KM) + \
+                                     (self._secondary.radius / constants.AU_TO_KM)
 
         # Override base Star properties with effective values
         # Changed this line to only use the primary star's name for the system name
@@ -139,12 +145,17 @@ class BinaryStarProxy(Star):
         hab_lower = str(round(self.habitable_zone[0], constants.ROUND_HABITABLE_ZONE_AU))
         hab_upper = str(round(self.habitable_zone[1], constants.ROUND_HABITABLE_ZONE_AU))
 
+        # Calculate separation in kilometers and format with scientific notation
+        separation_km = self.binary_separation_au * constants.AU_TO_KM
+        separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
+        separation_string = f"{separation_km_scientific} km ({self.binary_separation_au:.2f} AU)"
+
         binary_properties = {
             "type": self.type,
             "mass": mass_string,
             "lum": lum_string,
             "hab": f"Between {hab_lower} and {hab_upper} AU",
-            "separation": f"{self.binary_separation_au:.2f} AU",
+            "separation": separation_string,
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
         markdown_key_map = {

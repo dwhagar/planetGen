@@ -45,6 +45,7 @@ python planetGen.py [options]
 *   `--force-intelligent-life`, `-fil`: Ensures at least one planet with intelligent life is generated. Implies `--force-habitable-world`.
 *   `--no-intelligent-life`, `-nil`: Ensures no planet with intelligent life is generated. Implies `--force-habitable-world`.
 *   `--no-habitable-world`, `-nhw`: Ensures no habitable world is generated in the system.
+*   `--binary-system`, `-bs`: Generates a binary star system (P-type).
 *   `--flavor-chance-system <float>`: Overrides the default system-level flavor text chance (0.0 to 1.0).
 *   `--flavor-chance-planet <float>`: Overrides the default planet-level flavor text chance (0.0 to 1.0).
 *   `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.

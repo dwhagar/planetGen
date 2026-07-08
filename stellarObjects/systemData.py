@@ -20,6 +20,7 @@ the system.
 
 import random
 import math
+import copy # Added import for deepcopy
 from .planetData import Planet
 from .doubleStar import BinaryStarProxy # New import for binary star systems
 from .asteroidData import AsteroidBelt
@@ -82,13 +83,18 @@ class StarSystem:
         self.stars = [self.primary_star] # Keep track of individual stars
 
         if self.system_config.IS_BINARY_SYSTEM:
+            # Create a copy of the system_config for the secondary star
+            secondary_star_config = copy.deepcopy(self.system_config)
+            # Ensure FORCE_LARGE_STAR is False for the secondary star
+            secondary_star_config.FORCE_LARGE_STAR = False
+
             # Logic to generate a secondary star (e.g., random mass relative to primary)
             # This is new generation logic, but contained.
             # For simplicity, secondary mass is a fraction of primary mass.
             secondary_mass_factor = random.uniform(0.1, 0.8)
             secondary_mass = self.primary_star.mass * secondary_mass_factor
             # Create secondary star, potentially with a different name or type if desired
-            self.secondary_star = Star(self.system_config, name=f"{self.primary_star.name} B", mass_override=secondary_mass)
+            self.secondary_star = Star(secondary_star_config, name=f"{self.primary_star.name} B", mass_override=secondary_mass)
             self.stars.append(self.secondary_star)
             self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star) # self.star now points to the proxy
 
