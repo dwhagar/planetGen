@@ -61,14 +61,10 @@ class BinaryStarProxy(Star):
         self._primary = primary_star
         self._secondary = secondary_star
 
-        if self._primary.age >= self._secondary.age:
-            self.age = primary_star.age
-            self.lifespan = primary_star.lifespan
-        else:
-            self.age = secondary_star.age
-            self.lifespan = secondary_star.lifespan
+        self.age = max(self._primary.age, self._secondary.age)
+        self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
-        self.stars = [primary_star, secondary_star]
+        self.stars = [self._primary, self._secondary]
 
         # Calculate combined properties
         self._effective_mass = sum(s.mass for s in self.stars)
@@ -126,7 +122,8 @@ class BinaryStarProxy(Star):
         for star_obj in self.stars:
             star_obj.adjust_age_for_planets(planets)
         # After adjusting individual stars, update the proxy's age to reflect the primary's
-        self.age = self._primary.age
+        self.age = max(self._primary.age, self._secondary.age)
+        self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
     def to_paragraph_list(self):
         """
