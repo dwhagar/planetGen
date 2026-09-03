@@ -10,8 +10,9 @@ related to planet mass ranges, which are used by both planets and asteroid belts
 """
 
 import random
-from .config import SystemConfig # Updated import
-from stellarObjects import constants
+
+from .config import SystemConfig
+from . import physical_constants, program_constants
 from .utils import reseed_rng
 
 class AsteroidBelt:
@@ -52,7 +53,7 @@ class AsteroidBelt:
     def _generate_composition(self):
         """
         Generates a list of common compounds for the asteroid belt by sampling
-        a random, unique subset of `constants.ASTEROID_COMPONENTS` (up to 4)
+        a random, unique subset of `program_constants.ASTEROID_COMPONENTS` (up to 4)
         and assigning each an ordered concentration level, from "high" down
         to "trace".
 
@@ -63,10 +64,10 @@ class AsteroidBelt:
         all_concentrations = ["high", "moderate", "small", "trace"]
         
         # Determine how many components to select (up to 4)
-        num_components_to_select = min(len(all_concentrations), len(constants.ASTEROID_COMPONENTS))
+        num_components_to_select = min(len(all_concentrations), len(program_constants.ASTEROID_COMPONENTS))
         
         # Select unique components
-        selected_components = random.sample(constants.ASTEROID_COMPONENTS, k=num_components_to_select)
+        selected_components = random.sample(program_constants.ASTEROID_COMPONENTS, k=num_components_to_select)
         
         # Shuffle selected components to randomize which concentration they get
         random.shuffle(selected_components)
@@ -93,14 +94,14 @@ class AsteroidBelt:
                   the asteroid belt.
         """
         # Convert the belt's boundaries to light-years to check against the threshold
-        upper_limit_ly = self.upper_limit * constants.AU_TO_LY
+        upper_limit_ly = self.upper_limit * physical_constants.AU_TO_LY
 
-        if upper_limit_ly < constants.LY_THRESHOLD:
+        if upper_limit_ly < program_constants.LY_THRESHOLD:
             # For smaller systems, display the boundaries in AU for better precision
             distance_text = f"between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU"
         else:
             # For very large systems, display in light-years for readability
-            lower_limit_ly = self.lower_limit * constants.AU_TO_LY
+            lower_limit_ly = self.lower_limit * physical_constants.AU_TO_LY
             distance_text = f"between {lower_limit_ly:.4f} light-years and {upper_limit_ly:.4f} light-years"
 
         output_paragraphs = []

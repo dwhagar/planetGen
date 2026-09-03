@@ -20,9 +20,10 @@ the star's final age rather than a provisional pre-adjustment one.
 
 import random
 import secrets
-from stellarObjects import constants
-from .utils import get_star_spectral_class, reseed_rng
+
 from .evolution import get_evolutionary_timeline
+from . import program_constants
+from .utils import get_star_spectral_class, reseed_rng
 
 
 def get_viable_life_chemicals(planet, spectral_class=None):
@@ -45,7 +46,7 @@ def get_viable_life_chemicals(planet, spectral_class=None):
               normalized float probabilities (e.g., {"Melanin": 0.6}).
     """
     # Retrieve the base list of possible chemicals for this specific planet class
-    planet_data = constants.PLANET_CLASSES.get(planet.planet_class)
+    planet_data = program_constants.PLANET_CLASSES.get(planet.planet_class)
     if not planet_data or not planet_data.get("life_chemical"):
         return {}
 
@@ -58,7 +59,7 @@ def get_viable_life_chemicals(planet, spectral_class=None):
     spectral_class = spectral_class or get_star_spectral_class(planet.star)
 
     # Retrieve the potentially viable chemicals for the star's evolutionary scale
-    star_data = constants.STAR_EVOLUTION.get(spectral_class)
+    star_data = program_constants.STAR_EVOLUTION.get(spectral_class)
     if not star_data or not star_data.get("supported_evolutionary_scales"):
         return {}
 
@@ -70,7 +71,7 @@ def get_viable_life_chemicals(planet, spectral_class=None):
     # Intersect the lists using substring matching and collect raw probabilities
     for p_chem in planet_chems:
         if any(p_chem in s_chem for s_chem in star_chems):
-            chem_prob = constants.LIFE_CHEMICALS.get(p_chem, {}).get(
+            chem_prob = program_constants.LIFE_CHEMICALS.get(p_chem, {}).get(
                 "star_spectra_probabilities", {}).get(spectral_class, 0)
 
             if chem_prob > 0:
@@ -112,7 +113,7 @@ def get_evolutionary_speed(planet, spectral_class=None):
     spectral_class = spectral_class or get_star_spectral_class(planet.star)
 
     # 1. Get the speeds supported by the star
-    star_data = constants.STAR_EVOLUTION.get(spectral_class)
+    star_data = program_constants.STAR_EVOLUTION.get(spectral_class)
     if not star_data or not star_data.get("supported_evolutionary_scales"):
         return None
 
@@ -120,12 +121,12 @@ def get_evolutionary_speed(planet, spectral_class=None):
 
     # 2. Get the speeds supported by the chemical (if one is assigned)
     if planet.life_chemical:
-        chem_data = constants.LIFE_CHEMICALS.get(planet.life_chemical)
+        chem_data = program_constants.LIFE_CHEMICALS.get(planet.life_chemical)
         if chem_data and chem_data.get("evolutionary_time_scale"):
             chem_speeds = chem_data["evolutionary_time_scale"]
 
             # Ensure it's a list for intersection logic, even though
-            # constants.py currently stores it as a single string
+            # program_constants.py currently stores it as a single string
             if isinstance(chem_speeds, str):
                 chem_speeds = [chem_speeds]
 
@@ -173,7 +174,7 @@ def apply_life_data(planet):
             weights=list(viable_chems.values()),
             k=1
         )[0]
-        life_chem_data = constants.LIFE_CHEMICALS.get(planet.life_chemical, {})
+        life_chem_data = program_constants.LIFE_CHEMICALS.get(planet.life_chemical, {})
         planet.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
         planet.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
     else:

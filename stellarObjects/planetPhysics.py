@@ -18,9 +18,10 @@ and moon in a system after all of them have been generated.
 
 import math
 import random
-import secrets
 import re
-from stellarObjects import constants
+import secrets
+
+from . import physical_constants, program_constants
 from .utils import calc_object_mass, calculate_hill_sphere, reseed_rng
 
 
@@ -38,11 +39,11 @@ def get_planet_mass_ranges():
               values are tuples of (min_mass, max_mass) in kilograms.
     """
     mass_ranges = {}
-    for planet_class, data in constants.PLANET_CLASSES.items():
+    for planet_class, data in program_constants.PLANET_CLASSES.items():
         min_radius, max_radius = data["radius_range"]
         planet_type = data["type"]
 
-        min_density, max_density = constants.PLANET_DENSITY[planet_type]  # g/cm^3
+        min_density, max_density = physical_constants.PLANET_DENSITY[planet_type]  # g/cm^3
 
         # Convert density from g/cm³ to kg/m³ for mass calculation
         min_density *= 1000
@@ -52,8 +53,8 @@ def get_planet_mass_ranges():
             min_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density
             max_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density
         else:  # Gas giant
-            min_atm_density, max_atm_density = constants.ATMOSPHERE_DENSITY[planet_type]
-            min_core_ratio, max_core_ratio = constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO
+            min_atm_density, max_atm_density = physical_constants.ATMOSPHERE_DENSITY[planet_type]
+            min_core_ratio, max_core_ratio = program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO
 
             min_core_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density * min_core_ratio
             max_core_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density * max_core_ratio
@@ -73,7 +74,7 @@ planet_mass_ranges = get_planet_mass_ranges()
 
 def _choose_weighted_planet_class(valid_classes):
     """
-    Draws a single planet class from `constants.PLANET_CLASS_PROBABILITIES`,
+    Draws a single planet class from `program_constants.PLANET_CLASS_PROBABILITIES`,
     restricted to `valid_classes`.
 
     This re-weights the distribution to only the eligible classes and draws
@@ -87,8 +88,8 @@ def _choose_weighted_planet_class(valid_classes):
         str: The chosen planet class code.
     """
     valid_classes = set(valid_classes)
-    eligible = [c for c in constants.PLANET_CLASS_PROBABILITIES if c in valid_classes]
-    weights = [constants.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
+    eligible = [c for c in program_constants.PLANET_CLASS_PROBABILITIES if c in valid_classes]
+    weights = [program_constants.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
     return random.choices(eligible, weights=weights, k=1)[0]
 
 
@@ -106,7 +107,7 @@ def _check_no_habitable_world(planet, zone):
                    `zone` is the ecosphere ('e'), and `planet.planet_class`
                    is a habitable class.
     """
-    if planet.system_config.NO_HABITABLE_WORLD and zone == 'e' and planet.planet_class in constants.HABITABLE_PLANET_CLASSES:
+    if planet.system_config.NO_HABITABLE_WORLD and zone == 'e' and planet.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
         raise ValueError(f"Cannot generate habitable planet class {planet.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
 
 
@@ -121,7 +122,7 @@ def _validate_planet_class(planet, zone):
     Raises:
         ValueError: If the planet class is not valid for the given zone.
     """
-    if planet.planet_class not in constants.PLANET_CLASSES or not constants.PLANET_CLASSES[planet.planet_class][zone]:
+    if planet.planet_class not in program_constants.PLANET_CLASSES or not program_constants.PLANET_CLASSES[planet.planet_class][zone]:
         raise ValueError("Invalid planet class for this zone")
 
 
@@ -135,7 +136,7 @@ def _validate_radius(planet):
     Raises:
         ValueError: If the radius is outside the valid range for the planet's class.
     """
-    min_radius, max_radius = constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+    min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
     if not (min_radius <= planet.radius <= max_radius):
         raise ValueError("Invalid radius for planet class")
 
@@ -197,27 +198,27 @@ def generate_planet_properties(planet, zone_override=None):
 
     if planet.planet_class is None and planet.radius is None and planet.mass is None:
         # Fully random generation
-        valid_classes = [c for c, data in constants.PLANET_CLASSES.items() if data[zone]]
+        valid_classes = [c for c, data in program_constants.PLANET_CLASSES.items() if data[zone]]
         if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
-            valid_classes = [c for c in valid_classes if c not in constants.HABITABLE_PLANET_CLASSES]
+            valid_classes = [c for c in valid_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
 
         planet.planet_class = _choose_weighted_planet_class(valid_classes)
-        min_radius, max_radius = constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = random.uniform(min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is None and planet.mass is None:
         # Class given, generate radius
         _validate_planet_class(planet, zone)
         _check_no_habitable_world(planet, zone)
-        min_radius, max_radius = constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = random.uniform(min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is None:
         # Radius given, determine possible classes
-        possible_classes = [c for c, data in constants.PLANET_CLASSES.items()
+        possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
                             if data[zone] and data["radius_range"][0] <= planet.radius <= data["radius_range"][1]]
         if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
-            possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
+            possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius in this zone")
         planet.planet_class = secrets.choice(possible_classes)
@@ -225,10 +226,10 @@ def generate_planet_properties(planet, zone_override=None):
 
     elif planet.planet_class is None and planet.radius is None and planet.mass is not None:
         # Mass given, determine possible classes
-        possible_classes = [c for c, data in constants.PLANET_CLASSES.items()
+        possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
                             if planet_mass_ranges[c][0] <= planet.mass <= planet_mass_ranges[c][1] and data[zone]]
         if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
-            possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
+            possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given mass in this zone")
         planet.planet_class = secrets.choice(possible_classes)
@@ -245,19 +246,19 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_planet_class(planet, zone)
         _check_no_habitable_world(planet, zone)
         _validate_mass(planet)
-        min_radius, max_radius = constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = random.uniform(min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is not None:
         # Radius and mass given, determine possible classes
         possible_classes = []
-        for c, data in constants.PLANET_CLASSES.items():
+        for c, data in program_constants.PLANET_CLASSES.items():
             min_mass, max_mass = planet_mass_ranges[c]
             min_radius, max_radius = data["radius_range"]
             if min_mass <= planet.mass <= max_mass and min_radius <= planet.radius <= max_radius and data[zone]:
                 possible_classes.append(c)
         if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
-            possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
+            possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius/mass in this zone")
         planet.planet_class = secrets.choice(possible_classes)
@@ -271,7 +272,7 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_radius(planet)
         _validate_mass(planet)
 
-    class_data = constants.PLANET_CLASSES[planet.planet_class]
+    class_data = program_constants.PLANET_CLASSES[planet.planet_class]
     planet.composition = class_data["composition"]
     planet.description = class_data["description"]
     if planet.is_moon:
@@ -282,7 +283,7 @@ def generate_planet_properties(planet, zone_override=None):
         planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
     planet.type = class_data["type"]
 
-    min_density, max_density = constants.PLANET_DENSITY[planet.type]
+    min_density, max_density = physical_constants.PLANET_DENSITY[planet.type]
     planet.density = random.uniform(min_density, max_density)
 
     if class_data["atmosphere"] is None:
@@ -291,25 +292,25 @@ def generate_planet_properties(planet, zone_override=None):
         planet.atmosphere = class_data["atmosphere"]
         if planet.planet_class == 'N':
             planet.atm_density = 65
-            min_am_density, max_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[planet.type]
+            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.type]
             planet.atm_molar_density = max_am_density
         else:
-            min_a_density, max_a_density = constants.ATMOSPHERE_DENSITY[planet.type]
+            min_a_density, max_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.type]
             planet.atm_density = random.uniform(min_a_density, max_a_density)
-            min_am_density, max_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[planet.type]
+            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.type]
             planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
     if planet.type == 'g':
-        core_to_atmosphere_ratio = random.uniform(*constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
+        core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
         planet.density = planet.density * core_to_atmosphere_ratio + (
                     1 - core_to_atmosphere_ratio) * (planet.atm_density / 1000)
 
-    planet.volume, planet.mass = calc_object_mass(planet.planet_class, planet.radius, constants.PLANET_CLASSES, constants.PLANET_DENSITY,
+    planet.volume, planet.mass = calc_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
                                               planet.density)
 
-    distance_m = planet.distance * constants.AU_TO_M
+    distance_m = planet.distance * physical_constants.AU_TO_M
     planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, planet.star_mass) / 1000  # Convert to km
-    planet.min_orbit_distance = (5 * planet.hill_radius) / constants.AU_TO_KM
+    planet.min_orbit_distance = (5 * planet.hill_radius) / physical_constants.AU_TO_KM
 
 
 def calculate_surface_gravity(planet):
@@ -329,8 +330,8 @@ def calculate_surface_gravity(planet):
     """
     reseed_rng()
     radius_meters = planet.radius * 1000
-    surface_gravity = (constants.G * planet.mass) / (radius_meters ** 2)
-    surface_gravity_g = surface_gravity / constants.EARTH_GRAVITY
+    surface_gravity = (physical_constants.G * planet.mass) / (radius_meters ** 2)
+    surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')
     if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
@@ -359,20 +360,20 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     """
     reseed_rng()
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
-    orbital_radius_km = distance * constants.AU_TO_KM
+    orbital_radius_km = distance * physical_constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star_output / output_area) / 1e6
     albedo = random.uniform(0.12, 0.35)
     surface_temperature_no_atmosphere = (
-                                                (1 - albedo) * solar_output_at_orbit / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
+                                                (1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
                                                     1 / 4)
 
     if planet.atmosphere == "None":
         planet.surface_temperature = surface_temperature_no_atmosphere
         planet.atmospheric_pressure = 0.0
     else:
-        scale_height = (constants.R * surface_temperature_no_atmosphere) / (
-                    planet.atm_molar_density * planet.gravity * constants.EARTH_GRAVITY)
+        scale_height = (physical_constants.R * surface_temperature_no_atmosphere) / (
+                    planet.atm_molar_density * planet.gravity * physical_constants.EARTH_GRAVITY)
         planet.scale_height = scale_height
         atmosphere_thickness = scale_height * random.uniform(5, 7)
         planet_volume = (4 * math.pi * planet.radius ** 3) / 3
@@ -384,12 +385,12 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
                         4 * math.pi * (planet.radius + (zone * scale_height)) ** 3) / 3
             zone_density = planet.atm_density / (zone * 2.7) if zone >= 1 else planet.atm_density
             atmospheric_mass += zone_volume * zone_density
-        atmospheric_force = atmospheric_mass * (planet.gravity * constants.EARTH_GRAVITY)
+        atmospheric_force = atmospheric_mass * (planet.gravity * physical_constants.EARTH_GRAVITY)
         planet_surface_area = 4 * math.pi * (planet.radius * 1000) ** 2
         atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500
 
-        greenhouse_factor = abs((planet.atm_molar_density - constants.CO2_BASE_MOLAR_DENSITY) / constants.CO2_BASE_MOLAR_DENSITY * constants.CO2_MAX_GREENHOUSE_FACTOR)
-        surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
+        greenhouse_factor = abs((planet.atm_molar_density - physical_constants.CO2_BASE_MOLAR_DENSITY) / physical_constants.CO2_BASE_MOLAR_DENSITY * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
+        surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
         planet.surface_temperature = surface_temperature_atmosphere
         planet.atmospheric_pressure = atmospheric_pressure
 
@@ -424,31 +425,31 @@ def generate_moons(planet):
     max_moon_mass = planet.mass / 10
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     possible_classes = [c for c, data in planet_mass_ranges.items()
-                        if constants.PLANET_CLASSES[c][planet.zone] and constants.PLANET_CLASSES[c]["type"] == 't' and c not in constants.MOON_BLACKLIST
-                        and data[1] <= max_moon_mass and constants.PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
+                        if program_constants.PLANET_CLASSES[c][planet.zone] and program_constants.PLANET_CLASSES[c]["type"] == 't' and c not in program_constants.MOON_BLACKLIST
+                        and data[1] <= max_moon_mass and program_constants.PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
     if not possible_classes:
         return
 
     low_orbit = planet.scale_height * 15 if planet.scale_height else 100
-    high_orbit = planet.min_orbit_distance * constants.AU_TO_KM
+    high_orbit = planet.min_orbit_distance * physical_constants.AU_TO_KM
     total_orbit_distance = low_orbit
 
     # Deferred import: planetData imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
     from .planetData import Planet
 
-    while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * constants.AU_TO_KM):
+    while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * physical_constants.AU_TO_KM):
         moon_class = _choose_weighted_planet_class(possible_classes)
 
-        radius_limit = constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
-                                                                        constants.PLANET_CLASSES[moon_class]['radius_range'][
+        radius_limit = program_constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
+                                                                        program_constants.PLANET_CLASSES[moon_class]['radius_range'][
                                                                             1] else max_moon_radius
-        moon_distance = random.uniform(total_orbit_distance, high_orbit) / constants.AU_TO_KM
-        moon_radius = random.uniform(constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
+        moon_distance = random.uniform(total_orbit_distance, high_orbit) / physical_constants.AU_TO_KM
+        moon_radius = random.uniform(program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
         new_moon = Planet(planet.system_config, planet.star, planet.hab, moon_distance, planet.star_type, planet.star_output, planet.star_radius,
                           planet.star_temperature, planet.star_mass, radius=moon_radius,
                           planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True)
         planet.moons.append(new_moon)
-        total_orbit_distance = (new_moon.distance * constants.AU_TO_KM) + (new_moon.min_orbit_distance * constants.AU_TO_KM)
+        total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)

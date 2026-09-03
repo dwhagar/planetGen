@@ -18,18 +18,17 @@ number of celestial objects, and generating a detailed string representation of
 the system.
 """
 
-import random
+import copy
 import math
-import copy # Added import for deepcopy
-from .planetData import Planet
-from . import planetPhysics
-from . import planetLife
-from .doubleStar import BinaryStarProxy # New import for binary star systems
+import random
+
 from .asteroidData import AsteroidBelt
+from .config import SystemConfig
+from .doubleStar import BinaryStarProxy
+from . import physical_constants, planetLife, planetPhysics, program_constants
+from .planetData import Planet
 from .starData import Star
-from stellarObjects import constants
 from .utils import to_paragraph
-from .config import SystemConfig # Updated import
 
 class StarSystem:
     """
@@ -109,7 +108,7 @@ class StarSystem:
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()
-        star_factor = self.star.mass / constants.SOLAR_MASS_TO_KG
+        star_factor = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         required_objects = 0
         if self.system_config.FORCE_HABITABLE_WORLD: # Use self.system_config
@@ -137,7 +136,7 @@ class StarSystem:
                     else:
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
                 else:
-                    estimated_distance = constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
+                    estimated_distance = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
 
                 hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
 
@@ -179,9 +178,9 @@ class StarSystem:
                         self.planets.append(planet)
                         continue
 
-                if (random.random() < constants.ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
+                if (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
                     min_distance = estimated_distance
-                    max_distance = estimated_distance * random.uniform(constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+                    max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     self.planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
                 else:
                     planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
@@ -278,7 +277,7 @@ class StarSystem:
         """
         if self.system_config.NO_PLANETS: # Use self.system_config
             return 0
-        solar_masses = self.star.mass / constants.SOLAR_MASS_TO_KG
+        solar_masses = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         # This provides a continuous scaling factor based on mass.
         # For a 1 solar mass star, this is 1.
@@ -287,9 +286,9 @@ class StarSystem:
         scaling_factor = 1 + math.log10(solar_masses) if solar_masses >= 1 else solar_masses
 
         # Base number of objects for a 1 solar mass star is 15.
-        max_objects = constants.BASE_MAX_SYSTEM_OBJECTS * scaling_factor
-        if max_objects > constants.ABSOLUTE_MAX_SYSTEM_OBJECTS:
-            max_objects = constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
+        max_objects = program_constants.BASE_MAX_SYSTEM_OBJECTS * scaling_factor
+        if max_objects > program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS:
+            max_objects = program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
         return math.ceil(max_objects) if self.system_config.FORCE_MAX_PLANETS else random.randint(0, math.ceil(max_objects)) # Use self.system_config
 
     def validate_system(self):
@@ -327,18 +326,18 @@ class StarSystem:
 
             if planet.type == 'a':
                 if last_planet.type == 'a':
-                    if distance_to_last < constants.MIN_ASTEROID_BELT_SEPARATION:
-                        planet.distance += constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        planet.upper_limit += constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        planet.lower_limit += constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                    if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
+                        planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                        planet.upper_limit += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                        planet.lower_limit += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                 elif distance_to_last < last_planet.min_orbit_distance:
                     planet.distance += last_planet.min_orbit_distance + additional_correction
                     planet.upper_limit += last_planet.min_orbit_distance + additional_correction
                     planet.lower_limit += last_planet.min_orbit_distance + additional_correction
             else:
                 if last_planet.type == 'a':
-                    if distance_to_last < constants.MIN_ASTEROID_BELT_SEPARATION:
-                        planet.distance += constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
+                    if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
+                        planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         planetPhysics.calculate_atmospheric_conditions(planet)
                 else:
                     min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
@@ -412,8 +411,8 @@ class StarSystem:
         else:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
-        perimeter_ly = self.star.system_perimeter * constants.AU_TO_LY
-        heliosphere_ly = self.star.heliosphere_radius * constants.AU_TO_LY
+        perimeter_ly = self.star.system_perimeter * physical_constants.AU_TO_LY
+        heliosphere_ly = self.star.heliosphere_radius * physical_constants.AU_TO_LY
         if heliosphere_ly < 0.1:
             heliosphere_text = f"{self.star.heliosphere_radius:.4f} AU"
         else:
@@ -444,8 +443,8 @@ class StarSystem:
             all_output_parts.append(binary_proxy_paragraphs[1]) # Binary System Age sentence
 
             # Add flavor text if the random chance passes and total flavor text limit is not exceeded
-            if random.random() < constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
-                flavor_text = random.choice(constants.SYSTEM_FLAVOR)
+            if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
+                flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
                 all_output_parts.append(f"\n\nSensors show {flavor_text}")
                 self.system_config.system_flavor_count += 1
 
@@ -481,8 +480,8 @@ class StarSystem:
             # all_output_parts.append('\n\n')
 
             # Add flavor text if the random chance passes and total flavor text limit is not exceeded
-            if random.random() < constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
-                flavor_text = random.choice(constants.SYSTEM_FLAVOR)
+            if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
+                flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
                 all_output_parts.append(f"\n\nSensors show {flavor_text}")
                 self.system_config.system_flavor_count += 1
 

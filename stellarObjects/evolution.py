@@ -15,8 +15,9 @@ purposes. They are not based on any established scientific models of astrobiolog
 """
 
 import random
-from stellarObjects import constants
-from .utils import to_paragraph, _format_age_string
+
+from . import program_constants
+from .utils import _format_age_string, to_paragraph
 # Removed: from . import config # Import the config module
 
 def get_evolutionary_timeline(star):
@@ -42,7 +43,7 @@ def get_evolutionary_timeline(star):
               the speculative evolutionary timeline for a planet orbiting the star.
     """
     spectral_class = star.type[0]
-    star_info = constants.STAR_EVOLUTION.get(spectral_class, {})
+    star_info = program_constants.STAR_EVOLUTION.get(spectral_class, {})
     
     # Ensure "normal" is a fallback if the star's supported_evolutionary_scales is empty or missing
     supported_scales = star_info.get("supported_evolutionary_scales")
@@ -52,7 +53,7 @@ def get_evolutionary_timeline(star):
         # If there are multiple supported scales, pick one randomly
         evolutionary_scale = random.choice(supported_scales)
 
-    timeline = constants.EVOLUTIONARY_TIMELINES[evolutionary_scale]
+    timeline = program_constants.EVOLUTIONARY_TIMELINES[evolutionary_scale]
 
     # The current system age should be the star's actual age, not a randomly generated one
     current_system_age = star.age
@@ -102,7 +103,7 @@ def get_evolutionary_timeline(star):
     if most_recent_milestone_age > -1.0:
         output_sentences.append(
             f"The most recent significant evolutionary milestone prior to this age would have been "
-            f"{most_recent_milestone_name} at {_format_age_string(most_recent_milestone_age)}. {constants.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
+            f"{most_recent_milestone_name} at {_format_age_string(most_recent_milestone_age)}. {program_constants.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
         )
     else:
         output_sentences.append(

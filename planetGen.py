@@ -1,9 +1,11 @@
 import argparse
 import logging
-import random, secrets
-from stellarObjects import constants
-from stellarObjects.systemData import StarSystem
+import random
+import secrets
+
 from stellarObjects.config import SystemConfig
+from stellarObjects import program_constants
+from stellarObjects.systemData import StarSystem
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -199,14 +201,14 @@ def main():
 
     # Override global constants at module level before initializing system configurations.
     if args.flavor_chance_system is not None:
-        constants.FLAVOR_CHANCE_SYSTEM = args.flavor_chance_system
+        program_constants.FLAVOR_CHANCE_SYSTEM = args.flavor_chance_system
 
     if args.flavor_chance_planet is not None:
-        constants.FLAVOR_CHANCE_PLANET = args.flavor_chance_planet
+        program_constants.FLAVOR_CHANCE_PLANET = args.flavor_chance_planet
 
     if args.max_planet_flavor:
-        constants.MAX_FLAVOR_TOTAL = 99
-        constants.FLAVOR_CHANCE_PLANET = 1
+        program_constants.MAX_FLAVOR_TOTAL = 99
+        program_constants.FLAVOR_CHANCE_PLANET = 1
 
     system_config = SystemConfig() # Create an instance of SystemConfig
 

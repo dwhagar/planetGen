@@ -15,11 +15,12 @@ the complexity of a multi-star system.
 """
 
 import random
-from stellarObjects import constants
-from .starData import Star
+
 from .config import SystemConfig
-from .utils import (calculate_habitable_zone, calculate_hill_sphere, properties_to_string,
-                    to_scientific_notation, _format_age_string, format_relative_to_sol)
+from . import physical_constants, program_constants
+from .starData import Star
+from .utils import (_format_age_string, calculate_habitable_zone, calculate_hill_sphere,
+                    format_relative_to_sol, properties_to_string, to_scientific_notation)
 
 class BinaryStarProxy(Star):
     """
@@ -76,8 +77,8 @@ class BinaryStarProxy(Star):
         base_separation = random.uniform(0.05, 0.25)
         # Convert star radii from kilometers to AU before adding to separation
         self._binary_separation_au = base_separation + \
-                                     (self._primary.radius / constants.AU_TO_KM) + \
-                                     (self._secondary.radius / constants.AU_TO_KM)
+                                     (self._primary.radius / physical_constants.AU_TO_KM) + \
+                                     (self._secondary.radius / physical_constants.AU_TO_KM)
 
         # Override base Star properties with effective values
         # Changed this line to only use the primary star's name for the system name
@@ -150,14 +151,14 @@ class BinaryStarProxy(Star):
         paragraphs = []
 
         # 1. Combined Binary System Data Block
-        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
-        lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
+        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
+        lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
-        hab_lower = str(round(self.habitable_zone[0], constants.ROUND_HABITABLE_ZONE_AU))
-        hab_upper = str(round(self.habitable_zone[1], constants.ROUND_HABITABLE_ZONE_AU))
+        hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU))
+        hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU))
 
         # Calculate separation in kilometers and format with scientific notation
-        separation_km = self.binary_separation_au * constants.AU_TO_KM
+        separation_km = self.binary_separation_au * physical_constants.AU_TO_KM
         separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
         separation_string = f"{separation_km_scientific} km ({self.binary_separation_au:.2f} AU)"
 
@@ -195,6 +196,6 @@ class BinaryStarProxy(Star):
         Returns:
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
-        galactic_center_dist_m = constants.GALACTIC_CENTER_DISTANCE_LY * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, constants.MILKY_WAY_MASS)
-        return hill_radius_m / constants.AU_TO_M
+        galactic_center_dist_m = physical_constants.GALACTIC_CENTER_DISTANCE_LY * physical_constants.LY_TO_M
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, physical_constants.MILKY_WAY_MASS)
+        return hill_radius_m / physical_constants.AU_TO_M

@@ -1,6 +1,7 @@
-import nltk
 import os
-from setuptools import setup, find_packages
+
+import nltk
+from setuptools import find_packages, setup
 from setuptools.command.install import install
 
 

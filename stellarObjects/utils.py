@@ -11,10 +11,12 @@ from calculating physical properties to creating unique and plausible names.
 """
 
 import math
-import random, secrets
-from stellarObjects import constants
-from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
-from .config import SystemConfig # Import SystemConfig
+import random
+import secrets
+
+from .config import SystemConfig
+from .names import BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, VOWELS, WORD_SIZE_MEAN
+from . import physical_constants, program_constants
 
 def reseed_rng():
     """
@@ -79,7 +81,7 @@ def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, uni
         system_config (SystemConfig): The shared SystemConfig object.
         value (float): The quantity's value, in SI units.
         sol_constant (float): The Sol-reference value for the same quantity
-                              (e.g. `constants.SOLAR_MASS_TO_KG`).
+                              (e.g. `physical_constants.SOLAR_MASS_TO_KG`).
         unit (str): The unit label for the SI value (e.g. "kg", "W").
         low_percent_precision (int, optional): Decimal places used for the
                                                percentage when the ratio is
@@ -91,10 +93,10 @@ def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, uni
     """
     sol_val = value / sol_constant
     sci_notation = to_scientific_notation(system_config, value)
-    if sol_val < constants.PERCENT_SOL_THRESHOLD_LOW:
-        return f"{sci_notation} {unit} ({sol_val * constants.PERCENT_MULTIPLIER:.{low_percent_precision}f}% of Sol)"
-    elif sol_val < constants.PERCENT_SOL_THRESHOLD_HIGH:
-        return f"{sci_notation} {unit} ({sol_val * constants.PERCENT_MULTIPLIER:.1f}% of Sol)"
+    if sol_val < program_constants.PERCENT_SOL_THRESHOLD_LOW:
+        return f"{sci_notation} {unit} ({sol_val * program_constants.PERCENT_MULTIPLIER:.{low_percent_precision}f}% of Sol)"
+    elif sol_val < program_constants.PERCENT_SOL_THRESHOLD_HIGH:
+        return f"{sci_notation} {unit} ({sol_val * program_constants.PERCENT_MULTIPLIER:.1f}% of Sol)"
     else:
         return f"{sci_notation} {unit} ({sol_val:.1f}× Sol)"
 
@@ -225,7 +227,7 @@ def calculate_habitable_zone(luminosity):
         tuple: A tuple containing the inner and outer radii of the habitable
                zone in AU.
     """
-    solar_lum = luminosity / constants.SOLAR_LUMINOSITY
+    solar_lum = luminosity / physical_constants.SOLAR_LUMINOSITY
     inner_radius = math.sqrt(solar_lum / 1.1)
     outer_radius = math.sqrt(solar_lum / 0.53)
     return (inner_radius, outer_radius)
@@ -245,7 +247,7 @@ def calculate_stellar_radius(luminosity, temperature):
     Returns:
         float: The radius of the star in meters.
     """
-    return math.sqrt(luminosity / (4 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
+    return math.sqrt(luminosity / (4 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
 
 
 def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):

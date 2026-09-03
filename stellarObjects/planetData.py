@@ -25,14 +25,12 @@ import math
 import random
 import secrets
 
-from .config import SystemConfig # Updated import
-from stellarObjects import constants
-from . import planetPhysics
+from .config import SystemConfig
 from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
                     PLANET_PREFIXES, PLANET_SUFFIXES)
-from .utils import (generate_phoneme_salad_name, properties_to_string, reseed_rng,
-                    to_paragraph, to_scientific_notation, years_to_time_string,
-                    format_length_km)
+from . import physical_constants, planetPhysics, program_constants
+from .utils import (format_length_km, generate_phoneme_salad_name, properties_to_string,
+                    reseed_rng, to_paragraph, to_scientific_notation, years_to_time_string)
 
 
 class Planet:
@@ -210,28 +208,28 @@ class Planet:
         life_paragraphs.append(to_paragraph(sentences))
 
         # Add the evolutionary timeline data if available
-        if self.evolutionary_data and self.planet_class in constants.HABITABLE_PLANET_CLASSES:
+        if self.evolutionary_data and self.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
             life_paragraphs.extend(self.evolutionary_data)
 
         # Add flavor text if the random chance passes and limits are not exceeded
-        if random.random() < constants.FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
+        if random.random() < program_constants.FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
             selected_flavor = None
 
             # Filter out recently used flavor texts
-            available_habitable_flavor = [f for f in constants.HABITABLE_FLAVOR if f not in self.system_config.recent_flavor_texts]
-            available_planet_flavor = [f for f in constants.PLANET_FLAVOR if f not in self.system_config.recent_flavor_texts]
-            available_orbital_flavor = [f for f in constants.ORBITAL_FLAVOR if f not in self.system_config.recent_flavor_texts]
+            available_habitable_flavor = [f for f in program_constants.HABITABLE_FLAVOR if f not in self.system_config.recent_flavor_texts]
+            available_planet_flavor = [f for f in program_constants.PLANET_FLAVOR if f not in self.system_config.recent_flavor_texts]
+            available_orbital_flavor = [f for f in program_constants.ORBITAL_FLAVOR if f not in self.system_config.recent_flavor_texts]
 
             # If all flavors of a category have been recently used, reset to the full list
             if not available_habitable_flavor:
-                available_habitable_flavor = constants.HABITABLE_FLAVOR
+                available_habitable_flavor = program_constants.HABITABLE_FLAVOR
             if not available_planet_flavor:
-                available_planet_flavor = constants.PLANET_FLAVOR
+                available_planet_flavor = program_constants.PLANET_FLAVOR
             if not available_orbital_flavor:
-                available_orbital_flavor = constants.ORBITAL_FLAVOR
+                available_orbital_flavor = program_constants.ORBITAL_FLAVOR
 
             # Check for habitable and multicellular/technological life
-            is_habitable = self.planet_class in constants.HABITABLE_PLANET_CLASSES
+            is_habitable = self.planet_class in program_constants.HABITABLE_PLANET_CLASSES
             has_multicellular_life = False
             if is_habitable and self.evolutionary_data:
                 for stage_paragraph in self.evolutionary_data:
@@ -255,7 +253,7 @@ class Planet:
                 # Add the selected flavor text to the recent list
                 self.system_config.recent_flavor_texts.append(selected_flavor)
                 # Keep the recent_flavor_texts list to a maximum size
-                if len(self.system_config.recent_flavor_texts) > constants.MAX_RECENT_FLAVOR_TEXTS:
+                if len(self.system_config.recent_flavor_texts) > program_constants.MAX_RECENT_FLAVOR_TEXTS:
                     self.system_config.recent_flavor_texts.pop(0) # Remove the oldest entry
 
         return life_paragraphs
@@ -278,16 +276,16 @@ class Planet:
         if self.is_moon:
             # Moons orbit their parent planet, so their distance is from the planet, not the star.
             # This distance is typically much smaller and best represented in kilometers.
-            distance_text = f"{to_scientific_notation(self.system_config, self.distance * constants.AU_TO_KM, 4)} km" # Pass system_config
+            distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 4)} km" # Pass system_config
             header_level = '###' if self.system_config.MARKDOWN else '===' # Use self.system_config
         else:
             # For planets, the distance is from the star. We check if this distance
             # is large enough to warrant using light-years.
-            distance_ly = self.distance * constants.AU_TO_LY
-            if distance_ly < constants.LY_THRESHOLD:
+            distance_ly = self.distance * physical_constants.AU_TO_LY
+            if distance_ly < program_constants.LY_THRESHOLD:
                 # For "normal" sized systems, display in AU.
                 # If less than 1 AU, also show in km for context.
-                distance_text = f"{to_scientific_notation(self.system_config, self.distance * constants.AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
+                distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
             else:
                 # For very large systems, display in light-years.
                 distance_text = f"{distance_ly:.4f} light-years"
