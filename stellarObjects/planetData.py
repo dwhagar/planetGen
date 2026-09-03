@@ -1,90 +1,54 @@
 # stellarObjects/planetData.py
 
 """
-Planet and Asteroid Belt Generation
-===================================
+Planet Generation
+==================
 
-This module contains the `Planet` and `AsteroidBelt` classes, which are used
-to generate and represent celestial bodies within a star system. The `Planet`
-class is a comprehensive model that includes physical properties, atmospheric
-conditions, and orbital characteristics. It can also generate its own system
-of moons. The `AsteroidBelt` class provides a simpler representation for
-asteroid belts within the system.
+This module defines the `Planet` class, the representation of a single
+planet or moon within a star system. `Planet` itself holds the object's
+state and its presentation (`to_paragraph_list`); the logic that determines
+what a planet physically *is* lives in `planetPhysics`, and the logic that
+determines whether/how life arises on it lives in `planetLife` — both
+operate on `Planet` instances passed in as arguments, rather than as
+methods on the class, to keep generation concerns separate from the object
+itself.
+
+A `Planet` is constructed *without* life data (see `planetPhysics`'s module
+docstring); `StarSystem` applies `planetLife.apply_life_data` to every
+planet and moon once the whole system has been generated.
+
+The `AsteroidBelt` class, a simpler representation of an asteroid belt, is
+defined separately in `asteroidData`.
 """
 
 import math
-import random, secrets
+import random
+import secrets
 
 from .config import SystemConfig # Updated import
-from .doubleStar import BinaryStarProxy # New import for binary star systems
 from stellarObjects import constants
-from .evolution import get_evolutionary_timeline
+from . import planetPhysics
 from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
                     PLANET_PREFIXES, PLANET_SUFFIXES)
-from .utils import (calc_object_mass, calculate_hill_sphere, _format_age_string,
-                    generate_phoneme_salad_name, properties_to_string,
-                    to_paragraph, to_scientific_notation, years_to_time_string)
-
-
-def get_planet_mass_ranges():
-    """
-    Calculates and returns a dictionary of valid mass ranges (in kg) for each planet class.
-
-    This function pre-calculates the minimum and maximum possible mass for each
-    planet class based on its radius and density ranges. This is used for
-    validation when generating planets with a given mass. The calculations
-    account for the different compositions of terrestrial planets and gas giants.
-
-    Returns:
-        dict: A dictionary where keys are planet classes (e.g., 'M', 'N') and
-              values are tuples of (min_mass, max_mass) in kilograms.
-    """
-    mass_ranges = {}
-    for planet_class, data in constants.PLANET_CLASSES.items():
-        min_radius, max_radius = data["radius_range"]
-        planet_type = data["type"]
-
-        min_density, max_density = constants.PLANET_DENSITY[planet_type]  # g/cm^3
-
-        # Convert density from g/cm³ to kg/m³ for mass calculation
-        min_density *= 1000
-        max_density *= 1000
-
-        if planet_type == "t":  # Terrestrial planet
-            min_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density
-            max_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density
-        else:  # Gas giant
-            min_atm_density, max_atm_density = constants.ATMOSPHERE_DENSITY[planet_type]
-            min_core_ratio, max_core_ratio = constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO
-
-            min_core_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density * min_core_ratio
-            max_core_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density * max_core_ratio
-
-            min_atm_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_atm_density * (1 - min_core_ratio)
-            max_atm_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_atm_density * (1 - max_core_ratio)
-
-            min_mass = min_core_mass + min_atm_mass
-            max_mass = max_core_mass + max_atm_mass
-
-        mass_ranges[planet_class] = (min_mass, max_mass)
-    return mass_ranges
-
-
-planet_mass_ranges = get_planet_mass_ranges()
+from .utils import (generate_phoneme_salad_name, properties_to_string, reseed_rng,
+                    to_paragraph, to_scientific_notation, years_to_time_string,
+                    format_length_km)
 
 
 class Planet:
     """
     A class representing a single planet or moon and all of its properties.
 
-    This class encapsulates the generation and properties of a celestial body,
-    including its physical characteristics, orbital data, and atmospheric
-    conditions. It can represent both planets and moons, and includes logic
-    for generating a system of moons for a planet, influenced by settings in
-    the global `config` object.
+    This class encapsulates the physical characteristics, orbital data, and
+    atmospheric conditions of a celestial body. It can represent both
+    planets and moons, and includes a list of any moons it has.
 
     The generation process is flexible, allowing for fully random creation or
-    generation based on specified parameters like radius, mass, or class.
+    generation based on specified parameters like radius, mass, or class;
+    this generation work is delegated to `planetPhysics.generate_planet_properties`
+    and related functions in that module, called from `__init__`. Life
+    chemistry and evolutionary data are NOT set during construction — see
+    `planetLife.apply_life_data`, applied later by `StarSystem`.
 
     Attributes:
         is_moon (bool): True if the object is a moon, False otherwise.
@@ -112,11 +76,13 @@ class Planet:
         hill_radius (float): The Hill radius of the planet in kilometers.
         min_orbit_distance (float): The minimum stable orbit distance for a satellite in AU.
         name (str): The generated name of the planet or moon.
-        life_chemical (str): The primary chemical basis for any potential life.
+        life_chemical (str): The primary chemical basis for any potential life
+                             (set by `planetLife.apply_life_data`, None until then).
         hab (tuple): The inner and outer bounds of the habitable zone in AU.
         star_type (str): The spectral type of the star (e.g., 'G', 'M').
         star (Star): The Star object this planet orbits.
-        evolutionary_data (list): A list of strings describing the evolutionary timeline.
+        evolutionary_data (list): A list of strings describing the evolutionary timeline
+                                  (set by `planetLife.apply_life_data`, empty until then).
         flavor_text (str): A randomly selected flavor text for the planet.
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
@@ -125,7 +91,12 @@ class Planet:
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False):
         """
-        Initializes a Planet object with its properties and orbital context.
+        Initializes a Planet object with its physical and orbital properties.
+
+        Life chemistry and evolutionary data are intentionally not set here;
+        call `planetLife.apply_life_data(planet)` separately once the whole
+        system's planets and moons have been generated (this is done
+        automatically by `StarSystem.__init__`).
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object for the system.
@@ -177,7 +148,7 @@ class Planet:
         self.evolution = None
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
-        self.evolutionary_data = [] # Initialize evolutionary data
+        self.evolutionary_data = [] # Populated later by planetLife.apply_life_data
         self.flavor_text = None # Initialize flavor text
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
 
@@ -191,467 +162,25 @@ class Planet:
         else:
             self.name = generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)
 
-        # Calculate additional properties.
-        self.generate_planet(zone_override)
+        # Calculate physical/orbital properties (no life data yet).
+        planetPhysics.generate_planet_properties(self, zone_override)
         self.volume = (4 / 3) * math.pi * self.radius ** 3  # Calculate volume in km^3
         self.period = math.sqrt(self.distance ** 3)
-        self.calculate_surface_gravity()
-        self.calculate_atmospheric_conditions(distance_override)
-
-        # Generate evolutionary timeline data if the planet is habitable and not a moon
-        if self.zone == 'e' and not self.is_moon: # Only for habitable planets
-            self.evolutionary_data = get_evolutionary_timeline(self.star)
+        planetPhysics.calculate_surface_gravity(self)
+        planetPhysics.calculate_atmospheric_conditions(self, distance_override)
 
         if (self.system_config.FORCE_MOONS or secrets.randbelow(2) == 1) and not self.is_moon: # Use self.system_config
-            self.generate_moons()
-
-    def generate_planet(self, zone_override=None):
-        """
-        Generates random planet properties based on its location and any provided constraints.
-
-        This method is the core of the planet generation logic. It determines the
-        planet's properties such as class, composition, and atmosphere. The generation
-        can be fully random or guided by inputs like a specific radius, mass, or
-        planet class. It ensures that the generated properties are consistent with
-        each other and the planet's orbital zone.
-
-        Args:
-            zone_override (str, optional): A character ('h', 'c', 'e') to manually
-                                           set the planet's zone, overriding the
-                                           calculation based on distance.
-        """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
-        # Determine the planet's zone (hot, ecosphere, or cold)
-        inner_bound, outer_bound = self.hab
-        if self.distance < inner_bound:
-            zone = 'h'
-        elif self.distance > outer_bound:
-            zone = 'c'
-        else:
-            zone = 'e'
-
-        if zone_override and zone_override.lower() in "hce":
-            zone = zone_override.lower()
-        self.zone = zone
-
-        # --- Input Validation and Random Generation ---
-        # This section handles the logic for generating planet properties based on
-        # the inputs provided. It can generate a fully random planet, or generate
-        # properties based on a given class, radius, or mass.
-
-        if self.planet_class is None and self.radius is None and self.mass is None:
-            # Fully random generation
-            valid_classes = [c for c, data in constants.PLANET_CLASSES.items() if data[zone]]
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                valid_classes = [c for c in valid_classes if c not in constants.HABITABLE_PLANET_CLASSES]
-            
-            classes = list(constants.PLANET_CLASS_PROBABILITIES.keys())
-            probabilities = list(constants.PLANET_CLASS_PROBABILITIES.values())
-            class_valid = False
-            while not class_valid:
-                class_choice = random.choices(classes, weights=probabilities, k=1)[0]
-                if class_choice in valid_classes:
-                    self.planet_class = class_choice
-                    class_valid = True
-            min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
-            self.radius = random.uniform(min_radius, max_radius)
-
-        elif self.planet_class is not None and self.radius is None and self.mass is None:
-            # Class given, generate radius
-            self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
-                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
-            min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
-            self.radius = random.uniform(min_radius, max_radius)
-
-        elif self.planet_class is None and self.radius is not None and self.mass is None:
-            # Radius given, determine possible classes
-            possible_classes = [c for c, data in constants.PLANET_CLASSES.items()
-                                if data[zone] and data["radius_range"][0] <= self.radius <= data["radius_range"][1]]
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
-            if not possible_classes:
-                raise ValueError("No valid planet class for the given radius in this zone")
-            self.planet_class = secrets.choice(possible_classes)
-            self._validate_radius()
-
-        elif self.planet_class is None and self.radius is None and self.mass is not None:
-            # Mass given, determine possible classes
-            possible_classes = [c for c, data in constants.PLANET_CLASSES.items()
-                                if planet_mass_ranges[c][0] <= self.mass <= planet_mass_ranges[c][1] and data[zone]]
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
-            if not possible_classes:
-                raise ValueError("No valid planet class for the given mass in this zone")
-            self.planet_class = secrets.choice(possible_classes)
-            self._validate_mass()
-
-        elif self.planet_class is not None and self.radius is not None and self.mass is None:
-            # Class and radius given, validate
-            self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
-                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
-            self._validate_radius()
-
-        elif self.planet_class is not None and self.radius is None and self.mass is not None:
-            # Class and mass given, validate and generate radius
-            self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
-                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
-            self._validate_mass()
-            min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
-            self.radius = random.uniform(min_radius, max_radius)
-
-        elif self.planet_class is None and self.radius is not None and self.mass is not None:
-            # Radius and mass given, determine possible classes
-            possible_classes = []
-            for c, data in constants.PLANET_CLASSES.items():
-                min_mass, max_mass = planet_mass_ranges[c]
-                min_radius, max_radius = data["radius_range"]
-                if min_mass <= self.mass <= max_mass and min_radius <= self.radius <= max_radius and data[zone]:
-                    possible_classes.append(c)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e': # Use self.system_config
-                possible_classes = [c for c in possible_classes if c not in constants.HABITABLE_PLANET_CLASSES]
-            if not possible_classes:
-                raise ValueError("No valid planet class for the given radius/mass in this zone")
-            self.planet_class = secrets.choice(possible_classes)
-            self._validate_radius()
-            self._validate_mass()
-
-        else:
-            # All inputs provided, fully validate
-            self._validate_planet_class(zone)
-            if self.system_config.NO_HABITABLE_WORLD and zone == 'e' and self.planet_class in constants.HABITABLE_PLANET_CLASSES: # Use self.system_config
-                raise ValueError(f"Cannot generate habitable planet class {self.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
-            self._validate_radius()
-            self._validate_mass()
-
-        class_data = constants.PLANET_CLASSES[self.planet_class]
-        self.composition = class_data["composition"]
-        self.description = class_data["description"]
-        self.type = class_data["type"]
-
-        min_density, max_density = constants.PLANET_DENSITY[self.type]
-        self.density = random.uniform(min_density, max_density)
-
-        if class_data["atmosphere"] is None:
-            self.atmosphere = "None"
-        else:
-            self.atmosphere = class_data["atmosphere"]
-            if self.planet_class == 'N':
-                self.atm_density = 65
-                min_am_density, max_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[self.type]
-                self.atm_molar_density = max_am_density
-            else:
-                min_a_density, max_a_density = constants.ATMOSPHERE_DENSITY[self.type]
-                self.atm_density = random.uniform(min_a_density, max_a_density)
-                min_am_density, max_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[self.type]
-                self.atm_molar_density = random.uniform(min_am_density, max_am_density)
-
-        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, constants.PLANET_CLASSES, constants.PLANET_DENSITY,
-                                                  self.density)
-
-        if self.type == 'g':
-            core_to_atmosphere_ratio = random.uniform(*constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
-            self.density = self.density * core_to_atmosphere_ratio + (
-                        1 - core_to_atmosphere_ratio) * (self.atm_density / 1000)
-
-        self.volume, self.mass = calc_object_mass(self.planet_class, self.radius, constants.PLANET_CLASSES, constants.PLANET_DENSITY,
-                                                  self.density)
-        
-        # Get the dictionary of viable chemicals and their weights
-        viable_chems = self.get_viable_life_chemicals()
-        
-        if viable_chems:
-            # random.choices returns a list, so we grab the first [0] element
-            self.life_chemical = random.choices(
-                population=list(viable_chems.keys()),
-                weights=list(viable_chems.values()),
-                k=1
-            )[0]
-            life_chem_data = constants.LIFE_CHEMICALS.get(self.life_chemical, {})
-            self.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
-            self.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
-        else:
-            self.life_chemical = None
-
-        # Determine the evolutionary speed based on the star and chosen chemical
-        self.evolution = self.get_evolutionary_speed()
-
-        distance_m = self.distance * constants.AU_TO_M
-        self.hill_radius = calculate_hill_sphere(distance_m, self.mass, self.star_mass) / 1000  # Convert to km
-        self.min_orbit_distance = (5 * self.hill_radius) / constants.AU_TO_KM
-
-    def calculate_surface_gravity(self):
-        """
-        Calculates the surface gravity of the planet in g's (multiples of Earth's gravity).
-
-        This method computes the surface gravity based on the planet's mass and
-        radius. The result is normalized to Earth's gravity (g's). It includes
-        special adjustments for certain planet classes to ensure realistic values.
-        """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
-        radius_meters = self.radius * 1000
-        surface_gravity = (constants.G * self.mass) / (radius_meters ** 2)
-        surface_gravity_g = surface_gravity / constants.EARTH_GRAVITY
-        if surface_gravity_g <= 0:
-            raise ValueError('Invalid value for gravity.')
-        if self.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
-            surface_gravity_g = random.uniform(0.75, 1.25)
-        self.gravity = surface_gravity_g
-
-    def get_viable_life_chemicals(self):
-        """
-        Determines the viable life chemicals for the planet by finding the
-        intersection of chemicals supported by both the planet's class and
-        the star's spectral type. Normalizes the probabilities to sum to 1.0.
-
-        Returns:
-            dict: A dictionary mapping viable life chemical strings to their
-                  normalized float probabilities (e.g., {"Melanin": 0.6}).
-        """
-        # Retrieve the base list of possible chemicals for this specific planet class
-        planet_data = constants.PLANET_CLASSES.get(self.planet_class)
-        if not planet_data or not planet_data.get("life_chemical"):
-            return {}
-
-        planet_chems = planet_data["life_chemical"] #
-
-        # Determine the star's spectral class (e.g., 'G' from 'G2V')
-        if isinstance(self.star, BinaryStarProxy):
-            spectral_class = self.star._primary.type[0].upper()
-        else:
-            spectral_class = self.star.type[0].upper()
-
-        if not self.star_type:
-            return {}
-
-        spectral_class = self.star_type[0].upper()
-
-        # Retrieve the potentially viable chemicals for the star's evolutionary scale
-        star_data = constants.STAR_EVOLUTION.get(spectral_class)
-        if not star_data or not star_data.get("supported_evolutionary_scales"):
-            return {}
-
-        star_chems = star_data["potentially_viable_chemicals"]
-
-        raw_probabilities = {}
-        total_raw_prob = 0
-
-        # Intersect the lists using substring matching and collect raw probabilities
-        for p_chem in planet_chems:
-            if any(p_chem in s_chem for s_chem in star_chems):
-                chem_prob = constants.LIFE_CHEMICALS.get(p_chem, {}).get(
-                    "star_spectra_probabilities", {}).get(spectral_class, 0)
-
-                if chem_prob > 0:
-                    raw_probabilities[p_chem] = chem_prob
-                    total_raw_prob += chem_prob
-
-        # Normalize the probabilities proportionally so they sum to 1.0
-        normalized_chemicals = {}
-        if total_raw_prob > 0:
-            for chem, prob in raw_probabilities.items():
-                normalized_chemicals[chem] = prob / total_raw_prob
-
-        return normalized_chemicals
-
-    def get_evolutionary_speed(self):
-        """
-        Determines the evolutionary speed for the planet's biosphere.
-        It finds the intersection of speeds supported by the star's lifespan
-        and the speed required by the planet's specific life chemical, then
-        chooses one randomly.
-
-        Returns:
-            str: The chosen evolutionary speed (e.g., 'fast', 'normal', 'slow'),
-                 or None if data is missing.
-        """
-        if not self.star_type:
-            return None
-
-        # Determine the star's spectral class (e.g., 'G' from 'G2V')
-        if isinstance(self.star, BinaryStarProxy):
-            spectral_class = self.star._primary.type[0].upper()
-        else:
-            spectral_class = self.star.type[0].upper()
-
-        # 1. Get the speeds supported by the star
-        star_data = constants.STAR_EVOLUTION.get(spectral_class)
-        if not star_data or not star_data.get("supported_evolutionary_scales"):
-            return None
-
-        star_speeds = star_data["supported_evolutionary_scales"]
-
-        # 2. Get the speeds supported by the chemical (if one is assigned)
-        if self.life_chemical:
-            chem_data = constants.LIFE_CHEMICALS.get(self.life_chemical)
-            if chem_data and chem_data.get("evolutionary_time_scale"):
-                chem_speeds = chem_data["evolutionary_time_scale"]
-
-                # Ensure it's a list for intersection logic, even though
-                # constants.py currently stores it as a single string
-                if isinstance(chem_speeds, str):
-                    chem_speeds = [chem_speeds]
-
-                # Find the intersection
-                valid_speeds = [speed for speed in star_speeds if speed in chem_speeds]
-
-                if valid_speeds:
-                    return secrets.choice(valid_speeds)
-
-        # 3. Fallback: If no chemical is set (or if there's somehow no overlap),
-        # just pick a random speed supported by the star.
-        if star_speeds:
-            return secrets.choice(star_speeds)
-
-        return None
-
-    def calculate_atmospheric_conditions(self, distance_override=None):
-        """
-        Calculates the atmospheric conditions of the planet, including surface
-        temperature and atmospheric pressure.
-
-        This method models the planet's atmospheric conditions. It calculates the
-        surface temperature considering the star's output, the planet's distance,
-        and the greenhouse effect of its atmosphere. It also estimates the
-        atmospheric pressure based on the atmospheric mass and planet's gravity.
-
-        Args:
-            distance_override (float, optional): An override for the planet's
-                                                 distance, used for special cases
-                                                 like moons.
-        """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
-        distance = float(distance_override) if distance_override is not None else float(self.distance)
-        orbital_radius_km = distance * constants.AU_TO_KM
-        output_area = 4 * math.pi * orbital_radius_km ** 2
-        solar_output_at_orbit = (self.star_output / output_area) / 1e6
-        albedo = random.uniform(0.12, 0.35)
-        surface_temperature_no_atmosphere = (
-                                                    (1 - albedo) * solar_output_at_orbit / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
-                                                        1 / 4)
-
-        if self.atmosphere == "None":
-            self.surface_temperature = surface_temperature_no_atmosphere
-            self.atmospheric_pressure = 0.0
-        else:
-            scale_height = (constants.R * surface_temperature_no_atmosphere) / (
-                        self.atm_molar_density * self.gravity * constants.EARTH_GRAVITY)
-            self.scale_height = scale_height
-            atmosphere_thickness = scale_height * random.uniform(5, 7)
-            planet_volume = (4 * math.pi * self.radius ** 3) / 3
-            atmosphere_volume = (4 * math.pi * (self.radius + atmosphere_thickness) ** 3) / 3 - planet_volume
-            atmospheric_mass = 0
-            num_zones = round(random.uniform(5, 7)) # Consistent with atmosphere_thickness calculation
-            for zone in range(num_zones):
-                zone_volume = atmosphere_volume + planet_volume - (
-                            4 * math.pi * (self.radius + (zone * scale_height)) ** 3) / 3
-                zone_density = self.atm_density / (zone * 2.7) if zone >= 1 else self.atm_density
-                atmospheric_mass += zone_volume * zone_density
-            atmospheric_force = atmospheric_mass * (self.gravity * constants.EARTH_GRAVITY)
-            planet_surface_area = 4 * math.pi * (self.radius * 1000) ** 2
-            atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500
-            
-            greenhouse_factor = abs((self.atm_molar_density - constants.CO2_BASE_MOLAR_DENSITY) / constants.CO2_BASE_MOLAR_DENSITY * constants.CO2_MAX_GREENHOUSE_FACTOR)
-            surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
-            self.surface_temperature = surface_temperature_atmosphere
-            self.atmospheric_pressure = atmospheric_pressure
-
-            if self.planet_class == "M":
-                if self.atmospheric_pressure < 90000 or self.atmospheric_pressure > 112000:
-                    self.atmospheric_pressure = random.uniform(90000, 112000)
-                if self.surface_temperature < 283 or self.surface_temperature > 290:
-                    self.surface_temperature = random.uniform(283, 290)
-            elif self.planet_class == "P" and self.surface_temperature >= 283:
-                # If surface_temperature_no_atmosphere is already above 283, we need a different approach
-                # to ensure the P class planet remains cold.
-                if surface_temperature_no_atmosphere < 283:
-                    self.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
-                else:
-                    self.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
-
-    def generate_moons(self):
-        """
-        Generates a system of moons for the given planet.
-
-        This method procedurally generates moons for the planet. It determines the
-        number, size, and orbital distance of the moons based on the planet's
-        properties, such as its mass and Hill radius. The generated moons are
-        themselves instances of the `Planet` class, with the `is_moon` flag set.
-        """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
-        max_moon_mass = self.mass / 10
-        max_moon_radius = self.radius / (10 ** (1 / 3))
-        possible_classes = [c for c, data in planet_mass_ranges.items()
-                            if constants.PLANET_CLASSES[c][self.zone] and constants.PLANET_CLASSES[c]["type"] == 't' and c not in constants.MOON_BLACKLIST
-                            and data[1] <= max_moon_mass and constants.PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
-        if not possible_classes:
-            return
-
-        low_orbit = self.scale_height * 15 if self.scale_height else 100
-        high_orbit = self.min_orbit_distance * constants.AU_TO_KM
-        total_orbit_distance = low_orbit
-
-        while total_orbit_distance < high_orbit and total_orbit_distance < (self.distance * constants.AU_TO_KM):
-            classes = list(constants.PLANET_CLASS_PROBABILITIES.keys())
-            probabilities = list(constants.PLANET_CLASS_PROBABILITIES.values())
-            moon_class = random.choices(classes, weights=probabilities, k=1)[0]
-            while moon_class not in possible_classes:
-                moon_class = random.choices(classes, weights=probabilities, k=1)[0]
-
-            radius_limit = constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
-                                                                            constants.PLANET_CLASSES[moon_class]['radius_range'][
-                                                                                1] else max_moon_radius
-            moon_distance = random.uniform(total_orbit_distance, high_orbit) / constants.AU_TO_KM
-            moon_radius = random.uniform(constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
-
-            new_moon = Planet(self.system_config, self.star, self.hab, moon_distance, self.star_type, self.star_output, self.star_radius, # Pass system_config
-                              self.star_temperature, self.star_mass, radius=moon_radius,
-                              planet_class=moon_class, zone_override=self.zone,
-                              distance_override=self.distance, is_moon=True)
-            self.moons.append(new_moon)
-            total_orbit_distance = (new_moon.distance * constants.AU_TO_KM) + (new_moon.min_orbit_distance * constants.AU_TO_KM)
-
-    def _validate_planet_class(self, zone):
-        """
-        Validates if the planet's class is valid for its zone.
-
-        Args:
-            zone (str): The zone ('h', 'c', 'e') of the planet.
-
-        Raises:
-            ValueError: If the planet class is not valid for the given zone.
-        """
-        if self.planet_class not in constants.PLANET_CLASSES or not constants.PLANET_CLASSES[self.planet_class][zone]:
-            raise ValueError("Invalid planet class for this zone")
-
-    def _validate_radius(self):
-        """
-        Validates if the planet's radius is within the allowed range for its class.
-
-        Raises:
-            ValueError: If the radius is outside the valid range for the planet's class.
-        """
-        min_radius, max_radius = constants.PLANET_CLASSES[self.planet_class]["radius_range"]
-        if not (min_radius <= self.radius <= max_radius):
-            raise ValueError("Invalid radius for planet class")
-
-    def _validate_mass(self):
-        """
-        Validates if the planet's mass is within the allowed range for its class.
-
-        Raises:
-            ValueError: If the mass is outside the valid range for the planet's class.
-        """
-        min_mass, max_mass = planet_mass_ranges[self.planet_class]
-        if not (min_mass <= self.mass <= max_mass):
-            raise ValueError("Invalid mass for planet class")
+            planetPhysics.generate_moons(self)
 
     def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
         """
         Generates paragraphs related to life, evolution, and flavor text for the planet.
         It also ensures that recently used flavor texts are not repeated.
+
+        Reads (but does not compute) `self.life_chemical`, `self.evolution`,
+        and `self.evolutionary_data`, which are set by
+        `planetLife.apply_life_data` before this is ever called (`to_paragraph_list`
+        is only invoked once a `StarSystem` is fully generated).
 
         Args:
             object_type_desc (str): Description of the object type ("planet" or "moon").
@@ -660,7 +189,7 @@ class Planet:
         Returns:
             list: A list of generated paragraphs.
         """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
+        reseed_rng()
         life_paragraphs = []
 
         if self.life_chemical:
@@ -687,7 +216,7 @@ class Planet:
         # Add flavor text if the random chance passes and limits are not exceeded
         if random.random() < constants.FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < constants.MAX_FLAVOR_TOTAL:
             selected_flavor = None
-            
+
             # Filter out recently used flavor texts
             available_habitable_flavor = [f for f in constants.HABITABLE_FLAVOR if f not in self.system_config.recent_flavor_texts]
             available_planet_flavor = [f for f in constants.PLANET_FLAVOR if f not in self.system_config.recent_flavor_texts]
@@ -722,19 +251,27 @@ class Planet:
                 life_paragraphs.append(f"Sensors show {self.flavor_text}")
                 self.system_config.system_flavor_count += 1
                 self.flavor_text_count += 1
-                
+
                 # Add the selected flavor text to the recent list
                 self.system_config.recent_flavor_texts.append(selected_flavor)
                 # Keep the recent_flavor_texts list to a maximum size
                 if len(self.system_config.recent_flavor_texts) > constants.MAX_RECENT_FLAVOR_TEXTS:
                     self.system_config.recent_flavor_texts.pop(0) # Remove the oldest entry
-        
+
         return life_paragraphs
 
     def to_paragraph_list(self):
         """
-        Returns a list of strings, where each string is a paragraph describing
-        the planet.
+        Generates a list of descriptive paragraphs about the planet or moon,
+        including its data block, atmospheric/surface conditions, life and
+        flavor text, and (recursively) the paragraphs for any moons it has.
+
+        Returns:
+            list: A list of strings, where each string is a paragraph describing
+                  the planet, or the moon if `self.is_moon` is set (moon-specific
+                  wording is resolved via `object_type_desc` and the `is_moon`-aware
+                  `self.description` set by `planetPhysics.generate_planet_properties`,
+                  not by post-processing the rendered text here).
         """
         object_type_desc = "moon" if self.is_moon else "planet"
 
@@ -760,7 +297,7 @@ class Planet:
         header = f"{header_level} {self.name} {header_level if not self.system_config.MARKDOWN else ''}" # Use self.system_config
         output_paragraphs.append(header)
 
-        radius_string = f"{round(self.radius, 2):,} km" if self.radius <= 100000 else f"{to_scientific_notation(self.system_config, self.radius, 2)} km" # Pass system_config
+        radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config
 
         planet_properties = {
             "class": self.planet_class,
@@ -770,7 +307,10 @@ class Planet:
             "gravity": f"{round(self.gravity, 3)} g",
         }
 
-        output_paragraphs.append(properties_to_string(self.system_config, planet_properties, "Planet Data")) # Pass system_config
+        # Moons use a distinct wiki template name ("Class Data") instead of "Planet Data",
+        # set directly here rather than via text substitution further down.
+        template_name = "Class Data" if self.is_moon else "Planet Data"
+        output_paragraphs.append(properties_to_string(self.system_config, planet_properties, template_name)) # Pass system_config
 
         sentences = []
         if not self.is_moon:
@@ -802,16 +342,6 @@ class Planet:
         if self.moons:
             for moon in self.moons:
                 output_paragraphs.extend(moon.to_paragraph_list())  # Recursively get moon paragraphs
-
-        # Post-processing: Replace "planet" with "moon" if the object is a moon
-        if self.is_moon:
-            processed_paragraphs = []
-            for paragraph in output_paragraphs:
-                paragraph = paragraph.replace("planet", "moon")
-                paragraph = paragraph.replace("Planet", "Moon")
-                paragraph = paragraph.replace("{{Moon Data", "{{Class Data")
-                processed_paragraphs.append(paragraph)
-            output_paragraphs = processed_paragraphs
 
         return output_paragraphs
 

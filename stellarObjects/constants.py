@@ -1,12 +1,16 @@
 # stellarObjects/constants.py
 
 """
-Physical and Astronomical Constants
-===================================
+Physical, Astronomical, and Game-Data Constants
+================================================
 
-This module contains a collection of physical and astronomical constants used
-for calculations within the planetGen package. All constants are in SI units
-unless otherwise specified.
+This module is the single data source for the planetGen package: physical
+and astronomical constants (in SI units unless otherwise noted), plus the
+large procedural-generation tables that drive star, planet, and life
+generation — spectral/Yerkes class ranges, planet class definitions and
+probabilities, life chemistry data, evolutionary timelines and text, asteroid
+belt components, and flavor text pools. Nothing in this module has side
+effects; it is imported wherever these values or tables are needed.
 """
 
 import math

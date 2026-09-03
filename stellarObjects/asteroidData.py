@@ -12,6 +12,7 @@ related to planet mass ranges, which are used by both planets and asteroid belts
 import random
 from .config import SystemConfig # Updated import
 from stellarObjects import constants
+from .utils import reseed_rng
 
 class AsteroidBelt:
     """
@@ -39,6 +40,7 @@ class AsteroidBelt:
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
         """
+        reseed_rng()
         self.system_config = system_config # Store system_config
         self.distance = distance
         self.lower_limit = lower_limit
@@ -49,9 +51,14 @@ class AsteroidBelt:
 
     def _generate_composition(self):
         """
-        Generates a list of common compounds for the asteroid belt,
-        including random components with unique, ordered concentrations.
-        Returns a list of (component, concentration) tuples.
+        Generates a list of common compounds for the asteroid belt by sampling
+        a random, unique subset of `constants.ASTEROID_COMPONENTS` (up to 4)
+        and assigning each an ordered concentration level, from "high" down
+        to "trace".
+
+        Returns:
+            list: A list of (component, concentration) tuples, e.g.
+                  [("iron", "high"), ("nickel", "moderate")].
         """
         all_concentrations = ["high", "moderate", "small", "trace"]
         
@@ -77,8 +84,13 @@ class AsteroidBelt:
 
     def to_paragraph_list(self):
         """
-        Returns a list of strings, where each string is a paragraph describing
-        the asteroid belt.
+        Generates a list of descriptive paragraphs for the asteroid belt,
+        including its header, orbital boundaries (in AU or light-years
+        depending on scale), density, and composition.
+
+        Returns:
+            list: A list of strings, where each string is a paragraph describing
+                  the asteroid belt.
         """
         # Convert the belt's boundaries to light-years to check against the threshold
         upper_limit_ly = self.upper_limit * constants.AU_TO_LY

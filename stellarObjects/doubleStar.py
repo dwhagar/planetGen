@@ -14,12 +14,12 @@ its constituent stars, providing a consistent interface while encapsulating
 the complexity of a multi-star system.
 """
 
-import math
 import random
 from stellarObjects import constants
 from .starData import Star
 from .config import SystemConfig
-from .utils import calculate_habitable_zone, calculate_hill_sphere, properties_to_string, to_scientific_notation
+from .utils import (calculate_habitable_zone, calculate_hill_sphere, properties_to_string,
+                    to_scientific_notation, _format_age_string, format_relative_to_sol)
 
 class BinaryStarProxy(Star):
     """
@@ -85,7 +85,8 @@ class BinaryStarProxy(Star):
         self.type = f"Binary ({primary_star.type.split(' ')[0]}/{secondary_star.type.split(' ')[0]})" # Simplified type
         self.temperature = (primary_star.temperature + secondary_star.temperature) / 2 # Simple average
         self.radius = max(primary_star.radius, secondary_star.radius) # Use the larger radius for approximation
-        self.lifespan = primary_star.lifespan # Assume binary system lifespan is tied to primary
+        # Note: self.lifespan was already set above to max(primary, secondary) lifespan;
+        # do not overwrite it here with the primary-only value.
 
         # Recalculate derived properties based on effective values
         self.habitable_zone = calculate_habitable_zone(self._effective_luminosity)
@@ -117,7 +118,13 @@ class BinaryStarProxy(Star):
 
     def adjust_age_for_planets(self, planets):
         """
-        Adjusts the age for both stars in the binary system based on planet requirements.
+        Adjusts the age and lifespan of both constituent stars to accommodate
+        the evolutionary requirements of the system's planets, then recomputes
+        the proxy's combined `age` and `lifespan` as the maximum of the two
+        (now-adjusted) stars' values.
+
+        Args:
+            planets (list): A list of `Planet` objects in the system.
         """
         for star_obj in self.stars:
             star_obj.adjust_age_for_planets(planets)
@@ -125,19 +132,26 @@ class BinaryStarProxy(Star):
         self.age = max(self._primary.age, self._secondary.age)
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
-    def to_paragraph_list(self):
+    def to_paragraph_list(self, is_sub_star=False):
         """
         Generates a list of descriptive paragraphs for the binary star system's
         combined properties. It does NOT include individual star details.
+
+        Args:
+            is_sub_star (bool, optional): Accepted only for signature parity with
+                                          `Star.to_paragraph_list`, which callers may
+                                          invoke polymorphically; unused here, since a
+                                          `BinaryStarProxy` is never itself a sub-star
+                                          within a larger system. Defaults to False.
+
+        Returns:
+            list: A two-element list: [combined data block, combined age sentence].
         """
         paragraphs = []
 
         # 1. Combined Binary System Data Block
-        sol_mass_val = self.mass / constants.SOLAR_MASS_TO_KG
-        mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val:.2f}× Sol)"
-
-        sol_lum_val = self.luminosity / constants.SOLAR_LUMINOSITY
-        lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val:.2f}× Sol)"
+        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
+        lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
         hab_lower = str(round(self.habitable_zone[0], constants.ROUND_HABITABLE_ZONE_AU))
         hab_upper = str(round(self.habitable_zone[1], constants.ROUND_HABITABLE_ZONE_AU))
@@ -162,21 +176,25 @@ class BinaryStarProxy(Star):
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 
         # 2. Combined Age and Evolutionary Notes (simplified for binary)
-        if self.age < 1:
-            star_age = self.age * 1000
-            age_term = "million"
-        else:
-            star_age = self.age
-            age_term = "billion"
-
-        age_sentence = f"The binary system is approximately {star_age:.2f} {age_term} years old."
+        age_sentence = f"The binary system is approximately {_format_age_string(self.age)} old."
         paragraphs.append(age_sentence)
 
         return paragraphs
 
     @staticmethod
     def _calculate_system_perimeter_static(mass):
-        """Static helper for calculating system perimeter (Hill sphere)."""
+        """
+        Calculates the system perimeter (Hill sphere relative to the galaxy)
+        for an arbitrary mass, mirroring `Star.calculate_system_perimeter` but
+        usable without a bound `Star` instance.
+
+        Args:
+            mass (float): The mass to use for the calculation, in kilograms
+                          (typically the binary system's combined mass).
+
+        Returns:
+            float: The radius of the Hill sphere in Astronomical Units (AU).
+        """
         galactic_center_dist_m = constants.GALACTIC_CENTER_DISTANCE_LY * constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, constants.MILKY_WAY_MASS)
         return hill_radius_m / constants.AU_TO_M

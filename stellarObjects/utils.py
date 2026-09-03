@@ -16,6 +16,89 @@ from stellarObjects import constants
 from .names import VOWELS, BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, WORD_SIZE_MEAN
 from .config import SystemConfig # Import SystemConfig
 
+def reseed_rng():
+    """
+    Re-seeds the `random` module with a high-entropy seed from `secrets`.
+
+    This is called at the start of most generation methods to avoid
+    correlated/repeating sequences across successive calls.
+    """
+    random.seed(secrets.randbits(128))
+
+
+def get_star_spectral_class(star):
+    """
+    Returns the uppercase spectral class character (e.g. 'G') for a star.
+
+    Works for both a plain `Star` and a `BinaryStarProxy`, without importing
+    `BinaryStarProxy` here (which would create a circular import) — a proxy
+    is detected by duck-typing on its `_primary` attribute, and its primary
+    star's type is used as the representative spectral class.
+
+    Args:
+        star: A `Star` or `BinaryStarProxy` instance.
+
+    Returns:
+        str: The uppercase spectral class character.
+    """
+    reference_star = star._primary if hasattr(star, '_primary') else star
+    return reference_star.type[0].upper()
+
+
+def format_length_km(system_config: SystemConfig, value_km, threshold, round_digits, scientific_precision=None):
+    """
+    Formats a length in kilometers, switching between a comma-grouped plain
+    number and scientific notation based on a threshold.
+
+    Args:
+        system_config (SystemConfig): The shared SystemConfig object.
+        value_km (float): The length to format, in kilometers.
+        threshold (float): The value above which scientific notation is used.
+        round_digits (int): Decimal places for the plain-number form (and the
+                            default precision for the scientific-notation form).
+        scientific_precision (int, optional): Decimal places for the
+                                              scientific-notation form, if
+                                              different from `round_digits`.
+
+    Returns:
+        str: The formatted length string, including the " km" unit.
+    """
+    if value_km <= threshold:
+        return f"{round(value_km, round_digits):,} km"
+    precision = scientific_precision if scientific_precision is not None else round_digits
+    return f"{to_scientific_notation(system_config, value_km, precision)} km"
+
+
+def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, unit, low_percent_precision=2):
+    """
+    Formats a physical quantity (mass, luminosity, ...) with its value in
+    scientific notation alongside a comparison to the Sol reference value:
+    a percentage when the ratio is small, or a "×" multiplier when it's large.
+
+    Args:
+        system_config (SystemConfig): The shared SystemConfig object.
+        value (float): The quantity's value, in SI units.
+        sol_constant (float): The Sol-reference value for the same quantity
+                              (e.g. `constants.SOLAR_MASS_TO_KG`).
+        unit (str): The unit label for the SI value (e.g. "kg", "W").
+        low_percent_precision (int, optional): Decimal places used for the
+                                               percentage when the ratio is
+                                               below `PERCENT_SOL_THRESHOLD_LOW`.
+                                               Defaults to 2.
+
+    Returns:
+        str: The formatted string, e.g. "1.23 × 10^30 kg (1.00× Sol)".
+    """
+    sol_val = value / sol_constant
+    sci_notation = to_scientific_notation(system_config, value)
+    if sol_val < constants.PERCENT_SOL_THRESHOLD_LOW:
+        return f"{sci_notation} {unit} ({sol_val * constants.PERCENT_MULTIPLIER:.{low_percent_precision}f}% of Sol)"
+    elif sol_val < constants.PERCENT_SOL_THRESHOLD_HIGH:
+        return f"{sci_notation} {unit} ({sol_val * constants.PERCENT_MULTIPLIER:.1f}% of Sol)"
+    else:
+        return f"{sci_notation} {unit} ({sol_val:.1f}× Sol)"
+
+
 def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
@@ -115,7 +198,7 @@ def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY
     Returns:
         tuple: A tuple containing the volume in km³ and the mass in kg.
     """
-    random.seed(secrets.randbits(128)) # Re-seed at the start of the function
+    reseed_rng()
     if object_density is None:
         min_density, max_density = PLANET_DENSITY[PLANET_CLASSES[object_class]['type']]
         p_density = random.uniform(min_density, max_density)
@@ -289,7 +372,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
     Returns:
         str: A newly generated, unique name.
     """
-    random.seed(secrets.randbits(128)) # Re-seed at the start of the function
+    reseed_rng()
     while True:
         name = secrets.choice(name_list)
         

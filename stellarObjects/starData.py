@@ -18,9 +18,11 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 """
 
 import math
-import random, secrets
+import random
 import re
-from .utils import to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius, generate_phoneme_salad_name, calculate_hill_sphere, properties_to_string
+from .utils import (to_scientific_notation, calculate_habitable_zone, calculate_stellar_radius,
+                    generate_phoneme_salad_name, calculate_hill_sphere, properties_to_string,
+                    reseed_rng, _format_age_string, format_length_km, format_relative_to_sol)
 from stellarObjects import constants
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .config import SystemConfig # Updated import
@@ -63,7 +65,7 @@ class Star:
                 - lifespan (float): The total expected lifespan of the star in
                                     billions of years (GY), or `float('inf')` for white dwarfs.
         """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
+        reseed_rng()
         spectral_class_char = self.type[0]
         star_info = constants.STAR_EVOLUTION.get(spectral_class_char, {})
 
@@ -106,7 +108,7 @@ class Star:
         Args:
             planets (list): A list of `Planet` objects in the system.
         """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
+        reseed_rng()
         spectral_class_char = self.type[0]
         star_evolution_data = constants.STAR_EVOLUTION.get(spectral_class_char, {})
         supported_scales = star_evolution_data.get("supported_evolutionary_scales", [])
@@ -181,6 +183,17 @@ class Star:
 
         The heliopause radius is then calculated based on the balance between
         the stellar wind's momentum flux and the pressure of the interstellar medium.
+
+        Args:
+            mass (float): The star's mass in kilograms.
+            luminosity (float): The star's luminosity in Watts.
+            radius_km (float): The star's radius in kilometers.
+            star_type (str): The star's full spectral type string (e.g., 'G2V').
+                             Accepted for interface consistency with callers but
+                             currently unused; the wind model is selected purely
+                             from `yerkes_class`.
+            yerkes_class (str): The star's Yerkes luminosity class (e.g., 'V',
+                                'III', '0'), which selects the wind/mass-loss model.
 
         Returns:
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
@@ -262,7 +275,12 @@ class Star:
 
     def calculate_heliosphere(self):
         """
-        Estimates the radius of the star's heliosphere (astrosphere) using the static helper.
+        Estimates the radius of the star's heliosphere (astrosphere) by
+        delegating to the `_calculate_heliosphere_radius_static` helper with
+        this star's own mass, luminosity, radius, type, and Yerkes class.
+
+        Returns:
+            float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
         return Star._calculate_heliosphere_radius_static(self.mass, self.luminosity, self.radius, self.type, self.yerkes_class)
 
@@ -320,12 +338,21 @@ class Star:
 
         This method formats the star's physical characteristics (type, radius,
         mass, temperature, luminosity, habitable zone) into a structured block
-        using `properties_to_string`. It also constructs a sentence describing
-        the star's age and expected lifespan, incorporating evolutionary notes
+        using `properties_to_string`, delegating the mass/luminosity/radius
+        value formatting to `format_relative_to_sol`/`format_length_km`. It
+        also constructs a sentence describing the star's age and expected
+        lifespan (via `_format_age_string`), incorporating evolutionary notes
         from `STAR_EVOLUTION` if available.
 
         The output is designed to be human-readable and can be formatted either
         as Wikitext or Markdown based on the `config.MARKDOWN` flag.
+
+        Args:
+            is_sub_star (bool, optional): Reserved for future use in
+                                          distinguishing a star described as part
+                                          of a binary system from a standalone
+                                          one; currently unused by this method.
+                                          Defaults to False.
 
         Returns:
             list: A list of strings, where each string represents a paragraph
@@ -347,27 +374,11 @@ class Star:
             else:
                 hab_upper = str(round(self.habitable_zone[1], constants.ROUND_HABITABLE_ZONE_AU))
 
-        # Refactored mass and luminosity string generation for clarity and correctness
-        sol_mass_val = self.mass / constants.SOLAR_MASS_TO_KG
-        if sol_mass_val < constants.PERCENT_SOL_THRESHOLD_LOW: # Less than 1%
-            mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val * constants.PERCENT_MULTIPLIER:.2f}% of Sol)"
-        elif sol_mass_val < constants.PERCENT_SOL_THRESHOLD_HIGH: # Between 1% and 200%
-            mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val:.1f}% of Sol)"
-        else: # Greater than 200%
-            mass_string = f"{to_scientific_notation(self.system_config, self.mass)} kg ({sol_mass_val:.1f}× Sol)"
+        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
+        lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
-        sol_lum_val = self.luminosity / constants.SOLAR_LUMINOSITY
-        if sol_lum_val < constants.PERCENT_SOL_THRESHOLD_LOW: # Less than 1%
-            lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val * constants.PERCENT_MULTIPLIER:.4f}% of Sol)"
-        elif sol_lum_val < constants.PERCENT_SOL_THRESHOLD_HIGH: # Between 1% and 200%
-            lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val * constants.PERCENT_MULTIPLIER:.1f}% of Sol)"
-        else: # Greater than 200%
-            lum_string = f"{to_scientific_notation(self.system_config, self.luminosity)} W ({sol_lum_val:.1f}× Sol)"
-
-        if self.radius <= constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD:
-            radius_string = f"{round(self.radius, constants.ROUND_RADIUS_KM):,} km"
-        else:
-            radius_string = f"{to_scientific_notation(self.system_config, self.radius, constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)} km"
+        radius_string = format_length_km(self.system_config, self.radius, constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
+                                         constants.ROUND_RADIUS_KM, constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)
 
         star_properties = {
             "type": self.type,
@@ -393,26 +404,13 @@ class Star:
         paragraphs.append(star_block)
 
         # Construct the age and evolutionary notes sentence
-        age_sentence_base = ""
-
-        if self.age < 1:
-            star_age = self.age * 1000
-            age_term = "million"
-        else:
-            star_age = self.age
-            age_term = "billion"
+        age_str = _format_age_string(self.age)
 
         if self.lifespan == float('inf'):
-            age_sentence_base = f"The star is approximately {star_age:.2f} {age_term} years old and is now a white dwarf, which will cool for trillions of years"
+            age_sentence_base = f"The star is approximately {age_str} old and is now a white dwarf, which will cool for trillions of years"
         else:
-            if self.lifespan < 1:
-                star_lifespan = self.lifespan * 1000
-                lifespan_term = "million"
-            else:
-                star_lifespan = self.lifespan
-                lifespan_term = "billion"
-
-            age_sentence_base = f"The star is approximately {star_age:.2f} {age_term} years old, with an expected lifespan of {star_lifespan:.2f} {lifespan_term} years"
+            lifespan_str = _format_age_string(self.lifespan)
+            age_sentence_base = f"The star is approximately {age_str} old, with an expected lifespan of {lifespan_str}"
 
         spectral_class_char = self.type[0]
         star_info = constants.STAR_EVOLUTION.get(spectral_class_char, {})
@@ -498,7 +496,7 @@ class Star:
         relationships between their core properties, resulting in astrophysically
         plausible stellar objects.
         """
-        random.seed(secrets.randbits(128)) # Re-seed at the start of the function
+        reseed_rng()
         yerkes_lookup = {
             "0": "Hypergiant", "IA+": "Luminous Supergiant", "IA": "Supergiant",
             "IAB": "Intermediate-size Luminous Supergiant", "IB": "Less Luminous Supergiant",

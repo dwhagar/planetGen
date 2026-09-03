@@ -2,6 +2,17 @@
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
+## Features
+
+*   **Star generation**: Stars are generated with physically-grounded mass, radius, temperature, and luminosity, either fully at random (weighted by realistic galactic spectral-class prevalence) or pinned to a specific spectral type and Yerkes luminosity class (e.g. `G2V`) via `--star-type`. `--force-large-star` biases generation toward hotter, more massive stars.
+*   **Binary star systems**: `--binary-system` generates a P-type (circumbinary) binary pair — a primary and secondary star orbiting each other — represented as a single unified effective star (combined mass, luminosity, and habitable zone) for the purposes of planet placement, while still reporting each star's individual properties in the output.
+*   **Planet and moon generation**: Planets are drawn from 25 distinct planet classes (terrestrial and gas giant), each with its own composition, atmosphere, and valid orbital zones (hot/ecosphere/cold). Planets can generate their own moons, with orbital placement, atmospheric conditions, and surface gravity calculated per body. Orbital spacing is validated against each object's Hill sphere to keep the system physically plausible.
+*   **Asteroid belts**: Belts can appear between planets (or be forced with `--force-asteroid-belt`), each with a randomly generated density and mineral/gem composition.
+*   **Stellar age and lifespan modeling**: Star age and lifespan are derived from spectral and Yerkes class data, then adjusted (via `--age young|old`) or extended as needed so any habitable planets' life stages remain consistent with how long the star has existed and how much longer it has left.
+*   **Life chemistry and evolutionary timelines**: Habitable planets are evaluated against the star's spectral class to determine which of several life chemistries (e.g. Chlorophyll a, Melanin, Retinal) are viable, each with its own evolutionary pace (fast/normal/slow). A speculative evolutionary timeline (abiogenesis through technological civilization) is generated for habitable worlds, influenced by `--force-intelligent-life` / `--no-intelligent-life`.
+*   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
+*   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
+
 ## Setup
 
 This project uses the `nltk` library to generate phonetically pleasing names. To install the necessary dependencies, you will need to have `setuptools` installed.

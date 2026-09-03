@@ -46,6 +46,8 @@ def process_args():
       is generated. Implies --force-habitable-world.
     - `--no-habitable-world` / `-nhw`: Ensures no habitable world is generated
       in the system.
+    - `--binary-system` / `-bs`: Generates a binary star system (P-type,
+      circumbinary planets orbiting both stars as a pair) instead of a single star.
     - `--flavor-chance-system`: Overrides the default system-level flavor text chance.
     - `--flavor-chance-planet`: Overrides the default planet-level flavor text chance.
     - `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.

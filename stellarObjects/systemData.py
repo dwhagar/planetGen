@@ -22,6 +22,8 @@ import random
 import math
 import copy # Added import for deepcopy
 from .planetData import Planet
+from . import planetPhysics
+from . import planetLife
 from .doubleStar import BinaryStarProxy # New import for binary star systems
 from .asteroidData import AsteroidBelt
 from .starData import Star
@@ -75,6 +77,13 @@ class StarSystem:
 
         If `config.NAME` is provided, it will be used as the name for the star
         system, overriding the default random name generation.
+
+        Every `Planet` (and moon) is generated without life data — see
+        `planetPhysics`'s module docstring. Once all planets/moons exist,
+        orbits are validated, and the star's age has been finalized via
+        `Star.adjust_age_for_planets`, this constructor makes one pass over
+        every planet and moon and applies `planetLife.apply_life_data` to
+        each, so evolutionary timelines reflect the star's final age.
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         self.star = Star(self.system_config, name=self.system_config.NAME) # Pass system_config and use its NAME
@@ -184,6 +193,18 @@ class StarSystem:
 
         self.validate_system()
         self.star.adjust_age_for_planets(self.planets)
+
+        # All planets and moons are generated without life data (see planetPhysics's
+        # module docstring). Apply it now, in one pass over the finished system, so
+        # evolutionary timelines are computed against the star's final, planet-adjusted
+        # age rather than its provisional pre-adjustment one.
+        for obj in self.planets:
+            if obj.type == 'a': # Skip asteroid belts; they carry no life data.
+                continue
+            planetLife.apply_life_data(obj)
+            for moon in obj.moons:
+                planetLife.apply_life_data(moon)
+
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
 
@@ -318,12 +339,12 @@ class StarSystem:
                 if last_planet.type == 'a':
                     if distance_to_last < constants.MIN_ASTEROID_BELT_SEPARATION:
                         planet.distance += constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        planet.calculate_atmospheric_conditions()
+                        planetPhysics.calculate_atmospheric_conditions(planet)
                 else:
                     min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
                     if distance_to_last < min_orbit:
                         planet.distance += min_orbit + additional_correction
-                        planet.calculate_atmospheric_conditions()
+                        planetPhysics.calculate_atmospheric_conditions(planet)
 
     def __str__(self):
         """
