@@ -26,7 +26,7 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
 from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
                     format_length_km, format_relative_to_sol, generate_phoneme_salad_name,
-                    properties_to_string, reseed_rng)
+                    get_star_evolutionary_profile, properties_to_string, reseed_rng)
 
 class Star:
     """
@@ -46,14 +46,30 @@ class Star:
 
     def _calculate_initial_star_age_and_lifespan(self):
         """
-        Calculates the star's initial age and lifespan based on its spectral class
-        and Yerkes class, using data from `STAR_EVOLUTION`.
+        Calculates the star's initial age and lifespan, using a method that
+        depends on its Yerkes luminosity class.
 
-        The lifespan is primarily determined by the star's spectral class, with
-        adjustments made for its Yerkes luminosity class (e.g., giants have
-        shorter lifespans than main-sequence stars of the same spectral type).
-        For white dwarfs, the lifespan is considered effectively infinite as they
-        slowly cool.
+        For a main-sequence (Yerkes 'V') star, spectral letter fully
+        determines both current temperature and total lifespan, so lifespan
+        is drawn from `STAR_EVOLUTION`'s fixed per-letter range.
+
+        For any evolved/remnant star (giants, subgiants, bright giants,
+        supergiants, hypergiants, subdwarfs), the current spectral letter
+        reflects only present-day temperature -- an "M0III" red giant did
+        not spend its life as an M-type star -- so `STAR_EVOLUTION` can't be
+        used directly. Instead, the star's own already-generated mass is run
+        through the same mass-luminosity-based main-sequence lifetime scaling
+        used to derive that table, extended by the standard rule of thumb
+        that ~90% of a star's total lifetime is spent on the main sequence;
+        age is then drawn from the remaining post-main-sequence window (the
+        star must already have completed its main-sequence phase to be
+        observed in one of these classes).
+
+        For white dwarfs, the lifespan is considered effectively infinite as
+        they slowly cool, and age is instead drawn from a dedicated
+        cooling-age range, since a white dwarf's spectral letter reflects its
+        current temperature rather than a progenitor mass usable for either
+        of the above.
 
         The initial age is randomly chosen to be a fraction of its total lifespan,
         ensuring the star is in a plausible evolutionary stage. This age can be
@@ -67,13 +83,66 @@ class Star:
                                     billions of years (GY), or `float('inf')` for white dwarfs.
         """
         reseed_rng()
+
+        if self.yerkes_class in ["VII", "D"]:
+            # A white dwarf's spectral letter encodes its *current* surface
+            # temperature, not its progenitor's mass/spectral class, so it
+            # can't be looked up in STAR_EVOLUTION's main-sequence lifespan
+            # table (that would e.g. treat an "F5VII" white dwarf as if it
+            # were an F-type main-sequence star with a ~4-9 Gy lifespan). A
+            # white dwarf's remaining "lifespan" is effectively infinite --
+            # it just cools for trillions of years -- so age is drawn from a
+            # dedicated cooling-age range instead of a lifespan fraction.
+            lifespan = float('inf')
+            min_age = program_constants.WHITE_DWARF_MIN_AGE_GY
+            max_age = program_constants.WHITE_DWARF_MAX_AGE_GY
+            if self.system_config.AGE == "old":
+                min_age = min_age + (max_age - min_age) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+            elif self.system_config.AGE == "young":
+                max_age = max_age - (max_age - min_age) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+            age = random.uniform(min_age, max_age)
+            return age, lifespan
+
+        if self.yerkes_class != "V":
+            # Evolved-star track (giants, subgiants, bright giants,
+            # supergiants, hypergiants, subdwarfs): the current spectral
+            # letter is just this star's present temperature, not a
+            # main-sequence class it belongs to -- an "M0III" red giant did
+            # not spend its whole life as an M-type star. Derive the star's
+            # actual main-sequence lifespan from its own already-generated
+            # mass instead, then extend it for the (much shorter)
+            # post-main-sequence phase it's currently in.
+            mass_sol = self.mass / physical_constants.SOLAR_MASS_TO_KG
+            ms_lifespan = program_constants.SOLAR_MS_LIFESPAN_GY * mass_sol ** program_constants.MS_LIFESPAN_MASS_EXPONENT
+            lifespan = ms_lifespan / program_constants.MS_LIFESPAN_FRACTION_OF_TOTAL
+
+            # The star must already have completed its main-sequence phase to
+            # be observed as an evolved class, so age is drawn from the
+            # (comparatively short) post-main-sequence window only.
+            min_age = ms_lifespan
+            max_age = lifespan
+            if self.system_config.AGE == "old":
+                min_age = min_age + (max_age - min_age) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+            elif self.system_config.AGE == "young":
+                max_age = max_age - (max_age - min_age) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+            age = random.uniform(min_age, max_age)
+
+            return age, lifespan
+
         spectral_class_char = self.type[0]
         star_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
 
         min_lifespan, max_lifespan = star_info["lifespan_gy"]
         lifespan = random.uniform(min_lifespan, max_lifespan)
 
-        min_age = program_constants.MIN_INITIAL_STAR_AGE_GY
+        # MIN_INITIAL_STAR_AGE_GY is a sensible floor for long-lived stars (F/G/K/M),
+        # but a fixed 100-million-year floor is nonsensical for a star whose entire
+        # lifespan is shorter than that (O/B, and short-lived rolls of A) -- it would
+        # make min_age exceed max_age below, silently discarding the young/old
+        # request and any real age variance for those types. Scale it down for
+        # short-lived stars so it never exceeds a small fraction of their own lifespan.
+        min_age = min(program_constants.MIN_INITIAL_STAR_AGE_GY,
+                      lifespan * program_constants.MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO)
         max_age = lifespan * program_constants.MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO
 
         # Values are calculated to be either in last ratio of the
@@ -102,16 +171,26 @@ class Star:
         host an "old" planet (e.g., a terraformed world requiring billions of years
         of development).
 
-        If the star's initial lifespan is too short to accommodate the required
-        planetary age, the star's age is set to be near the end of its lifespan,
-        reflecting a system that has evolved rapidly.
+        If the star's lifespan is too short to accommodate the required
+        planetary age even at its very end, the star's age is set to be near
+        the end of its lifespan (the closest it can get), reflecting a system
+        that has evolved as rapidly as physically possible for its type. If
+        the requirement *is* reachable within the lifespan, `config.AGE`
+        ("young"/"old") still biases where in the achievable window the age
+        falls, the same way it biases the star's initial age in
+        `_calculate_initial_star_age_and_lifespan` — a forced minimum age
+        should narrow the age range, not silently discard a young/old
+        request entirely.
 
         Args:
             planets (list): A list of `Planet` objects in the system.
         """
         reseed_rng()
-        spectral_class_char = self.type[0]
-        star_evolution_data = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
+        # Uses get_star_evolutionary_profile rather than a raw
+        # STAR_EVOLUTION[spectral_class] lookup so giants/supergiants/white
+        # dwarfs etc. (whose spectral letter reflects only current
+        # temperature, not a main-sequence lifespan) are handled correctly.
+        star_evolution_data = get_star_evolutionary_profile(self)
         supported_scales = star_evolution_data.get("supported_evolutionary_scales", [])
 
         min_required_age_for_system = 0.0
@@ -129,16 +208,27 @@ class Star:
 
         # Ensure the star's age is at least the minimum required by its planets
         if self.age < min_required_age_for_system:
-            # If the star's lifespan is too short to support the required age,
-            # we cap the age at a reasonable fraction of its lifespan.
-            if self.lifespan != float('inf') and self.lifespan < min_required_age_for_system:
-                # If lifespan is too short, set age to be near the end of its short life
-                self.age = random.uniform(min_required_age_for_system * program_constants.MIN_PLANET_AGE_ADJUSTMENT_FACTOR, self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR)
-                if self.age > self.lifespan: # Final check
-                    self.age = self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR
+            if self.lifespan != float('inf'):
+                max_reachable_age = self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR
             else:
-                # Otherwise, set age to be between the required minimum and near end of lifespan
-                self.age = random.uniform(min_required_age_for_system, self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR if self.lifespan != float('inf') else min_required_age_for_system + program_constants.WHITE_DWARF_AGE_ADDITION_GY) # Add 5 GY for WD if no upper bound
+                max_reachable_age = min_required_age_for_system + program_constants.WHITE_DWARF_AGE_ADDITION_GY # Add 5 GY for WD if no upper bound
+
+            if self.lifespan != float('inf') and max_reachable_age < min_required_age_for_system:
+                # The requirement is physically unreachable within this star's lifespan
+                # (e.g. a habitable world's minimum age exceeds a short-lived O/B/A star's
+                # entire life). The best it can do is sit near the very end of its life --
+                # there's no real "young" vs "old" choice left to honor here.
+                self.age = random.uniform(self.lifespan * program_constants.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age)
+            else:
+                # The requirement is reachable within the lifespan: bias where in the
+                # achievable [min_required_age_for_system, max_reachable_age] window the
+                # age falls, mirroring the young/old bias used for the initial age roll.
+                low, high = min_required_age_for_system, max_reachable_age
+                if self.system_config.AGE == "old":
+                    low = low + (high - low) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+                elif self.system_config.AGE == "young":
+                    high = high - (high - low) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+                self.age = random.uniform(low, high)
 
         # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
         if self.lifespan != float('inf') and self.age >= self.lifespan:
@@ -178,10 +268,13 @@ class Star:
 
         This function employs a tiered approach to model the stellar wind's
         mass-loss rate and velocity, which are highly dependent on the star's
-        evolutionary stage (Yerkes luminosity class) and spectral type.
-        Different physical models (e.g., power-laws for hypergiants, Reimers'
-        Law for giants, and empirical scalings for main-sequence stars) are
-        applied to ensure physically plausible results across the stellar spectrum.
+        evolutionary stage (Yerkes luminosity class) and spectral type. Three
+        physical models are applied: the Nieuwenhuijzen & de Jager (1990)
+        empirical mass-loss fit for every evolved star (giants through
+        hypergiants), a radiation-driven-wind power law for hot O/B dwarfs,
+        and an empirical coronal-wind scaling for cool main-sequence dwarfs
+        (and white dwarfs) -- chosen to ensure physically plausible results
+        across the stellar spectrum.
 
         The heliopause radius is then calculated based on the balance between
         the stellar wind's momentum flux and the pressure of the interstellar medium.
@@ -190,10 +283,10 @@ class Star:
             mass (float): The star's mass in kilograms.
             luminosity (float): The star's luminosity in Watts.
             radius_km (float): The star's radius in kilometers.
-            star_type (str): The star's full spectral type string (e.g., 'G2V').
-                             Accepted for interface consistency with callers but
-                             currently unused; the wind model is selected purely
-                             from `yerkes_class`.
+            star_type (str): The star's full spectral type string (e.g., 'G2V'),
+                             whose first character (the spectral class) selects
+                             between the hot-dwarf and cool-dwarf wind models
+                             within the main-sequence tier.
             yerkes_class (str): The star's Yerkes luminosity class (e.g., 'V',
                                 'III', '0'), which selects the wind/mass-loss model.
 
@@ -205,43 +298,53 @@ class Star:
         lum_sol = luminosity / physical_constants.SOLAR_LUMINOSITY
         mass_sol = mass / physical_constants.SOLAR_MASS_TO_KG
         radius_sol = radius_m / physical_constants.SOLAR_RADIUS_M
+        spectral_class = star_type[0].upper() if star_type else None
 
         # --- 2. Calculate Mass-Loss Rate (M-dot) and Wind Velocity (v_inf) ---
         # A single formula for mass loss is insufficient. We use a tiered system based on
         # the star's Yerkes luminosity class (evolutionary stage) and spectral type.
         escape_velocity = math.sqrt(physical_constants.ESCAPE_VELOCITY_CONSTANT * physical_constants.G * mass / radius_m)
-        
 
-        # TIER 1: Hypergiants (Class 0)
-        # These stars have extreme radiation-driven winds. We use a power-law that is
-        # more stable than other models at this high-luminosity extreme.
-        if yerkes_class == "0":
-            # M-dot ~ L^1.5. This avoids the runaway effect of steeper power laws.
-            mass_loss_rate_smyr = physical_constants.HYPERGIANT_MASS_LOSS_RATE_FACTOR * (lum_sol**physical_constants.HYPERGIANT_MASS_LOSS_RATE_EXPONENT)
-            # Wind velocity is a high multiple of escape velocity.
-            wind_velocity = physical_constants.HYPERGIANT_WIND_VELOCITY_FACTOR * escape_velocity
 
-        # TIER 2: Supergiants (Class I) and Bright Giants (Class II)
-        # For these highly evolved stars, the classic Reimers' Law provides a stable
-        # and physically appropriate model for their powerful stellar winds.
-        elif yerkes_class in ["IA+", "IA", "IAB", "IB", "II"]:
-            eta = physical_constants.SUPERGIANT_REIMERS_ETA  # Higher efficiency factor for these very luminous stars.
-            # Reimers' Law: M-dot = 4e-13 * η * (L*R/M)
-            mass_loss_rate_smyr = physical_constants.REIMERS_LAW_CONSTANT * eta * (lum_sol * radius_sol / mass_sol)
-            # Wind velocity is a smaller fraction of escape velocity for these cooler giants.
-            wind_velocity = physical_constants.GIANT_WIND_VELOCITY_FACTOR * escape_velocity
+        # TIER 1: Evolved stars -- giants (III), subgiants (IV), bright giants
+        # (II), supergiants (IB/IAB/IA/IA+), and hypergiants (0). These were
+        # previously three separately hand-fit tiers (a hypergiant power-law,
+        # plus Reimers' Law with two different eta values for "giants" vs
+        # "supergiants") stitched together at Yerkes-class boundaries -- the
+        # exact structure that let the old hypergiant constant drift ~9
+        # orders of magnitude out of calibration unnoticed. Nieuwenhuijzen &
+        # de Jager (1990) is a single empirical mass-loss fit spanning this
+        # whole regime, so one formula and one continuous curve now covers
+        # all of it (see physical_constants.py for the correction applied
+        # above its known high-luminosity overestimation threshold).
+        if yerkes_class in ["0", "IA+", "IA", "IAB", "IB", "II", "III", "IV"]:
+            mass_loss_rate_smyr = (physical_constants.NDJ_MASS_LOSS_COEFFICIENT
+                                   * (lum_sol**physical_constants.NDJ_LUMINOSITY_EXPONENT)
+                                   * (mass_sol**physical_constants.NDJ_MASS_EXPONENT)
+                                   * (radius_sol**physical_constants.NDJ_RADIUS_EXPONENT))
+            if lum_sol > physical_constants.NDJ_HIGH_LUMINOSITY_THRESHOLD_LSUN:
+                mass_loss_rate_smyr *= physical_constants.NDJ_HIGH_LUMINOSITY_CORRECTION_FACTOR
 
-        # TIER 3: Giants (Class III) and Subgiants (Class IV)
-        # These are less luminous evolved stars. Reimers' Law is still the best model,
-        # but with a standard efficiency factor.
-        elif yerkes_class in ["III", "IV"]:
-            eta = physical_constants.STANDARD_REIMERS_ETA  # Standard eta for giants.
-            mass_loss_rate_smyr = physical_constants.REIMERS_LAW_CONSTANT * eta * (lum_sol * radius_sol / mass_sol)
-            wind_velocity = physical_constants.GIANT_WIND_VELOCITY_FACTOR * escape_velocity
+            if yerkes_class == "0":
+                # Hypergiant winds are an extreme multiple of escape velocity.
+                wind_velocity = physical_constants.HYPERGIANT_WIND_VELOCITY_FACTOR * escape_velocity
+            else:
+                # Wind velocity is a smaller fraction of escape velocity for these cooler giants/supergiants.
+                wind_velocity = physical_constants.GIANT_WIND_VELOCITY_FACTOR * escape_velocity
 
-        # TIER 4: Main Sequence (Class V), Subdwarfs (VI), and White Dwarfs (VII)
-        # For sun-like stars and stellar remnants, mass loss is very low. We scale
-        # directly from the Sun's known properties for a stable, physically grounded result.
+        # TIER 2a: Hot main-sequence dwarfs (O and B, Class V/VI)
+        # Unlike cool dwarfs, O/B stars have powerful radiation-driven winds (line-driven,
+        # via the same physical mechanism as hypergiants/supergiants, just far less extreme):
+        # mass loss scales steeply with luminosity rather than the coronal/magnetic-activity
+        # scaling used for cool dwarfs below. Without this tier, a hot O-type star would be
+        # (incorrectly) modeled with a weaker wind than a cool, dim M dwarf.
+        elif spectral_class in ("O", "B") and yerkes_class in ["V", "VI"]:
+            mass_loss_rate_smyr = physical_constants.OB_DWARF_MASS_LOSS_RATE_FACTOR * (lum_sol**physical_constants.OB_DWARF_MASS_LOSS_RATE_EXPONENT)
+            wind_velocity = physical_constants.OB_DWARF_WIND_VELOCITY_FACTOR * escape_velocity
+
+        # TIER 2b: Cool main-sequence dwarfs (A through M, Class V/VI) and White Dwarfs (VII)
+        # For sun-like and cooler stars (plus stellar remnants), mass loss is very low. We
+        # scale directly from the Sun's known properties for a stable, physically grounded result.
         else:
             # For cool main-sequence stars, mass loss is driven by magnetic activity, not
             # radiation pressure. The Reimers' law scaling (L*R/M) is inaccurate here.
@@ -407,13 +510,20 @@ class Star:
             lifespan_str = format_age_string(self.lifespan)
             age_sentence_base = f"The star is approximately {age_str} old, with an expected lifespan of {lifespan_str}"
 
-        spectral_class_char = self.type[0]
-        star_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
-        
         full_age_and_notes_sentence = age_sentence_base
-        if "evolutionary_constraint_notes" in star_info:
-            # Append notes directly as they are a continuation, ensuring a space and period at the end
-            full_age_and_notes_sentence += " and " + star_info["evolutionary_constraint_notes"]
+        # STAR_EVOLUTION's notes describe a *main-sequence* star's habitable-zone
+        # lifespan window, keyed by spectral letter. For a giant, supergiant,
+        # subdwarf, or white dwarf, that letter reflects only the star's current
+        # temperature/color -- not a main-sequence evolutionary stage -- so the
+        # notes (and their quoted lifespan figures) would be meaningless or
+        # self-contradictory (e.g. a white dwarf whose age already exceeds the
+        # "main-sequence lifespan" quoted for its current temperature class).
+        if self.yerkes_class == "V":
+            spectral_class_char = self.type[0]
+            star_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
+            if "evolutionary_constraint_notes" in star_info:
+                # Append notes directly as they are a continuation, ensuring a space and period at the end
+                full_age_and_notes_sentence += " and " + star_info["evolutionary_constraint_notes"]
         full_age_and_notes_sentence += "." # Ensure the entire combined sentence ends with a period
 
         paragraphs.append(full_age_and_notes_sentence)

@@ -36,6 +36,9 @@ setup(
     install_requires=[
         'nltk',
     ],
+    extras_require={
+        'test': ['pytest'],
+    },
     author='David Hagar',
     author_email='david.hagar@gmail.com',
     description='A procedural planet and star system generator.',

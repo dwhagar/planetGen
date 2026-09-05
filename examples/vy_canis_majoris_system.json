@@ -1,0 +1,8 @@
+{
+  "star_type": "M30",
+  "name": "VY Canis Majoris",
+  "num_orbits": 1,
+  "slots": [
+    {"type": "planet", "planet_class": "I", "moons": 2}
+  ]
+}

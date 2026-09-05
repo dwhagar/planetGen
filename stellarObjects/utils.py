@@ -47,6 +47,67 @@ def get_star_spectral_class(star):
     return reference_star.type[0].upper()
 
 
+def get_star_evolutionary_profile(star):
+    """
+    Returns the `STAR_EVOLUTION`-shaped profile describing which life
+    chemicals and evolutionary paces are plausible for planets orbiting
+    `star`, correctly accounting for its Yerkes luminosity class.
+
+    `STAR_EVOLUTION` is keyed by spectral letter (e.g. 'G'), which for a
+    main-sequence (Yerkes 'V') star fully determines both its current
+    temperature and its total lifespan -- so that class's fixed entry
+    applies directly.
+
+    For any evolved or remnant star (giants, supergiants, subgiants, bright
+    giants, hypergiants, subdwarfs, white dwarfs), the spectral letter only
+    reflects the star's *current* temperature/color, not a lifespan -- e.g.
+    an "F5VII" white dwarf merely glows at F-like temperature; it did not
+    live and die as an F-type main-sequence star. Using STAR_EVOLUTION['F']
+    directly for such a star would misapply a main-sequence lifespan/scale
+    table to an unrelated evolutionary history. `potentially_viable_chemicals`
+    (driven by the star's current emission spectrum) is still taken from the
+    current-temperature letter, since that part genuinely is about current
+    color. `supported_evolutionary_scales`, which is really a proxy for how
+    much time was available for a biosphere to develop, is instead derived
+    from the star's own already-computed age/lifespan (already correctly
+    yerkes-class-aware -- see `Star._calculate_initial_star_age_and_lifespan`),
+    by checking which evolutionary paces could reach their technological
+    civilization milestone within that time budget.
+
+    Args:
+        star: A `Star` or `BinaryStarProxy` instance.
+
+    Returns:
+        dict: A `STAR_EVOLUTION`-entry-shaped dict (with at least
+              `potentially_viable_chemicals` and `supported_evolutionary_scales`
+              keys), or `{}` if the spectral letter has no entry.
+    """
+    reference_star = star._primary if hasattr(star, '_primary') else star
+    spectral_class_char = reference_star.type[0].upper()
+    base_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
+    if not base_info:
+        return {}
+
+    if reference_star.yerkes_class == "V":
+        return base_info
+
+    # A white dwarf's lifespan is infinite (it just cools forever), so "how
+    # much time has been available so far" is better represented by its age.
+    # Every other evolved class has a finite lifespan, used as-is.
+    time_budget = reference_star.age if reference_star.lifespan == float('inf') else reference_star.lifespan
+
+    reachable_scales = [
+        scale for scale in ["fast", "normal", "slow"]
+        if program_constants.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget
+    ]
+    if not reachable_scales:
+        # Even the fastest pace doesn't fit -- still return it so callers have
+        # something to work with, mirroring the fallback in get_evolutionary_timeline.
+        reachable_scales = ["fast"]
+
+    return {**base_info, "supported_evolutionary_scales": reachable_scales}
+
+
 def format_length_km(system_config: SystemConfig, value_km, threshold, round_digits, scientific_precision=None):
     """
     Formats a length in kilometers, switching between a comma-grouped plain

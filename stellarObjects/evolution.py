@@ -17,7 +17,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 import random
 
 from . import program_constants
-from .utils import format_age_string, to_paragraph
+from .utils import format_age_string, get_star_evolutionary_profile, to_paragraph
 # Removed: from . import config # Import the config module
 
 def get_evolutionary_timeline(star):
@@ -42,29 +42,41 @@ def get_evolutionary_timeline(star):
         list: A list of strings, where each string is a paragraph describing
               the speculative evolutionary timeline for a planet orbiting the star.
     """
-    spectral_class = star.type[0]
-    star_info = program_constants.STAR_EVOLUTION.get(spectral_class, {})
-    
+    # Uses get_star_evolutionary_profile rather than a raw STAR_EVOLUTION[spectral_class]
+    # lookup so giants/supergiants/white dwarfs etc. (whose spectral letter reflects
+    # only current temperature, not a main-sequence lifespan) are handled correctly.
+    star_info = get_star_evolutionary_profile(star)
+
     # Ensure "normal" is a fallback if the star's supported_evolutionary_scales is empty or missing
     supported_scales = star_info.get("supported_evolutionary_scales")
     if not supported_scales:
         evolutionary_scale = "normal"
+    elif star.system_config.INTELLIGENT_LIFE is True:
+        # A forced technological civilization needs to fit inside the star's
+        # actual (already-finalized, lifespan-capped) age. Pick randomly among
+        # whichever supported scales are actually reachable at that age (so
+        # "fast" isn't always favored just because it's usually reachable —
+        # a G-type star forcing intelligent life should still often read as
+        # "Standard" pace, not always "Hyper-Accelerated"), so the milestone
+        # below never has to be claimed at a time later than "now". If none
+        # fit, fall back to the fastest supported scale, and the milestone
+        # age is capped to the star's current age when reporting it.
+        scale_speed_order = [s for s in ["fast", "normal", "slow"] if s in supported_scales]
+        reachable_scales = [
+            s for s in scale_speed_order
+            if program_constants.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
+        ]
+        evolutionary_scale = random.choice(reachable_scales) if reachable_scales else scale_speed_order[0]
     else:
         # If there are multiple supported scales, pick one randomly
         evolutionary_scale = random.choice(supported_scales)
 
     timeline = program_constants.EVOLUTIONARY_TIMELINES[evolutionary_scale]
 
-    # The current system age should be the star's actual age, not a randomly generated one
+    # The current system age is always the star's actual, already-finalized age
+    # (see Star.adjust_age_for_planets) — never inflated past it, so this sentence
+    # can never contradict the star's own stated age/lifespan elsewhere in the output.
     current_system_age = star.age
-
-    # If INTELLIGENT_LIFE is forced True, ensure the star's age is sufficient for technological civilization
-    if star.system_config.INTELLIGENT_LIFE is True:
-        tech_civ_age = timeline['technological_civilization']
-        if current_system_age < tech_civ_age:
-            # Nudge the star's age to be just enough for technological civilization
-            # Add a small random increment to avoid exact boundary issues
-            current_system_age = tech_civ_age + (random.random() * 0.1) # Add up to 0.1 billion years
 
     milestones = {
         "Abiogenesis": timeline['abiogenesis'],
@@ -86,7 +98,10 @@ def get_evolutionary_timeline(star):
     # Apply INTELLIGENT_LIFE tri-state logic
     if star.system_config.INTELLIGENT_LIFE is True:
         most_recent_milestone_name = "Technological Civilization"
-        most_recent_milestone_age = milestones["Technological Civilization"]
+        # Capped at the current system age: even on the fastest supported scale, a
+        # very young star may still be younger than that scale's own tech-civ
+        # threshold, and the milestone can never be claimed to predate "now".
+        most_recent_milestone_age = min(milestones["Technological Civilization"], current_system_age)
     elif star.system_config.INTELLIGENT_LIFE is False:
         if most_recent_milestone_name == "Technological Civilization":
             most_recent_milestone_name = "Multicellularity"

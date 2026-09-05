@@ -1,0 +1,9 @@
+{
+  "star_type": "O9V",
+  "name": "Zeta Ophiuchi",
+  "num_orbits": 2,
+  "slots": [
+    {"type": "planet", "planet_class": "A", "moons": 0},
+    {"type": "asteroid_belt"}
+  ]
+}

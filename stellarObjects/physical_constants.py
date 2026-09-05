@@ -73,19 +73,45 @@ float: Conversion factor from Astronomical Units (AU) to Light-Years (LY).
 # --- Physics-Model Constants (heliosphere / stellar wind) ---
 KM_TO_M_FACTOR = 1000
 ESCAPE_VELOCITY_CONSTANT = 2
-HYPERGIANT_MASS_LOSS_RATE_FACTOR = 10**-5.0
-HYPERGIANT_MASS_LOSS_RATE_EXPONENT = 1.5
 RADIUS_SOL_EXPONENT = 2
 LUMINOSITY_SOL_EXPONENT = -0.5
 MASS_SOL_EXPONENT = -1.0
 SECONDS_PER_YEAR = 365.25 * 24 * 3600
 HELIOPAUSE_RADIUS_DEFAULT_M = 0
 HYPERGIANT_WIND_VELOCITY_FACTOR = 2.6
-REIMERS_LAW_CONSTANT = 4e-13
-SUPERGIANT_REIMERS_ETA = 2.0
 GIANT_WIND_VELOCITY_FACTOR = 0.3
-STANDARD_REIMERS_ETA = 1.0
 SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR = 2e-14
+# Evolved-star mass loss (giants, subgiants, bright giants, supergiants,
+# hypergiants): Nieuwenhuijzen & de Jager (1990), Mdot = C * L^a * M^b * R^c
+# (L, M, R in solar units, Mdot in Msun/yr) -- a single empirical fit to 247
+# stars spanning the whole HR diagram. This one formula replaces what used
+# to be three independently hand-fit tiers stitched together at Yerkes-class
+# boundaries (a separate hypergiant power-law, plus Reimers' Law with two
+# different eta values for "giants" vs "supergiants") -- exactly the
+# structure that let the old hypergiant constant drift ~9 orders of
+# magnitude out of calibration unnoticed. Verified against measured rates:
+# gives ~factor-of-4 agreement for ordinary giants/supergiants, but
+# systematically overestimates by ~10x above log(L/Lsun) > 5 -- the
+# supergiant/hypergiant regime -- per Mauron & Josselin (2011)'s comparison
+# against 40 Galactic red supergiants, hence the correction below.
+NDJ_MASS_LOSS_COEFFICIENT = 9.63e-15
+NDJ_LUMINOSITY_EXPONENT = 1.42
+NDJ_MASS_EXPONENT = 0.16
+NDJ_RADIUS_EXPONENT = 0.81
+NDJ_HIGH_LUMINOSITY_THRESHOLD_LSUN = 1e5
+NDJ_HIGH_LUMINOSITY_CORRECTION_FACTOR = 0.1
+# Kept as its own tier rather than folded into the Nieuwenhuijzen & de Jager
+# formula above: stellar-evolution comparisons (e.g. against Vink et al.
+# 2000/2001 radiation-driven-wind models, the standard for hot dwarfs) show
+# N&dJ overestimates main-sequence O-star mass loss by up to ~20x, since it
+# was fit mostly to evolved/luminous stars. Calibrated instead against
+# measured O/B dwarf rates (e.g. Krticka 2014; Vink et al. 2000), which put
+# late-O dwarfs (~1e5 Lsun) around 3-7e-8 Msun/yr. The previous value
+# (3.2e-20) was ~3-4 orders of magnitude too low, making hot dwarf winds
+# weaker than a cool M dwarf's and understating their heliosphere size.
+OB_DWARF_MASS_LOSS_RATE_FACTOR = 1.7e-16
+OB_DWARF_MASS_LOSS_RATE_EXPONENT = 1.75
+OB_DWARF_WIND_VELOCITY_FACTOR = 2.0
 MIN_MOMENTUM_FLUX = 1e-15
 FOUR_PI = 4 * math.pi
 

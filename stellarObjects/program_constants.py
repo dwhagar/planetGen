@@ -96,12 +96,36 @@ ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 
 # --- Star Generation Parameters ---
 MIN_INITIAL_STAR_AGE_GY = 0.1
+MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.01
 MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.9
+UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO = 0.85
 OLD_STAR_AGE_LIFESPAN_RATIO = 1/3
 YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
-MIN_PLANET_AGE_ADJUSTMENT_FACTOR = 0.8
 MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
 WHITE_DWARF_AGE_ADDITION_GY = 5
+# White dwarf cooling-age bounds: a WD's spectral letter reflects its current
+# temperature, not its progenitor's mass, so its age can't be drawn as a
+# fraction of a STAR_EVOLUTION main-sequence lifespan the way other classes
+# are. The oldest known white dwarfs (e.g. in globular cluster M4) have
+# cooling ages of ~12-13 Gy, close to the age of the universe.
+WHITE_DWARF_MIN_AGE_GY = 0.1
+WHITE_DWARF_MAX_AGE_GY = 12.0
+# For any evolved-star Yerkes class other than main-sequence (V) or white
+# dwarf (VII/D) -- giants, subgiants, bright giants, supergiants,
+# hypergiants, subdwarfs -- the current spectral letter reflects only
+# present-day temperature, not a lifespan (see get_star_evolutionary_profile
+# in utils.py for the same issue on the planet-life side). Instead, the
+# star's own already-generated mass is run through the standard
+# mass-luminosity-based main-sequence lifetime scaling (the same
+# t = 10 Gy * (M/Msun)^-2.5 relation used to derive the STAR_EVOLUTION
+# table above, anchored to the Sun), then extended by the standard
+# rule-of-thumb that a star spends about 90% of its total lifetime on the
+# main sequence -- so the star must already be at least as old as that
+# main-sequence lifespan (it has to have finished that phase to be observed
+# as an evolved class), and at most its total (MS + post-MS) lifespan.
+SOLAR_MS_LIFESPAN_GY = 10.0
+MS_LIFESPAN_MASS_EXPONENT = -2.5
+MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
 PERCENT_SOL_THRESHOLD_LOW = 0.01
 PERCENT_SOL_THRESHOLD_HIGH = 2
 RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
@@ -541,6 +565,18 @@ LIFE_CHEMICALS = {
     }
 }
 
+# Main-sequence lifespan ranges, derived from t = 10 Gy * (M/Msun)^-2.5 (the
+# standard mass-luminosity-based lifetime scaling, anchored to the Sun at 1
+# Msun/10 Gy) applied to each spectral class's real mass range (O: >=16 Msun,
+# B: 2.1-16, A: 1.4-2.1, F: 1.04-1.4, G: 0.8-1.04, K: 0.45-0.8, M: 0.08-0.45
+# Msun -- the same boundaries implied by SPECTRAL_LUMINOSITY_RANGES). Each
+# class's range now meets its neighbors' at the shared mass boundary instead
+# of jumping (the previous table, e.g., capped A at 1.0 Gy while F started at
+# 2.0 Gy, silently skipping the ~1.5-2.3 Gy lifespans of real late-A stars).
+# O keeps a literature-cited floor (~1-10 Myr) rather than extrapolating the
+# power law out to 150 Msun, which understates real mass-loss effects at
+# extreme masses and would predict lifespans of only tens of thousands of
+# years for the most massive O stars -- shorter than any observed star.
 STAR_EVOLUTION = {
     "O": {
         "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
@@ -549,37 +585,37 @@ STAR_EVOLUTION = {
         "evolutionary_constraint_notes": "has an extremely short lifespan, as the star exhausts its fuel and goes supernova before planets can sufficiently cool to form stable liquid oceans, meaning only the absolute fastest, most primitive precursor photochemistry could theoretically occur"
     },
     "B": {
-        "lifespan_gy": (0.01, 0.1), # 10 Million - 100 Million years
+        "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
         "supported_evolutionary_scales": ["fast"],
         "potentially_viable_chemicals": ["Retinal"],
         "evolutionary_constraint_notes": "is highly volatile and short-lived, providing barely enough time for planetary cooling and the emergence of single-celled life utilizing simple proton-motive gradients"
     },
     "A": {
-        "lifespan_gy": (0.1, 1.0), # 100 Million - 1 Billion years
+        "lifespan_gy": (1.5, 4.3), # 1.5 Billion - 4.3 Billion years
         "supported_evolutionary_scales": ["fast", "normal"],
         "potentially_viable_chemicals": ["Retinal", "Melanin"],
         "evolutionary_constraint_notes": "allows enough time for the development of early biospheres and radiotrophic organisms adapted to high-energy radiation, but likely dies before complex, slow-evolving porphyrin-based photosynthesis can be perfected"
     },
     "F": {
-        "lifespan_gy": (2.0, 4.0), # 2 Billion - 4 Billion years
+        "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Blue-Optimized Porphyrins (+ GFPs)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "possesses a main-sequence habitable zone lifespan spanning between 2 and 4 billion years, which provides sufficient time for complex biospheres to emerge, including advanced UV-shielding and biofluorescent adaptations"
+        "evolutionary_constraint_notes": "possesses a main-sequence habitable zone lifespan spanning between 4.3 and 9.1 billion years, which provides sufficient time for complex biospheres to emerge, including advanced UV-shielding and biofluorescent adaptations"
     },
     "G": {
-        "lifespan_gy": (8.0, 12.0), # 8 Billion - 12 Billion years
+        "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "is the solar standard, providing stable, long-term conditions ideal for the slow evolution of highly complex, oxygenic photosynthesis based on the tetrapyrrole chlorin ring"
     },
     "K": {
-        "lifespan_gy": (15.0, 40.0), # 15 Billion - 40 Billion years
+        "lifespan_gy": (17.5, 73.5), # 17.5 Billion - 73.5 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "is exceptionally stable and long-lived, offering tens of billions of years for slow-evolving biospheres to reach climax ecologies and adapt to slight red-shifts in the stellar spectrum"
     },
     "M": {
-        "lifespan_gy": (100.0, 1000.0), # 100 Billion - 1 Trillion years
+        "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Bacteriochlorophylls (BChls)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "is the longest-lived star in the universe, and while early flaring requires rapid adaptation (e.g., radiotrophic melanin) during the initial hundreds of millions of years, their trillions of years of stability allow for deep-infrared anoxygenic photosynthesis to dominate permanently"

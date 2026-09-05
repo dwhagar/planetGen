@@ -40,7 +40,12 @@ def get_planet_mass_ranges():
     """
     mass_ranges = {}
     for planet_class, data in program_constants.PLANET_CLASSES.items():
+        # radius_range is in kilometers (as used everywhere else -- e.g. class
+        # M's 5000-10000 matches Earth's ~6371 km radius); convert to meters
+        # to match the kg/m^3 densities used below.
         min_radius, max_radius = data["radius_range"]
+        min_radius *= physical_constants.KM_TO_M_FACTOR
+        max_radius *= physical_constants.KM_TO_M_FACTOR
         planet_type = data["type"]
 
         min_density, max_density = physical_constants.PLANET_DENSITY[planet_type]  # g/cm^3

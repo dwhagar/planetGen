@@ -23,7 +23,7 @@ import secrets
 
 from .evolution import get_evolutionary_timeline
 from . import program_constants
-from .utils import get_star_spectral_class, reseed_rng
+from .utils import get_star_evolutionary_profile, get_star_spectral_class, reseed_rng
 
 
 def get_viable_life_chemicals(planet, spectral_class=None):
@@ -58,8 +58,11 @@ def get_viable_life_chemicals(planet, spectral_class=None):
     # Determine the star's spectral class (e.g., 'G' from 'G2V')
     spectral_class = spectral_class or get_star_spectral_class(planet.star)
 
-    # Retrieve the potentially viable chemicals for the star's evolutionary scale
-    star_data = program_constants.STAR_EVOLUTION.get(spectral_class)
+    # Retrieve the potentially viable chemicals for the star's evolutionary scale.
+    # Uses get_star_evolutionary_profile rather than a raw STAR_EVOLUTION[spectral_class]
+    # lookup so giants/supergiants/white dwarfs etc. (whose spectral letter reflects
+    # only current temperature, not a main-sequence lifespan) are handled correctly.
+    star_data = get_star_evolutionary_profile(planet.star)
     if not star_data or not star_data.get("supported_evolutionary_scales"):
         return {}
 
@@ -112,8 +115,10 @@ def get_evolutionary_speed(planet, spectral_class=None):
     # Determine the star's spectral class (e.g., 'G' from 'G2V')
     spectral_class = spectral_class or get_star_spectral_class(planet.star)
 
-    # 1. Get the speeds supported by the star
-    star_data = program_constants.STAR_EVOLUTION.get(spectral_class)
+    # 1. Get the speeds supported by the star (see get_viable_life_chemicals
+    # above for why this uses get_star_evolutionary_profile rather than a raw
+    # STAR_EVOLUTION[spectral_class] lookup).
+    star_data = get_star_evolutionary_profile(planet.star)
     if not star_data or not star_data.get("supported_evolutionary_scales"):
         return None
 

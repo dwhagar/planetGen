@@ -1,0 +1,11 @@
+{
+  "star_type": "F5IV",
+  "name": "Procyon",
+  "intelligent_life": true,
+  "num_orbits": 3,
+  "slots": [
+    {"type": "planet", "planet_class": "M", "moons": 1},
+    {"type": "asteroid_belt"},
+    {"type": "planet", "planet_class": "J", "moons": 3}
+  ]
+}

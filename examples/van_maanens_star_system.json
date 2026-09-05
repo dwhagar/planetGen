@@ -1,0 +1,9 @@
+{
+  "star_type": "F9VII",
+  "name": "Van Maanen's Star",
+  "num_orbits": 2,
+  "slots": [
+    {"type": "planet", "planet_class": "D", "moons": 0},
+    {"type": "planet", "planet_class": "C", "moons": 1}
+  ]
+}
