@@ -1,0 +1,11 @@
+{
+  "star_type": "F0IB",
+  "name": "Canopus",
+  "intelligent_life": true,
+  "num_orbits": 3,
+  "slots": [
+    {"type": "planet", "planet_class": "A", "moons": 0},
+    {"type": "asteroid_belt"},
+    {"type": "planet", "planet_class": "H", "moons": 2}
+  ]
+}

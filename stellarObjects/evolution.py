@@ -17,7 +17,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 import random
 
 from . import program_constants
-from .utils import _format_age_string, to_paragraph
+from .utils import format_age_string, to_paragraph
 # Removed: from . import config # Import the config module
 
 def get_evolutionary_timeline(star):
@@ -58,8 +58,8 @@ def get_evolutionary_timeline(star):
     # The current system age should be the star's actual age, not a randomly generated one
     current_system_age = star.age
 
-    # If FORCE_INT is true, ensure the star's age is sufficient for technological civilization
-    if star.system_config.FORCE_INT: # Use star.system_config
+    # If INTELLIGENT_LIFE is forced True, ensure the star's age is sufficient for technological civilization
+    if star.system_config.INTELLIGENT_LIFE is True:
         tech_civ_age = timeline['technological_civilization']
         if current_system_age < tech_civ_age:
             # Nudge the star's age to be just enough for technological civilization
@@ -83,11 +83,11 @@ def get_evolutionary_timeline(star):
             most_recent_milestone_age = age
             most_recent_milestone_name = name
 
-    # Apply FORCE_INT and NO_INT logic
-    if star.system_config.FORCE_INT: # Use star.system_config
+    # Apply INTELLIGENT_LIFE tri-state logic
+    if star.system_config.INTELLIGENT_LIFE is True:
         most_recent_milestone_name = "Technological Civilization"
         most_recent_milestone_age = milestones["Technological Civilization"]
-    elif star.system_config.NO_INT: # Use star.system_config
+    elif star.system_config.INTELLIGENT_LIFE is False:
         if most_recent_milestone_name == "Technological Civilization":
             most_recent_milestone_name = "Multicellularity"
             most_recent_milestone_age = milestones["Multicellularity"]
@@ -97,13 +97,13 @@ def get_evolutionary_timeline(star):
 
     output_sentences.append(
         f"A speculative evolutionary timeline for a planet orbiting this star indicates an evolutionary pace described as {timeline['evolutionary_pace'].lower()}. "
-        f"The current estimated age of the system is {_format_age_string(current_system_age)}."
+        f"The current estimated age of the system is {format_age_string(current_system_age)}."
     )
 
     if most_recent_milestone_age > -1.0:
         output_sentences.append(
             f"The most recent significant evolutionary milestone prior to this age would have been "
-            f"{most_recent_milestone_name} at {_format_age_string(most_recent_milestone_age)}. {program_constants.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
+            f"{most_recent_milestone_name} at {format_age_string(most_recent_milestone_age)}. {program_constants.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
         )
     else:
         output_sentences.append(

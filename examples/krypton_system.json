@@ -1,0 +1,13 @@
+{
+  "star_type": "M0III",
+  "name": "Rao",
+  "age": "old",
+  "intelligent_life": true,
+  "num_orbits": 4,
+  "slots": [
+    {"type": "planet", "planet_class": "V", "moons": 2},
+    {"type": "asteroid_belt"},
+    {"type": "planet", "planet_class": "J", "moons": 3},
+    {"type": "planet", "planet_class": "I", "moons": 1}
+  ]
+}

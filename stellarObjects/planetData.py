@@ -87,7 +87,7 @@ class Planet:
 
     def __init__(self, system_config: SystemConfig, star, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False):
+                 is_moon=False, moon_count=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -115,6 +115,11 @@ class Planet:
             distance_override (float, optional): An override for the planet's
                                                  distance, used in specific calculations.
             is_moon (bool, optional): Flag indicating if the object is a moon.
+            moon_count (int, optional): An exact number of moons to generate
+                                        for this planet (0 for none). Ignored
+                                        if `is_moon` is True. If None, moon
+                                        generation falls back to
+                                        `system_config.MOONS`/random chance.
         """
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
@@ -167,8 +172,11 @@ class Planet:
         planetPhysics.calculate_surface_gravity(self)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
 
-        if (self.system_config.FORCE_MOONS or secrets.randbelow(2) == 1) and not self.is_moon: # Use self.system_config
-            planetPhysics.generate_moons(self)
+        if not self.is_moon:
+            if moon_count is not None:
+                planetPhysics.generate_moons(self, moon_count=moon_count)
+            elif self.system_config.MOONS is not False and (self.system_config.MOONS is True or secrets.randbelow(2) == 1):
+                planetPhysics.generate_moons(self)
 
     def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
         """

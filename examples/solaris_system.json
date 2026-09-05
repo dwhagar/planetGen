@@ -1,0 +1,9 @@
+{
+  "star_type": "K3V",
+  "name": "Solaris",
+  "binary_system": true,
+  "num_orbits": 1,
+  "slots": [
+    {"type": "planet", "planet_class": "O", "moons": 0}
+  ]
+}

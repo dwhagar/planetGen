@@ -1,0 +1,13 @@
+{
+  "star_type": "K1V",
+  "name": "40 Eridani",
+  "intelligent_life": true,
+  "num_orbits": 5,
+  "slots": [
+    {"type": "planet", "planet_class": "B", "moons": 0},
+    {"type": "planet", "planet_class": "V", "moons": 1},
+    {"type": "asteroid_belt"},
+    {"type": "planet", "planet_class": "I", "moons": 2},
+    {"type": "planet", "planet_class": "J", "moons": 4}
+  ]
+}

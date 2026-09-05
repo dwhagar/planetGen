@@ -6,7 +6,18 @@ Configuration settings for the stellarObjects package.
 This module defines the `SystemConfig` class, which encapsulates all
 configuration flags and variables that control the behavior of the star system
 generation process. These settings can be modified via command-line arguments
-in `planetGen.py` or directly within the code for specific scenarios.
+or a JSON system-specification file in `planetGen.py`, or directly within the
+code for specific scenarios.
+
+Most boolean-ish options are tri-state (`True`/`False`/`None`) rather than a
+pair of `FORCE_X`/`NO_X` flags:
+    - `True` forces the feature to be present.
+    - `False` forces the feature to be absent.
+    - `None` (the default) leaves it to random chance.
+
+This tri-state shape maps directly onto the command line's `+name`/`-name`
+syntax (see `planetGen.process_args`): `+name` sets the option to `True`,
+`-name` sets it to `False`, and omitting it leaves it `None`.
 """
 
 class SystemConfig:
@@ -19,46 +30,51 @@ class SystemConfig:
         formatted in Wikitext. Defaults to False.
         """
 
-        self.FORCE_HABITABLE_WORLD = False
+        self.HABITABLE_WORLD = None
         """
-        bool: If True, the system generation will attempt to force the creation of at
-        least one habitable world. Defaults to False.
-        """
-
-        self.FORCE_ASTEROID_BELT = False
-        """
-        bool: If True, the system generation will attempt to force the creation of at
-        least one asteroid belt. Defaults to False.
+        bool or None: If True, the system generation will attempt to force the
+        creation of at least one habitable world. If False, ensures no
+        habitable world is generated. If None, left to random chance.
+        Defaults to None.
         """
 
-        self.FORCE_LARGE_STAR = False
+        self.ASTEROID_BELT = None
         """
-        bool: If True, the system generation will force the creation of a larger, more
-        massive star. Defaults to False.
-        """
-
-        self.FORCE_MOONS = False
-        """
-        bool: If True, planets generated will have an increased likelihood of having
-        moons. Defaults to False.
+        bool or None: If True, the system generation will attempt to force the
+        creation of at least one asteroid belt. If False, ensures no asteroid
+        belt is generated. If None, left to random chance. Defaults to None.
         """
 
-        self.FORCE_MAX_PLANETS = False
+        self.LARGE_STAR = None
         """
-        bool: If True, the system generation will attempt to create the maximum number
-        of planets the system can support. Defaults to False.
-        """
-
-        self.ABSURD = False
-        """
-        bool: If True, the system will generate an extremely large and dense system
-        with the largest possible star, maximum planets, and moons. Defaults to False.
+        bool or None: If True, the system generation will force the creation of
+        a larger, more massive star. If False, explicitly generates from the
+        normal stellar population (the same as the default). If None, left to
+        the default stellar population weighting. Defaults to None.
         """
 
-        self.NO_PLANETS = False
+        self.MOONS = None
         """
-        bool: If True, the system generation will skip the planet generation process
-        entirely, creating only a star. Defaults to False.
+        bool or None: If True, planets generated will always have a chance at
+        moons forced. If False, no planet in the system will have moons. If
+        None, each planet has a 50/50 chance, unless a per-slot moon count is
+        specified. Defaults to None.
+        """
+
+        self.MAX_PLANETS = None
+        """
+        bool or None: If True, the system generation will attempt to create the
+        maximum number of planets the system can support. If False, generates
+        the minimum number of objects the system's other requirements allow.
+        If None, a random count is chosen. Defaults to None.
+        """
+
+        self.PLANETS = None
+        """
+        bool or None: If True, ensures the system has at least one planet or
+        asteroid belt. If False, skips the planet generation process
+        entirely, creating only a star. If None, the count (including zero)
+        is left to random chance. Defaults to None.
         """
 
         self.STAR_TYPE = None
@@ -79,27 +95,44 @@ class SystemConfig:
         If None, the age will be randomly determined. Defaults to None.
         """
 
-        self.FORCE_INT = False
+        self.INTELLIGENT_LIFE = None
         """
-        bool: If True, the system generation will attempt to force the creation of at
-        least one planet with intelligent life. Implies FORCE_HABITABLE_WORLD.
-        Defaults to False.
-        """
-
-        self.NO_INT = False
-        """
-        bool: If True, the system generation will ensure no planet with intelligent
-        life is generated. Implies FORCE_HABITABLE_WORLD. Defaults to False.
+        bool or None: If True, the system generation will attempt to force the
+        creation of at least one planet with intelligent life (implies
+        HABITABLE_WORLD). If False, ensures no planet with intelligent life is
+        generated (also implies HABITABLE_WORLD). If None, left to random
+        chance. Defaults to None.
         """
 
-        self.NO_HABITABLE_WORLD = False
+        self.BINARY_SYSTEM = None
         """
-        bool: If True, the system generation will ensure no habitable world is generated
-        in the system. Defaults to False.
+        bool or None: If True, the system generation will attempt to create a
+        binary star system. If False (or None), a single star system is
+        generated. Defaults to None.
         """
 
-        self.IS_BINARY_SYSTEM = False
+        self.NUM_ORBITS = None
         """
-        bool: If True, the system generation will attempt to create a binary star system.
-        Defaults to False.
+        int or None: Explicitly sets the number of orbital slots (planets and
+        asteroid belts combined) to generate, overriding the normal
+        mass-based random estimate. If None, the count is estimated/randomized
+        as usual (subject to MAX_PLANETS/PLANETS). Defaults to None.
+        """
+
+        self.SLOTS = None
+        """
+        list or None: An optional, per-orbit list of specifications describing
+        exactly what should occupy each orbital slot. Each entry is either
+        `None` (meaning that slot is left to normal random generation) or a
+        dict with the keys:
+            - "type": "planet" or "asteroid_belt" (required).
+            - "planet_class": a specific planet class letter (e.g. "M"),
+              only used when type is "planet". Optional; if omitted, a class
+              is chosen normally for the slot's zone.
+            - "moons": an exact integer number of moons to generate for the
+              planet (0 for none). Optional; if omitted, moon generation
+              falls back to the MOONS setting/random chance.
+        The list does not need to cover every slot; slots beyond the end of
+        the list (or with a `None` entry) are generated normally. Defaults to
+        None.
         """

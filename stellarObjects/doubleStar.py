@@ -19,7 +19,7 @@ import random
 from .config import SystemConfig
 from . import physical_constants, program_constants
 from .starData import Star
-from .utils import (_format_age_string, calculate_habitable_zone, calculate_hill_sphere,
+from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
                     format_relative_to_sol, properties_to_string, to_scientific_notation)
 
 class BinaryStarProxy(Star):
@@ -133,17 +133,10 @@ class BinaryStarProxy(Star):
         self.age = max(self._primary.age, self._secondary.age)
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
-    def to_paragraph_list(self, is_sub_star=False):
+    def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs for the binary star system's
         combined properties. It does NOT include individual star details.
-
-        Args:
-            is_sub_star (bool, optional): Accepted only for signature parity with
-                                          `Star.to_paragraph_list`, which callers may
-                                          invoke polymorphically; unused here, since a
-                                          `BinaryStarProxy` is never itself a sub-star
-                                          within a larger system. Defaults to False.
 
         Returns:
             list: A two-element list: [combined data block, combined age sentence].
@@ -177,7 +170,7 @@ class BinaryStarProxy(Star):
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 
         # 2. Combined Age and Evolutionary Notes (simplified for binary)
-        age_sentence = f"The binary system is approximately {_format_age_string(self.age)} old."
+        age_sentence = f"The binary system is approximately {format_age_string(self.age)} old."
         paragraphs.append(age_sentence)
 
         return paragraphs

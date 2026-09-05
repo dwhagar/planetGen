@@ -1,0 +1,16 @@
+{
+  "star_type": "G2V",
+  "name": "Sol",
+  "num_orbits": 9,
+  "slots": [
+    {"type": "planet", "planet_class": "B", "moons": 0},
+    {"type": "planet", "planet_class": "N", "moons": 0},
+    {"type": "planet", "planet_class": "M", "moons": 1},
+    {"type": "planet", "planet_class": "C", "moons": 2},
+    {"type": "asteroid_belt"},
+    {"type": "planet", "planet_class": "J", "moons": 4},
+    {"type": "planet", "planet_class": "J", "moons": 5},
+    {"type": "planet", "planet_class": "I", "moons": 5},
+    {"type": "planet", "planet_class": "I", "moons": 1}
+  ]
+}

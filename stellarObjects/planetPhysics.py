@@ -22,7 +22,7 @@ import re
 import secrets
 
 from . import physical_constants, program_constants
-from .utils import calc_object_mass, calculate_hill_sphere, reseed_rng
+from .utils import calculate_object_mass, calculate_hill_sphere, reseed_rng
 
 
 def get_planet_mass_ranges():
@@ -93,7 +93,7 @@ def _choose_weighted_planet_class(valid_classes):
     return random.choices(eligible, weights=weights, k=1)[0]
 
 
-def _check_no_habitable_world(planet, zone):
+def _validate_no_habitable_world(planet, zone):
     """
     Raises if the system disallows habitable worlds and this planet's
     class is a habitable one being placed in the ecosphere.
@@ -103,12 +103,12 @@ def _check_no_habitable_world(planet, zone):
         zone (str): The zone ('h', 'c', 'e') the planet would occupy.
 
     Raises:
-        ValueError: If `planet.system_config.NO_HABITABLE_WORLD` is set,
+        ValueError: If `planet.system_config.HABITABLE_WORLD` is False,
                    `zone` is the ecosphere ('e'), and `planet.planet_class`
                    is a habitable class.
     """
-    if planet.system_config.NO_HABITABLE_WORLD and zone == 'e' and planet.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
-        raise ValueError(f"Cannot generate habitable planet class {planet.planet_class} in ecosphere when NO_HABITABLE_WORLD is True.")
+    if planet.system_config.HABITABLE_WORLD is False and zone == 'e' and planet.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
+        raise ValueError(f"Cannot generate habitable planet class {planet.planet_class} in ecosphere when HABITABLE_WORLD is False.")
 
 
 def _validate_planet_class(planet, zone):
@@ -199,7 +199,7 @@ def generate_planet_properties(planet, zone_override=None):
     if planet.planet_class is None and planet.radius is None and planet.mass is None:
         # Fully random generation
         valid_classes = [c for c, data in program_constants.PLANET_CLASSES.items() if data[zone]]
-        if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
+        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
             valid_classes = [c for c in valid_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
 
         planet.planet_class = _choose_weighted_planet_class(valid_classes)
@@ -209,7 +209,7 @@ def generate_planet_properties(planet, zone_override=None):
     elif planet.planet_class is not None and planet.radius is None and planet.mass is None:
         # Class given, generate radius
         _validate_planet_class(planet, zone)
-        _check_no_habitable_world(planet, zone)
+        _validate_no_habitable_world(planet, zone)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = random.uniform(min_radius, max_radius)
 
@@ -217,7 +217,7 @@ def generate_planet_properties(planet, zone_override=None):
         # Radius given, determine possible classes
         possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
                             if data[zone] and data["radius_range"][0] <= planet.radius <= data["radius_range"][1]]
-        if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
+        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius in this zone")
@@ -228,7 +228,7 @@ def generate_planet_properties(planet, zone_override=None):
         # Mass given, determine possible classes
         possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
                             if planet_mass_ranges[c][0] <= planet.mass <= planet_mass_ranges[c][1] and data[zone]]
-        if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
+        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given mass in this zone")
@@ -238,13 +238,13 @@ def generate_planet_properties(planet, zone_override=None):
     elif planet.planet_class is not None and planet.radius is not None and planet.mass is None:
         # Class and radius given, validate
         _validate_planet_class(planet, zone)
-        _check_no_habitable_world(planet, zone)
+        _validate_no_habitable_world(planet, zone)
         _validate_radius(planet)
 
     elif planet.planet_class is not None and planet.radius is None and planet.mass is not None:
         # Class and mass given, validate and generate radius
         _validate_planet_class(planet, zone)
-        _check_no_habitable_world(planet, zone)
+        _validate_no_habitable_world(planet, zone)
         _validate_mass(planet)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = random.uniform(min_radius, max_radius)
@@ -257,7 +257,7 @@ def generate_planet_properties(planet, zone_override=None):
             min_radius, max_radius = data["radius_range"]
             if min_mass <= planet.mass <= max_mass and min_radius <= planet.radius <= max_radius and data[zone]:
                 possible_classes.append(c)
-        if planet.system_config.NO_HABITABLE_WORLD and zone == 'e':
+        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius/mass in this zone")
@@ -268,7 +268,7 @@ def generate_planet_properties(planet, zone_override=None):
     else:
         # All inputs provided, fully validate
         _validate_planet_class(planet, zone)
-        _check_no_habitable_world(planet, zone)
+        _validate_no_habitable_world(planet, zone)
         _validate_radius(planet)
         _validate_mass(planet)
 
@@ -305,7 +305,7 @@ def generate_planet_properties(planet, zone_override=None):
         planet.density = planet.density * core_to_atmosphere_ratio + (
                     1 - core_to_atmosphere_ratio) * (planet.atm_density / 1000)
 
-    planet.volume, planet.mass = calc_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
+    planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
                                               planet.density)
 
     distance_m = planet.distance * physical_constants.AU_TO_M
@@ -408,7 +408,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
                 planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
 
 
-def generate_moons(planet):
+def generate_moons(planet, moon_count=None):
     """
     Generates a system of moons for the given planet.
 
@@ -420,8 +420,16 @@ def generate_moons(planet):
 
     Args:
         planet (Planet): The planet to generate moons for.
+        moon_count (int, optional): An exact number of moons to attempt to
+            generate. If None (the default), moons are generated until no
+            more orbital room is available, as before. If given, generation
+            stops once `moon_count` moons exist, even if more room remains;
+            if the planet doesn't have room for `moon_count` moons, fewer
+            than requested may be generated.
     """
     reseed_rng()
+    if moon_count == 0:
+        return
     max_moon_mass = planet.mass / 10
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     possible_classes = [c for c, data in planet_mass_ranges.items()
@@ -439,6 +447,9 @@ def generate_moons(planet):
     from .planetData import Planet
 
     while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * physical_constants.AU_TO_KM):
+        if moon_count is not None and len(planet.moons) >= moon_count:
+            break
+
         moon_class = _choose_weighted_planet_class(possible_classes)
 
         radius_limit = program_constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \

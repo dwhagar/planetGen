@@ -1,0 +1,13 @@
+{
+  "star_type": "G8V",
+  "name": "Tatoo",
+  "binary_system": true,
+  "intelligent_life": true,
+  "num_orbits": 4,
+  "slots": [
+    {"type": "planet", "planet_class": "A", "moons": 0},
+    {"type": "planet", "planet_class": "H", "moons": 0},
+    {"type": "asteroid_belt"},
+    {"type": "planet", "planet_class": "J", "moons": 3}
+  ]
+}

@@ -68,11 +68,14 @@ class StarSystem:
 
         The generation logic can be influenced by several parameters, allowing for
         fine-tuned control over the final system's characteristics. For example,
-        the `force_hab` flag ensures that at least one habitable planet is generated,
-        while the `no_planets` flag can be used to create a star with no orbiting bodies.
-        The placement of planets is done sequentially, with each new planet's
-        orbit being determined based on the position of the previous one to ensure
-        a degree of realism in orbital spacing.
+        `config.HABITABLE_WORLD = True` ensures that at least one habitable planet
+        is generated, while `config.PLANETS = False` can be used to create a star
+        with no orbiting bodies. `config.NUM_ORBITS` and `config.SLOTS` allow the
+        number of orbits and the exact contents of specific orbital slots to be
+        specified explicitly, overriding the random placement logic for those
+        slots. The placement of planets is done sequentially, with each new
+        planet's orbit being determined based on the position of the previous one
+        to ensure a degree of realism in orbital spacing.
 
         If `config.NAME` is provided, it will be used as the name for the star
         system, overriding the default random name generation.
@@ -90,11 +93,11 @@ class StarSystem:
         self.planets = []
         self.stars = [self.primary_star] # Keep track of individual stars
 
-        if self.system_config.IS_BINARY_SYSTEM:
+        if self.system_config.BINARY_SYSTEM:
             # Create a copy of the system_config for the secondary star
             secondary_star_config = copy.deepcopy(self.system_config)
-            # Ensure FORCE_LARGE_STAR is False for the secondary star
-            secondary_star_config.FORCE_LARGE_STAR = False
+            # Ensure LARGE_STAR is not forced for the secondary star
+            secondary_star_config.LARGE_STAR = False
 
             # Logic to generate a secondary star (e.g., random mass relative to primary)
             # This is new generation logic, but contained.
@@ -111,22 +114,27 @@ class StarSystem:
         star_factor = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         required_objects = 0
-        if self.system_config.FORCE_HABITABLE_WORLD: # Use self.system_config
+        if self.system_config.HABITABLE_WORLD is True:
             required_objects += 1
-        if self.system_config.FORCE_ASTEROID_BELT: # Use self.system_config
+        if self.system_config.ASTEROID_BELT is True:
             required_objects += 1
 
         if system_objects < required_objects:
             system_objects = required_objects
 
+        slots = self.system_config.SLOTS or []
+
         if system_objects > 0:
-            belt_index = random.randint(0, system_objects - 1) if self.system_config.FORCE_ASTEROID_BELT else -1 # Use self.system_config
+            belt_index = random.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
             found_hab = False
             i = -1
 
             while i < system_objects - 1:
                 i += 1
                 last_asteroid = False
+                slot_spec = slots[i] if i < len(slots) else None
+                prev_slot_explicit = i > 0 and (i - 1) < len(slots) and slots[i - 1] is not None
+
                 if i > 0:
                     last_planet = self.planets[i - 1]
                     random_buffer = random.uniform(0, star_factor)
@@ -140,7 +148,16 @@ class StarSystem:
 
                 hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
 
-                if self.system_config.FORCE_HABITABLE_WORLD and not found_hab: # Use self.system_config
+                # An explicit per-slot specification takes priority over all of the
+                # normal random/forced generation logic below.
+                if slot_spec is not None:
+                    obj = self.generate_slot_object(slot_spec, estimated_distance)
+                    if getattr(obj, 'planet_class', None) in program_constants.HABITABLE_PLANET_CLASSES:
+                        found_hab = True
+                    self.planets.append(obj)
+                    continue
+
+                if self.system_config.HABITABLE_WORLD is True and not found_hab:
                     if not hz and i == 0:
                         if (estimated_distance > self.star.habitable_zone[1] or
                                 0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
@@ -153,7 +170,7 @@ class StarSystem:
                                     last_planet.type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
                                                                  self.star.habitable_zone[1])
 
-                        if beyond_hz:
+                        if beyond_hz and not prev_slot_explicit:
                             estimated_distance = random.uniform(self.star.habitable_zone[0],
                                                                 self.star.habitable_zone[1])
                             planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
@@ -178,7 +195,7 @@ class StarSystem:
                         self.planets.append(planet)
                         continue
 
-                if (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
+                if self.system_config.ASTEROID_BELT is not False and (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
                     min_distance = estimated_distance
                     max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     self.planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
@@ -206,6 +223,90 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+
+    def generate_slot_object(self, slot_spec, estimated_distance):
+        """
+        Builds the celestial object explicitly requested for one orbital slot
+        by `system_config.SLOTS`.
+
+        Args:
+            slot_spec (dict): The slot specification, with a required "type"
+                              key ("planet" or "asteroid_belt") and optional
+                              "planet_class"/"moons" keys (see `SystemConfig.SLOTS`).
+            estimated_distance (float): The orbital distance (in AU) computed
+                                        for this slot by the generation loop.
+
+        Returns:
+            Planet or AsteroidBelt: The generated object for this slot.
+
+        Raises:
+            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt".
+        """
+        slot_type = slot_spec.get("type", "planet")
+
+        if slot_type == "asteroid_belt":
+            min_distance = estimated_distance
+            max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+            return AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)
+
+        if slot_type == "planet":
+            planet_class = slot_spec.get("planet_class")
+            distance = self.calculate_distance_for_class(planet_class, estimated_distance)
+            return Planet(self.system_config, self.star, self.star.habitable_zone, distance, self.star.type[0],
+                         self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass,
+                         planet_class=planet_class, moon_count=slot_spec.get("moons"))
+
+        raise ValueError(f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'.")
+
+    def calculate_distance_for_class(self, planet_class, estimated_distance):
+        """
+        Adjusts an orbital distance so that it falls in a zone (hot, cold, or
+        ecosphere) that actually supports a requested `planet_class`.
+
+        The generation loop picks `estimated_distance` before knowing what
+        the slot will contain, so a user-requested class (e.g. "M", which
+        only exists in the ecosphere) may not be valid at that distance. This
+        nudges the distance into a supporting zone, the same way the existing
+        forced-habitable-world logic snaps a planet's distance into the
+        habitable zone, so an explicit `planet_class` request doesn't fail
+        with an "Invalid planet class for this zone" error just because of
+        where its slot happened to land in the orbit sequence.
+
+        Args:
+            planet_class (str or None): The requested planet class, or None
+                                        if the slot doesn't specify one.
+            estimated_distance (float): The orbital distance (in AU) computed
+                                        for this slot by the generation loop.
+
+        Returns:
+            float: `estimated_distance`, or an adjusted distance (in AU) that
+                  falls within a zone supporting `planet_class`.
+        """
+        class_data = program_constants.PLANET_CLASSES.get(planet_class)
+        if class_data is None:
+            return estimated_distance
+
+        inner, outer = self.star.habitable_zone
+        if estimated_distance < inner:
+            zone = 'h'
+        elif estimated_distance > outer:
+            zone = 'c'
+        else:
+            zone = 'e'
+
+        if class_data.get(zone):
+            return estimated_distance
+
+        if class_data.get('e'):
+            return random.uniform(inner, outer)
+        if class_data.get('h'):
+            return random.uniform(inner * 0.05, inner * 0.95)
+        if class_data.get('c'):
+            return outer * random.uniform(1.05, 3.0)
+
+        # No zone supports this class; leave the distance as-is and let
+        # planetPhysics raise its usual, clearer validation error.
+        return estimated_distance
 
     def count_objects(self):
         """
@@ -235,8 +336,8 @@ class StarSystem:
         Counts the number of potentially habitable worlds in the system.
 
         This method iterates through all planets and their moons, checking their
-        classification to determine if they are potentially habitable. It counts
-        worlds classified as Class H, K, L, M, O, or P, and also keeps a separate
+        classification against `program_constants.HABITABLE_PLANET_CLASSES` to
+        determine if they are potentially habitable, and also keeps a separate
         count of Class M worlds, which are considered the most Earth-like. This
         is used for the system summary output.
 
@@ -244,7 +345,7 @@ class StarSystem:
             tuple: A tuple containing the total number of potentially habitable
                    worlds and the total number of Class M worlds, in that order.
         """
-        habitable_classes = "HKLMOP"
+        habitable_classes = program_constants.HABITABLE_PLANET_CLASSES
         hab_count, m_count = 0, 0
         for planet in self.planets:
             if planet.type != 'a':
@@ -268,15 +369,22 @@ class StarSystem:
         star's mass, with more massive stars being able to support more objects.
         The calculation is tempered by a logarithmic function to prevent an
         excessive number of objects for very massive stars. The final number can
-        be a random value up to the calculated maximum, or the maximum itself if
-        `FORCE_MAX_PLANETS` is enabled.
+        be a random value between the minimum and calculated maximum, or the
+        maximum/minimum itself if `MAX_PLANETS` is True/False.
+
+        `NUM_ORBITS`, when set, bypasses this estimate entirely and is
+        returned as-is. `PLANETS` set to False forces zero objects; set to
+        True, it raises the minimum considered to 1.
 
         Returns:
             int: The estimated number of objects to be generated in the system.
-                 Returns 0 if `NO_PLANETS` is enabled in the configuration.
         """
-        if self.system_config.NO_PLANETS: # Use self.system_config
+        if self.system_config.PLANETS is False:
             return 0
+
+        if self.system_config.NUM_ORBITS is not None:
+            return self.system_config.NUM_ORBITS
+
         solar_masses = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         # This provides a continuous scaling factor based on mass.
@@ -289,7 +397,16 @@ class StarSystem:
         max_objects = program_constants.BASE_MAX_SYSTEM_OBJECTS * scaling_factor
         if max_objects > program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS:
             max_objects = program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
-        return math.ceil(max_objects) if self.system_config.FORCE_MAX_PLANETS else random.randint(0, math.ceil(max_objects)) # Use self.system_config
+        max_objects = math.ceil(max_objects)
+
+        min_objects = 1 if self.system_config.PLANETS is True else 0
+        max_objects = max(max_objects, min_objects)
+
+        if self.system_config.MAX_PLANETS is True:
+            return max_objects
+        if self.system_config.MAX_PLANETS is False:
+            return min_objects
+        return random.randint(min_objects, max_objects)
 
     def validate_system(self):
         """
@@ -382,9 +499,7 @@ class StarSystem:
         if self.moon_count > 0:
             segments.append(f"{self.moon_count} moon{'s' if self.moon_count > 1 else ''}")
 
-        if not segments:
-            system_summary_sentences.append("There are no stellar objects in this system.")
-        else:
+        if segments:
             system_string = "This system contains " + ", ".join(segments)
             if len(segments) == 2:
                 system_string = system_string.replace(f", {segments[-1]}", f" and {segments[-1]}")
@@ -392,6 +507,11 @@ class StarSystem:
                 system_string = system_string.replace(f", {segments[-1]}", f", and {segments[-1]}")
             system_string += "."
             system_summary_sentences.append(system_string)
+        elif self.planet_count == 0 and self.belt_count == 0 and self.moon_count == 0:
+            # No segment was built and the system is genuinely empty (as opposed to having
+            # its planet count omitted above to avoid redundancy with the habitability
+            # sentence that follows).
+            system_summary_sentences.append("There are no stellar objects in this system.")
 
         if self.m_count == 1:
             m_string = "1 of which is class M"
@@ -428,7 +548,7 @@ class StarSystem:
 
         if isinstance(self.star, BinaryStarProxy):
             # Get combined binary system data and age from the proxy
-            # BinaryStarProxy.to_paragraph_list() now returns [data_block, "", age_sentence, ""]
+            # BinaryStarProxy.to_paragraph_list() returns [data_block, age_sentence]
             binary_proxy_paragraphs = self.star.to_paragraph_list()
 
             # 1. Append the combined binary system data block
@@ -448,8 +568,6 @@ class StarSystem:
                 all_output_parts.append(f"\n\nSensors show {flavor_text}")
                 self.system_config.system_flavor_count += 1
 
-            # all_output_parts.append('\n\n')
-
             # 4. Append individual star details for primary and secondary stars
             for star_obj in self.stars: # self.stars contains primary and secondary Star objects
                 all_output_parts.append('\n\n') # Blank line after age sentence
@@ -457,7 +575,7 @@ class StarSystem:
                 all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}")
                 all_output_parts.append('\n') # Add a newline after the header
 
-                # Each individual star's to_paragraph_list() returns [data_block, "", age_sentence, ""]
+                # Each individual star's to_paragraph_list() returns [data_block, age_sentence]
                 individual_star_details = star_obj.to_paragraph_list()
                 all_output_parts.append(individual_star_details[0]) # Individual Star Data block
                 all_output_parts.append('\n\n') # Blank line after data block
@@ -466,7 +584,7 @@ class StarSystem:
         else:
             # For single star:
             # Get single star data and age from the star object
-            # Star.to_paragraph_list() returns [data_block, "", age_sentence, ""]
+            # Star.to_paragraph_list() returns [data_block, age_sentence]
             single_star_paragraphs = self.star.to_paragraph_list()
 
             # 1. Append the single star data block
@@ -477,7 +595,6 @@ class StarSystem:
             all_output_parts.append('\n\n')
             # 3. Append the system summary
             all_output_parts.append(combined_system_summary_paragraph)
-            # all_output_parts.append('\n\n')
 
             # Add flavor text if the random chance passes and total flavor text limit is not exceeded
             if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:

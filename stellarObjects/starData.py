@@ -24,7 +24,7 @@ import re
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
-from .utils import (_format_age_string, calculate_habitable_zone, calculate_hill_sphere,
+from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
                     format_length_km, format_relative_to_sol, generate_phoneme_salad_name,
                     properties_to_string, reseed_rng)
 
@@ -166,6 +166,7 @@ class Star:
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, physical_constants.MILKY_WAY_MASS)
         return hill_radius_m / physical_constants.AU_TO_M
 
+    @staticmethod
     def _calculate_heliosphere_radius_static(mass, luminosity, radius_km, star_type, yerkes_class):
         """
         Estimates the radius of the star's heliosphere (astrosphere).
@@ -293,9 +294,9 @@ class Star:
         star randomly or be guided by specific parameters provided through the
         `config` module. The `config.STAR_TYPE` parameter allows for the creation
         of a star with a specific spectral class, subclass, and Yerkes
-        classification (e.g., 'G2V'). If `config.FORCE_LARGE_STAR` or `config.ABSURD`
-        are set, these influence the star's initial generation to favor larger,
-        more massive stars.
+        classification (e.g., 'G2V'). If `config.LARGE_STAR` is True, this
+        influences the star's initial generation to favor larger, more massive
+        stars.
 
         If a `name` is provided, it will be used for the star; otherwise, a
         random name will be generated using `generate_phoneme_salad_name`.
@@ -333,7 +334,7 @@ class Star:
             self.system_perimeter = self.calculate_system_perimeter()
             self.heliosphere_radius = self.calculate_heliosphere()
 
-    def to_paragraph_list(self, is_sub_star=False):
+    def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs about the star's properties.
 
@@ -342,18 +343,11 @@ class Star:
         using `properties_to_string`, delegating the mass/luminosity/radius
         value formatting to `format_relative_to_sol`/`format_length_km`. It
         also constructs a sentence describing the star's age and expected
-        lifespan (via `_format_age_string`), incorporating evolutionary notes
+        lifespan (via `format_age_string`), incorporating evolutionary notes
         from `STAR_EVOLUTION` if available.
 
         The output is designed to be human-readable and can be formatted either
         as Wikitext or Markdown based on the `config.MARKDOWN` flag.
-
-        Args:
-            is_sub_star (bool, optional): Reserved for future use in
-                                          distinguishing a star described as part
-                                          of a binary system from a standalone
-                                          one; currently unused by this method.
-                                          Defaults to False.
 
         Returns:
             list: A list of strings, where each string represents a paragraph
@@ -405,12 +399,12 @@ class Star:
         paragraphs.append(star_block)
 
         # Construct the age and evolutionary notes sentence
-        age_str = _format_age_string(self.age)
+        age_str = format_age_string(self.age)
 
         if self.lifespan == float('inf'):
             age_sentence_base = f"The star is approximately {age_str} old and is now a white dwarf, which will cool for trillions of years"
         else:
-            lifespan_str = _format_age_string(self.lifespan)
+            lifespan_str = format_age_string(self.lifespan)
             age_sentence_base = f"The star is approximately {age_str} old, with an expected lifespan of {lifespan_str}"
 
         spectral_class_char = self.type[0]
@@ -474,14 +468,11 @@ class Star:
 
         For random stars (when `config.STAR_TYPE` is None):
         1.  **Spectral Class Selection**: A spectral class is chosen probabilistically
-            based on their prevalence in the galactic population. `self.system_config.ABSURD`
-            or `self.system_config.FORCE_LARGE_STAR`
-            can bias this selection towards hotter,
-            more massive stars.
+            based on their prevalence in the galactic population.
+            `self.system_config.LARGE_STAR` being True biases this selection
+            towards hotter, more massive stars.
         2.  **Luminosity Generation**: A luminosity is randomly chosen from the
-            typical range for the selected spectral class. `self.system_config.ABSURD`
-            forces
-            the maximum luminosity for the chosen class.
+            typical range for the selected spectral class.
         3.  **Yerkes Class Determination**: The Yerkes luminosity class (e.g.,
             Supergiant, Main Sequence, White Dwarf) is *derived* from the
             generated luminosity, using thresholds defined in `YERKES_LUMINOSITY_RANGES`.
@@ -547,9 +538,7 @@ class Star:
             # --- GENERATE STAR RANDOMLY ---
 
             # 1. Generate Spectral Class based on galactic population.
-            if self.system_config.ABSURD:
-                spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_ABSURD
-            elif self.system_config.FORCE_LARGE_STAR:
+            if self.system_config.LARGE_STAR:
                 spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_LARGE_STAR
             else:
                 spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_NORMAL
@@ -557,7 +546,7 @@ class Star:
 
             # 2. Generate Luminosity from the spectral class's typical range.
             min_luminosity, max_luminosity = physical_constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
-            luminosity = max_luminosity if self.system_config.ABSURD else random.uniform(min_luminosity, max_luminosity)
+            luminosity = random.uniform(min_luminosity, max_luminosity)
 
             # 3. Determine Yerkes Class from the resulting luminosity.
             if luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["0"][0]:

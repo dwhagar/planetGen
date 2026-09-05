@@ -128,7 +128,7 @@ def to_scientific_notation(system_config: SystemConfig, number, precision=2):
         output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
         return "{{" + output + "}}"
 
-def _format_age_string(age_gy, precision=2):
+def format_age_string(age_gy, precision=2):
     """
     Formats an age in billions of years (GY) into a human-readable string,
     dynamically choosing between "Million Years" and "Billion Years".
@@ -182,7 +182,7 @@ def years_to_time_string(years):
     return " ".join(time_parts)
 
 
-def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY, object_density=None):
+def calculate_object_mass(object_class, object_radius, planet_classes, planet_density, object_density=None):
     """
     Calculates the mass of a celestial object in kilograms.
 
@@ -193,8 +193,8 @@ def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY
     Args:
         object_class (str): The class of the object (e.g., 'M', 'N').
         object_radius (float): The radius of the object in kilometers.
-        PLANET_CLASSES (dict): A dictionary defining the properties of planet classes.
-        PLANET_DENSITY (dict): A dictionary of density ranges for planet types.
+        planet_classes (dict): A dictionary defining the properties of planet classes.
+        planet_density (dict): A dictionary of density ranges for planet types.
         object_density (float, optional): The density of the object in g/cm³.
 
     Returns:
@@ -202,7 +202,7 @@ def calc_object_mass(object_class, object_radius, PLANET_CLASSES, PLANET_DENSITY
     """
     reseed_rng()
     if object_density is None:
-        min_density, max_density = PLANET_DENSITY[PLANET_CLASSES[object_class]['type']]
+        min_density, max_density = planet_density[planet_classes[object_class]['type']]
         p_density = random.uniform(min_density, max_density)
     else:
         p_density = object_density
@@ -231,23 +231,6 @@ def calculate_habitable_zone(luminosity):
     inner_radius = math.sqrt(solar_lum / 1.1)
     outer_radius = math.sqrt(solar_lum / 0.53)
     return (inner_radius, outer_radius)
-
-
-def calculate_stellar_radius(luminosity, temperature):
-    """
-    Calculates the radius of a star in meters.
-
-    This function uses the Stefan-Boltzmann law to calculate the star's radius
-    from its luminosity and surface temperature.
-
-    Args:
-        luminosity (float): The luminosity of the star in Watts.
-        temperature (float): The surface temperature of the star in Kelvin.
-
-    Returns:
-        float: The radius of the star in meters.
-    """
-    return math.sqrt(luminosity / (4 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4))
 
 
 def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
@@ -433,7 +416,7 @@ def to_paragraph(sentences):
     return " ".join(sentences)
 
 
-def properties_to_string(system_config: SystemConfig, properties: dict, template_name: str, markdown_header: str = None, markdown_key_map: dict = None) -> str:
+def properties_to_string(system_config: SystemConfig, properties, template_name, markdown_header=None, markdown_key_map=None):
     """
     Converts a dictionary of properties into either a Markdown table or a Wiki template block,
     based on the `system_config.MARKDOWN` flag.
