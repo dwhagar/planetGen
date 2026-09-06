@@ -8,7 +8,8 @@
 # scripts, installable on any OS); everything Linux/Apache-specific lives
 # here instead:
 #
-#   1. Installs the Python package via `setup.py install`.
+#   1. Installs the Python package via a build-isolated `pip install`
+#      (not the deprecated `setup.py install`).
 #   2. Pre-fetches the NLTK `words` corpus into a shared, world-readable
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
@@ -61,19 +62,44 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 echo "== 1/5: Installing the Python package =="
-# Also upgrades importlib_metadata, not just setuptools. Recent setuptools
-# releases vendor their own newer importlib_metadata internally, but
-# setuptools' own `extern` shim prefers a *real*, already-installed
-# importlib_metadata package over that bundled copy when one is present on
-# the path. On older distributions (e.g. Ubuntu 20.04's apt-provided
-# python3-importlib-metadata, ~1.5.0) that old real package shadows the
-# newer vendored one and is missing APIs (`EntryPoints`) current setuptools
-# calls, crashing every `setup.py install` with `AttributeError: module
-# 'importlib_metadata' has no attribute 'EntryPoints'`. Upgrading
-# importlib_metadata alongside setuptools installs a compatible version
-# ahead of the stale system one on the import path.
-"$PYTHON" -m pip install --upgrade setuptools importlib_metadata
-(cd "$SCRIPT_DIR" && "$PYTHON" setup.py install)
+# `pip install .` (a proper, build-isolated PEP 517 install), NOT the
+# legacy `python3 setup.py install` this used to run. setuptools itself
+# now prints "Please avoid running setup.py directly" for that direct
+# invocation, and it's not just a style complaint: that legacy code path
+# is where two separate production incidents happened back to back (see
+# TODO.md's "Deployment bugs found in production"). Both had the same
+# root cause -- setuptools' own vendoring shim (`extern`) prefers a
+# *real*, already-installed copy of a dependency it vendors
+# (`importlib_metadata`, then `packaging`) over its own newer bundled
+# copy whenever a real one is importable, so this system's old
+# apt-provided copies of each one in turn silently shadowed the working
+# vendored copy and crashed on a missing/changed API
+# (`importlib_metadata.EntryPoints`, then
+# `packaging.version.canonicalize_version`'s `strip_trailing_zero`
+# kwarg) -- and chasing each one individually with another `pip install
+# --upgrade <whatever's shadowed this time>` only fixes the specific
+# dependency that happened to break today, not the next one. `pip
+# install .`'s build isolation builds this package in a throwaway
+# environment that can't see this system's site-packages at all (only
+# the stdlib and pip's own freshly fetched build dependencies), so the
+# shadowing can't happen there regardless of which dependency it would
+# have hit -- avoiding this whole class of bug instead of patching it
+# dependency-by-dependency. This also means the global `setuptools`
+# system install no longer needs to be upgraded at all for this step,
+# which is one less thing on this box's system-wide Python environment
+# for this script to touch.
+#
+# --force-reinstall (not a plain `pip install .`): unlike the old `setup.py
+# install`, which unconditionally redid the install every run, plain `pip
+# install .` skips reinstalling when pip thinks the same version is
+# already installed -- true on every run between version bumps in
+# `stellarObjects/_version.py`. Since this script's whole point (via
+# update.sh) is redeploying whatever was just `git pull`-ed regardless of
+# whether the version string changed, skipping would silently leave the
+# previous run's installed copy in place, shadowing the freshly pulled
+# source the same way this whole section is otherwise about avoiding.
+"$PYTHON" -m pip install --upgrade pip
+"$PYTHON" -m pip install --upgrade --force-reinstall "$SCRIPT_DIR"
 
 echo
 echo "== 2/5: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="

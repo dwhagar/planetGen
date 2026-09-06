@@ -682,7 +682,51 @@ one of its steps.
   now runs that same `find`/`chmod` itself, immediately before invoking
   `install.sh`, so a dropped executable bit on `install.sh` (or on
   `update.sh` for its *next* run) is fixed before the exec attempt that
-  would otherwise fail.
+  would otherwise fail. One remaining wrinkle, inherent to a
+  self-updating script and not fixable further: the *specific* `update.sh`
+  process that pulls this fix for the first time is still running the old
+  (pre-fix) script text it already had open when `git pull` replaced the
+  file on disk out from under it, so that one migration run can still
+  need a manual `chmod +x install.sh`. Every run after that first one
+  starts by reading the fixed `update.sh` from disk, so the self-heal
+  applies from the very start of its own execution and no further manual
+  intervention should be needed.
+- [x] **`install.sh`: `setup.py install` broke a *second* time, same root
+  cause as the `importlib_metadata` incident above, this time for
+  `packaging` — fixed by dropping the legacy `setup.py install` path
+  entirely**: right after the `importlib_metadata` fix landed, the next
+  deploy hit `TypeError: canonicalize_version() got an unexpected keyword
+  argument 'strip_trailing_zero'`, from the same `setup.py install`
+  invocation. Same shape of bug, different dependency: setuptools'
+  `extern` vendoring shim prefers a real, already-installed copy of a
+  dependency it vendors over its own newer bundled copy whenever a real
+  one is importable, and this time it was Ubuntu 20.04's old apt-provided
+  `packaging` doing the shadowing instead of `importlib_metadata`.
+  Patching this dependency-by-dependency (add `packaging` to the `pip
+  install --upgrade` line, wait for the next one to break, repeat) was
+  recognized as a whack-a-mole fix, not a real one — there was no reason
+  to believe `packaging` and `importlib_metadata` were the only two
+  vendored dependencies old enough system packages could shadow. Root
+  fix: stop running the deprecated `setup.py install` at all (setuptools
+  itself prints "Please avoid running setup.py directly" for this exact
+  invocation) and switch to `pip install --upgrade --force-reinstall
+  "$SCRIPT_DIR"` (a proper PEP 517 build-isolated install) instead. Build
+  isolation builds the package in a throwaway environment that can't see
+  this system's site-packages at all — only the stdlib and pip's own
+  freshly fetched build dependencies — so the shadowing can't happen
+  there for *any* vendored dependency, present or future, closing the
+  whole bug class rather than the one instance of it that happened to
+  surface. `--force-reinstall` was added deliberately (a plain `pip
+  install .` skips reinstalling when it thinks the same version is
+  already installed, which would silently stop `update.sh` from
+  redeploying freshly pulled source between version bumps in
+  `stellarObjects/_version.py` — the same "stale copy shadows the fresh
+  one" failure mode this whole fix is otherwise about avoiding). The
+  explicit `pip install --upgrade setuptools importlib_metadata` line
+  from the previous fix was removed as no longer needed: this system's
+  global `setuptools` no longer needs upgrading at all for this step,
+  since the isolated build environment resolves its own build
+  dependencies independent of whatever is already installed globally.
 
 ## Open questions still to resolve
 
