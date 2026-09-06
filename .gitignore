@@ -62,6 +62,12 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# planetGen generated database (stellarObjects/schema.sql) -- generated
+# data, never committed, same as any other build artifact.
+*.db
+*.db-journal
+./db
+
 # Flask stuff:
 instance/
 .webassets-cache

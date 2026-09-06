@@ -182,52 +182,166 @@ roughly linearly with body count.
 ## Phase 2 — Relational database schema + persistence layer
 
 Per explicit decision: a full, real, normalized relational database — not a
-JSON-blob-in-a-column hybrid.
+JSON-blob-in-a-column hybrid. Scope has grown beyond re-hydrating the raw
+generative object graph: the schema also has to support the "publish"
+workflow — searching stored systems via DB queries, and uploading a
+system's rendered page to a wiki (MediaWiki and/or Wiki.js) by copy/paste or
+API. That means storing, per system: its position within its sector, a
+queryable inventory of its contents, the exact "finished" property values
+that appear in each body's data table (as actually rendered, not
+re-derived), the fully rendered page text ready to paste/upload, and the two
+URLs the page is expected to live at.
 
-- [ ] **Pick tooling** (open decision, needs confirmation before
-  committing): recommend SQLAlchemy (ORM) + Alembic (migrations), targeting
-  SQLite for now with a documented, low-friction path to PostgreSQL later
-  for a real web deployment (SQLAlchemy abstracts the SQL dialect; Alembic
-  tracks schema changes). This adds two new dependencies beyond the
-  project's current sole dependency (`nltk`) — flag and confirm explicitly.
-- [ ] `.gitignore` already has stray `db.sqlite3`/`db.sqlite3-journal`
-  entries (leftover boilerplate, not added for this project). Whatever the
-  actual database filename ends up being needs its own `.gitignore` entry
-  (or a glob covering it, e.g. `*.db`) — the database itself is generated
-  data and should never be committed, same as any other build artifact.
-- [ ] **Draft schema** (first pass, expect revision once implementation
-  starts):
+- [x] **Tooling — decided**: raw `sqlite3` (stdlib), plain SQL DDL. No
+  SQLAlchemy/ORM, no Alembic — the project has exactly one dependency
+  (`nltk`) today and stays that way. `PRAGMA user_version` tracks the DDL
+  structure version (see schema-versioning bullet below); any future
+  structural change gets a small sequential `_migrate_vN_to_vN+1()` function
+  in the persistence module rather than a migration framework.
+- [x] `.gitignore` now has a `*.db`/`*.db-journal` glob covering whatever
+  the actual database filename ends up being — the database itself is
+  generated data and should never be committed, same as any other build
+  artifact.
+- [x] `db/` scaffolded at the project root (empty for now, and effectively
+  untracked by git since it holds nothing but the eventual `*.db` file,
+  already ignored) — where the persistence layer will create/open the
+  actual SQLite database file once it exists.
+- [x] **Schema — written**: `stellarObjects/schema.sql`, verified to load
+  cleanly via `sqlite3.executescript()` and column lists cross-checked
+  directly against the real `__init__` bodies (`config.py`, `starData.py`,
+  `doubleStar.py`, `planetData.py`, `asteroidData.py`) rather than the
+  estimates below (e.g. `Planet` turned out to have 27 scalar columns, not
+  ~34 — the estimate had folded in the `moons`/`evolutionary_data` lists,
+  which are child tables, not columns):
   - `sectors` (id, name, edge_ly)
   - `system_configs` (id, the ~13 `SystemConfig.SERIALIZABLE_FIELDS` as real
-    columns)
-  - `system_config_slots` (config_id FK, orbit_index, type, planet_class,
+    columns — tri-state fields as nullable INTEGER 0/1/NULL, `markdown` as
+    non-nullable INTEGER 0/1)
+  - `system_config_slots` (id, config_id FK, orbit_index, type, planet_class,
     moons) — child table for the variable-length `slots` recipe list
-  - `star_systems` (id, sector_id FK nullable, system_config_id FK, name,
-    position_x/y/z nullable, binary_separation_au nullable,
-    system_flavor_text nullable — from Phase 0, schema_version)
+  - `star_systems` (id, sector_id FK nullable [standalone systems allowed],
+    system_config_id FK, name, position_x_ly/position_y_ly/position_z_ly
+    nullable [NULL iff not placed in a sector], is_binary,
+    binary_separation_au nullable, plus one column per `BinaryStarProxy`
+    derived field — binary_type, binary_temperature_k, binary_radius_km,
+    binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy,
+    binary_lifespan_gy [nullable = infinite], binary_habitable_zone_inner_au/
+    _outer_au, binary_system_perimeter_au, binary_heliosphere_radius_au —
+    all nullable, populated only for binaries, stored rather than re-derived
+    since `_effective_mass`/`_effective_luminosity` are computed once at
+    generation time; plus one column per key of the "Binary System Data"
+    table (`doubleStar.py:158-170`) — binary_table_type, binary_table_mass,
+    binary_table_lum, binary_table_hab, binary_table_separation,
+    binary_table_loc, all TEXT nullable, populated only for binaries [the
+    one properties table with no owning row elsewhere, since
+    `BinaryStarProxy` is never itself stored as a `stars` row];
+    system_flavor_text nullable [Phase 0]; schema_version; wikitext_content
+    nullable; markdown_content nullable [both renderings of the *same*
+    generated system — see note below]; mediawiki_url nullable; wikijs_url
+    nullable [one MediaWiki + one Wiki.js URL per system page — a system is
+    one wiki page, stars/planets/moons are sections within it, per
+    `StarSystem.__str__`]; created_at)
   - `stars` (id, star_system_id FK, role: primary/secondary/single, + the
-    ~12 `Star` fields as columns)
-  - `planets` (id, star_system_id FK, parent_planet_id FK nullable
-    **self-referential** for moons, orbital_index, + the ~34 scalar
-    `Planet` fields as columns)
+    ~12 `Star` fields as columns [lifespan_gy nullable = infinite, white
+    dwarfs], plus one column per key of the "Star Data" table
+    (`starData.py:488-509`) — table_type, table_radius, table_mass,
+    table_temp, table_lum, table_hab, table_loc, all TEXT, always present
+    [every constituent `Star` still renders its own individual table even
+    inside a binary])
+  - `planets` (id, star_system_id FK, star_id FK→stars nullable
+    [the specific star this planet orbits, when that's a real stored
+    `stars` row — always true for single-star systems; NULL for a
+    binary's planets, since `systemData.py` always generates planets
+    against `self.star`, which for binaries is the `BinaryStarProxy`
+    (never one individual constituent star — there's no S-type/
+    circumbinary choice in the current generator), and the proxy is
+    deliberately not stored as its own `stars` row. `star_system_id`
+    remains the reliable owning link regardless], parent_planet_id FK
+    nullable **self-referential** for moons, orbital_index, + the 27
+    scalar `Planet` fields as columns [excluding reflection_spectrum_visible/
+    _non_visible — see child table below], plus one column per key of the
+    "Planet Data"/"Class Data" table (`planetData.py:291-302`) —
+    table_class, table_distance, table_period, table_radius, table_gravity,
+    all TEXT [same dict shape for planets and moons])
   - `planet_evolutionary_paragraphs` (planet_id FK, position, paragraph) —
     child table for the variable-length narrative list
+  - `planet_reflection_spectrum` (id, planet_id FK, spectrum_type TEXT CHECK
+    IN ('visible','non_visible'), position INTEGER, value TEXT) — child
+    table replacing the `reflection_spectrum_visible`/`non_visible` scalar
+    fields, same position+value shape as `planet_evolutionary_paragraphs`/
+    `asteroid_belt_composition` below (**resolved**, see note below: no JSON
+    column, this is a real normalized table)
   - `asteroid_belts` (id, star_system_id FK, orbital_index, distance,
-    lower_limit, upper_limit, density)
+    lower_limit, upper_limit, density, composition_summary) — belts have no
+    properties-dict data table, prose only (`asteroidData.py:93-141`), so
+    their searchable columns are instead the facts that prose always
+    states: density, the distance range (lower/upper limit), and a
+    composition summary string built the same way as the prose sentence
+    (`asteroidData.py:119-137`) — kept alongside the structured
+    per-component `asteroid_belt_composition` child table below, not
+    instead of it, for queries that need one specific component
+  - `sector_objects` — a VIEW, not a table, `UNION ALL`-ing `stars`,
+    `planets`, and `asteroid_belts` (each joined up to `star_systems` for
+    `sector_id`) into one `(object_type, object_id, star_system_id,
+    sector_id, name, summary, orbital_index)` shape, for "every stellar
+    object in this sector" queries. Deliberately a view, not a fourth
+    physical table: a real table would need to be kept in sync on every
+    write to the tables it mirrors (or drift), while a view has no storage
+    and resolves against current data on every query — the standard
+    relational answer to "I need to search across several typed tables
+    uniformly" is a view/union query over normalized per-type tables, not
+    an EAV table or a duplicated denormalized one.
   - `asteroid_belt_composition` (belt_id FK, position, component,
     concentration) — child table
-  - Open question to settle during implementation:
-    `reflection_spectrum_visible`/`non_visible` (descriptive string lists
-    with no real per-item query value) — own child table for full
-    normalization, or a single delimited/TEXT column? Leaning TEXT column
-    since nobody will query "find planets with wavelength X" specifically —
-    flag for an explicit decision, don't silently pick.
+  - "Contents of the system" (a queryable inventory of what's in it) is
+    deliberately *not* a separate table — the `stars`/`planets`/
+    `asteroid_belts` rows above, each carrying `star_system_id` +
+    name/type/class, already serve that (e.g. "find all systems with a
+    habitable planet" is a query across `planets`, no extra table needed).
+  - Design principle behind every `table_*` column: `properties_to_string`
+    (`stellarObjects/utils.py:480-524`) builds each data table from a plain
+    dict of already-formatted value strings *before* branching on
+    `system_config.MARKDOWN` — the dict itself is identical between the
+    wikitext and Markdown renderings, only the header labels differ. Since
+    each dict's key set is small and fixed per class (Star: 7 keys, Binary:
+    6, Planet/Class: 5), it maps directly onto named typed columns rather
+    than a JSON blob or a generic key-value table — real columns, fully
+    queryable, no `json_extract()` needed, and matching this document's own
+    "not a JSON-blob-in-a-column hybrid" decision at the top of this phase.
+    They hold the "finished" property values exactly as published,
+    independent of rendering format, and don't need to be re-derived from
+    the raw scalar columns (whose formatting logic could change across
+    versions). Variable-*length* data (the reflection spectrum lists, the
+    evolutionary paragraphs, the asteroid composition) is the one case that
+    still needs a child table rather than a fixed column set — same
+    reasoning, different shape.
+- [ ] **Two renderings of one system**: because generation mixes unseedable
+  `secrets` with seedable `random` (`spaceSector.py`'s own module
+  docstring), the *other* format can never be regenerated later from a
+  `StarSystem` and match the first (flavor text, etc. would differ). Both
+  `wikitext_content` and `markdown_content` must be produced from the
+  **same already-generated** `StarSystem` object, rendered twice back-to-back
+  at save time (toggle `system_config.MARKDOWN`, call `str(system)`, toggle
+  back, call again) — never regenerated independently after the fact.
+- [x] **Schema versioning — resolved**: two independent version numbers,
+  neither tied to `_version.py`'s software semver (which tracks CLI/package
+  releases, not data shape). `star_systems.schema_version` is row-level —
+  tracks the shape of the serialized object graph (Phase 1's `to_dict()`
+  output) that produced that row, so a JSON export/import can carry an
+  older shape into a newer database file; `from_dict`/DB-read raises a clear
+  error if a row's version is newer than the code understands. SQLite's own
+  `PRAGMA user_version` is DDL-level — tracks the table/column structure
+  itself, checked before applying any future `_migrate_vN_to_vN+1()` step.
+  Both start at `1`.
 - [ ] Build the persistence layer: functions/classes to write a generated
   `StarSystem`/`SpaceSector` (using Phase 1's serialization) into these
-  tables, and to read them back out into live `Star`/`Planet`/etc. objects.
+  tables — including both renderings and every `table_*` finished-property
+  column — and to read them back out into live `Star`/`Planet`/etc. objects.
 - [ ] Tests: round-trip through the actual database (not just in-memory
   dicts), covering the same cases as Phase 1's tests plus sector-level
-  cases (multiple systems, positions, a home system).
+  cases (multiple systems, positions, a home system), plus: both text
+  columns populated and mutually consistent, and `lifespan_gy IS NULL`
+  round-trips to `float('inf')`.
 
 ## Phase 3 — Migrate the CLI tools to the database
 
@@ -254,39 +368,37 @@ JSON-blob-in-a-column hybrid.
 - [ ] Deployment target (where does this actually run/get hosted?) —
   undecided, needs its own decision.
 - [ ] Almost certainly means moving off SQLite to PostgreSQL (or similar)
-  for real concurrent multi-user access — exactly why Phase 2 recommends
-  SQLAlchemy now, to make that switch mostly a configuration change later.
+  for real concurrent multi-user access — Phase 2 deliberately stuck to raw
+  `sqlite3`/plain SQL for now, so this move will mean hand-porting the DDL
+  and persistence layer rather than a drop-in config change; revisit
+  tooling (e.g. an ORM) at that point if the port proves painful.
 
 ## Open questions still to resolve
 
-- [ ] **Schema versioning**: add `schema_version`/`SCHEMA_VERSION` to
-  `StarSystem.to_dict()` from day one (retrofitting onto files that never
-  had it is the harder direction). `from_dict` should raise a clear error
-  if a file's version is newer than the code understands; older versions
-  are the hook point for future migrations, none needed yet.
-- [ ] **`float('inf')` for white-dwarf `Star.lifespan`**: Python's `json`
-  round-trips this via the non-standard `Infinity` token, which works
-  today but isn't strictly valid JSON and may break future SQLite
-  `json_extract()`/`json_valid()` querying. Recommend `Star.to_dict`/
-  `from_dict` special-case it (`null`/omitted when infinite, reconstruct
-  `float('inf')` on load) before any real data exists in this format.
+Resolved since the last pass (kept here only as a pointer, full reasoning
+lives where the decision is used): schema versioning, `float('inf')`
+white-dwarf lifespan storage, and `reflection_spectrum_visible`/
+`non_visible` storage shape (a normalized `planet_reflection_spectrum` child
+table, not a TEXT/JSON column — no JSON-blob columns anywhere in this
+schema, per the pure-relational-DB decision) — see the Phase 2 schema
+section above. `SQLAlchemy`/Alembic vs. raw `sqlite3` — resolved in favor of
+raw `sqlite3` (Phase 2 tooling bullet above).
+
 - [ ] **Secondary-star `system_config` asymmetry**: `StarSystem.__init__`
   (`systemData.py:97-100`) currently `copy.deepcopy`s the config for a
   binary's secondary star (forcing `LARGE_STAR=False`), so today the
   primary/proxy/planets share one `SystemConfig` while the secondary
   privately holds its own deep copy. The `from_dict` design (one shared
-  `system_config` passed to both `Star.from_dict` calls) would silently
-  collapse that asymmetry on reload. `LARGE_STAR` is only ever consulted
-  *during* `generate_star()` (pre-persistence-relevant), so this is very
-  likely inconsequential post-generation — but confirm with the user
-  rather than assume.
-- [ ] `reflection_spectrum_visible`/`non_visible` storage shape in the DB
-  (child table vs. TEXT column) — see Phase 2; leaning TEXT column since
-  nobody will query "find planets with wavelength X" specifically.
+  `system_config` passed to both `Star.from_dict` calls), and the Phase 2
+  schema's single `star_systems.system_config_id`, would both silently
+  collapse that asymmetry on reload/persist. `LARGE_STAR` is only ever
+  consulted *during* `generate_star()` (pre-persistence-relevant), so this
+  is very likely inconsequential post-generation — but confirm with the
+  user rather than assume before Phase 1 locks in the single-shared-config
+  design.
 - [ ] Whether to recompute `BinaryStarProxy`'s derived fields on load vs.
-  snapshot them redundantly — leaning snapshot (see Phase 1), confirm.
-- [ ] SQLAlchemy + Alembic as new dependencies for Phase 2 — confirm before
-  adopting (project currently has exactly one dependency, `nltk`).
+  snapshot them redundantly — leaning snapshot (see Phase 1 and the Phase 2
+  `star_systems.binary_*` columns), confirm.
 - [ ] By design, there is no seed-based replay anywhere in this plan —
   generation mixes the unseedable `secrets` module with the seedable
   `random` module (already documented in `spaceSector.py`'s own
