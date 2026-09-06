@@ -61,7 +61,18 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 echo "== 1/5: Installing the Python package =="
-"$PYTHON" -m pip install --upgrade setuptools
+# Also upgrades importlib_metadata, not just setuptools. Recent setuptools
+# releases vendor their own newer importlib_metadata internally, but
+# setuptools' own `extern` shim prefers a *real*, already-installed
+# importlib_metadata package over that bundled copy when one is present on
+# the path. On older distributions (e.g. Ubuntu 20.04's apt-provided
+# python3-importlib-metadata, ~1.5.0) that old real package shadows the
+# newer vendored one and is missing APIs (`EntryPoints`) current setuptools
+# calls, crashing every `setup.py install` with `AttributeError: module
+# 'importlib_metadata' has no attribute 'EntryPoints'`. Upgrading
+# importlib_metadata alongside setuptools installs a compatible version
+# ahead of the stale system one on the import path.
+"$PYTHON" -m pip install --upgrade setuptools importlib_metadata
 (cd "$SCRIPT_DIR" && "$PYTHON" setup.py install)
 
 echo
@@ -71,7 +82,7 @@ mkdir -p "$NLTK_DATA_DIR"
 chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
-echo "== 3/5: Making the CGI scripts executable =="
+echo "== 3/5: Making the CGI scripts and shell scripts executable =="
 # No -maxdepth: every *.py under html/, at any subdirectory depth
 # (html/lib/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
@@ -80,7 +91,13 @@ echo "== 3/5: Making the CGI scripts executable =="
 # anyway with the correct final ownership, but doing it correctly here
 # too means a plain `sudo ./install.sh` is never the reason this is wrong.
 find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
-chmod +x "$SCRIPT_DIR/apache/set-permissions.sh"
+# Every *.sh anywhere in the repo (this script, update.sh,
+# apache/set-permissions.sh, and any future one), not a hardcoded list --
+# git checkouts made from a `core.fileMode=false` machine silently drop
+# the executable bit on ANY file type, not just html/'s .py scripts (see
+# TODO.md's "Deployment bugs found in production"), so a script added
+# later doesn't need this list updated to be covered.
+find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
 echo "== 4/5: Enabling Apache's CGI module =="

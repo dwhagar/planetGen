@@ -72,4 +72,15 @@ fi
 
 echo
 echo "== 2/2: Re-running install.sh to keep permissions (and everything else it covers) correct =="
+# A pull rewrites any changed file with whatever mode is tracked in the
+# repo -- including install.sh (and this script) itself -- so a prior
+# run's executable-bit fix doesn't survive a pull that touched them.
+# Fixing that here, before invoking install.sh, matters because
+# install.sh is run directly below ("$SCRIPT_DIR/install.sh", not
+# `bash install.sh`): if the pull just dropped its executable bit,
+# install.sh's own step 3 (which re-chmods every *.sh in the repo) never
+# gets a chance to run at all -- the shell refuses to exec it first with
+# "Permission denied", exactly as install.sh's own step 3 fix already
+# had to for html/*.py.
+find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 "$SCRIPT_DIR/install.sh"

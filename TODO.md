@@ -638,6 +638,51 @@ one of its steps.
   Verified all four paths (clean fast-forward, already-up-to-date, dirty
   working tree, diverged history) against a local throwaway git
   remote/clone pair.
+- [x] **`install.sh` step 1 (`pip install --upgrade setuptools`) broke on
+  the deployed Ubuntu 20.04/Python 3.8 VPS — root cause found and fixed**:
+  `sudo ./update.sh` pulled the latest commit fine, but its re-run of
+  `install.sh` crashed on `python3 setup.py install` with `AttributeError:
+  module 'importlib_metadata' has no attribute 'EntryPoints'`, right after
+  pip reported `Successfully installed setuptools-75.3.4`. Root cause:
+  setuptools' own `extern` shim (used to reach its bundled, newer copy of
+  `importlib_metadata`) prefers a *real*, already-installed
+  `importlib_metadata` package over that bundled copy when one is present
+  on the import path — and Ubuntu 20.04's apt-provided
+  `python3-importlib-metadata` (~1.5.0) is old enough to be missing the
+  `EntryPoints` class current setuptools calls, so it silently shadows the
+  working vendored copy instead of falling through to it. This wasn't a
+  bug in this repo's own code — `pip install --upgrade setuptools` with no
+  version pin just started resolving to a newer PyPI release than it used
+  to, on a system whose apt-managed `importlib_metadata` never gets
+  upgraded, so the exact same command could re-break again in the future
+  as PyPI's "latest setuptools" keeps advancing. Fixed by having
+  `install.sh` upgrade `importlib_metadata` in the same `pip install`
+  call as `setuptools` — installing a current version ahead of the stale
+  apt one on the import path resolves the shadowing without needing to
+  pin `setuptools` to some specific past version.
+- [x] **`update.sh`/`install.sh`: executable-bit fix only ever covered
+  `html/*.py`, not `.sh` scripts themselves — fixed**: hit on the same
+  session as the `install.sh` permission-denied incident above (`sudo
+  ./update.sh` failing on its own `install.sh` invocation with
+  "Permission denied" until a manual `chmod +x install.sh`). Root cause:
+  the original executable-bit fix (see the `install.sh` bullet earlier in
+  this section) only ever re-`chmod +x`ed `html/*.py` plus one
+  hardcoded `apache/set-permissions.sh` path — it never covered `.sh`
+  scripts in general, including `install.sh` and `update.sh` themselves,
+  which are just as exposed to git dropping the executable bit on a pull
+  (the same `core.fileMode=false` root cause, not specific to `.py`
+  files). Worse, `update.sh` invokes `install.sh` directly
+  (`"$SCRIPT_DIR/install.sh"`, not `bash install.sh`), so if a pull
+  dropped *its* executable bit, install.sh's own fix never got a chance
+  to run at all — the shell refuses to exec a non-executable file before
+  any of its own logic runs. Fixed two ways together: `install.sh`'s step
+  3 now also does `find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +`
+  (every `.sh` in the repo, not a hardcoded list, so a future script
+  added anywhere doesn't need this updated to be covered); `update.sh`
+  now runs that same `find`/`chmod` itself, immediately before invoking
+  `install.sh`, so a dropped executable bit on `install.sh` (or on
+  `update.sh` for its *next* run) is fixed before the exec attempt that
+  would otherwise fail.
 
 ## Open questions still to resolve
 
