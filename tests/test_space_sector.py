@@ -24,11 +24,13 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import (
     SectorSystemEntry,
     SpaceSector,
+    _nudge_away,
     _sample_poisson_count,
     classify_octant,
     distance_between,
     format_named_location,
     hill_radius_ly,
+    mean_nearest_neighbor_ly,
     required_separation_ly,
 )
 from stellarObjects.systemData import StarSystem
@@ -399,6 +401,104 @@ def test_sample_poisson_count_mean_and_spread_are_approximately_correct():
     assert mean * 0.7 <= sample_mean <= mean * 1.3
     assert len(set(samples)) > 1
     assert all(sample >= 0 for sample in samples)
+
+
+# --- Mean nearest-neighbor distance ---
+
+def test_mean_nearest_neighbor_ly_matches_known_formula_and_value():
+    density = physical_constants.LOCAL_STELLAR_DENSITY_LY3
+    expected = math.gamma(4 / 3) * (3 / (4 * math.pi * density)) ** (1 / 3)
+    assert mean_nearest_neighbor_ly() == pytest.approx(expected)
+    # Sanity check against the module docstring's own worked example (~3.9 ly).
+    assert 3.0 <= mean_nearest_neighbor_ly() <= 5.0
+
+
+def test_space_sector_mean_nearest_neighbor_ly_static_method_matches_module_function():
+    assert SpaceSector.mean_nearest_neighbor_ly() == mean_nearest_neighbor_ly()
+
+
+# --- Nudge-away (fine-tuning primitive) ---
+
+def test_nudge_away_moves_to_exact_target_distance_preserving_direction():
+    nudged = _nudge_away((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), target_distance=5.0)
+    assert nudged == pytest.approx((5.0, 0.0, 0.0))
+
+
+def test_nudge_away_uses_random_direction_when_position_coincides_with_anchor():
+    anchor = (1.0, 2.0, 3.0)
+    nudged = _nudge_away(anchor, anchor, target_distance=4.0)
+    assert distance_between(nudged, anchor) == pytest.approx(4.0)
+
+
+# --- Fine-tuning (SpaceSector._fine_tune_position) ---
+
+def test_fine_tune_position_returns_position_unchanged_when_sector_empty():
+    sector = SpaceSector("Empty Sector")
+    candidate_system, _ = make_cheap_system()
+    position = (5.0, 5.0, 5.0)
+    assert sector._fine_tune_position(position, candidate_system) == position
+
+
+def test_fine_tune_position_returns_unchanged_when_already_valid():
+    sector = SpaceSector("Fine Tune Sector", edge_ly=1000.0)
+    origin_system, _ = make_cheap_system()
+    sector.add_system(origin_system, position=(0.0, 0.0, 0.0))
+
+    candidate_system, _ = make_cheap_system()
+    required = required_separation_ly(candidate_system, origin_system)
+    valid_position = (required * 2, 0.0, 0.0)
+
+    assert sector._fine_tune_position(valid_position, candidate_system) == valid_position
+
+
+def test_fine_tune_position_pushes_away_from_actual_nearest_neighbor_not_just_parent():
+    """
+    Exercises the "closest star to it (even if that's not the origin star it
+    came from)" requirement directly: a position placed very close to a
+    second, non-parent star must be corrected relative to that star, not
+    just checked against the parent it was originally sampled around.
+
+    Regression guard: repeats the scenario many times rather than once. This
+    caught two real bugs during development that only showed up
+    probabilistically depending on the three stars' randomly-drawn masses --
+    a single run wasn't a reliable enough guard against either recurring:
+    (1) picking the geometrically-nearest star to check against, rather than
+    checking every entry, missed violations against a farther-but-more-
+    massive star; (2) nudging to exactly the required distance can leave a
+    few parts in 1e-15 of floating-point residue, which without a tolerance
+    registered as a still-positive deficit forever and never converged.
+    """
+    for _ in range(50):
+        sector = SpaceSector("Fine Tune Sector", edge_ly=1000.0)
+        origin_system, _ = make_cheap_system()
+        other_system, _ = make_cheap_system()
+        sector.add_system(origin_system, position=(0.0, 0.0, 0.0))
+        other_entry = sector.add_system(other_system, position=(2.0, 0.0, 0.0))
+
+        candidate_system, _ = make_cheap_system()
+        # Deliberately placed just past "other", violating its Hill sphere.
+        initial_position = (2.05, 0.0, 0.0)
+
+        tuned = sector._fine_tune_position(initial_position, candidate_system)
+
+        assert tuned is not None
+        required = required_separation_ly(candidate_system, other_system)
+        assert distance_between(tuned, other_entry.position) >= required - 1e-9
+        # Pushing away from "other" (further along +x) only increases
+        # distance from "origin" at the far end, so no new violation is
+        # introduced there.
+        assert distance_between(tuned, (0.0, 0.0, 0.0)) > distance_between(initial_position, (0.0, 0.0, 0.0))
+
+
+def test_fine_tune_position_returns_none_when_it_cannot_converge_within_iteration_cap():
+    sector = SpaceSector("Fine Tune Sector", edge_ly=1000.0)
+    origin_system, _ = make_cheap_system()
+    sector.add_system(origin_system, position=(0.0, 0.0, 0.0))
+
+    candidate_system, _ = make_cheap_system()
+    invalid_position = (0.001, 0.0, 0.0)  # far inside origin's Hill sphere
+
+    assert sector._fine_tune_position(invalid_position, candidate_system, max_iterations=0) is None
 
 
 # --- Growth algorithm (grow_from_seed) ---

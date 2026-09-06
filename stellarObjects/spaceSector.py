@@ -84,26 +84,49 @@ Distances
 exact -- no relativistic or cosmological-expansion correction applies; those
 only become relevant at scales many, many orders of magnitude larger.
 
-Growth (Poisson-disk placement)
+Growth (sample, then fine-tune)
 ---------------------------------
 `SpaceSector.grow_from_seed` fills a sector outward from an already-placed
-system using Bridson's Fast Poisson Disk Sampling algorithm ("Fast Poisson
-Disk Sampling in Arbitrary Dimensions", SIGGRAPH 2007 sketch --
-https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf):
-maintain an "active list" of points that might still have room for a
-neighbor; repeatedly pick a random active point and try up to
-`program_constants.SECTOR_GROWTH_POISSON_DISK_K` times to sample a candidate
-uniformly (by volume, not by radius) in the spherical annulus between the
-active point and `program_constants.SECTOR_GROWTH_ANNULUS_OUTER_MULTIPLIER`
-times that distance; reject a candidate that lands outside the sector's cube
-or too close to *any* existing system; if all attempts for a point fail,
-retire it from the active list. This is the same mechanism the classic
-algorithm uses, adapted for one thing specific to this module: instead of a
-single fixed minimum distance, the minimum spacing for a given candidate is
-its own `required_separation_ly` against each system it's compared to (its
-Hill sphere is only known once the candidate's own `StarSystem` -- with its
-own stellar mass -- has actually been generated, so a candidate is generated
-via a caller-supplied factory before its position is even chosen).
+system, borrowing the "active list" structure from Bridson's Fast Poisson
+Disk Sampling algorithm ("Fast Poisson Disk Sampling in Arbitrary
+Dimensions", SIGGRAPH 2007 sketch --
+https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf) --
+maintain a list of points that might still have room for a neighbor,
+repeatedly pick a random one, retire it after
+`program_constants.SECTOR_GROWTH_POISSON_DISK_K` failed attempts -- but
+placing each candidate in two distinct phases rather than pure
+reject-and-resample:
+
+1. **Initial sample**: a candidate `StarSystem` is generated (via a
+   caller-supplied factory -- a position can't be chosen until the
+   candidate's own stellar mass, and hence its own Hill radius, is known),
+   then placed at a random spherical-coordinate offset from the active
+   parent: distance uniform-by-volume between `hill_radius_ly(parent)` (the
+   parent's own Hill radius alone -- a quick, cheap floor) and
+   `mean_nearest_neighbor_ly()` (the typical spacing implied by this
+   sector's target density -- see below), in a uniformly random direction.
+2. **Fine-tune**: the *actual* gravitational check is against whichever
+   system turns out to be closest to the candidate's current position --
+   not necessarily the parent it was sampled from. If that nearest
+   neighbor's and the candidate's combined Hill spheres
+   (`required_separation_ly`) overlap, the candidate is pushed directly
+   away from that neighbor, out to exactly the required distance, and the
+   check repeats (moving away from one neighbor can bring the candidate
+   closer to a different one) up to
+   `program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS` times.
+
+A candidate is accepted once fine-tuning converges on a position that's
+both clear of every existing system's Hill sphere and still inside the
+sector's cube; otherwise this attempt is discarded and, if the active point
+has attempts left, a fresh independent candidate is generated and sampled
+again from scratch.
+
+`mean_nearest_neighbor_ly()` is the mean nearest-neighbor distance for a 3D
+Poisson process at `physical_constants.LOCAL_STELLAR_DENSITY_LY3` --
+`Γ(4/3) * (3 / (4*pi*density))^(1/3)`, ~3.9 ly with this module's current
+constants -- i.e. a single density-derived value, independent of which
+specific stars are involved (unlike the Hill-sphere-based floor, which
+depends on the parent's own mass).
 
 By default, growth stops once the sector's system count reaches a
 Poisson-distributed target drawn around `expected_system_count()` -- matching
@@ -219,6 +242,30 @@ def required_separation_ly(system_a, system_b):
     return hill_radius_ly(system_a) + hill_radius_ly(system_b)
 
 
+def mean_nearest_neighbor_ly():
+    """
+    The mean nearest-neighbor distance, in light-years, for a 3D Poisson
+    process at `physical_constants.LOCAL_STELLAR_DENSITY_LY3` -- the
+    statistically expected typical spacing between neighboring systems at
+    this sector's target density, independent of which specific stars are
+    involved (unlike `hill_radius_ly`, which depends on a star's own mass).
+    See "Growth (sample, then fine-tune)" in the module docstring for how
+    this is used.
+
+    For a 3D Poisson process with intensity (density) `lambda`, the
+    nearest-neighbor distance follows a Weibull distribution (shape 3) whose
+    mean works out to `Γ(4/3) * (3 / (4*pi*lambda))^(1/3)`
+    (`math.gamma(4/3)` for the Gamma function). With this module's current
+    density constant, this comes out to ~3.9 ly -- close to the Sun's own
+    real nearest neighbor, Alpha Centauri, at 4.37 ly.
+
+    Returns:
+        float: The mean nearest-neighbor distance in light-years.
+    """
+    density = physical_constants.LOCAL_STELLAR_DENSITY_LY3
+    return math.gamma(4 / 3) * (3 / (4 * math.pi * density)) ** (1 / 3)
+
+
 def _sample_poisson_count(mean, rng=_rng):
     """
     Draws a Poisson-distributed non-negative integer with the given mean,
@@ -283,9 +330,8 @@ def _random_point_in_annulus(center, inner_radius, outer_radius, rng=_rng):
     """
     Samples a point uniformly *by volume* (not by radius) within the
     spherical annulus between `inner_radius` and `outer_radius` around
-    `center` -- part of `SpaceSector.grow_from_seed`'s Bridson-algorithm
-    placement; see "Growth (Poisson-disk placement)" in the module
-    docstring.
+    `center` -- part of `SpaceSector.grow_from_seed`'s initial-sample phase;
+    see "Growth (sample, then fine-tune)" in the module docstring.
 
     Sampling the distance directly as `uniform(inner_radius, outer_radius)`
     would bias points toward the inner radius, since a thin shell near the
@@ -305,6 +351,46 @@ def _random_point_in_annulus(center, inner_radius, outer_radius, rng=_rng):
     distance = (inner_radius ** 3 + u * (outer_radius ** 3 - inner_radius ** 3)) ** (1 / 3)
     dx, dy, dz = _random_unit_direction(rng)
     return (center[0] + distance * dx, center[1] + distance * dy, center[2] + distance * dz)
+
+
+def _nudge_away(anchor_position, position, target_distance, rng=_rng):
+    """
+    Moves `position` directly away from `anchor_position`, out to exactly
+    `target_distance` -- part of `SpaceSector.grow_from_seed`'s fine-tuning
+    phase; see "Growth (sample, then fine-tune)" in the module docstring.
+
+    If `position` coincides exactly with `anchor_position` (the direction
+    between them is undefined), a fresh random direction is used instead
+    (see `_random_unit_direction`) -- astronomically this never happens by
+    chance with continuous random coordinates, but it keeps this function
+    well-defined rather than dividing by zero.
+
+    Args:
+        anchor_position (tuple): The point being moved away from.
+        position (tuple): The current `(x, y, z)` position to nudge.
+        target_distance (float): The desired distance from
+                                 `anchor_position` after nudging.
+        rng (random.Random): The generator to draw a fallback direction
+                             from.
+
+    Returns:
+        tuple: The nudged `(x, y, z)` position.
+    """
+    dx = position[0] - anchor_position[0]
+    dy = position[1] - anchor_position[1]
+    dz = position[2] - anchor_position[2]
+    current_distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+
+    if current_distance == 0:
+        dx, dy, dz = _random_unit_direction(rng)
+    else:
+        dx, dy, dz = dx / current_distance, dy / current_distance, dz / current_distance
+
+    return (
+        anchor_position[0] + dx * target_distance,
+        anchor_position[1] + dy * target_distance,
+        anchor_position[2] + dz * target_distance,
+    )
 
 
 def classify_octant(position):
@@ -557,14 +643,73 @@ class SpaceSector:
         position = tuple(_rng.uniform(-jitter_ly, jitter_ly) for _ in range(3))
         return self.add_system(star_system, position=position, system_config=system_config)
 
+    def _fine_tune_position(self, position, candidate_system,
+                            max_iterations=program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS):
+        """
+        Nudges `position` until `candidate_system`, placed there, clears
+        every existing system's Hill sphere -- not necessarily just the
+        point it was originally sampled around -- by repeatedly finding the
+        worst violation (if any) and pushing directly away from it
+        (`_nudge_away`), out to exactly `required_separation_ly`. Moving
+        away from one neighbor can bring the position closer to (or newly
+        inside) a different one, so this repeats until a position clear of
+        every neighbor is found or `max_iterations` is exhausted. See
+        "Growth (sample, then fine-tune)" in the module docstring.
+
+        Every entry is re-checked on every iteration, not just whichever one
+        is geometrically nearest by raw distance: `required_separation_ly`
+        depends on each system's own Hill radius, so a farther-away but more
+        massive system can be violated while a closer, smaller one isn't --
+        checking only the nearest-by-distance system would miss that.
+
+        A deficit within `program_constants.SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY`
+        of zero is treated as resolved rather than a real violation: nudging
+        a position to exactly its required distance can leave a residual
+        floating-point error of a few parts in 1e-15 from the sqrt/division
+        in `_nudge_away`, which without this tolerance would register as a
+        still-positive deficit forever, nudging the same point back to the
+        same place every remaining iteration instead of ever converging.
+
+        Args:
+            position (tuple): The starting `(x, y, z)` position to fine-tune.
+            candidate_system (StarSystem): The system being placed.
+            max_iterations (int): The maximum number of nudges to attempt.
+
+        Returns:
+            tuple or None: The fine-tuned position, or None if no position
+                           clear of every neighbor was found within
+                           `max_iterations`.
+        """
+        tolerance = program_constants.SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY
+
+        for _ in range(max_iterations):
+            worst_entry = None
+            worst_required = None
+            worst_deficit = tolerance
+
+            for entry in self.entries:
+                required = required_separation_ly(candidate_system, entry.star_system)
+                deficit = required - distance_between(position, entry.position)
+                if deficit > worst_deficit:
+                    worst_deficit = deficit
+                    worst_entry = entry
+                    worst_required = required
+
+            if worst_entry is None:
+                return position
+
+            position = _nudge_away(worst_entry.position, position, worst_required)
+
+        return None
+
     def grow_from_seed(self, seed, system_factory, target_count=None,
                        k=program_constants.SECTOR_GROWTH_POISSON_DISK_K):
         """
-        Grows the sector outward from an already-placed system using
-        Bridson's Fast Poisson Disk Sampling algorithm -- see "Growth
-        (Poisson-disk placement)" in the module docstring for the full
-        mechanism and its adaptation to this module's per-pair Hill-sphere
-        spacing.
+        Grows the sector outward from an already-placed system -- see
+        "Growth (sample, then fine-tune)" in the module docstring for the
+        full two-phase mechanism (initial spherical-coordinate sample from
+        the active parent, then fine-tuning against whichever system turns
+        out to actually be nearest).
 
         Args:
             seed (SectorSystemEntry): An entry already present in
@@ -583,8 +728,8 @@ class SpaceSector:
                 real spatial Poisson process. If the drawn or given target
                 is at or below the sector's current size, growth simply
                 does nothing.
-            k (int): Placement attempts per active point before giving up
-                on it.
+            k (int): Independent placement attempts per active point before
+                giving up on it and retiring it from the active list.
 
         Returns:
             list: The newly created `SectorSystemEntry` instances, in
@@ -609,20 +754,18 @@ class SpaceSector:
 
             for _ in range(k):
                 candidate_system = system_factory()
-                inner_radius = required_separation_ly(parent.star_system, candidate_system)
-                outer_radius = inner_radius * program_constants.SECTOR_GROWTH_ANNULUS_OUTER_MULTIPLIER
-                candidate_position = _random_point_in_annulus(parent.position, inner_radius, outer_radius)
 
-                if not all(-half_edge <= coordinate <= half_edge for coordinate in candidate_position):
+                inner_radius = hill_radius_ly(parent.star_system)
+                outer_radius = max(mean_nearest_neighbor_ly(), inner_radius)
+                position = _random_point_in_annulus(parent.position, inner_radius, outer_radius)
+
+                position = self._fine_tune_position(position, candidate_system)
+                if position is None:
                     continue
-                if not all(
-                    distance_between(candidate_position, entry.position)
-                    >= required_separation_ly(candidate_system, entry.star_system)
-                    for entry in self.entries
-                ):
+                if not all(-half_edge <= coordinate <= half_edge for coordinate in position):
                     continue
 
-                entry = self.add_system(candidate_system, position=candidate_position)
+                entry = self.add_system(candidate_system, position=position)
                 active_list.append(entry)
                 new_entries.append(entry)
                 placed = True
@@ -649,6 +792,15 @@ class SpaceSector:
         systems' Hill spheres. See the module-level `required_separation_ly`.
         """
         return required_separation_ly(system_a, system_b)
+
+    @staticmethod
+    def mean_nearest_neighbor_ly():
+        """
+        The mean nearest-neighbor distance, in light-years, at this
+        module's target stellar density. See the module-level
+        `mean_nearest_neighbor_ly`.
+        """
+        return mean_nearest_neighbor_ly()
 
     @staticmethod
     def classify_octant(position):

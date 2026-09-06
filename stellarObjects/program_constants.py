@@ -103,21 +103,39 @@ SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
-# Bridson's Fast Poisson Disk Sampling ("Fast Poisson Disk Sampling in
-# Arbitrary Dimensions", SIGGRAPH 2007 sketch): candidate attempts tried
-# around an active point before giving up on it and removing it from the
-# active list -- see `spaceSector.SpaceSector.grow_from_seed`. This
-# program's own tuning choice, not a physical constant; Bridson's own
-# sketch uses k=30 for its 2D/3D examples, kept as-is here since nothing
-# about this sector's scale (a handful to a few dozen systems) argues for a
-# different value.
+# Candidate attempts tried around an active point (Bridson's Fast Poisson
+# Disk Sampling active-list scheme -- "Fast Poisson Disk Sampling in
+# Arbitrary Dimensions", SIGGRAPH 2007 sketch) before giving up on it and
+# removing it from the active list -- see
+# `spaceSector.SpaceSector.grow_from_seed`. This program's own tuning
+# choice, not a physical constant; Bridson's own sketch uses k=30 for its
+# 2D/3D examples, kept as-is here since nothing about this sector's scale
+# (a handful to a few dozen systems) argues for a different value.
 SECTOR_GROWTH_POISSON_DISK_K = 30
 
-# Outer radius of the spherical annulus a growth candidate is sampled
-# within, as a multiple of the per-pair minimum separation (the inner
-# radius r = required_separation_ly(parent, candidate)). Bridson's
-# algorithm samples in [r, 2r]; this keeps that same multiplier.
-SECTOR_GROWTH_ANNULUS_OUTER_MULTIPLIER = 2.0
+# Maximum number of "push away from whichever star turned out to be
+# nearest" nudges `SpaceSector.grow_from_seed`'s fine-tuning step will try
+# for a single candidate position before giving up on it (moving away from
+# one violating neighbor can bring the candidate closer to a different one,
+# so this can take more than one nudge to converge). This program's own
+# tuning choice; the sector's realistic scale (a handful of systems) means
+# this should converge in only one or two nudges the vast majority of the
+# time, so this cap is generous headroom rather than an expected typical
+# count.
+SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS = 20
+
+# Floating-point slack, in light-years, below which a fine-tuning deficit
+# (required separation minus actual distance) is treated as "resolved"
+# rather than a real violation -- see
+# `spaceSector.SpaceSector._fine_tune_position`. Without this, nudging a
+# position to exactly its required distance can leave a residual
+# floating-point error (sqrt/division noise) of a few parts in 1e-15, which
+# would otherwise register as a still-positive deficit forever and nudge
+# the same point back to the same place every remaining iteration instead
+# of ever converging. A numerical-precision safety margin, not a physical
+# or generation-design choice -- 1e-9 ly is still astronomically negligible
+# next to any Hill-sphere-scale distance this module works with.
+SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY = 1e-9
 
 # Roman-numeral "quadrant" (properly an octant in 3D -- see
 # `spaceSector.classify_octant`) labels for the 8 sign-combinations of an
