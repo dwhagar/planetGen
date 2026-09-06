@@ -84,7 +84,7 @@ def handler():
     ) + "</p>"
 
     body = f"""
-<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; {esc(db_name)}</p>
+<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; {esc(db_name)} &middot; <a href="search.py?db={esc(db_name)}">Search</a></p>
 {badges_html}
 <section class="panel">
 <h2>Sectors</h2>

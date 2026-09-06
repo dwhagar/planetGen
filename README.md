@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.2.3 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.2.4 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -122,7 +122,12 @@ The output opens with a sector-wide summary and an index of every system's name 
 (plain Python CGI scripts, no framework) for browsing the SQLite databases
 described in [`db/README.md`](db/README.md) -- pick a database, drill into
 its sectors and star systems, and view or copy the rendered wikitext/
-Markdown page saved for each one. It's meant to be deployed to an Apache2
+Markdown page saved for each one, or jump straight to an object via
+`search.py`'s faceted search: click-to-filter tag buttons (object type,
+star spectral/luminosity class, planet class/body type, supported life
+chemistry) built from only the values actually present in the chosen
+database, plus an autocompleting name search across sectors, systems,
+stars, and planets/moons. It's meant to be deployed to an Apache2
 install on a Linux server; run `sudo ./install.sh` from the repo root on
 the server to do the whole install (Python package, the NLTK corpus
 Apache's own user needs, CGI setup, and directory permissions) in one

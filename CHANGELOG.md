@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.2.4] - 2026-09-06
+
+### Added
+- `html/search.py`: a faceted/name search page for the web interface.
+  Two complementary ways to find an object in the chosen database:
+  - Click-to-filter tag buttons for object type (star/planet/moon/
+    asteroid belt), star spectral class and Yerkes luminosity class,
+    planet class and body type, and supported life chemistry -- each
+    group renders a button only for values actually present in that
+    specific database (e.g. no Yerkes-luminosity buttons beyond "Main
+    Sequence" if nothing else was generated), per `SELECT DISTINCT ...
+    GROUP BY` queries against `stars`/`planets`/`asteroid_belts`, not a
+    fixed enumeration. Multiple tags within one group OR together (any
+    matching value); tags across groups AND together, except that
+    selecting an explicit Object Type tag acts as a master filter (e.g.
+    selecting only "Stars" hides the Planets panel even if a
+    planet-class tag also happens to be selected). Clicking a tag
+    toggles it via a plain link that rewrites the query string, so this
+    works with JavaScript entirely disabled, same as every other page in
+    `html/`.
+  - A name search with one field each for sector, star system, star, and
+    planet/moon names, each with its own HTML5 `<datalist>` for
+    autocomplete (native browser suggestions, no JavaScript, populated
+    from that entity's own distinct names). Asteroid belts have no name
+    of their own (per `schema.sql`'s own note on this), so they're only
+    reachable via the "Asteroid Belt" object-type tag.
+
+  Every filter is a parameterized SQL query (`IN (...)`/`LIKE ... ESCAPE
+  '\'`), and each result panel is capped (300 rows, with a "showing the
+  first N" note) to keep a broad tag click from dumping an entire large
+  database into one page. Linked from `browse.py`'s breadcrumb.
+
 ## [5.2.3] - 2026-09-06
 
 ### Changed

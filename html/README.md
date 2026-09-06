@@ -6,10 +6,10 @@ drill into its sectors and star systems, and view (or copy) the
 rendered wikitext/Markdown page saved for each one.
 
 This is a read-only browser, not the Phase 5 web application described in
-[`TODO.md`](../TODO.md) -- there's no backend framework, no search/filter
-UI, and no writing to the database. It exists so a generated galaxy can be
-looked at from a browser today, on nothing more than Apache2 and a system
-Python 3.
+[`TODO.md`](../TODO.md) -- there's no backend framework and no writing to
+the database, though [`search.py`](#how-it-works) does provide a
+faceted/name search. It exists so a generated galaxy can be looked at from
+a browser today, on nothing more than Apache2 and a system Python 3.
 
 ## How it works
 
@@ -26,6 +26,7 @@ nothing else to install or run.
 | `browse.py` | A chosen database's sectors and standalone systems. |
 | `sector.py` | One sector's systems (name, quadrant, star type). |
 | `system.py` | One system's stars/planets/moons/belts, plus its description -- rendered as HTML from `markdown_content` by default (`?view=rendered`), with the original raw wikitext/Markdown source (`?view=source&format=...`) still available for copy-pasting into a wiki. |
+| `search.py` | Faceted search: click-to-filter tag buttons for object type, star spectral/luminosity class, planet class/body type, and supported life chemistry -- built only from values actually present in the chosen database -- plus a name search (with HTML5 `<datalist>` autocomplete, no JavaScript) across sectors, star systems, stars, and planets/moons. Asteroid belts have no name of their own, so they're reachable only via the "Asteroid Belt" object-type tag. |
 | `lib/dbutil.py` | Read-only database access and HTML-escaping helpers. Not web-accessible -- see the Apache config note below. |
 | `lib/page.py` | Shared CGI response/HTML-shell helpers. Not web-accessible. |
 | `lib/mdconvert.py` | A small, purpose-built Markdown-to-HTML converter for the narrow Markdown subset `StarSystem.__str__` actually generates (headers, pipe tables, paragraphs, `<sup>` exponents) -- not a general-purpose parser. Not web-accessible. |

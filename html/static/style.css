@@ -266,6 +266,142 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
+/* Search page: tag facets, name-search form, active-filter chips */
+.tag-group {
+  margin-bottom: 1.25rem;
+}
+
+.tag-group:last-child {
+  margin-bottom: 0;
+}
+
+.tag-group h3 {
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tag:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.tag.active {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+.tag-count {
+  opacity: 0.75;
+  font-size: 0.8em;
+}
+
+.search-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex: 1 1 12rem;
+}
+
+.search-field input[type="text"] {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  cursor: pointer;
+}
+
+.btn:hover {
+  filter: brightness(1.08);
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem 0.2rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.filter-chip a {
+  color: var(--text-muted);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.filter-chip a:hover {
+  color: var(--error);
+  text-decoration: none;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 code {
   font-family: var(--font-mono);
   background: var(--bg-subtle);
