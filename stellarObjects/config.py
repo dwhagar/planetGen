@@ -20,6 +20,19 @@ syntax (see `systemGen.process_args`): `+name` sets the option to `True`,
 `-name` sets it to `False`, and omitting it leaves it `None`.
 """
 
+# The SystemConfig attributes that make up a system's generation "recipe" --
+# i.e. everything a `--system-file` JSON document can set (see
+# `systemGen.apply_system_file`) -- as opposed to `system_flavor_count` /
+# `recent_flavor_texts`, which are run-time bookkeeping rather than
+# configuration. `to_dict`/`from_dict` use this list so a config round-trips
+# through JSON in exactly the shape `--system-file` already expects.
+SERIALIZABLE_FIELDS = [
+    "MARKDOWN", "HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS",
+    "MAX_PLANETS", "PLANETS", "STAR_TYPE", "NAME", "AGE", "INTELLIGENT_LIFE",
+    "BINARY_SYSTEM", "NUM_ORBITS", "SLOTS",
+]
+
+
 class SystemConfig:
     def __init__(self):
         self.system_flavor_count = 0
@@ -136,3 +149,34 @@ class SystemConfig:
         the list (or with a `None` entry) are generated normally. Defaults to
         None.
         """
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of this config's settings, in the
+        same lowercase-key shape as `systemGen.py`'s `--system-file` format.
+
+        Returns:
+            dict: One entry per field in `SERIALIZABLE_FIELDS`.
+        """
+        return {field.lower(): getattr(self, field) for field in SERIALIZABLE_FIELDS}
+
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Builds a `SystemConfig` from a dict in the shape `to_dict()` (or a
+        `--system-file` JSON document) produces. Keys not present in `data`
+        are left at their normal defaults.
+
+        Args:
+            data (dict): A dict with zero or more of `SERIALIZABLE_FIELDS`'s
+                         lowercase names as keys.
+
+        Returns:
+            SystemConfig: The newly built config.
+        """
+        config = cls()
+        for field in SERIALIZABLE_FIELDS:
+            key = field.lower()
+            if key in data:
+                setattr(config, field, data[key])
+        return config

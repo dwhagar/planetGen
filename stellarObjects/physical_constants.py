@@ -38,6 +38,17 @@ SOLAR_ESCAPE_VELOCITY = 617.7 * 1000  # Sun's escape velocity in m/s
 SOLAR_WIND_VELOCITY = 400 * 1000  # Average solar wind velocity in m/s
 SOLAR_MASS_LOSS_RATE = 2e-14 * SOLAR_MASS_TO_KG * (365.25 * 24 * 3600)  # Sun's mass loss rate in kg/s
 
+# Average local stellar density in the solar neighborhood, in systems per
+# cubic light-year. Cross-checked from two independent real surveys (see
+# `spaceSector`'s module docstring for the worked conversions):
+#   - Mamajek's stellar-density review (~0.0984 stars/pc^3;
+#     https://www.pas.rochester.edu/~emamajek/memo_star_dens.html), converted
+#     via 1 pc^3 = 34.706 ly^3, gives ~0.00284 stars/ly^3.
+#   - RECONS' 10-parsec census (~270-414 objects within 10 pc, i.e. within
+#     145,120 ly^3; https://chview.nova.org/solcom/stars/pc10.htm) gives a
+#     consistent ~0.0019-0.0029 objects/ly^3.
+LOCAL_STELLAR_DENSITY_LY3 = 0.00284
+
 # --- Real Physical Density Ranges (used for planet/atmosphere generation) ---
 
 # Density ranges for terrestrial and gas giant planets in g/cm³
@@ -143,6 +154,17 @@ TEMP_RANGES = {
 SPECTRAL_LUMINOSITY_RANGES = {
     'O': (30000, 1000000), 'B': (25, 30000), 'A': (5, 25), 'F': (1.5, 5),
     'G': (0.6, 1.5), 'K': (0.08, 0.6), 'M': (0.0001, 0.08)
+}
+
+# Typical main-sequence mass ranges by spectral class (letter), in solar
+# masses, per standard stellar-classification references. Unlike
+# YERKES_MASS_CONSTRAINTS above (which spans every luminosity class, so its
+# "V" entry alone covers this whole range), this is specifically dwarfs
+# broken out by spectral letter -- used to scale a star's galactic Hill
+# radius (see `spaceSector.hill_radius_ly`) across spectral types.
+SPECTRAL_MASS_RANGES = {
+    'O': (15, 90), 'B': (2, 16), 'A': (1.4, 2.1), 'F': (1.0, 1.4),
+    'G': (0.89, 1.07), 'K': (0.6, 0.9), 'M': (0.08, 0.45)
 }
 
 # Approximate luminosity ranges for each Yerkes luminosity class, in solar luminosities.

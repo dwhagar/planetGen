@@ -85,6 +85,22 @@ float: The distance in Light-Years (LY) at which the display format for
 asteroid belt distances switches from AU to LY for better readability.
 """
 
+# --- Space Sector Generation Parameters ---
+
+# Cube edge length of a generated sector, in light-years (~1,521 ly^3 of
+# volume) -- a design choice, not a physical constant; see
+# `physical_constants.LOCAL_STELLAR_DENSITY_LY3` for how many systems that
+# volume would realistically contain.
+DEFAULT_SECTOR_EDGE_LY = 11.5
+
+# Maximum offset (on each axis) from dead-center when placing a sector's
+# "home" system -- see `spaceSector.SpaceSector.add_home_system`.
+DEFAULT_HOME_JITTER_LY = 1.0
+
+# Retry cap for rejection-sampling a new system's random position against
+# every existing system's minimum-separation requirement before giving up.
+SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
+
 # --- Display / Formatting Parameters ---
 HABITABLE_ZONE_BUFFER_AU = 0.2
 HELIOSPHERE_DISPLAY_THRESHOLD_LY = 0.1
