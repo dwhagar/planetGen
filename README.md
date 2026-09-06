@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.2.2 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.2.3 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -19,21 +19,15 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 
 ## Setup
 
-This project uses the `nltk` library to generate phonetically pleasing names. To install the necessary dependencies, you will need to have `setuptools` installed.
-
-First, ensure you have `setuptools` installed:
+This project uses the `nltk` library to generate phonetically pleasing names. Install it (and the rest of the project's dependencies) with:
 
 ```bash
-pip install setuptools
+pip install .
 ```
 
-Then, run the setup script to install the project dependencies:
+run from the root of the project. This installs the `nltk` library; the 'words' corpus it needs for name generation is then downloaded automatically, the first time it's needed, by whichever user first imports `stellarObjects`. (Do not run `python setup.py install` directly -- it's deprecated by setuptools itself and, on some systems, an old system-installed copy of a dependency setuptools vendors internally can shadow the working bundled one and crash the install; a normal `pip install` avoids this by building in an isolated environment. See [`CHANGELOG.md`](CHANGELOG.md) for the incident this was fixed after.)
 
-```bash
-python setup.py install
-```
-
-This will install the `nltk` library and download the 'words' corpus, which is required for the name generation.
+Deploying the web interface to a Linux/Apache server is a separate, more involved process — see [Web Interface](#web-interface) below.
 
 ## Usage
 

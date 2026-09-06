@@ -1,5 +1,49 @@
 # Changelog
 
+## [5.2.3] - 2026-09-06
+
+### Changed
+- `install.sh` no longer installs the Python package via the deprecated
+  `python3 setup.py install`; it now runs a proper, build-isolated `pip
+  install --upgrade --force-reinstall "$SCRIPT_DIR"` instead.
+  `setup.py install` broke on a deployed Ubuntu 20.04/Python 3.8 host
+  *twice* in a row, both times because setuptools' own vendoring shim
+  (`extern`) prefers a real, already-installed copy of a dependency it
+  vendors over its own newer bundled copy whenever one is importable —
+  first `importlib_metadata` (`AttributeError: ... no attribute
+  'EntryPoints'`), then, after that was patched around, `packaging`
+  (`TypeError: canonicalize_version() got an unexpected keyword argument
+  'strip_trailing_zero'`) — because that distribution's old apt-provided
+  copies of each in turn shadowed the working vendored one. Chasing each
+  shadowed dependency individually only fixes the one that broke that
+  day, not the next one; `pip install`'s build isolation builds the
+  package in a throwaway environment that can't see the system's
+  site-packages at all, closing the whole bug class instead of patching
+  it dependency-by-dependency, and means `install.sh` no longer needs to
+  upgrade the system's global `setuptools`/`importlib_metadata` at all
+  for this step. `--force-reinstall` is deliberate: a plain `pip install
+  .` skips reinstalling when pip thinks the same version is already
+  installed — true on every `update.sh` run between version bumps in
+  `stellarObjects/_version.py` — which would otherwise silently leave the
+  previous run's install in place instead of the source `update.sh` just
+  pulled.
+- `install.sh` and `update.sh` now re-`chmod +x` every `*.sh` file in the
+  repo (not just `html/*.py` and one hardcoded `apache/set-permissions.sh`
+  path), including themselves. A `core.fileMode=false` git config on the
+  authoring machine drops the executable bit on any file type on
+  checkout, not just `html/`'s `.py` scripts, and `update.sh` invokes
+  `install.sh` directly (`"$SCRIPT_DIR/install.sh"`, not `bash
+  install.sh`) — if a pull had dropped *its* executable bit, the shell
+  would refuse to exec it before `install.sh`'s own permission fix ever
+  got a chance to run. `update.sh` now fixes this itself, immediately
+  before invoking `install.sh`, so a dropped bit on `install.sh` (or on
+  `update.sh` for its own next run) no longer requires a manual `chmod
+  +x` to recover from. (One unavoidable exception: the very first
+  `update.sh` run to pull this fix is still executing the old script
+  text it already had open when `git pull` replaced the file on disk out
+  from under it, so that one migration may still need a manual `chmod +x
+  install.sh` — every run after that starts from the fixed script.)
+
 ## [5.2.2] - 2026-09-06
 
 ### Added
