@@ -69,6 +69,31 @@ counters).
   idempotent — calling twice on the same object gives identical text and
   doesn't further mutate `system_config.system_flavor_count`.
 
+## Naming system — ASCII-7-bit-printable audit (independent of the DB phases)
+
+Every generated name ultimately gets pasted into a wiki page and stored as
+`TEXT` in the database — it should never depend on non-ASCII characters
+rendering correctly somewhere downstream. `stellarObjects/names.py`'s new
+`UNIVERSAL_PHONEMES` pool (added for cross-cultural name-salad diversity,
+used by `generate_phoneme_salad_name` for stars/planets/moons/sectors
+alike) was built and verified 100% ASCII-7-bit-printable, but the rest of
+the file predates that constraint and hasn't been audited against it.
+
+- [ ] **Known violation, not yet fixed**: `MOON_PREFIXES` contains `"Rêv"`
+  (French, `ê` = U+00EA) and `"Sueñ"` (Spanish, `ñ` = U+00F1) — both
+  outside 7-bit ASCII. Replace with plain-ASCII transliterations (e.g.
+  `"Rev"`, `"Suen"`) that preserve the intended flavor.
+- [ ] Audit every other list in `stellarObjects/names.py`
+  (`STAR_NAMES`/`STAR_PREFIXES`/`STAR_SUFFIXES`,
+  `PLANET_NAMES`/`PLANET_PREFIXES`/`PLANET_SUFFIXES`,
+  `MOON_NAMES`/`MOON_SUFFIXES`, `SECTOR_NAMES`/`SECTOR_PREFIXES`/
+  `SECTOR_SUFFIXES`) for the same problem — none currently enforce it.
+- [ ] Add a regression test (e.g. `tests/test_names.py`) that walks every
+  public list-of-strings constant in `stellarObjects/names.py` and asserts
+  each string is ASCII and printable (`all(32 <= ord(c) < 127 for c in s)`)
+  — catches any future addition automatically instead of relying on manual
+  review each time a list is extended.
+
 ## Phase 1 — Full object-graph serialization
 
 Every generated object needs a canonical, storage-agnostic representation
@@ -437,20 +462,83 @@ URLs the page is expected to live at.
   vision — needs its own design pass once Phases 1-3 exist (a galaxy-scale
   coordinate system beyond a single sector's local cube, how sectors
   tile/connect to each other, batch-generation performance at that scale).
+- [ ] `galaxyGen.py` — a new top-level CLI script (sibling to
+  `sectorGen.py`/`systemGen.py`) that generates and persists many sectors
+  as one galaxy, reusing `sectorGen.py`'s own per-sector generation/save
+  logic for each one (the same way `sectorGen.py` itself reuses
+  `systemGen.py`'s per-system logic). Explicitly gated on sector
+  generation "working properly" first — at minimum, the Phase 2 read path
+  and Phase 3's list/query tooling (both still unbuilt above) should land
+  before this, since a galaxy-scale tool multiplies whatever gaps exist in
+  the single-sector path rather than surfacing them any more gently.
+  Needs the galaxy-scale coordinate system this bullet already calls out
+  (how sectors tile/connect) decided first.
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
+
+**Superseded in part**: an interim, dependency-free read-only browser
+already exists at [`html/`](html/README.md) (plain Python CGI scripts, no
+framework) plus [`apache/`](apache/README.md) (example vhost config +
+`set-permissions.sh`), meant for a single-user/small-scale Apache2
+deployment today rather than the full multi-user vision below. The bullets
+below split between near-term enhancements to that interim tool and the
+still-undecided long-term Flask/FastAPI+Postgres rebuild.
 
 - [ ] Backend API (framework TBD — Flask/FastAPI are natural fits given the
   Python-native stack) serving the database from Phase 2.
 - [ ] Frontend for browsing/searching the galaxy (sector maps, system detail
   pages, search/filter UI).
-- [ ] Deployment target (where does this actually run/get hosted?) —
-  undecided, needs its own decision.
+- [x] Deployment target (where does this actually run/get hosted?) —
+  undecided, needs its own decision. Web server will be the same one the
+  mediawiki site is hosted on.
 - [ ] Almost certainly means moving off SQLite to PostgreSQL (or similar)
   for real concurrent multi-user access — Phase 2 deliberately stuck to raw
   `sqlite3`/plain SQL for now, so this move will mean hand-porting the DDL
   and persistence layer rather than a drop-in config change; revisit
   tooling (e.g. an ORM) at that point if the port proves painful.
+
+### Near-term: interim `html/` browser enhancements
+
+- [ ] **Wiki-URL reachability check + clipboard fallback**, on
+  `html/system.py`: for each of `star_systems.mediawiki_url`/`wikijs_url`,
+  check (server-side, short timeout, some form of caching so a page load
+  doesn't stall on two live HTTP round-trips every time) whether the URL
+  is set *and* actually resolves; if so, render it as a normal clickable
+  link. If it's unset or unreachable, show a "Copy to clipboard" button
+  next to the matching content instead (`wikitext_content` for
+  `mediawiki_url`, `markdown_content` for `wikijs_url`) — needs a small
+  inline JS snippet (`navigator.clipboard.writeText`) since the current
+  plain `<textarea>` select-all-and-copy affordance is manual. Requires
+  deciding how "does it exist" is actually checked (HTTP HEAD vs. GET,
+  what counts as a hit for a wiki that 200s its own "page doesn't exist
+  yet" placeholder) and whether the check result is cached anywhere or
+  re-checked on every view.
+- [ ] **Sprite-based graphical system view**: render a system's star,
+  planets, and moons as small icon sprites sized relative to each other
+  (from `radius_km`) for an at-a-glance size comparison, the way real
+  solar-system scale charts do. Open design questions: where the sprite
+  art comes from (hand-authored set keyed by `body_type`/`planet_class`/
+  star spectral type vs. some procedural generation), linear vs.
+  logarithmic size scaling (a gas giant vs. a moon differ by 2-3 orders of
+  magnitude in radius — linear scaling would render most bodies as
+  invisible dots), and whether this is a simple side-by-side comparison
+  row (answers "size comparison" directly, much simpler) or a full
+  scaled-orbit diagram (answers more, substantially harder — distances and
+  radii can't share one linear scale without one becoming unreadable).
+- [ ] **Distance calculator**: given two systems (same sector, since
+  `position_x/y/z_mpc` is stored relative to that sector's own center —
+  see `db/README.md`), compute the straight-line distance between their
+  stored positions and display it in both light-years and milliparsecs
+  (`stellarObjects.utils.milliparsecs_to_ly` already exists for the
+  conversion).
+- [ ] **"Nearest N systems within radius R"**, surfaced from
+  `html/sector.py`: given a chosen system (or the sector's own center) plus
+  a radius (accepted in either ly or mpc, converted via the same helper as
+  above) and a count N, return the N closest other systems in that sector
+  within the radius — a straightforward Euclidean-distance query over the
+  existing `position_x/y/z_mpc` columns, no schema change needed. Doesn't
+  extend across sectors — there's no cross-sector coordinate system yet
+  (see Phase 4's galaxy-scale coordinate bullet above).
 
 ## Open questions still to resolve
 
