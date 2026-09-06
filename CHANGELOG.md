@@ -1,5 +1,51 @@
 # Changelog
 
+## [5.2.0] - 2026-09-06
+
+### Added
+- Full SQLite database persistence: `stellarObjects/schema.sql` defines the
+  schema, and the new `stellarObjects/_db.py` writes an already-generated
+  `SpaceSector` (every system, star, planet, moon, and asteroid belt,
+  plus a rendered copy of the wiki page in both wikitext and Markdown)
+  into it in a single transaction. Documented column-by-column in the new
+  `db/README.md`. `sectorGen.py` now calls this automatically on every
+  run, saving to `db/planetgen.db` by default (overridable via the new
+  `--db-path` option); the database file itself is gitignored.
+- Sector name generation: sectors now get a random two-word name (e.g.
+  "Voranthis Kelmoor") drawn from a new sector-flavored name list
+  (`SECTOR_NAMES`/`SECTOR_PREFIXES`/`SECTOR_SUFFIXES` in
+  `stellarObjects/names.py`, pulling from real galactic structures and
+  well-known science-fiction sector names) instead of reusing star names
+  with "Sector" appended.
+- `Star`, `Planet`, `BinaryStarProxy`, and `AsteroidBelt` each gained a
+  `get_table_properties()`/`get_composition_summary()` method that returns
+  the same already-formatted values their `to_paragraph_list()` renders
+  into text, so the new database layer can store exactly what was
+  published without duplicating any formatting logic.
+
+### Changed
+- **Breaking:** `sectorGen.py`'s `-n` short flag now means `--name`
+  (hard-sets the sector's own name) instead of `--num-systems`, which no
+  longer has a short flag; the old `--sector-name` option was renamed to
+  `--name`.
+- Distances stored in the database use a two-tier unit convention
+  (milliparsecs for sector-scale position/geometry, kilometers everywhere
+  else); `stellarObjects/utils.py` gained `ly_to_milliparsecs`/
+  `milliparsecs_to_ly` and `physical_constants.py` gained
+  `AU_PER_PARSEC`/`AU_PER_MILLIPARSEC` to support the conversion, used only
+  by the persistence layer.
+
+### Fixed
+- Atmospheric scale height (`planetPhysics.calculate_atmospheric_conditions`)
+  was computed in meters but combined directly with `planet.radius` (in
+  km) without converting units first, throwing off atmosphere thickness
+  and volume for every planet with an atmosphere.
+- `utils.calculate_object_mass` and `Planet.__init__` each independently
+  (and inconsistently) converted radius-in-km to a volume, one of them
+  mixing up its km/m factor; `Planet` now takes its volume solely from
+  `calculate_object_mass`'s corrected calculation instead of recomputing
+  it a second time.
+
 ## [5.1.0] - 2026-09-06
 
 ### Added

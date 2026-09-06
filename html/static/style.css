@@ -1,0 +1,64 @@
+/* html/static/style.css -- shared styling for the planetGen web interface */
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem;
+  line-height: 1.4;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid #8884;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0 1.5rem;
+}
+
+th, td {
+  border: 1px solid #8884;
+  padding: 0.35rem 0.6rem;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+th {
+  background: #8881;
+}
+
+.content-box {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, "Consolas", monospace;
+  font-size: 0.85rem;
+  white-space: pre;
+}
+
+.error {
+  color: #c00;
+  font-weight: bold;
+}
+
+code {
+  font-family: ui-monospace, "Consolas", monospace;
+  background: #8881;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}

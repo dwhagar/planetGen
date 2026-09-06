@@ -1,0 +1,63 @@
+# apache/planetgen.conf.example
+#
+# Example Apache2 virtual host for the planetGen database browser
+# (html/README.md documents the application itself). Copy this file to
+# /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
+# needed, then enable it:
+#
+#   sudo a2enmod cgid
+#   sudo a2ensite planetgen
+#   sudo systemctl reload apache2
+#
+# `cgid` (the threaded MPM-safe CGI module) is preferred over the older
+# `cgi` module; either works, but `cgid` is required if apache2 is running
+# mpm_event or mpm_worker (the Ubuntu default), since plain `mod_cgi` only
+# supports mpm_prefork.
+#
+# Expected layout on the server (see the repo's set-permissions.sh, which
+# assumes this same layout):
+#
+#   /var/lib/planetGen/
+#     html/     -- this vhost's DocumentRoot (the repo's html/ directory)
+#     db/       -- the repo's db/ directory (the *.db files html/ reads)
+#     stellarObjects/, ...  -- the rest of the repo checkout, so html/'s
+#                              scripts can import the planetGen package
+#                              without a separate `pip install`
+
+<VirtualHost *:80>
+    ServerName planetgen.example.com
+    DocumentRoot /var/lib/planetGen/html
+
+    # Tell the CGI scripts where to find the database directory. Only
+    # needed if it isn't the default sibling ../db next to html/.
+    # SetEnv PLANETGEN_DB_DIR /var/lib/planetGen/db
+
+    <Directory /var/lib/planetGen/html>
+        Options +ExecCGI -Indexes
+        AddHandler cgi-script .py
+        DirectoryIndex index.py
+        Require all granted
+    </Directory>
+
+    # html/lib/ holds shared Python modules imported by the CGI scripts,
+    # not pages of their own -- deny it outright rather than relying on
+    # the .py handler alone (belt-and-suspenders: a misconfigured handler
+    # would otherwise let it execute, or a future non-.py file in there
+    # could be served as plain text).
+    <Directory /var/lib/planetGen/html/lib>
+        Require all denied
+    </Directory>
+
+    # static/ is plain CSS -- served directly, never as CGI.
+    <Directory /var/lib/planetGen/html/static>
+        Options -ExecCGI -Indexes
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/planetgen_error.log
+    CustomLog ${APACHE_LOG_DIR}/planetgen_access.log combined
+</VirtualHost>
+
+# For HTTPS, terminate TLS the usual way (e.g. `certbot --apache`) or add
+# a second <VirtualHost *:443> block with SSLEngine/SSLCertificateFile
+# directives and the same DocumentRoot/Directory blocks above.
