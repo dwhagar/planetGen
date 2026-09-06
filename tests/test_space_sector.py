@@ -256,20 +256,46 @@ def test_to_dict_and_from_dict_round_trip_positions_and_names():
     assert rebuilt.entries[0].star_system.star.name == "Trantor"
 
 
-def test_reload_rebuilds_from_the_same_recipe_but_is_not_byte_identical():
+def test_reload_with_generated_key_reproduces_the_exact_system():
     """
-    Regression guard for the (false) assumption that a stored seed could make
-    reload byte-identical: much of this package's generation (planet class,
-    moons, names, flavor text) draws from `secrets`, a CSPRNG that cannot be
-    seeded or replayed. Reload must still produce a system built from the
-    same recipe (same star type, same forced habitable world), even though
-    its fine details are freshly randomized.
+    Phase 1.5: `to_dict()` always writes a `generated` key (the full
+    object-graph serialization from Phase 1) alongside `config`, and
+    `from_dict` prefers it -- so, unlike the config-only fallback path
+    below, reload is now an EXACT, byte-for-byte replay of the original
+    system, not a fresh roll from the same recipe.
     """
     sector = SpaceSector("Recipe Sector")
     system, cfg = make_system(star_type="G2V", NAME="Sol", HABITABLE_WORLD=True)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
 
     data = sector.to_dict()
+    assert "generated" in data["systems"][0]
+
+    rebuilt = SpaceSector.from_dict(data)
+    rebuilt_system = rebuilt.entries[0].star_system
+
+    assert str(rebuilt_system) == str(system)
+    assert rebuilt_system.hab_count == system.hab_count
+
+
+def test_reload_without_generated_key_falls_back_to_recipe_regeneration():
+    """
+    Regression guard for the (false) assumption that a stored seed could make
+    reload byte-identical: much of this package's generation (planet class,
+    moons, names, flavor text) draws from `secrets`, a CSPRNG that cannot be
+    seeded or replayed. With no `generated` key present (an older save file,
+    or one written without Phase 1.5's addition), reload falls back to
+    rebuilding a system from the same recipe (same star type, same forced
+    habitable world) -- not the same system come back, so its fine details
+    are freshly randomized.
+    """
+    sector = SpaceSector("Recipe Sector")
+    system, cfg = make_system(star_type="G2V", NAME="Sol", HABITABLE_WORLD=True)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+
+    data = sector.to_dict()
+    del data["systems"][0]["generated"]
+
     rebuilt = SpaceSector.from_dict(data)
     rebuilt_system = rebuilt.entries[0].star_system
 
@@ -307,6 +333,9 @@ def test_save_and_load_round_trip_via_file(tmp_path):
     assert reloaded.name == "File Sector"
     assert reloaded.entries[0].position == (4.0, 4.0, 4.0)
     assert reloaded.entries[0].star_system.star.name == "Vulcan"
+    # File save/load round-trips the generated object graph exactly too,
+    # not just the recipe (Phase 1.5).
+    assert str(reloaded.entries[0].star_system) == str(system)
 
 
 def test_system_config_to_dict_and_from_dict_round_trip():

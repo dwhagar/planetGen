@@ -154,18 +154,26 @@ only form actually persisted.
 
 Persistence
 -----------
-A sector can be saved to (and reloaded from) JSON: each entry keeps the
-`SystemConfig` its `StarSystem` was built from, so the sector's *recipe* --
-star types, forced features, names, orbit counts, and so on -- survives a
-save/reload cycle. Reloading does NOT reproduce byte-identical systems: a
-fair amount of the generation in this package (planet class rolls, moon
-coin-flips, name generation, flavor text) is drawn from the `secrets` module
-specifically because it should be unpredictable, so there's no seed that
-could play it back exactly. A reloaded system is a fresh, independently
-random system built from the same recipe -- not the same system come back.
-The one detail pinned across reload is the star's name: if a system's config
-didn't already force one, the name it was actually given gets baked into the
-saved config so it doesn't change out from under a saved sector.
+A sector can be saved to (and reloaded from) JSON. Since Phase 1.5 (see
+TODO.md), each entry's `to_dict()` writes TWO things: `config`, the
+`SystemConfig` its `StarSystem` was built from (the sector's *recipe* --
+star types, forced features, names, orbit counts, and so on), and
+`generated`, the full object graph itself (`StarSystem.to_dict()`,
+Phase 1's serialization). `from_dict` prefers `generated` when present,
+giving an EXACT, byte-for-byte reload of the original system -- not a
+fresh roll -- since a fair amount of this package's generation (planet
+class rolls, moon coin-flips, name generation, flavor text) is drawn from
+the `secrets` module specifically because it should be unpredictable, so
+there's no seed that could play it back exactly any other way.
+
+A file written before this addition (or a hand-authored one supplying only
+`config`) has no `generated` key, so `from_dict` falls back to the
+original behavior instead: a fresh, independently random system is built
+from the same recipe -- not the same system come back. The one detail
+pinned across THAT fallback path's reload is the star's name: if a
+system's config didn't already force one, the name it was actually given
+gets baked into the saved config so it doesn't change out from under a
+saved sector.
 """
 
 import json
@@ -490,10 +498,14 @@ class SectorSystemEntry:
         The saved config's `name` is pinned to the star's actual generated
         name when the config itself didn't already force one, so a reloaded
         sector keeps the same names even though other details are freshly
-        randomized (see the module docstring).
+        randomized when rebuilt from `config` alone (see the module
+        docstring's "Persistence" section) -- the `generated` key below is
+        what makes an *exact* reload possible instead, when present.
 
         Returns:
-            dict: With `name`, `position`, and `config` keys.
+            dict: With `name`, `position`, `config`, and `generated` (this
+                 entry's `star_system.to_dict()`, Phase 1's full
+                 object-graph serialization) keys.
         """
         config_dict = self.system_config.to_dict()
         if config_dict.get("name") is None:
@@ -503,6 +515,7 @@ class SectorSystemEntry:
             "name": self.star_system.star.name,
             "position": list(self.position),
             "config": config_dict,
+            "generated": self.star_system.to_dict(),
         }
 
 
@@ -861,10 +874,18 @@ class SpaceSector:
     @classmethod
     def from_dict(cls, data):
         """
-        Rebuilds a `SpaceSector` from `to_dict()`'s output, rebuilding each
-        system from its stored `SystemConfig`. Rebuilt systems are freshly,
-        independently randomized from that same recipe -- not byte-identical
-        to the originals -- see the module docstring for why.
+        Rebuilds a `SpaceSector` from `to_dict()`'s output.
+
+        Two-tier behavior per entry, per the module docstring's
+        "Persistence" section: when a `generated` key is present (Phase
+        1.5's addition, written by every `to_dict()` since), the entry is
+        rebuilt exactly via `StarSystem.from_dict` -- a faithful replay of
+        the original, not a fresh roll. When it's absent (a file written
+        before this addition, or a hand-authored one supplying only
+        `config`), this falls back to the original behavior: rebuilding a
+        fresh `StarSystem` from the stored `SystemConfig` recipe, freshly
+        and independently randomized rather than byte-identical to the
+        original.
 
         Args:
             data (dict): A dict as produced by `to_dict()`.
@@ -875,8 +896,12 @@ class SpaceSector:
         sector = cls(data["name"], edge_ly=data.get("edge_ly", program_constants.DEFAULT_SECTOR_EDGE_LY))
 
         for system_data in data["systems"]:
-            config = SystemConfig.from_dict(system_data["config"])
-            star_system = StarSystem(system_config=config)
+            if "generated" in system_data:
+                star_system = StarSystem.from_dict(system_data["generated"])
+                config = star_system.system_config
+            else:
+                config = SystemConfig.from_dict(system_data["config"])
+                star_system = StarSystem(system_config=config)
             sector.entries.append(SectorSystemEntry(
                 star_system, system_data["position"], system_config=config,
             ))

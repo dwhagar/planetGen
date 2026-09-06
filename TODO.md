@@ -225,20 +225,32 @@ roughly linearly with body count.
 
 ## Phase 1.5 — Interim JSON extension (can land before the database exists)
 
-- [ ] `SectorSystemEntry.to_dict()` keeps its existing `config` key
+- [x] `SectorSystemEntry.to_dict()` keeps its existing `config` key
   unchanged and adds a new `"generated": self.star_system.to_dict()` key
   (Phase 1's output). `SpaceSector.from_dict()` prefers `generated` when
   present (`StarSystem.from_dict`, faithful) and falls back to today's
-  regenerate-from-`config` path when absent — fully backward compatible;
-  every existing test in `test_space_sector.py` keeps exercising the
-  unchanged fallback branch since old files only ever wrote `config`.
-- [ ] Update `spaceSector.py`'s module docstring "Persistence" section
-  (currently states reload is *never* byte-identical as a blanket fact) to
+  regenerate-from-`config` path when absent — fully backward compatible.
+  One correction to this document's original plan: since `to_dict()` now
+  *always* writes `generated`, an in-memory `to_dict()`/`from_dict()`
+  round-trip test no longer exercises the fallback branch by default (only
+  an actual pre-Phase-1.5 file on disk would lack the key) —
+  `test_reload_rebuilds_from_the_same_recipe_but_is_not_byte_identical` in
+  `test_space_sector.py` was renamed/split (see the new-tests bullet below)
+  rather than left silently exercising the wrong path under its old name.
+- [x] Updated `spaceSector.py`'s module docstring "Persistence" section
+  (previously stated reload is *never* byte-identical as a blanket fact) to
   describe the new two-tier behavior.
-- [ ] New tests: round-trip with the `generated` key reproduces the exact
-  system; `from_dict` falls back to recipe-regeneration when `generated` is
-  absent (explicitly delete the key and confirm the old path still works);
-  file save/load round-trip preserves the generated system.
+- [x] New tests in `test_space_sector.py`:
+  `test_reload_with_generated_key_reproduces_the_exact_system` (round-trip
+  with the `generated` key present reproduces the exact system, asserted
+  via `str(rebuilt) == str(original)`); `test_reload_without_generated_key_
+  falls_back_to_recipe_regeneration` (the renamed/repurposed former
+  not-byte-identical test — explicitly `del`s the `generated` key so it
+  actually exercises the fallback path it's named for, then keeps its
+  original recipe-preserved-but-not-identical assertions);
+  `test_save_and_load_round_trip_via_file` extended with a
+  `str(reloaded) == str(original)` assertion that the generated system
+  itself, not just the recipe, survives a real file save/load.
 - [ ] This is what Phase 2 eventually reads from/writes to instead of flat
   files — a natural stepping stone, not wasted work.
 
