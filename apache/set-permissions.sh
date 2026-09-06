@@ -74,15 +74,18 @@ detect_apache_group() {
         return 0
     fi
 
-    return 1
+    # Last resort: neither the config file nor a running process was
+    # found -- most likely because apache2 hasn't been started/enabled
+    # yet (e.g. running as part of install.sh, before the vhost exists).
+    # www-data:www-data is the standard Debian/Ubuntu apache2 identity,
+    # so assume it rather than hard-failing the whole install.
+    echo "warning: could not detect Apache's user/group (no readable" >&2
+    echo "  /etc/apache2/envvars and no running apache2 process found)." >&2
+    echo "  Assuming the Debian/Ubuntu default: www-data:www-data" >&2
+    echo "www-data www-data"
 }
 
-if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group); then
-    echo "error: could not determine the Apache user/group." >&2
-    echo "Neither /etc/apache2/envvars nor a running apache2 process was found." >&2
-    echo "Is apache2 installed? Try: sudo apt install apache2" >&2
-    exit 1
-fi
+read -r APACHE_USER APACHE_GROUP < <(detect_apache_group)
 
 echo "Detected Apache identity: user=$APACHE_USER group=$APACHE_GROUP"
 echo "Applying permissions to:"

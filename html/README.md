@@ -48,18 +48,28 @@ somewhere else.
 
 ## Deploying
 
-See [`../apache/`](../apache/) for an example Apache2 virtual host config
-and a `set-permissions.sh` script that sets up the deployed directory's
-ownership for you. In short:
+1. Copy the repo (or at least `html/`, `db/`, `stellarObjects/`,
+   `install.sh`, `setup.py`, and `apache/`) to the server, e.g.
+   `/var/lib/planetGen/`.
+2. From that directory, run `sudo ./install.sh` -- installs the Python
+   package, pre-fetches the NLTK `words` corpus into a shared
+   world-readable location (so it works under Apache's `www-data`, not
+   just whatever user happens to run the CLI tools), makes the CGI
+   scripts executable, enables Apache's CGI module, and sets `html/`/`db/`
+   ownership for Apache via `apache/set-permissions.sh`. See
+   [`../apache/README.md`](../apache/README.md) for what each step does
+   and how to re-run pieces of it individually.
+3. `install.sh` prints one remaining manual step: copy
+   `apache/planetgen.conf.example` to
+   `/etc/apache2/sites-available/planetgen.conf`, edit it (at minimum,
+   `ServerName`), then `sudo a2ensite planetgen && sudo systemctl reload
+   apache2`. This is deliberately not automated -- the vhost's
+   ServerName/TLS/logging are your call, not something to silently create
+   or overwrite.
 
-1. Copy the repo (or at least `html/`, `db/`, and `stellarObjects/`) to
-   the server, e.g. `/var/lib/planetGen/`.
-2. Enable CGI and this site: `sudo a2enmod cgid && sudo a2ensite planetgen`
-   (after copying `apache/planetgen.conf.example` into
-   `/etc/apache2/sites-available/planetgen.conf`).
-3. Run `sudo apache/set-permissions.sh` so Apache's worker user can read
-   (and execute) the deployed files.
-4. `sudo systemctl reload apache2`.
+Re-run `sudo ./install.sh` any time after pulling updates -- every step
+is idempotent (the corpus fetch skips itself if already present, `chmod
++x`/`a2enmod`/permission-setting are all safe to repeat).
 
 ## Local testing without Apache
 

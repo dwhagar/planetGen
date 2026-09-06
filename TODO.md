@@ -540,6 +540,78 @@ still-undecided long-term Flask/FastAPI+Postgres rebuild.
   extend across sectors — there's no cross-sector coordinate system yet
   (see Phase 4's galaxy-scale coordinate bullet above).
 
+### Deployment bugs found in production (interim `html/` browser)
+
+Found live on the deployed Ubuntu/Apache2 VPS (`starmap.moltenaether.com`)
+shortly after first rollout — root-caused against the actual server
+logs/config, not just reproduced locally. **Resolved** by adding
+[`install.sh`](../install.sh) at the repo root as the answer to the open
+design question this section originally ended with: `setup.py` stays
+scoped to the Python package only (`stellarObjects` + the
+`sectorgen`/`systemgen` entry points, installable on any OS); a separate,
+explicit `install.sh` (Linux-only, run once per deploy as root) owns
+everything Apache/CGI-specific, calling `apache/set-permissions.sh` as
+one of its steps.
+
+- [x] **CGI scripts deployed non-executable — root cause found and
+  fixed**: Apache logged `AH01215: (13)Permission denied: exec of
+  '/var/lib/planetGen/html/index.py' failed` for every request. Root
+  cause: this repo's local (Windows) git config had `core.fileMode=false`,
+  which silently drops any `chmod +x` before it reaches a commit —
+  confirmed via `git ls-files -s html/*.py apache/*.sh`, which showed all
+  of them committed as mode `100644` despite being `chmod +x`-ed in the
+  working tree when authored. Fixed by no longer trusting git to carry
+  the executable bit at all: `install.sh` unconditionally
+  `chmod +x`-es `html/*.py` and `apache/set-permissions.sh` on every run,
+  independent of whatever mode git stored.
+- [ ] **CRLF line endings on the deployed scripts** — not yet fixed. The
+  same production session also had to run `sed -i 's/\r$//' index.py` to
+  get a clean run. The blobs currently committed at `HEAD` are confirmed
+  LF-only, so this was very likely a one-time artifact of exactly when/how
+  that particular commit was made from the Windows authoring machine
+  (`core.autocrlf=true` locally) — but nothing today actually *prevents* a
+  future Windows-side commit from reintroducing CRLF. Add a
+  `.gitattributes` entry pinning `html/**/*.py` and `apache/*.sh` to
+  `text eol=lf` so this is enforced by the repo itself rather than by
+  convention. (Left open — not part of `install.sh`, since it's a repo
+  hygiene fix, not a deploy-time one.)
+- [x] **`nltk.download('words', quiet=True)` fails under the Apache
+  worker user — root cause found and fixed**: `stellarObjects/names.py`
+  called this unconditionally at import time. `nltk`'s `download()`
+  always targets its *own* default download directory (resolved against
+  the current user's home dir) and always attempts `os.makedirs()` there
+  first, regardless of whether the corpus already exists elsewhere on
+  `nltk.data.path` — confirmed by reading `Downloader._download_package`
+  directly. Run as `www-data` under `mod_cgi` (Debian/Ubuntu default home
+  `/var/www`), that resolved to `/var/www/nltk_data`, which doesn't exist
+  and `www-data` can't create (`PermissionError: [Errno 13] Permission
+  denied: '/var/www/nltk_data'`, confirmed from `planetgen.error.log`) —
+  breaking every single page of the web interface, since every CGI
+  request re-imports the package fresh and re-triggers the same check. It
+  had "worked" for the CLI tools only because those happened to run as
+  `root` (writable home directory), masking the bug until the web
+  interface hit it as a different user. Fixed two ways together (verified
+  end-to-end: pre-fetch to a directory on `nltk.data.path`, then confirm
+  `nltk.data.find` locates it without touching `download()` at all):
+  - `install.sh` runs `python3 -m nltk.downloader -d
+    /usr/local/share/nltk_data words` (one of nltk's own default
+    system-wide search paths, so no code needs to know the location
+    explicitly) and `chmod -R a+rX` on it — every consumer (CLI as any
+    user, or the web interface as `www-data`) now reads the same
+    pre-populated, read-only copy.
+  - `stellarObjects/names.py` now calls `nltk.data.find('corpora/words')`
+    first, only falling back to `download()` on `LookupError` — removing
+    the unconditional download attempt (and its per-CGI-request
+    filesystem overhead) entirely once the corpus is pre-fetched.
+- [x] **`apache/set-permissions.sh`: no safe fallback when apache2 isn't
+  detectable — fixed**: previously, if `/etc/apache2/envvars` wasn't
+  readable *and* no running `apache2` process was found,
+  `detect_apache_group` failed the whole script. That fired during
+  exactly the install-time window `install.sh` now runs it in — apache2
+  may be installed but not yet started/enabled at that point. Changed to
+  warn (to stderr) and default to `www-data:www-data` (the standard
+  Debian/Ubuntu identity) instead of hard-failing.
+
 ## Open questions still to resolve
 
 Resolved since the last pass (kept here only as a pointer, full reasoning

@@ -153,10 +153,15 @@ def generate_sector_name():
     `process_args`), which hard-sets the whole name instead.
 
     Returns:
-        str: A newly generated sector name, e.g. "Voranthis Kelmoor".
+        str: A newly generated sector name, e.g. "Voranthis Kelmoor" --
+        always exactly two words.
     """
-    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES)
-    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES)
+    # allow_split=False: generate_phoneme_salad_name can itself split a
+    # long result into two words (e.g. "Xyleth Anore"). Since this
+    # function already joins two independent calls into one name, leaving
+    # splitting on could silently produce 3-4 words instead of 2.
+    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False)
+    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False)
     return f"{first_word} {second_word}"
 
 

@@ -121,8 +121,21 @@ a planet.
 
 # --- Word Dictionaries and Validation ---
 
-# Load the NLTK words corpus
-nltk.download('words', quiet=True)
+# Load the NLTK words corpus. Check via `nltk.data.find` (which searches
+# every directory in `nltk.data.path`, including shared system locations
+# like `/usr/local/share/nltk_data` -- see `install.sh`) before ever
+# calling `download()`. This matters because `download()` always targets
+# its *own* default download directory (typically `~/nltk_data`)
+# regardless of whether the corpus already exists elsewhere on the search
+# path, and always attempts `os.makedirs()` there first -- fatal for a
+# locked-down service account with no writable home directory, such as
+# Apache's `www-data` running this module via the `html/` CGI scripts
+# (see `TODO.md`'s "Deployment bugs found in production" section for the
+# incident this fixes).
+try:
+    nltk.data.find('corpora/words')
+except LookupError:
+    nltk.download('words', quiet=True)
 DICTIONARY_WORDS = set(words.words())
 """
 A set of common English words from the NLTK corpus. This is used to validate

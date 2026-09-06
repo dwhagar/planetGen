@@ -129,11 +129,13 @@ The output opens with a sector-wide summary and an index of every system's name 
 described in [`db/README.md`](db/README.md) -- pick a database, drill into
 its sectors and star systems, and view or copy the rendered wikitext/
 Markdown page saved for each one. It's meant to be deployed to an Apache2
-install on a Linux server; [`apache/`](apache/README.md) has an example
-virtual host config (default document root `/var/lib/planetGen/html`,
-database directory `/var/lib/planetGen/db` alongside it) and a
-`set-permissions.sh` script that sets up the deployed directories'
-ownership for Apache's worker user/group. See
+install on a Linux server; run `sudo ./install.sh` from the repo root on
+the server to do the whole install (Python package, the NLTK corpus
+Apache's own user needs, CGI setup, and directory permissions) in one
+step. [`apache/`](apache/README.md) has an example virtual host config
+(default document root `/var/lib/planetGen/html`, database directory
+`/var/lib/planetGen/db` alongside it) and the `set-permissions.sh` script
+`install.sh` calls. See
 [`html/README.md`](html/README.md) for how the interface works and how to
 deploy or test it locally.
 

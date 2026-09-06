@@ -450,7 +450,7 @@ prefix/suffix lists to be extended individually.
 """
 
 
-def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
+def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True):
     """
     Generates a unique, phonetically pleasing name from a list of base names.
 
@@ -466,6 +466,17 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
         name_list (list): A list of base names to choose from.
         prefix_list (list): A list of possible prefixes.
         suffix_list (list): A list of possible suffixes.
+        allow_split (bool): Whether a long result may be split into two
+                            space-separated words via `split_long_word`
+                            (e.g. `"Xyleth Anore"`). Default `True` for
+                            stars/planets/moons, where that reads fine as
+                            one name. Callers that combine multiple calls
+                            into one already-multi-word name (e.g.
+                            `sectorGen.generate_sector_name`, which joins
+                            two of these into a two-word sector name) must
+                            pass `False` here, or a single call splitting
+                            internally would silently make the combined
+                            result 3-4 words instead of the intended 2.
 
     Returns:
         str: A newly generated, unique name.
@@ -508,7 +519,8 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
         name = name.lower()
         
         if is_name_valid(name):
-            name = split_long_word(name)
+            if allow_split:
+                name = split_long_word(name)
             name = name[0].upper() + name[1:]
             if "'" in name:
                 parts = name.split("'")
