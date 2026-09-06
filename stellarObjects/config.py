@@ -20,6 +20,8 @@ syntax (see `systemGen.process_args`): `+name` sets the option to `True`,
 `-name` sets it to `False`, and omitting it leaves it `None`.
 """
 
+from .serialization import fields_from_dict, fields_to_dict
+
 # The SystemConfig attributes that make up a system's generation "recipe" --
 # i.e. everything a `--system-file` JSON document can set (see
 # `systemGen.apply_system_file`) -- as opposed to `system_flavor_count` /
@@ -158,7 +160,7 @@ class SystemConfig:
         Returns:
             dict: One entry per field in `SERIALIZABLE_FIELDS`.
         """
-        return {field.lower(): getattr(self, field) for field in SERIALIZABLE_FIELDS}
+        return fields_to_dict(self, SERIALIZABLE_FIELDS)
 
     @classmethod
     def from_dict(cls, data):
@@ -175,8 +177,5 @@ class SystemConfig:
             SystemConfig: The newly built config.
         """
         config = cls()
-        for field in SERIALIZABLE_FIELDS:
-            key = field.lower()
-            if key in data:
-                setattr(config, field, data[key])
+        fields_from_dict(config, data, SERIALIZABLE_FIELDS)
         return config

@@ -13,6 +13,7 @@ import random
 
 from .config import SystemConfig
 from . import physical_constants, program_constants
+from .serialization import fields_from_dict, fields_to_dict
 from .utils import reseed_rng
 
 class AsteroidBelt:
@@ -36,6 +37,13 @@ class AsteroidBelt:
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
                             unrelated shape, on the two classes).
+    """
+
+    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density"]
+    """
+    Every attribute set by `__init__`, excluding `system_config` (a shared
+    back-reference) and `composition` (handled separately in `to_dict`/
+    `from_dict`, since it's a list of tuples -- JSON has no tuple type).
     """
 
     def __init__(self, system_config: SystemConfig, distance, lower_limit, upper_limit): # Added system_config
@@ -89,6 +97,40 @@ class AsteroidBelt:
             composition_data.append((component, concentration))
 
         return composition_data
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of this belt's properties, per
+        `SERIALIZABLE_FIELDS`, with `composition` stored as a list of
+        2-element lists (JSON has no tuple type).
+
+        Returns:
+            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
+                 `composition`.
+        """
+        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+        data["composition"] = [list(pair) for pair in self.composition]
+        return data
+
+    @classmethod
+    def from_dict(cls, data, system_config):
+        """
+        Reconstructs an `AsteroidBelt` from a dict in the shape `to_dict()`
+        produces, without re-running generation (`__init__` is bypassed via
+        `object.__new__`).
+
+        Args:
+            data (dict): A dict in the shape `to_dict()` produces.
+            system_config (SystemConfig): The system's shared config.
+
+        Returns:
+            AsteroidBelt: The reconstructed belt.
+        """
+        belt = object.__new__(cls)
+        belt.system_config = system_config
+        fields_from_dict(belt, data, cls.SERIALIZABLE_FIELDS)
+        belt.composition = [tuple(pair) for pair in data["composition"]]
+        return belt
 
     def get_composition_summary(self):
         """

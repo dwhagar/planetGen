@@ -24,6 +24,7 @@ import re
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
+from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
                     format_length_km, format_relative_to_sol, generate_phoneme_salad_name,
                     get_star_evolutionary_profile, properties_to_string, reseed_rng)
@@ -50,6 +51,61 @@ class Star:
     mixed `planets` list) -- the two just happen to share a common English
     word as their name.
     """
+
+    SERIALIZABLE_FIELDS = [
+        "name", "type", "yerkes_class", "mass", "radius", "temperature",
+        "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
+        "heliosphere_radius",
+    ]
+    """
+    Every attribute set by `__init__`/`generate_star`, excluding
+    `system_config` (a shared back-reference threaded into `from_dict`
+    rather than serialized redundantly on every star).
+    """
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of this star's generated
+        properties, per `SERIALIZABLE_FIELDS`.
+
+        `habitable_zone` is stored as a list (JSON has no tuple type).
+        `lifespan` is stored as `None` in place of `float('inf')` (white
+        dwarfs) -- the same convention `stellarObjects/_db.py` uses via
+        `_lifespan_gy` -- since `float('inf')` round-trips through the
+        standard `json` module as a non-standard `Infinity` token that not
+        every JSON consumer accepts.
+
+        Returns:
+            dict: One entry per field in `SERIALIZABLE_FIELDS`.
+        """
+        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+        data["habitable_zone"] = list(self.habitable_zone)
+        data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
+        return data
+
+    @classmethod
+    def from_dict(cls, data, system_config):
+        """
+        Reconstructs a `Star` from a dict in the shape `to_dict()` produces,
+        without re-running any generation logic (`__init__` is bypassed
+        entirely via `object.__new__`).
+
+        Args:
+            data (dict): A dict in the shape `to_dict()` produces.
+            system_config (SystemConfig): The system's shared config,
+                                          threaded in rather than stored
+                                          per-star (see `StarSystem.from_dict`,
+                                          the single place this is resolved).
+
+        Returns:
+            Star: The reconstructed star.
+        """
+        star = object.__new__(cls)
+        star.system_config = system_config
+        fields_from_dict(star, data, cls.SERIALIZABLE_FIELDS)
+        star.habitable_zone = tuple(data["habitable_zone"])
+        star.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
+        return star
 
     def _calculate_initial_star_age_and_lifespan(self):
         """

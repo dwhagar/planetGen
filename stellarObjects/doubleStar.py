@@ -18,6 +18,7 @@ import random
 
 from .config import SystemConfig
 from . import physical_constants, program_constants
+from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
                     format_relative_to_sol, properties_to_string, to_scientific_notation)
@@ -39,6 +40,22 @@ class BinaryStarProxy(Star):
         _effective_mass (float): The combined mass of both stars in kilograms.
         _effective_luminosity (float): The combined luminosity of both stars in Watts.
         _binary_separation_au (float): The orbital separation between the two stars in AU.
+    """
+
+    SERIALIZABLE_FIELDS = [
+        "name", "type", "temperature", "radius", "age", "lifespan",
+        "habitable_zone", "system_perimeter", "heliosphere_radius",
+        "_binary_separation_au", "_effective_mass", "_effective_luminosity",
+    ]
+    """
+    Mirrors `Star.SERIALIZABLE_FIELDS`, minus `yerkes_class` (not set on a
+    proxy) and `mass`/`luminosity` (read-only properties -- their
+    underscore-prefixed backing attributes, `_effective_mass`/
+    `_effective_luminosity`, are listed instead, since `from_dict`'s plain
+    `setattr` can't target a property name). `_binary_separation_au` is
+    included the same way, for its `binary_separation_au` property.
+    `primary`/`secondary` are handled separately in `to_dict`/`from_dict`
+    (nested full `Star` dicts), not via this list.
     """
 
     def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star):
@@ -116,6 +133,62 @@ class BinaryStarProxy(Star):
     def binary_separation_au(self):
         """Returns the orbital separation between the two stars in AU."""
         return self._binary_separation_au
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of this proxy's snapshot state, per
+        `SERIALIZABLE_FIELDS`, plus nested `primary`/`secondary` star dicts.
+
+        The combined/derived fields (`_effective_mass`,
+        `_effective_luminosity`, `habitable_zone`, `system_perimeter`,
+        `heliosphere_radius`, etc.) are stored exactly as generated rather
+        than recomputed from `primary`/`secondary` on load -- they were
+        computed once, at generation time, from whichever `secrets`/`random`
+        rolls happened to occur, and recomputing them later from the
+        (faithfully reloaded) constituent stars would only risk drift if
+        the derivation formulas ever change between save and load.
+
+        Returns:
+            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
+                 `primary`/`secondary` (each a full `Star.to_dict()`).
+        """
+        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+        data["habitable_zone"] = list(self.habitable_zone)
+        data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
+        data["primary"] = self._primary.to_dict()
+        data["secondary"] = self._secondary.to_dict()
+        return data
+
+    @classmethod
+    def from_dict(cls, data, system_config):
+        """
+        Reconstructs a `BinaryStarProxy` from a dict in the shape
+        `to_dict()` produces, without re-running generation (`__init__` is
+        bypassed via `object.__new__`) and without recomputing any derived
+        field -- every stored value is assigned back as-is.
+
+        Args:
+            data (dict): A dict in the shape `to_dict()` produces.
+            system_config (SystemConfig): The system's shared config,
+                                          threaded into both `primary`'s and
+                                          `secondary`'s `Star.from_dict`
+                                          calls as well as the proxy itself
+                                          (see `StarSystem.from_dict`).
+
+        Returns:
+            BinaryStarProxy: The reconstructed proxy.
+        """
+        proxy = object.__new__(cls)
+        proxy.system_config = system_config
+        primary = Star.from_dict(data["primary"], system_config)
+        secondary = Star.from_dict(data["secondary"], system_config)
+        proxy._primary = primary
+        proxy._secondary = secondary
+        proxy.stars = [primary, secondary]
+        fields_from_dict(proxy, data, cls.SERIALIZABLE_FIELDS)
+        proxy.habitable_zone = tuple(data["habitable_zone"])
+        proxy.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
+        return proxy
 
     def adjust_age_for_planets(self, planets):
         """

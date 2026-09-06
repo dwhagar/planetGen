@@ -30,6 +30,16 @@ from .planetData import Planet
 from .starData import Star
 from .utils import to_paragraph
 
+# Tracks the shape of `StarSystem.to_dict()`'s output (the serialized
+# object-graph -- see TODO.md's Phase 1), independent of
+# `stellarObjects._db.SCHEMA_VERSION`, which tracks the *database's* DDL
+# structure instead. A JSON export carries this number so `from_dict` can
+# raise a clear error if a file's shape is newer than the code understands,
+# rather than a confusing `KeyError`/`AttributeError` partway through
+# reconstruction.
+SERIALIZATION_SCHEMA_VERSION = 1
+
+
 class StarSystem:
     """
     A class representing a star system, containing a central star and a list of planets.
@@ -261,6 +271,116 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of the entire generated object
+        graph: this system's config, star (polymorphic -- includes nested
+        primary/secondary if binary), every planet/belt (in orbital order,
+        each recursively including its own moons), and the system-level
+        flavor text (see TODO.md's Phase 0 fix, which moved this to
+        generation time so it's a plain, idempotent read here).
+
+        Deliberately omits `planet_count`/`belt_count`/`moon_count`/
+        `hab_count`/`m_count` (bookkeeping recomputed on load via
+        `count_objects`/`count_habitable`, never trusted from disk) and
+        `stars`/`primary_star`/`secondary_star` (resolvable from `star`
+        alone -- see `from_dict`).
+
+        Returns:
+            dict: `schema_version`, `system_config`, `star`, `is_binary`,
+                 `planets`, `system_flavor_text`.
+        """
+        return {
+            "schema_version": SERIALIZATION_SCHEMA_VERSION,
+            "system_config": self.system_config.to_dict(),
+            "star": self.star.to_dict(),
+            "is_binary": isinstance(self.star, BinaryStarProxy),
+            "planets": [obj.to_dict() for obj in self.planets],
+            "system_flavor_text": self.system_flavor_text,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Reconstructs a `StarSystem` from a dict in the shape `to_dict()`
+        produces, without re-running any generation (`__init__` is bypassed
+        via `object.__new__`) -- this is a pure, faithful replay of
+        already-decided data, not a new roll. There is deliberately no
+        seed-based replay anywhere in this design: generation mixes the
+        unseedable `secrets` module with the seedable `random` module (see
+        `spaceSector.py`'s own module docstring), so a seed alone could
+        never reproduce a system -- the actual decided values are stored
+        and read back directly instead.
+
+        This is the single place that resolves both shared back-references
+        once and re-attaches the same instances everywhere: `system_config`
+        is built once and threaded into every child; `star` is built once
+        (via a `is_binary` discriminator choosing `Star.from_dict` vs.
+        `BinaryStarProxy.from_dict`) and threaded into every top-level
+        `Planet`/`AsteroidBelt`. For a binary system, the secondary star is
+        deliberately reattached to the *same* shared `system_config` as
+        everything else, collapsing the generation-time-only asymmetry
+        where `StarSystem.__init__` gives the secondary its own deep-copied
+        config (`LARGE_STAR` forced `False`) -- that flag is only ever
+        consulted during `generate_star()`, so it has no meaning once a
+        star already exists to be reloaded.
+
+        Each item in `planets` is dispatched to `AsteroidBelt.from_dict` or
+        `Planet.from_dict` based on its own `body_type` (`'a'` vs.
+        `'t'`/`'g'`), the same discriminator `StarSystem` itself already
+        uses to tell the two apart at runtime.
+
+        Args:
+            data (dict): A dict in the shape `to_dict()` produces.
+
+        Returns:
+            StarSystem: The reconstructed system.
+
+        Raises:
+            ValueError: If `data["schema_version"]` is newer than this code
+                       understands.
+        """
+        schema_version = data.get("schema_version", SERIALIZATION_SCHEMA_VERSION)
+        if schema_version > SERIALIZATION_SCHEMA_VERSION:
+            raise ValueError(
+                f"StarSystem.from_dict: schema_version {schema_version} is newer "
+                f"than this code understands (max {SERIALIZATION_SCHEMA_VERSION})."
+            )
+
+        system_config = SystemConfig.from_dict(data["system_config"])
+
+        if data["is_binary"]:
+            star = BinaryStarProxy.from_dict(data["star"], system_config)
+        else:
+            star = Star.from_dict(data["star"], system_config)
+
+        system = object.__new__(cls)
+        system.system_config = system_config
+        system.star = star
+
+        if isinstance(star, BinaryStarProxy):
+            system.primary_star = star._primary
+            system.secondary_star = star._secondary
+            system.stars = [star._primary, star._secondary]
+        else:
+            system.primary_star = star
+            system.stars = [star]
+
+        system.planets = []
+        for obj_data in data["planets"]:
+            if obj_data.get("body_type") == "a":
+                obj = AsteroidBelt.from_dict(obj_data, system_config)
+            else:
+                obj = Planet.from_dict(obj_data, star, system_config)
+            system.planets.append(obj)
+
+        system.system_flavor_text = data.get("system_flavor_text")
+
+        system.planet_count, system.belt_count, system.moon_count = system.count_objects()
+        system.hab_count, system.m_count = system.count_habitable()
+
+        return system
 
     def generate_slot_object(self, slot_spec, estimated_distance):
         """

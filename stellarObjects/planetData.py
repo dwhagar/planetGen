@@ -28,6 +28,7 @@ from .config import SystemConfig
 from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
                     PLANET_PREFIXES, PLANET_SUFFIXES)
 from . import physical_constants, planetPhysics, program_constants
+from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_length_km, generate_phoneme_salad_name, properties_to_string,
                     to_paragraph, to_scientific_notation, years_to_time_string)
 
@@ -114,6 +115,25 @@ class Planet:
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
+    SERIALIZABLE_FIELDS = [
+        "is_moon", "zone", "description", "atm_molar_density", "gravity",
+        "atm_density", "surface_temperature", "density", "atmospheric_pressure",
+        "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
+        "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
+        "life_chemical", "evolutionary_speed", "reflection_spectrum_visible",
+        "reflection_spectrum_non_visible", "evolutionary_data", "flavor_text",
+        "flavor_text_count", "habitable_zone", "volume", "period",
+    ]
+    """
+    Every attribute set by `__init__` (directly, or by the `planetPhysics`
+    helpers it calls), excluding `star`/`system_config` (shared
+    back-references, threaded into `from_dict` rather than serialized
+    redundantly on every planet/moon) and `moons` (a nested list of further
+    `Planet` dicts, handled separately in `to_dict`/`from_dict`). Covers
+    moons too -- a moon is just a `Planet` with `is_moon=True`, and nesting
+    is exactly 2 levels (a moon's own `moons` is always empty).
+    """
+
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None):
@@ -198,6 +218,49 @@ class Planet:
                 planetPhysics.generate_moons(self, moon_count=moon_count)
             elif self.system_config.MOONS is not False and (self.system_config.MOONS is True or secrets.randbelow(2) == 1):
                 planetPhysics.generate_moons(self)
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of this planet's (or moon's)
+        properties, per `SERIALIZABLE_FIELDS`, plus its `moons` recursively
+        serialized the same way.
+
+        `habitable_zone` is stored as a list (JSON has no tuple type).
+
+        Returns:
+            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
+                 `moons` (a list of further such dicts, `[]` for a moon).
+        """
+        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+        data["habitable_zone"] = list(self.habitable_zone)
+        data["moons"] = [moon.to_dict() for moon in self.moons]
+        return data
+
+    @classmethod
+    def from_dict(cls, data, star, system_config):
+        """
+        Reconstructs a `Planet` (or moon) from a dict in the shape
+        `to_dict()` produces, without re-running generation (`__init__` is
+        bypassed via `object.__new__`). Recurses into `moons`, threading the
+        same `star`/`system_config` into each one.
+
+        Args:
+            data (dict): A dict in the shape `to_dict()` produces.
+            star (Star or BinaryStarProxy): The system's star, threaded in
+                                            rather than stored per-planet
+                                            (see `StarSystem.from_dict`).
+            system_config (SystemConfig): The system's shared config.
+
+        Returns:
+            Planet: The reconstructed planet or moon.
+        """
+        planet = object.__new__(cls)
+        planet.system_config = system_config
+        planet.star = star
+        fields_from_dict(planet, data, cls.SERIALIZABLE_FIELDS)
+        planet.habitable_zone = tuple(data["habitable_zone"])
+        planet.moons = [cls.from_dict(moon_data, star, system_config) for moon_data in data.get("moons", [])]
+        return planet
 
     def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
         """

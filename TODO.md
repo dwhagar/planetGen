@@ -107,84 +107,118 @@ roughly 300-350 distinct fields for one modest single-star system (1 star +
 5 planets + 3 moons + 1 asteroid belt + 1 habitable world), growing
 roughly linearly with body count.
 
-- [x] **Serialization mechanism — decided**: a small shared helper module,
-  `stellarObjects/serialization.py`, with `fields_to_dict(obj, fields)`
-  (`{f: getattr(obj, f) for f in fields}`) and `fields_from_dict(obj, data,
-  fields)` (`for f in fields: setattr(obj, f, data.get(f))`), used by each
+- [x] **Serialization mechanism — decided and built**: a small shared
+  helper module, `stellarObjects/serialization.py`, with
+  `fields_to_dict(obj, fields)` (`{f.lower(): getattr(obj, f) for f in
+  fields}`) and `fields_from_dict(obj, data, fields)` (`for f in fields: key
+  = f.lower(); if key in data: setattr(obj, f, data[key])`), used by each
   class's own `to_dict`/`from_dict`, each owning an explicit
-  `SERIALIZABLE_FIELDS` allowlist constant — exactly the pattern
-  `SystemConfig` already uses (`config.py`'s `SERIALIZABLE_FIELDS`),
-  applied to the other four classes. Rejected: plain `pickle` (not
-  readable/diffable/queryable, no versioning story, code-exec risk if
-  shared); a blanket `vars(obj)`-minus-exclude-list (fails *unsafe* — a
-  future new attribute gets serialized by default until someone remembers
-  to blacklist it; an allowlist fails *safe* instead). Reconstruction uses
-  `object.__new__(cls)` + attribute assignment, bypassing `__init__`
-  (`__init__` re-runs full random generation, not just assignment).
-  Caveat: `BinaryStarProxy.mass`/`.luminosity` are read-only properties
-  backed by `_effective_mass`/`_effective_luminosity` — its allowlist must
-  name the real backing attributes; `from_dict` can't `setattr` the
-  property names.
+  `SERIALIZABLE_FIELDS` allowlist constant. The `.lower()`/skip-if-absent
+  shape (refined from this document's original sketch during
+  implementation) is exactly `SystemConfig`'s pre-existing behavior
+  (`config.py`, refactored to delegate to these helpers rather than
+  inlining the loop) — `.lower()` maps its `UPPER_CASE` attributes onto the
+  lowercase keys its `--system-file` JSON format already expects, and is a
+  no-op for every other class here (already lowercase `snake_case`
+  attributes); skip-if-absent (vs. unconditionally overwriting with
+  `data.get(f)`) preserves a hand-authored partial `--system-file` recipe's
+  ability to omit a key and fall back to the object's own default (matters
+  concretely for `MARKDOWN`, whose default is `False`, not `None` — a blind
+  `.get()` would silently turn a missing key into `None` instead of leaving
+  the default alone). Rejected: plain `pickle` (not readable/diffable/
+  queryable, no versioning story, code-exec risk if shared); a blanket
+  `vars(obj)`-minus-exclude-list (fails *unsafe* — a future new attribute
+  gets serialized by default until someone remembers to blacklist it; an
+  allowlist fails *safe* instead). Reconstruction uses `object.__new__(cls)`
+  + attribute assignment, bypassing `__init__` (`__init__` re-runs full
+  random generation, not just assignment). Caveat, confirmed and handled:
+  `BinaryStarProxy.mass`/`.luminosity`/`.binary_separation_au` are
+  read-only properties backed by `_effective_mass`/`_effective_luminosity`/
+  `_binary_separation_au` — its allowlist names the real backing
+  attributes directly, since `from_dict`'s plain `setattr` can't target a
+  property name.
 - [x] **Shared back-references — decided**: `star`/`system_config` are
   serialized exactly ONCE, at the `StarSystem` level, and the same live
   instance is threaded down as a parameter into every child's `from_dict`
   call (never stored redundantly in each child's own dict).
-- [ ] `Star` (`starData.py`) — `Star.SERIALIZABLE_FIELDS = ["name", "type",
+- [x] **Secondary-star `system_config` asymmetry — resolved (collapse it)**:
+  confirmed with the user. `LARGE_STAR` is only ever consulted during
+  `generate_star()`, so it has no meaning once a star already exists to be
+  reloaded — `StarSystem.from_dict` reattaches the *same* shared
+  `system_config` to the secondary star too, collapsing the
+  generation-time-only deep-copy asymmetry (`systemData.py:102-106`).
+- [x] **`BinaryStarProxy` derived fields — resolved (snapshot, don't
+  recompute)**: confirmed with the user. Stored as-is and assigned back on
+  load; matches the Phase 2 schema's existing `binary_*` columns (already
+  stored, not re-derived).
+- [x] `Star` (`starData.py`) — `Star.SERIALIZABLE_FIELDS = ["name", "type",
   "yerkes_class", "mass", "radius", "temperature", "luminosity", "age",
   "lifespan", "habitable_zone", "system_perimeter", "heliosphere_radius"]`.
   `to_dict`/`from_dict(cls, data, system_config)` per the pattern above.
-  Special-case `lifespan == float('inf')` (white dwarfs) — see risk below.
-- [ ] `BinaryStarProxy` (`doubleStar.py`) —
+  `lifespan == float('inf')` (white dwarfs) stored as `None`, matching
+  `_db.py`'s `_lifespan_gy` convention.
+- [x] `BinaryStarProxy` (`doubleStar.py`) —
   `SERIALIZABLE_FIELDS = ["name", "type", "temperature", "radius", "age",
   "lifespan", "habitable_zone", "system_perimeter", "heliosphere_radius",
-  "_binary_separation_au"]` (mirrors `Star`'s list minus the two
-  properties). `to_dict` nests `primary`/`secondary` inline as full
-  `Star.to_dict()` calls (never shared outside this one proxy, so no
-  dedup needed) plus `effective_mass`/`effective_luminosity`. Store the
-  derived values too rather than re-deriving on load — cheap here, and
-  avoids having the derivation formulas live in two places.
-- [ ] `Planet` (`planetData.py`; covers moons too — nesting confirmed
+  "_binary_separation_au", "_effective_mass", "_effective_luminosity"]`
+  (mirrors `Star`'s list minus `yerkes_class`, with the three read-only
+  properties' underscore-prefixed backing attributes named directly, per
+  the resolved caveat above). `to_dict` nests `primary`/`secondary` inline
+  as full `Star.to_dict()` calls. Derived values stored as-is (resolved
+  snapshot decision above), never recomputed on load.
+- [x] `Planet` (`planetData.py`; covers moons too — nesting confirmed
   exactly 2 levels, a moon's own `.moons` is always empty) —
-  `SERIALIZABLE_FIELDS` covering every attribute set in `__init__`
-  (`planetData.py:124-179`, ~34 names — re-derive the exact list from the
-  current `__init__` body at implementation time rather than trusting a
-  recount here) plus `volume`/`period`, excluding `star`/`system_config`
+  `SERIALIZABLE_FIELDS` covering all 29 attributes actually set in
+  `__init__` (re-derived from the live source rather than the ~34 estimate
+  above) plus `volume`/`period`, excluding `star`/`system_config`
   (back-refs) and `moons` (nested list, serialized recursively as
   `[m.to_dict() for m in self.moons]`). `from_dict(cls, data, star,
   system_config)` threads the same `star`/`system_config` into every moon.
-- [ ] `AsteroidBelt` (`asteroidData.py`) —
-  `SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "type",
-  "density"]`; `composition` handled separately as
-  `[list(pair) for pair in self.composition]` on save (JSON has no tuple
-  type), `[tuple(pair) for pair in data["composition"]]` on load.
-- [ ] `StarSystem` (`systemData.py`) — `to_dict`/`from_dict` live directly
+- [x] `AsteroidBelt` (`asteroidData.py`) —
+  `SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit",
+  "body_type", "density"]` (corrected from this document's draft `"type"`
+  to the real attribute name, `body_type`); `composition` handled
+  separately as `[list(pair) for pair in self.composition]` on save (JSON
+  has no tuple type), `[tuple(pair) for pair in data["composition"]]` on
+  load.
+- [x] `StarSystem` (`systemData.py`) — `to_dict`/`from_dict` live directly
   on `StarSystem` (matching how `SystemConfig`/`SpaceSector` already own
-  theirs). `to_dict` emits `schema_version`, `system_config.to_dict()`,
-  `star.to_dict()` (polymorphic — includes nested primary/secondary if
-  binary), `planets` (list, order = orbital sequence), `system_flavor_text`
+  theirs). `to_dict` emits `schema_version` (a new
+  `SERIALIZATION_SCHEMA_VERSION = 1` module constant, deliberately distinct
+  from `_db.py`'s own `SCHEMA_VERSION`, which tracks the database's DDL
+  shape instead), `system_config.to_dict()`, `star.to_dict()` (polymorphic
+  — includes nested primary/secondary if binary), `is_binary` (the
+  discriminator `from_dict` uses instead of a `class` key), `planets`
+  (list, order = orbital sequence, each already carrying its own
+  `body_type` so `from_dict` can dispatch `AsteroidBelt.from_dict` vs.
+  `Planet.from_dict` without a separate wrapper), `system_flavor_text`
   (Phase 0). Deliberately omits `planet_count`/`belt_count`/`moon_count`/
   `hab_count`/`m_count` (recomputed on load via existing `count_objects`/
   `count_habitable`, never trusted from disk) and `stars`/`primary_star`/
   `secondary_star` (resolvable from `star`). `from_dict` is the single
   place that resolves both shared back-references once and re-attaches the
-  same instances everywhere (builds `system_config` once; builds `star`
-  once via a `class` discriminator key choosing `Star.from_dict` vs.
-  `BinaryStarProxy.from_dict`; passes that same `star` into every top-level
-  `Planet.from_dict`/`AsteroidBelt.from_dict` call, which passes it into
-  every moon too).
-- [ ] New tests (`tests/test_serialization.py`, new file, mirroring
+  same instances everywhere, raises `ValueError` if a newer
+  `schema_version` than the code understands is loaded, and reattaches the
+  secondary star to the one shared `system_config` (resolved asymmetry
+  question above).
+- [x] New tests (`tests/test_serialization.py`, new file, mirroring
   `test_space_sector.py`'s style): round-trip each class and assert every
   field matches; `test_star_from_dict_does_not_rerun_generation`; binary
-  round-trip preserves primary/secondary/separation; planet round-trip
-  with `HABITABLE_WORLD=True` preserves frozen life data exactly;
-  moon-nesting invariant (`is_moon is True`, `moons == []`) verified, not
-  assumed; asteroid composition round-trips as tuples
-  (`isinstance(..., tuple)`); identity checks (`is`, not `==`) that a
-  reloaded system's star is the SAME object across every planet and moon,
-  and the SAME `system_config` everywhere; bookkeeping is recomputed, not
-  trusted; orbital order preserved; flavor text is already decided before
-  first render; rendering is idempotent (call `str(system)` twice, assert
-  identical output and unchanged `system_config.system_flavor_count`).
+  round-trip preserves primary/secondary/separation and asserts (via
+  monkeypatched derivation functions raising if called) that derived
+  fields are truly never recomputed; planet round-trip with
+  `HABITABLE_WORLD=True` preserves frozen life data exactly; moon-nesting
+  invariant (`is_moon is True`, `moons == []`) verified, not assumed;
+  asteroid composition round-trips as tuples (`isinstance(..., tuple)`);
+  identity checks (`is`, not `==`) that a reloaded system's star is the
+  SAME object across every planet and moon, and the SAME `system_config`
+  everywhere, including the (now-collapsed) secondary star; bookkeeping is
+  recomputed, not trusted; orbital order preserved (by `distance`, the one
+  attribute shared between `Planet` and `AsteroidBelt` — `name` isn't);
+  rendering is idempotent (`str(system)` called twice gives identical
+  output and unchanged `system_config.system_flavor_count`) AND
+  byte-for-byte identical to the pre-serialization original's own
+  rendering; a newer-than-supported `schema_version` raises `ValueError`.
 - [ ] Not yet needed: confirmed `evolution.py`'s `get_evolutionary_timeline`
   holds no additional state beyond what's already in
   `Planet.evolutionary_data`.
@@ -766,29 +800,16 @@ white-dwarf lifespan storage, and `reflection_spectrum_visible`/
 table, not a TEXT/JSON column — no JSON-blob columns anywhere in this
 schema, per the pure-relational-DB decision) — see the Phase 2 schema
 section above. `SQLAlchemy`/Alembic vs. raw `sqlite3` — resolved in favor of
-raw `sqlite3` (Phase 2 tooling bullet above).
+raw `sqlite3` (Phase 2 tooling bullet above). Secondary-star `system_config`
+asymmetry (collapse it) and `BinaryStarProxy` derived-field recompute-vs-
+snapshot (snapshot) — both confirmed with the user; see Phase 1 above.
 
-- [ ] **Secondary-star `system_config` asymmetry**: `StarSystem.__init__`
-  (`systemData.py:97-100`) currently `copy.deepcopy`s the config for a
-  binary's secondary star (forcing `LARGE_STAR=False`), so today the
-  primary/proxy/planets share one `SystemConfig` while the secondary
-  privately holds its own deep copy. The `from_dict` design (one shared
-  `system_config` passed to both `Star.from_dict` calls), and the Phase 2
-  schema's single `star_systems.system_config_id`, would both silently
-  collapse that asymmetry on reload/persist. `LARGE_STAR` is only ever
-  consulted *during* `generate_star()` (pre-persistence-relevant), so this
-  is very likely inconsequential post-generation — but confirm with the
-  user rather than assume before Phase 1 locks in the single-shared-config
-  design.
-- [ ] Whether to recompute `BinaryStarProxy`'s derived fields on load vs.
-  snapshot them redundantly — leaning snapshot (see Phase 1 and the Phase 2
-  `star_systems.binary_*` columns), confirm.
-- [ ] By design, there is no seed-based replay anywhere in this plan —
+- [x] By design, there is no seed-based replay anywhere in this plan —
   generation mixes the unseedable `secrets` module with the seedable
   `random` module (already documented in `spaceSector.py`'s own
-  docstring), so results are stored directly rather than via a seed. State
-  this explicitly in the new `to_dict`/`from_dict` docstrings so a future
-  contributor doesn't try to "optimize" this into seed replay.
+  docstring), so results are stored directly rather than via a seed. Stated
+  explicitly in `StarSystem.from_dict`'s docstring so a future contributor
+  doesn't try to "optimize" this into seed replay.
 - [ ] `examples/*.json` are unaffected by any of this — those are
   `systemGen.py --system-file` recipe *inputs*, a wholly separate format
   from the generated-*result* persistence this plan adds.
