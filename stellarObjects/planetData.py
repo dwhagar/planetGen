@@ -241,7 +241,7 @@ class Planet:
             has_multicellular_life = False
             if is_habitable and self.evolutionary_data:
                 for stage_paragraph in self.evolutionary_data:
-                    if "multicellularity" in stage_paragraph.lower() or "technological_civilization" in stage_paragraph.lower():
+                    if "multicellularity" in stage_paragraph.lower() or "technological civilization" in stage_paragraph.lower():
                         has_multicellular_life = True
                         break
 
@@ -300,7 +300,7 @@ class Planet:
             header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
 
         output_paragraphs = []
-        header = f"{header_level} {self.name} {header_level if not self.system_config.MARKDOWN else ''}" # Use self.system_config
+        header = f"{header_level} {self.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip() # Use self.system_config
         output_paragraphs.append(header)
 
         radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config

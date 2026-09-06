@@ -13,6 +13,7 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 *   **Life chemistry and evolutionary timelines**: Habitable planets are evaluated against the star's spectral class to determine which of several life chemistries (e.g. Chlorophyll a, Melanin, Retinal) are viable, each with its own evolutionary pace (fast/normal/slow). A speculative evolutionary timeline (abiogenesis through technological civilization) is generated for habitable worlds, influenced by `+intelligent_life` / `-intelligent_life`.
 *   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
 *   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
+*   **Sector generation**: `sectorGen.py` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below.
 
 ## Setup
 
@@ -34,11 +35,13 @@ This will install the `nltk` library and download the 'words' corpus, which is r
 
 ## Usage
 
-To generate a new star system, run the `planetGen.py` script from the root of the project:
+To generate a new star system, run the `systemGen.py` script from the root of the project:
 
 ```bash
-python planetGen.py [options]
+python systemGen.py [options]
 ```
+
+To generate a whole sector of star systems at once, see [Sector Generation](#sector-generation) below.
 
 ### Options
 
@@ -96,6 +99,24 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 ```
 
 `slots` is an optional, per-orbit list: each entry is either `null` (generate that slot normally) or an object with a required `"type"` (`"planet"` or `"asteroid_belt"`) and, for planets, an optional `"planet_class"` (e.g. `"M"`) and/or `"moons"` (an exact moon count, `0` for none). The list doesn't need to cover every orbit — slots past the end of the list are generated normally too.
+
+### Sector Generation
+
+`sectorGen.py` generates a whole sector of independently-random star systems in one pass, reusing `systemGen.py`'s own generation logic for each one:
+
+```bash
+python sectorGen.py [options]
+```
+
+Most of `systemGen.py`'s options work here too, but apply *uniformly* to every system in the sector — `+asteroid_belt` guarantees a belt in every system, `--star-type G2V` makes every star in the sector a G2V, and so on. `--system-file`, `--num-orbits`, and `--name` aren't offered here, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `systemGen.py --system-file` directly for that.
+
+Sector-specific options:
+
+*   `--num-systems`, `-n <int>`: How many star systems the sector contains. Defaults to 10.
+*   `--sector-name <name>`: Names the sector, overriding the default random generation.
+*   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one the way a uniform `+habitable_world` would. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`, and cannot be combined with a uniform `-habitable_world`.
+
+The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn.
 
 ### Additional Information
 

@@ -3,7 +3,7 @@
 Run any of these with:
 
 ```bash
-python planetGen.py --system-file examples/<file>.json
+python systemGen.py --system-file examples/<file>.json
 ```
 
 See [`JSON.md`](JSON.md) for the full format reference.

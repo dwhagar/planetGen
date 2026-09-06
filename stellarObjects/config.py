@@ -6,7 +6,7 @@ Configuration settings for the stellarObjects package.
 This module defines the `SystemConfig` class, which encapsulates all
 configuration flags and variables that control the behavior of the star system
 generation process. These settings can be modified via command-line arguments
-or a JSON system-specification file in `planetGen.py`, or directly within the
+or a JSON system-specification file in `systemGen.py`, or directly within the
 code for specific scenarios.
 
 Most boolean-ish options are tri-state (`True`/`False`/`None`) rather than a
@@ -16,7 +16,7 @@ pair of `FORCE_X`/`NO_X` flags:
     - `None` (the default) leaves it to random chance.
 
 This tri-state shape maps directly onto the command line's `+name`/`-name`
-syntax (see `planetGen.process_args`): `+name` sets the option to `True`,
+syntax (see `systemGen.process_args`): `+name` sets the option to `True`,
 `-name` sets it to `False`, and omitting it leaves it `None`.
 """
 

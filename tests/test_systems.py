@@ -41,7 +41,7 @@ TRIALS = 2
 
 def make_config(star_type, **overrides):
     """
-    Builds a SystemConfig the same way planetGen.main() would: applying the
+    Builds a SystemConfig the same way systemGen.main() would: applying the
     same normalization it does (INTELLIGENT_LIFE implies HABITABLE_WORLD;
     HABITABLE_WORLD + ASTEROID_BELT together imply LARGE_STAR) so configs
     built directly here stay consistent with what the CLI ever actually
@@ -132,14 +132,8 @@ def test_each_tristate_flag_forced(star_type, value, attr):
 
         if attr == "HABITABLE_WORLD" and value is True:
             assert system.hab_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"
-        # ASTEROID_BELT=True is NOT asserted here -- see
-        # test_known_issue_asteroid_belt_forcing_is_unreliable below. Unlike
-        # HABITABLE_WORLD (which retries/forces placement through the whole
-        # orbit loop and is 0/100 reliable across every star type tested),
-        # ASTEROID_BELT only gets one randomly pre-chosen slot index and
-        # silently skips it if that slot lands in the habitable zone, with no
-        # retry -- measured failure rates of 2-27% depending on star type, so
-        # asserting it here would make this sweep flaky rather than correct.
+        if attr == "ASTEROID_BELT" and value is True:
+            assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
         if attr == "PLANETS" and value is False:
             assert len(system.planets) == 0
         if attr == "MOONS" and value is False:
@@ -151,25 +145,24 @@ def test_each_tristate_flag_forced(star_type, value, attr):
             assert all(s.mass > 0 for s in system.stars)
 
 
-@pytest.mark.xfail(
-    reason=(
-        "FINDING (not fixed): StarSystem's orbit-placement loop picks a single "
-        "random belt_index up front and only places a belt there if that slot's "
-        "estimated_distance also happens to fall outside the habitable zone (the "
-        "'not hz' condition), with no retry -- unlike HABITABLE_WORLD, which "
-        "actively steers/retries placement through the whole loop and is 0/100 "
-        "reliable. Measured failure rates (100 trials each): G2V 2%, M5V 27%, "
-        "K3V 2%, A0V 9%, B2V 0%, K1III 3%, M2VII 4%, K5IV 4%, K8VI 15%. A fix "
-        "needs a design decision (retry with a new belt_index? force placement "
-        "at the last slot the way HABITABLE_WORLD does?) in systemData.py's "
-        "shared orbit loop -- left for a human to decide rather than guessed at "
-        "here. This test uses M5V (highest observed rate) over 60 trials so it "
-        "reproduces the bug reliably (< 1e-6 chance of spuriously passing); it "
-        "will XPASS (and needs this marker removed) once fixed."
-    ),
-    strict=True,
-)
-def test_known_issue_asteroid_belt_forcing_is_unreliable():
+def test_asteroid_belt_forcing_is_reliable():
+    """
+    Regression guard for a fixed bug: StarSystem's orbit-placement loop used
+    to pick a single random belt_index up front and only place a belt there
+    if that slot's estimated_distance also happened to fall outside the
+    habitable zone, with no retry -- unlike HABITABLE_WORLD, which actively
+    steers/retries placement through the whole loop. Measured failure rates
+    before the fix (100 trials each): G2V 2%, M5V 27%, K3V 2%, A0V 9%, B2V 0%,
+    K1III 3%, M2VII 4%, K5IV 4%, K8VI 15%.
+
+    Fixed in systemData.py's shared orbit loop by giving ASTEROID_BELT its own
+    guaranteed last-resort fallback slot (mirroring HABITABLE_WORLD's), with a
+    reserved separate slot when both are forced simultaneously so neither's
+    fallback can collide with or overwrite the other's placement. This test
+    uses M5V (highest observed pre-fix rate) over 60 trials so it would
+    reproduce the bug reliably (< 1e-6 chance of spuriously passing) if it
+    ever regressed.
+    """
     failures = 0
     trials = 60
     for _ in range(trials):
@@ -177,6 +170,29 @@ def test_known_issue_asteroid_belt_forcing_is_unreliable():
         if system.belt_count == 0:
             failures += 1
     assert failures == 0, f"ASTEROID_BELT=True failed to produce a belt in {failures}/{trials} trials"
+
+
+@pytest.mark.parametrize("star_type", STAR_TYPES)
+def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_type):
+    """
+    Regression guard for a second bug found while fixing the above: the
+    pre-existing HABITABLE_WORLD "retroactive replace" logic could overwrite
+    the immediately preceding slot with a new M-class planet -- including a
+    belt just placed to satisfy ASTEROID_BELT's own guarantee -- since it had
+    no awareness of that guarantee. Fixed by protecting a belt from being
+    retroactively overwritten whenever ASTEROID_BELT is required.
+    """
+    failures_belt = 0
+    failures_hab = 0
+    trials = 15
+    for _ in range(trials):
+        system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
+        if system.belt_count == 0:
+            failures_belt += 1
+        if system.hab_count == 0:
+            failures_hab += 1
+    assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
+    assert failures_hab == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a habitable world in {failures_hab}/{trials} trials"
 
 
 @pytest.mark.parametrize("age", ["young", "old", None])

@@ -248,30 +248,35 @@ def apply_system_file(system_config, data):
         program_constants.FLAVOR_CHANCE_PLANET = 1
 
 
-def main():
+def build_system_config(args):
     """
-    The main entry point for the star system generation script.
+    Builds a fully-configured `SystemConfig` from parsed command-line
+    arguments, applying the same precedence `main()` always has: a
+    `--system-file` JSON spec (if given) sets the baseline, then any
+    explicitly-given tri-state or value option on the command line overrides
+    it, then the cross-option normalization rules (intelligent life implies
+    a habitable world; a habitable world plus an asteroid belt implies a
+    large star) are applied last.
 
-    This function orchestrates the entire process of generating a star system.
-    It begins by parsing command-line arguments to retrieve user-specified
-    options, optionally loading a base configuration from a `--system-file`
-    JSON file first. Command-line options (the tri-state `+name`/`-name`
-    flags and the plain `--name value` options) override whatever the JSON
-    file set, wherever they were explicitly given.
+    Shared with `sectorGen.py`, which builds one `SystemConfig` per system
+    in a sector this same way, so the two scripts can never silently drift
+    apart on what a given set of options actually means.
 
-    The function then instantiates the `StarSystem` class, which uses the
-    centralized `SystemConfig` object to guide the generation of the star and
-    any accompanying planets.
+    Args:
+        args (argparse.Namespace): Parsed arguments from `process_args()`
+                                   (or a namespace shaped the same way).
 
-    Finally, the script checks if an output file was specified. If so, it writes
-    the generated system's string representation to that file. Otherwise, it
-    prints the output directly to the console.
+    Returns:
+        tuple: (SystemConfig, output_path) -- output_path is `args.output`,
+              or the `--system-file`'s own `"output"` key if `args.output`
+              wasn't given.
+
+    Raises:
+        SystemExit: If a habitable world and an asteroid belt are both
+                   forced while a large star is explicitly forbidden (see
+                   TRISTATE_OPTIONS's `large_star`) -- that combination has
+                   no room to be satisfied.
     """
-    # Seed the random number generator with a cryptographically secure seed
-    random.seed(secrets.randbits(128))
-
-    args = process_args()
-
     system_config = SystemConfig()
     output_path = args.output
 
@@ -319,6 +324,29 @@ def main():
                               "star; -large_star cannot be combined with +habitable_world and +asteroid_belt.")
         system_config.LARGE_STAR = True
 
+    return system_config, output_path
+
+
+def main():
+    """
+    The main entry point for the star system generation script.
+
+    This function orchestrates the entire process of generating a star system.
+    It parses command-line arguments, builds a `SystemConfig` from them via
+    `build_system_config` (see that function for the JSON-file/CLI precedence
+    and cross-option normalization rules it applies), and instantiates the
+    `StarSystem` class, which uses that config to guide the generation of the
+    star and any accompanying planets.
+
+    Finally, the script checks if an output file was specified. If so, it writes
+    the generated system's string representation to that file. Otherwise, it
+    prints the output directly to the console.
+    """
+    # Seed the random number generator with a cryptographically secure seed
+    random.seed(secrets.randbits(128))
+
+    args = process_args()
+    system_config, output_path = build_system_config(args)
     system = StarSystem(system_config=system_config)
 
     if output_path:

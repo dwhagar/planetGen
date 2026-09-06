@@ -2,7 +2,7 @@
 Regression tests over every system spec in examples/*.json.
 
 Each file is run through the full generation pipeline (star + planets +
-life data + string rendering) exactly as `planetGen.py --system-file`
+life data + string rendering) exactly as `systemGen.py --system-file`
 would, and checked for basic invariants. Every file in examples/ is
 discovered automatically, so adding a new fixture there adds it to this
 suite for free -- see examples/EXAMPLES.md.
@@ -14,7 +14,7 @@ import os
 
 import pytest
 
-import planetGen
+import systemGen
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects import program_constants
@@ -37,9 +37,9 @@ _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
 
 
 def build_system(path):
-    data = planetGen.load_system_file(path)
+    data = systemGen.load_system_file(path)
     cfg = SystemConfig()
-    planetGen.apply_system_file(cfg, data)
+    systemGen.apply_system_file(cfg, data)
     return StarSystem(system_config=cfg)
 
 

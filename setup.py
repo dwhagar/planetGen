@@ -27,10 +27,11 @@ setup(
         # installed package is missing the file and crashes on first import.
         'stellarObjects': ['offensive_words.txt'],
     },
-    py_modules=['planetGen'],
+    py_modules=['systemGen', 'sectorGen'],
     entry_points={
         'console_scripts': [
-            'planetgen=planetGen:main',
+            'systemgen=systemGen:main',
+            'sectorgen=sectorGen:main',
         ],
     },
     install_requires=[

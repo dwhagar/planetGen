@@ -111,7 +111,7 @@ def get_evolutionary_timeline(star):
     output_sentences = []
 
     output_sentences.append(
-        f"A speculative evolutionary timeline for a planet orbiting this star indicates an evolutionary pace described as {timeline['evolutionary_pace'].lower()}. "
+        f"A speculative evolutionary timeline for a planet orbiting this star indicates a {timeline['evolutionary_pace'].lower()} evolutionary pace. "
         f"The current estimated age of the system is {format_age_string(current_system_age)}."
     )
 

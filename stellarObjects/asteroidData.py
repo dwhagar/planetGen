@@ -106,7 +106,7 @@ class AsteroidBelt:
 
         output_paragraphs = []
         header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
-        header = f"{header_level} Asteroid Belt {header_level if not self.system_config.MARKDOWN else ''}" # Use self.system_config
+        header = f"{header_level} Asteroid Belt {header_level if not self.system_config.MARKDOWN else ''}".rstrip() # Use self.system_config
         output_paragraphs.append(header)
 
         composition_phrases = []

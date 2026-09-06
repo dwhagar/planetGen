@@ -1,10 +1,10 @@
 # System Specification Files
 
-`../planetGen.py` can load a full (or partial) star system specification from a
+`../systemGen.py` can load a full (or partial) star system specification from a
 JSON file with `--system-file` / `-f`:
 
 ```bash
-python planetGen.py --system-file examples/solar_system.json
+python systemGen.py --system-file examples/solar_system.json
 ```
 
 Every key is optional. Anything you leave out is generated normally (randomly,

@@ -582,7 +582,7 @@ STAR_EVOLUTION = {
         "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
         "supported_evolutionary_scales": ["fast"],
         "potentially_viable_chemicals": ["Retinal"],
-        "evolutionary_constraint_notes": "has an extremely short lifespan, as the star exhausts its fuel and goes supernova before planets can sufficiently cool to form stable liquid oceans, meaning only the absolute fastest, most primitive precursor photochemistry could theoretically occur"
+        "evolutionary_constraint_notes": "burns through its fuel and goes supernova before planets can sufficiently cool to form stable liquid oceans, meaning only the absolute fastest, most primitive precursor photochemistry could theoretically occur"
     },
     "B": {
         "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
@@ -600,7 +600,7 @@ STAR_EVOLUTION = {
         "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Blue-Optimized Porphyrins (+ GFPs)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "possesses a main-sequence habitable zone lifespan spanning between 4.3 and 9.1 billion years, which provides sufficient time for complex biospheres to emerge, including advanced UV-shielding and biofluorescent adaptations"
+        "evolutionary_constraint_notes": "provides a long enough main-sequence window for complex biospheres to emerge, including advanced UV-shielding and biofluorescent adaptations"
     },
     "G": {
         "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
@@ -618,7 +618,7 @@ STAR_EVOLUTION = {
         "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Bacteriochlorophylls (BChls)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "is the longest-lived star in the universe, and while early flaring requires rapid adaptation (e.g., radiotrophic melanin) during the initial hundreds of millions of years, their trillions of years of stability allow for deep-infrared anoxygenic photosynthesis to dominate permanently"
+        "evolutionary_constraint_notes": "is the longest-lived star in the universe; while early flaring requires rapid adaptation (e.g., radiotrophic melanin) during the initial hundreds of millions of years, its trillions of years of stability allow deep-infrared anoxygenic photosynthesis to dominate permanently"
     }
 }
 
@@ -721,7 +721,17 @@ SYSTEM_FLAVOR = [ # System-only flavor text.
     "a jagged, glowing fracture in space-time that continuously vents electromagnetic energy into the surrounding void.",
     "a decentralized network of automated defensive satellites arrayed across the system.",
     "an array of laser transceivers locked in continuous, high-bandwidth optical communication with one another.",
-    "a swarm of automated solar collectors skimming the star's corona, routing steady power into massive, fully charged battery arrays."
+    "a swarm of automated solar collectors skimming the star's corona, routing steady power into massive, fully charged battery arrays.",
+    "a partially built ring of solar collectors encircling the star, its gaps suggesting the project was abandoned mid-construction.",
+    "a cluster of dormant self-replicating probes holding formation, their fabrication cycles halted mid-sequence.",
+    "a derelict generation ship on a slow, decaying orbit, its hull dark and its drive cold after generations adrift.",
+    "a stellar mirror array angled to nudge the star's own light pressure into a gentle directional thrust, now drifting loose.",
+    "a pair of gravitational-lensing relays aimed at a target far beyond the system, still patiently listening.",
+    "a broken ring segment holding a stable orbit on its own, as if waiting for the rest of the structure to return.",
+    "a scattering of paired relay buoys still exchanging signals with a partner that fell silent long ago.",
+    "an automated probe holding station at the system's edge, its greeting message looping to no one.",
+    "a magnetic siphon rig drawing material from the star's outer layers, still running long after its operators left.",
+    "a shell of solar-collecting satellites in a wide, half-finished orbit, their construction drones nowhere to be found."
 ]
 
 PLANET_FLAVOR = [ # Flavor text for any planet.
@@ -733,19 +743,39 @@ PLANET_FLAVOR = [ # Flavor text for any planet.
     "a vast, precise grid of ancient cargo containers showing faint energy readings.",
     "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs.",
     "a vast, perfectly smooth glass crater with refined materials fused into its center.",
-    "an automated surface rover actively sorting stones by size and composition into a grid."
+    "an automated surface rover actively sorting stones by size and composition into a grid.",
+    "the collapsed base of a space elevator, its severed cable coiled across the surrounding terrain for kilometers.",
+    "a sealed cryogenic vault built into the bedrock, its status lights still cycling after some uncounted span of time.",
+    "a field of dormant terraforming seeders, half-buried and inert, that should have blanketed the world in engineered soil long ago.",
+    "a buried genetic seed vault with a collapsed access shaft, its contents unknown.",
+    "a standing obelisk of unidentified alloy on an otherwise featureless plain, untouched by weathering.",
+    "an abandoned colony's foundation grid, its structural bones outlining streets and buildings that were never raised.",
+    "the fallen anchor of an orbital elevator, its counterweight long gone, embedded deep in the crust.",
+    "an automated excavation still cutting the same exhausted mineral seam decades after it ran dry.",
+    "a scorched landing zone cleared by a controlled burn that was, by every visible sign, never used.",
+    "a shallow crater ringed with fused glass, the unmistakable signature of an old kinetic impact test."
 ]
 
 ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
     "several dead delivery drones and cargo pods in stable orbits.",
     "a dense debris ring consisting of shattered hull wreckage, dormant escape pods, and thousands of desiccated corpses in identical hazard suits.",
-    "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels as requiring extensive repairs.",
+    "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels it flags as requiring extensive repairs.",
     "a primitive interstellar probe caught in orbit.",
-    "a derelict light cruiser venting plasma slowly into an orbital ring of plasma.",
-    "a derelict transport ship whose severed bow tracks forty kilometers directly behind its own stern.",
+    "a derelict light cruiser venting plasma slowly into the surrounding void.",
+    "a derelict transport ship whose severed bow trails forty kilometers behind its own stern.",
     "a dense ring of cobalt-ferrite dust, in a thick fog of ionized sodium-potassium gas broadcasting radio signals across a variety of frequencies.",
     "a monolithic stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north.",
-    "a constellation large solar mirrors suspended in a rough orbital grid."
+    "a constellation of large solar mirrors suspended in a rough orbital grid.",
+    "a ring of cryostasis pods tumbling freely, their occupants' status unreadable at this range.",
+    "the wreckage of a one-sided battle, hulls scattered with no intact vessel among them.",
+    "a stationary listening post bristling with dish arrays, all aimed at a patch of empty sky.",
+    "a dormant ring-shaped gate of unfamiliar design, its inner surface dark and its function unconfirmed.",
+    "a cluster of sealed seed pods tumbling in a slow, decaying orbit, clearly not of local origin.",
+    "an automated checkpoint platform still broadcasting docking instructions in a language no database recognizes.",
+    "a field of armed kinetic interceptors, live and waiting, with no record of who deployed them.",
+    "a solitary dark-hulled relay emitting a tight beam toward the star and nothing else.",
+    "the fused, burned-out frame of an old drive test rig, its containment ring melted solid.",
+    "a loose formation of repair drones still patrolling a ship that no longer exists."
 ]
 
 HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
@@ -759,5 +789,15 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
     "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases.",
     "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers.",
     "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources.",
-    "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust."
+    "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust.",
+    "radiotrophic fungi that thrive in irradiated caverns, growing darker and denser near hot mineral veins.",
+    "colonial filter-feeders anchored to reef structures, pulsing in loose synchrony with the tides.",
+    "burrowing, desiccation-proof invertebrates that survive years dormant between rare rainfalls.",
+    "grazing animals with slowly crystallizing shells that eventually fuse into the rock formations they feed on.",
+    "blind cave-dwellers that navigate total darkness by sensing faint bioelectric fields in the walls around them.",
+    "lichen-like organisms that ride migrating herds, trading camouflage for transport.",
+    "herd animals that bury themselves and estivate for years to survive multi-year droughts.",
+    "predators whose skin patterns mimic local flora so precisely they vanish at rest.",
+    "colonial organisms that briefly link into a single distributed nervous system during seasonal migration.",
+    "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
 ]

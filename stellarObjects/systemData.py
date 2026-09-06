@@ -127,6 +127,7 @@ class StarSystem:
         if system_objects > 0:
             belt_index = random.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
             found_hab = False
+            found_belt = False
             i = -1
 
             while i < system_objects - 1:
@@ -154,6 +155,8 @@ class StarSystem:
                     obj = self.generate_slot_object(slot_spec, estimated_distance)
                     if getattr(obj, 'planet_class', None) in program_constants.HABITABLE_PLANET_CLASSES:
                         found_hab = True
+                    if getattr(obj, 'type', None) == 'a':
+                        found_belt = True
                     self.planets.append(obj)
                     continue
 
@@ -170,7 +173,14 @@ class StarSystem:
                                     last_planet.type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
                                                                  self.star.habitable_zone[1])
 
-                        if beyond_hz and not prev_slot_explicit:
+                        # Never retroactively overwrite a belt if ASTEROID_BELT is
+                        # required: this could be the belt satisfying that guarantee
+                        # (found_belt is set the moment it's placed, not re-checked
+                        # here), and this mechanism has no way to know whether another
+                        # one exists elsewhere to fall back on.
+                        belt_is_protected = last_planet.type == 'a' and self.system_config.ASTEROID_BELT is True
+
+                        if beyond_hz and not prev_slot_explicit and not belt_is_protected:
                             estimated_distance = random.uniform(self.star.habitable_zone[0],
                                                                 self.star.habitable_zone[1])
                             planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
@@ -195,10 +205,26 @@ class StarSystem:
                         self.planets.append(planet)
                         continue
 
-                if self.system_config.ASTEROID_BELT is not False and (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index) and not last_asteroid and not hz:
+                # Guaranteed last-resort fallback, mirroring HABITABLE_WORLD's own
+                # end-of-loop guarantee: if a belt is still required and hasn't
+                # happened yet by the trailing slot(s), force it there regardless of
+                # the soft hz/last_asteroid avoidance below (validate_system corrects
+                # any resulting spacing/overlap afterward). When HABITABLE_WORLD is
+                # ALSO still pending, that claims the very last slot for itself (its
+                # own unconditional `continue` above would otherwise steal this one
+                # out from under the belt), so the belt's fallback claims the slot
+                # just before it instead, guaranteeing each requirement its own slot.
+                hab_still_pending = self.system_config.HABITABLE_WORLD is True and not found_hab
+                belt_fallback_index = (system_objects - 2) if hab_still_pending else (system_objects - 1)
+                force_belt = self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
+
+                if self.system_config.ASTEROID_BELT is not False and (
+                    force_belt or (not last_asteroid and not hz and (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index))
+                ):
                     min_distance = estimated_distance
                     max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     self.planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
+                    found_belt = True
                 else:
                     planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
                                     self.star.luminosity,
@@ -527,7 +553,7 @@ class StarSystem:
         elif self.hab_count > 1 and self.hab_count == self.m_count:
             system_summary_sentences.append(f"There are {self.hab_count} class M worlds in the system.")
         elif self.hab_count > 1:
-            system_summary_sentences.append(f"There are {self.hab_count} potentially habitable worlds ({m_string})")
+            system_summary_sentences.append(f"There are {self.hab_count} potentially habitable worlds ({m_string}).")
         else:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
@@ -572,7 +598,7 @@ class StarSystem:
             for star_obj in self.stars: # self.stars contains primary and secondary Star objects
                 all_output_parts.append('\n\n') # Blank line after age sentence
                 header_level = '===' if not self.system_config.MARKDOWN else '###'
-                all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}")
+                all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
                 all_output_parts.append('\n') # Add a newline after the header
 
                 # Each individual star's to_paragraph_list() returns [data_block, age_sentence]
