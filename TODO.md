@@ -79,20 +79,24 @@ used by `generate_phoneme_salad_name` for stars/planets/moons/sectors
 alike) was built and verified 100% ASCII-7-bit-printable, but the rest of
 the file predates that constraint and hasn't been audited against it.
 
-- [ ] **Known violation, not yet fixed**: `MOON_PREFIXES` contains `"Rêv"`
+- [x] **Known violation, fixed**: `MOON_PREFIXES` contained `"Rêv"`
   (French, `ê` = U+00EA) and `"Sueñ"` (Spanish, `ñ` = U+00F1) — both
-  outside 7-bit ASCII. Replace with plain-ASCII transliterations (e.g.
-  `"Rev"`, `"Suen"`) that preserve the intended flavor.
-- [ ] Audit every other list in `stellarObjects/names.py`
+  outside 7-bit ASCII. Replaced with plain-ASCII transliterations
+  (`"Rev"`, `"Suen"`) that preserve the intended flavor.
+- [x] Audited every other list in `stellarObjects/names.py`
   (`STAR_NAMES`/`STAR_PREFIXES`/`STAR_SUFFIXES`,
   `PLANET_NAMES`/`PLANET_PREFIXES`/`PLANET_SUFFIXES`,
   `MOON_NAMES`/`MOON_SUFFIXES`, `SECTOR_NAMES`/`SECTOR_PREFIXES`/
-  `SECTOR_SUFFIXES`) for the same problem — none currently enforce it.
-- [ ] Add a regression test (e.g. `tests/test_names.py`) that walks every
+  `SECTOR_SUFFIXES`, `BAD_CONSONANTS`, `UNIVERSAL_PHONEMES`) for the same
+  problem — confirmed the two `MOON_PREFIXES` entries above were the only
+  violations in the entire file.
+- [x] Added a regression test (`tests/test_names.py`) that walks every
   public list-of-strings constant in `stellarObjects/names.py` and asserts
   each string is ASCII and printable (`all(32 <= ord(c) < 127 for c in s)`)
   — catches any future addition automatically instead of relying on manual
-  review each time a list is extended.
+  review each time a list is extended. A companion test asserts the
+  explicit constant list in the test itself stays in sync with whatever
+  list-of-strings constants actually exist in the module.
 
 ## Phase 1 — Full object-graph serialization
 
@@ -603,17 +607,17 @@ one of its steps.
     detected `user:group`, and prints a count of how many `.py` files it
     touched so a wrong path is obvious immediately instead of silently
     matching nothing.
-- [ ] **CRLF line endings on the deployed scripts** — not yet fixed. The
-  same production session also had to run `sed -i 's/\r$//' index.py` to
-  get a clean run. The blobs currently committed at `HEAD` are confirmed
-  LF-only, so this was very likely a one-time artifact of exactly when/how
-  that particular commit was made from the Windows authoring machine
-  (`core.autocrlf=true` locally) — but nothing today actually *prevents* a
-  future Windows-side commit from reintroducing CRLF. Add a
-  `.gitattributes` entry pinning `html/**/*.py` and `apache/*.sh` to
-  `text eol=lf` so this is enforced by the repo itself rather than by
-  convention. (Left open — not part of `install.sh`, since it's a repo
-  hygiene fix, not a deploy-time one.)
+- [x] **CRLF line endings on the deployed scripts — fixed**. The same
+  production session also had to run `sed -i 's/\r$//' index.py` to get a
+  clean run. The blobs committed at `HEAD` were confirmed LF-only, so this
+  was very likely a one-time artifact of exactly when/how that particular
+  commit was made from the Windows authoring machine (`core.autocrlf=true`
+  locally) — but nothing previously *prevented* a future Windows-side
+  commit from reintroducing CRLF. Added a `.gitattributes` entry (repo
+  root) pinning `html/**/*.py` and `apache/*.sh` to `text eol=lf`, verified
+  via `git check-attr` — this is now enforced by the repo itself rather
+  than by convention. (Kept as a repo-hygiene fix, not part of
+  `install.sh`, since it's not a deploy-time concern.)
 - [x] **`nltk.download('words', quiet=True)` fails under the Apache
   worker user — root cause found and fixed**: `stellarObjects/names.py`
   called this unconditionally at import time. `nltk`'s `download()`

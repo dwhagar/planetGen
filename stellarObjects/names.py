@@ -206,8 +206,8 @@ MOON_PREFIXES = [
     "Whis", "Ech", "Sha", "Glim", "Gleam", "Fae", "Pix", "Spri", "Wyn",  # Whimsical
     "Luni", "Umb", "Somni", "Ani", "Magi", "Rune",  # Mystical
     "Traum", "Geist", "Seel",  # German
-    "Rêv", "Ombr",  # French
-    "Somb", "Sueñ", "Sogn"  # Spanish/Italian
+    "Rev", "Ombr",  # French
+    "Somb", "Suen", "Sogn"  # Spanish/Italian
 ]
 """
 A list of prefixes for moon names. The theme for these prefixes is whimsical and

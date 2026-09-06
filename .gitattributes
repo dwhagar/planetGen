@@ -1,0 +1,7 @@
+# Deployed scripts must stay LF-only regardless of the authoring OS/git
+# config -- see TODO.md's "Deployment bugs found in production" section:
+# a Windows-side commit with core.autocrlf=true previously reintroduced
+# CRLF line endings into these files, breaking them on the Linux/Apache
+# deployment target until manually fixed with `sed -i 's/\r$//'`.
+html/**/*.py text eol=lf
+apache/*.sh text eol=lf
