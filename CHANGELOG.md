@@ -1,5 +1,74 @@
 # Changelog
 
+## [5.2.1] - 2026-09-06
+
+### Added
+- `html/`: a small, dependency-free web interface (plain Python CGI
+  scripts, standard library only) for browsing the SQLite databases from
+  `db/README.md` — pick a database, drill into its sectors and star
+  systems, and view (or copy, via a `<textarea>`) the rendered
+  wikitext/Markdown page saved for each one. See `html/README.md`.
+- `apache/`: deployment tooling for the web interface —
+  `planetgen.conf.example` (an example Apache2 virtual host) and
+  `set-permissions.sh` (detects the user/group Apache2 actually runs as
+  and sets ownership/permissions on the deployed `html/`/`db/`
+  directories accordingly).
+- `install.sh`: a one-shot Linux installer tying the above together —
+  runs `setup.py install`, pre-fetches the NLTK `words` corpus into a
+  shared, world-readable location, makes the CGI scripts executable,
+  enables Apache's `cgid` module, and runs `apache/set-permissions.sh`;
+  prints the one remaining manual step (copying/enabling the example
+  vhost) rather than touching Apache's site configuration itself.
+- `stellarObjects/names.py` gained `UNIVERSAL_PHONEMES`: a pool of ~100
+  short, ASCII-7-bit-printable phoneme chunks romanized from roughly 18
+  language families (Romance, Germanic, Slavic, Arabic/Hebrew/Persian,
+  Turkish, South Asian, Mandarin, Japanese, Korean, Vietnamese,
+  Austronesian, Polynesian, Bantu, Mesoamerican, Andean, Celtic,
+  Finno-Ugric, Caucasian). `generate_phoneme_salad_name` now splices one
+  of these into every generated name — star, planet, moon, and sector
+  alike — with `UNIVERSAL_PHONEME_CHANCE` (40%) odds, widening the
+  cultural range generated names are drawn from beyond each type's own
+  base name list.
+
+### Changed
+- Removed `SECTOR_DESIGNATORS` from `stellarObjects/names.py` (dead code
+  — defined but never referenced anywhere).
+- `generate_phoneme_salad_name` gained an `allow_split` parameter
+  (default `True`, unchanged for stars/planets/moons); see the sector
+  name bug fix below.
+
+### Fixed
+- Sector names could come out as 3-4 words instead of the intended 2 (in
+  a 500-name stress test, this happened 95% of the time).
+  `generate_phoneme_salad_name` can split a long result into two
+  space-separated words on its own (`split_long_word`), and
+  `sectorGen.generate_sector_name` already joins two independent calls
+  into one name — an internal split on either half silently produced
+  3-4 words in the final result. `generate_sector_name` now passes the
+  new `allow_split=False` for both halves.
+- `stellarObjects/names.py` unconditionally called
+  `nltk.download('words', quiet=True)` at import time; `nltk`'s
+  `download()` always targets the *current user's* default download
+  directory and attempts to create it, regardless of whether the corpus
+  already exists elsewhere on `nltk.data.path` — this broke the web
+  interface entirely under Apache's locked-down `www-data` account
+  (`PermissionError: ... '/var/www/nltk_data'`), since that account has
+  no writable home directory. It had only ever "worked" for the CLI
+  tools because those ran as `root`. Now checks
+  `nltk.data.find('corpora/words')` first and only downloads on
+  `LookupError`; `install.sh` pre-fetches the corpus into a shared,
+  world-readable path so that check always succeeds once installed.
+- `apache/set-permissions.sh` hard-failed when it couldn't detect
+  Apache's user/group (e.g. because apache2 isn't started/enabled yet,
+  which is exactly the case during a fresh `install.sh` run) — now warns
+  and defaults to the standard Debian/Ubuntu `www-data:www-data` instead.
+- CGI scripts could be deployed non-executable regardless of a local
+  `chmod +x`, because a `core.fileMode=false` git config on the
+  authoring machine silently drops the executable bit before it reaches
+  a commit. `install.sh` now `chmod +x`s the CGI scripts and
+  `apache/set-permissions.sh` directly on every install, independent of
+  whatever mode git happened to store.
+
 ## [5.2.0] - 2026-09-06
 
 ### Added

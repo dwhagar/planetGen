@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.2.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.2.1 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
