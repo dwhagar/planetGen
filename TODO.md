@@ -473,24 +473,42 @@ URLs the page is expected to live at.
   was made idempotent (every `CREATE TABLE`/`INDEX`/`VIEW` now says
   `IF NOT EXISTS`) so `_db.get_connection` can safely apply it on every
   connection rather than needing a first-run/migration check.
-- [ ] **Read path — not built**: nothing yet reconstructs a live
-  `StarSystem`/`SpaceSector` from database rows. This is where Phase 1's
-  `to_dict()`/`from_dict()` allowlists (or an equivalent direct
-  row-to-object mapping in `_db.py`) still matter — needed for Phase 3's
-  "list/query what's already stored" tooling to return anything richer
-  than raw rows, and for any future re-upload/re-render workflow.
-- [ ] Tests: round-trip through the actual database (not just in-memory
+- [x] **Read path — built**: `load_star_system(conn, star_system_id)` /
+  `load_sector(conn, sector_id)` / `load_system_config(conn, config_id)`
+  added to `_db.py`, reconstructing live objects from rows. Each row is
+  mapped to the flat dict shape each *leaf* class's own `from_dict` already
+  accepts (`Star`/`BinaryStarProxy`/`Planet`/`AsteroidBelt`/`SystemConfig`,
+  from Phase 1 above), inverting every unit conversion the write path
+  applies — `StarSystem` itself is assembled directly (mirroring
+  `StarSystem.from_dict`'s own internal wiring) rather than round-tripping
+  through a nested dict, since the data is normalized across many flat
+  tables instead of naturally nested the way a JSON export is. One real
+  fidelity bug caught by the byte-for-byte render-equality test below (not
+  by hand-testing): `Star.temperature` is generated as an `int`
+  (`int(round(...))`), but SQLite's `REAL` column type hands every numeric
+  value back as a Python `float` regardless of what was stored, so
+  `f"{self.temperature} K"` rendered `5800.0 K` instead of `5800 K` after a
+  round trip — fixed by casting back to `int` in `_star_row_to_dict`
+  (confirmed the only such attribute in the whole object graph via a
+  grep for `int(`/`int(round(` assignments across the package).
+  `_db.get_connection` now sets `conn.row_factory = sqlite3.Row` (backward
+  compatible with every existing positional `row[0]` caller, since `Row`
+  supports both). `db/README.md` updated to describe the new read path.
+- [x] Tests: round-trip through the actual database (not just in-memory
   dicts) — single star, binary, multi-moon, asteroid-belt, and
-  sector-with-position cases — verifying both text columns are populated
-  and mutually consistent, `lifespan_gy IS NULL` round-trips to
-  `float('inf')`, and `PRAGMA foreign_key_check` is clean. Partially done:
-  `tests/test_db_persistence.py` now covers the multi-moon/asteroid-belt
-  save path end-to-end (added alongside the v2 schema change below, since
-  hand-testing that change by running `sectorGen.py` and eyeballing the
-  result is exactly what missed a genuine bug — an `INSERT`'s column list
-  and value tuple silently drifting one apart in `insert_moon` — that a
-  test would have caught immediately). Binary systems, `lifespan_gy`
-  round-tripping, and `PRAGMA foreign_key_check` are still untested.
+  sector-with-position cases — verifying `str(reloaded) == str(original)`
+  (byte-for-byte render fidelity, the same strong check Phase 1's
+  in-memory tests use), `lifespan_gy IS NULL` round-trips to
+  `float('inf')`, and `PRAGMA foreign_key_check` is clean. Originally
+  partial (`tests/test_db_persistence.py` covered only the multi-moon/
+  asteroid-belt save path); now extended with
+  `test_load_star_system_round_trips_single_star_system_exactly`,
+  `test_load_star_system_round_trips_binary_system_exactly`,
+  `test_lifespan_gy_null_round_trips_to_infinite_lifespan`,
+  `test_foreign_key_check_is_clean_after_insert`,
+  `test_save_sector_and_load_sector_round_trip` (position compared via
+  `pytest.approx`, since a ly -> milliparsecs -> ly round trip isn't exact
+  floating point), and `test_insert_system_config_round_trips_slots_child_rows`.
 - [x] **Schema v2 — moons split into their own `moons` table**: a `Class D`
   search tag was silently mixing planets and moons together, because both
   shared one `planets` table discriminated only by `is_moon` — a search
@@ -522,13 +540,32 @@ URLs the page is expected to live at.
   flag, since populating the database *is* the point now. `--db-path`
   overrides the default `db/planetgen.db` location. Existing stdout/
   `--output` text behavior is unchanged.
-- [ ] `systemGen.py`: still text-only, no database option. A standalone
-  (non-sector) system has no natural `sector_id`/position, but
-  `_db.insert_star_system` already accepts `sector_id=None, position=None`
-  for exactly this case — wiring it in is mechanical once wanted.
-- [ ] A way to list/query what's already stored (e.g. a new small CLI or
-  script: "every G-type system", "everything within 50 ly of Sol", listing
-  sectors) — blocked on the read path above for anything beyond raw SQL.
+- [x] `systemGen.py`: mirrors `sectorGen.py`'s pattern exactly — a new
+  `--db-path` flag, and every run now saves to the database unconditionally
+  via a new `_db.save_system(star_system, system_config, db_path=None)`
+  convenience wrapper (the single-system counterpart to `save_sector`,
+  calling `insert_star_system` with `sector_id=None, position=None`, which
+  `insert_star_system` already supported). Existing stdout/`--output` text
+  behavior is unchanged. Verified end-to-end (not just unit-tested, matching
+  how `sectorGen.py`'s own DB save was originally verified): ran
+  `systemGen.py --db-path <tmp> ...` and confirmed the resulting
+  `star_systems` row has `sector_id IS NULL`.
+- [x] A way to list/query what's already stored: `queryDb.py` (new,
+  sibling to `sectorGen.py`/`systemGen.py`), a read-only CLI (opens via a
+  `file:...?mode=ro` URI, so it can never write) with three subcommands —
+  `sectors` (list every sector with its size and system count), `systems
+  [--star-type G] [--sector-id N]` ("every G-type system," matching against
+  the actual generated `stars.star_type` column rather than the recipe's
+  `system_configs.star_type`, which is `NULL` for a randomly-generated
+  star), and `near SYSTEM_ID --radius N` ("everything within 50 ly of
+  system N," Euclidean distance over the same sector's stored
+  `position_x/y/z_mpc` columns). Deliberately plain SQL rather than
+  routing through Phase 2's `load_star_system`/`load_sector` — these are
+  simple columnar listings, not full object-graph reconstructions, so a
+  raw query is the more direct tool; the read path remains what a future
+  richer tool would build on. Verified end-to-end against a freshly
+  generated sector for all three subcommands, plus `--version` and
+  missing/nonexistent-database error handling.
 
 ## Phase 4 — Galaxy-scale generation
 

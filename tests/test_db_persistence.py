@@ -20,6 +20,8 @@ import pytest
 
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
+from stellarObjects.doubleStar import BinaryStarProxy
+from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 
@@ -80,3 +82,161 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(tmp_p
         assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Read path (_db.load_star_system / load_sector / load_system_config) --
+# previously entirely untested (db/README.md's "no read path yet" status,
+# now built). Covers the gaps this module's own docstring called out as
+# still missing: binary systems, lifespan_gy round-tripping, and
+# PRAGMA foreign_key_check, plus save_sector/insert_sector and
+# insert_system_config's SLOTS child rows.
+# ---------------------------------------------------------------------------
+
+def test_load_star_system_round_trips_single_star_system_exactly(tmp_path):
+    system, cfg = _make_system_with_moons_and_belt()
+    db_path = str(tmp_path / "test.db")
+
+    conn = _db.get_connection(db_path)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert str(reloaded) == str(system)
+    assert reloaded.planet_count == system.planet_count
+    assert reloaded.belt_count == system.belt_count
+    assert reloaded.moon_count == system.moon_count
+    assert reloaded.hab_count == system.hab_count
+    assert reloaded.m_count == system.m_count
+    # Shared back-references: the SAME star/system_config instance everywhere.
+    for obj in reloaded.planets:
+        assert obj.system_config is reloaded.system_config
+        if obj.body_type != "a":
+            assert obj.star is reloaded.star
+
+
+def test_load_star_system_round_trips_binary_system_exactly(tmp_path):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.BINARY_SYSTEM = True
+    cfg.PLANETS = False
+    system = StarSystem(system_config=cfg)
+    db_path = str(tmp_path / "test.db")
+
+    conn = _db.get_connection(db_path)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert isinstance(reloaded.star, BinaryStarProxy)
+    assert len(reloaded.stars) == 2
+    assert str(reloaded) == str(system)
+    assert reloaded.star.mass == system.star.mass
+    assert reloaded.star.luminosity == system.star.luminosity
+    # The DB schema has exactly one system_config_id per star_systems row,
+    # so the secondary star's generation-time-only deep-copied config
+    # (see TODO.md's resolved "secondary-star system_config asymmetry"
+    # question) is naturally collapsed to the one shared config on reload.
+    assert reloaded.secondary_star.system_config is reloaded.system_config
+    assert reloaded.primary_star.system_config is reloaded.system_config
+
+
+def test_lifespan_gy_null_round_trips_to_infinite_lifespan(tmp_path):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "M2VII"  # white dwarf: lifespan == float('inf')
+    cfg.PLANETS = False
+    system = StarSystem(system_config=cfg)
+    assert system.star.lifespan == float('inf')
+    db_path = str(tmp_path / "test.db")
+
+    conn = _db.get_connection(db_path)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+        row = conn.execute(
+            "SELECT lifespan_gy FROM stars WHERE star_system_id = ?", (system_id,)
+        ).fetchone()
+        assert row["lifespan_gy"] is None  # NULL in storage, never the JSON "Infinity" token
+
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert reloaded.star.lifespan == float('inf')
+    assert str(reloaded) == str(system)
+
+
+def test_foreign_key_check_is_clean_after_insert(tmp_path):
+    system, cfg = _make_system_with_moons_and_belt()
+    db_path = str(tmp_path / "test.db")
+
+    conn = _db.get_connection(db_path)
+    try:
+        with conn:
+            _db.insert_star_system(conn, system, cfg)
+        violations = conn.execute("PRAGMA foreign_key_check").fetchall()
+    finally:
+        conn.close()
+
+    assert violations == []
+
+
+def test_save_sector_and_load_sector_round_trip(tmp_path):
+    sector = SpaceSector("Persisted Sector", edge_ly=20.0)
+
+    system_a, cfg_a = _make_system_with_moons_and_belt()
+    sector.add_system(system_a, position=(1.0, 2.0, 3.0), system_config=cfg_a)
+
+    cfg_b = SystemConfig()
+    cfg_b.STAR_TYPE = "M5V"
+    system_b = StarSystem(system_config=cfg_b)
+    sector.add_system(system_b, position=(-4.0, 0.0, 5.5), system_config=cfg_b)
+
+    db_path = str(tmp_path / "test.db")
+    sector_id = _db.save_sector(sector, db_path=db_path)
+
+    conn = _db.get_connection(db_path)
+    try:
+        reloaded_sector = _db.load_sector(conn, sector_id)
+    finally:
+        conn.close()
+
+    assert reloaded_sector.name == "Persisted Sector"
+    assert reloaded_sector.edge_ly == pytest.approx(20.0)
+    assert len(reloaded_sector) == 2
+
+    reloaded_by_name = {entry.star_system.star.name: entry for entry in reloaded_sector.entries}
+    for original_system, original_position in ((system_a, (1.0, 2.0, 3.0)), (system_b, (-4.0, 0.0, 5.5))):
+        entry = reloaded_by_name[original_system.star.name]
+        assert str(entry.star_system) == str(original_system)
+        # Round-tripped through ly -> milliparsecs -> ly, so exact equality
+        # isn't expected -- only floating-point-close.
+        assert entry.position == pytest.approx(original_position)
+
+
+def test_insert_system_config_round_trips_slots_child_rows(tmp_path):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.SLOTS = [
+        None,
+        {"type": "planet", "planet_class": "M", "moons": 2},
+        {"type": "asteroid_belt", "planet_class": None, "moons": None},
+    ]
+    db_path = str(tmp_path / "test.db")
+
+    conn = _db.get_connection(db_path)
+    try:
+        with conn:
+            config_id = _db.insert_system_config(conn, cfg)
+        reloaded = _db.load_system_config(conn, config_id)
+    finally:
+        conn.close()
+
+    assert reloaded.SLOTS == cfg.SLOTS
+    assert reloaded.STAR_TYPE == cfg.STAR_TYPE

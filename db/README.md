@@ -6,16 +6,18 @@ reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
-**Status**: the schema is implemented and being written to.
+**Status**: the schema is implemented, with both a write and a read path.
 [`stellarObjects/_db.py`](../stellarObjects/_db.py) (private — leading
 underscore, not part of the package's public generation API) writes
 already-generated `StarSystem`/`SpaceSector` objects straight into these
-tables; `sectorGen.py` calls it automatically on every run. There is no
-read path yet — nothing reconstructs a live object from database rows, so
-a "list what's stored" tool is still future work (`TODO.md` Phase 3). The
-actual `.db` file lives in this `db/` directory (gitignored — see the
-repo's `.gitignore`, `*.db`/`*.db-journal`) and is created automatically
-the first time something writes to it (default path
+tables (`sectorGen.py` calls it automatically on every run), and
+reconstructs them back into live objects from rows (`load_star_system`/
+`load_sector`/`load_system_config`), inverting every unit conversion the
+write path applies — a "list what's stored" tool is still future work
+(`TODO.md` Phase 3), but everything it needs to return richer than raw SQL
+rows now exists. The actual `.db` file lives in this `db/` directory
+(gitignored — see the repo's `.gitignore`, `*.db`/`*.db-journal`) and is
+created automatically the first time something writes to it (default path
 `db/planetgen.db`, overridable via `sectorGen.py --db-path`). See
 `TODO.md` for the full roadmap.
 
@@ -39,6 +41,16 @@ never mutates the generation/physics code's own native units. Its shape:
 - `migrate_database(db_path)` — converts one database file to the current
   schema in place, backing up the original first (a no-op if it's already
   current). See "Versioning" below.
+- `load_star_system(conn, star_system_id)` / `load_sector(conn, sector_id)`
+  / `load_system_config(conn, config_id)` — the read-path counterparts,
+  reconstructing a live `StarSystem`/`SpaceSector`/`SystemConfig` from
+  rows. Each row is mapped to the flat dict shape the corresponding
+  class's own `from_dict` already accepts (`Star`/`BinaryStarProxy`/
+  `Planet`/`AsteroidBelt`/`SystemConfig`, from `TODO.md`'s Phase 1
+  serialization), rather than a second, independent object-construction
+  path — `StarSystem` itself is assembled directly (mirroring
+  `StarSystem.from_dict`'s own wiring) since the data is normalized across
+  many flat tables rather than naturally nested the way a JSON export is.
 - Every `table_*`/`composition_summary` column is read from a
   `get_table_properties()` method on `Star`/`BinaryStarProxy`/`Planet` (and
   `get_composition_summary()` on `AsteroidBelt`), extracted from each

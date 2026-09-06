@@ -18,8 +18,19 @@ module. See `db/README.md` for the two-tier distance-unit convention
 (milliparsecs for sector-scale placement, kilometers for everything else)
 and the full column reference.
 
-Nothing here reads the database back into live objects yet -- that's
-Phase 3 territory (a query/listing tool) once there's real data to query.
+The read path (`load_star_system`/`load_sector`) reconstructs live objects
+back from rows, inverting every unit conversion the write path applies.
+Rather than assembling a nested dict shaped like
+`StarSystem.to_dict()` (natural for JSON, awkward here since the data is
+normalized across many flat tables) and routing through
+`StarSystem.from_dict`, each row is mapped directly to the flat dict shape
+each *leaf* class's own `from_dict` already accepts (`Star.from_dict`,
+`BinaryStarProxy.from_dict`, `Planet.from_dict`, `AsteroidBelt.from_dict`),
+and `StarSystem` itself is assembled directly here the same way
+`StarSystem.from_dict` assembles it internally -- reusing the leaf
+allowlists/reconstruction logic from `stellarObjects/serialization.py`
+(Phase 1) without a redundant object-to-dict-to-object round trip for data
+that was never nested to begin with.
 """
 
 import os
@@ -31,9 +42,11 @@ from . import physical_constants
 from .asteroidData import AsteroidBelt
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
-from .spaceSector import SpaceSector, classify_octant
+from .planetData import Planet
+from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant
+from .starData import Star
 from .systemData import StarSystem
-from .utils import ly_to_milliparsecs
+from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
 SCHEMA_VERSION = 2
 """int: Matches `star_systems.schema_version` and `PRAGMA user_version` in
@@ -65,12 +78,17 @@ def get_connection(db_path=None):
                                  `DEFAULT_DB_PATH`.
 
     Returns:
-        sqlite3.Connection: An open connection with foreign keys enabled.
+        sqlite3.Connection: An open connection with foreign keys enabled
+                            and `row_factory` set to `sqlite3.Row` (supports
+                            both `row[0]` and `row["column"]` access, so
+                            this is backward compatible with existing
+                            positional-index callers).
     """
     path = db_path or DEFAULT_DB_PATH
     os.makedirs(os.path.dirname(path), exist_ok=True)
     conn = sqlite3.connect(path)
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.row_factory = sqlite3.Row
     _ensure_schema(conn)
     return conn
 
@@ -581,6 +599,32 @@ def insert_sector(conn, sector: SpaceSector) -> int:
     return sector_id
 
 
+def save_system(star_system: StarSystem, system_config: SystemConfig, db_path=None) -> int:
+    """
+    Opens (or creates) the database and persists a single, standalone
+    `StarSystem` (no sector -- `sector_id`/`position` are left `None`) in
+    one transaction. The single-system counterpart to `save_sector`, for
+    `systemGen.py` (which, unlike `sectorGen.py`, generates one system with
+    no natural sector placement of its own).
+
+    Args:
+        star_system (StarSystem): The generated system to persist.
+        system_config (SystemConfig): The config it was generated from.
+        db_path (str, optional): Path to the `.db` file. Defaults to
+                                 `DEFAULT_DB_PATH`.
+
+    Returns:
+        int: The new `star_systems.id`.
+    """
+    conn = get_connection(db_path)
+    try:
+        with conn:
+            star_system_id = insert_star_system(conn, star_system, system_config)
+        return star_system_id
+    finally:
+        conn.close()
+
+
 def save_sector(sector: SpaceSector, db_path=None) -> int:
     """
     Opens (or creates) the database and persists a full `SpaceSector` to
@@ -601,6 +645,352 @@ def save_sector(sector: SpaceSector, db_path=None) -> int:
         return sector_id
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Read path -- reconstructs live objects from database rows. See the module
+# docstring for why this maps rows directly to each leaf class's own
+# `from_dict` shape rather than routing everything through a single nested
+# `StarSystem.from_dict` call.
+# ---------------------------------------------------------------------------
+
+def _tristate_from_db(value):
+    """
+    Inverts `_tristate`: converts the schema's nullable `INTEGER` `0`/`1`/
+    `NULL` representation back to a `SystemConfig` tri-state value.
+
+    Args:
+        value (int or None): The stored `0`/`1`/`NULL` value.
+
+    Returns:
+        bool or None: The tri-state value.
+    """
+    return None if value is None else bool(value)
+
+
+def load_system_config(conn, config_id) -> SystemConfig:
+    """
+    Reconstructs a `SystemConfig` from a `system_configs` row (plus its
+    `system_config_slots` child rows, if any).
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        config_id (int): The `system_configs.id` to load.
+
+    Returns:
+        SystemConfig: The reconstructed config.
+
+    Raises:
+        ValueError: If no such row exists.
+    """
+    row = conn.execute("SELECT * FROM system_configs WHERE id = ?", (config_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no system_configs row with id {config_id}")
+
+    slot_rows = conn.execute(
+        """
+        SELECT orbit_index, type, planet_class, moons
+        FROM system_config_slots WHERE config_id = ? ORDER BY orbit_index
+        """,
+        (config_id,),
+    ).fetchall()
+
+    slots = None
+    if slot_rows:
+        slots = [None] * (max(r["orbit_index"] for r in slot_rows) + 1)
+        for r in slot_rows:
+            slots[r["orbit_index"]] = {
+                "type": r["type"], "planet_class": r["planet_class"], "moons": r["moons"],
+            }
+
+    return SystemConfig.from_dict({
+        "markdown": bool(row["markdown"]),
+        "habitable_world": _tristate_from_db(row["habitable_world"]),
+        "asteroid_belt": _tristate_from_db(row["asteroid_belt"]),
+        "large_star": _tristate_from_db(row["large_star"]),
+        "moons": _tristate_from_db(row["moons"]),
+        "max_planets": _tristate_from_db(row["max_planets"]),
+        "planets": _tristate_from_db(row["planets"]),
+        "star_type": row["star_type"],
+        "name": row["name"],
+        "age": row["age"],
+        "intelligent_life": _tristate_from_db(row["intelligent_life"]),
+        "binary_system": _tristate_from_db(row["binary_system"]),
+        "num_orbits": row["num_orbits"],
+        "slots": slots,
+    })
+
+
+def _star_row_to_dict(row):
+    """Maps a `stars` row to `Star.from_dict`'s expected dict shape,
+    inverting every unit conversion `insert_star` applies.
+
+    `temperature` is cast back to `int` -- `Star.generate_star` always sets
+    it via `int(round(...))`, but SQLite's `REAL` column type hands every
+    numeric value back as a Python `float` regardless of what was stored,
+    and `f"{self.temperature} K"` (`get_table_properties`) renders `5800`
+    vs. `5800.0` differently -- the one place a plain round-trip through a
+    `REAL` column would otherwise silently break render fidelity.
+    """
+    return {
+        "name": row["name"],
+        "type": row["star_type"],
+        "yerkes_class": row["yerkes_class"],
+        "mass": row["mass_kg"],
+        "radius": row["radius_km"],
+        "temperature": int(row["temperature_k"]),
+        "luminosity": row["luminosity_w"],
+        "age": row["age_gy"],
+        "lifespan": row["lifespan_gy"],
+        "habitable_zone": [
+            row["habitable_zone_inner_km"] / physical_constants.AU_TO_KM,
+            row["habitable_zone_outer_km"] / physical_constants.AU_TO_KM,
+        ],
+        "system_perimeter": row["system_perimeter_km"] / physical_constants.AU_TO_KM,
+        "heliosphere_radius": row["heliosphere_radius_km"] / physical_constants.AU_TO_KM,
+    }
+
+
+def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
+    """Maps a `star_systems` row's `binary_*` columns to
+    `BinaryStarProxy.from_dict`'s expected dict shape, inverting every unit
+    conversion `_binary_fields` applies."""
+    row = star_system_row
+    return {
+        "name": row["name"],
+        "type": row["binary_type"],
+        "temperature": row["binary_temperature_k"],
+        "radius": row["binary_radius_km"],
+        "age": row["binary_age_gy"],
+        "lifespan": row["binary_lifespan_gy"],
+        "habitable_zone": [
+            row["binary_habitable_zone_inner_km"] / physical_constants.AU_TO_KM,
+            row["binary_habitable_zone_outer_km"] / physical_constants.AU_TO_KM,
+        ],
+        "system_perimeter": row["binary_system_perimeter_km"] / physical_constants.AU_TO_KM,
+        "heliosphere_radius": row["binary_heliosphere_radius_km"] / physical_constants.AU_TO_KM,
+        "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
+        "_effective_mass": row["binary_effective_mass_kg"],
+        "_effective_luminosity": row["binary_effective_luminosity_w"],
+        "primary": primary_dict,
+        "secondary": secondary_dict,
+    }
+
+
+def _planet_or_moon_row_to_dict(conn, row, is_moon):
+    """
+    Maps a `planets` or `moons` row (identical column shape -- see
+    `schema.sql`'s "v2" header note) to `Planet.from_dict`'s expected dict
+    shape, inverting every unit conversion `insert_planet`/`insert_moon`
+    apply and pulling in the row's evolutionary-paragraph and
+    reflection-spectrum child rows.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        row (sqlite3.Row): The `planets` or `moons` row.
+        is_moon (bool): Which pair of child tables to query
+                        (`planet_*`/`moon_*`) and id column to filter by.
+
+    Returns:
+        dict: In the shape `Planet.to_dict()` produces (`moons` left as
+             `[]` -- the caller fills it in for a top-level planet).
+    """
+    table_prefix = "moon" if is_moon else "planet"
+    id_column = "moon_id" if is_moon else "planet_id"
+
+    paragraph_rows = conn.execute(
+        f"SELECT paragraph FROM {table_prefix}_evolutionary_paragraphs "
+        f"WHERE {id_column} = ? ORDER BY position",
+        (row["id"],),
+    ).fetchall()
+    spectrum_rows = conn.execute(
+        f"SELECT spectrum_type, value FROM {table_prefix}_reflection_spectrum "
+        f"WHERE {id_column} = ? ORDER BY position",
+        (row["id"],),
+    ).fetchall()
+    visible = [r["value"] for r in spectrum_rows if r["spectrum_type"] == "visible"]
+    non_visible = [r["value"] for r in spectrum_rows if r["spectrum_type"] == "non_visible"]
+
+    min_orbit_distance_km = row["min_orbit_distance_km"]
+
+    return {
+        "is_moon": is_moon,
+        "zone": row["zone"],
+        "description": row["description"],
+        "atm_molar_density": row["atm_molar_density"],
+        "gravity": row["gravity_g"],
+        "atm_density": row["atm_density"],
+        "surface_temperature": row["surface_temperature_k"],
+        "density": row["density_g_cm3"],
+        "atmospheric_pressure": row["atmospheric_pressure_pa"],
+        "mass": row["mass_kg"],
+        "atmosphere": row["atmosphere"],
+        "composition": row["composition"],
+        "radius": row["radius_km"],
+        "planet_class": row["planet_class"],
+        "distance": row["distance_km"] / physical_constants.AU_TO_KM,
+        "body_type": row["body_type"],
+        "scale_height": row["scale_height_km"],
+        "hill_radius": row["hill_radius_km"],
+        "min_orbit_distance": (
+            min_orbit_distance_km / physical_constants.AU_TO_KM
+            if min_orbit_distance_km is not None else None
+        ),
+        "name": row["name"],
+        "life_chemical": row["life_chemical"],
+        "evolutionary_speed": row["evolutionary_speed"],
+        "reflection_spectrum_visible": visible or None,
+        "reflection_spectrum_non_visible": non_visible or None,
+        "evolutionary_data": [r["paragraph"] for r in paragraph_rows],
+        "flavor_text": row["flavor_text"],
+        "flavor_text_count": row["flavor_text_count"],
+        "habitable_zone": [
+            row["habitable_zone_inner_km"] / physical_constants.AU_TO_KM,
+            row["habitable_zone_outer_km"] / physical_constants.AU_TO_KM,
+        ],
+        "volume": row["volume_km3"],
+        "period": row["period_years"],
+        "moons": [],
+    }
+
+
+def _belt_row_to_dict(row, composition_pairs):
+    """Maps an `asteroid_belts` row (plus its `asteroid_belt_composition`
+    child rows) to `AsteroidBelt.from_dict`'s expected dict shape."""
+    return {
+        "distance": row["distance_km"] / physical_constants.AU_TO_KM,
+        "lower_limit": row["lower_limit_km"] / physical_constants.AU_TO_KM,
+        "upper_limit": row["upper_limit_km"] / physical_constants.AU_TO_KM,
+        "body_type": "a",
+        "density": row["density"],
+        "composition": [[pair["component"], pair["concentration"]] for pair in composition_pairs],
+    }
+
+
+def load_star_system(conn, star_system_id) -> StarSystem:
+    """
+    Reconstructs a full `StarSystem` -- config, star(s), and every planet/
+    moon/asteroid belt it contains, in original orbital order -- from a
+    `star_systems` row and its related rows.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        star_system_id (int): The `star_systems.id` to load.
+
+    Returns:
+        StarSystem: The reconstructed system.
+
+    Raises:
+        ValueError: If no such row exists.
+    """
+    row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no star_systems row with id {star_system_id}")
+
+    system_config = load_system_config(conn, row["system_config_id"])
+
+    if row["is_binary"]:
+        primary_row = conn.execute(
+            "SELECT * FROM stars WHERE star_system_id = ? AND role = 'primary'", (star_system_id,)
+        ).fetchone()
+        secondary_row = conn.execute(
+            "SELECT * FROM stars WHERE star_system_id = ? AND role = 'secondary'", (star_system_id,)
+        ).fetchone()
+        proxy_data = _binary_proxy_row_to_dict(
+            row, _star_row_to_dict(primary_row), _star_row_to_dict(secondary_row)
+        )
+        star = BinaryStarProxy.from_dict(proxy_data, system_config)
+    else:
+        single_row = conn.execute(
+            "SELECT * FROM stars WHERE star_system_id = ? AND role = 'single'", (star_system_id,)
+        ).fetchone()
+        star = Star.from_dict(_star_row_to_dict(single_row), system_config)
+
+    system = object.__new__(StarSystem)
+    system.system_config = system_config
+    system.star = star
+    if isinstance(star, BinaryStarProxy):
+        system.primary_star = star._primary
+        system.secondary_star = star._secondary
+        system.stars = [star._primary, star._secondary]
+    else:
+        system.primary_star = star
+        system.stars = [star]
+
+    planet_rows = conn.execute(
+        "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)
+    ).fetchall()
+    belt_rows = conn.execute(
+        "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)
+    ).fetchall()
+
+    # planets/belts share one orbital_index space (see insert_star_system's
+    # enumerate over star_system.planets) -- merge and re-sort by it to
+    # restore that original interleaved order.
+    combined = [("p", r) for r in planet_rows] + [("b", r) for r in belt_rows]
+    combined.sort(key=lambda item: item[1]["orbital_index"])
+
+    system.planets = []
+    for kind, r in combined:
+        if kind == "b":
+            comp_rows = conn.execute(
+                "SELECT component, concentration FROM asteroid_belt_composition "
+                "WHERE belt_id = ? ORDER BY position",
+                (r["id"],),
+            ).fetchall()
+            system.planets.append(AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config))
+        else:
+            planet_data = _planet_or_moon_row_to_dict(conn, r, is_moon=False)
+            moon_rows = conn.execute(
+                "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (r["id"],)
+            ).fetchall()
+            planet_data["moons"] = [_planet_or_moon_row_to_dict(conn, mr, is_moon=True) for mr in moon_rows]
+            system.planets.append(Planet.from_dict(planet_data, star, system_config))
+
+    system.system_flavor_text = row["system_flavor_text"]
+    system.planet_count, system.belt_count, system.moon_count = system.count_objects()
+    system.hab_count, system.m_count = system.count_habitable()
+
+    return system
+
+
+def load_sector(conn, sector_id) -> SpaceSector:
+    """
+    Reconstructs a full `SpaceSector` -- every system it contains, with its
+    placement -- from a `sectors` row and its related rows.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        sector_id (int): The `sectors.id` to load.
+
+    Returns:
+        SpaceSector: The reconstructed sector.
+
+    Raises:
+        ValueError: If no such row exists.
+    """
+    row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no sectors row with id {sector_id}")
+
+    sector = SpaceSector(row["name"], edge_ly=milliparsecs_to_ly(row["edge_mpc"]))
+
+    system_rows = conn.execute(
+        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "
+        "WHERE sector_id = ? ORDER BY id",
+        (sector_id,),
+    ).fetchall()
+
+    for r in system_rows:
+        star_system = load_star_system(conn, r["id"])
+        position = (
+            milliparsecs_to_ly(r["position_x_mpc"]),
+            milliparsecs_to_ly(r["position_y_mpc"]),
+            milliparsecs_to_ly(r["position_z_mpc"]),
+        )
+        sector.entries.append(SectorSystemEntry(star_system, position, system_config=star_system.system_config))
+
+    return sector
 
 
 class UnsupportedSchemaVersionError(Exception):

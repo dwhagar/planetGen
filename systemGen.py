@@ -5,7 +5,7 @@ import random
 import secrets
 
 from stellarObjects.config import SystemConfig
-from stellarObjects import program_constants
+from stellarObjects import _db, program_constants
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.systemData import StarSystem
 
@@ -121,6 +121,11 @@ def process_args():
 
     # Output to a file
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
+
+    # Database persistence
+    parser.add_argument('--db-path', type=str,
+                        help="Path to the SQLite database file the generated system is saved to. "
+                             "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
@@ -345,7 +350,11 @@ def main():
 
     Finally, the script checks if an output file was specified. If so, it writes
     the generated system's string representation to that file. Otherwise, it
-    prints the output directly to the console.
+    prints the output directly to the console. Either way, the generated
+    system is then saved to the database (`stellarObjects._db`, `--db-path`
+    to override the default location) as a standalone system (no sector) --
+    mirrors `sectorGen.py`'s own unconditional save, since populating the
+    database is the point now, not an opt-in extra.
     """
     # Seed the random number generator with a cryptographically secure seed
     random.seed(secrets.randbits(128))
@@ -359,6 +368,10 @@ def main():
             f.write(str(system))
     else:
         print(system)
+
+    star_system_id = _db.save_system(system, system_config, db_path=args.db_path)
+    db_path = args.db_path or _db.DEFAULT_DB_PATH
+    print(f"Saved system '{system.star.name}' to the database (star_system_id={star_system_id}, {db_path}).")
 
 if __name__ == "__main__":
     main()
