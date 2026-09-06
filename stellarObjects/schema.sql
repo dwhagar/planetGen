@@ -17,6 +17,41 @@
 -- decision), but the `table_*`/prose-derived columns are the ones meant
 -- for search, since they're exactly what's published.
 --
+-- Distance-unit convention -- TWO standard units, by scale:
+--   - SECTOR-SCALE PLACEMENT (`_mpc` suffix): star_systems.position_x/y/z
+--     and sectors.edge -- where a system sits within its sector. Kept in
+--     milliparsecs rather than km specifically because this is the one
+--     place km's numbers get unwieldy (an 11.5-ly sector edge is
+--     ~1.09e14 km vs. ~3526 mpc) and because sector geometry has no other
+--     unit competing for consistency the way orbital distances do (every
+--     orbital-scale quantity already shares km with radius/volume, so
+--     there's no benefit standardizing sector geometry to km too).
+--   - EVERYTHING ELSE (`_km`/`_km3` suffix): every other distance/length
+--     column -- both "distance between things" (orbital distances,
+--     habitable zones, system perimeter, heliosphere radius, hill radius,
+--     scale height, binary separation) AND "size of an object" (radius,
+--     volume) -- is kilometers, one standard unit instead of the
+--     generator's native mix of km/AU, so search/comparison across
+--     system-scale quantities never requires unit-aware query logic.
+-- Every `table_*` column (the rendered wiki-table snapshot strings) is
+-- unaffected by either convention -- those are copies of already-formatted
+-- display text (still AU/ly/km as the wiki shows today), independent of
+-- the raw column's storage unit. Conversion helpers live in
+-- stellarObjects/utils.py: `ly_to_milliparsecs`/`milliparsecs_to_ly` for
+-- the sector-scale columns; AU-to-km needs no helper for the km columns,
+-- it's a single multiply by the existing `physical_constants.AU_TO_KM`.
+-- Generation/physics code is untouched either way and keeps using its own
+-- native km/AU/ly throughout; only the not-yet-built persistence layer
+-- converts, at the moment of writing to (or reading from) these columns.
+--
+-- star_systems.quadrant stores the sector octant label (Roman numerals
+-- I-VIII, one of the 8 sign(x)/sign(y)/sign(z) combinations -- see
+-- spaceSector.py's `classify_octant`/`program_constants.SECTOR_OCTANT_LABELS`;
+-- the code's own naming calls these "quadrants" despite being a 3D octant
+-- scheme) alongside the raw x/y/z -- purely derived from position, but
+-- worth storing (not just recomputing on read) so it's directly
+-- queryable/indexable without a UDF or generated-column expression.
+--
 -- Two independent version numbers, per TODO.md's "Schema versioning"
 -- decision:
 --   - PRAGMA user_version below is the DDL-level structure version.
@@ -30,9 +65,9 @@ PRAGMA user_version = 1;
 -- sectors
 -- ---------------------------------------------------------------------
 CREATE TABLE sectors (
-    id       INTEGER PRIMARY KEY,
-    name     TEXT NOT NULL,
-    edge_ly  REAL NOT NULL
+    id        INTEGER PRIMARY KEY,
+    name      TEXT NOT NULL,
+    edge_mpc  REAL NOT NULL
 );
 
 -- ---------------------------------------------------------------------
@@ -78,11 +113,15 @@ CREATE TABLE star_systems (
     name                   TEXT NOT NULL,
 
     -- Position within its sector (spaceSector.py SectorSystemEntry.position),
-    -- light-years, relative to the sector's cubic center. NULL iff this
+    -- milliparsecs, relative to the sector's cubic center. NULL iff this
     -- system was never placed in a sector.
-    position_x_ly          REAL,
-    position_y_ly          REAL,
-    position_z_ly          REAL,
+    position_x_mpc          REAL,
+    position_y_mpc          REAL,
+    position_z_mpc          REAL,
+
+    -- Sector octant label derived from the position above (Roman numeral
+    -- I-VIII, see the header comment) -- NULL iff position is NULL.
+    quadrant                TEXT CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     is_binary              INTEGER NOT NULL DEFAULT 0 CHECK (is_binary IN (0, 1)),
 
@@ -90,18 +129,18 @@ CREATE TABLE star_systems (
     -- single-star system, stored rather than re-derived since
     -- _effective_mass/_effective_luminosity are computed once at
     -- generation time.
-    binary_separation_au           REAL,
-    binary_type                    TEXT,
-    binary_temperature_k           REAL,
-    binary_radius_km               REAL,
-    binary_effective_mass_kg       REAL,
-    binary_effective_luminosity_w  REAL,
-    binary_age_gy                  REAL,
-    binary_lifespan_gy             REAL,  -- NULL = float('inf')
-    binary_habitable_zone_inner_au REAL,
-    binary_habitable_zone_outer_au REAL,
-    binary_system_perimeter_au     REAL,
-    binary_heliosphere_radius_au   REAL,
+    binary_separation_km            REAL,
+    binary_type                     TEXT,
+    binary_temperature_k            REAL,
+    binary_radius_km                REAL,
+    binary_effective_mass_kg        REAL,
+    binary_effective_luminosity_w   REAL,
+    binary_age_gy                   REAL,
+    binary_lifespan_gy              REAL,  -- NULL = float('inf')
+    binary_habitable_zone_inner_km  REAL,
+    binary_habitable_zone_outer_km  REAL,
+    binary_system_perimeter_km      REAL,
+    binary_heliosphere_radius_km    REAL,
 
     -- "Binary System Data" table (doubleStar.py:158-170), one column per
     -- key -- the one properties table with no owning row elsewhere, since
@@ -155,10 +194,10 @@ CREATE TABLE stars (
     luminosity_w              REAL NOT NULL,
     age_gy                    REAL NOT NULL,
     lifespan_gy               REAL,            -- NULL = float('inf'), white dwarfs
-    habitable_zone_inner_au   REAL NOT NULL,
-    habitable_zone_outer_au   REAL NOT NULL,
-    system_perimeter_au       REAL NOT NULL,
-    heliosphere_radius_au     REAL NOT NULL,
+    habitable_zone_inner_km   REAL NOT NULL,
+    habitable_zone_outer_km   REAL NOT NULL,
+    system_perimeter_km       REAL NOT NULL,
+    heliosphere_radius_km     REAL NOT NULL,
 
     -- "Star Data" table (starData.py:488-509), one column per key --
     -- always present, every constituent Star renders its own individual
@@ -199,7 +238,7 @@ CREATE TABLE planets (
     body_type                 TEXT NOT NULL CHECK (body_type IN ('t', 'g')),
     name                      TEXT NOT NULL,
     planet_class              TEXT,
-    distance_au               REAL NOT NULL,   -- from star (top-level) or parent planet (moon)
+    distance_km               REAL NOT NULL,   -- from star (top-level) or parent planet (moon)
     radius_km                 REAL NOT NULL,
     mass_kg                   REAL NOT NULL,
     volume_km3                REAL NOT NULL,   -- derived, stored not recomputed
@@ -216,9 +255,9 @@ CREATE TABLE planets (
     composition               TEXT,            -- descriptive string (contrast asteroid_belt_composition)
     scale_height_km           REAL,
     hill_radius_km            REAL,
-    min_orbit_distance_au     REAL,
-    habitable_zone_inner_au   REAL NOT NULL,   -- copied from host star at generation time
-    habitable_zone_outer_au   REAL NOT NULL,
+    min_orbit_distance_km     REAL,
+    habitable_zone_inner_km   REAL NOT NULL,   -- copied from host star at generation time
+    habitable_zone_outer_km   REAL NOT NULL,
     life_chemical             TEXT,
     evolutionary_speed        TEXT,
     flavor_text               TEXT,
@@ -269,9 +308,9 @@ CREATE TABLE asteroid_belts (
     id                   INTEGER PRIMARY KEY,
     star_system_id       INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
     orbital_index        INTEGER NOT NULL,
-    distance_au          REAL NOT NULL,
-    lower_limit_au       REAL NOT NULL,   -- distance, low (asteroidData.py's "distance_text" range)
-    upper_limit_au       REAL NOT NULL,   -- distance, high
+    distance_km          REAL NOT NULL,
+    lower_limit_km       REAL NOT NULL,   -- distance, low (asteroidData.py's "distance_text" range)
+    upper_limit_km       REAL NOT NULL,   -- distance, high
     density              TEXT NOT NULL CHECK (density IN ('dense', 'sparse', 'typical')),
 
     -- Searchable composition summary, built the same way as the prose

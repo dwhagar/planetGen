@@ -162,6 +162,43 @@ def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, uni
         return f"{sci_notation} {unit} ({sol_val:.1f}× Sol)"
 
 
+def ly_to_milliparsecs(ly):
+    """
+    Converts a distance in light-years to milliparsecs (mpc).
+
+    For the database persistence layer only -- sector-scale position/
+    geometry columns (star_systems.position_x/y/z_mpc, sectors.edge_mpc;
+    see stellarObjects/schema.sql) are stored in milliparsecs specifically,
+    distinct from every other distance-shaped column in the schema (which
+    is kilometers). Generation/physics code keeps its own native light-year
+    units for sector geometry throughout and never calls this.
+
+    Args:
+        ly (float): The distance in light-years.
+
+    Returns:
+        float: The distance in milliparsecs.
+    """
+    au = ly * physical_constants.LY_TO_AU
+    return au / physical_constants.AU_PER_MILLIPARSEC
+
+
+def milliparsecs_to_ly(mpc):
+    """
+    Converts a distance in milliparsecs (mpc) back to light-years -- the
+    inverse of `ly_to_milliparsecs`, for reconstructing live objects
+    (native light-year sector geometry) from database rows.
+
+    Args:
+        mpc (float): The distance in milliparsecs.
+
+    Returns:
+        float: The distance in light-years.
+    """
+    au = mpc * physical_constants.AU_PER_MILLIPARSEC
+    return au * physical_constants.AU_TO_LY
+
+
 def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
@@ -268,9 +305,10 @@ def calculate_object_mass(object_class, object_radius, planet_classes, planet_de
     else:
         p_density = object_density
 
-    volume = (4 / 3) * math.pi * (object_radius * 1000) ** 3
-    mass = volume * p_density * 1000
-    return volume, mass
+    volume_km3 = (4 / 3) * math.pi * object_radius ** 3
+    volume_m3 = volume_km3 * physical_constants.KM_TO_M_FACTOR ** 3
+    mass = volume_m3 * p_density * 1000
+    return volume_km3, mass
 
 
 def calculate_habitable_zone(luminosity):

@@ -66,7 +66,6 @@ db.sqlite3-journal
 # data, never committed, same as any other build artifact.
 *.db
 *.db-journal
-./db
 
 # Flask stuff:
 instance/

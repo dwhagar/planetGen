@@ -61,7 +61,7 @@ counters).
   loop (preserves current ordering). Move the identical roll block here
   once. In `__str__`, replace both duplicated roll-and-append blocks with a
   read of `self.system_flavor_text`.
-- [ ] Confirmed OK, no action needed: `evolution.py`'s
+- [x] Confirmed OK, no action needed: `evolution.py`'s
   `get_evolutionary_timeline`/`planetLife.apply_life_data` are already
   correctly generation-time-only (run exactly once per planet/moon, output
   never touched again) — only the two flavor-text sites have the bug.
@@ -206,6 +206,47 @@ URLs the page is expected to live at.
   untracked by git since it holds nothing but the eventual `*.db` file,
   already ignored) — where the persistence layer will create/open the
   actual SQLite database file once it exists.
+- [x] **Distance-unit convention — resolved**: TWO standard units, by
+  scale. Sector-scale placement (`star_systems.position_x/y/z`,
+  `sectors.edge`) is stored in **milliparsecs** (`_mpc` suffix) — the one
+  place kilometers' numbers get unwieldy (an 11.5-ly sector edge is
+  ~1.09×10^14 km vs. ~3526 mpc), and sector geometry has no other unit
+  competing for consistency the way orbital distances do. Every other
+  distance/length-shaped column — orbital distances, habitable zones,
+  system perimeter, heliosphere radius, hill radius, scale height, binary
+  separation, AND radius/volume — is stored in **kilometers** (`_km`/`_km3`
+  suffix), one standard unit instead of the generator's native per-attribute
+  mix of km/AU, so search/comparison across system-scale quantities never
+  needs unit-aware query logic (this also means no radius/volume
+  "exception" is needed at that scale, since those were already km).
+  `table_*` columns (the rendered wiki-table snapshot strings) are
+  unaffected by either convention — copies of already-formatted display
+  text (still AU/ly/km as the wiki shows today), independent of the raw
+  column's storage unit. Conversion helpers for the future persistence
+  layer live in `stellarObjects/utils.py`: `ly_to_milliparsecs`/
+  `milliparsecs_to_ly` for the sector-scale columns; AU-to-km needs no
+  helper for the km columns, it's a single multiply by the existing
+  `physical_constants.AU_TO_KM`. Generation/physics code is untouched
+  either way, confirmed unnecessary by an audit of every distance attribute
+  in `starData.py`/`doubleStar.py`/`planetData.py`/`asteroidData.py`/
+  `spaceSector.py`/`planetPhysics.py`: each already has exactly one fixed
+  native unit, and every consumption boundary already does an explicit
+  `physical_constants`-based conversion, so nothing implicit could break.
+  Two unrelated pre-existing bugs surfaced during that audit (`Planet.volume`
+  silently ending up in m³ despite being documented/computed as km³,
+  `planetData.py:192` vs. the overwrite at `:313`; `Planet.scale_height`'s
+  formula at `planetPhysics.py:380-382` being dimensionally meters but
+  treated as km downstream) are tracked separately (background task
+  `task_8913d9bf`), out of scope here.
+- [x] **`star_systems.quadrant` — added**: the sector octant label (Roman
+  numeral I-VIII, one of the 8 sign(x)/sign(y)/sign(z) combinations — see
+  `spaceSector.py`'s `classify_octant`/`program_constants.SECTOR_OCTANT_LABELS`;
+  the code's own naming calls these "quadrants" despite being a 3D octant
+  scheme), stored alongside the raw `position_x/y/z_mpc` rather than only
+  derived on read — it's purely a function of position, but worth
+  persisting so it's directly queryable/indexable ("every system in
+  Quadrant III") without a UDF or generated-column expression. NULL iff
+  position is NULL (not placed in a sector).
 - [x] **Schema — written**: `stellarObjects/schema.sql`, verified to load
   cleanly via `sqlite3.executescript()` and column lists cross-checked
   directly against the real `__init__` bodies (`config.py`, `starData.py`,
@@ -213,20 +254,22 @@ URLs the page is expected to live at.
   estimates below (e.g. `Planet` turned out to have 27 scalar columns, not
   ~34 — the estimate had folded in the `moons`/`evolutionary_data` lists,
   which are child tables, not columns):
-  - `sectors` (id, name, edge_ly)
+  - `sectors` (id, name, edge_mpc)
   - `system_configs` (id, the ~13 `SystemConfig.SERIALIZABLE_FIELDS` as real
     columns — tri-state fields as nullable INTEGER 0/1/NULL, `markdown` as
     non-nullable INTEGER 0/1)
   - `system_config_slots` (id, config_id FK, orbit_index, type, planet_class,
     moons) — child table for the variable-length `slots` recipe list
   - `star_systems` (id, sector_id FK nullable [standalone systems allowed],
-    system_config_id FK, name, position_x_ly/position_y_ly/position_z_ly
-    nullable [NULL iff not placed in a sector], is_binary,
-    binary_separation_au nullable, plus one column per `BinaryStarProxy`
+    system_config_id FK, name, position_x_mpc/position_y_mpc/position_z_mpc
+    nullable [NULL iff not placed in a sector], quadrant nullable [Roman
+    numeral I-VIII octant label derived from position, see the resolved
+    bullet above], is_binary, binary_separation_km nullable, plus one column
+    per `BinaryStarProxy`
     derived field — binary_type, binary_temperature_k, binary_radius_km,
     binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy,
-    binary_lifespan_gy [nullable = infinite], binary_habitable_zone_inner_au/
-    _outer_au, binary_system_perimeter_au, binary_heliosphere_radius_au —
+    binary_lifespan_gy [nullable = infinite], binary_habitable_zone_inner_km/
+    _outer_km, binary_system_perimeter_km, binary_heliosphere_radius_km —
     all nullable, populated only for binaries, stored rather than re-derived
     since `_effective_mass`/`_effective_luminosity` are computed once at
     generation time; plus one column per key of the "Binary System Data"

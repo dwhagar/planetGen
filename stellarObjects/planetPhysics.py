@@ -377,8 +377,12 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         planet.surface_temperature = surface_temperature_no_atmosphere
         planet.atmospheric_pressure = 0.0
     else:
-        scale_height = (physical_constants.R * surface_temperature_no_atmosphere) / (
+        scale_height_m = (physical_constants.R * surface_temperature_no_atmosphere) / (
                     planet.atm_molar_density * planet.gravity * physical_constants.EARTH_GRAVITY)
+        # planet.radius (and everything derived from it below) is in km, so
+        # convert the scale height -- dimensionally meters, per the R*T/(M*g)
+        # formula -- to km to match before it's combined with radius.
+        scale_height = scale_height_m / physical_constants.KM_TO_M_FACTOR
         planet.scale_height = scale_height
         atmosphere_thickness = scale_height * random.uniform(5, 7)
         planet_volume = (4 * math.pi * planet.radius ** 3) / 3

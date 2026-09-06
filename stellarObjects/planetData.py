@@ -188,8 +188,7 @@ class Planet:
             self.name = generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)
 
         # Calculate physical/orbital properties (no life data yet).
-        planetPhysics.generate_planet_properties(self, zone_override)
-        self.volume = (4 / 3) * math.pi * self.radius ** 3  # Calculate volume in km^3
+        planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         self.period = math.sqrt(self.distance ** 3)
         planetPhysics.calculate_surface_gravity(self)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)

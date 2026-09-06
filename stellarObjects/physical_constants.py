@@ -81,6 +81,19 @@ float: Conversion factor from Astronomical Units (AU) to Light-Years (LY).
 1 AU is approximately 1/63241.1 Light-Years.
 """
 
+AU_PER_PARSEC = 206264.80625
+"""
+float: The IAU-defined parsec, in Astronomical Units (AU). Used only as the
+conversion path for the database persistence layer's sector-position
+storage (star_systems.position_x/y/z_mpc, sectors.edge_mpc -- see
+stellarObjects/schema.sql) -- not used anywhere in generation/physics code,
+which keeps its own native light-year units for sector geometry.
+"""
+AU_PER_MILLIPARSEC = AU_PER_PARSEC / 1000
+"""
+float: One milliparsec (1/1000 parsec), in Astronomical Units (AU).
+"""
+
 # --- Physics-Model Constants (heliosphere / stellar wind) ---
 KM_TO_M_FACTOR = 1000
 ESCAPE_VELOCITY_CONSTANT = 2
