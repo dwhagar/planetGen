@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import esc, fetch_all, open_readonly, resolve_db_path
+from dbutil import esc, fetch_all, format_density, open_readonly, resolve_db_path
 from page import query_params, run
 
 
@@ -60,9 +60,10 @@ def handler():
             "<tr>"
             f'<td><a href="sector.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
             f'<td>{row["system_count"]}</td>'
+            f'<td>{format_density(row["edge_mpc"], row["system_count"])}</td>'
             "</tr>"
             for row in sectors
-        ) or '<tr><td colspan="2"><em>None</em></td></tr>'
+        ) or '<tr><td colspan="3"><em>None</em></td></tr>'
 
         standalone_rows = "".join(
             "<tr>"
@@ -88,7 +89,7 @@ def handler():
 <section class="panel">
 <h2>Sectors</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Systems</th></tr></thead>
+  <thead><tr><th>Name</th><th>Systems</th><th>Density</th></tr></thead>
   <tbody>{sector_rows}</tbody>
 </table></div>
 </section>

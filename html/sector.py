@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 # siblings under /var/lib/planetGen).
 sys.path.append(os.path.dirname(_HTML_DIR))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, open_readonly, resolve_db_path
+from dbutil import NotFoundError, esc, fetch_all, fetch_one, format_density, open_readonly, resolve_db_path
 from page import query_params, run
 
 try:
@@ -77,10 +77,13 @@ def handler():
         conn.close()
 
     system_count = len(systems)
+    density_text = format_density(sector["edge_mpc"], system_count)
+
     badges_html = "<p class=\"badges\">" + "".join(
         f'<span class="badge">{bit}</span>' for bit in (
             f"Cube edge {esc(edge_text)}",
             f"{system_count} system{'s' if system_count != 1 else ''}",
+            f"Density {density_text}",
         )
     ) + "</p>"
 

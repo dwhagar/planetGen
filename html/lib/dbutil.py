@@ -19,6 +19,7 @@ import glob
 import html
 import os
 import sqlite3
+import sys
 
 DB_DIR_ENV_VAR = "PLANETGEN_DB_DIR"
 """str: Apache `SetEnv` variable name that overrides the default db
@@ -27,6 +28,23 @@ directory -- see the example vhost config."""
 _LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 _HTML_DIR = os.path.dirname(_LIB_DIR)
 _PROJECT_ROOT = os.path.dirname(_HTML_DIR)
+
+# Falls back to the project root (html/'s parent) so `stellarObjects` is
+# importable even when it hasn't been `pip install`-ed system-wide -- true
+# for the default deployment layout (`html/` and `stellarObjects/` as
+# siblings under /var/lib/planetGen). Every caller of this module reaches
+# it via its own sys.path setup too, but that isn't guaranteed to include
+# the project root (e.g. browse.py only adds `lib/`), so this module makes
+# sure of it independently rather than relying on import order.
+sys.path.append(_PROJECT_ROOT)
+try:
+    from stellarObjects.utils import milliparsecs_to_ly
+    from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
+except ImportError:
+    # The planetGen package isn't on the import path in this deployment --
+    # callers fall back to showing raw stored units rather than failing.
+    milliparsecs_to_ly = None
+    LOCAL_STELLAR_DENSITY_LY3 = None
 
 DEFAULT_DB_DIR = os.path.join(_PROJECT_ROOT, "db")
 """str: `db/` alongside `html/`, matching the repo layout and the
@@ -149,3 +167,36 @@ def esc(value):
     if value is None:
         return ""
     return html.escape(str(value), quote=True)
+
+
+def format_density(edge_mpc, system_count):
+    """
+    Formats a sector's star density as systems per cubic light-year, with a
+    percentage relative to `LOCAL_STELLAR_DENSITY_LY3` (the real local
+    stellar density sector generation targets -- see
+    `stellarObjects.spaceSector`'s module docstring) when that comparison
+    can be computed.
+
+    Args:
+        edge_mpc (float): The sector's cube edge, in milliparsecs
+                          (`sectors.edge_mpc`).
+        system_count (int): How many systems are placed in the sector.
+
+    Returns:
+        str: e.g. `"0.00329 systems/ly&sup3; (116% of local average)"`, or
+             `"unknown (cube edge unit unavailable)"` if `stellarObjects`
+             isn't importable in this deployment.
+    """
+    if milliparsecs_to_ly is None:
+        return "unknown (cube edge unit unavailable)"
+
+    edge_ly = milliparsecs_to_ly(edge_mpc)
+    if not edge_ly:
+        return "n/a"
+
+    density_ly3 = system_count / (edge_ly ** 3)
+    text = f"{density_ly3:.5f} systems/ly&sup3;"
+    if LOCAL_STELLAR_DENSITY_LY3:
+        relative_pct = (density_ly3 / LOCAL_STELLAR_DENSITY_LY3) * 100
+        text += f" ({relative_pct:,.0f}% of local average)"
+    return text
