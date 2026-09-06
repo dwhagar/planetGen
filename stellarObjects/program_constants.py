@@ -101,6 +101,52 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
+# --- Space Sector Growth Parameters (Poisson-disk placement) ---
+
+# Bridson's Fast Poisson Disk Sampling ("Fast Poisson Disk Sampling in
+# Arbitrary Dimensions", SIGGRAPH 2007 sketch): candidate attempts tried
+# around an active point before giving up on it and removing it from the
+# active list -- see `spaceSector.SpaceSector.grow_from_seed`. This
+# program's own tuning choice, not a physical constant; Bridson's own
+# sketch uses k=30 for its 2D/3D examples, kept as-is here since nothing
+# about this sector's scale (a handful to a few dozen systems) argues for a
+# different value.
+SECTOR_GROWTH_POISSON_DISK_K = 30
+
+# Outer radius of the spherical annulus a growth candidate is sampled
+# within, as a multiple of the per-pair minimum separation (the inner
+# radius r = required_separation_ly(parent, candidate)). Bridson's
+# algorithm samples in [r, 2r]; this keeps that same multiplier.
+SECTOR_GROWTH_ANNULUS_OUTER_MULTIPLIER = 2.0
+
+# Roman-numeral "quadrant" (properly an octant in 3D -- see
+# `spaceSector.classify_octant`) labels for the 8 sign-combinations of an
+# (x, y, z) position relative to a sector's center. NOT a universal
+# mathematical standard -- unlike the 2D I-IV quadrant convention, there is
+# no single authoritative numbering for 3D octants (Wikipedia's "Octant
+# (solid geometry)" article recommends explicit sign-tuple notation
+# instead, precisely because no such standard exists). This table adopts a
+# commonly *taught* (not ISO-standardized) extension of the 2D pattern:
+# octants with z >= 0 are numbered I-IV in the same counterclockwise sign
+# pattern as the 2D quadrants, then z < 0 continues the same x/y pattern as
+# V-VIII. Each tuple is (roman_numeral, x_is_non_negative,
+# y_is_non_negative, z_is_non_negative); a coordinate of exactly 0.0 is
+# treated as non-negative (an arbitrary but consistent tie-break).
+SECTOR_OCTANT_LABELS = [
+    ("I",    True,  True,  True),
+    ("II",   False, True,  True),
+    ("III",  False, False, True),
+    ("IV",   True,  False, True),
+    ("V",    True,  True,  False),
+    ("VI",   False, True,  False),
+    ("VII",  False, False, False),
+    ("VIII", True,  False, False),
+]
+
+# Decimal places used when formatting a named location's magnitudes -- see
+# `spaceSector.format_named_location`.
+SECTOR_LOCATION_DECIMAL_PLACES = 2
+
 # --- Display / Formatting Parameters ---
 HABITABLE_ZONE_BUFFER_AU = 0.2
 HELIOSPHERE_DISPLAY_THRESHOLD_LY = 0.1

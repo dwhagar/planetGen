@@ -3,10 +3,14 @@ SpaceSector storage regression tests.
 
 Covers cubic-volume placement (explicit, home-system-near-center, and random
 with minimum-separation enforcement), density-based sizing, distance/neighbor
-queries, and JSON round-tripping via `stellarObjects.spaceSector.SpaceSector`.
+queries, Poisson-disk growth (`grow_from_seed`), named-location (octant)
+formatting, and JSON round-tripping via
+`stellarObjects.spaceSector.SpaceSector`.
 
 Run with: pytest tests/test_space_sector.py
 """
+import ast
+import inspect
 import json
 import math
 import os
@@ -15,11 +19,15 @@ import random
 import pytest
 
 from stellarObjects import physical_constants, program_constants
+from stellarObjects import spaceSector as spaceSector_module
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import (
     SectorSystemEntry,
     SpaceSector,
+    _sample_poisson_count,
+    classify_octant,
     distance_between,
+    format_named_location,
     hill_radius_ly,
     required_separation_ly,
 )
@@ -34,6 +42,13 @@ def make_system(star_type="G2V", **overrides):
     for attr, value in overrides.items():
         setattr(cfg, attr, value)
     return StarSystem(system_config=cfg), cfg
+
+
+def make_cheap_system(star_type="G2V", **overrides):
+    """Like make_system, but skips planet/moon/life generation (PLANETS=False)
+    so it's fast enough to call dozens of times per growth-algorithm test."""
+    overrides.setdefault("PLANETS", False)
+    return make_system(star_type=star_type, **overrides)
 
 
 def test_add_system_with_explicit_position():
@@ -316,3 +331,197 @@ def test_system_config_to_dict_and_from_dict_round_trip():
 def test_default_sector_edge_constant_is_used_when_unspecified():
     sector = SpaceSector("Default Edge Sector")
     assert sector.edge_ly == program_constants.DEFAULT_SECTOR_EDGE_LY
+
+
+# --- Named location (octant/quadrant) formatting ---
+
+@pytest.mark.parametrize("label, sign_x, sign_y, sign_z", program_constants.SECTOR_OCTANT_LABELS)
+def test_classify_octant_returns_correct_label_for_all_eight_sign_combinations(label, sign_x, sign_y, sign_z):
+    x = 1.0 if sign_x else -1.0
+    y = 1.0 if sign_y else -1.0
+    z = 1.0 if sign_z else -1.0
+
+    result_label, magnitudes = classify_octant((x, y, z))
+    assert result_label == label
+    assert magnitudes == (1.0, 1.0, 1.0)
+
+
+def test_classify_octant_returns_absolute_value_magnitudes():
+    _, magnitudes = classify_octant((-2.1, 4.4, -1.05))
+    assert magnitudes == pytest.approx((2.1, 4.4, 1.05))
+
+
+def test_classify_octant_treats_zero_coordinate_as_non_negative():
+    label, _ = classify_octant((0.0, 0.0, 0.0))
+    assert label == "I"
+
+    # (True, False, True) per SECTOR_OCTANT_LABELS.
+    label, _ = classify_octant((0.0, -1.0, 1.0))
+    assert label == "IV"
+
+
+def test_format_named_location_produces_expected_string():
+    assert format_named_location((-2.1, 4.4, 1.05)) == "Quadrant II (2.10, 4.40, 1.05 ly from center)"
+
+
+def test_format_named_location_respects_decimal_places_constant():
+    places = program_constants.SECTOR_LOCATION_DECIMAL_PLACES
+    expected_x = f"{1.0:.{places}f}"
+    assert expected_x in format_named_location((1.0, 1.0, 1.0))
+
+
+def test_named_location_entry_method_matches_module_function():
+    sector = SpaceSector("Named Location Sector")
+    system, _ = make_system()
+    entry = sector.add_system(system, position=(-2.1, 4.4, 1.05))
+
+    assert entry.named_location() == format_named_location(entry.position)
+
+
+def test_space_sector_classify_octant_and_format_named_location_static_methods_match_module_functions():
+    position = (-2.1, 4.4, 1.05)
+    assert SpaceSector.classify_octant(position) == classify_octant(position)
+    assert SpaceSector.format_named_location(position) == format_named_location(position)
+
+
+# --- Poisson-count sampling ---
+
+def test_sample_poisson_count_returns_zero_for_nonpositive_mean():
+    assert _sample_poisson_count(0) == 0
+    assert _sample_poisson_count(-5) == 0
+
+
+def test_sample_poisson_count_mean_and_spread_are_approximately_correct():
+    mean = 4.0
+    samples = [_sample_poisson_count(mean) for _ in range(500)]
+
+    sample_mean = sum(samples) / len(samples)
+    assert mean * 0.7 <= sample_mean <= mean * 1.3
+    assert len(set(samples)) > 1
+    assert all(sample >= 0 for sample in samples)
+
+
+# --- Growth algorithm (grow_from_seed) ---
+
+def test_grow_from_seed_raises_if_seed_not_already_in_sector():
+    sector = SpaceSector("Growth Sector")
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system)
+
+    other_sector = SpaceSector("Other Sector")
+    with pytest.raises(ValueError):
+        other_sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0])
+
+
+def test_grow_from_seed_places_new_systems_within_sector_bounds():
+    sector = SpaceSector("Growth Sector", edge_ly=40.0)
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system)
+
+    sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0], target_count=5)
+
+    half_edge = sector.edge_ly / 2
+    for entry in sector.entries:
+        for coordinate in entry.position:
+            assert -half_edge - 1e-9 <= coordinate <= half_edge + 1e-9
+
+
+def test_grow_from_seed_respects_hill_sphere_separation_against_every_existing_entry():
+    """
+    Key correctness guard: every pair of systems -- not just parent/child
+    pairs from the growth tree -- must respect required_separation_ly, since
+    two separate growth branches could otherwise end up overlapping.
+    """
+    sector = SpaceSector("Growth Sector", edge_ly=40.0)
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system)
+
+    sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0], target_count=6)
+
+    for i, entry in enumerate(sector.entries):
+        for other in sector.entries[i + 1:]:
+            required = required_separation_ly(entry.star_system, other.star_system)
+            assert entry.distance_to(other) >= required - 1e-9
+
+
+def test_grow_from_seed_stops_at_explicit_target_count_when_room_permits():
+    sector = SpaceSector("Growth Sector", edge_ly=40.0)
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system)
+
+    sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0], target_count=4)
+    assert len(sector) == 4
+
+
+def test_grow_from_seed_terminates_gracefully_when_active_list_exhausted():
+    # A tiny cube can't fit more than the home system at typical Hill-sphere
+    # separations, so the active list should exhaust quickly rather than
+    # this call raising or looping forever.
+    sector = SpaceSector("Cramped Sector", edge_ly=1.0)
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system, jitter_ly=0.0)
+
+    new_entries = sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0], target_count=50)
+
+    assert len(sector) < 50
+    assert len(sector.entries) == 1 + len(new_entries)
+
+
+def test_grow_from_seed_uses_poisson_target_when_none_given():
+    counts = []
+    for _ in range(8):
+        sector = SpaceSector("Poisson Growth Sector", edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY)
+        home_system, _ = make_cheap_system()
+        home_entry = sector.add_home_system(home_system)
+        sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0])
+        counts.append(len(sector))
+
+    # Statistical, not exact: with a Poisson-distributed target, 8 independent
+    # trials landing on the exact same total system count is vanishingly
+    # unlikely, so this is a safe (non-flaky) way to assert real variance.
+    assert len(set(counts)) > 1
+    assert all(count >= 1 for count in counts)
+
+
+def test_grow_from_seed_returns_only_newly_created_entries():
+    sector = SpaceSector("Growth Sector", edge_ly=40.0)
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system)
+
+    new_entries = sector.grow_from_seed(home_entry, lambda: make_cheap_system()[0], target_count=4)
+
+    assert home_entry not in new_entries
+    for entry in new_entries:
+        assert entry in sector.entries
+
+
+def test_grow_from_seed_calls_factory_at_least_once_when_growing():
+    sector = SpaceSector("Growth Sector", edge_ly=40.0)
+    home_system, _ = make_cheap_system()
+    home_entry = sector.add_home_system(home_system)
+
+    call_count = 0
+
+    def counting_factory():
+        nonlocal call_count
+        call_count += 1
+        return make_cheap_system()[0]
+
+    sector.grow_from_seed(home_entry, counting_factory, target_count=3)
+    assert call_count > 0
+
+
+def test_space_sector_module_does_not_import_system_gen():
+    """
+    Architectural regression guard: stellarObjects/spaceSector.py must not
+    depend on systemGen.py -- root scripts depend on the stellarObjects
+    package, never the reverse. (The module docstring's prose references
+    `systemGen.main` in passing, so this checks for an actual import
+    statement rather than any mention of the name.)
+    """
+    tree = ast.parse(inspect.getsource(spaceSector_module))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            assert not any(alias.name.split(".")[0] == "systemGen" for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            assert node.module is None or node.module.split(".")[0] != "systemGen"

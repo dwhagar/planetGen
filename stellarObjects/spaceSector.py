@@ -84,6 +84,51 @@ Distances
 exact -- no relativistic or cosmological-expansion correction applies; those
 only become relevant at scales many, many orders of magnitude larger.
 
+Growth (Poisson-disk placement)
+---------------------------------
+`SpaceSector.grow_from_seed` fills a sector outward from an already-placed
+system using Bridson's Fast Poisson Disk Sampling algorithm ("Fast Poisson
+Disk Sampling in Arbitrary Dimensions", SIGGRAPH 2007 sketch --
+https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf):
+maintain an "active list" of points that might still have room for a
+neighbor; repeatedly pick a random active point and try up to
+`program_constants.SECTOR_GROWTH_POISSON_DISK_K` times to sample a candidate
+uniformly (by volume, not by radius) in the spherical annulus between the
+active point and `program_constants.SECTOR_GROWTH_ANNULUS_OUTER_MULTIPLIER`
+times that distance; reject a candidate that lands outside the sector's cube
+or too close to *any* existing system; if all attempts for a point fail,
+retire it from the active list. This is the same mechanism the classic
+algorithm uses, adapted for one thing specific to this module: instead of a
+single fixed minimum distance, the minimum spacing for a given candidate is
+its own `required_separation_ly` against each system it's compared to (its
+Hill sphere is only known once the candidate's own `StarSystem` -- with its
+own stellar mass -- has actually been generated, so a candidate is generated
+via a caller-supplied factory before its position is even chosen).
+
+By default, growth stops once the sector's system count reaches a
+Poisson-distributed target drawn around `expected_system_count()` -- matching
+how a real spatial Poisson process's count in a fixed volume is itself
+Poisson-distributed, rather than always packing sectors to the same density.
+It also stops early (without error) if the active list empties first, i.e.
+there simply wasn't room for more at the required spacing.
+
+Named locations (quadrants)
+------------------------------
+`classify_octant`/`format_named_location` (and
+`SectorSystemEntry.named_location`) express a raw `(x, y, z)` position as a
+Roman-numeral "quadrant" -- properly an *octant* in 3D, 8 regions rather than
+4, kept as "quadrant" here to match this project's own terminology -- plus
+the position's three positive magnitudes. Unlike 2D quadrants (I-IV is a
+genuine, universal mathematical standard), there is no single authoritative
+Roman-numeral numbering for 3D octants -- Wikipedia's "Octant (solid
+geometry)" article says so explicitly, recommending plain sign-tuple
+notation instead for exactly that reason. `program_constants.SECTOR_OCTANT_LABELS`
+adopts a commonly *taught* (not ISO-standardized) extension of the 2D
+pattern instead; see that constant's own comment for the exact convention.
+This is purely a derived display label, generated on demand from the stored
+raw position -- there is no reverse conversion, since raw `(x, y, z)` is the
+only form actually persisted.
+
 Persistence
 -----------
 A sector can be saved to (and reloaded from) JSON: each entry keeps the
@@ -174,6 +219,142 @@ def required_separation_ly(system_a, system_b):
     return hill_radius_ly(system_a) + hill_radius_ly(system_b)
 
 
+def _sample_poisson_count(mean, rng=_rng):
+    """
+    Draws a Poisson-distributed non-negative integer with the given mean,
+    using only uniform draws from `rng` -- Knuth's simple multiplicative
+    algorithm: repeatedly multiply `rng.random()` draws together until the
+    running product drops below `exp(-mean)`, counting how many draws that
+    took. This is exact (not an approximation), and it stays on this
+    module's own `_rng` (true OS entropy, not the seedable global `random`
+    module) rather than pulling in `numpy.random.poisson`, which would add a
+    new dependency this project doesn't otherwise have.
+
+    This runs in O(mean) draws, so it's only efficient for small means. The
+    one place this module uses it (`SpaceSector.grow_from_seed`'s default
+    `target_count`, via `expected_system_count`) is realistically single
+    digits for the default sector size -- comfortably within where this
+    approach is appropriate. Do not reuse this for a mean much above a few
+    dozen without switching to a rejection-based algorithm instead.
+
+    Args:
+        mean (float): The Poisson distribution's mean (lambda). Values <= 0
+                      always return 0.
+        rng (random.Random): The generator to draw from.
+
+    Returns:
+        int: A Poisson-distributed sample.
+    """
+    if mean <= 0:
+        return 0
+
+    threshold = math.exp(-mean)
+    count = 0
+    product = 1.0
+    while True:
+        product *= rng.random()
+        if product <= threshold:
+            return count
+        count += 1
+
+
+def _random_unit_direction(rng=_rng):
+    """
+    Samples a uniformly random direction on the unit sphere.
+
+    Uses `theta = uniform(0, 2*pi)` and `phi = acos(uniform(-1, 1))` --
+    NOT `phi = uniform(0, pi)`, which would bias samples toward the poles,
+    since a fixed-size angular step near the poles covers far less surface
+    area than the same step near the equator.
+
+    Args:
+        rng (random.Random): The generator to draw from.
+
+    Returns:
+        tuple: A unit-length `(dx, dy, dz)` direction vector.
+    """
+    theta = rng.uniform(0, 2 * math.pi)
+    phi = math.acos(rng.uniform(-1.0, 1.0))
+    sin_phi = math.sin(phi)
+    return (sin_phi * math.cos(theta), sin_phi * math.sin(theta), math.cos(phi))
+
+
+def _random_point_in_annulus(center, inner_radius, outer_radius, rng=_rng):
+    """
+    Samples a point uniformly *by volume* (not by radius) within the
+    spherical annulus between `inner_radius` and `outer_radius` around
+    `center` -- part of `SpaceSector.grow_from_seed`'s Bridson-algorithm
+    placement; see "Growth (Poisson-disk placement)" in the module
+    docstring.
+
+    Sampling the distance directly as `uniform(inner_radius, outer_radius)`
+    would bias points toward the inner radius, since a thin shell near the
+    inner radius has less volume than an equally thin shell farther out; the
+    cube-root form below corrects for that.
+
+    Args:
+        center (tuple): The `(x, y, z)` point the annulus is centered on.
+        inner_radius (float): The annulus's inner radius.
+        outer_radius (float): The annulus's outer radius.
+        rng (random.Random): The generator to draw from.
+
+    Returns:
+        tuple: The sampled `(x, y, z)` position.
+    """
+    u = rng.random()
+    distance = (inner_radius ** 3 + u * (outer_radius ** 3 - inner_radius ** 3)) ** (1 / 3)
+    dx, dy, dz = _random_unit_direction(rng)
+    return (center[0] + distance * dx, center[1] + distance * dy, center[2] + distance * dz)
+
+
+def classify_octant(position):
+    """
+    Classifies a raw `(x, y, z)` position (relative to a sector's center)
+    into one of the 8 sign-combination "quadrants" and its three positive
+    magnitudes -- see "Named locations (quadrants)" in the module docstring
+    and `program_constants.SECTOR_OCTANT_LABELS` for the convention and its
+    caveats.
+
+    A coordinate of exactly 0.0 is treated as non-negative, matching the
+    convention's own tie-break.
+
+    Args:
+        position (tuple): Raw `(x, y, z)` in light-years, relative to
+                          center.
+
+    Returns:
+        tuple: `(roman_numeral_label, (abs_x, abs_y, abs_z))`.
+    """
+    x, y, z = position
+    signs = (x >= 0, y >= 0, z >= 0)
+    for label, sign_x, sign_y, sign_z in program_constants.SECTOR_OCTANT_LABELS:
+        if (sign_x, sign_y, sign_z) == signs:
+            return label, (abs(x), abs(y), abs(z))
+
+    raise AssertionError("unreachable: SECTOR_OCTANT_LABELS covers all 8 sign combinations")
+
+
+def format_named_location(position):
+    """
+    Formats a raw `(x, y, z)` position as a human-readable "named location"
+    string, e.g. `"Quadrant III (2.10, 4.40, 1.05 ly from center)"`. See
+    "Named locations (quadrants)" in the module docstring.
+
+    Args:
+        position (tuple): Raw `(x, y, z)` in light-years, relative to
+                          center.
+
+    Returns:
+        str: The formatted label.
+    """
+    label, (abs_x, abs_y, abs_z) = classify_octant(position)
+    places = program_constants.SECTOR_LOCATION_DECIMAL_PLACES
+    return (
+        f"Quadrant {label} ({abs_x:.{places}f}, {abs_y:.{places}f}, "
+        f"{abs_z:.{places}f} ly from center)"
+    )
+
+
 class SectorSystemEntry:
     """
     One star system's placement within a `SpaceSector`.
@@ -205,6 +386,16 @@ class SectorSystemEntry:
             float: The distance in light-years.
         """
         return distance_between(self, other)
+
+    def named_location(self):
+        """
+        Returns this entry's position formatted as a "named location"
+        string. See `format_named_location`.
+
+        Returns:
+            str: The formatted label.
+        """
+        return format_named_location(self.position)
 
     def to_dict(self):
         """
@@ -366,6 +557,82 @@ class SpaceSector:
         position = tuple(_rng.uniform(-jitter_ly, jitter_ly) for _ in range(3))
         return self.add_system(star_system, position=position, system_config=system_config)
 
+    def grow_from_seed(self, seed, system_factory, target_count=None,
+                       k=program_constants.SECTOR_GROWTH_POISSON_DISK_K):
+        """
+        Grows the sector outward from an already-placed system using
+        Bridson's Fast Poisson Disk Sampling algorithm -- see "Growth
+        (Poisson-disk placement)" in the module docstring for the full
+        mechanism and its adaptation to this module's per-pair Hill-sphere
+        spacing.
+
+        Args:
+            seed (SectorSystemEntry): An entry already present in
+                `self.entries` to grow outward from -- typically the
+                sector's home system, from `add_home_system`.
+            system_factory (callable): A zero-argument callable returning a
+                freshly generated `StarSystem` for each placement attempt.
+                This module deliberately does not generate systems itself
+                (it doesn't import `systemGen.py`'s CLI-oriented generation
+                logic) -- the caller supplies it.
+            target_count (int, optional): The sector's desired total system
+                count once growth stops (including systems already
+                present). If None, a Poisson-distributed count with mean
+                `self.expected_system_count()` is drawn instead
+                (`_sample_poisson_count`), so per-sector variance matches a
+                real spatial Poisson process. If the drawn or given target
+                is at or below the sector's current size, growth simply
+                does nothing.
+            k (int): Placement attempts per active point before giving up
+                on it.
+
+        Returns:
+            list: The newly created `SectorSystemEntry` instances, in
+                 placement order. Does not include `seed`.
+
+        Raises:
+            ValueError: If `seed` is not already one of `self.entries`.
+        """
+        if seed not in self.entries:
+            raise ValueError("seed must already be an entry in this sector (e.g. via add_home_system)")
+
+        if target_count is None:
+            target_count = _sample_poisson_count(self.expected_system_count())
+
+        half_edge = self.edge_ly / 2
+        active_list = [seed]
+        new_entries = []
+
+        while active_list and len(self.entries) < target_count:
+            parent = _rng.choice(active_list)
+            placed = False
+
+            for _ in range(k):
+                candidate_system = system_factory()
+                inner_radius = required_separation_ly(parent.star_system, candidate_system)
+                outer_radius = inner_radius * program_constants.SECTOR_GROWTH_ANNULUS_OUTER_MULTIPLIER
+                candidate_position = _random_point_in_annulus(parent.position, inner_radius, outer_radius)
+
+                if not all(-half_edge <= coordinate <= half_edge for coordinate in candidate_position):
+                    continue
+                if not all(
+                    distance_between(candidate_position, entry.position)
+                    >= required_separation_ly(candidate_system, entry.star_system)
+                    for entry in self.entries
+                ):
+                    continue
+
+                entry = self.add_system(candidate_system, position=candidate_position)
+                active_list.append(entry)
+                new_entries.append(entry)
+                placed = True
+                break
+
+            if not placed:
+                active_list.remove(parent)
+
+        return new_entries
+
     @staticmethod
     def distance_between(a, b):
         """
@@ -382,6 +649,22 @@ class SpaceSector:
         systems' Hill spheres. See the module-level `required_separation_ly`.
         """
         return required_separation_ly(system_a, system_b)
+
+    @staticmethod
+    def classify_octant(position):
+        """
+        Classifies a raw `(x, y, z)` position into its "quadrant" label and
+        positive magnitudes. See the module-level `classify_octant`.
+        """
+        return classify_octant(position)
+
+    @staticmethod
+    def format_named_location(position):
+        """
+        Formats a raw `(x, y, z)` position as a "named location" string. See
+        the module-level `format_named_location`.
+        """
+        return format_named_location(position)
 
     def nearest_neighbors(self, entry, count=1):
         """
