@@ -75,19 +75,31 @@ def handler():
     finally:
         conn.close()
 
+    badges_html = "<p class=\"badges\">" + "".join(
+        f'<span class="badge">{bit}</span>' for bit in (
+            f"{len(sectors)} sector{'s' if len(sectors) != 1 else ''}",
+            f"{len(standalone)} standalone system{'s' if len(standalone) != 1 else ''}",
+        )
+    ) + "</p>"
+
     body = f"""
-<p><a href="index.py">&larr; Databases</a></p>
+<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; {esc(db_name)}</p>
+{badges_html}
+<section class="panel">
 <h2>Sectors</h2>
-<table>
+<div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Systems</th></tr></thead>
   <tbody>{sector_rows}</tbody>
-</table>
+</table></div>
+</section>
 
+<section class="panel">
 <h2>Standalone Systems</h2>
-<table>
+<div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Binary</th><th>Star type</th></tr></thead>
   <tbody>{standalone_rows}</tbody>
-</table>
+</table></div>
+</section>
 """
     return f"Browse: {db_name}", body
 

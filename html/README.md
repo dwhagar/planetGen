@@ -25,17 +25,22 @@ nothing else to install or run.
 | `index.py` | Lists every `.db` file in the database directory. |
 | `browse.py` | A chosen database's sectors and standalone systems. |
 | `sector.py` | One sector's systems (name, quadrant, star type). |
-| `system.py` | One system's stars/planets/moons/belts, and the full rendered wikitext or Markdown page (toggle via a link), shown in a `<textarea>` for easy copy-paste into the wiki. |
+| `system.py` | One system's stars/planets/moons/belts, plus its description -- rendered as HTML from `markdown_content` by default (`?view=rendered`), with the original raw wikitext/Markdown source (`?view=source&format=...`) still available for copy-pasting into a wiki. |
 | `lib/dbutil.py` | Read-only database access and HTML-escaping helpers. Not web-accessible -- see the Apache config note below. |
 | `lib/page.py` | Shared CGI response/HTML-shell helpers. Not web-accessible. |
-| `static/style.css` | Shared stylesheet, served directly (not through CGI). |
+| `lib/mdconvert.py` | A small, purpose-built Markdown-to-HTML converter for the narrow Markdown subset `StarSystem.__str__` actually generates (headers, pipe tables, paragraphs, `<sup>` exponents) -- not a general-purpose parser. Not web-accessible. |
+| `static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme`, card-style panels), served directly (not through CGI). |
 
 All database access goes through `sqlite3`'s `file:...?mode=ro` URI mode,
 so these scripts cannot write to a database even if a query were buggy.
 Database and system names pulled from generated data are HTML-escaped
 before being placed in a page; a requested `?db=` filename is validated
 against the actual directory listing (exact basename match only), which
-is what prevents it from being used for path traversal.
+is what prevents it from being used for path traversal. `mdconvert`
+escapes every block in full before emitting any markup, then narrowly
+re-enables only the one legitimate raw-HTML pattern generated content
+ever contains (`<sup>...</sup>`) -- so a mischievous `--name`/`--star-type`
+value can't inject live HTML into a rendered page.
 
 ## Locating the database directory
 

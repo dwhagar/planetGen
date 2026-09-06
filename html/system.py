@@ -2,9 +2,12 @@
 # html/system.py
 
 """
-System detail page: stars, planets/moons, asteroid belts, and the full
-rendered wiki page (wikitext or Markdown, toggled via `?format=`) stored
-for this system.
+System detail page: stars, planets/moons, asteroid belts, and the
+system's full description. Defaults to rendering `markdown_content` as
+actual HTML (via `mdconvert.markdown_to_html`) so the description reads
+like a normal page instead of a wall of raw Markdown; `?view=source`
+switches to the original raw-text view (wikitext or Markdown, toggled via
+`&format=`), which is what you want when copy-pasting into a wiki.
 """
 
 import os
@@ -13,6 +16,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from dbutil import NotFoundError, esc, fetch_all, fetch_one, open_readonly, resolve_db_path
+from mdconvert import markdown_to_html
 from page import query_params, run
 
 
@@ -37,11 +41,13 @@ def _stars_html(conn, system_id):
     if not rows:
         return ""
     return f"""
+<section class="panel">
 <h2>Stars</h2>
-<table>
+<div class="table-scroll"><table>
   <thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
-</table>
+</table></div>
+</section>
 """
 
 
@@ -85,11 +91,13 @@ def _bodies_html(conn, system_id):
     planet_html = ""
     if planet_rows:
         planet_html = f"""
+<section class="panel">
 <h2>Planets &amp; Moons</h2>
-<table>
+<div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Type</th><th>Zone</th><th>Distance</th><th>Period</th><th>Gravity</th></tr></thead>
   <tbody>{''.join(planet_rows)}</tbody>
-</table>
+</table></div>
+</section>
 """
 
     belt_html = ""
@@ -103,20 +111,67 @@ def _bodies_html(conn, system_id):
             for row in belts
         )
         belt_html = f"""
+<section class="panel">
 <h2>Asteroid Belts</h2>
-<table>
+<div class="table-scroll"><table>
   <thead><tr><th>Density</th><th>Distance</th><th>Composition</th></tr></thead>
   <tbody>{belt_rows}</tbody>
-</table>
+</table></div>
+</section>
 """
 
     return planet_html + belt_html
+
+
+def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_content):
+    """Builds the description section: rendered HTML by default, or the
+    raw wikitext/Markdown source (for copy-pasting into a wiki) when
+    `view=source`."""
+    base_url = f"system.py?db={esc(db_name)}&id={system_id}"
+
+    if view == "source":
+        content = wikitext_content if fmt == "wikitext" else markdown_content
+        other_fmt = "markdown" if fmt == "wikitext" else "wikitext"
+        rows = min((content or "").count("\n") + 3, 40)
+        return f"""
+<section class="panel">
+<div class="panel-header">
+  <h2>Description</h2>
+  <div class="view-toggle">
+    <a href="{base_url}">Rendered</a>
+    <span class="view-toggle-current">{esc(fmt.capitalize())} source</span>
+    <a href="{base_url}&view=source&format={other_fmt}">{esc(other_fmt.capitalize())} source</a>
+  </div>
+</div>
+<textarea readonly rows="{rows}" class="content-box" aria-label="{esc(fmt)} source">{esc(content)}</textarea>
+</section>
+"""
+
+    rendered = markdown_to_html(markdown_content)
+    return f"""
+<section class="panel">
+<div class="panel-header">
+  <h2>Description</h2>
+  <div class="view-toggle">
+    <span class="view-toggle-current">Rendered</span>
+    <a href="{base_url}&view=source">Wikitext source</a>
+    <a href="{base_url}&view=source&format=markdown">Markdown source</a>
+  </div>
+</div>
+<article class="prose">
+{rendered}
+</article>
+</section>
+"""
 
 
 def handler():
     params = query_params()
     db_name = params.get("db", "")
     system_id = params.get("id", "")
+    view = params.get("view", "rendered")
+    if view not in ("rendered", "source"):
+        view = "rendered"
     fmt = params.get("format", "wikitext")
     if fmt not in ("wikitext", "markdown"):
         fmt = "wikitext"
@@ -128,7 +183,7 @@ def handler():
         if system is None:
             raise NotFoundError(f"No such system: {system_id!r}")
 
-        back_html = f'<p><a href="index.py">Databases</a>'
+        back_html = '<p class="breadcrumb"><a href="index.py">Databases</a>'
         if system["sector_id"] is not None:
             back_html += f' &rarr; <a href="sector.py?db={esc(db_name)}&id={system["sector_id"]}">Sector</a>'
         back_html += f" &rarr; {esc(system['name'])}</p>"
@@ -137,29 +192,24 @@ def handler():
         if system["quadrant"]:
             summary_bits.append(f"Quadrant {esc(system['quadrant'])}")
         summary_bits.append("Binary system" if system["is_binary"] else "Single star")
-        summary_html = f"<p>{' &middot; '.join(summary_bits)}</p>"
-
-        content = system["wikitext_content"] if fmt == "wikitext" else system["markdown_content"]
-        other_fmt = "markdown" if fmt == "wikitext" else "wikitext"
-        toggle_html = (
-            f'<p><a href="system.py?db={esc(db_name)}&id={system_id}&format={other_fmt}">'
-            f'Switch to {other_fmt}</a></p>'
-        )
+        summary_html = "<p class=\"badges\">" + "".join(
+            f'<span class="badge">{bit}</span>' for bit in summary_bits
+        ) + "</p>"
 
         stars_html = _stars_html(conn, system_id)
         bodies_html = _bodies_html(conn, system_id)
+        description_html = _description_html(
+            db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"]
+        )
     finally:
         conn.close()
 
-    rows = (content or "").count("\n") + 3
     body = f"""
 {back_html}
 {summary_html}
+{description_html}
 {stars_html}
 {bodies_html}
-<h2>Rendered Page ({esc(fmt)})</h2>
-{toggle_html}
-<textarea readonly rows="{min(rows, 40)}" class="content-box">{esc(content)}</textarea>
 """
     return f"System: {system['name']}", body
 

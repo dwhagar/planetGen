@@ -105,7 +105,7 @@ def render_error(message, status="404 Not Found", raw=False):
     """
     from dbutil import esc
     body = message if raw else esc(message)
-    render("Error", f"<p class=\"error\">{body}</p>", status=status)
+    render("Error", f'<section class="panel"><p class="error">{body}</p></section>', status=status)
     sys.exit(0)
 
 

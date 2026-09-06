@@ -31,11 +31,13 @@ def handler():
     databases = list_databases()
 
     if not databases:
-        body = (
-            "<p>No databases found. Generate one first with "
-            "<code>sectorGen.py</code> or <code>systemGen.py</code> "
-            "(see the project README).</p>"
-        )
+        body = """
+<section class="panel">
+<p>No databases found. Generate one first with
+<code>sectorGen.py</code> or <code>systemGen.py</code>
+(see the project README).</p>
+</section>
+"""
         return "planetGen Databases", body
 
     rows = []
@@ -51,16 +53,20 @@ def handler():
             "</tr>"
         )
 
+    count_badge = f"{len(databases)} database{'s' if len(databases) != 1 else ''} found"
     body = f"""
-<p>Select a database to browse.</p>
-<table>
+<p class="badges"><span class="badge">{count_badge}</span></p>
+<section class="panel">
+<h2>Databases</h2>
+<div class="table-scroll"><table>
   <thead>
     <tr><th>Database</th><th>Sectors</th><th>Systems</th><th>Size</th><th>Last modified</th></tr>
   </thead>
   <tbody>
     {''.join(rows)}
   </tbody>
-</table>
+</table></div>
+</section>
 """
     return "planetGen Databases", body
 

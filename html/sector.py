@@ -76,14 +76,24 @@ def handler():
     finally:
         conn.close()
 
+    system_count = len(systems)
+    badges_html = "<p class=\"badges\">" + "".join(
+        f'<span class="badge">{bit}</span>' for bit in (
+            f"Cube edge {esc(edge_text)}",
+            f"{system_count} system{'s' if system_count != 1 else ''}",
+        )
+    ) + "</p>"
+
     body = f"""
-<p><a href="browse.py?db={esc(db_name)}">&larr; {esc(db_name)}</a></p>
-<p>Cube edge length: {edge_text}</p>
+<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; <a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(sector['name'])}</p>
+{badges_html}
+<section class="panel">
 <h2>Systems</h2>
-<table>
+<div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Quadrant</th><th>Binary</th><th>Star type</th></tr></thead>
   <tbody>{rows_html}</tbody>
-</table>
+</table></div>
+</section>
 """
     return f"Sector: {sector['name']}", body
 
