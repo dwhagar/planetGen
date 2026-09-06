@@ -22,10 +22,12 @@ from page import query_params, run
 
 try:
     from stellarObjects.utils import milliparsecs_to_ly
+    from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # fall back to showing the raw stored unit rather than failing outright.
     milliparsecs_to_ly = None
+    LOCAL_STELLAR_DENSITY_LY3 = None
 
 
 def handler():
@@ -77,10 +79,21 @@ def handler():
         conn.close()
 
     system_count = len(systems)
+
+    if edge_ly is not None:
+        density_ly3 = system_count / (edge_ly ** 3)
+        density_text = f"{density_ly3:.5f} systems/ly&sup3;"
+        if LOCAL_STELLAR_DENSITY_LY3:
+            relative_pct = (density_ly3 / LOCAL_STELLAR_DENSITY_LY3) * 100
+            density_text += f" ({relative_pct:,.0f}% of local average)"
+    else:
+        density_text = "unknown (cube edge unit unavailable)"
+
     badges_html = "<p class=\"badges\">" + "".join(
         f'<span class="badge">{bit}</span>' for bit in (
             f"Cube edge {esc(edge_text)}",
             f"{system_count} system{'s' if system_count != 1 else ''}",
+            f"Density {density_text}",
         )
     ) + "</p>"
 
