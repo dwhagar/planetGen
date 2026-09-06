@@ -276,14 +276,57 @@ A list of suffixes for sector names, giving the generated names the same
 grand, place-name feel as the base `SECTOR_NAMES` they're combined with.
 """
 
-SECTOR_DESIGNATORS = [
-    "Sector", "Expanse", "Reach", "Cluster", "Drift", "Verge", "Marches",
-    "Territories", "Frontier", "Belt", "Reaches", "Wilds"
+UNIVERSAL_PHONEMES = [
+    # Romance (Spanish/Italian/French/Portuguese)
+    "rr", "ll", "nh", "lh", "gn", "ci", "gi", "eu", "oi", "ch",
+    # Germanic (German/Dutch/Scandinavian)
+    "pf", "ij", "aa", "oo", "ae", "oe", "ck", "tz",
+    # Slavic (Russian/Polish/Czech, transliterated)
+    "zh", "shch", "ts", "cz", "rz", "ya", "yu", "yo", "ye",
+    # Arabic/Hebrew/Persian (transliterated, no diacritics)
+    "kh", "gh", "dh", "th", "qa", "ee", "ain",
+    # Turkish
+    "yz", "ogh",
+    # South Asian (Hindi/Sanskrit/Bengali, transliterated)
+    "bh", "dh", "gh", "kh", "ph", "chh", "jh", "jn", "shr",
+    # East Asian - Mandarin (pinyin)
+    "zh", "sh", "xi", "qi", "ang", "ong", "iong",
+    # Japanese (romaji)
+    "tsu", "kya", "gyo", "nya", "ryo", "hyu", "fu",
+    # Korean (romanization)
+    "eo", "eu", "ae", "oe", "ng", "gyu", "hye",
+    # Vietnamese
+    "ng", "nh", "tr", "gia", "qu",
+    # Austronesian (Tagalog/Indonesian/Malay)
+    "ngg", "ny", "mba",
+    # Polynesian (Maori/Hawaiian/Samoan)
+    "wh", "nga", "ae", "oa", "ai",
+    # African (Swahili/Bantu)
+    "mb", "nd", "nj", "gw", "vwa",
+    # Mesoamerican (Nahuatl/Mayan)
+    "tl", "tza", "huo", "xo", "cua", "ix", "b'a",
+    # Andean (Quechua/Aymara, glottalized)
+    "ch'", "q'o", "k'i",
+    # Celtic (Irish/Welsh/Scottish Gaelic)
+    "bh", "dh", "mh", "wy", "ao",
+    # Finno-Ugric (Finnish/Hungarian/Estonian)
+    "gy", "ty", "cs", "nye",
+    # Caucasian (Georgian/Armenian)
+    "kh", "dz", "gho",
 ]
 """
-A list of designator words appended after a generated sector base name (e.g.
-"Voranthis Expanse", "Kalcyrus Reach"), mirroring the variety of region-type
-words seen across real astronomy and science-fiction space-sector naming
-(sector, expanse, reach, cluster, territories, etc.) instead of always
-using the single word "Sector".
+A pool of short, ASCII-7-bit-printable phoneme chunks -- rough romanized
+approximations of consonant/vowel combinations drawn from as many of the
+world's language families as practical (Romance, Germanic, Slavic,
+Arabic/Hebrew/Persian, Turkish, South Asian, Mandarin, Japanese, Korean,
+Vietnamese, Austronesian, Polynesian, Bantu, Mesoamerican, Andean, Celtic,
+Finno-Ugric, and Caucasian), each written using only plain ASCII letters
+and apostrophes (no diacritics, since diacritics fall outside 7-bit ASCII).
+
+`generate_phoneme_salad_name` (see `stellarObjects/utils.py`) occasionally
+splices one of these into the shuffled-syllable pool for every kind of
+name -- star, planet, moon, and sector alike, since they all funnel
+through that one shared function -- widening the cultural "naming budget"
+generated names draw from beyond whatever happens to appear in that
+type's own base `_NAMES` list.
 """

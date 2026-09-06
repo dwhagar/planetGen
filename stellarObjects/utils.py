@@ -15,7 +15,7 @@ import random
 import secrets
 
 from .config import SystemConfig
-from .names import BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, VOWELS, WORD_SIZE_MEAN
+from .names import BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN
 from . import physical_constants, program_constants
 
 def reseed_rng():
@@ -440,6 +440,16 @@ def split_long_word(name):
     return name
 
 
+UNIVERSAL_PHONEME_CHANCE = 0.4
+"""
+Odds that `generate_phoneme_salad_name` splices an extra chunk from
+`names.UNIVERSAL_PHONEMES` into a generated name's syllable pool. Applies
+uniformly to stars, planets, moons, and sectors -- every one of those
+funnels through this same function -- rather than needing each type's own
+prefix/suffix lists to be extended individually.
+"""
+
+
 def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
     """
     Generates a unique, phonetically pleasing name from a list of base names.
@@ -447,6 +457,10 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
     This function creates new names by taking a base name, shuffling its
     syllables, and adding a prefix and suffix. It includes logic to ensure
     the resulting name is phonetically plausible and passes validation checks.
+    With `UNIVERSAL_PHONEME_CHANCE` odds, it also splices in one chunk from
+    `names.UNIVERSAL_PHONEMES` -- a cross-linguistic phoneme pool shared by
+    every name type -- widening the cultural range names are drawn from
+    beyond whatever's in `name_list` itself.
 
     Args:
         name_list (list): A list of base names to choose from.
@@ -459,11 +473,15 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list):
     reseed_rng()
     while True:
         name = secrets.choice(name_list)
-        
+
         syllables = split_into_syllables(name)
         if len(syllables) > 1:
             random.shuffle(syllables)
-            name = "".join(syllables)
+
+        if random.random() < UNIVERSAL_PHONEME_CHANCE:
+            syllables.insert(random.randint(0, len(syllables)), secrets.choice(UNIVERSAL_PHONEMES))
+
+        name = "".join(syllables)
 
         prefix = secrets.choice(prefix_list)
         if prefix[-1] in VOWELS and name[0].lower() in VOWELS:
