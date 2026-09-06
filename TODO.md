@@ -9,15 +9,29 @@ interface for browsing and search. This is a multi-phase, multi-session
 effort — phases below are ordered by dependency, not necessarily by when
 they'll be tackled.
 
+## How to use this document
+
+Work top to bottom — each phase depends on the ones above it (Phase 2's
+database needs Phase 1's serialization; Phase 1's serialization needs
+Phase 0's bug fixed first, or the frozen values it captures would be wrong).
+Before starting **any** implementation, resolve the "Open questions still
+to resolve" section at the bottom — several of those are decisions
+(dependencies, storage shape for a couple of fields) that change what gets
+built, not just how. All file:line references throughout have been checked
+against the current source as of the commit that added this document; if
+the code has moved since, treat the referenced method/attribute names as
+authoritative over the exact line numbers.
+
 ## Phase 0 — Prerequisite correctness fix (blocks faithful persistence)
 
 Root cause: `Planet._generate_life_and_flavor_paragraphs`
 (`stellarObjects/planetData.py:181-267`) rolls flavor text and mutates
 `system_config.system_flavor_count`/`recent_flavor_texts` **every time it's
 called**, and it's only ever called from `to_paragraph_list()` — i.e. render
-time, not generation time. Likewise `StarSystem.__str__`
-(`systemData.py:591-595` and `:626-629`, duplicated in both the binary and
-single-star branches) rolls `random.choice(program_constants.SYSTEM_FLAVOR)`
+time, not generation time (confirmed: it's called from nowhere else). Likewise
+`StarSystem.__str__` (`systemData.py:592-595` and `:626-629`, duplicated in
+both the binary and single-star branches) rolls
+`random.choice(program_constants.SYSTEM_FLAVOR)`
 into a local variable never assigned to `self`. Both must move to
 generation time so `to_paragraph_list()`/`__str__()` become pure reads —
 required for faithful persistence (there's no attribute to persist
@@ -176,6 +190,11 @@ JSON-blob-in-a-column hybrid.
   for a real web deployment (SQLAlchemy abstracts the SQL dialect; Alembic
   tracks schema changes). This adds two new dependencies beyond the
   project's current sole dependency (`nltk`) — flag and confirm explicitly.
+- [ ] `.gitignore` already has stray `db.sqlite3`/`db.sqlite3-journal`
+  entries (leftover boilerplate, not added for this project). Whatever the
+  actual database filename ends up being needs its own `.gitignore` entry
+  (or a glob covering it, e.g. `*.db`) — the database itself is generated
+  data and should never be committed, same as any other build artifact.
 - [ ] **Draft schema** (first pass, expect revision once implementation
   starts):
   - `sectors` (id, name, edge_ly)
