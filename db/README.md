@@ -31,10 +31,14 @@ never mutates the generation/physics code's own native units. Its shape:
   `CREATE ... IF NOT EXISTS` throughout `schema.sql`), and writes the whole
   sector in one transaction.
 - `insert_sector` / `insert_star_system` / `insert_star` / `insert_planet`
-  (recurses over moons) / `insert_asteroid_belt` / `insert_system_config` —
-  the per-table building blocks, callable individually for a standalone
-  system with no sector (`insert_star_system(conn, star_system,
-  system_config, sector_id=None, position=None)`).
+  (calls `insert_moon` for each of a planet's moons) / `insert_moon` /
+  `insert_asteroid_belt` / `insert_system_config` — the per-table building
+  blocks, callable individually for a standalone system with no sector
+  (`insert_star_system(conn, star_system, system_config, sector_id=None,
+  position=None)`).
+- `migrate_database(db_path)` — converts one database file to the current
+  schema in place, backing up the original first (a no-op if it's already
+  current). See "Versioning" below.
 - Every `table_*`/`composition_summary` column is read from a
   `get_table_properties()` method on `Star`/`BinaryStarProxy`/`Planet` (and
   `get_composition_summary()` on `AsteroidBelt`), extracted from each
@@ -107,11 +111,26 @@ prose always states: `density`, the distance range (`lower_limit_km`/
 Two independent version numbers:
 
 - `PRAGMA user_version` on the database file — the DDL structure version
-  (this schema is version `1`).
+  (this schema is version `2`; see "Schema history" below for what
+  changed since `1`).
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (from the future Phase 1 `to_dict()`) that produced
   that row. Independent of the DDL version because a JSON export/import
   could bring an older object-graph shape into a newer database file.
+
+#### Schema history
+
+- **v1 → v2**: moons split out of the shared `planets` table
+  (`is_moon`/`parent_planet_id`) into their own `moons` table
+  (`planet_id`) — see the `moons` table below and `schema.sql`'s "v2"
+  header note for why. `stellarObjects/_db.py`'s `migrate_database`
+  converts an existing v1 database in place, backing up the original
+  first (`<name>.db.v1-backup-<timestamp>.db`, alongside it); `install.sh`
+  (and so `update.sh`, which calls it) runs this automatically over every
+  database in `db/` on every deploy via `migrateDb.py`, so an old database
+  keeps working after a `git pull` brings in the new schema. A database
+  already on the current version is left untouched (no backup file is
+  created for a no-op).
 
 ### Booleans and tri-state flags
 
@@ -254,22 +273,20 @@ above (the `binary_*` columns), not here.
 
 ### `planets`
 
-One row per planet *or* moon (moons self-reference via `parent_planet_id`
-— there is no separate moons table). Covers both terrestrial and gas-giant
-bodies (`body_type`).
+One row per **top-level** planet (as of schema v2 — moons live in their
+own `moons` table below, not here; see "Schema history" above). Covers
+both terrestrial and gas-giant bodies (`body_type`).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Always the reliable owning link, regardless of `star_id`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | The specific star this planet orbits, when that's a real stored `stars` row — true for every single-star system. **NULL for a binary's planets**: the generator always builds planets against `self.star`, which for a binary is the `BinaryStarProxy` (never one individual constituent star — there's no S-type/circumbinary distinction in the current generator), and the proxy has no `stars` row to point at. |
-| `parent_planet_id` | INTEGER | FK -> `planets.id` (self), `ON DELETE CASCADE`, nullable | Set for moons; NULL for top-level planets/belts. |
-| `orbital_index` | INTEGER | NOT NULL | Position in the parent's ordered list (star's planets, or a planet's moons). |
-| `is_moon` | INTEGER (0/1) | NOT NULL, default 0 | |
+| `orbital_index` | INTEGER | NOT NULL | Position in the star's ordered `planets` list. |
 | `body_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Terrestrial or gas giant. Unrelated to `stars.star_type`. |
 | `name` | TEXT | NOT NULL | |
 | `planet_class` | TEXT | nullable | e.g. `"M"`. |
-| `distance_km` | REAL | NOT NULL | From the star (top-level) or the parent planet (moon). |
+| `distance_km` | REAL | NOT NULL | From the star. |
 | `radius_km`, `mass_kg` | REAL | NOT NULL | |
 | `volume_km3` | REAL | NOT NULL | Derived, stored not recomputed. |
 | `period_years` | REAL | NOT NULL | Derived, stored not recomputed. |
@@ -286,7 +303,7 @@ bodies (`body_type`).
 | `life_chemical`, `evolutionary_speed` | TEXT | nullable | Set by life-data generation, if any. |
 | `flavor_text` | TEXT | nullable | |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
-| `table_class`, `table_distance`, `table_period`, `table_radius`, `table_gravity` | TEXT | `table_distance`/`table_period`/`table_radius` NOT NULL, `table_class`/`table_gravity` nullable | The "Planet Data" (or "Class Data" for moons) table (`planetData.py:291-302`), one column per key — same dict shape for both. |
+| `table_class`, `table_distance`, `table_period`, `table_radius`, `table_gravity` | TEXT | `table_distance`/`table_period`/`table_radius` NOT NULL, `table_class`/`table_gravity` nullable | The "Planet Data" table (`planetData.py:291-302`), one column per key. |
 
 ### `planet_evolutionary_paragraphs`
 
@@ -314,6 +331,35 @@ anywhere.
 | `spectrum_type` | TEXT | NOT NULL, CHECK IN ('visible','non_visible') | |
 | `position` | INTEGER | NOT NULL | List order. |
 | `value` | TEXT | NOT NULL | |
+
+### `moons`
+
+One row per moon — added in schema v2, in place of the v1 design where a
+moon was a `planets` row self-referencing via `parent_planet_id`. Exactly
+the same column shape as `planets` (a moon is a `Planet` instance too,
+with `is_moon=True`), except `planet_id` names the specific planet it
+orbits. No self-reference here: moons never generate their own moons
+(`Planet.__init__` only calls `generate_moons` `if not self.is_moon`).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `planet_id` | INTEGER | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL | The planet this moon orbits. |
+| `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
+| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
+| `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above. |
+| `table_class`, `table_distance`, `table_period`, `table_radius`, `table_gravity` | TEXT | `table_distance`/`table_period`/`table_radius` NOT NULL, `table_class`/`table_gravity` nullable | The "Class Data" table (`planetData.py:291-302`) — same dict shape as `planets.table_*` above. |
+
+### `moon_evolutionary_paragraphs`
+
+Moon counterpart of `planet_evolutionary_paragraphs` — identical shape,
+`moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
+
+### `moon_reflection_spectrum`
+
+Moon counterpart of `planet_reflection_spectrum` — identical shape,
+`moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
 
 ### `asteroid_belts`
 
@@ -345,21 +391,21 @@ Structured per-component detail behind `composition_summary` above.
 
 ### `sector_objects` (view, not a table)
 
-`UNION ALL` across `stars`, `planets`, and `asteroid_belts` (each joined to
-`star_systems` for `sector_id`), for "every stellar object in this sector"
-queries without hand-writing the union each time:
+`UNION ALL` across `stars`, `planets`, `moons`, and `asteroid_belts` (each
+joined to `star_systems` for `sector_id`), for "every stellar object in
+this sector" queries without hand-writing the union each time:
 
 ```sql
 SELECT * FROM sector_objects WHERE sector_id = ?;
 ```
 
-Columns: `object_type` (`'star'`/`'planet'`/`'asteroid_belt'`), `object_id`
-(the row's real id in its own table), `star_system_id`, `sector_id`,
-`name`, `summary` (a short type-appropriate label — a star's `table_type`,
-a planet's class or body type, a belt's density), `orbital_index` (NULL for
-stars).
+Columns: `object_type` (`'star'`/`'planet'`/`'moon'`/`'asteroid_belt'`),
+`object_id` (the row's real id in its own table), `star_system_id`,
+`sector_id`, `name`, `summary` (a short type-appropriate label — a star's
+`table_type`, a planet's/moon's class or body type, a belt's density),
+`orbital_index` (NULL for stars).
 
-This is a view rather than a fourth physical table specifically to avoid
+This is a view rather than a fifth physical table specifically to avoid
 write-side upkeep: a real table would need to be kept in sync on every
 insert/update/delete to the tables it mirrors, or drift out of sync. A view
 has no storage and resolves against current data on every query.
@@ -371,12 +417,18 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │
                   ├──1───* stars
                   │
-                  ├──1───* planets (self-referential: parent_planet_id for moons)
+                  ├──1───* planets
                   │             │
                   │             ├──1───* planet_evolutionary_paragraphs
-                  │             └──1───* planet_reflection_spectrum
+                  │             ├──1───* planet_reflection_spectrum
+                  │             └──1───* moons
+                  │                       │
+                  │                       ├──1───* moon_evolutionary_paragraphs
+                  │                       └──1───* moon_reflection_spectrum
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
 
 planets.star_id ──────────> stars.id   (nullable; NULL for binary systems)
+moons.star_id   ──────────> stars.id   (nullable; NULL for binary systems)
+moons.star_system_id ─────> star_systems.id   (redundant with moons.planet_id's own owner)
 ```

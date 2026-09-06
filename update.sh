@@ -4,7 +4,8 @@
 #
 # Pulls the latest planetGen changes from git and re-runs `install.sh` so
 # permissions (and everything else `install.sh` covers -- the Python
-# package, the NLTK corpus, Apache's CGI module) stay correct afterward.
+# package, migrating any database left on an older schema, the NLTK
+# corpus, Apache's CGI module) stay correct afterward.
 # This exists because a `git pull` on its own isn't enough: pulling a
 # changed file rewrites it with whatever mode is tracked in the repo
 # (non-executable, historically -- see `TODO.md`'s "Deployment bugs

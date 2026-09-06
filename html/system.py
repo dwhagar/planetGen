@@ -51,32 +51,35 @@ def _stars_html(conn, system_id):
 """
 
 
-def _planet_row(conn, planet, indent=""):
-    rows = [
+def _body_row(row, indent=""):
+    return (
         "<tr>"
-        f'<td>{indent}{esc(planet["name"])}</td>'
-        f'<td>{esc(planet["planet_class"])}</td>'
-        f'<td>{"Gas Giant" if planet["body_type"] == "g" else "Terrestrial"}</td>'
-        f'<td>{esc(planet["zone"])}</td>'
-        f'<td>{esc(planet["table_distance"])}</td>'
-        f'<td>{esc(planet["table_period"])}</td>'
-        f'<td>{esc(planet["table_gravity"])}</td>'
+        f'<td>{indent}{esc(row["name"])}</td>'
+        f'<td>{esc(row["planet_class"])}</td>'
+        f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
+        f'<td>{esc(row["zone"])}</td>'
+        f'<td>{esc(row["table_distance"])}</td>'
+        f'<td>{esc(row["table_period"])}</td>'
+        f'<td>{esc(row["table_gravity"])}</td>'
         "</tr>"
-    ]
-    moons = fetch_all(
-        conn,
-        "SELECT * FROM planets WHERE parent_planet_id = ? ORDER BY orbital_index",
-        (planet["id"],),
     )
-    for moon in moons:
-        rows.extend(_planet_row(conn, moon, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ "))
+
+
+def _planet_rows(conn, planet):
+    """One row for `planet` plus one indented row per moon -- moons live
+    in their own table as of schema v2 and never have moons of their own
+    (`Planet.__init__` only calls `generate_moons` `if not self.is_moon`),
+    so this never needs to recurse further."""
+    rows = [_body_row(planet)]
+    moons = fetch_all(conn, "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],))
+    rows.extend(_body_row(moon, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ ") for moon in moons)
     return rows
 
 
 def _bodies_html(conn, system_id):
     planets = fetch_all(
         conn,
-        "SELECT * FROM planets WHERE star_system_id = ? AND parent_planet_id IS NULL ORDER BY orbital_index",
+        "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
         (system_id,),
     )
     belts = fetch_all(
@@ -87,7 +90,7 @@ def _bodies_html(conn, system_id):
 
     planet_rows = []
     for planet in planets:
-        planet_rows.extend(_planet_row(conn, planet))
+        planet_rows.extend(_planet_rows(conn, planet))
     planet_html = ""
     if planet_rows:
         planet_html = f"""

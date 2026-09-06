@@ -10,7 +10,12 @@
 #
 #   1. Installs the Python package via a build-isolated `pip install`
 #      (not the deprecated `setup.py install`).
-#   2. Pre-fetches the NLTK `words` corpus into a shared, world-readable
+#   2. Runs `migrateDb.py` over every `*.db` file in `db/`, converting any
+#      database still on an older schema (`stellarObjects/schema.sql`'s
+#      `PRAGMA user_version`) up to the current one -- backing up the
+#      original first. A no-op for a database that's already current.
+#      Needs step 1 done first, since it imports `stellarObjects`.
+#   3. Pre-fetches the NLTK `words` corpus into a shared, world-readable
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
 #      `sectorgen`/`systemgen`, or Apache's own locked-down `www-data`
@@ -21,16 +26,16 @@
 #      `TODO.md`'s "Deployment bugs found in production" section for the
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
 #      this fixes.
-#   3. Makes the `html/` CGI scripts executable, independent of whatever
+#   4. Makes the `html/` CGI scripts executable, independent of whatever
 #      executable bit git happened to preserve on checkout (also see
 #      `TODO.md` -- a `core.fileMode=false` git config on the authoring
 #      machine silently dropped this once already, and nothing about a
 #      git checkout should be trusted to carry it reliably).
-#   4. Enables Apache's CGI module (`a2enmod cgid`).
-#   5. Runs `apache/set-permissions.sh` to set ownership/permissions on
+#   5. Enables Apache's CGI module (`a2enmod cgid`).
+#   6. Runs `apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `html/`/`db/` directories for Apache's worker
 #      user/group.
-#   6. Prints the one remaining manual step: copying and enabling the
+#   7. Prints the one remaining manual step: copying and enabling the
 #      example virtual host config. This script never touches Apache's
 #      site configuration itself -- ServerName, TLS, and logging are
 #      site-specific decisions for a human to make, not something to
@@ -61,7 +66,7 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
-echo "== 1/5: Installing the Python package =="
+echo "== 1/6: Installing the Python package =="
 # `pip install .` (a proper, build-isolated PEP 517 install), NOT the
 # legacy `python3 setup.py install` this used to run. setuptools itself
 # now prints "Please avoid running setup.py directly" for that direct
@@ -102,13 +107,17 @@ echo "== 1/5: Installing the Python package =="
 "$PYTHON" -m pip install --upgrade --force-reinstall "$SCRIPT_DIR"
 
 echo
-echo "== 2/5: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
+echo "== 2/6: Migrating any outdated databases to the current schema =="
+"$PYTHON" "$SCRIPT_DIR/migrateDb.py" "$DB_DIR"
+
+echo
+echo "== 3/6: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
 mkdir -p "$NLTK_DATA_DIR"
 "$PYTHON" -m nltk.downloader -d "$NLTK_DATA_DIR" words
 chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
-echo "== 3/5: Making the CGI scripts and shell scripts executable =="
+echo "== 4/6: Making the CGI scripts and shell scripts executable =="
 # No -maxdepth: every *.py under html/, at any subdirectory depth
 # (html/lib/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
@@ -126,7 +135,7 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
-echo "== 4/5: Enabling Apache's CGI module =="
+echo "== 5/6: Enabling Apache's CGI module =="
 if command -v a2enmod >/dev/null 2>&1; then
     a2enmod cgid
 else
@@ -135,7 +144,7 @@ else
 fi
 
 echo
-echo "== 5/5: Setting directory ownership/permissions for Apache =="
+echo "== 6/6: Setting directory ownership/permissions for Apache =="
 "$SCRIPT_DIR/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 if [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then

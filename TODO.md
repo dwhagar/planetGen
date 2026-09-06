@@ -433,10 +433,35 @@ URLs the page is expected to live at.
   dicts) — single star, binary, multi-moon, asteroid-belt, and
   sector-with-position cases — verifying both text columns are populated
   and mutually consistent, `lifespan_gy IS NULL` round-trips to
-  `float('inf')`, and `PRAGMA foreign_key_check` is clean. (Manually
-  smoke-tested via `sectorGen.py` as of this writing — no belts, single
-  star, multi-moon, and binary cases confirmed to insert cleanly with no
-  FK violations — but not yet a real automated test.)
+  `float('inf')`, and `PRAGMA foreign_key_check` is clean. Partially done:
+  `tests/test_db_persistence.py` now covers the multi-moon/asteroid-belt
+  save path end-to-end (added alongside the v2 schema change below, since
+  hand-testing that change by running `sectorGen.py` and eyeballing the
+  result is exactly what missed a genuine bug — an `INSERT`'s column list
+  and value tuple silently drifting one apart in `insert_moon` — that a
+  test would have caught immediately). Binary systems, `lifespan_gy`
+  round-tripping, and `PRAGMA foreign_key_check` are still untested.
+- [x] **Schema v2 — moons split into their own `moons` table**: a `Class D`
+  search tag was silently mixing planets and moons together, because both
+  shared one `planets` table discriminated only by `is_moon` — a search
+  facet querying `planets` had no way to mean "planet" without also
+  matching every `is_moon=1` row of the same class. Fixed the same way
+  `star_systems`/`planets` already get their own tables: moons now live
+  in `moons` (`planet_id` FK to the planet they orbit, plus their own
+  `moon_evolutionary_paragraphs`/`moon_reflection_spectrum` child tables),
+  not self-referencing via `planets.parent_planet_id`/`is_moon`. No
+  self-reference on `moons` itself — confirmed via
+  `tests/test_moons.py::test_moons_cannot_themselves_have_moons` that a
+  moon never generates its own moons, since `Planet.__init__` only calls
+  `generate_moons` `if not self.is_moon`. `PRAGMA user_version` bumped to
+  `2`; `stellarObjects/_db.py`'s `migrate_database` converts an existing
+  v1 database in place (backup first), and `migrateDb.py` runs it over
+  every `*.db` in a directory — wired into `install.sh` (and so
+  `update.sh`, which calls it) so a deployed database keeps working after
+  a pull brings in the new schema. `html/search.py`'s tag facets and name
+  search follow the split: separate "Planet Class"/"Moon Class" (etc.)
+  tag groups and a separate Moon name field, instead of one set covering
+  both.
 
 ## Phase 3 — Migrate the CLI tools to the database
 

@@ -1,5 +1,54 @@
 # Changelog
 
+## [5.2.5] - 2026-09-06
+
+### Changed
+- **Database schema bumped to v2**: moons split out of the shared
+  `planets` table into their own `moons` table (`planet_id` FK to the
+  planet they orbit, plus their own `moon_evolutionary_paragraphs`/
+  `moon_reflection_spectrum` child tables), instead of self-referencing
+  via `planets.parent_planet_id`/`is_moon`. This is what `html/search.py`'s
+  attribute tags needed to actually tell a planet from a moon: previously
+  a "Class D Planet" tag queried `planets` with no way to exclude
+  `is_moon=1` rows of the same class, so it silently listed moons too.
+  `stellarObjects/_db.py` gained a dedicated `insert_moon` (mirroring
+  `insert_planet`, but writing to the new table); `insert_planet` no
+  longer recurses into itself for moons.
+- `html/search.py`'s tag facets and name search now follow the same
+  split: "Planet Class"/"Planet Body Type"/"Planet Supported Life
+  Chemistry" only ever match top-level planets, with an identically-
+  shaped "Moon Class"/"Moon Body Type"/"Moon Supported Life Chemistry"
+  set of tags (and a separate autocompleting "Moon name" field) for
+  moons -- each still only rendering the tag buttons for values actually
+  present in the chosen database. `html/system.py`'s planet/moon table
+  now reads moons from the new table instead of a recursive
+  self-join, and no longer needs to recurse (moons never generate their
+  own moons -- confirmed by the existing
+  `tests/test_moons.py::test_moons_cannot_themselves_have_moons`).
+
+### Added
+- `migrateDb.py` (repo root): converts every `*.db` file in a directory
+  from schema v1 to v2, backing up each original first
+  (`<name>.db.v1-backup-<timestamp>.db`) -- a no-op for a database
+  that's already current. Backed by a new `stellarObjects._db.
+  migrate_database`/`_migrate_v1_to_v2`, which builds the converted
+  database at a temporary path and only atomically swaps it into place
+  at the very end, so a crash or error partway through leaves the
+  original file (and the backup already made) untouched. `install.sh`
+  now runs this automatically (a new step, right after installing the
+  Python package) over every database in `db/`, so `sudo ./update.sh`
+  keeps an existing deployment's database working across the schema
+  change with no manual step.
+- `tests/test_db_migration.py` and `tests/test_db_persistence.py`: the
+  first automated tests of `stellarObjects/_db.py`'s save/migrate paths
+  (previously "manually smoke-tested via `sectorGen.py`" per `TODO.md`).
+  Between the two, they cover the v1->v2 migration (including the
+  moon-owned child-row split, which the real generated data used for
+  manual smoke-testing happened not to exercise) and a genuine
+  generate-then-save-then-query round trip through `insert_star_system` --
+  the latter caught a real bug during development (`insert_moon`'s
+  `INSERT` had one more column than value placeholder).
+
 ## [5.2.4] - 2026-09-06
 
 ### Added

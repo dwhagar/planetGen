@@ -23,7 +23,9 @@ Phase 3 territory (a query/listing tool) once there's real data to query.
 """
 
 import os
+import shutil
 import sqlite3
+import time
 
 from . import physical_constants
 from .asteroidData import AsteroidBelt
@@ -33,9 +35,10 @@ from .spaceSector import SpaceSector, classify_octant
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 """int: Matches `star_systems.schema_version` and `PRAGMA user_version` in
-`stellarObjects/schema.sql` -- see that file's header comment."""
+`stellarObjects/schema.sql` -- see that file's header comment. Also the
+target version `migrate_database` converts an older database up to."""
 
 _PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(_PACKAGE_DIR)
@@ -211,25 +214,46 @@ def insert_star(conn, star, star_system_id, role) -> int:
     return cur.lastrowid
 
 
-def insert_planet(conn, planet, star_system_id, star_id, orbital_index, parent_planet_id=None) -> int:
+def _insert_paragraphs(conn, table, id_column, owner_id, paragraphs):
+    """Shared body for `planet_evolutionary_paragraphs`/
+    `moon_evolutionary_paragraphs` -- identical shape, different owning
+    table/column. `table`/`id_column` are always one of this module's own
+    literal constants below, never request-derived, so the f-string is safe."""
+    for position, paragraph in enumerate(paragraphs or []):
+        conn.execute(
+            f"INSERT INTO {table} ({id_column}, position, paragraph) VALUES (?, ?, ?)",
+            (owner_id, position, paragraph),
+        )
+
+
+def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_visible):
+    """Shared body for `planet_reflection_spectrum`/
+    `moon_reflection_spectrum` -- see `_insert_paragraphs`."""
+    for spectrum_type, values in (("visible", visible), ("non_visible", non_visible)):
+        for position, value in enumerate(values or []):
+            conn.execute(
+                f"INSERT INTO {table} ({id_column}, spectrum_type, position, value) VALUES (?, ?, ?, ?)",
+                (owner_id, spectrum_type, position, value),
+            )
+
+
+def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     """
-    Inserts a `planets` row for one `Planet` (a top-level planet or a
-    moon), then recurses over its `moons` list.
+    Inserts a `planets` row for one top-level `Planet` (never a moon --
+    schema v2 gives moons their own table, see `insert_moon`), then
+    inserts each of its moons.
 
     Args:
         conn (sqlite3.Connection): An open, schema-initialized connection.
-        planet (Planet): The planet or moon to persist.
+        planet (Planet): The top-level planet to persist.
         star_system_id (int): The owning `star_systems.id`.
-        star_id (int or None): The specific `stars.id` this body orbits,
+        star_id (int or None): The specific `stars.id` this planet orbits,
                                or `None` for a binary system (see the
                                `planets.star_id` column comment in
                                `schema.sql`). Threaded unchanged into every
-                               recursive moon call.
-        orbital_index (int): This body's position in its parent's ordered
-                             list (the star's `planets` list for a
-                             top-level body, or a planet's `moons` list).
-        parent_planet_id (int, optional): The owning `planets.id`, for a
-                                          moon. `None` for a top-level body.
+                               `insert_moon` call for this planet's moons.
+        orbital_index (int): This planet's position in the star's ordered
+                             `planets` list.
 
     Returns:
         int: The new `planets.id`.
@@ -242,7 +266,7 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index, parent_p
     cur = conn.execute(
         """
         INSERT INTO planets (
-            star_system_id, star_id, parent_planet_id, orbital_index, is_moon, body_type, name,
+            star_system_id, star_id, orbital_index, body_type, name,
             planet_class, distance_km, radius_km, mass_kg, volume_km3, period_years, zone,
             description, gravity_g, surface_temperature_k, density_g_cm3, atmosphere,
             atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
@@ -250,11 +274,10 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index, parent_p
             habitable_zone_inner_km, habitable_zone_outer_km,
             life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
             table_class, table_distance, table_period, table_radius, table_gravity
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            star_system_id, star_id, parent_planet_id, orbital_index,
-            int(planet.is_moon), planet.body_type, planet.name,
+            star_system_id, star_id, orbital_index, planet.body_type, planet.name,
             planet.planet_class,
             planet.distance * physical_constants.AU_TO_KM,
             planet.radius, planet.mass, planet.volume, planet.period, planet.zone,
@@ -273,29 +296,85 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index, parent_p
     )
     planet_id = cur.lastrowid
 
-    for position, paragraph in enumerate(planet.evolutionary_data or []):
-        conn.execute(
-            "INSERT INTO planet_evolutionary_paragraphs (planet_id, position, paragraph) VALUES (?, ?, ?)",
-            (planet_id, position, paragraph),
-        )
-
-    for spectrum_type, values in (
-        ("visible", planet.reflection_spectrum_visible),
-        ("non_visible", planet.reflection_spectrum_non_visible),
-    ):
-        for position, value in enumerate(values or []):
-            conn.execute(
-                """
-                INSERT INTO planet_reflection_spectrum (planet_id, spectrum_type, position, value)
-                VALUES (?, ?, ?, ?)
-                """,
-                (planet_id, spectrum_type, position, value),
-            )
+    _insert_paragraphs(conn, "planet_evolutionary_paragraphs", "planet_id", planet_id, planet.evolutionary_data)
+    _insert_reflection_spectrum(
+        conn, "planet_reflection_spectrum", "planet_id", planet_id,
+        planet.reflection_spectrum_visible, planet.reflection_spectrum_non_visible,
+    )
 
     for position, moon in enumerate(planet.moons or []):
-        insert_planet(conn, moon, star_system_id, star_id, position, parent_planet_id=planet_id)
+        insert_moon(conn, moon, star_system_id, star_id, planet_id, position)
 
     return planet_id
+
+
+def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -> int:
+    """
+    Inserts a `moons` row for one moon (a `Planet` instance with
+    `is_moon=True`). Unlike `insert_planet`, this never recurses --
+    `Planet.__init__` only calls `generate_moons` `if not self.is_moon`,
+    so a moon never has moons of its own.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        moon (Planet): The moon to persist.
+        star_system_id (int): The owning `star_systems.id` (same value the
+                              parent planet was inserted with).
+        star_id (int or None): Same value the parent planet was inserted
+                               with -- see `insert_planet`'s docstring.
+        planet_id (int): The owning `planets.id` -- the planet this moon
+                         orbits.
+        orbital_index (int): This moon's position in its parent planet's
+                             `moons` list.
+
+    Returns:
+        int: The new `moons.id`.
+    """
+    props = moon.get_table_properties()
+    min_orbit_distance_km = (
+        moon.min_orbit_distance * physical_constants.AU_TO_KM
+        if moon.min_orbit_distance is not None else None
+    )
+    cur = conn.execute(
+        """
+        INSERT INTO moons (
+            planet_id, star_system_id, star_id, orbital_index, body_type, name,
+            planet_class, distance_km, radius_km, mass_kg, volume_km3, period_years, zone,
+            description, gravity_g, surface_temperature_k, density_g_cm3, atmosphere,
+            atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
+            scale_height_km, hill_radius_km, min_orbit_distance_km,
+            habitable_zone_inner_km, habitable_zone_outer_km,
+            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
+            table_class, table_distance, table_period, table_radius, table_gravity
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            planet_id, star_system_id, star_id, orbital_index, moon.body_type, moon.name,
+            moon.planet_class,
+            moon.distance * physical_constants.AU_TO_KM,
+            moon.radius, moon.mass, moon.volume, moon.period, moon.zone,
+            moon.description, moon.gravity, moon.surface_temperature,
+            moon.density, moon.atmosphere,
+            moon.atm_density, moon.atm_molar_density, moon.atmospheric_pressure,
+            moon.composition,
+            moon.scale_height, moon.hill_radius, min_orbit_distance_km,
+            moon.habitable_zone[0] * physical_constants.AU_TO_KM,
+            moon.habitable_zone[1] * physical_constants.AU_TO_KM,
+            moon.life_chemical, moon.evolutionary_speed,
+            moon.flavor_text, moon.flavor_text_count,
+            props.get("class"), props["distance"], props["period"],
+            props["radius"], props.get("gravity"),
+        ),
+    )
+    moon_id = cur.lastrowid
+
+    _insert_paragraphs(conn, "moon_evolutionary_paragraphs", "moon_id", moon_id, moon.evolutionary_data)
+    _insert_reflection_spectrum(
+        conn, "moon_reflection_spectrum", "moon_id", moon_id,
+        moon.reflection_spectrum_visible, moon.reflection_spectrum_non_visible,
+    )
+
+    return moon_id
 
 
 def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index) -> int:
@@ -522,3 +601,158 @@ def save_sector(sector: SpaceSector, db_path=None) -> int:
         return sector_id
     finally:
         conn.close()
+
+
+class UnsupportedSchemaVersionError(Exception):
+    """Raised by `migrate_database` for a `PRAGMA user_version` this
+    module has neither a migration path from nor can use as-is."""
+
+
+# The v1 `planets` table's columns, minus `is_moon`/`parent_planet_id`
+# (the discriminator `_migrate_v1_to_v2` splits on) -- identical to both
+# v2 `planets` and v2 `moons`' own column sets (see schema.sql), which is
+# what makes a single shared column list usable for copying into either
+# one below. `id` is included deliberately: a migrated moon keeps its
+# original `planets.id` value as its new `moons.id`, so
+# `planet_evolutionary_paragraphs`/`planet_reflection_spectrum` rows can
+# move to their moon-owned counterparts by that same, unchanged id --
+# no id remapping table needed.
+_PLANET_MOON_COLUMNS = (
+    "id", "star_system_id", "star_id", "orbital_index", "body_type", "name",
+    "planet_class", "distance_km", "radius_km", "mass_kg", "volume_km3",
+    "period_years", "zone", "description", "gravity_g", "surface_temperature_k",
+    "density_g_cm3", "atmosphere", "atm_density", "atm_molar_density",
+    "atmospheric_pressure_pa", "composition", "scale_height_km", "hill_radius_km",
+    "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
+    "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
+    "table_class", "table_distance", "table_period", "table_radius", "table_gravity",
+)
+
+# Tables schema v1 -> v2 leaves structurally untouched -- copied verbatim,
+# column-for-column, from the attached old database.
+_V1_VERBATIM_TABLES = (
+    "sectors", "system_configs", "system_config_slots", "star_systems",
+    "stars", "asteroid_belts", "asteroid_belt_composition",
+)
+
+
+def _migrate_v1_to_v2(conn):
+    """
+    Populates a fresh, empty schema-v2 database (`conn`'s main schema)
+    from a schema-v1 database attached as `old` (see `migrate_database`
+    for the attach/backup/swap this runs inside of).
+
+    The only structural change between v1 and v2 is moons moving out of
+    the shared `planets` table (`is_moon`/`parent_planet_id`) into their
+    own `moons` table (`planet_id`) -- see `schema.sql`'s "v2" header
+    note. Every other table is unaffected and copied straight across.
+
+    Args:
+        conn (sqlite3.Connection): Connection to the new database, with
+                                   the old one already `ATTACH`ed as `old`
+                                   and the v2 schema already applied.
+    """
+    for table in _V1_VERBATIM_TABLES:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+
+    columns = ", ".join(_PLANET_MOON_COLUMNS)
+    conn.execute(f"INSERT INTO main.planets ({columns}) SELECT {columns} FROM old.planets WHERE is_moon = 0")
+    conn.execute(
+        f"INSERT INTO main.moons (planet_id, {columns}) "
+        f"SELECT parent_planet_id, {columns} FROM old.planets WHERE is_moon = 1"
+    )
+
+    conn.execute("""
+        INSERT INTO main.planet_evolutionary_paragraphs (id, planet_id, position, paragraph)
+        SELECT pep.id, pep.planet_id, pep.position, pep.paragraph
+        FROM old.planet_evolutionary_paragraphs pep
+        JOIN old.planets p ON p.id = pep.planet_id
+        WHERE p.is_moon = 0
+    """)
+    conn.execute("""
+        INSERT INTO main.moon_evolutionary_paragraphs (id, moon_id, position, paragraph)
+        SELECT pep.id, pep.planet_id, pep.position, pep.paragraph
+        FROM old.planet_evolutionary_paragraphs pep
+        JOIN old.planets p ON p.id = pep.planet_id
+        WHERE p.is_moon = 1
+    """)
+    conn.execute("""
+        INSERT INTO main.planet_reflection_spectrum (id, planet_id, spectrum_type, position, value)
+        SELECT prs.id, prs.planet_id, prs.spectrum_type, prs.position, prs.value
+        FROM old.planet_reflection_spectrum prs
+        JOIN old.planets p ON p.id = prs.planet_id
+        WHERE p.is_moon = 0
+    """)
+    conn.execute("""
+        INSERT INTO main.moon_reflection_spectrum (id, moon_id, spectrum_type, position, value)
+        SELECT prs.id, prs.planet_id, prs.spectrum_type, prs.position, prs.value
+        FROM old.planet_reflection_spectrum prs
+        JOIN old.planets p ON p.id = prs.planet_id
+        WHERE p.is_moon = 1
+    """)
+
+
+def migrate_database(db_path):
+    """
+    Migrates one database file to `SCHEMA_VERSION`, in place, backing up
+    the original first. A no-op (returns `None`) if the database is
+    already current.
+
+    Safe by construction: the migration reads only from a backup copy
+    (never the live file) and builds the new database at a temporary
+    path, so `db_path` itself is never touched until the final atomic
+    `os.replace` -- a crash or error partway through leaves the original
+    file exactly as it was, plus the backup copy already made.
+
+    Per TODO.md's "any future structural change gets a small sequential
+    `_migrate_vN_to_vN+1()` function" decision: this currently knows one
+    path (v1 -> v2, `_migrate_v1_to_v2`). A future v2 -> v3 schema change
+    adds its own `_migrate_v2_to_v3` and a second `elif` branch here --
+    deliberately not a generic chaining dispatcher, since with exactly one
+    migration ever written so far there's nothing yet to generalize from.
+
+    Args:
+        db_path (str): Path to the `.db` file.
+
+    Returns:
+        str or None: Path to the backup copy made before migrating, or
+                     `None` if no migration was needed.
+
+    Raises:
+        UnsupportedSchemaVersionError: If `PRAGMA user_version` is neither
+                                       `SCHEMA_VERSION` nor a version this
+                                       module has a migration path from.
+    """
+    probe = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    try:
+        version = probe.execute("PRAGMA user_version").fetchone()[0]
+    finally:
+        probe.close()
+
+    if version == SCHEMA_VERSION:
+        return None
+    if version == 1:
+        migrate_step = _migrate_v1_to_v2
+    else:
+        raise UnsupportedSchemaVersionError(
+            f"{db_path}: unsupported schema version {version} (expected 1 or {SCHEMA_VERSION})"
+        )
+
+    backup_path = f"{db_path}.v{version}-backup-{time.strftime('%Y%m%dT%H%M%S')}.db"
+    shutil.copy2(db_path, backup_path)
+
+    tmp_path = f"{db_path}.migrating.tmp"
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
+    new_conn = sqlite3.connect(tmp_path)
+    try:
+        _ensure_schema(new_conn)
+        new_conn.execute("ATTACH DATABASE ? AS old", (backup_path,))
+        with new_conn:
+            migrate_step(new_conn)
+        new_conn.execute("DETACH DATABASE old")
+    finally:
+        new_conn.close()
+
+    os.replace(tmp_path, db_path)
+    return backup_path

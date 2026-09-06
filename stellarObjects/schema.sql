@@ -3,7 +3,7 @@
 -- SQLite schema for planetGen persistence (TODO.md Phase 2). Plain SQL DDL,
 -- no ORM. Column lists are verified against the actual generator source
 -- (stellarObjects/config.py, starData.py, doubleStar.py, planetData.py,
--- asteroidData.py, spaceSector.py) as of schema version 1 -- not against
+-- asteroidData.py, spaceSector.py) as of schema version 2 -- not against
 -- TODO.md's earlier field-count estimates.
 --
 -- Searchable-field principle: the primary fields a caller will search on
@@ -57,9 +57,25 @@
 --   - PRAGMA user_version below is the DDL-level structure version.
 --   - star_systems.schema_version (per row) is the version of the
 --     serialized object-graph shape (Phase 1's to_dict()) that produced it.
--- Both start at 1.
+-- Both started at 1.
+--
+-- v2: moons split out of `planets` into their own `moons` table (with a
+-- `planet_id` FK to the planet they orbit), instead of self-referencing
+-- via `planets.parent_planet_id`/`is_moon` -- the same "give it its own
+-- table" treatment `star_systems`/`planets` already have, so a query or a
+-- UI facet can tell a Class M planet from a Class M moon without an
+-- `is_moon` filter. `planet_evolutionary_paragraphs`/
+-- `planet_reflection_spectrum` gained moon-owned counterparts
+-- (`moon_evolutionary_paragraphs`/`moon_reflection_spectrum`) for the same
+-- reason. Moons never generate their own moons (`Planet.__init__` only
+-- calls `generate_moons` `if not self.is_moon`), so `moons` has no
+-- self-reference of its own. `stellarObjects/_db.py`'s `migrate_database`
+-- converts an existing v1 database in place (backing up the original
+-- first); `migrateDb.py` runs it over every database in a directory, and
+-- `install.sh` (and so `update.sh`, which calls it) does this on every
+-- deploy.
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;
 
 -- ---------------------------------------------------------------------
 -- sectors
@@ -213,11 +229,13 @@ CREATE TABLE IF NOT EXISTS stars (
 CREATE INDEX IF NOT EXISTS idx_stars_star_system_id ON stars(star_system_id);
 
 -- ---------------------------------------------------------------------
--- planets -- covers moons via self-reference. Fields verified against
--- planetData.py:117-200 / Planet.__init__ (27 scalar fields; excludes
--- system_config/star back-refs, the `moons` list [this self-reference],
--- `evolutionary_data` [-> planet_evolutionary_paragraphs], and
--- reflection_spectrum_visible/non_visible [-> planet_reflection_spectrum]).
+-- planets -- top-level planets only as of schema v2 (see the header
+-- comment's "v2" note); moons live in the `moons` table below instead of
+-- self-referencing here. Fields verified against planetData.py:117-200 /
+-- Planet.__init__ (27 scalar fields; excludes system_config/star
+-- back-refs, the `moons` list [-> the moons table], `evolutionary_data`
+-- [-> planet_evolutionary_paragraphs], and reflection_spectrum_visible/
+-- non_visible [-> planet_reflection_spectrum]).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS planets (
     id                        INTEGER PRIMARY KEY,
@@ -232,13 +250,11 @@ CREATE TABLE IF NOT EXISTS planets (
     -- above). `star_system_id` above is always the reliable owning link
     -- regardless of star_id.
     star_id                   INTEGER REFERENCES stars(id) ON DELETE SET NULL,
-    parent_planet_id          INTEGER REFERENCES planets(id) ON DELETE CASCADE,  -- set for moons
     orbital_index             INTEGER NOT NULL,
-    is_moon                   INTEGER NOT NULL DEFAULT 0 CHECK (is_moon IN (0, 1)),
     body_type                 TEXT NOT NULL CHECK (body_type IN ('t', 'g')),
     name                      TEXT NOT NULL,
     planet_class              TEXT,
-    distance_km               REAL NOT NULL,   -- from star (top-level) or parent planet (moon)
+    distance_km               REAL NOT NULL,   -- from the star
     radius_km                 REAL NOT NULL,
     mass_kg                   REAL NOT NULL,
     volume_km3                REAL NOT NULL,   -- derived, stored not recomputed
@@ -263,8 +279,7 @@ CREATE TABLE IF NOT EXISTS planets (
     flavor_text               TEXT,
     flavor_text_count         INTEGER NOT NULL DEFAULT 0,
 
-    -- "Planet Data" / "Class Data" table (planetData.py:291-302), one
-    -- column per key -- same dict shape for planets and moons.
+    -- "Planet Data" table (planetData.py:291-302), one column per key.
     table_class     TEXT,
     table_distance  TEXT NOT NULL,
     table_period    TEXT NOT NULL,
@@ -273,7 +288,6 @@ CREATE TABLE IF NOT EXISTS planets (
 );
 CREATE INDEX IF NOT EXISTS idx_planets_star_system_id ON planets(star_system_id);
 CREATE INDEX IF NOT EXISTS idx_planets_star_id ON planets(star_id);
-CREATE INDEX IF NOT EXISTS idx_planets_parent_planet_id ON planets(parent_planet_id);
 
 -- Child table for the variable-length evolutionary narrative list
 -- (Planet.evolutionary_data).
@@ -297,6 +311,82 @@ CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
     value          TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_planet_reflection_spectrum_planet_id ON planet_reflection_spectrum(planet_id);
+
+-- ---------------------------------------------------------------------
+-- moons -- one row per moon, as of schema v2 (see the header comment's
+-- "v2" note). Exactly the same column shape as `planets` (moons are
+-- `Planet` instances too, with `is_moon=True`), except `planet_id`
+-- replaces `star_system_id`/`star_id`'s role as "what this body directly
+-- orbits" -- `star_system_id`/`star_id` are still carried here too
+-- (redundant with the owning planet's own columns) purely so a moon can
+-- be queried/joined to its system or star without an extra hop through
+-- `planets`. No self-reference: moons never generate their own moons
+-- (`Planet.__init__` only calls `generate_moons` `if not self.is_moon`).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS moons (
+    id                        INTEGER PRIMARY KEY,
+    planet_id                 INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
+    star_system_id            INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
+    star_id                   INTEGER REFERENCES stars(id) ON DELETE SET NULL,
+    orbital_index             INTEGER NOT NULL,   -- position in the parent planet's moons list
+    body_type                 TEXT NOT NULL CHECK (body_type IN ('t', 'g')),
+    name                      TEXT NOT NULL,
+    planet_class              TEXT,
+    distance_km               REAL NOT NULL,   -- from the parent planet
+    radius_km                 REAL NOT NULL,
+    mass_kg                   REAL NOT NULL,
+    volume_km3                REAL NOT NULL,
+    period_years              REAL NOT NULL,
+    zone                      TEXT CHECK (zone IN ('h', 'e', 'c')),
+    description               TEXT,
+    gravity_g                 REAL,
+    surface_temperature_k     REAL,
+    density_g_cm3             REAL,
+    atmosphere                TEXT,
+    atm_density               REAL,
+    atm_molar_density         REAL,
+    atmospheric_pressure_pa   REAL,
+    composition               TEXT,
+    scale_height_km           REAL,
+    hill_radius_km            REAL,
+    min_orbit_distance_km     REAL,
+    habitable_zone_inner_km   REAL NOT NULL,
+    habitable_zone_outer_km   REAL NOT NULL,
+    life_chemical             TEXT,
+    evolutionary_speed        TEXT,
+    flavor_text               TEXT,
+    flavor_text_count         INTEGER NOT NULL DEFAULT 0,
+
+    -- "Class Data" table (planetData.py:291-302) -- same dict shape as
+    -- `planets.table_*` above.
+    table_class     TEXT,
+    table_distance  TEXT NOT NULL,
+    table_period    TEXT NOT NULL,
+    table_radius    TEXT NOT NULL,
+    table_gravity   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_moons_planet_id ON moons(planet_id);
+CREATE INDEX IF NOT EXISTS idx_moons_star_system_id ON moons(star_system_id);
+CREATE INDEX IF NOT EXISTS idx_moons_star_id ON moons(star_id);
+
+-- Moon counterpart of planet_evolutionary_paragraphs.
+CREATE TABLE IF NOT EXISTS moon_evolutionary_paragraphs (
+    id          INTEGER PRIMARY KEY,
+    moon_id     INTEGER NOT NULL REFERENCES moons(id) ON DELETE CASCADE,
+    position    INTEGER NOT NULL,
+    paragraph   TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_moon_evolutionary_paragraphs_moon_id ON moon_evolutionary_paragraphs(moon_id);
+
+-- Moon counterpart of planet_reflection_spectrum.
+CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
+    id             INTEGER PRIMARY KEY,
+    moon_id        INTEGER NOT NULL REFERENCES moons(id) ON DELETE CASCADE,
+    spectrum_type  TEXT NOT NULL CHECK (spectrum_type IN ('visible', 'non_visible')),
+    position       INTEGER NOT NULL,
+    value          TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_moon_reflection_spectrum_moon_id ON moon_reflection_spectrum(moon_id);
 
 -- ---------------------------------------------------------------------
 -- asteroid_belts -- belts have no properties-dict data table
@@ -338,8 +428,8 @@ CREATE INDEX IF NOT EXISTS idx_asteroid_belt_composition_belt_id ON asteroid_bel
 -- ---------------------------------------------------------------------
 -- sector_objects -- unified "every stellar object in a sector" search.
 --
--- Standard relational choice here: a VIEW that UNIONs the three typed
--- tables above, not a fourth physical table duplicating their rows. A
+-- Standard relational choice here: a VIEW that UNIONs the four typed
+-- tables above, not a fifth physical table duplicating their rows. A
 -- real table would need to be kept in sync on every insert/update/delete
 -- to the tables it mirrors (or drift out of sync); a view has no storage
 -- and no sync problem -- SQLite resolves it against current data on every
@@ -371,6 +461,19 @@ CREATE VIEW IF NOT EXISTS sector_objects AS
         p.orbital_index                 AS orbital_index
     FROM planets p
     JOIN star_systems ss ON ss.id = p.star_system_id
+
+    UNION ALL
+
+    SELECT
+        'moon'                          AS object_type,
+        m.id                            AS object_id,
+        m.star_system_id                AS star_system_id,
+        ss.sector_id                    AS sector_id,
+        m.name                          AS name,
+        COALESCE(m.table_class, m.body_type) AS summary,
+        m.orbital_index                 AS orbital_index
+    FROM moons m
+    JOIN star_systems ss ON ss.id = m.star_system_id
 
     UNION ALL
 
