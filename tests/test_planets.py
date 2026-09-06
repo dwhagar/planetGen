@@ -56,8 +56,7 @@ def make_planet(host_star, cls, zone, **kwargs):
     cfg = SystemConfig()
     distance = distance_for_zone(host_star, zone)
     return Planet(
-        cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-        host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+        cfg, host_star, host_star.habitable_zone, distance,
         planet_class=cls, **kwargs,
     )
 
@@ -74,7 +73,7 @@ def test_planet_radius_within_declared_range(host_star, cls, zone):
     assert min_r <= planet.radius <= max_r
     assert planet.planet_class == cls
     assert planet.zone == zone
-    assert planet.type == prog_c.PLANET_CLASSES[cls]["type"]
+    assert planet.body_type == prog_c.PLANET_CLASSES[cls]["type"]
 
 
 @pytest.mark.parametrize("cls,zone", VALID_CLASS_ZONE_PAIRS, ids=[f"{c}-{z}" for c, z in VALID_CLASS_ZONE_PAIRS])
@@ -119,6 +118,34 @@ def test_planet_life_chemical_matches_class_and_star(host_star, cls, zone):
             )
 
 
+def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
+    """
+    Regression test for the Phase 0 bug (see TODO.md): flavor text used to be
+    rolled -- and system_config.system_flavor_count/recent_flavor_texts
+    mutated -- inside to_paragraph_list() itself, i.e. at render time, so
+    calling to_paragraph_list() twice double-rolled and double-mutated
+    shared state. planetLife.decide_flavor_text now makes that decision
+    once, at generation time, and to_paragraph_list() is a pure read of the
+    already-decided self.flavor_text.
+    """
+    planet = make_planet(host_star, "M", "e")
+    planet.evolutionary_data = []  # No multicellular life keyword to match.
+    monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
+
+    planetLife.decide_flavor_text(planet)
+
+    assert planet.flavor_text is not None
+    assert planet.flavor_text_count == 1
+    assert planet.system_config.system_flavor_count == 1
+
+    first_render = planet.to_paragraph_list()
+    second_render = planet.to_paragraph_list()
+
+    assert first_render == second_render
+    assert planet.flavor_text_count == 1
+    assert planet.system_config.system_flavor_count == 1
+
+
 @pytest.mark.parametrize("cls", CLASSES_WITH_NO_VALID_ZONE)
 def test_known_issue_class_with_no_valid_zone_is_unreachable(host_star, cls):
     """
@@ -145,8 +172,7 @@ def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star)
             continue
         with pytest.raises(ValueError):
             Planet(
-                cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-                host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+                cfg, host_star, host_star.habitable_zone, distance,
                 planet_class=cls,
             )
 
@@ -159,8 +185,7 @@ def test_fully_random_planet_respects_zone_and_habitable_world(host_star, zone, 
     distance = distance_for_zone(host_star, zone)
     for _ in range(10):
         planet = Planet(
-            cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-            host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+            cfg, host_star, host_star.habitable_zone, distance,
         )
         assert prog_c.PLANET_CLASSES[planet.planet_class][zone]
         if habitable_world is False:

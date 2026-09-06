@@ -45,8 +45,7 @@ def make_host_planet(host_star, cls, zone, moon_count=None):
     cfg = SystemConfig()
     distance = distance_for_zone(host_star, zone)
     return Planet(
-        cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-        host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+        cfg, host_star, host_star.habitable_zone, distance,
         planet_class=cls, moon_count=moon_count,
     )
 
@@ -88,8 +87,7 @@ def test_system_config_moons_flag(host_star, moons_flag):
     saw_none = False
     for _ in range(20):
         planet = Planet(
-            cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-            host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+            cfg, host_star, host_star.habitable_zone, distance,
             planet_class="J",
         )
         if moons_flag is False:
@@ -114,8 +112,7 @@ def test_tiny_host_planet_gets_no_room_for_moons_without_error(host_star):
     distance = distance_for_zone(host_star, "h")
     for _ in range(10):
         planet = Planet(
-            cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-            host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+            cfg, host_star, host_star.habitable_zone, distance,
             planet_class="D", moon_count=5,
         )
         assert_moons_are_valid(planet)

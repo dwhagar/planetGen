@@ -22,13 +22,20 @@ class AsteroidBelt:
     This class serves as a simple container for the properties of an asteroid
     belt, primarily its orbital distance and boundaries.
 
+    `body_type` is always `'a'` here -- see `Planet`'s class docstring for how
+    this is a shared discriminator with `Planet.body_type` (values `'t'`/`'g'`),
+    used by `StarSystem` to tell the two classes apart within its single
+    mixed `planets` list.
+
     Attributes:
         distance (float): The average distance of the asteroid belt from the star in AU.
         lower_limit (float): The inner boundary of the asteroid belt in AU.
         upper_limit (float): The outer boundary of the asteroid belt in AU.
-        type (str): A character representing the object type, 'a' for asteroid belt.
+        body_type (str): Always 'a' for an asteroid belt.
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical').
-        composition (list): A list of tuples, each containing (component, concentration).
+        composition (list): A list of (component, concentration) tuples -- contrast
+                            `Planet.composition`, a descriptive string (same name,
+                            unrelated shape, on the two classes).
     """
 
     def __init__(self, system_config: SystemConfig, distance, lower_limit, upper_limit): # Added system_config
@@ -46,7 +53,7 @@ class AsteroidBelt:
         self.distance = distance
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
-        self.type = 'a'
+        self.body_type = 'a'
         self.density = random.choice(["dense", "sparse", "typical"])
         self.composition = self._generate_composition()
 

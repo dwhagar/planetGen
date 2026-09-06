@@ -184,7 +184,7 @@ def generate_planet_properties(planet, zone_override=None):
     """
     reseed_rng()
     # Determine the planet's zone (hot, ecosphere, or cold)
-    inner_bound, outer_bound = planet.hab
+    inner_bound, outer_bound = planet.habitable_zone
     if planet.distance < inner_bound:
         zone = 'h'
     elif planet.distance > outer_bound:
@@ -286,9 +286,9 @@ def generate_planet_properties(planet, zone_override=None):
         # rather than scrubbing every rendered paragraph for it later.
         planet.description = re.sub(r'\bplanets\b', 'moons', planet.description)
         planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
-    planet.type = class_data["type"]
+    planet.body_type = class_data["type"]
 
-    min_density, max_density = physical_constants.PLANET_DENSITY[planet.type]
+    min_density, max_density = physical_constants.PLANET_DENSITY[planet.body_type]
     planet.density = random.uniform(min_density, max_density)
 
     if class_data["atmosphere"] is None:
@@ -297,15 +297,15 @@ def generate_planet_properties(planet, zone_override=None):
         planet.atmosphere = class_data["atmosphere"]
         if planet.planet_class == 'N':
             planet.atm_density = 65
-            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.type]
+            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
             planet.atm_molar_density = max_am_density
         else:
-            min_a_density, max_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.type]
+            min_a_density, max_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.body_type]
             planet.atm_density = random.uniform(min_a_density, max_a_density)
-            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.type]
+            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
             planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-    if planet.type == 'g':
+    if planet.body_type == 'g':
         core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
         planet.density = planet.density * core_to_atmosphere_ratio + (
                     1 - core_to_atmosphere_ratio) * (planet.atm_density / 1000)
@@ -314,7 +314,7 @@ def generate_planet_properties(planet, zone_override=None):
                                               planet.density)
 
     distance_m = planet.distance * physical_constants.AU_TO_M
-    planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, planet.star_mass) / 1000  # Convert to km
+    planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, planet.star.mass) / 1000  # Convert to km
     planet.min_orbit_distance = (5 * planet.hill_radius) / physical_constants.AU_TO_KM
 
 
@@ -367,7 +367,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
     orbital_radius_km = distance * physical_constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
-    solar_output_at_orbit = (planet.star_output / output_area) / 1e6
+    solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
     albedo = random.uniform(0.12, 0.35)
     surface_temperature_no_atmosphere = (
                                                 (1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
@@ -463,9 +463,8 @@ def generate_moons(planet, moon_count=None):
         moon_distance = random.uniform(total_orbit_distance, high_orbit) / physical_constants.AU_TO_KM
         moon_radius = random.uniform(program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
-        new_moon = Planet(planet.system_config, planet.star, planet.hab, moon_distance, planet.star_type, planet.star_output, planet.star_radius,
-                          planet.star_temperature, planet.star_mass, radius=moon_radius,
-                          planet_class=moon_class, zone_override=planet.zone,
+        new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
+                          radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True)
         planet.moons.append(new_moon)
         total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)

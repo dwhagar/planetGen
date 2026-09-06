@@ -39,7 +39,7 @@ otherwise) and a real correctness bug independent of persistence
 (double-rendering currently double-rolls and double-mutates shared
 counters).
 
-- [ ] **Planet-level fix**: add `planetLife.decide_flavor_text(planet)` to
+- [x] **Planet-level fix**: add `planetLife.decide_flavor_text(planet)` to
   `stellarObjects/planetLife.py`, containing exactly the roll/selection
   logic currently at `planetData.py:222-265` (chance gate, recent-list
   filtering/reset, habitability/multicellular check reading
@@ -55,7 +55,7 @@ counters).
   and each moon. Trim `_generate_life_and_flavor_paragraphs` down to just
   appending the sentence from the already-set `self.flavor_text` — no more
   `system_config` mutation at render time.
-- [ ] **System-level fix**: add `self.system_flavor_text = None` in
+- [x] **System-level fix**: add `self.system_flavor_text = None` in
   `StarSystem.__init__`, decided once, right after
   `self.star.adjust_age_for_planets(self.planets)` and before the life-data
   loop (preserves current ordering). Move the identical roll block here
@@ -65,7 +65,7 @@ counters).
   `get_evolutionary_timeline`/`planetLife.apply_life_data` are already
   correctly generation-time-only (run exactly once per planet/moon, output
   never touched again) — only the two flavor-text sites have the bug.
-- [ ] Add regression tests proving `to_paragraph_list()`/`__str__()` are now
+- [x] Add regression tests proving `to_paragraph_list()`/`__str__()` are now
   idempotent — calling twice on the same object gives identical text and
   doesn't further mutate `system_config.system_flavor_count`.
 

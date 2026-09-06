@@ -52,7 +52,7 @@ def get_viable_life_chemicals(planet, spectral_class=None):
 
     planet_chems = planet_data["life_chemical"]
 
-    if not planet.star_type:
+    if not planet.star.type:
         return {}
 
     # Determine the star's spectral class (e.g., 'G' from 'G2V')
@@ -109,7 +109,7 @@ def get_evolutionary_speed(planet, spectral_class=None):
         str: The chosen evolutionary speed (e.g., 'fast', 'normal', 'slow'),
              or None if data is missing.
     """
-    if not planet.star_type:
+    if not planet.star.type:
         return None
 
     # Determine the star's spectral class (e.g., 'G' from 'G2V')
@@ -162,12 +162,12 @@ def apply_life_data(planet):
     Args:
         planet (Planet): The planet or moon to apply life data to. Its
                          `life_chemical`, `reflection_spectrum_visible`,
-                         `reflection_spectrum_non_visible`, `evolution`, and
-                         (if applicable) `evolutionary_data` attributes are
+                         `reflection_spectrum_non_visible`, `evolutionary_speed`,
+                         and (if applicable) `evolutionary_data` attributes are
                          set in place.
     """
     reseed_rng()
-    spectral_class = get_star_spectral_class(planet.star) if planet.star_type else None
+    spectral_class = get_star_spectral_class(planet.star) if planet.star.type else None
 
     # Get the dictionary of viable chemicals and their weights
     viable_chems = get_viable_life_chemicals(planet, spectral_class)
@@ -186,8 +186,77 @@ def apply_life_data(planet):
         planet.life_chemical = None
 
     # Determine the evolutionary speed based on the star and chosen chemical
-    planet.evolution = get_evolutionary_speed(planet, spectral_class)
+    planet.evolutionary_speed = get_evolutionary_speed(planet, spectral_class)
 
     # Generate evolutionary timeline data if the planet is habitable and not a moon
     if planet.zone == 'e' and not planet.is_moon: # Only for habitable planets
         planet.evolutionary_data = get_evolutionary_timeline(planet.star)
+
+
+def decide_flavor_text(planet):
+    """
+    Rolls for, and if selected assigns, this planet's (or moon's) flavor
+    text, updating the shared `system_config` flavor bookkeeping in the same
+    step. Must be called after `apply_life_data(planet)` for the same
+    planet/moon, since the habitable/multicellular-life check below reads
+    `planet.evolutionary_data`.
+
+    Called once per planet/moon by `StarSystem.__init__`, in the same pass
+    as `apply_life_data`, rather than at render time -- `to_paragraph_list()`
+    can be called more than once (e.g. printed and then saved), and rolling
+    here instead of there means repeated renders read a decision already
+    made rather than re-rolling and double-counting `system_flavor_count`.
+
+    Args:
+        planet (Planet): The planet or moon to decide flavor text for. Its
+                         `flavor_text`/`flavor_text_count` attributes are set
+                         in place; `planet.system_config.system_flavor_count`/
+                         `recent_flavor_texts` are updated when a flavor is
+                         selected.
+    """
+    if not (random.random() < program_constants.FLAVOR_CHANCE_PLANET
+            and planet.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL):
+        return
+
+    selected_flavor = None
+    system_config = planet.system_config
+
+    # Filter out recently used flavor texts
+    available_habitable_flavor = [f for f in program_constants.HABITABLE_FLAVOR if f not in system_config.recent_flavor_texts]
+    available_planet_flavor = [f for f in program_constants.PLANET_FLAVOR if f not in system_config.recent_flavor_texts]
+    available_orbital_flavor = [f for f in program_constants.ORBITAL_FLAVOR if f not in system_config.recent_flavor_texts]
+
+    # If all flavors of a category have been recently used, reset to the full list
+    if not available_habitable_flavor:
+        available_habitable_flavor = program_constants.HABITABLE_FLAVOR
+    if not available_planet_flavor:
+        available_planet_flavor = program_constants.PLANET_FLAVOR
+    if not available_orbital_flavor:
+        available_orbital_flavor = program_constants.ORBITAL_FLAVOR
+
+    # Check for habitable and multicellular/technological life
+    is_habitable = planet.planet_class in program_constants.HABITABLE_PLANET_CLASSES
+    has_multicellular_life = False
+    if is_habitable and planet.evolutionary_data:
+        for stage_paragraph in planet.evolutionary_data:
+            if "multicellularity" in stage_paragraph.lower() or "technological civilization" in stage_paragraph.lower():
+                has_multicellular_life = True
+                break
+
+    if is_habitable and has_multicellular_life:
+        selected_flavor = secrets.choice(available_habitable_flavor)
+    elif planet.body_type == "t" and planet.planet_class != "A":
+        selected_flavor = secrets.choice(available_planet_flavor)
+    elif planet.body_type == "g" or planet.planet_class == "A":
+        selected_flavor = secrets.choice(available_orbital_flavor)
+
+    if selected_flavor:
+        planet.flavor_text = selected_flavor
+        system_config.system_flavor_count += 1
+        planet.flavor_text_count += 1
+
+        # Add the selected flavor text to the recent list
+        system_config.recent_flavor_texts.append(selected_flavor)
+        # Keep the recent_flavor_texts list to a maximum size
+        if len(system_config.recent_flavor_texts) > program_constants.MAX_RECENT_FLAVOR_TEXTS:
+            system_config.recent_flavor_texts.pop(0) # Remove the oldest entry

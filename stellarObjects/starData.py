@@ -42,6 +42,13 @@ class Star:
     Once the core properties are established, it calculates derived
     attributes, including the habitable zone, the system's gravitational
     perimeter, and the heliosphere's radius.
+
+    Note: `self.type` here is a full descriptive string (e.g.
+    "G2V Yellow Main Sequence Star"), unrelated in shape and purpose to
+    `Planet.body_type`/`AsteroidBelt.body_type` (single-character 't'/'g'/'a'
+    discriminators used to tell those two classes apart within `StarSystem`'s
+    mixed `planets` list) -- the two just happen to share a common English
+    word as their name.
     """
 
     def _calculate_initial_star_age_and_lifespan(self):

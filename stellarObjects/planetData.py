@@ -22,7 +22,6 @@ defined separately in `asteroidData`.
 """
 
 import math
-import random
 import secrets
 
 from .config import SystemConfig
@@ -30,7 +29,7 @@ from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
                     PLANET_PREFIXES, PLANET_SUFFIXES)
 from . import physical_constants, planetPhysics, program_constants
 from .utils import (format_length_km, generate_phoneme_salad_name, properties_to_string,
-                    reseed_rng, to_paragraph, to_scientific_notation, years_to_time_string)
+                    to_paragraph, to_scientific_notation, years_to_time_string)
 
 
 class Planet:
@@ -48,14 +47,27 @@ class Planet:
     chemistry and evolutionary data are NOT set during construction — see
     `planetLife.apply_life_data`, applied later by `StarSystem`.
 
+    A planet reads whichever of the host star's own properties it needs
+    (luminosity, mass, spectral type) directly off the `star` object it
+    holds a reference to, rather than duplicating them into separate
+    `Planet` attributes -- `star` is the single source of truth for
+    everything star-related.
+
+    `body_type` (values `'t'`/`'g'`) is this class's half of a lightweight
+    discriminator shared with `AsteroidBelt` (whose `body_type` is always
+    `'a'`): `StarSystem` holds `Planet` and `AsteroidBelt` instances
+    together in one `planets` list and switches on `.body_type` to tell
+    them apart. `Star.type`/`BinaryStarProxy.type` is an unrelated,
+    differently-shaped attribute (a full descriptive string like
+    `"G2V Yellow Main Sequence Star"`, not a single-character code) that
+    happens to share the same name on a different class.
+
     Attributes:
+        system_config (SystemConfig): The shared SystemConfig object for the system.
         is_moon (bool): True if the object is a moon, False otherwise.
         moons (list): A list of `Planet` objects representing the moons of this planet.
         zone (str): The orbital zone of the planet ('h' for hot, 'e' for ecosphere, 'c' for cold).
         description (str): A text description of the planet's class.
-        star_radius (float): The radius of the star in meters.
-        star_output (float): The total energy output of the star in Watts.
-        star_temperature (float): The surface temperature of the star in Kelvin.
         atm_molar_density (float): The molar density of the atmosphere.
         gravity (float): The surface gravity of the planet in g's.
         atm_density (float): The density of the atmosphere.
@@ -64,28 +76,45 @@ class Planet:
         atmospheric_pressure (float): The atmospheric pressure at the surface in Pascals.
         mass (float): The mass of the planet in kilograms.
         atmosphere (str): The atmospheric composition.
-        composition (str): The chemical composition of the planet.
+        composition (str): The chemical composition of the planet, as a
+                           descriptive string (contrast `AsteroidBelt.composition`,
+                           a list of (component, concentration) tuples -- same
+                           name, unrelated shape, on the two classes).
         radius (float): The radius of the planet in kilometers.
         planet_class (str): The classification of the planet (e.g., 'M', 'N').
         distance (float): The distance from the star in AU.
-        type (str): The type of planet ('t' for terrestrial, 'g' for gas giant').
+        body_type (str): 't' for terrestrial, 'g' for gas giant -- see the
+                        class docstring for how this relates to `AsteroidBelt.body_type`
+                        and the unrelated `Star.type`.
         scale_height (float): The atmospheric scale height in kilometers.
-        star_mass (float): The mass of the star in kilograms.
         hill_radius (float): The Hill radius of the planet in kilometers.
         min_orbit_distance (float): The minimum stable orbit distance for a satellite in AU.
         name (str): The generated name of the planet or moon.
         life_chemical (str): The primary chemical basis for any potential life
                              (set by `planetLife.apply_life_data`, None until then).
-        hab (tuple): The inner and outer bounds of the habitable zone in AU.
-        star_type (str): The spectral type of the star (e.g., 'G', 'M').
+        evolutionary_speed (str): How fast life evolves here (e.g. 'fast',
+                                  'normal', 'slow'); set by `planetLife.apply_life_data`,
+                                  None until then.
+        reflection_spectrum_visible (list): Visible-light reflection descriptors
+                                            for any life present (set by
+                                            `planetLife.apply_life_data`, None until then).
+        reflection_spectrum_non_visible (list): Non-visible-spectrum reflection
+                                                descriptors for any life present
+                                                (set by `planetLife.apply_life_data`,
+                                                None until then).
+        habitable_zone (tuple): The inner and outer bounds of the host star's
+                                habitable zone in AU (same value as `Star.habitable_zone`,
+                                threaded down at construction time).
         star (Star): The Star object this planet orbits.
+        volume (float): The planet's volume in km^3.
+        period (float): The planet's orbital period in years.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
                                   (set by `planetLife.apply_life_data`, empty until then).
         flavor_text (str): A randomly selected flavor text for the planet.
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
-    def __init__(self, system_config: SystemConfig, star, hab_zone, distance, star_type, star_output, star_radius, star_temperature, star_mass,
+    def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None):
         """
@@ -98,15 +127,13 @@ class Planet:
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object for the system.
-            star (Star): The Star object this planet orbits.
-            hab_zone (tuple): A tuple containing the inner and outer bounds of the
-                              habitable zone in AU.
+            star (Star): The Star object this planet orbits. Its luminosity,
+                        mass, and spectral type are read directly off this
+                        reference wherever needed, rather than being passed
+                        in and duplicated as separate `Planet` attributes.
+            habitable_zone (tuple): A tuple containing the inner and outer bounds
+                              of the habitable zone in AU.
             distance (float): The planet's distance from its star in AU.
-            star_type (str): The spectral type of the star (e.g., 'G', 'M').
-            star_output (float): The total energy output of the star in Watts.
-            star_radius (float): The radius of the star in kilometers.
-            star_temperature (float): The surface temperature of the star in Kelvin.
-            star_mass (float): The mass of the star in kilograms.
             radius (float, optional): The radius of the planet in kilometers.
             planet_class (str, optional): The class of the planet (e.g., 'M', 'N').
             mass (float, optional): The mass of the planet in kilograms.
@@ -126,9 +153,6 @@ class Planet:
         self.moons = []
         self.zone = None
         self.description = None
-        self.star_radius = star_radius * 1000  # in meters
-        self.star_output = star_output  # in Watts
-        self.star_temperature = star_temperature  # in Kelvin
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
@@ -141,14 +165,13 @@ class Planet:
         self.radius = radius
         self.planet_class = planet_class
         self.distance = distance
-        self.type = None
+        self.body_type = None
         self.scale_height = None
-        self.star_mass = star_mass
         self.hill_radius = None
         self.min_orbit_distance = None
         self.name = None
         self.life_chemical = None
-        self.evolution = None
+        self.evolutionary_speed = None
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
         self.evolutionary_data = [] # Populated later by planetLife.apply_life_data
@@ -156,8 +179,7 @@ class Planet:
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
 
         # From the star, should not be changed.
-        self.hab = hab_zone
-        self.star_type = star_type
+        self.habitable_zone = habitable_zone
         self.star = star # Store the Star object
 
         if self.is_moon:
@@ -181,12 +203,14 @@ class Planet:
     def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
         """
         Generates paragraphs related to life, evolution, and flavor text for the planet.
-        It also ensures that recently used flavor texts are not repeated.
 
-        Reads (but does not compute) `self.life_chemical`, `self.evolution`,
-        and `self.evolutionary_data`, which are set by
-        `planetLife.apply_life_data` before this is ever called (`to_paragraph_list`
-        is only invoked once a `StarSystem` is fully generated).
+        Reads (but does not compute) `self.life_chemical`, `self.evolutionary_speed`,
+        `self.evolutionary_data`, and `self.flavor_text`, all of which are
+        set by `planetLife.apply_life_data`/`planetLife.decide_flavor_text`
+        before this is ever called (`to_paragraph_list` is only invoked once
+        a `StarSystem` is fully generated) -- this method is a pure read and
+        may be called more than once without re-rolling or re-mutating
+        `system_config.system_flavor_count`.
 
         Args:
             object_type_desc (str): Description of the object type ("planet" or "moon").
@@ -195,13 +219,12 @@ class Planet:
         Returns:
             list: A list of generated paragraphs.
         """
-        reseed_rng()
         life_paragraphs = []
 
         if self.life_chemical:
-            if self.evolution:
+            if self.evolutionary_speed:
                 sentences.append(
-                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolution} pace.")
+                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolutionary_speed} pace.")
             else:
                 sentences.append(
                     f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
@@ -219,50 +242,10 @@ class Planet:
         if self.evolutionary_data and self.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
             life_paragraphs.extend(self.evolutionary_data)
 
-        # Add flavor text if the random chance passes and limits are not exceeded
-        if random.random() < program_constants.FLAVOR_CHANCE_PLANET and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
-            selected_flavor = None
-
-            # Filter out recently used flavor texts
-            available_habitable_flavor = [f for f in program_constants.HABITABLE_FLAVOR if f not in self.system_config.recent_flavor_texts]
-            available_planet_flavor = [f for f in program_constants.PLANET_FLAVOR if f not in self.system_config.recent_flavor_texts]
-            available_orbital_flavor = [f for f in program_constants.ORBITAL_FLAVOR if f not in self.system_config.recent_flavor_texts]
-
-            # If all flavors of a category have been recently used, reset to the full list
-            if not available_habitable_flavor:
-                available_habitable_flavor = program_constants.HABITABLE_FLAVOR
-            if not available_planet_flavor:
-                available_planet_flavor = program_constants.PLANET_FLAVOR
-            if not available_orbital_flavor:
-                available_orbital_flavor = program_constants.ORBITAL_FLAVOR
-
-            # Check for habitable and multicellular/technological life
-            is_habitable = self.planet_class in program_constants.HABITABLE_PLANET_CLASSES
-            has_multicellular_life = False
-            if is_habitable and self.evolutionary_data:
-                for stage_paragraph in self.evolutionary_data:
-                    if "multicellularity" in stage_paragraph.lower() or "technological civilization" in stage_paragraph.lower():
-                        has_multicellular_life = True
-                        break
-
-            if is_habitable and has_multicellular_life:
-                selected_flavor = secrets.choice(available_habitable_flavor)
-            elif self.type == "t" and self.planet_class != "A":
-                selected_flavor = secrets.choice(available_planet_flavor)
-            elif self.type == "g" or self.planet_class == "A":
-                selected_flavor = secrets.choice(available_orbital_flavor)
-
-            if selected_flavor:
-                self.flavor_text = selected_flavor
-                life_paragraphs.append(f"Sensors show {self.flavor_text}")
-                self.system_config.system_flavor_count += 1
-                self.flavor_text_count += 1
-
-                # Add the selected flavor text to the recent list
-                self.system_config.recent_flavor_texts.append(selected_flavor)
-                # Keep the recent_flavor_texts list to a maximum size
-                if len(self.system_config.recent_flavor_texts) > program_constants.MAX_RECENT_FLAVOR_TEXTS:
-                    self.system_config.recent_flavor_texts.pop(0) # Remove the oldest entry
+        # Flavor text was already decided at generation time (planetLife.decide_flavor_text);
+        # this is a pure read so repeated renders don't re-roll or double-count it.
+        if self.flavor_text:
+            life_paragraphs.append(f"Sensors show {self.flavor_text}")
 
         return life_paragraphs
 
@@ -327,7 +310,7 @@ class Planet:
             else:
                 sentences.append("There are no moons orbiting this planet.")
 
-        if self.type == "t":
+        if self.body_type == "t":
             if self.atmosphere != "None":
                 sentences.append(
                     f"This {object_type_desc} has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")

@@ -81,19 +81,19 @@ def assert_no_orbital_overlap(system):
     objects = system.planets
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
-        gap = cur.distance - prev.upper_limit if prev.type == 'a' else cur.distance - prev.distance
+        gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
 
-        if prev.type == 'a':
+        if prev.body_type == 'a':
             # validate_system requires MIN_ASTEROID_BELT_SEPARATION after a
             # belt regardless of what follows it (belt or planet).
             min_gap = prog_c.MIN_ASTEROID_BELT_SEPARATION
-        elif cur.type == 'a':
+        elif cur.body_type == 'a':
             min_gap = prev.min_orbit_distance
         else:
             min_gap = max(cur.min_orbit_distance, prev.min_orbit_distance)
 
         assert gap >= min_gap - 1e-9, (
-            f"objects {i - 1} ({prev.type}) and {i} ({cur.type}) overlap: gap={gap}, required>={min_gap}"
+            f"objects {i - 1} ({prev.body_type}) and {i} ({cur.body_type}) overlap: gap={gap}, required>={min_gap}"
         )
 
 
@@ -209,6 +209,38 @@ def test_intelligent_life_implies_habitable_world_ends_true():
         assert cfg.HABITABLE_WORLD is True
         system = StarSystem(system_config=cfg)
         assert system.hab_count >= 1
+
+
+def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
+    """
+    Regression test for the Phase 0 bug (see TODO.md): both
+    Planet._generate_life_and_flavor_paragraphs and StarSystem.__str__ used
+    to roll flavor text and mutate system_config.system_flavor_count/
+    recent_flavor_texts at render time (inside to_paragraph_list()/__str__())
+    rather than at generation time, so calling either twice on the same
+    object double-rolled and double-mutated shared counters. Flavor text is
+    now decided once during StarSystem.__init__ (system-level in
+    self.system_flavor_text, planet/moon-level via
+    planetLife.decide_flavor_text), and __str__/to_paragraph_list() are pure
+    reads.
+    """
+    monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_SYSTEM", 1.0)
+    monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
+
+    system = StarSystem(system_config=make_config("G2V", PLANETS=True, MAX_PLANETS=True, HABITABLE_WORLD=True))
+
+    assert system.system_flavor_text is not None
+    assert system.system_config.system_flavor_count > 0
+
+    flavor_count_after_generation = system.system_config.system_flavor_count
+    recent_flavor_after_generation = list(system.system_config.recent_flavor_texts)
+
+    first_render = str(system)
+    second_render = str(system)
+
+    assert first_render == second_render
+    assert system.system_config.system_flavor_count == flavor_count_after_generation
+    assert system.system_config.recent_flavor_texts == recent_flavor_after_generation
 
 
 def test_binary_system_star_properties_are_sane():

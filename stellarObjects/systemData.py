@@ -54,6 +54,8 @@ class StarSystem:
         hab_count (int): The total number of potentially habitable worlds.
         m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
+        system_flavor_text (str or None): The system-level flavor text sentence,
+            decided once at generation time (or None if the roll didn't select one).
     """
 
     def __init__(self, system_config: SystemConfig): # Updated signature to accept system_config
@@ -84,8 +86,12 @@ class StarSystem:
         `planetPhysics`'s module docstring. Once all planets/moons exist,
         orbits are validated, and the star's age has been finalized via
         `Star.adjust_age_for_planets`, this constructor makes one pass over
-        every planet and moon and applies `planetLife.apply_life_data` to
-        each, so evolutionary timelines reflect the star's final age.
+        every planet and moon and applies `planetLife.apply_life_data` and
+        `planetLife.decide_flavor_text` to each, so evolutionary timelines
+        reflect the star's final age and flavor text is a fixed fact by the
+        time anything is ever rendered. The system-level flavor text
+        (`self.system_flavor_text`) is decided the same way, once, right
+        before this pass.
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         self.star = Star(self.system_config, name=self.system_config.NAME) # Pass system_config and use its NAME
@@ -139,7 +145,7 @@ class StarSystem:
                 if i > 0:
                     last_planet = self.planets[i - 1]
                     random_buffer = random.uniform(0, star_factor)
-                    if last_planet.type == 'a':
+                    if last_planet.body_type == 'a':
                         estimated_distance = last_planet.upper_limit + random_buffer * 2
                         last_asteroid = True
                     else:
@@ -155,7 +161,7 @@ class StarSystem:
                     obj = self.generate_slot_object(slot_spec, estimated_distance)
                     if getattr(obj, 'planet_class', None) in program_constants.HABITABLE_PLANET_CLASSES:
                         found_hab = True
-                    if getattr(obj, 'type', None) == 'a':
+                    if getattr(obj, 'body_type', None) == 'a':
                         found_belt = True
                     self.planets.append(obj)
                     continue
@@ -169,8 +175,8 @@ class StarSystem:
                             hz = True
                     elif not hz and i > 0:
                         last_planet = self.planets[i - 1]
-                        beyond_hz = last_planet.type == 'a' and last_planet.upper_limit > self.star.habitable_zone[1] or \
-                                    last_planet.type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
+                        beyond_hz = last_planet.body_type == 'a' and last_planet.upper_limit > self.star.habitable_zone[1] or \
+                                    last_planet.body_type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
                                                                  self.star.habitable_zone[1])
 
                         # Never retroactively overwrite a belt if ASTEROID_BELT is
@@ -178,14 +184,12 @@ class StarSystem:
                         # (found_belt is set the moment it's placed, not re-checked
                         # here), and this mechanism has no way to know whether another
                         # one exists elsewhere to fall back on.
-                        belt_is_protected = last_planet.type == 'a' and self.system_config.ASTEROID_BELT is True
+                        belt_is_protected = last_planet.body_type == 'a' and self.system_config.ASTEROID_BELT is True
 
                         if beyond_hz and not prev_slot_explicit and not belt_is_protected:
                             estimated_distance = random.uniform(self.star.habitable_zone[0],
                                                                 self.star.habitable_zone[1])
-                            planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
-                                            self.star.luminosity,
-                                            self.star.radius, self.star.temperature, self.star.mass,
+                            planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, # Pass system_config
                                             planet_class="M")
                             self.planets[i - 1] = planet
                             i -= 1
@@ -197,9 +201,7 @@ class StarSystem:
                             hz = True
 
                     if hz:
-                        planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
-                                        self.star.luminosity,
-                                        self.star.radius, self.star.temperature, self.star.mass,
+                        planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, # Pass system_config
                                         planet_class="M")
                         found_hab = True
                         self.planets.append(planet)
@@ -226,9 +228,7 @@ class StarSystem:
                     self.planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
                     found_belt = True
                 else:
-                    planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, self.star.type[0], # Pass system_config
-                                    self.star.luminosity,
-                                    self.star.radius, self.star.temperature, self.star.mass)
+                    planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance) # Pass system_config
                     if planet.planet_class == "M":
                         found_hab = True
                     self.planets.append(planet)
@@ -236,16 +236,28 @@ class StarSystem:
         self.validate_system()
         self.star.adjust_age_for_planets(self.planets)
 
+        # Decided once, here, at generation time -- __str__ (which may be called
+        # more than once) reads this rather than re-rolling and double-counting
+        # system_flavor_count on every render.
+        self.system_flavor_text = None
+        if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
+            self.system_flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
+            self.system_config.system_flavor_count += 1
+
         # All planets and moons are generated without life data (see planetPhysics's
         # module docstring). Apply it now, in one pass over the finished system, so
         # evolutionary timelines are computed against the star's final, planet-adjusted
-        # age rather than its provisional pre-adjustment one.
+        # age rather than its provisional pre-adjustment one. Flavor text is decided
+        # in the same pass (after life data, since it reads evolutionary_data) so it
+        # too is a fixed, pre-rendered fact rather than something __str__ rolls.
         for obj in self.planets:
-            if obj.type == 'a': # Skip asteroid belts; they carry no life data.
+            if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                 continue
             planetLife.apply_life_data(obj)
+            planetLife.decide_flavor_text(obj)
             for moon in obj.moons:
                 planetLife.apply_life_data(moon)
+                planetLife.decide_flavor_text(moon)
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
@@ -278,8 +290,7 @@ class StarSystem:
         if slot_type == "planet":
             planet_class = slot_spec.get("planet_class")
             distance = self.calculate_distance_for_class(planet_class, estimated_distance)
-            return Planet(self.system_config, self.star, self.star.habitable_zone, distance, self.star.type[0],
-                         self.star.luminosity, self.star.radius, self.star.temperature, self.star.mass,
+            return Planet(self.system_config, self.star, self.star.habitable_zone, distance,
                          planet_class=planet_class, moon_count=slot_spec.get("moons"))
 
         raise ValueError(f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'.")
@@ -350,7 +361,7 @@ class StarSystem:
         """
         planet_counter, moon_counter, belt_counter = 0, 0, 0
         for planet in self.planets:
-            if planet.type == 'a':
+            if planet.body_type == 'a':
                 belt_counter += 1
             else:
                 planet_counter += 1
@@ -374,7 +385,7 @@ class StarSystem:
         habitable_classes = program_constants.HABITABLE_PLANET_CLASSES
         hab_count, m_count = 0, 0
         for planet in self.planets:
-            if planet.type != 'a':
+            if planet.body_type != 'a':
                 if planet.planet_class in habitable_classes:
                     hab_count += 1
                 if planet.planet_class == "M":
@@ -457,7 +468,7 @@ class StarSystem:
             planet = self.planets[i]
             last_planet = self.planets[i - 1]
 
-            if last_planet.type == 'a':
+            if last_planet.body_type == 'a':
                 distance_to_last = planet.distance - last_planet.upper_limit
             else:
                 distance_to_last = planet.distance - last_planet.distance
@@ -467,8 +478,8 @@ class StarSystem:
             else:
                 additional_correction = 0
 
-            if planet.type == 'a':
-                if last_planet.type == 'a':
+            if planet.body_type == 'a':
+                if last_planet.body_type == 'a':
                     if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         planet.upper_limit += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
@@ -478,7 +489,7 @@ class StarSystem:
                     planet.upper_limit += last_planet.min_orbit_distance + additional_correction
                     planet.lower_limit += last_planet.min_orbit_distance + additional_correction
             else:
-                if last_planet.type == 'a':
+                if last_planet.body_type == 'a':
                     if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         planetPhysics.calculate_atmospheric_conditions(planet)
@@ -588,11 +599,10 @@ class StarSystem:
             # 3. Append the combined age sentence for the binary system
             all_output_parts.append(binary_proxy_paragraphs[1]) # Binary System Age sentence
 
-            # Add flavor text if the random chance passes and total flavor text limit is not exceeded
-            if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
-                flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
-                all_output_parts.append(f"\n\nSensors show {flavor_text}")
-                self.system_config.system_flavor_count += 1
+            # Flavor text was already decided at generation time; this is a pure
+            # read so repeated renders don't re-roll or double-count it.
+            if self.system_flavor_text:
+                all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
 
             # 4. Append individual star details for primary and secondary stars
             for star_obj in self.stars: # self.stars contains primary and secondary Star objects
@@ -622,11 +632,10 @@ class StarSystem:
             # 3. Append the system summary
             all_output_parts.append(combined_system_summary_paragraph)
 
-            # Add flavor text if the random chance passes and total flavor text limit is not exceeded
-            if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
-                flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
-                all_output_parts.append(f"\n\nSensors show {flavor_text}")
-                self.system_config.system_flavor_count += 1
+            # Flavor text was already decided at generation time; this is a pure
+            # read so repeated renders don't re-roll or double-count it.
+            if self.system_flavor_text:
+                all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
 
         # Add planet/belt paragraphs, each separated by a double newline from the previous.
         if self.planets:

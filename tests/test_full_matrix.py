@@ -88,8 +88,7 @@ def make_planet(host_star, cls, zone):
     distance = distance_for_zone(host_star, zone)
     cfg = SystemConfig()
     return Planet(
-        cfg, host_star, host_star.habitable_zone, distance, host_star.type[0],
-        host_star.luminosity, host_star.radius, host_star.temperature, host_star.mass,
+        cfg, host_star, host_star.habitable_zone, distance,
         planet_class=cls,
     )
 
@@ -182,14 +181,14 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
     objects = system.planets
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
-        gap = cur.distance - prev.upper_limit if prev.type == 'a' else cur.distance - prev.distance
-        if prev.type == 'a':
+        gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
+        if prev.body_type == 'a':
             min_gap = prog_c.MIN_ASTEROID_BELT_SEPARATION
-        elif cur.type == 'a':
+        elif cur.body_type == 'a':
             min_gap = prev.min_orbit_distance
         else:
             min_gap = max(cur.min_orbit_distance, prev.min_orbit_distance)
         assert gap >= min_gap - 1e-9, (
-            f"{star_type}: objects {i - 1} ({prev.type}) and {i} ({cur.type}) overlap: "
+            f"{star_type}: objects {i - 1} ({prev.body_type}) and {i} ({cur.body_type}) overlap: "
             f"gap={gap}, required>={min_gap}"
         )
