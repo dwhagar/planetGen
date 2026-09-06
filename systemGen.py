@@ -6,6 +6,7 @@ import secrets
 
 from stellarObjects.config import SystemConfig
 from stellarObjects import program_constants
+from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.systemData import StarSystem
 
 # Suppress transformers warnings
@@ -55,6 +56,8 @@ def process_args():
         - `+planets` / `-planets`
 
     The remaining, non-tri-state options:
+    - `--version`: Prints the program's version, repository URL, and license,
+      then exits immediately (skipping all other argument validation).
     - `--system-file` / `-f`: Loads system generation options from a JSON
       file. Any tri-state or value option also given on the command line
       overrides the corresponding value from the file.
@@ -102,6 +105,8 @@ def process_args():
         description="System Generation Options",
         epilog=additional_info,
         prefix_chars='-+')
+
+    parser.add_argument('--version', action=VersionAction, banner=version_banner('systemGen.py'))
 
     for name, _attr, description in TRISTATE_OPTIONS:
         parser.add_argument(f'-{name}', f'+{name}', dest=name, action=TristateAction,

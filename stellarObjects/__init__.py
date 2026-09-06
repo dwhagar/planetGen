@@ -13,11 +13,15 @@ This package exports the following classes:
     - StarSystem: Represents a full star system, including a central star and a list of planets.
     - SpaceSector: Represents a named collection of star systems laid out in 3D space.
     - SectorSystemEntry: One star system's placement (and generation recipe) within a SpaceSector.
+
+It also exports `__version__`, this package's version string (see
+`_version.py` for why that lives in its own dependency-free module).
 """
 
+from ._version import __version__
 from .planetData import Planet
 from .spaceSector import SectorSystemEntry, SpaceSector
 from .starData import Star
 from .systemData import StarSystem
 
-__all__ = ['Planet', 'SectorSystemEntry', 'SpaceSector', 'Star', 'StarSystem']
+__all__ = ['Planet', 'SectorSystemEntry', 'SpaceSector', 'Star', 'StarSystem', '__version__']

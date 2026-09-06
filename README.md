@@ -1,5 +1,7 @@
 # planetGen
 
+**Version:** 5.1.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
 ## Features
@@ -47,6 +49,7 @@ To generate a whole sector of star systems at once, see [Sector Generation](#sec
 
 Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces that feature to be present, `-name` forces it to be absent, and leaving it off the command line leaves it up to chance.
 
+*   `--version`: Prints the program's version, repository URL, and license, then exits immediately (also available on `sectorGen.py`).
 *   `+habitable_world` / `-habitable_world`: Force / forbid the generation of a habitable world in the system.
 *   `+asteroid_belt` / `-asteroid_belt`: Force / forbid the generation of an asteroid belt in the system.
 *   `+large_star` / `-large_star`: Force / forbid the generation of a large star.

@@ -5,6 +5,7 @@ import secrets
 
 import systemGen
 from stellarObjects import program_constants
+from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import generate_phoneme_salad_name
@@ -58,6 +59,8 @@ def process_args():
         description="Sector Generation Options",
         epilog=additional_info,
         prefix_chars='-+')
+
+    parser.add_argument('--version', action=VersionAction, banner=version_banner('sectorGen.py'))
 
     for name, _attr, description in systemGen.TRISTATE_OPTIONS:
         parser.add_argument(f'-{name}', f'+{name}', dest=name, action=systemGen.TristateAction,
