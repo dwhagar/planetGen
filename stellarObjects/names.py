@@ -7,7 +7,8 @@ Name Generation Constants
 This module contains all the data required for the procedural name generation
 of celestial bodies, including base names, prefixes, suffixes, and word lists
 for validation. The data is organized to provide a rich and varied source for
-creating unique and plausible-sounding names for stars, planets, and moons.
+creating unique and plausible-sounding names for stars, planets, moons, and
+sectors.
 """
 
 import os
@@ -209,4 +210,80 @@ MOON_SUFFIXES = [
 A list of suffixes for moon names. These suffixes complement the mystical and
 whimsical prefixes, often with diminutive or feminine endings to create
 delicate-sounding names.
+"""
+
+SECTOR_NAMES = [
+    # Galactic arms, superclusters, and other real large-scale structures
+    "Perseus", "Sagittarius", "Orion", "Norma", "Scutum", "Centaurus", "Cygnus",
+    "Virgo", "Laniakea", "Coma", "Saraswati", "Shapley", "Hercules", "Fornax",
+    "Eridanus", "Ophiuchus", "Hydra", "Pisces", "Cetus", "Gould",
+    # Real nebulae and star clusters
+    "Helix", "Tarantula", "Trifid", "Rosette", "Cocoon", "Lagoon", "Omega",
+    "Veil", "Boomerang", "Flame", "Horsehead", "Carina", "Pleiades", "Hyades",
+    "Trapezium", "Beehive", "Jewel", "Butterfly",
+    # Warhammer 40,000 sectors and expanses
+    "Calixis", "Koronus", "Jericho", "Scarus", "Ixaniad", "Obscurus", "Pacificus",
+    "Tempestus",
+    # EVE Online regions
+    "Deklein", "Delve", "Derelik", "Detorid", "Devoid", "Esoteria", "Etherium",
+    "Everyshore", "Exordium", "Fade", "Feythabolis", "Fountain", "Geminate",
+    "Genesis", "Heimatar", "Immensea", "Impass", "Insmother", "Kador", "Kalevala",
+    "Khanid", "Lonetrek", "Malpais", "Metropolis", "Oasa", "Omist", "Paragon",
+    "Perrigen", "Placid", "Pochven", "Providence", "Querious", "Solitude",
+    "Stain", "Syndicate", "Tenal", "Tenerifis", "Tribute", "Venal", "Yasna",
+    # Star Wars regions and sectors
+    "Corellia", "Kuat", "Hutt", "Tion", "Chommell", "Bpfassh",
+    # Star Trek regions
+    "Briar", "Badlands", "Mutara", "Typhon", "Denorios",
+    # Asimov's Foundation series sectors
+    "Arcturus", "Normannic", "Trantor", "Terminus", "Anacreon", "Korell",
+    "Periphery",
+    # Mass Effect regions
+    "Attican", "Argos", "Traverse",
+    # Elite Dangerous regions
+    "Formidine", "Odin",
+    # Dune
+    "Arrakis", "Corrino", "Atreides", "Harkonnen", "Kaitain", "Landsraad",
+    # Firefly and Babylon 5
+    "Verse", "Georgia", "Narn", "Minbar"
+]
+"""
+A list of names to be used as a base for generating sector names. These are
+drawn from real astronomical large-scale structures (galactic arms,
+superclusters, nebulae, and star clusters) alongside space-region and sector
+names from science fiction (Warhammer 40,000, EVE Online, Star Wars, Star
+Trek, Asimov's Foundation, Mass Effect, Elite Dangerous, Dune, Firefly, and
+Babylon 5), giving generated sectors the same epic, well-traveled feel as the
+star and planet name lists.
+"""
+
+SECTOR_PREFIXES = [
+    "Kal", "Kor", "Sca", "Zar", "Vel", "Dra", "Xan", "Nor",  # Existing-style short affixes
+    "Tar", "Vor", "Kry", "Bel", "Fen", "Rhu", "Il", "Os"  # Frontier/expanse-flavored
+]
+"""
+A list of prefixes for sector names. These are short, hard-edged affixes
+meant to evoke the frontier-sector naming style of works like Warhammer
+40,000 and EVE Online.
+"""
+
+SECTOR_SUFFIXES = [
+    "is", "us", "on", "ar", "ine", "eth",  # Existing-style short affixes
+    "yx", "oth", "ade", "ium", "ain", "ost"  # Expanse/reach-flavored
+]
+"""
+A list of suffixes for sector names, giving the generated names the same
+grand, place-name feel as the base `SECTOR_NAMES` they're combined with.
+"""
+
+SECTOR_DESIGNATORS = [
+    "Sector", "Expanse", "Reach", "Cluster", "Drift", "Verge", "Marches",
+    "Territories", "Frontier", "Belt", "Reaches", "Wilds"
+]
+"""
+A list of designator words appended after a generated sector base name (e.g.
+"Voranthis Expanse", "Kalcyrus Reach"), mirroring the variety of region-type
+words seen across real astronomy and science-fiction space-sector naming
+(sector, expanse, reach, cluster, territories, etc.) instead of always
+using the single word "Sector".
 """

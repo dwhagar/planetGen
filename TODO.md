@@ -376,23 +376,59 @@ URLs the page is expected to live at.
   `PRAGMA user_version` is DDL-level — tracks the table/column structure
   itself, checked before applying any future `_migrate_vN_to_vN+1()` step.
   Both start at `1`.
-- [ ] Build the persistence layer: functions/classes to write a generated
-  `StarSystem`/`SpaceSector` (using Phase 1's serialization) into these
-  tables — including both renderings and every `table_*` finished-property
-  column — and to read them back out into live `Star`/`Planet`/etc. objects.
+- [x] **Write path — built**: `stellarObjects/_db.py` (leading underscore —
+  private, not part of the package's public generation API). Deviates from
+  this phase's original plan in one deliberate way: rather than routing
+  through a separate Phase 1 `to_dict()`/`from_dict()` object-graph
+  serialization module (still not built — see Phase 1's checklist above,
+  still all unchecked), `_db.py` reads live `StarSystem`/`Star`/
+  `BinaryStarProxy`/`Planet`/`AsteroidBelt` attributes directly and writes
+  them straight into the tables above in one transaction
+  (`insert_sector`/`insert_star_system`/`insert_star`/`insert_planet`/
+  `insert_asteroid_belt`, plus a `save_sector(sector, db_path=None)`
+  convenience wrapper). Every `table_*`/`composition_summary` column reads
+  from a new `get_table_properties()` method added to `Star`,
+  `BinaryStarProxy`, and `Planet` (and `get_composition_summary()` on
+  `AsteroidBelt`) — each extracted from that class's existing
+  `to_paragraph_list()` so the exact same formatting logic backs both the
+  rendered wiki text and the database, with no duplication. Both
+  `wikitext_content`/`markdown_content` are rendered from the same
+  already-generated object, toggling `system_config.MARKDOWN` and
+  restoring it afterward, exactly as planned above. `schema.sql` itself
+  was made idempotent (every `CREATE TABLE`/`INDEX`/`VIEW` now says
+  `IF NOT EXISTS`) so `_db.get_connection` can safely apply it on every
+  connection rather than needing a first-run/migration check.
+- [ ] **Read path — not built**: nothing yet reconstructs a live
+  `StarSystem`/`SpaceSector` from database rows. This is where Phase 1's
+  `to_dict()`/`from_dict()` allowlists (or an equivalent direct
+  row-to-object mapping in `_db.py`) still matter — needed for Phase 3's
+  "list/query what's already stored" tooling to return anything richer
+  than raw rows, and for any future re-upload/re-render workflow.
 - [ ] Tests: round-trip through the actual database (not just in-memory
-  dicts), covering the same cases as Phase 1's tests plus sector-level
-  cases (multiple systems, positions, a home system), plus: both text
-  columns populated and mutually consistent, and `lifespan_gy IS NULL`
-  round-trips to `float('inf')`.
+  dicts) — single star, binary, multi-moon, asteroid-belt, and
+  sector-with-position cases — verifying both text columns are populated
+  and mutually consistent, `lifespan_gy IS NULL` round-trips to
+  `float('inf')`, and `PRAGMA foreign_key_check` is clean. (Manually
+  smoke-tested via `sectorGen.py` as of this writing — no belts, single
+  star, multi-moon, and binary cases confirmed to insert cleanly with no
+  FK violations — but not yet a real automated test.)
 
 ## Phase 3 — Migrate the CLI tools to the database
 
-- [ ] `systemGen.py`/`sectorGen.py`: add options to persist generated output
-  into the database instead of (or alongside) printing wikitext/markdown.
+- [x] `sectorGen.py`: every run now builds a `SpaceSector` (via
+  `SpaceSector.add_system`, so each system gets a real Hill-sphere-placed
+  position) alongside its existing text generation, and saves it to the
+  database via `_db.save_sector` — unconditionally, not behind an opt-in
+  flag, since populating the database *is* the point now. `--db-path`
+  overrides the default `db/planetgen.db` location. Existing stdout/
+  `--output` text behavior is unchanged.
+- [ ] `systemGen.py`: still text-only, no database option. A standalone
+  (non-sector) system has no natural `sector_id`/position, but
+  `_db.insert_star_system` already accepts `sector_id=None, position=None`
+  for exactly this case — wiring it in is mechanical once wanted.
 - [ ] A way to list/query what's already stored (e.g. a new small CLI or
   script: "every G-type system", "everything within 50 ly of Sol", listing
-  sectors).
+  sectors) — blocked on the read path above for anything beyond raw SQL.
 
 ## Phase 4 — Galaxy-scale generation
 

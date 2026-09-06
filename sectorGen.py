@@ -4,9 +4,10 @@ import random
 import secrets
 
 import systemGen
-from stellarObjects import program_constants
+from stellarObjects import _db, program_constants
 from stellarObjects._version import VersionAction, version_banner
-from stellarObjects.names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from stellarObjects.names import SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES
+from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import generate_phoneme_salad_name
 
@@ -24,17 +25,25 @@ def process_args():
     `systemGen.TRISTATE_OPTIONS`), `--star-type`, `--age`, `--markdown`, and
     the flavor-text overrides -- applies here too, uniformly, to every
     system the sector contains. `--system-file`, `--num-orbits`, and
-    `--name` are deliberately not offered here: those describe one specific,
-    hand-crafted system (exact orbital slots, an exact object count, a
-    single fixed name), which contradicts generating a whole sector of
-    varied, independently-random systems. Use `systemGen.py --system-file`
-    directly for that, and stitch its output into a sector by hand if
-    needed.
+    systemGen.py's own per-system `--name` are deliberately not offered
+    here: those describe one specific, hand-crafted system (exact orbital
+    slots, an exact object count, a single fixed name), which contradicts
+    generating a whole sector of varied, independently-random systems. Use
+    `systemGen.py --system-file` directly for that, and stitch its output
+    into a sector by hand if needed. (This script's own `--name`/`-n`,
+    below, is a different setting entirely -- it names the *sector*, not
+    any one system in it.)
 
     Sector-specific options, on top of everything reused from `systemGen.py`:
-    - `--num-systems` / `-n`: How many star systems the sector contains.
-      Defaults to 10.
-    - `--sector-name`: Names the sector, overriding the default random name.
+    - `--num-systems`: How many star systems the sector contains. Defaults
+      to 10.
+    - `--name` / `-n`: Hard-sets the sector's own name, overriding the
+      default random two-word name (see `generate_sector_name`). Stored
+      under `args.sector_name`, not `args.name` -- `args.name` is reserved
+      for `systemGen.build_system_config`'s per-*system* forced-name option,
+      deliberately left `None` below (see that assignment's comment); the
+      sector's name and an individual system's name are unrelated settings
+      that happen to share an obvious flag spelling.
     - `--min-habitable`: Guarantees at least this many of the sector's
       systems have a habitable world, chosen randomly among them, without
       forcing *every* system to have one the way a uniform
@@ -68,15 +77,18 @@ def process_args():
                             help=f"+{name} forces every system in the sector to have {description}; "
                                  f"-{name} forces every system in the sector to not have {description}.")
 
-    parser.add_argument('--num-systems', '-n', type=int, default=10,
+    parser.add_argument('--num-systems', type=int, default=10,
                         help="The number of star systems to generate in the sector. Defaults to 10.")
-    parser.add_argument('--sector-name', type=str,
-                        help="Force the name of the sector, overriding the default random generation.")
+    parser.add_argument('--name', '-n', dest='sector_name', type=str,
+                        help="Force the name of the sector, overriding the default random two-word name.")
     parser.add_argument('--min-habitable', type=int, default=0,
                         help="Guarantee at least this many systems in the sector have a habitable world, "
                              "chosen randomly among them, without requiring every system to have one.")
 
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
+    parser.add_argument('--db-path', type=str,
+                        help="Path to the SQLite database file the generated sector is saved to. "
+                             "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
     parser.add_argument('--star-type', type=str,
                         help="Force every system's star to a specific type (e.g., G2V).")
@@ -131,13 +143,21 @@ def process_args():
 
 def generate_sector_name():
     """
-    Generates a random sector name in the same phoneme-salad style used for
-    star/planet/moon names, with " Sector" appended.
+    Generates a random two-word sector name, each word independently drawn
+    from the same phoneme-salad name generator used for star/planet/moon
+    names -- using the sector-flavored `SECTOR_NAMES`/`SECTOR_PREFIXES`/
+    `SECTOR_SUFFIXES` base lists instead, so generated sectors draw on real
+    astronomical regions (galactic arms, superclusters, nebulae) and
+    science-fiction sector names rather than reusing star names verbatim.
+    No literal "Sector" suffix. Overridden entirely by `--name`/`-n` (see
+    `process_args`), which hard-sets the whole name instead.
 
     Returns:
-        str: A newly generated sector name, e.g. "Voranthis Sector".
+        str: A newly generated sector name, e.g. "Voranthis Kelmoor".
     """
-    return f"{generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)} Sector"
+    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES)
+    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES)
+    return f"{first_word} {second_word}"
 
 
 def build_sector_configs(args):
@@ -187,11 +207,17 @@ def main():
 
     Parses command-line arguments, builds one `SystemConfig` per system in
     the sector (see `build_sector_configs`), generates a full `StarSystem`
-    from each, and renders them together under a single sector header with
-    a short summary and an index of every system's name and star type.
+    from each, places them all in a `SpaceSector` (positions auto-assigned
+    by `SpaceSector.add_system`'s Hill-sphere-based placement), and renders
+    them together under a single sector header with a short summary and an
+    index of every system's name and star type.
 
     If an output file was specified, the whole rendered sector is written
-    there; otherwise it's printed directly to the console.
+    there; otherwise it's printed directly to the console. Either way, the
+    generated sector is then saved to the database (`stellarObjects._db`,
+    `--db-path` to override the default location) -- this is the "fill a
+    sector" step: every run of this script populates the database, not
+    just stdout/a file.
     """
     random.seed(secrets.randbits(128))
 
@@ -200,6 +226,10 @@ def main():
 
     configs = build_sector_configs(args)
     systems = [StarSystem(system_config=cfg) for cfg in configs]
+
+    sector = SpaceSector(name=sector_name)
+    for system, cfg in zip(systems, configs):
+        sector.add_system(system, system_config=cfg)
 
     habitable_count = sum(1 for s in systems if s.hab_count > 0)
 
@@ -231,6 +261,10 @@ def main():
             f.write(output_text)
     else:
         print(output_text)
+
+    sector_id = _db.save_sector(sector, db_path=args.db_path)
+    db_path = args.db_path or _db.DEFAULT_DB_PATH
+    print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, {db_path}).")
 
 
 if __name__ == "__main__":

@@ -133,17 +133,20 @@ class BinaryStarProxy(Star):
         self.age = max(self._primary.age, self._secondary.age)
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
-    def to_paragraph_list(self):
+    def get_table_properties(self):
         """
-        Generates a list of descriptive paragraphs for the binary star system's
-        combined properties. It does NOT include individual star details.
+        Builds the "Binary System Data" property dict -- the exact key/value
+        pairs `to_paragraph_list` renders into the combined pair's data
+        table -- as its own method so the database persistence layer can
+        read the same as-published values without duplicating this
+        formatting logic (see `stellarObjects/_db.py`). This is the combined
+        PAIR's table, distinct from `Star.get_table_properties()` (which
+        each constituent star still has its own copy of).
 
         Returns:
-            list: A two-element list: [combined data block, combined age sentence].
+            dict: Keys `type`, `mass`, `lum`, `hab`, `separation`, `loc`,
+                 each an already-formatted display string.
         """
-        paragraphs = []
-
-        # 1. Combined Binary System Data Block
         mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
@@ -155,7 +158,7 @@ class BinaryStarProxy(Star):
         separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
         separation_string = f"{separation_km_scientific} km ({self.binary_separation_au:.2f} AU)"
 
-        binary_properties = {
+        return {
             "type": self.type,
             "mass": mass_string,
             "lum": lum_string,
@@ -163,6 +166,19 @@ class BinaryStarProxy(Star):
             "separation": separation_string,
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
+
+    def to_paragraph_list(self):
+        """
+        Generates a list of descriptive paragraphs for the binary star system's
+        combined properties. It does NOT include individual star details.
+
+        Returns:
+            list: A two-element list: [combined data block, combined age sentence].
+        """
+        paragraphs = []
+
+        # 1. Combined Binary System Data Block
+        binary_properties = self.get_table_properties()
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "lum": "Luminosity",
             "hab": "Habitable Zone", "separation": "Stellar Separation", "loc": "Location"

@@ -248,6 +248,47 @@ class Planet:
 
         return life_paragraphs
 
+    def get_table_properties(self):
+        """
+        Builds the "Planet Data"/"Class Data" property dict -- the exact
+        key/value pairs `to_paragraph_list` renders into the body's data
+        table -- as its own method so the database persistence layer can
+        read the same as-published values without duplicating this
+        formatting logic (see `stellarObjects/_db.py`). Same dict shape for
+        planets and moons; only the wiki template name differs (handled in
+        `to_paragraph_list`, not here).
+
+        Returns:
+            dict: Keys `class`, `distance`, `period`, `radius`, `gravity`,
+                 each an already-formatted display string (`class` may be
+                 `None`).
+        """
+        if self.is_moon:
+            # Moons orbit their parent planet, so their distance is from the planet, not the star.
+            # This distance is typically much smaller and best represented in kilometers.
+            distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 4)} km" # Pass system_config
+        else:
+            # For planets, the distance is from the star. We check if this distance
+            # is large enough to warrant using light-years.
+            distance_ly = self.distance * physical_constants.AU_TO_LY
+            if distance_ly < program_constants.LY_THRESHOLD:
+                # For "normal" sized systems, display in AU.
+                # If less than 1 AU, also show in km for context.
+                distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
+            else:
+                # For very large systems, display in light-years.
+                distance_text = f"{distance_ly:.4f} light-years"
+
+        radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config
+
+        return {
+            "class": self.planet_class,
+            "distance": distance_text,
+            "period": years_to_time_string(self.period),
+            "radius": radius_string,
+            "gravity": f"{round(self.gravity, 3)} g",
+        }
+
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs about the planet or moon,
@@ -262,38 +303,13 @@ class Planet:
                   not by post-processing the rendered text here).
         """
         object_type_desc = "moon" if self.is_moon else "planet"
-
-        if self.is_moon:
-            # Moons orbit their parent planet, so their distance is from the planet, not the star.
-            # This distance is typically much smaller and best represented in kilometers.
-            distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 4)} km" # Pass system_config
-            header_level = '###' if self.system_config.MARKDOWN else '===' # Use self.system_config
-        else:
-            # For planets, the distance is from the star. We check if this distance
-            # is large enough to warrant using light-years.
-            distance_ly = self.distance * physical_constants.AU_TO_LY
-            if distance_ly < program_constants.LY_THRESHOLD:
-                # For "normal" sized systems, display in AU.
-                # If less than 1 AU, also show in km for context.
-                distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
-            else:
-                # For very large systems, display in light-years.
-                distance_text = f"{distance_ly:.4f} light-years"
-            header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
+        header_level = ('###' if self.is_moon else '##') if self.system_config.MARKDOWN else ('===' if self.is_moon else '==')
 
         output_paragraphs = []
         header = f"{header_level} {self.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip() # Use self.system_config
         output_paragraphs.append(header)
 
-        radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config
-
-        planet_properties = {
-            "class": self.planet_class,
-            "distance": distance_text,
-            "period": years_to_time_string(self.period),
-            "radius": radius_string,
-            "gravity": f"{round(self.gravity, 3)} g",
-        }
+        planet_properties = self.get_table_properties()
 
         # Moons use a distinct wiki template name ("Class Data") instead of "Planet Data",
         # set directly here rather than via text substitution further down.

@@ -90,6 +90,36 @@ class AsteroidBelt:
 
         return composition_data
 
+    def get_composition_summary(self):
+        """
+        Builds the human-readable composition summary sentence fragment
+        (e.g. "high concentrations of iron, moderate concentrations of
+        nickel, and trace amounts of platinum") as its own method so the
+        database persistence layer can store the same as-published text
+        (`asteroid_belts.composition_summary`) without duplicating this
+        formatting logic (see `stellarObjects/_db.py`). Belts have no
+        properties-dict data table the way stars/planets do, so this is
+        their equivalent "searchable, as-published" text.
+
+        Returns:
+            str: The composition summary phrase, or
+                "various unknown materials" if no components were selected.
+        """
+        composition_phrases = []
+        for component, concentration in self.composition:
+            if concentration == "trace":
+                composition_phrases.append(f"trace amounts of {component}")
+            else:
+                composition_phrases.append(f"{concentration} concentrations of {component}")
+
+        if not composition_phrases:
+            return "various unknown materials" # Fallback if no components are selected
+        if len(composition_phrases) == 1:
+            return composition_phrases[0]
+        if len(composition_phrases) == 2:
+            return f"{composition_phrases[0]} and {composition_phrases[1]}"
+        return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
+
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs for the asteroid belt,
@@ -116,24 +146,7 @@ class AsteroidBelt:
         header = f"{header_level} Asteroid Belt {header_level if not self.system_config.MARKDOWN else ''}".rstrip() # Use self.system_config
         output_paragraphs.append(header)
 
-        composition_phrases = []
-        for component, concentration in self.composition:
-            if concentration == "trace":
-                composition_phrases.append(f"trace amounts of {component}")
-            else:
-                composition_phrases.append(f"{concentration} concentrations of {component}")
-
-        composition_text = ""
-        if composition_phrases:
-            if len(composition_phrases) == 1:
-                composition_text = composition_phrases[0]
-            elif len(composition_phrases) == 2:
-                composition_text = f"{composition_phrases[0]} and {composition_phrases[1]}"
-            else:
-                composition_text = ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
-        else:
-            composition_text = "various unknown materials" # Fallback if no components are selected
-
+        composition_text = self.get_composition_summary()
         description_sentence = f"This is a {self.density} asteroid belt, composed of {composition_text}."
 
         output_paragraphs.append(f"An asteroid belt orbits roughly {distance_text}. {description_sentence}")

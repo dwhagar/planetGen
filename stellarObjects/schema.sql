@@ -64,7 +64,7 @@ PRAGMA user_version = 1;
 -- ---------------------------------------------------------------------
 -- sectors
 -- ---------------------------------------------------------------------
-CREATE TABLE sectors (
+CREATE TABLE IF NOT EXISTS sectors (
     id        INTEGER PRIMARY KEY,
     name      TEXT NOT NULL,
     edge_mpc  REAL NOT NULL
@@ -74,7 +74,7 @@ CREATE TABLE sectors (
 -- system_configs -- one row per SystemConfig "recipe"
 -- (stellarObjects/config.py:29-33 SERIALIZABLE_FIELDS)
 -- ---------------------------------------------------------------------
-CREATE TABLE system_configs (
+CREATE TABLE IF NOT EXISTS system_configs (
     id                INTEGER PRIMARY KEY,
     markdown          INTEGER NOT NULL DEFAULT 0 CHECK (markdown IN (0, 1)),
     habitable_world   INTEGER CHECK (habitable_world IN (0, 1)),
@@ -93,7 +93,7 @@ CREATE TABLE system_configs (
 
 -- Child table for the variable-length SLOTS recipe list
 -- (config.py:135-151).
-CREATE TABLE system_config_slots (
+CREATE TABLE IF NOT EXISTS system_config_slots (
     id            INTEGER PRIMARY KEY,
     config_id     INTEGER NOT NULL REFERENCES system_configs(id) ON DELETE CASCADE,
     orbit_index   INTEGER NOT NULL,
@@ -101,12 +101,12 @@ CREATE TABLE system_config_slots (
     planet_class  TEXT,
     moons         INTEGER
 );
-CREATE INDEX idx_system_config_slots_config_id ON system_config_slots(config_id);
+CREATE INDEX IF NOT EXISTS idx_system_config_slots_config_id ON system_config_slots(config_id);
 
 -- ---------------------------------------------------------------------
 -- star_systems
 -- ---------------------------------------------------------------------
-CREATE TABLE star_systems (
+CREATE TABLE IF NOT EXISTS star_systems (
     id                     INTEGER PRIMARY KEY,
     sector_id              INTEGER REFERENCES sectors(id) ON DELETE SET NULL,
     system_config_id       INTEGER NOT NULL REFERENCES system_configs(id),
@@ -172,8 +172,8 @@ CREATE TABLE star_systems (
 
     created_at           TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX idx_star_systems_sector_id ON star_systems(sector_id);
-CREATE INDEX idx_star_systems_system_config_id ON star_systems(system_config_id);
+CREATE INDEX IF NOT EXISTS idx_star_systems_sector_id ON star_systems(sector_id);
+CREATE INDEX IF NOT EXISTS idx_star_systems_system_config_id ON star_systems(system_config_id);
 
 -- ---------------------------------------------------------------------
 -- stars -- one row per single star, two rows (primary/secondary) per
@@ -181,7 +181,7 @@ CREATE INDEX idx_star_systems_system_config_id ON star_systems(system_config_id)
 -- on star_systems above). Fields verified against starData.py:399-445 /
 -- Star.__init__.
 -- ---------------------------------------------------------------------
-CREATE TABLE stars (
+CREATE TABLE IF NOT EXISTS stars (
     id                        INTEGER PRIMARY KEY,
     star_system_id            INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
     role                      TEXT NOT NULL CHECK (role IN ('primary', 'secondary', 'single')),
@@ -210,7 +210,7 @@ CREATE TABLE stars (
     table_hab     TEXT NOT NULL,
     table_loc     TEXT NOT NULL
 );
-CREATE INDEX idx_stars_star_system_id ON stars(star_system_id);
+CREATE INDEX IF NOT EXISTS idx_stars_star_system_id ON stars(star_system_id);
 
 -- ---------------------------------------------------------------------
 -- planets -- covers moons via self-reference. Fields verified against
@@ -219,7 +219,7 @@ CREATE INDEX idx_stars_star_system_id ON stars(star_system_id);
 -- `evolutionary_data` [-> planet_evolutionary_paragraphs], and
 -- reflection_spectrum_visible/non_visible [-> planet_reflection_spectrum]).
 -- ---------------------------------------------------------------------
-CREATE TABLE planets (
+CREATE TABLE IF NOT EXISTS planets (
     id                        INTEGER PRIMARY KEY,
     star_system_id            INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
     -- The specific star this planet orbits, when that's a real stored
@@ -271,32 +271,32 @@ CREATE TABLE planets (
     table_radius    TEXT NOT NULL,
     table_gravity   TEXT
 );
-CREATE INDEX idx_planets_star_system_id ON planets(star_system_id);
-CREATE INDEX idx_planets_star_id ON planets(star_id);
-CREATE INDEX idx_planets_parent_planet_id ON planets(parent_planet_id);
+CREATE INDEX IF NOT EXISTS idx_planets_star_system_id ON planets(star_system_id);
+CREATE INDEX IF NOT EXISTS idx_planets_star_id ON planets(star_id);
+CREATE INDEX IF NOT EXISTS idx_planets_parent_planet_id ON planets(parent_planet_id);
 
 -- Child table for the variable-length evolutionary narrative list
 -- (Planet.evolutionary_data).
-CREATE TABLE planet_evolutionary_paragraphs (
+CREATE TABLE IF NOT EXISTS planet_evolutionary_paragraphs (
     id          INTEGER PRIMARY KEY,
     planet_id   INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
     position    INTEGER NOT NULL,
     paragraph   TEXT NOT NULL
 );
-CREATE INDEX idx_planet_evolutionary_paragraphs_planet_id ON planet_evolutionary_paragraphs(planet_id);
+CREATE INDEX IF NOT EXISTS idx_planet_evolutionary_paragraphs_planet_id ON planet_evolutionary_paragraphs(planet_id);
 
 -- Child table replacing reflection_spectrum_visible/non_visible -- no
 -- JSON column, same position+value shape as the paragraphs/composition
 -- child tables (this schema is a pure relational design, not a
 -- JSON-blob-in-a-column hybrid).
-CREATE TABLE planet_reflection_spectrum (
+CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
     id             INTEGER PRIMARY KEY,
     planet_id      INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
     spectrum_type  TEXT NOT NULL CHECK (spectrum_type IN ('visible', 'non_visible')),
     position       INTEGER NOT NULL,
     value          TEXT NOT NULL
 );
-CREATE INDEX idx_planet_reflection_spectrum_planet_id ON planet_reflection_spectrum(planet_id);
+CREATE INDEX IF NOT EXISTS idx_planet_reflection_spectrum_planet_id ON planet_reflection_spectrum(planet_id);
 
 -- ---------------------------------------------------------------------
 -- asteroid_belts -- belts have no properties-dict data table
@@ -304,7 +304,7 @@ CREATE INDEX idx_planet_reflection_spectrum_planet_id ON planet_reflection_spect
 -- the facts that prose always states instead: density, the distance range
 -- from the star, and composition.
 -- ---------------------------------------------------------------------
-CREATE TABLE asteroid_belts (
+CREATE TABLE IF NOT EXISTS asteroid_belts (
     id                   INTEGER PRIMARY KEY,
     star_system_id       INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
     orbital_index        INTEGER NOT NULL,
@@ -322,18 +322,18 @@ CREATE TABLE asteroid_belts (
     -- below for queries that need one specific component.
     composition_summary  TEXT NOT NULL
 );
-CREATE INDEX idx_asteroid_belts_star_system_id ON asteroid_belts(star_system_id);
+CREATE INDEX IF NOT EXISTS idx_asteroid_belts_star_system_id ON asteroid_belts(star_system_id);
 
 -- Structured per-component detail behind composition_summary above --
 -- the belt's (component, concentration) list.
-CREATE TABLE asteroid_belt_composition (
+CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
     id             INTEGER PRIMARY KEY,
     belt_id        INTEGER NOT NULL REFERENCES asteroid_belts(id) ON DELETE CASCADE,
     position       INTEGER NOT NULL,
     component      TEXT NOT NULL,
     concentration  TEXT NOT NULL CHECK (concentration IN ('high', 'moderate', 'small', 'trace'))
 );
-CREATE INDEX idx_asteroid_belt_composition_belt_id ON asteroid_belt_composition(belt_id);
+CREATE INDEX IF NOT EXISTS idx_asteroid_belt_composition_belt_id ON asteroid_belt_composition(belt_id);
 
 -- ---------------------------------------------------------------------
 -- sector_objects -- unified "every stellar object in a sector" search.
@@ -347,7 +347,7 @@ CREATE INDEX idx_asteroid_belt_composition_belt_id ON asteroid_belt_composition(
 -- (object_type, object_id). Query with e.g.
 -- `SELECT * FROM sector_objects WHERE sector_id = ?`.
 -- ---------------------------------------------------------------------
-CREATE VIEW sector_objects AS
+CREATE VIEW IF NOT EXISTS sector_objects AS
     SELECT
         'star'                          AS object_type,
         s.id                            AS object_id,

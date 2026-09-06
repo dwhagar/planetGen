@@ -6,14 +6,41 @@ reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
-**Status**: the schema is designed and validated (loads cleanly, no FK
-violations), but nothing writes to it yet. The actual `.db` file lives in
-this `db/` directory once it exists (gitignored — see the repo's
-`.gitignore`, `*.db`/`*.db-journal`); this directory is otherwise
-intentionally empty. Building the file requires `TODO.md`'s Phase 1 (full
-object-graph serialization) and the persistence layer that writes generated
-`StarSystem`/`SpaceSector` objects into these tables — neither exists yet.
-See `TODO.md` for the full roadmap.
+**Status**: the schema is implemented and being written to.
+[`stellarObjects/_db.py`](../stellarObjects/_db.py) (private — leading
+underscore, not part of the package's public generation API) writes
+already-generated `StarSystem`/`SpaceSector` objects straight into these
+tables; `sectorGen.py` calls it automatically on every run. There is no
+read path yet — nothing reconstructs a live object from database rows, so
+a "list what's stored" tool is still future work (`TODO.md` Phase 3). The
+actual `.db` file lives in this `db/` directory (gitignored — see the
+repo's `.gitignore`, `*.db`/`*.db-journal`) and is created automatically
+the first time something writes to it (default path
+`db/planetgen.db`, overridable via `sectorGen.py --db-path`). See
+`TODO.md` for the full roadmap.
+
+## Persistence layer
+
+`stellarObjects/_db.py` owns every unit conversion at the point of writing
+a value into the database; nothing else in the package imports it, and it
+never mutates the generation/physics code's own native units. Its shape:
+
+- `get_connection(db_path=None)` / `save_sector(sector, db_path=None)` —
+  the two entry points most callers need. `save_sector` opens (or creates)
+  the database, applies the schema if needed (idempotent —
+  `CREATE ... IF NOT EXISTS` throughout `schema.sql`), and writes the whole
+  sector in one transaction.
+- `insert_sector` / `insert_star_system` / `insert_star` / `insert_planet`
+  (recurses over moons) / `insert_asteroid_belt` / `insert_system_config` —
+  the per-table building blocks, callable individually for a standalone
+  system with no sector (`insert_star_system(conn, star_system,
+  system_config, sector_id=None, position=None)`).
+- Every `table_*`/`composition_summary` column is read from a
+  `get_table_properties()` method on `Star`/`BinaryStarProxy`/`Planet` (and
+  `get_composition_summary()` on `AsteroidBelt`), extracted from each
+  class's own `to_paragraph_list()` so the database and the rendered wiki
+  page can never drift apart — one formatting implementation, two
+  consumers.
 
 ## How to read this document
 

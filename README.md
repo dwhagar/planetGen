@@ -111,15 +111,16 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 python sectorGen.py [options]
 ```
 
-Most of `systemGen.py`'s options work here too, but apply *uniformly* to every system in the sector — `+asteroid_belt` guarantees a belt in every system, `--star-type G2V` makes every star in the sector a G2V, and so on. `--system-file`, `--num-orbits`, and `--name` aren't offered here, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `systemGen.py --system-file` directly for that.
+Most of `systemGen.py`'s options work here too, but apply *uniformly* to every system in the sector — `+asteroid_belt` guarantees a belt in every system, `--star-type G2V` makes every star in the sector a G2V, and so on. `--system-file`, `--num-orbits`, and systemGen.py's own per-system `--name` aren't offered here, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `systemGen.py --system-file` directly for that.
 
 Sector-specific options:
 
-*   `--num-systems`, `-n <int>`: How many star systems the sector contains. Defaults to 10.
-*   `--sector-name <name>`: Names the sector, overriding the default random generation.
+*   `--num-systems <int>`: How many star systems the sector contains. Defaults to 10.
+*   `--name <name>`, `-n <name>`: Hard-sets the sector's own name, overriding the default random two-word name (e.g. `"Voranthis Kelmoor"`) generated the same phoneme-salad way as star/planet/moon names.
 *   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one the way a uniform `+habitable_world` would. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`, and cannot be combined with a uniform `-habitable_world`.
+*   `--db-path <path>`: Where the generated sector is saved in the SQLite database. Defaults to `db/planetgen.db` at the project root.
 
-The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn.
+The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn. Every run also saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus a rendered copy of the wiki page in both wikitext and Markdown — to the SQLite database described in [`db/README.md`](db/README.md), regardless of whether `--output` was given.
 
 ### Additional Information
 

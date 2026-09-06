@@ -444,6 +444,48 @@ class Star:
             self.system_perimeter = self.calculate_system_perimeter()
             self.heliosphere_radius = self.calculate_heliosphere()
 
+    def get_table_properties(self):
+        """
+        Builds the "Star Data" property dict -- the exact key/value pairs
+        `to_paragraph_list` renders into the star's data table -- as its own
+        method so the database persistence layer can read the same
+        as-published values without duplicating this formatting logic (see
+        `stellarObjects/_db.py`).
+
+        Returns:
+            dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `loc`,
+                 each an already-formatted display string.
+        """
+        if round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU):
+            hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
+            hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
+        else:
+            if self.habitable_zone[0] < program_constants.PERCENT_SOL_THRESHOLD_LOW:
+                hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
+            else:
+                hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU))
+
+            if self.habitable_zone[1] < program_constants.PERCENT_SOL_THRESHOLD_LOW:
+                hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
+            else:
+                hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU))
+
+        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
+        lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
+
+        radius_string = format_length_km(self.system_config, self.radius, program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
+                                         program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)
+
+        return {
+            "type": self.type,
+            "radius": radius_string,
+            "mass": mass_string,
+            "temp": f"{self.temperature} K",
+            "lum": lum_string,
+            "hab": f"Between {hab_lower} and {hab_upper} AU",
+            "loc": self.name # Adding the star's name as location
+        }
+
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs about the star's properties.
@@ -465,35 +507,7 @@ class Star:
         """
         paragraphs = []
 
-        if round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU):
-            hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-            hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-        else:
-            if self.habitable_zone[0] < program_constants.PERCENT_SOL_THRESHOLD_LOW:
-                hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-            else:
-                hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU))
-
-            if self.habitable_zone[1] < program_constants.PERCENT_SOL_THRESHOLD_LOW:
-                hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-            else:
-                hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU))
-
-        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
-        lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
-
-        radius_string = format_length_km(self.system_config, self.radius, program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-                                         program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)
-
-        star_properties = {
-            "type": self.type,
-            "radius": radius_string,
-            "mass": mass_string,
-            "temp": f"{self.temperature} K",
-            "lum": lum_string,
-            "hab": f"Between {hab_lower} and {hab_upper} AU",
-            "loc": self.name # Adding the star's name as location
-        }
+        star_properties = self.get_table_properties()
 
         markdown_key_map = {
             "type": "Type",
@@ -504,7 +518,7 @@ class Star:
             "hab": "Habitable Zone",
             "loc": "Location"
         }
-        
+
         star_block = properties_to_string(self.system_config, star_properties, "Star Data", markdown_key_map=markdown_key_map)
         paragraphs.append(star_block)
 
