@@ -564,6 +564,20 @@ one of its steps.
   the executable bit at all: `install.sh` unconditionally
   `chmod +x`-es `html/*.py` and `apache/set-permissions.sh` on every run,
   independent of whatever mode git stored.
+  - **Follow-up bug, also fixed**: that first fix was itself incomplete
+    for anything under a subdirectory — `install.sh`'s own
+    `chmod +x` line used `find "$HTML_DIR" -maxdepth 1 -name '*.py'`,
+    which only ever reached the top-level scripts, silently skipping
+    `html/lib/*.py`. `apache/set-permissions.sh`'s own pass had no such
+    depth limit and should have caught it regardless, but it only did
+    `chgrp` (group ownership), not `chown` (user *and* group) — reported
+    as "still doesn't work" for ensuring `html/lib/*.py` was executable
+    by `www-data:www-data` specifically. Fixed both: `install.sh`'s
+    `chmod +x` line dropped `-maxdepth 1` entirely, and
+    `set-permissions.sh` now `chown -R`s (not just `chgrp -R`s) to the
+    detected `user:group`, and prints a count of how many `.py` files it
+    touched so a wrong path is obvious immediately instead of silently
+    matching nothing.
 - [ ] **CRLF line endings on the deployed scripts** — not yet fixed. The
   same production session also had to run `sed -i 's/\r$//' index.py` to
   get a clean run. The blobs currently committed at `HEAD` are confirmed
@@ -611,6 +625,19 @@ one of its steps.
   may be installed but not yet started/enabled at that point. Changed to
   warn (to stderr) and default to `www-data:www-data` (the standard
   Debian/Ubuntu identity) instead of hard-failing.
+- [x] **`update.sh` added** (repo root, alongside `install.sh`): a plain
+  `git pull` on a deployment isn't enough on its own — pulling a changed
+  file rewrites it with whatever mode is tracked in the repo, silently
+  re-breaking the executable-bit fix above for any `.py` file that
+  happened to change upstream. `update.sh` refuses to run over
+  uncommitted local changes (checks `git status --porcelain` first, so a
+  hand-edited deployment isn't silently clobbered), pulls with
+  `--ff-only` (fails loudly rather than creating a surprise merge commit
+  if history has diverged), and then re-runs `install.sh` unconditionally
+  so permissions are guaranteed correct again regardless of what changed.
+  Verified all four paths (clean fast-forward, already-up-to-date, dirty
+  working tree, diverged history) against a local throwaway git
+  remote/clone pair.
 
 ## Open questions still to resolve
 

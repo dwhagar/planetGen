@@ -17,13 +17,19 @@
 #   db-dir   defaults to /var/lib/planetGen/db
 #
 # What it does:
-#   - Group-owns both directories to Apache's configured group (leaving
-#     the existing user owner, typically the deploying/root user, alone).
+#   - Recursively `chown`s both directories to Apache's detected
+#     user:group (not just `chgrp` -- ownership as well as group
+#     membership, so this doesn't depend on the deploying user's own
+#     group memberships lining up).
 #   - Directories: 750 (owner rwx, group r-x, others none) so Apache can
 #     traverse and list them but other local users can't.
 #   - Regular files: 640 (owner rw, group r, others none).
-#   - `*.py` CGI scripts under html-dir: 750 (adds group execute, since
-#     Apache must be able to execute them, not just read them).
+#   - Every `*.py` file anywhere under html-dir, at any subdirectory
+#     depth (`html/*.py`, `html/lib/*.py`, ...): 750 (adds execute, since
+#     Apache must be able to execute the CGI scripts, and `lib/`'s own
+#     modules need at least read access to be importable). Reported with
+#     a count at the end so a wrong `html-dir` path is obvious rather
+#     than silently matching zero files.
 #   - html/lib is included in the general file/directory pass like any
 #     other subdirectory -- direct web access to it is denied at the
 #     Apache config level (see apache/planetgen.conf.example), not by
@@ -94,10 +100,19 @@ echo "  html: $HTML_DIR"
 
 apply_permissions() {
     local dir="$1"
-    chgrp -R "$APACHE_GROUP" "$dir"
+    chown -R "$APACHE_USER:$APACHE_GROUP" "$dir"
     find "$dir" -type d -exec chmod 750 {} +
     find "$dir" -type f -exec chmod 640 {} +
+
+    # No -maxdepth here on purpose: this must reach *.py files at any
+    # subdirectory depth (html/lib/*.py included), not just directly
+    # inside $dir -- a previous version of this script effectively only
+    # fixed the top-level scripts, which is exactly what was reported
+    # broken.
     find "$dir" -type f -name '*.py' -exec chmod 750 {} +
+    local py_count
+    py_count="$(find "$dir" -type f -name '*.py' | wc -l)"
+    echo "  $dir: made $py_count .py file(s) executable (owner+group)"
 }
 
 apply_permissions "$HTML_DIR"

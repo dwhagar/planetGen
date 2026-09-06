@@ -72,7 +72,14 @@ chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
 echo "== 3/5: Making the CGI scripts executable =="
-find "$HTML_DIR" -maxdepth 1 -name '*.py' -exec chmod +x {} +
+# No -maxdepth: every *.py under html/, at any subdirectory depth
+# (html/lib/*.py included), needs this -- a previous version of this
+# line was restricted to the top level only, which silently left
+# html/lib/*.py non-executable/unreadable-as-intended after every
+# install. apache/set-permissions.sh (below) re-does this same walk
+# anyway with the correct final ownership, but doing it correctly here
+# too means a plain `sudo ./install.sh` is never the reason this is wrong.
+find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 chmod +x "$SCRIPT_DIR/apache/set-permissions.sh"
 
 echo
@@ -88,7 +95,8 @@ echo
 echo "== 5/5: Setting directory ownership/permissions for Apache =="
 "$SCRIPT_DIR/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
-cat <<EOF
+if [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
+    cat <<EOF
 
 ------------------------------------------------------------------------
 Install steps complete. One manual step remains -- create the Apache2
@@ -108,3 +116,9 @@ ServerName/TLS/logging are your call):
 See apache/README.md and html/README.md for more detail.
 ------------------------------------------------------------------------
 EOF
+else
+    echo
+    echo "Done. (/etc/apache2/sites-available/planetgen.conf already exists --"
+    echo "not touching it; reload Apache yourself if this update needs it:"
+    echo "  sudo systemctl reload apache2)"
+fi

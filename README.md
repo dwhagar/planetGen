@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.2.1 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.2.2 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -132,10 +132,12 @@ Markdown page saved for each one. It's meant to be deployed to an Apache2
 install on a Linux server; run `sudo ./install.sh` from the repo root on
 the server to do the whole install (Python package, the NLTK corpus
 Apache's own user needs, CGI setup, and directory permissions) in one
-step. [`apache/`](apache/README.md) has an example virtual host config
+step, and `sudo ./update.sh` later to pull and apply updates (plain `git
+pull` isn't enough on its own -- see `update.sh`'s own header comment).
+[`apache/`](apache/README.md) has an example virtual host config
 (default document root `/var/lib/planetGen/html`, database directory
 `/var/lib/planetGen/db` alongside it) and the `set-permissions.sh` script
-`install.sh` calls. See
+both scripts call. See
 [`html/README.md`](html/README.md) for how the interface works and how to
 deploy or test it locally.
 

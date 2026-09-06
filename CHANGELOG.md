@@ -1,5 +1,44 @@
 # Changelog
 
+## [5.2.2] - 2026-09-06
+
+### Added
+- `html/system.py` now renders a system's description as actual HTML by
+  default (`?view=rendered`), via a new small, purpose-built Markdown-to-
+  HTML converter (`html/lib/mdconvert.py`) targeting exactly the narrow
+  Markdown subset `StarSystem.__str__` generates (headers, pipe tables,
+  paragraphs, `<sup>` exponents) — not a general-purpose parser, and no
+  new dependency. The original raw wikitext/Markdown source is still one
+  click away (`?view=source&format=...`) for copy-pasting into a wiki.
+  Escapes every block in full before emitting markup, then narrowly
+  re-enables only the one legitimate raw-HTML pattern generated content
+  contains, so a mischievous `--name`/`--star-type` value can't inject
+  live HTML into a rendered page (covered by new tests in
+  `tests/test_mdconvert.py`).
+- `html/static/style.css` rewritten as a small design system: CSS custom
+  properties, automatic light/dark via `prefers-color-scheme`, card-style
+  panels, badges, breadcrumbs, a proper type scale, hover states,
+  focus-visible outlines, and a responsive breakpoint. Applied
+  consistently across every page (`index.py`, `browse.py`, `sector.py`,
+  `system.py`, and the shared error page in `lib/page.py`), not just the
+  system page.
+- `update.sh` (repo root, alongside `install.sh`): pulls the latest
+  changes from git and re-runs `install.sh` so permissions stay correct
+  afterward. Refuses to run over uncommitted local changes, and pulls
+  with `--ff-only` (fails loudly rather than creating a surprise merge
+  commit if history has diverged) instead of a plain `git pull`.
+
+### Fixed
+- `apache/set-permissions.sh` and `install.sh` both failed to make every
+  `*.py` file under `html/` executable by `www-data` — `install.sh`'s own
+  `chmod +x` step used `find -maxdepth 1`, silently skipping
+  `html/lib/*.py`, and `set-permissions.sh` only `chgrp`'d (group
+  ownership) rather than `chown`'d (user *and* group) the deployed
+  directories. Both fixed: the `-maxdepth 1` restriction is gone, and
+  `set-permissions.sh` now `chown -R`s to the detected Apache user:group
+  and reports how many `.py` files it made executable, so a wrong path is
+  obvious rather than silently matching nothing.
+
 ## [5.2.1] - 2026-09-06
 
 ### Added

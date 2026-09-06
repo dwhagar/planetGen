@@ -54,8 +54,9 @@ somewhere else.
 ## Deploying
 
 1. Copy the repo (or at least `html/`, `db/`, `stellarObjects/`,
-   `install.sh`, `setup.py`, and `apache/`) to the server, e.g.
-   `/var/lib/planetGen/`.
+   `install.sh`, `update.sh`, `setup.py`, and `apache/`) to the server,
+   e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout (rather
+   than copying a tarball) is what makes `update.sh` possible later.
 2. From that directory, run `sudo ./install.sh` -- installs the Python
    package, pre-fetches the NLTK `words` corpus into a shared
    world-readable location (so it works under Apache's `www-data`, not
@@ -72,9 +73,19 @@ somewhere else.
    ServerName/TLS/logging are your call, not something to silently create
    or overwrite.
 
-Re-run `sudo ./install.sh` any time after pulling updates -- every step
-is idempotent (the corpus fetch skips itself if already present, `chmod
-+x`/`a2enmod`/permission-setting are all safe to repeat).
+### Updating an existing deployment
+
+Run `sudo ./update.sh` instead of pulling manually. `git pull` on its own
+isn't enough -- pulling a changed file rewrites it with whatever mode is
+tracked in the repo, silently undoing any executable bit `install.sh`
+previously fixed. `update.sh` pulls (refusing to run over uncommitted
+local changes, and failing loudly rather than merging if history has
+diverged) and then re-runs `install.sh`, so permissions are guaranteed
+correct again afterward. Every `install.sh` step is idempotent (the
+corpus fetch skips itself if already present, `chmod +x`/`a2enmod`/
+permission-setting are all safe to repeat), and `install.sh` itself
+remains safe to run directly any time you want to re-apply everything
+without pulling first.
 
 ## Local testing without Apache
 
