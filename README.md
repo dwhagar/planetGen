@@ -136,7 +136,11 @@ pull` isn't enough on its own -- see `update.sh`'s own header comment).
 [`apache/`](apache/README.md) has an example virtual host config
 (default document root `/var/lib/planetGen/html`, database directory
 `/var/lib/planetGen/db` alongside it) and the `set-permissions.sh` script
-both scripts call. See
+both scripts call. Site-level settings (currently a name and base URL,
+unrelated to the Apache-level `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
+environment variables) live in a `webconfig.json` file at the repo root,
+kept outside `html/`'s served document root the same way `db/` already
+is -- see [`WEBCONFIG.md`](WEBCONFIG.md). See
 [`html/README.md`](html/README.md) for how the interface works and how to
 deploy or test it locally.
 
