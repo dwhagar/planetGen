@@ -246,9 +246,14 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 # habitable zone compatibility, atmosphere type, and planet type ('t' for terrestrial, 'g' for gas giant).
 PLANET_CLASSES = {
     "A": {
-        "description": "a small, barren, and volcanic world",
+        # Radius ceiling raised 5000->7500 to absorb the former Class Y
+        # ("demon" class, radius 5000-7500) after its removal -- Y's
+        # toxic/irradiated flavor folded in as a variant within this class
+        # rather than a separate one. See CHANGELOG.md for the full
+        # X/Y-removal rationale.
+        "description": "a small, barren, and volcanic world, occasionally scarred by intense, toxic eruptions",
         "composition": "igneous silica and basalt",
-        "radius_range": (500, 5000),
+        "radius_range": (500, 7500),
         "h": True, "e": False, "c": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t",
@@ -260,11 +265,28 @@ PLANET_CLASSES = {
         }
     },
     "B": {
-        "description": "a small, molten world with a thin atmosphere",
-        "composition": "iron, potassium, and silicon",
-        "radius_range": (500, 5000),
+        # "with a thin atmosphere" moved off the description and onto the
+        # atmosphere field itself ("a thin mix of...") -- the description
+        # used to collide with the render template's own "with an
+        # atmosphere of {atmosphere}" clause (planetData.py's
+        # to_paragraph_list), producing "...world with a thin atmosphere
+        # with an atmosphere of...".
+        # Radius ceiling raised 5000->7500 to absorb the former Class Y's
+        # range (as above), and the former Class X ("a stripped core from a
+        # gas giant", radius 500-5000, no atmosphere) folded in as an
+        # alternate origin story for the same small-molten-world physical
+        # envelope, rather than keeping a separate atmosphere-less class --
+        # real Mercury-analog worlds this close to their star already have
+        # only a negligible exosphere, so B's existing "thin" atmosphere
+        # already covers X's "no atmosphere" identity closely enough. "and
+        # sulfur" added to the composition for X/Y's shared
+        # volcanic/irradiated theme. See CHANGELOG.md for the full
+        # X/Y-removal rationale.
+        "description": "a small, molten world, occasionally the stripped core of a former gas giant",
+        "composition": "iron, potassium, silicon, and sulfur",
+        "radius_range": (500, 7500),
         "h": True, "e": False, "c": False,
-        "atmosphere": "a mix of helium, sodium, and oxygen",
+        "atmosphere": "a thin mix of helium, sodium, and oxygen",
         "type": "t",
         "life_chemical": None,
         "age_ranges": {
@@ -302,13 +324,17 @@ PLANET_CLASSES = {
         }
     },
     "E": {
-        "description": "a world with a molten core and crust, and a thin atmosphere",
+        # "and a thin atmosphere" moved off the description and onto the
+        # atmosphere field ("a thin mix of...") -- collided with the render
+        # template's own "with an atmosphere of {atmosphere}" clause
+        # otherwise (see Class B's note above).
+        "description": "a world with a molten core and crust",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
         # "hydrogen compounds" made concrete as a real Hadean/Archean-analog
         # reducing mix (water vapor, ammonia, methane).
-        "atmosphere": "a mix of water vapor, ammonia, and methane",
+        "atmosphere": "a thin mix of water vapor, ammonia, and methane",
         "type": "t",
         # Hottest of the habitable (life-bearing) classes -- youngest,
         # volcanic, "barely supports life." Dark volcanic rock/minimal ice
@@ -407,7 +433,16 @@ PLANET_CLASSES = {
         "description": "an ice giant with a tilted magnetic field",
         "composition": "rock, ice, methane, and ammonia",
         "radius_range": (15000, 50000),
-        "h": False, "e": False, "c": True,
+        # Added "e" (warm-Neptune analog -- real Neptune-mass planets in or
+        # near a star's temperate zone are a common, well-documented
+        # exoplanet category). Deliberately NOT given "h": real close-in,
+        # Neptune-mass planets are rare -- the observed "hot Neptune desert"
+        # -- because a star's X-ray/EUV irradiation photoevaporates a
+        # Neptune-mass H/He envelope down to a bare rocky/metal core well
+        # before it could stay class I; that outcome is already represented
+        # by Class B's "occasionally the stripped core of a former gas
+        # giant" (see Class B's note).
+        "h": False, "e": True, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
@@ -421,7 +456,17 @@ PLANET_CLASSES = {
         "description": "a gas giant with a turbulent atmosphere and rings",
         "composition": "hydrogen and helium",
         "radius_range": (25000, 250000),
-        "h": False, "e": False, "c": True,
+        # Added "h" and "e": real Jupiter/Saturn-mass gas giants are
+        # routinely found close to their star ("hot Jupiters", orbital
+        # period < 10 days) and at intermediate distances ("warm Jupiters",
+        # 10-365 days, sometimes within or near the habitable zone) as well
+        # as at Jupiter/Saturn-like wide separations ("cold Jupiters") --
+        # this is a standard three-way real observational classification,
+        # not a stretch. A warm/cold Jupiter placed in zone 'e' can also
+        # generate ordinary terrestrial moons via the existing moon-
+        # generation path, including habitable-class ones -- the
+        # "habitable exomoon around a giant planet" trope.
+        "h": True, "e": True, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
@@ -432,7 +477,10 @@ PLANET_CLASSES = {
         }
     },
     "K": {
-        "description": "an adaptable world with a thin atmosphere",
+        # "with a thin atmosphere" dropped -- already collided with the
+        # render template's own "with an atmosphere of {atmosphere}" clause,
+        # and the atmosphere field below already says "a thin mix of...".
+        "description": "an adaptable world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (2500, 7500),
         "h": False, "e": True, "c": False,
@@ -520,11 +568,14 @@ PLANET_CLASSES = {
         }
     },
     "N": {
-        "description": "a hot world with a dense, reducing atmosphere",
+        # "dense, reducing atmosphere" moved onto the atmosphere field
+        # itself -- collided with the render template's own "with an
+        # atmosphere of {atmosphere}" clause otherwise.
+        "description": "a hot world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of carbon dioxide and sulfides",
+        "atmosphere": "a dense, reducing mix of carbon dioxide and sulfides",
         "type": "t",
         # Venus analog -- tuned to Venus's real surface temperature (737K)
         # and pressure (~9.2MPa). atm_molar_density near Venus's real
@@ -618,8 +669,17 @@ PLANET_CLASSES = {
         "description": "a world with an eccentric orbit and extreme temperature variations",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (2000, 7500),
-        "h": True, "e": True, "c": True,
-        "atmosphere": "a variable atmosphere (thin to dense) of nitrogen, oxygen, and argon",
+        # Was h/e/c all True -- but Q carries a life_chemical (it's a
+        # life-bearing class), and habitable/life-bearing classes are
+        # restricted to the ecosphere zone only (every other
+        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V/W -- is
+        # already e-only; see test_life_bearing_classes_are_ecosphere_only in
+        # test_planets.py). Its "eccentric orbit" flavor still
+        # holds fully confined to zone e -- a highly eccentric orbit *within*
+        # the habitable zone still swings meaningfully between its own
+        # perihelion and aphelion.
+        "h": False, "e": True, "c": False,
+        "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t",
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
@@ -643,9 +703,26 @@ PLANET_CLASSES = {
         }
     },
     "S": {
+        # Radius corrected 250,000-50,000,000km -> 60,000-120,000km. Real
+        # brown dwarfs stay within ~15% of Jupiter's own radius (69,911km)
+        # across their *entire* 13-80 Jupiter-mass range -- electron
+        # degeneracy pressure means more mass compresses them, it doesn't
+        # inflate them (R ~ M^(-1/8); a 50-million-km "planet" would be ~72x
+        # the Sun's own radius, which is not remotely a planet or a brown
+        # dwarf, real or otherwise). "Supergiant" is retained as an
+        # in-universe size-class label, not a literal claim of stellar
+        # nature. What actually distinguishes a higher-mass object at
+        # essentially the same radius is *density* -- measured brown-dwarf
+        # densities run roughly 10-200 g/cm^3, ~10-150x an ordinary gas
+        # giant's (Jupiter ~1.33 g/cm^3) -- hence the new density_range
+        # below (see planetPhysics.generate_planet_properties /
+        # plausibility.theoretical_gravity_bounds_g, both updated to read a
+        # per-class density_range the same way atm_molar_density_range is
+        # already read).
         "description": "a supergiant that shields the inner planets",
         "composition": "hydrogen and helium",
-        "radius_range": (250000, 50000000),
+        "radius_range": (60000, 120000),
+        "density_range": (10.0, 60.0),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
@@ -657,9 +734,19 @@ PLANET_CLASSES = {
         }
     },
     "T": {
+        # Radius corrected 250,000-25,000,000km -> 15,000-55,000km -- real
+        # science (see Class S's note) rules out the old range regardless,
+        # and the old floor (250,000km, same as S's own floor) let a "gas
+        # dwarf" be exactly as large as a "supergiant", contradicting the
+        # naming. Now spans ice-giant-to-Saturn scale (Neptune 24,622km,
+        # Saturn 58,232km), staying meaningfully below both Class J's
+        # Jupiter/Saturn-class range and Class S's brown-dwarf-class range
+        # -- a genuine "dwarf" relative to both. Density left at the
+        # shared default (Class J's own, Saturn-to-Neptune-like) since T is
+        # an ordinary small gas giant, not a sub-stellar object.
         "description": "a gas dwarf with a thick atmosphere",
         "composition": "hydrogen, helium, and hydrocarbons",
-        "radius_range": (250000, 25000000),
+        "radius_range": (15000, 55000),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
         "type": "g",
@@ -671,9 +758,20 @@ PLANET_CLASSES = {
         }
     },
     "U": {
+        # Radius corrected 25,000,000-60,000,000km -> 65,000-130,000km --
+        # same real-physics correction as Class S (electron degeneracy
+        # pressure keeps sub-stellar radius near Jupiter's own regardless of
+        # mass; the smallest true hydrogen-fusing red dwarf stars are
+        # themselves only ~0.1 solar radii, ~69,600km -- almost exactly
+        # Jupiter-sized). U's radius range deliberately overlaps S's rather
+        # than sitting dramatically larger -- that overlap *is* the real
+        # physics, not an oversight -- with an even higher density_range
+        # than S representing the additional mass right up against (or
+        # just past) the deuterium-fusing/stellar boundary.
         "description": "an ultragiant that could become a star",
         "composition": "hydrogen and helium",
-        "radius_range": (25000000, 60000000),
+        "radius_range": (65000, 130000),
+        "density_range": (60.0, 150.0),
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
@@ -719,7 +817,19 @@ PLANET_CLASSES = {
         "description": "a tidally locked world with extreme temperature variations",
         "composition": "iron, potassium, and silicon",
         "radius_range": (500, 10000),
-        "h": True, "e": True, "c": False,
+        # Was h/e True (valid in the hot zone too) -- but W carries a
+        # life_chemical, and habitable/life-bearing classes are restricted
+        # to the ecosphere zone only (see Class Q's note above and
+        # test_life_bearing_classes_are_ecosphere_only in
+        # test_planets.py). This also happens to be more
+        # scientifically apt: real tidally-locked *habitable* worlds are an
+        # actively studied trope specifically because a cool star's
+        # habitable zone sits close enough in for tidal locking to be near-
+        # guaranteed (e.g. TRAPPIST-1's planets, Proxima b) -- a
+        # tidally-locked world already searingly placed in the hot zone
+        # wouldn't need "extreme temperature variations" to explain why it's
+        # inhospitable.
+        "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, sodium, and hydrogen",
         "type": "t",
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
@@ -729,43 +839,17 @@ PLANET_CLASSES = {
             "slow": (8.0, 50.0)
         }
     },
-    "X": {
-        "description": "a stripped core from a gas giant with no atmosphere",
-        "composition": "molten iron",
-        "radius_range": (500, 5000),
-        "h": True, "e": False, "c": False,
-        "atmosphere": None,
-        "type": "t",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.01, 0.1),
-            "normal": (1.0, 10.0),
-            "slow": (10.0, 100.0)
-        }
-    },
-    "Y": {
-        "description": "a 'demon' class world with a toxic atmosphere",
-        "composition": "molten iron, sulfur, and deuterium",
-        "radius_range": (5000, 7500),
-        "h": True, "e": False, "c": False,
-        "atmosphere": "a turbulent, toxic, and irradiated atmosphere",
-        "type": "t",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.0, 0.005),
-            "normal": (0.0, 0.5),
-            "slow": (0.0, 3.0)
-        }
-    }
 }
 
-# Probabilities for each planet class to be generated
+# Probabilities for each planet class to be generated. Classes X and Y were
+# removed (merged into B, and A/B respectively -- see CHANGELOG.md); their
+# combined weight (0.0002 + 0.0002) was folded into the classes that
+# absorbed them rather than just dropped.
 PLANET_CLASS_PROBABILITIES = {
-    'A': 0.1399, 'B': 0.0722, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
+    'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
     'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0529, 'K': 0.0142, 'L': 0.0335,
     'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001, 'R': 0.0000,
-    'S': 0.0001, 'T': 0.0001, 'U': 0.0001, 'V': 0.0045, 'W': 0.0001, 'X': 0.0002,
-    'Y': 0.0002
+    'S': 0.0001, 'T': 0.0001, 'U': 0.0001, 'V': 0.0045, 'W': 0.0001
 }
 
 # --- Life and Photosynthesis Data ---
@@ -959,7 +1043,7 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W
 list: A list of planet class codes that are considered habitable.
 """
 
-MOON_BLACKLIST = ['Q', 'R', 'V', 'W', 'X', 'Y']
+MOON_BLACKLIST = ['Q', 'R', 'V', 'W']
 """
 list: A list of planet class codes that cannot be generated as moons.
 """

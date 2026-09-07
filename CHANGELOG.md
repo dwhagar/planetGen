@@ -1,5 +1,141 @@
 # Changelog
 
+## [5.3.9] - 2026-09-07
+
+### Removed
+- **Classes X and Y removed, merged into B and A/B respectively.** Both
+  were small, redundant variants of existing hot-zone rocky classes:
+  - Class X ("a stripped core from a gas giant", no atmosphere, radius
+    500-5000km) folded into Class B ("a small, molten world") as an
+    alternate origin story ("occasionally the stripped core of a former
+    gas giant") rather than a separate atmosphere-less class -- a
+    Mercury-analog this close to its star already has only a negligible
+    exosphere in reality, so B's existing thin atmosphere covers X's "no
+    atmosphere" identity closely enough.
+  - Class Y ("a 'demon' class world", radius 5000-7500km) folded into
+    *both* Class A and Class B (both radius ceilings raised 5000->7500km
+    to absorb Y's size range), its toxic/irradiated flavor folded into
+    each class's description as a variant rather than kept as a third
+    class. B's composition gained "and sulfur" for the shared
+    volcanic/irradiated theme.
+  - `MOON_BLACKLIST` and `PLANET_CLASS_PROBABILITIES` updated to drop X/Y
+    (their combined generation weight folded into A/B rather than dropped).
+
+### Changed
+- **Gas-giant zones reworked using real exoplanet science.** Previously
+  every gas/ice-giant class (I/J/S/T/U) was valid in zone `c` only --
+  meaning no gas giant could ever appear close to its star or in the
+  habitable zone, despite "hot Jupiters" and "warm Jupiters" being a
+  standard, well-documented real classification (orbital period < 10 days
+  / 10-365 days respectively) and Neptune-mass planets in or near a
+  temperate zone being common too.
+  - Class J now valid in `h`/`e`/`c` (hot/warm/cold Jupiter) -- a warm/cold
+    Jupiter placed in zone `e` can also generate ordinary moons via the
+    existing moon-generation path, including habitable-class ones (the
+    "habitable exomoon around a giant planet" trope), verified working.
+  - Class I now valid in `e`/`c` (warm/cold Neptune), deliberately **not**
+    `h`: real close-in Neptune-mass planets are rare (the observed "hot
+    Neptune desert") because stellar irradiation photoevaporates a
+    Neptune-mass H/He envelope down to a bare rocky/metal core well before
+    it could stay Class I -- that outcome is exactly Class B's newly-merged
+    "stripped core" identity (see Removed, above).
+  - Classes S/T/U left `c`-only: real directly-imaged super-Jovian/brown-dwarf
+    companions are predominantly found at wide separations (formation and
+    detection-bias reasons), and close-in high-mass companions, while known,
+    are much rarer (the "brown dwarf desert").
+  - Fixing `generate_moons` (planetPhysics.py) to respect
+    `HABITABLE_WORLD=False` the same way direct planet generation already
+    does -- unreachable before this change (no gas giant could ever be in
+    zone `e`), but a warm/cold Jupiter placed there could otherwise roll a
+    habitable-class moon even in a system explicitly configured to disallow
+    habitable worlds.
+- **Classes S ("supergiant") and U ("ultragiant") radius ranges corrected
+  to real sub-stellar physics** -- previously 250,000-50,000,000km and
+  25,000,000-60,000,000km respectively, i.e. up to ~86 solar radii, larger
+  than most actual stars. Real brown dwarfs stay within ~15% of Jupiter's
+  own radius (69,911km) across their *entire* 13-80 Jupiter-mass range
+  (electron degeneracy pressure means more mass compresses them, R ~
+  M^(-1/8)); even the smallest true hydrogen-fusing red dwarf stars are
+  only ~0.1 solar radii (~69,600km, essentially Jupiter-sized). Corrected to
+  S: 60,000-120,000km, U: 65,000-130,000km (deliberately overlapping --
+  that overlap *is* the real physics, not an oversight). What actually
+  differentiates a higher-mass sub-stellar object at essentially the same
+  radius is **density**: real measured brown-dwarf densities run roughly
+  10-200 g/cm^3 (~10-150x an ordinary gas giant's), so both classes gained
+  a new `density_range` (S: 10.0-60.0, U: 60.0-150.0 g/cm^3). Class T ("gas
+  dwarf") also corrected, 250,000-25,000,000km -> 15,000-55,000km -- its
+  old floor matched S's own floor, letting a "dwarf" be exactly as large as
+  a "supergiant"; now spans ice-giant-to-Saturn scale, meaningfully below
+  both J and S.
+- **New per-class `density_range` override** (`PLANET_CLASSES`, read by
+  `planetPhysics.get_planet_mass_ranges`/`generate_planet_properties` and
+  mirrored in `plausibility.theoretical_gravity_bounds_g`) -- same
+  `.get(..., default)` pattern as `atm_molar_density_range` etc. Used by
+  Classes S/U above.
+- **Fixed a gas-giant density-blend bug that silently collapsed every gas
+  giant's density to a near-zero, physically meaningless value**, previously
+  flagged as necessary-but-deferred follow-up work in
+  `test_gas_giant_sampled_densities_are_finite_positive_and_within_theoretical_bounds`'s
+  own docstring. `generate_planet_properties`' core/envelope harmonic-mean
+  density blend reused `planet.atm_density` (drawn from
+  `ATMOSPHERE_DENSITY["g"]`) as the envelope term -- but that value is a
+  thin, surface/pressure-layer density (a different physical layer, correct
+  for the separate atmospheric-pressure/scale-height calculation), ~1000x
+  lighter than a real gas-giant envelope's actual bulk density. A harmonic
+  mean is dominated by whichever term is smaller almost regardless of mass
+  fraction, so this collapsed density to ~0.001-0.003 g/cm^3 for every gas
+  giant, independent of core density -- silently defeating the new S/U
+  `density_range` work above (their much denser cores had almost no effect
+  on the final blended density). Fixed by introducing
+  `physical_constants.GAS_ENVELOPE_BULK_DENSITY` (0.06-0.3 g/cm^3, grounded
+  in real measured "puffy" gas giants -- WASP-193b's ~0.06 g/cm^3 is the
+  lowest confirmed bulk density known), used only for this blend. A class
+  declaring its own `density_range` (S/U) now skips the blend entirely and
+  uses that density directly -- real brown dwarfs don't have a meaningfully
+  separate light envelope over a denser core the way an ordinary gas giant
+  does, so blending toward a light "puffy" value would just dilute the
+  elevated density right back down.
+- Atmospheric-pressure sanity bound (`test_full_matrix.py`/`test_planets.py`)
+  raised `5e7` -> `1e9` Pa -- Classes S/U's now-correct brown-dwarf-like
+  gravity legitimately pushes pressure up to ~3.3e8 Pa across the full
+  star-type matrix.
+- `test_planet_physics_fixes.py`'s two gas-giant-blend tests updated to
+  match the new formula (queuing an `envelope_density_gcm3` draw instead of
+  reusing `atm_density`), plus a new
+  `test_density_range_override_skips_the_blend` covering the S/U direct-
+  density path.
+
+## [5.3.8] - 2026-09-07
+
+### Fixed
+- **Habitable/life-bearing classes restricted to the ecosphere zone.** Class
+  Q (`h`/`e`/`c` all `True`) and Class W (`h`/`e` `True`) both carry a
+  `life_chemical`, but weren't restricted to zone `e` like every other
+  life-bearing class already was — meaning a life-bearing Q or W world could
+  be generated directly in the hot or cold zone. Both are now `e`-only
+  (`h`/`c` `False`); Q's "eccentric orbit" flavor still holds fully confined
+  to the ecosphere zone, and W's "tidally locked" identity is arguably more
+  scientifically apt restricted to the ecosphere zone (real tidally-locked
+  *habitable* worlds are a real, actively studied trope specifically because
+  a cool star's habitable zone sits close enough in for tidal locking to be
+  near-guaranteed — e.g. TRAPPIST-1's planets, Proxima b).
+  New regression test `test_life_bearing_classes_are_ecosphere_only`
+  (`src/tests/test_planets.py`) locks this in for every class with a
+  `life_chemical`, not just the ones on the separately-curated
+  `HABITABLE_PLANET_CLASSES` list.
+- **Description/atmosphere-text cleanup across `PLANET_CLASSES`.** Several
+  classes' `description` field repeated a word the render template
+  (`planetData.to_paragraph_list`) already supplies via its own "with an
+  atmosphere of {atmosphere}" or "with a composition of {composition}"
+  clause, producing genuinely broken rendered sentences — e.g. Class B
+  previously rendered "...a small, molten world **with a thin atmosphere
+  with an atmosphere of** a mix of helium, sodium, and oxygen...". Fixed for
+  Classes B, E, K, N, Q, W, X, and Y — descriptive detail that belonged on
+  the atmosphere field (e.g. "thin", "dense, reducing") was moved there
+  instead of dropped, and Y's atmosphere field (previously the only one not
+  ending in a named gas mixture) reworded to "a turbulent, toxic, and
+  irradiated mix of gases".
+
 ## [5.3.7] - 2026-09-07
 
 ### Changed

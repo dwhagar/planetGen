@@ -184,9 +184,40 @@ Phase 4 and parts of Phase 5 are still open.
   day/night "extreme temperature variations" identity needs a model this
   generator doesn't have, not just range tuning — see "Investigate
   Further" below).
+- [x] **Habitable/life-bearing classes restricted to the ecosphere zone,
+  and a description/atmosphere-text cleanup pass across `PLANET_CLASSES`.**
+  Classes Q and W both carried a `life_chemical` while still being valid
+  outside zone `e` (Q in all three zones, W in `h` too) — fixed, and locked
+  in going forward by a new regression test
+  (`test_life_bearing_classes_are_ecosphere_only`,
+  `src/tests/test_planets.py`) covering every `life_chemical`-bearing class,
+  not just the ones on `HABITABLE_PLANET_CLASSES`. Separately, several
+  classes' `description` text repeated a word the render template already
+  supplies on its own, producing broken rendered sentences (e.g. "...with a
+  thin atmosphere with an atmosphere of...") — fixed for B, E, K, N, Q, W,
+  X, and Y. See CHANGELOG.md [5.3.8].
 
 ## Investigate Further
 
+- [x] **New-class investigation, acted on.** The prior session's findings
+  (gas giants never valid in zone `h`/`e`; Classes S/T/U's radius ranges
+  physically impossible for real sub-stellar objects; Classes X/Y redundant
+  with A/B/C) were implemented — see CHANGELOG.md [5.3.9] for the full
+  real-science-grounded rework (gas-giant zone flags, S/T/U radius +
+  density_range correction, X/Y removal/merge, and the gas-giant
+  density-blend bug this surfaced and fixed).
+- [ ] Class R ("an ejected, geologically active world") still has `h`/`e`/`c`
+  all `False` -- zero probability weight, unreachable outside a manual
+  `zone_override` (caught by
+  `test_known_issue_class_with_no_valid_zone_is_unreachable`,
+  `src/tests/test_planets.py`). A genuinely free-floating/rogue planet (no
+  host star at all) is a real, increasingly-studied exoplanet category, but
+  doesn't fit this generator's star-centric `h`/`e`/`c` zone model at all --
+  "which zone" is the wrong question for an object with no star to be zoned
+  relative to. Fixing this is a structural question (a rogue-planet
+  generation path independent of `StarSystem`), not a one-line zone-flag
+  change -- not attempted in the [5.3.9] rework, which stayed within the
+  existing star-centric zone model.
 - [ ] Class W's "tidally locked world with extreme temperature variations"
   identity is a day/night split that no per-class range (albedo, molar
   density, greenhouse multiplier, or atmosphere density) can produce from a

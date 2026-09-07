@@ -46,20 +46,30 @@ GAS_GIANT_ZONE = next(z for z in "hec" if prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]
 
 def test_gas_giant_density_blend_matches_hand_computed_harmonic_mean(monkeypatch, host_star):
     """
-    Drives generate_planet_properties with controlled random draws (density,
-    atm_density, atm_molar_density, core/atmosphere ratio -- in the order
-    they're actually consumed) and checks the resulting planet.density
-    against a hand-computed mass-weighted harmonic mean:
-        1 / (ratio / core_density_gcm3 + (1 - ratio) / atm_density_gcm3)
+    Drives generate_planet_properties with controlled random draws (core
+    density, atm_density, atm_molar_density, core/atmosphere ratio,
+    envelope density -- in the order they're actually consumed) and checks
+    the resulting planet.density against a hand-computed mass-weighted
+    harmonic mean:
+        1 / (ratio / core_density_gcm3 + (1 - ratio) / envelope_density_gcm3)
     which is the physically correct way to combine two densities via a mass
     fraction (unlike the old arithmetic-mean blend it replaces).
-    """
-    core_density_gcm3 = 1.0     # within PLANET_DENSITY["g"] = (0.69, 1.64)
-    atm_density_kgm3 = 1.0      # within ATMOSPHERE_DENSITY["g"] = (0.69, 1.33)
-    atm_molar_density = 0.003   # within ATMOSPHERIC_MOLAR_DENSITY["g"]
-    ratio = 0.4                 # within GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
 
-    queued = [core_density_gcm3, atm_density_kgm3, atm_molar_density, ratio]
+    Uses Class I (GAS_GIANT_CLASS resolves to the first type=='g' class,
+    which has no PLANET_CLASSES density_range override -- see
+    generate_planet_properties' `"density_range" not in class_data` guard --
+    so this exercises the blend path, not the S/U direct-density path
+    covered by test_density_range_override_skips_the_blend below).
+    """
+    core_density_gcm3 = 1.0       # within PLANET_DENSITY["g"] = (0.69, 1.64)
+    atm_density_kgm3 = 1.0        # within ATMOSPHERE_DENSITY["g"] -- feeds
+    # atmospheric_pressure/scale_height only, not this blend (see
+    # physical_constants.GAS_ENVELOPE_BULK_DENSITY's docstring)
+    atm_molar_density = 0.003     # within ATMOSPHERIC_MOLAR_DENSITY["g"]
+    ratio = 0.4                   # within GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
+    envelope_density_gcm3 = 0.15  # within GAS_ENVELOPE_BULK_DENSITY = (0.06, 0.3)
+
+    queued = [core_density_gcm3, atm_density_kgm3, atm_molar_density, ratio, envelope_density_gcm3]
     real_uniform = planetPhysics.random.uniform
 
     def fake_uniform(a, b):
@@ -78,15 +88,54 @@ def test_gas_giant_density_blend_matches_hand_computed_harmonic_mean(monkeypatch
         moon_count=0,
     )
 
-    atm_density_gcm3 = atm_density_kgm3 / 1000
-    expected_density = 1 / (ratio / core_density_gcm3 + (1 - ratio) / atm_density_gcm3)
+    expected_density = 1 / (ratio / core_density_gcm3 + (1 - ratio) / envelope_density_gcm3)
     assert planet.density == pytest.approx(expected_density, rel=1e-9)
     # Sanity: the arithmetic mean the old buggy code used would have given a
     # very different (and, for this input, much larger) value -- confirming
     # this test would have failed against the old formula, not just against
     # a formula that happens to coincide with it for these inputs.
-    old_arithmetic_mean = core_density_gcm3 * ratio + (1 - ratio) * atm_density_gcm3
+    old_arithmetic_mean = core_density_gcm3 * ratio + (1 - ratio) * envelope_density_gcm3
     assert planet.density != pytest.approx(old_arithmetic_mean, rel=1e-6)
+
+
+def test_density_range_override_skips_the_blend(monkeypatch, host_star):
+    """
+    A class declaring its own density_range (Classes S/U) should use that
+    draw as planet.density directly -- no core/envelope blend -- since real
+    brown dwarfs don't have a meaningfully separate light envelope over a
+    denser core the way an ordinary gas giant does (see
+    generate_planet_properties' `"density_range" not in class_data` guard
+    and PLANET_CLASSES["S"]'s docstring).
+    """
+    brown_dwarf_class = next(
+        c for c, d in prog_c.PLANET_CLASSES.items() if d["type"] == "g" and "density_range" in d
+    )
+    zone = next(z for z in "hec" if prog_c.PLANET_CLASSES[brown_dwarf_class][z])
+
+    core_density_gcm3 = 42.0  # within PLANET_CLASSES[brown_dwarf_class]["density_range"]
+    min_d, max_d = prog_c.PLANET_CLASSES[brown_dwarf_class]["density_range"]
+    assert min_d <= core_density_gcm3 <= max_d
+
+    queued = [core_density_gcm3]
+    real_uniform = planetPhysics.random.uniform
+
+    def fake_uniform(a, b):
+        if queued:
+            return queued.pop(0)
+        return real_uniform(a, b)
+
+    monkeypatch.setattr(planetPhysics.random, "uniform", fake_uniform)
+
+    cfg = SystemConfig()
+    distance = plausibility.distance_for_zone(host_star, zone)
+    radius = sum(prog_c.PLANET_CLASSES[brown_dwarf_class]["radius_range"]) / 2
+    planet = Planet(
+        cfg, host_star, host_star.habitable_zone, distance,
+        planet_class=brown_dwarf_class, radius=radius, zone_override=zone,
+        moon_count=0,
+    )
+
+    assert planet.density == pytest.approx(core_density_gcm3, rel=1e-9)
 
 
 def test_gas_giant_sampled_densities_are_finite_positive_and_within_theoretical_bounds():
@@ -99,24 +148,18 @@ def test_gas_giant_sampled_densities_are_finite_positive_and_within_theoretical_
     computed independently here to double as a cross-check that
     plausibility.py's lockstep update matches planetPhysics.py's formula).
 
-    NOTE: this does *not* assert the resulting densities are in a
-    "realistic" gas-giant range. Investigating this fix surfaced that, given
-    this codebase's actual GAS_GIANT_CORE_ATMOSPHERE_RATIO (0.03-0.6, i.e.
-    the atmosphere is always at least 40% of the mass) and ATMOSPHERE_DENSITY
-    ["g"] range (which, converted to g/cm^3, is ~1000x smaller than
-    PLANET_DENSITY["g"]), the mass-weighted harmonic mean is *mathematically
-    guaranteed* to be dominated by the atmosphere's tiny density term no
-    matter what ratio is drawn -- so the fixed formula actually produces
-    gas-giant densities that are LOWER, and more consistently so (100% of a
-    20k-sample Monte Carlo check landing under 0.0033 g/cm^3, vs. ~2.5% of
-    draws under 0.05 g/cm^3 for the old arithmetic mean), than before. The
-    harmonic mean is the mathematically correct way to combine two
-    densities via a mass fraction, and this test locks in that the
-    implementation matches it and stays internally consistent with
-    plausibility.py's analytical bounds -- but recalibrating
-    GAS_GIANT_CORE_ATMOSPHERE_RATIO and/or ATMOSPHERE_DENSITY["g"] so the
-    *result* is realistic is flagged as necessary follow-up work, out of
-    this fix's scope.
+    An earlier version of this test documented that the blend's envelope
+    term reused `atm_density` (drawn from ATMOSPHERE_DENSITY["g"], which
+    once divided by 1000 for unit conversion is ~1000x lighter than a real
+    gas-giant envelope) -- a scale mismatch that mathematically guaranteed
+    the harmonic mean collapsed to a near-zero, physically meaningless
+    density no matter how dense the core. Fixed by introducing
+    physical_constants.GAS_ENVELOPE_BULK_DENSITY, a separate, correctly
+    g/cm^3-scaled "puffy gas giant" envelope density grounded in real
+    measured values (the lowest known, WASP-193b, is ~0.06 g/cm^3) -- see
+    that constant's own docstring for the full derivation. This test now
+    also implicitly confirms the fixed densities land in a realistic range,
+    not just a self-consistent one.
     """
     records = plausibility.generate_sample(GAS_GIANT_CLASS, GAS_GIANT_ZONE, N_SAMPLE, include_moons=False)
     densities = [r["density"] for r in records]
@@ -124,8 +167,7 @@ def test_gas_giant_sampled_densities_are_finite_positive_and_within_theoretical_
 
     min_rock, max_rock = pc.PLANET_DENSITY["g"]
     min_ratio, max_ratio = prog_c.GAS_GIANT_CORE_ATMOSPHERE_RATIO
-    min_atm_kgm3, max_atm_kgm3 = pc.ATMOSPHERE_DENSITY["g"]
-    atm_gcm3_range = (min_atm_kgm3 / 1000, max_atm_kgm3 / 1000)
+    atm_gcm3_range = pc.GAS_ENVELOPE_BULK_DENSITY
 
     bound_values = []
     for rock in (min_rock, max_rock):

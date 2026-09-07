@@ -167,20 +167,35 @@ def theoretical_gravity_bounds_g(cls):
         g_ms2 = (4 / 3) * math.pi * pc.G * density_kg_m3 * radius_m
         return g_ms2 / pc.EARTH_GRAVITY
 
+    # Class-specific density range if declared (e.g. Classes S/U's
+    # brown-dwarf-like densities -- see program_constants.PLANET_CLASSES),
+    # else the default range shared by every other class of this body type.
+    # Must mirror planetPhysics.py's own per-class density_range lookup
+    # exactly, or this bound would flag legitimate S/U values as violations.
     values = []
     if ptype == "t":
-        min_d, max_d = pc.PLANET_DENSITY["t"]  # g/cm^3
+        min_d, max_d = data.get("density_range", pc.PLANET_DENSITY["t"])  # g/cm^3
+        densities_kgm3 = (min_d * 1000, max_d * 1000)
+        for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
+            values.append(gravity_g(radius_m, density_kgm3))
+    elif "density_range" in data:
+        # A class with its own density_range (Classes S/U) skips the
+        # core/envelope blend entirely in planetPhysics.py -- see
+        # generate_planet_properties' matching `if planet.body_type == 'g'
+        # and "density_range" not in class_data` guard -- so its declared
+        # range alone bounds gravity here too.
+        min_d, max_d = data["density_range"]  # g/cm^3
         densities_kgm3 = (min_d * 1000, max_d * 1000)
         for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
             values.append(gravity_g(radius_m, density_kgm3))
     else:
         min_rock, max_rock = pc.PLANET_DENSITY["g"]  # g/cm^3
         min_ratio, max_ratio = prog_c.GAS_GIANT_CORE_ATMOSPHERE_RATIO
-        min_atm_kgm3, max_atm_kgm3 = pc.ATMOSPHERE_DENSITY["g"]  # kg/m^3
-        # planetPhysics divides atm_density by 1000 before blending it with
-        # the g/cm^3 rock density -- 1 kg/m^3 == 0.001 g/cm^3, so this is a
-        # unit conversion, not a fudge factor.
-        atm_gcm3_range = (min_atm_kgm3 / 1000, max_atm_kgm3 / 1000)
+        # Must match planetPhysics.generate_planet_properties' envelope-side
+        # blend input exactly: physical_constants.GAS_ENVELOPE_BULK_DENSITY
+        # (already g/cm^3), not ATMOSPHERE_DENSITY["g"] (a different,
+        # ~1000x-lighter physical layer -- see that constant's docstring).
+        atm_gcm3_range = pc.GAS_ENVELOPE_BULK_DENSITY
         rock_range = (min_rock, max_rock)
         ratio_range = (min_ratio, max_ratio)
         for radius_m, rock_gcm3, ratio, atm_gcm3 in _corners(radii_m, rock_range, ratio_range, atm_gcm3_range):
