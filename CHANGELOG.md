@@ -1,5 +1,42 @@
 # Changelog
 
+## [5.3.4] - 2026-09-07
+
+### Fixed
+- **Gas-giant density blend** (`stellarObjects/planetPhysics.py`): the
+  core/atmosphere blend used a mass fraction as an arithmetic-mean weight
+  between two densities, which is dimensionally wrong and could produce
+  gas giants as low as 0.026 g/cm^3. Replaced with the mass-weighted
+  harmonic mean, the physically correct way to combine two component
+  densities via a mass fraction. `plausibility.py`'s independently
+  reimplemented copy of this formula (used to derive analytical
+  hard-invariant gravity bounds) was updated in lockstep, including its
+  docstring's justification for corner-evaluation (still valid: the new
+  formula is monotonic in each argument, just no longer multilinear).
+- **Inverted greenhouse factor** (`stellarObjects/planetPhysics.py`): the
+  formula rewarded an atmosphere for being *far* from CO2's molar density
+  rather than for actually containing more CO2 — backwards from physical
+  reality. Now scales directly with `atm_molar_density`, the only
+  atmosphere-composition signal the data model has today.
+
+### Changed
+- **Database schema-migration backups are now gzip-compressed** and
+  excluded from the web database picker and from a subsequent migration
+  run (previously a plain `.db` copy that a naive `*.db` glob would both
+  surface in the picker and silently re-migrate on the next run). See
+  `docs/TODO.md`'s "File Management" section for detail.
+
+### In progress, not yet merged (see `docs/TODO.md` for exact state)
+- Atmospheric pressure is still algebraically independent of gravity, and
+  Class M/Class P remain statistically indistinguishable — both scoped
+  and partially started, paused mid-session in worktree
+  `agent-a8acb02b98bed5b8d`.
+- The galaxy-scale coordinate system's 8 open design questions were
+  decided this session, and a schema v3->v4 migration,
+  `GALACTIC_CENTER_DISTANCE_LY` fix, and a first `galaxyGen.py` were
+  written but paused uncommitted in worktree `agent-a36f801e275fb2b71`
+  before a full test pass — not part of this release.
+
 ## [5.3.3] - 2026-09-07
 
 ### Changed

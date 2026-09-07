@@ -131,11 +131,38 @@ Phase 4 and parts of Phase 5 are still open.
   greenhouse/pressure-formula and gas-giant-density concerns already
   flagged above that need a decision.
 
+- [x] **Gas-giant density blend and inverted greenhouse factor** — fixed
+  this session (Track A, partial). `planetPhysics.py`'s gas-giant density
+  blend now uses a mass-weighted harmonic mean instead of an arithmetic
+  mean over a mass fraction (was producing densities as low as
+  0.026 g/cm^3); `plausibility.py`'s mirrored `theoretical_gravity_bounds_g`
+  updated in lockstep, docstring corrected from "multilinear" to
+  "monotonic in each argument." The greenhouse-factor formula no longer
+  rewards atmospheres for being *far* from CO2's molar density — it now
+  scales with `atm_molar_density` directly, the only atmosphere-composition
+  signal that exists in the data model today. 8672 tests passing after the
+  merge. **Still open, not yet done:** atmospheric pressure is still
+  algebraically independent of gravity, and Class M/Class P remain
+  statistically indistinguishable — both were scoped as fixes 3 and 4 of
+  the same Track A plan but weren't reached before this session's usage
+  budget ran out; resume from worktree `agent-a8acb02b98bed5b8d`
+  (branch `worktree-agent-a8acb02b98bed5b8d`), which has uncommitted WIP
+  toward the pressure/gravity-retention fix plus a new
+  `src/tests/test_planet_physics_fixes.py`.
+- [ ] **Galaxy coordinate system: the 8 open questions were decided this
+  session** (single galaxy per database, fix `GALACTIC_CENTER_DISTANCE_LY`
+  now rather than defer, no stored per-sector roll angle, and a
+  radius-based "sectors within R of a point" generation primitive that
+  covers both whole-shell batch generation and a localized
+  "observable-region"/cluster mode around an existing sector) — **but
+  implementation (Track C) is paused mid-session, uncommitted**, not a
+  design gap anymore. See the Phase 4 entry below for what's actually
+  written and what's still missing before it can merge.
+
 **What's still an open decision, not a bug to just go fix**: the
-greenhouse-factor formula and gas-giant density blending flagged in the
-habitability review (now independently corroborated), and the 8 open
-questions in the galaxy coordinate design doc — none of these have been
-acted on, only documented for review.
+atmospheric-pressure/gravity decoupling and Class M/P indistinguishability
+above (narrower than before this session, since the greenhouse/density half
+of this is now fixed).
 
 ## Investigate Further
 
@@ -182,21 +209,30 @@ acted on, only documented for review.
 
 ## Phase 4 — Galaxy-scale generation
 
-- [ ] Galaxy-scale coordinate system: no longer a blank design slate — a
-  full proposal exists (see "Unmerged work" above) at
-  `docs/design/galaxy-coordinate-system.md`: spherical-to-XYZ sector
-  placement, **parsecs** for galaxy-scale distance, a shell-based radial
-  tiling scheme (Fibonacci-sphere sequence per shell), and a v3->v4
-  `sectors` schema migration sketch. Not yet reviewed/approved — the doc
-  itself flags 8 open questions (eager vs. lazy shell generation, the
-  disk-density envelope, the `GALACTIC_CENTER_DISTANCE_LY` fixed-constant
-  problem it surfaced, and others) that need a decision before this is
-  considered settled.
-- [ ] `galaxyGen.py` — a new top-level CLI script (sibling to
-  `sectorGen.py`/`systemGen.py`) that generates and persists many sectors
-  as one galaxy, reusing `sectorGen.py`'s own per-sector generation/save
-  logic for each one. Gated on the coordinate-system design above being
-  reviewed and merged first.
+- [ ] **Galaxy coordinate system: design decisions made, implementation
+  paused mid-session (Track C), not yet merged.** All 8 open questions in
+  `docs/design/galaxy-coordinate-system.md` are now decided (single galaxy
+  per database, fix `GALACTIC_CENTER_DISTANCE_LY` to use a sector's real
+  position rather than defer it, fixed orientation convention with no
+  stored roll angle, deterministic Fibonacci placement, uniform sector
+  size per shell, computed rather than stored adjacency, and a
+  radius-based generation-unit primitive — see that doc's section 8).
+  Written but **uncommitted** in worktree `agent-a36f801e275fb2b71`
+  (branch `worktree-agent-a36f801e275fb2b71`): the v3->v4 `sectors` schema
+  migration (migration tests reported passing before the session paused),
+  `src/stellarObjects/galaxyGeometry.py` (shell/Fibonacci-sphere tiling +
+  the neighborhood-enumeration primitive), `GALACTIC_CENTER_DISTANCE_LY`
+  threaded per-sector through `starData.py`/`doubleStar.py` (falling back
+  to the old constant for unplaced/standalone sectors), and a first draft
+  of `galaxyGen.py`. **Not yet done:** a `galaxyGen.py` end-to-end test for
+  local-neighborhood mode, and a full-suite test run/diff review — resume
+  from that worktree rather than restarting from the design doc.
+- [ ] Galaxy thickness / shape (disk-density envelope, and support for
+  different overall galaxy shapes — spiral, elliptical, irregular, etc.)
+  — still needs its own dedicated design pass, deliberately not tackled
+  as part of Track C above. Consolidates the design doc's own
+  "disk-density envelope" open question (section 7, question 2) with an
+  explicit user request this session to flag it for later.
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 
