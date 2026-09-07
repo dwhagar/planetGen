@@ -1,5 +1,56 @@
 # Changelog
 
+## [5.3.5] - 2026-09-07
+
+### Added
+- **Galaxy-scale coordinate system (Track C), merged.** Sectors can now
+  be placed on a galaxy-wide, radial shell/Fibonacci-sphere tiling
+  (`docs/design/galaxy-coordinate-system.md` sections 0-8) instead of
+  existing only in isolation:
+  - **Schema v3 -> v4** (`stellarObjects/schema.sql`): `sectors` gains six
+    nullable galaxy-frame columns (`center_x/y/z_pc`, `galactic_radius_pc`,
+    `shell_index`, `shell_slot_index`), NULL together for a sector never
+    placed in a galaxy. `_db.migrate_database`'s new `_migrate_v3_to_v4`
+    handles the upgrade (existing `_migrate_v1_to_v2`/`_migrate_v2_to_v3`
+    updated in lockstep, per that function's "each hop maps straight to
+    the current schema" design); `docs/database-schema.md`'s schema
+    history documents the change.
+  - **`stellarObjects/galaxyGeometry.py`** (new): the shell/Fibonacci-sphere
+    tiling primitives (`shell_sector_count`, `shell_radius_pc`,
+    `sector_position_pc`) and `enumerate_sectors_within_radius` — an
+    exact, two-prune generation-unit primitive that finds every sector
+    address within a radius of an arbitrary galaxy-space point without
+    ever scanning a whole shell's slot count (design doc section 8).
+  - **`galaxyGen.py`** (new, repo root): a CLI generating many sectors as
+    one galaxy, reusing `sectorGen.py`'s own per-sector generation/save
+    path. `--shell K` batch-generates a whole radial shell (guarded by
+    `LARGE_SHELL_WARNING_THRESHOLD`, needing `--limit`/`--yes` above it);
+    `--center-sector ID --radius-pc R` generates a local neighborhood
+    around an already galaxy-placed sector. Either mode skips slots a
+    sector already occupies.
+  - **`GALACTIC_CENTER_DISTANCE_LY` is now per-sector**, not a single
+    fixed constant: `Star.calculate_system_perimeter`/
+    `BinaryStarProxy._calculate_system_perimeter_static` accept a
+    `galactic_center_dist_ly` override, threaded from `galaxyGen.py`
+    through `StarSystem`/`Star`/`BinaryStarProxy`, falling back to the
+    old fixed constant for unplaced/standalone sectors
+    (`sectorGen.py`'s own CLI unaffected).
+  - `stellarObjects/utils.py` gains `mpc_to_pc`/`pc_to_mpc` (exact) and
+    `pc_to_ly`/`ly_to_pc` (display-string conversions), per the design
+    doc's unit-choice section.
+  - New end-to-end coverage: `src/tests/test_galaxy_gen.py` runs
+    `galaxyGen.py`'s actual CLI entry point (both `--shell` batch mode
+    and `--center-sector` local-neighborhood mode) against a real
+    temporary database, asserting correct shell/slot addresses, correct
+    stored positions, no duplicate slots, and that already-occupied
+    slots are skipped on re-run — the gap `docs/TODO.md`'s Phase 4 entry
+    flagged as not yet done when this was paused mid-session. Rebased
+    onto current `main` (past Track A's physics fixes and Track B's
+    gzip-compressed migration backups) with no functional changes beyond
+    a `test_db_migration.py` assertion that needed to decompress the
+    (now gzip-compressed) v3->v4 migration backup the same way the
+    existing v1->v2 backup test already did.
+
 ## [5.3.4] - 2026-09-07
 
 ### Fixed
