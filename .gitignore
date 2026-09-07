@@ -176,6 +176,6 @@ cython_debug/
 .claude/
 
 # but keep html/lib despite the generic lib/ ignore rule above
-!html/lib/
-!html/lib/**
-html/lib/**/__pycache__/
+!src/html/lib/
+!src/html/lib/**
+src/html/lib/**/__pycache__/

@@ -118,7 +118,7 @@ The output opens with a sector-wide summary and an index of every system's name 
 
 ## Web Interface
 
-[`html/`](docs/html-interface.md) contains a small, dependency-free web interface
+[`src/html/`](docs/html-interface.md) contains a small, dependency-free web interface
 (plain Python CGI scripts, no framework) for browsing the SQLite databases
 described in [`docs/database-schema.md`](docs/database-schema.md) -- pick a database, drill into
 its sectors and star systems, and view or copy the rendered wikitext/
@@ -142,7 +142,7 @@ pull` isn't enough on its own -- see `update.sh`'s own header comment).
 both scripts call. Site-level settings (currently a name and base URL,
 unrelated to the Apache-level `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
 environment variables) live in a `webconfig.json` file at the repo root,
-kept outside `html/`'s served document root the same way `db/` already
+kept outside `src/html/`'s served document root the same way `db/` already
 is -- see [`WEBCONFIG.md`](docs/WEBCONFIG.md). See
 [`docs/html-interface.md`](docs/html-interface.md) for how the interface works and how to
 deploy or test it locally.

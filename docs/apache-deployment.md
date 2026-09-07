@@ -1,6 +1,6 @@
 # Apache2 Deployment Files
 
-Deployment tooling for the web interface in [`../html/`](html-interface.md) --
+Deployment tooling for the web interface in [`../src/html/`](html-interface.md) --
 not itself part of the served site. The files it describes live in
 [`../examples/apache/`](../examples/apache/) (grouped there as example/
 template deployment config, alongside the example system files under
@@ -15,8 +15,8 @@ call `set-permissions.sh` (below) as one of their steps. Use
 
 | File | Purpose |
 |---|---|
-| [`planetgen.conf.example`](../examples/apache/planetgen.conf.example) | Example Apache2 virtual host: `DocumentRoot` at `/var/lib/planetGen/html`, CGI handling for `html/*.py`, and access rules (denying direct requests to `html/lib/`). Copy to `/etc/apache2/sites-available/`, edit, and enable with `a2ensite` -- the one step `install.sh` deliberately leaves manual. |
-| [`set-permissions.sh`](../examples/apache/set-permissions.sh) | Detects the user/group Apache2 is actually configured to run as (from `/etc/apache2/envvars`, a running `apache2` process, or falling back to the Debian/Ubuntu default `www-data:www-data` if neither is found -- e.g. because apache2 isn't started yet), `chown`s the deployed `html/` and `db/` directories to that user:group, and makes every `*.py` file anywhere under `html/` (at any subdirectory depth, `html/lib/` included) executable. Prints a count of how many `.py` files it fixed, so a wrong path is obvious rather than silently matching nothing. Bash, not Python -- Linux-only deployment step, safe to re-run any time as root. |
+| [`planetgen.conf.example`](../examples/apache/planetgen.conf.example) | Example Apache2 virtual host: `DocumentRoot` at `/var/lib/planetGen/html`, CGI handling for `../src/html/*.py`, and access rules (denying direct requests to `../src/html/lib/`). Copy to `/etc/apache2/sites-available/`, edit, and enable with `a2ensite` -- the one step `install.sh` deliberately leaves manual. |
+| [`set-permissions.sh`](../examples/apache/set-permissions.sh) | Detects the user/group Apache2 is actually configured to run as (from `/etc/apache2/envvars`, a running `apache2` process, or falling back to the Debian/Ubuntu default `www-data:www-data` if neither is found -- e.g. because apache2 isn't started yet), `chown`s the deployed `../src/html/` and `db/` directories to that user:group, and makes every `*.py` file anywhere under `../src/html/` (at any subdirectory depth, `../src/html/lib/` included) executable. Prints a count of how many `.py` files it fixed, so a wrong path is obvious rather than silently matching nothing. Bash, not Python -- Linux-only deployment step, safe to re-run any time as root. |
 
 See [`../install.sh`](../install.sh) for the full install script,
 [`../update.sh`](../update.sh) for pulling later updates, and

@@ -143,9 +143,9 @@ acted on, only documented for review.
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size or in the tagged search field sort by planet size.
 - [ ] Still open from the file-system cleanup (5.3.2/5.3.3): consider
-  moving `src/api/` into `html/` to expose the API endpoint from the same
+  moving `src/api/` into `../src/html/` to expose the API endpoint from the same
   served tree. Deliberately not done -- it was posed as an open question,
-  not a decision, and moving a Flask package into `html/`'s Apache
+  not a decision, and moving a Flask package into `../src/html/`'s Apache
   `DocumentRoot` needs its own look at exposure/routing implications
   first. The rest of the file-system cleanup this pointed at is done as
   of 5.3.3: markdown consolidated into `docs/` (only `README.md`/
@@ -190,7 +190,7 @@ acted on, only documented for review.
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 
 An interim, dependency-free read-only browser already exists at
-[`html/`](html-interface.md) (plain Python CGI scripts, no framework) plus
+[`../src/html/`](html-interface.md) (plain Python CGI scripts, no framework) plus
 [`examples/apache/`](apache-deployment.md) (example vhost config +
 `set-permissions.sh`), meant for a single-user/small-scale Apache2
 deployment today rather than the full multi-user vision below.
@@ -198,8 +198,8 @@ deployment today rather than the full multi-user vision below.
 - [x] Backend API framework: **Flask**, chosen over FastAPI/Django REST
   Framework — no ORM opinion (fits the existing raw-`sqlite3` persistence
   layer with zero glue), deploys via `mod_wsgi` in the same Apache process
-  model the interim `html/` CGI browser already uses, and mounts at `/api/`
-  alongside `html/` for an incremental rollout. FastAPI's async/auto-docs
+  model the interim `../src/html/` CGI browser already uses, and mounts at `/api/`
+  alongside `../src/html/` for an incremental rollout. FastAPI's async/auto-docs
   advantages don't pay for themselves yet (no separate frontend consuming
   the API, and `sqlite3`'s driver is synchronous regardless of framework);
   revisit if a dedicated frontend makes API-contract docs valuable. A
@@ -240,7 +240,7 @@ deployment today rather than the full multi-user vision below.
     - Revisit tooling (e.g. an ORM/migration framework) at that point if
       the hand-ported approach proves painful, per the original note here.
 
-### Near-term: interim `html/` browser enhancements
+### Near-term: interim `../src/html/` browser enhancements
 
 - [x] **Distance calculator** / **"Nearest N systems within radius R"**:
   superseded by `star_systems.location` (schema v3) — every system placed
@@ -248,17 +248,17 @@ deployment today rather than the full multi-user vision below.
   nearest neighbors, computed at write time from the existing
   `position_x/y/z_mpc` columns. See `CHANGELOG.md` [5.3.0].
 - [x] **Search reachable from every page**: the shared page header
-  (`html/lib/page.py`) now includes a Search link whenever a database is
+  (`../src/html/lib/page.py`) now includes a Search link whenever a database is
   selected, instead of requiring a detour back through `browse.py`.
 - [x] **Skip the database picker when only one database exists**:
-  `html/index.py` now redirects straight to `browse.py` if the configured
+  `../src/html/index.py` now redirects straight to `browse.py` if the configured
   database directory contains exactly one `.db` file.
 - [x] **Site configuration file**: `webconfig.json` (repo root, gitignored;
   `webconfig.json.example` committed) holds `site_name`/`base_url` today,
   plus unused placeholder fields (`db_username`/`db_password`/`db_name`)
   for a possible future non-SQLite backend. See [`WEBCONFIG.md`](WEBCONFIG.md).
 - [x] **Wiki-URL reachability check + clipboard fallback**: implemented in
-  `html/system.py` (merged in commit `ee8daab`), deliberately the bare
+  `../src/html/system.py` (merged in commit `ee8daab`), deliberately the bare
   minimum rather than the fuller version this item originally speculated
   about below — a plain HEAD-then-GET check treating any non-200 status,
   timeout, or connection error as unreachable, and no caching layer (a CGI
@@ -273,7 +273,7 @@ deployment today rather than the full multi-user vision below.
   whether this is a simple size-comparison row or a full scaled-orbit
   diagram.
 
-### Deployment history (interim `html/` browser)
+### Deployment history (interim `../src/html/` browser)
 
 Several deployment bugs surfaced on first production rollout to the
 Ubuntu/Apache2 VPS (`starmap.moltenaether.com`) and are now resolved by
@@ -281,7 +281,7 @@ Ubuntu/Apache2 VPS (`starmap.moltenaether.com`) and are now resolved by
 CGI scripts deployed non-executable (git's `core.fileMode=false` silently
 drops the executable bit — both scripts now `chmod +x` unconditionally on
 every run, regardless of what mode git stored), CRLF line endings
-(`.gitattributes` now pins `html/**/*.py`/`examples/apache/*.sh` to `text eol=lf`),
+(`.gitattributes` now pins `../src/html/**/*.py`/`examples/apache/*.sh` to `text eol=lf`),
 `nltk`'s corpus download failing under the `www-data` user's unwritable
 home directory (`install.sh` now pre-fetches the corpus system-wide;
 `names.py` checks `nltk.data.find` before ever attempting a download), and

@@ -13,12 +13,12 @@ Comparison against FastAPI/Django REST Framework: the existing persistence
 layer (`stellarObjects/_db.py`) is deliberately raw `sqlite3`/plain SQL with
 no ORM, this API is read-heavy with no concurrency pressure yet, and it
 needs to deploy onto the same Apache2/VPS setup that already serves the
-interim `html/` CGI browser (see [`apache-deployment.md`](apache-deployment.md)).
+interim `../src/html/` CGI browser (see [`apache-deployment.md`](apache-deployment.md)).
 Flask has no opinion
 about the data layer (route handlers call straight into `queryDb.py`'s and
 `stellarObjects._db`'s existing functions), deploys via `mod_wsgi` in the
 same Apache process model the CGI scripts already use, and can be mounted
-at `/api/` alongside `html/` for an incremental rollout rather than a hard
+at `/api/` alongside `../src/html/` for an incremental rollout rather than a hard
 cutover. FastAPI's headline advantages (async, auto-generated OpenAPI docs)
 don't pay for themselves yet: `sqlite3`'s driver is synchronous regardless
 of framework, and there's no separate frontend consuming this API yet to

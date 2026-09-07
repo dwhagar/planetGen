@@ -6,7 +6,7 @@
 - **Markdown consolidated into `docs/`, renamed for clarity.** Only
   `README.md`/`LICENSE.md`/`CHANGELOG.md` remain at the repo root; every
   other README and loose doc moved into `docs/` with a descriptive name:
-  `TODO.md` -> `docs/TODO.md`, `html/README.md` -> `docs/html-interface.md`,
+  `TODO.md` -> `docs/TODO.md`, `src/html/README.md` -> `docs/html-interface.md`,
   `db/README.md` -> `docs/database-schema.md`,
   `src/api/README.md` -> `docs/api.md`, `apache/README.md` ->
   `docs/apache-deployment.md`, `examples/EXAMPLES.md` ->
@@ -15,7 +15,7 @@
   from code/scripts) was updated to match; a couple of pre-existing
   broken/mismatched links were caught and fixed along the way
   (`docs/system-file-format.md`'s "full command-line reference" link text
-  didn't match its own target; `html/lib/dbutil.py`'s docstring still
+  didn't match its own target; `src/html/lib/dbutil.py`'s docstring still
   pointed at the pre-5.3.2 `stellarObjects/` path instead of
   `src/stellarObjects/`).
 - **`wsgi.py`, `queryDb.py`, `migrateDb.py` moved into `src/`**, alongside
@@ -74,24 +74,24 @@
   where they don't live. Every root entry script gained a small
   `sys.path` shim (inserting `src/` before its `stellarObjects`/`api`
   imports) so they keep working without requiring `pip install .` first,
-  matching the no-install fallback `html/`'s CGI scripts already relied
-  on -- those fallbacks (`html/lib/dbutil.py`, `html/sector.py`,
-  `html/search.py`) were updated the same way. Two internal
+  matching the no-install fallback `src/html/`'s CGI scripts already relied
+  on -- those fallbacks (`src/html/lib/dbutil.py`, `src/html/sector.py`,
+  `src/html/search.py`) were updated the same way. Two internal
   repo-root-relative path computations (`stellarObjects/webconfig.py`'s
   `_PROJECT_ROOT`, `stellarObjects/_db.py`'s `DEFAULT_DB_PATH`) needed an
   extra `os.path.dirname()` level to still resolve correctly one
   directory deeper; `pytest.ini` gained an explicit `pythonpath = . src`
   so both the entry scripts and the moved packages resolve during tests
   regardless of pytest's own import-mode heuristics.
-- **`webconfig.json.example` moved into `html/`**; the real, gitignored
-  `webconfig.json` stays at the repo root, outside Apache's `html/`
+- **`webconfig.json.example` moved into `src/html/`**; the real, gitignored
+  `webconfig.json` stays at the repo root, outside Apache's `src/html/`
   `DocumentRoot`, for the same security reason `db/` already lives there
   (see `docs/WEBCONFIG.md`).
 - **`WEBCONFIG.md` moved into `docs/`**, alongside this session's
   `docs/design/`/`docs/analysis/` additions, consolidating loose
   documentation in one place (`README.md`/`LICENSE.md`/`TODO.md`/
   `CHANGELOG.md` stay at the repo root, and per-directory READMEs
-  `html/README.md`/`apache/README.md`/`db/README.md`/`src/api/README.md`
+  `src/html/README.md`/`apache/README.md`/`db/README.md`/`src/api/README.md`
   stay next to the code they document).
 
 ## [5.3.1] - 2026-09-06
@@ -184,9 +184,9 @@
   data.
 - The web interface's Search link is now reachable from every page (it
   previously required detouring back through the database-browse page) —
-  `html/lib/page.py`'s shared page header now includes it whenever a
+  `src/html/lib/page.py`'s shared page header now includes it whenever a
   database is selected.
-- The database-picker landing page (`html/index.py`) now redirects straight
+- The database-picker landing page (`src/html/index.py`) now redirects straight
   to browsing the one database present, if the configured database
   directory contains exactly one `.db` file, instead of always showing the
   picker.
@@ -196,7 +196,7 @@
   committed template): site-level configuration, currently `site_name` and
   `base_url`, plus unused placeholder fields (`db_username`, `db_password`,
   `db_name`) reserved for a possible future non-SQLite backend. Kept
-  outside `html/`'s served document root, the same way `db/` already is.
+  outside `src/html/`'s served document root, the same way `db/` already is.
   See [`WEBCONFIG.md`](WEBCONFIG.md) for full documentation.
 
 ## [5.2.5] - 2026-09-06
@@ -206,20 +206,20 @@
   `planets` table into their own `moons` table (`planet_id` FK to the
   planet they orbit, plus their own `moon_evolutionary_paragraphs`/
   `moon_reflection_spectrum` child tables), instead of self-referencing
-  via `planets.parent_planet_id`/`is_moon`. This is what `html/search.py`'s
+  via `planets.parent_planet_id`/`is_moon`. This is what `src/html/search.py`'s
   attribute tags needed to actually tell a planet from a moon: previously
   a "Class D Planet" tag queried `planets` with no way to exclude
   `is_moon=1` rows of the same class, so it silently listed moons too.
   `stellarObjects/_db.py` gained a dedicated `insert_moon` (mirroring
   `insert_planet`, but writing to the new table); `insert_planet` no
   longer recurses into itself for moons.
-- `html/search.py`'s tag facets and name search now follow the same
+- `src/html/search.py`'s tag facets and name search now follow the same
   split: "Planet Class"/"Planet Body Type"/"Planet Supported Life
   Chemistry" only ever match top-level planets, with an identically-
   shaped "Moon Class"/"Moon Body Type"/"Moon Supported Life Chemistry"
   set of tags (and a separate autocompleting "Moon name" field) for
   moons -- each still only rendering the tag buttons for values actually
-  present in the chosen database. `html/system.py`'s planet/moon table
+  present in the chosen database. `src/html/system.py`'s planet/moon table
   now reads moons from the new table instead of a recursive
   self-join, and no longer needs to recurse (moons never generate their
   own moons -- confirmed by the existing
@@ -251,7 +251,7 @@
 ## [5.2.4] - 2026-09-06
 
 ### Added
-- `html/search.py`: a faceted/name search page for the web interface.
+- `src/html/search.py`: a faceted/name search page for the web interface.
   Two complementary ways to find an object in the chosen database:
   - Click-to-filter tag buttons for object type (star/planet/moon/
     asteroid belt), star spectral class and Yerkes luminosity class,
@@ -267,7 +267,7 @@
     planet-class tag also happens to be selected). Clicking a tag
     toggles it via a plain link that rewrites the query string, so this
     works with JavaScript entirely disabled, same as every other page in
-    `html/`.
+    `src/html/`.
   - A name search with one field each for sector, star system, star, and
     planet/moon names, each with its own HTML5 `<datalist>` for
     autocomplete (native browser suggestions, no JavaScript, populated
@@ -308,10 +308,10 @@
   previous run's install in place instead of the source `update.sh` just
   pulled.
 - `install.sh` and `update.sh` now re-`chmod +x` every `*.sh` file in the
-  repo (not just `html/*.py` and one hardcoded `apache/set-permissions.sh`
+  repo (not just `src/html/*.py` and one hardcoded `apache/set-permissions.sh`
   path), including themselves. A `core.fileMode=false` git config on the
   authoring machine drops the executable bit on any file type on
-  checkout, not just `html/`'s `.py` scripts, and `update.sh` invokes
+  checkout, not just `src/html/`'s `.py` scripts, and `update.sh` invokes
   `install.sh` directly (`"$SCRIPT_DIR/install.sh"`, not `bash
   install.sh`) — if a pull had dropped *its* executable bit, the shell
   would refuse to exec it before `install.sh`'s own permission fix ever
@@ -327,9 +327,9 @@
 ## [5.2.2] - 2026-09-06
 
 ### Added
-- `html/system.py` now renders a system's description as actual HTML by
+- `src/html/system.py` now renders a system's description as actual HTML by
   default (`?view=rendered`), via a new small, purpose-built Markdown-to-
-  HTML converter (`html/lib/mdconvert.py`) targeting exactly the narrow
+  HTML converter (`src/html/lib/mdconvert.py`) targeting exactly the narrow
   Markdown subset `StarSystem.__str__` generates (headers, pipe tables,
   paragraphs, `<sup>` exponents) — not a general-purpose parser, and no
   new dependency. The original raw wikitext/Markdown source is still one
@@ -339,7 +339,7 @@
   contains, so a mischievous `--name`/`--star-type` value can't inject
   live HTML into a rendered page (covered by new tests in
   `tests/test_mdconvert.py`).
-- `html/static/style.css` rewritten as a small design system: CSS custom
+- `src/html/static/style.css` rewritten as a small design system: CSS custom
   properties, automatic light/dark via `prefers-color-scheme`, card-style
   panels, badges, breadcrumbs, a proper type scale, hover states,
   focus-visible outlines, and a responsive breakpoint. Applied
@@ -354,9 +354,9 @@
 
 ### Fixed
 - `apache/set-permissions.sh` and `install.sh` both failed to make every
-  `*.py` file under `html/` executable by `www-data` — `install.sh`'s own
+  `*.py` file under `src/html/` executable by `www-data` — `install.sh`'s own
   `chmod +x` step used `find -maxdepth 1`, silently skipping
-  `html/lib/*.py`, and `set-permissions.sh` only `chgrp`'d (group
+  `src/html/lib/*.py`, and `set-permissions.sh` only `chgrp`'d (group
   ownership) rather than `chown`'d (user *and* group) the deployed
   directories. Both fixed: the `-maxdepth 1` restriction is gone, and
   `set-permissions.sh` now `chown -R`s to the detected Apache user:group
@@ -366,15 +366,15 @@
 ## [5.2.1] - 2026-09-06
 
 ### Added
-- `html/`: a small, dependency-free web interface (plain Python CGI
+- `src/html/`: a small, dependency-free web interface (plain Python CGI
   scripts, standard library only) for browsing the SQLite databases from
   `db/README.md` — pick a database, drill into its sectors and star
   systems, and view (or copy, via a `<textarea>`) the rendered
-  wikitext/Markdown page saved for each one. See `html/README.md`.
+  wikitext/Markdown page saved for each one. See `src/html/README.md`.
 - `apache/`: deployment tooling for the web interface —
   `planetgen.conf.example` (an example Apache2 virtual host) and
   `set-permissions.sh` (detects the user/group Apache2 actually runs as
-  and sets ownership/permissions on the deployed `html/`/`db/`
+  and sets ownership/permissions on the deployed `src/html/`/`db/`
   directories accordingly).
 - `install.sh`: a one-shot Linux installer tying the above together —
   runs `setup.py install`, pre-fetches the NLTK `words` corpus into a

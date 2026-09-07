@@ -38,7 +38,7 @@
 
 set -euo pipefail
 
-HTML_DIR="${1:-/var/lib/planetGen/html}"
+HTML_DIR="${1:-/var/lib/planetGen/src/html}"
 DB_DIR="${2:-/var/lib/planetGen/db}"
 
 if [[ $EUID -ne 0 ]]; then

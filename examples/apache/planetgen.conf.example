@@ -26,13 +26,13 @@
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
-    DocumentRoot /var/lib/planetGen/html
+    DocumentRoot /var/lib/planetGen/src/html
 
     # Tell the CGI scripts where to find the database directory. Only
     # needed if it isn't the default sibling ../db next to html/.
     # SetEnv PLANETGEN_DB_DIR /var/lib/planetGen/db
 
-    <Directory /var/lib/planetGen/html>
+    <Directory /var/lib/planetGen/src/html>
         Options +ExecCGI -Indexes
         AddHandler cgi-script .py
         DirectoryIndex index.py
@@ -44,12 +44,12 @@
     # the .py handler alone (belt-and-suspenders: a misconfigured handler
     # would otherwise let it execute, or a future non-.py file in there
     # could be served as plain text).
-    <Directory /var/lib/planetGen/html/lib>
+    <Directory /var/lib/planetGen/src/html/lib>
         Require all denied
     </Directory>
 
     # static/ is plain CSS -- served directly, never as CGI.
-    <Directory /var/lib/planetGen/html/static>
+    <Directory /var/lib/planetGen/src/html/static>
         Options -ExecCGI -Indexes
         Require all granted
     </Directory>

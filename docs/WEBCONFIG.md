@@ -1,8 +1,8 @@
 # WEBCONFIG.md
 
 This document describes `webconfig.json`, the site-level configuration
-file for the planetGen web interface ([`html/`](html-interface.md)), and
-[`html/webconfig.json.example`](../html/webconfig.json.example), the
+file for the planetGen web interface ([`../src/html/`](html-interface.md)), and
+[`../src/html/webconfig.json.example`](../src/html/webconfig.json.example), the
 committed template it's copied from.
 
 ## What it's for
@@ -24,24 +24,24 @@ config file's shape and loading behavior are settled before any feature
 depends on them, not because any page currently reads `site_name` or
 `base_url`.
 
-## Location: repo root, not `html/`
+## Location: repo root, not `../src/html/`
 
-`webconfig.json` lives at the repo root -- a sibling of `html/`, `db/`, and
-`src/` -- rather than inside `html/` itself (its *example* template,
-[`html/webconfig.json.example`](../html/webconfig.json.example), is fine
-to live inside `html/` since it holds only placeholder values, not
+`webconfig.json` lives at the repo root -- a sibling of `../src/html/`, `db/`, and
+`src/` -- rather than inside `../src/html/` itself (its *example* template,
+[`../src/html/webconfig.json.example`](../src/html/webconfig.json.example), is fine
+to live inside `../src/html/` since it holds only placeholder values, not
 secrets). This deliberately mirrors how `db/` is already kept out of the
-served webroot: Apache's `DocumentRoot` for this application is `html/`
+served webroot: Apache's `DocumentRoot` for this application is `../src/html/`
 alone (see
 [`examples/apache/planetgen.conf.example`](../examples/apache/planetgen.conf.example)), so
-anything placed at the repo root, one level above `html/`, can never be
+anything placed at the repo root, one level above `../src/html/`, can never be
 requested over HTTP no matter how the vhost or `.htaccess` rules are
 written -- there's no path traversal or misconfiguration that reaches it,
 because it's outside the tree Apache serves at all. The same reasoning is
 why `db/`'s `.db` files (which can contain a full generated galaxy) live
-next to `html/` rather than under it, and why `stellarObjects/webconfig.py`
+next to `../src/html/` rather than under it, and why `stellarObjects/webconfig.py`
 resolves the repo root the same way
-[`html/lib/dbutil.py`](../html/lib/dbutil.py)'s `_PROJECT_ROOT`/
+[`../src/html/lib/dbutil.py`](../src/html/lib/dbutil.py)'s `_PROJECT_ROOT`/
 `DEFAULT_DB_DIR` already do (walking up from the module's own file via
 `os.path.dirname` -- three levels for `stellarObjects/webconfig.py` since
 it lives at `src/stellarObjects/`, one more than `dbutil.py`'s two),
@@ -81,7 +81,7 @@ they'd actually apply to.
 entries -- it's deployment-specific configuration, potentially holding
 credentials once the `db_*` fields are ever put to use, and committing it
 would either leak those values or force every deployment to share one
-repo-tracked file. `html/webconfig.json.example` is the opposite: a
+repo-tracked file. `../src/html/webconfig.json.example` is the opposite: a
 template with placeholder values, meant to be committed so a fresh
 checkout always has a shape to copy from, exactly the same split already
 used for `examples/apache/planetgen.conf.example` (committed template, edited into
@@ -89,7 +89,7 @@ a site-specific vhost file that itself doesn't live in the repo).
 
 ## Setup
 
-Copy the template (in `html/`) to the repo root and edit it for this
+Copy the template (in `../src/html/`) to the repo root and edit it for this
 deployment:
 
 ```bash
@@ -101,7 +101,7 @@ deployment. Leave the `db_*` fields as empty strings -- they're not read by
 anything yet (see "Fields" above).
 
 If `webconfig.json` doesn't exist at all, `stellarObjects.webconfig.load_webconfig()`
-falls back to built-in defaults matching `html/webconfig.json.example`'s
+falls back to built-in defaults matching `../src/html/webconfig.json.example`'s
 shape, so nothing currently breaks by skipping this step -- it only
 matters once a future feature actually reads `site_name`/`base_url` and a
 deployment wants something other than the defaults.
