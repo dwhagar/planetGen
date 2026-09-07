@@ -54,78 +54,75 @@ Phase 4 and parts of Phase 5 are still open.
   CLI for listing/searching what's stored (`sectors`, `systems`, `near`
   subcommands).
 
-## Unmerged work from the 2026-09-06 session (review before continuing)
+## Session status (2026-09-06/07)
 
-Five background agents ran concurrently that night alongside the API/wiki
-work already merged into `main` (commit `ee8daab`). None of the below are
-merged — each is a separate git worktree/branch under `.claude/worktrees/`
-still sitting on top of the pre-session commit. Review, cherry-pick or
-merge, then delete the worktree (`git worktree remove`) once done.
-
-- [ ] **Evolved-star mass fix** (branch `worktree-agent-a4307a26b82478c8d`)
-  — complete and tested (8590 tests passing, 3 new regression tests). Fixes
-  the pre-Big-Bang evolved-star mass issue via reject-and-resample in
-  `stellarObjects/starData.py`. Also bumps version to 5.3.1 and adds a
-  CHANGELOG entry — decide whether to keep that version bump given other
-  unreleased changes already on `main`. Flags one new narrow follow-up:
-  Yerkes class VI (subdwarf) is exempted from the check because its entire
-  mass range (0.1-0.8 Msun) is below the universe-age cutoff, which needs
-  its own look eventually.
-- [ ] **Galaxy coordinate system design** (branch
-  `worktree-agent-afe9fc7f7137bafe8`) — a full written proposal at
-  `docs/design/galaxy-coordinate-system.md` (not code): spherical-to-XYZ
-  sector placement, **parsecs** recommended for galaxy-scale distance, a
-  shell-based radial tiling scheme (Fibonacci-sphere sequence per shell),
-  and a v3->v4 schema migration sketch for the `sectors` table. Surfaces one
-  finding needing a decision: `physical_constants.GALACTIC_CENTER_DISTANCE_LY`
-  is currently a fixed constant assumed by every star's Hill-sphere math,
-  which becomes wrong once sectors have real galactic positions. Has 8 open
-  questions flagged for review before `galaxyGen.py` implementation starts
-  (this doc is the prerequisite for Phase 4 below).
-- [ ] **Habitable/atmosphere surface-condition sanity review** (branch
-  `worktree-agent-a75772018725a8694`) — analysis at
-  `docs/analysis/habitability-atmosphere-sanity-review.md`, not a fix.
-  Generated 300+ samples per class and found real problems (not just "the
-  clamps are fine to leave removed" as hoped):
-    - Class P is no longer meaningfully colder than Class M or any other
-      ecosphere terrestrial class — the disabled clamp was the *only* thing
-      giving P its cold identity; it has zero built-in bias now.
-    - Class M's atmospheric pressure never approaches 1 atm across 600
-      samples (mean ~1/3 atm) — contradicts the assumption that the fixed
-      pressure formula "lands close to realistic ranges on its own."
-    - Likely root cause for both: the `greenhouse_factor` formula in
-      `planetPhysics.py` (~L402) looks physically inverted — rewards an
-      atmosphere for being *far* from CO2's molar density rather than for
-      having more CO2 in it.
-    - Atmospheric pressure is mathematically independent of gravity for
-      every class (proven algebraically and numerically) — the
-      `scale_height`/gravity terms cancel exactly, which is why gas giants
-      spanning a >1000x gravity range all produce nearly identical pressure.
-    - Gas-giant density blending (`planetPhysics.py` L308-311) can produce
-      implausibly "fluffy" planets (densities as low as 0.026 g/cm^3) —
-      likely a real bug, fix depends on clarifying what the blended ratio
-      should represent.
-    - Most ecosphere terrestrial classes are statistically indistinguishable
-      in pressure/temperature since they share the same `"t"`-keyed
-      parameter ranges regardless of class-specific flavor text.
-  One trivial doc-comment fix already applied and tested (mislabeled
-  `ATMOSPHERE_DENSITY["t"]` range comment). Everything else above is a
-  recommendation, not yet implemented — **this should probably be resolved
-  before further physics tuning**, since it affects M/P/gas-giant
-  generation broadly, not just the originally-scoped clamps question.
+- [x] Backend API (Flask) and the wiki-URL reachability check — merged in
+  commit `ee8daab`.
+- [x] Evolved-star mass fix, galaxy coordinate system design, and the
+  habitable/atmosphere sanity review — all three merged into `main`
+  (8592 tests passing). Detail on each:
+    - **Evolved-star mass fix** (`stellarObjects/starData.py`): fixes the
+      pre-Big-Bang evolved-star mass issue via reject-and-resample. Bumped
+      the version to 5.3.1 with a CHANGELOG entry. See "Future ideas"
+      below for the one narrow follow-up it surfaced (Yerkes class VI).
+    - **Galaxy coordinate system design**
+      (`docs/design/galaxy-coordinate-system.md`, proposal only, no code):
+      spherical-to-XYZ sector placement, **parsecs** recommended for
+      galaxy-scale distance, a shell-based radial tiling scheme
+      (Fibonacci-sphere sequence per shell), and a v3->v4 schema migration
+      sketch for the `sectors` table. Surfaces one finding needing a
+      decision: `physical_constants.GALACTIC_CENTER_DISTANCE_LY` is
+      currently a fixed constant assumed by every star's Hill-sphere math,
+      which becomes wrong once sectors have real galactic positions. Has 8
+      open questions flagged for review before `galaxyGen.py`
+      implementation starts (this doc is the prerequisite for Phase 4
+      below — still needs a read-through and a decision on those 8
+      questions, not yet acted on).
+    - **Habitable/atmosphere sanity review**
+      (`docs/analysis/habitability-atmosphere-sanity-review.md`, analysis,
+      not a fix): generated 300+ samples per class and found real problems
+      (not just "the clamps are fine to leave removed" as hoped):
+        - Class P is no longer meaningfully colder than Class M or any
+          other ecosphere terrestrial class — the disabled clamp was the
+          *only* thing giving P its cold identity; it has zero built-in
+          bias now.
+        - Class M's atmospheric pressure never approaches 1 atm across 600
+          samples (mean ~1/3 atm) — contradicts the assumption that the
+          fixed pressure formula "lands close to realistic ranges on its
+          own."
+        - Likely root cause for both: the `greenhouse_factor` formula in
+          `planetPhysics.py` (~L402) looks physically inverted — rewards
+          an atmosphere for being *far* from CO2's molar density rather
+          than for having more CO2 in it.
+        - Atmospheric pressure is mathematically independent of gravity
+          for every class (proven algebraically and numerically) — the
+          `scale_height`/gravity terms cancel exactly, which is why gas
+          giants spanning a >1000x gravity range all produce nearly
+          identical pressure.
+        - Gas-giant density blending (`planetPhysics.py` L308-311) can
+          produce implausibly "fluffy" planets (densities as low as 0.026
+          g/cm^3) — likely a real bug, fix depends on clarifying what the
+          blended ratio should represent.
+        - Most ecosphere terrestrial classes are statistically
+          indistinguishable in pressure/temperature since they share the
+          same `"t"`-keyed parameter ranges regardless of class-specific
+          flavor text.
+      One trivial doc-comment fix already applied and tested (mislabeled
+      `ATMOSPHERE_DENSITY["t"]` range comment). Everything else above is
+      **still a recommendation, not yet implemented or decided on** —
+      this should probably be resolved before further physics tuning,
+      since it affects M/P/gas-giant generation broadly, not just the
+      originally-scoped clamps question.
 - [ ] **Physical-plausibility anomaly finder** (branch
-  `worktree-agent-afdb05a2b331ff123`) — was cut off mid-run by a
-  usage-limit error before it could report results; **resumed 2026-09-07**
-  in a fresh worktree that reads the original's `physicalPlausibility.py`
-  (CLI, ~100 lines) and `stellarObjects/plausibility.py` (design/logic,
-  ~407 lines — hard invariant checks plus Tukey's-fences statistical
-  outlier detection per class) as a starting point, finishes verifying it
-  actually runs correctly, adds test coverage, and reports real findings.
-  Given the sanity-review findings above, this tool should be immediately
-  useful for confirming how far M/gas-giant pressure and Class P
-  temperature actually drift.
-- [x] ~~Wiki-URL reachability check~~ and ~~Backend API~~ (Flask) — both
-  already merged into `main` in commit `ee8daab`.
+  `worktree-agent-afdb05a2b331ff123`, superseded by a fresh resumption
+  branch after the original run was cut off mid-way by a usage-limit
+  error) — still running as of 2026-09-07, not yet merged. Rebuilding
+  `physicalPlausibility.py`/`stellarObjects/plausibility.py` (hard
+  invariant checks plus Tukey's-fences statistical outlier detection per
+  class) into a verified, tested state, and cross-checking its findings
+  against the habitability sanity review above. Given the sanity-review
+  findings, this tool should be immediately useful for confirming how far
+  M/gas-giant pressure and Class P temperature actually drift.
 
 ## Investigate Further
 
@@ -281,7 +278,24 @@ Full root-cause detail for each is in the git history around
 
 ## Future ideas — not scheduled, just parking so it isn't lost
 
-Both items formerly here (the physical-plausibility anomaly finder, and the
-evolved-star pre-Big-Bang mass-sampling issue) moved to "Unmerged work"
-above once work on them actually started this session — see that section
-for current status instead of here.
+The physical-plausibility anomaly finder and the original evolved-star
+pre-Big-Bang mass-sampling issue moved to "Session status" above once work
+on them actually started this session — see that section for current
+status instead of here.
+
+- [ ] **Subdwarf (Yerkes VI) progenitor mass/age modeling is a known gap**:
+  fixing the pre-Big-Bang evolved-star mass issue (above) required
+  excluding Yerkes class VI from the new mass-sampling check, because its
+  *entire* allowed mass range (0.1-0.8 Msun,
+  `physical_constants.YERKES_MASS_CONSTRAINTS["VI"]`) sits below the
+  ~0.88 Msun cutoff where a progenitor's own main-sequence lifespan would
+  already exceed `UNIVERSE_AGE_GY` — every possible mass would be
+  rejected. `Star._calculate_initial_star_age_and_lifespan` still runs
+  subdwarfs through the same "derive lifespan from progenitor mass"
+  evolved-star logic as giants/supergiants, so a generated subdwarf's age
+  can still come out older than the universe. Real subdwarfs (sdB/sdO) are
+  thought to form via binary mass-stripping rather than single-star
+  post-main-sequence evolution, so the single-star progenitor-lifespan
+  model may just be the wrong model for this class entirely — needs its
+  own design pass (a different age-generation path for VI, rather than
+  another mass-sampling tweak).
