@@ -132,7 +132,7 @@ Phase 4 and parts of Phase 5 are still open.
   flagged above that need a decision.
 
 - [x] **Gas-giant density blend and inverted greenhouse factor** — fixed
-  this session (Track A, partial). `planetPhysics.py`'s gas-giant density
+  (Track A, partial). `planetPhysics.py`'s gas-giant density
   blend now uses a mass-weighted harmonic mean instead of an arithmetic
   mean over a mass fraction (was producing densities as low as
   0.026 g/cm^3); `plausibility.py`'s mirrored `theoretical_gravity_bounds_g`
@@ -140,15 +140,19 @@ Phase 4 and parts of Phase 5 are still open.
   "monotonic in each argument." The greenhouse-factor formula no longer
   rewards atmospheres for being *far* from CO2's molar density — it now
   scales with `atm_molar_density` directly, the only atmosphere-composition
-  signal that exists in the data model today. 8672 tests passing after the
-  merge. **Still open, not yet done:** atmospheric pressure is still
-  algebraically independent of gravity, and Class M/Class P remain
-  statistically indistinguishable — both were scoped as fixes 3 and 4 of
-  the same Track A plan but weren't reached before this session's usage
-  budget ran out; resume from worktree `agent-a8acb02b98bed5b8d`
-  (branch `worktree-agent-a8acb02b98bed5b8d`), which has uncommitted WIP
-  toward the pressure/gravity-retention fix plus a new
-  `src/tests/test_planet_physics_fixes.py`.
+  signal that exists in the data model today.
+- [x] **Atmospheric pressure/gravity decoupling and Class M/P
+  indistinguishability — Track A completed.** `_atmosphere_retention_factor`
+  (linear, normalized at Earth gravity) now scales an effective atmospheric
+  density used only in the pressure calculation, reintroducing a real
+  gravity/pressure relationship (Spearman correlation > 0.5 on a mixed
+  terrestrial/gas-giant sample, vs. ~-0.11 before). Class P now has its own
+  `albedo_range` (0.5-0.7, real ice/snow Bond albedo) instead of sharing the
+  default (0.12-0.35) with every other terrestrial class, so it's
+  meaningfully colder than Class M again from the physics itself rather
+  than a post-hoc clamp. 8682 tests passing (10 new in
+  `src/tests/test_planet_physics_fixes.py`). See CHANGELOG.md [5.3.5].
+  Track A is now fully done.
 - [ ] **Galaxy coordinate system: the 8 open questions were decided this
   session** (single galaxy per database, fix `GALACTIC_CENTER_DISTANCE_LY`
   now rather than defer, no stored per-sector roll angle, and a
@@ -158,11 +162,6 @@ Phase 4 and parts of Phase 5 are still open.
   implementation (Track C) is paused mid-session, uncommitted**, not a
   design gap anymore. See the Phase 4 entry below for what's actually
   written and what's still missing before it can merge.
-
-**What's still an open decision, not a bug to just go fix**: the
-atmospheric-pressure/gravity decoupling and Class M/P indistinguishability
-above (narrower than before this session, since the greenhouse/density half
-of this is now fixed).
 
 ## Investigate Further
 
