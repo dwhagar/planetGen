@@ -30,7 +30,7 @@ from stellarObjects.names import (
     STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES,
     UNIVERSAL_PHONEMES,
 )
-from stellarObjects.utils import generate_phoneme_salad_name, split_into_syllables
+from stellarObjects.utils import generate_phoneme_salad_name, split_into_syllables, split_long_word
 
 
 def test_apostrophe_base_name_splits_into_a_leading_apostrophe_syllable():
@@ -112,3 +112,42 @@ def test_generate_phoneme_salad_name_sweep_does_not_crash(name_list, prefixes, s
     for _ in range(20000):
         name = generate_phoneme_salad_name(name_list, prefixes, suffixes)
         assert isinstance(name, str) and name
+
+
+def test_split_long_word_does_not_leave_a_trailing_apostrophe():
+    """
+    `split_long_word` used to slice a long name in half by raw character
+    index, with no regard for an apostrophe embedded mid-word (from a base
+    name like "Hi'iaka" or a spliced-in `UNIVERSAL_PHONEMES` chunk like
+    "ch'"/"b'a"). When the midpoint landed right after one, the first half
+    ended up ending in a bare "'" -- e.g. "amech'snesis" (12 chars, naive
+    midpoint at index 6, right after the "'") used to become "Amech'
+    Snesis" instead of nudging the split point past the apostrophe.
+    """
+    name = split_long_word("amech'snesis")
+    words = name.split(" ")
+    assert len(words) == 2
+    for word in words:
+        assert word[-1] not in "'`"
+
+
+@pytest.mark.parametrize("name_list,prefixes,suffixes", [
+    (PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES),
+    (STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES),
+])
+def test_generate_phoneme_salad_name_sweep_never_ends_a_word_in_apostrophe_or_backtick(name_list, prefixes, suffixes):
+    """
+    Fallback sweep for the trailing-apostrophe bug fixed in
+    `split_long_word`: run enough iterations (spanning both split and
+    unsplit outcomes) that a regression is very likely to be caught.
+    """
+    for _ in range(20000):
+        name = generate_phoneme_salad_name(name_list, prefixes, suffixes)
+        for word in name.split(" "):
+            if not word:
+                # A handful of base names (e.g. STAR_NAMES's "El Nath")
+                # contain a literal space of their own, which is a separate,
+                # pre-existing concern from the trailing-apostrophe bug this
+                # test targets -- not asserted on here.
+                continue
+            assert word[-1] not in "'`", f"word {word!r} in name {name!r} ends in an apostrophe/backtick"

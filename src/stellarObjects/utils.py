@@ -428,14 +428,29 @@ def split_long_word(name):
     This function improves the readability of long generated names by splitting
     them into two parts, creating a compound name effect.
 
+    A name can contain an embedded apostrophe (from a base name like
+    "Hi'iaka" or a spliced-in `UNIVERSAL_PHONEMES` chunk like "ch'"/"b'a").
+    If the naive midpoint split landed right next to one of those, one half
+    would end up starting or ending with a bare "'" (e.g. "Amech' Snesis") --
+    so the split point is nudged past any apostrophe it would otherwise cut
+    beside. If nudging would consume the whole rest of the name, the split
+    is skipped and the name is returned unsplit rather than produce an
+    empty half.
+
     Args:
         name (str): The long word to be split.
 
     Returns:
-        str: The split and capitalized name, or the original name if not long enough.
+        str: The split and capitalized name, or the original name if not
+             long enough (or if avoiding an apostrophe boundary leaves no
+             valid split point).
     """
     if len(name) > WORD_SIZE_MEAN:
         split_point = len(name) // 2
+        while split_point < len(name) and (name[split_point - 1] == "'" or name[split_point] == "'"):
+            split_point += 1
+        if not (0 < split_point < len(name)):
+            return name
         return name[:split_point] + " " + name[split_point:].capitalize()
     return name
 
