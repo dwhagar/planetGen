@@ -356,6 +356,37 @@ def calculate_surface_gravity(planet):
     planet.gravity = surface_gravity_g
 
 
+def _atmosphere_retention_factor(gravity_g):
+    """
+    A gravity-based atmosphere-retention scaling factor, normalized to 1.0
+    at Earth gravity (`gravity_g == 1.0`).
+
+    Substituting `scale_height_m` into the old `atmospheric_pressure =
+    atm_density * surface_gravity_ms2 * scale_height_m` line shows gravity
+    cancels out exactly (`atmospheric_pressure = atm_density * R * T /
+    atm_molar_density`), making pressure unphysically independent of a
+    planet's gravity -- higher gravity should let a planet retain more
+    atmosphere and support higher surface pressure. This factor is applied
+    to an *effective* atmospheric density used only in the pressure
+    calculation (see `calculate_atmospheric_conditions`), not to
+    `planet.atm_density` itself, since that value also feeds the gas-giant
+    density blend in `generate_planet_properties` -- modifying it here would
+    create a circular dependency, since gravity is itself derived partly
+    from density for gas giants.
+
+    k=1 (linear scaling) is a starting point, not a value derived from a
+    real atmospheric-retention model; tune here if generated pressure
+    distributions warrant a different curve.
+
+    Args:
+        gravity_g (float): Surface gravity in Earth g's.
+
+    Returns:
+        float: The retention factor (1.0 at gravity_g == 1.0).
+    """
+    return gravity_g ** 1  # k=1 linear scaling as the default/starting point
+
+
 def calculate_atmospheric_conditions(planet, distance_override=None):
     """
     Calculates the atmospheric conditions of the planet, including surface
