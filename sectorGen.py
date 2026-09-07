@@ -50,6 +50,13 @@ def add_shared_generation_options(parser):
                             help=f"+{name} forces every system in the sector to have {description}; "
                                  f"-{name} forces every system in the sector to not have {description}.")
 
+    # TODO: add a `--density` float multiplier here (1.0 = real local
+    # stellar density for a sector this size, via
+    # `physical_constants.LOCAL_STELLAR_DENSITY_LY3`/
+    # `SpaceSector.expected_system_count()`), mutually exclusive with
+    # `--num-systems`, so sectors can be made meaningfully denser/sparser
+    # than each other rather than always using this flat count. See
+    # docs/TODO.md, "Investigate Further".
     parser.add_argument('--num-systems', type=int, default=10,
                         help="The number of star systems to generate in the sector. Defaults to 10.")
     parser.add_argument('--min-habitable', type=int, default=0,
@@ -260,6 +267,11 @@ def build_sector_configs(args):
         list: A list of `num_systems` `SystemConfig` instances, one per
               system the sector will contain.
     """
+    # TODO: once `--density` exists, `args.num_systems` here needs to be a
+    # per-sector value already resolved by the caller (`generate_sector`)
+    # from `_sample_poisson_count(sector.expected_system_count() * density)`,
+    # not always the raw parsed `--num-systems`. See docs/TODO.md,
+    # "Investigate Further".
     configs = [systemGen.build_system_config(args)[0] for _ in range(args.num_systems)]
 
     if args.min_habitable > 0:
@@ -317,6 +329,12 @@ def generate_sector(args, galactic_center_dist_ly=None):
     """
     sector_name = args.sector_name or generate_sector_name()
 
+    # TODO: once `--density` exists, resolve it here (per sector, using
+    # this sector's own `expected_system_count()`) into a copied args
+    # namespace with `.num_systems` set, before calling
+    # `build_sector_configs` -- must not mutate `args` in place, since this
+    # function runs once per sector under `--num-sectors`/`galaxyGen.py`.
+    # See docs/TODO.md, "Investigate Further".
     configs = build_sector_configs(args)
     systems = [
         StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)

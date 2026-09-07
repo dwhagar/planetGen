@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Planned
+- **`sectorGen.py --density`**: a controllable density multiplier so one
+  generated sector can be meaningfully denser/sparser than another, reusing
+  the existing real-stellar-density model (`SpaceSector.expected_system_count`/
+  `_sample_poisson_count`) instead of the current flat `--num-systems` count
+  alone. See `docs/TODO.md` ("Investigate Further") and the `# TODO` markers
+  in `sectorGen.py`.
+
 ## [5.4.0] - 2026-09-07
 
 ### Removed
