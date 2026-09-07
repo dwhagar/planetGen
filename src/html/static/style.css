@@ -275,41 +275,42 @@ tbody tr:last-child td {
   font-size: 0.75em;
 }
 
-/* System page: rendered description + floating table-of-contents */
-.description-layout {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 2rem;
-}
+/* System page: rendered description -- the table-of-contents (.toc) is
+   fixed in the right-hand margin of the window (see below) rather than
+   living inline next to the prose, so it never narrows the reading column. */
 
-.description-layout .prose {
-  flex: 1 1 28rem;
-  min-width: 0;
-}
-
+/* Right-hand margin rail, mirroring .sidenav on the left. Only shown once
+   the window is wide enough to have real margin space beyond the centered
+   `body` column (max-width 64rem) for it to live in without overlapping
+   the content; narrower windows just don't get a TOC. */
 .toc {
-  flex: 0 0 13rem;
-  position: sticky;
-  top: 1.5rem;
-  align-self: flex-start;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
-  max-height: calc(100vh - 3rem);
-  overflow-y: auto;
+  display: none;
 }
 
-.toc summary {
+@media (min-width: 90rem) {
+  .toc {
+    display: block;
+    position: fixed;
+    top: 5rem;
+    right: 1.5rem;
+    width: 14rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+.toc-title {
   margin: 0;
   font-size: 0.78rem;
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
-  cursor: pointer;
 }
 
 .toc ul {

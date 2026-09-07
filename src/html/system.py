@@ -140,15 +140,14 @@ def _bodies_html(conn, system_id):
 
 def _toc_html(headings):
     """
-    Builds the floating table-of-contents sidebar linking to each heading
+    Builds the table-of-contents linking to each heading
     `markdown_to_html_with_headings` found in the rendered description --
     skipped entirely when there's nothing worth a contents list for (just
     the system's own top-level heading, or no description at all).
 
-    Built as a `<details>`/`<summary>` pair (collapsed by default -- no
-    `open` attribute) rather than a plain `<aside>` so a long system
-    description doesn't force a tall, always-open contents box onto every
-    page; native `<details>` gives a free, no-JS toggle.
+    Rendered fixed in the right-hand margin of the window (see `.toc` in
+    style.css), out of the main content column, so it doesn't crowd the
+    description like an inline/collapsed box would.
     """
     if len(headings) <= 1:
         return ""
@@ -157,10 +156,10 @@ def _toc_html(headings):
         for heading in headings
     )
     return f"""
-<details class="toc" aria-label="Table of contents">
-<summary>Contents</summary>
+<nav class="toc" aria-label="Table of contents">
+<div class="toc-title">Contents</div>
 <ul>{items}</ul>
-</details>
+</nav>
 """
 
 
@@ -200,12 +199,10 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
     <a href="{base_url}&view=source&format=markdown">Markdown source</a>
   </div>
 </div>
-<div class="description-layout">
+{toc_html}
 <article class="prose">
 {rendered}
 </article>
-{toc_html}
-</div>
 </section>
 """
 
