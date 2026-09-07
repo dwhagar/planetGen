@@ -22,7 +22,7 @@ import math
 import pytest
 
 from stellarObjects.config import SystemConfig
-from stellarObjects.starData import Star
+from stellarObjects.starData import Star, _sample_evolved_star_mass_sol
 from stellarObjects import physical_constants as pc
 from stellarObjects import program_constants as prog_c
 
@@ -130,6 +130,66 @@ def test_evolved_stars_are_at_least_as_old_as_their_own_main_sequence_lifespan(y
             f"{spec}5{yerkes_class}: age {s.age} Gy is younger than its own "
             f"implied main-sequence lifespan {ms_lifespan} Gy"
         )
+
+
+@pytest.mark.parametrize("yerkes_class", ["II", "III", "IV", "IB", "IAB", "IA", "IA+", "0"])
+def test_evolved_star_mass_never_implies_a_pre_big_bang_star(yerkes_class):
+    """
+    Regression test for "Evolved-star mass sampling can imply a
+    pre-Big-Bang star" (see TODO.md's "Future ideas" / CHANGELOG.md): an
+    evolved-class star's own generated mass must never imply a
+    main-sequence lifespan longer than the age of the universe -- such a
+    progenitor couldn't have finished its main-sequence phase yet, so a
+    star with that mass could never actually be observed as an evolved
+    class today. Class III (Giant)'s allowed mass range (0.8-8 Msun, see
+    physical_constants.YERKES_MASS_CONSTRAINTS) is the one that actually
+    brushes the ~0.88 Msun cutoff, so more trials run there to exercise the
+    reject-and-resample loop (Star._sample_evolved_star_mass_sol).
+    """
+    trials = 200 if yerkes_class == "III" else 20
+    for spec in SPECTRAL_CLASSES:
+        for _ in range(trials):
+            s = make_star(f"{spec}5{yerkes_class}")
+            mass_sol = s.mass / pc.SOLAR_MASS_TO_KG
+            ms_lifespan = 10.0 * mass_sol ** -2.5
+            assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
+                f"{spec}5{yerkes_class}: mass {mass_sol} Msun implies a "
+                f"main-sequence lifespan of {ms_lifespan} Gy, longer than the "
+                f"age of the universe ({prog_c.UNIVERSE_AGE_GY} Gy) -- this "
+                f"progenitor couldn't have finished its main-sequence phase yet."
+            )
+
+
+def test_sample_evolved_star_mass_sol_rejects_pre_big_bang_masses():
+    """
+    Unit-level regression test for Star._sample_evolved_star_mass_sol
+    itself: every mass it returns for class III (Giant)'s allowed range
+    (0.8-8 Msun -- the one class where the ~0.88 Msun cutoff actually falls
+    inside the range) must have an implied main-sequence lifespan within
+    the age of the universe, even though plain uniform sampling over that
+    same range would sometimes land below the cutoff.
+    """
+    min_mass_sol, max_mass_sol = pc.YERKES_MASS_CONSTRAINTS["III"]
+    for _ in range(500):
+        mass_sol = _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol)
+        assert min_mass_sol <= mass_sol <= max_mass_sol
+        ms_lifespan = prog_c.SOLAR_MS_LIFESPAN_GY * mass_sol ** prog_c.MS_LIFESPAN_MASS_EXPONENT
+        assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
+            f"sampled mass {mass_sol} Msun implies a main-sequence lifespan of "
+            f"{ms_lifespan} Gy, longer than the age of the universe"
+        )
+
+
+def test_sample_evolved_star_mass_sol_raises_when_range_is_entirely_invalid():
+    """
+    A mass range whose *every* value implies a main-sequence lifespan
+    longer than the age of the universe (e.g. class VI's own 0.1-0.8 Msun
+    range, which is exactly why Star.generate_star excludes VI from this
+    check) must fail loudly rather than looping forever or silently
+    returning a self-contradictory mass.
+    """
+    with pytest.raises(ValueError):
+        _sample_evolved_star_mass_sol(*pc.YERKES_MASS_CONSTRAINTS["VI"])
 
 
 @pytest.mark.parametrize("star_type", ALL_STAR_TYPES)

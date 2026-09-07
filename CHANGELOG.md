@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.3.1] - 2026-09-06
+
+### Fixed
+- **Evolved-star mass sampling could imply a pre-Big-Bang star.** An
+  evolved-class star (`Yerkes != V`, e.g. a giant or supergiant) derives
+  its required main-sequence lifespan from its own already-generated mass
+  (`Star._calculate_initial_star_age_and_lifespan`'s evolved-star branch);
+  for a sub-solar-mass progenitor (roughly under ~0.88 Msun), that implied
+  lifespan alone already exceeded `UNIVERSE_AGE_GY` (13.8 Gy) -- meaning
+  such a star couldn't actually have finished its main-sequence phase yet
+  in the real universe. The [5.3.0] universe-age fix deliberately didn't
+  paper over this by capping age below its own required floor, since that
+  would produce a self-contradictory star (e.g. a red giant younger than
+  its own progenitor's main-sequence lifespan); this is the deeper fix it
+  called for. `Star.generate_star`'s evolved-star mass sampling now uses a
+  new `_sample_evolved_star_mass_sol` helper (`stellarObjects/starData.py`)
+  that rejects and resamples (not clamps, which would just pile an
+  artificial spike at the cutoff) any candidate mass whose implied
+  main-sequence lifespan would exceed `UNIVERSE_AGE_GY`, capped at
+  `program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS` (100)
+  attempts before raising `ValueError` -- in practice a no-op resample for
+  every class but III (Giant), whose 0.8-8 Msun range straddles the
+  cutoff. Yerkes class VI (subdwarf) is deliberately excluded, since its
+  entire allowed mass range (0.1-0.8 Msun) sits below the cutoff and would
+  reject every draw; that's tracked as a separate, still-open modeling
+  question in `TODO.md`.
+
 ## [5.3.0] - 2026-09-06
 
 ### Fixed

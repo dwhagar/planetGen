@@ -29,6 +29,68 @@ from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_
                     format_length_km, format_relative_to_sol, generate_phoneme_salad_name,
                     get_star_evolutionary_profile, properties_to_string, reseed_rng)
 
+def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
+    """
+    Draws a progenitor mass (in solar masses) for an evolved-class star
+    (giant, subgiant, bright giant, supergiant, or hypergiant) uniformly
+    from `[min_mass_sol, max_mass_sol]`, rejecting and resampling any draw
+    whose implied main-sequence lifespan
+    (`SOLAR_MS_LIFESPAN_GY * mass_sol ** MS_LIFESPAN_MASS_EXPONENT`, the
+    same formula `Star._calculate_initial_star_age_and_lifespan`'s
+    evolved-star branch uses) would already exceed
+    `program_constants.UNIVERSE_AGE_GY` on its own.
+
+    Such a mass could not actually have finished a main-sequence phase yet
+    in the real universe, so a star with it could never legitimately be
+    observed as an evolved class -- see "Evolved-star mass sampling can
+    imply a pre-Big-Bang star" (formerly tracked in TODO.md). Rejecting and
+    resampling (rather than clamping the draw up to the valid sub-range)
+    keeps the accepted mass uniformly distributed over its valid portion
+    instead of piling an artificial spike at the cutoff, matching the bias
+    reasoning `spaceSector._random_point_in_annulus` documents for its own
+    sampling. `program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS`
+    caps the retries, mirroring `SpaceSector._random_position`'s own
+    reject-and-resample loop, so a caller passing a range that's entirely
+    invalid fails loudly with a `ValueError` instead of looping forever or
+    silently returning a self-contradictory mass.
+
+    Not used for Yerkes class VI (subdwarfs): their entire allowed mass
+    range (0.1-0.8 Msun, see `physical_constants.YERKES_MASS_CONSTRAINTS`)
+    sits below the ~0.88 Msun cutoff, so every draw would be rejected. Real
+    subdwarfs are thought to form via binary mass-stripping rather than
+    single-star post-main-sequence evolution, so applying a single-star
+    progenitor-lifespan check to them isn't physically appropriate anyway;
+    see TODO.md for that still-open question.
+
+    Args:
+        min_mass_sol (float): Lower bound of the class's allowed mass range,
+                              in solar masses.
+        max_mass_sol (float): Upper bound of the class's allowed mass range,
+                              in solar masses.
+
+    Returns:
+        float: The accepted mass, in solar masses.
+
+    Raises:
+        ValueError: If no valid mass was found within
+                   `program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS`
+                   attempts.
+    """
+    for _ in range(program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS):
+        mass_sol = random.uniform(min_mass_sol, max_mass_sol)
+        ms_lifespan = (program_constants.SOLAR_MS_LIFESPAN_GY
+                       * mass_sol ** program_constants.MS_LIFESPAN_MASS_EXPONENT)
+        if ms_lifespan <= program_constants.UNIVERSE_AGE_GY:
+            return mass_sol
+
+    raise ValueError(
+        f"Could not sample a mass in [{min_mass_sol}, {max_mass_sol}] Msun whose implied "
+        f"main-sequence lifespan doesn't exceed the age of the universe "
+        f"({program_constants.UNIVERSE_AGE_GY} Gy) after "
+        f"{program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS} attempts."
+    )
+
+
 class Star:
     """
     Represents a single star, encapsulating its physical and orbital properties.
@@ -200,9 +262,15 @@ class Star:
             # self-contradictory star -- e.g. a red giant younger than its
             # own progenitor's main-sequence lifespan). A sub-solar-mass
             # progenitor whose main-sequence lifespan alone already exceeds
-            # the age of the universe is a separate, deeper issue with how
-            # evolved-star masses are sampled -- not fixable by clamping age
-            # alone -- and is tracked in TODO.md rather than papered over here.
+            # the age of the universe can't be fixed by clamping age alone --
+            # `generate_star`'s mass sampling (`_sample_evolved_star_mass_sol`)
+            # now rejects and resamples such a mass before a star ever gets
+            # this far, for every Yerkes class this branch handles except VI
+            # (subdwarfs -- see that function's docstring for why), so
+            # `min_age` staying above `UNIVERSE_AGE_GY` here should no longer
+            # happen in practice for those classes; this `max(..., min_age)`
+            # is kept as a defensive fallback rather than an assumption that
+            # `self.mass` is always already valid.
             max_age = max(min(max_age, program_constants.UNIVERSE_AGE_GY), min_age)
             age = random.uniform(min_age, max_age)
 
@@ -824,11 +892,20 @@ class Star:
                 mass_sol = max(min(mass_override / physical_constants.SOLAR_MASS_TO_KG, physical_constants.CHANDRASEKHAR_LIMIT_SOL), min_mass)
         else:
             # For giants and supergiants, mass is less predictable from luminosity alone.
-            # We choose a random mass within the physically allowed range for the class.
+            # We choose a random mass within the physically allowed range for the class,
+            # rejecting and resampling any draw whose implied main-sequence lifespan would
+            # already exceed the age of the universe (see _sample_evolved_star_mass_sol) --
+            # otherwise a sub-solar-mass progenitor could be assigned to a class that
+            # requires it to have already finished a main-sequence phase that hasn't had
+            # time to happen yet. Yerkes class VI (subdwarf) is deliberately excluded from
+            # this check -- see _sample_evolved_star_mass_sol's docstring for why its whole
+            # allowed mass range would otherwise be rejected outright.
             if mass_override:
                 mass_sol = mass_override / physical_constants.SOLAR_MASS_TO_KG
-            else:
+            elif self.yerkes_class == "VI":
                 mass_sol = random.uniform(min_mass, max_mass)
+            else:
+                mass_sol = _sample_evolved_star_mass_sol(min_mass, max_mass)
 
 
         # Ensure the calculated mass is within the absolute physical bounds for its class.
