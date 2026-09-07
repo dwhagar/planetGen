@@ -352,6 +352,43 @@ class Planet:
             "gravity": f"{round(self.gravity, 3)} g",
         }
 
+    def _gas_giant_pressure_depth_text(self):
+        """
+        Builds descriptive sentences putting the gas giant's already-computed
+        reference-level pressure (`self.atmospheric_pressure`) into physical
+        context: how far below (or above) the standard 1-atmosphere cloud
+        deck that pressure occurs, how quickly pressure grows with depth in
+        this model's isothermal-atmosphere approximation, and a rough,
+        separately-calibrated order-of-magnitude estimate of the crushing
+        pressure deep in the planet's interior, well beyond where the
+        atmosphere model applies.
+
+        Returns:
+            list[str]: One or two sentences, or an empty list if the
+                       underlying scale height/pressure aren't available.
+        """
+        if not self.scale_height or not self.atmospheric_pressure:
+            return []
+
+        reference_pressure_pa = 101300  # ~1 standard atmosphere, matching the "atmospheres" conversion above
+        depth_km = self.scale_height * math.log(self.atmospheric_pressure / reference_pressure_pa)
+        doubling_km = self.scale_height * math.log(2)
+        radius_m = self.radius * 1000
+        core_pressure_gpa = (
+            physical_constants.CENTRAL_PRESSURE_CALIBRATION * 3 * physical_constants.G * self.mass ** 2
+            / (8 * math.pi * radius_m ** 4)
+        ) / 1e9
+
+        if depth_km > 0:
+            depth_sentence = f"That pressure is reached about {depth_km:.0f} km below the nominal 1-atmosphere cloud deck."
+        else:
+            depth_sentence = f"That pressure actually sits about {abs(depth_km):.0f} km above the nominal 1-atmosphere cloud deck, in the thinner upper atmosphere."
+
+        return [
+            f"{depth_sentence} Pressure roughly doubles every {doubling_km:.0f} km of additional depth in this simplified isothermal atmosphere.",
+            f"Far deeper, in the crushed interior well beyond where this model applies, core pressure is roughly on the order of {core_pressure_gpa:.0f} GPa (for comparison, Jupiter's real core is estimated near {physical_constants.JUPITER_CORE_PRESSURE_PA / 1e9:.0f} GPa).",
+        ]
+
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs about the planet or moon,
@@ -401,6 +438,7 @@ class Planet:
         else:
             sentences.append(
                 f"This gas giant has an internal pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+            sentences.extend(self._gas_giant_pressure_depth_text())
             sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
 
         # Call the new method to get life and flavor text paragraphs

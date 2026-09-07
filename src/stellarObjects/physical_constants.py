@@ -67,13 +67,21 @@ ATMOSPHERE_DENSITY = {
     # docs/analysis/habitability-atmosphere-sanity-review.md for how this
     # undershoot shows up in generated Class M output).
     "t": (0.02, 1.2),
-    "g": (0.69, 1.33),   # Gas Giant: Approximate range using Jupiter and Saturn's overall densities
+    # Gas Giant: the previous (0.69, 1.33) range was Saturn's and Jupiter's
+    # *bulk/overall* density (the same g/cm^3-scale figures used correctly
+    # in PLANET_DENSITY above) -- the average density of the whole planet
+    # including its dense core, not the density of the gas at the 1-bar
+    # reference "surface" level this table is meant to describe. Derived
+    # here instead from the ideal gas law (rho = P*M/(R*T), P = 1 bar) using
+    # each planet's real 1-bar temperature and mean atmospheric molar mass:
+    # Jupiter ~0.17, Saturn ~0.19, Uranus ~0.42, Neptune ~0.44 kg/m^3.
+    "g": (0.16, 0.45),   # Gas Giant: Range from Jupiter to Neptune at the 1-bar reference level
 }
 
 # Atmospheric molar density ranges for terrestrial and gas giant planets in kg/mol
 ATMOSPHERIC_MOLAR_DENSITY = {
     "t": (0.02897, 0.04347),  # Terrestrial: Range from Earth to Venus
-    "g": (0.00226, 0.00416),   # Gas Giant: Range from Jupiter to Neptune
+    "g": (0.00207, 0.00266),   # Gas Giant: Range from Saturn to Neptune's real mean molar mass (~2.07-2.66 g/mol)
 }
 
 # Bulk density of a gas giant's light, puffy H/He envelope, in g/cm^3 -- used
@@ -81,12 +89,13 @@ ATMOSPHERIC_MOLAR_DENSITY = {
 # blend (and its mirror, plausibility.theoretical_gravity_bounds_g), NOT the
 # same quantity as ATMOSPHERE_DENSITY["g"] above (that one feeds the
 # atmospheric-pressure/scale-height calculation, a different physical layer).
-# Deliberately a separate constant: ATMOSPHERE_DENSITY["g"]'s values
-# (0.69-1.33) are themselves Jupiter/Saturn's real *bulk* densities in
-# g/cm^3, despite living in a dict documented as kg/m^3 -- reusing them
-# directly as a kg/m^3 input to the density blend (which divides by 1000 to
-# convert to g/cm^3, correct for the "t" case but not this one) understated
-# the envelope density by ~1000x, which the harmonic-mean blend below is
+# Deliberately a separate constant: ATMOSPHERE_DENSITY["g"]'s values are
+# kg/m^3 gas densities at the 1-bar reference level (~0.16-0.45), two to
+# three orders of magnitude smaller than a g/cm^3 bulk density -- reusing
+# them directly as a kg/m^3 input to the density blend (which divides by
+# 1000 to convert to g/cm^3, correct for the "t" case but not this one)
+# would understate the envelope density by ~1000x, which the harmonic-mean
+# blend below is
 # highly sensitive to (the smaller of the two blended densities dominates
 # the result almost regardless of mass fraction) -- collapsing every gas
 # giant's overall density to a near-zero, physically meaningless value
@@ -99,6 +108,20 @@ ATMOSPHERIC_MOLAR_DENSITY = {
 # without collapsing the result the way the old ~0.0007-0.0013 g/cm^3 draw
 # did.
 GAS_ENVELOPE_BULK_DENSITY = (0.06, 0.3)
+
+# Reference point and calibration factor for the rough gas-giant core-
+# pressure estimate in planetData's flavor text. A uniform-density
+# self-gravitating sphere has an exact central pressure of
+# P_c = 3*G*M^2/(8*pi*R^4) (integrating hydrostatic equilibrium
+# dP/dr = -G*M(r)*rho/r^2 at constant rho). Real gas giants are centrally
+# condensed rather than uniform, so this underestimates the true value --
+# for Jupiter's own mass/radius the uniform-sphere formula alone gives only
+# ~1,100 GPa, versus a real estimated core pressure near 4,000 GPa. This
+# factor scales the uniform-sphere estimate back up to the right order of
+# magnitude for any generated gas giant. Not a rigorous equation-of-state
+# model -- flavor-text purposes only, not used by any other calculation.
+JUPITER_CORE_PRESSURE_PA = 4e12  # ~4,000 GPa, a commonly cited estimate
+CENTRAL_PRESSURE_CALIBRATION = 3.6
 
 # Renamed AU_TO_LIGHT_YEAR to LY_TO_AU for clarity and consistency.
 LY_TO_AU = 63241.1
