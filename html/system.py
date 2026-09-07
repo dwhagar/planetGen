@@ -199,6 +199,10 @@ def handler():
             f'<span class="badge">{bit}</span>' for bit in summary_bits
         ) + "</p>"
 
+        location_html = ""
+        if system["location"]:
+            location_html = f'<p class="location">Location: {esc(system["location"])}</p>'
+
         stars_html = _stars_html(conn, system_id)
         bodies_html = _bodies_html(conn, system_id)
         description_html = _description_html(
@@ -210,6 +214,7 @@ def handler():
     body = f"""
 {back_html}
 {summary_html}
+{location_html}
 {description_html}
 {stars_html}
 {bodies_html}

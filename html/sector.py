@@ -42,7 +42,7 @@ def handler():
         systems = fetch_all(
             conn,
             """
-            SELECT id, name, is_binary, quadrant,
+            SELECT id, name, is_binary, quadrant, location,
                    position_x_mpc, position_y_mpc, position_z_mpc, binary_type
             FROM star_systems
             WHERE sector_id = ?
@@ -67,9 +67,10 @@ def handler():
                 f'<td>{esc(row["quadrant"])}</td>'
                 f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
                 f'<td>{esc(star_type)}</td>'
+                f'<td>{esc(row["location"])}</td>'
                 "</tr>"
             )
-        rows_html = "".join(rows) or '<tr><td colspan="4"><em>None</em></td></tr>'
+        rows_html = "".join(rows) or '<tr><td colspan="5"><em>None</em></td></tr>'
 
         edge_ly = milliparsecs_to_ly(sector["edge_mpc"]) if milliparsecs_to_ly else None
         edge_text = f"{edge_ly:,.2f} ly" if edge_ly is not None else f"{sector['edge_mpc']:,.2f} mpc"
@@ -90,7 +91,7 @@ def handler():
 <section class="panel">
 <h2>Systems</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Quadrant</th><th>Binary</th><th>Star type</th></tr></thead>
+  <thead><tr><th>Name</th><th>Quadrant</th><th>Binary</th><th>Star type</th><th>Location</th></tr></thead>
   <tbody>{rows_html}</tbody>
 </table></div>
 </section>

@@ -123,7 +123,7 @@ prose always states: `density`, the distance range (`lower_limit_km`/
 Two independent version numbers:
 
 - `PRAGMA user_version` on the database file — the DDL structure version
-  (this schema is version `2`; see "Schema history" below for what
+  (this schema is version `3`; see "Schema history" below for what
   changed since `1`).
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (from the future Phase 1 `to_dict()`) that produced
@@ -143,6 +143,16 @@ Two independent version numbers:
   keeps working after a `git pull` brings in the new schema. A database
   already on the current version is left untouched (no backup file is
   created for a no-op).
+- **v2 → v3**: added `star_systems.location`, a human-readable "sector
+  name + nearest neighbors" summary — see the `star_systems` table below
+  and `schema.sql`'s "v3" header note. `migrate_database`'s
+  `_migrate_v2_to_v3` backfills it for every migrated row that has a
+  sector position, computed from the already-stored positions the same
+  way `insert_sector` computes it for a freshly generated sector.
+  `_migrate_v1_to_v2` now goes all the way from v1 to the current (v3)
+  schema in one hop and backfills `location` too, rather than stopping at
+  an intermediate v2 shape — `migrate_database` still runs exactly one of
+  the two functions per database, chosen by its detected source version.
 
 ### Booleans and tri-state flags
 
@@ -225,6 +235,7 @@ One row per generated system (single-star or binary).
 | `name` | TEXT | NOT NULL | The system's display name — the primary star's name, or `"X Binary System"` for a binary. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | REAL | nullable | Position relative to the sector's cubic center. NULL iff not placed in a sector. |
 | `quadrant` | TEXT | nullable, CHECK IN ('I'..'VIII') | The sector octant label derived from the position above (see "Quadrant labeling" below). NULL iff position is NULL. |
+| `location` | TEXT | nullable | Human-readable "sector name + nearest neighbors" summary, e.g. `"Voranthis Kelmoor — nearest: Alpha Prime (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)"` — up to 3 neighbors, nearest first, computed once at write time from `SpaceSector.nearest_neighbors` (see "v3" in "Schema history" above). NULL iff position is NULL. |
 | `is_binary` | INTEGER (0/1) | NOT NULL, default 0 | |
 | `binary_separation_km` | REAL | nullable | Orbital separation between the two stars. NULL for single-star systems. |
 | `binary_type` | TEXT | nullable | e.g. `"Binary (G/K)"`. |

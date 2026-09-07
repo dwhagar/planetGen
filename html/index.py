@@ -9,11 +9,12 @@ Landing page: lists every `.db` file found in the database directory
 
 import os
 import sys
+from urllib.parse import quote
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from dbutil import esc, list_databases, open_readonly, resolve_db_path
-from page import run
+from page import redirect, run
 
 
 def _counts(path):
@@ -71,4 +72,12 @@ def handler():
     return "planetGen Databases", body
 
 
-run(handler)
+# A choice of exactly one database isn't a choice -- skip the picker table
+# entirely and go straight to it, same as picking its only row would.
+# Zero (nothing to redirect to) and 2+ (an actual choice) both fall through
+# to the normal `run(handler)` picker below, unchanged.
+_databases = list_databases()
+if len(_databases) == 1:
+    redirect(f"browse.py?db={quote(_databases[0]['name'])}")
+else:
+    run(handler)
