@@ -365,13 +365,32 @@ tbody tr:last-child td {
   gap: 1.5rem;
 }
 
-/* Zoom lives on its own wrapper *outside* `.starmap-stage` (which holds
-   `perspective`) rather than between it and `.starmap-scene` (which
-   holds the rotation transform) -- sandwiching a plain 2D transform
-   between a perspective element and its 3D-transformed child would flatten
-   the child's rotation before perspective could apply to it. Out here,
-   `scale()` just magnifies the whole already-rendered 3D scene, which is
-   exactly what "zoom" should do. */
+/* Fixed-size, clipped "window" the interactive map lives in -- roughly
+   the footprint the old static isometric SVG occupied. Without this,
+   `.starmap-zoom`'s `scale()` (zooming in) and `.starmap-scene`'s
+   rotation (a wide/tall cube diagonal at some angles) both let the map
+   grow past its panel and draw over surrounding page content instead of
+   staying confined to one spot. `overflow: hidden` here clips that --
+   the 3D content inside still renders/rotates/occludes exactly the same,
+   this only bounds where it's visible from the *outside*. */
+.starmap-viewport {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  width: min(100%, 22rem);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Zoom lives on its own wrapper *outside* `.starmap-stage` rather than
+   between it and `.starmap-scene` (which holds the rotation transform),
+   so `scale()` just magnifies the whole already-rendered 3D scene as a
+   flat unit -- exactly what "zoom" should do -- instead of getting mixed
+   into the rotation math itself. */
 .starmap-zoom {
   display: inline-block;
 }

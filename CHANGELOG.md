@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.4.5] - 2026-09-07
+
+### Fixed
+- **Sector Map: the 3D scene drew over surrounding page content instead
+  of staying confined to its panel.** Zooming in (or rotating to an angle
+  where the cube's diagonal grew past its nominal footprint) had nothing
+  bounding where the map was visible, so it grew and drew over the rest
+  of the page. Added `.starmap-viewport`, a fixed-size (`aspect-ratio: 1
+  / 1`, matching the square footprint the old static image occupied),
+  `overflow: hidden` window that the 3D scene now rotates/zooms/pans
+  inside of -- clipped at its edges instead of spilling out. The 3D
+  content inside renders/rotates/occludes exactly the same either way;
+  this only bounds where it's visible from the outside.
+
 ## [5.4.4] - 2026-09-07
 
 ### Added

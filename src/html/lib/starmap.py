@@ -391,10 +391,12 @@ def render_map_panel(db_name, edge_mpc, systems):
   <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness</span>
 </div>
 <div class="starmap-layout">
+<div class="starmap-viewport">
 <div class="starmap-zoom" id="starmap-zoom">
 <div class="starmap-stage" id="starmap-stage" tabindex="0" role="application"
      aria-label="Interactive 3D sector map. Drag or use arrow keys to rotate, scroll or the zoom buttons to zoom.">
 {scene}
+</div>
 </div>
 </div>
 <div class="starmap-side">
