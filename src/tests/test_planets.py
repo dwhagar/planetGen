@@ -31,11 +31,6 @@ VALID_CLASS_ZONE_PAIRS = [
     if data[zone]
 ]
 
-CLASSES_WITH_NO_VALID_ZONE = [
-    cls for cls, data in prog_c.PLANET_CLASSES.items() if not any(data[z] for z in ZONE_CHARS)
-]
-
-
 @pytest.fixture(scope="module")
 def host_star():
     cfg = SystemConfig()
@@ -150,23 +145,6 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     assert first_render == second_render
     assert planet.flavor_text_count == 1
     assert planet.system_config.system_flavor_count == 1
-
-
-@pytest.mark.parametrize("cls", CLASSES_WITH_NO_VALID_ZONE)
-def test_known_issue_class_with_no_valid_zone_is_unreachable(host_star, cls):
-    """
-    FINDING (not fixed -- see fork report): PLANET_CLASSES['R'] declares
-    h=e=c=False, so it has zero probability weight in PLANET_CLASS_PROBABILITIES
-    *and* fails zone validation in every zone if explicitly requested. This
-    xfail is strict so it starts failing loudly (forcing an update) the
-    moment this class becomes reachable in some zone -- whether that's the
-    right fix (which zone(s) should an "ejected" world belong to?) is a
-    design question for a human, not something this fork guessed at.
-    """
-    assert prog_c.PLANET_CLASS_PROBABILITIES.get(cls, 0) == 0
-    with pytest.raises(ValueError, match="Invalid planet class for this zone"):
-        for zone in ZONE_CHARS:
-            make_planet(host_star, cls, zone)
 
 
 def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star):

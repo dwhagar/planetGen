@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 import systemGen
-from stellarObjects import _db, program_constants
+from stellarObjects import _db
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.names import SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count

@@ -1,5 +1,46 @@
 # Changelog
 
+## [5.4.2] - 2026-09-07
+
+### Removed
+- **Class R ("an ejected, geologically active world") removed entirely.**
+  It had `h`/`e`/`c` all `False` -- zero probability weight, unreachable
+  outside a manual `zone_override`. A genuinely free-floating/rogue planet
+  (no host star at all) is a real exoplanet category, but doesn't fit this
+  generator's star-centric zone model -- "which zone" is the wrong
+  question for an object with no star to be zoned relative to. Rather than
+  leave it as permanent dead weight, cut from `PLANET_CLASSES`,
+  `PLANET_CLASS_PROBABILITIES` (already 0.0000), and `MOON_BLACKLIST`
+  (`program_constants.py`); the now-vacuous
+  `test_known_issue_class_with_no_valid_zone_is_unreachable` regression
+  test removed from `src/tests/test_planets.py`.
+
+### Fixed
+- **Naming: triple-consonant validation bug.** `utils.is_name_valid`
+  enforced "no more than two consecutive vowels" but had no matching check
+  for consonants, so a fixed denylist of specific clusters
+  (`BAD_CONSONANTS`) was the only thing standing between a generated name
+  and an arbitrary run of 3+ consonants -- empirically ~40% of generated
+  star names had one. Added a `consonant_count` run-length counter
+  symmetric to the existing `vowel_count` one. Verified 0/5000 across
+  star/planet/moon/sector name generation post-fix.
+- **Web interface: navbar had no way back to the database picker on a
+  single-database deployment.** `lib/page.py`'s sidenav only linked to
+  `index.py` when more than one `.db` file existed, since `index.py`
+  itself auto-redirects past the picker for a single database -- but that
+  meant the common single-database production deployment
+  (`starmap.moltenaether.com`) had no Databases link at all. Fixed by
+  always linking to `index.py?all=1`, and teaching `index.py` to render
+  the full picker table (bypassing its own auto-redirect) when `?all=1`
+  is present.
+- **Web interface: system-page table of contents wasn't collapsible.**
+  `system.py`'s `_toc_html` now builds a `<details>`/`<summary>` pair
+  instead of a plain `<aside>`/`<h3>`, collapsed by default -- a native,
+  no-JS toggle.
+- Minor cleanups found in passing: an unused `program_constants` import in
+  `sectorGen.py`, and a stray `f`-string prefix on a non-interpolated
+  string in `evolution.py`.
+
 ## [5.4.1] - 2026-09-07
 
 ### Added

@@ -302,18 +302,19 @@ tbody tr:last-child td {
   overflow-y: auto;
 }
 
-.toc h3 {
-  margin: 0 0 0.5rem;
+.toc summary {
+  margin: 0;
   font-size: 0.78rem;
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+  cursor: pointer;
 }
 
 .toc ul {
   list-style: none;
-  margin: 0;
+  margin: 0.5rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;

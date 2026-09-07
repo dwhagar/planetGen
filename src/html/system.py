@@ -144,6 +144,11 @@ def _toc_html(headings):
     `markdown_to_html_with_headings` found in the rendered description --
     skipped entirely when there's nothing worth a contents list for (just
     the system's own top-level heading, or no description at all).
+
+    Built as a `<details>`/`<summary>` pair (collapsed by default -- no
+    `open` attribute) rather than a plain `<aside>` so a long system
+    description doesn't force a tall, always-open contents box onto every
+    page; native `<details>` gives a free, no-JS toggle.
     """
     if len(headings) <= 1:
         return ""
@@ -152,10 +157,10 @@ def _toc_html(headings):
         for heading in headings
     )
     return f"""
-<aside class="toc" aria-label="Table of contents">
-<h3>Contents</h3>
+<details class="toc" aria-label="Table of contents">
+<summary>Contents</summary>
 <ul>{items}</ul>
-</aside>
+</details>
 """
 
 

@@ -509,6 +509,7 @@ def is_name_valid(name):
     - The name should not exist in the NLTK dictionary of words.
     - The name should not contain any substring from the NSFW (Not Safe For Work) word list.
     - The name should not contain more than two consecutive vowels.
+    - The name should not contain more than two consecutive consonants.
     - The name should not contain any of the defined bad consonant clusters.
 
     These checks help in generating names that are unique, appropriate, and sound plausible.
@@ -528,12 +529,18 @@ def is_name_valid(name):
             return False
     
     vowel_count = 0
+    consonant_count = 0
     for char in name_lower:
         if char in VOWELS:
             vowel_count += 1
+            consonant_count = 0
+        elif char.isalpha():
+            consonant_count += 1
+            vowel_count = 0
         else:
             vowel_count = 0
-        if vowel_count > 2:
+            consonant_count = 0
+        if vowel_count > 2 or consonant_count > 2:
             return False
 
     for cluster in BAD_CONSONANTS:

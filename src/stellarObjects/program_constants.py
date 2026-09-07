@@ -736,24 +736,6 @@ PLANET_CLASSES = {
             "slow": (25.0, 50.0)
         }
     },
-    "R": {
-        "description": "an ejected, geologically active world",
-        "composition": "silicate compounds and iron",
-        "radius_range": (7500, 10000),
-        # Unreachable under normal generation (h/e/c all False, see
-        # test_known_issue_class_with_no_valid_zone_is_unreachable) -- value
-        # is a placeholder, not a researched analog.
-        "size_mode": 0.5,
-        "h": False, "e": False, "c": False,
-        "atmosphere": "volcanic outgassing",
-        "type": "t",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
-    },
     "T": {
         # Radius corrected 250,000-25,000,000km -> 15,000-55,000km -- real
         # brown-dwarf/giant-planet physics (electron degeneracy pressure
@@ -845,17 +827,19 @@ PLANET_CLASSES = {
     },
 }
 
-# Probabilities for each planet class to be generated. Four classes were
-# removed over time: two small hot-zone rocky variants merged into A/B, and
-# two brown-dwarf-like sub-stellar classes cut entirely once their radius
-# ranges were corrected to real physics and turned out to be redundant
-# near-duplicates of each other (see CHANGELOG.md). Each removed class's
-# weight was folded into the class(es) that absorbed its concept rather
-# than just dropped.
+# Probabilities for each planet class to be generated. Five classes were
+# removed over time: two small hot-zone rocky variants merged into A/B, two
+# brown-dwarf-like sub-stellar classes cut entirely once their radius ranges
+# were corrected to real physics and turned out to be redundant
+# near-duplicates of each other, and Class R (never reachable -- h/e/c were
+# all False) cut entirely rather than left as permanent dead weight (see
+# CHANGELOG.md). Each removed class's weight was folded into the class(es)
+# that absorbed its concept rather than just dropped; R already carried a
+# weight of 0.0000, so nothing needed redistributing.
 PLANET_CLASS_PROBABILITIES = {
     'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
     'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0531, 'K': 0.0142, 'L': 0.0335,
-    'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001, 'R': 0.0000,
+    'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001,
     'T': 0.0001, 'V': 0.0045, 'W': 0.0001
 }
 
@@ -1050,7 +1034,7 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W
 list: A list of planet class codes that are considered habitable.
 """
 
-MOON_BLACKLIST = ['Q', 'R', 'V', 'W']
+MOON_BLACKLIST = ['Q', 'V', 'W']
 """
 list: A list of planet class codes that cannot be generated as moons.
 """
