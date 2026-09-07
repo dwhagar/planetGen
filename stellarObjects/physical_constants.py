@@ -59,7 +59,14 @@ PLANET_DENSITY = {
 
 # Atmospheric density ranges for terrestrial and gas giant planets in kg/m³
 ATMOSPHERE_DENSITY = {
-    "t": (0.02, 1.2),    # Terrestrial: Range from Mars to Venus
+    # Terrestrial: real surface air density spans Mars (~0.02 kg/m^3) to
+    # Earth (~1.225 kg/m^3) here -- NOT Venus, whose real surface air
+    # density (~65 kg/m^3) is roughly 50x this range's own upper bound; the
+    # comment previously named Venus, which was incorrect and made this
+    # range look far more permissive than it actually is (see
+    # docs/analysis/habitability-atmosphere-sanity-review.md for how this
+    # undershoot shows up in generated Class M output).
+    "t": (0.02, 1.2),
     "g": (0.69, 1.33),   # Gas Giant: Approximate range using Jupiter and Saturn's overall densities
 }
 
