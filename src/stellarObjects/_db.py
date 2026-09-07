@@ -33,6 +33,7 @@ allowlists/reconstruction logic from `stellarObjects/serialization.py`
 that was never nested to begin with.
 """
 
+import gzip
 import os
 import shutil
 import sqlite3
@@ -64,6 +65,17 @@ SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "schema.sql")
 DEFAULT_DB_PATH = os.path.join(_PROJECT_ROOT, "db", "planetgen.db")
 """str: Where the database lives by default -- the `db/` directory
 scaffolded at the project root specifically for this file (gitignored)."""
+
+BACKUP_MARKER = "-backup-"
+"""str: Substring `migrate_database` puts into every backup filename it
+creates (between the source schema version and the timestamp, e.g.
+`planetgen.db.v2-backup-20260907T101530.db.gz`). Callers that enumerate
+`.db`-ish files and must not treat a migration backup as a live,
+pickable/re-migratable database (`html/lib/dbutil.py`'s `list_databases`/
+`resolve_db_path`, and `migrateDb.py`'s directory scan) filter on this
+constant explicitly, rather than relying solely on the backup's `.db.gz`
+extension not matching a `*.db` glob -- explicit and robust even if the
+naming scheme changes again later."""
 
 
 def get_connection(db_path=None):
@@ -1324,7 +1336,15 @@ def migrate_database(db_path):
 
     Returns:
         str or None: Path to the backup copy made before migrating, or
-                     `None` if no migration was needed.
+                     `None` if no migration was needed. The backup is a
+                     gzip-compressed copy of the pre-migration file, named
+                     `<db_path>.v<sourceVersion>-backup-<timestamp>.db.gz`
+                     (see `BACKUP_MARKER`) -- deliberately *not* ending in
+                     bare `.db`, so a naive `*.db` glob (the web database
+                     picker in `html/lib/dbutil.py`, and this same CLI's
+                     own directory scan in `migrateDb.py`) never picks it
+                     back up as a live database or re-migrates it on a
+                     later run.
 
     Raises:
         UnsupportedSchemaVersionError: If `PRAGMA user_version` is neither
@@ -1348,8 +1368,22 @@ def migrate_database(db_path):
             f"{db_path}: unsupported schema version {version} (expected 1, 2, or {SCHEMA_VERSION})"
         )
 
-    backup_path = f"{db_path}.v{version}-backup-{time.strftime('%Y%m%dT%H%M%S')}.db"
-    shutil.copy2(db_path, backup_path)
+    backup_path = (
+        f"{db_path}.v{version}{BACKUP_MARKER}{time.strftime('%Y%m%dT%H%M%S')}.db.gz"
+    )
+    # SQLite can't `ATTACH` a gzip-compressed file directly, so the
+    # pre-migration copy is first made plain (at a throwaway temp path)
+    # and immediately gzip-compressed into the real `backup_path` -- the
+    # durable backup exists on disk, compressed, before `db_path` is
+    # touched, same as before this only-`shutil.copy2`'d a plain `.db`
+    # copy. The plain copy is only a scratch read source for the
+    # migration below and is removed once that's done.
+    plain_backup_path = f"{db_path}.migrating.source.tmp"
+    if os.path.exists(plain_backup_path):
+        os.remove(plain_backup_path)
+    shutil.copy2(db_path, plain_backup_path)
+    with open(plain_backup_path, "rb") as f_in, gzip.open(backup_path, "wb") as f_out:
+        shutil.copyfileobj(f_in, f_out)
 
     tmp_path = f"{db_path}.migrating.tmp"
     if os.path.exists(tmp_path):
@@ -1357,12 +1391,13 @@ def migrate_database(db_path):
     new_conn = sqlite3.connect(tmp_path)
     try:
         _ensure_schema(new_conn)
-        new_conn.execute("ATTACH DATABASE ? AS old", (backup_path,))
+        new_conn.execute("ATTACH DATABASE ? AS old", (plain_backup_path,))
         with new_conn:
             migrate_step(new_conn)
         new_conn.execute("DETACH DATABASE old")
     finally:
         new_conn.close()
+        os.remove(plain_backup_path)
 
     os.replace(tmp_path, db_path)
     return backup_path
