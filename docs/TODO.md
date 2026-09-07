@@ -78,6 +78,9 @@ and git history.
   fixed; single-database navbar link fixed; system-page TOC made
   collapsible (`<details>`/`<summary>`, collapsed by default) — CHANGELOG
   [5.4.2].
+- System-page TOC moved out of the inline description flow to a fixed
+  right-margin rail (mirroring the left `.sidenav`), shown only above
+  `min-width: 90rem` — CHANGELOG [5.4.3].
 
 ## Investigate Further
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.4.3] - 2026-09-07
+
+### Changed
+- **Web interface: system-page table of contents moved to a fixed
+  right-margin rail.** The collapsed `<details>` TOC added in [5.4.2]
+  still lived inline next to the description as a flex sibling, narrowing
+  the prose column whenever it was open. `system.py`'s `_toc_html` now
+  renders a plain, always-expanded `<nav>`, and `style.css` positions
+  `.toc` fixed in the right margin (mirroring the left `.sidenav`),
+  appearing only once the window is wide enough (`min-width: 90rem`) to
+  hold it without crowding the main content -- narrower windows simply
+  don't get one, rather than it floating over the page.
+
 ## [5.4.2] - 2026-09-07
 
 ### Removed
