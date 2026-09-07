@@ -406,7 +406,7 @@ class Star:
         if self.lifespan != float('inf') and self.age >= self.lifespan:
             self.age = self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR # Star is near end of life
 
-    def calculate_system_perimeter(self):
+    def calculate_system_perimeter(self, galactic_center_dist_ly=None):
         """
         Calculates the Hill sphere for the star system relative to the galaxy.
 
@@ -421,10 +421,24 @@ class Star:
         The result is converted from meters to Astronomical Units (AU) for
         convenience and consistency with other system-scale measurements.
 
+        Args:
+            galactic_center_dist_ly (float, optional): This star's actual
+                distance from the galactic center, in light-years -- derived
+                from its owning sector's `galactic_radius_pc` once sectors
+                are placed in galaxy-space (see
+                `docs/design/galaxy-coordinate-system.md` section 5). `None`
+                (the default) falls back to the fixed
+                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                the correct behavior for a system generated outside any
+                galaxy context (e.g. `sectorGen.py`'s own standalone CLI,
+                whose sectors are never placed in a galaxy).
+
         Returns:
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
-        galactic_center_dist_m = physical_constants.GALACTIC_CENTER_DISTANCE_LY * physical_constants.LY_TO_M
+        if galactic_center_dist_ly is None:
+            galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_m = galactic_center_dist_ly * physical_constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, physical_constants.MILKY_WAY_MASS)
         return hill_radius_m / physical_constants.AU_TO_M
 
@@ -588,10 +602,20 @@ class Star:
             _skip_property_init (bool): If True, skips initialization of properties
                                         that might be managed by a subclass (e.g., BinaryStarProxy).
                                         Defaults to False.
+
+        Keyword Args:
+            mass_override (float, optional): An explicit mass (kg) for
+                secondary-star generation in binary systems.
+            galactic_center_dist_ly (float, optional): This star's actual
+                distance from the galactic center, in light-years, threaded
+                into `calculate_system_perimeter` -- see that method's
+                docstring. `None` (the default) uses the fixed
+                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
         """
         self.system_config = system_config # Storing the SystemConfig instance
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
-        
+        self.galactic_center_dist_ly = kwargs.get('galactic_center_dist_ly')
+
         if not _skip_property_init:
             self.luminosity = None
             self.temperature = None
@@ -606,7 +630,7 @@ class Star:
             self.generate_star(mass_override=kwargs.get('mass_override'))
             self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
             self.habitable_zone = calculate_habitable_zone(self.luminosity)
-            self.system_perimeter = self.calculate_system_perimeter()
+            self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
             self.heliosphere_radius = self.calculate_heliosphere()
 
     def get_table_properties(self):

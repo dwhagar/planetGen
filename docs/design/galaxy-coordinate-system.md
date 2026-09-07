@@ -534,3 +534,163 @@ exactly the kind of case that flag matters for.
    persists each system's nearest neighbors today), that would need its
    own join table and its own write-time computation — not proposed here,
    since nothing in the current brief calls for it yet.
+
+## 8. Generation unit: sector enumeration by radius (Track C addendum)
+
+**Status:** implemented (`src/stellarObjects/galaxyGeometry.py`). This
+section is a Track C addition, written after this document's original
+proposal (sections 0-7 above, including the open questions in §7 —
+several since resolved by the user for this track, see the top of this
+document's "Decisions already made" recap and Track C's own brief) and
+after the user decided that `galaxyGen.py` needs one primitive supporting
+both whole-shell batch generation and on-demand generation of the
+neighborhood around an *already-placed* sector — not just "generate a
+whole shell" as §7 question 1 originally framed the choice. That
+primitive is specified and analyzed here before its implementation, per
+this track's own requirement that the geometry sub-problem get a short
+design pass of its own.
+
+### The primitive
+
+> Given an arbitrary point `P = (x, y, z)` in galaxy-space (parsecs, not
+> necessarily the galactic origin, and not necessarily an already-placed
+> sector's center) and a radius `R`, enumerate every `(shell_index,
+> shell_slot_index)` address (§3's tiling scheme) whose sector center
+> falls within `R` of `P`.
+
+Both `galaxyGen.py` modes reduce to one call of this primitive:
+
+- **Batch mode** (`--shell k`): `P` = the galactic origin, `R` = shell
+  `k`'s own outer radius (or simply `shell_radius_pc(k, edge_pc)` plus a
+  hair of slack) — returns (up to) that whole shell's `N_k` addresses.
+- **Local-neighborhood mode** (`--center-sector <id> --radius-pc R`): `P`
+  = that sector's own stored `(center_x_pc, center_y_pc, center_z_pc)`, a
+  small `R` — returns just the handful-to-few-dozen addresses genuinely
+  near it, regardless of which enclosing shell they fall in (a
+  neighborhood can straddle a shell boundary) and without requiring that
+  enclosing shell to have been generated as a whole first.
+
+### Why P is not always the origin, and why that's the hard part
+
+Every position in this scheme is derived from `(shell_index,
+shell_slot_index)` via `sector_position_pc` (§3's Fibonacci-sphere
+formula), which is O(1) per address — trivial in the batch case, since
+`P` = origin means "distance to `P`" is just each shell's own fixed radius
+`r_k`, so the *whole* shell either qualifies or doesn't (no per-slot
+geometry needed at all). The local-neighborhood case is harder precisely
+*because* `P` is generally not the origin, not on any particular shell's
+"axis" of anything, and not aligned with the Fibonacci-sphere's own
+golden-angle indexing in any convenient way. A shell far out (say `k` in
+the thousands, `N_k` in the hundreds of millions per the §3 table) must
+never be iterated in full just to answer "which of your slots are within
+3 sector-widths of this one sector I already have" — that would make the
+very use case this primitive exists for (generate a local starmap around
+a point of interest) slower than generating the whole enclosing shell it
+is trying to avoid.
+
+### Chosen approach: two cheap, exact prunes, then brute-force the rest
+
+No spatial index (k-d tree, octree, or similar) is built over the address
+space — the Fibonacci-sphere scheme already has enough structure to prune
+analytically, in closed form, without one. Two independent pruning passes
+run before any per-slot position is ever computed:
+
+1. **Which shells can possibly qualify** (`_candidate_shell_range`).
+   Every slot in shell `k` sits at the *exact same* radius `r_k` (§3's
+   placement is a fixed-radius sphere per shell, not a radius range — the
+   `[k*edge_pc, (k+1)*edge_pc)` interval in §3 is the shell's conceptual
+   thickness, not where individual slots actually land). So the question
+   "could shell `k` hold a point within `R` of `P`" has an exact answer,
+   not an approximation: yes iff `|r_k - |P|| <= R` (the minimum possible
+   distance from `P` to *any* point on a sphere of radius `r_k`, achieved
+   when that point lies on the ray through `P`, is exactly `|r_k - |P||`;
+   the triangle inequality guarantees no closer point exists). This bounds
+   the candidate shell range to `k` in roughly
+   `[(|P|-R)/edge_pc - 0.5, (|P|+R)/edge_pc - 0.5]` — a width of about
+   `2R/edge_pc` shells, independent of how far out `P` is. For a "handful
+   to a few dozen sectors" neighborhood (`R` on the order of a few
+   `edge_pc`), that's a small, constant number of candidate shells
+   regardless of galactic radius.
+
+2. **Which slots within a candidate shell can possibly qualify**
+   (`_slot_index_bounds_for_phi_range`). This is the part that keeps
+   per-shell cost from scaling with `N_k`. `sector_position_pc`'s polar
+   angle `phi_i = acos(1 - 2*(i+0.5)/N_k)` is *strictly monotonic* in the
+   slot index `i` (as `i` runs `0..N_k-1`, the argument to `acos` runs from
+   just under `+1` down to just over `-1`, and `acos` is strictly
+   decreasing) — so a target range of `phi` values maps to exactly one
+   contiguous range of slot indices, invertible in closed form:
+   `i = N_k*(1 - cos(phi))/2 - 0.5`. The spherical law of cosines gives the
+   maximum angular separation `alpha_max` (from `P`'s own direction, as
+   seen from the origin) a point at radius `r_k` can have and still be
+   within `R` of `P`:
+   `cos(alpha_max) = (|P|^2 + r_k^2 - R^2) / (2*|P|*r_k)`. A short
+   trigonometric argument (in the module docstring's
+   `enumerate_sectors_within_radius`) shows `|phi_slot - phi_P| <= alpha_max`
+   is a *necessary* condition for any slot regardless of its azimuthal
+   angle `theta` — so the contiguous index range this maps to is a safe,
+   exact upper bound on which slots could possibly qualify, even though it
+   isn't tight in azimuth (two slots at the same `phi` but very different
+   `theta` are treated alike by this prune; the exact per-slot distance
+   check below is what actually discriminates on `theta`).
+
+Every slot surviving both prunes gets its exact position
+(`sector_position_pc`) and exact distance to `P` computed and compared to
+`R` — so the final output is always exact, never an approximation; the
+two prunes only decide *which* slots are worth that O(1) exact check, not
+whether the check itself is skipped.
+
+Two edge cases fall out of the same math rather than needing special
+handling: `P` at the origin (no direction to prune slots by — but then
+distance-to-`P` for any slot is just `r_k`, so a qualifying shell is
+either wholly in or wholly out, handled before the per-slot loop even
+starts), and `R` large enough that a whole candidate shell is guaranteed
+inside it (`cos(alpha_max) <= -1`, i.e. `R >= |P| + r_k`, the shell's own
+worst-case distance from `P`) — that shell's slots are all yielded
+directly, skipping the angular prune (there's nothing left to prune).
+
+### Big-O
+
+Let `S` = number of candidate shells (`O(R/edge_pc)`, a small constant for
+a local-neighborhood-sized `R`, independent of `|P|`), and let `B_k` = the
+slot-index band width computed for shell `k` (bounded by, roughly, `N_k`
+scaled by the fraction of that shell's surface subtended by the angular
+cap of half-angle `alpha_max` — for `R << r_k`, `alpha_max ~ R/r_k`
+radians, so `B_k` grows roughly with the actual *area* of the search
+region on that shell, not with `N_k` itself). Total work is
+`O(sum_k(B_k))`, which scales with the genuine output size (how many
+sectors actually exist within `R` of `P` across the candidate shells) plus
+a small constant-factor overhead from the band edges — **not** with
+`sum_k(N_k)`, the total number of slots those shells hold. This is what
+makes a local-neighborhood query near an outer shell (potentially
+hundreds of millions of slots) exactly as cheap as one near the core: the
+per-shell cost tracks `R`, not `N_k`.
+
+The batch-mode case (`P` = origin, `R` = one shell's radius) is the
+degenerate case of the same function: exactly one candidate shell
+qualifies (or a small handful, if `R` is chosen slightly loose), the
+origin special-case skips the angular prune entirely, and every one of
+that shell's `N_k` slots is legitimately part of the answer — so batch
+mode's cost is, correctly, `O(N_k)`: there is no way to return `N_k`
+results in less than `O(N_k)` time, and no pruning is being asked to do
+anything there.
+
+### What was deliberately not built
+
+No k-d tree, octree, or other general-purpose spatial index over the
+address space, and no precomputed per-shell angular lookup structure
+beyond the closed-form inversion above. Both were considered and rejected
+as premature for a "handful to a few dozen sectors" neighborhood query,
+per this track's brief: the two closed-form prunes above already remove
+the only real scaling hazard (iterating a huge shell's full slot count),
+and building a persistent index would add real complexity (index
+construction, invalidation as new sectors are generated, storage) for a
+problem this document's own §7 open question 8 already flags as
+explicitly out of scope for now (persistent sector adjacency). If a future
+need arises for large-`R` neighborhood queries (say, `R` spanning dozens
+of shells rather than a handful of `edge_pc`), the same two prunes still
+apply without modification — they degrade gracefully to "iterate more
+shells, and wider slot bands within each" rather than breaking down, so
+there is no cliff where this approach stops working; it simply does
+progressively more of the genuinely-necessary work as the requested
+neighborhood grows.

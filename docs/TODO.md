@@ -153,15 +153,15 @@ Phase 4 and parts of Phase 5 are still open.
   than a post-hoc clamp. 8682 tests passing (10 new in
   `src/tests/test_planet_physics_fixes.py`). See CHANGELOG.md [5.3.5].
   Track A is now fully done.
-- [ ] **Galaxy coordinate system: the 8 open questions were decided this
+- [x] **Galaxy coordinate system: the 8 open questions were decided this
   session** (single galaxy per database, fix `GALACTIC_CENTER_DISTANCE_LY`
   now rather than defer, no stored per-sector roll angle, and a
   radius-based "sectors within R of a point" generation primitive that
   covers both whole-shell batch generation and a localized
-  "observable-region"/cluster mode around an existing sector) — **but
-  implementation (Track C) is paused mid-session, uncommitted**, not a
-  design gap anymore. See the Phase 4 entry below for what's actually
-  written and what's still missing before it can merge.
+  "observable-region"/cluster mode around an existing sector), **and
+  implementation (Track C) is now complete and merged** — see the Phase 4
+  entry below for what was written and what closed out the two
+  previously-open gaps.
 
 ## Investigate Further
 
@@ -209,24 +209,43 @@ Phase 4 and parts of Phase 5 are still open.
 
 ## Phase 4 — Galaxy-scale generation
 
-- [ ] **Galaxy coordinate system: design decisions made, implementation
-  paused mid-session (Track C), not yet merged.** All 8 open questions in
-  `docs/design/galaxy-coordinate-system.md` are now decided (single galaxy
-  per database, fix `GALACTIC_CENTER_DISTANCE_LY` to use a sector's real
-  position rather than defer it, fixed orientation convention with no
-  stored roll angle, deterministic Fibonacci placement, uniform sector
-  size per shell, computed rather than stored adjacency, and a
-  radius-based generation-unit primitive — see that doc's section 8).
-  Written but **uncommitted** in worktree `agent-a36f801e275fb2b71`
-  (branch `worktree-agent-a36f801e275fb2b71`): the v3->v4 `sectors` schema
-  migration (migration tests reported passing before the session paused),
-  `src/stellarObjects/galaxyGeometry.py` (shell/Fibonacci-sphere tiling +
-  the neighborhood-enumeration primitive), `GALACTIC_CENTER_DISTANCE_LY`
-  threaded per-sector through `starData.py`/`doubleStar.py` (falling back
-  to the old constant for unplaced/standalone sectors), and a first draft
-  of `galaxyGen.py`. **Not yet done:** a `galaxyGen.py` end-to-end test for
-  local-neighborhood mode, and a full-suite test run/diff review — resume
-  from that worktree rather than restarting from the design doc.
+- [x] **Galaxy coordinate system (Track C) — implemented and merged.** All
+  8 open questions in `docs/design/galaxy-coordinate-system.md` are
+  decided (single galaxy per database, fix `GALACTIC_CENTER_DISTANCE_LY`
+  to use a sector's real position rather than defer it, fixed orientation
+  convention with no stored roll angle, deterministic Fibonacci
+  placement, uniform sector size per shell, computed rather than stored
+  adjacency, and a radius-based generation-unit primitive — see that
+  doc's section 8). Rescued from the paused worktree
+  (`agent-a36f801e275fb2b71`, cut before Track A's completion) and
+  finished, then merged into `main` after Track A's completion (5.3.5)
+  and the TODO/FIXME-comment migration — the only real conflict was
+  `_db.py` composing this schema's v3->v4 migration with Track B's
+  already-merged gzip-compressed backups, which merged cleanly with both
+  behaviors intact:
+    - The v3->v4 `sectors` schema migration
+      (`src/stellarObjects/schema.sql`, `_db.py`'s `_migrate_v3_to_v4`).
+    - `src/stellarObjects/galaxyGeometry.py` (shell/Fibonacci-sphere
+      tiling + the neighborhood-enumeration primitive).
+    - `GALACTIC_CENTER_DISTANCE_LY` threaded per-sector through
+      `starData.py`/`doubleStar.py` (falling back to the old constant for
+      unplaced/standalone sectors).
+    - `galaxyGen.py` (`--shell K` batch mode, `--center-sector ID
+      --radius-pc R` local-neighborhood mode).
+    - **The two previously-open gaps are now closed**:
+      `src/tests/test_galaxy_gen.py` adds real end-to-end coverage for
+      both `galaxyGen.py` modes (running the actual CLI entry point
+      against a temporary database — correct shell/slot addresses,
+      correct stored positions, no duplicate slots, already-occupied
+      slots skipped on re-run, the large-shell guard, and the
+      no-galaxy-position rejection for `--center-sector`), and a full
+      `python -m pytest -q` run is green (8699 passed). One regression
+      the rebase itself introduced was found and fixed:
+      `test_migrate_v3_to_v4_adds_null_galaxy_columns_to_existing_sectors`
+      still tried to open the migration backup as a plain SQLite file,
+      but Track B's gzip-compressed-backup change (already on `main`)
+      made that backup a `.db.gz` — fixed to decompress first, the same
+      way the existing v1->v2 backup test already did.
 - [ ] Galaxy thickness / shape (disk-density envelope, and support for
   different overall galaxy shapes — spiral, elliptical, irregular, etc.)
   — still needs its own dedicated design pass, deliberately not tackled
