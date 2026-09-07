@@ -13,3 +13,8 @@ See `api/README.md` for how to run this and `TODO.md`'s Phase 5 section for
 what's still open (framework choice is settled -- Flask, see the README for
 why -- but the frontend and the eventual MySQL migration are not).
 """
+
+# TODO: whether this package should eventually move into `../src/html/` (so
+# the API is served from the same tree/DocumentRoot as the interim browser)
+# is still an open question, not a decision -- see docs/TODO.md,
+# "Investigate Further" for the full reasoning already written up there.

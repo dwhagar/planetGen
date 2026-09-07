@@ -78,6 +78,17 @@ def _planet_rows(conn, planet):
 
 
 def _bodies_html(conn, system_id):
+    # TODO: sprite-based graphical system view -- render each star/planet/
+    # moon in this system as a small icon sprite sized relative to the
+    # others (from `radius_km`, already pulled in via `SELECT *` below) for
+    # an at-a-glance size comparison, instead of (or alongside) the plain
+    # table this function builds today. Open questions this still needs
+    # before it can be built: where the sprite art itself comes from,
+    # linear vs. logarithmic size scaling (a gas giant vs. a moon differ by
+    # 2-3 orders of magnitude in radius_km, so linear scaling would make
+    # most bodies invisible dots), and whether this is meant to be a
+    # simple size-comparison row or a full scaled-orbit diagram. See
+    # docs/TODO.md, "Phase 5 -- Web interface".
     planets = fetch_all(
         conn,
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
