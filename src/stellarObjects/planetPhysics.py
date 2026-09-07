@@ -307,8 +307,16 @@ def generate_planet_properties(planet, zone_override=None):
 
     if planet.body_type == 'g':
         core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
-        planet.density = planet.density * core_to_atmosphere_ratio + (
-                    1 - core_to_atmosphere_ratio) * (planet.atm_density / 1000)
+        # core_to_atmosphere_ratio is a MASS fraction (core mass / total
+        # mass), not a volume/density-averaging weight. The physically
+        # correct way to combine the core and atmosphere densities via a
+        # mass fraction is the mass-weighted harmonic mean (1/density_total
+        # = mass_fraction/density_a + (1-mass_fraction)/density_b) -- an
+        # arithmetic mean of the two densities (the previous formula) has no
+        # physical basis and let atmosphere-heavy blends drag the whole
+        # planet's density down far below either component's own range.
+        atm_density_gcm3 = planet.atm_density / 1000
+        planet.density = 1 / (core_to_atmosphere_ratio / planet.density + (1 - core_to_atmosphere_ratio) / atm_density_gcm3)
 
     planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
                                               planet.density)
