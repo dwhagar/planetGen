@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.3.5] - 2026-09-07
+## [5.3.6] - 2026-09-07
 
 ### Added
 - **Galaxy-scale coordinate system (Track C), merged.** Sectors can now
