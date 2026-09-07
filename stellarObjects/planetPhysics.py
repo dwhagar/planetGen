@@ -339,8 +339,12 @@ def calculate_surface_gravity(planet):
     surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')
-    if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
-        surface_gravity_g = random.uniform(0.75, 1.25)
+    # Class M's forced Earth-like gravity clamp is disabled -- the fixed
+    # atmospheric-pressure formula no longer needs a band-aid to look
+    # realistic. Commented out rather than deleted in case it needs
+    # restoring.
+    # if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
+    #     surface_gravity_g = random.uniform(0.75, 1.25)
     planet.gravity = surface_gravity_g
 
 
@@ -400,18 +404,22 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         planet.surface_temperature = surface_temperature_atmosphere
         planet.atmospheric_pressure = atmospheric_pressure
 
-        if planet.planet_class == "M":
-            if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
-                planet.atmospheric_pressure = random.uniform(90000, 112000)
-            if planet.surface_temperature < 283 or planet.surface_temperature > 290:
-                planet.surface_temperature = random.uniform(283, 290)
-        elif planet.planet_class == "P" and planet.surface_temperature >= 283:
-            # If surface_temperature_no_atmosphere is already above 283, we need a different approach
-            # to ensure the P class planet remains cold.
-            if surface_temperature_no_atmosphere < 283:
-                planet.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
-            else:
-                planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
+        # Class M/P's forced pressure/temperature clamps are disabled -- the
+        # fixed atmospheric-pressure formula no longer needs a band-aid to
+        # land in a realistic range. Commented out rather than deleted in
+        # case it needs restoring.
+        # if planet.planet_class == "M":
+        #     if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
+        #         planet.atmospheric_pressure = random.uniform(90000, 112000)
+        #     if planet.surface_temperature < 283 or planet.surface_temperature > 290:
+        #         planet.surface_temperature = random.uniform(283, 290)
+        # elif planet.planet_class == "P" and planet.surface_temperature >= 283:
+        #     # If surface_temperature_no_atmosphere is already above 283, we need a different approach
+        #     # to ensure the P class planet remains cold.
+        #     if surface_temperature_no_atmosphere < 283:
+        #         planet.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
+        #     else:
+        #         planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
 
 
 def generate_moons(planet, moon_count=None):

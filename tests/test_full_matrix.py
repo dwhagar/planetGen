@@ -132,17 +132,20 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
             f"{star_type}/{cls}-{zone}: scale_height={planet.scale_height}"
         )
 
-    # Class M is explicitly clamped to Earth-like bounds regardless of host star
-    # (see planetPhysics.calculate_surface_gravity/calculate_atmospheric_conditions)
-    # -- this must hold even at the extremes of the host star matrix.
-    if cls == "M":
-        assert 0.75 <= planet.gravity <= 1.25, f"{star_type}: M-class gravity {planet.gravity} outside clamp"
-        assert 90000 <= planet.atmospheric_pressure <= 112000, (
-            f"{star_type}: M-class pressure {planet.atmospheric_pressure} outside clamp"
-        )
-        assert 283 <= planet.surface_temperature <= 290, (
-            f"{star_type}: M-class surface_temperature {planet.surface_temperature} outside clamp"
-        )
+    # Class M's Earth-like gravity/pressure/temperature clamps
+    # (planetPhysics.calculate_surface_gravity/calculate_atmospheric_conditions)
+    # are currently commented out -- the fixed atmospheric-pressure formula
+    # no longer needs them to land in a realistic range -- so Class M is no
+    # longer guaranteed to fall within these bounds. Commented out to match,
+    # in case the clamps are restored.
+    # if cls == "M":
+    #     assert 0.75 <= planet.gravity <= 1.25, f"{star_type}: M-class gravity {planet.gravity} outside clamp"
+    #     assert 90000 <= planet.atmospheric_pressure <= 112000, (
+    #         f"{star_type}: M-class pressure {planet.atmospheric_pressure} outside clamp"
+    #     )
+    #     assert 283 <= planet.surface_temperature <= 290, (
+    #         f"{star_type}: M-class surface_temperature {planet.surface_temperature} outside clamp"
+    #     )
 
 
 @pytest.mark.parametrize("star_type", ALL_HOST_STAR_TYPES)
