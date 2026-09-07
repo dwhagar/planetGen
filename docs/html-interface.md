@@ -25,13 +25,15 @@ nothing else to install or run.
 |---|---|
 | `../src/html/index.py` | Lists every `.db` file in the database directory. |
 | `../src/html/browse.py` | A chosen database's sectors and standalone systems. |
-| `../src/html/sector.py` | One sector's systems (name, quadrant, star type). |
+| `../src/html/sector.py` | One sector's systems (name, quadrant, star type), plus an isometric "Sector Map" of the sector's cube -- one dot per placed system, sized by star radius and colored by temperature; clicking a dot fills an info panel (star type, temperature, quadrant, location) with a link to `system.py`, via `lib/starmap.py` + `static/sectormap.js`. |
 | `../src/html/system.py` | One system's stars/planets/moons/belts, plus its description -- rendered as HTML from `markdown_content` by default (`?view=rendered`), with the original raw wikitext/Markdown source (`?view=source&format=...`) still available for copy-pasting into a wiki. |
 | `../src/html/search.py` | Faceted search: click-to-filter tag buttons for object type, star spectral/luminosity class, and planet class/body type/supported life chemistry -- with a separate, identically-shaped set of tags for moons, since planets and moons live in their own tables (schema v2) and a "Class D" tag only ever means one or the other -- built only from values actually present in the chosen database. Plus a name search (with HTML5 `<datalist>` autocomplete, no JavaScript) across sectors, star systems, stars, planets, and moons. Asteroid belts have no name of their own, so they're reachable only via the "Asteroid Belt" object-type tag. |
 | `../src/html/lib/dbutil.py` | Read-only database access and HTML-escaping helpers. Not web-accessible -- see the Apache config note below. |
 | `../src/html/lib/page.py` | Shared CGI response/HTML-shell helpers. Not web-accessible. |
 | `../src/html/lib/mdconvert.py` | A small, purpose-built Markdown-to-HTML converter for the narrow Markdown subset `StarSystem.__str__` actually generates (headers, pipe tables, paragraphs, `<sup>` exponents) -- not a general-purpose parser. Not web-accessible. |
+| `../src/html/lib/starmap.py` | Builds `sector.py`'s isometric "Sector Map" panel: a fixed 30-degree axonometric projection of the sector's cube (plain inline SVG, no charting library), star dot radius from `radius_km`/`binary_radius_km` (square-root scaled against the Sun), dot color from `temperature_k`/`binary_temperature_k` via a Kelvin-to-RGB blackbody approximation. Not web-accessible. |
 | `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme`, card-style panels), served directly (not through CGI). |
+| `../src/html/static/sectormap.js` | Click/keyboard handler for the sector map's star dots -- fills the info side panel from the dot's `data-*` attributes (never `innerHTML`) instead of navigating straight to `system.py`, so activating a dot shows details first. Served directly, same as `style.css`. |
 
 All database access goes through `sqlite3`'s `file:...?mode=ro` URI mode,
 so these scripts cannot write to a database even if a query were buggy.

@@ -356,6 +356,75 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
+/* Sector map: isometric wireframe cube + star dots (html/lib/starmap.py,
+   html/static/sectormap.js) */
+.starmap-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.starmap-svg {
+  flex: 1 1 22rem;
+  min-width: 18rem;
+  max-width: 34rem;
+  height: auto;
+}
+
+.starmap-edge {
+  stroke: var(--border);
+  stroke-width: 1;
+  fill: none;
+}
+
+.star-dot {
+  /* Stroke color is set inline per-dot by lib/starmap.py (a darkened
+     shade of the dot's own fill, so it stays visible against either
+     theme and separates two overlapping binary dots) -- only
+     stroke-width lives here. */
+  stroke-width: 1.2;
+  cursor: pointer;
+}
+
+.star-dot:hover,
+.star-dot:focus-visible {
+  stroke: var(--accent);
+  stroke-width: 2;
+  outline: none;
+}
+
+.starmap-info {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.9rem;
+}
+
+.starmap-info h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.starmap-info dl {
+  margin: 0 0 0.85rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.6rem;
+}
+
+.starmap-info dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.starmap-info dd {
+  margin: 0;
+}
+
 /* Search page: tag facets, name-search form, active-filter chips */
 .tag-group {
   margin-bottom: 1.25rem;
