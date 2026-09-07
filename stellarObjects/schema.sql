@@ -52,6 +52,20 @@
 -- worth storing (not just recomputing on read) so it's directly
 -- queryable/indexable without a UDF or generated-column expression.
 --
+-- v3: star_systems.location stores a human-readable "sector name + nearest
+-- neighbors" summary, e.g. "Voranthis Kelmoor -- nearest: Alpha Prime
+-- (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)" -- the same
+-- "derive once at write time, persist for queryability" treatment
+-- `quadrant` gets above, so a system's neighborhood is directly searchable
+-- without recomputing nearest-neighbor distances on every read. NULL under
+-- exactly the same condition as `quadrant`/`position_x/y/z_mpc`: a system
+-- never placed in a sector. Computed in `stellarObjects/_db.py` from
+-- `SpaceSector.nearest_neighbors` (up to 3, nearest first) at
+-- `insert_sector` time; `migrate_database`'s `_migrate_v1_to_v2`/
+-- `_migrate_v2_to_v3` backfill it for a database migrated from an older
+-- version, applying the same nearest-neighbor logic directly to the
+-- already-stored rows instead of a live `SpaceSector` object.
+--
 -- Two independent version numbers, per TODO.md's "Schema versioning"
 -- decision:
 --   - PRAGMA user_version below is the DDL-level structure version.
@@ -75,7 +89,7 @@
 -- `install.sh` (and so `update.sh`, which calls it) does this on every
 -- deploy.
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;
 
 -- ---------------------------------------------------------------------
 -- sectors
@@ -138,6 +152,10 @@ CREATE TABLE IF NOT EXISTS star_systems (
     -- Sector octant label derived from the position above (Roman numeral
     -- I-VIII, see the header comment) -- NULL iff position is NULL.
     quadrant                TEXT CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
+
+    -- Human-readable "sector name + nearest neighbors" summary, see the
+    -- header comment's "v3" note -- NULL iff position is NULL.
+    location                TEXT,
 
     is_binary              INTEGER NOT NULL DEFAULT 0 CHECK (is_binary IN (0, 1)),
 

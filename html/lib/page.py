@@ -48,7 +48,54 @@ def send_headers(status="200 OK"):
     sys.stdout.write("\r\n")
 
 
-NAV = '<a href="index.py">Databases</a>'
+def redirect(url):
+    """
+    Writes a CGI 302 redirect response to stdout and nothing else -- must
+    be called instead of (never alongside) `send_headers`/`render`, and
+    before any other output, same as `send_headers`'s own requirement.
+
+    Used by `index.py` to skip straight to `browse.py?db=...` when exactly
+    one database exists, instead of rendering the picker table for a
+    choice of one.
+
+    Args:
+        url (str): The target URL, e.g. `"browse.py?db=planetgen.db"`.
+                   Callers are responsible for URL-encoding any dynamic
+                   piece of it themselves (see `urllib.parse.quote`) --
+                   this just writes the header block, the same division of
+                   responsibility `send_headers` already has for the
+                   `Content-Type` header.
+    """
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stdout.write("Status: 302 Found\r\n")
+    sys.stdout.write(f"Location: {url}\r\n")
+    sys.stdout.write("\r\n")
+
+
+def _nav_html():
+    """
+    Builds the header `<nav>` for the current request: always a link back
+    to the database picker, plus a link to `search.py` for the current
+    `?db=` when one is present in the request's own query string.
+
+    `query_params()` (not a caller-supplied argument) is what lets this be
+    computed uniformly from `render()` for every page -- `system.py` and
+    `sector.py` otherwise have no way to reach `search.py` without first
+    going back through `browse.py` (which builds its own separate
+    breadcrumb Search link; this doesn't replace that, it just makes the
+    same link reachable from every page's header too). `index.py` is the
+    only script with no `db` in its query string, so it gets just the
+    Databases link.
+
+    Returns:
+        str: The `<nav>` element's inner HTML.
+    """
+    from dbutil import esc
+    links = ['<a href="index.py">Databases</a>']
+    db_name = query_params().get("db")
+    if db_name:
+        links.append(f'<a href="search.py?db={esc(db_name)}">Search</a>')
+    return " | ".join(links)
 
 
 def render(title, body_html, status="200 OK"):
@@ -80,7 +127,7 @@ def render(title, body_html, status="200 OK"):
 <body>
 <header>
   <h1>{safe_title}</h1>
-  <nav>{NAV}</nav>
+  <nav>{_nav_html()}</nav>
 </header>
 <main>
 {body_html}
