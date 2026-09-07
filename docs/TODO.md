@@ -197,6 +197,13 @@ Phase 4 and parts of Phase 5 are still open.
   thin atmosphere with an atmosphere of...") — fixed for B, E, K, N, Q, W,
   X, and Y. See CHANGELOG.md [5.3.8].
 
+## Reported Issues
+
+- [ ] Fix triple consonant bug in naming.
+- [ ] Navbar on the left doesn't have a link to go back to the database
+  picker/list.
+- [ ] TOC for a system should be collapsible and collapsed by default.
+
 ## Investigate Further
 
 - [x] **New-class investigation, acted on.** The prior session's findings
@@ -237,21 +244,15 @@ Phase 4 and parts of Phase 5 are still open.
   that constraint (~231K/~0.57kPa vs real ~210K/~610Pa) but can't fully
   close the gap without a zone/distance-placement change, which is a larger
   design question than per-class range tuning.
-- [ ] **`sectorGen.py` needs a controllable density value**, not just a
-  flat `--num-systems` count, so one generated sector can be meaningfully
-  denser/sparser than another. The codebase already has a physically-real
-  density model (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`,
-  `SpaceSector.expected_system_count()`, `_sample_poisson_count`) that's
-  wired into `SpaceSector.grow_from_seed` but never into `sectorGen.py`'s
-  own CLI-driven flat generation loop (`build_sector_configs`). Plan: add
-  a `--density` float multiplier (1.0 = real local stellar density for a
-  sector this size), mutually exclusive with `--num-systems`, resolved
-  per-sector (not once at parse time) via the existing
-  `_sample_poisson_count(sector.expected_system_count() * density)` so
-  counts vary naturally sector to sector and run to run, same as a real
-  Poisson process would. `--density` lands in `add_shared_generation_options`
-  so `galaxyGen.py` inherits it for free. See `# TODO` markers in
-  `sectorGen.py` for the exact spots this touches.
+- [x] **`sectorGen.py` needs a controllable density value** -- done. Added
+  `--density`, a float multiplier on the existing physically-real density
+  model (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`,
+  `SpaceSector.expected_system_count()`, `_sample_poisson_count`; 1.0 =
+  real local stellar density for a sector this size), mutually exclusive
+  with `--num-systems`, resolved per-sector (not once at parse time) so
+  counts vary naturally sector to sector and run to run. Lands in
+  `add_shared_generation_options`, so `galaxyGen.py` inherits it with no
+  changes on its side. See CHANGELOG.md [5.4.1].
 - [ ] Classes P and W could still receive the same
   `atm_molar_density_range`/`atm_density_range`/`greenhouse_multiplier_range`
   treatment the M/O/H/K/L/N/E/F/G/V pass (CHANGELOG.md [5.3.7]) gave the

@@ -1,4 +1,5 @@
 import argparse
+import copy
 import logging
 import os
 import random
@@ -14,7 +15,7 @@ import systemGen
 from stellarObjects import _db, program_constants
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.names import SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES
-from stellarObjects.spaceSector import SpaceSector
+from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import generate_phoneme_salad_name
 
@@ -50,15 +51,17 @@ def add_shared_generation_options(parser):
                             help=f"+{name} forces every system in the sector to have {description}; "
                                  f"-{name} forces every system in the sector to not have {description}.")
 
-    # TODO: add a `--density` float multiplier here (1.0 = real local
-    # stellar density for a sector this size, via
-    # `physical_constants.LOCAL_STELLAR_DENSITY_LY3`/
-    # `SpaceSector.expected_system_count()`), mutually exclusive with
-    # `--num-systems`, so sectors can be made meaningfully denser/sparser
-    # than each other rather than always using this flat count. See
-    # docs/TODO.md, "Investigate Further".
-    parser.add_argument('--num-systems', type=int, default=10,
-                        help="The number of star systems to generate in the sector. Defaults to 10.")
+    parser.add_argument('--num-systems', type=int, default=None,
+                        help="The exact number of star systems to generate in the sector. Cannot be "
+                             "combined with --density. Defaults to 10 if neither is given.")
+    parser.add_argument('--density', type=float, default=None,
+                        help="Scale the number of systems generated per sector by this multiplier on "
+                             "real local stellar density (1.0 = a realistic sector this size; 2.0 = "
+                             "twice as dense; 0.5 = half). The actual count is randomly sampled per "
+                             "sector (Poisson-distributed), so it varies run to run and sector to "
+                             "sector even at the same density -- this is what lets one sector be made "
+                             "meaningfully denser or sparser than another. Cannot be combined with "
+                             "--num-systems.")
     parser.add_argument('--min-habitable', type=int, default=0,
                         help="Guarantee at least this many systems in the sector have a habitable world, "
                              "chosen randomly among them, without requiring every system to have one.")
@@ -87,14 +90,24 @@ def validate_shared_generation_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
-    if args.num_systems < 1:
-        parser.error("--num-systems must be a positive integer.")
+    if args.density is not None and args.num_systems is not None:
+        parser.error("--density cannot be combined with --num-systems.")
+
+    if args.density is not None and args.density <= 0:
+        parser.error("--density must be a positive number.")
+
+    if args.density is None and args.num_systems is None:
+        args.num_systems = 10
+
+    if args.num_systems is not None:
+        if args.num_systems < 1:
+            parser.error("--num-systems must be a positive integer.")
+
+        if args.min_habitable > args.num_systems:
+            parser.error("--min-habitable cannot exceed --num-systems.")
 
     if args.min_habitable < 0:
         parser.error("--min-habitable cannot be negative.")
-
-    if args.min_habitable > args.num_systems:
-        parser.error("--min-habitable cannot exceed --num-systems.")
 
     if args.min_habitable > 0 and args.habitable_world is False:
         parser.error("--min-habitable cannot be combined with -habitable_world.")
@@ -151,6 +164,13 @@ def process_args():
       `+habitable_world` would. Cannot exceed `--num-systems`, and cannot be
       combined with a uniform `-habitable_world` (which forbids habitable
       worlds sector-wide).
+    - `--density`: An alternative to `--num-systems` -- a multiplier on
+      real local stellar density (see `SpaceSector.expected_system_count`)
+      that gets randomly (Poisson) sampled into a concrete count per
+      sector, so different invocations -- or different sectors within one
+      `--num-sectors` run -- can be meaningfully denser or sparser than
+      each other rather than always generating the same flat count.
+      Cannot be combined with `--num-systems`.
     - `--num-sectors`: Generates this many independent sectors in one run,
       each with no galactic positioning (unlike `galaxyGen.py`), all saved
       into the same database. Defaults to 1. Cannot be combined with
@@ -168,8 +188,10 @@ def process_args():
         "This tool generates a whole sector of independently-random star systems in one pass, reusing systemGen.py's",
         "own generation logic and options for each one. Options like +habitable_world/-habitable_world, --star-type,",
         "and --age apply uniformly to every system in the sector; use --min-habitable instead if you just want a",
-        "guaranteed number of habitable systems among an otherwise varied sector. For one specific, hand-crafted",
-        "system (exact orbital slots, an exact name), use systemGen.py --system-file directly instead."
+        "guaranteed number of habitable systems among an otherwise varied sector. Use --density instead of",
+        "--num-systems for a physically-grounded, meaningfully denser-or-sparser-than-another sector. For one",
+        "specific, hand-crafted system (exact orbital slots, an exact name), use systemGen.py --system-file",
+        "directly instead."
     ]
     additional_info = " ".join(additional_info)
 
@@ -261,18 +283,31 @@ def build_sector_configs(args):
     randomly-chosen configs among the rest.
 
     Args:
-        args (argparse.Namespace): Parsed arguments from `process_args()`.
+        args (argparse.Namespace): Parsed arguments from `process_args()`,
+            with `args.num_systems` already resolved to a concrete count --
+            either the user's explicit `--num-systems`, or (see
+            `generate_sector`) a per-sector value sampled from `--density`.
 
     Returns:
         list: A list of `num_systems` `SystemConfig` instances, one per
               system the sector will contain.
+
+    Raises:
+        SystemExit: If `--min-habitable` exceeds `args.num_systems` -- always
+            caught earlier by `validate_shared_generation_args` for an
+            explicit `--num-systems`, but only knowable here for a
+            `--density`-driven count, which isn't resolved until generation
+            time.
     """
-    # TODO: once `--density` exists, `args.num_systems` here needs to be a
-    # per-sector value already resolved by the caller (`generate_sector`)
-    # from `_sample_poisson_count(sector.expected_system_count() * density)`,
-    # not always the raw parsed `--num-systems`. See docs/TODO.md,
-    # "Investigate Further".
     configs = [systemGen.build_system_config(args)[0] for _ in range(args.num_systems)]
+
+    if args.min_habitable > len(configs):
+        raise SystemExit(
+            f"Error: --min-habitable ({args.min_habitable}) exceeds this sector's generated system "
+            f"count ({len(configs)}); with --density, the count is randomly sampled per sector and can "
+            f"land below --min-habitable. Try a smaller --min-habitable, a higher --density, or "
+            f"--num-systems for an exact count instead."
+        )
 
     if args.min_habitable > 0:
         already_habitable = [i for i, cfg in enumerate(configs) if cfg.HABITABLE_WORLD is True]
@@ -328,20 +363,24 @@ def generate_sector(args, galactic_center_dist_ly=None):
               random placement).
     """
     sector_name = args.sector_name or generate_sector_name()
+    sector = SpaceSector(name=sector_name)
 
-    # TODO: once `--density` exists, resolve it here (per sector, using
-    # this sector's own `expected_system_count()`) into a copied args
-    # namespace with `.num_systems` set, before calling
-    # `build_sector_configs` -- must not mutate `args` in place, since this
-    # function runs once per sector under `--num-sectors`/`galaxyGen.py`.
-    # See docs/TODO.md, "Investigate Further".
+    # `--density` resolves to a concrete system count per sector (this
+    # sector's own volume, sampled fresh each call) rather than once at
+    # parse time -- this is what lets each sector under `--num-sectors`/
+    # `galaxyGen.py` vary independently instead of sharing one fixed count.
+    # A copy avoids mutating the caller's shared `args` namespace, since
+    # this function runs once per sector.
+    if args.density is not None:
+        args = copy.copy(args)
+        args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
+
     configs = build_sector_configs(args)
     systems = [
         StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
         for cfg in configs
     ]
 
-    sector = SpaceSector(name=sector_name)
     for system, cfg in zip(systems, configs):
         sector.add_system(system, system_config=cfg)
 
@@ -437,7 +476,8 @@ def main():
 
         sector_id = _db.save_sector(sector, db_path=args.db_path)
         db_path = args.db_path or _db.DEFAULT_DB_PATH
-        print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, {db_path}).")
+        print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, "
+              f"{len(systems)} systems, {db_path}).")
 
     if args.num_sectors > 1:
         print(f"Generated {args.num_sectors} sectors.")

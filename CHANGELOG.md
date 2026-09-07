@@ -1,14 +1,25 @@
 # Changelog
 
-## [Unreleased]
+## [5.4.1] - 2026-09-07
 
-### Planned
-- **`sectorGen.py --density`**: a controllable density multiplier so one
-  generated sector can be meaningfully denser/sparser than another, reusing
-  the existing real-stellar-density model (`SpaceSector.expected_system_count`/
-  `_sample_poisson_count`) instead of the current flat `--num-systems` count
-  alone. See `docs/TODO.md` ("Investigate Further") and the `# TODO` markers
-  in `sectorGen.py`.
+### Added
+- **`sectorGen.py --density`: a controllable density value for sector
+  generation.** Sectors previously always generated a flat count of systems
+  (`--num-systems`, default 10) with no connection to sector volume -- there
+  was no way to make one generated sector meaningfully denser or sparser
+  than another. `--density` is a float multiplier on the real local stellar
+  density this codebase already models (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`
+  via `SpaceSector.expected_system_count()`) -- 1.0 means a realistic sector
+  this size, 2.0 twice as dense, 0.5 half. The actual per-sector count is
+  drawn with the existing `_sample_poisson_count` helper (previously only
+  used by `SpaceSector.grow_from_seed`), resolved fresh for each sector
+  rather than once at parse time, so counts vary naturally sector to sector
+  under `--num-sectors` and across `galaxyGen.py` runs, matching a real
+  spatial Poisson process. Mutually exclusive with `--num-systems`; neither
+  flag given keeps the original flat-10-systems default unchanged.
+  `galaxyGen.py` gets the flag for free since it shares
+  `sectorGen.add_shared_generation_options`/`validate_shared_generation_args`
+  with no changes needed on its side.
 
 ## [5.4.0] - 2026-09-07
 
