@@ -29,7 +29,7 @@ import glob
 import os
 import sys
 
-from stellarObjects._db import SCHEMA_VERSION, UnsupportedSchemaVersionError, migrate_database
+from stellarObjects._db import BACKUP_MARKER, SCHEMA_VERSION, UnsupportedSchemaVersionError, migrate_database
 
 DEFAULT_DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "db")
 
@@ -46,7 +46,16 @@ def main():
         print(f"No database directory at {args.db_dir} -- nothing to migrate.")
         return
 
-    paths = sorted(glob.glob(os.path.join(args.db_dir, "*.db")))
+    # Backups made by a previous run of this same migration are gzip
+    # files (`.db.gz`, from `migrate_database`) so they wouldn't match
+    # this `*.db` glob anyway -- but they're also excluded by name here,
+    # explicitly, so a backup is never handed back into
+    # `migrate_database` (which would re-migrate it and stamp out a
+    # nested backup) even if the naming scheme changes again later.
+    paths = [
+        path for path in sorted(glob.glob(os.path.join(args.db_dir, "*.db")))
+        if BACKUP_MARKER not in os.path.basename(path)
+    ]
     if not paths:
         print(f"No *.db files in {args.db_dir} -- nothing to migrate.")
         return

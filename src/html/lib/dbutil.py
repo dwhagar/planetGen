@@ -42,11 +42,18 @@ sys.path.append(os.path.join(_PROJECT_ROOT, "src"))
 try:
     from stellarObjects.utils import milliparsecs_to_ly
     from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
+    from stellarObjects._db import BACKUP_MARKER
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # callers fall back to showing raw stored units rather than failing.
     milliparsecs_to_ly = None
     LOCAL_STELLAR_DENSITY_LY3 = None
+    # Matches `stellarObjects._db.BACKUP_MARKER` -- duplicated here as a
+    # literal fallback since that's the one piece of `_db` this module
+    # can't do without: excluding migration backups from the database
+    # picker still has to work even in a deployment where the rest of
+    # `stellarObjects` isn't importable.
+    BACKUP_MARKER = "-backup-"
 
 DEFAULT_DB_DIR = os.path.join(_PROJECT_ROOT, "db")
 """str: `db/` alongside `html/`, matching the repo layout and the
@@ -72,7 +79,12 @@ def get_db_dir():
 
 def list_databases():
     """
-    Lists every `*.db` file directly inside the database directory.
+    Lists every `*.db` file directly inside the database directory,
+    excluding schema-migration backups (see `BACKUP_MARKER`) -- a backup
+    is a gzip-compressed `.db.gz` file so it wouldn't match the `*.db`
+    glob anyway, but the exclusion is also applied by name explicitly so
+    the intent reads clearly here and this stays correct even if the
+    backup naming scheme changes again later.
 
     Returns:
         list[dict]: One entry per file, sorted by name, each with `name`,
@@ -81,6 +93,8 @@ def list_databases():
     db_dir = get_db_dir()
     entries = []
     for path in sorted(glob.glob(os.path.join(db_dir, "*.db"))):
+        if BACKUP_MARKER in os.path.basename(path):
+            continue
         stat = os.stat(path)
         entries.append({
             "name": os.path.basename(path),
@@ -103,7 +117,12 @@ def resolve_db_path(name):
     Only an exact basename match against a file that's actually present is
     accepted -- this is what keeps `?db=` from being used for path
     traversal (`../../etc/passwd` et al.) or for opening arbitrary files
-    outside the database directory.
+    outside the database directory. A schema-migration backup is refused
+    the same way `list_databases` excludes it from the picker (matched by
+    `BACKUP_MARKER`, not just its `.db.gz` extension failing the `.db`
+    suffix check below) -- a backup should never be openable as a
+    database even if someone guesses/hardcodes its exact filename in a
+    `?db=` link.
 
     Args:
         name (str): The `db` query parameter, e.g. `"planetgen.db"`.
@@ -119,7 +138,12 @@ def resolve_db_path(name):
     candidate = os.path.basename(name)
     db_dir = get_db_dir()
     path = os.path.join(db_dir, candidate)
-    if candidate != name or not os.path.isfile(path) or not candidate.endswith(".db"):
+    if (
+        candidate != name
+        or not os.path.isfile(path)
+        or not candidate.endswith(".db")
+        or BACKUP_MARKER in candidate
+    ):
         raise NotFoundError(f"No such database: {name!r}")
     return path
 

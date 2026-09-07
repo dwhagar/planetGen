@@ -159,8 +159,19 @@ acted on, only documented for review.
 
 ## File Management
 
-- [ ] Database backups during schema's should be gzipped and not available on the database picker.
-- [ ] Don't upgrade backups, if a backup database is present from an upgrade don't ugprade the backup.
+- [x] **Database backups during schema's should be gzipped and not available on the database picker.**
+  `stellarObjects._db.migrate_database` now writes a gzip-compressed backup
+  named `<db>.v<sourceVersion>-backup-<timestamp>.db.gz` (the `-backup-`
+  marker is `_db.BACKUP_MARKER`) instead of a plain `.db` copy.
+  `../src/html/lib/dbutil.py`'s `list_databases`/`resolve_db_path` and
+  `../src/migrateDb.py`'s directory scan all explicitly exclude anything
+  matching `BACKUP_MARKER`, so a backup is never offered by the web
+  database picker.
+- [x] **Don't upgrade backups, if a backup database is present from an upgrade don't upgrade the backup.**
+  Same `BACKUP_MARKER` exclusion in `../src/migrateDb.py` also keeps a
+  backup from ever being handed back into `migrate_database` on a
+  subsequent run, so re-running the migration CLI can't re-migrate (and
+  further nest-backup) its own prior backup.
 
 ## Population and Politics
 

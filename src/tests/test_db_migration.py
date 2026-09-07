@@ -15,8 +15,11 @@ v1 deployment's database would be, independent of any future edits to the
 current schema.
 """
 
+import gzip
 import os
+import shutil
 import sqlite3
+import sys
 
 import pytest
 
@@ -281,8 +284,21 @@ def test_migrate_v1_to_v2_splits_moons_into_their_own_table(tmp_path):
     assert backup_path is not None
     assert os.path.exists(backup_path)
 
+    # The backup is gzip-compressed, not a plain SQLite file copy -- and
+    # its name carries `BACKUP_MARKER` and doesn't end in bare `.db`, so
+    # it can never be mistaken for a live database by a naive `*.db` glob
+    # (see `html/lib/dbutil.py` and `migrateDb.py`).
+    assert backup_path.endswith(".db.gz")
+    assert _db.BACKUP_MARKER in os.path.basename(backup_path)
+    assert not backup_path.endswith(".db")
+    with open(backup_path, "rb") as f:
+        assert f.read(2) == b"\x1f\x8b"  # gzip magic bytes
+
     # The backup is untouched v1 data, not the migrated result.
-    backup_conn = sqlite3.connect(backup_path)
+    decompressed_path = str(tmp_path / "decompressed.db")
+    with gzip.open(backup_path, "rb") as f_in, open(decompressed_path, "wb") as f_out:
+        shutil.copyfileobj(f_in, f_out)
+    backup_conn = sqlite3.connect(decompressed_path)
     assert backup_conn.execute("PRAGMA user_version").fetchone()[0] == 1
     assert backup_conn.execute("SELECT COUNT(*) FROM planets").fetchone()[0] == 2
     backup_conn.close()
@@ -352,3 +368,90 @@ def test_migrate_database_rejects_unknown_schema_version(tmp_path):
 
     with pytest.raises(_db.UnsupportedSchemaVersionError):
         _db.migrate_database(db_path)
+
+
+# --- html/lib/dbutil.py: the database picker must never surface a backup ---
+#
+# `src/html/lib` isn't part of the installed `stellarObjects` package
+# (CGI-only plumbing, see `dbutil.py`'s own module docstring), so it's
+# added to `sys.path` here the same way the CGI scripts themselves do.
+# This file lives at src/tests/, two levels under the repo root (src
+# layout), not one -- two dirname() calls reach `src/`, then down into
+# html/lib.
+_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_HTML_LIB_DIR = os.path.join(_SRC_DIR, "html", "lib")
+if _HTML_LIB_DIR not in sys.path:
+    sys.path.insert(0, _HTML_LIB_DIR)
+
+import dbutil  # noqa: E402
+
+
+def test_list_databases_excludes_migration_backups(tmp_path, monkeypatch):
+    monkeypatch.setattr(dbutil, "DEFAULT_DB_DIR", str(tmp_path))
+    monkeypatch.delenv(dbutil.DB_DIR_ENV_VAR, raising=False)
+
+    real_db_path = tmp_path / "planetgen.db"
+    _db.get_connection(str(real_db_path)).close()
+
+    old_db_path = tmp_path / "old.db"
+    old_db_path.write_bytes(b"not a real db, just needs to exist")
+    # Build a stand-in backup the same way `migrate_database` names one,
+    # without needing a real old-schema database for this test's purposes.
+    backup_path = str(tmp_path / f"old.db.v2{_db.BACKUP_MARKER}20260101T000000.db.gz")
+    with open(backup_path, "wb") as f:
+        f.write(b"\x1f\x8b" + b"0" * 10)  # gzip magic + filler, contents unused here
+
+    listed_names = {entry["name"] for entry in dbutil.list_databases()}
+
+    assert listed_names == {"planetgen.db", "old.db"}
+    assert os.path.basename(backup_path) not in listed_names
+
+
+def test_resolve_db_path_refuses_a_backup_even_by_exact_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(dbutil, "DEFAULT_DB_DIR", str(tmp_path))
+    monkeypatch.delenv(dbutil.DB_DIR_ENV_VAR, raising=False)
+
+    backup_name = f"planetgen.db.v2{_db.BACKUP_MARKER}20260101T000000.db.gz"
+    (tmp_path / backup_name).write_bytes(b"\x1f\x8b" + b"0" * 10)
+
+    with pytest.raises(dbutil.NotFoundError):
+        dbutil.resolve_db_path(backup_name)
+
+
+# --- migrateDb.py: re-running the CLI must not re-migrate its own backup ---
+
+import migrateDb  # noqa: E402
+
+
+def test_running_migrate_cli_twice_does_not_re_migrate_the_backup(tmp_path):
+    db_path = str(tmp_path / "sector.db")
+    _build_v1_database(db_path)
+
+    old_argv = sys.argv
+    try:
+        sys.argv = ["migrateDb.py", str(tmp_path)]
+        migrateDb.main()
+        first_run_files = sorted(os.listdir(tmp_path))
+        backups_after_first_run = [f for f in first_run_files if _db.BACKUP_MARKER in f]
+        assert len(backups_after_first_run) == 1
+
+        backup_path = tmp_path / backups_after_first_run[0]
+        mtime_after_first_run = backup_path.stat().st_mtime
+        size_after_first_run = backup_path.stat().st_size
+
+        # Second run: the live db is already current (a no-op for it), and
+        # the backup from the first run must be skipped entirely rather
+        # than handed back into `migrate_database` (which would treat its
+        # still-v1 `PRAGMA user_version` as needing migration all over
+        # again, producing a nested second backup).
+        migrateDb.main()
+    finally:
+        sys.argv = old_argv
+
+    second_run_files = sorted(os.listdir(tmp_path))
+    backups_after_second_run = [f for f in second_run_files if _db.BACKUP_MARKER in f]
+
+    assert len(backups_after_second_run) == 1
+    assert backups_after_second_run == backups_after_first_run
+    assert backup_path.stat().st_mtime == mtime_after_first_run
+    assert backup_path.stat().st_size == size_after_first_run
