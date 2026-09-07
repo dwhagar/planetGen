@@ -188,6 +188,22 @@ class Star:
                 min_age = min_age + (max_age - min_age) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
             elif self.system_config.AGE == "young":
                 max_age = max_age - (max_age - min_age) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+
+            # No star observed today can be older than the universe itself,
+            # regardless of how long its class could theoretically keep
+            # burning (see UNIVERSE_AGE_GY) -- but this star must also
+            # already be at least as old as its own main-sequence lifespan
+            # to be observed as an evolved class at all (min_age's floor).
+            # `max(..., min_age)` applies the cosmological cap only when
+            # it's actually compatible with that requirement, rather than
+            # ever shrinking max_age below min_age (which would produce a
+            # self-contradictory star -- e.g. a red giant younger than its
+            # own progenitor's main-sequence lifespan). A sub-solar-mass
+            # progenitor whose main-sequence lifespan alone already exceeds
+            # the age of the universe is a separate, deeper issue with how
+            # evolved-star masses are sampled -- not fixable by clamping age
+            # alone -- and is tracked in TODO.md rather than papered over here.
+            max_age = max(min(max_age, program_constants.UNIVERSE_AGE_GY), min_age)
             age = random.uniform(min_age, max_age)
 
             return age, lifespan
@@ -215,6 +231,16 @@ class Star:
             min_age = min_age + lifespan * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
         elif self.system_config.AGE == "young":
             max_age = max_age - lifespan * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+
+        # No star observed today can be older than the universe itself,
+        # regardless of how long its class could theoretically keep burning
+        # (see UNIVERSE_AGE_GY) -- this is what actually keeps very
+        # long-lived classes like M (lifespan_gy up to 5500 Gy) from rolling
+        # an implausible "918 billion years old" age. Re-clamp min_age down
+        # to the (possibly now-lower) max_age afterward so an "old" bias
+        # never inverts the range for such a star.
+        max_age = min(max_age, program_constants.UNIVERSE_AGE_GY)
+        min_age = min(min_age, max_age)
 
         age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
 
@@ -272,7 +298,14 @@ class Star:
         # Ensure the star's age is at least the minimum required by its planets
         if self.age < min_required_age_for_system:
             if self.lifespan != float('inf'):
-                max_reachable_age = self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR
+                # Capped at the age of the universe for the same reason as
+                # the initial age roll in _calculate_initial_star_age_and_lifespan
+                # -- a long-lived class's lifespan-derived ceiling can be far
+                # larger than any star could actually have reached yet.
+                max_reachable_age = min(
+                    self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                    program_constants.UNIVERSE_AGE_GY,
+                )
             else:
                 max_reachable_age = min_required_age_for_system + program_constants.WHITE_DWARF_AGE_ADDITION_GY # Add 5 GY for WD if no upper bound
 
@@ -281,7 +314,15 @@ class Star:
                 # (e.g. a habitable world's minimum age exceeds a short-lived O/B/A star's
                 # entire life). The best it can do is sit near the very end of its life --
                 # there's no real "young" vs "old" choice left to honor here.
-                self.age = random.uniform(self.lifespan * program_constants.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age)
+                # `min(..., max_reachable_age)` keeps this "near the end of its
+                # reachable life" for a long-lived class too: lifespan * 0.85
+                # can itself be far larger than max_reachable_age once that's
+                # capped at UNIVERSE_AGE_GY, which would otherwise widen this
+                # into a near-full-lifespan random range instead of "near the end."
+                self.age = random.uniform(
+                    min(self.lifespan * program_constants.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
+                    max_reachable_age,
+                )
             else:
                 # The requirement is reachable within the lifespan: bias where in the
                 # achievable [min_required_age_for_system, max_reachable_age] window the

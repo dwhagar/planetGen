@@ -175,6 +175,18 @@ SCIENTIFIC_NOTATION_DECIMAL_PLACES = 2
 ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 
 # --- Star Generation Parameters ---
+# The current age of the universe (~13.8 Gy, standard cosmological
+# consensus) -- an absolute ceiling on any star's age, regardless of how
+# long its own spectral class could theoretically keep burning. Without
+# this, extremely long-lived classes (M dwarfs: STAR_EVOLUTION["M"]'s
+# lifespan_gy runs up to 5500 Gy, a real theoretical figure -- no red dwarf
+# has ever actually died of old age) could roll an "age" of hundreds of
+# billions of years. That age is still less than the star's own enormous
+# lifespan (the existing age <= lifespan invariant holds), but far older
+# than any star that could actually exist yet, since the universe itself
+# isn't old enough. White dwarfs already have their own bounded cooling-age
+# range (WHITE_DWARF_MIN/MAX_AGE_GY) and don't need this cap.
+UNIVERSE_AGE_GY = 13.8
 MIN_INITIAL_STAR_AGE_GY = 0.1
 MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.01
 MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.9
