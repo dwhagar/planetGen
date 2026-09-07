@@ -354,39 +354,52 @@ class Planet:
 
     def _gas_giant_pressure_depth_text(self):
         """
-        Builds descriptive sentences putting the gas giant's already-computed
+        Builds short sentences putting the gas giant's already-computed
         reference-level pressure (`self.atmospheric_pressure`) into physical
-        context: how far below (or above) the standard 1-atmosphere cloud
-        deck that pressure occurs, how quickly pressure grows with depth in
-        this model's isothermal-atmosphere approximation, and a rough,
-        separately-calibrated order-of-magnitude estimate of the crushing
-        pressure deep in the planet's interior, well beyond where the
-        atmosphere model applies.
+        context: depth relative to the standard 1-atmosphere level from the
+        isothermal barometric law already used to derive that pressure (see
+        planetPhysics.calculate_atmospheric_conditions); the depth and
+        temperature at which rising pressure would turn the atmosphere from
+        gas to liquid metallic hydrogen, from extending
+        `self.surface_temperature` down a dry adiabat (see
+        `physical_constants.ADIABATIC_INDEX_H2_HE` and
+        `HYDROGEN_METALLIZATION_PRESSURE_PA`); and a core-pressure estimate
+        from the analytic n=1 polytrope (Lane-Emden) solution to hydrostatic
+        equilibrium. None of these are stitched into one continuous
+        profile -- the adiabat only holds for the shallow gas layer, and
+        the polytrope only describes the deep interior, with a poorly
+        understood transition in between that neither approximation
+        covers.
 
         Returns:
-            list[str]: One or two sentences, or an empty list if the
-                       underlying scale height/pressure aren't available.
+            list[str]: Descriptive sentences, or an empty list if the
+                       underlying scale height/pressure/temperature aren't
+                       available.
         """
-        if not self.scale_height or not self.atmospheric_pressure:
+        if not self.scale_height or not self.atmospheric_pressure or not self.surface_temperature:
             return []
 
         reference_pressure_pa = 101300  # ~1 standard atmosphere, matching the "atmospheres" conversion above
         depth_km = self.scale_height * math.log(self.atmospheric_pressure / reference_pressure_pa)
         doubling_km = self.scale_height * math.log(2)
+
+        transition_pressure_pa = physical_constants.HYDROGEN_METALLIZATION_PRESSURE_PA
+        transition_depth_km = self.scale_height * math.log(transition_pressure_pa / self.atmospheric_pressure)
+        adiabatic_exponent = (physical_constants.ADIABATIC_INDEX_H2_HE - 1) / physical_constants.ADIABATIC_INDEX_H2_HE
+        transition_temperature_c = self.surface_temperature * (transition_pressure_pa / self.atmospheric_pressure) ** adiabatic_exponent - 273.15
+
         radius_m = self.radius * 1000
-        core_pressure_gpa = (
-            physical_constants.CENTRAL_PRESSURE_CALIBRATION * 3 * physical_constants.G * self.mass ** 2
-            / (8 * math.pi * radius_m ** 4)
-        ) / 1e9
+        core_pressure_gpa = (math.pi * physical_constants.G * self.mass ** 2 / (8 * radius_m ** 4)) / 1e9
 
         if depth_km > 0:
-            depth_sentence = f"That pressure is reached about {depth_km:.0f} km below the nominal 1-atmosphere cloud deck."
+            depth_sentence = f"That's about {depth_km:.0f} km below the 1 atmosphere level, where pressure roughly doubles every {doubling_km:.0f} km."
         else:
-            depth_sentence = f"That pressure actually sits about {abs(depth_km):.0f} km above the nominal 1-atmosphere cloud deck, in the thinner upper atmosphere."
+            depth_sentence = f"That's about {abs(depth_km):.0f} km above the 1 atmosphere level, where pressure roughly doubles every {doubling_km:.0f} km with depth."
 
         return [
-            f"{depth_sentence} Pressure roughly doubles every {doubling_km:.0f} km of additional depth in this simplified isothermal atmosphere.",
-            f"Far deeper, in the crushed interior well beyond where this model applies, core pressure is roughly on the order of {core_pressure_gpa:.0f} GPa (for comparison, Jupiter's real core is estimated near {physical_constants.JUPITER_CORE_PRESSURE_PA / 1e9:.0f} GPa).",
+            depth_sentence,
+            f"Around {transition_depth_km:.0f} km down, rising pressure would compress the atmosphere into a liquid metallic state near {transition_temperature_c:.0f} degrees C.",
+            f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {core_pressure_gpa:.0f} GPa.",
         ]
 
     def to_paragraph_list(self):

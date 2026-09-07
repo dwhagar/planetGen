@@ -109,19 +109,63 @@ ATMOSPHERIC_MOLAR_DENSITY = {
 # did.
 GAS_ENVELOPE_BULK_DENSITY = (0.06, 0.3)
 
-# Reference point and calibration factor for the rough gas-giant core-
-# pressure estimate in planetData's flavor text. A uniform-density
-# self-gravitating sphere has an exact central pressure of
-# P_c = 3*G*M^2/(8*pi*R^4) (integrating hydrostatic equilibrium
-# dP/dr = -G*M(r)*rho/r^2 at constant rho). Real gas giants are centrally
-# condensed rather than uniform, so this underestimates the true value --
-# for Jupiter's own mass/radius the uniform-sphere formula alone gives only
-# ~1,100 GPa, versus a real estimated core pressure near 4,000 GPa. This
-# factor scales the uniform-sphere estimate back up to the right order of
-# magnitude for any generated gas giant. Not a rigorous equation-of-state
-# model -- flavor-text purposes only, not used by any other calculation.
-JUPITER_CORE_PRESSURE_PA = 4e12  # ~4,000 GPa, a commonly cited estimate
-CENTRAL_PRESSURE_CALIBRATION = 3.6
+# n=1 polytrope (Lane-Emden) central-pressure formula for gas giants, used
+# by planetData's flavor text as a genuinely-derived interior estimate
+# rather than a curve-fit.
+#
+# A polytrope assumes P = K*rho^Gamma; for Gamma=2 (polytropic index n=1),
+# the Lane-Emden equation (1/xi^2) d/dxi(xi^2 dtheta/dxi) = -theta^n has the
+# closed-form solution theta(xi) = sin(xi)/xi, with its first zero (the
+# body's surface) at xi_1 = pi. Combined with the definitions of a
+# polytrope's total mass and radius, that solution reduces to a single
+# closed-form relation between mass, radius, and central pressure -- no
+# separately-fit constant needed:
+#
+#     P_core = pi * G * M^2 / (8 * R^4)
+#
+# (planetData.py computes this directly rather than exposing it as a named
+# constant here, since it needs per-planet M and R). This is exactly
+# pi^2/3 (~3.29x) higher than the cruder uniform-density-sphere estimate
+# (P_c = 3*G*M^2/(8*pi*R^4)), because a real self-gravitating body's density
+# rises toward the center rather than staying uniform. n=1 is the classic,
+# simplest polytrope with an exact analytic solution, and is a standard
+# textbook approximation for cold, dense hydrogen/helium (Zapolsky &
+# Salpeter 1969 used the closely related n=3/2 for fully degenerate
+# matter). Checked against Jupiter's real numbers (M=1.898e27 kg,
+# R=71,492 km): this formula alone gives ~3,620 GPa, within ~10% of the
+# ~4,000 GPa commonly cited for Jupiter's actual core pressure, with no
+# tuning at all.
+#
+# Still not a real equation of state: no molecular-to-metallic hydrogen
+# phase transition, no core/envelope differentiation, no temperature
+# dependence. A rigorous calculation needs tabulated real EOS data (e.g.
+# Saumon-Chabrier-van Horn) and a two-point boundary-value integration of
+# hydrostatic equilibrium, well beyond flavor-text scope. (For reference,
+# real estimates of Jupiter's actual core pressure run close to 4,000 GPa.)
+# See planetData.py's gas giant text generation for the fuller caveats.
+
+# Adiabatic index (ratio of specific heats, Cp/Cv) for a hydrogen/helium
+# atmosphere in the molecular (non-dissociated, non-metallic) regime, used
+# only to extend the already-computed surface_temperature (the same
+# equilibrium-temperature calculation used for every planet, terrestrial or
+# gas giant; see planetPhysics.calculate_atmospheric_conditions) into a
+# convective-adiabat temperature-with-depth estimate for planetData's gas
+# giant flavor text: T(P) = T_ref * (P/P_ref)^((gamma-1)/gamma). Real gas
+# giant atmospheres measure Gamma1 ~= 1.4-1.44 in this molecular regime;
+# 1.4 (the textbook diatomic-ideal-gas value) is used as a representative
+# constant rather than a per-planet fit.
+ADIABATIC_INDEX_H2_HE = 1.4
+
+# Approximate pressure (Pa) at which hydrogen stops behaving as a molecular
+# gas/fluid and becomes a liquid metallic state, used as a "where does the
+# gas end" milestone for the adiabatic estimate above. Real estimates for
+# this transition vary by model and temperature, roughly 1-3 Mbar; 1 Mbar
+# (this value) is a commonly cited round figure. Applying the same
+# isothermal barometric law used for the shallow atmosphere all the way out
+# to this pressure is itself an extrapolation well past where that law is
+# strictly valid, so this is a narrative milestone, not a claim of
+# precision.
+HYDROGEN_METALLIZATION_PRESSURE_PA = 1e11
 
 # Renamed AU_TO_LIGHT_YEAR to LY_TO_AU for clarity and consistency.
 LY_TO_AU = 63241.1
