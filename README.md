@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.2.5 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.3.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -11,11 +11,11 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 *   **Planet and moon generation**: Planets are drawn from 25 distinct planet classes (terrestrial and gas giant), each with its own composition, atmosphere, and valid orbital zones (hot/ecosphere/cold). Planets can generate their own moons, with orbital placement, atmospheric conditions, and surface gravity calculated per body. Orbital spacing is validated against each object's Hill sphere to keep the system physically plausible.
 *   **Asteroid belts**: Belts can appear between planets (or be forced/forbidden with `+asteroid_belt`/`-asteroid_belt`), each with a randomly generated density and mineral/gem composition.
 *   **Explicit orbit/slot specification**: The number of orbital slots (planets and asteroid belts combined) can be pinned exactly with `--num-orbits`, and a `--system-file` JSON specification can dictate the exact contents of any specific orbital slot — whether it's a planet or an asteroid belt, the planet's class, and how many moons it has — leaving unspecified slots to normal random generation.
-*   **Stellar age and lifespan modeling**: Star age and lifespan are derived from spectral and Yerkes class data, then adjusted (via `--age young|old`) or extended as needed so any habitable planets' life stages remain consistent with how long the star has existed and how much longer it has left.
+*   **Stellar age and lifespan modeling**: Star age and lifespan are derived from spectral and Yerkes class data, then adjusted (via `--age young|old`) or extended as needed so any habitable planets' life stages remain consistent with how long the star has existed and how much longer it has left. A star's age is always capped at the actual age of the universe (~13.8 billion years), even for classes (like M dwarfs) whose theoretical lifespan runs to trillions of years.
 *   **Life chemistry and evolutionary timelines**: Habitable planets are evaluated against the star's spectral class to determine which of several life chemistries (e.g. Chlorophyll a, Melanin, Retinal) are viable, each with its own evolutionary pace (fast/normal/slow). A speculative evolutionary timeline (abiogenesis through technological civilization) is generated for habitable worlds, influenced by `+intelligent_life` / `-intelligent_life`.
 *   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
 *   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
-*   **Sector generation**: `sectorGen.py` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below.
+*   **Sector generation**: `sectorGen.py` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below. Each system placed in a sector records a `location`: its sector's name plus distance (in light-years) to its 3 nearest neighboring systems.
 
 ## Setup
 
@@ -127,7 +127,10 @@ Markdown page saved for each one, or jump straight to an object via
 star spectral/luminosity class, planet class/body type, supported life
 chemistry) built from only the values actually present in the chosen
 database, plus an autocompleting name search across sectors, systems,
-stars, and planets/moons. It's meant to be deployed to an Apache2
+stars, and planets/moons -- a Search link to it is always available in the
+page header once a database is selected. If the database directory
+contains exactly one `.db` file, the landing page skips the picker and
+goes straight to browsing it. It's meant to be deployed to an Apache2
 install on a Linux server; run `sudo ./install.sh` from the repo root on
 the server to do the whole install (Python package, the NLTK corpus
 Apache's own user needs, CGI setup, and directory permissions) in one

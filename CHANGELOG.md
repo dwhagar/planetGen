@@ -1,5 +1,83 @@
 # Changelog
 
+## [5.3.0] - 2026-09-06
+
+### Fixed
+- **Atmospheric pressure was ~5 orders of magnitude too low for every
+  planet class except M.** `planetPhysics.calculate_atmospheric_conditions`
+  summed "shell" volumes derived from `planet.radius`/`scale_height`
+  (stored in km) directly against `planet.atm_density` (kg/m³) without
+  converting km³→m³, undercounting `atmospheric_mass` by ~10⁹×; an
+  unexplained `* 7500` fudge factor only clawed back about 4 of those ~9
+  orders of magnitude. This rendered as "0.0 kPa" for every atmosphere-
+  bearing class but M (Class M never showed it, because a hardcoded clamp
+  force-overrode its pressure into an Earth-like range regardless of what
+  was computed). Replaced the whole shell-integration loop with the
+  closed-form barometric formula for an isothermal, hydrostatic atmosphere
+  (`P_surface = ρ_surface · g · H`), which needs no arbitrary zone count or
+  fudge factor and lands within the right order of magnitude for both
+  Earth-like and Mars-like test cases. `tests/test_planets.py`/
+  `tests/test_full_matrix.py`'s pressure assertions were tightened from a
+  no-op `>= 0` check into real physical sanity bounds (1 Pa – 10 MPa) so a
+  regression like this can't silently pass again.
+- **Stars could be reported as hundreds of billions of years old** (e.g.
+  "918.77 Billion Years old"), which is impossible since the universe
+  itself is only ~13.8 billion years old — even though the star's age never
+  actually exceeded its own (very long, and realistically so: real M dwarfs
+  are predicted to live trillions of years) lifespan. Added a
+  `UNIVERSE_AGE_GY = 13.8` ceiling, applied in both the main-sequence and
+  evolved-star branches of `Star._calculate_initial_star_age_and_lifespan`
+  and in `adjust_age_for_planets`'s age-adjustment logic. (White dwarfs
+  already had their own bounded 0.1–12.0 Gy cooling-age range and needed no
+  change.) A sub-solar-mass evolved-star progenitor whose own
+  main-sequence lifespan already exceeds the universe's age is a separate,
+  deeper mass-sampling issue, noted in `TODO.md` rather than papered over
+  here.
+- **Rare `IndexError: string index out of range` crash in name
+  generation.** `generate_phoneme_salad_name` (used for star, planet, and
+  moon names) could crash when a base name containing a literal apostrophe
+  (e.g. `PLANET_NAMES`'s "Hi'iaka") landed adjacent to a `UNIVERSAL_PHONEMES`
+  chunk also ending in an apostrophe (e.g. "ch'"), producing a literal `''`
+  in the assembled name; the final capitalization step split on `'` and
+  indexed `part[0]` on every piece, crashing on the empty piece between the
+  two apostrophes. Not specific to binary systems — any name generation
+  call could hit it given enough attempts, which is why it only surfaced
+  rarely across a large batch of generated systems.
+
+### Changed
+- Class M's (and Class P's) hardcoded gravity/pressure/temperature
+  "forcing" clamps in `planetPhysics.py` are commented out, not deleted —
+  the fixed atmospheric-pressure formula already lands close to realistic
+  ranges on its own, so the band-aid that had been masking the pressure bug
+  for Class M is no longer needed. May be restored later if Class M/P need
+  tighter narrative guarantees again.
+- `star_systems` gained a `location` column (schema bumped to v3): for any
+  system placed in a sector, its sector's name plus distance (in
+  light-years) to its 3 nearest neighboring systems, e.g. `"Voranthis
+  Kelmoor -- nearest: Aldenar (4.2 ly), Brekthos (7.8 ly), Corvane (9.1
+  ly)"`. Computed once at write time (mirroring how `quadrant` is already
+  derived and persisted) via the existing `SpaceSector.nearest_neighbors`/
+  `distance_between` helpers; `NULL` for systems never placed in a sector.
+  Existing v1/v2 databases migrate automatically (backed up first, as
+  usual) and have their `location` backfilled from already-stored position
+  data.
+- The web interface's Search link is now reachable from every page (it
+  previously required detouring back through the database-browse page) —
+  `html/lib/page.py`'s shared page header now includes it whenever a
+  database is selected.
+- The database-picker landing page (`html/index.py`) now redirects straight
+  to browsing the one database present, if the configured database
+  directory contains exactly one `.db` file, instead of always showing the
+  picker.
+
+### Added
+- `webconfig.json` (repo root, gitignored — `webconfig.json.example` is the
+  committed template): site-level configuration, currently `site_name` and
+  `base_url`, plus unused placeholder fields (`db_username`, `db_password`,
+  `db_name`) reserved for a possible future non-SQLite backend. Kept
+  outside `html/`'s served document root, the same way `db/` already is.
+  See [`WEBCONFIG.md`](WEBCONFIG.md) for full documentation.
+
 ## [5.2.5] - 2026-09-06
 
 ### Changed
