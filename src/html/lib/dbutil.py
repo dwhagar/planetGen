@@ -28,7 +28,8 @@ directory -- see the example vhost config."""
 
 _LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 _HTML_DIR = os.path.dirname(_LIB_DIR)
-_PROJECT_ROOT = os.path.dirname(_HTML_DIR)
+_SRC_DIR = os.path.dirname(_HTML_DIR)
+_PROJECT_ROOT = os.path.dirname(_SRC_DIR)
 
 # Falls back to src/ (stellarObjects now lives at src/stellarObjects/, src
 # layout) so `stellarObjects` is importable even when it hasn't been

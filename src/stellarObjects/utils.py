@@ -572,7 +572,7 @@ prefix/suffix lists to be extended individually.
 """
 
 
-def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True):
+def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True, syllable_fraction=1.0, max_length=None):
     """
     Generates a unique, phonetically pleasing name from a list of base names.
 
@@ -599,6 +599,33 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                             pass `False` here, or a single call splitting
                             internally would silently make the combined
                             result 3-4 words instead of the intended 2.
+        syllable_fraction (float): Fraction (0-1] of the shuffled base
+                            name's syllables to actually keep before the
+                            prefix/suffix are attached, trimming from the
+                            end. Default `1.0` keeps every syllable
+                            (unchanged behavior for stars/planets/moons).
+                            `sectorGen.generate_sector_name` passes `0.5`
+                            here so sector names -- built by joining two
+                            of these calls into one two-word name -- come
+                            out roughly half as long per word; base names
+                            long enough to still shrink always keep at
+                            least 1 syllable.
+        max_length (int): Optional hard cap, in characters, on the fully
+                            assembled name (base syllables + prefix +
+                            suffix, before capitalization). `None` (the
+                            default) leaves names uncapped. Chopping
+                            happens after the suffix is attached, so it's
+                            the backstop against `syllable_fraction`
+                            alone not being enough -- prefixes, suffixes,
+                            and the occasional spliced-in
+                            `UNIVERSAL_PHONEMES` chunk are fixed-ish
+                            overhead that doesn't shrink with
+                            `syllable_fraction`, so a long base name can
+                            still produce a longer-than-intended result
+                            without this. `sectorGen.generate_sector_name`
+                            passes `7` here alongside `syllable_fraction=0.5`
+                            to reliably keep each half of a sector name
+                            short.
 
     Returns:
         str: A newly generated, unique name.
@@ -610,6 +637,10 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
         syllables = split_into_syllables(name)
         if len(syllables) > 1:
             random.shuffle(syllables)
+
+        if syllable_fraction < 1.0 and len(syllables) > 1:
+            keep = max(1, round(len(syllables) * syllable_fraction))
+            syllables = syllables[:keep]
 
         if random.random() < UNIVERSAL_PHONEME_CHANCE:
             syllables.insert(random.randint(0, len(syllables)), secrets.choice(UNIVERSAL_PHONEMES))
@@ -637,9 +668,12 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                 name = name + suffix
         else:
             name = name + suffix
-            
+
+        if max_length is not None and len(name) > max_length:
+            name = name[:max_length]
+
         name = name.lower()
-        
+
         if is_name_valid(name):
             if allow_split:
                 name = split_long_word(name)

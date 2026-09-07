@@ -230,8 +230,16 @@ def generate_sector_name():
     # long result into two words (e.g. "Xyleth Anore"). Since this
     # function already joins two independent calls into one name, leaving
     # splitting on could silently produce 3-4 words instead of 2.
-    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False)
-    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False)
+    # syllable_fraction=0.5 trims each word's base syllables by about
+    # half before the prefix/suffix are attached -- many SECTOR_NAMES
+    # entries (e.g. "Sagittarius", "Metropolis") are long real place
+    # names, and two of them joined together made for unwieldy sector
+    # names. max_length=7 backstops that: prefixes, suffixes, and the
+    # occasional spliced-in universal phoneme are fixed-ish overhead that
+    # doesn't shrink with syllable_fraction, so a long base name could
+    # still slip through longer than intended without a hard cap too.
+    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
+    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
     return f"{first_word} {second_word}"
 
 
