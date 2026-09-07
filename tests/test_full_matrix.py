@@ -122,7 +122,10 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
         assert planet.atmosphere == "None"
         assert planet.atmospheric_pressure == 0.0
     else:
-        assert math.isfinite(planet.atmospheric_pressure) and planet.atmospheric_pressure >= 0, (
+        # Sanity bounds spanning a thin, Mars-like atmosphere up to a thick,
+        # Venus-like one -- catches regressions like a unit-conversion bug
+        # that silently produced near-zero pressure for every class but M.
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e7, (
             f"{star_type}/{cls}-{zone}: atmospheric_pressure={planet.atmospheric_pressure}"
         )
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0, (

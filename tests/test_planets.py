@@ -93,7 +93,10 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         assert planet.atm_molar_density is None
     else:
         assert planet.atmosphere == class_data["atmosphere"]
-        assert math.isfinite(planet.atmospheric_pressure) and planet.atmospheric_pressure >= 0
+        # Sanity bounds spanning a thin, Mars-like atmosphere up to a thick,
+        # Venus-like one -- catches regressions like a unit-conversion bug
+        # that silently produced near-zero pressure for every class but M.
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e7
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
         assert math.isfinite(planet.atm_molar_density) and planet.atm_molar_density > 0
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0
