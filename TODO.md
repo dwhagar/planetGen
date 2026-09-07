@@ -113,16 +113,27 @@ Phase 4 and parts of Phase 5 are still open.
       this should probably be resolved before further physics tuning,
       since it affects M/P/gas-giant generation broadly, not just the
       originally-scoped clamps question.
-- [ ] **Physical-plausibility anomaly finder** (branch
-  `worktree-agent-afdb05a2b331ff123`, superseded by a fresh resumption
-  branch after the original run was cut off mid-way by a usage-limit
-  error) — still running as of 2026-09-07, not yet merged. Rebuilding
-  `physicalPlausibility.py`/`stellarObjects/plausibility.py` (hard
-  invariant checks plus Tukey's-fences statistical outlier detection per
-  class) into a verified, tested state, and cross-checking its findings
-  against the habitability sanity review above. Given the sanity-review
-  findings, this tool should be immediately useful for confirming how far
-  M/gas-giant pressure and Class P temperature actually drift.
+- [x] **Physical-plausibility anomaly finder** — merged (`physicalPlausibility.py`
+  CLI, `stellarObjects/plausibility.py` engine, `tests/test_physical_plausibility.py`,
+  8669 tests passing). Batch-generates across every (class, zone) pair and
+  a broad host-star spectral grid; hard-invariant checks (gravity bounds,
+  finiteness/sign) run as always-on tests, statistical outlier detection
+  (Tukey's fences, including density now) stays a human-report-only CLI.
+  A real run independently **corroborated** the habitability sanity review
+  above: Class M/P statistically indistinguishable (277.5K vs 278.4K mean),
+  Class M pressure maxes out at 77.7 kPa (never near 101,325 Pa/1 atm),
+  gas-giant density as low as 0.027 g/cm^3, and pressure/gravity
+  correlation ~= -0.11 (confirms the algebraic cancellation). 0 hard
+  invariant violations across 17,294 generated bodies — nothing here rises
+  to "generator is crashing/producing nonsense," it's specifically the
+  greenhouse/pressure-formula and gas-giant-density concerns already
+  flagged above that need a decision.
+
+**What's still an open decision, not a bug to just go fix**: the
+greenhouse-factor formula and gas-giant density blending flagged in the
+habitability review (now independently corroborated), and the 8 open
+questions in the galaxy coordinate design doc — none of these have been
+acted on, only documented for review.
 
 ## Investigate Further
 
