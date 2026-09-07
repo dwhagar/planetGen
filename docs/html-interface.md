@@ -57,7 +57,7 @@ Separately from these Apache-set environment variables, a `webconfig.json`
 file at the repo root (a sibling of `../src/html/`, not a file inside `../src/html/`
 itself) holds site-level settings such as `site_name` and `base_url`,
 edited once per deployment rather than passed through the vhost config --
-see [`WEBCONFIG.md`](WEBCONFIG.md) for the full field list
+see [`webconfig.md`](webconfig.md) for the full field list
 and how it relates to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`.
 
 ## Deploying

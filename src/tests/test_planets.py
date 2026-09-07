@@ -96,7 +96,10 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         # Sanity bounds spanning a thin, Mars-like atmosphere up to a thick,
         # Venus-like one -- catches regressions like a unit-conversion bug
         # that silently produced near-zero pressure for every class but M.
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e7
+        # Class N is tuned to real Venus values (~9.2MPa mean at this
+        # module's G2V host, see PLANET_CLASSES["N"]); the upper bound is
+        # raised well past that to stay a broad regression catch.
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 5e7
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
         assert math.isfinite(planet.atm_molar_density) and planet.atm_molar_density > 0
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0

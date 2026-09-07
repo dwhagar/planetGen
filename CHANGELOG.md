@@ -1,5 +1,73 @@
 # Changelog
 
+## [5.3.7] - 2026-09-07
+
+### Changed
+- **Greenhouse-formula fix and per-class climate tuning.** The prior
+  `greenhouse_factor` formula (`planetPhysics.calculate_atmospheric_conditions`)
+  used `atm_molar_density` as its only lever, scaled by a single shared
+  `CO2_MAX_GREENHOUSE_FACTOR` cap (5) — real Earth air's own molar mass
+  already produced `greenhouse_factor ≈ 3.33` under that formula, driving
+  Class M's mean surface temperature to 362K instead of ~288K, and Mars and
+  Venus (nearly identical real molar mass, ~100x different real greenhouse
+  forcing) could never be told apart by molar mass alone.
+  - `CO2_MAX_GREENHOUSE_FACTOR` (now 500) is a generous safety ceiling, not
+    the calibration knob.
+  - New per-class `PLANET_CLASSES` keys — `albedo_range` (extended beyond
+    Class P, which introduced it), `atm_molar_density_range`,
+    `atm_density_range`, and `greenhouse_multiplier_range` — give every
+    tuned class independent control of composition (molar density),
+    quantity (mass density), and potency (greenhouse multiplier), following
+    the exact override pattern `albedo_range` established for Class P.
+    Class N's old hardcoded `atm_density = 65` / `atm_molar_density = max`
+    special case in `planetPhysics.generate_planet_properties` is folded
+    into this same general mechanism.
+  - **Tuned this pass** (via the new `climate_tuning_cli.py`, see below):
+    M (Earth analog, ~286K/~99kPa), O (warm/wet ocean world, ~293K/~97kPa),
+    H (hot/dry desert, ~325K/~42kPa), K (Mars analog, ~231K/~0.57kPa), L (K
+    + vegetation, warmer/thicker than K, ~256K/~2.2kPa), N (Venus analog,
+    ~740K/~9.4MPa), E/F/G (a young, cooling progression, ~373K -> ~329K ->
+    ~292K, converging near M), and V (thick, hot Super-Earth, ~365K/~286kPa).
+    Class P and W are unchanged this pass (P already had a working
+    `albedo_range`; W's "extreme temperature variations" identity needs a
+    day/night model this generator doesn't have, not just range tuning).
+  - Text refinements: Class H's "and metals" -> "and mineral dust" (a real
+    desert's atmosphere lofts particulate, not metal vapor); Class O's
+    atmosphere text (previously byte-identical to Class M's) now mentions
+    water vapor; Class E's vague "hydrogen compounds" now names a real
+    Hadean/Archean-analog mix (water vapor, ammonia, methane); Class K's
+    "carbon dioxide" -> "a thin mix of carbon dioxide and nitrogen" (names
+    the real Mars-analog composition, not just class); Class V's atmosphere
+    text now reflects its tuned CO2-retention (not primordial H/He) identity.
+  - Class M's disabled gravity clamp (`planetPhysics.calculate_surface_gravity`)
+    deleted outright (it had been commented out, inert, since the
+    atmospheric-pressure formula fix; no longer worth keeping around "in
+    case it needs restoring").
+- **New: `src/tests/climate_tuning_cli.py`.** A human-driven tuning tool
+  (mirrors `physical_plausibility_cli.py`'s batch-generate-and-report
+  pattern, reusing `stellarObjects.plausibility`'s engine): generates N
+  bodies of one class, reports summary stats, and — for classes with a
+  direct real-world analog (M/Earth, K/Mars, N/Venus) — a delta line against
+  that reference. `--albedo`/`--molar-density`/`--density`/`--greenhouse`
+  flags temporarily monkeypatch that class's `PLANET_CLASSES` entry for the
+  run only, so candidate values can be iterated without editing source
+  between runs.
+- **New: `src/tests/test_climate_tuning.py`.** Regression suite locking in
+  the tuning above via generously-toleranced bands (Class M/N/K within
+  Earth/Venus/Mars-like ranges) and relative orderings (N hottest/
+  highest-pressure of the tuned classes; K colder/thinner than L; L colder
+  than M; H hotter/drier than O; E > F > G cooling progression converging
+  near M; M < V < N) rather than brittle exact-value assertions, since
+  generation is inherently stochastic.
+- `test_full_matrix.py`/`test_planets.py`'s atmospheric-pressure sanity
+  bound raised from `1e7` to `5e7` Pa — Class N now legitimately reaches
+  ~9-15MPa depending on host star luminosity (previously ~2.98MPa mean, per
+  the greenhouse-formula bug above), and the old bound was sized for the
+  un-tuned, incorrectly-cold N. `test_planet_physics_fixes.py`'s
+  `test_class_p_has_own_albedo_range_distinct_from_default` updated to
+  check P's range differs from M's own new tuned range, rather than
+  asserting M has no override at all.
+
 ## [5.3.6] - 2026-09-07
 
 ### Added
@@ -200,7 +268,7 @@
 - **`webconfig.json.example` moved into `src/html/`**; the real, gitignored
   `webconfig.json` stays at the repo root, outside Apache's `src/html/`
   `DocumentRoot`, for the same security reason `db/` already lives there
-  (see `docs/WEBCONFIG.md`).
+  (see `docs/webconfig.md`).
 - **`WEBCONFIG.md` moved into `docs/`**, alongside this session's
   `docs/design/`/`docs/analysis/` additions, consolidating loose
   documentation in one place (`README.md`/`LICENSE.md`/`TODO.md`/
@@ -311,7 +379,7 @@
   `base_url`, plus unused placeholder fields (`db_username`, `db_password`,
   `db_name`) reserved for a possible future non-SQLite backend. Kept
   outside `src/html/`'s served document root, the same way `db/` already is.
-  See [`WEBCONFIG.md`](WEBCONFIG.md) for full documentation.
+  See [`docs/webconfig.md`](docs/webconfig.md) for full documentation.
 
 ## [5.2.5] - 2026-09-06
 

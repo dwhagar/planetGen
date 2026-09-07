@@ -6,7 +6,7 @@ Web interface site configuration loader
 
 Loads `webconfig.json` -- the site-level configuration file for the
 planetGen web interface (`html/`), documented in full in
-[`WEBCONFIG.md`](../../docs/WEBCONFIG.md). That file covers what
+[`webconfig.md`](../../docs/webconfig.md). That file covers what
 each field means, why the real `webconfig.json` is gitignored while
 `webconfig.json.example` is committed as a template, and how this relates
 to the `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG` environment variables `html/`
@@ -32,7 +32,7 @@ WEBCONFIG_PATH = os.path.join(_PROJECT_ROOT, "webconfig.json")
 a sibling of `html/`, `db/`, and `src/`, deliberately outside `html/`'s
 Apache `DocumentRoot` the same way `db/` already is (unlike
 `webconfig.json.example`, which lives in `html/` since it's just a
-template, not a secret). See `WEBCONFIG.md` for why."""
+template, not a secret). See `docs/webconfig.md` for why."""
 
 DEFAULT_WEBCONFIG = {
     "site_name": "planetGen",
@@ -44,7 +44,7 @@ DEFAULT_WEBCONFIG = {
 """dict: Fallback values, matching `webconfig.json.example`'s shape,
 used when no `webconfig.json` file exists yet. `db_username`/
 `db_password`/`db_name` are unused placeholders reserved for a possible
-future non-SQLite database backend -- see `WEBCONFIG.md`."""
+future non-SQLite database backend -- see `docs/webconfig.md`."""
 
 
 def load_webconfig():

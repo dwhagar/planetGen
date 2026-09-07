@@ -162,9 +162,52 @@ Phase 4 and parts of Phase 5 are still open.
   implementation (Track C) is now complete and merged** — see the Phase 4
   entry below for what was written and what closed out the two
   previously-open gaps.
+- [x] **Greenhouse-formula fix and per-class climate tuning (M/O/H/K/L/N/E/F/G/V).**
+  The `greenhouse_factor` formula's only lever (`atm_molar_density`, scaled
+  by a single shared `CO2_MAX_GREENHOUSE_FACTOR` cap) put every terrestrial
+  class's warming in the same narrow band regardless of composition — real
+  Earth air's own molar mass already produced `greenhouse_factor ≈ 3.33`
+  under the old formula (cap=5), driving Class M to a mean 362K instead of
+  ~288K; separately, Mars and Venus's near-identical real molar mass
+  (~43.3 vs 43.45 g/mol) despite ~100x different real greenhouse forcing
+  meant molar mass alone could never tell a "thin, weak" class from a
+  "dense, powerful" one. Fixed by raising `CO2_MAX_GREENHOUSE_FACTOR` to a
+  generous safety ceiling (500) and adding a per-class
+  `greenhouse_multiplier_range` as the real calibration knob, alongside new
+  per-class `atm_molar_density_range` and `atm_density_range` overrides
+  (extending the override pattern Class P's `albedo_range` already
+  established) — see CHANGELOG.md [5.3.7] for the full list of what was
+  tuned and to what real-world/relative targets, and the new
+  `src/tests/climate_tuning_cli.py` (human-driven iteration tool) /
+  `src/tests/test_climate_tuning.py` (regression suite) this introduced.
+  Classes P and W intentionally untouched this pass (P already tuned; W's
+  day/night "extreme temperature variations" identity needs a model this
+  generator doesn't have, not just range tuning — see "Investigate
+  Further" below).
 
 ## Investigate Further
 
+- [ ] Class W's "tidally locked world with extreme temperature variations"
+  identity is a day/night split that no per-class range (albedo, molar
+  density, greenhouse multiplier, or atmosphere density) can produce from a
+  single global `surface_temperature` scalar -- would need an actual
+  dayside/nightside model, flagged during the greenhouse-formula/per-class
+  climate tuning pass (CHANGELOG.md [5.3.7]) but out of scope for it.
+- [ ] Class K (Mars analog) and, by construction, every other ecosphere-zone
+  class are generated at the same zone-midpoint orbital distance as Class M
+  -- this generator doesn't place different terrestrial classes at
+  different distances within (or beyond) the habitable zone the way real
+  Mars sits much farther from the Sun than Earth. K's tuned values get as
+  close to real Mars' absolute temperature/pressure as achievable under
+  that constraint (~231K/~0.57kPa vs real ~210K/~610Pa) but can't fully
+  close the gap without a zone/distance-placement change, which is a larger
+  design question than per-class range tuning.
+- [ ] Classes P and W could still receive the same
+  `atm_molar_density_range`/`atm_density_range`/`greenhouse_multiplier_range`
+  treatment the M/O/H/K/L/N/E/F/G/V pass (CHANGELOG.md [5.3.7]) gave the
+  other habitable classes -- P already has a working `albedo_range` from an
+  earlier pass and wasn't part of this round's ordered list; W has the
+  day/night structural gap noted above.
 - [ ] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`.
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and src/html/search.py near `_planets_panel`.
@@ -322,7 +365,7 @@ deployment today rather than the full multi-user vision below.
 - [x] **Site configuration file**: `webconfig.json` (repo root, gitignored;
   `webconfig.json.example` committed) holds `site_name`/`base_url` today,
   plus unused placeholder fields (`db_username`/`db_password`/`db_name`)
-  for a possible future non-SQLite backend. See [`WEBCONFIG.md`](WEBCONFIG.md).
+  for a possible future non-SQLite backend. See [`webconfig.md`](webconfig.md).
 - [x] **Wiki-URL reachability check + clipboard fallback**: implemented in
   `../src/html/system.py` (merged in commit `ee8daab`), deliberately the bare
   minimum rather than the fuller version this item originally speculated

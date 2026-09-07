@@ -283,7 +283,10 @@ def test_atmospheric_pressure_correlates_positively_with_gravity():
 def test_class_p_has_own_albedo_range_distinct_from_default():
     assert "albedo_range" in prog_c.PLANET_CLASSES["P"]
     assert prog_c.PLANET_CLASSES["P"]["albedo_range"] != (0.12, 0.35)
-    assert "albedo_range" not in prog_c.PLANET_CLASSES["M"]
+    # P's albedo_range must still stand out from M's own tuned range (M was
+    # given one too, see PLANET_CLASSES["M"]) -- the two shouldn't collapse
+    # back into being indistinguishable just because both are now overridden.
+    assert prog_c.PLANET_CLASSES["P"]["albedo_range"] != prog_c.PLANET_CLASSES["M"]["albedo_range"]
 
 
 def test_class_p_is_colder_on_average_than_class_m():

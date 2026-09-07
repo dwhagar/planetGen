@@ -2,7 +2,7 @@
 
 """
 Tests for `stellarObjects.webconfig` -- the site configuration loader for
-the planetGen web interface (see `WEBCONFIG.md` at the repo root).
+the planetGen web interface (see `docs/webconfig.md`).
 
 Covers both branches of `load_webconfig()`: loading an existing
 `webconfig.json`, and falling back to `DEFAULT_WEBCONFIG` when the file

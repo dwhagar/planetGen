@@ -295,15 +295,20 @@ def generate_planet_properties(planet, zone_override=None):
         planet.atmosphere = "None"
     else:
         planet.atmosphere = class_data["atmosphere"]
-        if planet.planet_class == 'N':
-            planet.atm_density = 65
-            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
-            planet.atm_molar_density = max_am_density
-        else:
-            min_a_density, max_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.body_type]
-            planet.atm_density = random.uniform(min_a_density, max_a_density)
-            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
-            planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
+        # Class-specific atmosphere-density/molar-density ranges if declared
+        # (e.g. Class N's Venus-like dense, CO2-heavy atmosphere), else the
+        # default range shared by every other class of this body type. This
+        # replaces the old Class N hardcoded special case with the same
+        # general per-class-override mechanism Class P's albedo_range uses,
+        # so every class's atmosphere composition can be tuned independently
+        # (see program_constants.PLANET_CLASSES and
+        # docs/analysis/habitability-atmosphere-sanity-review.md).
+        default_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.body_type]
+        min_a_density, max_a_density = class_data.get("atm_density_range", default_a_density)
+        planet.atm_density = random.uniform(min_a_density, max_a_density)
+        default_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
+        min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
+        planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
     if planet.body_type == 'g':
         core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
@@ -347,12 +352,6 @@ def calculate_surface_gravity(planet):
     surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')
-    # Class M's forced Earth-like gravity clamp is disabled -- the fixed
-    # atmospheric-pressure formula no longer needs a band-aid to look
-    # realistic. Commented out rather than deleted in case it needs
-    # restoring.
-    # if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
-    #     surface_gravity_g = random.uniform(0.75, 1.25)
     planet.gravity = surface_gravity_g
 
 
@@ -411,10 +410,11 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     orbital_radius_km = distance * physical_constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
+    class_data = program_constants.PLANET_CLASSES.get(planet.planet_class, {})
     # Class-specific albedo range if declared (e.g. Class P's icy/glaciated
     # surface reflects more than the default rocky/Earth-like range), else
     # the default range used for every other class.
-    albedo_range = program_constants.PLANET_CLASSES.get(planet.planet_class, {}).get("albedo_range", (0.12, 0.35))
+    albedo_range = class_data.get("albedo_range", (0.12, 0.35))
     albedo = random.uniform(*albedo_range)
     surface_temperature_no_atmosphere = (
                                                 (1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
@@ -450,15 +450,23 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         atmospheric_pressure = effective_atm_density * surface_gravity_ms2 * scale_height_m
 
         # atm_molar_density is the only atmosphere-composition signal in the
-        # data model today (no explicit CO2-fraction field exists), so it's
-        # used directly as a greenhouse proxy: a heavier atmosphere (closer
-        # to, or beyond, CO2's own molar mass) traps more heat. The previous
-        # formula measured *distance* from CO2_BASE_MOLAR_DENSITY via abs(),
-        # which backwards-rewarded atmospheres far from CO2's molar mass in
-        # either direction -- including light ones -- with a greenhouse
-        # boost. Capped at CO2_MAX_GREENHOUSE_FACTOR rather than left
-        # unbounded above CO2's own molar density.
-        greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, (planet.atm_molar_density / physical_constants.CO2_BASE_MOLAR_DENSITY) * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
+        # data model today (no explicit CO2-fraction field exists), so
+        # base_ratio measures how CO2-like this draw's composition is
+        # (>=1.0 at/above CO2's own molar mass). On its own that ratio can't
+        # calibrate both a thin-but-CO2-heavy atmosphere (e.g. real Mars,
+        # ~43.3 g/mol, negligible greenhouse effect) and a dense CO2-heavy
+        # one (real Venus, ~43.45 g/mol -- almost the same molar mass, ~100x
+        # the greenhouse forcing): composition alone doesn't capture
+        # quantity/potency. greenhouse_multiplier_range is the per-class
+        # knob for that second axis (see program_constants.PLANET_CLASSES),
+        # independent of how heavy/light the class's own atmosphere is.
+        # CO2_MAX_GREENHOUSE_FACTOR is now a generous safety ceiling rather
+        # than the value most classes hit -- real Venus's own ratio is
+        # ~101, so it only guards against a badly-configured future class.
+        base_ratio = planet.atm_molar_density / physical_constants.CO2_BASE_MOLAR_DENSITY
+        greenhouse_multiplier_range = class_data.get("greenhouse_multiplier_range", (1.0, 1.0))
+        greenhouse_multiplier = random.uniform(*greenhouse_multiplier_range)
+        greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
         surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
         planet.surface_temperature = surface_temperature_atmosphere
         planet.atmospheric_pressure = atmospheric_pressure
