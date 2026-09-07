@@ -167,11 +167,11 @@ def theoretical_gravity_bounds_g(cls):
         g_ms2 = (4 / 3) * math.pi * pc.G * density_kg_m3 * radius_m
         return g_ms2 / pc.EARTH_GRAVITY
 
-    # Class-specific density range if declared (e.g. Classes S/U's
-    # brown-dwarf-like densities -- see program_constants.PLANET_CLASSES),
-    # else the default range shared by every other class of this body type.
-    # Must mirror planetPhysics.py's own per-class density_range lookup
-    # exactly, or this bound would flag legitimate S/U values as violations.
+    # Class-specific density range if declared (e.g. a brown-dwarf-like
+    # sub-stellar class -- see program_constants.PLANET_CLASSES), else the
+    # default range shared by every other class of this body type. Must
+    # mirror planetPhysics.py's own per-class density_range lookup exactly,
+    # or this bound would flag legitimate override values as violations.
     values = []
     if ptype == "t":
         min_d, max_d = data.get("density_range", pc.PLANET_DENSITY["t"])  # g/cm^3
@@ -179,8 +179,8 @@ def theoretical_gravity_bounds_g(cls):
         for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
             values.append(gravity_g(radius_m, density_kgm3))
     elif "density_range" in data:
-        # A class with its own density_range (Classes S/U) skips the
-        # core/envelope blend entirely in planetPhysics.py -- see
+        # A class with its own density_range skips the core/envelope blend
+        # entirely in planetPhysics.py -- see
         # generate_planet_properties' matching `if planet.body_type == 'g'
         # and "density_range" not in class_data` guard -- so its declared
         # range alone bounds gravity here too.

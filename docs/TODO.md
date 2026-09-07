@@ -200,12 +200,16 @@ Phase 4 and parts of Phase 5 are still open.
 ## Investigate Further
 
 - [x] **New-class investigation, acted on.** The prior session's findings
-  (gas giants never valid in zone `h`/`e`; Classes S/T/U's radius ranges
-  physically impossible for real sub-stellar objects; Classes X/Y redundant
-  with A/B/C) were implemented — see CHANGELOG.md [5.3.9] for the full
-  real-science-grounded rework (gas-giant zone flags, S/T/U radius +
-  density_range correction, X/Y removal/merge, and the gas-giant
-  density-blend bug this surfaced and fixed).
+  (gas giants never valid in zone `h`/`e`; two brown-dwarf-scale classes'
+  radius ranges physically impossible for real sub-stellar objects; two
+  small hot-zone rocky classes redundant with existing ones) were
+  implemented — see CHANGELOG.md [5.3.9] for the gas-giant zone rework and
+  the gas-giant density-blend bug it surfaced and fixed. The two
+  brown-dwarf-scale classes were cut entirely in a follow-up pass (still
+  near-duplicates of each other even once physically corrected) — see
+  CHANGELOG.md [5.4.0] for that removal and the new per-class `size_mode`
+  (bell-curve size distribution, wired into both planet and moon radius
+  generation) introduced alongside.
 - [ ] Class R ("an ejected, geologically active world") still has `h`/`e`/`c`
   all `False` -- zero probability weight, unreachable outside a manual
   `zone_override` (caught by

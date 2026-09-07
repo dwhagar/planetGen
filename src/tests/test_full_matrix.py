@@ -126,16 +126,12 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
         # Venus-like one -- catches regressions like a unit-conversion bug
         # that silently produced near-zero pressure for every class but M.
         # Class N is tuned to real Venus values (~9.2MPa mean at a G2V
-        # host, see PLANET_CLASSES["N"]) and can reach ~15MPa at the most
-        # luminous hosts this matrix covers; Classes S/U's brown-dwarf-like
-        # gravity (see PLANET_CLASSES["S"/"U"] and
-        # physical_constants.GAS_ENVELOPE_BULK_DENSITY) pushes pressure
-        # further still, up to ~3.3e8 Pa observed across this matrix's full
-        # star-type sweep -- the upper bound is raised well past that (not
-        # tightened to it) so this stays a broad regression catch, not a
-        # tight per-class assertion (that's
+        # host, see PLANET_CLASSES["N"]) and reaches ~1.1e7 Pa at the most
+        # luminous hosts this matrix covers -- the upper bound is raised
+        # well past that (not tightened to it) so this stays a broad
+        # regression catch, not a tight per-class assertion (that's
         # climate_tuning_cli.py/test_climate_tuning.py's job).
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e9, (
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 5e7, (
             f"{star_type}/{cls}-{zone}: atmospheric_pressure={planet.atmospheric_pressure}"
         )
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0, (

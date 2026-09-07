@@ -144,6 +144,14 @@ def process_args():
       `+habitable_world` would. Cannot exceed `--num-systems`, and cannot be
       combined with a uniform `-habitable_world` (which forbids habitable
       worlds sector-wide).
+    - `--num-sectors`: Generates this many independent sectors in one run,
+      each with no galactic positioning (unlike `galaxyGen.py`), all saved
+      into the same database. Defaults to 1. Cannot be combined with
+      `--name`/`-n`, since every generated sector would otherwise share the
+      same forced name.
+    - `--console`: Prints each sector's rendered Markdown/wikitext to the
+      console. Off by default -- without it, `main()` only prints a short
+      status line per saved sector, regardless of `--num-sectors`.
 
     Returns:
         argparse.Namespace: An object containing the parsed command-line arguments.
@@ -168,8 +176,15 @@ def process_args():
     add_shared_generation_options(parser)
 
     parser.add_argument('--name', '-n', dest='sector_name', type=str,
-                        help="Force the name of the sector, overriding the default random two-word name.")
+                        help="Force the name of the sector, overriding the default random two-word name. "
+                             "Cannot be combined with --num-sectors > 1.")
+    parser.add_argument('--num-sectors', type=int, default=1,
+                        help="Generate this many independent sectors, each with no galactic positioning, "
+                             "saving all of them into the same database. Defaults to 1.")
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
+    parser.add_argument('--console', action='store_true',
+                        help="Also print each sector's rendered Markdown/wikitext to the console. By "
+                             "default, only status messages are printed.")
     parser.add_argument('--db-path', type=str,
                         help="Path to the SQLite database file the generated sector is saved to. "
                              "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
@@ -177,6 +192,13 @@ def process_args():
     args = parser.parse_args()
 
     validate_shared_generation_args(args, parser)
+
+    if args.num_sectors < 1:
+        parser.error("--num-sectors must be a positive integer.")
+
+    if args.num_sectors > 1 and args.sector_name:
+        parser.error("--name/-n cannot be combined with --num-sectors > 1 (every generated sector would "
+                     "share the same forced name).")
 
     # systemGen.build_system_config() expects a namespace shaped like its own
     # process_args() output, including these three -- deliberately not
@@ -300,38 +322,27 @@ def generate_sector(args, galactic_center_dist_ly=None):
     return sector_name, sector
 
 
-def main():
+def render_sector_text(sector_name, systems, markdown):
     """
-    The main entry point for the sector generation script.
+    Renders one generated sector's systems as a Markdown or wikitext blob:
+    a sector header, a short summary line, an index of every system's name
+    and star type, then each system's own full rendering, all divided per
+    `markdown`. Factored out of `main()` so it can be skipped entirely
+    when neither `--console` nor `--output` was given -- rendering a large
+    sector isn't free, and by default this script only reports status.
 
-    Parses command-line arguments, builds a fully populated `SpaceSector`
-    (see `generate_sector` -- one `SystemConfig` per system via
-    `build_sector_configs`, a full `StarSystem` from each, all placed in
-    the sector via `SpaceSector.add_system`'s Hill-sphere-based placement),
-    and renders them together under a single sector header with a short
-    summary and an index of every system's name and star type.
+    Args:
+        sector_name (str): The sector's name.
+        systems (list): The sector's `StarSystem` instances.
+        markdown (bool): `True` for Markdown, `False` for MediaWiki wikitext.
 
-    If an output file was specified, the whole rendered sector is written
-    there; otherwise it's printed directly to the console. Either way, the
-    generated sector is then saved to the database (`stellarObjects._db`,
-    `--db-path` to override the default location) -- this is the "fill a
-    sector" step: every run of this script populates the database, not
-    just stdout/a file. No `galactic_center_dist_ly` is passed to
-    `generate_sector` here -- this script's own CLI has no galaxy context
-    (see `galaxyGen.py` for that), so every sector it produces is
-    "unplaced" exactly as before this track's galaxy-coordinate-system
-    work.
+    Returns:
+        str: The fully rendered sector text.
     """
-    random.seed(secrets.randbits(128))
-
-    args = process_args()
-    sector_name, sector = generate_sector(args)
-    systems = [entry.star_system for entry in sector.entries]
-
     habitable_count = sum(1 for s in systems if s.hab_count > 0)
 
     output_parts = []
-    if args.markdown:
+    if markdown:
         output_parts.append(f"# {sector_name}\n\n")
     else:
         output_parts.append(f"= {sector_name} =\n\n")
@@ -343,25 +354,67 @@ def main():
         f"{habitable_count} of which {habitable_verb} a potentially habitable world.\n\n"
     )
 
-    bullet = "-" if args.markdown else "*"
+    bullet = "-" if markdown else "*"
     for system in systems:
         output_parts.append(f"{bullet} {system.star.name} ({system.star.type})\n")
     output_parts.append("\n")
 
-    divider = "\n\n---\n\n" if args.markdown else "\n\n----\n\n"
+    divider = "\n\n---\n\n" if markdown else "\n\n----\n\n"
     output_parts.append(divider.join(str(system) for system in systems))
 
-    output_text = "".join(output_parts)
+    return "".join(output_parts)
 
-    if args.output:
-        with open(args.output, 'w') as f:
-            f.write(output_text)
-    else:
-        print(output_text)
 
-    sector_id = _db.save_sector(sector, db_path=args.db_path)
-    db_path = args.db_path or _db.DEFAULT_DB_PATH
-    print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, {db_path}).")
+def main():
+    """
+    The main entry point for the sector generation script.
+
+    Parses command-line arguments, then generates `--num-sectors` sectors
+    (1 by default), each one a fully populated `SpaceSector` (see
+    `generate_sector` -- one `SystemConfig` per system via
+    `build_sector_configs`, a full `StarSystem` from each, all placed in
+    the sector via `SpaceSector.add_system`'s Hill-sphere-based placement)
+    saved into the same database. No `galactic_center_dist_ly` is passed
+    to `generate_sector` here -- this script's own CLI has no galaxy
+    context (see `galaxyGen.py` for that), so every sector it produces is
+    "unplaced", regardless of `--num-sectors`.
+
+    Each sector is rendered under a single sector header with a short
+    summary and an index of every system's name and star type. That
+    rendering is written to `--output` (if given, all sectors appended to
+    the same file, divided the same way systems within a sector are) and/or
+    printed to the console (only if `--console` was given) -- by default,
+    with neither flag, only a short status line per saved sector is
+    printed, so a large `--num-sectors` run doesn't flood the console with
+    rendered text nobody asked to see.
+    """
+    random.seed(secrets.randbits(128))
+
+    args = process_args()
+    divider = "\n\n---\n\n" if args.markdown else "\n\n----\n\n"
+
+    for i in range(args.num_sectors):
+        sector_name, sector = generate_sector(args)
+        systems = [entry.star_system for entry in sector.entries]
+
+        if args.output or args.console:
+            output_text = render_sector_text(sector_name, systems, args.markdown)
+
+            if args.output:
+                with open(args.output, 'w' if i == 0 else 'a') as f:
+                    if i > 0:
+                        f.write(divider)
+                    f.write(output_text)
+
+            if args.console:
+                print(output_text)
+
+        sector_id = _db.save_sector(sector, db_path=args.db_path)
+        db_path = args.db_path or _db.DEFAULT_DB_PATH
+        print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, {db_path}).")
+
+    if args.num_sectors > 1:
+        print(f"Generated {args.num_sectors} sectors.")
 
 
 if __name__ == "__main__":

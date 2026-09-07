@@ -1,5 +1,62 @@
 # Changelog
 
+## [5.4.0] - 2026-09-07
+
+### Removed
+- **Two brown-dwarf-scale gas-giant classes cut entirely.** Correcting
+  their radius ranges to real sub-stellar physics in [5.3.9] left them as
+  near-duplicates of each other (overlapping radius, differentiated only by
+  an invisible density number no description text reflects), each carrying
+  a vanishingly small (0.01%) generation weight, representing objects that
+  aren't really planets in the first place (brown dwarfs are sub-stellar
+  objects; this codebase already has a dedicated mechanism for stellar/
+  sub-stellar companions via `BinaryStarProxy`/`BINARY_SYSTEM`). Their
+  combined generation weight folded into the ordinary Jupiter/Saturn-class
+  gas giant. All remaining references to the removed classes (and to the
+  earlier-removed small-rocky-class pair) scrubbed from comments/docs,
+  generically describing what they explain rather than naming
+  now-nonexistent class letters.
+
+### Added
+- **Per-class `size_mode`: bell-curve size distributions for planets and
+  moons.** Radius generation (`planetPhysics.generate_planet_properties`'s
+  three radius-draw sites, and `generate_moons`' moon-radius draw) switched
+  from a flat uniform draw across each class's declared radius range to a
+  bounded Gaussian ("bell curve") draw peaking at a new per-class
+  `size_mode` value (0.0-1.0, "what fraction through the available range is
+  the statistically most common size") via new `utils.sample_bounded_bell`.
+  For a moon, "available range" is its actual Hill-sphere/mass-capped
+  window, not necessarily the class's full declared range -- `size_mode` is
+  read relative to whatever range is actually being drawn from. Every
+  surviving class's `size_mode` is set from a real-world single-body analog
+  where one exists (Earth for M, Mars for K, Venus for N, Jupiter/Saturn
+  for J, Uranus/Neptune for I/T, the real rocky-to-gaseous transition
+  radius for V) or a reasoned default (small-body populations, both real
+  asteroids/KBOs (Class C/D) and this generator's own hot-zone rocky
+  classes (A/B), skew toward their smaller end, matching real
+  size-frequency distributions). Verified empirically: generated radius
+  means land within ~1% of each class's real-world anchor (e.g. Class M
+  mean 6,337km vs Earth's 6,371km; Class K mean 3,410km vs Mars's 3,389.5km).
+  The self-adjusting spread (`sample_bounded_bell`'s `spread_divisor`)
+  keeps a legible bell shape even for a mode pinned near one edge of a
+  range, via rejection sampling rather than clamping (which would pile
+  spillover probability mass at the boundary).
+- `PLANET_CLASS_PROBABILITIES`'s `J` weight increased 0.0529 -> 0.0531 to
+  absorb the removed brown-dwarf-scale classes' combined weight.
+- Atmospheric-pressure sanity bound (`test_full_matrix.py`/`test_planets.py`)
+  lowered back down `1e9` -> `5e7` Pa now that the brown-dwarf-scale
+  gravity/pressure extremes those classes produced are gone (observed max
+  across the full star-type matrix is now ~1.1e7 Pa, from Class N).
+- `test_planet_physics_fixes.py`'s gravity/pressure correlation test
+  threshold recalibrated (Spearman `>0.5` -> `>0.1`) for the narrower
+  gravity range the remaining gas giants span without the removed classes'
+  two-orders-of-magnitude density spread; its density-blend-skip test
+  rewritten to inject a temporary `density_range` onto an existing class
+  via `monkeypatch` rather than depend on a specific class declaring one
+  (no class currently does -- it's generic, reusable override
+  infrastructure, same as every other per-class override this codebase has
+  built up).
+
 ## [5.3.9] - 2026-09-07
 
 ### Removed

@@ -58,8 +58,8 @@ def test_gas_giant_density_blend_matches_hand_computed_harmonic_mean(monkeypatch
     Uses Class I (GAS_GIANT_CLASS resolves to the first type=='g' class,
     which has no PLANET_CLASSES density_range override -- see
     generate_planet_properties' `"density_range" not in class_data` guard --
-    so this exercises the blend path, not the S/U direct-density path
-    covered by test_density_range_override_skips_the_blend below).
+    so this exercises the blend path, not the direct-density override
+    path covered by test_density_range_override_skips_the_blend below).
     """
     core_density_gcm3 = 1.0       # within PLANET_DENSITY["g"] = (0.69, 1.64)
     atm_density_kgm3 = 1.0        # within ATMOSPHERE_DENSITY["g"] -- feeds
@@ -100,21 +100,27 @@ def test_gas_giant_density_blend_matches_hand_computed_harmonic_mean(monkeypatch
 
 def test_density_range_override_skips_the_blend(monkeypatch, host_star):
     """
-    A class declaring its own density_range (Classes S/U) should use that
-    draw as planet.density directly -- no core/envelope blend -- since real
-    brown dwarfs don't have a meaningfully separate light envelope over a
-    denser core the way an ordinary gas giant does (see
-    generate_planet_properties' `"density_range" not in class_data` guard
-    and PLANET_CLASSES["S"]'s docstring).
+    A class declaring its own density_range should use that draw as
+    planet.density directly -- no core/envelope blend -- since a class
+    whose density is set this deliberately (e.g. a brown-dwarf-like object,
+    which doesn't have a meaningfully separate light envelope over a denser
+    core the way an ordinary gas giant does) shouldn't have that value
+    diluted back down by blending toward a light "puffy" envelope value
+    (see generate_planet_properties' `"density_range" not in class_data`
+    guard). No current class declares density_range (it's generic,
+    reusable override infrastructure -- the same `.get(..., default)`
+    pattern every other per-class override in PLANET_CLASSES uses), so this
+    test injects one onto an existing gas-giant class for the duration of
+    the test rather than depending on a specific class having it.
     """
-    brown_dwarf_class = next(
-        c for c, d in prog_c.PLANET_CLASSES.items() if d["type"] == "g" and "density_range" in d
-    )
-    zone = next(z for z in "hec" if prog_c.PLANET_CLASSES[brown_dwarf_class][z])
+    gas_giant_class = GAS_GIANT_CLASS
+    zone = GAS_GIANT_ZONE
+    density_range = (42.0, 42.0)
+    patched_class_data = dict(prog_c.PLANET_CLASSES[gas_giant_class])
+    patched_class_data["density_range"] = density_range
+    monkeypatch.setitem(prog_c.PLANET_CLASSES, gas_giant_class, patched_class_data)
 
-    core_density_gcm3 = 42.0  # within PLANET_CLASSES[brown_dwarf_class]["density_range"]
-    min_d, max_d = prog_c.PLANET_CLASSES[brown_dwarf_class]["density_range"]
-    assert min_d <= core_density_gcm3 <= max_d
+    core_density_gcm3 = 42.0  # within the injected density_range above
 
     queued = [core_density_gcm3]
     real_uniform = planetPhysics.random.uniform
@@ -128,10 +134,10 @@ def test_density_range_override_skips_the_blend(monkeypatch, host_star):
 
     cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, zone)
-    radius = sum(prog_c.PLANET_CLASSES[brown_dwarf_class]["radius_range"]) / 2
+    radius = sum(prog_c.PLANET_CLASSES[gas_giant_class]["radius_range"]) / 2
     planet = Planet(
         cfg, host_star, host_star.habitable_zone, distance,
-        planet_class=brown_dwarf_class, radius=radius, zone_override=zone,
+        planet_class=gas_giant_class, radius=radius, zone_override=zone,
         moon_count=0,
     )
 
@@ -284,18 +290,23 @@ def test_atmospheric_pressure_correlates_positively_with_gravity():
     """
     Statistical check across a wide gravity range (terrestrial classes plus
     gas giants) spanning many host star spectral types: correlation between
-    gravity and atmospheric_pressure should now be strongly positive. Before
-    this fix, gravity canceled out of the pressure formula entirely
+    gravity and atmospheric_pressure should now be positive. Before this
+    fix, gravity canceled out of the pressure formula entirely
     (atmospheric_pressure = atm_density * R * T / atm_molar_density,
     independent of gravity), and the observed correlation was ~-0.11 (noise).
 
     Uses Spearman (rank) rather than Pearson correlation -- see
     _spearman_correlation's docstring for why a raw Pearson r on this data
-    understates the (real, and now strongly positive) monotonic
-    relationship. Pearson still moves solidly positive post-fix (roughly
-    0.2-0.4 depending on the exact class mix and sample, vs. ~-0.11 before),
-    just not reliably above a 0.5 threshold given the other independently-
-    random atmospheric terms.
+    understates the (real, and now positive) monotonic relationship.
+    Thresholds are calibrated to this class mix specifically: two
+    brown-dwarf-like classes (density/gravity spanning two full orders of
+    magnitude) used to be part of this sample and pulled both correlations
+    much higher (Spearman reliably >0.5) -- since their removal (see
+    CHANGELOG.md), the remaining gas giants (I/J/T) span a much narrower
+    gravity range, so the correlation is real but weaker (observed Spearman
+    ~0.17-0.22, Pearson ~0.22-0.25 across repeated runs) -- still clearly,
+    consistently positive and a clear improvement over the pre-fix ~-0.11,
+    just not >0.5 anymore with this narrower class mix.
     """
     records = []
     for cls in ("A", "B", "C", "E", "F", "M", "N", "O", "P"):
@@ -303,7 +314,7 @@ def test_atmospheric_pressure_correlates_positively_with_gravity():
         if zone is None:
             continue
         records.extend(plausibility.generate_sample(cls, zone, 40, include_moons=False))
-    for cls in ("I", "J", "S", "T", "U"):
+    for cls in ("I", "J", "T"):
         records.extend(plausibility.generate_sample(cls, "c", 40, include_moons=False))
 
     records = [r for r in records if r["has_atmosphere"]]
@@ -315,7 +326,7 @@ def test_atmospheric_pressure_correlates_positively_with_gravity():
     assert pearson > 0, f"gravity/pressure Pearson correlation {pearson:.3f} is not even positive"
 
     spearman = _spearman_correlation(gravities, pressures)
-    assert spearman > 0.5, f"gravity/pressure Spearman correlation {spearman:.3f} is not strongly positive"
+    assert spearman > 0.1, f"gravity/pressure Spearman correlation {spearman:.3f} is not clearly positive"
 
 
 # ---------------------------------------------------------------------------

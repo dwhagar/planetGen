@@ -22,7 +22,24 @@ import re
 import secrets
 
 from . import physical_constants, program_constants
-from .utils import calculate_object_mass, calculate_hill_sphere, reseed_rng
+from .utils import calculate_object_mass, calculate_hill_sphere, reseed_rng, sample_bounded_bell
+
+
+def _sample_class_radius(cls, min_radius, max_radius):
+    """
+    Draws a radius in [min_radius, max_radius] using `cls`'s declared
+    `size_mode` (see `program_constants.PLANET_CLASSES`), via
+    `utils.sample_bounded_bell` -- a bell-curve draw peaking at the
+    class's statistically-most-common size, rather than a flat uniform
+    draw across its whole declared range. `min_radius`/`max_radius` are
+    passed separately from `cls`'s own declared `radius_range` (rather
+    than read directly here) since a moon's actually-available range can
+    be narrower (capped by its parent's Hill sphere/mass) -- `size_mode`'s
+    "how far through the available range" reading is evaluated against
+    whatever range is actually being drawn from for this call.
+    """
+    size_mode = program_constants.PLANET_CLASSES[cls].get("size_mode", 0.5)
+    return sample_bounded_bell(min_radius, max_radius, size_mode)
 
 
 def get_planet_mass_ranges():
@@ -48,11 +65,11 @@ def get_planet_mass_ranges():
         max_radius *= physical_constants.KM_TO_M_FACTOR
         planet_type = data["type"]
 
-        # Class-specific density range if declared (e.g. Classes S/U's
-        # brown-dwarf-like densities, far above an ordinary gas giant's --
-        # see program_constants.PLANET_CLASSES), else the default range
-        # shared by every other class of this body type. Same
-        # per-class-override pattern as atm_molar_density_range.
+        # Class-specific density range if declared (e.g. a brown-dwarf-like
+        # sub-stellar class, far denser than an ordinary gas giant -- see
+        # program_constants.PLANET_CLASSES), else the default range shared
+        # by every other class of this body type. Same per-class-override
+        # pattern as atm_molar_density_range.
         min_density, max_density = data.get("density_range", physical_constants.PLANET_DENSITY[planet_type])  # g/cm^3
 
         # Convert density from g/cm³ to kg/m³ for mass calculation
@@ -214,14 +231,14 @@ def generate_planet_properties(planet, zone_override=None):
 
         planet.planet_class = _choose_weighted_planet_class(valid_classes)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = random.uniform(min_radius, max_radius)
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is None and planet.mass is None:
         # Class given, generate radius
         _validate_planet_class(planet, zone)
         _validate_no_habitable_world(planet, zone)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = random.uniform(min_radius, max_radius)
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is None:
         # Radius given, determine possible classes
@@ -257,7 +274,7 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_no_habitable_world(planet, zone)
         _validate_mass(planet)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = random.uniform(min_radius, max_radius)
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is not None:
         # Radius and mass given, determine possible classes
@@ -293,8 +310,8 @@ def generate_planet_properties(planet, zone_override=None):
         planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
     planet.body_type = class_data["type"]
 
-    # Class-specific density range if declared (e.g. Classes S/U's
-    # brown-dwarf-like densities -- see get_planet_mass_ranges above and
+    # Class-specific density range if declared (e.g. a brown-dwarf-like
+    # sub-stellar class -- see get_planet_mass_ranges above and
     # program_constants.PLANET_CLASSES), else the default range shared by
     # every other class of this body type.
     default_density = physical_constants.PLANET_DENSITY[planet.body_type]
@@ -323,7 +340,7 @@ def generate_planet_properties(planet, zone_override=None):
     if planet.body_type == 'g' and "density_range" not in class_data:
         # Core/envelope density blend -- for ORDINARY gas giants only (no
         # class-specific density_range declared). A class that declares its
-        # own density_range (Classes S/U -- brown-dwarf-like densities, see
+        # own density_range (e.g. a brown-dwarf-like sub-stellar class, see
         # program_constants.PLANET_CLASSES) skips this blend entirely and
         # keeps the density already drawn above as final: real brown dwarfs
         # don't have a meaningfully separate light envelope over a denser
@@ -585,7 +602,12 @@ def generate_moons(planet, moon_count=None):
                                                                         program_constants.PLANET_CLASSES[moon_class]['radius_range'][
                                                                             1] else max_moon_radius
         moon_distance = random.uniform(total_orbit_distance, high_orbit) / physical_constants.AU_TO_KM
-        moon_radius = random.uniform(program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
+        # radius_limit may be narrower than moon_class's own declared
+        # radius_range ceiling (capped by the parent's Hill sphere/mass
+        # above) -- _sample_class_radius's size_mode reading is evaluated
+        # against this actually-available [min, radius_limit] window, not
+        # necessarily the class's full range.
+        moon_radius = _sample_class_radius(moon_class, program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
