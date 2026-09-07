@@ -275,51 +275,116 @@ tbody tr:last-child td {
   font-size: 0.75em;
 }
 
-/* System page: rendered description -- the table-of-contents (.toc) is
-   fixed in the right-hand margin of the window (see below) rather than
-   living inline next to the prose, so it never narrows the reading column. */
+/* System page: rendered description -- the table-of-contents (.toc)
+   lives inline above the prose by default, collapsed into a pulldown so
+   it doesn't eat vertical space on narrow windows. Once the window is
+   wide enough to have real margin space beyond the centered `body`
+   column (max-width 64rem) for a sidebar to live in without overlapping
+   the content, it switches to a fixed right-hand rail (mirroring
+   .sidenav on the left) and is always shown open.
 
-/* Right-hand margin rail, mirroring .sidenav on the left. Only shown once
-   the window is wide enough to have real margin space beyond the centered
-   `body` column (max-width 64rem) for it to live in without overlapping
-   the content; narrower windows just don't get a TOC. */
+   Built as a checkbox-driven disclosure (a hidden checkbox + a <label>
+   toggling a sibling `ul` via `:checked ~`) rather than native
+   <details>/<summary>: browsers keep a closed details' non-summary
+   children out of layout via internal state that isn't just the
+   `display: none` it looks like from computed styles -- forcing
+   `display`/`content-visibility` back with author CSS changes what
+   getComputedStyle() reports but the child still doesn't take up space
+   or paint (confirmed by testing; only setting the element's `.open`
+   property, not any CSS override, restored it). A plain checkbox-hack
+   toggle has no such hidden internal state to fight, so the "always
+   open" override at the wide breakpoint below is a normal, reliable
+   CSS rule. */
 .toc {
-  display: none;
+  display: block;
+  margin: 0 0 1.5rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
 }
 
-@media (min-width: 90rem) {
-  .toc {
-    display: block;
-    position: fixed;
-    top: 5rem;
-    right: 1.5rem;
-    width: 14rem;
-    max-height: calc(100vh - 7rem);
-    overflow-y: auto;
-    background: var(--bg-subtle);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.85rem 1rem;
-    font-size: 0.85rem;
-  }
+/* Visually hidden but still focusable/clickable via its <label> --
+   `display: none` would drop it (and its :checked state) from the tab
+   order entirely. */
+.toc-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .toc-title {
+  display: block;
   margin: 0;
   font-size: 0.78rem;
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+  cursor: pointer;
+}
+
+.toc-title::before {
+  content: "\25B8"; /* ▸, closed */
+  display: inline-block;
+  width: 1em;
+}
+
+.toc-toggle:checked ~ .toc-title {
+  margin-bottom: 0.5rem;
+}
+
+.toc-toggle:checked ~ .toc-title::before {
+  content: "\25BE"; /* ▾, open */
+}
+
+.toc-toggle:focus-visible ~ .toc-title {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
 }
 
 .toc ul {
   list-style: none;
   margin: 0.5rem 0 0;
   padding: 0;
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.toc-toggle:checked ~ ul {
+  display: flex;
+}
+
+@media (min-width: 90rem) {
+  .toc {
+    position: fixed;
+    top: 5rem;
+    right: 1.5rem;
+    width: 14rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .toc-title {
+    cursor: default;
+  }
+
+  .toc-title::before {
+    content: "";
+    width: 0;
+  }
+
+  /* Always shown at this width, regardless of the checkbox's state. */
+  .toc ul {
+    display: flex;
+  }
 }
 
 .toc a {

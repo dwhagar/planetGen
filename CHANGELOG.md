@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.4.6] - 2026-09-07
+
+### Fixed
+- **System page table of contents was simply unavailable below a 90rem
+  window width.** It lived exclusively in a fixed right-hand margin rail
+  (`.toc` in `src/html/static/style.css`) that only existed at
+  `min-width: 90rem`; narrower windows got `display: none` and no
+  alternative. It's now a collapsible pulldown rendered inline above the
+  description at any width, expanding on click, and only switches to the
+  fixed sidebar (always shown open) once the window is wide enough for
+  one. Built with a hidden checkbox + `<label>` rather than native
+  `<details>`/`<summary>`: a closed `<details>`'s children turn out to
+  stay out of layout/paint via internal browser state that isn't fully
+  reachable through CSS overrides of `display`/`content-visibility`
+  (confirmed by testing -- only toggling the element's `.open` property
+  itself, not any stylesheet rule, restored it), which made "always open
+  at the wide breakpoint" unreliable. A plain checkbox has no such
+  internal state to fight.
+
 ## [5.4.5] - 2026-09-07
 
 ### Fixed

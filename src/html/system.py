@@ -6,7 +6,8 @@ System detail page: stars, planets/moons, asteroid belts, and the
 system's full description. Defaults to rendering `markdown_content` as
 actual HTML (via `mdconvert.markdown_to_html_with_headings`) so the
 description reads like a normal page instead of a wall of raw Markdown,
-with a floating table-of-contents linking to each heading; `?view=source`
+with a table-of-contents linking to each heading (a collapsed pulldown on
+narrow windows, a fixed sidebar on wide ones); `?view=source`
 switches to the original raw-text view (wikitext or Markdown, toggled via
 `&format=`), which is what you want when copy-pasting into a wiki.
 """
@@ -145,9 +146,14 @@ def _toc_html(headings):
     skipped entirely when there's nothing worth a contents list for (just
     the system's own top-level heading, or no description at all).
 
-    Rendered fixed in the right-hand margin of the window (see `.toc` in
-    style.css), out of the main content column, so it doesn't crowd the
-    description like an inline/collapsed box would.
+    A checkbox-driven disclosure: collapsed into a pulldown above the
+    prose by default (so it doesn't eat vertical space next to the
+    reading column), or -- once the window is wide enough to have real
+    margin space beyond the centered content column -- fixed in the
+    right-hand margin and always shown open (see `.toc` in style.css,
+    which also explains why this isn't a native <details>/<summary>).
+    Only one of these ever exists on a page, so the fixed `id` below
+    never collides.
     """
     if len(headings) <= 1:
         return ""
@@ -157,7 +163,8 @@ def _toc_html(headings):
     )
     return f"""
 <nav class="toc" aria-label="Table of contents">
-<div class="toc-title">Contents</div>
+<input type="checkbox" id="toc-toggle" class="toc-toggle">
+<label for="toc-toggle" class="toc-title">Contents</label>
 <ul>{items}</ul>
 </nav>
 """
