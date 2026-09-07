@@ -75,15 +75,50 @@ An interim, dependency-free read-only browser already exists at
 meant for a single-user/small-scale Apache2 deployment today rather than
 the full multi-user vision below.
 
-- [ ] Backend API (framework TBD — Flask/FastAPI are natural fits given the
-  Python-native stack) serving the database from Phase 2.
+- [x] Backend API framework: **Flask**, chosen over FastAPI/Django REST
+  Framework — no ORM opinion (fits the existing raw-`sqlite3` persistence
+  layer with zero glue), deploys via `mod_wsgi` in the same Apache process
+  model the interim `html/` CGI browser already uses, and mounts at `/api/`
+  alongside `html/` for an incremental rollout. FastAPI's async/auto-docs
+  advantages don't pay for themselves yet (no separate frontend consuming
+  the API, and `sqlite3`'s driver is synchronous regardless of framework);
+  revisit if a dedicated frontend makes API-contract docs valuable. A
+  read-only scaffold now exists — see [`api/README.md`](api/README.md) for
+  the endpoints, how to run it, and the `mod_wsgi` deployment story.
 - [ ] Frontend for browsing/searching the galaxy (sector maps, system detail
   pages, search/filter UI).
-- [ ] Almost certainly means moving off SQLite to PostgreSQL (or similar)
-  for real concurrent multi-user access — Phase 2 deliberately stuck to raw
-  `sqlite3`/plain SQL for now, so this move will mean hand-porting the DDL
-  and persistence layer rather than a drop-in config change; revisit
-  tooling (e.g. an ORM) at that point if the port proves painful.
+- [ ] Almost certainly means moving off SQLite to **MySQL** (the database
+  server already present on the deployment host, per user decision — not
+  PostgreSQL as this section previously speculated) for real concurrent
+  multi-user access. Phase 2 deliberately stuck to raw `sqlite3`/plain SQL
+  for now, so this is hand-porting the DDL and persistence layer rather
+  than a drop-in config change. Major changes this will require, not yet
+  started:
+    - **`stellarObjects/schema.sql` porting**: `PRAGMA user_version`
+      (the current schema-version mechanism, see `_db.py`'s
+      `SCHEMA_VERSION`/`migrate_database`) has no MySQL equivalent — needs
+      a real `schema_migrations` tracking table instead. `INTEGER PRIMARY
+      KEY` autoincrement semantics, `CHECK` constraint support, and
+      `TEXT`/`REAL` column types all differ between SQLite and MySQL and
+      need explicit type mapping (`REAL` → `DOUBLE`, `TEXT` → `VARCHAR`/
+      `TEXT` per-column, etc.); pick an explicit storage engine (InnoDB,
+      for real foreign-key enforcement matching `PRAGMA foreign_keys = ON`
+      today).
+    - **`stellarObjects/_db.py` porting**: swap the `sqlite3` stdlib
+      module for a MySQL driver (`PyMySQL` or `mysqlclient` — pick one and
+      justify it, similar to how this section already justified Flask
+      over FastAPI); every `?` positional placeholder becomes `%s`; add
+      real connection pooling (SQLite's single-file-lock model doesn't
+      carry over — MySQL wants a proper pool for concurrent access, which
+      is the whole point of this migration).
+    - **`api/config.py` / `queryDb.py` porting**: both currently assume a
+      SQLite file path (`DB_PATH`/`--db-path`) — becomes a connection
+      string/host+credentials, need a secrets-handling story (env vars at
+      minimum) rather than a bare file path.
+    - **Data migration**: existing `.db` files need a one-time export/
+      import into MySQL; no tooling for this exists yet.
+    - Revisit tooling (e.g. an ORM/migration framework) at that point if
+      the hand-ported approach proves painful, per the original note here.
 
 ### Near-term: interim `html/` browser enhancements
 

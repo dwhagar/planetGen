@@ -59,6 +59,7 @@ setup(
     ],
     extras_require={
         'test': ['pytest'],
+        'api': ['flask'],
     },
     author='David Hagar',
     author_email='david.hagar@gmail.com',

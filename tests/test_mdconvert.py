@@ -18,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
 
-from mdconvert import markdown_to_html  # noqa: E402
+from mdconvert import markdown_to_html, markdown_to_html_with_headings  # noqa: E402
 
 
 def test_empty_input_returns_empty_string():
@@ -28,9 +28,26 @@ def test_empty_input_returns_empty_string():
 
 def test_headers_render_at_correct_level():
     html = markdown_to_html("# Sol\n\n## Data\n\n### Detail")
-    assert "<h1>Sol</h1>" in html
-    assert "<h2>Data</h2>" in html
-    assert "<h3>Detail</h3>" in html
+    assert '<h1 id="sol">Sol</h1>' in html
+    assert '<h2 id="data">Data</h2>' in html
+    assert '<h3 id="detail">Detail</h3>' in html
+
+
+def test_headers_get_unique_ids_for_table_of_contents():
+    html, headings = markdown_to_html_with_headings("# Kepler-42\n\n## Kepler-42 b\n\n### I\n\n### I")
+    assert headings == [
+        {"level": 1, "text": "Kepler-42", "id": "kepler-42"},
+        {"level": 2, "text": "Kepler-42 b", "id": "kepler-42-b"},
+        {"level": 3, "text": "I", "id": "i"},
+        {"level": 3, "text": "I", "id": "i-2"},
+    ]
+    assert 'id="i"' in html
+    assert 'id="i-2"' in html
+
+
+def test_with_headings_returns_empty_list_for_empty_input():
+    assert markdown_to_html_with_headings("") == ("", [])
+    assert markdown_to_html_with_headings(None) == ("", [])
 
 
 def test_pipe_table_renders_as_html_table():
@@ -70,5 +87,5 @@ def test_apostrophe_and_ampersand_are_escaped_in_paragraphs_and_tables():
 def test_multiple_blocks_are_joined_in_order():
     md = "# Title\n\nFirst paragraph.\n\nSecond paragraph."
     html = markdown_to_html(md)
-    assert html.index("<h1>Title</h1>") < html.index("First paragraph")
+    assert html.index('<h1 id="title">Title</h1>') < html.index("First paragraph")
     assert html.index("First paragraph") < html.index("Second paragraph")

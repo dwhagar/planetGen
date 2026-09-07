@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 # siblings under /var/lib/planetGen).
 sys.path.append(os.path.dirname(_HTML_DIR))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, open_readonly, resolve_db_path
+from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_path
 from page import query_params, run
 
 try:
@@ -51,6 +51,8 @@ def handler():
             (sector_id,),
         )
 
+        name_to_id = {row["name"]: row["id"] for row in systems}
+
         rows = []
         for row in systems:
             if row["is_binary"]:
@@ -67,7 +69,7 @@ def handler():
                 f'<td>{esc(row["quadrant"])}</td>'
                 f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
                 f'<td>{esc(star_type)}</td>'
-                f'<td>{esc(row["location"])}</td>'
+                f'<td>{linkify_location(db_name, row["location"], name_to_id)}</td>'
                 "</tr>"
             )
         rows_html = "".join(rows) or '<tr><td colspan="5"><em>None</em></td></tr>'

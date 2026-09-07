@@ -41,14 +41,52 @@
   box-sizing: border-box;
 }
 
+:root {
+  --sidenav-width: 7rem;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   max-width: 64rem;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 4rem;
+  padding: 1.5rem 1.5rem 4rem calc(var(--sidenav-width) + 1.5rem);
   line-height: 1.55;
+}
+
+/* Left function rail: site-wide, independent of the centered `body`
+   column above -- see html/lib/page.py's `_sidenav_html`. */
+.sidenav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidenav-width);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 0.5rem;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.sidenav-item {
+  display: block;
+  padding: 0.6rem 0.4rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.sidenav-item:hover {
+  background: var(--bg-subtle);
+  color: var(--link);
+  text-decoration: none;
 }
 
 a {
@@ -88,16 +126,6 @@ header h1 {
   font-weight: 650;
   letter-spacing: -0.01em;
   margin: 0;
-}
-
-header nav a {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-header nav a:hover {
-  color: var(--link);
 }
 
 main {
@@ -245,6 +273,66 @@ tbody tr:last-child td {
 
 .prose sup {
   font-size: 0.75em;
+}
+
+/* System page: rendered description + floating table-of-contents */
+.description-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.description-layout .prose {
+  flex: 1 1 28rem;
+  min-width: 0;
+}
+
+.toc {
+  flex: 0 0 13rem;
+  position: sticky;
+  top: 1.5rem;
+  align-self: flex-start;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+}
+
+.toc h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.toc a {
+  display: block;
+  color: var(--text);
+}
+
+.toc .toc-level-1 {
+  font-weight: 650;
+}
+
+.toc .toc-level-3 {
+  padding-left: 0.9rem;
+  font-size: 0.92em;
+  color: var(--text-muted);
 }
 
 .content-box {
@@ -411,6 +499,21 @@ code {
 }
 
 @media (max-width: 40rem) {
+  body {
+    padding-left: 1rem;
+  }
+
+  .sidenav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: auto;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
   .panel {
     padding: 1rem;
   }

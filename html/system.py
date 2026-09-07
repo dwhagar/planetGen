@@ -4,8 +4,9 @@
 """
 System detail page: stars, planets/moons, asteroid belts, and the
 system's full description. Defaults to rendering `markdown_content` as
-actual HTML (via `mdconvert.markdown_to_html`) so the description reads
-like a normal page instead of a wall of raw Markdown; `?view=source`
+actual HTML (via `mdconvert.markdown_to_html_with_headings`) so the
+description reads like a normal page instead of a wall of raw Markdown,
+with a floating table-of-contents linking to each heading; `?view=source`
 switches to the original raw-text view (wikitext or Markdown, toggled via
 `&format=`), which is what you want when copy-pasting into a wiki.
 """
@@ -15,8 +16,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, open_readonly, resolve_db_path
-from mdconvert import markdown_to_html
+from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_path
+from mdconvert import markdown_to_html_with_headings
 from page import query_params, run
 
 
@@ -126,6 +127,27 @@ def _bodies_html(conn, system_id):
     return planet_html + belt_html
 
 
+def _toc_html(headings):
+    """
+    Builds the floating table-of-contents sidebar linking to each heading
+    `markdown_to_html_with_headings` found in the rendered description --
+    skipped entirely when there's nothing worth a contents list for (just
+    the system's own top-level heading, or no description at all).
+    """
+    if len(headings) <= 1:
+        return ""
+    items = "".join(
+        f'<li class="toc-level-{heading["level"]}"><a href="#{heading["id"]}">{esc(heading["text"])}</a></li>'
+        for heading in headings
+    )
+    return f"""
+<aside class="toc" aria-label="Table of contents">
+<h3>Contents</h3>
+<ul>{items}</ul>
+</aside>
+"""
+
+
 def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_content):
     """Builds the description section: rendered HTML by default, or the
     raw wikitext/Markdown source (for copy-pasting into a wiki) when
@@ -150,7 +172,8 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
 </section>
 """
 
-    rendered = markdown_to_html(markdown_content)
+    rendered, headings = markdown_to_html_with_headings(markdown_content)
+    toc_html = _toc_html(headings)
     return f"""
 <section class="panel">
 <div class="panel-header">
@@ -161,9 +184,12 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
     <a href="{base_url}&view=source&format=markdown">Markdown source</a>
   </div>
 </div>
+<div class="description-layout">
 <article class="prose">
 {rendered}
 </article>
+{toc_html}
+</div>
 </section>
 """
 
@@ -201,7 +227,16 @@ def handler():
 
         location_html = ""
         if system["location"]:
-            location_html = f'<p class="location">Location: {esc(system["location"])}</p>'
+            name_to_id = {}
+            if system["sector_id"] is not None:
+                siblings = fetch_all(
+                    conn, "SELECT id, name FROM star_systems WHERE sector_id = ?", (system["sector_id"],)
+                )
+                name_to_id = {row["name"]: row["id"] for row in siblings}
+            location_html = (
+                f'<p class="location">Location: '
+                f'{linkify_location(db_name, system["location"], name_to_id)}</p>'
+            )
 
         stars_html = _stars_html(conn, system_id)
         bodies_html = _bodies_html(conn, system_id)

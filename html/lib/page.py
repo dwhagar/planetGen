@@ -72,30 +72,42 @@ def redirect(url):
     sys.stdout.write("\r\n")
 
 
-def _nav_html():
+def _sidenav_html():
     """
-    Builds the header `<nav>` for the current request: always a link back
-    to the database picker, plus a link to `search.py` for the current
+    Builds the site-wide vertical nav bar shown on the left of every page:
+    a fixed set of "functions" rather than a breadcrumb -- Databases
+    (skipped when there's only one `.db` file, since `index.py` itself
+    just redirects straight past the picker in that case -- see its own
+    module docstring), then Search, Sectors, and Systems for the current
     `?db=` when one is present in the request's own query string.
+    Sectors/Systems jump straight to the matching anchor on `browse.py`
+    (`id="sectors"`/`id="standalone-systems"`) rather than duplicating
+    that page's own listing here.
 
     `query_params()` (not a caller-supplied argument) is what lets this be
     computed uniformly from `render()` for every page -- `system.py` and
-    `sector.py` otherwise have no way to reach `search.py` without first
-    going back through `browse.py` (which builds its own separate
-    breadcrumb Search link; this doesn't replace that, it just makes the
-    same link reachable from every page's header too). `index.py` is the
+    `sector.py` otherwise have no way to reach `search.py`/`browse.py`
+    without first going back through `browse.py` itself. `index.py` is the
     only script with no `db` in its query string, so it gets just the
-    Databases link.
+    Databases item (or nothing, on the single-database redirect path,
+    where this never renders at all).
 
     Returns:
-        str: The `<nav>` element's inner HTML.
+        str: The `<nav class="sidenav">` element's inner HTML.
     """
-    from dbutil import esc
-    links = ['<a href="index.py">Databases</a>']
+    from dbutil import esc, list_databases
+    items = []
+    if len(list_databases()) > 1:
+        items.append(("index.py", "Databases"))
     db_name = query_params().get("db")
     if db_name:
-        links.append(f'<a href="search.py?db={esc(db_name)}">Search</a>')
-    return " | ".join(links)
+        db = esc(db_name)
+        items.extend([
+            (f"search.py?db={db}", "Search"),
+            (f"browse.py?db={db}#sectors", "Sectors"),
+            (f"browse.py?db={db}#standalone-systems", "Systems"),
+        ])
+    return "".join(f'<a href="{href}" class="sidenav-item">{label}</a>' for href, label in items)
 
 
 def render(title, body_html, status="200 OK"):
@@ -125,9 +137,9 @@ def render(title, body_html, status="200 OK"):
 <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
+<nav class="sidenav" aria-label="Main">{_sidenav_html()}</nav>
 <header>
   <h1>{safe_title}</h1>
-  <nav>{_nav_html()}</nav>
 </header>
 <main>
 {body_html}

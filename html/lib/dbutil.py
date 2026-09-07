@@ -18,6 +18,7 @@ executed as a script in its own right.
 import glob
 import html
 import os
+import re
 import sqlite3
 import sys
 
@@ -167,6 +168,58 @@ def esc(value):
     if value is None:
         return ""
     return html.escape(str(value), quote=True)
+
+
+_LOCATION_NEIGHBOR_MARKER = " -- nearest: "
+_LOCATION_NEIGHBOR_RE = re.compile(r'^(.*) (\([\d.]+ ly\))$')
+
+
+def linkify_location(db_name, location, name_to_id):
+    """
+    HTML-escapes a `star_systems.location` string and turns each nearest-
+    neighbor name it lists into a link to that system's page.
+
+    `location` is plain text baked in at generation time by
+    `stellarObjects._db._format_location_string`, e.g.
+    `"Voranthis Kelmoor -- nearest: Alpha Prime (4.2 ly), Beta (5.1 ly)"` --
+    the sector name, then up to 3 "Name (distance ly)" entries
+    comma-joined after a fixed `" -- nearest: "` marker (empty when the
+    sector has no other systems, in which case this is just the sector
+    name with nothing to link). This matches that exact format to pull the
+    names back out; anything that doesn't fit it (older data predating the
+    "-- nearest:" suffix, or a name not found in `name_to_id`) is left as
+    plain escaped text rather than guessed at.
+
+    Args:
+        db_name (str): The current `?db=` value, for building system.py URLs.
+        location (str): The raw `star_systems.location` value.
+        name_to_id (dict[str, int]): Every `star_systems.name` -> `id` in
+                                     the same sector, for resolving each
+                                     neighbor name to a link target.
+
+    Returns:
+        str: HTML-safe markup, neighbor names linked where resolvable.
+    """
+    if not location:
+        return ""
+    if _LOCATION_NEIGHBOR_MARKER not in location:
+        return esc(location)
+
+    prefix, neighbors_part = location.split(_LOCATION_NEIGHBOR_MARKER, 1)
+    linked_entries = []
+    for entry in neighbors_part.split(", "):
+        match = _LOCATION_NEIGHBOR_RE.match(entry)
+        name = match.group(1) if match else None
+        system_id = name_to_id.get(name) if name is not None else None
+        if match and system_id is not None:
+            distance = match.group(2)
+            linked_entries.append(
+                f'<a href="system.py?db={esc(db_name)}&id={system_id}">{esc(name)}</a> {esc(distance)}'
+            )
+        else:
+            linked_entries.append(esc(entry))
+
+    return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(linked_entries)
 
 
 def format_density(edge_mpc, system_count):

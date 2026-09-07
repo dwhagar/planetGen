@@ -86,7 +86,7 @@ def handler():
     body = f"""
 <p class="breadcrumb"><a href="index.py">Databases</a> &rarr; {esc(db_name)} &middot; <a href="search.py?db={esc(db_name)}">Search</a></p>
 {badges_html}
-<section class="panel">
+<section class="panel" id="sectors">
 <h2>Sectors</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Systems</th><th>Density</th></tr></thead>
@@ -94,7 +94,7 @@ def handler():
 </table></div>
 </section>
 
-<section class="panel">
+<section class="panel" id="standalone-systems">
 <h2>Standalone Systems</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Binary</th><th>Star type</th></tr></thead>
