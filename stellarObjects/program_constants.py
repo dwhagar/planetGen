@@ -218,6 +218,20 @@ WHITE_DWARF_MAX_AGE_GY = 12.0
 SOLAR_MS_LIFESPAN_GY = 10.0
 MS_LIFESPAN_MASS_EXPONENT = -2.5
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
+# A sub-solar-mass progenitor (roughly under ~0.88 Msun, per the
+# SOLAR_MS_LIFESPAN_GY/MS_LIFESPAN_MASS_EXPONENT formula above) already has
+# a main-sequence lifespan longer than the universe itself -- it couldn't
+# possibly have evolved off the main sequence yet, so it must never be
+# accepted as an evolved-class star's progenitor mass in the first place
+# (see Star._sample_evolved_star_mass_sol, used by Star.generate_star).
+# This caps the reject-and-resample loop that enforces that, the same way
+# SECTOR_MAX_PLACEMENT_ATTEMPTS caps SpaceSector's own reject-and-resample
+# loop: most classes' allowed mass range sits entirely clear of the cutoff
+# (so the very first draw is accepted) and only the class III (Giant) low
+# end (0.8-~0.88 Msun, out of an 0.8-8 Msun range) ever needs a resample,
+# so 100 attempts leaves effectively zero chance of exhausting this for any
+# class it's actually applied to.
+EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
 PERCENT_SOL_THRESHOLD_LOW = 0.01
 PERCENT_SOL_THRESHOLD_HIGH = 2
 RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
