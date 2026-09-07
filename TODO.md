@@ -54,18 +54,125 @@ Phase 4 and parts of Phase 5 are still open.
   CLI for listing/searching what's stored (`sectors`, `systems`, `near`
   subcommands).
 
+## Unmerged work from the 2026-09-06 session (review before continuing)
+
+Five background agents ran concurrently that night alongside the API/wiki
+work already merged into `main` (commit `ee8daab`). None of the below are
+merged — each is a separate git worktree/branch under `.claude/worktrees/`
+still sitting on top of the pre-session commit. Review, cherry-pick or
+merge, then delete the worktree (`git worktree remove`) once done.
+
+- [ ] **Evolved-star mass fix** (branch `worktree-agent-a4307a26b82478c8d`)
+  — complete and tested (8590 tests passing, 3 new regression tests). Fixes
+  the pre-Big-Bang evolved-star mass issue via reject-and-resample in
+  `stellarObjects/starData.py`. Also bumps version to 5.3.1 and adds a
+  CHANGELOG entry — decide whether to keep that version bump given other
+  unreleased changes already on `main`. Flags one new narrow follow-up:
+  Yerkes class VI (subdwarf) is exempted from the check because its entire
+  mass range (0.1-0.8 Msun) is below the universe-age cutoff, which needs
+  its own look eventually.
+- [ ] **Galaxy coordinate system design** (branch
+  `worktree-agent-afe9fc7f7137bafe8`) — a full written proposal at
+  `docs/design/galaxy-coordinate-system.md` (not code): spherical-to-XYZ
+  sector placement, **parsecs** recommended for galaxy-scale distance, a
+  shell-based radial tiling scheme (Fibonacci-sphere sequence per shell),
+  and a v3->v4 schema migration sketch for the `sectors` table. Surfaces one
+  finding needing a decision: `physical_constants.GALACTIC_CENTER_DISTANCE_LY`
+  is currently a fixed constant assumed by every star's Hill-sphere math,
+  which becomes wrong once sectors have real galactic positions. Has 8 open
+  questions flagged for review before `galaxyGen.py` implementation starts
+  (this doc is the prerequisite for Phase 4 below).
+- [ ] **Habitable/atmosphere surface-condition sanity review** (branch
+  `worktree-agent-a75772018725a8694`) — analysis at
+  `docs/analysis/habitability-atmosphere-sanity-review.md`, not a fix.
+  Generated 300+ samples per class and found real problems (not just "the
+  clamps are fine to leave removed" as hoped):
+    - Class P is no longer meaningfully colder than Class M or any other
+      ecosphere terrestrial class — the disabled clamp was the *only* thing
+      giving P its cold identity; it has zero built-in bias now.
+    - Class M's atmospheric pressure never approaches 1 atm across 600
+      samples (mean ~1/3 atm) — contradicts the assumption that the fixed
+      pressure formula "lands close to realistic ranges on its own."
+    - Likely root cause for both: the `greenhouse_factor` formula in
+      `planetPhysics.py` (~L402) looks physically inverted — rewards an
+      atmosphere for being *far* from CO2's molar density rather than for
+      having more CO2 in it.
+    - Atmospheric pressure is mathematically independent of gravity for
+      every class (proven algebraically and numerically) — the
+      `scale_height`/gravity terms cancel exactly, which is why gas giants
+      spanning a >1000x gravity range all produce nearly identical pressure.
+    - Gas-giant density blending (`planetPhysics.py` L308-311) can produce
+      implausibly "fluffy" planets (densities as low as 0.026 g/cm^3) —
+      likely a real bug, fix depends on clarifying what the blended ratio
+      should represent.
+    - Most ecosphere terrestrial classes are statistically indistinguishable
+      in pressure/temperature since they share the same `"t"`-keyed
+      parameter ranges regardless of class-specific flavor text.
+  One trivial doc-comment fix already applied and tested (mislabeled
+  `ATMOSPHERE_DENSITY["t"]` range comment). Everything else above is a
+  recommendation, not yet implemented — **this should probably be resolved
+  before further physics tuning**, since it affects M/P/gas-giant
+  generation broadly, not just the originally-scoped clamps question.
+- [ ] **Physical-plausibility anomaly finder** (branch
+  `worktree-agent-afdb05a2b331ff123`) — was cut off mid-run by a
+  usage-limit error before it could report results; **resumed 2026-09-07**
+  in a fresh worktree that reads the original's `physicalPlausibility.py`
+  (CLI, ~100 lines) and `stellarObjects/plausibility.py` (design/logic,
+  ~407 lines — hard invariant checks plus Tukey's-fences statistical
+  outlier detection per class) as a starting point, finishes verifying it
+  actually runs correctly, adds test coverage, and reports real findings.
+  Given the sanity-review findings above, this tool should be immediately
+  useful for confirming how far M/gas-giant pressure and Class P
+  temperature actually drift.
+- [x] ~~Wiki-URL reachability check~~ and ~~Backend API~~ (Flask) — both
+  already merged into `main` in commit `ee8daab`.
+
+## Investigate Further
+
+- [ ] Ways to render an image or maybe provide a web interface to visualize the location of 2 points within the galactic space.
+- [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
+- [ ] Search parameter for searching by not only planet class but planet size or in the tagged search field sort by planet size.
+
+## Organize File System
+
+- [ ] Organize all documentation into a dedicated docs/ directory under the
+  repo root.
+- [ ] Do the same for most of the python code that is not part of the HTML interface
+  into an src directory so that only the Gen python entry points are visible from
+  repo root.
+- [ ] All test code should go in src as well.
+- [ ] Consider moving api directory into html to expose API end point?
+- [ ] Move webconfig file into /html and change the name of examples.
+
+## File Management
+
+- [ ] Database backups during schema's should be gzipped and not available on the database picker.
+- [ ] Don't upgrade backups, if a backup database is present from an upgrade don't ugprade the backup.
+
+## Population and Politics
+
+- [ ] Need to start thinking about assigning government ownership to a particular star system in the database so that together the systems make territories that are mapped out in 3D space by the star systems.
+- [ ] Worlds with life on them can be flagged for generated names of dominant races.
+- [ ] Probably going to need a space fairing species database.
+- [ ] Need to think about under-developed / older civilizations and the differences and how to store and present that data based on society age.
+
 ## Phase 4 — Galaxy-scale generation
 
-- [ ] Tooling to generate and store MANY sectors at once, eventually
-  covering "every sector of every space in the galaxy" per the long-term
-  vision — needs its own design pass (a galaxy-scale coordinate system
-  beyond a single sector's local cube, how sectors tile/connect to each
-  other, batch-generation performance at that scale).
+- [ ] Galaxy-scale coordinate system: no longer a blank design slate — a
+  full proposal exists (see "Unmerged work" above) at
+  `docs/design/galaxy-coordinate-system.md`: spherical-to-XYZ sector
+  placement, **parsecs** for galaxy-scale distance, a shell-based radial
+  tiling scheme (Fibonacci-sphere sequence per shell), and a v3->v4
+  `sectors` schema migration sketch. Not yet reviewed/approved — the doc
+  itself flags 8 open questions (eager vs. lazy shell generation, the
+  disk-density envelope, the `GALACTIC_CENTER_DISTANCE_LY` fixed-constant
+  problem it surfaced, and others) that need a decision before this is
+  considered settled.
 - [ ] `galaxyGen.py` — a new top-level CLI script (sibling to
   `sectorGen.py`/`systemGen.py`) that generates and persists many sectors
   as one galaxy, reusing `sectorGen.py`'s own per-sector generation/save
-  logic for each one. Gated on the galaxy-scale coordinate system above
-  being decided first.
+  logic for each one. Gated on the coordinate-system design above being
+  reviewed and merged first.
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 
@@ -137,15 +244,14 @@ the full multi-user vision below.
   `webconfig.json.example` committed) holds `site_name`/`base_url` today,
   plus unused placeholder fields (`db_username`/`db_password`/`db_name`)
   for a possible future non-SQLite backend. See [`WEBCONFIG.md`](WEBCONFIG.md).
-- [ ] **Wiki-URL reachability check + clipboard fallback**, on
-  `html/system.py`: for each of `star_systems.mediawiki_url`/`wikijs_url`,
-  check (server-side, short timeout, cached so a page load doesn't stall on
-  live HTTP round-trips) whether the URL is set *and* resolves; if so,
-  render it as a normal link, otherwise show a "Copy to clipboard" button
-  next to the matching content instead. Open questions: how "does it
-  exist" is checked (HEAD vs. GET, what counts as a hit for a wiki that
-  200s its own placeholder page), and whether/how the check result is
-  cached.
+- [x] **Wiki-URL reachability check + clipboard fallback**: implemented in
+  `html/system.py` (merged in commit `ee8daab`), deliberately the bare
+  minimum rather than the fuller version this item originally speculated
+  about below — a plain HEAD-then-GET check treating any non-200 status,
+  timeout, or connection error as unreachable, and no caching layer (a CGI
+  script re-executed fresh per request has nothing worth memoizing across
+  one page load). Falls back to a "Copy link" button with a clipboard-API
+  script when unreachable; renders nothing when the URL field is NULL.
 - [ ] **Sprite-based graphical system view**: render a system's star,
   planets, and moons as small icon sprites sized relative to each other
   (from `radius_km`) for an at-a-glance size comparison. Open questions:
@@ -175,54 +281,7 @@ Full root-cause detail for each is in the git history around
 
 ## Future ideas — not scheduled, just parking so it isn't lost
 
-- [ ] **Physical-plausibility test suite (anomaly finder)**: a testing tool
-  that builds "sane" reference ranges for pressure, temperature, gravity, and
-  the other generated physical factors of a planet/star (by class/type), then
-  generates a large batch of bodies and flags any whose values fall outside
-  those ranges — a way to catch generator bugs like the atmospheric-pressure
-  unit bug (fixed in [5.3.0] — see CHANGELOG.md) by statistical outlier
-  detection rather than hand-noticing a bad value in one rendered page.
-  Needs its own design pass later (where the "sane" ranges come from —
-  hand-authored per class vs. derived from a large sample; how many bodies
-  to batch-generate per run; whether this lives in `tests/` as a slow/opt-in
-  suite or as a separate standalone script). Deliberately low priority.
-- [ ] **Evolved-star mass sampling can imply a pre-Big-Bang star**: an
-  evolved-class star (`Yerkes != V`) derives its required main-sequence
-  lifespan from its own already-generated mass
-  (`Star._calculate_initial_star_age_and_lifespan`'s evolved-star branch,
-  `stellarObjects/starData.py`); for a sub-solar-mass progenitor (roughly
-  under ~0.88 Msun), that implied main-sequence lifespan alone already
-  exceeds `UNIVERSE_AGE_GY` (13.8 Gy) — meaning such a star couldn't
-  actually have evolved off the main sequence yet in the real universe.
-  The [5.3.0] universe-age fix deliberately does *not* paper over this by
-  capping age below its own required floor (that would produce a
-  self-contradictory star, e.g. a red giant younger than its own
-  progenitor's main-sequence lifespan) — it's a deeper issue with how
-  evolved-star masses are sampled in the first place, and needs its own
-  design pass (e.g. resampling/rejecting masses whose implied
-  main-sequence lifespan exceeds `UNIVERSE_AGE_GY` before generating an
-  evolved-class star at all).
-- [ ] **Class M/P forcing clamps**: commented out (not deleted) in
-  [5.3.0]'s `stellarObjects/planetPhysics.py` now that the corrected
-  atmospheric-pressure formula lands close to realistic ranges on its own.
-  Revisit whether they're still needed at all, or should be restored in a
-  narrower form, once more real-world output has been reviewed.
-
-## Open questions still to resolve
-
-Resolved (kept here only as a pointer, full reasoning lives where the
-decision is used): schema versioning, `float('inf')` white-dwarf lifespan
-storage, `reflection_spectrum_visible`/`non_visible` storage shape (a
-normalized child table, no JSON columns anywhere in this schema),
-`SQLAlchemy`/Alembic vs. raw `sqlite3` (raw `sqlite3`), secondary-star
-`system_config` asymmetry (collapsed), and `BinaryStarProxy` derived-field
-recompute-vs-snapshot (snapshot) — see `schema.sql` and git history for
-where each is used.
-
-- [x] By design, there is no seed-based replay anywhere in this plan —
-  generation mixes the unseedable `secrets` module with the seedable
-  `random` module (documented in `spaceSector.py`'s own docstring), so
-  results are stored directly rather than via a seed.
-- [ ] `examples/*.json` are unaffected by any of this — those are
-  `systemGen.py --system-file` recipe *inputs*, a wholly separate format
-  from the generated-*result* persistence this plan adds.
+Both items formerly here (the physical-plausibility anomaly finder, and the
+evolved-star pre-Big-Bang mass-sampling issue) moved to "Unmerged work"
+above once work on them actually started this session — see that section
+for current status instead of here.
