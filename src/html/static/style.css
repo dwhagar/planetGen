@@ -358,6 +358,12 @@ tbody tr:last-child td {
 
 /* Sector map: isometric wireframe cube + star dots (html/lib/starmap.py,
    html/static/sectormap.js) */
+/* TODO: `.starmap-svg`/`.starmap-edge`/`.star-dot`'s SVG presentation
+   attributes (fill/stroke) get replaced by background-color/border-color
+   on plain <div>s, plus new perspective/preserve-3d container rules and
+   6 cube-face transforms, once the map switches to CSS 3D transforms.
+   See docs/TODO.md, "Near-term: interim `../src/html/` browser
+   enhancements". */
 .starmap-layout {
   display: flex;
   flex-wrap: wrap;

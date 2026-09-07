@@ -207,6 +207,46 @@ check with a clipboard-copy fallback (commit `ee8daab`).
 - [ ] **Sprite-based graphical system view**: render a system's star,
   planets, and moons as small icon sprites sized relative to each other --
   see TODO in src/html/system.py near `_bodies_html`.
+- [ ] **Sector Map: interactive 3D (drag-to-rotate, scroll-to-zoom)**: the
+  "Sector Map" panel (`src/html/lib/starmap.py`) currently bakes a fixed
+  isometric projection into static SVG at page-render time -- rotating the
+  view isn't possible without a real client-side 3D layer, which doesn't
+  exist yet. Plan: switch to CSS 3D transforms (`perspective`,
+  `transform-style: preserve-3d`, `translate3d()`) instead of a hand-rolled
+  JS rotation-matrix/projection routine, since the browser's own compositor
+  then does the rotation math *and* correct occlusion (real z-depth, no
+  manual painter's-algorithm re-sort needed every frame) for free:
+    - `starmap.py` stops projecting to fixed 2D pixel coordinates
+      (`_iso_project`/`_iso_scale` go away entirely -- no more trig needed
+      server-side). Each star becomes a plain `<div>` positioned via
+      `transform: translate3d(x, y, z)` in a shared pixel-space cube
+      (normalized `[-1, 1]` coordinates times one `SCENE_SIZE_PX`
+      constant), not an SVG `<circle>` -- CSS 3D transforms on individual
+      shapes nested inside an `<svg>` have inconsistent browser support,
+      plain HTML elements don't. Binary secondary offset ("down and to the
+      right") becomes a fixed 3D-space delta added directly to the
+      primary's own `translate3d()`, so the pair rotates rigidly together
+      instead of the offset needing to be recomputed per frame.
+    - The cube wireframe becomes 6 absolutely-positioned, border-only
+      `<div>` faces (the standard "CSS 3D cube" recipe: `translateZ(half)`,
+      `rotateY(180deg) translateZ(half)`, `rotateY(±90deg) translateZ(half)`,
+      `rotateX(±90deg) translateZ(half)` for front/back/right/left/top/
+      bottom) instead of 12 SVG `<line>` edges -- fewer elements, and no
+      per-edge midpoint/alignment math since a plain cube's faces are
+      always axis-aligned.
+    - `sectormap.js` gains pointer-drag-to-orbit (update `rotateX`/`rotateY`
+      degrees on the scene element, clamped so pitch can't flip upside
+      down) and wheel/pinch-to-zoom (a separate `scale()` on an outer
+      wrapper, kept independent of the rotation transform so zoom never
+      interacts with `perspective` depth). Needs click-vs-drag
+      disambiguation (a pointerdown->pointerup movement-distance threshold)
+      so dragging the scene doesn't fire a dot's existing click-for-info-
+      panel behavior, which is otherwise unchanged.
+    - `style.css` gains the `perspective`/`preserve-3d` container rules and
+      the 6 cube-face transforms; the existing SVG-specific `.starmap-svg`/
+      `.starmap-edge`/`.star-dot` (fill/stroke as SVG presentation
+      attributes) rules get replaced with `background-color`/`border-color`
+      equivalents for plain `<div>`s.
 
 ### Deployment history (interim `../src/html/` browser)
 

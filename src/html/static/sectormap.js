@@ -9,6 +9,13 @@
 // database content (a system name can contain arbitrary characters via
 // `--name`) -- consistent with the rest of `html/`'s dependency-free,
 // no-build-step approach.
+//
+// TODO: gains pointer-drag-to-orbit (update rotateX/rotateY on the CSS
+// 3D scene element) and wheel/pinch-to-zoom (a separate scale() on an
+// outer wrapper) once `lib/starmap.py` switches to CSS 3D transforms --
+// needs a pointerdown->pointerup movement-distance threshold so dragging
+// the scene doesn't also fire showSystemInfo() below. See docs/TODO.md,
+// "Near-term: interim `../src/html/` browser enhancements".
 
 (function () {
   "use strict";

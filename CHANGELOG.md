@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Planned
+- **Sector Map: interactive 3D (drag-to-rotate, scroll-to-zoom)**: replace
+  the static server-baked isometric SVG projection in `src/html/lib/starmap.py`
+  with CSS 3D transforms (`perspective`/`preserve-3d`/`translate3d()`), so
+  the browser's own compositor handles rotation and occlusion instead of a
+  hand-rolled JS matrix routine. See `docs/TODO.md` ("Near-term: interim
+  `../src/html/` browser enhancements") for the full plan.
+
 ## [5.4.3] - 2026-09-07
 
 ### Changed

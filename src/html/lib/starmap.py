@@ -102,6 +102,14 @@ _CUBE_EDGES = [
 ]
 
 
+# TODO: this whole fixed-isometric-projection approach (`_iso_project`,
+# `_to_pixels`, `_iso_scale`, `_cube_wireframe_svg`'s SVG `<line>` edges,
+# and `_dot_svg`'s SVG `<circle>`s) goes away once the map switches to CSS
+# 3D transforms (drag-to-rotate, scroll-to-zoom) -- normalized (x, y, z)
+# gets fed straight to `translate3d()` on a plain `<div>` per star instead
+# of being projected to a fixed 2D pixel position here, and the cube
+# wireframe becomes 6 bordered `<div>` faces instead of 12 SVG lines. See
+# docs/TODO.md, "Near-term: interim `../src/html/` browser enhancements".
 def _iso_project(x, y, z):
     """Projects normalized cube coordinates (each expected in [-1, 1]) to
     a 2D axonometric plane -- fixed 30-degree isometric angles, not a
