@@ -455,3 +455,393 @@ def test_running_migrate_cli_twice_does_not_re_migrate_the_backup(tmp_path):
     assert backups_after_second_run == backups_after_first_run
     assert backup_path.stat().st_mtime == mtime_after_first_run
     assert backup_path.stat().st_size == size_after_first_run
+
+
+# ---------------------------------------------------------------------------
+# v3 -> v4 (Track C: galaxy coordinate system) -- sectors gains six nullable
+# galaxy-placement columns (center_x/y/z_pc, galactic_radius_pc,
+# shell_index, shell_slot_index). V3_SCHEMA_SQL is the schema exactly as it
+# stood immediately before that change: identical to the current
+# schema.sql in every other table (v2's moons split and v3's
+# star_systems.location are both already present), with `sectors` still
+# the plain 3-column table.
+# ---------------------------------------------------------------------------
+
+V3_SCHEMA_SQL = """
+PRAGMA foreign_keys = ON;
+PRAGMA user_version = 3;
+
+CREATE TABLE IF NOT EXISTS sectors (
+    id        INTEGER PRIMARY KEY,
+    name      TEXT NOT NULL,
+    edge_mpc  REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS system_configs (
+    id                INTEGER PRIMARY KEY,
+    markdown          INTEGER NOT NULL DEFAULT 0 CHECK (markdown IN (0, 1)),
+    habitable_world   INTEGER CHECK (habitable_world IN (0, 1)),
+    asteroid_belt     INTEGER CHECK (asteroid_belt IN (0, 1)),
+    large_star        INTEGER CHECK (large_star IN (0, 1)),
+    moons             INTEGER CHECK (moons IN (0, 1)),
+    max_planets       INTEGER CHECK (max_planets IN (0, 1)),
+    planets           INTEGER CHECK (planets IN (0, 1)),
+    star_type         TEXT,
+    name              TEXT,
+    age               TEXT CHECK (age IN ('young', 'old')),
+    intelligent_life  INTEGER CHECK (intelligent_life IN (0, 1)),
+    binary_system     INTEGER CHECK (binary_system IN (0, 1)),
+    num_orbits        INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS system_config_slots (
+    id            INTEGER PRIMARY KEY,
+    config_id     INTEGER NOT NULL REFERENCES system_configs(id) ON DELETE CASCADE,
+    orbit_index   INTEGER NOT NULL,
+    type          TEXT CHECK (type IN ('planet', 'asteroid_belt')),
+    planet_class  TEXT,
+    moons         INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS star_systems (
+    id                     INTEGER PRIMARY KEY,
+    sector_id              INTEGER REFERENCES sectors(id) ON DELETE SET NULL,
+    system_config_id       INTEGER NOT NULL REFERENCES system_configs(id),
+    name                   TEXT NOT NULL,
+    position_x_mpc          REAL,
+    position_y_mpc          REAL,
+    position_z_mpc          REAL,
+    quadrant                TEXT CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
+    location                TEXT,
+    is_binary              INTEGER NOT NULL DEFAULT 0 CHECK (is_binary IN (0, 1)),
+    binary_separation_km            REAL,
+    binary_type                     TEXT,
+    binary_temperature_k            REAL,
+    binary_radius_km                REAL,
+    binary_effective_mass_kg        REAL,
+    binary_effective_luminosity_w   REAL,
+    binary_age_gy                   REAL,
+    binary_lifespan_gy              REAL,
+    binary_habitable_zone_inner_km  REAL,
+    binary_habitable_zone_outer_km  REAL,
+    binary_system_perimeter_km      REAL,
+    binary_heliosphere_radius_km    REAL,
+    binary_table_type        TEXT,
+    binary_table_mass        TEXT,
+    binary_table_lum         TEXT,
+    binary_table_hab         TEXT,
+    binary_table_separation  TEXT,
+    binary_table_loc         TEXT,
+    system_flavor_text   TEXT,
+    schema_version       INTEGER NOT NULL DEFAULT 1,
+    wikitext_content     TEXT,
+    markdown_content     TEXT,
+    mediawiki_url        TEXT,
+    wikijs_url           TEXT,
+    created_at           TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS stars (
+    id                        INTEGER PRIMARY KEY,
+    star_system_id            INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
+    role                      TEXT NOT NULL CHECK (role IN ('primary', 'secondary', 'single')),
+    name                      TEXT NOT NULL,
+    star_type                 TEXT NOT NULL,
+    yerkes_class              TEXT NOT NULL,
+    mass_kg                   REAL NOT NULL,
+    radius_km                 REAL NOT NULL,
+    temperature_k             REAL NOT NULL,
+    luminosity_w              REAL NOT NULL,
+    age_gy                    REAL NOT NULL,
+    lifespan_gy               REAL,
+    habitable_zone_inner_km   REAL NOT NULL,
+    habitable_zone_outer_km   REAL NOT NULL,
+    system_perimeter_km       REAL NOT NULL,
+    heliosphere_radius_km     REAL NOT NULL,
+    table_type    TEXT NOT NULL,
+    table_radius  TEXT NOT NULL,
+    table_mass    TEXT NOT NULL,
+    table_temp    TEXT NOT NULL,
+    table_lum     TEXT NOT NULL,
+    table_hab     TEXT NOT NULL,
+    table_loc     TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS planets (
+    id                        INTEGER PRIMARY KEY,
+    star_system_id            INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
+    star_id                   INTEGER REFERENCES stars(id) ON DELETE SET NULL,
+    orbital_index             INTEGER NOT NULL,
+    body_type                 TEXT NOT NULL CHECK (body_type IN ('t', 'g')),
+    name                      TEXT NOT NULL,
+    planet_class              TEXT,
+    distance_km               REAL NOT NULL,
+    radius_km                 REAL NOT NULL,
+    mass_kg                   REAL NOT NULL,
+    volume_km3                REAL NOT NULL,
+    period_years              REAL NOT NULL,
+    zone                      TEXT CHECK (zone IN ('h', 'e', 'c')),
+    description               TEXT,
+    gravity_g                 REAL,
+    surface_temperature_k     REAL,
+    density_g_cm3             REAL,
+    atmosphere                TEXT,
+    atm_density               REAL,
+    atm_molar_density         REAL,
+    atmospheric_pressure_pa   REAL,
+    composition               TEXT,
+    scale_height_km           REAL,
+    hill_radius_km            REAL,
+    min_orbit_distance_km     REAL,
+    habitable_zone_inner_km   REAL NOT NULL,
+    habitable_zone_outer_km   REAL NOT NULL,
+    life_chemical             TEXT,
+    evolutionary_speed        TEXT,
+    flavor_text               TEXT,
+    flavor_text_count         INTEGER NOT NULL DEFAULT 0,
+    table_class     TEXT,
+    table_distance  TEXT NOT NULL,
+    table_period    TEXT NOT NULL,
+    table_radius    TEXT NOT NULL,
+    table_gravity   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS planet_evolutionary_paragraphs (
+    id          INTEGER PRIMARY KEY,
+    planet_id   INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
+    position    INTEGER NOT NULL,
+    paragraph   TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
+    id             INTEGER PRIMARY KEY,
+    planet_id      INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
+    spectrum_type  TEXT NOT NULL CHECK (spectrum_type IN ('visible', 'non_visible')),
+    position       INTEGER NOT NULL,
+    value          TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS moons (
+    id                        INTEGER PRIMARY KEY,
+    planet_id                 INTEGER NOT NULL REFERENCES planets(id) ON DELETE CASCADE,
+    star_system_id            INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
+    star_id                   INTEGER REFERENCES stars(id) ON DELETE SET NULL,
+    orbital_index             INTEGER NOT NULL,
+    body_type                 TEXT NOT NULL CHECK (body_type IN ('t', 'g')),
+    name                      TEXT NOT NULL,
+    planet_class              TEXT,
+    distance_km               REAL NOT NULL,
+    radius_km                 REAL NOT NULL,
+    mass_kg                   REAL NOT NULL,
+    volume_km3                REAL NOT NULL,
+    period_years              REAL NOT NULL,
+    zone                      TEXT CHECK (zone IN ('h', 'e', 'c')),
+    description               TEXT,
+    gravity_g                 REAL,
+    surface_temperature_k     REAL,
+    density_g_cm3             REAL,
+    atmosphere                TEXT,
+    atm_density               REAL,
+    atm_molar_density         REAL,
+    atmospheric_pressure_pa   REAL,
+    composition               TEXT,
+    scale_height_km           REAL,
+    hill_radius_km            REAL,
+    min_orbit_distance_km     REAL,
+    habitable_zone_inner_km   REAL NOT NULL,
+    habitable_zone_outer_km   REAL NOT NULL,
+    life_chemical             TEXT,
+    evolutionary_speed        TEXT,
+    flavor_text               TEXT,
+    flavor_text_count         INTEGER NOT NULL DEFAULT 0,
+    table_class     TEXT,
+    table_distance  TEXT NOT NULL,
+    table_period    TEXT NOT NULL,
+    table_radius    TEXT NOT NULL,
+    table_gravity   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS moon_evolutionary_paragraphs (
+    id          INTEGER PRIMARY KEY,
+    moon_id     INTEGER NOT NULL REFERENCES moons(id) ON DELETE CASCADE,
+    position    INTEGER NOT NULL,
+    paragraph   TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
+    id             INTEGER PRIMARY KEY,
+    moon_id        INTEGER NOT NULL REFERENCES moons(id) ON DELETE CASCADE,
+    spectrum_type  TEXT NOT NULL CHECK (spectrum_type IN ('visible', 'non_visible')),
+    position       INTEGER NOT NULL,
+    value          TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS asteroid_belts (
+    id                   INTEGER PRIMARY KEY,
+    star_system_id       INTEGER NOT NULL REFERENCES star_systems(id) ON DELETE CASCADE,
+    orbital_index        INTEGER NOT NULL,
+    distance_km          REAL NOT NULL,
+    lower_limit_km       REAL NOT NULL,
+    upper_limit_km       REAL NOT NULL,
+    density              TEXT NOT NULL CHECK (density IN ('dense', 'sparse', 'typical')),
+    composition_summary  TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
+    id             INTEGER PRIMARY KEY,
+    belt_id        INTEGER NOT NULL REFERENCES asteroid_belts(id) ON DELETE CASCADE,
+    position       INTEGER NOT NULL,
+    component      TEXT NOT NULL,
+    concentration  TEXT NOT NULL CHECK (concentration IN ('high', 'moderate', 'small', 'trace'))
+);
+"""
+
+
+def _build_v3_database(path):
+    """Creates a synthetic v3 database at `path`: one sector (with a
+    system placed in it, so `location`/`quadrant`/position are exercised),
+    one star, one top-level planet with a moon, and an asteroid belt --
+    the plain 3-column `sectors` table this migration must extend."""
+    conn = sqlite3.connect(path)
+    conn.executescript(V3_SCHEMA_SQL)
+
+    conn.execute("INSERT INTO sectors (id, name, edge_mpc) VALUES (1, 'Legacy Sector', 3526.0)")
+    conn.execute("INSERT INTO system_configs (id, markdown) VALUES (1, 0)")
+    conn.execute(
+        """
+        INSERT INTO star_systems (
+            id, sector_id, system_config_id, name,
+            position_x_mpc, position_y_mpc, position_z_mpc, quadrant, location
+        ) VALUES (1, 1, 1, 'Legacy System', 100.0, 200.0, 300.0, 'I', 'Legacy Sector')
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO stars (
+            id, star_system_id, role, name, star_type, yerkes_class, mass_kg, radius_km,
+            temperature_k, luminosity_w, age_gy, habitable_zone_inner_km, habitable_zone_outer_km,
+            system_perimeter_km, heliosphere_radius_km, table_type, table_radius, table_mass,
+            table_temp, table_lum, table_hab, table_loc
+        ) VALUES (1, 1, 'single', 'Legacy Star', 'G2V Yellow Main Sequence Star', 'V', 1.0, 1.0,
+                  5778, 1.0, 4.6, 1.0, 1.5, 2.0, 3.0, 'G2V', '1 R', '1 M', '5778 K', '1 L',
+                  '1-1.5 AU', 'Legacy Star')
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO planets (
+            id, star_system_id, star_id, orbital_index, body_type,
+            name, planet_class, distance_km, radius_km, mass_kg, volume_km3, period_years,
+            habitable_zone_inner_km, habitable_zone_outer_km, table_distance, table_period, table_radius
+        ) VALUES (10, 1, 1, 0, 't', 'Legacy Planet', 'M', 1.5e8, 6371, 5.97e24, 1.08e12, 1.0,
+                  1.0, 1.5, '1 AU', '1 yr', '1 R')
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO moons (
+            id, planet_id, star_system_id, star_id, orbital_index, body_type,
+            name, planet_class, distance_km, radius_km, mass_kg, volume_km3, period_years,
+            habitable_zone_inner_km, habitable_zone_outer_km, table_distance, table_period, table_radius
+        ) VALUES (20, 10, 1, 1, 0, 't', 'Legacy Moon', 'D', 3.8e5, 1737, 7.3e22, 2.2e10, 0.08,
+                  1.0, 1.5, '0.0025 AU', '0.08 yr', '0.27 R')
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO asteroid_belts (
+            id, star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km,
+            density, composition_summary
+        ) VALUES (1, 1, 1, 4.0e8, 3.5e8, 4.5e8, 'typical', 'trace amounts of iron')
+        """
+    )
+    conn.execute(
+        "INSERT INTO asteroid_belt_composition (belt_id, position, component, concentration) VALUES (1, 0, 'iron', 'trace')"
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_migrate_v3_to_v4_adds_null_galaxy_columns_to_existing_sectors(tmp_path):
+    db_path = str(tmp_path / "sector.db")
+    _build_v3_database(db_path)
+
+    backup_path = _db.migrate_database(db_path)
+
+    assert backup_path is not None
+    assert os.path.exists(backup_path)
+
+    backup_conn = sqlite3.connect(backup_path)
+    assert backup_conn.execute("PRAGMA user_version").fetchone()[0] == 3
+    backup_conn.close()
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION == 4
+
+        sectors = conn.execute("SELECT * FROM sectors").fetchall()
+        assert len(sectors) == 1
+        sector = sectors[0]
+        assert sector["id"] == 1
+        assert sector["name"] == "Legacy Sector"
+        assert sector["edge_mpc"] == pytest.approx(3526.0)
+        # The whole point of this migration: the new galaxy-placement
+        # columns exist and are NULL for a pre-v4 sector -- there is no
+        # way to recover an intended galaxy position after the fact.
+        assert sector["center_x_pc"] is None
+        assert sector["center_y_pc"] is None
+        assert sector["center_z_pc"] is None
+        assert sector["galactic_radius_pc"] is None
+        assert sector["shell_index"] is None
+        assert sector["shell_slot_index"] is None
+
+        # Every other table copied through untouched.
+        system_row = conn.execute("SELECT * FROM star_systems WHERE id = 1").fetchone()
+        assert system_row["name"] == "Legacy System"
+        assert system_row["location"] == "Legacy Sector"
+        assert system_row["quadrant"] == "I"
+
+        assert conn.execute("SELECT COUNT(*) FROM stars").fetchone()[0] == 1
+        assert conn.execute("SELECT COUNT(*) FROM planets").fetchone()[0] == 1
+        assert conn.execute("SELECT COUNT(*) FROM moons").fetchone()[0] == 1
+        assert conn.execute("SELECT COUNT(*) FROM asteroid_belts").fetchone()[0] == 1
+        assert conn.execute("SELECT COUNT(*) FROM asteroid_belt_composition").fetchone()[0] == 1
+
+        violations = conn.execute("PRAGMA foreign_key_check").fetchall()
+        assert violations == []
+    finally:
+        conn.close()
+
+
+def test_migrate_v3_to_v4_new_sector_saved_afterward_can_have_a_galaxy_position(tmp_path):
+    """After migrating an old database, saving a brand-new, galaxy-placed
+    sector into it must work -- confirms the migrated `sectors` table
+    really does have the new columns (and their CHECK constraint), not
+    just that the old row's columns read back as NULL."""
+    db_path = str(tmp_path / "sector.db")
+    _build_v3_database(db_path)
+    _db.migrate_database(db_path)
+
+    from stellarObjects.spaceSector import SpaceSector
+
+    sector = SpaceSector("New Placed Sector", edge_ly=11.5)
+    galaxy_position = {
+        "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
+        "galactic_radius_pc": (1.0 ** 2 + 2.0 ** 2 + 3.0 ** 2) ** 0.5,
+        "shell_index": 0, "shell_slot_index": 0,
+    }
+    sector_id = _db.save_sector(sector, db_path=db_path, galaxy_position=galaxy_position)
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+        assert row["center_x_pc"] == pytest.approx(1.0)
+        assert row["center_y_pc"] == pytest.approx(2.0)
+        assert row["center_z_pc"] == pytest.approx(3.0)
+        assert row["galactic_radius_pc"] == pytest.approx((14.0) ** 0.5)
+        assert row["shell_index"] == 0
+        assert row["shell_slot_index"] == 0
+    finally:
+        conn.close()

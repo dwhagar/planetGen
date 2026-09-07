@@ -199,6 +199,69 @@ def milliparsecs_to_ly(mpc):
     return au * physical_constants.AU_TO_LY
 
 
+def mpc_to_pc(mpc):
+    """
+    Converts a distance in milliparsecs (mpc) to parsecs (pc). Exact --
+    milliparsecs and parsecs are the same unit family, `1/1000` apart, so
+    this is a single power-of-ten scaling with no AU round-trip (contrast
+    `milliparsecs_to_ly`, which does need one).
+
+    Args:
+        mpc (float): The distance in milliparsecs.
+
+    Returns:
+        float: The distance in parsecs.
+    """
+    return mpc / 1000
+
+
+def pc_to_mpc(pc):
+    """
+    Converts a distance in parsecs (pc) to milliparsecs (mpc) -- the
+    inverse of `mpc_to_pc`. Exact, same reasoning.
+
+    Args:
+        pc (float): The distance in parsecs.
+
+    Returns:
+        float: The distance in milliparsecs.
+    """
+    return pc * 1000
+
+
+def pc_to_ly(pc):
+    """
+    Converts a distance in parsecs (pc) to light-years (ly), for
+    human-readable display (e.g. "~48,923 ly from the galactic core") --
+    see `docs/design/galaxy-coordinate-system.md` section 2. Not used by
+    the database persistence layer itself (which stores galaxy-scale
+    distances in parsecs directly); this exists purely for prose alongside
+    the same "display string next to the raw stored value" treatment
+    `table_*` columns get elsewhere in this schema.
+
+    Args:
+        pc (float): The distance in parsecs.
+
+    Returns:
+        float: The distance in light-years.
+    """
+    return pc * (physical_constants.AU_PER_PARSEC / physical_constants.LY_TO_AU)
+
+
+def ly_to_pc(ly):
+    """
+    Converts a distance in light-years (ly) to parsecs (pc) -- the inverse
+    of `pc_to_ly`. See that function's docstring.
+
+    Args:
+        ly (float): The distance in light-years.
+
+    Returns:
+        float: The distance in parsecs.
+    """
+    return ly * (physical_constants.LY_TO_AU / physical_constants.AU_PER_PARSEC)
+
+
 def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.

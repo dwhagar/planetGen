@@ -22,6 +22,92 @@ from stellarObjects.utils import generate_phoneme_salad_name
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
+def add_shared_generation_options(parser):
+    """
+    Adds every per-system generation-tuning option this script and
+    `galaxyGen.py` share -- everything `build_sector_configs()` (and, via
+    it, `systemGen.build_system_config`) needs from parsed args -- to
+    `parser`. Factored out so the two scripts' CLI surfaces can never
+    silently drift apart on what a given flag means, per this track's
+    "call into sectorGen.py rather than duplicating its argparse logic"
+    brief.
+
+    Deliberately excludes `--name`/`-n` (sector naming is this script's
+    own per-invocation concept; `galaxyGen.py` names each generated sector
+    itself, once per shell slot / neighborhood address) and `--output`/
+    `--db-path` (each script's own I/O conventions differ enough that
+    sharing them would obscure more than it saves).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+                                          Must accept `+`/`-` prefix chars
+                                          (`prefix_chars='-+'`) for the
+                                          tri-state options below.
+    """
+    for name, _attr, description in systemGen.TRISTATE_OPTIONS:
+        parser.add_argument(f'-{name}', f'+{name}', dest=name, action=systemGen.TristateAction,
+                            nargs=0, default=None,
+                            help=f"+{name} forces every system in the sector to have {description}; "
+                                 f"-{name} forces every system in the sector to not have {description}.")
+
+    parser.add_argument('--num-systems', type=int, default=10,
+                        help="The number of star systems to generate in the sector. Defaults to 10.")
+    parser.add_argument('--min-habitable', type=int, default=0,
+                        help="Guarantee at least this many systems in the sector have a habitable world, "
+                             "chosen randomly among them, without requiring every system to have one.")
+    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
+    parser.add_argument('--star-type', type=str,
+                        help="Force every system's star to a specific type (e.g., G2V).")
+    parser.add_argument('--age', type=str, choices=['young', 'old'],
+                        help="Specify the age of every star in the sector (young or old).")
+    parser.add_argument('--flavor-chance-system', type=float,
+                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
+    parser.add_argument('--flavor-chance-planet', type=float,
+                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
+    parser.add_argument('--max-planet-flavor', action='store_true',
+                        help="Sets the maximum flavor text total for planets to 99.")
+
+
+def validate_shared_generation_args(args, parser):
+    """
+    Validates every option `add_shared_generation_options` added, calling
+    `parser.error` (which exits) on the first problem found. Shared with
+    `galaxyGen.py` for the same reason `add_shared_generation_options` is.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
+    if args.num_systems < 1:
+        parser.error("--num-systems must be a positive integer.")
+
+    if args.min_habitable < 0:
+        parser.error("--min-habitable cannot be negative.")
+
+    if args.min_habitable > args.num_systems:
+        parser.error("--min-habitable cannot exceed --num-systems.")
+
+    if args.min_habitable > 0 and args.habitable_world is False:
+        parser.error("--min-habitable cannot be combined with -habitable_world.")
+
+    if args.planets is False and (args.moons or args.max_planets or args.habitable_world):
+        parser.error("-planets cannot be combined with +moons, +max_planets, or +habitable_world.")
+
+    if args.star_type and args.large_star:
+        parser.error("--star-type cannot be combined with +large_star.")
+
+    if args.intelligent_life is not None and args.habitable_world is False:
+        parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
+
+    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
+        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
+
+    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
+        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+
+
 def process_args():
     """
     Parses command-line arguments for generating a whole sector of star
@@ -31,11 +117,12 @@ def process_args():
     generation -- the `+name`/`-name` tri-state flags (see
     `systemGen.TRISTATE_OPTIONS`), `--star-type`, `--age`, `--markdown`, and
     the flavor-text overrides -- applies here too, uniformly, to every
-    system the sector contains. `--system-file`, `--num-orbits`, and
-    systemGen.py's own per-system `--name` are deliberately not offered
-    here: those describe one specific, hand-crafted system (exact orbital
-    slots, an exact object count, a single fixed name), which contradicts
-    generating a whole sector of varied, independently-random systems. Use
+    system the sector contains (see `add_shared_generation_options`).
+    `--system-file`, `--num-orbits`, and systemGen.py's own per-system
+    `--name` are deliberately not offered here: those describe one
+    specific, hand-crafted system (exact orbital slots, an exact object
+    count, a single fixed name), which contradicts generating a whole
+    sector of varied, independently-random systems. Use
     `systemGen.py --system-file` directly for that, and stitch its output
     into a sector by hand if needed. (This script's own `--name`/`-n`,
     below, is a different setting entirely -- it names the *sector*, not
@@ -78,64 +165,18 @@ def process_args():
 
     parser.add_argument('--version', action=VersionAction, banner=version_banner('sectorGen.py'))
 
-    for name, _attr, description in systemGen.TRISTATE_OPTIONS:
-        parser.add_argument(f'-{name}', f'+{name}', dest=name, action=systemGen.TristateAction,
-                            nargs=0, default=None,
-                            help=f"+{name} forces every system in the sector to have {description}; "
-                                 f"-{name} forces every system in the sector to not have {description}.")
+    add_shared_generation_options(parser)
 
-    parser.add_argument('--num-systems', type=int, default=10,
-                        help="The number of star systems to generate in the sector. Defaults to 10.")
     parser.add_argument('--name', '-n', dest='sector_name', type=str,
                         help="Force the name of the sector, overriding the default random two-word name.")
-    parser.add_argument('--min-habitable', type=int, default=0,
-                        help="Guarantee at least this many systems in the sector have a habitable world, "
-                             "chosen randomly among them, without requiring every system to have one.")
-
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
     parser.add_argument('--db-path', type=str,
                         help="Path to the SQLite database file the generated sector is saved to. "
                              "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
-    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
-    parser.add_argument('--star-type', type=str,
-                        help="Force every system's star to a specific type (e.g., G2V).")
-    parser.add_argument('--age', type=str, choices=['young', 'old'],
-                        help="Specify the age of every star in the sector (young or old).")
-    parser.add_argument('--flavor-chance-system', type=float,
-                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
-    parser.add_argument('--flavor-chance-planet', type=float,
-                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
-    parser.add_argument('--max-planet-flavor', action='store_true',
-                        help="Sets the maximum flavor text total for planets to 99.")
 
     args = parser.parse_args()
 
-    if args.num_systems < 1:
-        parser.error("--num-systems must be a positive integer.")
-
-    if args.min_habitable < 0:
-        parser.error("--min-habitable cannot be negative.")
-
-    if args.min_habitable > args.num_systems:
-        parser.error("--min-habitable cannot exceed --num-systems.")
-
-    if args.min_habitable > 0 and args.habitable_world is False:
-        parser.error("--min-habitable cannot be combined with -habitable_world.")
-
-    if args.planets is False and (args.moons or args.max_planets or args.habitable_world):
-        parser.error("-planets cannot be combined with +moons, +max_planets, or +habitable_world.")
-
-    if args.star_type and args.large_star:
-        parser.error("--star-type cannot be combined with +large_star.")
-
-    if args.intelligent_life is not None and args.habitable_world is False:
-        parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
-
-    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
-        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
-
-    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
-        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+    validate_shared_generation_args(args, parser)
 
     # systemGen.build_system_config() expects a namespace shaped like its own
     # process_args() output, including these three -- deliberately not
@@ -213,35 +254,79 @@ def build_sector_configs(args):
     return configs
 
 
+def generate_sector(args, galactic_center_dist_ly=None):
+    """
+    Builds a fully populated `SpaceSector` from parsed args, without
+    rendering, printing, or saving anything -- the shared core `main()`
+    and `galaxyGen.py` both build on, per this track's "expose a clean
+    function-level entry point for building and saving one sector at a
+    given galaxy position" requirement.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments from `process_args()`
+            (or an equivalently-shaped namespace a caller like
+            `galaxyGen.py` builds itself -- see
+            `add_shared_generation_options`/`validate_shared_generation_args`
+            for the option surface this function actually reads, via
+            `build_sector_configs`).
+        galactic_center_dist_ly (float, optional): This sector's distance
+            from the galactic center, in light-years, threaded down into
+            every generated system's Hill-sphere calculation (see
+            `Star.calculate_system_perimeter`'s docstring). `None` (the
+            default) falls back to the fixed `GALACTIC_CENTER_DISTANCE_LY`
+            constant -- this script's own standalone CLI (`main()`, no
+            galaxy context) always calls this with the default, so it
+            keeps producing "unplaced" sectors exactly as before.
+
+    Returns:
+        tuple: `(sector_name, SpaceSector)` -- `sector_name` is
+              `args.sector_name` or a freshly generated one (see
+              `generate_sector_name`); the `SpaceSector` already has every
+              system added (`SpaceSector.add_system`'s Hill-sphere-based
+              random placement).
+    """
+    sector_name = args.sector_name or generate_sector_name()
+
+    configs = build_sector_configs(args)
+    systems = [
+        StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
+        for cfg in configs
+    ]
+
+    sector = SpaceSector(name=sector_name)
+    for system, cfg in zip(systems, configs):
+        sector.add_system(system, system_config=cfg)
+
+    return sector_name, sector
+
+
 def main():
     """
     The main entry point for the sector generation script.
 
-    Parses command-line arguments, builds one `SystemConfig` per system in
-    the sector (see `build_sector_configs`), generates a full `StarSystem`
-    from each, places them all in a `SpaceSector` (positions auto-assigned
-    by `SpaceSector.add_system`'s Hill-sphere-based placement), and renders
-    them together under a single sector header with a short summary and an
-    index of every system's name and star type.
+    Parses command-line arguments, builds a fully populated `SpaceSector`
+    (see `generate_sector` -- one `SystemConfig` per system via
+    `build_sector_configs`, a full `StarSystem` from each, all placed in
+    the sector via `SpaceSector.add_system`'s Hill-sphere-based placement),
+    and renders them together under a single sector header with a short
+    summary and an index of every system's name and star type.
 
     If an output file was specified, the whole rendered sector is written
     there; otherwise it's printed directly to the console. Either way, the
     generated sector is then saved to the database (`stellarObjects._db`,
     `--db-path` to override the default location) -- this is the "fill a
     sector" step: every run of this script populates the database, not
-    just stdout/a file.
+    just stdout/a file. No `galactic_center_dist_ly` is passed to
+    `generate_sector` here -- this script's own CLI has no galaxy context
+    (see `galaxyGen.py` for that), so every sector it produces is
+    "unplaced" exactly as before this track's galaxy-coordinate-system
+    work.
     """
     random.seed(secrets.randbits(128))
 
     args = process_args()
-    sector_name = args.sector_name or generate_sector_name()
-
-    configs = build_sector_configs(args)
-    systems = [StarSystem(system_config=cfg) for cfg in configs]
-
-    sector = SpaceSector(name=sector_name)
-    for system, cfg in zip(systems, configs):
-        sector.add_system(system, system_config=cfg)
+    sector_name, sector = generate_sector(args)
+    systems = [entry.star_system for entry in sector.entries]
 
     habitable_count = sum(1 for s in systems if s.hab_count > 0)
 
