@@ -65,6 +65,35 @@ def test_age_never_exceeds_lifespan(star_type):
         )
 
 
+@pytest.mark.parametrize("star_type", [f"M{sub}V" for sub in SUBCLASSES] + [f"K{sub}V" for sub in SUBCLASSES])
+def test_long_lived_main_sequence_age_never_exceeds_universe_age(star_type):
+    """
+    K and M main-sequence dwarfs can have theoretical lifespans of tens to
+    thousands of billions of years (STAR_EVOLUTION["M"]["lifespan_gy"] runs
+    up to 5500 Gy) -- real astrophysics, since no red dwarf has ever
+    actually died of old age. Before UNIVERSE_AGE_GY was introduced, age was
+    drawn as up to 90% of that lifespan with no cosmological ceiling,
+    producing stars "918 billion years old" -- older than the ~13.8 Gy
+    universe itself, even though age <= lifespan still held. This is that
+    regression test.
+    """
+    for _ in range(TRIALS):
+        s = make_star(star_type)
+        assert s.age <= prog_c.UNIVERSE_AGE_GY * 1.001, (
+            f"{star_type}: age {s.age} Gy exceeds the age of the universe "
+            f"({prog_c.UNIVERSE_AGE_GY} Gy)"
+        )
+
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = star_type
+        cfg.AGE = "old"
+        s_old = Star(cfg)
+        assert s_old.age <= prog_c.UNIVERSE_AGE_GY * 1.001, (
+            f"{star_type} (AGE='old'): age {s_old.age} Gy exceeds the age of "
+            f"the universe ({prog_c.UNIVERSE_AGE_GY} Gy)"
+        )
+
+
 @pytest.mark.parametrize("star_type", ALL_STAR_TYPES)
 def test_age_and_lifespan_are_positive_and_finite_or_inf(star_type):
     for _ in range(TRIALS):

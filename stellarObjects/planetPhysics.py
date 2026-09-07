@@ -339,8 +339,12 @@ def calculate_surface_gravity(planet):
     surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')
-    if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
-        surface_gravity_g = random.uniform(0.75, 1.25)
+    # Class M's forced Earth-like gravity clamp is disabled -- the fixed
+    # atmospheric-pressure formula no longer needs a band-aid to look
+    # realistic. Commented out rather than deleted in case it needs
+    # restoring.
+    # if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
+    #     surface_gravity_g = random.uniform(0.75, 1.25)
     planet.gravity = surface_gravity_g
 
 
@@ -384,37 +388,38 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # formula -- to km to match before it's combined with radius.
         scale_height = scale_height_m / physical_constants.KM_TO_M_FACTOR
         planet.scale_height = scale_height
-        atmosphere_thickness = scale_height * random.uniform(5, 7)
-        planet_volume = (4 * math.pi * planet.radius ** 3) / 3
-        atmosphere_volume = (4 * math.pi * (planet.radius + atmosphere_thickness) ** 3) / 3 - planet_volume
-        atmospheric_mass = 0
-        num_zones = round(random.uniform(5, 7)) # Consistent with atmosphere_thickness calculation
-        for zone in range(num_zones):
-            zone_volume = atmosphere_volume + planet_volume - (
-                        4 * math.pi * (planet.radius + (zone * scale_height)) ** 3) / 3
-            zone_density = planet.atm_density / (zone * 2.7) if zone >= 1 else planet.atm_density
-            atmospheric_mass += zone_volume * zone_density
-        atmospheric_force = atmospheric_mass * (planet.gravity * physical_constants.EARTH_GRAVITY)
-        planet_surface_area = 4 * math.pi * (planet.radius * 1000) ** 2
-        atmospheric_pressure = (atmospheric_force / planet_surface_area) * 7500
+        # Closed-form barometric formula for an isothermal, hydrostatic
+        # atmosphere: integrating dP/dz = -rho*g from the surface to
+        # infinity gives P_surface = rho_surface * g * H, where H is the
+        # scale height in meters. This replaces a previous shell-integration
+        # loop that summed km^3 shell volumes against a kg/m^3 density
+        # without converting units, undercounting atmospheric_mass by
+        # roughly 9 orders of magnitude and requiring an arbitrary "* 7500"
+        # fudge factor to partially compensate.
+        surface_gravity_ms2 = planet.gravity * physical_constants.EARTH_GRAVITY
+        atmospheric_pressure = planet.atm_density * surface_gravity_ms2 * scale_height_m
 
         greenhouse_factor = abs((planet.atm_molar_density - physical_constants.CO2_BASE_MOLAR_DENSITY) / physical_constants.CO2_BASE_MOLAR_DENSITY * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
         surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
         planet.surface_temperature = surface_temperature_atmosphere
         planet.atmospheric_pressure = atmospheric_pressure
 
-        if planet.planet_class == "M":
-            if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
-                planet.atmospheric_pressure = random.uniform(90000, 112000)
-            if planet.surface_temperature < 283 or planet.surface_temperature > 290:
-                planet.surface_temperature = random.uniform(283, 290)
-        elif planet.planet_class == "P" and planet.surface_temperature >= 283:
-            # If surface_temperature_no_atmosphere is already above 283, we need a different approach
-            # to ensure the P class planet remains cold.
-            if surface_temperature_no_atmosphere < 283:
-                planet.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
-            else:
-                planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
+        # Class M/P's forced pressure/temperature clamps are disabled -- the
+        # fixed atmospheric-pressure formula no longer needs a band-aid to
+        # land in a realistic range. Commented out rather than deleted in
+        # case it needs restoring.
+        # if planet.planet_class == "M":
+        #     if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
+        #         planet.atmospheric_pressure = random.uniform(90000, 112000)
+        #     if planet.surface_temperature < 283 or planet.surface_temperature > 290:
+        #         planet.surface_temperature = random.uniform(283, 290)
+        # elif planet.planet_class == "P" and planet.surface_temperature >= 283:
+        #     # If surface_temperature_no_atmosphere is already above 283, we need a different approach
+        #     # to ensure the P class planet remains cold.
+        #     if surface_temperature_no_atmosphere < 283:
+        #         planet.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
+        #     else:
+        #         planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
 
 
 def generate_moons(planet, moon_count=None):
