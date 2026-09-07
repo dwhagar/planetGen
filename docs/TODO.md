@@ -165,9 +165,9 @@ Phase 4 and parts of Phase 5 are still open.
 
 ## Investigate Further
 
-- [ ] Ways to render an image or maybe provide a web interface to visualize the location of 2 points within the galactic space.
+- [ ] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`.
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
-- [ ] Search parameter for searching by not only planet class but planet size or in the tagged search field sort by planet size.
+- [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and src/html/search.py near `_planets_panel`.
 - [ ] Still open from the file-system cleanup (5.3.2/5.3.3): consider
   moving `src/api/` into `../src/html/` to expose the API endpoint from the same
   served tree. Deliberately not done -- it was posed as an open question,
@@ -181,7 +181,8 @@ Phase 4 and parts of Phase 5 are still open.
   `apache/` moved into `examples/apache/`, and `examples/*.json` moved
   into `examples/systems/`. `setup.py` and `pytest.ini` were evaluated
   and can't move into `src/` without breaking (see CHANGELOG.md [5.3.3]
-  for why, verified empirically not just assumed).
+  for why, verified empirically not just assumed). See the short pointer
+  note in `src/api/__init__.py`.
 
 ## File Management
 
@@ -278,9 +279,9 @@ deployment today rather than the full multi-user vision below.
       carry over — MySQL wants a proper pool for concurrent access, which
       is the whole point of this migration).
     - **`src/api/config.py` / `src/queryDb.py` porting**: both currently assume a
-      SQLite file path (`DB_PATH`/`--db-path`) — becomes a connection
-      string/host+credentials, need a secrets-handling story (env vars at
-      minimum) rather than a bare file path.
+      SQLite file path (`DB_PATH`/`--db-path`) rather than a connection
+      string/host+credentials pair — see TODO in src/api/config.py near
+      `Config.DB_PATH` and src/queryDb.py near `open_readonly`/`--db-path`.
     - **Data migration**: existing `.db` files need a one-time export/
       import into MySQL; no tooling for this exists yet.
     - Revisit tooling (e.g. an ORM/migration framework) at that point if
@@ -312,12 +313,8 @@ deployment today rather than the full multi-user vision below.
   one page load). Falls back to a "Copy link" button with a clipboard-API
   script when unreachable; renders nothing when the URL field is NULL.
 - [ ] **Sprite-based graphical system view**: render a system's star,
-  planets, and moons as small icon sprites sized relative to each other
-  (from `radius_km`) for an at-a-glance size comparison. Open questions:
-  where the sprite art comes from, linear vs. logarithmic size scaling (a
-  gas giant vs. a moon differ by 2-3 orders of magnitude in radius), and
-  whether this is a simple size-comparison row or a full scaled-orbit
-  diagram.
+  planets, and moons as small icon sprites sized relative to each other --
+  see TODO in src/html/system.py near `_bodies_html`.
 
 ### Deployment history (interim `../src/html/` browser)
 

@@ -48,6 +48,15 @@ def open_readonly(db_path):
     Raises:
         SystemExit: If the file doesn't exist or can't be opened.
     """
+    # TODO: this whole function -- and the --db-path/DEFAULT_DB_PATH
+    # convention it's built on -- assumes a SQLite file path throughout.
+    # Part of the Phase 5 MySQL migration (docs/TODO.md) is porting this
+    # CLI off that assumption: `db_path` would become a connection
+    # string/host+credentials pair instead of a bare path, and this
+    # function's `file:...?mode=ro` URI trick (SQLite-specific) would need
+    # a MySQL-appropriate equivalent (a real read-only user/grant, since
+    # MySQL has no per-connection "open this file read-only" flag). See
+    # docs/TODO.md, "Phase 5 -- Web interface".
     try:
         conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         conn.row_factory = sqlite3.Row
@@ -209,6 +218,16 @@ def process_args():
     near_parser.add_argument('system_id', type=int, help="The star_systems.id to measure distances from.")
     near_parser.add_argument('--radius', type=float, required=True,
                              help="Search radius in light-years (e.g. 50 for 'everything within 50 ly').")
+
+    # TODO: no subcommand here queries planets/moons directly -- `systems`
+    # above only filters by star_type_prefix/sector_id, so "every Class D
+    # planet smaller than Earth" or "sort these results by radius_km" can't
+    # be asked of this CLI at all today. A `planets` subcommand (mirroring
+    # `systems` above) would need --class (the existing planet_class
+    # values, already exposed as a search facet in ../src/html/search.py)
+    # plus a new --min-radius-km/--max-radius-km pair (or a --sort-by
+    # radius_km flag) over the `planets`/`moons` tables' radius_km column.
+    # See docs/TODO.md, "Investigate Further".
 
     return parser.parse_args()
 
