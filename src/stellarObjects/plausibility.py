@@ -25,14 +25,16 @@ Two-tier "sane range" design
    (`program_constants.PLANET_CLASSES`, `physical_constants.PLANET_DENSITY`,
    etc), or simple non-negotiable physical facts (a temperature or pressure
    can't be negative or non-finite). Surface gravity is a multilinear
-   function of (radius, density) for terrestrial classes, or (radius, core
-   density, atmosphere density, core/atmosphere ratio) for gas giants -- a
-   multilinear function's extrema over a box occur at the box's corners, so
-   `theoretical_gravity_bounds_g` below evaluates every corner of the
-   class's declared ranges and takes the min/max, rather than hand-picking
-   a number. Any generated value outside these bounds is unambiguously a
-   bug (in the generator, or in this derivation -- either way worth
-   reporting). These gate the pytest test.
+   function of (radius, density) for terrestrial classes, or, for gas
+   giants, a function of (radius, core density, atmosphere density,
+   core/atmosphere ratio) that is monotonic (though not multilinear -- see
+   `theoretical_gravity_bounds_g`'s docstring) in each of those variables
+   individually -- either property guarantees a function's extrema over a
+   box occur at the box's corners, so `theoretical_gravity_bounds_g` below
+   evaluates every corner of the class's declared ranges and takes the
+   min/max, rather than hand-picking a number. Any generated value outside
+   these bounds is unambiguously a bug (in the generator, or in this
+   derivation -- either way worth reporting). These gate the pytest test.
 
 2. Statistical outliers -- for surface_temperature and atmospheric_pressure,
    no such closed-form bound is tractable (both depend on the host star's
@@ -138,12 +140,20 @@ def theoretical_gravity_bounds_g(cls):
     `g = G * mass / radius_m^2`, and `mass = volume(radius) * density`, so
     `g = (4/3) * pi * G * density_kg_m3 * radius_m` -- linear in radius and
     (for terrestrial classes) linear in density. For gas giants,
-    `generate_planet_properties` blends `density = rock_density * ratio +
-    (1 - ratio) * (atm_density / 1000)` (see planetPhysics.py), which is
-    still multilinear (degree 1) in each of (rock_density, ratio,
-    atm_density). A multilinear function's extrema over a box are always at
-    one of the box's corners, so evaluating all corners and taking min/max
-    gives the exact theoretical range -- no approximation involved.
+    `generate_planet_properties` blends the core and atmosphere densities via
+    a mass-weighted harmonic mean: `1/density = ratio/rock_density +
+    (1 - ratio) / atm_density` (see planetPhysics.py) -- physically correct
+    for combining two densities via a mass fraction, but NOT multilinear
+    (the ratio and atm_density terms invert `density`, not sum linearly).
+    It is, however, monotonic in each of (rock_density, ratio, atm_density)
+    individually holding the others fixed: `1/density` is a sum of terms
+    each moving monotonically (one increasing, one decreasing) as `ratio`
+    varies, and each of `rock_density`/`atm_density` only ever appears with
+    a fixed-sign coefficient on its own reciprocal. A function monotonic in
+    each variable over a box also has its extrema at the box's corners (same
+    conclusion multilinearity would give, via a different property), so
+    evaluating all corners and taking min/max still gives the exact
+    theoretical range -- no approximation involved.
 
     Returns:
         tuple: (min_gravity_g, max_gravity_g).
@@ -174,7 +184,9 @@ def theoretical_gravity_bounds_g(cls):
         rock_range = (min_rock, max_rock)
         ratio_range = (min_ratio, max_ratio)
         for radius_m, rock_gcm3, ratio, atm_gcm3 in _corners(radii_m, rock_range, ratio_range, atm_gcm3_range):
-            density_gcm3 = rock_gcm3 * ratio + (1 - ratio) * atm_gcm3
+            # Mass-weighted harmonic mean -- must match the blend formula in
+            # planetPhysics.generate_planet_properties exactly.
+            density_gcm3 = 1 / (ratio / rock_gcm3 + (1 - ratio) / atm_gcm3)
             density_kgm3 = density_gcm3 * 1000
             values.append(gravity_g(radius_m, density_kgm3))
 
