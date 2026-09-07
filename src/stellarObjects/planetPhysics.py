@@ -407,15 +407,30 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         surface_gravity_ms2 = planet.gravity * physical_constants.EARTH_GRAVITY
         atmospheric_pressure = planet.atm_density * surface_gravity_ms2 * scale_height_m
 
-        greenhouse_factor = abs((planet.atm_molar_density - physical_constants.CO2_BASE_MOLAR_DENSITY) / physical_constants.CO2_BASE_MOLAR_DENSITY * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
+        # atm_molar_density is the only atmosphere-composition signal in the
+        # data model today (no explicit CO2-fraction field exists), so it's
+        # used directly as a greenhouse proxy: a heavier atmosphere (closer
+        # to, or beyond, CO2's own molar mass) traps more heat. The previous
+        # formula measured *distance* from CO2_BASE_MOLAR_DENSITY via abs(),
+        # which backwards-rewarded atmospheres far from CO2's molar mass in
+        # either direction -- including light ones -- with a greenhouse
+        # boost. Capped at CO2_MAX_GREENHOUSE_FACTOR rather than left
+        # unbounded above CO2's own molar density.
+        greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, (planet.atm_molar_density / physical_constants.CO2_BASE_MOLAR_DENSITY) * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
         surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
         planet.surface_temperature = surface_temperature_atmosphere
         planet.atmospheric_pressure = atmospheric_pressure
 
-        # Class M/P's forced pressure/temperature clamps are disabled -- the
-        # fixed atmospheric-pressure formula no longer needs a band-aid to
-        # land in a realistic range. Commented out rather than deleted in
-        # case it needs restoring.
+        # Class M/P's forced pressure/temperature clamps are disabled.
+        # Several underlying model bugs they may have been compensating for
+        # (the inverted greenhouse factor above, and Class M/P sharing
+        # identical atmosphere sampling with no differentiation between
+        # them) have since been fixed, but that isn't a guarantee every
+        # generated value now lands in a narrow realistic band -- it's a
+        # statistical question the physical-plausibility tooling
+        # (stellarObjects/plausibility.py) is better suited to monitor than
+        # a hard clamp. Commented out rather than deleted in case it needs
+        # restoring.
         # if planet.planet_class == "M":
         #     if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
         #         planet.atmospheric_pressure = random.uniform(90000, 112000)
