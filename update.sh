@@ -82,6 +82,6 @@ echo "== 2/2: Re-running install.sh to keep permissions (and everything else it 
 # install.sh's own step 3 (which re-chmods every *.sh in the repo) never
 # gets a chance to run at all -- the shell refuses to exec it first with
 # "Permission denied", exactly as install.sh's own step 3 fix already
-# had to for html/*.py.
+# had to for src/html/*.py.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 "$SCRIPT_DIR/install.sh"

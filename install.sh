@@ -19,21 +19,21 @@
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
 #      `sectorgen`/`systemgen`, or Apache's own locked-down `www-data`
-#      running the `html/` CGI scripts. `stellarObjects/names.py` checks
+#      running the `src/html/` CGI scripts. `stellarObjects/names.py` checks
 #      `nltk.data.find()` before ever calling `download()`, so once this
 #      step has populated a directory nltk's default search path already
 #      covers, nothing later attempts a download of its own. See
 #      `docs/TODO.md`'s "Deployment bugs found in production" section for the
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
 #      this fixes.
-#   4. Makes the `html/` CGI scripts executable, independent of whatever
+#   4. Makes the `src/html/` CGI scripts executable, independent of whatever
 #      executable bit git happened to preserve on checkout (also see
 #      `docs/TODO.md` -- a `core.fileMode=false` git config on the authoring
 #      machine silently dropped this once already, and nothing about a
 #      git checkout should be trusted to carry it reliably).
 #   5. Enables Apache's CGI module (`a2enmod cgid`).
 #   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
-#      the deployed `html/`/`db/` directories for Apache's worker
+#      the deployed `src/html/`/`db/` directories for Apache's worker
 #      user/group.
 #   7. Prints the one remaining manual step: copying and enabling the
 #      example virtual host config. This script never touches Apache's
@@ -50,7 +50,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HTML_DIR="$SCRIPT_DIR/html"
+HTML_DIR="$SCRIPT_DIR/src/html"
 DB_DIR="$SCRIPT_DIR/db"
 NLTK_DATA_DIR="${PLANETGEN_NLTK_DATA_DIR:-/usr/local/share/nltk_data}"
 
@@ -118,10 +118,10 @@ chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
 echo "== 4/6: Making the CGI scripts and shell scripts executable =="
-# No -maxdepth: every *.py under html/, at any subdirectory depth
-# (html/lib/*.py included), needs this -- a previous version of this
+# No -maxdepth: every *.py under src/html/, at any subdirectory depth
+# (src/html/lib/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
-# html/lib/*.py non-executable/unreadable-as-intended after every
+# src/html/lib/*.py non-executable/unreadable-as-intended after every
 # install. examples/apache/set-permissions.sh (below) re-does this same walk
 # anyway with the correct final ownership, but doing it correctly here
 # too means a plain `sudo ./install.sh` is never the reason this is wrong.
@@ -129,7 +129,7 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 # Every *.sh anywhere in the repo (this script, update.sh,
 # examples/apache/set-permissions.sh, and any future one), not a hardcoded list --
 # git checkouts made from a `core.fileMode=false` machine silently drop
-# the executable bit on ANY file type, not just html/'s .py scripts (see
+# the executable bit on ANY file type, not just src/html/'s .py scripts (see
 # docs/TODO.md's "Deployment bugs found in production"), so a script added
 # later doesn't need this list updated to be covered.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +

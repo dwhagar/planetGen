@@ -13,7 +13,7 @@
 #
 # Defaults match the layout documented in docs/html-interface.md and
 # examples/apache/planetgen.conf.example:
-#   html-dir defaults to /var/lib/planetGen/html
+#   html-dir defaults to /var/lib/planetGen/src/html
 #   db-dir   defaults to /var/lib/planetGen/db
 #
 # What it does:
