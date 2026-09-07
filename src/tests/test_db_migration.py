@@ -770,8 +770,18 @@ def test_migrate_v3_to_v4_adds_null_galaxy_columns_to_existing_sectors(tmp_path)
 
     assert backup_path is not None
     assert os.path.exists(backup_path)
+    assert backup_path.endswith(".db.gz")
+    assert _db.BACKUP_MARKER in os.path.basename(backup_path)
 
-    backup_conn = sqlite3.connect(backup_path)
+    # Same gzip-compressed backup convention as the v1 -> v2 test above
+    # (`test_migrate_v1_to_v2_splits_moons_into_their_own_table`) --
+    # `migrate_database` always writes a gzip-compressed backup regardless
+    # of which source version it's migrating from, so this can't
+    # `sqlite3.connect` the backup path directly.
+    decompressed_backup_path = str(tmp_path / "decompressed_v3_backup.db")
+    with gzip.open(backup_path, "rb") as f_in, open(decompressed_backup_path, "wb") as f_out:
+        shutil.copyfileobj(f_in, f_out)
+    backup_conn = sqlite3.connect(decompressed_backup_path)
     assert backup_conn.execute("PRAGMA user_version").fetchone()[0] == 3
     backup_conn.close()
 
