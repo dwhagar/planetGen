@@ -1,13 +1,13 @@
 """
-Regression tests over every system spec in examples/*.json.
+Regression tests over every system spec in examples/systems/*.json.
 
 Each file is run through the full generation pipeline (star + planets +
 life data + string rendering) exactly as `systemGen.py --system-file`
-would, and checked for basic invariants. Every file in examples/ is
-discovered automatically, so adding a new fixture there adds it to this
-suite for free -- see examples/EXAMPLES.md.
+would, and checked for basic invariants. Every file in examples/systems/
+is discovered automatically, so adding a new fixture there adds it to
+this suite for free -- see docs/example-systems.md.
 
-Run with: pytest tests/test_examples.py
+Run with: pytest src/tests/test_examples.py
 """
 import glob
 import os
@@ -20,8 +20,9 @@ from stellarObjects.systemData import StarSystem
 from stellarObjects import program_constants
 
 # This file lives at src/tests/, two levels under the repo root (src
-# layout), not one -- ".." twice to reach examples/ at the repo root.
-EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "examples")
+# layout), not one -- ".." twice to reach examples/systems/ at the repo
+# root.
+EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "examples", "systems")
 EXAMPLE_FILES = sorted(glob.glob(os.path.join(EXAMPLES_DIR, "*.json")))
 
 # A handful of independent trials per fixture, since generation is randomized.

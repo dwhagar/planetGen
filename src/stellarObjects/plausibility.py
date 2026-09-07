@@ -5,7 +5,7 @@ Physical-plausibility anomaly finder.
 
 See TODO.md ("Future ideas" -> "Physical-plausibility test suite (anomaly
 finder)") for the original ask. This module is the reusable engine; the
-repo-root `physicalPlausibility.py` script is the CLI wrapper for running a
+`src/tests/physical_plausibility_cli.py` script is the CLI wrapper for running a
 large batch and reading a human report, and `tests/test_physical_plausibility.py`
 is the opt-in (`@pytest.mark.slow`) pytest wrapper around the hard-invariant
 half of it. Splitting it this way answers the TODO's open question directly:

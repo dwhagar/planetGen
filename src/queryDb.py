@@ -1,33 +1,32 @@
-# queryDb.py
+# src/queryDb.py
 
 """
 List/query CLI for the planetGen database (src/stellarObjects/schema.sql).
 
 A thin read-only front end over the tables `sectorGen.py`/`systemGen.py`
 populate, for questions like "every G-type system," "everything within 50
-light-years of a given system," and "what sectors exist" -- see TODO.md's
-Phase 3 ("A way to list/query what's already stored"). Deliberately plain
-SQL rather than routing through `stellarObjects._db`'s `load_star_system`/
-`load_sector` (Phase 2's read path): these are simple, columnar listings,
-not full object-graph reconstructions, so a raw query is the more direct
-tool for the job -- the read path remains what a future richer tool (or a
-re-upload/re-render workflow) would build on.
+light-years of a given system," and "what sectors exist" -- see
+docs/TODO.md's Phase 3 ("A way to list/query what's already stored").
+Deliberately plain SQL rather than routing through `stellarObjects._db`'s
+`load_star_system`/`load_sector` (Phase 2's read path): these are simple,
+columnar listings, not full object-graph reconstructions, so a raw query
+is the more direct tool for the job -- the read path remains what a
+future richer tool (or a re-upload/re-render workflow) would build on.
 
 Opens the database strictly read-only (a `file:` URI with `mode=ro`) so
 this can never accidentally write to a database another process is also
 using.
+
+Run directly as `python src/queryDb.py`: this file lives alongside
+`stellarObjects/` under `src/`, so Python's own sys.path[0] (the running
+script's directory) already makes `stellarObjects` importable -- no
+sys.path shim needed, unlike the root-level entry scripts
+(`sectorGen.py`/`systemGen.py`) that stay one directory further away.
 """
 
 import argparse
 import math
-import os
 import sqlite3
-import sys
-
-# stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
-# import path so this keeps working without requiring `pip install .`
-# first, matching how html/'s CGI scripts fall back to a no-install layout.
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects._db import DEFAULT_DB_PATH
 from stellarObjects._version import VersionAction, version_banner

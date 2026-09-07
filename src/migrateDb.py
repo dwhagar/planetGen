@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# migrateDb.py
+# src/migrateDb.py
 
 """
 Migrates every planetGen SQLite database in a directory to the current
@@ -13,10 +13,15 @@ on every deploy, so a database generated under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
 for a one-off migration outside of a deployment.
 
-Usage:
-    python3 migrateDb.py [db_dir]
+This file lives alongside `stellarObjects/` under `src/`, so Python's own
+sys.path[0] (the running script's directory) already makes
+`stellarObjects` importable -- no sys.path shim needed.
 
-    db_dir defaults to `db/` alongside this script.
+Usage:
+    python3 src/migrateDb.py [db_dir]
+
+    db_dir defaults to `db/` at the repo root (two directories up from
+    this file's location under src/), not alongside this script.
 """
 
 import argparse
@@ -24,14 +29,9 @@ import glob
 import os
 import sys
 
-# stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
-# import path so this keeps working without requiring `pip install .`
-# first, matching how html/'s CGI scripts fall back to a no-install layout.
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
-
 from stellarObjects._db import SCHEMA_VERSION, UnsupportedSchemaVersionError, migrate_database
 
-DEFAULT_DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "db")
+DEFAULT_DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "db")
 
 
 def main():

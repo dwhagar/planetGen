@@ -10,7 +10,7 @@ here is read-only; the web interface never writes to a database.
 
 Not part of the `stellarObjects` package's public API -- this module is
 web-plumbing specific to `html/`, kept out of the CGI-mapped document root
-(see `apache/planetgen.conf.example`, which denies direct web access to
+(see `examples/apache/planetgen.conf.example`, which denies direct web access to
 this `lib/` directory) purely so it can't accidentally be requested and
 executed as a script in its own right.
 """

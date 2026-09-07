@@ -14,7 +14,7 @@ host-star-spectral-type-spanning batch) is deliberately NOT asserted here --
 some real, non-buggy spread across that batch is expected, and asserting an
 outlier count of zero would just reintroduce the kind of band-aid the
 now-disabled Class M/P clamps used to be. That half is meant for a human to
-read via the `physicalPlausibility.py` CLI script, not to gate a test run.
+read via the `physical_plausibility_cli.py` CLI script, not to gate a test run.
 This is the module's answer to the TODO's open question ("whether this lives
 in tests/ as a slow/opt-in suite or as a separate standalone script"): both,
 split by tier. The generation batch below is deliberately small (a handful

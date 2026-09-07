@@ -1,5 +1,65 @@
 # Changelog
 
+## [5.3.3] - 2026-09-07
+
+### Changed
+- **Markdown consolidated into `docs/`, renamed for clarity.** Only
+  `README.md`/`LICENSE.md`/`CHANGELOG.md` remain at the repo root; every
+  other README and loose doc moved into `docs/` with a descriptive name:
+  `TODO.md` -> `docs/TODO.md`, `html/README.md` -> `docs/html-interface.md`,
+  `db/README.md` -> `docs/database-schema.md`,
+  `src/api/README.md` -> `docs/api.md`, `apache/README.md` ->
+  `docs/apache-deployment.md`, `examples/EXAMPLES.md` ->
+  `docs/example-systems.md`, `examples/JSON.md` ->
+  `docs/system-file-format.md`. Every cross-reference between them (and
+  from code/scripts) was updated to match; a couple of pre-existing
+  broken/mismatched links were caught and fixed along the way
+  (`docs/system-file-format.md`'s "full command-line reference" link text
+  didn't match its own target; `html/lib/dbutil.py`'s docstring still
+  pointed at the pre-5.3.2 `stellarObjects/` path instead of
+  `src/stellarObjects/`).
+- **`wsgi.py`, `queryDb.py`, `migrateDb.py` moved into `src/`**, alongside
+  `stellarObjects`/`api`/`tests`, so only the `*Gen.py` scripts
+  (`sectorGen.py`/`systemGen.py`) are visible at the repo root as CLI
+  entry points. Since these three now sit as direct siblings of
+  `stellarObjects`/`api` under `src/`, Python's own sys.path[0] (the
+  running script's own directory) already makes those packages
+  importable -- the sys.path shims 5.3.2 added to them are gone, no
+  longer needed (unlike `sectorGen.py`/`systemGen.py`, which stay one
+  directory further away at the repo root and keep theirs).
+  `migrateDb.py`'s `DEFAULT_DB_DIR` needed an extra `os.path.dirname()`
+  level to still resolve to the repo-root `db/`, one directory deeper
+  than before.
+- **`physicalPlausibility.py` moved to `src/tests/physical_plausibility_cli.py`**,
+  matching that directory's naming scheme, without a `test_` prefix so
+  pytest doesn't try to collect it as a test module (it's a human-facing
+  report generator, not a pass/fail check -- `src/tests/test_physical_plausibility.py`
+  remains the actual automated test).
+- **`apache/` moved into `examples/apache/`** (its `README.md` moved to
+  `docs/apache-deployment.md` per the markdown-consolidation rule above);
+  **`examples/*.json` moved into `examples/systems/`**, so `examples/`
+  now holds two clearly-separated subfolders (`apache/` deployment
+  config, `systems/` recipe files) instead of a flat mix of both kinds of
+  example content. `.gitattributes`' LF-pinning rule for
+  `apache/*.sh` was updated to `examples/apache/*.sh` to keep matching
+  the actual file.
+- `setup.py` and `pytest.ini` were **evaluated for a move into `src/` and
+  kept at the repo root** -- both are genuinely not possible without
+  breaking things, verified empirically rather than assumed:
+  `pip install -e .` with `setup.py` moved silently built a bogus,
+  empty `UNKNOWN-0.0.0` package instead of erroring (pip's PEP 517
+  build only looks for `setup.py`/a full `pyproject.toml` project table
+  at the invocation root, and this repo's `pyproject.toml` only declares
+  a build backend, no project metadata of its own to fall back on); with
+  `pytest.ini` moved, `pytest`'s own config-file discovery (which only
+  searches the invocation directory and its parents, never a
+  subdirectory) silently fell back to `pyproject.toml` and ignored
+  `testpaths`/`pythonpath` entirely -- tests still happened to pass
+  either way (coincidentally, via `pytest`'s own unrelated `__init__.py`-walkup
+  sys.path behavior and an editable install's global registration of the
+  root-level `py_modules`), which is exactly the kind of silent,
+  environment-dependent fragility not worth introducing on purpose.
+
 ## [5.3.2] - 2026-09-07
 
 ### Changed

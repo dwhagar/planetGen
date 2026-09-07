@@ -1,7 +1,7 @@
 # WEBCONFIG.md
 
 This document describes `webconfig.json`, the site-level configuration
-file for the planetGen web interface ([`html/`](../html/README.md)), and
+file for the planetGen web interface ([`html/`](html-interface.md)), and
 [`html/webconfig.json.example`](../html/webconfig.json.example), the
 committed template it's copied from.
 
@@ -9,7 +9,7 @@ committed template it's copied from.
 
 Everything the web interface currently reads is either hard-coded or
 supplied by Apache as an environment variable (`PLANETGEN_DB_DIR`,
-`PLANETGEN_DEBUG` -- see [`html/README.md`](html/README.md)). There is no
+`PLANETGEN_DEBUG` -- see [`html-interface.md`](html-interface.md)). There is no
 place to record settings that describe *this deployment* -- a site name to
 show in the UI, the base URL it's served from -- without either hard-coding
 them or adding yet another Apache `SetEnv` line per setting. `webconfig.json`
@@ -33,7 +33,7 @@ to live inside `html/` since it holds only placeholder values, not
 secrets). This deliberately mirrors how `db/` is already kept out of the
 served webroot: Apache's `DocumentRoot` for this application is `html/`
 alone (see
-[`apache/planetgen.conf.example`](../apache/planetgen.conf.example)), so
+[`examples/apache/planetgen.conf.example`](../examples/apache/planetgen.conf.example)), so
 anything placed at the repo root, one level above `html/`, can never be
 requested over HTTP no matter how the vhost or `.htaccess` rules are
 written -- there's no path traversal or misconfiguration that reaches it,
@@ -84,7 +84,7 @@ would either leak those values or force every deployment to share one
 repo-tracked file. `html/webconfig.json.example` is the opposite: a
 template with placeholder values, meant to be committed so a fresh
 checkout always has a shape to copy from, exactly the same split already
-used for `apache/planetgen.conf.example` (committed template, edited into
+used for `examples/apache/planetgen.conf.example` (committed template, edited into
 a site-specific vhost file that itself doesn't live in the repo).
 
 ## Setup
@@ -109,7 +109,7 @@ deployment wants something other than the defaults.
 ## Relationship to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
 
 `webconfig.json` and the `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG` environment
-variables (documented in [`html/README.md`](../html/README.md)) solve
+variables (documented in [`html-interface.md`](html-interface.md)) solve
 different problems and aren't interchangeable:
 
 - The environment variables are **Apache-level overrides**, set via

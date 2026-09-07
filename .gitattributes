@@ -4,4 +4,4 @@
 # CRLF line endings into these files, breaking them on the Linux/Apache
 # deployment target until manually fixed with `sed -i 's/\r$//'`.
 html/**/*.py text eol=lf
-apache/*.sh text eol=lf
+examples/apache/*.sh text eol=lf

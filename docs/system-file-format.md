@@ -1,10 +1,10 @@
 # System Specification Files
 
-`../systemGen.py` can load a full (or partial) star system specification from a
-JSON file with `--system-file` / `-f`:
+[`../systemGen.py`](../systemGen.py) can load a full (or partial) star
+system specification from a JSON file with `--system-file` / `-f`:
 
 ```bash
-python systemGen.py --system-file examples/solar_system.json
+python systemGen.py --system-file examples/systems/solar_system.json
 ```
 
 Every key is optional. Anything you leave out is generated normally (randomly,
@@ -182,4 +182,6 @@ giants — a rough analog of our own solar system. Anything not specified here
 exact radius/mass/atmosphere details, orbital distances, names, ages, life
 chemistry, flavor text, etc.) is still generated normally.
 
-See [`EXAMPLES.md`](../README.md) for the full command-line reference.
+See [`../README.md`](../README.md) for the full command-line reference,
+or [`example-systems.md`](example-systems.md) for the rest of the example
+files.

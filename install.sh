@@ -10,7 +10,7 @@
 #
 #   1. Installs the Python package via a build-isolated `pip install`
 #      (not the deprecated `setup.py install`).
-#   2. Runs `migrateDb.py` over every `*.db` file in `db/`, converting any
+#   2. Runs `src/migrateDb.py` over every `*.db` file in `db/`, converting any
 #      database still on an older schema (`stellarObjects/schema.sql`'s
 #      `PRAGMA user_version`) up to the current one -- backing up the
 #      original first. A no-op for a database that's already current.
@@ -23,16 +23,16 @@
 #      `nltk.data.find()` before ever calling `download()`, so once this
 #      step has populated a directory nltk's default search path already
 #      covers, nothing later attempts a download of its own. See
-#      `TODO.md`'s "Deployment bugs found in production" section for the
+#      `docs/TODO.md`'s "Deployment bugs found in production" section for the
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
 #      this fixes.
 #   4. Makes the `html/` CGI scripts executable, independent of whatever
 #      executable bit git happened to preserve on checkout (also see
-#      `TODO.md` -- a `core.fileMode=false` git config on the authoring
+#      `docs/TODO.md` -- a `core.fileMode=false` git config on the authoring
 #      machine silently dropped this once already, and nothing about a
 #      git checkout should be trusted to carry it reliably).
 #   5. Enables Apache's CGI module (`a2enmod cgid`).
-#   6. Runs `apache/set-permissions.sh` to set ownership/permissions on
+#   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `html/`/`db/` directories for Apache's worker
 #      user/group.
 #   7. Prints the one remaining manual step: copying and enabling the
@@ -45,7 +45,7 @@
 #   sudo ./install.sh
 #
 # Linux only (apt/a2enmod/systemd conventions) -- same scope as
-# apache/set-permissions.sh, which this script calls.
+# examples/apache/set-permissions.sh, which this script calls.
 
 set -euo pipefail
 
@@ -72,7 +72,7 @@ echo "== 1/6: Installing the Python package =="
 # now prints "Please avoid running setup.py directly" for that direct
 # invocation, and it's not just a style complaint: that legacy code path
 # is where two separate production incidents happened back to back (see
-# TODO.md's "Deployment bugs found in production"). Both had the same
+# docs/TODO.md's "Deployment bugs found in production"). Both had the same
 # root cause -- setuptools' own vendoring shim (`extern`) prefers a
 # *real*, already-installed copy of a dependency it vendors
 # (`importlib_metadata`, then `packaging`) over its own newer bundled
@@ -108,7 +108,7 @@ echo "== 1/6: Installing the Python package =="
 
 echo
 echo "== 2/6: Migrating any outdated databases to the current schema =="
-"$PYTHON" "$SCRIPT_DIR/migrateDb.py" "$DB_DIR"
+"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py" "$DB_DIR"
 
 echo
 echo "== 3/6: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
@@ -122,15 +122,15 @@ echo "== 4/6: Making the CGI scripts and shell scripts executable =="
 # (html/lib/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
 # html/lib/*.py non-executable/unreadable-as-intended after every
-# install. apache/set-permissions.sh (below) re-does this same walk
+# install. examples/apache/set-permissions.sh (below) re-does this same walk
 # anyway with the correct final ownership, but doing it correctly here
 # too means a plain `sudo ./install.sh` is never the reason this is wrong.
 find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 # Every *.sh anywhere in the repo (this script, update.sh,
-# apache/set-permissions.sh, and any future one), not a hardcoded list --
+# examples/apache/set-permissions.sh, and any future one), not a hardcoded list --
 # git checkouts made from a `core.fileMode=false` machine silently drop
 # the executable bit on ANY file type, not just html/'s .py scripts (see
-# TODO.md's "Deployment bugs found in production"), so a script added
+# docs/TODO.md's "Deployment bugs found in production"), so a script added
 # later doesn't need this list updated to be covered.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
@@ -145,7 +145,7 @@ fi
 
 echo
 echo "== 6/6: Setting directory ownership/permissions for Apache =="
-"$SCRIPT_DIR/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
+"$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 if [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
     cat <<EOF
@@ -157,7 +157,7 @@ ServerName/TLS/logging are your call):
 
   1. Copy the example and edit it (at minimum, set ServerName):
 
-       sudo cp "$SCRIPT_DIR/apache/planetgen.conf.example" /etc/apache2/sites-available/planetgen.conf
+       sudo cp "$SCRIPT_DIR/examples/apache/planetgen.conf.example" /etc/apache2/sites-available/planetgen.conf
        sudo \${EDITOR:-nano} /etc/apache2/sites-available/planetgen.conf
 
   2. Enable the site and reload Apache:
@@ -165,7 +165,7 @@ ServerName/TLS/logging are your call):
        sudo a2ensite planetgen
        sudo systemctl reload apache2
 
-See apache/README.md and html/README.md for more detail.
+See docs/apache-deployment.md and docs/html-interface.md for more detail.
 ------------------------------------------------------------------------
 EOF
 else

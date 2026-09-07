@@ -3,10 +3,11 @@
 Run any of these with:
 
 ```bash
-python systemGen.py --system-file examples/<file>.json
+python systemGen.py --system-file examples/systems/<file>.json
 ```
 
-See [`JSON.md`](JSON.md) for the full format reference.
+See [`system-file-format.md`](system-file-format.md) for the full format
+reference.
 
 | File | System | Notes |
 |---|---|---|
@@ -26,13 +27,15 @@ These last four exist mainly for **test coverage**: the original seven only
 ever exercise Yerkes classes `V` (main sequence), `III` (giant), and `IB`
 (supergiant) between them, missing exactly the white dwarf, hypergiant, and
 O/B dwarf paths where real bugs were found and fixed (see git history for
-`stellarObjects/physical_constants.py` and `starData.py`). `tests/test_examples.py`
-runs every file in this directory automatically, so adding a new one here
-adds it to the regression suite for free.
+`stellarObjects/physical_constants.py` and `starData.py`).
+`src/tests/test_examples.py` runs every file in `examples/systems/`
+automatically, so adding a new one there adds it to the regression suite
+for free.
 
 None of these are meant to be scientifically exact reproductions — they map
 each world onto the closest-fitting planet class this generator supports
-(see `JSON.md`'s class table) and fill in the rest (star mass/radius within
+(see [`system-file-format.md`](system-file-format.md)'s class table) and
+fill in the rest (star mass/radius within
 its type, exact orbital distances, atmosphere specifics, names, flavor text)
 normally. A couple of notable limitations worth knowing about:
 

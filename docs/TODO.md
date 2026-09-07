@@ -13,8 +13,9 @@ they'll be tackled.
 
 Work top to bottom. Phases 0-3 are complete and condensed below into short
 summaries (full historical rationale lives in git history / the commits
-that did the work, not here) — read `stellarObjects/schema.sql` and
-`db/README.md` for the actual current schema rather than this document.
+that did the work, not here) — read `src/stellarObjects/schema.sql` and
+`docs/database-schema.md` for the actual current schema rather than this
+document.
 Phase 4 and parts of Phase 5 are still open.
 
 ## Phases 0-3 — Complete: serialization, database, and CLI persistence
@@ -43,14 +44,15 @@ Phase 4 and parts of Phase 5 are still open.
   layer (`stellarObjects/_db.py`) — write path (`insert_sector`/
   `insert_star_system`/etc.), read path (`load_star_system`/`load_sector`),
   and versioned migrations (`PRAGMA user_version`, currently at 3 — see
-  `db/README.md`'s schema history for what changed at each version).
+  `docs/database-schema.md`'s schema history for what changed at each
+  version).
   Distances are stored in milliparsecs for sector-scale placement and
   kilometers for everything else (see `schema.sql`'s header comment for
   the full convention). Round-trip tests verify byte-for-byte render
   fidelity through the actual database, not just in-memory dicts.
 - **Phase 3 (CLI tools use the database)**: `sectorGen.py`/`systemGen.py`
   save every run to the database unconditionally (`--db-path` to
-  override the default `db/planetgen.db`); `queryDb.py` is a read-only
+  override the default `db/planetgen.db`); `src/queryDb.py` is a read-only
   CLI for listing/searching what's stored (`sectors`, `systems`, `near`
   subcommands).
 
@@ -113,8 +115,8 @@ Phase 4 and parts of Phase 5 are still open.
       this should probably be resolved before further physics tuning,
       since it affects M/P/gas-giant generation broadly, not just the
       originally-scoped clamps question.
-- [x] **Physical-plausibility anomaly finder** — merged (`physicalPlausibility.py`
-  CLI, `stellarObjects/plausibility.py` engine, `tests/test_physical_plausibility.py`,
+- [x] **Physical-plausibility anomaly finder** — merged (`src/tests/physical_plausibility_cli.py`
+  CLI, `stellarObjects/plausibility.py` engine, `src/tests/test_physical_plausibility.py`,
   8669 tests passing). Batch-generates across every (class, zone) pair and
   a broad host-star spectral grid; hard-invariant checks (gravity bounds,
   finiteness/sign) run as always-on tests, statistical outlier detection
@@ -140,12 +142,20 @@ acted on, only documented for review.
 - [ ] Ways to render an image or maybe provide a web interface to visualize the location of 2 points within the galactic space.
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size or in the tagged search field sort by planet size.
-- [ ] Still open from the file-system cleanup below: consider moving
-  `src/api/` into `html/` to expose the API endpoint from the same served
-  tree. Deliberately not done as part of the cleanup (5.3.2) -- it was
-  posed as an open question, not a decision, and moving a Flask package
-  into `html/`'s Apache `DocumentRoot` needs its own look at exposure/
-  routing implications first.
+- [ ] Still open from the file-system cleanup (5.3.2/5.3.3): consider
+  moving `src/api/` into `html/` to expose the API endpoint from the same
+  served tree. Deliberately not done -- it was posed as an open question,
+  not a decision, and moving a Flask package into `html/`'s Apache
+  `DocumentRoot` needs its own look at exposure/routing implications
+  first. The rest of the file-system cleanup this pointed at is done as
+  of 5.3.3: markdown consolidated into `docs/` (only `README.md`/
+  `LICENSE.md`/`CHANGELOG.md` remain at the repo root), `wsgi.py`/
+  `queryDb.py`/`migrateDb.py` moved into `src/`,
+  `physicalPlausibility.py` renamed into `src/tests/physical_plausibility_cli.py`,
+  `apache/` moved into `examples/apache/`, and `examples/*.json` moved
+  into `examples/systems/`. `setup.py` and `pytest.ini` were evaluated
+  and can't move into `src/` without breaking (see CHANGELOG.md [5.3.3]
+  for why, verified empirically not just assumed).
 
 ## File Management
 
@@ -180,10 +190,10 @@ acted on, only documented for review.
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 
 An interim, dependency-free read-only browser already exists at
-[`html/`](html/README.md) (plain Python CGI scripts, no framework) plus
-[`apache/`](apache/README.md) (example vhost config + `set-permissions.sh`),
-meant for a single-user/small-scale Apache2 deployment today rather than
-the full multi-user vision below.
+[`html/`](html-interface.md) (plain Python CGI scripts, no framework) plus
+[`examples/apache/`](apache-deployment.md) (example vhost config +
+`set-permissions.sh`), meant for a single-user/small-scale Apache2
+deployment today rather than the full multi-user vision below.
 
 - [x] Backend API framework: **Flask**, chosen over FastAPI/Django REST
   Framework — no ORM opinion (fits the existing raw-`sqlite3` persistence
@@ -193,7 +203,7 @@ the full multi-user vision below.
   advantages don't pay for themselves yet (no separate frontend consuming
   the API, and `sqlite3`'s driver is synchronous regardless of framework);
   revisit if a dedicated frontend makes API-contract docs valuable. A
-  read-only scaffold now exists — see [`api/README.md`](api/README.md) for
+  read-only scaffold now exists — see [`docs/api.md`](api.md) for
   the endpoints, how to run it, and the `mod_wsgi` deployment story.
 - [ ] Frontend for browsing/searching the galaxy (sector maps, system detail
   pages, search/filter UI).
@@ -221,7 +231,7 @@ the full multi-user vision below.
       real connection pooling (SQLite's single-file-lock model doesn't
       carry over — MySQL wants a proper pool for concurrent access, which
       is the whole point of this migration).
-    - **`api/config.py` / `queryDb.py` porting**: both currently assume a
+    - **`src/api/config.py` / `src/queryDb.py` porting**: both currently assume a
       SQLite file path (`DB_PATH`/`--db-path`) — becomes a connection
       string/host+credentials, need a secrets-handling story (env vars at
       minimum) rather than a bare file path.
@@ -271,7 +281,7 @@ Ubuntu/Apache2 VPS (`starmap.moltenaether.com`) and are now resolved by
 CGI scripts deployed non-executable (git's `core.fileMode=false` silently
 drops the executable bit — both scripts now `chmod +x` unconditionally on
 every run, regardless of what mode git stored), CRLF line endings
-(`.gitattributes` now pins `html/**/*.py`/`apache/*.sh` to `text eol=lf`),
+(`.gitattributes` now pins `html/**/*.py`/`examples/apache/*.sh` to `text eol=lf`),
 `nltk`'s corpus download failing under the `www-data` user's unwritable
 home directory (`install.sh` now pre-fetches the corpus system-wide;
 `names.py` checks `nltk.data.find` before ever attempting a download), and
@@ -280,7 +290,7 @@ two rounds of `setup.py install` breaking against old apt-provided
 copies (resolved by dropping the deprecated `setup.py install` entirely in
 favor of a build-isolated `pip install --upgrade --force-reinstall`).
 Full root-cause detail for each is in the git history around
-`install.sh`/`update.sh`/`apache/set-permissions.sh`.
+`install.sh`/`update.sh`/`examples/apache/set-permissions.sh`.
 
 ## Future ideas — not scheduled, just parking so it isn't lost
 

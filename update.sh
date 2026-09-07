@@ -8,7 +8,7 @@
 # corpus, Apache's CGI module) stay correct afterward.
 # This exists because a `git pull` on its own isn't enough: pulling a
 # changed file rewrites it with whatever mode is tracked in the repo
-# (non-executable, historically -- see `TODO.md`'s "Deployment bugs
+# (non-executable, historically -- see `docs/TODO.md`'s "Deployment bugs
 # found in production" section), silently undoing any executable bit a
 # previous `install.sh`/`set-permissions.sh` run had fixed.
 #
@@ -20,7 +20,7 @@
 # hand-edited something on this deployment, resolve that yourself first
 # (commit, stash, or discard it deliberately) and re-run.
 #
-# Linux only -- same scope as install.sh/apache/set-permissions.sh.
+# Linux only -- same scope as install.sh/examples/apache/set-permissions.sh.
 
 set -euo pipefail
 

@@ -1,7 +1,7 @@
-# apache/planetgen.conf.example
+# examples/apache/planetgen.conf.example
 #
 # Example Apache2 virtual host for the planetGen database browser
-# (html/README.md documents the application itself). Copy this file to
+# (docs/html-interface.md documents the application itself). Copy this file to
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
@@ -20,9 +20,9 @@
 #   /var/lib/planetGen/
 #     html/     -- this vhost's DocumentRoot (the repo's html/ directory)
 #     db/       -- the repo's db/ directory (the *.db files html/ reads)
-#     stellarObjects/, ...  -- the rest of the repo checkout, so html/'s
-#                              scripts can import the planetGen package
-#                              without a separate `pip install`
+#     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
+#                   particular), so html/'s scripts can import the
+#                   planetGen package without a separate `pip install`
 
 <VirtualHost *:80>
     ServerName planetgen.example.com

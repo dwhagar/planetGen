@@ -1,13 +1,14 @@
 # planetGen Web Interface
 
-A small, dependency-free web interface for browsing the SQLite databases
-described in [`db/README.md`](../db/README.md) -- pick a `.db` file,
+A small, dependency-free web interface (in [`../html/`](../html/)) for
+browsing the SQLite databases described in
+[`database-schema.md`](database-schema.md) -- pick a `.db` file,
 drill into its sectors and star systems, and view (or copy) the
 rendered wikitext/Markdown page saved for each one.
 
 This is a read-only browser, not the Phase 5 web application described in
-[`TODO.md`](../TODO.md) -- there's no backend framework and no writing to
-the database, though [`search.py`](#how-it-works) does provide a
+[`TODO.md`](TODO.md) -- there's no backend framework and no writing to
+the database, though [`html/search.py`](#how-it-works) does provide a
 faceted/name search. It exists so a generated galaxy can be looked at from
 a browser today, on nothing more than Apache2 and a system Python 3.
 
@@ -22,15 +23,15 @@ nothing else to install or run.
 
 | File | Purpose |
 |---|---|
-| `index.py` | Lists every `.db` file in the database directory. |
-| `browse.py` | A chosen database's sectors and standalone systems. |
-| `sector.py` | One sector's systems (name, quadrant, star type). |
-| `system.py` | One system's stars/planets/moons/belts, plus its description -- rendered as HTML from `markdown_content` by default (`?view=rendered`), with the original raw wikitext/Markdown source (`?view=source&format=...`) still available for copy-pasting into a wiki. |
-| `search.py` | Faceted search: click-to-filter tag buttons for object type, star spectral/luminosity class, and planet class/body type/supported life chemistry -- with a separate, identically-shaped set of tags for moons, since planets and moons live in their own tables (schema v2) and a "Class D" tag only ever means one or the other -- built only from values actually present in the chosen database. Plus a name search (with HTML5 `<datalist>` autocomplete, no JavaScript) across sectors, star systems, stars, planets, and moons. Asteroid belts have no name of their own, so they're reachable only via the "Asteroid Belt" object-type tag. |
-| `lib/dbutil.py` | Read-only database access and HTML-escaping helpers. Not web-accessible -- see the Apache config note below. |
-| `lib/page.py` | Shared CGI response/HTML-shell helpers. Not web-accessible. |
-| `lib/mdconvert.py` | A small, purpose-built Markdown-to-HTML converter for the narrow Markdown subset `StarSystem.__str__` actually generates (headers, pipe tables, paragraphs, `<sup>` exponents) -- not a general-purpose parser. Not web-accessible. |
-| `static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme`, card-style panels), served directly (not through CGI). |
+| `html/index.py` | Lists every `.db` file in the database directory. |
+| `html/browse.py` | A chosen database's sectors and standalone systems. |
+| `html/sector.py` | One sector's systems (name, quadrant, star type). |
+| `html/system.py` | One system's stars/planets/moons/belts, plus its description -- rendered as HTML from `markdown_content` by default (`?view=rendered`), with the original raw wikitext/Markdown source (`?view=source&format=...`) still available for copy-pasting into a wiki. |
+| `html/search.py` | Faceted search: click-to-filter tag buttons for object type, star spectral/luminosity class, and planet class/body type/supported life chemistry -- with a separate, identically-shaped set of tags for moons, since planets and moons live in their own tables (schema v2) and a "Class D" tag only ever means one or the other -- built only from values actually present in the chosen database. Plus a name search (with HTML5 `<datalist>` autocomplete, no JavaScript) across sectors, star systems, stars, planets, and moons. Asteroid belts have no name of their own, so they're reachable only via the "Asteroid Belt" object-type tag. |
+| `html/lib/dbutil.py` | Read-only database access and HTML-escaping helpers. Not web-accessible -- see the Apache config note below. |
+| `html/lib/page.py` | Shared CGI response/HTML-shell helpers. Not web-accessible. |
+| `html/lib/mdconvert.py` | A small, purpose-built Markdown-to-HTML converter for the narrow Markdown subset `StarSystem.__str__` actually generates (headers, pipe tables, paragraphs, `<sup>` exponents) -- not a general-purpose parser. Not web-accessible. |
+| `html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme`, card-style panels), served directly (not through CGI). |
 
 All database access goes through `sqlite3`'s `file:...?mode=ro` URI mode,
 so these scripts cannot write to a database even if a query were buggy.
@@ -48,7 +49,7 @@ value can't inject live HTML into a rendered page.
 By default, each script looks for `db/` as a sibling of `html/` --
 matching this repo's own layout, and the recommended deployment layout
 (`/var/lib/planetGen/html` and `/var/lib/planetGen/db` side by side; see
-`../apache/planetgen.conf.example`). Set the `PLANETGEN_DB_DIR`
+`../examples/apache/planetgen.conf.example`). Set the `PLANETGEN_DB_DIR`
 environment variable (e.g. via `SetEnv` in the Apache vhost) to point
 somewhere else.
 
@@ -56,27 +57,29 @@ Separately from these Apache-set environment variables, a `webconfig.json`
 file at the repo root (a sibling of `html/`, not a file inside `html/`
 itself) holds site-level settings such as `site_name` and `base_url`,
 edited once per deployment rather than passed through the vhost config --
-see [`../docs/WEBCONFIG.md`](../docs/WEBCONFIG.md) for the full field list
+see [`WEBCONFIG.md`](WEBCONFIG.md) for the full field list
 and how it relates to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`.
 
 ## Deploying
 
 1. Copy the repo (or at least `html/`, `db/`, `src/`,
-   `install.sh`, `update.sh`, `setup.py`, and `apache/`) to the server,
-   e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout (rather
-   than copying a tarball) is what makes `update.sh` possible later.
+   `install.sh`, `update.sh`, `setup.py`, and `examples/apache/`) to the
+   server, e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout
+   (rather than copying a tarball) is what makes `update.sh` possible
+   later.
 2. From that directory, run `sudo ./install.sh` -- installs the Python
    package, migrates any database in `db/` still on an older schema up to
    the current one (backing up the original first -- see
-   [`db/README.md`](../db/README.md)'s "Schema history"), pre-fetches the
-   NLTK `words` corpus into a shared world-readable location (so it works
-   under Apache's `www-data`, not just whatever user happens to run the
-   CLI tools), makes the CGI scripts executable, enables Apache's CGI
-   module, and sets `html/`/`db/` ownership for Apache via
-   `apache/set-permissions.sh`. See [`../apache/README.md`](../apache/README.md)
-   for what each step does and how to re-run pieces of it individually.
+   [`database-schema.md`](database-schema.md)'s "Schema history"),
+   pre-fetches the NLTK `words` corpus into a shared world-readable
+   location (so it works under Apache's `www-data`, not just whatever
+   user happens to run the CLI tools), makes the CGI scripts executable,
+   enables Apache's CGI module, and sets `html/`/`db/` ownership for
+   Apache via `examples/apache/set-permissions.sh`. See
+   [`apache-deployment.md`](apache-deployment.md) for what each step does
+   and how to re-run pieces of it individually.
 3. `install.sh` prints one remaining manual step: copy
-   `apache/planetgen.conf.example` to
+   `examples/apache/planetgen.conf.example` to
    `/etc/apache2/sites-available/planetgen.conf`, edit it (at minimum,
    `ServerName`), then `sudo a2ensite planetgen && sudo systemctl reload
    apache2`. This is deliberately not automated -- the vhost's
@@ -103,8 +106,8 @@ without pulling first.
 Every script is a normal CGI program: it reads `QUERY_STRING` from the
 environment and writes an HTTP response (status + headers + body) to
 stdout. That makes them runnable directly for a quick smoke test without
-standing up Apache at all:
+standing up Apache at all, from the repo root:
 
 ```bash
-PLANETGEN_DB_DIR=/path/to/db QUERY_STRING="db=planetgen.db" python3 browse.py
+PLANETGEN_DB_DIR=/path/to/db QUERY_STRING="db=planetgen.db" python3 html/browse.py
 ```

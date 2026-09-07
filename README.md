@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.3.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.3.3 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -114,13 +114,13 @@ Sector-specific options:
 *   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one the way a uniform `+habitable_world` would. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`, and cannot be combined with a uniform `-habitable_world`.
 *   `--db-path <path>`: Where the generated sector is saved in the SQLite database. Defaults to `db/planetgen.db` at the project root.
 
-The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn. Every run also saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus a rendered copy of the wiki page in both wikitext and Markdown — to the SQLite database described in [`db/README.md`](db/README.md), regardless of whether `--output` was given.
+The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn. Every run also saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus a rendered copy of the wiki page in both wikitext and Markdown — to the SQLite database described in [`docs/database-schema.md`](docs/database-schema.md), regardless of whether `--output` was given.
 
 ## Web Interface
 
-[`html/`](html/README.md) contains a small, dependency-free web interface
+[`html/`](docs/html-interface.md) contains a small, dependency-free web interface
 (plain Python CGI scripts, no framework) for browsing the SQLite databases
-described in [`db/README.md`](db/README.md) -- pick a database, drill into
+described in [`docs/database-schema.md`](docs/database-schema.md) -- pick a database, drill into
 its sectors and star systems, and view or copy the rendered wikitext/
 Markdown page saved for each one, or jump straight to an object via
 `search.py`'s faceted search: click-to-filter tag buttons (object type,
@@ -136,7 +136,7 @@ the server to do the whole install (Python package, the NLTK corpus
 Apache's own user needs, CGI setup, and directory permissions) in one
 step, and `sudo ./update.sh` later to pull and apply updates (plain `git
 pull` isn't enough on its own -- see `update.sh`'s own header comment).
-[`apache/`](apache/README.md) has an example virtual host config
+[`examples/apache/`](docs/apache-deployment.md) has an example virtual host config
 (default document root `/var/lib/planetGen/html`, database directory
 `/var/lib/planetGen/db` alongside it) and the `set-permissions.sh` script
 both scripts call. Site-level settings (currently a name and base URL,
@@ -144,7 +144,7 @@ unrelated to the Apache-level `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
 environment variables) live in a `webconfig.json` file at the repo root,
 kept outside `html/`'s served document root the same way `db/` already
 is -- see [`WEBCONFIG.md`](docs/WEBCONFIG.md). See
-[`html/README.md`](html/README.md) for how the interface works and how to
+[`docs/html-interface.md`](docs/html-interface.md) for how the interface works and how to
 deploy or test it locally.
 
 ### Additional Information

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# apache/set-permissions.sh
+# examples/apache/set-permissions.sh
 #
 # Detects the user/group Apache2 actually runs as and sets ownership and
 # permissions on the deployed planetGen web directory (and the database
@@ -9,10 +9,10 @@
 # root-privileged deployment step, not part of the portable application.
 #
 # Usage:
-#   sudo apache/set-permissions.sh [html-dir] [db-dir]
+#   sudo examples/apache/set-permissions.sh [html-dir] [db-dir]
 #
-# Defaults match the layout documented in html/README.md and
-# apache/planetgen.conf.example:
+# Defaults match the layout documented in docs/html-interface.md and
+# examples/apache/planetgen.conf.example:
 #   html-dir defaults to /var/lib/planetGen/html
 #   db-dir   defaults to /var/lib/planetGen/db
 #
@@ -32,7 +32,7 @@
 #     than silently matching zero files.
 #   - html/lib is included in the general file/directory pass like any
 #     other subdirectory -- direct web access to it is denied at the
-#     Apache config level (see apache/planetgen.conf.example), not by
+#     Apache config level (see examples/apache/planetgen.conf.example), not by
 #     filesystem permissions, since Apache's own worker still needs to
 #     read those modules to import them.
 

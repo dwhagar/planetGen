@@ -3,7 +3,7 @@
 **Date:** 2026-09-06
 **Scope:** Manual, domain-informed sanity review of `planetPhysics.calculate_surface_gravity`
 and `planetPhysics.calculate_atmospheric_conditions` output, specifically to answer the
-question TODO.md raises: now that the atmospheric-pressure formula has been fixed
+question docs/TODO.md raises: now that the atmospheric-pressure formula has been fixed
 (barometric-formula rewrite, `planetPhysics.py` ~L391-405), are the disabled Class M/P
 forced clamps (gravity ~L342-347, pressure/temperature ~L407-419) actually safe to leave
 removed?

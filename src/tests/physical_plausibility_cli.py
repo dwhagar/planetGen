@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 """
-physicalPlausibility.py -- physical-plausibility anomaly finder (CLI).
+src/tests/physical_plausibility_cli.py -- physical-plausibility anomaly
+finder (CLI). Not a pytest test module itself (no `test_*` name, so pytest
+won't collect it) -- it lives alongside `test_physical_plausibility.py`
+because it shares that file's engine (`stellarObjects/plausibility.py`)
+and exists specifically to batch-run it for human-reviewed findings,
+rather than as an automated pass/fail check.
 
 Batch-generates planets (and their moons) in memory -- no database
 round-trip needed -- across every valid (planet class, zone) pair and a
@@ -13,15 +18,20 @@ broad grid of main-sequence host star spectral types, then reports:
     distribution) for surface_temperature, atmospheric_pressure, gravity,
     and scale_height -- flagged for human review, not asserted to be zero.
 
-See `src/stellarObjects/plausibility.py` for the full design rationale (why two
-tiers, why host stars are sampled across spectral types, why this isn't
-hand-authored per-class numeric bounds) and TODO.md's "Physical-plausibility
-test suite (anomaly finder)" future idea for the original ask.
+See `stellarObjects/plausibility.py` (same directory's parent) for the
+full design rationale (why two tiers, why host stars are sampled across
+spectral types, why this isn't hand-authored per-class numeric bounds)
+and docs/TODO.md's "Physical-plausibility test suite (anomaly finder)"
+future idea for the original ask.
+
+This file lives at src/tests/, two levels under src/ where
+`stellarObjects` actually lives -- one dirname() up from this file's own
+directory reaches src/, added to sys.path below.
 
 Usage:
-    python physicalPlausibility.py
-    python physicalPlausibility.py --n 300 --no-moons
-    python physicalPlausibility.py --classes M P --n 500
+    python src/tests/physical_plausibility_cli.py
+    python src/tests/physical_plausibility_cli.py --n 300 --no-moons
+    python src/tests/physical_plausibility_cli.py --classes M P --n 500
 """
 
 import argparse
@@ -29,10 +39,7 @@ import logging
 import os
 import sys
 
-# stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
-# import path so this keeps working without requiring `pip install .`
-# first, matching how html/'s CGI scripts fall back to a no-install layout.
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from stellarObjects import plausibility
 from stellarObjects import program_constants as prog_c

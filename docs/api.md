@@ -13,7 +13,8 @@ Comparison against FastAPI/Django REST Framework: the existing persistence
 layer (`stellarObjects/_db.py`) is deliberately raw `sqlite3`/plain SQL with
 no ORM, this API is read-heavy with no concurrency pressure yet, and it
 needs to deploy onto the same Apache2/VPS setup that already serves the
-interim `html/` CGI browser (see `apache/README.md`). Flask has no opinion
+interim `html/` CGI browser (see [`apache-deployment.md`](apache-deployment.md)).
+Flask has no opinion
 about the data layer (route handlers call straight into `queryDb.py`'s and
 `stellarObjects._db`'s existing functions), deploys via `mod_wsgi` in the
 same Apache process model the CGI scripts already use, and can be mounted
@@ -45,22 +46,23 @@ required query parameter returns `400`.
 
 ```bash
 pip install -e .[api]
-python wsgi.py
+python src/wsgi.py
 ```
 
 Defaults to `db/planetgen.db` (same default as every other tool). Point it
 at a different database with:
 
 ```bash
-PLANETGEN_DB_PATH=/path/to/other.db python wsgi.py
+PLANETGEN_DB_PATH=/path/to/other.db python src/wsgi.py
 ```
 
 ## Deploying behind Apache (mod_wsgi)
 
-`wsgi.py` (repo root) exposes the standard `application` object `mod_wsgi`
-expects. Add a `WSGIScriptAlias` for `/api` pointing at `wsgi.py` to the
-existing vhost config in `apache/` (see `apache/README.md` for the vhost
-this project already deploys, including `set-permissions.sh`), or run it
+`src/wsgi.py` exposes the standard `application` object `mod_wsgi`
+expects. Add a `WSGIScriptAlias` for `/api` pointing at `src/wsgi.py` to
+the existing vhost config in `examples/apache/` (see
+[`apache-deployment.md`](apache-deployment.md) for the vhost this project
+already deploys, including `set-permissions.sh`), or run it
 behind `gunicorn` + `mod_proxy`/`mod_proxy_http` if `mod_wsgi` isn't
 available. Either way, set `PLANETGEN_DB_PATH` in the process environment
 (e.g. the vhost's `SetEnv` directive, or the `gunicorn` service's

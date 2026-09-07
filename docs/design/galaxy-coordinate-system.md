@@ -1,7 +1,7 @@
 # Galaxy Coordinate System — Design Proposal
 
 **Status:** proposal, not implemented. This document is the design pass
-`TODO.md` Phase 4 calls for ("needs its own design pass") before
+`docs/TODO.md` Phase 4 calls for ("needs its own design pass") before
 `galaxyGen.py` is written. No generation code changes here — the schema
 migration below is written out concretely so it can be reviewed, but it has
 not been applied to `stellarObjects/schema.sql`.
@@ -379,7 +379,7 @@ by a center point the way `galactic_radius_pc` is, so a sector could in
 principle have a galaxy position without having been placed by this
 particular shell scheme (e.g. a hand-authored one-off position).
 
-`PRAGMA user_version` moves from `3` to `4`. Per `db/README.md`'s existing
+`PRAGMA user_version` moves from `3` to `4`. Per `docs/database-schema.md`'s existing
 history format:
 
 > **v3 -> v4**: added `sectors.center_x/y/z_pc`, `galactic_radius_pc`,
@@ -476,7 +476,7 @@ exactly the kind of case that flag matters for.
    whether it should generate whole shells on demand, individual sectors
    on demand (e.g. as a player/query "visits" a region), or some other
    unit of batching is a `galaxyGen.py` design question this document
-   deliberately leaves open (per TODO.md, that script's own design is
+   deliberately leaves open (per docs/TODO.md, that script's own design is
    gated on this one, not the reverse).
 2. **Disk-density envelope.** §3 flags that a pure uniform sphere doesn't
    match a real disk galaxy's shape, and sketches the *concept* of gating
@@ -521,7 +521,7 @@ exactly the kind of case that flag matters for.
    out of scope unless the user wants it folded in now.
 7. **One galaxy per database.** This design assumes a single galactic
    center/origin per database file (there is no `galaxy_id` concept
-   anywhere in the schema or in `TODO.md`'s framing, which only ever says
+   anywhere in the schema or in `docs/TODO.md`'s framing, which only ever says
    "the galaxy," singular). If multiple independent generated galaxies
    ever need to coexist in one database, every new column in §4 would need
    a `galaxy_id` companion — flagged in case that's a real future
