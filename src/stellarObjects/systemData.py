@@ -68,7 +68,7 @@ class StarSystem:
             decided once at generation time (or None if the roll didn't select one).
     """
 
-    def __init__(self, system_config: SystemConfig): # Updated signature to accept system_config
+    def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None):
         """
         Initializes a StarSystem object, generating a star and its planets.
 
@@ -102,9 +102,21 @@ class StarSystem:
         time anything is ever rendered. The system-level flavor text
         (`self.system_flavor_text`) is decided the same way, once, right
         before this pass.
+
+        Args:
+            galactic_center_dist_ly (float, optional): This system's actual
+                distance from the galactic center, in light-years -- passed
+                straight through to every `Star`/`BinaryStarProxy` this
+                system creates (see `Star.calculate_system_perimeter`'s
+                docstring). `None` (the default) leaves every constituent
+                star's Hill-sphere calculation on the fixed
+                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                the correct behavior for a system with no galaxy placement
+                (e.g. `sectorGen.py`'s own standalone CLI).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
-        self.star = Star(self.system_config, name=self.system_config.NAME) # Pass system_config and use its NAME
+        self.star = Star(self.system_config, name=self.system_config.NAME,
+                          galactic_center_dist_ly=galactic_center_dist_ly) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
         self.stars = [self.primary_star] # Keep track of individual stars
@@ -121,9 +133,12 @@ class StarSystem:
             secondary_mass_factor = random.uniform(0.1, 0.8)
             secondary_mass = self.primary_star.mass * secondary_mass_factor
             # Create secondary star, potentially with a different name or type if desired
-            self.secondary_star = Star(secondary_star_config, name=f"{self.primary_star.name} B", mass_override=secondary_mass)
+            self.secondary_star = Star(secondary_star_config, name=f"{self.primary_star.name} B",
+                                        mass_override=secondary_mass,
+                                        galactic_center_dist_ly=galactic_center_dist_ly)
             self.stars.append(self.secondary_star)
-            self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star) # self.star now points to the proxy
+            self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
+                                         galactic_center_dist_ly=galactic_center_dist_ly) # self.star now points to the proxy
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()

@@ -78,6 +78,17 @@ def _planet_rows(conn, planet):
 
 
 def _bodies_html(conn, system_id):
+    # TODO: sprite-based graphical system view -- render each star/planet/
+    # moon in this system as a small icon sprite sized relative to the
+    # others (from `radius_km`, already pulled in via `SELECT *` below) for
+    # an at-a-glance size comparison, instead of (or alongside) the plain
+    # table this function builds today. Open questions this still needs
+    # before it can be built: where the sprite art itself comes from,
+    # linear vs. logarithmic size scaling (a gas giant vs. a moon differ by
+    # 2-3 orders of magnitude in radius_km, so linear scaling would make
+    # most bodies invisible dots), and whether this is meant to be a
+    # simple size-comparison row or a full scaled-orbit diagram. See
+    # docs/TODO.md, "Phase 5 -- Web interface".
     planets = fetch_all(
         conn,
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
@@ -129,10 +140,14 @@ def _bodies_html(conn, system_id):
 
 def _toc_html(headings):
     """
-    Builds the floating table-of-contents sidebar linking to each heading
+    Builds the table-of-contents linking to each heading
     `markdown_to_html_with_headings` found in the rendered description --
     skipped entirely when there's nothing worth a contents list for (just
     the system's own top-level heading, or no description at all).
+
+    Rendered fixed in the right-hand margin of the window (see `.toc` in
+    style.css), out of the main content column, so it doesn't crowd the
+    description like an inline/collapsed box would.
     """
     if len(headings) <= 1:
         return ""
@@ -141,10 +156,10 @@ def _toc_html(headings):
         for heading in headings
     )
     return f"""
-<aside class="toc" aria-label="Table of contents">
-<h3>Contents</h3>
+<nav class="toc" aria-label="Table of contents">
+<div class="toc-title">Contents</div>
 <ul>{items}</ul>
-</aside>
+</nav>
 """
 
 
@@ -184,12 +199,10 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
     <a href="{base_url}&view=source&format=markdown">Markdown source</a>
   </div>
 </div>
-<div class="description-layout">
+{toc_html}
 <article class="prose">
 {rendered}
 </article>
-{toc_html}
-</div>
 </section>
 """
 

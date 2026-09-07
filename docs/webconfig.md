@@ -1,4 +1,4 @@
-# WEBCONFIG.md
+# Web Interface Site Configuration
 
 This document describes `webconfig.json`, the site-level configuration
 file for the planetGen web interface ([`../src/html/`](html-interface.md)), and

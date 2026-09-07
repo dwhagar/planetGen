@@ -72,6 +72,14 @@ def system_detail(system_id):
 
 @bp.route("/systems/<int:system_id>/near")
 def systems_near(system_id):
+    # TODO: this endpoint already computes the distance between two placed
+    # systems (via `systems_within_radius`) but returns bare JSON -- there's
+    # no way to actually see the two points, just a number. A rendered
+    # image (even a simple 2D projection) or a small web-page
+    # visualization of "here's system A, here's system B, here's the line
+    # between them in galactic space" would build on this route's existing
+    # data rather than needing new queries. See docs/TODO.md, "Investigate
+    # Further".
     radius = request.args.get("radius", type=float)
     if radius is None:
         return jsonify({"error": "radius query parameter is required"}), 400

@@ -58,7 +58,8 @@ class BinaryStarProxy(Star):
     (nested full `Star` dicts), not via this list.
     """
 
-    def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star):
+    def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star,
+                 galactic_center_dist_ly=None):
         """
         Initializes a BinaryStarProxy object.
 
@@ -66,6 +67,12 @@ class BinaryStarProxy(Star):
             system_config (SystemConfig): The shared SystemConfig object for the system.
             primary_star (Star): The primary star instance.
             secondary_star (Star): The secondary star instance.
+            galactic_center_dist_ly (float, optional): This system's actual
+                distance from the galactic center, in light-years, threaded
+                into `_calculate_system_perimeter_static` -- see
+                `Star.calculate_system_perimeter`'s docstring for the same
+                parameter. `None` (the default) uses the fixed
+                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
         """
         # Initialize the base Star class with _skip_property_init=True
         # The name will be overridden, and other properties will be handled by getters.
@@ -108,7 +115,9 @@ class BinaryStarProxy(Star):
 
         # Recalculate derived properties based on effective values
         self.habitable_zone = calculate_habitable_zone(self._effective_luminosity)
-        self.system_perimeter = self._calculate_system_perimeter_static(self._effective_mass)
+        self.system_perimeter = self._calculate_system_perimeter_static(
+            self._effective_mass, galactic_center_dist_ly
+        )
         # For heliosphere, we need an effective radius and type for the static method.
         # This is a simplification, as binary heliospheres are complex.
         self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
@@ -265,7 +274,7 @@ class BinaryStarProxy(Star):
         return paragraphs
 
     @staticmethod
-    def _calculate_system_perimeter_static(mass):
+    def _calculate_system_perimeter_static(mass, galactic_center_dist_ly=None):
         """
         Calculates the system perimeter (Hill sphere relative to the galaxy)
         for an arbitrary mass, mirroring `Star.calculate_system_perimeter` but
@@ -274,10 +283,17 @@ class BinaryStarProxy(Star):
         Args:
             mass (float): The mass to use for the calculation, in kilograms
                           (typically the binary system's combined mass).
+            galactic_center_dist_ly (float, optional): This system's actual
+                distance from the galactic center, in light-years -- see
+                `Star.calculate_system_perimeter`'s docstring. `None` (the
+                default) uses the fixed
+                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
 
         Returns:
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
-        galactic_center_dist_m = physical_constants.GALACTIC_CENTER_DISTANCE_LY * physical_constants.LY_TO_M
+        if galactic_center_dist_ly is None:
+            galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_m = galactic_center_dist_ly * physical_constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, physical_constants.MILKY_WAY_MASS)
         return hill_radius_m / physical_constants.AU_TO_M

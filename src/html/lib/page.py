@@ -75,30 +75,35 @@ def redirect(url):
 def _sidenav_html():
     """
     Builds the site-wide vertical nav bar shown on the left of every page:
-    a fixed set of "functions" rather than a breadcrumb -- Databases
-    (skipped when there's only one `.db` file, since `index.py` itself
-    just redirects straight past the picker in that case -- see its own
-    module docstring), then Search, Sectors, and Systems for the current
-    `?db=` when one is present in the request's own query string.
-    Sectors/Systems jump straight to the matching anchor on `browse.py`
-    (`id="sectors"`/`id="standalone-systems"`) rather than duplicating
-    that page's own listing here.
+    a fixed set of "functions" rather than a breadcrumb -- Databases, then
+    Search, Sectors, and Systems for the current `?db=` when one is present
+    in the request's own query string. Sectors/Systems jump straight to the
+    matching anchor on `browse.py` (`id="sectors"`/`id="standalone-systems"`)
+    rather than duplicating that page's own listing here.
+
+    The Databases item always links to `index.py?all=1` (never bare
+    `index.py`) whenever at least one `.db` file exists -- `index.py` on its
+    own redirects straight past the picker when there's exactly one
+    database (see its own module docstring), which would otherwise make
+    this link a silent no-op/bounce-back on the single-database deployments
+    this project actually runs in production, leaving no way back to the
+    database-info page at all. `all=1` tells `index.py` to render the
+    picker table regardless of database count.
 
     `query_params()` (not a caller-supplied argument) is what lets this be
     computed uniformly from `render()` for every page -- `system.py` and
     `sector.py` otherwise have no way to reach `search.py`/`browse.py`
     without first going back through `browse.py` itself. `index.py` is the
     only script with no `db` in its query string, so it gets just the
-    Databases item (or nothing, on the single-database redirect path,
-    where this never renders at all).
+    Databases item (or nothing, when no database exists at all).
 
     Returns:
         str: The `<nav class="sidenav">` element's inner HTML.
     """
     from dbutil import esc, list_databases
     items = []
-    if len(list_databases()) > 1:
-        items.append(("index.py", "Databases"))
+    if list_databases():
+        items.append(("index.py?all=1", "Databases"))
     db_name = query_params().get("db")
     if db_name:
         db = esc(db_name)

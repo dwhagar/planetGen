@@ -76,6 +76,30 @@ ATMOSPHERIC_MOLAR_DENSITY = {
     "g": (0.00226, 0.00416),   # Gas Giant: Range from Jupiter to Neptune
 }
 
+# Bulk density of a gas giant's light, puffy H/He envelope, in g/cm^3 -- used
+# only by planetPhysics.generate_planet_properties' core/envelope density
+# blend (and its mirror, plausibility.theoretical_gravity_bounds_g), NOT the
+# same quantity as ATMOSPHERE_DENSITY["g"] above (that one feeds the
+# atmospheric-pressure/scale-height calculation, a different physical layer).
+# Deliberately a separate constant: ATMOSPHERE_DENSITY["g"]'s values
+# (0.69-1.33) are themselves Jupiter/Saturn's real *bulk* densities in
+# g/cm^3, despite living in a dict documented as kg/m^3 -- reusing them
+# directly as a kg/m^3 input to the density blend (which divides by 1000 to
+# convert to g/cm^3, correct for the "t" case but not this one) understated
+# the envelope density by ~1000x, which the harmonic-mean blend below is
+# highly sensitive to (the smaller of the two blended densities dominates
+# the result almost regardless of mass fraction) -- collapsing every gas
+# giant's overall density to a near-zero, physically meaningless value
+# regardless of PLANET_CLASSES' own (or a class's density_range override's)
+# core density. Range grounded in real measured "puffy" gas giants: WASP-193b
+# (~0.06 g/cm^3, the lowest confirmed bulk density known) up through a
+# representative light-envelope ceiling comfortably below Saturn's own real
+# 0.69 g/cm^3 (the lightest actual solar-system planet), so the envelope
+# term stays legitimately the *lighter* of the two blended components
+# without collapsing the result the way the old ~0.0007-0.0013 g/cm^3 draw
+# did.
+GAS_ENVELOPE_BULK_DENSITY = (0.06, 0.3)
+
 # Renamed AU_TO_LIGHT_YEAR to LY_TO_AU for clarity and consistency.
 LY_TO_AU = 63241.1
 """

@@ -31,11 +31,6 @@ VALID_CLASS_ZONE_PAIRS = [
     if data[zone]
 ]
 
-CLASSES_WITH_NO_VALID_ZONE = [
-    cls for cls, data in prog_c.PLANET_CLASSES.items() if not any(data[z] for z in ZONE_CHARS)
-]
-
-
 @pytest.fixture(scope="module")
 def host_star():
     cfg = SystemConfig()
@@ -96,7 +91,10 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         # Sanity bounds spanning a thin, Mars-like atmosphere up to a thick,
         # Venus-like one -- catches regressions like a unit-conversion bug
         # that silently produced near-zero pressure for every class but M.
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e7
+        # Class N is tuned to real Venus values (~9.2MPa mean at this
+        # module's G2V host, see PLANET_CLASSES["N"]); the upper bound is
+        # raised well past that to stay a broad regression catch.
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 5e7
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
         assert math.isfinite(planet.atm_molar_density) and planet.atm_molar_density > 0
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0
@@ -149,23 +147,6 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     assert planet.system_config.system_flavor_count == 1
 
 
-@pytest.mark.parametrize("cls", CLASSES_WITH_NO_VALID_ZONE)
-def test_known_issue_class_with_no_valid_zone_is_unreachable(host_star, cls):
-    """
-    FINDING (not fixed -- see fork report): PLANET_CLASSES['R'] declares
-    h=e=c=False, so it has zero probability weight in PLANET_CLASS_PROBABILITIES
-    *and* fails zone validation in every zone if explicitly requested. This
-    xfail is strict so it starts failing loudly (forcing an update) the
-    moment this class becomes reachable in some zone -- whether that's the
-    right fix (which zone(s) should an "ejected" world belong to?) is a
-    design question for a human, not something this fork guessed at.
-    """
-    assert prog_c.PLANET_CLASS_PROBABILITIES.get(cls, 0) == 0
-    with pytest.raises(ValueError, match="Invalid planet class for this zone"):
-        for zone in ZONE_CHARS:
-            make_planet(host_star, cls, zone)
-
-
 def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star):
     cfg = SystemConfig()
     cfg.HABITABLE_WORLD = False
@@ -178,6 +159,27 @@ def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star)
                 cfg, host_star, host_star.habitable_zone, distance,
                 planet_class=cls,
             )
+
+
+def test_life_bearing_classes_are_ecosphere_only():
+    """
+    Any class that can carry a life_chemical (whether or not it's also on
+    the curated HABITABLE_PLANET_CLASSES list -- e.g. Class Q, whose
+    "extreme temperature variations" flavor doesn't put it on that list, but
+    which still gets life_chemical applied by planetLife.apply_life_data)
+    must be zone 'e' only. `get_viable_life_chemicals` doesn't check zone at
+    all, so a class with h or c True here would let life-bearing worlds
+    generate in the hot or cold zone -- caught here at the data level rather
+    than only by generation-time sampling.
+    """
+    for cls, data in prog_c.PLANET_CLASSES.items():
+        if data.get("life_chemical"):
+            assert data["h"] is False and data["c"] is False, (
+                f"Class {cls!r} has a life_chemical but is valid outside the ecosphere zone "
+                f"(h={data['h']}, c={data['c']}) -- habitable/life-bearing worlds should only "
+                f"occur in the ecosphere zone"
+            )
+            assert data["e"] is True, f"Class {cls!r} has a life_chemical but isn't valid in the ecosphere zone at all"
 
 
 @pytest.mark.parametrize("zone", list(ZONE_CHARS))

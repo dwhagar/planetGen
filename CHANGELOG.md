@@ -1,5 +1,468 @@
 # Changelog
 
+## [5.4.5] - 2026-09-07
+
+### Fixed
+- **Sector Map: the 3D scene drew over surrounding page content instead
+  of staying confined to its panel.** Zooming in (or rotating to an angle
+  where the cube's diagonal grew past its nominal footprint) had nothing
+  bounding where the map was visible, so it grew and drew over the rest
+  of the page. Added `.starmap-viewport`, a fixed-size (`aspect-ratio: 1
+  / 1`, matching the square footprint the old static image occupied),
+  `overflow: hidden` window that the 3D scene now rotates/zooms/pans
+  inside of -- clipped at its edges instead of spilling out. The 3D
+  content inside renders/rotates/occludes exactly the same either way;
+  this only bounds where it's visible from the outside.
+
+## [5.4.4] - 2026-09-07
+
+### Added
+- **Sector Map is now interactive 3D: drag to rotate, scroll (or +/-
+  buttons) to zoom.** Replaced the static server-baked isometric SVG
+  projection in `src/html/lib/starmap.py` with a real CSS 3D scene
+  (`transform-style: preserve-3d`, orthographic -- no `perspective`), so
+  the browser's own compositor handles rotation and occlusion instead of
+  a hand-rolled JS matrix routine; `src/html/static/sectormap.js` tracks
+  two rotation angles and a zoom factor and feeds them straight to the
+  scene's CSS transform. Each star dot is billboarded (counter-rotated
+  every frame to keep facing the camera) so it stays a circle instead of
+  going edge-on as the view turns, and dot-click detection is resolved by
+  geometry (`getBoundingClientRect`) rather than native hit-testing,
+  since the latter turns out unreliable for elements nested this deep in
+  a rotated `preserve-3d` hierarchy.
+
+### Changed
+- **Sector Map star colors now come from the star's actual named
+  spectral color** (`SPECTRAL_CLASS_COLORS`: Blue/Blue-White/White/
+  Yellow-White/Yellow/Orange/Red, keyed off `star_type`'s leading letter)
+  instead of a raw Kelvin-to-RGB blackbody approximation, so a "White
+  Giant" reads white and a "Blue Giant" reads blue regardless of its
+  exact temperature. Luminosity shades each color's vividness/lightness
+  (brighter = more vivid, dimmer = more muted) and temperature nudges
+  lightness within the star's own spectral band.
+- **Binary systems draw two dots** (a larger primary and a smaller
+  secondary, capped at 65% of the primary's radius and offset to its
+  lower-right, overlapping) built from each component's own `stars` row,
+  instead of one dot from the system-level `binary_type`/
+  `binary_temperature_k` summary -- so each half of a binary is sized and
+  colored from its own actual data.
+
+See `docs/TODO.md` ("Near-term: interim `../src/html/` browser
+enhancements") for where this started as a plan.
+
+## [5.4.3] - 2026-09-07
+
+### Changed
+- **Web interface: system-page table of contents moved to a fixed
+  right-margin rail.** The collapsed `<details>` TOC added in [5.4.2]
+  still lived inline next to the description as a flex sibling, narrowing
+  the prose column whenever it was open. `system.py`'s `_toc_html` now
+  renders a plain, always-expanded `<nav>`, and `style.css` positions
+  `.toc` fixed in the right margin (mirroring the left `.sidenav`),
+  appearing only once the window is wide enough (`min-width: 90rem`) to
+  hold it without crowding the main content -- narrower windows simply
+  don't get one, rather than it floating over the page.
+
+## [5.4.2] - 2026-09-07
+
+### Removed
+- **Class R ("an ejected, geologically active world") removed entirely.**
+  It had `h`/`e`/`c` all `False` -- zero probability weight, unreachable
+  outside a manual `zone_override`. A genuinely free-floating/rogue planet
+  (no host star at all) is a real exoplanet category, but doesn't fit this
+  generator's star-centric zone model -- "which zone" is the wrong
+  question for an object with no star to be zoned relative to. Rather than
+  leave it as permanent dead weight, cut from `PLANET_CLASSES`,
+  `PLANET_CLASS_PROBABILITIES` (already 0.0000), and `MOON_BLACKLIST`
+  (`program_constants.py`); the now-vacuous
+  `test_known_issue_class_with_no_valid_zone_is_unreachable` regression
+  test removed from `src/tests/test_planets.py`.
+
+### Fixed
+- **Naming: triple-consonant validation bug.** `utils.is_name_valid`
+  enforced "no more than two consecutive vowels" but had no matching check
+  for consonants, so a fixed denylist of specific clusters
+  (`BAD_CONSONANTS`) was the only thing standing between a generated name
+  and an arbitrary run of 3+ consonants -- empirically ~40% of generated
+  star names had one. Added a `consonant_count` run-length counter
+  symmetric to the existing `vowel_count` one. Verified 0/5000 across
+  star/planet/moon/sector name generation post-fix.
+- **Web interface: navbar had no way back to the database picker on a
+  single-database deployment.** `lib/page.py`'s sidenav only linked to
+  `index.py` when more than one `.db` file existed, since `index.py`
+  itself auto-redirects past the picker for a single database -- but that
+  meant the common single-database production deployment
+  (`starmap.moltenaether.com`) had no Databases link at all. Fixed by
+  always linking to `index.py?all=1`, and teaching `index.py` to render
+  the full picker table (bypassing its own auto-redirect) when `?all=1`
+  is present.
+- **Web interface: system-page table of contents wasn't collapsible.**
+  `system.py`'s `_toc_html` now builds a `<details>`/`<summary>` pair
+  instead of a plain `<aside>`/`<h3>`, collapsed by default -- a native,
+  no-JS toggle.
+- Minor cleanups found in passing: an unused `program_constants` import in
+  `sectorGen.py`, and a stray `f`-string prefix on a non-interpolated
+  string in `evolution.py`.
+
+## [5.4.1] - 2026-09-07
+
+### Added
+- **`sectorGen.py --density`: a controllable density value for sector
+  generation.** Sectors previously always generated a flat count of systems
+  (`--num-systems`, default 10) with no connection to sector volume -- there
+  was no way to make one generated sector meaningfully denser or sparser
+  than another. `--density` is a float multiplier on the real local stellar
+  density this codebase already models (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`
+  via `SpaceSector.expected_system_count()`) -- 1.0 means a realistic sector
+  this size, 2.0 twice as dense, 0.5 half. The actual per-sector count is
+  drawn with the existing `_sample_poisson_count` helper (previously only
+  used by `SpaceSector.grow_from_seed`), resolved fresh for each sector
+  rather than once at parse time, so counts vary naturally sector to sector
+  under `--num-sectors` and across `galaxyGen.py` runs, matching a real
+  spatial Poisson process. Mutually exclusive with `--num-systems`; neither
+  flag given keeps the original flat-10-systems default unchanged.
+  `galaxyGen.py` gets the flag for free since it shares
+  `sectorGen.add_shared_generation_options`/`validate_shared_generation_args`
+  with no changes needed on its side.
+
+## [5.4.0] - 2026-09-07
+
+### Removed
+- **Two brown-dwarf-scale gas-giant classes cut entirely.** Correcting
+  their radius ranges to real sub-stellar physics in [5.3.9] left them as
+  near-duplicates of each other (overlapping radius, differentiated only by
+  an invisible density number no description text reflects), each carrying
+  a vanishingly small (0.01%) generation weight, representing objects that
+  aren't really planets in the first place (brown dwarfs are sub-stellar
+  objects; this codebase already has a dedicated mechanism for stellar/
+  sub-stellar companions via `BinaryStarProxy`/`BINARY_SYSTEM`). Their
+  combined generation weight folded into the ordinary Jupiter/Saturn-class
+  gas giant. All remaining references to the removed classes (and to the
+  earlier-removed small-rocky-class pair) scrubbed from comments/docs,
+  generically describing what they explain rather than naming
+  now-nonexistent class letters.
+
+### Added
+- **Per-class `size_mode`: bell-curve size distributions for planets and
+  moons.** Radius generation (`planetPhysics.generate_planet_properties`'s
+  three radius-draw sites, and `generate_moons`' moon-radius draw) switched
+  from a flat uniform draw across each class's declared radius range to a
+  bounded Gaussian ("bell curve") draw peaking at a new per-class
+  `size_mode` value (0.0-1.0, "what fraction through the available range is
+  the statistically most common size") via new `utils.sample_bounded_bell`.
+  For a moon, "available range" is its actual Hill-sphere/mass-capped
+  window, not necessarily the class's full declared range -- `size_mode` is
+  read relative to whatever range is actually being drawn from. Every
+  surviving class's `size_mode` is set from a real-world single-body analog
+  where one exists (Earth for M, Mars for K, Venus for N, Jupiter/Saturn
+  for J, Uranus/Neptune for I/T, the real rocky-to-gaseous transition
+  radius for V) or a reasoned default (small-body populations, both real
+  asteroids/KBOs (Class C/D) and this generator's own hot-zone rocky
+  classes (A/B), skew toward their smaller end, matching real
+  size-frequency distributions). Verified empirically: generated radius
+  means land within ~1% of each class's real-world anchor (e.g. Class M
+  mean 6,337km vs Earth's 6,371km; Class K mean 3,410km vs Mars's 3,389.5km).
+  The self-adjusting spread (`sample_bounded_bell`'s `spread_divisor`)
+  keeps a legible bell shape even for a mode pinned near one edge of a
+  range, via rejection sampling rather than clamping (which would pile
+  spillover probability mass at the boundary).
+- `PLANET_CLASS_PROBABILITIES`'s `J` weight increased 0.0529 -> 0.0531 to
+  absorb the removed brown-dwarf-scale classes' combined weight.
+- Atmospheric-pressure sanity bound (`test_full_matrix.py`/`test_planets.py`)
+  lowered back down `1e9` -> `5e7` Pa now that the brown-dwarf-scale
+  gravity/pressure extremes those classes produced are gone (observed max
+  across the full star-type matrix is now ~1.1e7 Pa, from Class N).
+- `test_planet_physics_fixes.py`'s gravity/pressure correlation test
+  threshold recalibrated (Spearman `>0.5` -> `>0.1`) for the narrower
+  gravity range the remaining gas giants span without the removed classes'
+  two-orders-of-magnitude density spread; its density-blend-skip test
+  rewritten to inject a temporary `density_range` onto an existing class
+  via `monkeypatch` rather than depend on a specific class declaring one
+  (no class currently does -- it's generic, reusable override
+  infrastructure, same as every other per-class override this codebase has
+  built up).
+
+## [5.3.9] - 2026-09-07
+
+### Removed
+- **Classes X and Y removed, merged into B and A/B respectively.** Both
+  were small, redundant variants of existing hot-zone rocky classes:
+  - Class X ("a stripped core from a gas giant", no atmosphere, radius
+    500-5000km) folded into Class B ("a small, molten world") as an
+    alternate origin story ("occasionally the stripped core of a former
+    gas giant") rather than a separate atmosphere-less class -- a
+    Mercury-analog this close to its star already has only a negligible
+    exosphere in reality, so B's existing thin atmosphere covers X's "no
+    atmosphere" identity closely enough.
+  - Class Y ("a 'demon' class world", radius 5000-7500km) folded into
+    *both* Class A and Class B (both radius ceilings raised 5000->7500km
+    to absorb Y's size range), its toxic/irradiated flavor folded into
+    each class's description as a variant rather than kept as a third
+    class. B's composition gained "and sulfur" for the shared
+    volcanic/irradiated theme.
+  - `MOON_BLACKLIST` and `PLANET_CLASS_PROBABILITIES` updated to drop X/Y
+    (their combined generation weight folded into A/B rather than dropped).
+
+### Changed
+- **Gas-giant zones reworked using real exoplanet science.** Previously
+  every gas/ice-giant class (I/J/S/T/U) was valid in zone `c` only --
+  meaning no gas giant could ever appear close to its star or in the
+  habitable zone, despite "hot Jupiters" and "warm Jupiters" being a
+  standard, well-documented real classification (orbital period < 10 days
+  / 10-365 days respectively) and Neptune-mass planets in or near a
+  temperate zone being common too.
+  - Class J now valid in `h`/`e`/`c` (hot/warm/cold Jupiter) -- a warm/cold
+    Jupiter placed in zone `e` can also generate ordinary moons via the
+    existing moon-generation path, including habitable-class ones (the
+    "habitable exomoon around a giant planet" trope), verified working.
+  - Class I now valid in `e`/`c` (warm/cold Neptune), deliberately **not**
+    `h`: real close-in Neptune-mass planets are rare (the observed "hot
+    Neptune desert") because stellar irradiation photoevaporates a
+    Neptune-mass H/He envelope down to a bare rocky/metal core well before
+    it could stay Class I -- that outcome is exactly Class B's newly-merged
+    "stripped core" identity (see Removed, above).
+  - Classes S/T/U left `c`-only: real directly-imaged super-Jovian/brown-dwarf
+    companions are predominantly found at wide separations (formation and
+    detection-bias reasons), and close-in high-mass companions, while known,
+    are much rarer (the "brown dwarf desert").
+  - Fixing `generate_moons` (planetPhysics.py) to respect
+    `HABITABLE_WORLD=False` the same way direct planet generation already
+    does -- unreachable before this change (no gas giant could ever be in
+    zone `e`), but a warm/cold Jupiter placed there could otherwise roll a
+    habitable-class moon even in a system explicitly configured to disallow
+    habitable worlds.
+- **Classes S ("supergiant") and U ("ultragiant") radius ranges corrected
+  to real sub-stellar physics** -- previously 250,000-50,000,000km and
+  25,000,000-60,000,000km respectively, i.e. up to ~86 solar radii, larger
+  than most actual stars. Real brown dwarfs stay within ~15% of Jupiter's
+  own radius (69,911km) across their *entire* 13-80 Jupiter-mass range
+  (electron degeneracy pressure means more mass compresses them, R ~
+  M^(-1/8)); even the smallest true hydrogen-fusing red dwarf stars are
+  only ~0.1 solar radii (~69,600km, essentially Jupiter-sized). Corrected to
+  S: 60,000-120,000km, U: 65,000-130,000km (deliberately overlapping --
+  that overlap *is* the real physics, not an oversight). What actually
+  differentiates a higher-mass sub-stellar object at essentially the same
+  radius is **density**: real measured brown-dwarf densities run roughly
+  10-200 g/cm^3 (~10-150x an ordinary gas giant's), so both classes gained
+  a new `density_range` (S: 10.0-60.0, U: 60.0-150.0 g/cm^3). Class T ("gas
+  dwarf") also corrected, 250,000-25,000,000km -> 15,000-55,000km -- its
+  old floor matched S's own floor, letting a "dwarf" be exactly as large as
+  a "supergiant"; now spans ice-giant-to-Saturn scale, meaningfully below
+  both J and S.
+- **New per-class `density_range` override** (`PLANET_CLASSES`, read by
+  `planetPhysics.get_planet_mass_ranges`/`generate_planet_properties` and
+  mirrored in `plausibility.theoretical_gravity_bounds_g`) -- same
+  `.get(..., default)` pattern as `atm_molar_density_range` etc. Used by
+  Classes S/U above.
+- **Fixed a gas-giant density-blend bug that silently collapsed every gas
+  giant's density to a near-zero, physically meaningless value**, previously
+  flagged as necessary-but-deferred follow-up work in
+  `test_gas_giant_sampled_densities_are_finite_positive_and_within_theoretical_bounds`'s
+  own docstring. `generate_planet_properties`' core/envelope harmonic-mean
+  density blend reused `planet.atm_density` (drawn from
+  `ATMOSPHERE_DENSITY["g"]`) as the envelope term -- but that value is a
+  thin, surface/pressure-layer density (a different physical layer, correct
+  for the separate atmospheric-pressure/scale-height calculation), ~1000x
+  lighter than a real gas-giant envelope's actual bulk density. A harmonic
+  mean is dominated by whichever term is smaller almost regardless of mass
+  fraction, so this collapsed density to ~0.001-0.003 g/cm^3 for every gas
+  giant, independent of core density -- silently defeating the new S/U
+  `density_range` work above (their much denser cores had almost no effect
+  on the final blended density). Fixed by introducing
+  `physical_constants.GAS_ENVELOPE_BULK_DENSITY` (0.06-0.3 g/cm^3, grounded
+  in real measured "puffy" gas giants -- WASP-193b's ~0.06 g/cm^3 is the
+  lowest confirmed bulk density known), used only for this blend. A class
+  declaring its own `density_range` (S/U) now skips the blend entirely and
+  uses that density directly -- real brown dwarfs don't have a meaningfully
+  separate light envelope over a denser core the way an ordinary gas giant
+  does, so blending toward a light "puffy" value would just dilute the
+  elevated density right back down.
+- Atmospheric-pressure sanity bound (`test_full_matrix.py`/`test_planets.py`)
+  raised `5e7` -> `1e9` Pa -- Classes S/U's now-correct brown-dwarf-like
+  gravity legitimately pushes pressure up to ~3.3e8 Pa across the full
+  star-type matrix.
+- `test_planet_physics_fixes.py`'s two gas-giant-blend tests updated to
+  match the new formula (queuing an `envelope_density_gcm3` draw instead of
+  reusing `atm_density`), plus a new
+  `test_density_range_override_skips_the_blend` covering the S/U direct-
+  density path.
+
+## [5.3.8] - 2026-09-07
+
+### Fixed
+- **Habitable/life-bearing classes restricted to the ecosphere zone.** Class
+  Q (`h`/`e`/`c` all `True`) and Class W (`h`/`e` `True`) both carry a
+  `life_chemical`, but weren't restricted to zone `e` like every other
+  life-bearing class already was — meaning a life-bearing Q or W world could
+  be generated directly in the hot or cold zone. Both are now `e`-only
+  (`h`/`c` `False`); Q's "eccentric orbit" flavor still holds fully confined
+  to the ecosphere zone, and W's "tidally locked" identity is arguably more
+  scientifically apt restricted to the ecosphere zone (real tidally-locked
+  *habitable* worlds are a real, actively studied trope specifically because
+  a cool star's habitable zone sits close enough in for tidal locking to be
+  near-guaranteed — e.g. TRAPPIST-1's planets, Proxima b).
+  New regression test `test_life_bearing_classes_are_ecosphere_only`
+  (`src/tests/test_planets.py`) locks this in for every class with a
+  `life_chemical`, not just the ones on the separately-curated
+  `HABITABLE_PLANET_CLASSES` list.
+- **Description/atmosphere-text cleanup across `PLANET_CLASSES`.** Several
+  classes' `description` field repeated a word the render template
+  (`planetData.to_paragraph_list`) already supplies via its own "with an
+  atmosphere of {atmosphere}" or "with a composition of {composition}"
+  clause, producing genuinely broken rendered sentences — e.g. Class B
+  previously rendered "...a small, molten world **with a thin atmosphere
+  with an atmosphere of** a mix of helium, sodium, and oxygen...". Fixed for
+  Classes B, E, K, N, Q, W, X, and Y — descriptive detail that belonged on
+  the atmosphere field (e.g. "thin", "dense, reducing") was moved there
+  instead of dropped, and Y's atmosphere field (previously the only one not
+  ending in a named gas mixture) reworded to "a turbulent, toxic, and
+  irradiated mix of gases".
+
+## [5.3.7] - 2026-09-07
+
+### Changed
+- **Greenhouse-formula fix and per-class climate tuning.** The prior
+  `greenhouse_factor` formula (`planetPhysics.calculate_atmospheric_conditions`)
+  used `atm_molar_density` as its only lever, scaled by a single shared
+  `CO2_MAX_GREENHOUSE_FACTOR` cap (5) — real Earth air's own molar mass
+  already produced `greenhouse_factor ≈ 3.33` under that formula, driving
+  Class M's mean surface temperature to 362K instead of ~288K, and Mars and
+  Venus (nearly identical real molar mass, ~100x different real greenhouse
+  forcing) could never be told apart by molar mass alone.
+  - `CO2_MAX_GREENHOUSE_FACTOR` (now 500) is a generous safety ceiling, not
+    the calibration knob.
+  - New per-class `PLANET_CLASSES` keys — `albedo_range` (extended beyond
+    Class P, which introduced it), `atm_molar_density_range`,
+    `atm_density_range`, and `greenhouse_multiplier_range` — give every
+    tuned class independent control of composition (molar density),
+    quantity (mass density), and potency (greenhouse multiplier), following
+    the exact override pattern `albedo_range` established for Class P.
+    Class N's old hardcoded `atm_density = 65` / `atm_molar_density = max`
+    special case in `planetPhysics.generate_planet_properties` is folded
+    into this same general mechanism.
+  - **Tuned this pass** (via the new `climate_tuning_cli.py`, see below):
+    M (Earth analog, ~286K/~99kPa), O (warm/wet ocean world, ~293K/~97kPa),
+    H (hot/dry desert, ~325K/~42kPa), K (Mars analog, ~231K/~0.57kPa), L (K
+    + vegetation, warmer/thicker than K, ~256K/~2.2kPa), N (Venus analog,
+    ~740K/~9.4MPa), E/F/G (a young, cooling progression, ~373K -> ~329K ->
+    ~292K, converging near M), and V (thick, hot Super-Earth, ~365K/~286kPa).
+    Class P and W are unchanged this pass (P already had a working
+    `albedo_range`; W's "extreme temperature variations" identity needs a
+    day/night model this generator doesn't have, not just range tuning).
+  - Text refinements: Class H's "and metals" -> "and mineral dust" (a real
+    desert's atmosphere lofts particulate, not metal vapor); Class O's
+    atmosphere text (previously byte-identical to Class M's) now mentions
+    water vapor; Class E's vague "hydrogen compounds" now names a real
+    Hadean/Archean-analog mix (water vapor, ammonia, methane); Class K's
+    "carbon dioxide" -> "a thin mix of carbon dioxide and nitrogen" (names
+    the real Mars-analog composition, not just class); Class V's atmosphere
+    text now reflects its tuned CO2-retention (not primordial H/He) identity.
+  - Class M's disabled gravity clamp (`planetPhysics.calculate_surface_gravity`)
+    deleted outright (it had been commented out, inert, since the
+    atmospheric-pressure formula fix; no longer worth keeping around "in
+    case it needs restoring").
+- **New: `src/tests/climate_tuning_cli.py`.** A human-driven tuning tool
+  (mirrors `physical_plausibility_cli.py`'s batch-generate-and-report
+  pattern, reusing `stellarObjects.plausibility`'s engine): generates N
+  bodies of one class, reports summary stats, and — for classes with a
+  direct real-world analog (M/Earth, K/Mars, N/Venus) — a delta line against
+  that reference. `--albedo`/`--molar-density`/`--density`/`--greenhouse`
+  flags temporarily monkeypatch that class's `PLANET_CLASSES` entry for the
+  run only, so candidate values can be iterated without editing source
+  between runs.
+- **New: `src/tests/test_climate_tuning.py`.** Regression suite locking in
+  the tuning above via generously-toleranced bands (Class M/N/K within
+  Earth/Venus/Mars-like ranges) and relative orderings (N hottest/
+  highest-pressure of the tuned classes; K colder/thinner than L; L colder
+  than M; H hotter/drier than O; E > F > G cooling progression converging
+  near M; M < V < N) rather than brittle exact-value assertions, since
+  generation is inherently stochastic.
+- `test_full_matrix.py`/`test_planets.py`'s atmospheric-pressure sanity
+  bound raised from `1e7` to `5e7` Pa — Class N now legitimately reaches
+  ~9-15MPa depending on host star luminosity (previously ~2.98MPa mean, per
+  the greenhouse-formula bug above), and the old bound was sized for the
+  un-tuned, incorrectly-cold N. `test_planet_physics_fixes.py`'s
+  `test_class_p_has_own_albedo_range_distinct_from_default` updated to
+  check P's range differs from M's own new tuned range, rather than
+  asserting M has no override at all.
+
+## [5.3.6] - 2026-09-07
+
+### Added
+- **Galaxy-scale coordinate system (Track C), merged.** Sectors can now
+  be placed on a galaxy-wide, radial shell/Fibonacci-sphere tiling
+  (`docs/design/galaxy-coordinate-system.md` sections 0-8) instead of
+  existing only in isolation:
+  - **Schema v3 -> v4** (`stellarObjects/schema.sql`): `sectors` gains six
+    nullable galaxy-frame columns (`center_x/y/z_pc`, `galactic_radius_pc`,
+    `shell_index`, `shell_slot_index`), NULL together for a sector never
+    placed in a galaxy. `_db.migrate_database`'s new `_migrate_v3_to_v4`
+    handles the upgrade (existing `_migrate_v1_to_v2`/`_migrate_v2_to_v3`
+    updated in lockstep, per that function's "each hop maps straight to
+    the current schema" design); `docs/database-schema.md`'s schema
+    history documents the change.
+  - **`stellarObjects/galaxyGeometry.py`** (new): the shell/Fibonacci-sphere
+    tiling primitives (`shell_sector_count`, `shell_radius_pc`,
+    `sector_position_pc`) and `enumerate_sectors_within_radius` — an
+    exact, two-prune generation-unit primitive that finds every sector
+    address within a radius of an arbitrary galaxy-space point without
+    ever scanning a whole shell's slot count (design doc section 8).
+  - **`galaxyGen.py`** (new, repo root): a CLI generating many sectors as
+    one galaxy, reusing `sectorGen.py`'s own per-sector generation/save
+    path. `--shell K` batch-generates a whole radial shell (guarded by
+    `LARGE_SHELL_WARNING_THRESHOLD`, needing `--limit`/`--yes` above it);
+    `--center-sector ID --radius-pc R` generates a local neighborhood
+    around an already galaxy-placed sector. Either mode skips slots a
+    sector already occupies.
+  - **`GALACTIC_CENTER_DISTANCE_LY` is now per-sector**, not a single
+    fixed constant: `Star.calculate_system_perimeter`/
+    `BinaryStarProxy._calculate_system_perimeter_static` accept a
+    `galactic_center_dist_ly` override, threaded from `galaxyGen.py`
+    through `StarSystem`/`Star`/`BinaryStarProxy`, falling back to the
+    old fixed constant for unplaced/standalone sectors
+    (`sectorGen.py`'s own CLI unaffected).
+  - `stellarObjects/utils.py` gains `mpc_to_pc`/`pc_to_mpc` (exact) and
+    `pc_to_ly`/`ly_to_pc` (display-string conversions), per the design
+    doc's unit-choice section.
+  - New end-to-end coverage: `src/tests/test_galaxy_gen.py` runs
+    `galaxyGen.py`'s actual CLI entry point (both `--shell` batch mode
+    and `--center-sector` local-neighborhood mode) against a real
+    temporary database, asserting correct shell/slot addresses, correct
+    stored positions, no duplicate slots, and that already-occupied
+    slots are skipped on re-run — the gap `docs/TODO.md`'s Phase 4 entry
+    flagged as not yet done when this was paused mid-session. Developed on
+    a branch cut before Track A's completion and the TODO/FIXME-comment
+    migration (5.3.5); merged into `main` after both, with no functional
+    changes needed beyond a `test_db_migration.py` assertion that had to
+    decompress the (now gzip-compressed, per Track B) v3->v4 migration
+    backup the same way the existing v1->v2 backup test already did.
+
+## [5.3.5] - 2026-09-07
+
+### Fixed
+- **Atmospheric pressure is no longer independent of gravity**
+  (`stellarObjects/planetPhysics.py`): the barometric-formula pressure
+  calculation algebraically canceled gravity out entirely (`atmospheric_pressure
+  = atm_density * R * T / atm_molar_density`), so a Neptune-gravity gas giant
+  and a Jupiter-gravity one produced the same pressure. A new
+  `_atmosphere_retention_factor(gravity_g)` (linear, normalized to 1.0 at
+  Earth gravity) now scales an *effective* atmospheric density used only in
+  the pressure calculation (not `planet.atm_density` itself, which also
+  feeds the gas-giant density blend), reintroducing a real, tunable
+  gravity/pressure relationship (Spearman correlation on a mixed
+  terrestrial/gas-giant sample now > 0.5, vs. ~-0.11 before).
+- **Class P ("cold, glaciated") is colder than Class M again**: gave Class P
+  its own `albedo_range` (0.5-0.7, matching real ice/snow Bond albedo)
+  instead of sharing the default rocky/Earth-like range (0.12-0.35) with
+  every other terrestrial class. Previously P and M were statistically
+  indistinguishable in temperature once the disabled clamp was removed (see
+  `docs/analysis/habitability-atmosphere-sanity-review.md`); P's cold
+  identity now comes from the unclamped physics instead of a post-hoc
+  override.
+- Completes Track A (see [5.3.4]'s gas-giant density/greenhouse fixes) --
+  8682 tests passing, including 10 new regression tests in
+  `src/tests/test_planet_physics_fixes.py`.
+
 ## [5.3.4] - 2026-09-07
 
 ### Fixed
@@ -123,7 +586,7 @@
 - **`webconfig.json.example` moved into `src/html/`**; the real, gitignored
   `webconfig.json` stays at the repo root, outside Apache's `src/html/`
   `DocumentRoot`, for the same security reason `db/` already lives there
-  (see `docs/WEBCONFIG.md`).
+  (see `docs/webconfig.md`).
 - **`WEBCONFIG.md` moved into `docs/`**, alongside this session's
   `docs/design/`/`docs/analysis/` additions, consolidating loose
   documentation in one place (`README.md`/`LICENSE.md`/`TODO.md`/
@@ -234,7 +697,7 @@
   `base_url`, plus unused placeholder fields (`db_username`, `db_password`,
   `db_name`) reserved for a possible future non-SQLite backend. Kept
   outside `src/html/`'s served document root, the same way `db/` already is.
-  See [`WEBCONFIG.md`](WEBCONFIG.md) for full documentation.
+  See [`docs/webconfig.md`](docs/webconfig.md) for full documentation.
 
 ## [5.2.5] - 2026-09-06
 

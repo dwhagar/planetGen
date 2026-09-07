@@ -21,7 +21,7 @@ from stellarObjects import program_constants as prog_c
 # A spread of host classes: small/large terrestrial and gas giants, in
 # whichever zone each actually supports (see PLANET_CLASSES h/e/c flags).
 HOST_CLASSES_AND_ZONES = [
-    ("M", "e"), ("D", "h"), ("C", "c"), ("J", "c"), ("S", "c"), ("I", "c"), ("A", "h"),
+    ("M", "e"), ("D", "h"), ("C", "c"), ("J", "c"), ("T", "c"), ("I", "c"), ("A", "h"),
 ]
 
 

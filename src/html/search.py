@@ -47,7 +47,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 # layout) so `stellarObjects` is importable even when it hasn't been
 # `pip install`-ed system-wide -- true for the default deployment layout
 # (`html/` and `src/` as siblings under /var/lib/planetGen).
-sys.path.append(os.path.join(os.path.dirname(_HTML_DIR), "src"))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
 from dbutil import esc, fetch_all, fetch_one, open_readonly, resolve_db_path
 from page import run
@@ -436,6 +436,16 @@ def _stars_panel(conn, db_name, spectral_tags, luminosity_tags, term):
 
 
 def _planets_panel(conn, db_name, class_tags, body_tags, life_tags, term):
+    # TODO: this panel has no way to filter or sort by planet size
+    # (planets.radius_km) -- only by the tag facets above (class/body/
+    # life) plus a name substring. "Class D but smaller than the Moon" or
+    # "these results, biggest first" can't be expressed today. Unlike the
+    # existing tag facets, radius_km is continuous, not a small set of
+    # discrete values, so it doesn't fit the _facet_options_* pattern
+    # as-is -- would need either range-bucketed tags (e.g. "< 5,000 km",
+    # "5,000-15,000 km", ...) or a plain sortable column header on this
+    # table (ORDER BY p.radius_km), plus matching CLI-side support in
+    # src/queryDb.py. See docs/TODO.md, "Investigate Further".
     clauses, params = [], []
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")

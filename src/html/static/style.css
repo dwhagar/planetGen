@@ -275,35 +275,37 @@ tbody tr:last-child td {
   font-size: 0.75em;
 }
 
-/* System page: rendered description + floating table-of-contents */
-.description-layout {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 2rem;
-}
+/* System page: rendered description -- the table-of-contents (.toc) is
+   fixed in the right-hand margin of the window (see below) rather than
+   living inline next to the prose, so it never narrows the reading column. */
 
-.description-layout .prose {
-  flex: 1 1 28rem;
-  min-width: 0;
-}
-
+/* Right-hand margin rail, mirroring .sidenav on the left. Only shown once
+   the window is wide enough to have real margin space beyond the centered
+   `body` column (max-width 64rem) for it to live in without overlapping
+   the content; narrower windows just don't get a TOC. */
 .toc {
-  flex: 0 0 13rem;
-  position: sticky;
-  top: 1.5rem;
-  align-self: flex-start;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
-  max-height: calc(100vh - 3rem);
-  overflow-y: auto;
+  display: none;
 }
 
-.toc h3 {
-  margin: 0 0 0.5rem;
+@media (min-width: 90rem) {
+  .toc {
+    display: block;
+    position: fixed;
+    top: 5rem;
+    right: 1.5rem;
+    width: 14rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+.toc-title {
+  margin: 0;
   font-size: 0.78rem;
   font-weight: 650;
   text-transform: uppercase;
@@ -313,7 +315,7 @@ tbody tr:last-child td {
 
 .toc ul {
   list-style: none;
-  margin: 0;
+  margin: 0.5rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -352,6 +354,193 @@ tbody tr:last-child td {
 .error {
   color: var(--error);
   font-weight: 600;
+}
+
+/* Sector map: interactive 3D cube + star dots (html/lib/starmap.py,
+   html/static/sectormap.js) */
+.starmap-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* Fixed-size, clipped "window" the interactive map lives in -- roughly
+   the footprint the old static isometric SVG occupied. Without this,
+   `.starmap-zoom`'s `scale()` (zooming in) and `.starmap-scene`'s
+   rotation (a wide/tall cube diagonal at some angles) both let the map
+   grow past its panel and draw over surrounding page content instead of
+   staying confined to one spot. `overflow: hidden` here clips that --
+   the 3D content inside still renders/rotates/occludes exactly the same,
+   this only bounds where it's visible from the *outside*. */
+.starmap-viewport {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  width: min(100%, 22rem);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Zoom lives on its own wrapper *outside* `.starmap-stage` rather than
+   between it and `.starmap-scene` (which holds the rotation transform),
+   so `scale()` just magnifies the whole already-rendered 3D scene as a
+   flat unit -- exactly what "zoom" should do -- instead of getting mixed
+   into the rotation math itself. */
+.starmap-zoom {
+  display: inline-block;
+}
+
+.starmap-stage {
+  display: inline-block;
+  /* Deliberately no `perspective` here -- a vanishing-point projection
+     turns billboarding each star dot to face the camera into a genuine
+     per-object, camera-relative rotation problem (confirmed the hard
+     way: a plain counter-rotation only cancelled `.starmap-scene`'s
+     rotation correctly at the one angle it was tested at, and broke
+     differently at another). Without `perspective`, this is a pure
+     orthographic 3D scene instead -- `preserve-3d`'s automatic
+     depth-based occlusion works exactly the same either way (it compares
+     z-depth among siblings, independent of whether a perspective
+     projection is also applied), and a schematic sector map has no real
+     need for vanishing-point foreshortening anyway. */
+  cursor: grab;
+  /* This element owns drag-to-rotate itself (see sectormap.js) --
+     without this, touch browsers intercept a vertical drag as page
+     scroll before our own pointer handlers see it. */
+  touch-action: none;
+  border-radius: var(--radius);
+}
+
+.starmap-stage:active {
+  cursor: grabbing;
+}
+
+.starmap-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.starmap-scene {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.cube-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+  /* Purely decorative -- a transparent-background div is still a full
+     hit-testable rectangle, and a face's flat 2D box can sit in front of
+     a dot that's actually nearer the viewer in true 3D (CSS hit-testing
+     for preserve-3d siblings isn't reliably depth-aware the way painting
+     is), which would otherwise swallow clicks meant for the dot behind
+     it. Dragging still works: `.starmap-stage` (an ancestor) is what
+     `sectormap.js` listens on, not the faces themselves. */
+  pointer-events: none;
+}
+
+.star-dot-anchor {
+  /* Positions one star (left/top for x/y, translateZ() for z, both set
+     inline per-dot by lib/starmap.py) -- carries no rotation of its own,
+     so it stays wherever `.starmap-scene`'s rotation puts it. Billboard
+     counter-rotation lives on the *inner* `.star-dot` instead (updated
+     live by sectormap.js), which is what keeps the visible circle facing
+     the camera regardless of scene rotation, instead of going edge-on. */
+  position: absolute;
+  /* Required for that counter-rotation to actually work: the default
+     `flat` here would flatten `.star-dot`'s own rotation into this
+     anchor's 2D plane *before* `.starmap-scene`'s rotation is applied --
+     harmless-looking for a circle (rotating a circle within its own flat
+     plane is invisible) but it means the counter-rotation never reaches
+     the real 3D composition at all, so the dot still goes edge-on
+     exactly as if there were no billboarding code running. Confirmed by
+     testing: adding this turned an otherwise-correct counter-rotation
+     formula from "still edge-on at almost every angle" to "circular at
+     every angle tested". */
+  transform-style: preserve-3d;
+}
+
+.star-dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 1.2px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.star-dot:hover,
+.star-dot:focus-visible {
+  border-color: var(--accent);
+  border-width: 2px;
+  outline: none;
+}
+
+.starmap-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 14rem;
+  min-width: 12rem;
+}
+
+.starmap-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.starmap-btn {
+  font: inherit;
+  font-weight: 600;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+}
+
+.starmap-btn:hover {
+  border-color: var(--accent);
+}
+
+.starmap-info {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.9rem;
+}
+
+.starmap-info h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.starmap-info dl {
+  margin: 0 0 0.85rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.6rem;
+}
+
+.starmap-info dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.starmap-info dd {
+  margin: 0;
 }
 
 /* Search page: tag facets, name-search form, active-filter chips */

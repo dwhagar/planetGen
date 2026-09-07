@@ -199,6 +199,69 @@ def milliparsecs_to_ly(mpc):
     return au * physical_constants.AU_TO_LY
 
 
+def mpc_to_pc(mpc):
+    """
+    Converts a distance in milliparsecs (mpc) to parsecs (pc). Exact --
+    milliparsecs and parsecs are the same unit family, `1/1000` apart, so
+    this is a single power-of-ten scaling with no AU round-trip (contrast
+    `milliparsecs_to_ly`, which does need one).
+
+    Args:
+        mpc (float): The distance in milliparsecs.
+
+    Returns:
+        float: The distance in parsecs.
+    """
+    return mpc / 1000
+
+
+def pc_to_mpc(pc):
+    """
+    Converts a distance in parsecs (pc) to milliparsecs (mpc) -- the
+    inverse of `mpc_to_pc`. Exact, same reasoning.
+
+    Args:
+        pc (float): The distance in parsecs.
+
+    Returns:
+        float: The distance in milliparsecs.
+    """
+    return pc * 1000
+
+
+def pc_to_ly(pc):
+    """
+    Converts a distance in parsecs (pc) to light-years (ly), for
+    human-readable display (e.g. "~48,923 ly from the galactic core") --
+    see `docs/design/galaxy-coordinate-system.md` section 2. Not used by
+    the database persistence layer itself (which stores galaxy-scale
+    distances in parsecs directly); this exists purely for prose alongside
+    the same "display string next to the raw stored value" treatment
+    `table_*` columns get elsewhere in this schema.
+
+    Args:
+        pc (float): The distance in parsecs.
+
+    Returns:
+        float: The distance in light-years.
+    """
+    return pc * (physical_constants.AU_PER_PARSEC / physical_constants.LY_TO_AU)
+
+
+def ly_to_pc(ly):
+    """
+    Converts a distance in light-years (ly) to parsecs (pc) -- the inverse
+    of `pc_to_ly`. See that function's docstring.
+
+    Args:
+        ly (float): The distance in light-years.
+
+    Returns:
+        float: The distance in parsecs.
+    """
+    return ly * (physical_constants.LY_TO_AU / physical_constants.AU_PER_PARSEC)
+
+
 def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
@@ -311,6 +374,65 @@ def calculate_object_mass(object_class, object_radius, planet_classes, planet_de
     return volume_km3, mass
 
 
+def sample_bounded_bell(min_val, max_val, mode_fraction, spread_divisor=3.0, max_attempts=1000):
+    """
+    Draws a random value in [min_val, max_val] from a bounded bell-curve
+    (Gaussian) distribution peaking at `min_val + mode_fraction * (max_val -
+    min_val)`, instead of a flat uniform draw across the whole range.
+
+    `mode_fraction` (0.0-1.0) is "what fraction through the available range
+    is the statistically most common (modal) value" -- e.g. a class whose
+    real-world single-body analog sits 27% of the way from its declared
+    radius minimum to its maximum uses `mode_fraction=0.27` so generated
+    instances cluster around that real value instead of being spread flatly
+    across the whole declared range (see `program_constants.PLANET_CLASSES`'
+    own `size_mode` values and the real-world analogs their docstrings
+    cite).
+
+    The standard deviation self-adjusts to whichever bound is nearer the
+    mode (reaching it in `spread_divisor` steps, ~3-sigma by default) so a
+    mode pinned near one edge of the range still produces a legible bell
+    shape instead of wasting most of its probability mass outside the
+    range entirely. Uses rejection sampling (redraw until the result falls
+    in [min_val, max_val]) rather than clamping a raw Gaussian draw to the
+    bounds, which would pile spillover probability mass up at the boundary
+    and destroy the bell shape there; `max_attempts` is a termination
+    safety net (falls back to the clamped mean if never satisfied, which
+    the self-adjusting spread should make effectively unreachable in
+    practice for any reasonable `mode_fraction`).
+
+    Args:
+        min_val (float): Lower bound of the available range for this draw
+                         (not necessarily a class's full declared range --
+                         e.g. a moon's available radius may be further
+                         capped by its parent's Hill sphere).
+        max_val (float): Upper bound of the available range for this draw.
+        mode_fraction (float): 0.0-1.0, how far through [min_val, max_val]
+                               the distribution's peak sits.
+        spread_divisor (float, optional): How many standard deviations
+                                          reach the nearer bound from the
+                                          mode. Defaults to 3.0.
+        max_attempts (int, optional): Rejection-sampling attempt cap.
+
+    Returns:
+        float: The sampled value, guaranteed within [min_val, max_val].
+    """
+    if max_val <= min_val:
+        return min_val
+    mode_fraction = min(1.0, max(0.0, mode_fraction))
+    mean = min_val + mode_fraction * (max_val - min_val)
+    span = max_val - min_val
+    # Floored so a mode pinned exactly at an edge (fraction 0.0 or 1.0)
+    # doesn't collapse the spread to zero.
+    nearer_bound_distance = max(min(mean - min_val, max_val - mean), span * 0.02)
+    stdev = nearer_bound_distance / spread_divisor
+    for _ in range(max_attempts):
+        value = random.gauss(mean, stdev)
+        if min_val <= value <= max_val:
+            return value
+    return min(max(mean, min_val), max_val)
+
+
 def calculate_habitable_zone(luminosity):
     """
     Calculates the inner and outer boundaries of the habitable zone for a star.
@@ -387,6 +509,7 @@ def is_name_valid(name):
     - The name should not exist in the NLTK dictionary of words.
     - The name should not contain any substring from the NSFW (Not Safe For Work) word list.
     - The name should not contain more than two consecutive vowels.
+    - The name should not contain more than two consecutive consonants.
     - The name should not contain any of the defined bad consonant clusters.
 
     These checks help in generating names that are unique, appropriate, and sound plausible.
@@ -406,12 +529,18 @@ def is_name_valid(name):
             return False
     
     vowel_count = 0
+    consonant_count = 0
     for char in name_lower:
         if char in VOWELS:
             vowel_count += 1
+            consonant_count = 0
+        elif char.isalpha():
+            consonant_count += 1
+            vowel_count = 0
         else:
             vowel_count = 0
-        if vowel_count > 2:
+            consonant_count = 0
+        if vowel_count > 2 or consonant_count > 2:
             return False
 
     for cluster in BAD_CONSONANTS:
@@ -465,7 +594,7 @@ prefix/suffix lists to be extended individually.
 """
 
 
-def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True):
+def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True, syllable_fraction=1.0, max_length=None):
     """
     Generates a unique, phonetically pleasing name from a list of base names.
 
@@ -492,6 +621,33 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                             pass `False` here, or a single call splitting
                             internally would silently make the combined
                             result 3-4 words instead of the intended 2.
+        syllable_fraction (float): Fraction (0-1] of the shuffled base
+                            name's syllables to actually keep before the
+                            prefix/suffix are attached, trimming from the
+                            end. Default `1.0` keeps every syllable
+                            (unchanged behavior for stars/planets/moons).
+                            `sectorGen.generate_sector_name` passes `0.5`
+                            here so sector names -- built by joining two
+                            of these calls into one two-word name -- come
+                            out roughly half as long per word; base names
+                            long enough to still shrink always keep at
+                            least 1 syllable.
+        max_length (int): Optional hard cap, in characters, on the fully
+                            assembled name (base syllables + prefix +
+                            suffix, before capitalization). `None` (the
+                            default) leaves names uncapped. Chopping
+                            happens after the suffix is attached, so it's
+                            the backstop against `syllable_fraction`
+                            alone not being enough -- prefixes, suffixes,
+                            and the occasional spliced-in
+                            `UNIVERSAL_PHONEMES` chunk are fixed-ish
+                            overhead that doesn't shrink with
+                            `syllable_fraction`, so a long base name can
+                            still produce a longer-than-intended result
+                            without this. `sectorGen.generate_sector_name`
+                            passes `7` here alongside `syllable_fraction=0.5`
+                            to reliably keep each half of a sector name
+                            short.
 
     Returns:
         str: A newly generated, unique name.
@@ -503,6 +659,10 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
         syllables = split_into_syllables(name)
         if len(syllables) > 1:
             random.shuffle(syllables)
+
+        if syllable_fraction < 1.0 and len(syllables) > 1:
+            keep = max(1, round(len(syllables) * syllable_fraction))
+            syllables = syllables[:keep]
 
         if random.random() < UNIVERSAL_PHONEME_CHANCE:
             syllables.insert(random.randint(0, len(syllables)), secrets.choice(UNIVERSAL_PHONEMES))
@@ -530,9 +690,12 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                 name = name + suffix
         else:
             name = name + suffix
-            
+
+        if max_length is not None and len(name) > max_length:
+            name = name[:max_length]
+
         name = name.lower()
-        
+
         if is_name_valid(name):
             if allow_split:
                 name = split_long_word(name)

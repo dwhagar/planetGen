@@ -246,9 +246,16 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 # habitable zone compatibility, atmosphere type, and planet type ('t' for terrestrial, 'g' for gas giant).
 PLANET_CLASSES = {
     "A": {
-        "description": "a small, barren, and volcanic world",
+        # Radius ceiling raised to 7500 to absorb a formerly-separate
+        # "demon world" class's size range after its removal, with its
+        # toxic/irradiated flavor folded in here as a variant rather than
+        # kept as a separate class. See CHANGELOG.md for the full removal
+        # rationale.
+        "description": "a small, barren, and volcanic world, occasionally scarred by intense, toxic eruptions",
         "composition": "igneous silica and basalt",
-        "radius_range": (500, 5000),
+        "radius_range": (500, 7500),
+        # Mercury (2,439.7km) sits ~28% through this range.
+        "size_mode": 0.28,
         "h": True, "e": False, "c": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t",
@@ -260,11 +267,31 @@ PLANET_CLASSES = {
         }
     },
     "B": {
-        "description": "a small, molten world with a thin atmosphere",
-        "composition": "iron, potassium, and silicon",
-        "radius_range": (500, 5000),
+        # "with a thin atmosphere" moved off the description and onto the
+        # atmosphere field itself ("a thin mix of...") -- the description
+        # used to collide with the render template's own "with an
+        # atmosphere of {atmosphere}" clause (planetData.py's
+        # to_paragraph_list), producing "...world with a thin atmosphere
+        # with an atmosphere of...".
+        # Radius ceiling raised to 7500 to absorb the same formerly-separate
+        # "demon world" class's range as Class A above, and a second,
+        # formerly-separate "stripped core from a gas giant" class (no
+        # atmosphere) folded in as an alternate origin story for the same
+        # small-molten-world physical envelope, rather than kept as a
+        # separate atmosphere-less class -- real Mercury-analog worlds this
+        # close to their star already have only a negligible exosphere, so
+        # B's existing "thin" atmosphere already covers that "no atmosphere"
+        # identity closely enough. "and sulfur" added to the composition for
+        # the shared volcanic/irradiated theme. See CHANGELOG.md for the
+        # full removal rationale.
+        "description": "a small, molten world, occasionally the stripped core of a former gas giant",
+        "composition": "iron, potassium, silicon, and sulfur",
+        "radius_range": (500, 7500),
+        # Slightly below Class A's own Mercury anchor -- a freshly molten
+        # or newly-stripped world skews a bit smaller.
+        "size_mode": 0.25,
         "h": True, "e": False, "c": False,
-        "atmosphere": "a mix of helium, sodium, and oxygen",
+        "atmosphere": "a thin mix of helium, sodium, and oxygen",
         "type": "t",
         "life_chemical": None,
         "age_ranges": {
@@ -277,6 +304,10 @@ PLANET_CLASSES = {
         "description": "a dead world",
         "composition": "anthracite, basalt, and hydrocarbons",
         "radius_range": (500, 10000),
+        # Real small-body populations (asteroids, KBOs) follow a size-
+        # frequency distribution strongly weighted toward smaller objects,
+        # and this class's own broadest-of-any range skews the same way.
+        "size_mode": 0.20,
         "h": True, "e": True, "c": True,
         "atmosphere": None,
         "type": "t",
@@ -291,6 +322,10 @@ PLANET_CLASSES = {
         "description": "a small icy body",
         "composition": "frozen hydrocarbons and ice",
         "radius_range": (50, 500),
+        # Same real small-body size-frequency reasoning as Class C -- Ceres
+        # (469.7km) sits near this range's own ceiling, but the population
+        # as a whole skews toward its smaller end.
+        "size_mode": 0.25,
         "h": True, "e": True, "c": True,
         "atmosphere": None,
         "type": "t",
@@ -302,12 +337,34 @@ PLANET_CLASSES = {
         }
     },
     "E": {
-        "description": "a world with a molten core and crust, and a thin atmosphere",
+        # "and a thin atmosphere" moved off the description and onto the
+        # atmosphere field ("a thin mix of...") -- collided with the render
+        # template's own "with an atmosphere of {atmosphere}" clause
+        # otherwise (see Class B's note above).
+        "description": "a world with a molten core and crust",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Earth-scale range shared with F/G/M/N/O/P; no single real analog
+        # for a young, molten-crust world, so anchored near Earth's own
+        # (6,371km, ~27% through this range) like the rest of that group.
+        "size_mode": 0.27,
         "h": False, "e": True, "c": False,
-        "atmosphere": "hydrogen compounds",
+        # "hydrogen compounds" made concrete as a real Hadean/Archean-analog
+        # reducing mix (water vapor, ammonia, methane).
+        "atmosphere": "a thin mix of water vapor, ammonia, and methane",
         "type": "t",
+        # Hottest of the habitable (life-bearing) classes -- youngest,
+        # volcanic, "barely supports life." Dark volcanic rock/minimal ice
+        # keeps albedo low; the greenhouse_multiplier is the highest of the
+        # E/F/G progression, reflecting real methane/ammonia's outsized
+        # per-molecule greenhouse potency versus CO2. Verified via
+        # climate_tuning_cli.py --class E: mean surface_temperature ~374K
+        # over a 300-sample run -- the top of the E->F->G cooling
+        # progression toward M/O/K/L/N below.
+        "albedo_range": (0.10, 0.18),
+        "atm_molar_density_range": (0.0290, 0.0310),
+        "atm_density_range": (0.3, 1.2),
+        "greenhouse_multiplier_range": (4.5, 7.5),
         "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
@@ -319,9 +376,19 @@ PLANET_CLASSES = {
         "description": "a volcanic world with shallow seas and bacterial life",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Earth-scale anchor, see Class E's note.
+        "size_mode": 0.27,
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
         "type": "t",
+        # Middle step of the E->F->G cooling progression: cooler than E
+        # (higher albedo, lighter greenhouse_multiplier) but still hotter
+        # than G/M. Verified via climate_tuning_cli.py --class F: mean
+        # surface_temperature ~329K over a 300-sample run.
+        "albedo_range": (0.15, 0.22),
+        "atm_molar_density_range": (0.0295, 0.0315),
+        "atm_density_range": (0.3, 1.0),
+        "greenhouse_multiplier_range": (2.5, 4.0),
         "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
@@ -333,9 +400,20 @@ PLANET_CLASSES = {
         "description": "a rocky, barren world with simple life",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Earth-scale anchor, see Class E's note.
+        "size_mode": 0.27,
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
         "type": "t",
+        # Final step of the E->F->G cooling progression, converging near
+        # M/O's own Earth-like range (the point of the progression --
+        # "moving toward an M, O, K, L, or N"). Verified via
+        # climate_tuning_cli.py --class G: mean surface_temperature ~292K
+        # over a 300-sample run (vs Class M's ~286K, Class O's ~293K).
+        "albedo_range": (0.20, 0.28),
+        "atm_molar_density_range": (0.0300, 0.0320),
+        "atm_density_range": (0.2, 0.8),
+        "greenhouse_multiplier_range": (1.3, 2.0),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.05),
@@ -347,9 +425,26 @@ PLANET_CLASSES = {
         "description": "a desert world with minimal water (less than 10% liquid water)",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Earth-scale anchor, see Class E's note.
+        "size_mode": 0.27,
         "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of oxygen, nitrogen, argon, and metals",
+        # "metals" replaced with "mineral dust" -- real deserts loft
+        # particulate, not metal vapor (that's a magma-ocean/ultra-hot-rocky
+        # -exoplanet phenomenon, not a match for a class that still has some
+        # liquid water).
+        "atmosphere": "a mix of oxygen, nitrogen, argon, and mineral dust",
         "type": "t",
+        # Tuned hot/dry: lower albedo (dark exposed rock, minimal ice/cloud
+        # cover) and a heavier, more CO2-loaded molar density than M/O drive
+        # the heat; lower atm_density than M/O keeps it drier/thinner
+        # (minimal water -> less retained humidity). Verified via
+        # climate_tuning_cli.py --class H: mean surface_temperature ~325K
+        # (vs Class M's ~286K), mean atmospheric_pressure ~43kPa (vs Class
+        # M's ~99kPa) over a 400-sample run.
+        "albedo_range": (0.18, 0.26),
+        "atm_molar_density_range": (0.0325, 0.0345),
+        "atm_density_range": (0.5, 0.9),
+        "greenhouse_multiplier_range": (2.6, 3.2),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
@@ -361,7 +456,19 @@ PLANET_CLASSES = {
         "description": "an ice giant with a tilted magnetic field",
         "composition": "rock, ice, methane, and ammonia",
         "radius_range": (15000, 50000),
-        "h": False, "e": False, "c": True,
+        # Uranus (25,362km) / Neptune (24,622km) sit ~28-30% through this
+        # range.
+        "size_mode": 0.28,
+        # Added "e" (warm-Neptune analog -- real Neptune-mass planets in or
+        # near a star's temperate zone are a common, well-documented
+        # exoplanet category). Deliberately NOT given "h": real close-in,
+        # Neptune-mass planets are rare -- the observed "hot Neptune desert"
+        # -- because a star's X-ray/EUV irradiation photoevaporates a
+        # Neptune-mass H/He envelope down to a bare rocky/metal core well
+        # before it could stay class I; that outcome is already represented
+        # by Class B's "occasionally the stripped core of a former gas
+        # giant" (see Class B's note).
+        "h": False, "e": True, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
@@ -375,7 +482,20 @@ PLANET_CLASSES = {
         "description": "a gas giant with a turbulent atmosphere and rings",
         "composition": "hydrogen and helium",
         "radius_range": (25000, 250000),
-        "h": False, "e": False, "c": True,
+        # Jupiter (69,911km) / Saturn (58,232km) sit ~15-20% through this
+        # range.
+        "size_mode": 0.18,
+        # Added "h" and "e": real Jupiter/Saturn-mass gas giants are
+        # routinely found close to their star ("hot Jupiters", orbital
+        # period < 10 days) and at intermediate distances ("warm Jupiters",
+        # 10-365 days, sometimes within or near the habitable zone) as well
+        # as at Jupiter/Saturn-like wide separations ("cold Jupiters") --
+        # this is a standard three-way real observational classification,
+        # not a stretch. A warm/cold Jupiter placed in zone 'e' can also
+        # generate ordinary terrestrial moons via the existing moon-
+        # generation path, including habitable-class ones -- the
+        # "habitable exomoon around a giant planet" trope.
+        "h": True, "e": True, "c": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
@@ -386,12 +506,36 @@ PLANET_CLASSES = {
         }
     },
     "K": {
-        "description": "an adaptable world with a thin atmosphere",
+        # "with a thin atmosphere" dropped -- already collided with the
+        # render template's own "with an atmosphere of {atmosphere}" clause,
+        # and the atmosphere field below already says "a thin mix of...".
+        "description": "an adaptable world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (2500, 7500),
+        # Mars (3,389.5km) sits ~18% through this range.
+        "size_mode": 0.18,
         "h": False, "e": True, "c": False,
-        "atmosphere": "carbon dioxide",
+        "atmosphere": "a thin mix of carbon dioxide and nitrogen",
         "type": "t",
+        # Mars analog. Real Mars and Venus have almost identical mean
+        # atmospheric molar mass (~43.3 vs 43.45 g/mol) but differ by ~100x
+        # in greenhouse forcing -- composition (atm_molar_density) alone
+        # can't tell them apart, so K keeps a realistically heavy/CO2-like
+        # molar density (like N/Venus below) but gets a tiny
+        # greenhouse_multiplier instead of N's huge one: same composition,
+        # utterly different quantity/potency. Low atm_density keeps it
+        # genuinely thin (Mars' real ~0.020 kg/m^3). Note: K is generated in
+        # the same ecosphere zone as M (this model doesn't place classes at
+        # Mars' real, farther orbital distance), so its baseline equilibrium
+        # temperature runs warmer than real Mars regardless of albedo/
+        # greenhouse tuning -- verified via climate_tuning_cli.py --class K:
+        # mean surface_temperature ~231K (real Mars ~210K, +9.9%), mean
+        # atmospheric_pressure ~540Pa (real Mars ~610Pa, -11.6%) over a
+        # 300-sample run -- as close as achievable without a zone change.
+        "albedo_range": (0.34, 0.42),
+        "atm_molar_density_range": (0.0420, 0.0433),
+        "atm_density_range": (0.012, 0.025),
+        "greenhouse_multiplier_range": (0.02, 0.05),
         "life_chemical": ["Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.05),
@@ -403,9 +547,25 @@ PLANET_CLASSES = {
         "description": "a marginally habitable world with vegetation",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 7500),
+        # No single real analog; skewed toward the lower-mid range --
+        # smaller worlds retain a thinner, more "marginal" atmosphere more
+        # easily, consistent with this class's own tuning (see below).
+        "size_mode": 0.35,
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of argon, oxygen, and trace elements",
         "type": "t",
+        # K + "usually has vegetation" -> a modestly thicker, warmer, more
+        # retained atmosphere than K (still CO2/N2-leaning composition, but
+        # a meaningfully larger greenhouse_multiplier and atm_density than
+        # K's near-zero values) -- enough to support vegetation without
+        # approaching M's Earth-like identity. Verified via
+        # climate_tuning_cli.py --class L: mean surface_temperature ~256K
+        # (vs Class K's ~231K), mean atmospheric_pressure ~2.2kPa (vs
+        # Class K's ~0.54kPa, ~4x thicker) over a 300-sample run.
+        "albedo_range": (0.24, 0.30),
+        "atm_molar_density_range": (0.0400, 0.0430),
+        "atm_density_range": (0.03, 0.08),
+        "greenhouse_multiplier_range": (0.25, 0.45),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
@@ -417,9 +577,26 @@ PLANET_CLASSES = {
         "description": "a terrestrial Earth-like world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Earth (6,371km) sits ~27% through this range -- exact.
+        "size_mode": 0.27,
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, and argon",
         "type": "t",
+        # Tuned to real Earth: albedo ~0.29-0.31 (Earth's own Bond albedo,
+        # ~0.3), atm_molar_density ~0.0288-0.0292 kg/mol (real Earth air,
+        # ~0.02897), atm_density 1.3-1.55 kg/m^3 (near/above Earth's real
+        # ~1.225 -- the corner of the pressure formula that actually reaches
+        # ~1 atm, see docs/analysis/habitability-atmosphere-sanity-review.md),
+        # greenhouse_multiplier 1.65-1.85 (calibrates base_ratio -- the
+        # composition-only greenhouse proxy -- up to Earth's real ~33K
+        # greenhouse effect; see planetPhysics.calculate_atmospheric_conditions).
+        # Verified via climate_tuning_cli.py --class M: mean surface_temperature
+        # 286K (-0.6% vs 288K), mean atmospheric_pressure ~98.6kPa (-2.7% vs
+        # 101,325 Pa) over a 400-sample run across the full host-star grid.
+        "albedo_range": (0.29, 0.31),
+        "atm_molar_density_range": (0.0288, 0.0292),
+        "atm_density_range": (1.3, 1.55),
+        "greenhouse_multiplier_range": (1.65, 1.85),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
@@ -428,12 +605,46 @@ PLANET_CLASSES = {
         }
     },
     "N": {
-        "description": "a hot world with a dense, reducing atmosphere",
+        # "dense, reducing atmosphere" moved onto the atmosphere field
+        # itself -- collided with the render template's own "with an
+        # atmosphere of {atmosphere}" clause otherwise.
+        "description": "a hot world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Venus (6,051.8km) sits ~21% through this range -- exact.
+        "size_mode": 0.21,
         "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of carbon dioxide and sulfides",
+        "atmosphere": "a dense, reducing mix of carbon dioxide and sulfides",
         "type": "t",
+        # Venus analog -- tuned to Venus's real surface temperature (737K)
+        # and pressure (~9.2MPa). atm_molar_density near Venus's real
+        # ~0.04345 kg/mol (near-pure CO2); albedo 0.75-0.90 matches Venus's
+        # real highly-reflective cloud deck. greenhouse_multiplier
+        # (370-420) is far above Venus's own real ratio (~101) because this
+        # generator places every ecosphere class at the same zone-midpoint
+        # distance as Class M rather than at Venus's real, much closer
+        # orbit -- N's airless-equilibrium baseline runs colder than real
+        # Venus's, so it needs a considerably larger multiplier to still
+        # reach 737K from that colder start (see CO2_MAX_GREENHOUSE_FACTOR's
+        # docstring). atm_density (270-320 kg/m^3) is similarly well above
+        # Venus's real ~65 kg/m^3 surface air density: this model's
+        # scale-height formula (calculate_atmospheric_conditions) uses the
+        # pre-greenhouse airless-equilibrium temperature rather than the
+        # final, greenhouse-boosted surface temperature, which understates
+        # scale height (and therefore pressure, P = density * g * H) by
+        # roughly the same ~4.4x factor the temperature gap implies --
+        # compensated for here via atm_density rather than by changing the
+        # shared scale-height formula, which affects every class. Replaces
+        # the previous hardcoded `atm_density = 65` / `atm_molar_density =
+        # max` special case in planetPhysics.py with the same general
+        # per-class-override mechanism every other class now uses. Verified
+        # via climate_tuning_cli.py --class N: mean surface_temperature
+        # ~737K (-0.1% vs real Venus), mean atmospheric_pressure ~9.25MPa
+        # (+0.5% vs real Venus) over a 300-sample run.
+        "albedo_range": (0.75, 0.90),
+        "atm_molar_density_range": (0.0433, 0.0435),
+        "atm_density_range": (270, 320),
+        "greenhouse_multiplier_range": (370, 420),
         "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
@@ -445,9 +656,29 @@ PLANET_CLASSES = {
         "description": "a pelagic (ocean) world with greater than 90% of its surface covered in liquid water",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
+        # Earth-scale anchor, see Class E's note.
+        "size_mode": 0.27,
         "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of oxygen, nitrogen, and argon",
+        # Text now distinct from Class M's identical-before-this "oxygen,
+        # nitrogen, and argon" -- water vapor is a real, tracked constituent
+        # here (and is *lighter* than N2/O2, hence O's atm_molar_density_range
+        # sitting below M's, not above -- see the tuning note below).
+        "atmosphere": "a humid mix of oxygen, nitrogen, and water vapor",
         "type": "t",
+        # Tuned warm/wet: a higher albedo than M (more cloud cover over an
+        # ocean-dominated surface -- a real waterworld-climate-literature
+        # finding) is more than offset by a stronger greenhouse_multiplier
+        # (water vapor's real greenhouse contribution), netting *warmer*
+        # than M despite the higher albedo. atm_molar_density is lighter
+        # than M's (water vapor's molar mass, 18g/mol, is below N2/O2's) --
+        # physically correct even though counterintuitive. Verified via
+        # climate_tuning_cli.py --class O: mean surface_temperature ~293K
+        # (vs Class M's ~286K), mean atmospheric_pressure ~94kPa over a
+        # 400-sample run.
+        "albedo_range": (0.28, 0.35),
+        "atm_molar_density_range": (0.0270, 0.0285),
+        "atm_density_range": (1.2, 1.5),
+        "greenhouse_multiplier_range": (2.1, 2.4),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
@@ -459,9 +690,20 @@ PLANET_CLASSES = {
         "description": "a cold, glaciated world",
         "composition": "silicon, iron, magnesium, and ice",
         "radius_range": (5000, 10000),
+        # No single real analog; skewed slightly above the Earth anchor --
+        # icy worlds carry proportionally more low-density ice content,
+        # plausibly running a bit larger for a given mass than a pure
+        # rock/iron world would.
+        "size_mode": 0.30,
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, and argon (thinning with age)",
         "type": "t",
+        # Icy/glaciated surfaces reflect far more sunlight than the default
+        # rocky/Earth-like range (0.12, 0.35) -- real ice/snow Bond albedo is
+        # roughly 0.5-0.9 (e.g. Europa ~0.68, Enceladus ~0.81). Gives P a
+        # genuine cold bias from the unclamped physics instead of relying on
+        # a post-hoc temperature clamp (see planetPhysics.calculate_atmospheric_conditions).
+        "albedo_range": (0.5, 0.7),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.08, 0.1),
@@ -473,8 +715,19 @@ PLANET_CLASSES = {
         "description": "a world with an eccentric orbit and extreme temperature variations",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (2000, 7500),
-        "h": True, "e": True, "c": True,
-        "atmosphere": "a variable atmosphere (thin to dense) of nitrogen, oxygen, and argon",
+        # No single real analog; moderate lower-mid skew.
+        "size_mode": 0.35,
+        # Was h/e/c all True -- but Q carries a life_chemical (it's a
+        # life-bearing class), and habitable/life-bearing classes are
+        # restricted to the ecosphere zone only (every other
+        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V/W -- is
+        # already e-only; see test_life_bearing_classes_are_ecosphere_only in
+        # test_planets.py). Its "eccentric orbit" flavor still
+        # holds fully confined to zone e -- a highly eccentric orbit *within*
+        # the habitable zone still swings meaningfully between its own
+        # perihelion and aphelion.
+        "h": False, "e": True, "c": False,
+        "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t",
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
@@ -483,54 +736,21 @@ PLANET_CLASSES = {
             "slow": (25.0, 50.0)
         }
     },
-    "R": {
-        "description": "an ejected, geologically active world",
-        "composition": "silicate compounds and iron",
-        "radius_range": (7500, 10000),
-        "h": False, "e": False, "c": False,
-        "atmosphere": "volcanic outgassing",
-        "type": "t",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
-    },
-    "S": {
-        "description": "a supergiant that shields the inner planets",
-        "composition": "hydrogen and helium",
-        "radius_range": (250000, 50000000),
-        "h": False, "e": False, "c": True,
-        "atmosphere": "a mix of hydrogen and helium",
-        "type": "g",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
-    },
     "T": {
+        # Radius corrected 250,000-25,000,000km -> 15,000-55,000km -- real
+        # brown-dwarf/giant-planet physics (electron degeneracy pressure
+        # keeps sub-stellar objects within ~15% of Jupiter's own radius,
+        # ~69,911km, regardless of mass) ruled out the old range regardless.
+        # Now spans ice-giant-to-Saturn scale (Neptune 24,622km, Saturn
+        # 58,232km), staying meaningfully below Class J's Jupiter-and-up
+        # range -- a genuine "dwarf" relative to it.
         "description": "a gas dwarf with a thick atmosphere",
         "composition": "hydrogen, helium, and hydrocarbons",
-        "radius_range": (250000, 25000000),
+        "radius_range": (15000, 55000),
+        # Neptune (24,622km) sits ~24% through this range.
+        "size_mode": 0.24,
         "h": False, "e": False, "c": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
-        "type": "g",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
-    },
-    "U": {
-        "description": "an ultragiant that could become a star",
-        "composition": "hydrogen and helium",
-        "radius_range": (25000000, 60000000),
-        "h": False, "e": False, "c": True,
-        "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
         "age_ranges": {
@@ -543,9 +763,31 @@ PLANET_CLASSES = {
         "description": "a Super-Earth with high gravity",
         "composition": "iron, iridium, tungsten, and nickel",
         "radius_range": (10000, 15000),
+        # The real rocky-to-gaseous transition radius (where planets start
+        # retaining a significant H/He envelope) is commonly cited around
+        # 1.5-1.6 Earth radii (~9,500-10,200km) -- right at this range's own
+        # floor, so peaked low to stay on the rocky side of that boundary.
+        "size_mode": 0.25,
         "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of carbon dioxide, oxygen, hydrogen, and helium",
+        # Resolves the composition fork research flagged (H/He-retained
+        # sub-Neptune-like reading vs. CO2-retained reading) toward the
+        # latter -- "thick atmosphere with high surface temperature and
+        # pressure" needs the heavier, more CO2-leaning composition; trace
+        # hydrogen/helium kept as a minor primordial remnant, not the bulk.
+        "atmosphere": "a thick mix of carbon dioxide, oxygen, and trace hydrogen and helium",
         "type": "t",
+        # High gravity (from the larger radius_range above, mean ~1.7g)
+        # retains a genuinely thick, hot atmosphere: heavier molar density
+        # and a stronger greenhouse_multiplier than M/O/H, plus an
+        # atm_density range well above every other terrestrial class except
+        # N. Verified via climate_tuning_cli.py --class V: mean
+        # surface_temperature ~365K, mean atmospheric_pressure ~296kPa
+        # (~2.9 atm) over a 300-sample run -- clearly hot and thick, short
+        # of N/Venus's full extreme.
+        "albedo_range": (0.20, 0.30),
+        "atm_molar_density_range": (0.0380, 0.0420),
+        "atm_density_range": (2.0, 5.0),
+        "greenhouse_multiplier_range": (3.5, 6.0),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.1),
@@ -557,7 +799,23 @@ PLANET_CLASSES = {
         "description": "a tidally locked world with extreme temperature variations",
         "composition": "iron, potassium, and silicon",
         "radius_range": (500, 10000),
-        "h": True, "e": True, "c": False,
+        # No single real analog; real tidally-locked habitable worlds
+        # studied (TRAPPIST-1's planets, Proxima b) are Earth-scale or
+        # smaller, so skewed toward the lower-mid range.
+        "size_mode": 0.35,
+        # Was h/e True (valid in the hot zone too) -- but W carries a
+        # life_chemical, and habitable/life-bearing classes are restricted
+        # to the ecosphere zone only (see Class Q's note above and
+        # test_life_bearing_classes_are_ecosphere_only in
+        # test_planets.py). This also happens to be more
+        # scientifically apt: real tidally-locked *habitable* worlds are an
+        # actively studied trope specifically because a cool star's
+        # habitable zone sits close enough in for tidal locking to be near-
+        # guaranteed (e.g. TRAPPIST-1's planets, Proxima b) -- a
+        # tidally-locked world already searingly placed in the hot zone
+        # wouldn't need "extreme temperature variations" to explain why it's
+        # inhospitable.
+        "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, sodium, and hydrogen",
         "type": "t",
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
@@ -567,43 +825,22 @@ PLANET_CLASSES = {
             "slow": (8.0, 50.0)
         }
     },
-    "X": {
-        "description": "a stripped core from a gas giant with no atmosphere",
-        "composition": "molten iron",
-        "radius_range": (500, 5000),
-        "h": True, "e": False, "c": False,
-        "atmosphere": None,
-        "type": "t",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.01, 0.1),
-            "normal": (1.0, 10.0),
-            "slow": (10.0, 100.0)
-        }
-    },
-    "Y": {
-        "description": "a 'demon' class world with a toxic atmosphere",
-        "composition": "molten iron, sulfur, and deuterium",
-        "radius_range": (5000, 7500),
-        "h": True, "e": False, "c": False,
-        "atmosphere": "a turbulent, toxic, and irradiated atmosphere",
-        "type": "t",
-        "life_chemical": None,
-        "age_ranges": {
-            "fast": (0.0, 0.005),
-            "normal": (0.0, 0.5),
-            "slow": (0.0, 3.0)
-        }
-    }
 }
 
-# Probabilities for each planet class to be generated
+# Probabilities for each planet class to be generated. Five classes were
+# removed over time: two small hot-zone rocky variants merged into A/B, two
+# brown-dwarf-like sub-stellar classes cut entirely once their radius ranges
+# were corrected to real physics and turned out to be redundant
+# near-duplicates of each other, and Class R (never reachable -- h/e/c were
+# all False) cut entirely rather than left as permanent dead weight (see
+# CHANGELOG.md). Each removed class's weight was folded into the class(es)
+# that absorbed its concept rather than just dropped; R already carried a
+# weight of 0.0000, so nothing needed redistributing.
 PLANET_CLASS_PROBABILITIES = {
-    'A': 0.1399, 'B': 0.0722, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
-    'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0529, 'K': 0.0142, 'L': 0.0335,
-    'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001, 'R': 0.0000,
-    'S': 0.0001, 'T': 0.0001, 'U': 0.0001, 'V': 0.0045, 'W': 0.0001, 'X': 0.0002,
-    'Y': 0.0002
+    'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
+    'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0531, 'K': 0.0142, 'L': 0.0335,
+    'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001,
+    'T': 0.0001, 'V': 0.0045, 'W': 0.0001
 }
 
 # --- Life and Photosynthesis Data ---
@@ -797,15 +1034,25 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W
 list: A list of planet class codes that are considered habitable.
 """
 
-MOON_BLACKLIST = ['Q', 'R', 'V', 'W', 'X', 'Y']
+MOON_BLACKLIST = ['Q', 'V', 'W']
 """
 list: A list of planet class codes that cannot be generated as moons.
 """
 
-CO2_MAX_GREENHOUSE_FACTOR = 5
+CO2_MAX_GREENHOUSE_FACTOR = 500
 """
-int: The maximum greenhouse effect factor for CO2 used in this program's
-atmospheric model — a generation-tuning cap, not a measured physical value.
+int: A generous safety ceiling on greenhouse_factor (planetPhysics.py's
+calculate_atmospheric_conditions), not the per-class calibration knob --
+that's PLANET_CLASSES[cls]["greenhouse_multiplier_range"]. Real Venus's own
+airless-equilibrium-to-surface ratio is ~101, but this generator places
+every ecosphere-zone class (including N, the Venus analog) at the same
+zone-midpoint distance as Class M rather than at Venus's real, much closer
+orbital distance -- so N's own airless-equilibrium baseline runs colder than
+real Venus's, and needs a considerably larger greenhouse_multiplier than
+~101 to still reach Venus's absolute surface temperature from that colder
+starting point (see PLANET_CLASSES["N"]'s tuning note). 500 leaves headroom
+above N's tuned range while still guarding against a badly-configured
+future class producing a runaway/non-finite temperature.
 """
 
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.

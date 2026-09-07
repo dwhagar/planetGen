@@ -14,7 +14,7 @@ from urllib.parse import quote
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from dbutil import esc, list_databases, open_readonly, resolve_db_path
-from page import redirect, run
+from page import query_params, redirect, run
 
 
 def _counts(path):
@@ -75,9 +75,14 @@ def handler():
 # A choice of exactly one database isn't a choice -- skip the picker table
 # entirely and go straight to it, same as picking its only row would.
 # Zero (nothing to redirect to) and 2+ (an actual choice) both fall through
-# to the normal `run(handler)` picker below, unchanged.
+# to the normal `run(handler)` picker below, unchanged. `?all=1` (used by
+# the sidenav's Databases link -- see `lib/page.py`'s `_sidenav_html`)
+# forces the picker table even for a single database, since that's the
+# only way back to the database-info page (size, sector/system counts,
+# last-modified) on the single-database deployments this redirect would
+# otherwise strand every other page behind.
 _databases = list_databases()
-if len(_databases) == 1:
+if len(_databases) == 1 and not query_params().get("all"):
     redirect(f"browse.py?db={quote(_databases[0]['name'])}")
 else:
     run(handler)

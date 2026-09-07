@@ -122,7 +122,7 @@ def get_evolutionary_timeline(star):
         )
     else:
         output_sentences.append(
-            f"No significant evolutionary milestones are predicted to have occurred yet at this system's age."
+            "No significant evolutionary milestones are predicted to have occurred yet at this system's age."
         )
 
     # Join the sentences into a single paragraph

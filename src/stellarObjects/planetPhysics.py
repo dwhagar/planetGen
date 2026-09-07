@@ -22,7 +22,24 @@ import re
 import secrets
 
 from . import physical_constants, program_constants
-from .utils import calculate_object_mass, calculate_hill_sphere, reseed_rng
+from .utils import calculate_object_mass, calculate_hill_sphere, reseed_rng, sample_bounded_bell
+
+
+def _sample_class_radius(cls, min_radius, max_radius):
+    """
+    Draws a radius in [min_radius, max_radius] using `cls`'s declared
+    `size_mode` (see `program_constants.PLANET_CLASSES`), via
+    `utils.sample_bounded_bell` -- a bell-curve draw peaking at the
+    class's statistically-most-common size, rather than a flat uniform
+    draw across its whole declared range. `min_radius`/`max_radius` are
+    passed separately from `cls`'s own declared `radius_range` (rather
+    than read directly here) since a moon's actually-available range can
+    be narrower (capped by its parent's Hill sphere/mass) -- `size_mode`'s
+    "how far through the available range" reading is evaluated against
+    whatever range is actually being drawn from for this call.
+    """
+    size_mode = program_constants.PLANET_CLASSES[cls].get("size_mode", 0.5)
+    return sample_bounded_bell(min_radius, max_radius, size_mode)
 
 
 def get_planet_mass_ranges():
@@ -48,7 +65,12 @@ def get_planet_mass_ranges():
         max_radius *= physical_constants.KM_TO_M_FACTOR
         planet_type = data["type"]
 
-        min_density, max_density = physical_constants.PLANET_DENSITY[planet_type]  # g/cm^3
+        # Class-specific density range if declared (e.g. a brown-dwarf-like
+        # sub-stellar class, far denser than an ordinary gas giant -- see
+        # program_constants.PLANET_CLASSES), else the default range shared
+        # by every other class of this body type. Same per-class-override
+        # pattern as atm_molar_density_range.
+        min_density, max_density = data.get("density_range", physical_constants.PLANET_DENSITY[planet_type])  # g/cm^3
 
         # Convert density from g/cm³ to kg/m³ for mass calculation
         min_density *= 1000
@@ -209,14 +231,14 @@ def generate_planet_properties(planet, zone_override=None):
 
         planet.planet_class = _choose_weighted_planet_class(valid_classes)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = random.uniform(min_radius, max_radius)
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is None and planet.mass is None:
         # Class given, generate radius
         _validate_planet_class(planet, zone)
         _validate_no_habitable_world(planet, zone)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = random.uniform(min_radius, max_radius)
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is None:
         # Radius given, determine possible classes
@@ -252,7 +274,7 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_no_habitable_world(planet, zone)
         _validate_mass(planet)
         min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = random.uniform(min_radius, max_radius)
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is not None:
         # Radius and mass given, determine possible classes
@@ -288,24 +310,46 @@ def generate_planet_properties(planet, zone_override=None):
         planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
     planet.body_type = class_data["type"]
 
-    min_density, max_density = physical_constants.PLANET_DENSITY[planet.body_type]
+    # Class-specific density range if declared (e.g. a brown-dwarf-like
+    # sub-stellar class -- see get_planet_mass_ranges above and
+    # program_constants.PLANET_CLASSES), else the default range shared by
+    # every other class of this body type.
+    default_density = physical_constants.PLANET_DENSITY[planet.body_type]
+    min_density, max_density = class_data.get("density_range", default_density)
     planet.density = random.uniform(min_density, max_density)
 
     if class_data["atmosphere"] is None:
         planet.atmosphere = "None"
     else:
         planet.atmosphere = class_data["atmosphere"]
-        if planet.planet_class == 'N':
-            planet.atm_density = 65
-            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
-            planet.atm_molar_density = max_am_density
-        else:
-            min_a_density, max_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.body_type]
-            planet.atm_density = random.uniform(min_a_density, max_a_density)
-            min_am_density, max_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
-            planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
+        # Class-specific atmosphere-density/molar-density ranges if declared
+        # (e.g. Class N's Venus-like dense, CO2-heavy atmosphere), else the
+        # default range shared by every other class of this body type. This
+        # replaces the old Class N hardcoded special case with the same
+        # general per-class-override mechanism Class P's albedo_range uses,
+        # so every class's atmosphere composition can be tuned independently
+        # (see program_constants.PLANET_CLASSES and
+        # docs/analysis/habitability-atmosphere-sanity-review.md).
+        default_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.body_type]
+        min_a_density, max_a_density = class_data.get("atm_density_range", default_a_density)
+        planet.atm_density = random.uniform(min_a_density, max_a_density)
+        default_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
+        min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
+        planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-    if planet.body_type == 'g':
+    if planet.body_type == 'g' and "density_range" not in class_data:
+        # Core/envelope density blend -- for ORDINARY gas giants only (no
+        # class-specific density_range declared). A class that declares its
+        # own density_range (e.g. a brown-dwarf-like sub-stellar class, see
+        # program_constants.PLANET_CLASSES) skips this blend entirely and
+        # keeps the density already drawn above as final: real brown dwarfs
+        # don't have a meaningfully separate light envelope over a denser
+        # core the way an ordinary gas giant does -- electron degeneracy
+        # pressure keeps the whole body close to uniformly dense throughout,
+        # so blending toward a light "puffy" envelope value here would just
+        # dilute the real, elevated density_range right back down (the
+        # blend is a harmonic mean, dominated by whichever term is smaller
+        # almost regardless of mass fraction).
         core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
         # core_to_atmosphere_ratio is a MASS fraction (core mass / total
         # mass), not a volume/density-averaging weight. The physically
@@ -315,8 +359,18 @@ def generate_planet_properties(planet, zone_override=None):
         # arithmetic mean of the two densities (the previous formula) has no
         # physical basis and let atmosphere-heavy blends drag the whole
         # planet's density down far below either component's own range.
-        atm_density_gcm3 = planet.atm_density / 1000
-        planet.density = 1 / (core_to_atmosphere_ratio / planet.density + (1 - core_to_atmosphere_ratio) / atm_density_gcm3)
+        # The envelope side of the blend uses physical_constants.
+        # GAS_ENVELOPE_BULK_DENSITY (a real, g/cm^3-scale "puffy gas giant"
+        # bulk density), NOT planet.atm_density -- that value is ~1000x
+        # lighter (it's the thin surface/pressure-layer density used by
+        # calculate_atmospheric_conditions, a different physical layer), and
+        # a harmonic mean is dominated by whichever term is smaller almost
+        # regardless of mass fraction, so using it here collapsed every gas
+        # giant's density to a near-zero, physically meaningless value no
+        # matter how dense its core (see GAS_ENVELOPE_BULK_DENSITY's
+        # docstring for the real-world numbers this replaced it with).
+        envelope_density_gcm3 = random.uniform(*physical_constants.GAS_ENVELOPE_BULK_DENSITY)
+        planet.density = 1 / (core_to_atmosphere_ratio / planet.density + (1 - core_to_atmosphere_ratio) / envelope_density_gcm3)
 
     planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
                                               planet.density)
@@ -347,13 +401,38 @@ def calculate_surface_gravity(planet):
     surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')
-    # Class M's forced Earth-like gravity clamp is disabled -- the fixed
-    # atmospheric-pressure formula no longer needs a band-aid to look
-    # realistic. Commented out rather than deleted in case it needs
-    # restoring.
-    # if planet.planet_class == "M" and (surface_gravity_g < 0.75 or surface_gravity_g > 1.25):
-    #     surface_gravity_g = random.uniform(0.75, 1.25)
     planet.gravity = surface_gravity_g
+
+
+def _atmosphere_retention_factor(gravity_g):
+    """
+    A gravity-based atmosphere-retention scaling factor, normalized to 1.0
+    at Earth gravity (`gravity_g == 1.0`).
+
+    Substituting `scale_height_m` into the old `atmospheric_pressure =
+    atm_density * surface_gravity_ms2 * scale_height_m` line shows gravity
+    cancels out exactly (`atmospheric_pressure = atm_density * R * T /
+    atm_molar_density`), making pressure unphysically independent of a
+    planet's gravity -- higher gravity should let a planet retain more
+    atmosphere and support higher surface pressure. This factor is applied
+    to an *effective* atmospheric density used only in the pressure
+    calculation (see `calculate_atmospheric_conditions`), not to
+    `planet.atm_density` itself, since that value also feeds the gas-giant
+    density blend in `generate_planet_properties` -- modifying it here would
+    create a circular dependency, since gravity is itself derived partly
+    from density for gas giants.
+
+    k=1 (linear scaling) is a starting point, not a value derived from a
+    real atmospheric-retention model; tune here if generated pressure
+    distributions warrant a different curve.
+
+    Args:
+        gravity_g (float): Surface gravity in Earth g's.
+
+    Returns:
+        float: The retention factor (1.0 at gravity_g == 1.0).
+    """
+    return gravity_g ** 1  # k=1 linear scaling as the default/starting point
 
 
 def calculate_atmospheric_conditions(planet, distance_override=None):
@@ -380,7 +459,12 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     orbital_radius_km = distance * physical_constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
-    albedo = random.uniform(0.12, 0.35)
+    class_data = program_constants.PLANET_CLASSES.get(planet.planet_class, {})
+    # Class-specific albedo range if declared (e.g. Class P's icy/glaciated
+    # surface reflects more than the default rocky/Earth-like range), else
+    # the default range used for every other class.
+    albedo_range = class_data.get("albedo_range", (0.12, 0.35))
+    albedo = random.uniform(*albedo_range)
     surface_temperature_no_atmosphere = (
                                                 (1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
                                                     1 / 4)
@@ -404,19 +488,34 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # without converting units, undercounting atmospheric_mass by
         # roughly 9 orders of magnitude and requiring an arbitrary "* 7500"
         # fudge factor to partially compensate.
+        # Applied to an effective atmospheric density used only for this
+        # pressure calculation (not to planet.atm_density itself -- see
+        # _atmosphere_retention_factor's docstring for why) so higher-gravity
+        # planets retain more atmosphere and support higher surface pressure,
+        # reintroducing the gravity dependence that otherwise cancels out of
+        # this formula algebraically.
+        effective_atm_density = planet.atm_density * _atmosphere_retention_factor(planet.gravity)
         surface_gravity_ms2 = planet.gravity * physical_constants.EARTH_GRAVITY
-        atmospheric_pressure = planet.atm_density * surface_gravity_ms2 * scale_height_m
+        atmospheric_pressure = effective_atm_density * surface_gravity_ms2 * scale_height_m
 
         # atm_molar_density is the only atmosphere-composition signal in the
-        # data model today (no explicit CO2-fraction field exists), so it's
-        # used directly as a greenhouse proxy: a heavier atmosphere (closer
-        # to, or beyond, CO2's own molar mass) traps more heat. The previous
-        # formula measured *distance* from CO2_BASE_MOLAR_DENSITY via abs(),
-        # which backwards-rewarded atmospheres far from CO2's molar mass in
-        # either direction -- including light ones -- with a greenhouse
-        # boost. Capped at CO2_MAX_GREENHOUSE_FACTOR rather than left
-        # unbounded above CO2's own molar density.
-        greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, (planet.atm_molar_density / physical_constants.CO2_BASE_MOLAR_DENSITY) * program_constants.CO2_MAX_GREENHOUSE_FACTOR)
+        # data model today (no explicit CO2-fraction field exists), so
+        # base_ratio measures how CO2-like this draw's composition is
+        # (>=1.0 at/above CO2's own molar mass). On its own that ratio can't
+        # calibrate both a thin-but-CO2-heavy atmosphere (e.g. real Mars,
+        # ~43.3 g/mol, negligible greenhouse effect) and a dense CO2-heavy
+        # one (real Venus, ~43.45 g/mol -- almost the same molar mass, ~100x
+        # the greenhouse forcing): composition alone doesn't capture
+        # quantity/potency. greenhouse_multiplier_range is the per-class
+        # knob for that second axis (see program_constants.PLANET_CLASSES),
+        # independent of how heavy/light the class's own atmosphere is.
+        # CO2_MAX_GREENHOUSE_FACTOR is now a generous safety ceiling rather
+        # than the value most classes hit -- real Venus's own ratio is
+        # ~101, so it only guards against a badly-configured future class.
+        base_ratio = planet.atm_molar_density / physical_constants.CO2_BASE_MOLAR_DENSITY
+        greenhouse_multiplier_range = class_data.get("greenhouse_multiplier_range", (1.0, 1.0))
+        greenhouse_multiplier = random.uniform(*greenhouse_multiplier_range)
+        greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
         surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
         planet.surface_temperature = surface_temperature_atmosphere
         planet.atmospheric_pressure = atmospheric_pressure
@@ -472,6 +571,16 @@ def generate_moons(planet, moon_count=None):
     possible_classes = [c for c, data in planet_mass_ranges.items()
                         if program_constants.PLANET_CLASSES[c][planet.zone] and program_constants.PLANET_CLASSES[c]["type"] == 't' and c not in program_constants.MOON_BLACKLIST
                         and data[1] <= max_moon_mass and program_constants.PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
+    # Mirrors generate_planet_properties' own "Fully random generation"
+    # habitable-world filtering: a moon is subject to the same
+    # HABITABLE_WORLD=False rule as any other body, but wasn't checked here
+    # -- unreachable in practice until gas giants could be placed in zone
+    # 'e' (see PLANET_CLASSES["J"]'s zone rework), since no non-gas-giant
+    # planet generates moons of its own zone's habitable classes any
+    # differently. A gas giant now placed in 'e' with HABITABLE_WORLD=False
+    # must not roll a habitable-class moon.
+    if planet.system_config.HABITABLE_WORLD is False and planet.zone == 'e':
+        possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
     if not possible_classes:
         return
 
@@ -493,7 +602,12 @@ def generate_moons(planet, moon_count=None):
                                                                         program_constants.PLANET_CLASSES[moon_class]['radius_range'][
                                                                             1] else max_moon_radius
         moon_distance = random.uniform(total_orbit_distance, high_orbit) / physical_constants.AU_TO_KM
-        moon_radius = random.uniform(program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
+        # radius_limit may be narrower than moon_class's own declared
+        # radius_range ceiling (capped by the parent's Hill sphere/mass
+        # above) -- _sample_class_radius's size_mode reading is evaluated
+        # against this actually-available [min, radius_limit] window, not
+        # necessarily the class's full range.
+        moon_radius = _sample_class_radius(moon_class, program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
 
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,

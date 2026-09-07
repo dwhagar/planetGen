@@ -47,10 +47,22 @@ def test_universal_phonemes_contains_a_trailing_apostrophe_chunk():
 def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatch):
     """
     Reproduces the exact previously-crashing case: base name "Hi'iaka"
-    (-> syllables ['Hi', "'ia", 'ka']), shuffled to ['ka', 'Hi'], with the
-    universal phoneme "ch'" spliced in right before the "'ia" syllable --
-    assembling to ".../..."kaHi" + "ch'" + "'ia" == "...ch''ia...", the
-    literal double-apostrophe that used to raise IndexError.
+    (-> syllables ['Hi', "'ia", 'ka']), shuffled to ['ka', 'Hi', "'ia"], with
+    the universal phoneme "ch'" spliced in right before the "'ia" syllable --
+    assembling to "kaHi" + "ch'" + "'ia" == "kaHich''ia", the literal
+    double-apostrophe that used to raise IndexError.
+
+    Prefix/suffix ("Ze"/"os", replacing the original "Wald"/"os") are chosen
+    so the fully-assembled name also clears `is_name_valid`'s consonant-run
+    check (added after this test was first written -- "Wald" + "ka..."
+    produces the "ldk" 3-consonant run `is_name_valid` now correctly
+    rejects). Since every random/secrets call here is pinned to a fixed
+    return value, a rejected candidate would retry the exact same candidate
+    forever rather than eventually drawing a different one -- an earlier
+    version of this fix that kept "Wald" hung indefinitely instead of
+    failing loudly, which is the failure mode to avoid here: prefer a
+    prefix/suffix pair known to pass validation over one that merely happens
+    to reproduce the crash precondition.
     """
     choice_calls = {"n": 0}
 
@@ -62,7 +74,7 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
         if seq == UNIVERSAL_PHONEMES:
             return "ch'"
         if seq == PLANET_PREFIXES:
-            return "Wald"
+            return "Ze"
         if seq == PLANET_SUFFIXES:
             return "os"
         return seq[0]
@@ -75,15 +87,15 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
         return 0.0
 
     def fake_shuffle(lst):
-        # Reproduce the specific shuffle outcome: ['Hi', "'ia", 'ka'] -> ['ka', 'Hi'].
-        # (shuffle runs before the phoneme is spliced in, so it only ever
-        # sees the two syllables split from "Hi'iaka".)
-        lst[:] = ["ka", "Hi"]
+        # Reproduce the specific shuffle outcome: ['Hi', "'ia", 'ka'] ->
+        # ['ka', 'Hi', "'ia"] -- all three syllables kept, just reordered,
+        # so "'ia" is still present for the phoneme to land next to below.
+        lst[:] = ["ka", "Hi", "'ia"]
 
     def fake_randint(a, b):
-        # Insert position for the phoneme: index 2 in ['ka', 'Hi'] places it
-        # at the end -> ['ka', 'Hi', "ch'"], immediately before "'ia" is
-        # appended by the join, landing the two apostrophes adjacent.
+        # Insert position for the phoneme: index 2 in ['ka', 'Hi', "'ia"]
+        # places it immediately before "'ia" -> ['ka', 'Hi', "ch'", "'ia"],
+        # landing the two apostrophes adjacent once joined.
         return 2
 
     monkeypatch.setattr("stellarObjects.utils.secrets.choice", fake_secrets_choice)
