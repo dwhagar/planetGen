@@ -462,6 +462,12 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": False,
         "atmosphere": "a mix of oxygen, nitrogen, and argon (thinning with age)",
         "type": "t",
+        # Icy/glaciated surfaces reflect far more sunlight than the default
+        # rocky/Earth-like range (0.12, 0.35) -- real ice/snow Bond albedo is
+        # roughly 0.5-0.9 (e.g. Europa ~0.68, Enceladus ~0.81). Gives P a
+        # genuine cold bias from the unclamped physics instead of relying on
+        # a post-hoc temperature clamp (see planetPhysics.calculate_atmospheric_conditions).
+        "albedo_range": (0.5, 0.7),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.08, 0.1),

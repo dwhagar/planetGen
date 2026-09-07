@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.3.5] - 2026-09-07
+
+### Fixed
+- **Atmospheric pressure is no longer independent of gravity**
+  (`stellarObjects/planetPhysics.py`): the barometric-formula pressure
+  calculation algebraically canceled gravity out entirely (`atmospheric_pressure
+  = atm_density * R * T / atm_molar_density`), so a Neptune-gravity gas giant
+  and a Jupiter-gravity one produced the same pressure. A new
+  `_atmosphere_retention_factor(gravity_g)` (linear, normalized to 1.0 at
+  Earth gravity) now scales an *effective* atmospheric density used only in
+  the pressure calculation (not `planet.atm_density` itself, which also
+  feeds the gas-giant density blend), reintroducing a real, tunable
+  gravity/pressure relationship (Spearman correlation on a mixed
+  terrestrial/gas-giant sample now > 0.5, vs. ~-0.11 before).
+- **Class P ("cold, glaciated") is colder than Class M again**: gave Class P
+  its own `albedo_range` (0.5-0.7, matching real ice/snow Bond albedo)
+  instead of sharing the default rocky/Earth-like range (0.12-0.35) with
+  every other terrestrial class. Previously P and M were statistically
+  indistinguishable in temperature once the disabled clamp was removed (see
+  `docs/analysis/habitability-atmosphere-sanity-review.md`); P's cold
+  identity now comes from the unclamped physics instead of a post-hoc
+  override.
+- Completes Track A (see [5.3.4]'s gas-giant density/greenhouse fixes) --
+  8682 tests passing, including 10 new regression tests in
+  `src/tests/test_planet_physics_fixes.py`.
+
 ## [5.3.4] - 2026-09-07
 
 ### Fixed

@@ -356,6 +356,37 @@ def calculate_surface_gravity(planet):
     planet.gravity = surface_gravity_g
 
 
+def _atmosphere_retention_factor(gravity_g):
+    """
+    A gravity-based atmosphere-retention scaling factor, normalized to 1.0
+    at Earth gravity (`gravity_g == 1.0`).
+
+    Substituting `scale_height_m` into the old `atmospheric_pressure =
+    atm_density * surface_gravity_ms2 * scale_height_m` line shows gravity
+    cancels out exactly (`atmospheric_pressure = atm_density * R * T /
+    atm_molar_density`), making pressure unphysically independent of a
+    planet's gravity -- higher gravity should let a planet retain more
+    atmosphere and support higher surface pressure. This factor is applied
+    to an *effective* atmospheric density used only in the pressure
+    calculation (see `calculate_atmospheric_conditions`), not to
+    `planet.atm_density` itself, since that value also feeds the gas-giant
+    density blend in `generate_planet_properties` -- modifying it here would
+    create a circular dependency, since gravity is itself derived partly
+    from density for gas giants.
+
+    k=1 (linear scaling) is a starting point, not a value derived from a
+    real atmospheric-retention model; tune here if generated pressure
+    distributions warrant a different curve.
+
+    Args:
+        gravity_g (float): Surface gravity in Earth g's.
+
+    Returns:
+        float: The retention factor (1.0 at gravity_g == 1.0).
+    """
+    return gravity_g ** 1  # k=1 linear scaling as the default/starting point
+
+
 def calculate_atmospheric_conditions(planet, distance_override=None):
     """
     Calculates the atmospheric conditions of the planet, including surface
@@ -380,7 +411,11 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     orbital_radius_km = distance * physical_constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
-    albedo = random.uniform(0.12, 0.35)
+    # Class-specific albedo range if declared (e.g. Class P's icy/glaciated
+    # surface reflects more than the default rocky/Earth-like range), else
+    # the default range used for every other class.
+    albedo_range = program_constants.PLANET_CLASSES.get(planet.planet_class, {}).get("albedo_range", (0.12, 0.35))
+    albedo = random.uniform(*albedo_range)
     surface_temperature_no_atmosphere = (
                                                 (1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
                                                     1 / 4)
@@ -404,8 +439,15 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # without converting units, undercounting atmospheric_mass by
         # roughly 9 orders of magnitude and requiring an arbitrary "* 7500"
         # fudge factor to partially compensate.
+        # Applied to an effective atmospheric density used only for this
+        # pressure calculation (not to planet.atm_density itself -- see
+        # _atmosphere_retention_factor's docstring for why) so higher-gravity
+        # planets retain more atmosphere and support higher surface pressure,
+        # reintroducing the gravity dependence that otherwise cancels out of
+        # this formula algebraically.
+        effective_atm_density = planet.atm_density * _atmosphere_retention_factor(planet.gravity)
         surface_gravity_ms2 = planet.gravity * physical_constants.EARTH_GRAVITY
-        atmospheric_pressure = planet.atm_density * surface_gravity_ms2 * scale_height_m
+        atmospheric_pressure = effective_atm_density * surface_gravity_ms2 * scale_height_m
 
         # atm_molar_density is the only atmosphere-composition signal in the
         # data model today (no explicit CO2-fraction field exists), so it's
