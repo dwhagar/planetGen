@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.3.2] - 2026-09-07
+
+### Changed
+- **Repo layout: `stellarObjects`/`api`/`tests` moved under a new `src/`
+  directory** (`src/stellarObjects/`, `src/api/`, `src/tests/`), so only
+  the top-level CLI entry points (`sectorGen.py`, `systemGen.py`,
+  `queryDb.py`, `migrateDb.py`, `physicalPlausibility.py`, `wsgi.py`) are
+  visible at the repo root. `setup.py` now declares an explicit
+  `package_dir` per discovered package rather than a blanket
+  `package_dir={'': 'src'}`, since that would have also redirected the
+  root-level `py_modules` lookups (`systemGen`/`sectorGen`) into `src/`,
+  where they don't live. Every root entry script gained a small
+  `sys.path` shim (inserting `src/` before its `stellarObjects`/`api`
+  imports) so they keep working without requiring `pip install .` first,
+  matching the no-install fallback `html/`'s CGI scripts already relied
+  on -- those fallbacks (`html/lib/dbutil.py`, `html/sector.py`,
+  `html/search.py`) were updated the same way. Two internal
+  repo-root-relative path computations (`stellarObjects/webconfig.py`'s
+  `_PROJECT_ROOT`, `stellarObjects/_db.py`'s `DEFAULT_DB_PATH`) needed an
+  extra `os.path.dirname()` level to still resolve correctly one
+  directory deeper; `pytest.ini` gained an explicit `pythonpath = . src`
+  so both the entry scripts and the moved packages resolve during tests
+  regardless of pytest's own import-mode heuristics.
+- **`webconfig.json.example` moved into `html/`**; the real, gitignored
+  `webconfig.json` stays at the repo root, outside Apache's `html/`
+  `DocumentRoot`, for the same security reason `db/` already lives there
+  (see `docs/WEBCONFIG.md`).
+- **`WEBCONFIG.md` moved into `docs/`**, alongside this session's
+  `docs/design/`/`docs/analysis/` additions, consolidating loose
+  documentation in one place (`README.md`/`LICENSE.md`/`TODO.md`/
+  `CHANGELOG.md` stay at the repo root, and per-directory READMEs
+  `html/README.md`/`apache/README.md`/`db/README.md`/`src/api/README.md`
+  stay next to the code they document).
+
 ## [5.3.1] - 2026-09-06
 
 ### Fixed

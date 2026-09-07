@@ -54,7 +54,9 @@ SCHEMA_VERSION = 3
 target version `migrate_database` converts an older database up to."""
 
 _PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
-_PROJECT_ROOT = os.path.dirname(_PACKAGE_DIR)
+# stellarObjects/ lives at src/stellarObjects/ (src layout) -- two levels up
+# from this file, not one, to reach the actual repo root.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(_PACKAGE_DIR))
 
 SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "schema.sql")
 """str: Path to the DDL file applied by `_ensure_schema`."""

@@ -1,6 +1,6 @@
 # planetGen API
 
-A read-only JSON API over the planetGen database (`stellarObjects/schema.sql`),
+A read-only JSON API over the planetGen database (`src/stellarObjects/schema.sql`),
 built with [Flask](https://flask.palletsprojects.com/). This is the start of
 `TODO.md`'s Phase 5 backend — groundwork only: no write path (generation
 still happens through `sectorGen.py`/`systemGen.py`, which persist directly),
@@ -45,14 +45,14 @@ required query parameter returns `400`.
 
 ```bash
 pip install -e .[api]
-python -m api.app
+python wsgi.py
 ```
 
 Defaults to `db/planetgen.db` (same default as every other tool). Point it
 at a different database with:
 
 ```bash
-PLANETGEN_DB_PATH=/path/to/other.db python -m api.app
+PLANETGEN_DB_PATH=/path/to/other.db python wsgi.py
 ```
 
 ## Deploying behind Apache (mod_wsgi)

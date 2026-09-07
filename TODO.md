@@ -140,17 +140,12 @@ acted on, only documented for review.
 - [ ] Ways to render an image or maybe provide a web interface to visualize the location of 2 points within the galactic space.
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size or in the tagged search field sort by planet size.
-
-## Organize File System
-
-- [ ] Organize all documentation into a dedicated docs/ directory under the
-  repo root.
-- [ ] Do the same for most of the python code that is not part of the HTML interface
-  into an src directory so that only the Gen python entry points are visible from
-  repo root.
-- [ ] All test code should go in src as well.
-- [ ] Consider moving api directory into html to expose API end point?
-- [ ] Move webconfig file into /html and change the name of examples.
+- [ ] Still open from the file-system cleanup below: consider moving
+  `src/api/` into `html/` to expose the API endpoint from the same served
+  tree. Deliberately not done as part of the cleanup (5.3.2) -- it was
+  posed as an open question, not a decision, and moving a Flask package
+  into `html/`'s Apache `DocumentRoot` needs its own look at exposure/
+  routing implications first.
 
 ## File Management
 

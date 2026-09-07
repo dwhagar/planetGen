@@ -13,7 +13,7 @@ broad grid of main-sequence host star spectral types, then reports:
     distribution) for surface_temperature, atmospheric_pressure, gravity,
     and scale_height -- flagged for human review, not asserted to be zero.
 
-See `stellarObjects/plausibility.py` for the full design rationale (why two
+See `src/stellarObjects/plausibility.py` for the full design rationale (why two
 tiers, why host stars are sampled across spectral types, why this isn't
 hand-authored per-class numeric bounds) and TODO.md's "Physical-plausibility
 test suite (anomaly finder)" future idea for the original ask.
@@ -26,7 +26,13 @@ Usage:
 
 import argparse
 import logging
+import os
 import sys
+
+# stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
+# import path so this keeps working without requiring `pip install .`
+# first, matching how html/'s CGI scripts fall back to a no-install layout.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import plausibility
 from stellarObjects import program_constants as prog_c

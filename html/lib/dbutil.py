@@ -30,14 +30,15 @@ _LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 _HTML_DIR = os.path.dirname(_LIB_DIR)
 _PROJECT_ROOT = os.path.dirname(_HTML_DIR)
 
-# Falls back to the project root (html/'s parent) so `stellarObjects` is
-# importable even when it hasn't been `pip install`-ed system-wide -- true
-# for the default deployment layout (`html/` and `stellarObjects/` as
-# siblings under /var/lib/planetGen). Every caller of this module reaches
-# it via its own sys.path setup too, but that isn't guaranteed to include
-# the project root (e.g. browse.py only adds `lib/`), so this module makes
-# sure of it independently rather than relying on import order.
-sys.path.append(_PROJECT_ROOT)
+# Falls back to src/ (stellarObjects now lives at src/stellarObjects/, src
+# layout) so `stellarObjects` is importable even when it hasn't been
+# `pip install`-ed system-wide -- true for the default deployment layout
+# (`html/` and `src/` as siblings under /var/lib/planetGen). Every caller
+# of this module reaches it via its own sys.path setup too, but that isn't
+# guaranteed to include this (e.g. browse.py only adds `lib/`), so this
+# module makes sure of it independently rather than relying on import
+# order.
+sys.path.append(os.path.join(_PROJECT_ROOT, "src"))
 try:
     from stellarObjects.utils import milliparsecs_to_ly
     from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3

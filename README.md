@@ -143,7 +143,7 @@ both scripts call. Site-level settings (currently a name and base URL,
 unrelated to the Apache-level `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
 environment variables) live in a `webconfig.json` file at the repo root,
 kept outside `html/`'s served document root the same way `db/` already
-is -- see [`WEBCONFIG.md`](WEBCONFIG.md). See
+is -- see [`WEBCONFIG.md`](docs/WEBCONFIG.md). See
 [`html/README.md`](html/README.md) for how the interface works and how to
 deploy or test it locally.
 

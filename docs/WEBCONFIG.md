@@ -1,8 +1,9 @@
 # WEBCONFIG.md
 
 This document describes `webconfig.json`, the site-level configuration
-file for the planetGen web interface ([`html/`](html/README.md)), and
-`webconfig.json.example`, the committed template it's copied from.
+file for the planetGen web interface ([`html/`](../html/README.md)), and
+[`html/webconfig.json.example`](../html/webconfig.json.example), the
+committed template it's copied from.
 
 ## What it's for
 
@@ -16,7 +17,7 @@ is that place: a single JSON file, edited once per deployment, holding
 settings that belong to the site itself rather than to how Apache happens
 to invoke the CGI scripts.
 
-It is loaded by [`stellarObjects/webconfig.py`](stellarObjects/webconfig.py),
+It is loaded by [`src/stellarObjects/webconfig.py`](../src/stellarObjects/webconfig.py),
 a small, dependency-free (standard library `json`/`os` only) loader
 module. **As of this writing, nothing calls it yet** -- it exists so the
 config file's shape and loading behavior are settled before any feature
@@ -26,10 +27,13 @@ depends on them, not because any page currently reads `site_name` or
 ## Location: repo root, not `html/`
 
 `webconfig.json` lives at the repo root -- a sibling of `html/`, `db/`, and
-`stellarObjects/` -- rather than inside `html/` itself. This deliberately
-mirrors how `db/` is already kept out of the served webroot: Apache's
-`DocumentRoot` for this application is `html/` alone (see
-[`apache/planetgen.conf.example`](apache/planetgen.conf.example)), so
+`src/` -- rather than inside `html/` itself (its *example* template,
+[`html/webconfig.json.example`](../html/webconfig.json.example), is fine
+to live inside `html/` since it holds only placeholder values, not
+secrets). This deliberately mirrors how `db/` is already kept out of the
+served webroot: Apache's `DocumentRoot` for this application is `html/`
+alone (see
+[`apache/planetgen.conf.example`](../apache/planetgen.conf.example)), so
 anything placed at the repo root, one level above `html/`, can never be
 requested over HTTP no matter how the vhost or `.htaccess` rules are
 written -- there's no path traversal or misconfiguration that reaches it,
@@ -37,10 +41,12 @@ because it's outside the tree Apache serves at all. The same reasoning is
 why `db/`'s `.db` files (which can contain a full generated galaxy) live
 next to `html/` rather than under it, and why `stellarObjects/webconfig.py`
 resolves the repo root the same way
-[`html/lib/dbutil.py`](html/lib/dbutil.py)'s `_PROJECT_ROOT`/
+[`html/lib/dbutil.py`](../html/lib/dbutil.py)'s `_PROJECT_ROOT`/
 `DEFAULT_DB_DIR` already do (walking up from the module's own file via
-`os.path.dirname`), rather than introducing a second convention for
-locating "the project root."
+`os.path.dirname` -- three levels for `stellarObjects/webconfig.py` since
+it lives at `src/stellarObjects/`, one more than `dbutil.py`'s two),
+rather than introducing a second convention for locating "the project
+root."
 
 This matters more for `webconfig.json` than it might for a settings file
 with no sensitive contents, because the field list below includes
@@ -75,18 +81,19 @@ they'd actually apply to.
 entries -- it's deployment-specific configuration, potentially holding
 credentials once the `db_*` fields are ever put to use, and committing it
 would either leak those values or force every deployment to share one
-repo-tracked file. `webconfig.json.example` is the opposite: a template
-with placeholder values, meant to be committed so a fresh checkout always
-has a shape to copy from, exactly the same split already used for
-`apache/planetgen.conf.example` (committed template, edited into a
-site-specific vhost file that itself doesn't live in the repo).
+repo-tracked file. `html/webconfig.json.example` is the opposite: a
+template with placeholder values, meant to be committed so a fresh
+checkout always has a shape to copy from, exactly the same split already
+used for `apache/planetgen.conf.example` (committed template, edited into
+a site-specific vhost file that itself doesn't live in the repo).
 
 ## Setup
 
-Copy the template and edit it for this deployment:
+Copy the template (in `html/`) to the repo root and edit it for this
+deployment:
 
 ```bash
-cp webconfig.json.example webconfig.json
+cp html/webconfig.json.example webconfig.json
 ```
 
 Then edit `webconfig.json`'s `site_name`/`base_url` to match this
@@ -94,15 +101,15 @@ deployment. Leave the `db_*` fields as empty strings -- they're not read by
 anything yet (see "Fields" above).
 
 If `webconfig.json` doesn't exist at all, `stellarObjects.webconfig.load_webconfig()`
-falls back to built-in defaults matching `webconfig.json.example`'s shape,
-so nothing currently breaks by skipping this step -- it only matters once a
-future feature actually reads `site_name`/`base_url` and a deployment wants
-something other than the defaults.
+falls back to built-in defaults matching `html/webconfig.json.example`'s
+shape, so nothing currently breaks by skipping this step -- it only
+matters once a future feature actually reads `site_name`/`base_url` and a
+deployment wants something other than the defaults.
 
 ## Relationship to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
 
 `webconfig.json` and the `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG` environment
-variables (documented in [`html/README.md`](html/README.md)) solve
+variables (documented in [`html/README.md`](../html/README.md)) solve
 different problems and aren't interchangeable:
 
 - The environment variables are **Apache-level overrides**, set via

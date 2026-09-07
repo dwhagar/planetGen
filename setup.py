@@ -28,7 +28,7 @@ def read_version():
     environment that doesn't have `nltk` (or any other runtime dependency)
     installed yet (see the note above on the corpus download).
     """
-    version_path = os.path.join(here, 'stellarObjects', '_version.py')
+    version_path = os.path.join(here, 'src', 'stellarObjects', '_version.py')
     with open(version_path, encoding='utf-8') as f:
         contents = f.read()
     match = re.search(r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", contents, re.M)
@@ -40,7 +40,14 @@ def read_version():
 setup(
     name='planetGen',
     version=read_version(),
-    packages=find_packages(),
+    # stellarObjects/api/tests live under src/ (src layout) while the
+    # top-level entry scripts (systemGen.py/sectorGen.py, py_modules below)
+    # stay at the repo root -- a blanket `package_dir={'': 'src'}` would
+    # also redirect those py_modules lookups into src/, where they don't
+    # exist, so each discovered package gets its own explicit mapping
+    # instead of one root-wide override.
+    packages=find_packages(where='src'),
+    package_dir={pkg: f'src/{pkg}' for pkg in find_packages(where='src')},
     package_data={
         # stellarObjects.names reads this at import time; setuptools does not
         # include non-.py files in a package by default, so without this the

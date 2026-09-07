@@ -1,7 +1,7 @@
 # queryDb.py
 
 """
-List/query CLI for the planetGen database (stellarObjects/schema.sql).
+List/query CLI for the planetGen database (src/stellarObjects/schema.sql).
 
 A thin read-only front end over the tables `sectorGen.py`/`systemGen.py`
 populate, for questions like "every G-type system," "everything within 50
@@ -20,7 +20,14 @@ using.
 
 import argparse
 import math
+import os
 import sqlite3
+import sys
+
+# stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
+# import path so this keeps working without requiring `pip install .`
+# first, matching how html/'s CGI scripts fall back to a no-install layout.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects._db import DEFAULT_DB_PATH
 from stellarObjects._version import VersionAction, version_banner

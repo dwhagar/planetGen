@@ -19,7 +19,9 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects import program_constants
 
-EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "..", "examples")
+# This file lives at src/tests/, two levels under the repo root (src
+# layout), not one -- ".." twice to reach examples/ at the repo root.
+EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "examples")
 EXAMPLE_FILES = sorted(glob.glob(os.path.join(EXAMPLES_DIR, "*.json")))
 
 # A handful of independent trials per fixture, since generation is randomized.

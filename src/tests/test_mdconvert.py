@@ -11,12 +11,16 @@ from being rendered as live HTML.
 plumbing), so it's added to `sys.path` here the same way the CGI scripts
 themselves do.
 
-Run with: pytest tests/test_mdconvert.py
+Run with: pytest src/tests/test_mdconvert.py
 """
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
+# This file lives at src/tests/, two levels under the repo root (src layout),
+# not one -- three dirname() calls to reach the repo root, then down into
+# html/lib.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(_REPO_ROOT, "html", "lib"))
 
 from mdconvert import markdown_to_html, markdown_to_html_with_headings  # noqa: E402
 

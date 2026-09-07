@@ -56,12 +56,12 @@ Separately from these Apache-set environment variables, a `webconfig.json`
 file at the repo root (a sibling of `html/`, not a file inside `html/`
 itself) holds site-level settings such as `site_name` and `base_url`,
 edited once per deployment rather than passed through the vhost config --
-see [`../WEBCONFIG.md`](../WEBCONFIG.md) for the full field list and how it
-relates to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`.
+see [`../docs/WEBCONFIG.md`](../docs/WEBCONFIG.md) for the full field list
+and how it relates to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`.
 
 ## Deploying
 
-1. Copy the repo (or at least `html/`, `db/`, `stellarObjects/`,
+1. Copy the repo (or at least `html/`, `db/`, `src/`,
    `install.sh`, `update.sh`, `setup.py`, and `apache/`) to the server,
    e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout (rather
    than copying a tarball) is what makes `update.sh` possible later.

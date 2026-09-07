@@ -1,13 +1,13 @@
 # planetGen Database Format
 
 This document describes the SQLite database schema defined in
-[`stellarObjects/schema.sql`](../stellarObjects/schema.sql). It's the
+[`src/stellarObjects/schema.sql`](../src/stellarObjects/schema.sql). It's the
 reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
 **Status**: the schema is implemented, with both a write and a read path.
-[`stellarObjects/_db.py`](../stellarObjects/_db.py) (private — leading
+[`src/stellarObjects/_db.py`](../src/stellarObjects/_db.py) (private — leading
 underscore, not part of the package's public generation API) writes
 already-generated `StarSystem`/`SpaceSector` objects straight into these
 tables (`sectorGen.py` calls it automatically on every run), and
@@ -23,7 +23,7 @@ created automatically the first time something writes to it (default path
 
 ## Persistence layer
 
-`stellarObjects/_db.py` owns every unit conversion at the point of writing
+`src/stellarObjects/_db.py` owns every unit conversion at the point of writing
 a value into the database; nothing else in the package imports it, and it
 never mutates the generation/physics code's own native units. Its shape:
 
@@ -89,10 +89,10 @@ rather than forced into a single unit everywhere:
   logic.
 
 Neither convention touches the generator itself — every attribute in
-`stellarObjects/starData.py`, `doubleStar.py`, `planetData.py`,
+`src/stellarObjects/starData.py`, `doubleStar.py`, `planetData.py`,
 `asteroidData.py`, and `spaceSector.py` keeps its own native unit (km, AU,
 or ly) exactly as today. Conversion only happens at the persistence
-boundary, once it's built: `stellarObjects/utils.py` provides
+boundary, once it's built: `src/stellarObjects/utils.py` provides
 `ly_to_milliparsecs`/`milliparsecs_to_ly` for the sector-scale columns;
 AU-to-km needs no helper, since it's a single multiply by the existing
 `physical_constants.AU_TO_KM`.
@@ -135,7 +135,7 @@ Two independent version numbers:
 - **v1 → v2**: moons split out of the shared `planets` table
   (`is_moon`/`parent_planet_id`) into their own `moons` table
   (`planet_id`) — see the `moons` table below and `schema.sql`'s "v2"
-  header note for why. `stellarObjects/_db.py`'s `migrate_database`
+  header note for why. `src/stellarObjects/_db.py`'s `migrate_database`
   converts an existing v1 database in place, backing up the original
   first (`<name>.db.v1-backup-<timestamp>.db`, alongside it); `install.sh`
   (and so `update.sh`, which calls it) runs this automatically over every
@@ -189,7 +189,7 @@ One row per generated sector.
 ### `system_configs`
 
 One row per `SystemConfig` "recipe" — the generation parameters a
-`StarSystem` was built from (`stellarObjects/config.py`,
+`StarSystem` was built from (`src/stellarObjects/config.py`,
 `SERIALIZABLE_FIELDS`).
 
 | Column | Type | Null | Notes |
@@ -257,7 +257,7 @@ One row per generated system (single-star or binary).
 | `created_at` | TEXT | NOT NULL, default `CURRENT_TIMESTAMP` | |
 
 **Quadrant labeling.** `quadrant` reuses the generator's own octant scheme
-(`stellarObjects/spaceSector.py`'s `classify_octant`, backed by
+(`src/stellarObjects/spaceSector.py`'s `classify_octant`, backed by
 `program_constants.SECTOR_OCTANT_LABELS`): each axis's sign (`x >= 0`,
 `y >= 0`, `z >= 0`) picks one of 8 Roman-numeral labels, `I` through
 `VIII` — the same labels the generator's own `format_named_location`

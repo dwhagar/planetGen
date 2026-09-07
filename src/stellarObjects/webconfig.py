@@ -6,7 +6,7 @@ Web interface site configuration loader
 
 Loads `webconfig.json` -- the site-level configuration file for the
 planetGen web interface (`html/`), documented in full in
-[`WEBCONFIG.md`](../WEBCONFIG.md) at the repo root. That file covers what
+[`WEBCONFIG.md`](../../docs/WEBCONFIG.md). That file covers what
 each field means, why the real `webconfig.json` is gitignored while
 `webconfig.json.example` is committed as a template, and how this relates
 to the `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG` environment variables `html/`
@@ -23,13 +23,16 @@ credentials) without needing to handle a missing config file itself.
 import json
 import os
 
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# stellarObjects/ lives at src/stellarObjects/ (src layout) -- three levels
+# up from this file, not two, to reach the actual repo root.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 WEBCONFIG_PATH = os.path.join(_PROJECT_ROOT, "webconfig.json")
 """str: Absolute path to the real site config file, at the repo root --
-a sibling of `html/`, `db/`, and `stellarObjects/`, deliberately outside
-`html/`'s Apache `DocumentRoot` the same way `db/` already is. See
-`WEBCONFIG.md` for why."""
+a sibling of `html/`, `db/`, and `src/`, deliberately outside `html/`'s
+Apache `DocumentRoot` the same way `db/` already is (unlike
+`webconfig.json.example`, which lives in `html/` since it's just a
+template, not a secret). See `WEBCONFIG.md` for why."""
 
 DEFAULT_WEBCONFIG = {
     "site_name": "planetGen",
