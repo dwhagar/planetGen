@@ -692,7 +692,14 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
             name = name + suffix
 
         if max_length is not None and len(name) > max_length:
-            name = name[:max_length]
+            # Chopping at a raw character index can land right after an
+            # embedded apostrophe (from a base name like "Hi'iaka" or a
+            # spliced-in UNIVERSAL_PHONEMES chunk like "ch'"), leaving the
+            # truncated name ending in a bare "'" -- so back off past it.
+            cutoff = max_length
+            while cutoff > 0 and name[cutoff - 1] == "'":
+                cutoff -= 1
+            name = name[:cutoff] if cutoff > 0 else name[:max_length]
 
         name = name.lower()
 

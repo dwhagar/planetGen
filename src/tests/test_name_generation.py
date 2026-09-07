@@ -27,6 +27,7 @@ import pytest
 
 from stellarObjects.names import (
     PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
+    SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
     STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES,
     UNIVERSAL_PHONEMES,
 )
@@ -141,6 +142,28 @@ def test_split_long_word_does_not_leave_a_trailing_apostrophe():
     assert len(words) == 2
     for word in words:
         assert word[-1] not in "'`"
+
+
+def test_max_length_truncation_does_not_leave_a_trailing_apostrophe():
+    """
+    `generate_phoneme_salad_name`'s `max_length` truncation (used by
+    `sectorGen.generate_sector_name` via `syllable_fraction=0.5,
+    max_length=7`) chopped the assembled name at a raw character index,
+    with the same blind-spot as `split_long_word`: landing right after an
+    embedded apostrophe left the truncated name ending in a bare "'" --
+    e.g. "vorcek'os" (from base "Vorcek" + spliced "'" + suffix) truncated
+    to 7 chars used to become "vorcek'" instead of backing off past it.
+    """
+    for lists in [
+        (SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES),
+        (PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES),
+        (STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES),
+    ]:
+        for _ in range(3000):
+            name = generate_phoneme_salad_name(
+                *lists, allow_split=False, syllable_fraction=0.5, max_length=7
+            )
+            assert name[-1] not in "'`", f"name {name!r} ends in an apostrophe/backtick"
 
 
 @pytest.mark.parametrize("name_list,prefixes,suffixes", [
