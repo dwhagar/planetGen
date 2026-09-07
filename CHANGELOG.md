@@ -1,14 +1,40 @@
 # Changelog
 
-## [Unreleased]
+## [5.4.4] - 2026-09-07
 
-### Planned
-- **Sector Map: interactive 3D (drag-to-rotate, scroll-to-zoom)**: replace
-  the static server-baked isometric SVG projection in `src/html/lib/starmap.py`
-  with CSS 3D transforms (`perspective`/`preserve-3d`/`translate3d()`), so
-  the browser's own compositor handles rotation and occlusion instead of a
-  hand-rolled JS matrix routine. See `docs/TODO.md` ("Near-term: interim
-  `../src/html/` browser enhancements") for the full plan.
+### Added
+- **Sector Map is now interactive 3D: drag to rotate, scroll (or +/-
+  buttons) to zoom.** Replaced the static server-baked isometric SVG
+  projection in `src/html/lib/starmap.py` with a real CSS 3D scene
+  (`transform-style: preserve-3d`, orthographic -- no `perspective`), so
+  the browser's own compositor handles rotation and occlusion instead of
+  a hand-rolled JS matrix routine; `src/html/static/sectormap.js` tracks
+  two rotation angles and a zoom factor and feeds them straight to the
+  scene's CSS transform. Each star dot is billboarded (counter-rotated
+  every frame to keep facing the camera) so it stays a circle instead of
+  going edge-on as the view turns, and dot-click detection is resolved by
+  geometry (`getBoundingClientRect`) rather than native hit-testing,
+  since the latter turns out unreliable for elements nested this deep in
+  a rotated `preserve-3d` hierarchy.
+
+### Changed
+- **Sector Map star colors now come from the star's actual named
+  spectral color** (`SPECTRAL_CLASS_COLORS`: Blue/Blue-White/White/
+  Yellow-White/Yellow/Orange/Red, keyed off `star_type`'s leading letter)
+  instead of a raw Kelvin-to-RGB blackbody approximation, so a "White
+  Giant" reads white and a "Blue Giant" reads blue regardless of its
+  exact temperature. Luminosity shades each color's vividness/lightness
+  (brighter = more vivid, dimmer = more muted) and temperature nudges
+  lightness within the star's own spectral band.
+- **Binary systems draw two dots** (a larger primary and a smaller
+  secondary, capped at 65% of the primary's radius and offset to its
+  lower-right, overlapping) built from each component's own `stars` row,
+  instead of one dot from the system-level `binary_type`/
+  `binary_temperature_k` summary -- so each half of a binary is sized and
+  colored from its own actual data.
+
+See `docs/TODO.md` ("Near-term: interim `../src/html/` browser
+enhancements") for where this started as a plan.
 
 ## [5.4.3] - 2026-09-07
 

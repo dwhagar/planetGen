@@ -356,14 +356,8 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
-/* Sector map: isometric wireframe cube + star dots (html/lib/starmap.py,
+/* Sector map: interactive 3D cube + star dots (html/lib/starmap.py,
    html/static/sectormap.js) */
-/* TODO: `.starmap-svg`/`.starmap-edge`/`.star-dot`'s SVG presentation
-   attributes (fill/stroke) get replaced by background-color/border-color
-   on plain <div>s, plus new perspective/preserve-3d container rules and
-   6 cube-face transforms, once the map switches to CSS 3D transforms.
-   See docs/TODO.md, "Near-term: interim `../src/html/` browser
-   enhancements". */
 .starmap-layout {
   display: flex;
   flex-wrap: wrap;
@@ -371,38 +365,137 @@ tbody tr:last-child td {
   gap: 1.5rem;
 }
 
-.starmap-svg {
-  flex: 1 1 22rem;
-  min-width: 18rem;
-  max-width: 34rem;
-  height: auto;
+/* Zoom lives on its own wrapper *outside* `.starmap-stage` (which holds
+   `perspective`) rather than between it and `.starmap-scene` (which
+   holds the rotation transform) -- sandwiching a plain 2D transform
+   between a perspective element and its 3D-transformed child would flatten
+   the child's rotation before perspective could apply to it. Out here,
+   `scale()` just magnifies the whole already-rendered 3D scene, which is
+   exactly what "zoom" should do. */
+.starmap-zoom {
+  display: inline-block;
 }
 
-.starmap-edge {
-  stroke: var(--border);
-  stroke-width: 1;
-  fill: none;
+.starmap-stage {
+  display: inline-block;
+  /* Deliberately no `perspective` here -- a vanishing-point projection
+     turns billboarding each star dot to face the camera into a genuine
+     per-object, camera-relative rotation problem (confirmed the hard
+     way: a plain counter-rotation only cancelled `.starmap-scene`'s
+     rotation correctly at the one angle it was tested at, and broke
+     differently at another). Without `perspective`, this is a pure
+     orthographic 3D scene instead -- `preserve-3d`'s automatic
+     depth-based occlusion works exactly the same either way (it compares
+     z-depth among siblings, independent of whether a perspective
+     projection is also applied), and a schematic sector map has no real
+     need for vanishing-point foreshortening anyway. */
+  cursor: grab;
+  /* This element owns drag-to-rotate itself (see sectormap.js) --
+     without this, touch browsers intercept a vertical drag as page
+     scroll before our own pointer handlers see it. */
+  touch-action: none;
+  border-radius: var(--radius);
+}
+
+.starmap-stage:active {
+  cursor: grabbing;
+}
+
+.starmap-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.starmap-scene {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.cube-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+  /* Purely decorative -- a transparent-background div is still a full
+     hit-testable rectangle, and a face's flat 2D box can sit in front of
+     a dot that's actually nearer the viewer in true 3D (CSS hit-testing
+     for preserve-3d siblings isn't reliably depth-aware the way painting
+     is), which would otherwise swallow clicks meant for the dot behind
+     it. Dragging still works: `.starmap-stage` (an ancestor) is what
+     `sectormap.js` listens on, not the faces themselves. */
+  pointer-events: none;
+}
+
+.star-dot-anchor {
+  /* Positions one star (left/top for x/y, translateZ() for z, both set
+     inline per-dot by lib/starmap.py) -- carries no rotation of its own,
+     so it stays wherever `.starmap-scene`'s rotation puts it. Billboard
+     counter-rotation lives on the *inner* `.star-dot` instead (updated
+     live by sectormap.js), which is what keeps the visible circle facing
+     the camera regardless of scene rotation, instead of going edge-on. */
+  position: absolute;
+  /* Required for that counter-rotation to actually work: the default
+     `flat` here would flatten `.star-dot`'s own rotation into this
+     anchor's 2D plane *before* `.starmap-scene`'s rotation is applied --
+     harmless-looking for a circle (rotating a circle within its own flat
+     plane is invisible) but it means the counter-rotation never reaches
+     the real 3D composition at all, so the dot still goes edge-on
+     exactly as if there were no billboarding code running. Confirmed by
+     testing: adding this turned an otherwise-correct counter-rotation
+     formula from "still edge-on at almost every angle" to "circular at
+     every angle tested". */
+  transform-style: preserve-3d;
 }
 
 .star-dot {
-  /* Stroke color is set inline per-dot by lib/starmap.py (a darkened
-     shade of the dot's own fill, so it stays visible against either
-     theme and separates two overlapping binary dots) -- only
-     stroke-width lives here. */
-  stroke-width: 1.2;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border-style: solid;
+  border-width: 1.2px;
+  box-sizing: border-box;
   cursor: pointer;
 }
 
 .star-dot:hover,
 .star-dot:focus-visible {
-  stroke: var(--accent);
-  stroke-width: 2;
+  border-color: var(--accent);
+  border-width: 2px;
   outline: none;
 }
 
-.starmap-info {
+.starmap-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   flex: 1 1 14rem;
   min-width: 12rem;
+}
+
+.starmap-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.starmap-btn {
+  font: inherit;
+  font-weight: 600;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+}
+
+.starmap-btn:hover {
+  border-color: var(--accent);
+}
+
+.starmap-info {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: 8px;

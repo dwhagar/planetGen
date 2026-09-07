@@ -207,46 +207,36 @@ check with a clipboard-copy fallback (commit `ee8daab`).
 - [ ] **Sprite-based graphical system view**: render a system's star,
   planets, and moons as small icon sprites sized relative to each other --
   see TODO in src/html/system.py near `_bodies_html`.
-- [ ] **Sector Map: interactive 3D (drag-to-rotate, scroll-to-zoom)**: the
-  "Sector Map" panel (`src/html/lib/starmap.py`) currently bakes a fixed
-  isometric projection into static SVG at page-render time -- rotating the
-  view isn't possible without a real client-side 3D layer, which doesn't
-  exist yet. Plan: switch to CSS 3D transforms (`perspective`,
-  `transform-style: preserve-3d`, `translate3d()`) instead of a hand-rolled
-  JS rotation-matrix/projection routine, since the browser's own compositor
-  then does the rotation math *and* correct occlusion (real z-depth, no
-  manual painter's-algorithm re-sort needed every frame) for free:
-    - `starmap.py` stops projecting to fixed 2D pixel coordinates
-      (`_iso_project`/`_iso_scale` go away entirely -- no more trig needed
-      server-side). Each star becomes a plain `<div>` positioned via
-      `transform: translate3d(x, y, z)` in a shared pixel-space cube
-      (normalized `[-1, 1]` coordinates times one `SCENE_SIZE_PX`
-      constant), not an SVG `<circle>` -- CSS 3D transforms on individual
-      shapes nested inside an `<svg>` have inconsistent browser support,
-      plain HTML elements don't. Binary secondary offset ("down and to the
-      right") becomes a fixed 3D-space delta added directly to the
-      primary's own `translate3d()`, so the pair rotates rigidly together
-      instead of the offset needing to be recomputed per frame.
-    - The cube wireframe becomes 6 absolutely-positioned, border-only
-      `<div>` faces (the standard "CSS 3D cube" recipe: `translateZ(half)`,
-      `rotateY(180deg) translateZ(half)`, `rotateY(±90deg) translateZ(half)`,
-      `rotateX(±90deg) translateZ(half)` for front/back/right/left/top/
-      bottom) instead of 12 SVG `<line>` edges -- fewer elements, and no
-      per-edge midpoint/alignment math since a plain cube's faces are
-      always axis-aligned.
-    - `sectormap.js` gains pointer-drag-to-orbit (update `rotateX`/`rotateY`
-      degrees on the scene element, clamped so pitch can't flip upside
-      down) and wheel/pinch-to-zoom (a separate `scale()` on an outer
-      wrapper, kept independent of the rotation transform so zoom never
-      interacts with `perspective` depth). Needs click-vs-drag
-      disambiguation (a pointerdown->pointerup movement-distance threshold)
-      so dragging the scene doesn't fire a dot's existing click-for-info-
-      panel behavior, which is otherwise unchanged.
-    - `style.css` gains the `perspective`/`preserve-3d` container rules and
-      the 6 cube-face transforms; the existing SVG-specific `.starmap-svg`/
-      `.starmap-edge`/`.star-dot` (fill/stroke as SVG presentation
-      attributes) rules get replaced with `background-color`/`border-color`
-      equivalents for plain `<div>`s.
+- [x] **Sector Map: interactive 3D (drag-to-rotate, scroll-to-zoom)** --
+  done. `src/html/lib/starmap.py` now emits a real CSS 3D scene instead of
+  a fixed-projection SVG: 6 bordered `<div>` cube faces (the standard
+  "CSS 3D cube" recipe) plus one billboarded `<div>` per star, positioned
+  via plain layout (`left`/`top`) for x/y and `transform: translateZ()`
+  for z. `src/html/static/sectormap.js` tracks two rotation angles and a
+  zoom factor from pointer drag / wheel / +/- buttons and feeds them to
+  `#starmap-scene`'s CSS transform every frame; the browser's own
+  `preserve-3d` compositor handles rotation and occlusion, no manual
+  painter's-algorithm re-sort needed. Two things the original plan didn't
+  anticipate, both resolved:
+    - **No `perspective`.** Billboarding each dot (counter-rotating it so
+      it keeps facing the camera instead of going edge-on as the scene
+      turns) needs the plain algebraic inverse of the scene's rotation --
+      correct only for a pure-rotation (orthographic) composition. With
+      `perspective` on `.starmap-stage`, the composition becomes genuinely
+      projective and that inverse stops cancelling correctly (confirmed
+      directly: it only worked at the one angle it was tested at). Fixed
+      by dropping `perspective` entirely -- `preserve-3d` occlusion is
+      unaffected either way, and a schematic sector map has no real need
+      for vanishing-point foreshortening.
+    - **Dot-click detection is resolved by geometry, not native
+      hit-testing.** `elementFromPoint`/real click dispatch turned out
+      unreliable for an element nested this deep in a rotated
+      `preserve-3d` hierarchy (confirmed directly: `elementFromPoint` and
+      `elementsFromPoint()[0]` disagreed for the identical coordinate).
+      `sectormap.js` instead resolves a click against every dot's own
+      `getBoundingClientRect()` (which stays reliable regardless), ties
+      going to whichever center is nearest the click.
+  See CHANGELOG.md [5.4.4].
 
 ### Deployment history (interim `../src/html/` browser)
 

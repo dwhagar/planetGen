@@ -1,18 +1,29 @@
 # html/lib/starmap.py
 
 """
-Isometric sector-cube starmap: a small inline SVG rendering every placed
-star system in a sector as one dot per star (two, overlapping, for a
-binary) -- positioned by projecting the system's (x, y, z) position
-within the sector's cube through a fixed axonometric transform, sized by
-that star's physical radius, and colored by its spectral color (from
-`star_type`, e.g. "White" for an A-class star, "Blue" for an O-class
-star -- see `physical_constants.SPECTRAL_CLASS_COLORS`), shaded by its
-luminosity (brighter = more vivid/lighter, dimmer = more muted/darker)
-and nudged by where its exact temperature falls within its spectral
-class's range. Deliberately plain: no charting library, no build step --
-matches the rest of `html/`'s standard-library-only, no-templating-engine
-approach.
+Interactive 3D sector-cube starmap: every placed star system in a sector
+rendered as one plain `<div>` per star (two, overlapping, for a binary),
+positioned in a real CSS 3D scene (`perspective` + `transform-style:
+preserve-3d`) built from the system's (x, y, z) position within the
+sector's cube -- sized by that star's physical radius, and colored by its
+spectral color (from `star_type`, e.g. "White" for an A-class star,
+"Blue" for an O-class star -- see `physical_constants.SPECTRAL_CLASS_COLORS`),
+shaded by its luminosity (brighter = more vivid/lighter, dimmer = more
+muted/darker) and nudged by where its exact temperature falls within its
+spectral class's range.
+
+Unlike a hand-rolled JS rotation-matrix/projection routine, this hands
+the actual 3D math to the browser: each star's (x, y, z) is placed once,
+as-is, via plain layout position (`left`/`top`) plus `transform:
+translateZ()` for depth -- rotating the whole `.starmap-scene` element
+(`static/sectormap.js`, via drag) and letting `preserve-3d` composite
+every descendant (star dots and the 6 cube-face `<div>`s alike) in true
+3D, occlusion included, is what the browser's own compositor is already
+built to do. Zoom is a separate, plain 2D `scale()` on an *outer*
+wrapper (`.starmap-zoom`, kept outside the `perspective` element rather
+than sandwiched between it and the rotating scene, so it never disturbs
+the perspective math) -- since this is vector/DOM content rather than a
+raster image, scaling it is lossless.
 
 Clicking a dot doesn't navigate straight to `system.py` -- it populates
 the info side panel via the `data-*` attributes read from the clicked
@@ -40,12 +51,13 @@ except ImportError:
     SOLAR_LUMINOSITY = 3.82e26
     SOLAR_RADIUS_M = 6.957e8
 
-_VIEWBOX_W = 640
-_VIEWBOX_H = 540
-_MARGIN = 56
-
-_ISO_COS30 = math.cos(math.radians(30))
-_ISO_SIN30 = math.sin(math.radians(30))
+# The 3D scene's on-screen footprint, in pixels -- a fixed size (unlike
+# the old responsive SVG viewBox) since a CSS 3D scene needs an explicit
+# width/height for its children's `left`/`top`/`translateZ` coordinates
+# to mean anything; `sectormap.js`'s zoom control is what makes this not
+# a hard ceiling for the viewer.
+_SCENE_SIZE_PX = 320
+_SCENE_HALF_PX = _SCENE_SIZE_PX / 2
 
 _SUN_RADIUS_KM = SOLAR_RADIUS_M / 1000.0
 _MIN_DOT_R = 3.0
@@ -53,8 +65,10 @@ _MAX_DOT_R = 14.0
 
 # Secondary-star offset (binary systems), as a fraction of the primary's
 # own dot radius -- "down and to the right", overlapping the primary
-# rather than sitting fully clear of it, so the pair still visually
-# reads as one system with a small partner indicator.
+# rather than sitting fully clear of it. This is a fixed delta in the
+# scene's own local coordinate space (not screen space), so the pair
+# rotates rigidly together as one unit under `.starmap-scene`'s rotation
+# instead of needing to be recomputed as the view turns.
 _BINARY_OFFSET_FRACTION = 0.85
 
 # The secondary's dot never exceeds this fraction of the primary's own
@@ -87,54 +101,26 @@ _SPECTRAL_LETTER_RGB = {
     for letter, color_name in SPECTRAL_CLASS_COLORS.items()
 }
 
-# Cube corners at (+-1, +-1, +-1) and the 12 edges connecting them -- a
-# plain wireframe box, drawn before any system dot so dots always sit on
-# top of it. Corners 0-3 are one face (z=-1), 4-7 the opposite face
-# (z=+1), same index order on each so 0-4/1-5/2-6/3-7 are the verticals.
-_CUBE_CORNERS = [
-    (-1, -1, -1), (1, -1, -1), (1, 1, -1), (-1, 1, -1),
-    (-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1),
-]
-_CUBE_EDGES = [
-    (0, 1), (1, 2), (2, 3), (3, 0),
-    (4, 5), (5, 6), (6, 7), (7, 4),
-    (0, 4), (1, 5), (2, 6), (3, 7),
-]
+# The standard "CSS 3D cube" recipe: 6 identically-sized, border-only
+# faces, each pushed out along its own now-rotated local Z axis by half
+# the cube's edge length. Every face is axis-aligned by construction (a
+# plain, unskewed cube), so this needs no per-edge alignment math the way
+# an arbitrary wireframe would -- just these 6 fixed transforms.
+_CUBE_FACE_TRANSFORMS = {
+    "front": f"translateZ({_SCENE_HALF_PX}px)",
+    "back": f"rotateY(180deg) translateZ({_SCENE_HALF_PX}px)",
+    "right": f"rotateY(90deg) translateZ({_SCENE_HALF_PX}px)",
+    "left": f"rotateY(-90deg) translateZ({_SCENE_HALF_PX}px)",
+    "top": f"rotateX(90deg) translateZ({_SCENE_HALF_PX}px)",
+    "bottom": f"rotateX(-90deg) translateZ({_SCENE_HALF_PX}px)",
+}
 
 
-# TODO: this whole fixed-isometric-projection approach (`_iso_project`,
-# `_to_pixels`, `_iso_scale`, `_cube_wireframe_svg`'s SVG `<line>` edges,
-# and `_dot_svg`'s SVG `<circle>`s) goes away once the map switches to CSS
-# 3D transforms (drag-to-rotate, scroll-to-zoom) -- normalized (x, y, z)
-# gets fed straight to `translate3d()` on a plain `<div>` per star instead
-# of being projected to a fixed 2D pixel position here, and the cube
-# wireframe becomes 6 bordered `<div>` faces instead of 12 SVG lines. See
-# docs/TODO.md, "Near-term: interim `../src/html/` browser enhancements".
-def _iso_project(x, y, z):
-    """Projects normalized cube coordinates (each expected in [-1, 1]) to
-    a 2D axonometric plane -- fixed 30-degree isometric angles, not a
-    full perspective/camera system (nothing here rotates or zooms)."""
-    sx = (x - z) * _ISO_COS30
-    sy = (x + z) * _ISO_SIN30 - y
-    return sx, sy
-
-
-def _to_pixels(sx, sy, scale):
-    return (_VIEWBOX_W / 2 + sx * scale, _VIEWBOX_H / 2 + sy * scale)
-
-
-def _iso_scale():
-    """The uniform scale factor that fits the full projected cube (all 8
-    corners) inside the viewBox with `_MARGIN` to spare on every side --
-    derived from the corners themselves rather than a hand-computed
-    constant, so it stays correct if `_VIEWBOX_W/H`/`_MARGIN` ever
-    change."""
-    projected = [_iso_project(x, y, z) for x, y, z in _CUBE_CORNERS]
-    max_sx = max(abs(sx) for sx, _ in projected)
-    max_sy = max(abs(sy) for _, sy in projected)
-    scale_x = (_VIEWBOX_W / 2 - _MARGIN) / max_sx
-    scale_y = (_VIEWBOX_H / 2 - _MARGIN) / max_sy
-    return min(scale_x, scale_y)
+def _cube_faces_html():
+    return "".join(
+        f'<div class="cube-face" style="transform:{transform}"></div>'
+        for transform in _CUBE_FACE_TRANSFORMS.values()
+    )
 
 
 def _kelvin_to_hex(temp_k):
@@ -270,42 +256,62 @@ def _star_dot_radius(radius_km):
     return max(_MIN_DOT_R, min(_MAX_DOT_R, dot_r))
 
 
-def _cube_wireframe_svg(scale):
-    pixel_corners = [_to_pixels(*_iso_project(x, y, z), scale) for x, y, z in _CUBE_CORNERS]
-    lines = []
-    for a, b in _CUBE_EDGES:
-        x1, y1 = pixel_corners[a]
-        x2, y2 = pixel_corners[b]
-        lines.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" class="starmap-edge" />')
-    return "".join(lines)
-
-
-def _dot_svg(db_name, system, star, px, py, label_suffix, max_r=None):
+def _dot_html(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None):
+    """
+    Builds one star as two nested `<div>`s -- an outer "anchor" that just
+    positions it (plain layout `left`/`top`, recentered on the scene's
+    middle, for x/y; `transform: translateZ()` for z) and an inner
+    `.star-dot` that draws the actual circle. The split exists for
+    billboarding: a lone dot positioned this way is a flat disc lying in
+    the scene's local plane, so once the scene rotates far enough it's
+    seen edge-on and all but disappears -- exactly wrong for a map whose
+    entire point is looking at these from any angle. `sectormap.js`
+    counter-rotates the *inner* div by the scene's current rotation on
+    every drag frame -- `rotateY(-rotateY) rotateX(-rotateX)`, the plain
+    algebraic inverse (reverse function order, negated angles) of
+    `.starmap-scene`'s own `rotateX(rotateX) rotateY(rotateY)` -- so the
+    circle always faces the camera; the outer anchor is what still
+    carries the correct, unrotated (x, y, z) position through the scene's
+    rotation. This inverse is only correct because `.starmap-stage` has no
+    `perspective`: a vanishing-point projection would make the real
+    composition genuinely projective rather than pure rotation, and a
+    plain inverse stops cancelling it correctly (confirmed directly --
+    with `perspective` still set, this same formula only worked at the
+    one rotation angle it happened to be tested at, and broke, in a
+    different way, at another).
+    """
     dot_r = _star_dot_radius(star["radius_km"])
     if max_r is not None:
         dot_r = min(dot_r, max_r)
     fill, stroke = _star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     name = f'{system["name"]}{label_suffix}'
+    left = _SCENE_HALF_PX + x_px - dot_r
+    top = _SCENE_HALF_PX + y_px - dot_r
     return (
-        '<circle class="star-dot" tabindex="0" role="button" '
-        f'cx="{px:.1f}" cy="{py:.1f}" r="{dot_r:.1f}" fill="{fill}" stroke="{stroke}" '
+        '<div class="star-dot-anchor" '
+        f'style="left:{left:.1f}px; top:{top:.1f}px; width:{dot_r * 2:.1f}px; height:{dot_r * 2:.1f}px; '
+        f'transform:translateZ({z_px:.1f}px);">'
+        '<div class="star-dot" tabindex="0" role="button" '
+        f'style="background:{fill}; border-color:{stroke};" '
         f'data-name="{esc(name)}" '
         f'data-type="{esc(star["star_type"])}" '
         f'data-temp="{esc(star["temp_display"])}" '
         f'data-quadrant="{esc(system["quadrant"])}" '
         f'data-location="{esc(system["location"])}" '
         f'data-href="system.py?db={esc(db_name)}&amp;id={system["id"]}" '
-        f'aria-label="{esc(name)}"><title>{esc(name)}</title></circle>'
+        f'aria-label="{esc(name)}" title="{esc(name)}"></div>'
+        '</div>'
     )
 
 
 def render_map_panel(db_name, edge_mpc, systems):
     """
-    Builds the "Sector Map" panel: an isometric wireframe of the sector's
-    cube with one dot per placed star system (two, overlapping, for a
-    binary -- the primary at the system's actual projected position, the
-    secondary offset down-and-right from it), plus an info side panel
-    that `static/sectormap.js` fills in when a dot is clicked.
+    Builds the "Sector Map" panel: a draggable/zoomable 3D cube (see
+    `static/sectormap.js` for the rotate/zoom/click wiring) with one dot
+    per placed star system (two, overlapping, for a binary -- the primary
+    at the system's actual position, the secondary offset down-and-right
+    from it), plus an info side panel that the same script fills in when
+    a dot is clicked.
 
     Args:
         db_name (str): The current `?db=` value, used to build each dot's
@@ -327,40 +333,47 @@ def render_map_panel(db_name, edge_mpc, systems):
     Returns:
         str: A complete `<section class="panel">` block.
     """
-    scale = _iso_scale()
     half_edge = (edge_mpc / 2) if edge_mpc else 1.0
 
-    # Painter's algorithm: draw the farthest-from-viewer systems first so
-    # nearer ones overlap them on any overlap -- `x + y + z` is a fixed
-    # depth proxy for this projection's viewing direction (all three axes
-    # tilt toward the viewer equally), good enough for the handful of
-    # systems a sector holds.
-    ordered = sorted(systems, key=lambda row: (row["x"] or 0) + (row["y"] or 0) + (row["z"] or 0))
-
     dots = []
-    for system in ordered:
+    for system in systems:
+        # +y is "up" on screen; CSS's own y axis increases downward, so
+        # the sign flips here once, at the one place normalized position
+        # becomes a pixel coordinate -- everything downstream (including
+        # the binary offset below) works in already-screen-oriented
+        # pixels. No depth sort is needed here (unlike the old fixed
+        # isometric SVG) -- `preserve-3d` composites every dot and cube
+        # face by its real depth as the scene rotates, live, in the
+        # browser itself.
         nx = max(-1.05, min(1.05, (system["x"] or 0) / half_edge))
         ny = max(-1.05, min(1.05, (system["y"] or 0) / half_edge))
         nz = max(-1.05, min(1.05, (system["z"] or 0) / half_edge))
-        px, py = _to_pixels(*_iso_project(nx, ny, nz), scale)
+        x_px = nx * _SCENE_HALF_PX
+        y_px = -ny * _SCENE_HALF_PX
+        z_px = nz * _SCENE_HALF_PX
 
         stars = system["stars"]
         is_binary = len(stars) > 1
         primary_suffix = " -- Primary" if is_binary else ""
-        dots.append(_dot_svg(db_name, system, stars[0], px, py, primary_suffix))
+        dots.append(_dot_html(db_name, system, stars[0], x_px, y_px, z_px, primary_suffix))
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
             offset = primary_r * _BINARY_OFFSET_FRACTION
-            dots.append(_dot_svg(
-                db_name, system, stars[1], px + offset, py + offset, " -- Secondary",
+            dots.append(_dot_html(
+                db_name, system, stars[1], x_px + offset, y_px + offset, z_px, " -- Secondary",
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
 
-    svg = (
-        f'<svg class="starmap-svg" viewBox="0 0 {_VIEWBOX_W} {_VIEWBOX_H}" '
-        'role="img" aria-label="Isometric map of star systems in this sector">'
-        f"{_cube_wireframe_svg(scale)}{''.join(dots)}</svg>"
+    # No role/aria-label here -- `role="img"` on an ancestor would flatten
+    # every descendant (each star dot's own `role="button"`/`tabindex`)
+    # into a single opaque image for assistive tech, breaking keyboard
+    # access to the dots. The accessible description lives on
+    # `.starmap-stage` below instead, one level up.
+    scene = (
+        '<div class="starmap-scene" id="starmap-scene" '
+        f'style="width:{_SCENE_SIZE_PX}px; height:{_SCENE_SIZE_PX}px;">'
+        f"{_cube_faces_html()}{''.join(dots)}</div>"
     )
 
     if systems:
@@ -375,11 +388,23 @@ def render_map_panel(db_name, edge_mpc, systems):
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness</span>
 </div>
 <div class="starmap-layout">
-{svg}
+<div class="starmap-zoom" id="starmap-zoom">
+<div class="starmap-stage" id="starmap-stage" tabindex="0" role="application"
+     aria-label="Interactive 3D sector map. Drag or use arrow keys to rotate, scroll or the zoom buttons to zoom.">
+{scene}
+</div>
+</div>
+<div class="starmap-side">
+<div class="starmap-controls" id="starmap-controls">
+  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
+  <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
+  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
+</div>
 {info_panel}
+</div>
 </div>
 </section>
 """
