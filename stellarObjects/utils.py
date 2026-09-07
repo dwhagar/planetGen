@@ -523,8 +523,15 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                 name = split_long_word(name)
             name = name[0].upper() + name[1:]
             if "'" in name:
+                # Two apostrophes can land adjacent here (e.g. a base name like
+                # "Hi'iaka" splits into a syllable starting with "'", and a
+                # spliced-in UNIVERSAL_PHONEMES chunk like "ch'" ends with "'";
+                # shuffling can place them next to each other), producing an
+                # empty string between them once split -- guard against
+                # indexing that empty part rather than assuming every part is
+                # non-empty.
                 parts = name.split("'")
-                name = "'".join([part[0].upper() + part[1:] for part in parts])
+                name = "'".join([part[0].upper() + part[1:] if part else part for part in parts])
             return name
 
 
