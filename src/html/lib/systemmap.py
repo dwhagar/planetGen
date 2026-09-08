@@ -42,6 +42,7 @@ panel from its `data-*` attributes, exactly like `starmap.py`/
 
 import colorsys
 import math
+import statistics
 
 from dbutil import esc
 from starmap import _star_color, _SUN_RADIUS_KM
@@ -229,12 +230,24 @@ def _orbit_radii_px(distances_km):
     in `distances_km`, in the same order, assuming the list is already
     sorted ascending by distance.
 
-    Each body's *ideal* radius is log-scaled between a shared floor and
+    Each body's *ideal* radius is log-scaled between a floor and
     `_ORBIT_SPREAD_PX` (so relative spacing tracks relative distance -- a
     log scale compresses the huge inner/outer ratio a real system spans
     far less harshly than a sqrt scale would, while still keeping every
-    ratio finite). Those ideal radii would still let a tight cluster of
-    close-in bodies collapse into a few pixels of each other, so
+    ratio finite). That floor is *not* the innermost body's own distance --
+    doing that would anchor it to frac=0 by construction, which is what
+    used to put the first orbit right against the star regardless of how
+    far out it actually was, and (with few bodies) blow the entire pixel
+    budget on whatever ratio happened to separate the two extremes even
+    when neighboring bodies were genuinely close together. Instead the
+    floor sits one *typical* log-step below the innermost body -- the
+    median gap between this same system's own consecutive bodies -- so the
+    star-to-first-orbit gap reads on the same scale as every other gap
+    instead of always collapsing to zero (confirmed directly: a two-planet
+    system 2.8x apart in real distance used to place them at the two
+    extreme edges of the frame, indistinguishable from a pair 1000x apart).
+    Those ideal radii would still let a tight cluster of close-in bodies
+    collapse into a few pixels of each other, so
     `_resolve_min_gap` nudges only the bodies that actually collide apart
     -- symmetrically, around their own shared average, not by ratcheting
     every later body rightward off of one early collision -- rather than
@@ -250,7 +263,15 @@ def _orbit_radii_px(distances_km):
     needing more room.
     """
     valid = [d for d in distances_km if d and d > 0]
-    lo, hi = (min(valid), max(valid)) if valid else (0.0, 0.0)
+    if len(valid) >= 2:
+        log_vals = sorted(math.log10(d) for d in valid)
+        typical_step = statistics.median(b - a for a, b in zip(log_vals, log_vals[1:]))
+        lo = 10 ** (log_vals[0] - typical_step)
+        hi = 10 ** log_vals[-1]
+    elif valid:
+        lo = hi = valid[0]
+    else:
+        lo, hi = 0.0, 0.0
     ideal = []
     for index, distance_km in enumerate(distances_km):
         if hi > lo and distance_km and distance_km > 0:
@@ -391,18 +412,25 @@ def _data_attrs(attrs):
     return "".join(f' data-{key}="{esc(value)}"' for key, value in attrs.items() if value is not None)
 
 
-def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False):
+def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False,
+                      label_above=False, show_label=True):
     """
     Builds one clickable `<g>` for a planet or moon: a filled/stroked
     circle colored by `planet_class` (see `_CLASS_COLORS`), the class
     letter centered inside it once the circle is big enough to hold text
     legibly, a small tilted ring behind gas giants (`body_type == "g"`)
-    for an at-a-glance silhouette cue beyond just color, and a name label
-    underneath. `is_self` marks the one body a moon-scene is *about* (the
-    planet drilled into, now standing in for the scene's star) -- drawn
-    with a soft halo and picked out by `static/systemmap.js` as the
-    default info-panel content when that scene opens, via its
-    `data-self="true"` marker.
+    for an at-a-glance silhouette cue beyond just color, and (when
+    `show_label` is set) a name label underneath -- or, when `label_above`
+    is also set (see `_label_sides`), above, to keep it clear of a
+    tightly-packed neighbor's own label. `show_label` alone going False
+    (also from `_label_sides`, when even alternating sides couldn't clear
+    a tight enough cluster) only drops the visible text, not the body's
+    name from `aria-label` -- it's still reachable, just via a click on
+    the marker rather than a glance at the diagram. `is_self` marks the
+    one body a moon-scene is *about* (the planet drilled into, now
+    standing in for the scene's star) -- drawn with a soft halo and picked
+    out by `static/systemmap.js` as the default info-panel content when
+    that scene opens, via its `data-self="true"` marker.
     """
     fill = _class_color(planet_class)
     stroke = _darken_hex(fill, 0.22)
@@ -422,9 +450,10 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
             f'<text class="sysmap-classletter" x="{cx:.1f}" y="{cy:.1f}" fill="{text_color}" '
             f'text-anchor="middle" dominant-baseline="central">{esc(planet_class.upper())}</text>'
         )
-    if label_text:
+    if label_text and show_label:
+        label_y = cy - r_px - 8 if label_above else cy + r_px + 14
         parts.append(
-            f'<text class="sysmap-label" x="{cx:.1f}" y="{cy + r_px + 14:.1f}" text-anchor="middle">{esc(label_text)}</text>'
+            f'<text class="sysmap-label" x="{cx:.1f}" y="{label_y:.1f}" text-anchor="middle">{esc(label_text)}</text>'
         )
 
     self_attr = ' data-self="true"' if is_self else ""
@@ -521,6 +550,53 @@ def _first_body_extent_px(kind, row, radius_px):
     return radius_fn(row["radius_km"])
 
 
+_LABEL_CHAR_WIDTH_PX = 8.5
+_LABEL_MIN_HALFWIDTH_PX = 20.0
+_LABEL_GAP_PAD_PX = 6.0
+
+
+def _label_half_width_px(text):
+    """A cheap stand-in for actually measuring `text` at `.sysmap-label`'s
+    font size (not available server-side, since this is a static SVG) --
+    just enough to decide whether two neighboring names would collide, not
+    to lay out precisely."""
+    return max(_LABEL_MIN_HALFWIDTH_PX, len(text or "") * _LABEL_CHAR_WIDTH_PX / 2)
+
+
+def _label_sides(cx_and_names):
+    """
+    Given `[(cx, name), ...]` in ascending-cx order, returns one
+    `"below"`/`"above"`/`None` per entry: which band that body's name
+    label should be drawn in, or `None` to skip drawing it at all.
+    `_orbit_radii_px`'s own collision resolution only keeps *markers* from
+    overlapping (`_MIN_ORBIT_GAP_PX`, far narrower than most names render
+    at) -- a run of tightly-packed bodies would otherwise stack their
+    labels into an unreadable smear along the one horizontal band every
+    default "below" label shares. Each label is checked against the
+    nearest earlier label still in the same band (a "below" band freed up
+    by the previous label going "above" is fair game again, and vice
+    versa), so a moderately tight run alternates below/above/below/... --
+    the standard fix for crowded labels along one axis. A run tight enough
+    to still collide in *both* bands (three or more names packed within
+    barely `_MIN_ORBIT_GAP_PX` of each other) drops the label rather than
+    drawing overlapping text -- that body's name, and everything else
+    about it, is still one click away in the info panel.
+    """
+    sides = []
+    prev_edge = {"below": None, "above": None}
+    for cx, name in cx_and_names:
+        half = _label_half_width_px(name)
+        fits = {
+            band: prev_edge[band] is None or cx - half - prev_edge[band] >= _LABEL_GAP_PAD_PX
+            for band in ("below", "above")
+        }
+        side = "below" if fits["below"] else "above" if fits["above"] else None
+        if side is not None:
+            prev_edge[side] = cx + half
+        sides.append(side)
+    return sides
+
+
 def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entries, center_radius_px):
     """
     Shared layout engine for both scene kinds (the whole system, and one
@@ -551,6 +627,11 @@ def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entrie
             shift = needed - radii[0]
             radii = [r + shift for r in radii]
 
+    label_sides = iter(_label_sides([
+        (star_x + radius_px, row["name"])
+        for (kind, row), radius_px in zip(orbit_entries, radii) if kind != "belt"
+    ]))
+
     orbits = []
     bodies = []
     for (kind, row), radius_px in zip(orbit_entries, radii):
@@ -571,11 +652,13 @@ def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entrie
         moons = row.get("moons") or []
         scene_target = f'planet-{row["id"]}' if moons else None
         radius_fn = _moon_radius_px if row.get("_is_moon") else _planet_radius_px
+        side = next(label_sides)
         bodies.append(_body_marker_svg(
             cx, cy, radius_fn(row["radius_km"]), row["planet_class"], row["body_type"],
             row["name"], "sysmap-moon" if row.get("_is_moon") else "sysmap-planet",
             _planet_attrs(row, kind="moon" if row.get("_is_moon") else "planet",
                           parent_name=row.get("_parent_name"), scene_target=scene_target),
+            label_above=(side == "above"), show_label=(side is not None),
         ))
 
     return (
