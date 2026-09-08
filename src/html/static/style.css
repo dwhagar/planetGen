@@ -752,6 +752,124 @@ code {
   font-size: 0.9em;
 }
 
+/* System map: letterboxed concentric-orbit diagram (html/lib/systemmap.py,
+   html/static/systemmap.js) -- reuses the sector map's `.starmap-layout`/
+   `.starmap-viewport`/`.starmap-info`/`.starmap-side` shell (same card/
+   side-panel look), but `.sysmap-viewport` overrides the sector map's
+   square box with this diagram's own short/wide fixed aspect ratio, and
+   there's no zoom/scroll/rotate machinery at all -- the whole diagram is
+   one fixed-size `viewBox`, scaled responsively like any plain
+   `<img>`/`<svg>` (`width: 100%`, height following from `aspect-ratio`)
+   rather than needing an interactive viewport. */
+.sysmap-viewport {
+  display: block;
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 1000 / 300;
+  overflow: hidden;
+}
+
+.sysmap-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* A hidden scene is marked with this class (toggled via `classList`),
+   not the HTML `hidden` attribute -- see `lib/systemmap.py`'s own note
+   on why `.hidden`/`[hidden]` don't reliably work on an `<svg>`. */
+.sysmap-svg.sysmap-hidden {
+  display: none;
+}
+
+.sysmap-orbit {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.5px;
+  pointer-events: none;
+}
+
+.sysmap-body,
+.sysmap-belt {
+  cursor: pointer;
+}
+
+.sysmap-body circle {
+  stroke-width: 1.5px;
+}
+
+.sysmap-body:hover circle,
+.sysmap-body:focus-visible circle {
+  stroke: var(--accent);
+  stroke-width: 2.5px;
+}
+
+.sysmap-body:focus-visible,
+.sysmap-belt:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sysmap-belt path {
+  fill: #8a7f7240;
+  stroke: #8a7f72a0;
+  stroke-width: 1px;
+}
+
+.sysmap-belt:hover path,
+.sysmap-belt:focus-visible path {
+  fill: #8a7f7278;
+  stroke: #8a7f72d0;
+}
+
+.sysmap-halo,
+.sysmap-ring {
+  pointer-events: none;
+}
+
+.sysmap-halo {
+  opacity: 0.22;
+}
+
+.sysmap-ring {
+  fill: none;
+  stroke: var(--text-muted);
+  opacity: 0.6;
+  stroke-width: 1.5px;
+}
+
+.sysmap-classletter {
+  font-size: 0.7rem;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sysmap-label {
+  fill: var(--text-muted);
+  font-size: 0.7rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sysmap-star-label {
+  fill: var(--text);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.sysmap-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 1.9rem;
+}
+
+.sysmap-crumb-current {
+  font-size: 0.85rem;
+}
+
 @media (max-width: 40rem) {
   body {
     padding-left: 1rem;

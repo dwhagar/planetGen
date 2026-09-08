@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib
 from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_path
 from mdconvert import markdown_to_html_with_headings
 from page import query_params, run
+from systemmap import render_system_map_panel
 
 
 def _stars_html(conn, system_id):
@@ -78,18 +79,37 @@ def _planet_rows(conn, planet):
     return rows
 
 
+def _map_html(conn, system_id, system):
+    """Builds the "System Map" panel (see `lib/systemmap.py`) -- the
+    graphical, scaled-orbit view of `docs/TODO.md`'s "Phase 5 -- Web
+    interface" sprite-view idea, drawn as an interactive SVG diagram
+    rather than sprite art."""
+    stars = fetch_all(
+        conn,
+        "SELECT * FROM stars WHERE star_system_id = ? ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
+        (system_id,),
+    )
+    planets = [dict(row) for row in fetch_all(
+        conn,
+        "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
+        (system_id,),
+    )]
+    for planet in planets:
+        planet["moons"] = [
+            dict(row) for row in
+            fetch_all(conn, "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],))
+        ]
+    belts = fetch_all(
+        conn,
+        "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index",
+        (system_id,),
+    )
+    if not stars:
+        return ""
+    return render_system_map_panel(system, stars, planets, belts)
+
+
 def _bodies_html(conn, system_id):
-    # TODO: sprite-based graphical system view -- render each star/planet/
-    # moon in this system as a small icon sprite sized relative to the
-    # others (from `radius_km`, already pulled in via `SELECT *` below) for
-    # an at-a-glance size comparison, instead of (or alongside) the plain
-    # table this function builds today. Open questions this still needs
-    # before it can be built: where the sprite art itself comes from,
-    # linear vs. logarithmic size scaling (a gas giant vs. a moon differ by
-    # 2-3 orders of magnitude in radius_km, so linear scaling would make
-    # most bodies invisible dots), and whether this is meant to be a
-    # simple size-comparison row or a full scaled-orbit diagram. See
-    # docs/TODO.md, "Phase 5 -- Web interface".
     planets = fetch_all(
         conn,
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
@@ -258,6 +278,7 @@ def handler():
                 f'{linkify_location(db_name, system["location"], name_to_id)}</p>'
             )
 
+        map_html = _map_html(conn, system_id, system)
         stars_html = _stars_html(conn, system_id)
         bodies_html = _bodies_html(conn, system_id)
         description_html = _description_html(
@@ -270,9 +291,11 @@ def handler():
 {back_html}
 {summary_html}
 {location_html}
+{map_html}
 {description_html}
 {stars_html}
 {bodies_html}
+<script src="static/systemmap.js" defer></script>
 """
     return f"System: {system['name']}", body
 
