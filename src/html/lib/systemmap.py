@@ -16,7 +16,7 @@ apex sits on the same horizontal line through the star, and successively
 larger orbits place that apex further right, the net effect is exactly
 "planets lined up left to right in distance order" with a nested-bracket
 orbit indicator behind each one. The whole diagram is a fixed size (no
-scrolling or zooming): each orbit's distance is sqrt-scaled into a fixed
+scrolling or zooming): each orbit's distance is log-scaled into a fixed
 pixel budget shared by every body in the scene, uniformly compressed
 further if that scaling alone would still overflow it (see
 `_orbit_radii_px`) -- a crowded system reads as tightly packed rather
@@ -64,7 +64,7 @@ _STAR_X_PX = 60.0
 _STAR_Y_PX = _VIEW_H_PX / 2
 
 # How far right each orbit's apex (see the module docstring) is allowed
-# to sit, in the same rank+sqrt-blended units `_orbit_radii_px` computes
+# to sit, in the same rank+log-blended units `_orbit_radii_px` computes
 # before rescaling -- `_ORBIT_SPREAD_PX` is the *target* spread when
 # there's room for it; `_MAX_ORBIT_R_PX` is the hard budget the whole
 # scene gets rescaled down to fit within when there isn't (many bodies,
@@ -216,36 +216,100 @@ def _orbit_radii_px(distances_km):
     in `distances_km`, in the same order, assuming the list is already
     sorted ascending by distance.
 
-    Sqrt-scaled between a shared floor and `_ORBIT_SPREAD_PX` (so
-    relative spacing still reflects relative distance), clamped up to at
-    least `_MIN_ORBIT_GAP_PX` past the previous body's own radius (a tight
-    cluster of close-in bodies would otherwise collapse into a few
-    pixels of each other), and then -- since this diagram never scrolls
-    or zooms -- uniformly rescaled down if that still doesn't fit within
-    `_MAX_ORBIT_R_PX`, so an unusually crowded system (many bodies forced
-    via `+max_planets`) always fits the fixed frame, just more tightly
-    packed rather than needing more room.
+    Each body's *ideal* radius is log-scaled between a shared floor and
+    `_ORBIT_SPREAD_PX` (so relative spacing tracks relative distance -- a
+    log scale compresses the huge inner/outer ratio a real system spans
+    far less harshly than a sqrt scale would, while still keeping every
+    ratio finite). Those ideal radii would still let a tight cluster of
+    close-in bodies collapse into a few pixels of each other, so
+    `_resolve_min_gap` nudges only the bodies that actually collide apart
+    -- symmetrically, around their own shared average, not by ratcheting
+    every later body rightward off of one early collision -- rather than
+    applying a blanket minimum gap that would flatten real log-scale
+    separation into uniform rank spacing almost everywhere (confirmed
+    directly: with a flat per-step clamp instead of this, most consecutive
+    gaps in a real generated system came out exactly equal to the clamp,
+    despite genuinely different distances). Finally -- since this diagram
+    never scrolls or zooms -- the whole resolved layout is uniformly
+    rescaled down if it still doesn't fit within `_MAX_ORBIT_R_PX`, so an
+    unusually crowded system (many bodies forced via `+max_planets`)
+    always fits the fixed frame, just more tightly packed rather than
+    needing more room.
     """
     valid = [d for d in distances_km if d and d > 0]
     lo, hi = (min(valid), max(valid)) if valid else (0.0, 0.0)
-    radii = []
-    prev_r = 0.0
+    ideal = []
     for index, distance_km in enumerate(distances_km):
         if hi > lo and distance_km and distance_km > 0:
             distance_km = max(lo, min(hi, distance_km))
-            frac = (math.sqrt(distance_km) - math.sqrt(lo)) / (math.sqrt(hi) - math.sqrt(lo))
+            frac = (math.log10(distance_km) - math.log10(lo)) / (math.log10(hi) - math.log10(lo))
         elif len(distances_km) > 1:
             frac = index / (len(distances_km) - 1)
         else:
             frac = 0.0
-        r = max(_MIN_ORBIT_GAP_PX + frac * _ORBIT_SPREAD_PX, prev_r + _MIN_ORBIT_GAP_PX)
-        radii.append(r)
-        prev_r = r
+        ideal.append(_MIN_ORBIT_GAP_PX + frac * _ORBIT_SPREAD_PX)
+
+    radii = _resolve_min_gap(ideal, _MIN_ORBIT_GAP_PX)
+
+    # A cluster's resolved center can pull its own leftmost member closer
+    # to the star than `_MIN_ORBIT_GAP_PX` (e.g. two bodies at nearly
+    # identical distances, both belonging to the same cluster) -- shift
+    # everything uniformly right to restore that clearance rather than
+    # letting the innermost marker crowd the star itself, same as every
+    # other gap in this list, this preserves every relative spacing.
+    if radii and radii[0] < _MIN_ORBIT_GAP_PX:
+        shift = _MIN_ORBIT_GAP_PX - radii[0]
+        radii = [r + shift for r in radii]
 
     if radii and radii[-1] > _MAX_ORBIT_R_PX:
         shrink = _MAX_ORBIT_R_PX / radii[-1]
         radii = [r * shrink for r in radii]
     return radii
+
+
+def _resolve_min_gap(ideal_positions, min_gap):
+    """
+    Given `ideal_positions` (already sorted ascending), returns positions
+    in the same order that (a) never sit closer than `min_gap` to their
+    neighbor and (b) stay as close as possible to their own ideal
+    position, in the least-squares sense -- the standard "pool adjacent
+    violators" approach to isotonic-with-minimum-spacing regression, also
+    used for de-overlapping a column of sorted chart labels.
+
+    Each maximal run of positions that collide once spaced `min_gap` apart
+    (a "cluster") is re-centered on the *average* of its own members' own
+    ideal positions, then laid out evenly `min_gap` apart around that
+    center -- so within a cluster, members below the average shift right
+    and members above it shift left, both by as little as the constraint
+    allows, rather than one early collision permanently displacing every
+    later position (what a simple left-to-right "at least min_gap past
+    the previous point" clamp does instead).
+    """
+    # Each cluster is (sum of its members' own ideal positions, member
+    # count) -- from which its center-of-mass anchor (sum / count) and
+    # its evenly-`min_gap`-spaced span around that anchor are derived on
+    # demand, both while merging below and when expanding back out at the
+    # end. Processed as a stack: only ever the top one or two clusters
+    # can be in violation of the gap constraint at any point, since
+    # everything below the top was already fully resolved against its own
+    # neighbors on a previous iteration.
+    clusters = []
+    for position in ideal_positions:
+        clusters.append((position, 1))
+        while len(clusters) > 1:
+            (sum1, n1), (sum2, n2) = clusters[-2], clusters[-1]
+            right_edge_1 = sum1 / n1 + (n1 - 1) * min_gap / 2
+            left_edge_2 = sum2 / n2 - (n2 - 1) * min_gap / 2
+            if left_edge_2 - right_edge_1 >= min_gap - 1e-9:
+                break
+            clusters[-2:] = [(sum1 + sum2, n1 + n2)]
+
+    resolved = []
+    for total, count in clusters:
+        center = total / count
+        start = center - (count - 1) * min_gap / 2
+        resolved.extend(start + i * min_gap for i in range(count))
+    return resolved
 
 
 def _theta_max_for_radius(radius_px):
