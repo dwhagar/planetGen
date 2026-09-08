@@ -21,6 +21,9 @@ from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, o
 from mdconvert import markdown_to_html_with_headings
 from page import query_params, run
 from systemmap import render_system_map_panel
+from tabledisplay import (
+    format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+)
 
 
 def _stars_html(conn, system_id):
@@ -34,10 +37,13 @@ def _stars_html(conn, system_id):
         f'<td>{esc(row["role"])}</td>'
         f'<td>{esc(row["name"])}</td>'
         f'<td>{esc(row["star_type"])}</td>'
-        f'<td>{esc(row["table_mass"])}</td>'
-        f'<td>{esc(row["table_radius"])}</td>'
-        f'<td>{esc(row["table_temp"])}</td>'
-        f'<td>{esc(row["table_lum"])}</td>'
+        # Not esc()'d: these are built entirely from floats and fixed unit
+        # literals (never database TEXT), and legitimately contain a raw
+        # `<sup>exponent</sup>` -- see `tabledisplay.py`.
+        f'<td>{format_star_mass(row["mass_kg"])}</td>'
+        f'<td>{format_star_radius(row["radius_km"])}</td>'
+        f'<td>{int(row["temperature_k"])} K</td>'
+        f'<td>{format_star_luminosity(row["luminosity_w"])}</td>'
         "</tr>"
         for row in stars
     )
@@ -54,16 +60,17 @@ def _stars_html(conn, system_id):
 """
 
 
-def _body_row(row, indent=""):
+def _body_row(row, is_moon, indent=""):
     return (
         "<tr>"
         f'<td>{indent}{esc(row["name"])}</td>'
         f'<td>{esc(row["planet_class"])}</td>'
         f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
         f'<td>{esc(row["zone"])}</td>'
-        f'<td>{esc(row["table_distance"])}</td>'
-        f'<td>{esc(row["table_period"])}</td>'
-        f'<td>{esc(row["table_gravity"])}</td>'
+        # Not esc()'d -- see the same note in `_stars_html`.
+        f'<td>{format_body_distance(row["distance_km"], is_moon)}</td>'
+        f'<td>{format_period(row["period_years"])}</td>'
+        f'<td>{round(row["gravity_g"], 3) if row["gravity_g"] is not None else ""} g</td>'
         "</tr>"
     )
 
@@ -73,9 +80,9 @@ def _planet_rows(conn, planet):
     in their own table as of schema v2 and never have moons of their own
     (`Planet.__init__` only calls `generate_moons` `if not self.is_moon`),
     so this never needs to recurse further."""
-    rows = [_body_row(planet)]
+    rows = [_body_row(planet, is_moon=False)]
     moons = fetch_all(conn, "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],))
-    rows.extend(_body_row(moon, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ ") for moon in moons)
+    rows.extend(_body_row(moon, is_moon=True, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ ") for moon in moons)
     return rows
 
 

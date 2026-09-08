@@ -85,7 +85,7 @@ def handler():
                 # each component of a binary independently.
                 star_rows = fetch_all(
                     conn,
-                    "SELECT role, star_type, temperature_k, radius_km, luminosity_w, table_temp"
+                    "SELECT role, star_type, temperature_k, radius_km, luminosity_w"
                     " FROM stars WHERE star_system_id = ?"
                     " ORDER BY CASE role WHEN 'secondary' THEN 1 ELSE 0 END",
                     (row["id"],),
@@ -106,7 +106,7 @@ def handler():
                             "temperature_k": star_row["temperature_k"],
                             "radius_km": star_row["radius_km"],
                             "luminosity_w": star_row["luminosity_w"],
-                            "temp_display": star_row["table_temp"],
+                            "temp_display": f'{int(star_row["temperature_k"])} K',
                         }
                         for star_row in star_rows
                     ],

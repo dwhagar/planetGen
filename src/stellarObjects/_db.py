@@ -49,7 +49,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 """int: Matches `star_systems.schema_version` and `PRAGMA user_version` in
 `stellarObjects/schema.sql` -- see that file's header comment. Also the
 target version `migrate_database` converts an older database up to."""
@@ -220,16 +220,14 @@ def insert_star(conn, star, star_system_id, role) -> int:
     Returns:
         int: The new `stars.id`.
     """
-    props = star.get_table_properties()
     cur = conn.execute(
         """
         INSERT INTO stars (
             star_system_id, role, name, star_type, yerkes_class, mass_kg, radius_km,
             temperature_k, luminosity_w, age_gy, lifespan_gy,
             habitable_zone_inner_km, habitable_zone_outer_km,
-            system_perimeter_km, heliosphere_radius_km,
-            table_type, table_radius, table_mass, table_temp, table_lum, table_hab, table_loc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            system_perimeter_km, heliosphere_radius_km
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -239,8 +237,6 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.habitable_zone[1] * physical_constants.AU_TO_KM,
             star.system_perimeter * physical_constants.AU_TO_KM,
             star.heliosphere_radius * physical_constants.AU_TO_KM,
-            props["type"], props["radius"], props["mass"], props["temp"],
-            props["lum"], props["hab"], props["loc"],
         ),
     )
     return cur.lastrowid
@@ -290,7 +286,6 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     Returns:
         int: The new `planets.id`.
     """
-    props = planet.get_table_properties()
     min_orbit_distance_km = (
         planet.min_orbit_distance * physical_constants.AU_TO_KM
         if planet.min_orbit_distance is not None else None
@@ -304,9 +299,8 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
             scale_height_km, hill_radius_km, min_orbit_distance_km,
             habitable_zone_inner_km, habitable_zone_outer_km,
-            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
-            table_class, table_distance, table_period, table_radius, table_gravity
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            life_chemical, evolutionary_speed, flavor_text, flavor_text_count
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, orbital_index, planet.body_type, planet.name,
@@ -322,8 +316,6 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             planet.habitable_zone[1] * physical_constants.AU_TO_KM,
             planet.life_chemical, planet.evolutionary_speed,
             planet.flavor_text, planet.flavor_text_count,
-            props.get("class"), props["distance"], props["period"],
-            props["radius"], props.get("gravity"),
         ),
     )
     planet_id = cur.lastrowid
@@ -362,7 +354,6 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     Returns:
         int: The new `moons.id`.
     """
-    props = moon.get_table_properties()
     min_orbit_distance_km = (
         moon.min_orbit_distance * physical_constants.AU_TO_KM
         if moon.min_orbit_distance is not None else None
@@ -376,9 +367,8 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
             scale_height_km, hill_radius_km, min_orbit_distance_km,
             habitable_zone_inner_km, habitable_zone_outer_km,
-            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
-            table_class, table_distance, table_period, table_radius, table_gravity
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            life_chemical, evolutionary_speed, flavor_text, flavor_text_count
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             planet_id, star_system_id, star_id, orbital_index, moon.body_type, moon.name,
@@ -394,8 +384,6 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             moon.habitable_zone[1] * physical_constants.AU_TO_KM,
             moon.life_chemical, moon.evolutionary_speed,
             moon.flavor_text, moon.flavor_text_count,
-            props.get("class"), props["distance"], props["period"],
-            props["radius"], props.get("gravity"),
         ),
     )
     moon_id = cur.lastrowid
@@ -456,14 +444,14 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
-_NULL_BINARY_FIELDS = (None,) * 18
+_NULL_BINARY_FIELDS = (None,) * 12
 """Placeholder for every `binary_*` column when `star_system.star` isn't a
 `BinaryStarProxy` -- see `_binary_fields`."""
 
 
 def _binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 18 `star_systems.binary_*` column values from a
+    Extracts the 12 `star_systems.binary_*` column values from a
     `BinaryStarProxy`, in the exact order `insert_star_system`'s `INSERT`
     lists them.
 
@@ -471,9 +459,8 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy (BinaryStarProxy): The system's combined-pair proxy.
 
     Returns:
-        tuple: 18 values, ready to splice into the `INSERT` parameters.
+        tuple: 12 values, ready to splice into the `INSERT` parameters.
     """
-    table_props = proxy.get_table_properties()
     return (
         proxy.binary_separation_au * physical_constants.AU_TO_KM,
         proxy.type,
@@ -487,8 +474,6 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.habitable_zone[1] * physical_constants.AU_TO_KM,
         proxy.system_perimeter * physical_constants.AU_TO_KM,
         proxy.heliosphere_radius * physical_constants.AU_TO_KM,
-        table_props["type"], table_props["mass"], table_props["lum"],
-        table_props["hab"], table_props["separation"], table_props["loc"],
     )
 
 
@@ -617,10 +602,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy, binary_lifespan_gy,
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
-            binary_table_type, binary_table_mass, binary_table_lum, binary_table_hab,
-            binary_table_separation, binary_table_loc,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -1172,10 +1155,15 @@ class UnsupportedSchemaVersionError(Exception):
 
 
 # The v1 `planets` table's columns, minus `is_moon`/`parent_planet_id`
-# (the discriminator `_migrate_v1_to_v2` splits on) -- identical to both
-# v2 `planets` and v2 `moons`' own column sets (see schema.sql), which is
-# what makes a single shared column list usable for copying into either
-# one below. `id` is included deliberately: a migrated moon keeps its
+# (the discriminator `_migrate_v1_to_v2` splits on) and the v5-removed
+# `table_class`/`table_distance`/`table_period`/`table_radius`/`table_gravity`
+# (see schema.sql's "v5" header note -- those were pre-rendered display
+# strings, not data, so a migrated database simply drops them rather than
+# needing them backfilled or reconstructed) -- identical to both `planets`
+# and `moons`' own current column sets (see schema.sql), which is what makes
+# a single shared column list usable for copying into either one below, from
+# any source schema version that still has these same columns (every
+# version so far). `id` is included deliberately: a migrated moon keeps its
 # original `planets.id` value as its new `moons.id`, so
 # `planet_evolutionary_paragraphs`/`planet_reflection_spectrum` rows can
 # move to their moon-owned counterparts by that same, unchanged id --
@@ -1188,19 +1176,40 @@ _PLANET_MOON_COLUMNS = (
     "atmospheric_pressure_pa", "composition", "scale_height_km", "hill_radius_km",
     "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
     "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
-    "table_class", "table_distance", "table_period", "table_radius", "table_gravity",
+)
+
+# `_PLANET_MOON_COLUMNS` plus `moons`' own `planet_id` column (the FK to the
+# planet a moon orbits -- `planets` has no equivalent column, which is why
+# this isn't just folded into `_PLANET_MOON_COLUMNS` itself). Used for a
+# straight `moons` -> `moons` copy (v2 and later, which already have their
+# own `planet_id` column, unlike v1's shared `planets` table with
+# `parent_planet_id`/`is_moon`, handled separately in `_migrate_v1_to_v2`).
+_MOON_COLUMNS = ("planet_id",) + _PLANET_MOON_COLUMNS
+
+# The current `stars` column set, i.e. every column except the v5-removed
+# `table_type`/`table_radius`/`table_mass`/`table_temp`/`table_lum`/
+# `table_hab`/`table_loc` (see schema.sql's "v5" header note). Used wherever
+# a migration can't bare `INSERT ... SELECT *` a source `stars` table whose
+# shape predates v5 (every version so far).
+_STARS_COLUMNS = (
+    "id", "star_system_id", "role", "name", "star_type", "yerkes_class",
+    "mass_kg", "radius_km", "temperature_k", "luminosity_w", "age_gy", "lifespan_gy",
+    "habitable_zone_inner_km", "habitable_zone_outer_km",
+    "system_perimeter_km", "heliosphere_radius_km",
 )
 
 # The full `star_systems` column set as of schema v1/v2 -- i.e. every
-# column except v3's new `location` (see schema.sql's "v3" header note).
-# v1 -> v2 made no structural change to `star_systems` at all (only
+# column except v3's new `location` (see schema.sql's "v3" header note) and
+# the v5-removed `binary_table_*` columns (see schema.sql's "v5" header
+# note). v1 -> v2 made no structural change to `star_systems` at all (only
 # `planets`/`moons` changed -- see the "v2" header note), so this one list
 # covers both source versions' actual column layout, and is used by both
 # `_migrate_v1_to_v2` and `_migrate_v2_to_v3` to copy `star_systems`
 # explicitly column-by-column instead of `INSERT ... SELECT *` -- required
-# now that the current (v3) schema has one more column than either v1 or
-# v2 did. `location` is left unset by this copy and backfilled afterward
-# by `_backfill_v3_locations`.
+# now that the current schema has both more (`location`) and fewer
+# (no `binary_table_*`) columns than either v1 or v2's `star_systems` does.
+# `location` is left unset by this copy and backfilled afterward by
+# `_backfill_v3_locations`.
 _STAR_SYSTEMS_PRE_V3_COLUMNS = (
     "id", "sector_id", "system_config_id", "name",
     "position_x_mpc", "position_y_mpc", "position_z_mpc", "quadrant",
@@ -1209,11 +1218,30 @@ _STAR_SYSTEMS_PRE_V3_COLUMNS = (
     "binary_effective_mass_kg", "binary_effective_luminosity_w", "binary_age_gy", "binary_lifespan_gy",
     "binary_habitable_zone_inner_km", "binary_habitable_zone_outer_km",
     "binary_system_perimeter_km", "binary_heliosphere_radius_km",
-    "binary_table_type", "binary_table_mass", "binary_table_lum", "binary_table_hab",
-    "binary_table_separation", "binary_table_loc",
     "system_flavor_text", "schema_version", "wikitext_content", "markdown_content",
     "mediawiki_url", "wikijs_url", "created_at",
 )
+
+# `_STAR_SYSTEMS_PRE_V3_COLUMNS` plus `location` -- the current `star_systems`
+# column set, for a source version (v3 or v4) that already has `location`
+# and so needs no backfill, but (as of v5) still needs an explicit column
+# list rather than bare `SELECT *` to skip its `binary_table_*` columns.
+_STAR_SYSTEMS_COLUMNS = _STAR_SYSTEMS_PRE_V3_COLUMNS + ("location",)
+
+
+def _copy_columns(conn, table, columns, source_table=None):
+    """
+    Copies `columns` from `old.<source_table or table>` into `main.<table>`,
+    explicit column-by-column instead of `INSERT ... SELECT *` -- needed
+    wherever the current schema's column set differs from an older source
+    version's (see `_STAR_SYSTEMS_COLUMNS`/`_STARS_COLUMNS`/
+    `_PLANET_MOON_COLUMNS`), shared by every `_migrate_vN_to_vN+1` function
+    below that hits this.
+    """
+    column_list = ", ".join(columns)
+    conn.execute(
+        f"INSERT INTO main.{table} ({column_list}) SELECT {column_list} FROM old.{source_table or table}"
+    )
 
 
 def _backfill_v3_locations(conn):
@@ -1286,14 +1314,16 @@ def _copy_sectors_pre_v4(conn):
 # "after" `star_systems` groups (rather than one flat list) purely for
 # insert ORDER: `stars`/`asteroid_belts` carry a `star_system_id` FK, so
 # `star_systems` itself must already exist in `main` before they're copied
-# -- and `star_systems` needs the explicit `_STAR_SYSTEMS_PRE_V3_COLUMNS`
-# column list instead of `SELECT *`, since the current schema's `location`
-# column means `star_systems` can't just be one more entry in this list.
-# `sectors` is handled separately (`_copy_sectors_pre_v4`), for the same
-# reason as `star_systems`, now that the current (v4) schema has more
-# `sectors` columns than a v1 database's `sectors` table does.
+# -- and `star_systems`/`stars` each need their own explicit column list
+# instead of `SELECT *` now (see `_STAR_SYSTEMS_PRE_V3_COLUMNS`/
+# `_STARS_COLUMNS`), since the current schema's columns differ from a v1
+# database's in both directions (`location` added, `table_*`/
+# `binary_table_*` removed). `sectors` is handled separately
+# (`_copy_sectors_pre_v4`), for the same reason, now that the current
+# schema has more `sectors` columns than a v1 database's `sectors` table
+# does.
 _V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS = ("system_configs", "system_config_slots")
-_V1_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = ("stars", "asteroid_belts", "asteroid_belt_composition")
+_V1_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = ("asteroid_belts", "asteroid_belt_composition")
 
 
 def _migrate_v1_to_v2(conn):
@@ -1321,11 +1351,8 @@ def _migrate_v1_to_v2(conn):
     for table in _V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
         conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
 
-    star_systems_columns = ", ".join(_STAR_SYSTEMS_PRE_V3_COLUMNS)
-    conn.execute(
-        f"INSERT INTO main.star_systems ({star_systems_columns}) "
-        f"SELECT {star_systems_columns} FROM old.star_systems"
-    )
+    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_PRE_V3_COLUMNS)
+    _copy_columns(conn, "stars", _STARS_COLUMNS)
 
     for table in _V1_VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
         conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
@@ -1373,14 +1400,15 @@ def _migrate_v1_to_v2(conn):
 # column-for-column, from the attached old database. Split into "before"/
 # "after" `star_systems` groups for the same insert-order reason as
 # `_V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS`/`_AFTER_STAR_SYSTEMS` above
-# (several of these tables carry a `star_system_id` FK); `star_systems`
-# itself is handled separately (see `_STAR_SYSTEMS_PRE_V3_COLUMNS`), and so
-# is `sectors` (see `_copy_sectors_pre_v4`), now that the current (v4)
-# schema has more `sectors` columns than a v2 database's does.
+# (several of these tables carry a `star_system_id` FK); `star_systems`,
+# `stars`, and `planets`/`moons` are each handled separately (see
+# `_STAR_SYSTEMS_PRE_V3_COLUMNS`/`_STARS_COLUMNS`/`_PLANET_MOON_COLUMNS`),
+# and so is `sectors` (see `_copy_sectors_pre_v4`) -- the current schema's
+# columns differ from a v2 database's for all four.
 _V2_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS = ("system_configs", "system_config_slots")
 _V2_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = (
-    "stars", "planets", "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-    "moons", "moon_evolutionary_paragraphs", "moon_reflection_spectrum",
+    "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
+    "moon_evolutionary_paragraphs", "moon_reflection_spectrum",
     "asteroid_belts", "asteroid_belt_composition",
 )
 
@@ -1411,11 +1439,10 @@ def _migrate_v2_to_v3(conn):
     for table in _V2_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
         conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
 
-    star_systems_columns = ", ".join(_STAR_SYSTEMS_PRE_V3_COLUMNS)
-    conn.execute(
-        f"INSERT INTO main.star_systems ({star_systems_columns}) "
-        f"SELECT {star_systems_columns} FROM old.star_systems"
-    )
+    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_PRE_V3_COLUMNS)
+    _copy_columns(conn, "stars", _STARS_COLUMNS)
+    _copy_columns(conn, "planets", _PLANET_MOON_COLUMNS)
+    _copy_columns(conn, "moons", _MOON_COLUMNS)
 
     for table in _V2_VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
         conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
@@ -1424,15 +1451,23 @@ def _migrate_v2_to_v3(conn):
 
 
 # Tables schema v3 -> v4 leaves structurally untouched -- copied verbatim,
-# column-for-column, from the attached old database. `sectors` is the only
-# table whose *shape* changed (see schema.sql's "v4" header note), and
-# it's handled separately (`_copy_sectors_pre_v4`); everything else,
-# including `star_systems` (v3 already has `location`, matching the
-# current schema exactly), can use a plain `SELECT *`.
-_V3_VERBATIM_TABLES = (
-    "system_configs", "system_config_slots", "star_systems",
-    "stars", "planets", "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-    "moons", "moon_evolutionary_paragraphs", "moon_reflection_spectrum",
+# column-for-column, from the attached old database, shared by both
+# `_migrate_v3_to_v4` and `_migrate_v4_to_v5` (neither v3->v4 nor v4->v5
+# changes any of these tables' shape). `sectors`, `star_systems`, `stars`,
+# and `planets`/`moons` are each handled separately by their callers instead
+# (see `_copy_sectors_pre_v4`/`_STAR_SYSTEMS_COLUMNS`/`_STARS_COLUMNS`/
+# `_PLANET_MOON_COLUMNS`) -- both v3 and v4 predate v5's removal of every
+# `table_*`/`binary_table_*` column (see schema.sql's "v5" header note), so
+# neither source version's `star_systems`/`stars`/`planets`/`moons` can use
+# a plain `SELECT *` into the current, column-reduced schema. Split into
+# "before"/"after" `star_systems` groups for the same insert-order reason as
+# `_V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS`/`_AFTER_STAR_SYSTEMS` above:
+# `star_systems.system_config_id` is a FK into `system_configs`, so that
+# must be copied first.
+_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS = ("system_configs", "system_config_slots")
+_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = (
+    "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
+    "moon_evolutionary_paragraphs", "moon_reflection_spectrum",
     "asteroid_belts", "asteroid_belt_composition",
 )
 
@@ -1443,18 +1478,21 @@ def _migrate_v3_to_v4(conn):
     `schema.sql`) from a schema-v3 database attached as `old` (see
     `migrate_database` for the attach/backup/swap this runs inside of).
 
-    The only structural change between v3 and v4 is `sectors` gaining six
-    nullable galaxy-placement columns (see `schema.sql`'s "v4" header
-    note) -- every other table is copied straight across
-    (`_V3_VERBATIM_TABLES`), including `star_systems` (unlike
-    `_migrate_v1_to_v2`/`_migrate_v2_to_v3`, no explicit column list is
-    needed for it here: a v3 `star_systems` table already has every column
-    the current schema does). `sectors` itself needs
-    `_copy_sectors_pre_v4`'s explicit 3-column list instead of
-    `INSERT ... SELECT *`, since the current schema has six more columns
-    than a v3 database's `sectors` table does -- they're left `NULL` on
-    every migrated row, exactly the "never placed in a galaxy" state a
-    pre-v4 sector always was.
+    The structural changes bridged here are `sectors` gaining six nullable
+    galaxy-placement columns (see `schema.sql`'s "v4" header note) and the
+    v5 removal of every `table_*`/`binary_table_*` column (see its "v5"
+    header note) -- every other table is copied straight across
+    (`_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS`/`_AFTER_STAR_SYSTEMS`).
+    `sectors` needs `_copy_sectors_pre_v4`'s
+    explicit 3-column list instead of `INSERT ... SELECT *`, since the
+    current schema has six more columns than a v3 database's `sectors`
+    table does -- they're left `NULL` on every migrated row, exactly the
+    "never placed in a galaxy" state a pre-v4 sector always was.
+    `star_systems`/`stars`/`planets`/`moons` each need their own explicit
+    column list too (`_STAR_SYSTEMS_COLUMNS`/`_STARS_COLUMNS`/
+    `_PLANET_MOON_COLUMNS`), since the current schema has fewer columns than
+    a v3 database's tables do (the removed `table_*`/`binary_table_*`
+    columns).
 
     Args:
         conn (sqlite3.Connection): Connection to the new database, with
@@ -1462,7 +1500,45 @@ def _migrate_v3_to_v4(conn):
                                    and the current schema already applied.
     """
     _copy_sectors_pre_v4(conn)
-    for table in _V3_VERBATIM_TABLES:
+    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_COLUMNS)
+    _copy_columns(conn, "stars", _STARS_COLUMNS)
+    _copy_columns(conn, "planets", _PLANET_MOON_COLUMNS)
+    _copy_columns(conn, "moons", _MOON_COLUMNS)
+    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+
+
+def _migrate_v4_to_v5(conn):
+    """
+    Populates a fresh, empty database (`conn`'s main schema, the current
+    `schema.sql`) from a schema-v4 database attached as `old` (see
+    `migrate_database` for the attach/backup/swap this runs inside of).
+
+    The only structural change between v4 and v5 is the removal of every
+    `table_*`/`binary_table_*` column from `star_systems`/`stars`/
+    `planets`/`moons` (see schema.sql's "v5" header note) -- those held a
+    pre-rendered display string, not data, so nothing needs backfilling; a
+    migrated database simply drops them. `sectors` already has every
+    current column as of v4 (see the "v4" header note), so unlike
+    `_migrate_v1_to_v2`/`_migrate_v2_to_v3`/`_migrate_v3_to_v4` it needs no
+    special-casing here and can use a plain `SELECT *`. Every other table is
+    unaffected and copied straight across.
+
+    Args:
+        conn (sqlite3.Connection): Connection to the new database, with
+                                   the old one already `ATTACH`ed as `old`
+                                   and the current schema already applied.
+    """
+    conn.execute("INSERT INTO main.sectors SELECT * FROM old.sectors")
+    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_COLUMNS)
+    _copy_columns(conn, "stars", _STARS_COLUMNS)
+    _copy_columns(conn, "planets", _PLANET_MOON_COLUMNS)
+    _copy_columns(conn, "moons", _MOON_COLUMNS)
+    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
         conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
 
 
@@ -1479,24 +1555,26 @@ def migrate_database(db_path):
     file exactly as it was, plus the backup copy already made.
 
     Per TODO.md's "any future structural change gets a small sequential
-    `_migrate_vN_to_vN+1()` function" decision: this knows three source
-    versions now -- v1 (`_migrate_v1_to_v2`), v2 (`_migrate_v2_to_v3`), and
-    v3 (`_migrate_v3_to_v4`), picked by one `if`/`elif` below based on the
-    file's detected version. Still deliberately not a generic chaining
-    dispatcher/loop: `migrate_step` is invoked exactly once either way,
-    since `_ensure_schema` always applies the one current `schema.sql`
-    regardless of source version (there is no separate "as of v2" schema
-    snapshot to stop at partway) -- so each `_migrate_vN_to_vN+1`
-    function's job is really "map data shaped like version N straight into
-    the current schema", not "map N to N+1 and let the next hop take it
-    from there". `_migrate_v1_to_v2` in particular already goes all the
-    way from v1 to the current (v4) schema in this one call, including the
-    v3 `location` backfill and leaving v4's new `sectors` columns `NULL`
-    -- it doesn't hand off to `_migrate_v2_to_v3`/`_migrate_v3_to_v4`
-    partway. A future v5 would need every existing `_migrate_vN_to_vN+1`
-    updated to also produce whatever v5 adds (as this v4 change did to
-    `_migrate_v1_to_v2`/`_migrate_v2_to_v3`), or a genuine chaining
-    rewrite if that keeps growing.
+    `_migrate_vN_to_vN+1()` function" decision: this knows four source
+    versions now -- v1 (`_migrate_v1_to_v2`), v2 (`_migrate_v2_to_v3`), v3
+    (`_migrate_v3_to_v4`), and v4 (`_migrate_v4_to_v5`), picked by one
+    `if`/`elif` below based on the file's detected version. Still
+    deliberately not a generic chaining dispatcher/loop: `migrate_step` is
+    invoked exactly once either way, since `_ensure_schema` always applies
+    the one current `schema.sql` regardless of source version (there is no
+    separate "as of v2" schema snapshot to stop at partway) -- so each
+    `_migrate_vN_to_vN+1` function's job is really "map data shaped like
+    version N straight into the current schema", not "map N to N+1 and let
+    the next hop take it from there". `_migrate_v1_to_v2` in particular
+    already goes all the way from v1 to the current (v5) schema in this one
+    call, including the v3 `location` backfill, leaving v4's `sectors`
+    columns `NULL`, and dropping v5's removed `table_*`/`binary_table_*`
+    columns -- it doesn't hand off to `_migrate_v2_to_v3`/`_migrate_v3_to_v4`/
+    `_migrate_v4_to_v5` partway. This v5 change had to update every
+    pre-existing `_migrate_vN_to_vN+1` function to also drop the columns it
+    removes (same as v4's change to `_migrate_v1_to_v2`/`_migrate_v2_to_v3`
+    for the columns *it* added) -- a future structural change will need the
+    same, or a genuine chaining rewrite if that keeps growing.
 
     Args:
         db_path (str): Path to the `.db` file.
@@ -1532,9 +1610,11 @@ def migrate_database(db_path):
         migrate_step = _migrate_v2_to_v3
     elif version == 3:
         migrate_step = _migrate_v3_to_v4
+    elif version == 4:
+        migrate_step = _migrate_v4_to_v5
     else:
         raise UnsupportedSchemaVersionError(
-            f"{db_path}: unsupported schema version {version} (expected 1, 2, 3, or {SCHEMA_VERSION})"
+            f"{db_path}: unsupported schema version {version} (expected 1, 2, 3, 4, or {SCHEMA_VERSION})"
         )
 
     backup_path = (

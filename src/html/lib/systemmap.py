@@ -45,6 +45,9 @@ import math
 
 from dbutil import esc
 from starmap import _star_color, _SUN_RADIUS_KM
+from tabledisplay import (
+    format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+)
 
 try:
     from stellarObjects.program_constants import PLANET_CLASSES
@@ -99,6 +102,16 @@ _STAR_MAX_R = 48.0
 # new focal point, not a body being measured against its own moons on the
 # same log scale.
 _CENTER_PLANET_R = 36.0
+
+# Minimum clearance (beyond simple non-overlap) between the center body's
+# own edge and the innermost orbiting body's edge -- `_MIN_ORBIT_GAP_PX`
+# alone assumes both are small, but the center can be a giant/supergiant
+# star (`_STAR_MAX_R` = 48) or the fixed-size drilled-into planet
+# (`_CENTER_PLANET_R` = 36), either of which can otherwise swallow a
+# close, large-radius first body outright -- confirmed directly: a
+# supergiant star's own circle fully overlapped a nearby Class A planet's
+# marker before `_render_row_svg` started enforcing this.
+_CENTER_CLEARANCE_PADDING_PX = 8.0
 
 # Secondary-star offset/size-cap for a binary system's own two dots,
 # mirroring `starmap.py`'s `_BINARY_OFFSET_FRACTION`/`_SECONDARY_MAX_RATIO`
@@ -435,8 +448,11 @@ def _star_marker_svg(cx, cy, r_px, star, attrs):
 
 
 def _stars_svg(cx, cy, system, stars):
+    """Returns `(svg, primary_radius_px)` -- the caller needs the
+    primary's own drawn radius separately, to size the clearance gap to
+    the first orbiting body (see `_render_row_svg`)."""
     if not stars:
-        return ""
+        return "", 0.0
     primary = stars[0]
     is_binary = len(stars) > 1
     primary_r = _star_radius_px(primary["radius_km"])
@@ -444,11 +460,11 @@ def _stars_svg(cx, cy, system, stars):
         "kind": "star",
         "name": f'{system["name"]}{" -- Primary" if is_binary else ""}',
         "role": "Primary" if is_binary else "Single",
-        "type": primary["table_type"],
-        "temp": primary["table_temp"],
-        "mass": primary["table_mass"],
-        "radius": primary["table_radius"],
-        "lum": primary["table_lum"],
+        "type": primary["star_type"],
+        "temp": f'{int(primary["temperature_k"])} K',
+        "mass": format_star_mass(primary["mass_kg"]),
+        "radius": format_star_radius(primary["radius_km"]),
+        "lum": format_star_luminosity(primary["luminosity_w"]),
     })]
     if is_binary:
         secondary = stars[1]
@@ -458,13 +474,13 @@ def _stars_svg(cx, cy, system, stars):
             "kind": "star",
             "name": f'{system["name"]} -- Secondary',
             "role": "Secondary",
-            "type": secondary["table_type"],
-            "temp": secondary["table_temp"],
-            "mass": secondary["table_mass"],
-            "radius": secondary["table_radius"],
-            "lum": secondary["table_lum"],
+            "type": secondary["star_type"],
+            "temp": f'{int(secondary["temperature_k"])} K',
+            "mass": format_star_mass(secondary["mass_kg"]),
+            "radius": format_star_radius(secondary["radius_km"]),
+            "lum": format_star_luminosity(secondary["luminosity_w"]),
         }))
-    return "".join(parts)
+    return "".join(parts), primary_r
 
 
 def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
@@ -476,9 +492,9 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "classdesc": _class_description(planet["planet_class"]),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
-        "distance": planet["table_distance"],
-        "period": planet["table_period"],
-        "gravity": planet["table_gravity"],
+        "distance": format_body_distance(planet["distance_km"], planet.get("_is_moon", False)),
+        "period": format_period(planet["period_years"]),
+        "gravity": f'{round(planet["gravity_g"], 3) if planet["gravity_g"] is not None else ""} g',
     }
     if parent_name is not None:
         attrs["parent"] = parent_name
@@ -493,7 +509,19 @@ def _belt_band_px(belt, radius_px):
     return max(_BELT_MIN_BAND_PX, min(_BELT_MAX_BAND_PX, radius_px * spread_fraction))
 
 
-def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entries):
+def _first_body_extent_px(kind, row, radius_px):
+    """The first orbiting body's own "radius" for clearance purposes --
+    the drawn marker radius for a planet/moon, or half the drawn band
+    width for a belt (its near edge sits that far inside its own nominal
+    orbit radius). Needed by `_render_row_svg` to keep the center body
+    from overlapping whatever sits on the innermost orbit."""
+    if kind == "belt":
+        return _belt_band_px(row, radius_px) / 2
+    radius_fn = _moon_radius_px if row.get("_is_moon") else _planet_radius_px
+    return radius_fn(row["radius_km"])
+
+
+def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entries, center_radius_px):
     """
     Shared layout engine for both scene kinds (the whole system, and one
     planet's moons): places `orbit_entries` -- `(kind, row)` pairs,
@@ -502,9 +530,27 @@ def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entrie
     returns the complete, fixed-size `<svg>`. `star_svg` is pre-built
     markup for whatever sits at the center (the system's own star(s), or
     a drilled-into planet standing in for one) -- this function only
-    positions what orbits it.
+    positions what orbits it. `center_radius_px` is that center body's
+    own drawn radius (the primary star's, or `_CENTER_PLANET_R`), used
+    below to keep it clear of the innermost orbiting body.
     """
     radii = _orbit_radii_px([row["distance_km"] for _kind, row in orbit_entries])
+
+    # `_orbit_radii_px` only ever reasons in flat pixel gaps between
+    # bodies of unknown size -- it has no way to know the center it's
+    # laying orbits around might be a giant/supergiant star (up to
+    # `_STAR_MAX_R`) or the fixed-size drilled-into planet
+    # (`_CENTER_PLANET_R`), either of which can otherwise overlap a
+    # close, large first body outright. Shift the whole layout right by
+    # any shortfall -- preserving every relative gap already computed --
+    # rather than resizing anything.
+    if radii and orbit_entries:
+        first_kind, first_row = orbit_entries[0]
+        needed = center_radius_px + _first_body_extent_px(first_kind, first_row, radii[0]) + _CENTER_CLEARANCE_PADDING_PX
+        if radii[0] < needed:
+            shift = needed - radii[0]
+            radii = [r + shift for r in radii]
+
     orbits = []
     bodies = []
     for (kind, row), radius_px in zip(orbit_entries, radii):
@@ -545,8 +591,10 @@ def _render_system_scene(system, stars, planets, belts):
         [("planet", planet) for planet in planets] + [("belt", belt) for belt in belts],
         key=lambda entry: entry[1]["distance_km"],
     )
-    star_svg = _stars_svg(_STAR_X_PX, _STAR_Y_PX, system, stars)
-    return _render_row_svg("system", f'System map for {system["name"]}', _STAR_X_PX, _STAR_Y_PX, star_svg, orbit_entries)
+    star_svg, primary_r = _stars_svg(_STAR_X_PX, _STAR_Y_PX, system, stars)
+    return _render_row_svg(
+        "system", f'System map for {system["name"]}', _STAR_X_PX, _STAR_Y_PX, star_svg, orbit_entries, primary_r,
+    )
 
 
 def _render_moon_scene(planet):
@@ -561,6 +609,7 @@ def _render_moon_scene(planet):
     )
     svg = _render_row_svg(
         f'planet-{planet["id"]}', f'Moons of {planet["name"]}', _STAR_X_PX, _STAR_Y_PX, center_svg, orbit_entries,
+        _CENTER_PLANET_R,
     )
     # A moon scene starts hidden -- `static/systemmap.js` reveals it on
     # demand. This is a CSS class (`.sysmap-hidden`, toggled by

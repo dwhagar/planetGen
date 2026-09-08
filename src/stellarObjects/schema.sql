@@ -111,8 +111,28 @@
 -- first); `migrateDb.py` runs it over every database in a directory, and
 -- `install.sh` (and so `update.sh`, which calls it) does this on every
 -- deploy.
+-- v5: dropped every pre-rendered `table_*`/`binary_table_*` TEXT column
+-- (stars.table_type/table_radius/table_mass/table_temp/table_lum/table_hab/
+-- table_loc; planets/moons.table_class/table_distance/table_period/
+-- table_radius/table_gravity; star_systems.binary_table_*). These held a
+-- display string (e.g. "{{Exp|4.20|5}} kg (1.00% of Sol)") rendered once at
+-- generation time from `Star`/`Planet`/`BinaryStarProxy.get_table_properties()`,
+-- baked in whichever of wikitext-template or HTML form `SystemConfig.MARKDOWN`
+-- happened to be at insert time -- wrong for any consumer wanting the other
+-- form (the interactive HTML viewer in particular, which was displaying raw
+-- unrendered `{{Exp|...}}` wikitext template syntax). No data is lost: every
+-- number these strings were derived from already has its own proper
+-- REAL/TEXT column on the same row (mass_kg, radius_km, temperature_k,
+-- luminosity_w, habitable_zone_inner/outer_km, distance_km, period_years,
+-- gravity_g, star_type, name, planet_class, binary_effective_mass_kg,
+-- binary_effective_luminosity_w, binary_separation_km, binary_type, ...) --
+-- see this file's own header comment above. Consumers now compute display
+-- formatting on demand from those columns instead of reading a frozen
+-- pre-rendered copy (`html/lib/tabledisplay.py` for the HTML viewer;
+-- `get_table_properties()` is still used, unchanged, to build the actual
+-- wiki-page text in `wikitext_content`/`markdown_content`).
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 4;
+PRAGMA user_version = 5;
 
 -- ---------------------------------------------------------------------
 -- sectors
@@ -222,17 +242,6 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_system_perimeter_km      REAL,
     binary_heliosphere_radius_km    REAL,
 
-    -- "Binary System Data" table (doubleStar.py:158-170), one column per
-    -- key -- the one properties table with no owning row elsewhere, since
-    -- BinaryStarProxy is never itself stored as a `stars` row. NULL unless
-    -- is_binary.
-    binary_table_type        TEXT,
-    binary_table_mass        TEXT,
-    binary_table_lum         TEXT,
-    binary_table_hab         TEXT,
-    binary_table_separation  TEXT,
-    binary_table_loc         TEXT,
-
     system_flavor_text   TEXT,
     schema_version       INTEGER NOT NULL DEFAULT 1,
 
@@ -277,18 +286,7 @@ CREATE TABLE IF NOT EXISTS stars (
     habitable_zone_inner_km   REAL NOT NULL,
     habitable_zone_outer_km   REAL NOT NULL,
     system_perimeter_km       REAL NOT NULL,
-    heliosphere_radius_km     REAL NOT NULL,
-
-    -- "Star Data" table (starData.py:488-509), one column per key --
-    -- always present, every constituent Star renders its own individual
-    -- table even inside a binary.
-    table_type    TEXT NOT NULL,
-    table_radius  TEXT NOT NULL,
-    table_mass    TEXT NOT NULL,
-    table_temp    TEXT NOT NULL,
-    table_lum     TEXT NOT NULL,
-    table_hab     TEXT NOT NULL,
-    table_loc     TEXT NOT NULL
+    heliosphere_radius_km     REAL NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_stars_star_system_id ON stars(star_system_id);
 
@@ -341,14 +339,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_chemical             TEXT,
     evolutionary_speed        TEXT,
     flavor_text               TEXT,
-    flavor_text_count         INTEGER NOT NULL DEFAULT 0,
-
-    -- "Planet Data" table (planetData.py:291-302), one column per key.
-    table_class     TEXT,
-    table_distance  TEXT NOT NULL,
-    table_period    TEXT NOT NULL,
-    table_radius    TEXT NOT NULL,
-    table_gravity   TEXT
+    flavor_text_count         INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_planets_star_system_id ON planets(star_system_id);
 CREATE INDEX IF NOT EXISTS idx_planets_star_id ON planets(star_id);
@@ -419,15 +410,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_chemical             TEXT,
     evolutionary_speed        TEXT,
     flavor_text               TEXT,
-    flavor_text_count         INTEGER NOT NULL DEFAULT 0,
-
-    -- "Class Data" table (planetData.py:291-302) -- same dict shape as
-    -- `planets.table_*` above.
-    table_class     TEXT,
-    table_distance  TEXT NOT NULL,
-    table_period    TEXT NOT NULL,
-    table_radius    TEXT NOT NULL,
-    table_gravity   TEXT
+    flavor_text_count         INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_moons_planet_id ON moons(planet_id);
 CREATE INDEX IF NOT EXISTS idx_moons_star_system_id ON moons(star_system_id);
@@ -508,7 +491,7 @@ CREATE VIEW IF NOT EXISTS sector_objects AS
         s.star_system_id                AS star_system_id,
         ss.sector_id                    AS sector_id,
         s.name                          AS name,
-        s.table_type                    AS summary,
+        s.star_type                     AS summary,
         NULL                            AS orbital_index
     FROM stars s
     JOIN star_systems ss ON ss.id = s.star_system_id
@@ -521,7 +504,7 @@ CREATE VIEW IF NOT EXISTS sector_objects AS
         p.star_system_id                AS star_system_id,
         ss.sector_id                    AS sector_id,
         p.name                          AS name,
-        COALESCE(p.table_class, p.body_type) AS summary,
+        COALESCE(p.planet_class, p.body_type) AS summary,
         p.orbital_index                 AS orbital_index
     FROM planets p
     JOIN star_systems ss ON ss.id = p.star_system_id
@@ -534,7 +517,7 @@ CREATE VIEW IF NOT EXISTS sector_objects AS
         m.star_system_id                AS star_system_id,
         ss.sector_id                    AS sector_id,
         m.name                          AS name,
-        COALESCE(m.table_class, m.body_type) AS summary,
+        COALESCE(m.planet_class, m.body_type) AS summary,
         m.orbital_index                 AS orbital_index
     FROM moons m
     JOIN star_systems ss ON ss.id = m.star_system_id
