@@ -13,6 +13,13 @@
 // value is still database content (a system name can contain arbitrary
 // characters via `--name`) -- consistent with the rest of `html/`'s
 // dependency-free, no-build-step approach.
+//
+// Also keeps the "Galactic Center" compass label facing the camera
+// (like a star dot, but selected via the broader `.billboard` class so
+// the compass arrow's own straight line -- which must NOT billboard, its
+// whole point is showing a real 3D direction -- is left alone), and
+// keeps the scale-bar legend (`#starmap-scale-bar`/`#starmap-scale-label`)
+// showing the sector's true physical scale at the current zoom level.
 
 (function () {
   "use strict";
@@ -93,7 +100,64 @@
     // pointerdown of its own (assistive tech, a programmatically
     // dispatched click), wrongly suppressing it.
     var suppressNextClick = false;
+    // Click/keyboard hit-testing only ever targets a star -- kept as its
+    // own narrower list (not every `.billboard`) so the compass's
+    // "Galactic Center" label near it can't be mistaken for a star dot
+    // in `dotAtPoint` below or pick up its own keydown handler.
     var dots = Array.prototype.slice.call(scene.querySelectorAll(".star-dot"));
+    // Everything on the map that must keep facing the camera regardless
+    // of `.starmap-scene`'s own rotation -- star dots and the compass's
+    // text label alike (billboarding a *line*, like the compass arrow
+    // itself or a wedge edge, would be wrong: a line's whole visual
+    // point is showing its real 3D direction, not facing the viewer).
+    var billboards = Array.prototype.slice.call(scene.querySelectorAll(".billboard"));
+
+    var scaleEl = document.getElementById("starmap-scale");
+    var scaleBarEl = document.getElementById("starmap-scale-bar");
+    var scaleLabelEl = document.getElementById("starmap-scale-label");
+    // Exact ly-per-pixel ratio at zoom=1, computed server-side
+    // (`lib/starmap.py`'s `_ly_per_px_at_zoom_1`) from the sector's own
+    // real `edge_mpc` -- dividing by the live `zoom` factor below keeps
+    // the bar's label true to the actual current scale as the user zooms,
+    // rather than a value that was only ever right at the default zoom.
+    var lyPerPxAtZoom1 = scaleEl ? parseFloat(scaleEl.dataset.lyPerPx) : 0;
+    var SCALE_BAR_TARGET_PX = 70;
+
+    // Snaps an arbitrary positive value to the nearest "nice" 1/2/5 * 10^n
+    // -- the standard map-scale-bar convention, so the label reads "5 ly"
+    // or "20 ly" rather than an ugly "6.283 ly".
+    function niceScaleValue(raw) {
+      if (!isFinite(raw) || raw <= 0) {
+        return 0;
+      }
+      var magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+      var mantissa = raw / magnitude;
+      var niceMantissa;
+      if (mantissa < 1.5) niceMantissa = 1;
+      else if (mantissa < 3.5) niceMantissa = 2;
+      else if (mantissa < 7.5) niceMantissa = 5;
+      else niceMantissa = 10;
+      return niceMantissa * magnitude;
+    }
+
+    function formatLy(value) {
+      if (value >= 100) return Math.round(value) + " ly";
+      if (value >= 1) return Math.round(value * 10) / 10 + " ly";
+      return Math.round(value * 1000) / 1000 + " ly";
+    }
+
+    function updateScaleBar() {
+      if (!scaleEl || !scaleBarEl || !scaleLabelEl || !lyPerPxAtZoom1) {
+        return;
+      }
+      var lyPerPx = lyPerPxAtZoom1 / zoom;
+      var niceLy = niceScaleValue(SCALE_BAR_TARGET_PX * lyPerPx);
+      if (!niceLy) {
+        return;
+      }
+      scaleBarEl.style.width = (niceLy / lyPerPx).toFixed(1) + "px";
+      scaleLabelEl.textContent = formatLy(niceLy);
+    }
 
     function apply() {
       scene.style.transform = "rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg)";
@@ -107,9 +171,10 @@
       // inverse no longer cancels it (confirmed the hard way -- it only
       // matched at the one rotation angle it happened to be tested at).
       var counterRotate = "rotateY(" + -rotateY + "deg) rotateX(" + -rotateX + "deg)";
-      dots.forEach(function (dot) {
-        dot.style.transform = counterRotate;
+      billboards.forEach(function (billboard) {
+        billboard.style.transform = counterRotate;
       });
+      updateScaleBar();
     }
 
     function setZoom(value) {

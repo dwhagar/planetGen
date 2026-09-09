@@ -498,7 +498,10 @@ exactly the kind of case that flag matters for.
    variety), that needs a stored orientation value (a single roll angle
    suffices, given the radial axis itself is already fixed by the center
    point) — not proposed here since it's pure additional complexity with
-   no identified requirement yet.
+   no identified requirement yet. §9's `sector_vertices` table implements
+   the fixed convention concretely (as the tangent-plane basis its exact
+   prism vertices are derived in), but still doesn't add a roll degree of
+   freedom -- that half of this question remains open.
 5. **Deterministic Fibonacci-sphere placement vs. randomized placement.**
    §3's scheme is fully deterministic — the same `(shell_index,
    shell_slot_index)` always yields the same position, which makes shells
@@ -694,3 +697,256 @@ shells, and wider slot bands within each" rather than breaking down, so
 there is no cliff where this approach stops working; it simply does
 progressively more of the genuinely-necessary work as the requested
 neighborhood grows.
+
+## 9. Sector prism vertices: exact per-shell Voronoi tessellation (addendum, revision 2)
+
+**Status:** implemented (`stellarObjects/sectorGeometry.py`, the
+`sector_vertices` table — schema v7; briefly a `sectors.vertices_pc` JSON
+column in schema v6, reconsidered immediately in favor of a normalized
+table, since this schema has no JSON-blob columns anywhere else). This
+revises an earlier version of this same
+addendum, which gave every sector a fixed 8-vertex cube and *nudged*
+corners toward nearby neighbors' — that approach shipped, worked, and was
+tested, but only ever reduced gaps (~35% aggregate improvement, measured
+against real `galaxyGen.py` output), never eliminated them, because a
+fixed 8-vertex/6-face shape cannot exactly reconcile a sector with more
+real neighbors than it has faces — common on this Fibonacci-sphere
+placement, which has no fixed "6 neighbors" the way a structured grid
+would. Following a direct request for literal zero gaps, this revision
+replaces corner-nudging with an **exact local spherical Voronoi
+tessellation**, letting vertex/face count vary per sector instead of
+staying fixed.
+
+### The model
+
+- **Lateral (same-shell) sharing is exact, not approximate.** For sector
+  `P`, `stellarObjects.sectorGeometry.local_lateral_cell` finds `P`'s real
+  same-shell geometric neighbors and computes the cell boundary as the
+  exact 3D **circumcenter** of each pair of cyclically-adjacent neighbors
+  together with `P` — the one point in 3D equidistant from all three. This
+  is a plain geometric fact about three points, independent of which of
+  them "does the computing," so two real neighbors, computing their own
+  cells entirely independently, land on the identical floating-point value
+  for their shared corner (verified directly: ~1e-16 agreement, i.e.
+  floating-point noise, not an approximation residual). Vertex count
+  varies per sector (typically 5-7, mean 6.0, matching standard Voronoi/
+  Euler-formula theory for a near-uniform point set) — the direct,
+  necessary consequence of insisting on exact gaps: a cube tiling of a
+  sphere cannot be gap-free in general (the same reason a soccer ball
+  needs pentagons mixed with hexagons; a plane tiles perfectly with
+  squares, a sphere never does), so face count has to match each sector's
+  own real neighbor count instead of staying fixed.
+- **Radial (between-shell) coverage matches in area, not vertex-for-
+  vertex.** Each lateral vertex is scaled along its own ray from the
+  galactic origin to sit exactly on the shell's inner bound
+  (`shell_index * edge_pc`) and outer bound (`(shell_index + 1) *
+  edge_pc`) in turn (`prism_vertices`), giving every sector a radially-
+  extruded prism. Shell `k`'s outer bound and shell `k+1`'s inner bound
+  are the same sphere; each shell tiles that whole sphere completely and
+  independently via its own sectors (Voronoi cells always partition their
+  full surface), so there is no net gap in area between the two shells'
+  sectors even though the two tessellations don't share edges with each
+  other — a "non-conforming mesh interface," the same technique used
+  where two independently-meshed regions meet in finite-element/CFD
+  meshing. Shell 0 is a degenerate but correct special case: its inner
+  bound is radius 0, so its sectors are wedges/cones from the galactic
+  center rather than full prisms.
+- No roll/orientation degree of freedom was added — §3's fixed convention
+  (radial-outward local `+Z`, projected-galactic-north local `+X`) is
+  still used as the tangent-plane basis the lateral cell's connectivity is
+  worked out in, even though final vertex positions are exact 3D
+  circumcenters rather than tangent-plane approximations.
+
+### The performance problem this required solving, and how
+
+A naive same-shell neighbor search — reusing
+`galaxyGeometry.enumerate_sectors_within_radius` with a small physical
+radius — is fast near a shell's poles but **catastrophically slow near its
+equator for large outer shells**: that primitive prunes by polar angle
+(`phi`) alone, and this placement's slot index is uniform in `cos(phi)`,
+not `phi` itself, so a tiny physical radius maps to a huge slot-index range
+right at the equator (measured: 100,000+ candidates to find ~6-8 true
+neighbors, ~0.4-0.5 seconds per sector) — precisely where the disk/spiral
+density model (this session's other major addendum) concentrates real
+generation activity.
+
+The fix exploits what this placement actually *is*: a Fibonacci sphere
+built from the golden angle, which makes it a golden-ratio irrational
+rotation in disguise. By the three-distance theorem, two slot indices land
+at close azimuths essentially when their difference is a Fibonacci number
+(golden-ratio continued-fraction convergents are exactly consecutive
+Fibonacci numbers) — confirmed directly against real generated positions,
+where true neighbor offsets were exactly `F_20` through `F_23`
+(6765/10946/17711/28657) plus small integer combinations of adjacent pairs
+(e.g. `76 = 2*F_10 - F_9`). Combined with polar angle changing
+(approximately) linearly with index, the relevant offset scale works out
+to `sin(phi) * sqrt(pi * N)` — shrinking away from the equator.
+`sectorGeometry._same_shell_candidate_offsets` checks small integer
+combinations of the few Fibonacci-number pairs nearest that scale, cutting
+per-sector cost to ~0.3-0.4ms regardless of shell size (a ~1000x
+improvement for the worst outer-equatorial case) — validated against the
+guaranteed-correct brute-force search across 840 cases spanning the full
+polar range and shell sizes from 3 to 211 million slots, with **zero
+mismatches** once shells small enough that this asymptotic theory doesn't
+apply cleanly (`shell_sector_count(k) <= 2000`, in practice only the
+galactic-core-adjacent shells) fall back to plain brute force instead,
+which is unconditionally correct and still cheap at that size.
+
+### Two correctness bugs found by an end-to-end simulation, and fixed
+
+Running a real (small, unfilled) galaxy through this module end-to-end —
+sector layout, density, and vertices for every qualifying sector, with an
+exhaustive check that every outer vertex is shared with another same-shell
+sector's cell — surfaced two bugs neither unit test caught, both specific
+to small/sparse shells (the galactic-core-adjacent shells that unit tests,
+by convention, under-sampled in favor of large ones like shell 50):
+
+1. **Naive tangent-plane projection understated distance.** The same-shell
+   candidate projection originally used the raw chord vector's own
+   components along the local axes (`dot(candidate - position, local_x)`
+   etc.), which systematically *understates* how far away a candidate
+   really is, worse the farther it is (a real 10.5 pc separation projected
+   to as little as 1.5 pc on shell 1). Fixed with a proper **gnomonic**
+   (central) projection (`_gnomonic_projection`): following the ray from
+   the galactic origin through the candidate out to where it crosses the
+   query sector's tangent plane, which grows monotonically with true
+   angular separation and is the standard technique for reducing a
+   spherical Voronoi problem to a planar one.
+2. **The half-plane test after that projection used the wrong bisector.**
+   Gnomonic projection maps the true spherical bisector between two
+   co-radial points to a straight line in the projected `(u, v)` plane —
+   but not to the *flat*-plane perpendicular bisector of `(0, 0)` and
+   `(u, v)` (`u*x + v*y <= (u**2 + v**2) / 2`), which was the formula used.
+   The two agree only in the small-angle limit (why large/dense shells
+   were unaffected); on a small, sparse, fully-populated shell it was
+   permissive enough to let two non-adjacent sectors' cells meet at a
+   point a third, genuinely closer sector should have cut off first — a
+   real, silent gap. The correct right-hand side, derived from equidistance
+   in 3D between the query sector (radius `r_k`) and a co-radial candidate
+   projected to `(u, v)`, is `r_k * (sqrt(r_k**2 + u**2 + v**2) - r_k)`.
+
+Both fixes are covered by regression tests parametrized to include a small
+shell (shell 1) alongside the large ones already under test, plus an
+exhaustive "every vertex of every sector in a fully-populated small shell
+is shared with another sector" check
+(`test_local_lateral_cell_fully_tiles_a_small_shell_with_no_orphan_vertices`)
+that reproduces the exact condition the simulation used to find these bugs.
+Re-running the same simulation after both fixes: **0 unexplained gaps**
+across all 31,255 outer vertices generated (previously 4,798, then 164 as
+each fix landed).
+
+## 10. The galaxy-wide "skeleton": storage analysis and implementation
+
+Following on from the simulation above, the natural next question is what
+it costs to persist this galaxy's structure at real Milky-Way scale, not
+just a small toy simulation -- and, having measured that, how to shrink
+it. This section documents both the analysis and the actual design that
+resulted (`stellarObjects/galaxySkeleton.py`, `galaxyPlan.py`, schema v8),
+which supersedes `docs/design/galaxy-disk-density.md` revision 2's
+`galaxy_sector_plan` table (see that document's own status note).
+
+### The core realization: almost none of this is independent data
+
+`sector_position_pc`, `relative_density`, and `prism_vertices` are pure,
+closed-form functions: given `(shell_index, shell_slot_index)` and a
+handful of galaxy-wide constants, all three are fully determined. Storing
+a qualifying sector's position/density explicitly (as `galaxy_sector_plan`
+would have) means storing the *output* of a formula that's cheaper to
+re-run than to look up. Measured directly against real Milky-Way-scale
+parameters (disk scale length 2,800 pc, scale height 350 pc, bulge radius
+200 pc, calibrated at the real Sun-to-center distance):
+
+```
+E (systems/sector at density=1) = 4.3193
+threshold density = 0.2315
+last shell with any qualifying content: shell 4077
+every one of ~4,078 relevant shells: exactly one contiguous qualifying
+  phi-band (checked via the exact upper-bound curve at 4,000-sample
+  resolution -- zero shells found with 2+ bands under these parameters)
+```
+
+The single-band-per-shell result isn't a coincidence of these particular
+numbers: `bound_relative_density_at_phi` (the exact upper bound over every
+possible `theta`) is symmetric under `phi -> pi - phi` (both `r_cyl = r_k
+sin(phi)` and `z = r_k cos(phi)` are), and for any shape where the disk
+scale height is meaningfully smaller than the disk scale length (true of
+any realistic spiral), it's also unimodal, peaking at the galactic plane.
+`galaxySkeleton.find_shell_bands` doesn't *assume* this, though -- it
+scans and reports however many bands it actually finds, in case a very
+different parameter choice ever produces more than one.
+
+### Storage tiers, measured
+
+| Tier | What's stored per sector | Rows (real MW scale) | Size |
+|---|---|---|---|
+| 0 — pure parametric | nothing; shape + edge + outer shell, once | 1 | ~150 bytes |
+| 1 — per-shell band cache (**built**) | nothing; `(shell_index, band_index, slot_min, slot_max)` | ~4,076 | **~350 KB** |
+| 2 — per-sector address only | `(shell_index, shell_slot_index)`, no derived values | ~10.5–14.9 billion | ~85–170 GB |
+| 3 — `galaxy_sector_plan` (designed, not built) | position, density, star count | ~10.5 billion | ~830 GB – 1 TB |
+| 4 — fully generated content | full star systems/planets/moons | ~10.5 billion | ~930 TB – 1.15 PB |
+
+Tier 1 is what's implemented. It answers "where could the galaxy have
+anything at all" with a table small enough to hold entirely in memory,
+while deferring every sector-specific fact (position, exact density,
+vertices) to the moment that sector is actually generated.
+
+### What's actually stored, and what's deferred
+
+- **`galaxy_shape`** (schema v8, singleton row): the galaxy's shape
+  parameters (`galaxyDensity.GalaxyShape`, verbatim), `edge_pc`,
+  `expected_system_count_at_density_1`, and `outer_shell_index` (the last
+  shell with any qualifying content, discovered by a run of consecutive
+  empty shells, not an arbitrary radius).
+- **`galaxy_shell_band`** (schema v8): one row per contiguous *candidate*
+  slot-index band per shell -- a safe superset (an exact upper bound, so a
+  slot outside every band is *certainly* empty, while a slot inside one
+  isn't *certainly* full), found by `galaxySkeleton.find_shell_bands`: a
+  coarse scan of the exact bound across `phi`, each detected sign change
+  refined by bisection, then converted to an exact slot-index range via
+  the existing closed-form inverse (`galaxyGeometry.
+  slot_index_bounds_for_phi_range`, previously used only by
+  `enumerate_sectors_within_radius`, now shared).
+- **Deferred entirely, computed live**: an individual sector's exact
+  position, exact density, exact qualification, and vertices --
+  `galaxyGen.ensure_sector_generated(shell_index, shell_slot_index)` is
+  the single entry point: return the sector already generated there if
+  one exists; otherwise check the stored band (a cheap, certain "no" if
+  outside it), then the exact `relative_density` (cheap either way); if it
+  qualifies, generate and persist it on the spot, using that position's
+  own `relative_density` as the `--density` multiplier so system count
+  scales with local richness rather than a uniform default. Most of the
+  galaxy is never visited, so most of it is never generated -- exactly
+  this project's own "most sectors stay unvisited forever" premise.
+
+### Parallel build
+
+`galaxyPlan.py` dispatches shells to a `multiprocessing.Pool` in
+fixed-size chunks (each shell's own band-finding is independent of every
+other's), scanning outward in order only to detect the run of consecutive
+empty shells that confirms the galaxy's true edge. Measured against real
+Milky-Way-scale parameters: **0.5 seconds** of actual scan time (4 worker
+processes), producing 4,076 stored bands and a database file of
+**352,256 bytes**. A single-core, unparallelized run of the same build
+took 0.6 seconds -- parallelization matters far less here than it did for
+`sectorGeometry`'s same-shell neighbor search, since finding one shell's
+band is already a small, closed-form calculation, not a scan over that
+shell's own (potentially hundreds-of-millions-large) slot count; it's kept
+regardless, since nothing about a future shape/threshold choice guarantees
+that stays true, and the underlying work is naturally embarrassingly
+parallel.
+
+### A numerical bug this work also found and fixed
+
+Testing the band-finding math against a small toy-scale shape (used for
+fast tests, `disk_scale_length_pc=40`, `disk_scale_height_pc=12`) surfaced
+an `OverflowError`: `galaxyDensity._raw_density`'s vertical falloff term
+computed `1.0 / math.cosh(x) ** 2` directly, which raises once `|x|`
+exceeds ~710 (`cosh` grows like `exp(|x|) / 2`) -- reachable whenever a
+position's height above the plane is large relative to
+`disk_scale_height_pc`, not just at unrealistic extremes (this toy shape
+hit it by shell ~2,400, and any shape with a small scale height relative
+to its own radius could hit it in production). Fixed with an algebraically
+equivalent form rewritten around `exp(-2|x|)` (`galaxyDensity._sech_squared`,
+shared with `galaxySkeleton`'s own bound function) -- always in `(0, 1]`,
+so it can only underflow to a harmless `0.0` (the correct limiting value)
+rather than overflow.

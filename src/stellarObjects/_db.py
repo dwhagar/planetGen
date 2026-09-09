@@ -38,18 +38,20 @@ import os
 import shutil
 import sqlite3
 import time
+from collections import namedtuple
 
 from . import physical_constants
 from .asteroidData import AsteroidBelt
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
+from .galaxyDensity import GalaxyShape
 from .planetData import Planet
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 8
 """int: Matches `star_systems.schema_version` and `PRAGMA user_version` in
 `stellarObjects/schema.sql` -- see that file's header comment. Also the
 target version `migrate_database` converts an older database up to."""
@@ -640,18 +642,26 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
         conn (sqlite3.Connection): An open, schema-initialized connection.
         sector (SpaceSector): The sector to persist.
         galaxy_position (dict, optional): This sector's galaxy-frame
-            placement (see `schema.sql`'s "v4" header note), or `None`
-            (the default) for a sector never placed in a galaxy --
+            placement (see `schema.sql`'s "v4"/"v6/v7" header notes), or
+            `None` (the default) for a sector never placed in a galaxy --
             `sectorGen.py`'s own standalone CLI keeps producing these.
             When given, must have keys `center_x_pc`, `center_y_pc`,
-            `center_z_pc`, `galactic_radius_pc` (all required together --
-            the schema's CHECK constraint enforces this on every other
-            path, but this function trusts the caller rather than
-            re-deriving `galactic_radius_pc` itself), and optionally
-            `shell_index`/`shell_slot_index` (each independently
-            optional -- `None`/omitted leaves that one column NULL, per
-            `schema.sql`'s note that they aren't implied by a center point
-            the way the other four are).
+            `center_z_pc`, `galactic_radius_pc`, `vertices_pc` (all
+            required together -- the schema's CHECK constraint enforces
+            the first four on every other path, but this function trusts
+            the caller rather than re-deriving `galactic_radius_pc`
+            itself; `vertices_pc` isn't part of that CHECK since it lives
+            in a separate table SQLite can't cross-reference in a CHECK,
+            but is expected NULL-together with the other four all the
+            same), and optionally `shell_index`/`shell_slot_index` (each
+            independently optional -- `None`/omitted leaves that one
+            column NULL, per `schema.sql`'s note that they aren't implied
+            by a center point the way the other five are). `vertices_pc`
+            is a `{"inner": [...], "outer": [...]}` dict, each a list of
+            `(x, y, z)` tuples -- variable length, not fixed at 8 (see
+            `sectorGeometry.prism_vertices`) -- written as one
+            `sector_vertices` row per vertex, ordinary columns throughout,
+            never serialized.
 
     Returns:
         int: The new `sectors.id`.
@@ -671,12 +681,22 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
                 galaxy_position.get("shell_index"), galaxy_position.get("shell_slot_index"),
             ),
         )
+        sector_id = cur.lastrowid
+        for ring in ("inner", "outer"):
+            conn.executemany(
+                "INSERT INTO sector_vertices (sector_id, ring, vertex_index, x_pc, y_pc, z_pc) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    (sector_id, ring, i, x, y, z)
+                    for i, (x, y, z) in enumerate(galaxy_position["vertices_pc"][ring])
+                ),
+            )
     else:
         cur = conn.execute(
             "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
             (sector.name, ly_to_milliparsecs(sector.edge_ly)),
         )
-    sector_id = cur.lastrowid
+        sector_id = cur.lastrowid
 
     for entry in sector.entries:
         insert_star_system(
@@ -702,8 +722,11 @@ def get_sector_galaxy_position(conn, sector_id):
     Returns:
         dict or None: A dict with keys `center_x_pc`, `center_y_pc`,
             `center_z_pc`, `galactic_radius_pc`, `shell_index`,
-            `shell_slot_index`, or `None` if this sector has never been
-            placed in a galaxy (all six columns NULL).
+            `shell_slot_index`, `vertices_pc` (rebuilt from `sector_vertices`
+            rows into a `{"inner": [...], "outer": [...]}` dict of
+            `[x, y, z]` lists, ordered by `vertex_index`), or `None` if
+            this sector has never been placed in a galaxy (the four
+            galaxy-position columns NULL).
 
     Raises:
         ValueError: If no such `sectors` row exists.
@@ -720,7 +743,20 @@ def get_sector_galaxy_position(conn, sector_id):
         raise ValueError(f"no sectors row with id {sector_id}")
     if row["center_x_pc"] is None:
         return None
-    return dict(row)
+
+    result = dict(row)
+    vertex_rows = conn.execute(
+        """
+        SELECT ring, x_pc, y_pc, z_pc FROM sector_vertices
+        WHERE sector_id = ? ORDER BY ring, vertex_index
+        """,
+        (sector_id,),
+    ).fetchall()
+    vertices_pc = {"inner": [], "outer": []}
+    for vrow in vertex_rows:
+        vertices_pc[vrow["ring"]].append([vrow["x_pc"], vrow["y_pc"], vrow["z_pc"]])
+    result["vertices_pc"] = vertices_pc
+    return result
 
 
 def get_occupied_shell_slots(conn, shell_indices):
@@ -750,6 +786,191 @@ def get_occupied_shell_slots(conn, shell_indices):
         tuple(shell_indices),
     ).fetchall()
     return {(row["shell_index"], row["shell_slot_index"]) for row in rows}
+
+
+def get_sector_id_at(conn, shell_index, shell_slot_index):
+    """
+    Looks up the `sectors.id` already generated at a specific galaxy
+    address, if any -- the single-address counterpart to
+    `get_occupied_shell_slots`'s batch-of-a-shell query, used by
+    `galaxyGen.ensure_sector_generated` to check (and, on an `INSERT`
+    race, re-check) one address at a time.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        shell_index (int): The shell index to look up.
+        shell_slot_index (int): The slot index within that shell.
+
+    Returns:
+        int or None: The existing `sectors.id`, or `None` if no sector has
+            been generated at this address yet.
+    """
+    row = conn.execute(
+        "SELECT id FROM sectors WHERE shell_index = ? AND shell_slot_index = ?",
+        (shell_index, shell_slot_index),
+    ).fetchone()
+    return row["id"] if row is not None else None
+
+
+GalaxySkeletonInfo = namedtuple(
+    "GalaxySkeletonInfo",
+    ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1"],
+)
+"""The galaxy's stored skeleton -- everything needed to recompute any
+sector's exact position/density on demand (see schema.sql's "v8" header
+note). `shape` is a `galaxyDensity.GalaxyShape`; the other three fields
+are `galaxy_shape`'s own remaining columns."""
+
+
+def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
+                       expected_system_count_at_density_1, db_path=None):
+    """
+    Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
+    one galaxy, so this always overwrites whatever was there before rather
+    than inserting a second row (`galaxyPlan.py` calls this once per full
+    skeleton (re)build).
+
+    Args:
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        edge_pc (float): The sector edge length this skeleton was built
+                         at, parsecs.
+        outer_shell_index (int): The last shell index with any qualifying
+            content (`galaxyPlan.py`'s own discovered galaxy edge).
+        expected_system_count_at_density_1 (float): See
+            `galaxySkeleton.expected_system_count_at_density_1`.
+        db_path (str, optional): Path to the `.db` file. Defaults to
+                                 `DEFAULT_DB_PATH`.
+    """
+    conn = get_connection(db_path)
+    try:
+        with conn:
+            conn.execute(
+                """
+                INSERT INTO galaxy_shape (
+                    id, disk_scale_length_pc, disk_scale_height_pc,
+                    bulge_scale_radius_pc, bulge_amplitude, arm_count,
+                    pitch_angle_rad, arm_amplitude, spiral_reference_radius_pc,
+                    spiral_reference_angle_rad, k_norm, edge_pc,
+                    expected_system_count_at_density_1, outer_shell_index
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT (id) DO UPDATE SET
+                    disk_scale_length_pc = excluded.disk_scale_length_pc,
+                    disk_scale_height_pc = excluded.disk_scale_height_pc,
+                    bulge_scale_radius_pc = excluded.bulge_scale_radius_pc,
+                    bulge_amplitude = excluded.bulge_amplitude,
+                    arm_count = excluded.arm_count,
+                    pitch_angle_rad = excluded.pitch_angle_rad,
+                    arm_amplitude = excluded.arm_amplitude,
+                    spiral_reference_radius_pc = excluded.spiral_reference_radius_pc,
+                    spiral_reference_angle_rad = excluded.spiral_reference_angle_rad,
+                    k_norm = excluded.k_norm,
+                    edge_pc = excluded.edge_pc,
+                    expected_system_count_at_density_1 = excluded.expected_system_count_at_density_1,
+                    outer_shell_index = excluded.outer_shell_index
+                """,
+                (
+                    shape.disk_scale_length_pc, shape.disk_scale_height_pc,
+                    shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
+                    shape.pitch_angle_rad, shape.arm_amplitude, shape.spiral_reference_radius_pc,
+                    shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
+                    expected_system_count_at_density_1, outer_shell_index,
+                ),
+            )
+    finally:
+        conn.close()
+
+
+def get_galaxy_shape(conn):
+    """
+    Reads back the galaxy's stored skeleton parameters.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+
+    Returns:
+        GalaxySkeletonInfo or None: `None` if `galaxyPlan.py` has never
+            been run against this database (the `galaxy_shape` singleton
+            row doesn't exist yet).
+    """
+    row = conn.execute(
+        """
+        SELECT disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,
+               bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,
+               spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm,
+               edge_pc, expected_system_count_at_density_1, outer_shell_index
+        FROM galaxy_shape WHERE id = 1
+        """
+    ).fetchone()
+    if row is None:
+        return None
+
+    shape = GalaxyShape(
+        disk_scale_length_pc=row["disk_scale_length_pc"],
+        disk_scale_height_pc=row["disk_scale_height_pc"],
+        bulge_scale_radius_pc=row["bulge_scale_radius_pc"],
+        bulge_amplitude=row["bulge_amplitude"],
+        arm_count=row["arm_count"],
+        pitch_angle_rad=row["pitch_angle_rad"],
+        arm_amplitude=row["arm_amplitude"],
+        spiral_reference_radius_pc=row["spiral_reference_radius_pc"],
+        spiral_reference_angle_rad=row["spiral_reference_angle_rad"],
+        k_norm=row["k_norm"],
+    )
+    return GalaxySkeletonInfo(
+        shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
+        expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
+    )
+
+
+def replace_galaxy_shell_bands(shell_bands, db_path=None):
+    """
+    Replaces every `galaxy_shell_band` row wholesale -- `galaxyPlan.py`'s
+    own full-galaxy skeleton build is the only writer, and it always
+    produces a complete, coherent set for the whole galaxy in one pass, so
+    there is no notion of an incremental/partial update here (matches
+    `save_galaxy_shape`'s own "replace the one true answer" behavior).
+
+    Args:
+        shell_bands (iterable): `(shell_index, band_index, slot_index_min,
+            slot_index_max)` tuples, any order -- `band_index` is the
+            0-based position of that band within its own shell (almost
+            always just `0`; see `galaxySkeleton.find_shell_bands`).
+        db_path (str, optional): Path to the `.db` file. Defaults to
+                                 `DEFAULT_DB_PATH`.
+    """
+    conn = get_connection(db_path)
+    try:
+        with conn:
+            conn.execute("DELETE FROM galaxy_shell_band")
+            conn.executemany(
+                "INSERT INTO galaxy_shell_band (shell_index, band_index, slot_index_min, slot_index_max) "
+                "VALUES (?, ?, ?, ?)",
+                shell_bands,
+            )
+    finally:
+        conn.close()
+
+
+def get_galaxy_shell_bands(conn, shell_index):
+    """
+    This shell's stored candidate band(s), in `band_index` order.
+
+    Args:
+        conn (sqlite3.Connection): An open, schema-initialized connection.
+        shell_index (int): The shell index to look up.
+
+    Returns:
+        list: `(slot_index_min, slot_index_max)` tuples, in ascending
+              `band_index` order -- empty if this shell has no stored
+              qualifying content (including if the skeleton was never
+              built at all).
+    """
+    rows = conn.execute(
+        "SELECT slot_index_min, slot_index_max FROM galaxy_shell_band "
+        "WHERE shell_index = ? ORDER BY band_index",
+        (shell_index,),
+    ).fetchall()
+    return [(row["slot_index_min"], row["slot_index_max"]) for row in rows]
 
 
 def save_system(star_system: StarSystem, system_config: SystemConfig, db_path=None) -> int:
@@ -1516,15 +1737,17 @@ def _migrate_v4_to_v5(conn):
     `schema.sql`) from a schema-v4 database attached as `old` (see
     `migrate_database` for the attach/backup/swap this runs inside of).
 
-    The only structural change between v4 and v5 is the removal of every
+    The structural change bridged here is the removal of every
     `table_*`/`binary_table_*` column from `star_systems`/`stars`/
     `planets`/`moons` (see schema.sql's "v5" header note) -- those held a
     pre-rendered display string, not data, so nothing needs backfilling; a
-    migrated database simply drops them. `sectors` already has every
-    current column as of v4 (see the "v4" header note), so unlike
-    `_migrate_v1_to_v2`/`_migrate_v2_to_v3`/`_migrate_v3_to_v4` it needs no
-    special-casing here and can use a plain `SELECT *`. Every other table is
-    unaffected and copied straight across.
+    migrated database simply drops them. `sectors` has the same shape in a
+    v4 source as the current (v7) schema -- v6's now-since-removed
+    `vertices_pc` column (see the "v6/v7" header note) came and went
+    without ever changing what a v4 source's `sectors` table needs mapped
+    to -- so it still needs no special-casing here and uses a plain
+    `SELECT *`, same as when this function was first written. Every other
+    table is unaffected and copied straight across.
 
     Args:
         conn (sqlite3.Connection): Connection to the new database, with
@@ -1542,6 +1765,115 @@ def _migrate_v4_to_v5(conn):
         conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
 
 
+def _migrate_v5_to_v6(conn):
+    """
+    Populates a fresh, empty database (`conn`'s main schema, the current
+    `schema.sql`) from a schema-v5 database attached as `old` (see
+    `migrate_database` for the attach/backup/swap this runs inside of).
+
+    A v5 source's `sectors` table has the same shape as the current (v7)
+    schema's, for the same reason `_migrate_v4_to_v5` above does -- v6's
+    `vertices_pc` column existed only briefly before v7 removed it again
+    (see schema.sql's "v6/v7" header note), so a v5 source needs no
+    special-casing to reach v7 either, and uses a plain `SELECT *`. Every
+    other table is unaffected by this version bump and copied straight
+    across the same way.
+
+    Args:
+        conn (sqlite3.Connection): Connection to the new database, with
+                                   the old one already `ATTACH`ed as `old`
+                                   and the current schema already applied.
+    """
+    conn.execute("INSERT INTO main.sectors SELECT * FROM old.sectors")
+    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+    conn.execute("INSERT INTO main.star_systems SELECT * FROM old.star_systems")
+    conn.execute("INSERT INTO main.stars SELECT * FROM old.stars")
+    conn.execute("INSERT INTO main.planets SELECT * FROM old.planets")
+    conn.execute("INSERT INTO main.moons SELECT * FROM old.moons")
+    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+
+
+# The `sectors` column set shared by the current (v7) schema and every
+# source version except v6 -- v6 alone had an extra `vertices_pc` column
+# (see schema.sql's "v6/v7" header note) that no longer exists, so
+# `_migrate_v6_to_v7` (only) needs this explicit list instead of
+# `SELECT *`, to select every column except that one out of a v6 source.
+_SECTORS_COLUMNS_WITHOUT_VERTICES = (
+    "id", "name", "edge_mpc", "center_x_pc", "center_y_pc", "center_z_pc",
+    "galactic_radius_pc", "shell_index", "shell_slot_index",
+)
+
+
+def _migrate_v6_to_v7(conn):
+    """
+    Populates a fresh, empty database (`conn`'s main schema, the current
+    `schema.sql`) from a schema-v6 database attached as `old` (see
+    `migrate_database` for the attach/backup/swap this runs inside of).
+
+    The structural change bridged here is `sectors.vertices_pc` (a v6-only
+    JSON blob column) being replaced by the normalized `sector_vertices`
+    table (see schema.sql's "v6/v7" header note) -- `sectors` itself needs
+    `_SECTORS_COLUMNS_WITHOUT_VERTICES` instead of `SELECT *` to leave that
+    removed column out, and no rows are written to `sector_vertices` for a
+    migrated sector: a v6 database's `vertices_pc` JSON is dropped rather
+    than parsed and re-inserted as rows, the same "no way to recover this
+    after the fact" treatment every other superseded column in this schema
+    gets (a sector's vertices are cheap to recompute from its address via
+    `sectorGeometry.prism_vertices` if ever actually needed). Every other
+    table is unaffected by this version bump and copied straight across.
+
+    Args:
+        conn (sqlite3.Connection): Connection to the new database, with
+                                   the old one already `ATTACH`ed as `old`
+                                   and the current schema already applied.
+    """
+    _copy_columns(conn, "sectors", _SECTORS_COLUMNS_WITHOUT_VERTICES)
+    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+    conn.execute("INSERT INTO main.star_systems SELECT * FROM old.star_systems")
+    conn.execute("INSERT INTO main.stars SELECT * FROM old.stars")
+    conn.execute("INSERT INTO main.planets SELECT * FROM old.planets")
+    conn.execute("INSERT INTO main.moons SELECT * FROM old.moons")
+    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+
+
+def _migrate_v7_to_v8(conn):
+    """
+    Populates a fresh, empty database (`conn`'s main schema, the current
+    `schema.sql`) from a schema-v7 database attached as `old` (see
+    `migrate_database` for the attach/backup/swap this runs inside of).
+
+    The structural change bridged here is two new tables, `galaxy_shape`
+    and `galaxy_shell_band` (see schema.sql's "v8" header note) -- the
+    galaxy-wide density-model skeleton `galaxyPlan.py` precomputes. Neither
+    existed in a v7 database, so there is nothing to migrate into them;
+    they are simply empty after migration, exactly like a brand-new
+    database, until `galaxyPlan.py` is (re-)run to build them -- a cheap,
+    idempotent rebuild, unlike the individually-generated sectors this
+    migration does carry across untouched. `sectors`/`sector_vertices` are
+    unaffected by this version bump (same shape as v7) and copied straight
+    across, along with every other table.
+
+    Args:
+        conn (sqlite3.Connection): Connection to the new database, with
+                                   the old one already `ATTACH`ed as `old`
+                                   and the current schema already applied.
+    """
+    conn.execute("INSERT INTO main.sectors SELECT * FROM old.sectors")
+    conn.execute("INSERT INTO main.sector_vertices SELECT * FROM old.sector_vertices")
+    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+    conn.execute("INSERT INTO main.star_systems SELECT * FROM old.star_systems")
+    conn.execute("INSERT INTO main.stars SELECT * FROM old.stars")
+    conn.execute("INSERT INTO main.planets SELECT * FROM old.planets")
+    conn.execute("INSERT INTO main.moons SELECT * FROM old.moons")
+    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
+        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
+
+
 def migrate_database(db_path):
     """
     Migrates one database file to `SCHEMA_VERSION`, in place, backing up
@@ -1555,26 +1887,32 @@ def migrate_database(db_path):
     file exactly as it was, plus the backup copy already made.
 
     Per TODO.md's "any future structural change gets a small sequential
-    `_migrate_vN_to_vN+1()` function" decision: this knows four source
+    `_migrate_vN_to_vN+1()` function" decision: this knows seven source
     versions now -- v1 (`_migrate_v1_to_v2`), v2 (`_migrate_v2_to_v3`), v3
-    (`_migrate_v3_to_v4`), and v4 (`_migrate_v4_to_v5`), picked by one
-    `if`/`elif` below based on the file's detected version. Still
-    deliberately not a generic chaining dispatcher/loop: `migrate_step` is
-    invoked exactly once either way, since `_ensure_schema` always applies
-    the one current `schema.sql` regardless of source version (there is no
-    separate "as of v2" schema snapshot to stop at partway) -- so each
-    `_migrate_vN_to_vN+1` function's job is really "map data shaped like
-    version N straight into the current schema", not "map N to N+1 and let
-    the next hop take it from there". `_migrate_v1_to_v2` in particular
-    already goes all the way from v1 to the current (v5) schema in this one
-    call, including the v3 `location` backfill, leaving v4's `sectors`
-    columns `NULL`, and dropping v5's removed `table_*`/`binary_table_*`
-    columns -- it doesn't hand off to `_migrate_v2_to_v3`/`_migrate_v3_to_v4`/
-    `_migrate_v4_to_v5` partway. This v5 change had to update every
-    pre-existing `_migrate_vN_to_vN+1` function to also drop the columns it
-    removes (same as v4's change to `_migrate_v1_to_v2`/`_migrate_v2_to_v3`
-    for the columns *it* added) -- a future structural change will need the
-    same, or a genuine chaining rewrite if that keeps growing.
+    (`_migrate_v3_to_v4`), v4 (`_migrate_v4_to_v5`), v5
+    (`_migrate_v5_to_v6`), v6 (`_migrate_v6_to_v7`), and v7
+    (`_migrate_v7_to_v8`), picked by one `if`/`elif` below based on the
+    file's detected version. Still deliberately not a generic chaining
+    dispatcher/loop: `migrate_step` is invoked exactly once either way,
+    since `_ensure_schema` always applies the one current `schema.sql`
+    regardless of source version (there is no separate "as of v2" schema
+    snapshot to stop at partway) -- so each `_migrate_vN_to_vN+1`
+    function's job is really "map data shaped like version N straight into
+    the current schema", not "map N to N+1 and let the next hop take it
+    from there". `_migrate_v1_to_v2` in particular already goes all the
+    way from v1 to the current (v8) schema in this one call, including the
+    v3 `location` backfill and leaving v4's `sectors` columns `NULL`,
+    dropping v5's removed `table_*`/`binary_table_*` columns, never having
+    had v6's `vertices_pc` in the first place, and never having had v8's
+    `galaxy_shape`/`galaxy_shell_band` either (a v1 source needs no
+    special handling for any of these -- they came, went, or were simply
+    never populated before this function's target schema ever needed to
+    account for them) -- it doesn't hand off to `_migrate_v2_to_v3`/
+    `_migrate_v3_to_v4`/`_migrate_v4_to_v5`/`_migrate_v5_to_v6`/
+    `_migrate_v6_to_v7`/`_migrate_v7_to_v8` partway. A future structural
+    change will need to update every pre-existing `_migrate_vN_to_vN+1`
+    function the same way each past one did for the columns *it* added or
+    removed, or a genuine chaining rewrite if that keeps growing.
 
     Args:
         db_path (str): Path to the `.db` file.
@@ -1612,9 +1950,15 @@ def migrate_database(db_path):
         migrate_step = _migrate_v3_to_v4
     elif version == 4:
         migrate_step = _migrate_v4_to_v5
+    elif version == 5:
+        migrate_step = _migrate_v5_to_v6
+    elif version == 6:
+        migrate_step = _migrate_v6_to_v7
+    elif version == 7:
+        migrate_step = _migrate_v7_to_v8
     else:
         raise UnsupportedSchemaVersionError(
-            f"{db_path}: unsupported schema version {version} (expected 1, 2, 3, 4, or {SCHEMA_VERSION})"
+            f"{db_path}: unsupported schema version {version} (expected 1, 2, 3, 4, 5, 6, 7, or {SCHEMA_VERSION})"
         )
 
     backup_path = (

@@ -1,29 +1,43 @@
 # html/lib/starmap.py
 
 """
-Interactive 3D sector-cube starmap: every placed star system in a sector
+Interactive 3D sector starmap: every placed star system in a sector
 rendered as one plain `<div>` per star (two, overlapping, for a binary),
-positioned in a real CSS 3D scene (`perspective` + `transform-style:
-preserve-3d`) built from the system's (x, y, z) position within the
-sector's cube -- sized by that star's physical radius, and colored by its
-spectral color (from `star_type`, e.g. "White" for an A-class star,
-"Blue" for an O-class star -- see `physical_constants.SPECTRAL_CLASS_COLORS`),
-shaded by its luminosity (brighter = more vivid/lighter, dimmer = more
-muted/darker) and nudged by where its exact temperature falls within its
-spectral class's range.
+positioned in a real CSS 3D scene (`transform-style: preserve-3d`) built
+from the system's (x, y, z) position within the sector -- sized by that
+star's physical radius, and colored by its spectral color (from
+`star_type`, e.g. "White" for an A-class star, "Blue" for an O-class star
+-- see `physical_constants.SPECTRAL_CLASS_COLORS`), shaded by its
+luminosity (brighter = more vivid/lighter, dimmer = more muted/darker) and
+nudged by where its exact temperature falls within its spectral class's
+range.
+
+The scene's own outline is drawn around those dots too, and is one of two
+shapes depending on whether the sector has a galaxy placement: a sector
+with `shell_index`/`shell_slot_index` set gets a 12-edge wireframe of its
+real, approximate on-shell wedge (see `sector_wedge_vertices_pc` --
+bounded by the shell's own radial thickness and roughly how much angular
+"real estate" this slot's Fibonacci placement owns among its neighbors,
+so the shape reflects where the sector actually sits and points on its
+shell, not a generic box); one without a placement falls back to the
+sector's plain axis-aligned `edge_mpc` cube (6 bordered `.cube-face`
+`<div>`s), same as before this wedge shape existed.
 
 Unlike a hand-rolled JS rotation-matrix/projection routine, this hands
 the actual 3D math to the browser: each star's (x, y, z) is placed once,
 as-is, via plain layout position (`left`/`top`) plus `transform:
-translateZ()` for depth -- rotating the whole `.starmap-scene` element
-(`static/sectormap.js`, via drag) and letting `preserve-3d` composite
-every descendant (star dots and the 6 cube-face `<div>`s alike) in true
-3D, occlusion included, is what the browser's own compositor is already
-built to do. Zoom is a separate, plain 2D `scale()` on an *outer*
-wrapper (`.starmap-zoom`, kept outside the `perspective` element rather
-than sandwiched between it and the rotating scene, so it never disturbs
-the perspective math) -- since this is vector/DOM content rather than a
-raster image, scaling it is lossless.
+translateZ()` for depth (the wedge wireframe's edges instead use a single
+combined `translate3d()` + two rotations each, since an edge's endpoints
+are two arbitrary points rather than one point plus a flat XY-plane
+circle -- see `_wedge_wireframe_html`) -- rotating the whole
+`.starmap-scene` element (`static/sectormap.js`, via drag) and letting
+`preserve-3d` composite every descendant (star dots and the outline's own
+`<div>`s alike) in true 3D, occlusion included, is what the browser's own
+compositor is already built to do. Zoom is a separate, plain 2D `scale()`
+on an *outer* wrapper (`.starmap-zoom`, kept outside the `perspective`
+element rather than sandwiched between it and the rotating scene, so it
+never disturbs the perspective math) -- since this is vector/DOM content
+rather than a raster image, scaling it is lossless.
 
 Clicking a dot doesn't navigate straight to `system.py` -- it populates
 the info side panel via the `data-*` attributes read from the clicked
@@ -50,6 +64,20 @@ except ImportError:
     }
     SOLAR_LUMINOSITY = 3.82e26
     SOLAR_RADIUS_M = 6.957e8
+
+try:
+    from stellarObjects.galaxyGeometry import sector_position_pc, sector_wedge_vertices_pc
+    from stellarObjects.utils import milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
+except ImportError:
+    # Same deployment gap as above -- without these, a sector with no
+    # galaxy placement (or one this deployment can't reach the geometry
+    # module for) just keeps the plain axis-aligned cube outline and no
+    # scale bar; see `_wedge_edges_px`/`_scale_bar_attrs` below.
+    sector_position_pc = None
+    sector_wedge_vertices_pc = None
+    mpc_to_pc = None
+    pc_to_mpc = None
+    milliparsecs_to_ly = None
 
 # The 3D scene's on-screen footprint, in pixels -- a fixed size (unlike
 # the old responsive SVG viewBox) since a CSS 3D scene needs an explicit
@@ -121,6 +149,226 @@ def _cube_faces_html():
         f'<div class="cube-face" style="transform:{transform}"></div>'
         for transform in _CUBE_FACE_TRANSFORMS.values()
     )
+
+
+# Which pairs of `sector_wedge_vertices_pc` vertex indices form the wedge's
+# 12 edges -- indices are `4*r_bit + 2*phi_bit + theta_bit` (see that
+# function's docstring), so two vertices share an edge exactly when their
+# indices differ in a single bit (this is just a cube's own edge topology,
+# reused for the wedge's 8 corners regardless of how curved its faces
+# really are).
+_WEDGE_EDGE_PAIRS = (
+    (0, 1), (0, 2), (0, 4),
+    (1, 3), (1, 5),
+    (2, 3), (2, 6),
+    (3, 7),
+    (4, 5), (4, 6),
+    (5, 7),
+    (6, 7),
+)
+
+
+def _line_html(p1_px, p2_px, css_class):
+    """
+    Draws one straight `<div>` line between two arbitrary 3D scene-space
+    pixel points -- shared by the wedge wireframe's 12 edges (below) and
+    the "toward galactic center" compass arrow (`_compass_html`), since
+    both are just "connect point A to point B" with no flatness
+    assumption needed (unlike the plain cube's 6 filled `.cube-face`
+    rectangles, which only work because a cube's faces genuinely are
+    flat, axis-aligned rectangles).
+
+    The line is one `<div>` stretched to its own length and pointed from
+    `p1_px` to `p2_px` via two rotations (`rotateY` then `rotateZ`, the
+    standard two-angle solution for aiming a local +X-axis segment at an
+    arbitrary 3D point -- `rotateZ` picks the elevation off the XZ-plane,
+    `rotateY` then picks the azimuth within it), the same "point A at B
+    with plain trigonometry" idea as `_dot_html`'s billboarding, just for
+    a line instead of a circle.
+    """
+    x1, y1, z1 = p1_px
+    x2, y2, z2 = p2_px
+    dx, dy, dz = x2 - x1, y2 - y1, z2 - z1
+    length = math.sqrt(dx * dx + dy * dy + dz * dz)
+    if length < 1e-6:
+        return ""
+    yaw = -math.degrees(math.atan2(dz, dx))
+    elevation = math.degrees(math.atan2(dy, math.hypot(dx, dz)))
+    return (
+        f'<div class="{css_class}" style="'
+        f'width:{length:.2f}px; '
+        "transform:"
+        f"translate3d({_SCENE_HALF_PX + x1:.1f}px, {_SCENE_HALF_PX + y1:.1f}px, {z1:.1f}px) "
+        f"rotateY({yaw:.3f}deg) rotateZ({elevation:.3f}deg);"
+        '"></div>'
+    )
+
+
+def _wedge_wireframe_html(vertices_px):
+    """
+    Draws the sector's approximate on-shell cell as a 12-edge wireframe
+    connecting `vertices_px` (8 `(x, y, z)` scene-space pixel points, see
+    `_wedge_edges_px`) -- unlike the plain cube's 6 filled `.cube-face`
+    rectangles, most of this shape's faces aren't flat (a wedge bounded by
+    two shell radii and an angular patch has faces that are pieces of a
+    sphere or a cone, not a plane -- see `sector_wedge_vertices_pc`), so
+    there's no flat quad `transform` that would draw them correctly.
+    Edges, in contrast, are just straight lines between two exact points
+    and need no flatness assumption at all, so the shape is rendered as a
+    wireframe instead of a solid.
+    """
+    return "".join(
+        _line_html(vertices_px[i], vertices_px[j], "wedge-edge")
+        for i, j in _WEDGE_EDGE_PAIRS
+    )
+
+
+_COMPASS_LABEL_W = 130.0
+_COMPASS_LABEL_H = 20.0
+# How far the compass arrow reaches past the scene's own half-size --
+# past 1.0 so its tip clears a full-size cube/wedge instead of ending
+# right at (or inside) its own boundary, but not by much more than that:
+# the viewport clips anything that lands outside it (`overflow: hidden`
+# on `.starmap-viewport`), and dragging can point this arrow in any
+# direction, so a larger reach makes the label likelier to get clipped
+# at the default view angle.
+_COMPASS_ARROW_REACH = 1.15
+
+
+def _compass_html(center_pc):
+    """
+    Draws an arrow from the sector's own local origin toward the galactic
+    center, plus a billboarded "Galactic Center" label at its tip -- the
+    sector-map equivalent of a map's north arrow, except the direction it
+    points is computed exactly from this sector's own stored
+    `sectors.center_x/y/z_pc` (the negative of the sector's own outward
+    radial direction, `-normalize(center_pc)`) rather than fixed to a
+    constant screen direction.
+
+    This assumes the sector's own local (x, y, z) axes -- the same axes
+    `star_systems.position_x/y/z_mpc` and `sector_wedge_vertices_pc`'s
+    delta-from-center are expressed in -- run parallel to the galaxy
+    frame's own axes. That's not a design convention actually enforced
+    anywhere in generation (`galaxyGen.py` never rotates a sector's local
+    star positions to align with its galaxy-frame placement -- see
+    docs/design/galaxy-coordinate-system.md's "Cube orientation" section,
+    which only ever proposes this as a *default*, never wires it up), but
+    it's the only assumption consistent with how every other galaxy-frame
+    quantity is already rendered on this map (`_wedge_edges_px` above
+    takes the same delta directly, with no rotation applied either) --
+    introducing a real rotation here alone would make the arrow point
+    somewhere the wedge outline and the star dots don't agree with.
+
+    Args:
+        center_pc (tuple or None): `(center_x_pc, center_y_pc,
+                                    center_z_pc)`, or `None` if this
+                                    sector has no galaxy placement.
+
+    Returns:
+        str: The arrow's and label's HTML, or `""` if `center_pc` is
+             `None` or (within floating-point tolerance) the galactic
+             center itself, which has no meaningful direction to point.
+    """
+    if center_pc is None or any(c is None for c in center_pc):
+        return ""
+
+    cx, cy, cz = center_pc
+    norm = math.sqrt(cx * cx + cy * cy + cz * cz)
+    if norm < 1e-9:
+        return ""
+
+    ux, uy, uz = -cx / norm, -cy / norm, -cz / norm
+    reach = _SCENE_HALF_PX * _COMPASS_ARROW_REACH
+    tip_px = (ux * reach, -uy * reach, uz * reach)
+
+    origin_px = (0.0, 0.0, 0.0)
+    arrow = _line_html(origin_px, tip_px, "compass-arrow")
+    if not arrow:
+        return ""
+
+    tip_x, tip_y, tip_z = tip_px
+    left = _SCENE_HALF_PX + tip_x - _COMPASS_LABEL_W / 2
+    top = _SCENE_HALF_PX + tip_y - _COMPASS_LABEL_H / 2
+    label = (
+        '<div class="compass-label-anchor" '
+        f'style="left:{left:.1f}px; top:{top:.1f}px; '
+        f'width:{_COMPASS_LABEL_W:.0f}px; height:{_COMPASS_LABEL_H:.0f}px; '
+        f'transform:translateZ({tip_z:.1f}px);">'
+        '<div class="compass-label billboard">Galactic Center &rarr;</div>'
+        "</div>"
+    )
+    return arrow + label
+
+
+def _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge):
+    """
+    Computes the sector's approximate on-shell wedge (see
+    `sector_wedge_vertices_pc`) as 8 `(x, y, z)` scene-space pixel points,
+    in the same coordinate convention `render_map_panel` uses for star
+    dots (sector-center-relative parsecs -> milliparsecs -> normalized by
+    `half_edge` -> scene pixels, with the y-axis flipped since +y is "up"
+    on screen but down in CSS layout) -- so the wireframe and the star
+    dots it surrounds always share one consistent frame.
+
+    Unlike a star dot's normalized position, these are deliberately *not*
+    clamped to the +-1.05 the cube fallback uses: the whole point of this
+    shape is that it doesn't stay inside the sector's own edge_mpc cube,
+    since the shell's angular patch and the cube's flat sides don't
+    coincide (see `sector_wedge_vertices_pc`'s docstring).
+
+    Returns:
+        list[tuple] or None: 8 `(x_px, y_px, z_px)` points, or `None` if
+                             this sector has no galaxy placement (no
+                             `shell_index`/`shell_slot_index`) or the
+                             geometry helpers aren't importable in this
+                             deployment -- either way, callers fall back
+                             to the plain cube.
+    """
+    if (
+        shell_index is None
+        or shell_slot_index is None
+        or not edge_mpc
+        or sector_wedge_vertices_pc is None
+        or sector_position_pc is None
+        or mpc_to_pc is None
+        or pc_to_mpc is None
+    ):
+        return None
+
+    edge_pc = mpc_to_pc(edge_mpc)
+    center_pc = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    vertices_pc = sector_wedge_vertices_pc(shell_index, shell_slot_index, edge_pc)
+
+    points = []
+    for vx, vy, vz in vertices_pc:
+        nx = pc_to_mpc(vx - center_pc[0]) / half_edge
+        ny = pc_to_mpc(vy - center_pc[1]) / half_edge
+        nz = pc_to_mpc(vz - center_pc[2]) / half_edge
+        points.append((nx * _SCENE_HALF_PX, -ny * _SCENE_HALF_PX, nz * _SCENE_HALF_PX))
+    return points
+
+
+def _ly_per_px_at_zoom_1(half_edge):
+    """
+    Light-years per on-screen pixel at zoom factor 1 -- an exact ratio
+    derived straight from `half_edge` (half of `edge_mpc`, the sector's
+    real, stored size) mapping to `_SCENE_HALF_PX` pixels, the same
+    normalizing divisor every star dot and wedge vertex on this map is
+    already placed by. `sectormap.js`'s scale-bar legend divides this by
+    the live zoom factor and picks a round bar length from it, so the
+    bar always reflects the sector's actual physical scale rather than
+    an arbitrary fixed pixel-per-lightyear guess.
+
+    Returns:
+        float or None: ly per pixel, or `None` if `milliparsecs_to_ly`
+                       isn't importable in this deployment (the scale bar
+                       is then omitted entirely rather than shown in raw
+                       milliparsecs).
+    """
+    if milliparsecs_to_ly is None:
+        return None
+    mpc_per_px = half_edge / _SCENE_HALF_PX
+    return milliparsecs_to_ly(mpc_per_px)
 
 
 def _kelvin_to_hex(temp_k):
@@ -291,7 +539,7 @@ def _dot_html(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None)
         '<div class="star-dot-anchor" '
         f'style="left:{left:.1f}px; top:{top:.1f}px; width:{dot_r * 2:.1f}px; height:{dot_r * 2:.1f}px; '
         f'transform:translateZ({z_px:.1f}px);">'
-        '<div class="star-dot" tabindex="0" role="button" '
+        '<div class="star-dot billboard" tabindex="0" role="button" '
         f'style="background:{fill}; border-color:{stroke};" '
         f'data-name="{esc(name)}" '
         f'data-type="{esc(star["star_type"])}" '
@@ -304,14 +552,23 @@ def _dot_html(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None)
     )
 
 
-def render_map_panel(db_name, edge_mpc, systems):
+def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems):
     """
-    Builds the "Sector Map" panel: a draggable/zoomable 3D cube (see
+    Builds the "Sector Map" panel: a draggable/zoomable 3D scene (see
     `static/sectormap.js` for the rotate/zoom/click wiring) with one dot
     per placed star system (two, overlapping, for a binary -- the primary
     at the system's actual position, the secondary offset down-and-right
     from it), plus an info side panel that the same script fills in when
     a dot is clicked.
+
+    The scene's own outline is the sector's approximate on-shell wedge
+    (see `_wedge_edges_px`/`sector_wedge_vertices_pc`) when this sector
+    has a galaxy placement (`shell_index`/`shell_slot_index` both set) and
+    the geometry helpers are importable -- a 12-edge wireframe reflecting
+    where the sector actually sits on its shell, not a generic cube. Any
+    sector without a placement (standalone `sectorGen.py` tooling, or one
+    migrated from a pre-v4 database) falls back to the plain axis-aligned
+    `.cube-face` cube instead, same as before this shape existed.
 
     Args:
         db_name (str): The current `?db=` value, used to build each dot's
@@ -321,6 +578,14 @@ def render_map_panel(db_name, edge_mpc, systems):
                           the sector's cubic center (see schema.sql's
                           `star_systems` comment), so half of this is the
                           normalizing divisor for each axis.
+        shell_index (int or None): The sector's `sectors.shell_index`.
+        shell_slot_index (int or None): The sector's
+                                        `sectors.shell_slot_index`.
+        center_pc (tuple or None): `(center_x_pc, center_y_pc,
+                                   center_z_pc)` -- drives the "Galactic
+                                   Center" compass arrow (`_compass_html`);
+                                   `None` for a sector with no galaxy
+                                   placement, which omits the arrow.
         systems (list[dict]): One entry per placed system (position not
                               NULL), each with `id`, `name`, `quadrant`,
                               `location`, `x`/`y`/`z` (the raw
@@ -365,6 +630,16 @@ def render_map_panel(db_name, edge_mpc, systems):
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
 
+    wedge_vertices = _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge)
+    if wedge_vertices is not None:
+        outline_html = _wedge_wireframe_html(wedge_vertices)
+        shape_hint = "outline &asymp; sector's real position/orientation on its shell"
+    else:
+        outline_html = _cube_faces_html()
+        shape_hint = "cube edge &asymp; sector size (not placed in a galaxy)"
+
+    compass_html = _compass_html(center_pc)
+
     # No role/aria-label here -- `role="img"` on an ancestor would flatten
     # every descendant (each star dot's own `role="button"`/`tabindex`)
     # into a single opaque image for assistive tech, breaking keyboard
@@ -373,7 +648,7 @@ def render_map_panel(db_name, edge_mpc, systems):
     scene = (
         '<div class="starmap-scene" id="starmap-scene" '
         f'style="width:{_SCENE_SIZE_PX}px; height:{_SCENE_SIZE_PX}px;">'
-        f"{_cube_faces_html()}{''.join(dots)}</div>"
+        f"{outline_html}{compass_html}{''.join(dots)}</div>"
     )
 
     if systems:
@@ -384,11 +659,26 @@ def render_map_panel(db_name, edge_mpc, systems):
     else:
         info_panel = '<aside class="starmap-info" id="starmap-info"><p class="hint">No systems placed in this sector.</p></aside>'
 
+    # The scale bar's own live pixel width is computed and kept up to date
+    # by sectormap.js (it changes with zoom) -- this only hands over the
+    # one fixed, exact ratio (ly per pixel *at zoom 1*) it needs to do
+    # that; see `_ly_per_px_at_zoom_1`. Omitted (and the bar left blank)
+    # when that ratio isn't computable in this deployment.
+    ly_per_px = _ly_per_px_at_zoom_1(half_edge)
+    scale_attr = f' data-ly-per-px="{ly_per_px:.10g}"' if ly_per_px else ""
+    scale_bar_html = (
+        f'<div class="starmap-scale" id="starmap-scale"{scale_attr}>'
+        '<span class="starmap-scale-bar" id="starmap-scale-bar"></span>'
+        '<span class="starmap-scale-label" id="starmap-scale-label"></span>'
+        "</div>"
+        if ly_per_px else ""
+    )
+
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; {shape_hint}</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">
@@ -398,6 +688,7 @@ def render_map_panel(db_name, edge_mpc, systems):
 {scene}
 </div>
 </div>
+{scale_bar_html}
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="starmap-controls">
