@@ -135,22 +135,32 @@ Poisson-distributed, rather than always packing sectors to the same density.
 It also stops early (without error) if the active list empties first, i.e.
 there simply wasn't room for more at the required spacing.
 
-Named locations (quadrants)
+Named locations (octants)
 ------------------------------
 `classify_octant`/`format_named_location` (and
 `SectorSystemEntry.named_location`) express a raw `(x, y, z)` position as a
-Roman-numeral "quadrant" -- properly an *octant* in 3D, 8 regions rather than
-4, kept as "quadrant" here to match this project's own terminology -- plus
-the position's three positive magnitudes. Unlike 2D quadrants (I-IV is a
-genuine, universal mathematical standard), there is no single authoritative
-Roman-numeral numbering for 3D octants -- Wikipedia's "Octant (solid
-geometry)" article says so explicitly, recommending plain sign-tuple
-notation instead for exactly that reason. `program_constants.SECTOR_OCTANT_LABELS`
-adopts a commonly *taught* (not ISO-standardized) extension of the 2D
-pattern instead; see that constant's own comment for the exact convention.
-This is purely a derived display label, generated on demand from the stored
-raw position -- there is no reverse conversion, since raw `(x, y, z)` is the
-only form actually persisted.
+Roman-numeral "octant" -- 8 sign-combination regions in 3D -- plus the
+position's three positive magnitudes. Displayed as "Octant" everywhere
+(this function's own output string, `html/sector.py`, `html/system.py`,
+`html/static/sectormap.js`) specifically to keep it distinct from the
+unrelated, galaxy-scale "Quadrant" concept `html/lib/galaxymap.py`
+introduced later (4 azimuthal regions spanning many sectors, not 8
+sign-combination regions within one sector's own cube) -- the two used to
+share the word "quadrant", which read as the same concept at two very
+different scales. The persisted database column
+(`star_systems.quadrant`) and this module's own function/variable names
+(`classify_octant`, `label`, etc.) were left alone -- only the
+human-facing label text changed, not the schema or the internal API.
+Unlike 2D quadrants (I-IV is a genuine, universal mathematical standard),
+there is no single authoritative Roman-numeral numbering for 3D octants --
+Wikipedia's "Octant (solid geometry)" article says so explicitly,
+recommending plain sign-tuple notation instead for exactly that reason.
+`program_constants.SECTOR_OCTANT_LABELS` adopts a commonly *taught* (not
+ISO-standardized) extension of the 2D pattern instead; see that constant's
+own comment for the exact convention. This is purely a derived display
+label, generated on demand from the stored raw position -- there is no
+reverse conversion, since raw `(x, y, z)` is the only form actually
+persisted.
 
 Persistence
 -----------
@@ -404,8 +414,8 @@ def _nudge_away(anchor_position, position, target_distance, rng=_rng):
 def classify_octant(position):
     """
     Classifies a raw `(x, y, z)` position (relative to a sector's center)
-    into one of the 8 sign-combination "quadrants" and its three positive
-    magnitudes -- see "Named locations (quadrants)" in the module docstring
+    into one of the 8 sign-combination octants and its three positive
+    magnitudes -- see "Named locations (octants)" in the module docstring
     and `program_constants.SECTOR_OCTANT_LABELS` for the convention and its
     caveats.
 
@@ -431,8 +441,8 @@ def classify_octant(position):
 def format_named_location(position):
     """
     Formats a raw `(x, y, z)` position as a human-readable "named location"
-    string, e.g. `"Quadrant III (2.10, 4.40, 1.05 ly from center)"`. See
-    "Named locations (quadrants)" in the module docstring.
+    string, e.g. `"Octant III (2.10, 4.40, 1.05 ly from center)"`. See
+    "Named locations (octants)" in the module docstring.
 
     Args:
         position (tuple): Raw `(x, y, z)` in light-years, relative to
@@ -444,7 +454,7 @@ def format_named_location(position):
     label, (abs_x, abs_y, abs_z) = classify_octant(position)
     places = program_constants.SECTOR_LOCATION_DECIMAL_PLACES
     return (
-        f"Quadrant {label} ({abs_x:.{places}f}, {abs_y:.{places}f}, "
+        f"Octant {label} ({abs_x:.{places}f}, {abs_y:.{places}f}, "
         f"{abs_z:.{places}f} ly from center)"
     )
 
@@ -818,7 +828,7 @@ class SpaceSector:
     @staticmethod
     def classify_octant(position):
         """
-        Classifies a raw `(x, y, z)` position into its "quadrant" label and
+        Classifies a raw `(x, y, z)` position into its Octant label and
         positive magnitudes. See the module-level `classify_octant`.
         """
         return classify_octant(position)

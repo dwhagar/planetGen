@@ -137,13 +137,17 @@ SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS = 20
 # next to any Hill-sphere-scale distance this module works with.
 SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY = 1e-9
 
-# Roman-numeral "quadrant" (properly an octant in 3D -- see
-# `spaceSector.classify_octant`) labels for the 8 sign-combinations of an
-# (x, y, z) position relative to a sector's center. NOT a universal
-# mathematical standard -- unlike the 2D I-IV quadrant convention, there is
-# no single authoritative numbering for 3D octants (Wikipedia's "Octant
-# (solid geometry)" article recommends explicit sign-tuple notation
-# instead, precisely because no such standard exists). This table adopts a
+# Roman-numeral Octant (see `spaceSector.classify_octant`) labels for the
+# 8 sign-combinations of an (x, y, z) position relative to a sector's
+# center -- displayed as "Octant" (not "Quadrant") specifically to stay
+# distinct from html/lib/galaxymap.py's own, unrelated galaxy-scale
+# Quadrant concept (4 azimuthal regions spanning many sectors); see
+# spaceSector.py's module docstring, "Named locations (octants)". NOT a
+# universal mathematical standard -- unlike the 2D I-IV quadrant
+# convention, there is no single authoritative numbering for 3D octants
+# (Wikipedia's "Octant (solid geometry)" article recommends explicit
+# sign-tuple notation instead, precisely because no such standard exists).
+# This table adopts a
 # commonly *taught* (not ISO-standardized) extension of the 2D pattern:
 # octants with z >= 0 are numbered I-IV in the same counterclockwise sign
 # pattern as the 2D quadrants, then z < 0 continues the same x/y pattern as

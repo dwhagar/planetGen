@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
 from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_path
+from galaxymap import sector_quadrant
 from page import query_params, run
 from starmap import render_map_panel
 
@@ -128,11 +129,17 @@ def handler():
         conn.close()
 
     system_count = len(systems)
-    badges_html = "<p class=\"badges\">" + "".join(
-        f'<span class="badge">{bit}</span>' for bit in (
-            f"Cube edge {esc(edge_text)}",
-            f"{system_count} system{'s' if system_count != 1 else ''}",
+    badge_bits = [
+        f"Cube edge {esc(edge_text)}",
+        f"{system_count} system{'s' if system_count != 1 else ''}",
+    ]
+    if sector["center_x_pc"] is not None:
+        quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
+        badge_bits.append(
+            f'<a href="galaxy.py?db={esc(db_name)}&amp;quadrant={quadrant}">View on Galaxy Map (Quadrant {quadrant})</a>'
         )
+    badges_html = "<p class=\"badges\">" + "".join(
+        f'<span class="badge">{bit}</span>' for bit in badge_bits
     ) + "</p>"
 
     body = f"""
@@ -142,7 +149,7 @@ def handler():
 <section class="panel">
 <h2>Systems</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Quadrant</th><th>Binary</th><th>Star type</th><th>Location</th></tr></thead>
+  <thead><tr><th>Name</th><th>Octant</th><th>Binary</th><th>Star type</th><th>Location</th></tr></thead>
   <tbody>{rows_html}</tbody>
 </table></div>
 </section>

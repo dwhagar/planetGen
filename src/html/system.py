@@ -266,7 +266,7 @@ def handler():
 
         summary_bits = []
         if system["quadrant"]:
-            summary_bits.append(f"Quadrant {esc(system['quadrant'])}")
+            summary_bits.append(f"Octant {esc(system['quadrant'])}")
         summary_bits.append("Binary system" if system["is_binary"] else "Single star")
         summary_html = "<p class=\"badges\">" + "".join(
             f'<span class="badge">{bit}</span>' for bit in summary_bits

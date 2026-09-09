@@ -392,7 +392,7 @@ def test_classify_octant_treats_zero_coordinate_as_non_negative():
 
 
 def test_format_named_location_produces_expected_string():
-    assert format_named_location((-2.1, 4.4, 1.05)) == "Quadrant II (2.10, 4.40, 1.05 ly from center)"
+    assert format_named_location((-2.1, 4.4, 1.05)) == "Octant II (2.10, 4.40, 1.05 ly from center)"
 
 
 def test_format_named_location_respects_decimal_places_constant():
