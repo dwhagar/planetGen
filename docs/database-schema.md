@@ -173,28 +173,34 @@ Two independent version numbers:
   `_migrate_v1_to_v2` and `_migrate_v2_to_v3` were both updated to use
   that same explicit column list for `sectors` too, per `migrate_database`'s
   own "each function maps straight to the *current* schema" design.
-- **v5 → v6**: added `sectors.vertices_pc` — a JSON `{"inner": [...],
-  "outer": [...]}` object holding this sector's own exact 3D vertices
-  (galaxy-frame parsecs, variable count per sector, not fixed), built from
+- **v6 → v7**: gives every galaxy-placed sector exact vertices, built from
   an exact local spherical Voronoi tessellation among its same-shell
   neighbors extruded radially (`stellarObjects/sectorGeometry.
   prism_vertices`) — genuinely gap-free laterally (against same-shell
   neighbors) and area-matched (not vertex-matched) radially against the
   shells in front of and behind it; see that module's own docstring for
   why exact circumcenters make lateral sharing exact rather than merely
-  reduced, and why vertex count has to vary (a cube tiling of a sphere
-  can't be gap-free in general). NULL together with `center_x/y/z_pc`/
-  `galactic_radius_pc` for the same reason those are: a sector never placed
-  in a galaxy has no same-shell neighbors to tessellate against. Computed
-  by `galaxyGen.py` at generation time (not derivable purely from a center
-  point the way `galactic_radius_pc` is, since it also depends on nearby
-  addresses' positions), stored as one JSON `TEXT` column rather than fixed
-  `REAL` columns since vertex count varies and both lists are always
-  read/written together, never individually queried. `_migrate_v4_to_v5`
-  (now mapping straight to the current, v6 schema) and the new
-  `_migrate_v5_to_v6` both copy `sectors` via an explicit v4/v5-shaped
-  column list rather than `SELECT *`, leaving `vertices_pc` `NULL` on every
-  migrated row — same reasoning as v4's own migration note above.
+  reduced, and why vertex count has to vary per sector (typically 5-7, not
+  fixed) — a cube tiling of a sphere can't be gap-free in general.
+    - v6 briefly stored this as `sectors.vertices_pc`, a JSON blob —
+      reconsidered almost immediately: this schema has no JSON-blob
+      columns anywhere else (see `planet_reflection_spectrum` below), and
+      a variable-length list of structured records is exactly what a child
+      table is for, the same treatment `asteroid_belt_composition`/
+      `planet_reflection_spectrum` already get. No released version ever
+      depended on the JSON shape.
+    - v7 replaces it with the `sector_vertices` table (see that table's own
+      section below) — plain columns throughout, no serialized blob
+      anywhere. `_migrate_v6_to_v7` drops a v6 database's `vertices_pc`
+      data rather than converting it into rows (same "no way to recover
+      this after the fact" treatment every other superseded column in this
+      schema gets — a sector's vertices are cheap to recompute from its
+      address via `prism_vertices` if ever actually needed), using an
+      explicit column list to leave that removed column out of the copy.
+      `_migrate_v4_to_v5`/`_migrate_v5_to_v6` need no such special-casing —
+      a v4 or v5 source's `sectors` table already has the same shape as the
+      current (v7) one, since v6's column came and went without changing
+      it.
 
 ### Booleans and tri-state flags
 
@@ -230,12 +236,41 @@ One row per generated sector.
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | REAL | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | REAL | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `shell_index`, `shell_slot_index` | INTEGER | nullable | This sector's stable address within the shell/Fibonacci-sphere radial tiling scheme (`galaxyGen.py`) — `shell_index` is the radial shell, `shell_slot_index` its placement index within that shell's deterministic ordering. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
-| `vertices_pc` | TEXT | nullable | This sector's own exact prism vertices (galaxy-frame parsecs), JSON-encoded as `{"inner": [...], "outer": [...]}` (variable length, not fixed at 8) — built from an exact local spherical Voronoi tessellation among same-shell neighbors, extruded radially (`stellarObjects/sectorGeometry.prism_vertices`). Genuinely gap-free laterally; area-matched (not vertex-matched) radially. NULL iff the center columns are NULL. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
-`galactic_radius_pc`/`vertices_pc` being NULL together (see "v3 → v4"/
-"v5 → v6" in "Schema history" above for why v4's addition needed a
-wholesale table rewrite rather than an incremental `ALTER TABLE`).
+`galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema
+history" above for why that addition needed a wholesale table rewrite
+rather than an incremental `ALTER TABLE`). This sector's vertices live in
+the separate `sector_vertices` table below, present iff this sector has
+been placed in a galaxy — SQLite can't express "rows exist in another
+table" as a `CHECK` constraint, so that condition is enforced at the
+application level (`stellarObjects._db.insert_sector`) rather than by the
+schema itself.
+
+### `sector_vertices`
+
+This sector's own exact vertices — one row per vertex, a normalized child
+table rather than a JSON column (this schema has no JSON-blob columns
+anywhere; see `planet_reflection_spectrum` below for the same treatment
+applied to another variable-length list). Built from an exact local
+spherical Voronoi tessellation among a sector's same-shell neighbors,
+extruded radially between its shell's inner and outer bounding spheres
+(`stellarObjects/sectorGeometry.prism_vertices`) — genuinely gap-free
+laterally (against same-shell neighbors, not merely reduced — see that
+module's own docstring for why exact circumcenters make this possible) and
+area-matched (not vertex-matched) radially against the shells in front of
+and behind it. No rows exist for a sector never placed in a galaxy.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `ring` | TEXT | NOT NULL | `'inner'` (on the shell's inner bounding sphere) or `'outer'` (its outer one). |
+| `vertex_index` | INTEGER | NOT NULL | This vertex's cyclic position (0-based) within its own ring — pairing `(sector_id, vertex_index)` across the two rings gives the lateral edge each inner/outer vertex pair spans. Not a global ordering across rings. |
+| `x_pc`, `y_pc`, `z_pc` | REAL | NOT NULL | Galaxy-frame Cartesian position, parsecs (same frame as `sectors.center_x/y/z_pc`). |
+
+`UNIQUE (sector_id, ring, vertex_index)`; indexed on `sector_id` for the
+"every vertex of this sector" query pattern.
 
 ### `system_configs`
 

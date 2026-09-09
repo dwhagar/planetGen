@@ -498,9 +498,9 @@ exactly the kind of case that flag matters for.
    variety), that needs a stored orientation value (a single roll angle
    suffices, given the radial axis itself is already fixed by the center
    point) — not proposed here since it's pure additional complexity with
-   no identified requirement yet. §9's `vertices_pc` implements the fixed
-   convention concretely (as the tangent-plane basis its exact prism
-   vertices are derived in), but still doesn't add a roll degree of
+   no identified requirement yet. §9's `sector_vertices` table implements
+   the fixed convention concretely (as the tangent-plane basis its exact
+   prism vertices are derived in), but still doesn't add a roll degree of
    freedom -- that half of this question remains open.
 5. **Deterministic Fibonacci-sphere placement vs. randomized placement.**
    §3's scheme is fully deterministic — the same `(shell_index,
@@ -700,8 +700,11 @@ neighborhood grows.
 
 ## 9. Sector prism vertices: exact per-shell Voronoi tessellation (addendum, revision 2)
 
-**Status:** implemented (`stellarObjects/sectorGeometry.py`, `sectors.
-vertices_pc` — schema v6). This revises an earlier version of this same
+**Status:** implemented (`stellarObjects/sectorGeometry.py`, the
+`sector_vertices` table — schema v7; briefly a `sectors.vertices_pc` JSON
+column in schema v6, reconsidered immediately in favor of a normalized
+table, since this schema has no JSON-blob columns anywhere else). This
+revises an earlier version of this same
 addendum, which gave every sector a fixed 8-vertex cube and *nudged*
 corners toward nearby neighbors' — that approach shipped, worked, and was
 tested, but only ever reduced gaps (~35% aggregate improvement, measured

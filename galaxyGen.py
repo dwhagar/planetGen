@@ -20,9 +20,10 @@ difference is that this script also supplies a real galaxy-frame position
 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant every
 standalone-generated system otherwise uses) and records that position in
 `sectors.center_x/y/z_pc`/`galactic_radius_pc`/`shell_index`/
-`shell_slot_index`/`vertices_pc` (this sector's own exact local-Voronoi
-prism vertices, gap-free against its same-shell neighbors -- see
-`stellarObjects/sectorGeometry.prism_vertices`).
+`shell_slot_index`, plus this sector's own exact local-Voronoi prism
+vertices (gap-free against its same-shell neighbors -- see
+`stellarObjects/sectorGeometry.prism_vertices`) into the `sector_vertices`
+table, one row per vertex.
 
 Two generation modes, both reducing to one call of
 `stellarObjects.galaxyGeometry.enumerate_sectors_within_radius` (see

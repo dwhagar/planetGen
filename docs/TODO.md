@@ -145,8 +145,9 @@ the web database picker and from a subsequent migration run
   with end-to-end CLI coverage in `src/tests/test_galaxy_gen.py`.
 - [x] **Sector prism vertices with exact per-shell Voronoi tessellation —
   implemented and merged.** Every galaxy-placed sector's vertices
-  (`sectors.vertices_pc`, v6) are now built from an exact local spherical
-  Voronoi cell among its same-shell neighbors (genuinely gap-free
+  (`sector_vertices` table, v7 -- one row per vertex, no JSON blobs) are
+  now built from an exact local spherical Voronoi cell among its
+  same-shell neighbors (genuinely gap-free
   laterally, not just reduced -- vertex count varies per sector, typically
   5-7, since a fixed-shape cube can't reconcile more neighbors than it has
   faces), extruded radially between the shell's inner/outer bounding

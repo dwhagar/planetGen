@@ -131,31 +131,33 @@
 -- pre-rendered copy (`html/lib/tabledisplay.py` for the HTML viewer;
 -- `get_table_properties()` is still used, unchanged, to build the actual
 -- wiki-page text in `wikitext_content`/`markdown_content`).
--- v6: added `sectors.vertices_pc` -- a JSON `{"inner": [...], "outer":
--- [...]}` object, each a list of this sector's own exact 3D vertices in
--- galaxy-frame parsecs (variable length per sector, not fixed -- see
--- below), alongside the v4 center/radius columns. Built from an exact
--- local spherical Voronoi tessellation among this sector's own same-shell
+-- v6/v7: give every galaxy-placed sector exact vertices -- built from a
+-- local spherical Voronoi tessellation among its own same-shell
 -- neighbors, extruded radially between the shell's inner and outer
 -- bounding spheres (`stellarObjects/sectorGeometry.prism_vertices`) --
 -- genuinely gap-free against same-shell neighbors (not merely reduced;
 -- see that module's docstring for why exact circumcenters, not nudged
 -- approximations, make this possible) and area-matched (not vertex-
--- matched) against the shells in front of and behind it. Supersedes an
--- earlier, never-released "relax a fixed 8-vertex cube toward its
--- neighbors" approach, which only approximately closed gaps; superseded
--- because a cube tiling of a sphere cannot be gap-free in general (the
--- same reason a soccer ball needs pentagons mixed with hexagons), so
--- vertex/face count has to vary per sector to reach true zero gaps. NULL
--- together with `center_x/y/z_pc`/`galactic_radius_pc` for the same
--- reason those are: a sector never placed in a galaxy has no same-shell
--- neighbors to tessellate against. Stored as JSON (one TEXT column)
--- rather than fixed REAL columns since the vertex count varies and both
--- lists are always read/written together, never individually queried --
--- the same "structured value, not a query facet" treatment
--- `star_systems.location` already gets.
+-- matched) against the shells in front of and behind it. Vertex/face
+-- count varies per sector (typically 5-7, not a fixed number) because it
+-- has to: a cube tiling of a sphere cannot be gap-free in general (the
+-- same reason a soccer ball needs pentagons mixed with hexagons).
+-- Supersedes an earlier, never-released "relax a fixed 8-vertex cube
+-- toward its neighbors" approach, which only approximately closed gaps.
+--   - v6 stored this as `sectors.vertices_pc`, a JSON `{"inner": [...],
+--     "outer": [...]}` blob -- reconsidered almost immediately in favor
+--     of v7's plain relational table below, so no released version ever
+--     depended on the JSON shape.
+--   - v7 replaces `sectors.vertices_pc` with the `sector_vertices` table
+--     (see that table's own comment) -- one row per vertex, ordinary
+--     columns throughout, no serialized blob anywhere in the schema.
+--     `_migrate_v6_to_v7` drops any v6 database's `vertices_pc` data
+--     rather than converting it (same "no way to recover this after the
+--     fact" treatment every other superseded column in this schema gets;
+--     a sector's vertices are cheap to recompute from its address via
+--     `sectorGeometry.prism_vertices` if ever needed).
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 6;
+PRAGMA user_version = 7;
 
 -- ---------------------------------------------------------------------
 -- sectors
@@ -180,19 +182,39 @@ CREATE TABLE IF NOT EXISTS sectors (
     shell_index         INTEGER,
     shell_slot_index    INTEGER,
 
-    -- This sector's own exact prism vertices (v6) -- see the header
-    -- comment's "v6" note and `stellarObjects/sectorGeometry.py`.
-    vertices_pc         TEXT,
-
     CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
-        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL) AND
-        (galactic_radius_pc IS NULL) = (vertices_pc IS NULL)
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
     )
 );
 CREATE INDEX IF NOT EXISTS idx_sectors_galactic_radius_pc ON sectors(galactic_radius_pc);
 CREATE INDEX IF NOT EXISTS idx_sectors_shell_index ON sectors(shell_index);
+
+-- This sector's own exact prism vertices (v7 -- see the header comment's
+-- "v6/v7" note), one row per vertex rather than a serialized blob:
+-- `sectorGeometry.prism_vertices` returns a variable number of vertices
+-- per sector (typically 5-7, not fixed), split into an "inner" ring (on
+-- the shell's inner bounding sphere) and an "outer" ring (on its outer
+-- bounding sphere), both in the same cyclic order. `vertex_index` is that
+-- cyclic position (0-based) within its own ring, not a global ordering --
+-- pairing `(sector_id, vertex_index)` across the two rings gives the
+-- lateral edge each pair of inner/outer vertices spans. No row exists for
+-- a sector never placed in a galaxy (mirrors, at the application level
+-- rather than a cross-table CHECK -- SQLite can't express "rows exist in
+-- another table" as a CHECK constraint -- the same NULL-together
+-- condition `sectors`'s own galaxy-placement columns enforce directly).
+CREATE TABLE IF NOT EXISTS sector_vertices (
+    id            INTEGER PRIMARY KEY,
+    sector_id     INTEGER NOT NULL REFERENCES sectors(id) ON DELETE CASCADE,
+    ring          TEXT NOT NULL CHECK (ring IN ('inner', 'outer')),
+    vertex_index  INTEGER NOT NULL,
+    x_pc          REAL NOT NULL,
+    y_pc          REAL NOT NULL,
+    z_pc          REAL NOT NULL,
+    UNIQUE (sector_id, ring, vertex_index)
+);
+CREATE INDEX IF NOT EXISTS idx_sector_vertices_sector_id ON sector_vertices(sector_id);
 
 -- ---------------------------------------------------------------------
 -- system_configs -- one row per SystemConfig "recipe"
