@@ -143,10 +143,14 @@ the web database picker and from a subsequent migration run
   the v3->v4 `sectors` schema migration, `src/stellarObjects/galaxyGeometry.py`,
   and `galaxyGen.py` (`--shell K` / `--center-sector ID --radius-pc R`),
   with end-to-end CLI coverage in `src/tests/test_galaxy_gen.py`.
-- [ ] Galaxy thickness / shape (disk-density envelope, and support for
-  different overall galaxy shapes — spiral, elliptical, irregular, etc.)
-  — still needs its own dedicated design pass, deliberately not tackled
-  as part of Track C above (design doc section 7, question 2).
+- [ ] **Galaxy thickness / shape (disk-density envelope) — design drafted,
+  not implemented.** Exponential-disk-plus-bulge-plus-spiral-arm density
+  model over galaxy-frame position, gating which `(shell_index,
+  shell_slot_index)` addresses `galaxyGen.py` generates at all and scaling
+  `--density` for the ones that do; deterministic (hash-based) occupancy,
+  no schema change. See `docs/design/galaxy-disk-density.md` (the design
+  pass this item and `docs/design/galaxy-coordinate-system.md` section 7
+  question 2 called for).
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 
