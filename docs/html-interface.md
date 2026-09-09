@@ -1,8 +1,8 @@
 # planetGen Web Interface
 
-A small, dependency-free web interface (in [`../src/html/`](../src/html/)) for
-browsing the SQLite databases described in
-[`database-schema.md`](database-schema.md) -- pick a `.db` file,
+A small web interface (in [`../src/html/`](../src/html/)) for
+browsing the MySQL databases described in
+[`database-schema.md`](database-schema.md) -- pick a database (schema),
 drill into its sectors and star systems, and view (or copy) the
 rendered wikitext/Markdown page saved for each one.
 
@@ -16,14 +16,15 @@ a browser today, on nothing more than Apache2 and a system Python 3.
 
 Every page here is a plain [CGI](https://en.wikipedia.org/wiki/Common_Gateway_Interface)
 script (`#!/usr/bin/env python3`, executed fresh by Apache on every
-request) using only the standard library -- no Flask/FastAPI, no `pip
-install` needed beyond the `planetGen` package itself. That keeps
-deployment to "copy the files, set permissions, enable a vhost" with
-nothing else to install or run.
+request) -- no Flask/FastAPI, just the `planetGen` package's own runtime
+dependencies (`pymysql`/`DBUtils` for the MySQL connection, `nltk` from
+generation). That keeps deployment to "copy the files, `pip install .`,
+set permissions, enable a vhost" with no separate web framework to
+install or run.
 
 | File | Purpose |
 |---|---|
-| `../src/html/index.py` | Lists every `.db` file in the database directory. |
+| `../src/html/index.py` | Lists every matching MySQL schema on the configured server. |
 | `../src/html/browse.py` | A chosen database's sectors and standalone systems. |
 | `../src/html/sector.py` | One sector's systems (name, quadrant, star type), plus an interactive 3D "Sector Map" of the sector's cube -- drag to rotate, scroll (or the +/- buttons) to zoom, one dot per placed system (two, overlapping, for a binary) sized by star radius and colored by spectral type/brightness; clicking a dot fills an info panel (star type, temperature, quadrant, location) with a link to `system.py`, via `lib/starmap.py` + `static/sectormap.js`. |
 | `../src/html/system.py` | One system's stars/planets/moons/belts, plus its description -- rendered as HTML from `markdown_content` by default (`?view=rendered`), with the original raw wikitext/Markdown source (`?view=source&format=...`) still available for copy-pasting into a wiki. |
@@ -35,48 +36,56 @@ nothing else to install or run.
 | `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme`, card-style panels), served directly (not through CGI). |
 | `../src/html/static/sectormap.js` | Drag-to-rotate, scroll/button-to-zoom, and click/keyboard-for-info behavior for the 3D sector map -- tracks two rotation angles and a zoom factor fed to `#starmap-scene`'s CSS transform (the browser's own compositor does the actual 3D projection and occlusion), counter-rotates each star dot every frame so it stays facing the camera instead of going edge-on, and resolves which dot was clicked by geometry (`getBoundingClientRect`) rather than relying on native hit-testing through the rotated 3D stack. Clicking (or Enter/Space on a focused dot) fills the info side panel from the dot's `data-*` attributes (never `innerHTML`) instead of navigating straight to `system.py`, so activating a dot shows details first. Served directly, same as `style.css`. |
 
-All database access goes through `sqlite3`'s `file:...?mode=ro` URI mode,
-so these scripts cannot write to a database even if a query were buggy.
-Database and system names pulled from generated data are HTML-escaped
-before being placed in a page; a requested `?db=` filename is validated
-against the actual directory listing (exact basename match only), which
-is what prevents it from being used for path traversal. `mdconvert`
-escapes every block in full before emitting any markup, then narrowly
-re-enables only the one legitimate raw-HTML pattern generated content
-ever contains (`<sup>...</sup>`) -- so a mischievous `--name`/`--star-type`
-value can't inject live HTML into a rendered page.
+This project recommends (but doesn't enforce in code) pointing this web
+interface at a MySQL account with `SELECT`-only grants, so these scripts
+can't write to a database even if a query were buggy -- see
+`queryDb.py`'s module docstring for the same convention. Database and
+system names pulled from generated data are HTML-escaped before being
+placed in a page; a requested `?db=` schema name is validated against the
+actual, prefix-filtered schema listing (exact match only), which is what
+prevents it from being used to select a schema this deployment never
+meant to expose. `mdconvert` escapes every block in full before emitting
+any markup, then narrowly re-enables only the one legitimate raw-HTML
+pattern generated content ever contains (`<sup>...</sup>`) -- so a
+mischievous `--name`/`--star-type` value can't inject live HTML into a
+rendered page.
 
-## Locating the database directory
+## Locating the database
 
-By default, each script looks for `db/` as a sibling of `../src/html/` --
-matching this repo's own layout, and the recommended deployment layout
-(`/var/lib/planetGen/html` and `/var/lib/planetGen/db` side by side; see
-`../examples/apache/planetgen.conf.example`). Set the `PLANETGEN_DB_DIR`
-environment variable (e.g. via `SetEnv` in the Apache vhost) to point
-somewhere else.
+By default, each script connects to the same MySQL server/account every
+other tool in this project defaults to (`stellarObjects._db.MySQLConfig`,
+`127.0.0.1:3306`, user/database `planetgen`), and the picker
+(`index.py`/`?db=`) offers every schema on that server whose name starts
+with `planetgen` (see `../src/html/lib/dbutil.py`). Set the
+`PLANETGEN_MYSQL_HOST`/`PLANETGEN_MYSQL_PORT`/`PLANETGEN_MYSQL_USER`/
+`PLANETGEN_MYSQL_PASSWORD`/`PLANETGEN_MYSQL_DATABASE_PREFIX` environment
+variables (e.g. via `SetEnv` in the Apache vhost) to point somewhere else
+or restrict/widen which schemas are offered.
 
 Separately from these Apache-set environment variables, a `webconfig.json`
 file at the repo root (a sibling of `../src/html/`, not a file inside `../src/html/`
 itself) holds site-level settings such as `site_name` and `base_url`,
 edited once per deployment rather than passed through the vhost config --
 see [`webconfig.md`](webconfig.md) for the full field list
-and how it relates to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`.
+and how it relates to `PLANETGEN_MYSQL_*`/`PLANETGEN_DEBUG`.
 
 ## Deploying
 
-1. Copy the repo (or at least `../src/html/`, `db/`, `src/`,
+1. Copy the repo (or at least `../src/html/`, `src/`,
    `install.sh`, `update.sh`, `setup.py`, and `examples/apache/`) to the
    server, e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout
    (rather than copying a tarball) is what makes `update.sh` possible
-   later.
+   later. A MySQL server (8.0.16+) reachable from this host, with a
+   database and account already created, is a separate prerequisite --
+   see [`database-schema.md`](database-schema.md).
 2. From that directory, run `sudo ./install.sh` -- installs the Python
-   package, migrates any database in `db/` still on an older schema up to
-   the current one (backing up the original first -- see
-   [`database-schema.md`](database-schema.md)'s "Schema history"),
+   package, brings the configured MySQL database's schema up to date
+   (a no-op if it's already current -- see
+   [`database-schema.md`](database-schema.md)'s "Versioning"),
    pre-fetches the NLTK `words` corpus into a shared world-readable
    location (so it works under Apache's `www-data`, not just whatever
    user happens to run the CLI tools), makes the CGI scripts executable,
-   enables Apache's CGI module, and sets `../src/html/`/`db/` ownership for
+   enables Apache's CGI module, and sets `../src/html/` ownership for
    Apache via `examples/apache/set-permissions.sh`. See
    [`apache-deployment.md`](apache-deployment.md) for what each step does
    and how to re-run pieces of it individually.
@@ -111,5 +120,5 @@ stdout. That makes them runnable directly for a quick smoke test without
 standing up Apache at all, from the repo root:
 
 ```bash
-PLANETGEN_DB_DIR=/path/to/db QUERY_STRING="db=planetgen.db" python3 html/browse.py
+PLANETGEN_MYSQL_HOST=127.0.0.1 QUERY_STRING="db=planetgen" python3 html/browse.py
 ```

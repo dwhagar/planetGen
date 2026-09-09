@@ -197,6 +197,17 @@ def _phi_for_index(i, n_k):
     return math.acos(1 - 2 * (i + 0.5) / n_k)
 
 
+def _theta_for_index(i):
+    """The azimuthal angle `sector_position_pc`/`sector_wedge_vertices_pc`
+    use for slot `i` -- the golden-angle (Fibonacci sphere) step
+    `GOLDEN_RATIO`'s own docstring refers to: `theta_i = (2*pi*i /
+    GOLDEN_RATIO) mod 2*pi`, independent of shell size (unlike `phi`,
+    which depends on `n_k`) -- successive slots spiral around by the same
+    irrational fraction of a full turn regardless of which shell they're
+    in."""
+    return (2 * math.pi * i / GOLDEN_RATIO) % (2 * math.pi)
+
+
 def slot_index_bounds_for_phi_range(phi_min, phi_max, n_k):
     """
     Inverts `_phi_for_index`: given a target polar-angle range `[phi_min,

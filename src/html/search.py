@@ -49,7 +49,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 # (`html/` and `src/` as siblings under /var/lib/planetGen).
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
-from dbutil import esc, fetch_all, fetch_one, open_readonly, resolve_db_path
+from dbutil import esc, fetch_all, fetch_one, open_readonly, resolve_db_name
 from page import run
 
 try:
@@ -650,8 +650,8 @@ def handler():
         return values[0].strip() if values else ""
 
     db_name = _first("db")
-    path = resolve_db_path(db_name)
-    conn = open_readonly(path)
+    config = resolve_db_name(db_name)
+    conn = open_readonly(config)
     try:
         texts = {
             "sector_q": _first("sector_q"),

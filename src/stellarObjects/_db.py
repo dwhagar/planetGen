@@ -5,8 +5,8 @@ Database Persistence (private)
 ===============================
 
 Writes already-generated `StarSystem`/`SpaceSector` objects into the
-SQLite database described by `stellarObjects/schema.sql` and
-`db/README.md`. Leading underscore -- this module is an internal
+MySQL database described by `stellarObjects/schema.sql` and
+`docs/database-schema.md`. Leading underscore -- this module is an internal
 implementation detail of the persistence boundary, not part of the
 package's public generation API (`StarSystem`, `SpaceSector`, `Planet`,
 etc. remain the public surface).
@@ -14,7 +14,7 @@ etc. remain the public surface).
 This module owns every unit conversion at the point of writing a value
 into the database -- generation/physics code elsewhere in the package
 keeps its own native units (km/AU/ly) throughout and never imports this
-module. See `db/README.md` for the two-tier distance-unit convention
+module. See `docs/database-schema.md` for the two-tier distance-unit convention
 (milliparsecs for sector-scale placement, kilometers for everything else)
 and the full column reference.
 
@@ -31,14 +31,26 @@ and `StarSystem` itself is assembled directly here the same way
 allowlists/reconstruction logic from `stellarObjects/serialization.py`
 (Phase 1) without a redundant object-to-dict-to-object round trip for data
 that was never nested to begin with.
+
+MySQL port (TODO.md Phase 5): this module used to talk directly to
+`sqlite3`. It now goes through `pymysql` (pure-Python driver, no system
+libraries to build against on the deployment host) via a small
+`Connection` wrapper (below) that keeps every existing call site's
+`conn.execute(sql, params)` shape working unchanged -- including this
+module's and `queryDb.py`'s `?` positional placeholders, which the
+wrapper rewrites to `pymysql`'s `%s` at the point of execution, and
+`sqlite3.Row`-style `row["column"]` access, which `pymysql`'s
+`DictCursor` already provides natively. Real concurrent access uses a
+connection pool (`DBUtils.PooledDB`) rather than opening a fresh TCP
+connection per call, per TODO.md's "add real connection pooling" note.
 """
 
-import gzip
 import os
-import shutil
-import sqlite3
-import time
 from collections import namedtuple
+
+import pymysql
+import pymysql.cursors
+from dbutils.pooled_db import PooledDB
 
 from . import physical_constants
 from .asteroidData import AsteroidBelt
@@ -52,75 +64,318 @@ from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
 SCHEMA_VERSION = 8
-"""int: Matches `star_systems.schema_version` and `PRAGMA user_version` in
-`stellarObjects/schema.sql` -- see that file's header comment. Also the
-target version `migrate_database` converts an older database up to."""
+"""int: Matches `star_systems.schema_version` and the highest row in the
+`schema_migrations` table (see `stellarObjects/schema.sql`'s header
+comment). Also the target version `migrate_database` brings a database's
+`schema_migrations` bookkeeping up to."""
 
 _PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
-# stellarObjects/ lives at src/stellarObjects/ (src layout) -- two levels up
-# from this file, not one, to reach the actual repo root.
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(_PACKAGE_DIR))
 
 SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "schema.sql")
 """str: Path to the DDL file applied by `_ensure_schema`."""
 
-DEFAULT_DB_PATH = os.path.join(_PROJECT_ROOT, "db", "planetgen.db")
-"""str: Where the database lives by default -- the `db/` directory
-scaffolded at the project root specifically for this file (gitignored)."""
 
-BACKUP_MARKER = "-backup-"
-"""str: Substring `migrate_database` puts into every backup filename it
-creates (between the source schema version and the timestamp, e.g.
-`planetgen.db.v2-backup-20260907T101530.db.gz`). Callers that enumerate
-`.db`-ish files and must not treat a migration backup as a live,
-pickable/re-migratable database (`html/lib/dbutil.py`'s `list_databases`/
-`resolve_db_path`, and `migrateDb.py`'s directory scan) filter on this
-constant explicitly, rather than relying solely on the backup's `.db.gz`
-extension not matching a `*.db` glob -- explicit and robust even if the
-naming scheme changes again later."""
-
-
-def get_connection(db_path=None):
+class MySQLConfig:
     """
-    Opens a SQLite connection to `db_path` (or `DEFAULT_DB_PATH`),
-    creating the containing directory and applying the schema if needed.
+    MySQL connection parameters, read from environment variables --
+    mirrors every other entry point in this project (`sectorGen.py`,
+    `systemGen.py`, `queryDb.py`, `api/config.py`) reading its own
+    `PLANETGEN_*` variable rather than hardcoding a value, so a deployment
+    points every tool at the same server via its process environment
+    (e.g. the Apache vhost's `SetEnv`, or a `systemd`/`gunicorn` unit's
+    environment file) without editing code. No password default -- unlike
+    host/port/user/database, a blank password is a real (if unusual)
+    credential, not an obviously-safe placeholder, so getting it wrong by
+    omission fails loudly at connect time instead of silently connecting
+    as some other account.
 
-    Safe to call repeatedly against the same file -- `_ensure_schema` uses
-    `CREATE ... IF NOT EXISTS` throughout, so an existing database is left
-    untouched beyond having any missing tables/indexes/views added.
+    A caller needing a different database than the process-wide default
+    (every test in this project's own suite included -- see
+    `src/tests/conftest.py`) builds its own `MySQLConfig` instance
+    directly rather than going through environment variables at all.
+    """
+
+    def __init__(self, host=None, port=None, user=None, password=None, database=None):
+        self.host = host if host is not None else os.environ.get("PLANETGEN_MYSQL_HOST", "127.0.0.1")
+        self.port = int(port if port is not None else os.environ.get("PLANETGEN_MYSQL_PORT", 3306))
+        self.user = user if user is not None else os.environ.get("PLANETGEN_MYSQL_USER", "planetgen")
+        self.password = password if password is not None else os.environ.get("PLANETGEN_MYSQL_PASSWORD", "")
+        self.database = database if database is not None else os.environ.get("PLANETGEN_MYSQL_DATABASE", "planetgen")
+
+    def _key(self):
+        """A hashable identity for this config, used to key the pool
+        cache below -- two `MySQLConfig` instances with the same
+        connection parameters should share one pool rather than each
+        opening their own."""
+        return (self.host, self.port, self.user, self.password, self.database)
+
+
+DEFAULT_MYSQL_CONFIG = MySQLConfig()
+"""MySQLConfig: The process-wide default, built from `PLANETGEN_MYSQL_*`
+env vars (or their defaults) at import time. Every entry point that
+doesn't need a different database (i.e. everything except this project's
+own test suite) uses this implicitly by passing `config=None` through to
+`get_connection`."""
+
+
+def add_mysql_connection_args(parser):
+    """
+    Adds the `--mysql-host`/`--mysql-port`/`--mysql-user`/
+    `--mysql-password`/`--mysql-database` optional overrides to `parser`,
+    shared by every CLI entry point in this project (`sectorGen.py`,
+    `systemGen.py`, `galaxyGen.py`, `queryDb.py`, `migrateDb.py`) instead
+    of each one re-declaring the same five arguments -- pair with
+    `mysql_config_from_args` to turn the parsed result into a
+    `MySQLConfig`.
+
+    Every flag defaults to `None` (falls through to `MySQLConfig`'s own
+    `PLANETGEN_MYSQL_*` env var default) rather than duplicating that
+    default in the `--help` text here, which would drift out of sync with
+    `MySQLConfig.__init__`'s actual defaults over time.
 
     Args:
-        db_path (str, optional): Path to the `.db` file. Defaults to
-                                 `DEFAULT_DB_PATH`.
+        parser (argparse.ArgumentParser or argparse._ActionsContainer):
+            The parser (or subparser) to add the arguments to.
+    """
+    parser.add_argument('--mysql-host', type=str,
+                         help="MySQL host. Defaults to $PLANETGEN_MYSQL_HOST, or 127.0.0.1.")
+    parser.add_argument('--mysql-port', type=int,
+                         help="MySQL port. Defaults to $PLANETGEN_MYSQL_PORT, or 3306.")
+    parser.add_argument('--mysql-user', type=str,
+                         help="MySQL user. Defaults to $PLANETGEN_MYSQL_USER, or 'planetgen'.")
+    parser.add_argument('--mysql-password', type=str,
+                         help="MySQL password. Defaults to $PLANETGEN_MYSQL_PASSWORD, or empty.")
+    parser.add_argument('--mysql-database', type=str,
+                         help="MySQL database name. Defaults to $PLANETGEN_MYSQL_DATABASE, or 'planetgen'.")
+
+
+def mysql_config_from_args(args) -> MySQLConfig:
+    """
+    Builds a `MySQLConfig` from the `--mysql-*` arguments
+    `add_mysql_connection_args` adds -- any flag left unset (`None`) falls
+    through to `MySQLConfig`'s own env-var/hardcoded default, exactly like
+    omitting that argument to `MySQLConfig()` directly.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments, from a parser that
+            called `add_mysql_connection_args`.
 
     Returns:
-        sqlite3.Connection: An open connection with foreign keys enabled
-                            and `row_factory` set to `sqlite3.Row` (supports
-                            both `row[0]` and `row["column"]` access, so
-                            this is backward compatible with existing
-                            positional-index callers).
+        MySQLConfig: Ready to pass as `get_connection`/`save_sector`/
+            `save_system`/`migrate_database`'s `config` argument.
     """
-    path = db_path or DEFAULT_DB_PATH
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    conn = sqlite3.connect(path)
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.row_factory = sqlite3.Row
-    _ensure_schema(conn)
+    return MySQLConfig(
+        host=args.mysql_host, port=args.mysql_port, user=args.mysql_user,
+        password=args.mysql_password, database=args.mysql_database,
+    )
+
+_pools = {}
+"""dict: `MySQLConfig._key() -> PooledDB`, one pool per distinct set of
+connection parameters seen so far in this process. A WSGI worker or a
+single CLI invocation only ever needs one (the process-wide default), but
+keying by config rather than keeping a single module-level pool lets
+tests (and any future multi-database use) point at a second database
+within the same process without the two stomping on each other's pooled
+connections."""
+
+
+def _get_pool(config):
+    key = config._key()
+    if key not in _pools:
+        _pools[key] = PooledDB(
+            creator=pymysql,
+            mincached=1,
+            maxcached=5,
+            maxconnections=10,
+            blocking=True,
+            host=config.host,
+            port=config.port,
+            user=config.user,
+            password=config.password,
+            database=config.database,
+            charset="utf8mb4",
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=False,
+        )
+    return _pools[key]
+
+
+class _Cursor:
+    """
+    Thin proxy around a real `pymysql` cursor that normalizes
+    `fetchall()` to always return a `list` -- confirmed by testing,
+    `pymysql`'s own cursor returns `()` (a tuple) for zero matching rows
+    but a `list` when rows exist, an inconsistency `sqlite3`'s cursor
+    (always a `list`, regardless of row count) never had, and that a
+    caller comparing a query result against `[]` (rather than checking
+    `len(...)` or truthiness) would otherwise trip over. Every other
+    attribute (`.lastrowid`, `.fetchone()`, ...) is forwarded to the real
+    cursor unchanged.
+    """
+
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def fetchall(self):
+        return list(self._cursor.fetchall())
+
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
+
+
+class Connection:
+    """
+    Thin wrapper around a pooled `pymysql` connection that keeps this
+    module's (and `queryDb.py`'s) existing `conn.execute(sql, params)` /
+    `cur.lastrowid` / `row["column"]` call sites working unchanged after
+    the SQLite -> MySQL port, instead of touching every one of their SQL
+    strings and call sites individually:
+
+      - `execute` rewrites `?` positional placeholders to `pymysql`'s
+        `%s` before handing the query to a real DB-API cursor (every
+        query in this codebase is a literal, module-level string -- never
+        built from request input -- so this rewrite is safe; no query
+        here contains a literal `?` character it wasn't meant as a
+        placeholder, or a literal `%` in the query template itself).
+      - Rows come back from `pymysql.cursors.DictCursor` already
+        supporting `row["column"]`, matching `sqlite3.Row` -- no
+        additional translation needed there.
+      - The returned cursor is wrapped in `_Cursor` so `.fetchall()`
+        always returns a `list` -- see that class's own docstring.
+      - `with conn:` commits on a clean exit and rolls back on an
+        exception, same as `sqlite3.Connection`'s context-manager
+        behavior -- and, same as `sqlite3.Connection`, does NOT close the
+        connection either way.
+    """
+
+    def __init__(self, pooled_conn):
+        self._conn = pooled_conn
+
+    def execute(self, sql, params=()):
+        cur = self._conn.cursor()
+        cur.execute(sql.replace("?", "%s"), params)
+        return _Cursor(cur)
+
+    def executemany(self, sql, seq_of_params):
+        """
+        Runs one parameterized `INSERT`/`UPDATE`/`DELETE` against every
+        tuple in `seq_of_params` -- `pymysql.cursors.Cursor.executemany`
+        batches these into as few round trips as the driver can manage,
+        rather than this module looping `execute` once per row itself.
+        `seq_of_params` may be a generator (`insert_sector`'s per-vertex
+        rows, in particular, are built as one) -- consumed exactly once,
+        same as `sqlite3.Connection.executemany`.
+        """
+        cur = self._conn.cursor()
+        cur.executemany(sql.replace("?", "%s"), list(seq_of_params))
+        return _Cursor(cur)
+
+    def executescript(self, script):
+        """
+        Runs a `;`-separated sequence of DDL statements -- `pymysql` has
+        no `sqlite3.Connection.executescript` equivalent (no
+        multi-statement single `execute` call). Comment lines (`--`,
+        matching this project's own SQL style throughout `schema.sql`)
+        are stripped before splitting; safe specifically for this
+        project's own DDL, which never embeds a `;` inside a string
+        literal.
+        """
+        statements = []
+        for line in script.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("--"):
+                continue
+            statements.append(line)
+        for statement in "\n".join(statements).split(";"):
+            statement = statement.strip()
+            if statement:
+                self._conn.cursor().execute(statement)
+        self._conn.commit()
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None:
+            self.commit()
+        else:
+            self.rollback()
+        return False
+
+
+def get_connection(config=None, ensure_schema=True):
+    """
+    Opens a pooled MySQL connection (creating the pool for `config` on
+    first use), applying the schema if needed.
+
+    Safe to call repeatedly against the same database -- `_ensure_schema`
+    uses `CREATE TABLE IF NOT EXISTS`/`CREATE OR REPLACE VIEW` throughout
+    (every index and foreign key is declared inline within its table, per
+    `schema.sql`'s own header note on why -- MySQL's `CREATE INDEX` has no
+    `IF NOT EXISTS` form), so an existing database is left untouched
+    beyond having any missing tables/views added.
+
+    Args:
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
+        ensure_schema (bool): Whether to run `_ensure_schema` (DDL) on
+            this connection. `True` (the default) suits every read-write
+            caller (`save_sector`/`save_system`/the generation CLIs) --
+            the whole point of `CREATE ... IF NOT EXISTS` is that a fresh
+            database gets its schema the first time anything connects.
+            Every read-only caller (`queryDb.py`'s `open_readonly`, the
+            Flask API's `get_db`, `html/lib/dbutil.py`) should instead
+            pass `False`: this project's own docs recommend pointing
+            those tools at a database account with `SELECT`-only grants
+            (see `queryDb.py`'s module docstring), and DDL requires
+            `CREATE`, which such an account deliberately doesn't have --
+            attempting `_ensure_schema` there would fail every single
+            connection with a permissions error instead of just skipping
+            a step that a read-write caller has already done once.
+
+    Returns:
+        Connection: An open connection (schema-initialized, if
+                    `ensure_schema`). Supports `.execute(sql, params)`
+                    (returning a cursor with `.lastrowid`/`.fetchone()`/
+                    `.fetchall()`, and `row["column"]` access on each
+                    row), `with conn:` for a commit-on-success/
+                    rollback-on-exception block, and `.close()` (returns
+                    the underlying connection to its pool rather than
+                    truly closing a socket).
+    """
+    config = config or DEFAULT_MYSQL_CONFIG
+    conn = Connection(_get_pool(config).connection())
+    if ensure_schema:
+        _ensure_schema(conn)
     return conn
 
 
 def _ensure_schema(conn):
     """
-    Applies `schema.sql` to `conn`. Idempotent -- every `CREATE TABLE`/
-    `CREATE INDEX`/`CREATE VIEW` statement in the file uses
-    `IF NOT EXISTS`, so this is safe to call on a database that already
-    has some or all of the schema.
+    Applies `schema.sql` to `conn`, then bootstraps `schema_migrations`
+    (inserting `SCHEMA_VERSION` as the baseline row) if it's empty --
+    idempotent, safe to call on a database that already has some, all, or
+    none of the schema.
 
     Args:
-        conn (sqlite3.Connection): The connection to apply the schema to.
+        conn (Connection): The connection to apply the schema to.
     """
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
+
+    row = conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()
+    if row["n"] == 0:
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (SCHEMA_VERSION,))
+        conn.commit()
 
 
 def _tristate(value):
@@ -162,7 +417,7 @@ def insert_system_config(conn, config: SystemConfig) -> int:
     whether its values happen to match another system's.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         config (SystemConfig): The recipe to persist.
 
     Returns:
@@ -214,7 +469,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
     `BinaryStarProxy` -- see `insert_star_system`).
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         star: The `Star` instance.
         star_system_id (int): The owning `star_systems.id`.
         role (str): `'primary'`, `'secondary'`, or `'single'`.
@@ -274,7 +529,7 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     inserts each of its moons.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         planet (Planet): The top-level planet to persist.
         star_system_id (int): The owning `star_systems.id`.
         star_id (int or None): The specific `stars.id` this planet orbits,
@@ -342,7 +597,7 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     so a moon never has moons of its own.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         moon (Planet): The moon to persist.
         star_system_id (int): The owning `star_systems.id` (same value the
                               parent planet was inserted with).
@@ -405,7 +660,7 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     child rows).
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         belt (AsteroidBelt): The belt to persist.
         star_system_id (int): The owning `star_systems.id`.
         orbital_index (int): This belt's position in the star's `planets`
@@ -485,10 +740,8 @@ def _format_location_string(sector_name, neighbors):
     name, followed by up to 3 nearest neighbors and their distances in
     light-years, nearest first -- see `schema.sql`'s "v3" header note.
 
-    Shared by both the live-object write path (`_location_for_entry`, used
-    from `insert_sector`) and `migrate_database`'s v3 backfill
-    (`_backfill_v3_locations`), so the two never drift into different
-    formats.
+    Used by the live-object write path (`_location_for_entry`, used from
+    `insert_sector`).
 
     Args:
         sector_name (str): The owning `sectors.name`.
@@ -543,7 +796,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     regenerated later and still match.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         star_system (StarSystem): The generated system to persist.
         system_config (SystemConfig): The config it was generated from.
         sector_id (int, optional): The owning `sectors.id`, if this system
@@ -639,7 +892,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     contains (with its placement) -- into the database.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         sector (SpaceSector): The sector to persist.
         galaxy_position (dict, optional): This sector's galaxy-frame
             placement (see `schema.sql`'s "v4"/"v6/v7" header notes), or
@@ -716,7 +969,7 @@ def get_sector_galaxy_position(conn, sector_id):
     neighbors (`galaxyGeometry.enumerate_sectors_within_radius`).
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         sector_id (int): The `sectors.id` to look up.
 
     Returns:
@@ -768,7 +1021,7 @@ def get_occupied_shell_slots(conn, shell_indices):
     query per candidate slot.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         shell_indices (iterable): Shell indices to check.
 
     Returns:
@@ -797,7 +1050,7 @@ def get_sector_id_at(conn, shell_index, shell_slot_index):
     race, re-check) one address at a time.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         shell_index (int): The shell index to look up.
         shell_slot_index (int): The slot index within that shell.
 
@@ -823,7 +1076,7 @@ are `galaxy_shape`'s own remaining columns."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
-                       expected_system_count_at_density_1, db_path=None):
+                       expected_system_count_at_density_1, config=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -838,10 +1091,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
             content (`galaxyPlan.py`'s own discovered galaxy edge).
         expected_system_count_at_density_1 (float): See
             `galaxySkeleton.expected_system_count_at_density_1`.
-        db_path (str, optional): Path to the `.db` file. Defaults to
-                                 `DEFAULT_DB_PATH`.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
     """
-    conn = get_connection(db_path)
+    conn = get_connection(config)
     try:
         with conn:
             conn.execute(
@@ -853,20 +1106,20 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_shell_index
                 ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (id) DO UPDATE SET
-                    disk_scale_length_pc = excluded.disk_scale_length_pc,
-                    disk_scale_height_pc = excluded.disk_scale_height_pc,
-                    bulge_scale_radius_pc = excluded.bulge_scale_radius_pc,
-                    bulge_amplitude = excluded.bulge_amplitude,
-                    arm_count = excluded.arm_count,
-                    pitch_angle_rad = excluded.pitch_angle_rad,
-                    arm_amplitude = excluded.arm_amplitude,
-                    spiral_reference_radius_pc = excluded.spiral_reference_radius_pc,
-                    spiral_reference_angle_rad = excluded.spiral_reference_angle_rad,
-                    k_norm = excluded.k_norm,
-                    edge_pc = excluded.edge_pc,
-                    expected_system_count_at_density_1 = excluded.expected_system_count_at_density_1,
-                    outer_shell_index = excluded.outer_shell_index
+                ON DUPLICATE KEY UPDATE
+                    disk_scale_length_pc = VALUES(disk_scale_length_pc),
+                    disk_scale_height_pc = VALUES(disk_scale_height_pc),
+                    bulge_scale_radius_pc = VALUES(bulge_scale_radius_pc),
+                    bulge_amplitude = VALUES(bulge_amplitude),
+                    arm_count = VALUES(arm_count),
+                    pitch_angle_rad = VALUES(pitch_angle_rad),
+                    arm_amplitude = VALUES(arm_amplitude),
+                    spiral_reference_radius_pc = VALUES(spiral_reference_radius_pc),
+                    spiral_reference_angle_rad = VALUES(spiral_reference_angle_rad),
+                    k_norm = VALUES(k_norm),
+                    edge_pc = VALUES(edge_pc),
+                    expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
+                    outer_shell_index = VALUES(outer_shell_index)
                 """,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
@@ -885,7 +1138,7 @@ def get_galaxy_shape(conn):
     Reads back the galaxy's stored skeleton parameters.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
 
     Returns:
         GalaxySkeletonInfo or None: `None` if `galaxyPlan.py` has never
@@ -922,7 +1175,7 @@ def get_galaxy_shape(conn):
     )
 
 
-def replace_galaxy_shell_bands(shell_bands, db_path=None):
+def replace_galaxy_shell_bands(shell_bands, config=None):
     """
     Replaces every `galaxy_shell_band` row wholesale -- `galaxyPlan.py`'s
     own full-galaxy skeleton build is the only writer, and it always
@@ -935,10 +1188,10 @@ def replace_galaxy_shell_bands(shell_bands, db_path=None):
             slot_index_max)` tuples, any order -- `band_index` is the
             0-based position of that band within its own shell (almost
             always just `0`; see `galaxySkeleton.find_shell_bands`).
-        db_path (str, optional): Path to the `.db` file. Defaults to
-                                 `DEFAULT_DB_PATH`.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
     """
-    conn = get_connection(db_path)
+    conn = get_connection(config)
     try:
         with conn:
             conn.execute("DELETE FROM galaxy_shell_band")
@@ -956,7 +1209,7 @@ def get_galaxy_shell_bands(conn, shell_index):
     This shell's stored candidate band(s), in `band_index` order.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         shell_index (int): The shell index to look up.
 
     Returns:
@@ -973,24 +1226,24 @@ def get_galaxy_shell_bands(conn, shell_index):
     return [(row["slot_index_min"], row["slot_index_max"]) for row in rows]
 
 
-def save_system(star_system: StarSystem, system_config: SystemConfig, db_path=None) -> int:
+def save_system(star_system: StarSystem, system_config: SystemConfig, config=None) -> int:
     """
-    Opens (or creates) the database and persists a single, standalone
-    `StarSystem` (no sector -- `sector_id`/`position` are left `None`) in
-    one transaction. The single-system counterpart to `save_sector`, for
-    `systemGen.py` (which, unlike `sectorGen.py`, generates one system with
-    no natural sector placement of its own).
+    Opens the database and persists a single, standalone `StarSystem` (no
+    sector -- `sector_id`/`position` are left `None`) in one transaction.
+    The single-system counterpart to `save_sector`, for `systemGen.py`
+    (which, unlike `sectorGen.py`, generates one system with no natural
+    sector placement of its own).
 
     Args:
         star_system (StarSystem): The generated system to persist.
         system_config (SystemConfig): The config it was generated from.
-        db_path (str, optional): Path to the `.db` file. Defaults to
-                                 `DEFAULT_DB_PATH`.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
         int: The new `star_systems.id`.
     """
-    conn = get_connection(db_path)
+    conn = get_connection(config)
     try:
         with conn:
             star_system_id = insert_star_system(conn, star_system, system_config)
@@ -999,15 +1252,15 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, db_path=No
         conn.close()
 
 
-def save_sector(sector: SpaceSector, db_path=None, galaxy_position=None) -> int:
+def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
     """
-    Opens (or creates) the database and persists a full `SpaceSector` to
-    it in one transaction.
+    Opens the database and persists a full `SpaceSector` to it in one
+    transaction.
 
     Args:
         sector (SpaceSector): The sector to persist.
-        db_path (str, optional): Path to the `.db` file. Defaults to
-                                 `DEFAULT_DB_PATH`.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
         galaxy_position (dict, optional): This sector's galaxy-frame
             placement -- see `insert_sector`'s docstring. `None` (the
             default) for a sector never placed in a galaxy.
@@ -1015,7 +1268,7 @@ def save_sector(sector: SpaceSector, db_path=None, galaxy_position=None) -> int:
     Returns:
         int: The new `sectors.id`.
     """
-    conn = get_connection(db_path)
+    conn = get_connection(config)
     try:
         with conn:
             sector_id = insert_sector(conn, sector, galaxy_position=galaxy_position)
@@ -1051,7 +1304,7 @@ def load_system_config(conn, config_id) -> SystemConfig:
     `system_config_slots` child rows, if any).
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         config_id (int): The `system_configs.id` to load.
 
     Returns:
@@ -1163,8 +1416,8 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     reflection-spectrum child rows.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
-        row (sqlite3.Row): The `planets` or `moons` row.
+        conn (Connection): An open, schema-initialized connection.
+        row (dict): The `planets` or `moons` row.
         is_moon (bool): Which pair of child tables to query
                         (`planet_*`/`moon_*`) and id column to filter by.
 
@@ -1251,7 +1504,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     `star_systems` row and its related rows.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         star_system_id (int): The `star_systems.id` to load.
 
     Returns:
@@ -1337,7 +1590,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
     placement -- from a `sectors` row and its related rows.
 
     Args:
-        conn (sqlite3.Connection): An open, schema-initialized connection.
+        conn (Connection): An open, schema-initialized connection.
         sector_id (int): The `sectors.id` to load.
 
     Returns:
@@ -1370,627 +1623,37 @@ def load_sector(conn, sector_id) -> SpaceSector:
     return sector
 
 
-class UnsupportedSchemaVersionError(Exception):
-    """Raised by `migrate_database` for a `PRAGMA user_version` this
-    module has neither a migration path from nor can use as-is."""
-
-
-# The v1 `planets` table's columns, minus `is_moon`/`parent_planet_id`
-# (the discriminator `_migrate_v1_to_v2` splits on) and the v5-removed
-# `table_class`/`table_distance`/`table_period`/`table_radius`/`table_gravity`
-# (see schema.sql's "v5" header note -- those were pre-rendered display
-# strings, not data, so a migrated database simply drops them rather than
-# needing them backfilled or reconstructed) -- identical to both `planets`
-# and `moons`' own current column sets (see schema.sql), which is what makes
-# a single shared column list usable for copying into either one below, from
-# any source schema version that still has these same columns (every
-# version so far). `id` is included deliberately: a migrated moon keeps its
-# original `planets.id` value as its new `moons.id`, so
-# `planet_evolutionary_paragraphs`/`planet_reflection_spectrum` rows can
-# move to their moon-owned counterparts by that same, unchanged id --
-# no id remapping table needed.
-_PLANET_MOON_COLUMNS = (
-    "id", "star_system_id", "star_id", "orbital_index", "body_type", "name",
-    "planet_class", "distance_km", "radius_km", "mass_kg", "volume_km3",
-    "period_years", "zone", "description", "gravity_g", "surface_temperature_k",
-    "density_g_cm3", "atmosphere", "atm_density", "atm_molar_density",
-    "atmospheric_pressure_pa", "composition", "scale_height_km", "hill_radius_km",
-    "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
-    "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
-)
-
-# `_PLANET_MOON_COLUMNS` plus `moons`' own `planet_id` column (the FK to the
-# planet a moon orbits -- `planets` has no equivalent column, which is why
-# this isn't just folded into `_PLANET_MOON_COLUMNS` itself). Used for a
-# straight `moons` -> `moons` copy (v2 and later, which already have their
-# own `planet_id` column, unlike v1's shared `planets` table with
-# `parent_planet_id`/`is_moon`, handled separately in `_migrate_v1_to_v2`).
-_MOON_COLUMNS = ("planet_id",) + _PLANET_MOON_COLUMNS
-
-# The current `stars` column set, i.e. every column except the v5-removed
-# `table_type`/`table_radius`/`table_mass`/`table_temp`/`table_lum`/
-# `table_hab`/`table_loc` (see schema.sql's "v5" header note). Used wherever
-# a migration can't bare `INSERT ... SELECT *` a source `stars` table whose
-# shape predates v5 (every version so far).
-_STARS_COLUMNS = (
-    "id", "star_system_id", "role", "name", "star_type", "yerkes_class",
-    "mass_kg", "radius_km", "temperature_k", "luminosity_w", "age_gy", "lifespan_gy",
-    "habitable_zone_inner_km", "habitable_zone_outer_km",
-    "system_perimeter_km", "heliosphere_radius_km",
-)
-
-# The full `star_systems` column set as of schema v1/v2 -- i.e. every
-# column except v3's new `location` (see schema.sql's "v3" header note) and
-# the v5-removed `binary_table_*` columns (see schema.sql's "v5" header
-# note). v1 -> v2 made no structural change to `star_systems` at all (only
-# `planets`/`moons` changed -- see the "v2" header note), so this one list
-# covers both source versions' actual column layout, and is used by both
-# `_migrate_v1_to_v2` and `_migrate_v2_to_v3` to copy `star_systems`
-# explicitly column-by-column instead of `INSERT ... SELECT *` -- required
-# now that the current schema has both more (`location`) and fewer
-# (no `binary_table_*`) columns than either v1 or v2's `star_systems` does.
-# `location` is left unset by this copy and backfilled afterward by
-# `_backfill_v3_locations`.
-_STAR_SYSTEMS_PRE_V3_COLUMNS = (
-    "id", "sector_id", "system_config_id", "name",
-    "position_x_mpc", "position_y_mpc", "position_z_mpc", "quadrant",
-    "is_binary",
-    "binary_separation_km", "binary_type", "binary_temperature_k", "binary_radius_km",
-    "binary_effective_mass_kg", "binary_effective_luminosity_w", "binary_age_gy", "binary_lifespan_gy",
-    "binary_habitable_zone_inner_km", "binary_habitable_zone_outer_km",
-    "binary_system_perimeter_km", "binary_heliosphere_radius_km",
-    "system_flavor_text", "schema_version", "wikitext_content", "markdown_content",
-    "mediawiki_url", "wikijs_url", "created_at",
-)
-
-# `_STAR_SYSTEMS_PRE_V3_COLUMNS` plus `location` -- the current `star_systems`
-# column set, for a source version (v3 or v4) that already has `location`
-# and so needs no backfill, but (as of v5) still needs an explicit column
-# list rather than bare `SELECT *` to skip its `binary_table_*` columns.
-_STAR_SYSTEMS_COLUMNS = _STAR_SYSTEMS_PRE_V3_COLUMNS + ("location",)
-
-
-def _copy_columns(conn, table, columns, source_table=None):
+def migrate_database(config=None):
     """
-    Copies `columns` from `old.<source_table or table>` into `main.<table>`,
-    explicit column-by-column instead of `INSERT ... SELECT *` -- needed
-    wherever the current schema's column set differs from an older source
-    version's (see `_STAR_SYSTEMS_COLUMNS`/`_STARS_COLUMNS`/
-    `_PLANET_MOON_COLUMNS`), shared by every `_migrate_vN_to_vN+1` function
-    below that hits this.
-    """
-    column_list = ", ".join(columns)
-    conn.execute(
-        f"INSERT INTO main.{table} ({column_list}) SELECT {column_list} FROM old.{source_table or table}"
-    )
+    Brings a database's `schema_migrations` bookkeeping up to
+    `SCHEMA_VERSION`, applying any migration step in between.
 
-
-def _backfill_v3_locations(conn):
-    """
-    Populates `star_systems.location` (see `schema.sql`'s "v3" header note)
-    for every already-migrated row that has a sector position, after
-    `_migrate_v1_to_v2`/`_migrate_v2_to_v3` copy `star_systems` across
-    without it -- a pre-v3 database predates the column, so it was never
-    computed for these rows the way `insert_sector`/`_location_for_entry`
-    compute it for a freshly generated sector.
-
-    Works directly against the rows already written to `main` (there's no
-    live `SpaceSector`/`StarSystem` object graph to call
-    `SpaceSector.nearest_neighbors` on during a migration) -- same
-    nearest-3, nearest-first logic, using plain SQL-row Euclidean distance
-    on the stored milliparsec positions (converted to light-years for
-    display via `milliparsecs_to_ly`, since that conversion is linear and
-    applies equally to a distance magnitude as to a coordinate) and
-    `_format_location_string` for the shared text format.
+    Unlike the pre-MySQL-port version of this function, there is no
+    version this project's own MySQL databases can already be at other
+    than the current one: `get_connection`/`_ensure_schema` always create
+    a schema-v8 (`SCHEMA_VERSION`) database from scratch (this project
+    never shipped a MySQL deployment at an earlier schema version to
+    migrate *from* -- the version history in `schema.sql`'s header
+    comment predates the MySQL port and describes the SQLite schema's own
+    evolution), so today this is a no-op the moment `get_connection`'s
+    own `_ensure_schema` call has already run once against `config`'s
+    database. It stays a real function (rather than being inlined into
+    `_ensure_schema`) as the intended home for the next
+    `_migrate_vN_to_vN+1`-style function this project adds -- see
+    `schema.sql`'s header comment for the versioning convention, and
+    `migrateDb.py` for the CLI wrapper around this.
 
     Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the v3 schema and `sectors`/`star_systems`
-                                   rows already populated (`location` still
-                                   `NULL` on every row).
-    """
-    sectors = conn.execute("SELECT id, name FROM main.sectors").fetchall()
-    for sector_id, sector_name in sectors:
-        systems = conn.execute(
-            """
-            SELECT id, name, position_x_mpc, position_y_mpc, position_z_mpc
-            FROM main.star_systems
-            WHERE sector_id = ? AND position_x_mpc IS NOT NULL
-            """,
-            (sector_id,),
-        ).fetchall()
-
-        for system_id, system_name, x, y, z in systems:
-            others = [s for s in systems if s[0] != system_id]
-            others.sort(key=lambda s: distance_between((x, y, z), (s[2], s[3], s[4])))
-            neighbor_info = [
-                (other[1], milliparsecs_to_ly(distance_between((x, y, z), (other[2], other[3], other[4]))))
-                for other in others[:3]
-            ]
-            location = _format_location_string(sector_name, neighbor_info)
-            conn.execute("UPDATE main.star_systems SET location = ? WHERE id = ?", (location, system_id))
-
-
-# The full `sectors` column set as of schema v1/v2/v3 -- i.e. every column
-# except v4's new galaxy-placement columns (see schema.sql's "v4" header
-# note). Used by `_migrate_v1_to_v2`, `_migrate_v2_to_v3`, and
-# `_migrate_v3_to_v4` alike (v1/v2/v3 all share this same 3-column
-# `sectors` shape) instead of `INSERT ... SELECT *`, now that the current
-# (v4) schema has more columns than any of those source versions did. The
-# new columns are left NULL by this copy -- there is no way to recover a
-# legacy sector's intended galaxy position after the fact (see
-# `docs/design/galaxy-coordinate-system.md` section 4's migration note).
-_SECTORS_PRE_V4_COLUMNS = ("id", "name", "edge_mpc")
-
-
-def _copy_sectors_pre_v4(conn):
-    """Shared body for copying `sectors` unchanged (pre-v4 shape) from
-    `old` into `main` -- see `_SECTORS_PRE_V4_COLUMNS`."""
-    columns = ", ".join(_SECTORS_PRE_V4_COLUMNS)
-    conn.execute(f"INSERT INTO main.sectors ({columns}) SELECT {columns} FROM old.sectors")
-
-
-# Tables schema v1 -> v2 leaves structurally untouched -- copied verbatim,
-# column-for-column, from the attached old database. Split into "before"/
-# "after" `star_systems` groups (rather than one flat list) purely for
-# insert ORDER: `stars`/`asteroid_belts` carry a `star_system_id` FK, so
-# `star_systems` itself must already exist in `main` before they're copied
-# -- and `star_systems`/`stars` each need their own explicit column list
-# instead of `SELECT *` now (see `_STAR_SYSTEMS_PRE_V3_COLUMNS`/
-# `_STARS_COLUMNS`), since the current schema's columns differ from a v1
-# database's in both directions (`location` added, `table_*`/
-# `binary_table_*` removed). `sectors` is handled separately
-# (`_copy_sectors_pre_v4`), for the same reason, now that the current
-# schema has more `sectors` columns than a v1 database's `sectors` table
-# does.
-_V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS = ("system_configs", "system_config_slots")
-_V1_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = ("asteroid_belts", "asteroid_belt_composition")
-
-
-def _migrate_v1_to_v2(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, always the
-    *current* `schema.sql` -- there's no separate "as of v2" snapshot of
-    it) from a schema-v1 database attached as `old` (see `migrate_database`
-    for the attach/backup/swap this runs inside of, and for why this one
-    function now migrates a v1 database all the way to the current schema
-    in a single hop rather than stopping at an intermediate v2 shape).
-
-    The structural changes this bridges are moons moving out of the shared
-    `planets` table (`is_moon`/`parent_planet_id`) into their own `moons`
-    table (`planet_id`) -- see `schema.sql`'s "v2" header note -- and the
-    v3 `star_systems.location` column not existing yet, backfilled
-    afterward by `_backfill_v3_locations`. Every other table is unaffected
-    and copied straight across.
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    _copy_sectors_pre_v4(conn)
-    for table in _V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_PRE_V3_COLUMNS)
-    _copy_columns(conn, "stars", _STARS_COLUMNS)
-
-    for table in _V1_VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-    columns = ", ".join(_PLANET_MOON_COLUMNS)
-    conn.execute(f"INSERT INTO main.planets ({columns}) SELECT {columns} FROM old.planets WHERE is_moon = 0")
-    conn.execute(
-        f"INSERT INTO main.moons (planet_id, {columns}) "
-        f"SELECT parent_planet_id, {columns} FROM old.planets WHERE is_moon = 1"
-    )
-
-    conn.execute("""
-        INSERT INTO main.planet_evolutionary_paragraphs (id, planet_id, position, paragraph)
-        SELECT pep.id, pep.planet_id, pep.position, pep.paragraph
-        FROM old.planet_evolutionary_paragraphs pep
-        JOIN old.planets p ON p.id = pep.planet_id
-        WHERE p.is_moon = 0
-    """)
-    conn.execute("""
-        INSERT INTO main.moon_evolutionary_paragraphs (id, moon_id, position, paragraph)
-        SELECT pep.id, pep.planet_id, pep.position, pep.paragraph
-        FROM old.planet_evolutionary_paragraphs pep
-        JOIN old.planets p ON p.id = pep.planet_id
-        WHERE p.is_moon = 1
-    """)
-    conn.execute("""
-        INSERT INTO main.planet_reflection_spectrum (id, planet_id, spectrum_type, position, value)
-        SELECT prs.id, prs.planet_id, prs.spectrum_type, prs.position, prs.value
-        FROM old.planet_reflection_spectrum prs
-        JOIN old.planets p ON p.id = prs.planet_id
-        WHERE p.is_moon = 0
-    """)
-    conn.execute("""
-        INSERT INTO main.moon_reflection_spectrum (id, moon_id, spectrum_type, position, value)
-        SELECT prs.id, prs.planet_id, prs.spectrum_type, prs.position, prs.value
-        FROM old.planet_reflection_spectrum prs
-        JOIN old.planets p ON p.id = prs.planet_id
-        WHERE p.is_moon = 1
-    """)
-
-    _backfill_v3_locations(conn)
-
-
-# Tables schema v2 -> v3 leaves structurally untouched -- copied verbatim,
-# column-for-column, from the attached old database. Split into "before"/
-# "after" `star_systems` groups for the same insert-order reason as
-# `_V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS`/`_AFTER_STAR_SYSTEMS` above
-# (several of these tables carry a `star_system_id` FK); `star_systems`,
-# `stars`, and `planets`/`moons` are each handled separately (see
-# `_STAR_SYSTEMS_PRE_V3_COLUMNS`/`_STARS_COLUMNS`/`_PLANET_MOON_COLUMNS`),
-# and so is `sectors` (see `_copy_sectors_pre_v4`) -- the current schema's
-# columns differ from a v2 database's for all four.
-_V2_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS = ("system_configs", "system_config_slots")
-_V2_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = (
-    "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-    "moon_evolutionary_paragraphs", "moon_reflection_spectrum",
-    "asteroid_belts", "asteroid_belt_composition",
-)
-
-
-def _migrate_v2_to_v3(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, the current
-    `schema.sql`) from a schema-v2 database attached as `old` (see
-    `migrate_database` for the attach/backup/swap this runs inside of).
-
-    The only structural change between v2 and v3 is the new
-    `star_systems.location` column (see `schema.sql`'s "v3" header note).
-    Every other table is copied straight across; `star_systems` needs the
-    explicit `_STAR_SYSTEMS_PRE_V3_COLUMNS` column list instead of
-    `INSERT ... SELECT *`, since the current schema has one more column
-    than a v2 database does. `location` is then backfilled for every
-    migrated row that has a sector position (`_backfill_v3_locations`) --
-    a v2 database predates the column, so it was never computed for these
-    rows the way `insert_sector` computes it for a freshly generated
-    sector.
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    _copy_sectors_pre_v4(conn)
-    for table in _V2_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_PRE_V3_COLUMNS)
-    _copy_columns(conn, "stars", _STARS_COLUMNS)
-    _copy_columns(conn, "planets", _PLANET_MOON_COLUMNS)
-    _copy_columns(conn, "moons", _MOON_COLUMNS)
-
-    for table in _V2_VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-    _backfill_v3_locations(conn)
-
-
-# Tables schema v3 -> v4 leaves structurally untouched -- copied verbatim,
-# column-for-column, from the attached old database, shared by both
-# `_migrate_v3_to_v4` and `_migrate_v4_to_v5` (neither v3->v4 nor v4->v5
-# changes any of these tables' shape). `sectors`, `star_systems`, `stars`,
-# and `planets`/`moons` are each handled separately by their callers instead
-# (see `_copy_sectors_pre_v4`/`_STAR_SYSTEMS_COLUMNS`/`_STARS_COLUMNS`/
-# `_PLANET_MOON_COLUMNS`) -- both v3 and v4 predate v5's removal of every
-# `table_*`/`binary_table_*` column (see schema.sql's "v5" header note), so
-# neither source version's `star_systems`/`stars`/`planets`/`moons` can use
-# a plain `SELECT *` into the current, column-reduced schema. Split into
-# "before"/"after" `star_systems` groups for the same insert-order reason as
-# `_V1_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS`/`_AFTER_STAR_SYSTEMS` above:
-# `star_systems.system_config_id` is a FK into `system_configs`, so that
-# must be copied first.
-_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS = ("system_configs", "system_config_slots")
-_VERBATIM_TABLES_AFTER_STAR_SYSTEMS = (
-    "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-    "moon_evolutionary_paragraphs", "moon_reflection_spectrum",
-    "asteroid_belts", "asteroid_belt_composition",
-)
-
-
-def _migrate_v3_to_v4(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, the current
-    `schema.sql`) from a schema-v3 database attached as `old` (see
-    `migrate_database` for the attach/backup/swap this runs inside of).
-
-    The structural changes bridged here are `sectors` gaining six nullable
-    galaxy-placement columns (see `schema.sql`'s "v4" header note) and the
-    v5 removal of every `table_*`/`binary_table_*` column (see its "v5"
-    header note) -- every other table is copied straight across
-    (`_VERBATIM_TABLES_BEFORE_STAR_SYSTEMS`/`_AFTER_STAR_SYSTEMS`).
-    `sectors` needs `_copy_sectors_pre_v4`'s
-    explicit 3-column list instead of `INSERT ... SELECT *`, since the
-    current schema has six more columns than a v3 database's `sectors`
-    table does -- they're left `NULL` on every migrated row, exactly the
-    "never placed in a galaxy" state a pre-v4 sector always was.
-    `star_systems`/`stars`/`planets`/`moons` each need their own explicit
-    column list too (`_STAR_SYSTEMS_COLUMNS`/`_STARS_COLUMNS`/
-    `_PLANET_MOON_COLUMNS`), since the current schema has fewer columns than
-    a v3 database's tables do (the removed `table_*`/`binary_table_*`
-    columns).
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    _copy_sectors_pre_v4(conn)
-    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_COLUMNS)
-    _copy_columns(conn, "stars", _STARS_COLUMNS)
-    _copy_columns(conn, "planets", _PLANET_MOON_COLUMNS)
-    _copy_columns(conn, "moons", _MOON_COLUMNS)
-    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-
-def _migrate_v4_to_v5(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, the current
-    `schema.sql`) from a schema-v4 database attached as `old` (see
-    `migrate_database` for the attach/backup/swap this runs inside of).
-
-    The structural change bridged here is the removal of every
-    `table_*`/`binary_table_*` column from `star_systems`/`stars`/
-    `planets`/`moons` (see schema.sql's "v5" header note) -- those held a
-    pre-rendered display string, not data, so nothing needs backfilling; a
-    migrated database simply drops them. `sectors` has the same shape in a
-    v4 source as the current (v7) schema -- v6's now-since-removed
-    `vertices_pc` column (see the "v6/v7" header note) came and went
-    without ever changing what a v4 source's `sectors` table needs mapped
-    to -- so it still needs no special-casing here and uses a plain
-    `SELECT *`, same as when this function was first written. Every other
-    table is unaffected and copied straight across.
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    conn.execute("INSERT INTO main.sectors SELECT * FROM old.sectors")
-    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-    _copy_columns(conn, "star_systems", _STAR_SYSTEMS_COLUMNS)
-    _copy_columns(conn, "stars", _STARS_COLUMNS)
-    _copy_columns(conn, "planets", _PLANET_MOON_COLUMNS)
-    _copy_columns(conn, "moons", _MOON_COLUMNS)
-    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-
-def _migrate_v5_to_v6(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, the current
-    `schema.sql`) from a schema-v5 database attached as `old` (see
-    `migrate_database` for the attach/backup/swap this runs inside of).
-
-    A v5 source's `sectors` table has the same shape as the current (v7)
-    schema's, for the same reason `_migrate_v4_to_v5` above does -- v6's
-    `vertices_pc` column existed only briefly before v7 removed it again
-    (see schema.sql's "v6/v7" header note), so a v5 source needs no
-    special-casing to reach v7 either, and uses a plain `SELECT *`. Every
-    other table is unaffected by this version bump and copied straight
-    across the same way.
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    conn.execute("INSERT INTO main.sectors SELECT * FROM old.sectors")
-    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-    conn.execute("INSERT INTO main.star_systems SELECT * FROM old.star_systems")
-    conn.execute("INSERT INTO main.stars SELECT * FROM old.stars")
-    conn.execute("INSERT INTO main.planets SELECT * FROM old.planets")
-    conn.execute("INSERT INTO main.moons SELECT * FROM old.moons")
-    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-
-# The `sectors` column set shared by the current (v7) schema and every
-# source version except v6 -- v6 alone had an extra `vertices_pc` column
-# (see schema.sql's "v6/v7" header note) that no longer exists, so
-# `_migrate_v6_to_v7` (only) needs this explicit list instead of
-# `SELECT *`, to select every column except that one out of a v6 source.
-_SECTORS_COLUMNS_WITHOUT_VERTICES = (
-    "id", "name", "edge_mpc", "center_x_pc", "center_y_pc", "center_z_pc",
-    "galactic_radius_pc", "shell_index", "shell_slot_index",
-)
-
-
-def _migrate_v6_to_v7(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, the current
-    `schema.sql`) from a schema-v6 database attached as `old` (see
-    `migrate_database` for the attach/backup/swap this runs inside of).
-
-    The structural change bridged here is `sectors.vertices_pc` (a v6-only
-    JSON blob column) being replaced by the normalized `sector_vertices`
-    table (see schema.sql's "v6/v7" header note) -- `sectors` itself needs
-    `_SECTORS_COLUMNS_WITHOUT_VERTICES` instead of `SELECT *` to leave that
-    removed column out, and no rows are written to `sector_vertices` for a
-    migrated sector: a v6 database's `vertices_pc` JSON is dropped rather
-    than parsed and re-inserted as rows, the same "no way to recover this
-    after the fact" treatment every other superseded column in this schema
-    gets (a sector's vertices are cheap to recompute from its address via
-    `sectorGeometry.prism_vertices` if ever actually needed). Every other
-    table is unaffected by this version bump and copied straight across.
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    _copy_columns(conn, "sectors", _SECTORS_COLUMNS_WITHOUT_VERTICES)
-    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-    conn.execute("INSERT INTO main.star_systems SELECT * FROM old.star_systems")
-    conn.execute("INSERT INTO main.stars SELECT * FROM old.stars")
-    conn.execute("INSERT INTO main.planets SELECT * FROM old.planets")
-    conn.execute("INSERT INTO main.moons SELECT * FROM old.moons")
-    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-
-def _migrate_v7_to_v8(conn):
-    """
-    Populates a fresh, empty database (`conn`'s main schema, the current
-    `schema.sql`) from a schema-v7 database attached as `old` (see
-    `migrate_database` for the attach/backup/swap this runs inside of).
-
-    The structural change bridged here is two new tables, `galaxy_shape`
-    and `galaxy_shell_band` (see schema.sql's "v8" header note) -- the
-    galaxy-wide density-model skeleton `galaxyPlan.py` precomputes. Neither
-    existed in a v7 database, so there is nothing to migrate into them;
-    they are simply empty after migration, exactly like a brand-new
-    database, until `galaxyPlan.py` is (re-)run to build them -- a cheap,
-    idempotent rebuild, unlike the individually-generated sectors this
-    migration does carry across untouched. `sectors`/`sector_vertices` are
-    unaffected by this version bump (same shape as v7) and copied straight
-    across, along with every other table.
-
-    Args:
-        conn (sqlite3.Connection): Connection to the new database, with
-                                   the old one already `ATTACH`ed as `old`
-                                   and the current schema already applied.
-    """
-    conn.execute("INSERT INTO main.sectors SELECT * FROM old.sectors")
-    conn.execute("INSERT INTO main.sector_vertices SELECT * FROM old.sector_vertices")
-    for table in _VERBATIM_TABLES_BEFORE_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-    conn.execute("INSERT INTO main.star_systems SELECT * FROM old.star_systems")
-    conn.execute("INSERT INTO main.stars SELECT * FROM old.stars")
-    conn.execute("INSERT INTO main.planets SELECT * FROM old.planets")
-    conn.execute("INSERT INTO main.moons SELECT * FROM old.moons")
-    for table in _VERBATIM_TABLES_AFTER_STAR_SYSTEMS:
-        conn.execute(f"INSERT INTO main.{table} SELECT * FROM old.{table}")
-
-
-def migrate_database(db_path):
-    """
-    Migrates one database file to `SCHEMA_VERSION`, in place, backing up
-    the original first. A no-op (returns `None`) if the database is
-    already current.
-
-    Safe by construction: the migration reads only from a backup copy
-    (never the live file) and builds the new database at a temporary
-    path, so `db_path` itself is never touched until the final atomic
-    `os.replace` -- a crash or error partway through leaves the original
-    file exactly as it was, plus the backup copy already made.
-
-    Per TODO.md's "any future structural change gets a small sequential
-    `_migrate_vN_to_vN+1()` function" decision: this knows seven source
-    versions now -- v1 (`_migrate_v1_to_v2`), v2 (`_migrate_v2_to_v3`), v3
-    (`_migrate_v3_to_v4`), v4 (`_migrate_v4_to_v5`), v5
-    (`_migrate_v5_to_v6`), v6 (`_migrate_v6_to_v7`), and v7
-    (`_migrate_v7_to_v8`), picked by one `if`/`elif` below based on the
-    file's detected version. Still deliberately not a generic chaining
-    dispatcher/loop: `migrate_step` is invoked exactly once either way,
-    since `_ensure_schema` always applies the one current `schema.sql`
-    regardless of source version (there is no separate "as of v2" schema
-    snapshot to stop at partway) -- so each `_migrate_vN_to_vN+1`
-    function's job is really "map data shaped like version N straight into
-    the current schema", not "map N to N+1 and let the next hop take it
-    from there". `_migrate_v1_to_v2` in particular already goes all the
-    way from v1 to the current (v8) schema in this one call, including the
-    v3 `location` backfill and leaving v4's `sectors` columns `NULL`,
-    dropping v5's removed `table_*`/`binary_table_*` columns, never having
-    had v6's `vertices_pc` in the first place, and never having had v8's
-    `galaxy_shape`/`galaxy_shell_band` either (a v1 source needs no
-    special handling for any of these -- they came, went, or were simply
-    never populated before this function's target schema ever needed to
-    account for them) -- it doesn't hand off to `_migrate_v2_to_v3`/
-    `_migrate_v3_to_v4`/`_migrate_v4_to_v5`/`_migrate_v5_to_v6`/
-    `_migrate_v6_to_v7`/`_migrate_v7_to_v8` partway. A future structural
-    change will need to update every pre-existing `_migrate_vN_to_vN+1`
-    function the same way each past one did for the columns *it* added or
-    removed, or a genuine chaining rewrite if that keeps growing.
-
-    Args:
-        db_path (str): Path to the `.db` file.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
-        str or None: Path to the backup copy made before migrating, or
-                     `None` if no migration was needed. The backup is a
-                     gzip-compressed copy of the pre-migration file, named
-                     `<db_path>.v<sourceVersion>-backup-<timestamp>.db.gz`
-                     (see `BACKUP_MARKER`) -- deliberately *not* ending in
-                     bare `.db`, so a naive `*.db` glob (the web database
-                     picker in `html/lib/dbutil.py`, and this same CLI's
-                     own directory scan in `migrateDb.py`) never picks it
-                     back up as a live database or re-migrates it on a
-                     later run.
-
-    Raises:
-        UnsupportedSchemaVersionError: If `PRAGMA user_version` is neither
-                                       `SCHEMA_VERSION` nor a version this
-                                       module has a migration path from.
+        int: The database's current `schema_migrations` version (always
+            `SCHEMA_VERSION` today) after this call.
     """
-    probe = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    conn = get_connection(config)
     try:
-        version = probe.execute("PRAGMA user_version").fetchone()[0]
+        row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
+        return row["version"]
     finally:
-        probe.close()
-
-    if version == SCHEMA_VERSION:
-        return None
-    if version == 1:
-        migrate_step = _migrate_v1_to_v2
-    elif version == 2:
-        migrate_step = _migrate_v2_to_v3
-    elif version == 3:
-        migrate_step = _migrate_v3_to_v4
-    elif version == 4:
-        migrate_step = _migrate_v4_to_v5
-    elif version == 5:
-        migrate_step = _migrate_v5_to_v6
-    elif version == 6:
-        migrate_step = _migrate_v6_to_v7
-    elif version == 7:
-        migrate_step = _migrate_v7_to_v8
-    else:
-        raise UnsupportedSchemaVersionError(
-            f"{db_path}: unsupported schema version {version} (expected 1, 2, 3, 4, 5, 6, 7, or {SCHEMA_VERSION})"
-        )
-
-    backup_path = (
-        f"{db_path}.v{version}{BACKUP_MARKER}{time.strftime('%Y%m%dT%H%M%S')}.db.gz"
-    )
-    # SQLite can't `ATTACH` a gzip-compressed file directly, so the
-    # pre-migration copy is first made plain (at a throwaway temp path)
-    # and immediately gzip-compressed into the real `backup_path` -- the
-    # durable backup exists on disk, compressed, before `db_path` is
-    # touched, same as before this only-`shutil.copy2`'d a plain `.db`
-    # copy. The plain copy is only a scratch read source for the
-    # migration below and is removed once that's done.
-    plain_backup_path = f"{db_path}.migrating.source.tmp"
-    if os.path.exists(plain_backup_path):
-        os.remove(plain_backup_path)
-    shutil.copy2(db_path, plain_backup_path)
-    with open(plain_backup_path, "rb") as f_in, gzip.open(backup_path, "wb") as f_out:
-        shutil.copyfileobj(f_in, f_out)
-
-    tmp_path = f"{db_path}.migrating.tmp"
-    if os.path.exists(tmp_path):
-        os.remove(tmp_path)
-    new_conn = sqlite3.connect(tmp_path)
-    try:
-        _ensure_schema(new_conn)
-        new_conn.execute("ATTACH DATABASE ? AS old", (plain_backup_path,))
-        with new_conn:
-            migrate_step(new_conn)
-        new_conn.execute("DETACH DATABASE old")
-    finally:
-        new_conn.close()
-        os.remove(plain_backup_path)
-
-    os.replace(tmp_path, db_path)
-    return backup_path
+        conn.close()

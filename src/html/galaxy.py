@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 # (`html/` and `src/` as siblings under /var/lib/planetGen).
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
-from dbutil import esc, fetch_all, open_readonly, resolve_db_path
+from dbutil import esc, fetch_all, open_readonly, resolve_db_name
 from galaxymap import QUADRANT_LABELS, render_galaxy_map_panel, ring_bounds_ly, sector_quadrant, sector_ring
 from page import query_params, run
 
@@ -133,8 +133,8 @@ def handler():
     if quadrant not in QUADRANT_LABELS:
         quadrant = None
 
-    path = resolve_db_path(db_name)
-    conn = open_readonly(path)
+    config = resolve_db_name(db_name)
+    conn = open_readonly(config)
     try:
         sectors = _load_placed_sectors(conn)
     finally:

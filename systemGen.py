@@ -130,9 +130,7 @@ def process_args():
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
 
     # Database persistence
-    parser.add_argument('--db-path', type=str,
-                        help="Path to the SQLite database file the generated system is saved to. "
-                             "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
+    _db.add_mysql_connection_args(parser)
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
@@ -376,9 +374,10 @@ def main():
     else:
         print(system)
 
-    star_system_id = _db.save_system(system, system_config, db_path=args.db_path)
-    db_path = args.db_path or _db.DEFAULT_DB_PATH
-    print(f"Saved system '{system.star.name}' to the database (star_system_id={star_system_id}, {db_path}).")
+    mysql_config = _db.mysql_config_from_args(args)
+    star_system_id = _db.save_system(system, system_config, config=mysql_config)
+    print(f"Saved system '{system.star.name}' to the database (star_system_id={star_system_id}, "
+          f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
 if __name__ == "__main__":
     main()

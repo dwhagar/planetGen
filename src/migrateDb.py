@@ -2,74 +2,58 @@
 # src/migrateDb.py
 
 """
-Migrates every planetGen SQLite database in a directory to the current
-schema (`stellarObjects/schema.sql`'s `PRAGMA user_version`), backing
-each one up first -- a no-op for a database that's already current. See
-`stellarObjects/_db.py`'s `migrate_database` for how a single database is
-converted and backed up.
+Brings the configured planetGen MySQL database's `schema_migrations`
+bookkeeping up to the current schema (`stellarObjects/schema.sql`),
+applying any migration step in between -- a no-op for a database that's
+already current. See `stellarObjects/_db.py`'s `migrate_database` for how
+a single database's version is checked/advanced.
 
 Run automatically by `install.sh` (and so by `update.sh`, which calls it)
-on every deploy, so a database generated under an older schema keeps
+on every deploy, so a database created under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
-for a one-off migration outside of a deployment.
+for a one-off check/migration outside of a deployment.
 
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
 
 Usage:
-    python3 src/migrateDb.py [db_dir]
+    python3 src/migrateDb.py [--mysql-host HOST] [--mysql-port PORT]
+                             [--mysql-user USER] [--mysql-password PASSWORD]
+                             [--mysql-database DATABASE]
 
-    db_dir defaults to `db/` at the repo root (two directories up from
-    this file's location under src/), not alongside this script.
+    Every flag defaults to the same $PLANETGEN_MYSQL_* environment
+    variable every other entry point in this project reads (see
+    `stellarObjects._db.MySQLConfig`) -- unlike the pre-MySQL-port version
+    of this script, there is exactly one database to migrate (a MySQL
+    server, not a directory of `*.db` files), so this needs a connection
+    to point at rather than a directory to scan.
 """
 
 import argparse
-import glob
-import os
 import sys
 
-from stellarObjects._db import BACKUP_MARKER, SCHEMA_VERSION, UnsupportedSchemaVersionError, migrate_database
-
-DEFAULT_DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "db")
+from stellarObjects._db import SCHEMA_VERSION, add_mysql_connection_args, migrate_database, mysql_config_from_args
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Migrate every *.db file in a directory to the current schema.")
-    parser.add_argument(
-        "db_dir", nargs="?", default=DEFAULT_DB_DIR,
-        help=f"Directory containing *.db files (default: {DEFAULT_DB_DIR}).",
+    parser = argparse.ArgumentParser(
+        description="Bring the configured MySQL database's schema_migrations bookkeeping up to date.",
     )
+    add_mysql_connection_args(parser)
     args = parser.parse_args()
 
-    if not os.path.isdir(args.db_dir):
-        print(f"No database directory at {args.db_dir} -- nothing to migrate.")
-        return
+    try:
+        version = migrate_database(mysql_config_from_args(args))
+    except Exception as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
-    # Backups made by a previous run of this same migration are gzip
-    # files (`.db.gz`, from `migrate_database`) so they wouldn't match
-    # this `*.db` glob anyway -- but they're also excluded by name here,
-    # explicitly, so a backup is never handed back into
-    # `migrate_database` (which would re-migrate it and stamp out a
-    # nested backup) even if the naming scheme changes again later.
-    paths = [
-        path for path in sorted(glob.glob(os.path.join(args.db_dir, "*.db")))
-        if BACKUP_MARKER not in os.path.basename(path)
-    ]
-    if not paths:
-        print(f"No *.db files in {args.db_dir} -- nothing to migrate.")
-        return
-
-    for path in paths:
-        try:
-            backup_path = migrate_database(path)
-        except UnsupportedSchemaVersionError as exc:
-            print(f"error: {exc}", file=sys.stderr)
-            sys.exit(1)
-        if backup_path:
-            print(f"Migrated {path} to schema v{SCHEMA_VERSION} (backup: {backup_path})")
-        else:
-            print(f"{path}: already at schema v{SCHEMA_VERSION}, skipped")
+    if version == SCHEMA_VERSION:
+        print(f"Database is at schema v{SCHEMA_VERSION} (current).")
+    else:
+        print(f"Database is at schema v{version}, expected v{SCHEMA_VERSION} -- no migration path available yet.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

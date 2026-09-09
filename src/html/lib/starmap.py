@@ -54,9 +54,8 @@ try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
-    # duplicated literally (matching dbutil.py's own fallback constants)
-    # rather than left unimportable, since these drive the map's color
-    # math directly.
+    # duplicated literally rather than left unimportable, since these
+    # drive the map's color math directly.
     SPECTRAL_CLASS_COLORS = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
     TEMP_RANGES = {
         'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000), 'F': (6000, 7500),

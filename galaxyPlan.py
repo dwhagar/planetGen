@@ -40,7 +40,9 @@ shell's own band-finding is fully independent of every other shell's, so
 shells are dispatched to a `multiprocessing.Pool` in fixed-size chunks
 (`--chunk-size`, default scaled to `--workers`) -- one process-pool round
 trip per chunk, main process only ever reading pool results and writing to
-the database (SQLite allows one writer; workers never touch it).
+the database (workers never touch it -- there's no need for more than one
+writer given how little data this script's own writes involve, a
+singleton row plus a few thousand band rows at most).
 """
 
 import argparse
@@ -142,9 +144,7 @@ def process_args():
                              "os.cpu_count() (or 1 if that can't be determined).")
     parser.add_argument('--chunk-size', type=int, default=None,
                         help="Shells dispatched per parallel round. Defaults to 8x --workers.")
-    parser.add_argument('--db-path', type=str,
-                        help="Path to the SQLite database file the skeleton is saved to. Defaults to "
-                             "stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
+    _db.add_mysql_connection_args(parser)
 
     args = parser.parse_args()
 
@@ -240,10 +240,11 @@ def build_skeleton(args):
 
     elapsed = time.perf_counter() - t0
 
-    _db.replace_galaxy_shell_bands(all_bands, db_path=args.db_path)
+    mysql_config = _db.mysql_config_from_args(args)
+    _db.replace_galaxy_shell_bands(all_bands, config=mysql_config)
     _db.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
-        expected_system_count_at_density_1=e_value, db_path=args.db_path,
+        expected_system_count_at_density_1=e_value, config=mysql_config,
     )
 
     total_candidate_slots = sum(b[3] - b[2] + 1 for b in all_bands)

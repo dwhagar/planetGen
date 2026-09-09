@@ -70,8 +70,9 @@ import logging
 import os
 import random
 import secrets
-import sqlite3
 import sys
+
+import pymysql
 
 # stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
 # import path so this keeps working without requiring `pip install .`
@@ -147,9 +148,7 @@ def process_args():
                              "shell whose total slot count exceeds LARGE_SHELL_WARNING_THRESHOLD.")
     parser.add_argument('--radius-pc', type=float,
                         help="With --center-sector: the neighborhood search radius, in parsecs.")
-    parser.add_argument('--db-path', type=str,
-                        help="Path to the SQLite database file sectors are read from and saved to. "
-                             "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
+    _db.add_mysql_connection_args(parser)
 
     args = parser.parse_args()
 
@@ -241,11 +240,11 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
         "shell_index": shell_index, "shell_slot_index": shell_slot_index,
         "vertices_pc": vertices_pc,
     }
-    sector_id = _db.save_sector(sector, db_path=args.db_path, galaxy_position=galaxy_position)
+    sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args), galaxy_position=galaxy_position)
     return sector_id, sector_name
 
 
-def _default_generation_args(db_path=None):
+def _default_generation_args(config=None):
     """
     Builds a minimal `argparse.Namespace`, shaped exactly like
     `sectorGen.process_args()`'s own output, for a caller with no actual
@@ -260,7 +259,12 @@ def _default_generation_args(db_path=None):
     its argparse logic" brief `process_args` itself follows.
 
     Args:
-        db_path (str, optional): Path to the SQLite database file.
+        config (MySQLConfig, optional): Connection parameters, copied
+            onto the returned namespace's `mysql_*` attributes so
+            `generate_and_save_sector_at`'s own
+            `_db.mysql_config_from_args(args)` call works on this
+            synthetic namespace exactly like it does on a real
+            `process_args()` result. Defaults to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
         argparse.Namespace: Every shared generation option at its
@@ -284,11 +288,17 @@ def _default_generation_args(db_path=None):
     args.num_orbits = None
     args.name = None
     args.output = None
-    args.db_path = db_path
+
+    config = config or _db.MySQLConfig()
+    args.mysql_host = config.host
+    args.mysql_port = config.port
+    args.mysql_user = config.user
+    args.mysql_password = config.password
+    args.mysql_database = config.database
     return args
 
 
-def ensure_sector_generated(shell_index, shell_slot_index, db_path=None):
+def ensure_sector_generated(shell_index, shell_slot_index, config=None):
     """
     The galaxy map's "recalculate on visit" entry point: returns the
     sector already generated at this address if one exists; otherwise
@@ -309,7 +319,7 @@ def ensure_sector_generated(shell_index, shell_slot_index, db_path=None):
     possible (this isn't a single-process batch script) -- handled via
     `sectors`'s own `UNIQUE (shell_index, shell_slot_index)` constraint
     (schema.sql's "v8" note): whichever caller's `INSERT` loses the race
-    gets `sqlite3.IntegrityError` back from `generate_and_save_sector_at`,
+    gets `pymysql.err.IntegrityError` back from `generate_and_save_sector_at`,
     caught here and turned into "return what the other call just created"
     rather than a crash or a duplicate row.
 
@@ -317,8 +327,8 @@ def ensure_sector_generated(shell_index, shell_slot_index, db_path=None):
         shell_index (int): This sector's shell index.
         shell_slot_index (int): This sector's slot index within that
                                 shell.
-        db_path (str, optional): Path to the SQLite database file.
-                                 Defaults to `stellarObjects._db.DEFAULT_DB_PATH`.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
         dict: `created` (bool -- whether this call generated a new sector,
@@ -332,7 +342,7 @@ def ensure_sector_generated(shell_index, shell_slot_index, db_path=None):
         RuntimeError: If the galaxy's skeleton has never been built --
                      run `galaxyPlan.py` first.
     """
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(config)
     try:
         existing_id = _db.get_sector_id_at(conn, shell_index, shell_slot_index)
         if existing_id is not None:
@@ -364,7 +374,7 @@ def ensure_sector_generated(shell_index, shell_slot_index, db_path=None):
         # see galaxySkeleton's own module docstring for why that's expected.
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
-    args = _default_generation_args(db_path=db_path)
+    args = _default_generation_args(config=config)
     args.density = density
     args.num_systems = None
 
@@ -372,8 +382,8 @@ def ensure_sector_generated(shell_index, shell_slot_index, db_path=None):
         sector_id, sector_name = generate_and_save_sector_at(
             args, shell_index, shell_slot_index, position_pc, skeleton.edge_pc,
         )
-    except sqlite3.IntegrityError:
-        conn = _db.get_connection(db_path)
+    except pymysql.err.IntegrityError:
+        conn = _db.get_connection(config)
         try:
             existing_id = _db.get_sector_id_at(conn, shell_index, shell_slot_index)
         finally:
@@ -410,7 +420,7 @@ def run_shell_batch(args, edge_pc):
             f"slots, or --yes to confirm generating all {total_slots}."
         )
 
-    conn = _db.get_connection(args.db_path)
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
         occupied = _db.get_occupied_shell_slots(conn, [shell_index])
     finally:
@@ -452,7 +462,7 @@ def run_local_neighborhood(args, edge_pc):
                    columns are NULL -- e.g. a sector generated by
                    `sectorGen.py`'s own standalone CLI).
     """
-    conn = _db.get_connection(args.db_path)
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
         try:
             center_position = _db.get_sector_galaxy_position(conn, args.center_sector)
@@ -475,7 +485,7 @@ def run_local_neighborhood(args, edge_pc):
     candidates = list(enumerate_sectors_within_radius(center, args.radius_pc, edge_pc))
 
     candidate_shells = sorted({shell_index for shell_index, _slot, _x, _y, _z, _dist in candidates})
-    conn = _db.get_connection(args.db_path)
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
         occupied = _db.get_occupied_shell_slots(conn, candidate_shells)
     finally:

@@ -55,7 +55,9 @@ try:
     from stellarObjects.utils import pc_to_ly
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
-    # duplicated fallback, matching starmap.py/dbutil.py's own pattern.
+    # duplicated fallback, matching starmap.py's own pattern (dbutil.py
+    # itself no longer has one -- stellarObjects is a hard dependency
+    # there now that its MySQL connection helpers are load-bearing).
     DEFAULT_SECTOR_EDGE_LY = 11.5
     pc_to_ly = None
 

@@ -38,11 +38,14 @@ open.
   save every run to the database unconditionally; `src/queryDb.py` is a
   read-only search CLI.
 
-## Completed work log (through 2026-09-07)
+## Completed work log (through 2026-09-09)
 
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **MySQL migration (Phase 5) and Flask API pagination/validation/health
+  check/JSON error handling** — CHANGELOG [5.5.0]; see "Phase 5" below
+  and `docs/api.md`/`docs/database-schema.md`.
 - Backend API (Flask), mounted at `/api/` alongside the interim `html/`
   browser (commit `ee8daab`); see `docs/api.md`.
 - Evolved-star pre-Big-Bang mass fix via reject-and-resample
@@ -210,38 +213,20 @@ deployment today rather than the full multi-user vision below.
   [`docs/api.md`](api.md).
 - [ ] Frontend for browsing/searching the galaxy (sector maps, system detail
   pages, search/filter UI).
-- [ ] Almost certainly means moving off SQLite to **MySQL** (the database
-  server already present on the deployment host, per user decision — not
-  PostgreSQL as this section previously speculated) for real concurrent
-  multi-user access. Phase 2 deliberately stuck to raw `sqlite3`/plain SQL
-  for now, so this is hand-porting the DDL and persistence layer rather
-  than a drop-in config change. Major changes this will require, not yet
-  started:
-    - **`stellarObjects/schema.sql` porting**: `PRAGMA user_version`
-      (the current schema-version mechanism, see `_db.py`'s
-      `SCHEMA_VERSION`/`migrate_database`) has no MySQL equivalent — needs
-      a real `schema_migrations` tracking table instead. `INTEGER PRIMARY
-      KEY` autoincrement semantics, `CHECK` constraint support, and
-      `TEXT`/`REAL` column types all differ between SQLite and MySQL and
-      need explicit type mapping (`REAL` → `DOUBLE`, `TEXT` → `VARCHAR`/
-      `TEXT` per-column, etc.); pick an explicit storage engine (InnoDB,
-      for real foreign-key enforcement matching `PRAGMA foreign_keys = ON`
-      today).
-    - **`stellarObjects/_db.py` porting**: swap the `sqlite3` stdlib
-      module for a MySQL driver (`PyMySQL` or `mysqlclient` — pick one and
-      justify it, similar to how this section already justified Flask
-      over FastAPI); every `?` positional placeholder becomes `%s`; add
-      real connection pooling (SQLite's single-file-lock model doesn't
-      carry over — MySQL wants a proper pool for concurrent access, which
-      is the whole point of this migration).
-    - **`src/api/config.py` / `src/queryDb.py` porting**: both currently assume a
-      SQLite file path (`DB_PATH`/`--db-path`) rather than a connection
-      string/host+credentials pair — see TODO in src/api/config.py near
-      `Config.DB_PATH` and src/queryDb.py near `open_readonly`/`--db-path`.
-    - **Data migration**: existing `.db` files need a one-time export/
-      import into MySQL; no tooling for this exists yet.
-    - Revisit tooling (e.g. an ORM/migration framework) at that point if
-      the hand-ported approach proves painful, per the original note here.
+- [x] **Moved off SQLite to MySQL** for real concurrent multi-user access
+  — implemented in full: `schema.sql` ported to MySQL/InnoDB DDL (a real
+  `schema_migrations` table replacing `PRAGMA user_version`, explicit
+  type mapping, every index/FK declared inline per table); `_db.py` now
+  uses `pymysql` (pure Python, no build-time system libraries needed on
+  the deployment host — chosen over `mysqlclient` for that reason) behind
+  a small `Connection` compatibility wrapper, with real pooling via
+  `DBUtils.PooledDB`; every entry point (`sectorGen.py`/`systemGen.py`/
+  `galaxyGen.py`/`queryDb.py`/`migrateDb.py`/`src/api/`/`src/html/`) takes
+  `--mysql-*`/`PLANETGEN_MYSQL_*` connection config instead of a SQLite
+  path; a one-time `src/migrateSqliteToMysql.py` imports an existing
+  pre-port database. See `docs/database-schema.md` and
+  `schema.sql`'s "MySQL port" header note for the full rationale;
+  CHANGELOG [5.5.0].
 
 ### Near-term: interim `../src/html/` browser enhancements
 

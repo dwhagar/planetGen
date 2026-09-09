@@ -19,18 +19,27 @@
 #
 #   /var/lib/planetGen/
 #     html/     -- this vhost's DocumentRoot (the repo's html/ directory)
-#     db/       -- the repo's db/ directory (the *.db files html/ reads)
 #     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
 #                   particular), so html/'s scripts can import the
 #                   planetGen package without a separate `pip install`
+#
+# The database itself is a MySQL server, not a local file under this
+# layout (TODO.md Phase 5) -- point the CGI scripts at it with the
+# PLANETGEN_MYSQL_* SetEnv directives below.
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
     DocumentRoot /var/lib/planetGen/src/html
 
-    # Tell the CGI scripts where to find the database directory. Only
-    # needed if it isn't the default sibling ../db next to html/.
-    # SetEnv PLANETGEN_DB_DIR /var/lib/planetGen/db
+    # Tell the CGI scripts which MySQL server/account to use. Only needed
+    # if any differs from stellarObjects._db.MySQLConfig's own defaults
+    # (127.0.0.1:3306, user/database "planetgen"). Use a SELECT-only
+    # database account here -- this web interface never writes.
+    # SetEnv PLANETGEN_MYSQL_HOST db.example.com
+    # SetEnv PLANETGEN_MYSQL_PORT 3306
+    # SetEnv PLANETGEN_MYSQL_USER planetgen_readonly
+    # SetEnv PLANETGEN_MYSQL_PASSWORD changeme
+    # SetEnv PLANETGEN_MYSQL_DATABASE_PREFIX planetgen
 
     <Directory /var/lib/planetGen/src/html>
         Options +ExecCGI -Indexes

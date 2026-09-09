@@ -25,7 +25,9 @@ This project uses the `nltk` library to generate phonetically pleasing names. In
 pip install .
 ```
 
-run from the root of the project. This installs the `nltk` library; the 'words' corpus it needs for name generation is then downloaded automatically, the first time it's needed, by whichever user first imports `stellarObjects`. (Do not run `python setup.py install` directly -- it's deprecated by setuptools itself and, on some systems, an old system-installed copy of a dependency setuptools vendors internally can shadow the working bundled one and crash the install; a normal `pip install` avoids this by building in an isolated environment. See [`CHANGELOG.md`](CHANGELOG.md) for the incident this was fixed after.)
+run from the root of the project. This installs `nltk` (the 'words' corpus it needs for name generation is then downloaded automatically, the first time it's needed, by whichever user first imports `stellarObjects`), plus `pymysql`/`DBUtils` for database persistence. (Do not run `python setup.py install` directly -- it's deprecated by setuptools itself and, on some systems, an old system-installed copy of a dependency setuptools vendors internally can shadow the working bundled one and crash the install; a normal `pip install` avoids this by building in an isolated environment. See [`CHANGELOG.md`](CHANGELOG.md) for the incident this was fixed after.)
+
+Every generation run saves to a MySQL database (see [`docs/database-schema.md`](docs/database-schema.md)) — you'll need a MySQL server (8.0.16+, for `CHECK` constraint support) reachable from wherever you run these scripts, with a database/user already created. Point the tools at it with the `$PLANETGEN_MYSQL_HOST`/`$PLANETGEN_MYSQL_PORT`/`$PLANETGEN_MYSQL_USER`/`$PLANETGEN_MYSQL_PASSWORD`/`$PLANETGEN_MYSQL_DATABASE` environment variables (or the equivalent `--mysql-*` flags each script accepts) — tables are created automatically on first connection.
 
 Deploying the web interface to a Linux/Apache server is a separate, more involved process — see [Web Interface](#web-interface) below.
 
@@ -112,14 +114,15 @@ Sector-specific options:
 *   `--num-systems <int>`: How many star systems the sector contains. Defaults to 10.
 *   `--name <name>`, `-n <name>`: Hard-sets the sector's own name, overriding the default random two-word name (e.g. `"Voranthis Kelmoor"`) generated the same phoneme-salad way as star/planet/moon names.
 *   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one the way a uniform `+habitable_world` would. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`, and cannot be combined with a uniform `-habitable_world`.
-*   `--db-path <path>`: Where the generated sector is saved in the SQLite database. Defaults to `db/planetgen.db` at the project root.
+*   `--mysql-host <host>`, `--mysql-port <port>`, `--mysql-user <user>`, `--mysql-password <password>`, `--mysql-database <database>`: Where the generated sector is saved. Each defaults to the matching `$PLANETGEN_MYSQL_*` environment variable, or a built-in default (`127.0.0.1:3306`, user/database `planetgen`) -- see [`docs/database-schema.md`](docs/database-schema.md).
 
-The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn. Every run also saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus a rendered copy of the wiki page in both wikitext and Markdown — to the SQLite database described in [`docs/database-schema.md`](docs/database-schema.md), regardless of whether `--output` was given.
+The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn. Every run also saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus a rendered copy of the wiki page in both wikitext and Markdown — to the MySQL database described in [`docs/database-schema.md`](docs/database-schema.md), regardless of whether `--output` was given.
 
 ## Web Interface
 
-[`src/html/`](docs/html-interface.md) contains a small, dependency-free web interface
-(plain Python CGI scripts, no framework) for browsing the SQLite databases
+[`src/html/`](docs/html-interface.md) contains a small web interface
+(plain Python CGI scripts, no framework beyond `stellarObjects`' own MySQL
+runtime dependencies) for browsing the MySQL databases (schemas)
 described in [`docs/database-schema.md`](docs/database-schema.md) -- pick a database, drill into
 its sectors and star systems, and view or copy the rendered wikitext/
 Markdown page saved for each one, or jump straight to an object via
@@ -128,8 +131,8 @@ star spectral/luminosity class, planet class/body type, supported life
 chemistry) built from only the values actually present in the chosen
 database, plus an autocompleting name search across sectors, systems,
 stars, and planets/moons -- a Search link to it is always available in the
-page header once a database is selected. If the database directory
-contains exactly one `.db` file, the landing page skips the picker and
+page header once a database is selected. If the configured MySQL server has
+exactly one matching database, the landing page skips the picker and
 goes straight to browsing it. It's meant to be deployed to an Apache2
 install on a Linux server; run `sudo ./install.sh` from the repo root on
 the server to do the whole install (Python package, the NLTK corpus

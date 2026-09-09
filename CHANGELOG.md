@@ -1,6 +1,134 @@
 # Changelog
 
-## [Unreleased]
+## [5.7.0] - 2026-09-09
+
+### Changed
+- **Merged the parallel Phase 4 "galaxy density skeleton" work (schema
+  v6-v8: `sector_vertices`, `galaxy_shape`, `galaxy_shell_band`,
+  `galaxyGen.ensure_sector_generated` lazy generation -- see [5.4.7] and
+  [5.4.8] below) into the MySQL backend from [5.5.0].** That work landed
+  on `main` entirely against the pre-port SQLite backend while this
+  branch's MySQL port was in flight from the same base commit, so every
+  new table, `_db.py` function (`get_sector_id_at`, `save_galaxy_shape`,
+  `get_galaxy_shape`, `replace_galaxy_shell_bands`,
+  `get_galaxy_shell_bands`, the vertex-writing/-reading in
+  `insert_sector`/`get_sector_galaxy_position`), and CLI script
+  (`galaxyGen.py`'s rewrite, the new `galaxyPlan.py`) needed porting to
+  MySQL/`pymysql`/`MySQLConfig` as part of reconciling the two lines of
+  work, same conventions as the rest of the MySQL port: `?` placeholders
+  (translated by the `Connection` wrapper), `--mysql-*`/`config=` instead
+  of `--db-path`/`db_path=`, and MySQL's `INSERT ... ON DUPLICATE KEY
+  UPDATE` instead of SQLite's `INSERT ... ON CONFLICT DO UPDATE` for
+  `save_galaxy_shape`'s singleton-row upsert.
+
+### Fixed
+- **`stellarObjects/galaxyGeometry.py` called an undefined
+  `_theta_for_index` in both `sector_position_pc` and
+  `sector_wedge_vertices_pc`** -- a pre-existing bug on `main` (confirmed
+  present there independent of this merge), only `_phi_for_index` had
+  ever been defined despite the module's own `GOLDEN_RATIO` docstring
+  describing the golden-angle azimuthal step it was supposed to compute.
+  Every galaxy-placement test failed with `NameError` until this merge's
+  full test run surfaced it. Added the missing function
+  (`theta_i = (2*pi*i / GOLDEN_RATIO) mod 2*pi`), matching the exact
+  formula `test_galaxy_geometry.py`'s own worked-example test already
+  documented and asserted against.
+- **`stellarObjects._db.Connection`'s `execute`/`executemany` could
+  return a `tuple` instead of a `list` from `.fetchall()` when zero rows
+  matched** -- confirmed by testing, `pymysql`'s own cursor returns `()`
+  for no rows but a `list` when rows exist, unlike `sqlite3`'s cursor
+  (always a `list`). Surfaced by a real MariaDB test run as a spurious
+  `assert result == []` failure (`test_ensure_sector_generated_reports_no_content_outside_every_stored_band`)
+  that never appeared without a live server. Added a `_Cursor` proxy
+  wrapping every returned cursor to normalize `fetchall()` to always
+  return a `list`, so no other call site (present or future) can trip
+  over the same inconsistency.
+
+## [5.6.0] - 2026-09-09
+
+### Added
+- **Rate limiting (Flask-Limiter), applied to the whole API out of the
+  box.** Default limits (200/day, 50/hour per client IP -- Flask-Limiter's
+  own quickstart example, overridable via `PLANETGEN_RATELIMIT_DEFAULT`)
+  apply to every route except `/api/health`; every write endpoint (below)
+  additionally layers a stricter 10/minute limit on top
+  (`routes.WRITE_RATE_LIMIT`). Exceeding a limit returns `429
+  {"error": "rate limit exceeded", "detail": "..."}` (never Flask-Limiter's
+  own default plain-text body) with `Retry-After`/`X-RateLimit-*`
+  headers. Storage backend defaults to in-memory
+  (`PLANETGEN_RATELIMIT_STORAGE_URI`, correct for a single-process
+  deployment; a multi-worker `mod_wsgi`/`gunicorn` deployment needs a
+  shared backend, e.g. Redis, or each worker under-enforces the
+  configured limit by tracking its own separate counters).
+- **Write-stub endpoints**: `POST`/`PATCH`/`DELETE` on `/api/sectors` and
+  `/api/systems`. Every one validates its JSON request body (sectors get
+  a fully mapped-out `{"name", "edge_ly"}` schema; systems only check
+  "is a JSON object" for now -- see docs/api.md for why that one's
+  field-level schema is still an open design question) and applies
+  `WRITE_RATE_LIMIT`, but always responds `501 {"error": "... is not
+  implemented yet"}` -- no row is ever inserted, updated, or deleted.
+  Exists now so the request/response contract is settled and testable
+  before the real database logic lands; see docs/api.md's "Write
+  endpoints" section for what filling them in for real will also need
+  (a write-capable database account, and authentication/authorization --
+  neither exists yet, and both are load-bearing on this API staying
+  read-only in practice today).
+
+## [5.5.0] - 2026-09-09
+
+### Added
+- **Flask API: pagination, input validation, health check, and JSON-only
+  error handling.** `/api/sectors`/`/api/systems` now return a paginated
+  `{"items", "total", "limit", "offset"}` envelope instead of a bare list
+  (`limit` defaults to 100, clamped to 500; `offset` defaults to 0) --
+  this project's own roadmap plans galaxy-scale generation, so an
+  unbounded listing endpoint would eventually return an unbounded
+  response. Every query parameter (`limit`/`offset`/`sector_id`/`radius`)
+  is now validated and rejected with a `400 {"error": "..."}` rather than
+  silently ignored or crashing. Added `GET /api/health` for
+  liveness/readiness monitoring. Every error response -- 400, 404
+  (including an unmatched route), 405, and 500 -- is now JSON, never
+  Flask's default HTML error page, and a 500 never leaks exception detail
+  to the client. See `docs/api.md`.
+- **MySQL backend (`TODO.md` Phase 5), replacing SQLite entirely.**
+  `stellarObjects/schema.sql` is now MySQL/InnoDB DDL (`BIGINT UNSIGNED`
+  ids, `DOUBLE`/`VARCHAR`/`TEXT`/`LONGTEXT` typing, a real
+  `schema_migrations` tracking table replacing `PRAGMA user_version`,
+  every index/foreign key declared inline per table for
+  `CREATE TABLE IF NOT EXISTS` idempotency). `stellarObjects/_db.py` now
+  talks to MySQL via `pymysql` (pure-Python driver) through a small
+  `Connection` wrapper that keeps every existing call site's
+  `conn.execute(sql, params)`/`row["column"]` shape unchanged, backed by
+  a real connection pool (`DBUtils.PooledDB`) per TODO.md's "add real
+  connection pooling" note. Every tool that touches the database
+  (`sectorGen.py`, `systemGen.py`, `galaxyGen.py`, `queryDb.py`,
+  `migrateDb.py`, `src/api/`, `src/html/`) now takes `--mysql-*` flags/
+  `PLANETGEN_MYSQL_*` environment variables (`stellarObjects._db.MySQLConfig`)
+  instead of `--db-path`/`PLANETGEN_DB_PATH`; the CGI browser's database
+  picker now lists MySQL schemas on the configured server (filtered by
+  `PLANETGEN_MYSQL_DATABASE_PREFIX`) instead of `.db` files in a
+  directory. A new one-time `src/migrateSqliteToMysql.py` script imports
+  an existing pre-port SQLite database (already at schema v5) into
+  MySQL. The SQLite-specific `v1`-`v5` in-place migration machinery
+  (`migrate_database`'s per-version steps, gzip file backups,
+  `BACKUP_MARKER`) is removed entirely, since every MySQL database this
+  project creates now starts at the current schema directly. See
+  `docs/database-schema.md`.
+
+### Changed
+- `setup.py`'s `install_requires` gained `pymysql`/`DBUtils` (core
+  dependencies now, not just the `api` extra) -- every database-touching
+  entry point needs them, not only the Flask API.
+
+### Fixed
+- **`test_mdconvert.py`'s own `sys.path` setup pointed at a
+  nonexistent top-level `html/lib/` instead of `src/html/lib/`,
+  silently masked by `test_db_migration.py` (collected first,
+  alphabetically) inserting the correct path first.** Deleting
+  `test_db_migration.py` (see above) exposed it; fixed the path
+  computation directly.
+
+## [5.4.8] - 2026-09-09
 
 ### Added
 - **Galaxy-wide density "skeleton"** (schema v8: `galaxy_shape`,

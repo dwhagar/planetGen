@@ -7,28 +7,29 @@ CLI script (`docs/design/galaxy-coordinate-system.md` section 8,
 `galaxyGeometry`'s pure functions (shell math, the enumeration primitive)
 in isolation; this file is the missing piece -- actually running
 `galaxyGen.py`'s two CLI modes (`--shell`, `--center-sector`) against a
-real temporary database and inspecting the resulting `sectors` rows.
+real, throwaway MySQL database (see `conftest.py`'s `mysql_config`
+fixture) and inspecting the resulting `sectors` rows.
 
 Runs the real CLI entry point (`main()`, via `sys.argv`) rather than
-calling internals directly -- the same "set sys.argv, call main(), assert
-on the database afterward" pattern `test_db_migration.py` uses for
-`migrateDb.main()`, since that's this repo's existing convention for
-testing a CLI script end-to-end (as opposed to `test_sector_gen.py`, which
-tests `generate_sector_name` as a plain function because it has no
-database/CLI side effects to speak of).
+calling internals directly -- this repo's existing convention for testing
+a CLI script end-to-end (as opposed to `test_sector_gen.py`, which tests
+`generate_sector_name` as a plain function because it has no database/CLI
+side effects to speak of).
 
 `--num-systems 1` keeps every generated sector's own system-generation
 cost to a minimum -- these tests are about sector *placement*/persistence
 (shell/slot addresses, positions, occupied-slot skipping), not system
 content, which is already covered extensively elsewhere
 (`test_systems.py`, `test_db_persistence.py`).
+
+Every test here takes the `mysql_config` fixture -- they're skipped, not
+failed, when no MySQL test server is configured/reachable.
 """
 
 import math
-import os
-import sqlite3
 import sys
 
+import pymysql
 import pytest
 
 import galaxyGen
@@ -59,7 +60,7 @@ _SKELETON_SHAPE = build_galaxy_shape(
 )
 
 
-def _seed_skeleton(db_path, shape=_SKELETON_SHAPE, outer_shell_index=999, e_value=1.0, bands=()):
+def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e_value=1.0, bands=()):
     """
     Directly writes a `galaxy_shape`/`galaxy_shell_band` skeleton, without
     running `galaxyPlan.py`'s own scan -- these tests exercise
@@ -68,7 +69,7 @@ def _seed_skeleton(db_path, shape=_SKELETON_SHAPE, outer_shell_index=999, e_valu
     `test_galaxy_skeleton.py`).
 
     Args:
-        db_path (str): Path to the SQLite database file.
+        mysql_config (MySQLConfig): The fixture's throwaway database.
         shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
         outer_shell_index (int): See `_db.save_galaxy_shape`.
         e_value (float): `expected_system_count_at_density_1`.
@@ -76,8 +77,20 @@ def _seed_skeleton(db_path, shape=_SKELETON_SHAPE, outer_shell_index=999, e_valu
             slot_index_max)` tuples -- see `_db.replace_galaxy_shell_bands`.
     """
     _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=outer_shell_index,
-                           expected_system_count_at_density_1=e_value, db_path=db_path)
-    _db.replace_galaxy_shell_bands(list(bands), db_path=db_path)
+                           expected_system_count_at_density_1=e_value, config=mysql_config)
+    _db.replace_galaxy_shell_bands(list(bands), config=mysql_config)
+
+
+def _mysql_argv(mysql_config):
+    """The `--mysql-*` argv fragment pointing a CLI invocation at the
+    fixture's throwaway database."""
+    return [
+        "--mysql-host", mysql_config.host,
+        "--mysql-port", str(mysql_config.port),
+        "--mysql-user", mysql_config.user,
+        "--mysql-password", mysql_config.password,
+        "--mysql-database", mysql_config.database,
+    ]
 
 
 def _run_cli(argv):
@@ -102,15 +115,13 @@ def _run_sector_gen_cli(argv):
         sys.argv = old_argv
 
 
-def _all_sectors(db_path):
-    """Returns every `sectors` row, or an empty list if the database file
-    doesn't exist yet -- `run_shell_batch`'s `LARGE_SHELL_WARNING_THRESHOLD`
-    guard raises before ever calling `_db.get_connection`, so a rejected
-    run never creates the file at all."""
-    if not os.path.exists(db_path):
-        return []
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+def _all_sectors(mysql_config):
+    """Returns every `sectors` row. `get_connection`'s own `_ensure_schema`
+    creates the table if a rejected run never got as far as calling it
+    (`run_shell_batch`'s `LARGE_SHELL_WARNING_THRESHOLD` guard raises
+    before ever calling `_db.get_connection`), so this never errors on a
+    fresh, empty database -- it just returns an empty list."""
+    conn = _db.get_connection(mysql_config)
     try:
         return conn.execute(
             "SELECT id, name, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, "
@@ -120,15 +131,13 @@ def _all_sectors(db_path):
         conn.close()
 
 
-def test_shell_batch_mode_generates_every_slot_and_is_idempotent(tmp_path):
-    db_path = str(tmp_path / "galaxy.db")
-
+def test_shell_batch_mode_generates_every_slot_and_is_idempotent(mysql_config):
     # Shell 0 holds exactly 3 slots -- small enough to run under
     # LARGE_SHELL_WARNING_THRESHOLD with no --limit/--yes needed.
     assert shell_sector_count(0) == 3
-    _run_cli(["--shell", "0", "--num-systems", "1", "--db-path", db_path])
+    _run_cli(["--shell", "0", "--num-systems", "1"] + _mysql_argv(mysql_config))
 
-    sectors = _all_sectors(db_path)
+    sectors = _all_sectors(mysql_config)
     assert len(sectors) == 3
     addresses = {(row["shell_index"], row["shell_slot_index"]) for row in sectors}
     assert addresses == {(0, 0), (0, 1), (0, 2)}
@@ -140,38 +149,34 @@ def test_shell_batch_mode_generates_every_slot_and_is_idempotent(tmp_path):
 
     # Re-running the same shell must skip every already-occupied slot
     # (get_occupied_shell_slots) rather than generating duplicates.
-    _run_cli(["--shell", "0", "--num-systems", "1", "--db-path", db_path])
-    sectors_after_rerun = _all_sectors(db_path)
+    _run_cli(["--shell", "0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    sectors_after_rerun = _all_sectors(mysql_config)
     assert len(sectors_after_rerun) == 3
     assert {row["id"] for row in sectors_after_rerun} == {row["id"] for row in sectors}
 
 
-def test_shell_batch_mode_limit_generates_only_first_n_missing_slots(tmp_path):
-    db_path = str(tmp_path / "galaxy.db")
-
-    _run_cli(["--shell", "0", "--limit", "1", "--num-systems", "1", "--db-path", db_path])
-    sectors = _all_sectors(db_path)
+def test_shell_batch_mode_limit_generates_only_first_n_missing_slots(mysql_config):
+    _run_cli(["--shell", "0", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    sectors = _all_sectors(mysql_config)
     assert len(sectors) == 1
     assert sectors[0]["shell_index"] == 0
 
     # A second --limit 1 run must generate the *next* missing slot, not
     # regenerate the one that already exists.
-    _run_cli(["--shell", "0", "--limit", "1", "--num-systems", "1", "--db-path", db_path])
-    sectors_after_second_run = _all_sectors(db_path)
+    _run_cli(["--shell", "0", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    sectors_after_second_run = _all_sectors(mysql_config)
     assert len(sectors_after_second_run) == 2
     addresses = {(row["shell_index"], row["shell_slot_index"]) for row in sectors_after_second_run}
     assert len(addresses) == 2
 
 
-def test_local_neighborhood_mode_generates_expected_new_slots_and_skips_occupied(tmp_path):
-    db_path = str(tmp_path / "galaxy.db")
-
+def test_local_neighborhood_mode_generates_expected_new_slots_and_skips_occupied(mysql_config):
     # Seed with just one already galaxy-placed sector, shell 0 slot 0 --
     # --center-sector needs an already galaxy-placed sector to search a
     # neighborhood around (a sectorGen.py-standalone sector won't do, see
     # test_center_sector_without_galaxy_position_is_rejected below).
-    _run_cli(["--shell", "0", "--limit", "1", "--num-systems", "1", "--db-path", db_path])
-    seeded = _all_sectors(db_path)
+    _run_cli(["--shell", "0", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    seeded = _all_sectors(mysql_config)
     assert len(seeded) == 1
     center_row = seeded[0]
     center_id = center_row["id"]
@@ -193,10 +198,10 @@ def test_local_neighborhood_mode_generates_expected_new_slots_and_skips_occupied
 
     _run_cli([
         "--center-sector", str(center_id), "--radius-pc", str(radius_pc),
-        "--num-systems", "1", "--db-path", db_path,
-    ])
+        "--num-systems", "1",
+    ] + _mysql_argv(mysql_config))
 
-    sectors = _all_sectors(db_path)
+    sectors = _all_sectors(mysql_config)
     actual_addresses = {(row["shell_index"], row["shell_slot_index"]) for row in sectors}
     assert actual_addresses == expected_addresses
     # No duplicates: exactly one row per address, including the seed's own.
@@ -215,23 +220,21 @@ def test_local_neighborhood_mode_generates_expected_new_slots_and_skips_occupied
     # regenerate anything -- every candidate slot is now already occupied.
     _run_cli([
         "--center-sector", str(center_id), "--radius-pc", str(radius_pc),
-        "--num-systems", "1", "--db-path", db_path,
-    ])
-    sectors_after_rerun = _all_sectors(db_path)
+        "--num-systems", "1",
+    ] + _mysql_argv(mysql_config))
+    sectors_after_rerun = _all_sectors(mysql_config)
     assert {row["id"] for row in sectors_after_rerun} == {row["id"] for row in sectors}
 
 
-def test_center_sector_without_galaxy_position_is_rejected(tmp_path):
+def test_center_sector_without_galaxy_position_is_rejected(mysql_config):
     """--center-sector must refuse a sector that was never placed in a
     galaxy (e.g. one generated by sectorGen.py's own standalone CLI) --
     galaxyGen.py's run_local_neighborhood docstring calls this out
     explicitly, since there's no center point to search a neighborhood
     around."""
-    db_path = str(tmp_path / "galaxy.db")
+    _run_sector_gen_cli(["--num-systems", "1"] + _mysql_argv(mysql_config))
 
-    _run_sector_gen_cli(["--num-systems", "1", "--db-path", db_path])
-
-    unplaced = _all_sectors(db_path)
+    unplaced = _all_sectors(mysql_config)
     assert len(unplaced) == 1
     assert unplaced[0]["shell_index"] is None
     assert unplaced[0]["center_x_pc"] is None
@@ -239,29 +242,28 @@ def test_center_sector_without_galaxy_position_is_rejected(tmp_path):
     with pytest.raises(SystemExit):
         _run_cli([
             "--center-sector", str(unplaced[0]["id"]), "--radius-pc", "5.0",
-            "--num-systems", "1", "--db-path", db_path,
-        ])
+            "--num-systems", "1",
+        ] + _mysql_argv(mysql_config))
 
     # Rejected before anything was generated -- still just the one
     # unplaced sector.
-    assert len(_all_sectors(db_path)) == 1
+    assert len(_all_sectors(mysql_config)) == 1
 
 
-def test_shell_batch_mode_rejects_large_shell_without_limit_or_yes(tmp_path):
+def test_shell_batch_mode_rejects_large_shell_without_limit_or_yes(mysql_config):
     """Shell 20 holds 3,631 slots (comfortably above
     LARGE_SHELL_WARNING_THRESHOLD's 2,000) -- a bare --shell 20 must be
     refused rather than silently attempting to generate all of them."""
-    db_path = str(tmp_path / "galaxy.db")
     assert shell_sector_count(20) > galaxyGen.LARGE_SHELL_WARNING_THRESHOLD
 
     with pytest.raises(SystemExit):
-        _run_cli(["--shell", "20", "--num-systems", "1", "--db-path", db_path])
+        _run_cli(["--shell", "20", "--num-systems", "1"] + _mysql_argv(mysql_config))
 
-    assert len(_all_sectors(db_path)) == 0
+    assert len(_all_sectors(mysql_config)) == 0
 
     # --limit bypasses the guard even without --yes.
-    _run_cli(["--shell", "20", "--limit", "2", "--num-systems", "1", "--db-path", db_path])
-    assert len(_all_sectors(db_path)) == 2
+    _run_cli(["--shell", "20", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -270,46 +272,43 @@ def test_shell_batch_mode_rejects_large_shell_without_limit_or_yes(tmp_path):
 # rather than an explicit --shell/--center-sector batch.
 # ---------------------------------------------------------------------------
 
-def test_ensure_sector_generated_raises_without_a_skeleton(tmp_path):
-    db_path = str(tmp_path / "galaxy.db")
+def test_ensure_sector_generated_raises_without_a_skeleton(mysql_config):
     with pytest.raises(RuntimeError):
-        galaxyGen.ensure_sector_generated(0, 0, db_path=db_path)
+        galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
 
 
-def test_ensure_sector_generated_creates_then_reuses_the_same_sector(tmp_path):
-    db_path = str(tmp_path / "galaxy.db")
+def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_config):
     n_0 = shell_sector_count(0)
     # Shell 0 sits deep in this toy shape's own bulge -- every slot there
     # clears even a demanding threshold.
-    _seed_skeleton(db_path, bands=[(0, 0, 0, n_0 - 1)])
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
 
-    first = galaxyGen.ensure_sector_generated(0, 0, db_path=db_path)
+    first = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
     assert first["created"] is True
     assert first["qualifies"] is True
     assert first["sector_id"] is not None
     assert first["sector_name"]
 
-    second = galaxyGen.ensure_sector_generated(0, 0, db_path=db_path)
+    second = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
     assert second["created"] is False
     assert second["qualifies"] is True
     assert second["sector_id"] == first["sector_id"]
 
-    assert len(_all_sectors(db_path)) == 1
+    assert len(_all_sectors(mysql_config)) == 1
 
 
-def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(tmp_path):
-    db_path = str(tmp_path / "galaxy.db")
+def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(mysql_config):
     # A shell with NO stored band at all (e.g. beyond the galaxy's outer
     # edge, or simply never populated) -- find_shell_bands's own bound is
     # exact, so this must be a certain "no", no live density check needed.
-    _seed_skeleton(db_path, bands=[])
+    _seed_skeleton(mysql_config, bands=[])
 
-    result = galaxyGen.ensure_sector_generated(5000, 0, db_path=db_path)
+    result = galaxyGen.ensure_sector_generated(5000, 0, config=mysql_config)
     assert result == {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
-    assert _all_sectors(db_path) == []
+    assert _all_sectors(mysql_config) == []
 
 
-def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(tmp_path):
+def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql_config):
     """
     A stored candidate band is a safe *superset*, not an exact membership
     list (see `galaxySkeleton`'s own module docstring) -- a slot inside
@@ -318,7 +317,6 @@ def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(tmp_p
     ensure_sector_generated still tells a genuinely dense slot apart from
     a genuinely sparse one within it, rather than trusting the band alone.
     """
-    db_path = str(tmp_path / "galaxy.db")
     shell_index = 5
     n_k = shell_sector_count(shell_index)
 
@@ -338,19 +336,19 @@ def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(tmp_p
 
     # A deliberately over-wide band -- the whole shell -- with a
     # threshold picked so only some of it genuinely qualifies.
-    _seed_skeleton(db_path, e_value=1.0 / threshold_rho, bands=[(shell_index, 0, 0, n_k - 1)])
+    _seed_skeleton(mysql_config, e_value=1.0 / threshold_rho, bands=[(shell_index, 0, 0, n_k - 1)])
 
-    dense_result = galaxyGen.ensure_sector_generated(shell_index, densest_slot, db_path=db_path)
+    dense_result = galaxyGen.ensure_sector_generated(shell_index, densest_slot, config=mysql_config)
     assert dense_result["qualifies"] is True
     assert dense_result["created"] is True
 
-    sparse_result = galaxyGen.ensure_sector_generated(shell_index, sparsest_slot, db_path=db_path)
+    sparse_result = galaxyGen.ensure_sector_generated(shell_index, sparsest_slot, config=mysql_config)
     assert sparse_result == {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
-    assert len(_all_sectors(db_path)) == 1
+    assert len(_all_sectors(mysql_config)) == 1
 
 
-def test_ensure_sector_generated_passes_relative_density_as_the_density_multiplier(tmp_path, monkeypatch):
+def test_ensure_sector_generated_passes_relative_density_as_the_density_multiplier(mysql_config, monkeypatch):
     """
     A qualifying sector's actual system count should be driven by its own
     `relative_density` (from the stored skeleton), not a uniform default
@@ -358,9 +356,8 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     what `args.density` it was actually called with, rather than relying
     on the Poisson-sampled system count to differ across a single run.
     """
-    db_path = str(tmp_path / "galaxy.db")
     n_0 = shell_sector_count(0)
-    _seed_skeleton(db_path, bands=[(0, 0, 0, n_0 - 1)])
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
 
     captured = {}
 
@@ -375,31 +372,30 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     position = sector_position_pc(0, 0, EDGE_PC)
     expected_density = relative_density(position, _SKELETON_SHAPE)
 
-    result = galaxyGen.ensure_sector_generated(0, 0, db_path=db_path)
+    result = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
     assert result["created"] is True
     assert captured["density"] == pytest.approx(expected_density)
     assert captured["num_systems"] is None
 
 
-def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(tmp_path, monkeypatch):
+def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_config, monkeypatch):
     """
     Simulates the race `sectors`'s `UNIQUE (shell_index, shell_slot_index)`
     constraint (schema.sql's "v8" note) exists to catch: another caller's
     `INSERT` lands between this call's own "not yet generated" check and
     its own `INSERT`. Forces `generate_and_save_sector_at` to raise
-    `sqlite3.IntegrityError` (what a real UNIQUE-constraint violation
+    `pymysql.err.IntegrityError` (what a real UNIQUE-constraint violation
     raises) after a sector already exists at the address, and confirms
     `ensure_sector_generated` recovers by returning that sector rather
     than propagating the error.
     """
-    db_path = str(tmp_path / "galaxy.db")
     n_0 = shell_sector_count(0)
-    _seed_skeleton(db_path, bands=[(0, 0, 0, n_0 - 1)])
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
 
     # A sector generated at a different address, standing in for "the
     # concurrent winner's row" the mocked recovery re-check below returns
     # regardless of which address it's actually asked about.
-    winner = galaxyGen.ensure_sector_generated(0, 1, db_path=db_path)
+    winner = galaxyGen.ensure_sector_generated(0, 1, config=mysql_config)
     assert winner["created"] is True
 
     calls = {"n": 0}
@@ -413,23 +409,22 @@ def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(tmp_path
     monkeypatch.setattr(galaxyGen._db, "get_sector_id_at", _fake_get_sector_id_at)
 
     def _fake_generate_and_save_sector_at(*_args, **_kwargs):
-        raise sqlite3.IntegrityError("UNIQUE constraint failed: sectors.shell_index, sectors.shell_slot_index")
+        raise pymysql.err.IntegrityError(1062, "Duplicate entry for key 'shell_index'")
 
     monkeypatch.setattr(galaxyGen, "generate_and_save_sector_at", _fake_generate_and_save_sector_at)
 
-    result = galaxyGen.ensure_sector_generated(0, 0, db_path=db_path)
+    result = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
     assert result == {
         "created": False, "qualifies": True,
         "sector_id": winner["sector_id"], "sector_name": None,
     }
 
 
-def test_sectors_table_rejects_duplicate_shell_slot_address(tmp_path):
+def test_sectors_table_rejects_duplicate_shell_slot_address(mysql_config):
     """The schema-level guarantee ensure_sector_generated's own race
     recovery depends on: two sectors can never share a (shell_index,
     shell_slot_index) address."""
-    db_path = str(tmp_path / "galaxy.db")
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         from stellarObjects.spaceSector import SpaceSector
         galaxy_position = {
@@ -438,7 +433,7 @@ def test_sectors_table_rejects_duplicate_shell_slot_address(tmp_path):
             "vertices_pc": {"inner": [], "outer": []},
         }
         _db.insert_sector(conn, SpaceSector(name="First"), galaxy_position=galaxy_position)
-        with pytest.raises(sqlite3.IntegrityError):
+        with pytest.raises(pymysql.err.IntegrityError):
             _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
     finally:
         conn.close()

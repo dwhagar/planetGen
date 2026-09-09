@@ -1,6 +1,6 @@
 # planetGen Database Format
 
-This document describes the SQLite database schema defined in
+This document describes the MySQL database schema defined in
 [`src/stellarObjects/schema.sql`](../src/stellarObjects/schema.sql). It's the
 reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
@@ -13,13 +13,15 @@ already-generated `StarSystem`/`SpaceSector` objects straight into these
 tables (`sectorGen.py` calls it automatically on every run), and
 reconstructs them back into live objects from rows (`load_star_system`/
 `load_sector`/`load_system_config`), inverting every unit conversion the
-write path applies — a "list what's stored" tool is still future work
-(`TODO.md` Phase 3), but everything it needs to return richer than raw SQL
-rows now exists. The actual `.db` file lives in this `db/` directory
-(gitignored — see the repo's `.gitignore`, `*.db`/`*.db-journal`) and is
-created automatically the first time something writes to it (default path
-`db/planetgen.db`, overridable via `sectorGen.py --db-path`). See
-`TODO.md` for the full roadmap.
+write path applies. `queryDb.py` is the "list what's stored" CLI (`TODO.md`
+Phase 3). The database itself lives on a MySQL server (TODO.md Phase 5 —
+this schema previously targeted SQLite; see "MySQL port" in `schema.sql`'s
+own header comment for the type-mapping/idempotency notes that move brought),
+reachable via the `$PLANETGEN_MYSQL_HOST`/`$PLANETGEN_MYSQL_PORT`/
+`$PLANETGEN_MYSQL_USER`/`$PLANETGEN_MYSQL_PASSWORD`/`$PLANETGEN_MYSQL_DATABASE`
+environment variables (or the equivalent `--mysql-*` CLI flags every entry
+point accepts — see `stellarObjects._db.MySQLConfig`), with its tables created
+automatically on first connection. See `TODO.md` for the full roadmap.
 
 ## Persistence layer
 
@@ -27,20 +29,27 @@ created automatically the first time something writes to it (default path
 a value into the database; nothing else in the package imports it, and it
 never mutates the generation/physics code's own native units. Its shape:
 
-- `get_connection(db_path=None)` / `save_sector(sector, db_path=None)` —
-  the two entry points most callers need. `save_sector` opens (or creates)
-  the database, applies the schema if needed (idempotent —
-  `CREATE ... IF NOT EXISTS` throughout `schema.sql`), and writes the whole
-  sector in one transaction.
+- `get_connection(config=None)` / `save_sector(sector, config=None)` —
+  the two entry points most callers need. `save_sector` connects (pooled —
+  see `MySQLConfig`/`_get_pool`), applies the schema if needed (idempotent —
+  `CREATE TABLE IF NOT EXISTS`/`CREATE OR REPLACE VIEW` throughout
+  `schema.sql`), and writes the whole sector in one transaction.
+  `config` (a `MySQLConfig`) defaults to `DEFAULT_MYSQL_CONFIG`, itself
+  built from the `$PLANETGEN_MYSQL_*` environment variables above.
 - `insert_sector` / `insert_star_system` / `insert_star` / `insert_planet`
   (calls `insert_moon` for each of a planet's moons) / `insert_moon` /
   `insert_asteroid_belt` / `insert_system_config` — the per-table building
   blocks, callable individually for a standalone system with no sector
   (`insert_star_system(conn, star_system, system_config, sector_id=None,
   position=None)`).
-- `migrate_database(db_path)` — converts one database file to the current
-  schema in place, backing up the original first (a no-op if it's already
-  current). See "Versioning" below.
+- `migrate_database(config=None)` — brings a database's `schema_migrations`
+  bookkeeping up to `SCHEMA_VERSION`, applying any migration step in
+  between (today, always a no-op past the first connection, since every
+  MySQL database this project creates already starts at the current
+  schema — see "Versioning" below). An existing pre-MySQL-port SQLite
+  database is brought in with the separate, one-time
+  `src/migrateSqliteToMysql.py` instead (a straight column-preserving copy,
+  documented in its own module docstring), not this function.
 - `load_star_system(conn, star_system_id)` / `load_sector(conn, sector_id)`
   / `load_system_config(conn, config_id)` — the read-path counterparts,
   reconstructing a live `StarSystem`/`SpaceSector`/`SystemConfig` from
@@ -122,100 +131,51 @@ prose always states: `density`, the distance range (`lower_limit_km`/
 
 Two independent version numbers:
 
-- `PRAGMA user_version` on the database file — the DDL structure version
-  (this schema is version `4`; see "Schema history" below for what
-  changed since `1`).
+- `schema_migrations` (one row per applied DDL migration step) — the DDL
+  structure version, `MAX(version)` in that table (this schema is version
+  `8`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
-  object-graph shape (from the future Phase 1 `to_dict()`) that produced
-  that row. Independent of the DDL version because a JSON export/import
-  could bring an older object-graph shape into a newer database file.
+  object-graph shape (Phase 1's `to_dict()`) that produced that row.
+  Independent of the DDL version because a JSON export/import could bring
+  an older object-graph shape into a newer database.
 
-#### Schema history
+The schema evolved through several versions while still SQLite-backed;
+each version's structural change is recorded in `schema.sql`'s own header
+comment ("v2" through "v8" notes) rather than duplicated here, since that
+file is the one place both the current column list and the historical
+rationale for it live together. In brief: v1→v2 split moons out of the
+shared `planets` table into their own `moons` table; v2→v3 added
+`star_systems.location`; v3→v4 added `sectors`' galaxy-frame placement
+columns; v4→v5 dropped every pre-rendered `table_*`/`binary_table_*`
+display-string column (superseded by computing display formatting on
+demand from the underlying data columns, e.g. `html/lib/tabledisplay.py`);
+v6/v7 gave every galaxy-placed sector exact vertices (`sector_vertices`,
+built from an exact local spherical Voronoi tessellation among its
+same-shell neighbors — see `stellarObjects/sectorGeometry.py`); v8 added
+the galaxy-wide density "skeleton" (`galaxy_shape`/`galaxy_shell_band`,
+built by `galaxyPlan.py` — see `stellarObjects/galaxyDensity.py`/
+`galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`
+constraint on `sectors`, turning a concurrent lazy-generation race
+(`galaxyGen.ensure_sector_generated`) into a recoverable `IntegrityError`
+instead of a silent duplicate row.
 
-- **v1 → v2**: moons split out of the shared `planets` table
-  (`is_moon`/`parent_planet_id`) into their own `moons` table
-  (`planet_id`) — see the `moons` table below and `schema.sql`'s "v2"
-  header note for why. `src/stellarObjects/_db.py`'s `migrate_database`
-  converts an existing v1 database in place, backing up the original
-  first (`<name>.db.v1-backup-<timestamp>.db`, alongside it); `install.sh`
-  (and so `update.sh`, which calls it) runs this automatically over every
-  database in `db/` on every deploy via `migrateDb.py`, so an old database
-  keeps working after a `git pull` brings in the new schema. A database
-  already on the current version is left untouched (no backup file is
-  created for a no-op).
-- **v2 → v3**: added `star_systems.location`, a human-readable "sector
-  name + nearest neighbors" summary — see the `star_systems` table below
-  and `schema.sql`'s "v3" header note. `migrate_database`'s
-  `_migrate_v2_to_v3` backfills it for every migrated row that has a
-  sector position, computed from the already-stored positions the same
-  way `insert_sector` computes it for a freshly generated sector.
-  `_migrate_v1_to_v2` now goes all the way from v1 to the current (v4)
-  schema in one hop and backfills `location` too, rather than stopping at
-  an intermediate v2 shape — `migrate_database` still runs exactly one of
-  the three functions per database, chosen by its detected source version.
-- **v3 → v4**: added `sectors.center_x_pc`, `center_y_pc`, `center_z_pc`,
-  `galactic_radius_pc`, `shell_index`, `shell_slot_index` — a sector's
-  position in a galaxy-scale, spherical-coordinates-from-the-galactic-
-  center layout (stored as Cartesian; see
-  `docs/design/galaxy-coordinate-system.md` and the `sectors` table below
-  for details). All six are nullable and NULL together for a sector never
-  placed in a galaxy — every sector generated by `sectorGen.py`'s own
-  standalone (non-galaxy) tooling, and any sector migrated from a
-  pre-v4 database, since there is no way to recover an intended galaxy
-  position after the fact. Because SQLite's `ALTER TABLE ADD COLUMN`
-  can't add the multi-column `CHECK` this null-together invariant needs,
-  `sectors` was rewritten wholesale in `schema.sql` rather than
-  incrementally `ALTER`ed; `migrate_database`'s new `_migrate_v3_to_v4`
-  copies every table straight across except `sectors`, which (like
-  `star_systems` in the v1/v2 migrations) needs an explicit pre-v4 column
-  list instead of `INSERT ... SELECT *`, since the current schema has six
-  more `sectors` columns than a v1/v2/v3 database's table does.
-  `_migrate_v1_to_v2` and `_migrate_v2_to_v3` were both updated to use
-  that same explicit column list for `sectors` too, per `migrate_database`'s
-  own "each function maps straight to the *current* schema" design.
-- **v6 → v7**: gives every galaxy-placed sector exact vertices, built from
-  an exact local spherical Voronoi tessellation among its same-shell
-  neighbors extruded radially (`stellarObjects/sectorGeometry.
-  prism_vertices`) — genuinely gap-free laterally (against same-shell
-  neighbors) and area-matched (not vertex-matched) radially against the
-  shells in front of and behind it; see that module's own docstring for
-  why exact circumcenters make lateral sharing exact rather than merely
-  reduced, and why vertex count has to vary per sector (typically 5-7, not
-  fixed) — a cube tiling of a sphere can't be gap-free in general.
-    - v6 briefly stored this as `sectors.vertices_pc`, a JSON blob —
-      reconsidered almost immediately: this schema has no JSON-blob
-      columns anywhere else (see `planet_reflection_spectrum` below), and
-      a variable-length list of structured records is exactly what a child
-      table is for, the same treatment `asteroid_belt_composition`/
-      `planet_reflection_spectrum` already get. No released version ever
-      depended on the JSON shape.
-    - v7 replaces it with the `sector_vertices` table (see that table's own
-      section below) — plain columns throughout, no serialized blob
-      anywhere. `_migrate_v6_to_v7` drops a v6 database's `vertices_pc`
-      data rather than converting it into rows (same "no way to recover
-      this after the fact" treatment every other superseded column in this
-      schema gets — a sector's vertices are cheap to recompute from its
-      address via `prism_vertices` if ever actually needed), using an
-      explicit column list to leave that removed column out of the copy.
-      `_migrate_v4_to_v5`/`_migrate_v5_to_v6` need no such special-casing —
-      a v4 or v5 source's `sectors` table already has the same shape as the
-      current (v7) one, since v6's column came and went without changing
-      it.
-- **v7 → v8**: added the galaxy-wide density "skeleton" — `galaxy_shape`
-  (a singleton row) and `galaxy_shell_band` (see both tables' own sections
-  below) — built by the new `galaxyPlan.py`, and a `UNIQUE (shell_index,
-  shell_slot_index)` constraint on `sectors` (see that table's section).
-  Neither new table has anything to migrate into it from a v7 database
-  (they didn't exist yet); `_migrate_v7_to_v8` leaves them empty, exactly
-  like a brand-new database, until `galaxyPlan.py` is (re-)run — a cheap,
-  fast rebuild (see `galaxy_shape`'s section for why). `sectors`/
-  `sector_vertices` are otherwise unchanged from v7 and copied straight
-  across, along with every other table.
+The SQLite-specific machinery that once converted an existing database
+between these versions in place (`migrate_database`'s per-version
+`_migrate_vN_to_vN+1` functions, gzip-compressed file backups) was removed
+during the MySQL port (TODO.md Phase 5): every MySQL database this
+project creates starts at the current schema directly, so there is no
+"upgrade an older MySQL database" case to handle yet. A pre-existing
+SQLite database from before the port is brought in with the separate,
+one-time `src/migrateSqliteToMysql.py` script instead (see its module
+docstring) — it only accepts a source already at schema v8, so a database
+still on an older SQLite schema needs a pre-MySQL-port release of this
+project first.
 
 ### Booleans and tri-state flags
 
-SQLite has no native boolean type. Plain booleans are `INTEGER` `0`/`1`
-with a `CHECK` constraint. `SystemConfig`'s tri-state flags (`True`/
+MySQL has no dedicated boolean type either. Plain booleans are `TINYINT(1)`
+`0`/`1` with a `CHECK` constraint. `SystemConfig`'s tri-state flags (`True`/
 `False`/`None` in Python — force-on / force-off / random) are nullable
 `INTEGER` `0`/`1`/`NULL`.
 
@@ -242,9 +202,9 @@ One row per generated sector.
 |---|---|---|---|
 | `id` | INTEGER | PK | |
 | `name` | TEXT | NOT NULL | e.g. `"Voranthis Sector"` |
-| `edge_mpc` | REAL | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
-| `center_x_pc`, `center_y_pc`, `center_z_pc` | REAL | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
-| `galactic_radius_pc` | REAL | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
+| `edge_mpc` | DOUBLE | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
+| `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `shell_index`, `shell_slot_index` | INTEGER | nullable | This sector's stable address within the shell/Fibonacci-sphere radial tiling scheme (`galaxyGen.py`) — `shell_index` is the radial shell, `shell_slot_index` its placement index within that shell's deterministic ordering. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
@@ -252,10 +212,10 @@ A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 history" above for why that addition needed a wholesale table rewrite
 rather than an incremental `ALTER TABLE`). This sector's vertices live in
 the separate `sector_vertices` table below, present iff this sector has
-been placed in a galaxy — SQLite can't express "rows exist in another
-table" as a `CHECK` constraint, so that condition is enforced at the
-application level (`stellarObjects._db.insert_sector`) rather than by the
-schema itself. A `UNIQUE (shell_index, shell_slot_index)` constraint (v8)
+been placed in a galaxy — neither SQLite nor MySQL can express "rows
+exist in another table" as a `CHECK` constraint, so that condition is
+enforced at the application level (`stellarObjects._db.insert_sector`)
+rather than by the schema itself. A `UNIQUE (shell_index, shell_slot_index)` constraint (v8)
 guarantees at most one sector per galaxy address — NULL-together rows
 (never placed in a galaxy) don't collide with each other or with a placed
 sector, ordinary SQL `NULL` semantics for `UNIQUE`. This is what turns a
@@ -279,11 +239,11 @@ and behind it. No rows exist for a sector never placed in a galaxy.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | |
-| `ring` | TEXT | NOT NULL | `'inner'` (on the shell's inner bounding sphere) or `'outer'` (its outer one). |
-| `vertex_index` | INTEGER | NOT NULL | This vertex's cyclic position (0-based) within its own ring — pairing `(sector_id, vertex_index)` across the two rings gives the lateral edge each inner/outer vertex pair spans. Not a global ordering across rings. |
-| `x_pc`, `y_pc`, `z_pc` | REAL | NOT NULL | Galaxy-frame Cartesian position, parsecs (same frame as `sectors.center_x/y/z_pc`). |
+| `id` | BIGINT UNSIGNED | PK | |
+| `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `ring` | VARCHAR(8) | NOT NULL | `'inner'` (on the shell's inner bounding sphere) or `'outer'` (its outer one). |
+| `vertex_index` | INT | NOT NULL | This vertex's cyclic position (0-based) within its own ring — pairing `(sector_id, vertex_index)` across the two rings gives the lateral edge each inner/outer vertex pair spans. Not a global ordering across rings. |
+| `x_pc`, `y_pc`, `z_pc` | DOUBLE | NOT NULL | Galaxy-frame Cartesian position, parsecs (same frame as `sectors.center_x/y/z_pc`). |
 
 `UNIQUE (sector_id, ring, vertex_index)`; indexed on `sector_id` for the
 "every vertex of this sector" query pattern.
@@ -309,11 +269,12 @@ per-sector scan over billions of candidates).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `id` | INTEGER | PK, `CHECK (id = 1)` | Pinned to `1` — there is exactly one galaxy. |
-| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `arm_count`, `pitch_angle_rad`, `arm_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | REAL/INTEGER | NOT NULL | `stellarObjects.galaxyDensity.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
-| `edge_pc` | REAL | NOT NULL | The sector edge length this skeleton was built at, parsecs. |
-| `expected_system_count_at_density_1` | REAL | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
-| `outer_shell_index` | INTEGER | NOT NULL | The last shell index with any qualifying content — this galaxy's real edge, discovered by `galaxyPlan.py` (a run of consecutive empty shells beyond it), not an arbitrary radius. |
+| `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Pinned to `1` — there is exactly one galaxy. |
+| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `pitch_angle_rad`, `arm_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | DOUBLE | NOT NULL | `stellarObjects.galaxyDensity.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
+| `arm_count` | INT | NOT NULL | Same source. |
+| `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs. |
+| `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
+| `outer_shell_index` | INT | NOT NULL | The last shell index with any qualifying content — this galaxy's real edge, discovered by `galaxyPlan.py` (a run of consecutive empty shells beyond it), not an arbitrary radius. |
 
 ### `galaxy_shell_band`
 
@@ -336,10 +297,10 @@ all simply has no rows here.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `id` | INTEGER | PK | |
-| `shell_index` | INTEGER | NOT NULL | The shell this band belongs to. |
-| `band_index` | INTEGER | NOT NULL | 0-based position of this band within its own shell (almost always just `0`). |
-| `slot_index_min`, `slot_index_max` | INTEGER | NOT NULL | The candidate slot-index range, inclusive. |
+| `id` | BIGINT UNSIGNED | PK | |
+| `shell_index` | INT | NOT NULL | The shell this band belongs to. |
+| `band_index` | INT | NOT NULL | 0-based position of this band within its own shell (almost always just `0`). |
+| `slot_index_min`, `slot_index_max` | INT | NOT NULL | The candidate slot-index range, inclusive. |
 
 `UNIQUE (shell_index, band_index)`; indexed on `shell_index` for the
 "every band of this shell" query `ensure_sector_generated` makes on every
@@ -392,20 +353,20 @@ One row per generated system (single-star or binary).
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | NULL for a standalone system never placed in a sector. |
 | `system_config_id` | INTEGER | FK -> `system_configs.id`, NOT NULL | The recipe this system was generated from. For binaries, this is the *shared* config the primary/proxy/planets all use — the secondary star's transient `LARGE_STAR=False` deep copy (`systemData.py:97-100`) has no field this schema captures, so there's no second config row. |
 | `name` | TEXT | NOT NULL | The system's display name — the primary star's name, or `"X Binary System"` for a binary. |
-| `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | REAL | nullable | Position relative to the sector's cubic center. NULL iff not placed in a sector. |
+| `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | DOUBLE | nullable | Position relative to the sector's cubic center. NULL iff not placed in a sector. |
 | `quadrant` | TEXT | nullable, CHECK IN ('I'..'VIII') | The sector octant label derived from the position above (see "Quadrant labeling" below). NULL iff position is NULL. |
 | `location` | TEXT | nullable | Human-readable "sector name + nearest neighbors" summary, e.g. `"Voranthis Kelmoor — nearest: Alpha Prime (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)"` — up to 3 neighbors, nearest first, computed once at write time from `SpaceSector.nearest_neighbors` (see "v3" in "Schema history" above). NULL iff position is NULL. |
 | `is_binary` | INTEGER (0/1) | NOT NULL, default 0 | |
-| `binary_separation_km` | REAL | nullable | Orbital separation between the two stars. NULL for single-star systems. |
+| `binary_separation_km` | DOUBLE | nullable | Orbital separation between the two stars. NULL for single-star systems. |
 | `binary_type` | TEXT | nullable | e.g. `"Binary (G/K)"`. |
-| `binary_temperature_k` | REAL | nullable | Average of the two stars' temperatures. |
-| `binary_radius_km` | REAL | nullable | The larger constituent star's radius (used as an approximation). |
-| `binary_effective_mass_kg` | REAL | nullable | Sum of both stars' masses. |
-| `binary_effective_luminosity_w` | REAL | nullable | Sum of both stars' luminosities. |
-| `binary_age_gy`, `binary_lifespan_gy` | REAL | nullable | Max of the two stars' age/lifespan. `binary_lifespan_gy` NULL = infinite (a white-dwarf constituent). |
-| `binary_habitable_zone_inner_km`, `_outer_km` | REAL | nullable | Computed from the pair's combined luminosity. |
-| `binary_system_perimeter_km` | REAL | nullable | Hill sphere, combined mass. |
-| `binary_heliosphere_radius_km` | REAL | nullable | |
+| `binary_temperature_k` | DOUBLE | nullable | Average of the two stars' temperatures. |
+| `binary_radius_km` | DOUBLE | nullable | The larger constituent star's radius (used as an approximation). |
+| `binary_effective_mass_kg` | DOUBLE | nullable | Sum of both stars' masses. |
+| `binary_effective_luminosity_w` | DOUBLE | nullable | Sum of both stars' luminosities. |
+| `binary_age_gy`, `binary_lifespan_gy` | DOUBLE | nullable | Max of the two stars' age/lifespan. `binary_lifespan_gy` NULL = infinite (a white-dwarf constituent). |
+| `binary_habitable_zone_inner_km`, `_outer_km` | DOUBLE | nullable | Computed from the pair's combined luminosity. |
+| `binary_system_perimeter_km` | DOUBLE | nullable | Hill sphere, combined mass. |
+| `binary_heliosphere_radius_km` | DOUBLE | nullable | |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -444,13 +405,13 @@ above (the `binary_*` columns), not here.
 | `name` | TEXT | NOT NULL | |
 | `star_type` | TEXT | NOT NULL | Full descriptive string, e.g. `"G2V Yellow Main Sequence Star"` — unrelated to `planets.body_type`'s single-character code. |
 | `yerkes_class` | TEXT | NOT NULL | e.g. `"V"`, `"VII"` (white dwarf). |
-| `mass_kg`, `radius_km`, `luminosity_w` | REAL | NOT NULL | |
-| `temperature_k` | REAL | NOT NULL | |
-| `age_gy` | REAL | NOT NULL | |
-| `lifespan_gy` | REAL | nullable | **NULL = `float('inf')`** — white dwarfs (`yerkes_class` `'VII'`/`'D'`). Never the JSON `Infinity` token. |
-| `habitable_zone_inner_km`, `_outer_km` | REAL | NOT NULL | |
-| `system_perimeter_km` | REAL | NOT NULL | Hill sphere relative to the galaxy. |
-| `heliosphere_radius_km` | REAL | NOT NULL | |
+| `mass_kg`, `radius_km`, `luminosity_w` | DOUBLE | NOT NULL | |
+| `temperature_k` | DOUBLE | NOT NULL | |
+| `age_gy` | DOUBLE | NOT NULL | |
+| `lifespan_gy` | DOUBLE | nullable | **NULL = `float('inf')`** — white dwarfs (`yerkes_class` `'VII'`/`'D'`). Never the JSON `Infinity` token. |
+| `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | |
+| `system_perimeter_km` | DOUBLE | NOT NULL | Hill sphere relative to the galaxy. |
+| `heliosphere_radius_km` | DOUBLE | NOT NULL | |
 | `table_type`, `table_radius`, `table_mass`, `table_temp`, `table_lum`, `table_hab`, `table_loc` | TEXT | NOT NULL | The "Star Data" table (`starData.py:488-509`), one column per key. Always present — every constituent star renders its own individual table even inside a binary (in addition to the combined `star_systems.binary_table_*` block). |
 
 ### `planets`
@@ -468,20 +429,20 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `body_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Terrestrial or gas giant. Unrelated to `stars.star_type`. |
 | `name` | TEXT | NOT NULL | |
 | `planet_class` | TEXT | nullable | e.g. `"M"`. |
-| `distance_km` | REAL | NOT NULL | From the star. |
-| `radius_km`, `mass_kg` | REAL | NOT NULL | |
-| `volume_km3` | REAL | NOT NULL | Derived, stored not recomputed. |
-| `period_years` | REAL | NOT NULL | Derived, stored not recomputed. |
+| `distance_km` | DOUBLE | NOT NULL | From the star. |
+| `radius_km`, `mass_kg` | DOUBLE | NOT NULL | |
+| `volume_km3` | DOUBLE | NOT NULL | Derived, stored not recomputed. |
+| `period_years` | DOUBLE | NOT NULL | Derived, stored not recomputed. |
 | `zone` | TEXT | nullable, CHECK IN ('h','e','c') | Hot / ecosphere / cold. |
 | `description` | TEXT | nullable | |
-| `gravity_g` | REAL | nullable | Surface gravity, g's. |
-| `surface_temperature_k` | REAL | nullable | |
-| `density_g_cm3` | REAL | nullable | |
+| `gravity_g` | DOUBLE | nullable | Surface gravity, g's. |
+| `surface_temperature_k` | DOUBLE | nullable | |
+| `density_g_cm3` | DOUBLE | nullable | |
 | `atmosphere` | TEXT | nullable | Composition description. |
-| `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa` | REAL | nullable | |
+| `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa` | DOUBLE | nullable | |
 | `composition` | TEXT | nullable | Descriptive string — contrast `asteroid_belt_composition`'s structured (component, concentration) rows. |
-| `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km` | REAL | nullable | |
-| `habitable_zone_inner_km`, `_outer_km` | REAL | NOT NULL | Copied from the host star at generation time, never recomputed. |
+| `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km` | DOUBLE | nullable | |
+| `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | Copied from the host star at generation time, never recomputed. |
 | `life_chemical`, `evolutionary_speed` | TEXT | nullable | Set by life-data generation, if any. |
 | `flavor_text` | TEXT | nullable | |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
@@ -554,8 +515,8 @@ columns capture the facts the prose always states instead.
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
 | `orbital_index` | INTEGER | NOT NULL | |
-| `distance_km` | REAL | NOT NULL | Average distance from the star. |
-| `lower_limit_km`, `upper_limit_km` | REAL | NOT NULL | The belt's inner/outer boundary. |
+| `distance_km` | DOUBLE | NOT NULL | Average distance from the star. |
+| `lower_limit_km`, `upper_limit_km` | DOUBLE | NOT NULL | The belt's inner/outer boundary. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
 

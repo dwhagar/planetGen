@@ -715,7 +715,7 @@ def render_system_map_panel(system, stars, planets, belts):
     fills in on click and swaps between scenes.
 
     Args:
-        system (sqlite3.Row): The `star_systems` row.
+        system (dict): The `star_systems` row.
         stars (list[dict]): 1 entry (single star) or 2 (primary, then
                             secondary), each with `star_type`,
                             `temperature_k`, `radius_km`, `luminosity_w`,

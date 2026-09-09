@@ -10,11 +10,12 @@
 #
 #   1. Installs the Python package via a build-isolated `pip install`
 #      (not the deprecated `setup.py install`).
-#   2. Runs `src/migrateDb.py` over every `*.db` file in `db/`, converting any
-#      database still on an older schema (`stellarObjects/schema.sql`'s
-#      `PRAGMA user_version`) up to the current one -- backing up the
-#      original first. A no-op for a database that's already current.
-#      Needs step 1 done first, since it imports `stellarObjects`.
+#   2. Runs `src/migrateDb.py` against the configured MySQL database
+#      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
+#      `SetEnv` directives once deployed), bringing it up to the current
+#      schema (`stellarObjects/schema.sql`) if it isn't already. A no-op
+#      for a database that's already current. Needs step 1 done first,
+#      since it imports `stellarObjects`.
 #   3. Pre-fetches the NLTK `words` corpus into a shared, world-readable
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
@@ -107,8 +108,8 @@ echo "== 1/6: Installing the Python package =="
 "$PYTHON" -m pip install --upgrade --force-reinstall "$SCRIPT_DIR"
 
 echo
-echo "== 2/6: Migrating any outdated databases to the current schema =="
-"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py" "$DB_DIR"
+echo "== 2/6: Migrating the configured MySQL database to the current schema =="
+"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
 
 echo
 echo "== 3/6: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 # (`html/` and `src/` as siblings under /var/lib/planetGen).
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_path
+from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_name
 from galaxymap import sector_quadrant
 from page import query_params, run
 from starmap import render_map_panel
@@ -37,8 +37,8 @@ def handler():
     params = query_params()
     db_name = params.get("db", "")
     sector_id = params.get("id", "")
-    path = resolve_db_path(db_name)
-    conn = open_readonly(path)
+    config = resolve_db_name(db_name)
+    conn = open_readonly(config)
     try:
         sector = fetch_one(conn, "SELECT * FROM sectors WHERE id = ?", (sector_id,))
         if sector is None:

@@ -8,7 +8,7 @@ committed template it's copied from.
 ## What it's for
 
 Everything the web interface currently reads is either hard-coded or
-supplied by Apache as an environment variable (`PLANETGEN_DB_DIR`,
+supplied by Apache as an environment variable (`PLANETGEN_MYSQL_*`,
 `PLANETGEN_DEBUG` -- see [`html-interface.md`](html-interface.md)). There is no
 place to record settings that describe *this deployment* -- a site name to
 show in the UI, the base URL it's served from -- without either hard-coding
@@ -30,19 +30,16 @@ depends on them, not because any page currently reads `site_name` or
 `src/` -- rather than inside `../src/html/` itself (its *example* template,
 [`../src/html/webconfig.json.example`](../src/html/webconfig.json.example), is fine
 to live inside `../src/html/` since it holds only placeholder values, not
-secrets). This deliberately mirrors how `db/` is already kept out of the
-served webroot: Apache's `DocumentRoot` for this application is `../src/html/`
-alone (see
+secrets). This deliberately mirrors how Apache's `DocumentRoot` for this application
+is `../src/html/` alone (see
 [`examples/apache/planetgen.conf.example`](../examples/apache/planetgen.conf.example)), so
 anything placed at the repo root, one level above `../src/html/`, can never be
 requested over HTTP no matter how the vhost or `.htaccess` rules are
 written -- there's no path traversal or misconfiguration that reaches it,
-because it's outside the tree Apache serves at all. The same reasoning is
-why `db/`'s `.db` files (which can contain a full generated galaxy) live
-next to `../src/html/` rather than under it, and why `stellarObjects/webconfig.py`
+because it's outside the tree Apache serves at all. `stellarObjects/webconfig.py`
 resolves the repo root the same way
-[`../src/html/lib/dbutil.py`](../src/html/lib/dbutil.py)'s `_PROJECT_ROOT`/
-`DEFAULT_DB_DIR` already do (walking up from the module's own file via
+[`../src/html/lib/dbutil.py`](../src/html/lib/dbutil.py) resolves its own
+`_PROJECT_ROOT` (walking up from the module's own file via
 `os.path.dirname` -- three levels for `stellarObjects/webconfig.py` since
 it lives at `src/stellarObjects/`, one more than `dbutil.py`'s two),
 rather than introducing a second convention for locating "the project
@@ -50,10 +47,10 @@ root."
 
 This matters more for `webconfig.json` than it might for a settings file
 with no sensitive contents, because the field list below includes
-placeholders for future database credentials (see "Fields" below) -- a file
-that might one day hold a password should never be reachable from inside
-the served webroot in the first place, regardless of what Apache's own
-`<Directory>` rules say.
+placeholders that once described future database credentials (see
+"Fields" below) -- a file that might hold a password should never be
+reachable from inside the served webroot in the first place, regardless
+of what Apache's own `<Directory>` rules say.
 
 ## Fields
 
@@ -61,18 +58,16 @@ the served webroot in the first place, regardless of what Apache's own
 |---|---|
 | `site_name` | Display name for this deployment, e.g. `"planetGen"`. Not yet read by any page -- reserved for a future UI element (page title, header) once the web interface wants to show it. |
 | `base_url` | The base URL this deployment is served from, e.g. `"http://localhost/"` or `"https://planetgen.example.com/"`. Not yet read by any page -- reserved for future absolute-URL generation (e.g. constructing shareable links) that can't be derived from a CGI request alone. |
-| `db_username` | **Unused placeholder.** Reserved for a possible future database backend other than SQLite. SQLite needs no credentials today, and nothing in this repo reads this field. |
-| `db_password` | **Unused placeholder.** Same reasoning as `db_username` -- present only as scaffolding for a possible future non-SQLite backend. |
-| `db_name` | **Unused placeholder.** Same reasoning as `db_username`/`db_password`. |
+| `db_username` | **Unused placeholder, superseded.** Predates the MySQL port (TODO.md Phase 5) -- real database credentials now live in the `PLANETGEN_MYSQL_*` environment variables (`stellarObjects._db.MySQLConfig`), not here. Kept only for `webconfig.json.example` backward-compatibility with any file already deployed from before this port. |
+| `db_password` | **Unused placeholder, superseded.** Same reasoning as `db_username`. |
+| `db_name` | **Unused placeholder, superseded.** Same reasoning as `db_username`/`db_password`. |
 
-The three `db_*` fields are intentionally inert. They exist so that *if*
-this project ever moves from SQLite (file-based, no credentials, located
-via `PLANETGEN_DB_DIR`) to a client/server database, the config file
-shape to hold its connection details already exists and doesn't require a
-breaking change to `webconfig.json`'s structure. Nothing currently
-generates, validates, or consumes them -- do not wire a feature to them
-without first deciding on (and documenting here) which database backend
-they'd actually apply to.
+The three `db_*` fields are intentionally inert now that the MySQL port
+(TODO.md Phase 5) has happened via `PLANETGEN_MYSQL_*` environment
+variables instead -- they're kept in the file shape only so an existing
+deployment's `webconfig.json` doesn't need editing just because these
+fields no longer mean anything. Nothing currently generates, validates,
+or consumes them.
 
 ## Why the real file is gitignored but the example isn't
 
@@ -106,18 +101,18 @@ shape, so nothing currently breaks by skipping this step -- it only
 matters once a future feature actually reads `site_name`/`base_url` and a
 deployment wants something other than the defaults.
 
-## Relationship to `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG`
+## Relationship to `PLANETGEN_MYSQL_*`/`PLANETGEN_DEBUG`
 
-`webconfig.json` and the `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG` environment
+`webconfig.json` and the `PLANETGEN_MYSQL_*`/`PLANETGEN_DEBUG` environment
 variables (documented in [`html-interface.md`](html-interface.md)) solve
 different problems and aren't interchangeable:
 
 - The environment variables are **Apache-level overrides**, set via
   `SetEnv` in the vhost config -- they exist because CGI scripts only ever
   see what the web server's process environment hands them, and because
-  `PLANETGEN_DB_DIR` in particular needs to vary per-vhost (e.g. multiple
-  sites on one server, each pointed at a different `db/` directory) without
-  editing any file inside the repo checkout itself.
+  `PLANETGEN_MYSQL_*` in particular needs to vary per-vhost (e.g. multiple
+  sites on one server, each pointed at a different MySQL host/schema)
+  without editing any file inside the repo checkout itself.
 - `webconfig.json` is a **site-level settings file**, edited once per
   deployment and read directly by application code (once something reads
   it) rather than passed through Apache at all -- it's the right place for

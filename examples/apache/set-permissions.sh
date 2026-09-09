@@ -3,10 +3,10 @@
 # examples/apache/set-permissions.sh
 #
 # Detects the user/group Apache2 actually runs as and sets ownership and
-# permissions on the deployed planetGen web directory (and the database
-# directory it reads from) accordingly. Linux-only (reads /etc/apache2 and
-# uses `ps`), deliberately bash rather than Python -- this is a one-shot
-# root-privileged deployment step, not part of the portable application.
+# permissions on the deployed planetGen web directory accordingly.
+# Linux-only (reads /etc/apache2 and uses `ps`), deliberately bash rather
+# than Python -- this is a one-shot root-privileged deployment step, not
+# part of the portable application.
 #
 # Usage:
 #   sudo examples/apache/set-permissions.sh [html-dir] [db-dir]
@@ -14,7 +14,12 @@
 # Defaults match the layout documented in docs/html-interface.md and
 # examples/apache/planetgen.conf.example:
 #   html-dir defaults to /var/lib/planetGen/src/html
-#   db-dir   defaults to /var/lib/planetGen/db
+#   db-dir   defaults to /var/lib/planetGen/db, but the web interface has
+#            read from a MySQL server (TODO.md Phase 5), not a local
+#            file, since the SQLite-to-MySQL port -- this argument is
+#            kept only for a deployment that still has an old `db/`
+#            directory of pre-port `.db` files lying around (harmless to
+#            chown, and skipped entirely if the directory doesn't exist).
 #
 # What it does:
 #   - Recursively `chown`s both directories to Apache's detected

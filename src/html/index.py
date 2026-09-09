@@ -2,8 +2,8 @@
 # html/index.py
 
 """
-Landing page: lists every `.db` file found in the database directory
-(`db/` alongside `html/` by default -- see `lib/dbutil.py`) and links to
+Landing page: lists every MySQL schema on the configured server whose
+name matches this deployment's prefix (see `lib/dbutil.py`) and links to
 `browse.py` for each one.
 """
 
@@ -13,16 +13,16 @@ from urllib.parse import quote
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import esc, list_databases, open_readonly, resolve_db_path
+from dbutil import esc, list_databases, open_readonly, resolve_db_name
 from page import query_params, redirect, run
 
 
-def _counts(path):
+def _counts(config):
     """Returns (sector_count, system_count) for a quick-glance summary."""
-    conn = open_readonly(path)
+    conn = open_readonly(config)
     try:
-        sectors = conn.execute("SELECT COUNT(*) FROM sectors").fetchone()[0]
-        systems = conn.execute("SELECT COUNT(*) FROM star_systems").fetchone()[0]
+        sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+        systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
         return sectors, systems
     finally:
         conn.close()
@@ -43,7 +43,7 @@ def handler():
 
     rows = []
     for entry in databases:
-        sectors, systems = _counts(resolve_db_path(entry["name"]))
+        sectors, systems = _counts(resolve_db_name(entry["name"]))
         rows.append(
             "<tr>"
             f'<td><a href="browse.py?db={esc(entry["name"])}">{esc(entry["name"])}</a></td>'
