@@ -16,6 +16,7 @@ current schema.
 """
 
 import gzip
+import json
 import os
 import shutil
 import sqlite3
@@ -836,10 +837,12 @@ def test_migrate_v3_to_v4_new_sector_saved_afterward_can_have_a_galaxy_position(
     from stellarObjects.spaceSector import SpaceSector
 
     sector = SpaceSector("New Placed Sector", edge_ly=11.5)
+    vertices_pc = [[float(i), float(i), float(i)] for i in range(8)]
     galaxy_position = {
         "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
         "galactic_radius_pc": (1.0 ** 2 + 2.0 ** 2 + 3.0 ** 2) ** 0.5,
         "shell_index": 0, "shell_slot_index": 0,
+        "vertices_pc": vertices_pc,
     }
     sector_id = _db.save_sector(sector, db_path=db_path, galaxy_position=galaxy_position)
 
@@ -853,6 +856,7 @@ def test_migrate_v3_to_v4_new_sector_saved_afterward_can_have_a_galaxy_position(
         assert row["galactic_radius_pc"] == pytest.approx((14.0) ** 0.5)
         assert row["shell_index"] == 0
         assert row["shell_slot_index"] == 0
+        assert json.loads(row["vertices_pc"]) == vertices_pc
     finally:
         conn.close()
 
@@ -1013,7 +1017,7 @@ def test_migrate_v4_to_v5_drops_table_columns_and_preserves_raw_numbers(tmp_path
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION == 5
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION == 6
 
         # The columns are genuinely gone, not just left NULL/unused.
         for table, column in (

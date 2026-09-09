@@ -173,6 +173,23 @@ Two independent version numbers:
   `_migrate_v1_to_v2` and `_migrate_v2_to_v3` were both updated to use
   that same explicit column list for `sectors` too, per `migrate_database`'s
   own "each function maps straight to the *current* schema" design.
+- **v5 → v6**: added `sectors.vertices_pc` — this sector's own 8 cube
+  corners (galaxy-frame parsecs, JSON-encoded), nudged toward the matching
+  corners of its nearest other sector addresses to shrink (not eliminate —
+  see `stellarObjects/sectorGeometry.py`'s own docstring for why an exact
+  zero-gap cube tiling of a sphere isn't possible) the seams between
+  adjacent sectors' cubes. NULL together with `center_x/y/z_pc`/
+  `galactic_radius_pc` for the same reason those are: a sector never placed
+  in a galaxy has no cube to relax against neighbors. Computed by
+  `galaxyGen.py` via `sectorGeometry.relax_vertices` at generation time (not
+  derivable purely from a center point the way `galactic_radius_pc` is,
+  since it also depends on nearby addresses' positions), stored as one JSON
+  `TEXT` column rather than 24 `REAL` columns since all 8 vertices are
+  always read/written together and never individually queried.
+  `_migrate_v4_to_v5` (now mapping straight to the current, v6 schema) and
+  the new `_migrate_v5_to_v6` both copy `sectors` via an explicit v4/v5-
+  shaped column list rather than `SELECT *`, leaving `vertices_pc` `NULL`
+  on every migrated row — same reasoning as v4's own migration note above.
 
 ### Booleans and tri-state flags
 
@@ -208,11 +225,12 @@ One row per generated sector.
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | REAL | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | REAL | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `shell_index`, `shell_slot_index` | INTEGER | nullable | This sector's stable address within the shell/Fibonacci-sphere radial tiling scheme (`galaxyGen.py`) — `shell_index` is the radial shell, `shell_slot_index` its placement index within that shell's deterministic ordering. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
+| `vertices_pc` | TEXT | nullable | This sector's own 8 cube corners (galaxy-frame parsecs), JSON-encoded, after nudging toward its nearest neighbors' matching corners (`stellarObjects/sectorGeometry.relax_vertices`) — shrinks, but per that module's own docstring cannot always eliminate, the seams between adjacent cubes. NULL iff the center columns are NULL. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
-`galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema
-history" above for why this needed a wholesale table rewrite rather than
-an incremental `ALTER TABLE`).
+`galactic_radius_pc`/`vertices_pc` being NULL together (see "v3 → v4"/
+"v5 → v6" in "Schema history" above for why v4's addition needed a
+wholesale table rewrite rather than an incremental `ALTER TABLE`).
 
 ### `system_configs`
 

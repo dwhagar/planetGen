@@ -131,8 +131,27 @@
 -- pre-rendered copy (`html/lib/tabledisplay.py` for the HTML viewer;
 -- `get_table_properties()` is still used, unchanged, to build the actual
 -- wiki-page text in `wikitext_content`/`markdown_content`).
+-- v6: added `sectors.vertices_pc` -- a JSON array of this sector's own 8
+-- cube corners, in galaxy-frame parsecs, alongside the v4 center/radius
+-- columns. `center_x/y/z_pc` alone (plus `edge_mpc` and the fixed
+-- orientation convention -- radial-outward local +Z, projected-galactic-
+-- north local +X, per `docs/design/galaxy-coordinate-system.md` section 3)
+-- already implies a "naive" cube; `vertices_pc` instead stores the
+-- *relaxed* one, where corners have been nudged to coincide with the
+-- matching corners of this sector's nearest neighbors (see
+-- `stellarObjects/sectorGeometry.py`), shrinking (not eliminating -- a
+-- cube tiling of a sphere without any gaps is not geometrically possible,
+-- see that module's docstring) the small seams the coordinate doc's
+-- section 3 already flagged as an accepted consequence of cubes on a
+-- Fibonacci-sphere placement. NULL together with `center_x/y/z_pc`/
+-- `galactic_radius_pc` for the same reason those are: a sector never
+-- placed in a galaxy has no cube to relax against neighbors in the first
+-- place. Stored as JSON (one TEXT column) rather than 24 separate REAL
+-- columns since all 8 vertices are always read/written together and never
+-- individually queried/indexed -- the same "structured value, not a
+-- query facet" treatment `star_systems.location` already gets.
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 5;
+PRAGMA user_version = 6;
 
 -- ---------------------------------------------------------------------
 -- sectors
@@ -157,10 +176,15 @@ CREATE TABLE IF NOT EXISTS sectors (
     shell_index         INTEGER,
     shell_slot_index    INTEGER,
 
+    -- This sector's own relaxed cube corners (v6) -- see the header
+    -- comment's "v6" note and `stellarObjects/sectorGeometry.py`.
+    vertices_pc         TEXT,
+
     CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
-        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL) AND
+        (galactic_radius_pc IS NULL) = (vertices_pc IS NULL)
     )
 );
 CREATE INDEX IF NOT EXISTS idx_sectors_galactic_radius_pc ON sectors(galactic_radius_pc);

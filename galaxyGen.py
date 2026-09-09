@@ -20,7 +20,8 @@ difference is that this script also supplies a real galaxy-frame position
 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant every
 standalone-generated system otherwise uses) and records that position in
 `sectors.center_x/y/z_pc`/`galactic_radius_pc`/`shell_index`/
-`shell_slot_index`.
+`shell_slot_index`/`vertices_pc` (this sector's own neighbor-relaxed cube
+corners -- see `stellarObjects/sectorGeometry.relax_vertices`).
 
 Two generation modes, both reducing to one call of
 `stellarObjects.galaxyGeometry.enumerate_sectors_within_radius` (see
@@ -69,6 +70,7 @@ from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.galaxyGeometry import (
     enumerate_sectors_within_radius, galactic_radius_pc, sector_position_pc, shell_sector_count,
 )
+from stellarObjects.sectorGeometry import relax_vertices
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
@@ -189,7 +191,7 @@ def _edge_pc():
     return ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 
 
-def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc):
+def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc, edge_pc):
     """
     Generates one sector via `sectorGen.generate_sector` at the given
     galaxy-frame position and shell address, and saves it -- the one
@@ -204,6 +206,9 @@ def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_p
                              galaxy-frame center (from `sector_position_pc`
                              or an `enumerate_sectors_within_radius`
                              result).
+        edge_pc (float): The sector edge length, in parsecs (`_edge_pc`) --
+                         threaded in rather than recomputed, since both
+                         callers already have it.
 
     Returns:
         tuple: `(sector_id, sector_name)` of the newly saved sector.
@@ -214,10 +219,12 @@ def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_p
 
     sector_name, sector = sectorGen.generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
 
+    vertices_pc = relax_vertices(shell_index, shell_slot_index, edge_pc)
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": radius_pc,
         "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+        "vertices_pc": vertices_pc,
     }
     sector_id = _db.save_sector(sector, db_path=args.db_path, galaxy_position=galaxy_position)
     return sector_id, sector_name
@@ -262,7 +269,7 @@ def run_shell_batch(args, edge_pc):
             continue
 
         position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
-        sector_id, sector_name = _generate_and_save_sector_at(args, shell_index, slot_index, position_pc)
+        sector_id, sector_name = _generate_and_save_sector_at(args, shell_index, slot_index, position_pc, edge_pc)
         generated += 1
         print(f"Saved sector '{sector_name}' at shell {shell_index} slot {slot_index} (sector_id={sector_id}).")
 
@@ -324,7 +331,7 @@ def run_local_neighborhood(args, edge_pc):
         if (shell_index, slot_index) in occupied:
             continue
 
-        sector_id, sector_name = _generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z))
+        sector_id, sector_name = _generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z), edge_pc)
         generated += 1
         print(
             f"Saved sector '{sector_name}' at shell {shell_index} slot {slot_index}, "

@@ -1,5 +1,34 @@
 # Changelog
 
+## [5.4.7] - 2026-09-09
+
+### Added
+- **Every galaxy-placed sector now has an explicit 8-vertex cube, nudged to
+  reduce gaps with its neighbors.** `sectors.vertices_pc` (schema v6) stores
+  a JSON array of 8 galaxy-frame `(x, y, z)` corners, built from the fixed
+  radial-outward-`+Z`/projected-galactic-north-`+X` orientation convention
+  (`docs/design/galaxy-coordinate-system.md` section 3) and then relaxed
+  (`stellarObjects/sectorGeometry.relax_vertices`) by averaging each corner
+  with the matching corners of nearby sector addresses (found via the
+  existing `galaxyGeometry.enumerate_sectors_within_radius`), so adjacent
+  cubes' shared faces land much closer to coincident than two independently
+  placed cubes would. Not an exact zero-gap tiling -- a cube tiling of a
+  sphere without any gaps isn't geometrically possible (the same reason a
+  soccer ball needs pentagons mixed with hexagons; see `sectorGeometry.py`'s
+  module docstring) -- and a real check against generated output confirmed
+  this precisely: across a full generated shell, every sector's *aggregate*
+  local corner-gap-to-neighbors improved (~35% on average), but a handful of
+  individual pairwise gaps can still grow slightly where a sector has more
+  real neighbors (5-6+, common on this Fibonacci-sphere placement) than a
+  cube's 6 faces can simultaneously reconcile with only 8 shared corners.
+  `galaxyGen.py` computes and stores this for every sector it generates;
+  `sectorGen.py`'s standalone (non-galaxy) CLI is unaffected, same as every
+  other galaxy-frame column. New `_migrate_v5_to_v6` schema migration
+  (`_migrate_v4_to_v5` updated to match, now that it maps a v4 source
+  straight into the current v6 schema rather than v5) leaves `vertices_pc`
+  `NULL` for any migrated sector, per the established "no way to recover
+  this after the fact" precedent for the other galaxy-placement columns.
+
 ## [5.4.6] - 2026-09-07
 
 ### Fixed

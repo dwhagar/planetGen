@@ -498,7 +498,10 @@ exactly the kind of case that flag matters for.
    variety), that needs a stored orientation value (a single roll angle
    suffices, given the radial axis itself is already fixed by the center
    point) — not proposed here since it's pure additional complexity with
-   no identified requirement yet.
+   no identified requirement yet. §9's `vertices_pc` implements the fixed
+   convention concretely (as 8 stored corners, relaxed toward neighbors),
+   but still doesn't add a roll degree of freedom -- that half of this
+   question remains open.
 5. **Deterministic Fibonacci-sphere placement vs. randomized placement.**
    §3's scheme is fully deterministic — the same `(shell_index,
    shell_slot_index)` always yields the same position, which makes shells
@@ -694,3 +697,30 @@ shells, and wider slot bands within each" rather than breaking down, so
 there is no cliff where this approach stops working; it simply does
 progressively more of the genuinely-necessary work as the requested
 neighborhood grows.
+
+## 9. Sector cube vertices and neighbor relaxation (addendum)
+
+**Status:** implemented (`stellarObjects/sectorGeometry.py`, `sectors.
+vertices_pc` — schema v6). Partially resolves §7 question 4 above: every
+galaxy-placed sector's cube is now built from §3's fixed orientation
+convention (radial-outward local `+Z`, projected-galactic-north local
+`+X`) into 8 explicit vertices, which are then nudged toward the matching
+corners of the sector's nearest other addresses before being stored —
+shrinking the seams §3's "why this is fine despite the gaps/overlaps"
+section already accepted as unavoidable, without pretending they can be
+eliminated (a cube tiling of a sphere without any gaps is not
+geometrically possible; see `sectorGeometry.py`'s own module docstring for
+the full argument and the soccer-ball analogy). No roll/orientation degree
+of freedom was added — the fixed convention from §3 is unchanged; only the
+corner *positions* are adjusted, not which way the cube points.
+
+A real check against `galaxyGen.py --shell 2` output found the relaxation
+does exactly what it's meant to in aggregate (every one of 79 generated
+sectors' total local corner-gap-to-neighbors dropped, ~35% on average) but
+not always per specific neighbor pair — a sector with 5-6+ near-equidistant
+real neighbors (common on this Fibonacci-sphere placement, which has no
+fixed "6 face neighbors" the way a structured grid would) cannot have every
+one of those relationships perfectly reconciled by only 8 shared corners,
+so a handful of individual pairwise gaps can grow slightly even as the
+sector's overall fit improves. This is the same geometric impossibility
+already named above, observed concretely rather than just argued abstractly.
