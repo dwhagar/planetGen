@@ -25,7 +25,7 @@ import pytest
 from stellarObjects.galaxyGeometry import (
     GOLDEN_RATIO,
     _candidate_shell_range,
-    _slot_index_bounds_for_phi_range,
+    slot_index_bounds_for_phi_range,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
     sector_position_pc,
@@ -212,5 +212,5 @@ def test_slot_index_bounds_round_trip_through_phi_for_index():
     n_k = shell_sector_count(20)
     for i in (0, 1, n_k // 2, n_k - 2, n_k - 1):
         phi = math.acos(1 - 2 * (i + 0.5) / n_k)
-        i_min, i_max = _slot_index_bounds_for_phi_range(phi, phi, n_k)
+        i_min, i_max = slot_index_bounds_for_phi_range(phi, phi, n_k)
         assert i_min <= i <= i_max

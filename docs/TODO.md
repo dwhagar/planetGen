@@ -157,28 +157,44 @@ the web database picker and from a subsequent migration run
   search. Supersedes an earlier, never-released fixed-8-vertex corner-
   relaxation approach. See `docs/design/galaxy-coordinate-system.md`
   section 9.
-- [ ] **Galaxy thickness / shape (disk-density envelope) — density model
-  implemented (`stellarObjects/galaxyDensity.py`); the batch-planning
-  infrastructure below it is still design-only.** The Milky-Way-scale
-  exponential-disk-plus-bulge-plus-spiral-arm `relative_density` /
-  `predicted_star_count` functions are implemented and tested
-  (`tests/test_galaxy_density.py`) and were exercised end-to-end in a
-  small (unfilled) simulated galaxy alongside `sectorGeometry` — see
-  `docs/design/galaxy-coordinate-system.md` section 9's regression-test
-  addendum. Not yet built: persisting every possible sector's occupancy up
-  front in a new `galaxy_sector_plan` table (via a new `galaxyPlan.py`
-  batch tool) rather than deciding at generation time — gated by a
-  deterministic "predicted less than 1 star per sector" cutoff that stops
-  the radial scan outward, with each planned sector getting a stable
-  sequential index; `galaxyGen.py` would then consume plan rows instead of
-  computing occupancy itself. A feasibility investigation during the
-  design pass measured ~10.5 billion qualifying sectors at real Milky-Way
-  scale (~1 TB, several hours to build with pruning + NumPy vectorization,
-  down from a naive ~12+ days) — see
-  `docs/design/galaxy-disk-density.md` for the full model, schema, and
-  benchmarked numbers (the design pass this item and
-  `docs/design/galaxy-coordinate-system.md` section 7 question 2 called
-  for).
+- [x] **Galaxy thickness / shape (disk-density envelope) — implemented,
+  as a compact "skeleton" rather than the originally-designed
+  `galaxy_sector_plan` table.** The Milky-Way-scale exponential-disk-plus-
+  bulge-plus-spiral-arm density model (`stellarObjects/galaxyDensity.py`,
+  `relative_density`/`predicted_star_count`) is implemented and tested.
+  `docs/design/galaxy-disk-density.md`'s revision-2 plan -- persisting
+  every one of ~10.5 billion qualifying sectors' position/density up front
+  in a `galaxy_sector_plan` table (~1 TB) -- was superseded before being
+  built: a sector's position, density, and vertices are all pure
+  deterministic functions of its `(shell_index, shell_slot_index)` address
+  and a handful of galaxy-wide shape parameters, so none of that needs
+  storing per sector at all -- it's cheaper to recompute on demand
+  (sub-millisecond) than to look up. What's actually implemented instead
+  (`stellarObjects/galaxySkeleton.py`, `galaxyPlan.py`, schema v8's
+  `galaxy_shape`/`galaxy_shell_band`): one singleton row for the galaxy's
+  shape parameters, plus one row per shell (almost always exactly one)
+  recording the *candidate* slot-index band that shell's qualifying
+  sectors could fall in -- a safe superset (an exact upper bound over
+  every possible spiral-arm azimuth), not a per-sector list. Built in
+  parallel across shells (`multiprocessing.Pool`, since each shell's
+  band-finding is independent) by `galaxyPlan.py`; a full real-Milky-Way-
+  scale build takes well under a second of actual compute and produces
+  roughly 4,000 rows (~350 KB total), a many-orders-of-magnitude reduction
+  from the ~1 TB `galaxy_sector_plan` design would have needed for the
+  same information. Individual sectors are never batch-generated from the
+  skeleton -- `galaxyGen.ensure_sector_generated(shell_index,
+  shell_slot_index)` is the actual per-address entry point, called lazily
+  the moment an address is visited: it consults the stored skeleton to
+  decide, cheaply and exactly, whether that address holds anything at all,
+  and if so generates and persists it on the spot (with that position's
+  own `relative_density` driving the actual system count, not a uniform
+  default) -- most of the galaxy is never visited, so it's never
+  generated. A `sectors.UNIQUE (shell_index, shell_slot_index)` constraint
+  (schema v8) turns a concurrent visit to the same never-before-generated
+  address into a recoverable `IntegrityError` rather than a duplicate row.
+  See `docs/design/galaxy-coordinate-system.md` section 9's storage-
+  analysis addendum for the full reasoning and the real numbers measured
+  against a real Milky-Way-scale build.
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 

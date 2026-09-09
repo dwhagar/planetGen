@@ -1,12 +1,23 @@
 # Galaxy Disk/Spiral Density — Design Proposal (Revision 2: Preplanned Sector Table)
 
-**Status:** proposal, not implemented. Revises this document's original
-version per follow-up direction: rather than deciding sector occupancy
-probabilistically at generation time, every possible sector across the
-whole modeled galaxy is preplanned and persisted up front, gated by a hard
-physical criterion (predicted star count), and given a stable sequential
-index. This remains the design pass `docs/design/galaxy-coordinate-system.md`
-section 7 question 2 and `docs/TODO.md`'s Phase 4 call for.
+**Status:** superseded, not built as designed here. The density model
+itself (section 1) is implemented as described
+(`stellarObjects/galaxyDensity.py`). The preplanned-table idea this
+revision's title refers to -- persisting every one of ~10.5 billion
+qualifying sectors' position/density up front in a `galaxy_sector_plan`
+table (section 6, ~1 TB per section 5's own measurement) -- was not built:
+a sector's position, density, and vertices are all pure deterministic
+functions of its `(shell_index, shell_slot_index)` address and this
+model's own shape parameters, so none of it needs persisting per sector at
+all. What was actually built instead -- a singleton shape row plus one row
+per shell recording a *candidate* slot-index band, ~4,000 rows total for a
+real Milky-Way-scale galaxy -- is documented in
+`docs/design/galaxy-coordinate-system.md` section 9's storage-analysis
+addendum, `stellarObjects/galaxySkeleton.py`, and `galaxyPlan.py`. Kept
+here for the density model itself (still accurate) and as a record of the
+storage-cost reasoning that led to the smaller design actually shipped;
+section 5's feasibility numbers and section 6's schema no longer describe
+what's in the database.
 
 **Scope:** unchanged from revision 1 (a density model over galaxy-frame
 position; how many sectors that implies and where; how `--density` gets

@@ -76,6 +76,21 @@ def test_predicted_star_count_scales_linearly_with_expected_count():
     assert b == pytest.approx(3.0 * a)
 
 
+def test_relative_density_does_not_overflow_far_off_the_galactic_plane():
+    # Regression test: 1/cosh(x)**2 computed as `1.0 / math.cosh(x)**2`
+    # raises OverflowError once `|z| / disk_scale_height_pc` exceeds
+    # ~710 (cosh(x) itself overflows there) -- easily reached with a
+    # small disk_scale_height_pc relative to the position being
+    # evaluated (this SHAPE's disk_scale_height_pc=12 overflows at
+    # |z| > ~8520 pc under the old formula). The true value is 0.0 in
+    # this limit, not a crash.
+    position = (0.0, 0.0, 100000.0)
+    assert relative_density(position, SHAPE) >= 0.0
+    assert relative_density(position, SHAPE) == pytest.approx(
+        relative_density((0.0, 0.0, -100000.0), SHAPE)
+    )
+
+
 def test_build_galaxy_shape_default_calibration_radius():
     shape_default = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0,

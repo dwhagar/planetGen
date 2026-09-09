@@ -3,6 +3,33 @@
 ## [Unreleased]
 
 ### Added
+- **Galaxy-wide density "skeleton"** (schema v8: `galaxy_shape`,
+  `galaxy_shell_band`; `stellarObjects/galaxySkeleton.py`; `galaxyPlan.py`):
+  precomputes and persists where the galaxy has any content at all,
+  without storing a single sector's position/density/vertices -- those are
+  pure deterministic functions of `(shell_index, shell_slot_index)` plus a
+  handful of galaxy-wide shape parameters, so they're recomputed on demand
+  instead. `galaxy_shape` holds the galaxy's shape parameters as one
+  singleton row; `galaxy_shell_band` holds one row per contiguous
+  *candidate* slot-index band per shell (almost always exactly one, found
+  via an exact upper bound over spiral-arm azimuth, bisected to precision)
+  -- a safe superset, not a per-sector list. Reduces the galaxy's
+  structural storage from the ~1 TB a naive per-sector plan table would
+  need down to ~350 KB at real Milky-Way scale (~4,076 rows), built in
+  parallel across shells (`multiprocessing.Pool`) in under a second. See
+  `docs/design/galaxy-coordinate-system.md` section 10 for the full
+  analysis and measurements.
+- **`galaxyGen.ensure_sector_generated(shell_index, shell_slot_index)`**:
+  the lazy, visit-triggered generation entry point built on the skeleton
+  above -- returns an already-generated sector if one exists; otherwise
+  checks the stored band and exact density to decide whether the address
+  holds anything, and if so generates and persists it on the spot, using
+  that position's own `relative_density` as the actual system-count
+  multiplier (so a bulge sector and a sparse outer-disk sector generate
+  proportionally different counts, not a uniform default). A new
+  `sectors.UNIQUE (shell_index, shell_slot_index)` constraint (schema v8)
+  turns a concurrent visit race into a recoverable `IntegrityError`
+  instead of a duplicate row.
 - **Galaxy disk/spiral density model implemented** (`stellarObjects/galaxyDensity.py`):
   exponential disk radial falloff x sech^2 vertical scale-height x
   logarithmic spiral-arm modulation, plus a spherical bulge, normalized so
@@ -14,6 +41,14 @@
   simulation.
 
 ### Fixed
+- **`galaxyDensity.relative_density` could raise `OverflowError` far off
+  the galactic plane** relative to `disk_scale_height_pc`: its vertical
+  falloff term computed `1.0 / math.cosh(x) ** 2` directly, which raises
+  once `|x|` exceeds ~710 -- found by a new skeleton test using a
+  toy-scale shape, reachable in production for any shape with a small
+  scale height relative to its own radius. Fixed with an algebraically
+  equivalent, overflow-safe rewrite (`_sech_squared`) that underflows to
+  the correct `0.0` limit instead of crashing.
 - **Two same-shell Voronoi tessellation bugs found by that end-to-end
   simulation, both specific to small/sparse shells** (`sectorGeometry.py`):
   (1) the same-shell candidate projection used the raw chord vector

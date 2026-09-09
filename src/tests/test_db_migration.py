@@ -1027,7 +1027,7 @@ def test_migrate_v4_to_v5_drops_table_columns_and_preserves_raw_numbers(tmp_path
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION == 7
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION
 
         # The columns are genuinely gone, not just left NULL/unused.
         for table, column in (

@@ -53,6 +53,36 @@ caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
 computed automatically rather than guessed."""
 
 
+def _sech_squared(x):
+    """
+    `1 / cosh(x)**2`, computed so it never overflows for large `|x|` --
+    plain `math.cosh(x) ** 2` raises `OverflowError` once `|x|` exceeds
+    ~710 (`cosh` itself grows like `exp(|x|) / 2`), which a small
+    `disk_scale_height_pc` relative to a galaxy's own radius reaches
+    easily (found directly: a toy-scale shape with
+    `disk_scale_height_pc=12` overflows by shell ~2400).
+
+    Rewritten around `exp(-2*|x|)` (always in `(0, 1]`, so it can only
+    underflow to a harmless `0.0`, never overflow) rather than `exp(x)`
+    directly: `1/cosh(x)**2 == 4*e / (1 + e)**2` where `e = exp(-2*|x|)`
+    -- algebraically identical to the direct formula (factor `exp(|x|)`
+    out of `cosh(x) = (e^x + e^-x)/2` and simplify), and correctly
+    approaches its true limit of `0.0` as `|x| -> infinity` instead of
+    crashing partway there.
+
+    Args:
+        x (float): Any real number.
+
+    Returns:
+        float: `1 / cosh(x)**2`, in `(0, 1]`.
+    """
+    ax = abs(x)
+    if ax > 700.0:  # exp(-1400) underflows to exactly 0.0 anyway
+        return 0.0
+    e = math.exp(-2.0 * ax)
+    return 4.0 * e / (1.0 + e) ** 2
+
+
 def _raw_density(position_pc, shape):
     """
     `relative_density` before the `k_norm` normalization is applied --
@@ -74,8 +104,7 @@ def _raw_density(position_pc, shape):
 
     bulge = shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
     disk_radial = math.exp(-r_cyl / shape.disk_scale_length_pc)
-    cosh_z = math.cosh(z / shape.disk_scale_height_pc)
-    f_z = 1.0 / (cosh_z * cosh_z)
+    f_z = _sech_squared(z / shape.disk_scale_height_pc)
 
     if r_cyl > 1e-9:
         theta = math.atan2(y, x)

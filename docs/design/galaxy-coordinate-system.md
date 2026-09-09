@@ -834,3 +834,119 @@ that reproduces the exact condition the simulation used to find these bugs.
 Re-running the same simulation after both fixes: **0 unexplained gaps**
 across all 31,255 outer vertices generated (previously 4,798, then 164 as
 each fix landed).
+
+## 10. The galaxy-wide "skeleton": storage analysis and implementation
+
+Following on from the simulation above, the natural next question is what
+it costs to persist this galaxy's structure at real Milky-Way scale, not
+just a small toy simulation -- and, having measured that, how to shrink
+it. This section documents both the analysis and the actual design that
+resulted (`stellarObjects/galaxySkeleton.py`, `galaxyPlan.py`, schema v8),
+which supersedes `docs/design/galaxy-disk-density.md` revision 2's
+`galaxy_sector_plan` table (see that document's own status note).
+
+### The core realization: almost none of this is independent data
+
+`sector_position_pc`, `relative_density`, and `prism_vertices` are pure,
+closed-form functions: given `(shell_index, shell_slot_index)` and a
+handful of galaxy-wide constants, all three are fully determined. Storing
+a qualifying sector's position/density explicitly (as `galaxy_sector_plan`
+would have) means storing the *output* of a formula that's cheaper to
+re-run than to look up. Measured directly against real Milky-Way-scale
+parameters (disk scale length 2,800 pc, scale height 350 pc, bulge radius
+200 pc, calibrated at the real Sun-to-center distance):
+
+```
+E (systems/sector at density=1) = 4.3193
+threshold density = 0.2315
+last shell with any qualifying content: shell 4077
+every one of ~4,078 relevant shells: exactly one contiguous qualifying
+  phi-band (checked via the exact upper-bound curve at 4,000-sample
+  resolution -- zero shells found with 2+ bands under these parameters)
+```
+
+The single-band-per-shell result isn't a coincidence of these particular
+numbers: `bound_relative_density_at_phi` (the exact upper bound over every
+possible `theta`) is symmetric under `phi -> pi - phi` (both `r_cyl = r_k
+sin(phi)` and `z = r_k cos(phi)` are), and for any shape where the disk
+scale height is meaningfully smaller than the disk scale length (true of
+any realistic spiral), it's also unimodal, peaking at the galactic plane.
+`galaxySkeleton.find_shell_bands` doesn't *assume* this, though -- it
+scans and reports however many bands it actually finds, in case a very
+different parameter choice ever produces more than one.
+
+### Storage tiers, measured
+
+| Tier | What's stored per sector | Rows (real MW scale) | Size |
+|---|---|---|---|
+| 0 — pure parametric | nothing; shape + edge + outer shell, once | 1 | ~150 bytes |
+| 1 — per-shell band cache (**built**) | nothing; `(shell_index, band_index, slot_min, slot_max)` | ~4,076 | **~350 KB** |
+| 2 — per-sector address only | `(shell_index, shell_slot_index)`, no derived values | ~10.5–14.9 billion | ~85–170 GB |
+| 3 — `galaxy_sector_plan` (designed, not built) | position, density, star count | ~10.5 billion | ~830 GB – 1 TB |
+| 4 — fully generated content | full star systems/planets/moons | ~10.5 billion | ~930 TB – 1.15 PB |
+
+Tier 1 is what's implemented. It answers "where could the galaxy have
+anything at all" with a table small enough to hold entirely in memory,
+while deferring every sector-specific fact (position, exact density,
+vertices) to the moment that sector is actually generated.
+
+### What's actually stored, and what's deferred
+
+- **`galaxy_shape`** (schema v8, singleton row): the galaxy's shape
+  parameters (`galaxyDensity.GalaxyShape`, verbatim), `edge_pc`,
+  `expected_system_count_at_density_1`, and `outer_shell_index` (the last
+  shell with any qualifying content, discovered by a run of consecutive
+  empty shells, not an arbitrary radius).
+- **`galaxy_shell_band`** (schema v8): one row per contiguous *candidate*
+  slot-index band per shell -- a safe superset (an exact upper bound, so a
+  slot outside every band is *certainly* empty, while a slot inside one
+  isn't *certainly* full), found by `galaxySkeleton.find_shell_bands`: a
+  coarse scan of the exact bound across `phi`, each detected sign change
+  refined by bisection, then converted to an exact slot-index range via
+  the existing closed-form inverse (`galaxyGeometry.
+  slot_index_bounds_for_phi_range`, previously used only by
+  `enumerate_sectors_within_radius`, now shared).
+- **Deferred entirely, computed live**: an individual sector's exact
+  position, exact density, exact qualification, and vertices --
+  `galaxyGen.ensure_sector_generated(shell_index, shell_slot_index)` is
+  the single entry point: return the sector already generated there if
+  one exists; otherwise check the stored band (a cheap, certain "no" if
+  outside it), then the exact `relative_density` (cheap either way); if it
+  qualifies, generate and persist it on the spot, using that position's
+  own `relative_density` as the `--density` multiplier so system count
+  scales with local richness rather than a uniform default. Most of the
+  galaxy is never visited, so most of it is never generated -- exactly
+  this project's own "most sectors stay unvisited forever" premise.
+
+### Parallel build
+
+`galaxyPlan.py` dispatches shells to a `multiprocessing.Pool` in
+fixed-size chunks (each shell's own band-finding is independent of every
+other's), scanning outward in order only to detect the run of consecutive
+empty shells that confirms the galaxy's true edge. Measured against real
+Milky-Way-scale parameters: **0.5 seconds** of actual scan time (4 worker
+processes), producing 4,076 stored bands and a database file of
+**352,256 bytes**. A single-core, unparallelized run of the same build
+took 0.6 seconds -- parallelization matters far less here than it did for
+`sectorGeometry`'s same-shell neighbor search, since finding one shell's
+band is already a small, closed-form calculation, not a scan over that
+shell's own (potentially hundreds-of-millions-large) slot count; it's kept
+regardless, since nothing about a future shape/threshold choice guarantees
+that stays true, and the underlying work is naturally embarrassingly
+parallel.
+
+### A numerical bug this work also found and fixed
+
+Testing the band-finding math against a small toy-scale shape (used for
+fast tests, `disk_scale_length_pc=40`, `disk_scale_height_pc=12`) surfaced
+an `OverflowError`: `galaxyDensity._raw_density`'s vertical falloff term
+computed `1.0 / math.cosh(x) ** 2` directly, which raises once `|x|`
+exceeds ~710 (`cosh` grows like `exp(|x|) / 2`) -- reachable whenever a
+position's height above the plane is large relative to
+`disk_scale_height_pc`, not just at unrealistic extremes (this toy shape
+hit it by shell ~2,400, and any shape with a small scale height relative
+to its own radius could hit it in production). Fixed with an algebraically
+equivalent form rewritten around `exp(-2|x|)` (`galaxyDensity._sech_squared`,
+shared with `galaxySkeleton`'s own bound function) -- always in `(0, 1]`,
+so it can only underflow to a harmless `0.0` (the correct limiting value)
+rather than overflow.

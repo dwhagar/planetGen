@@ -156,8 +156,51 @@
 --     fact" treatment every other superseded column in this schema gets;
 --     a sector's vertices are cheap to recompute from its address via
 --     `sectorGeometry.prism_vertices` if ever needed).
+--
+-- v8: the galaxy-wide density "skeleton" (`galaxyPlan.py`), stored as
+-- compact structural facts rather than one row per sector. Position,
+-- density, and vertices are pure deterministic functions of `(shell_index,
+-- shell_slot_index)` and a handful of galaxy-wide shape parameters
+-- (`galaxyDensity.GalaxyShape`, `sectorGeometry.prism_vertices`) -- none
+-- of that needs to be stored per candidate sector, since it's cheaper to
+-- recompute on demand than to look up. What genuinely needs precomputing
+-- is *where the galaxy has any content at all*, which is why this adds:
+--   - `galaxy_shape`: one singleton row holding the whole galaxy's shape
+--     parameters, its calibration constant, its sector edge length, and
+--     its outer edge (the last shell with any qualifying content) -- the
+--     handful of numbers `stellarObjects.galaxyDensity`/`galaxySkeleton`
+--     need to recompute any sector's exact position/density on demand.
+--   - `galaxy_shell_band`: one row per contiguous *candidate* slot-index
+--     band per shell (`stellarObjects.galaxySkeleton.find_shell_bands`) --
+--     the safe (possibly slightly wider than exact) range of slots that
+--     might hold qualifying content in that shell, found via the exact
+--     closed-form phi<->slot-index inverse
+--     (`galaxyGeometry.slot_index_bounds_for_phi_range`) already used
+--     elsewhere in this codebase. Deliberately NOT one row per qualifying
+--     sector, and deliberately NOT storing that sector's position/density/
+--     vertices -- an individual slot's exact qualification is checked live
+--     (cheap: a single `relative_density` evaluation) only when that slot
+--     is actually visited (see `galaxyGen.ensure_sector_generated`), which
+--     is also the only time its full content, vertices, and everything
+--     else about it get generated and stored in `sectors`/`sector_vertices`
+--     /the star-system tables -- lazily, once, never recomputed again.
+--     Almost every shell has exactly one band (this density model is
+--     symmetric about and peaks at the galactic plane for any realistic
+--     parameter choice -- verified directly across a full real-Milky-Way-
+--     scale build), but the schema allows more than one per shell rather
+--     than assuming it, since nothing about the model rules it out for
+--     every possible parameter choice.
+--   - `sectors` also gains a `UNIQUE (shell_index, shell_slot_index)`
+--     constraint (see that table's own comment) -- now that a sector can
+--     be lazily generated the moment it's visited
+--     (`galaxyGen.ensure_sector_generated`), rather than only ever
+--     through a single-process batch script, two concurrent visits to the
+--     same never-before-generated address are possible; this constraint
+--     turns that race into a clear `IntegrityError` the visit path
+--     recovers from (re-fetch and return the sector the other visit just
+--     created) instead of a silent duplicate row at the same address.
 PRAGMA foreign_keys = ON;
-PRAGMA user_version = 7;
+PRAGMA user_version = 8;
 
 -- ---------------------------------------------------------------------
 -- sectors
@@ -186,7 +229,16 @@ CREATE TABLE IF NOT EXISTS sectors (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
         (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
-    )
+    ),
+
+    -- v8: at most one sector per (shell_index, shell_slot_index) address --
+    -- see the header comment's "v8" note (galaxyGen.ensure_sector_generated
+    -- relies on this to make a lazy-generation race produce a clear
+    -- IntegrityError rather than a silent duplicate sector at the same
+    -- address). NULL-together sectors (never placed in a galaxy) don't
+    -- collide with each other or with a placed sector -- ordinary SQL NULL
+    -- semantics for UNIQUE.
+    UNIQUE (shell_index, shell_slot_index)
 );
 CREATE INDEX IF NOT EXISTS idx_sectors_galactic_radius_pc ON sectors(galactic_radius_pc);
 CREATE INDEX IF NOT EXISTS idx_sectors_shell_index ON sectors(shell_index);
@@ -215,6 +267,61 @@ CREATE TABLE IF NOT EXISTS sector_vertices (
     UNIQUE (sector_id, ring, vertex_index)
 );
 CREATE INDEX IF NOT EXISTS idx_sector_vertices_sector_id ON sector_vertices(sector_id);
+
+-- ---------------------------------------------------------------------
+-- galaxy_shape / galaxy_shell_band -- the galaxy-wide density "skeleton"
+-- (v8 -- see the header comment's "v8" note). `galaxy_shape` is a
+-- singleton (`id` pinned to 1, enforced by the CHECK) -- there is exactly
+-- one galaxy. Building or rebuilding the skeleton (`galaxyPlan.py`)
+-- replaces this row and every `galaxy_shell_band` row wholesale; neither
+-- table is ever partially updated.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS galaxy_shape (
+    id                          INTEGER PRIMARY KEY CHECK (id = 1),
+
+    -- galaxyDensity.GalaxyShape fields, verbatim -- see that module for
+    -- what each one means and how `k_norm` is calibrated.
+    disk_scale_length_pc        REAL NOT NULL,
+    disk_scale_height_pc        REAL NOT NULL,
+    bulge_scale_radius_pc       REAL NOT NULL,
+    bulge_amplitude             REAL NOT NULL,
+    arm_count                   INTEGER NOT NULL,
+    pitch_angle_rad             REAL NOT NULL,
+    arm_amplitude               REAL NOT NULL,
+    spiral_reference_radius_pc  REAL NOT NULL,
+    spiral_reference_angle_rad  REAL NOT NULL,
+    k_norm                      REAL NOT NULL,
+
+    -- The sector edge length this skeleton was built at, in parsecs
+    -- (galaxyGeometry's own scope -- every shell/sector-address formula
+    -- takes this as a parameter rather than assuming a fixed constant).
+    edge_pc                     REAL NOT NULL,
+
+    -- SpaceSector(edge_ly=...).expected_system_count() at relative_density
+    -- = 1 -- cached because every qualification check
+    -- (predicted_star_count >= 1.0) needs it, and it's a fixed galaxy-wide
+    -- fact, not worth re-deriving from edge_pc on every call.
+    expected_system_count_at_density_1  REAL NOT NULL,
+
+    -- The last shell index with any qualifying content -- this galaxy's
+    -- real edge, discovered by `galaxyPlan.py` (a run of consecutive empty
+    -- shells beyond it), not picked as an arbitrary radius.
+    outer_shell_index           INTEGER NOT NULL
+);
+
+-- One contiguous candidate slot-index band per shell (almost always
+-- exactly one -- see the header comment's "v8" note). `band_index` orders
+-- multiple bands within the same shell (0-based); a shell with no
+-- qualifying content at all has no rows here.
+CREATE TABLE IF NOT EXISTS galaxy_shell_band (
+    id               INTEGER PRIMARY KEY,
+    shell_index      INTEGER NOT NULL,
+    band_index       INTEGER NOT NULL,
+    slot_index_min   INTEGER NOT NULL,
+    slot_index_max   INTEGER NOT NULL,
+    UNIQUE (shell_index, band_index)
+);
+CREATE INDEX IF NOT EXISTS idx_galaxy_shell_band_shell_index ON galaxy_shell_band(shell_index);
 
 -- ---------------------------------------------------------------------
 -- system_configs -- one row per SystemConfig "recipe"
