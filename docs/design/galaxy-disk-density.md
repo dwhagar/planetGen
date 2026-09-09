@@ -1,295 +1,396 @@
-# Galaxy Disk/Spiral Density — Design Proposal
+# Galaxy Disk/Spiral Density — Design Proposal (Revision 2: Preplanned Sector Table)
 
-**Status:** proposal, not implemented. This is the design pass
-`docs/design/galaxy-coordinate-system.md` section 7, question 2 ("Disk-density
-envelope") calls for, and the remaining open item under `docs/TODO.md`'s
-Phase 4 ("Galaxy thickness / shape ... still needs its own dedicated design
-pass"). Track C (that document) defined *where sector addresses can exist*
-(the shell/Fibonacci-sphere tiling) and deliberately left *which addresses
-actually get content, and how richly* undecided — that's what this document
-decides.
+**Status:** proposal, not implemented. Revises this document's original
+version per follow-up direction: rather than deciding sector occupancy
+probabilistically at generation time, every possible sector across the
+whole modeled galaxy is preplanned and persisted up front, gated by a hard
+physical criterion (predicted star count), and given a stable sequential
+index. This remains the design pass `docs/design/galaxy-coordinate-system.md`
+section 7 question 2 and `docs/TODO.md`'s Phase 4 call for.
 
-**Scope:** a density model over galaxy-frame position, and how `galaxyGen.py`
-uses it to decide (a) whether a given `(shell_index, shell_slot_index)`
-address gets a sector generated at all, and (b) how many systems that sector
-gets. Explicitly **out of scope**: metallicity-vs-galactic-radius gradients
-feeding star-type/composition selection (flagged in the coordinate doc's §7
-Q2 as related but separate — that would change *what* gets generated inside
-a system, not *whether/how much* gets generated at a galaxy position) and any
-schema change (nothing here needs persisting — see §5).
+**Scope:** unchanged from revision 1 (a density model over galaxy-frame
+position; how many sectors that implies and where; how `--density` gets
+scaled at actual generation time). What's new in this revision: the density
+model is evaluated and stored for *every* address that clears a real
+threshold, in a new table, before any actual sector content exists — not
+computed ad hoc per address at generation time.
 
 ## 0. Decisions carried over from the user
 
-- **Gate + weight, not weight-only.** Low-density addresses (deep halo,
-  between arms at large radius) are probabilistically skipped and never
-  generated at all, not merely generated sparse. This is also what makes
-  the coordinate doc's "~20x volume reduction from a disk envelope" argument
-  real rather than theoretical (§4).
-- **Default behavior**, not opt-in. `galaxyGen.py --shell`/`--center-sector`
-  use this model by default; a `--uniform` flag reverts to today's flat,
-  isotropic-sphere behavior (useful for tests and for comparing against the
-  old behavior). Already-generated sectors are untouched either way — this
-  only affects new generation going forward.
-- **No hard galaxy edge.** No new "galaxy radius" constant gates generation
-  outright. Density falls off exponentially with radius, so the occupancy
-  gate (§3) already makes very distant shells generate next to nothing on
-  their own, without an arbitrary cutoff radius/shell index to pick and
-  maintain.
+- **Preplan every sector, stored in its own table.** Not computed on the fly
+  during `galaxyGen.py --shell`/`--center-sector` runs — a new table holds
+  one row per qualifying address, built by a dedicated batch pass before any
+  actual content generation happens.
+- **Gate at "predicted less than 1 star possible," evaluated per sector,
+  stopping outward once a radial shell no longer clears it.** This replaces
+  revision 1's probabilistic occupancy gate with a hard deterministic
+  threshold: a sector's own `expected_system_count() * relative_density`
+  must be `>= 1` to exist in the plan at all (§2). Once an entire shell
+  cannot clear this bar anywhere in it, radial generation stops (§3) — this
+  *is* the galaxy's edge, derived from the model rather than picked as an
+  arbitrary radius.
+- **Every planned sector gets a sequential index** (§4).
+- **Assume a spiral galaxy similar to the Milky Way** — real-astronomy-scale
+  parameters (§1), not arbitrary ones.
 
-## 1. Model
+## 1. Density model (unchanged shape, tuned parameters)
 
-Standard exponential-disk-plus-bulge-plus-spiral galaxy model, evaluated as
-a pure function of galaxy-frame Cartesian position — no new stored state,
-just arithmetic over the `(x, y, z)` a sector already has (or would have,
-for a not-yet-generated candidate slot, via
-`galaxyGeometry.sector_position_pc`).
-
-### Cylindrical decomposition
-
-Disk galaxies aren't naturally described in the coordinate doc's own
-spherical `(r, theta, phi)` (defined from the galactic center in every
-direction alike) — a disk needs a radius *within the plane* and a height
-*off* the plane treated asymmetrically. New helper, local to this model
-(kept out of `galaxyGeometry.py` on purpose — that module is the addressing
-scheme, this is the population model layered on top, per the coordinate
-doc's own "deliberately separates addressing from population" framing):
+Same exponential-disk-plus-bulge-plus-spiral-arm model as revision 1 (see
+that revision's §1 for the full derivation; restated concretely here with
+final parameter choices and the normalization made explicit, which revision
+1 had left underspecified):
 
 ```
-r_cyl = sqrt(x^2 + y^2)      # in-plane galactocentric radius
-theta = atan2(y, x)          # in-plane azimuth (same convention as galaxyGeometry)
-z     = z                    # height off the galactic plane
+r_cyl = sqrt(x^2 + y^2)
+r_3d  = sqrt(x^2 + y^2 + z^2)          # galaxyGeometry.galactic_radius_pc
+theta = atan2(y, x)
+
+rho_bulge(r_3d)          = bulge_amplitude * exp(-r_3d / bulge_scale_radius_pc)
+rho_disk_radial(r_cyl)   = exp(-r_cyl / disk_scale_length_pc)
+f_z(z)                   = 1 / cosh(z / disk_scale_height_pc)^2
+theta_arm(r_cyl)         = spiral_reference_angle_rad
+                           + ln(r_cyl / disk_scale_length_pc) / tan(pitch_angle_rad)
+arm_factor(r_cyl, theta) = 1 + arm_amplitude * cos(arm_count * (theta - theta_arm(r_cyl)))
+
+raw_density(x, y, z) = rho_bulge(r_3d)
+                        + rho_disk_radial(r_cyl) * f_z(z) * arm_factor(r_cyl, theta)
+
+relative_density(x, y, z) = K_NORM * raw_density(x, y, z)
 ```
 
-### Components
+### Normalization, made explicit
 
-```
-rho_bulge(r_3d)         = bulge_amplitude * exp(-r_3d / bulge_scale_radius_pc)
-rho_disk_radial(r_cyl)  = exp(-r_cyl / disk_scale_length_pc)
-f_z(z)                  = sech(z / disk_scale_height_pc)^2
-arm_factor(r_cyl, theta) = 1 + arm_amplitude * cos(
-                               arm_count * (theta - theta_arm(r_cyl))
-                           )
-theta_arm(r_cyl)        = spiral_reference_angle_rad
-                           + ln(r_cyl / spiral_reference_radius_pc) / tan(pitch_angle_rad)
+Revision 1 said parameters were "chosen so `relative_density = 1.0`" at
+Sol's position without naming the actual multiplier that requires. There is
+one: `K_NORM = 1 / raw_density(R_sun_pc, 0, theta_interarm)`, evaluated at
+Sol's real galactocentric radius (`R_sun_pc = utils.ly_to_pc(
+physical_constants.GALACTIC_CENTER_DISTANCE_LY)`, ~7,910 pc) and at the
+**inter-arm minimum** azimuth at that radius (`theta` where `arm_factor`
+hits its floor `1 - arm_amplitude`) — chosen deliberately, not arbitrarily:
+it's the popular-astronomy fact that the Sun sits between two spiral arms
+(the Local/Orion Spur, not on Perseus or Sagittarius), and it's the
+conservative calibration choice (if `relative_density = 1.0` on-arm
+instead, everything off-arm at the same radius would read as
+sub-realistic, which is backwards for "how dense is a typical patch of the
+solar neighborhood"). `K_NORM` is **computed at runtime from the other
+constants**, never hardcoded — it must be re-derived automatically if any
+of the shape parameters below ever change.
 
-relative_density(x, y, z) =
-    rho_bulge(r_3d)
-    + rho_disk_radial(r_cyl) * f_z(z) * arm_factor(r_cyl, theta)
-```
+### Parameters (Milky-Way-scale, tuned during this design pass)
 
-where `r_3d = galaxyGeometry.galactic_radius_pc((x, y, z))` (the existing
-spherical-radius helper — the bulge is spherical, not flattened, so it uses
-true 3D distance, not `r_cyl`).
-
-- `sech(u) = 1 / cosh(u)`, so `f_z` is exactly 1 in-plane (`z = 0`) and
-  decays smoothly and symmetrically above/below it — the standard vertical
-  profile for an isothermal disk, giving a rounder falloff than a bare
-  `exp(-|z|/h)`, which has an (unphysical) sharp point at `z = 0`.
-- `arm_factor` is a logarithmic-spiral overdensity: at fixed `r_cyl`, it
-  peaks (`1 + arm_amplitude`) exactly on the arm and troughs
-  (`1 - arm_amplitude`) exactly between arms, `arm_amplitude` in `[0, 1)`
-  keeping it always non-negative. It only modulates the disk term — real
-  spiral structure is a disk-population phenomenon; it doesn't touch the
-  bulge.
-- **Normalization**: parameters are chosen so `relative_density` equals
-  `1.0` at `(r_cyl, z, theta) = (R_sun_pc, 0, theta_arm(R_sun_pc) + pi/2)`
-  — i.e. at Sol's own galactocentric radius (reusing
-  `physical_constants.GALACTIC_CENTER_DISTANCE_LY`, converted via
-  `utils.ly_to_pc`, rather than inventing a second "reference radius"
-  constant), at the *inter-arm average* point (`cos(...) = 0`). This
-  deliberately ties the new model to the exact same "1.0 = realistic local
-  density" convention `sectorGen.py --density` already uses (§4) instead of
-  introducing a second, unrelated normalization.
-
-### Proposed defaults
-
-Not rigorously derived — real-galaxy-scale numbers (Milky-Way-like, since
-`GALACTIC_CENTER_DISTANCE_LY` already borrows Sol's real distance),
-intended as a first pass to be tuned by eye once implemented (generate a
-few example galaxies, look at the resulting sector distribution) rather
-than fixed here:
-
-| Constant | Proposed default | Basis |
+| Constant | Value | Basis |
 |---|---|---|
-| `disk_scale_length_pc` | ~2,800 pc | `R_sun_pc / disk_scale_length_pc ~= 2.8`, matching the real Milky Way's ratio |
-| `disk_scale_height_pc` | ~350 pc | Between real thin-disk (~300 pc) and thick-disk (~900-1,000 pc) values the coordinate doc already cites; a single effective scale height, not a thin+thick blend (see §6 open questions) |
-| `bulge_scale_radius_pc` | ~500 pc | Small next to `disk_scale_length_pc`, so the bulge only dominates very close to the core |
-| `bulge_amplitude` | ~5.0 | Bulge center reads markedly denser than the disk's own peak (`rho_disk_radial(0) = 1`) |
-| `arm_count` | 2 | Grand-design two-arm spiral — the most recognizably "spiral galaxy" shape |
-| `pitch_angle_deg` | ~15 deg | Typical grand-design spiral pitch (real spirals run ~10-25 deg) |
-| `arm_amplitude` | 0.4 | Arm/inter-arm contrast ratio `(1+0.4)/(1-0.4) = 2.33x` — visible structure, not a binary on/off |
-| `spiral_reference_radius_pc` | = `disk_scale_length_pc` | Arbitrary but fixed anchor for `theta_arm`'s log-spiral formula |
-| `spiral_reference_angle_rad` | 0.0 | Arbitrary fixed orientation — the galaxy's arms have to start pointing *somewhere* in the coordinate frame; no reason to prefer one angle over another |
+| `disk_scale_length_pc` | 2,800 | `R_sun_pc / disk_scale_length_pc ~= 2.8`, matching the real Milky Way's ratio |
+| `disk_scale_height_pc` | 350 | Between real thin-disk (~300 pc) and thick-disk (~900-1,000 pc) |
+| `bulge_scale_radius_pc` | 200 | See note below — smaller than revision 1's first guess (500 pc) |
+| `bulge_amplitude` | 1.0 | See note below — smaller than revision 1's first guess (5.0) |
+| `arm_count` | 2 | Grand-design two-arm spiral |
+| `pitch_angle_deg` | 15 | Typical grand-design spiral pitch (real spirals run ~10-25 deg) |
+| `arm_amplitude` | 0.4 | Arm/inter-arm contrast `(1+0.4)/(1-0.4) = 2.33x` |
+| `spiral_reference_radius_pc` | = `disk_scale_length_pc` | Arbitrary but fixed anchor for `theta_arm` |
+| `spiral_reference_angle_rad` | 0.0 | Arbitrary fixed orientation |
 
-All of the above become new constants in `physical_constants.py`, alongside
-`GALACTIC_CENTER_DISTANCE_LY` (astrophysically-motivated numbers, not
-generation-tuning knobs like `program_constants.DEFAULT_SECTOR_EDGE_LY`).
+**Why the bulge parameters shrank from revision 1's first guess**: this
+design pass's own feasibility investigation (§5) found that
+`bulge_amplitude = 5`, `bulge_scale_radius_pc = 500` makes the bulge term
+*alone* (independent of disk position, since it only depends on `r_3d`)
+exceed the 1-star-per-sector threshold out to shell ~836 (`r ~= 2,950 pc`)
+— meaning *every* direction in *every* shell inside that radius trivially
+qualifies, not just a thin disk plane. That's a real "the galaxy has a
+genuinely 3D bright core, not just a flat disk" fact, not a bug — but it
+also means no phi-band pruning is possible anywhere inside that radius
+(every one of those shells' full `N_k` slots must be visited, since every
+one of them is a real qualifying sector needing its own stored density
+value). At `bulge_amplitude = 1.0`, `bulge_scale_radius_pc = 200`, that
+"trivially-solid" region shrinks to shell ~241 (`r ~= 850 pc`, cumulative
+~60 million slots) — still a real, physically sensible bright bulge core,
+just sized so the rest of the galaxy's pruning (§3) actually pays off. Both
+values are still tunable by eye once implemented; this is the pair that
+made the batch build tractable, not a rigorously derived astrophysical fit.
 
-## 2. Where this lives in code
+## 2. The occupancy threshold — deterministic, not probabilistic
 
-New module `src/stellarObjects/galaxyDensity.py`, mirroring
-`galaxyGeometry.py`'s own shape: pure functions, no I/O, no randomness,
-fully unit-testable against hand-computable values.
-
-```
-relative_stellar_density(position_pc) -> float   # >= 0, per §1
-```
-
-`position_pc` is `(x, y, z)` in parsecs — the same tuple shape
-`galaxyGeometry.sector_position_pc`/`enumerate_sectors_within_radius`
-already produce, so `galaxyGen.py` can pass either straight through with no
-conversion.
-
-## 3. Occupancy gate
-
-For a candidate address whose position is `p`:
-
-```
-occupancy_probability = min(1.0, relative_stellar_density(p) ** density_gate_exponent)
-```
-
-`density_gate_exponent` (default `1.0`, a new `program_constants.py` knob
-since it's a generation-shaping dial, not an astrophysical quantity) lets
-the contrast between "generate" and "skip" be sharpened (`> 1`, starker
-voids between arms) or softened (`< 1`) later without touching the density
-model itself. Any `relative_stellar_density >= 1` (bulge, on-arm regions at
-or inside the solar radius) always generates — the gate only ever thins out
-sub-realistic-density regions, never regions denser than "typical."
-
-**Deterministic, not RNG-driven.** The decision is a stable hash of the
-address itself, not a draw from `galaxyGen.py`'s per-run
-`random.seed(secrets.randbits(128))` state:
+Revision 1 proposed a hash-based Bernoulli roll to decide occupancy,
+because it was treating "gate" as a soft probability. This revision's
+brief is a hard, physical criterion instead, which is simpler and needs no
+randomness at all:
 
 ```
-def _occupancy_roll(shell_index, shell_slot_index):
-    digest = hashlib.sha256(f"{shell_index}:{shell_slot_index}".encode()).digest()
-    return int.from_bytes(digest[:8], "big") / 2**64
+E = SpaceSector(edge_ly=DEFAULT_SECTOR_EDGE_LY).expected_system_count()   # at density=1
+    # = DEFAULT_SECTOR_EDGE_LY^3 * LOCAL_STELLAR_DENSITY_LY3 ~= 4.32 systems/sector
 
-occupied_by_gate = _occupancy_roll(shell_index, shell_slot_index) < occupancy_probability
+predicted_star_count(position) = E * relative_density(position)
+
+qualifies(position)  <=>  predicted_star_count(position) >= 1.0
 ```
 
-This matters because a slot's fate must not depend on *when* or *how many
-times* the command generating it happens to run — matching
-`sector_position_pc`'s own "same address, same result, forever" guarantee
-from the coordinate doc, and avoiding a surprise where re-running
-`--shell K --limit 100` twice fills in a different-looking patch of the
-shell each time.
+A sector's fate is a fixed fact of its position, computed once, exactly —
+not a coin flip. This is strictly simpler than revision 1's design and
+directly matches the brief ("gate density at a predicted less than 1 star
+possible per sector").
 
-### The efficiency point: pruning, not filtering
+## 3. Finding the edge, shell by shell, without visiting every slot
 
-Evaluating the gate for every one of a shell's `N_k` slots is still `O(N_k)`
-even though most distant/off-plane slots will fail it — for an outer shell
-(hundreds of millions of slots, per the coordinate doc's own table), that's
-still a lot of cheap-but-nonzero work, and it means the "disk cuts
-addressable volume ~20x" argument from the coordinate doc's §3 never
-actually saves anything at runtime.
+Brute-force enumeration (evaluate every one of a shell's `N_k` slots to see
+which qualify) is correct but far too slow at outer shells — see §5's
+numbers. Two facts, both already true of this model, make targeted pruning
+possible:
 
-Fix: reuse `galaxyGeometry._slot_index_bounds_for_phi_range` (already used
-by `enumerate_sectors_within_radius` for the exact same kind of pruning) to
-skip most of a shell's slot range outright. Given a shell's fixed radius
-`r_k`, a chosen `z_cutoff` (a few `disk_scale_height_pc`, beyond which
-`f_z(z)` is negligible enough to treat as exactly zero for generation
-purposes — this is the one place the model is deliberately truncated rather
-than left as an infinite tail), the polar-angle band that could possibly be
-within `z_cutoff` of the plane at radius `r_k` is:
+1. **The bulge term is constant across an entire shell** (it depends only
+   on `r_3d`, which every slot in shell `k` shares: `r_3d = r_k`). So
+   `bulge_alone(k) = K_NORM * bulge_amplitude * exp(-r_k / bulge_scale_radius_pc)`
+   is one number per shell. If `bulge_alone(k) >= THRESHOLD_RHO`
+   (`= 1/E`), **the entire shell qualifies, unconditionally** — no pruning
+   needed or possible there; every slot's own exact density must still be
+   computed and stored (for the weighting value, §6), so this is a real
+   `O(N_k)` cost for shells this deep in the core, not a shortcut.
+2. **Past that regime, the true per-`theta` maximum at a given `(k, phi)`
+   is exact and cheap**: `arm_factor`'s own maximum over `theta` is exactly
+   `1 + arm_amplitude`, independent of `theta` itself, so fixing it there
+   gives an exact (not merely conservative) upper bound on density at that
+   `phi`:
 
+   ```
+   bound(k, phi) = K_NORM * (
+       bulge_alone(k)
+       + (1 + arm_amplitude) * exp(-r_k*sin(phi)/disk_scale_length_pc)
+                              * f_z(r_k*cos(phi))
+   )
+   ```
+
+   For each shell past the solid-core regime, sample `bound(k, phi)` on a
+   fixed grid across `phi in [0, pi]` (500 points; this design pass used
+   200 for speed and found it adequate, but recommends 500 for the real
+   implementation as cheap extra safety margin — the grid is evaluated once
+   per shell, ~4,000 shells total, trivial either way) and keep the
+   contiguous run of grid points (plus one grid-step of padding on each
+   side, the same safety-margin pattern `galaxyGeometry._candidate_shell_range`
+   already uses) where it clears `THRESHOLD_RHO`. Feed that `[phi_min,
+   phi_max]` into the *already-existing*
+   `galaxyGeometry._slot_index_bounds_for_phi_range` (built for the
+   neighborhood-query primitive, reused as-is here) to get the actual slot
+   index range to visit. Every visited slot still gets its *exact* position
+   and density computed and checked — the grid band is a safe (possibly
+   slightly wider than necessary) net, never a final answer on its own.
+
+   **Known imprecision, accepted deliberately**: this is a grid scan, not a
+   closed-form inversion (this design pass found the true qualifying region
+   isn't always a single band centered on the disk plane — for some
+   mid-range shells, a *second* small qualifying patch exists near the
+   poles too, since a slot there trades a favorable `r_cyl -> 0` against an
+   unfavorable large `|z|`, and depending on the shell radius either term
+   can win). A fixed grid handles this correctly (it doesn't assume
+   unimodality) but could in principle miss an extremely narrow qualifying
+   sliver that falls entirely between two grid points, right at the
+   galaxy's outer edge where the qualifying band is thinnest. Accepted as a
+   bounded, cosmetic imprecision (a handful of borderline sectors at the
+   very edge, not a systemic error) rather than solved with exact root
+   isolation, which would need calculus this model's shape doesn't obviously
+   guarantee is well-behaved everywhere.
+
+**Stopping the outward scan**: once a shell's grid scan finds no point
+anywhere that clears the bar, both density terms are past their peak and
+monotonically falling with radius, so every shell beyond it is empty too —
+but as insurance against the imprecision just noted, the real
+implementation should confirm a **run of consecutive empty shells** (e.g.
+50) before concluding the edge has been reached, rather than stopping at
+the very first one.
+
+## 4. Sequential sector index
+
+Every row inserted into the plan table (§6) gets `sector_index`, a dense
+`1..N` integer assigned in the same canonical order the build walks: shell
+`0, 1, 2, ...` outward, and within each shell in ascending
+`shell_slot_index` order. This makes `sector_index` a stable "the Nth
+star-bearing sector outward from the core" address — meaningful on its own
+(a lower index is always closer to the galactic center) and stable across
+a resumed/re-run build (§7), since it's assigned in a fixed traversal
+order, never renumbered.
+
+## 5. Feasibility investigation — real measurements, not estimates
+
+Run as part of this design pass (see the session's own benchmarking, not
+reproduced as scripts here, but summarized because the numbers drove every
+decision above):
+
+- **Full content generation** (`sectorGen.py`, real systems/planets, 1,000
+  sectors measured): **22.9 ms/sector, 87.8 KB/sector** in the database.
+  Confirms generating actual content for the whole plan is never on the
+  table (see below) — expected, and fine, since a galaxy is always mostly
+  unvisited.
+- **Total addressable slots**, shells 0 through the computed edge (~4,100
+  with revision-1-era parameters): **~289 billion.**
+- **Qualifying sectors** (properly weighted by true per-shell slot counts,
+  not naive uniform shell sampling, which badly overestimates the
+  fraction): **~3.6% -> ~10.5 billion** sectors predicted to hold at least
+  one star.
+- **Brute-force compute** (evaluate every one of the 289 billion
+  addresses): ~293 hours single-core. Not viable.
+- **With §3's pruning**: total addresses actually needing evaluation drops
+  to an *exact* (not sampled) **12.62 billion** — a ~23x reduction — and
+  the pruning decision itself (which shells/bands to visit) costs under a
+  second for the whole galaxy.
+- **With NumPy vectorization** of the density formula: **241 ns/candidate**
+  vs. ~3,000 ns in a pure-Python loop (~12x). Combined with pruning:
+  **12.62B x 241ns ~= 51 minutes, single core** — and this step is
+  embarrassingly parallel (every candidate is independent), so it drops
+  further with more cores.
+- **SQLite bulk-insert tuning** (`journal_mode=OFF`, `synchronous=OFF`
+  during the one-time build, index created *after* loading instead of
+  during): **3.6 us/row vs. 5.3 us/row** (~1.5x). This step does *not*
+  parallelize as easily — SQLite allows one writer at a time — so
+  inserting ~10.5 billion rows this way is genuinely the long pole: **~6.5-
+  10.5 hours, serialized**, on top of the sub-hour compute step.
+- **Storage**: ~80 bytes/row measured -> **~830 GB-1 TB** for the full
+  table (before accounting for the post-build index's own size). This
+  number is **not reducible by any of the above** — it's a direct
+  consequence of a 3.5-pc sector next to a ~13,500 pc galaxy radius, not an
+  algorithm inefficiency.
+
+**Bottom line, and the basis for building the full table anyway (§0)**:
+what looked like a 12+ day, clearly-infeasible job at first estimate is a
+several-hour-to-overnight batch job once pruned and vectorized, requiring
+~1 TB of free disk. Compute is no longer the constraint; one long,
+necessarily-serialized write pass and the disk budget are.
+
+## 6. Schema: new `galaxy_sector_plan` table
+
+```sql
+CREATE TABLE IF NOT EXISTS galaxy_sector_plan (
+    sector_index              INTEGER PRIMARY KEY,   -- see section 4
+    shell_index               INTEGER NOT NULL,
+    shell_slot_index          INTEGER NOT NULL,
+    center_x_pc               REAL NOT NULL,
+    center_y_pc               REAL NOT NULL,
+    center_z_pc               REAL NOT NULL,
+    galactic_radius_pc        REAL NOT NULL,
+    predicted_relative_density REAL NOT NULL,
+    predicted_star_count      REAL NOT NULL,          -- E * predicted_relative_density, cached
+                                                       -- to avoid re-deriving E at query time
+    generated_sector_id       INTEGER REFERENCES sectors(id),  -- NULL until galaxyGen.py
+                                                                -- actually generates this one
+    UNIQUE (shell_index, shell_slot_index)
+);
+-- Created only after the bulk build finishes (see section 7) -- incremental
+-- index maintenance during a multi-billion-row insert is the ~1.5x this
+-- design pass measured leaving on the table otherwise.
+CREATE INDEX IF NOT EXISTS idx_galaxy_sector_plan_shell ON galaxy_sector_plan(shell_index);
+CREATE INDEX IF NOT EXISTS idx_galaxy_sector_plan_ungenerated
+    ON galaxy_sector_plan(shell_index) WHERE generated_sector_id IS NULL;
 ```
-phi_disk_min = acos(min(1, z_cutoff / r_k))
-phi_disk_max = pi - phi_disk_min
+
+`PRAGMA user_version` moves to the next version past whatever Track C left
+it at, per `docs/database-schema.md`'s existing history-entry convention.
+
+**A sector's own `center_x/y/z_pc`/`galactic_radius_pc` columns (already on
+`sectors` since Track C) are left as-is, populated the same way they are
+today once a plan row is actually generated** — genuinely redundant with
+the plan row's own copy of the same numbers, but changing `sectors`' shape
+or how existing code (the web UI, `queryDb.py`) reads it is out of scope
+here; duplication is the accepted cost of not touching that surface.
+
+## 7. `galaxyPlan.py` — the batch build tool
+
+New root-level script, alongside `sectorGen.py`/`systemGen.py`/
+`galaxyGen.py`, whose only job is building (or resuming) the plan table —
+it never generates sector *content*, only the census of where content
+*could* go:
+
+- Creates `galaxy_sector_plan` (and its schema-version bump) if missing.
+- **Resumable by construction**: on start, reads
+  `MAX(shell_index)` already present and continues the outward shell scan
+  from there — an interrupted multi-hour run loses at most the
+  in-progress shell, not prior work. `sector_index` continuation follows
+  from `MAX(sector_index)` the same way, preserving section 4's ordering
+  guarantee across a resume.
+- Per shell: the solid-core fast path or the pruned-band scan (§3),
+  computed via NumPy in one vectorized batch per shell rather than a
+  Python-level loop per slot (§5's 12x).
+- **Write mode**: `PRAGMA journal_mode=WAL` + `synchronous=NORMAL` as the
+  default (crash-safe, still fast) with commits every shell (bounding
+  how much a crash mid-shell can lose); an opt-in `--unsafe-fast` flag
+  drops to `journal_mode=OFF`/`synchronous=OFF` for a known-safe
+  environment willing to trade crash resilience for the last ~1.5x, per
+  §5's measurement. Indexes are created once, after the scan finishes
+  entirely (or is deliberately stopped early via `--max-shell`, for
+  testing on a laptop-sized slice before committing to the full run).
+- Progress output every shell (or every N seconds): current shell index,
+  cumulative sector count, elapsed time — this is a multi-hour job that
+  should never run silently.
+
+## 8. `galaxyGen.py` changes: consume the plan instead of computing occupancy
+
+`--shell K` and `--center-sector ID --radius-pc R` keep their existing
+meaning, but stop calling `galaxyGeometry.sector_position_pc`/
+`shell_sector_count` directly to decide *what exists* — that question is
+already answered, once, by the plan table:
+
+```sql
+-- --shell K, not-yet-generated slots:
+SELECT * FROM galaxy_sector_plan
+WHERE shell_index = :k AND generated_sector_id IS NULL;
 ```
 
-`run_shell_batch` computes `(i_min, i_max) =
-_slot_index_bounds_for_phi_range(phi_disk_min, phi_disk_max, n_k)` once per
-shell and only iterates that band (plus, separately, the handful of slots
-near the poles that could still fall inside the *bulge*'s spherical
-`r_3d`-based cutoff at small `r_k`, since the bulge isn't flattened) rather
-than every slot `0..n_k-1`. For a shell with `r_k` many scale-heights out,
-this band is a thin sliver of `n_k`, restoring the real Big-O win a disk
-model is supposed to provide, exactly the way the coordinate doc's own
-neighborhood-query pruning avoids ever touching a whole outer shell's slot
-count.
+For `--center-sector`, `galaxyGeometry.enumerate_sectors_within_radius`
+still finds the *candidate* `(shell_index, shell_slot_index)` addresses
+near the center sector (unchanged, still needed since that primitive
+searches by geometry, not by plan membership) — the result is then
+filtered against `galaxy_sector_plan` by `(shell_index, shell_slot_index)`;
+a candidate with no matching plan row simply isn't a real sector (its
+predicted density never cleared the threshold) and is skipped, same as
+today's "already occupied" skip, just checking plan membership instead of
+`sectors` occupancy.
 
-## 4. Density weighting for generated sectors
+For each plan row actually generated: `sectorGen.generate_sector(args,
+galactic_center_dist_ly=..., density_multiplier=plan_row.predicted_relative_density)`
+(the same hook revision 1 proposed, unchanged — §1's density value is what
+flows into it), then `UPDATE galaxy_sector_plan SET generated_sector_id =
+:id WHERE sector_index = :sector_index`.
 
-`sectorGen.generate_sector` already isolates the exact hook point (line
-374-376 today):
+No hash-based occupancy roll remains anywhere in this design — revision
+1's `_occupancy_roll` is dropped entirely, superseded by §2's deterministic
+threshold decided once at plan-build time.
 
-```python
-if args.density is not None:
-    args = copy.copy(args)
-    args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
-```
+## 9. Open questions carried forward
 
-Add one new optional parameter, `density_multiplier=1.0`, used only in this
-branch:
+1. **Sharded/parallel plan build.** §5 measured the insert step as the
+   long pole specifically because SQLite allows one writer per file, not
+   because parallel *computation* isn't possible. Building into `N`
+   separate files (one per worker, sharded by shell range) in parallel and
+   merging them afterward (via `ATTACH` + bulk `INSERT ... SELECT`, likely
+   far faster than the row-by-row Python API this design pass benchmarked)
+   could cut the ~6.5-10.5 hour insert step significantly, at real added
+   implementation complexity this design pass didn't measure. Left for a
+   follow-up if the single-writer build proves too slow in practice.
+2. **Exact final qualifying count and edge shell** depend on the precise
+   `K_NORM`/bulge/disk constants finally chosen (§1's table is this pass's
+   recommendation, not yet locked in) — §5's ~10.5 billion and ~4,100-shell
+   figures came from evaluating this design's own formulas during the
+   investigation and will shift somewhat (not by orders of magnitude) once
+   the real implementation calibrates `K_NORM` at the precise inter-arm
+   point specified in §1 rather than the placeholder calibration this
+   pass's benchmarks used.
+3. Everything revision 1's own §6 open questions listed (thin/thick disk
+   split, metallicity-vs-radius gradients) still applies unchanged.
 
-```python
-def generate_sector(args, galactic_center_dist_ly=None, density_multiplier=1.0):
-    ...
-    if args.density is not None:
-        args = copy.copy(args)
-        args.num_systems = _sample_poisson_count(
-            sector.expected_system_count() * args.density * density_multiplier
-        )
-```
+## 10. Testing plan
 
-`galaxyGen.py`'s `_generate_and_save_sector_at` passes
-`density_multiplier=relative_stellar_density(position_pc)` (the *uncapped*
-value — unlike the occupancy gate, richness isn't clamped at 1: a sector
-right in the bulge or on a spiral arm crest should generate meaningfully
-more systems than a "typical" one, not just be more likely to exist at
-all).
-
-This deliberately only touches the `--density` path, never
-`--num-systems`: an explicit fixed system count is the caller overriding
-realism outright, and galaxy position shouldn't second-guess that.
-`sectorGen.py`'s own standalone CLI is entirely unaffected (default
-`density_multiplier=1.0`, identical to today).
-
-## 5. Schema / persistence
-
-**No schema change.** `relative_stellar_density` is a pure function of a
-position every generated sector already stores
-(`center_x_pc`/`center_y_pc`/`center_z_pc`); anyone who wants "how dense was
-it here" later can recompute it exactly, the same way `galactic_radius_pc`
-being derivable didn't stop it from also being persisted for query
-convenience (coordinate doc §1) — but there's no equivalent query need
-here ("sectors above density X" isn't an anticipated query the way "sectors
-within radius R" was), so nothing new is added to `sectors`.
-
-## 6. Open questions carried forward (not decided here)
-
-1. **Thin/thick disk split.** §1 uses one effective `disk_scale_height_pc`
-   rather than a two-population blend (thin disk, most of the mass, small
-   `h_z`; thick disk, a minority, large `h_z`). A blend would look more
-   realistic at the vertical margins (a small population of stars well off
-   the plane) at the cost of two more constants and a weighted-sum term.
-   Deferred as a refinement, not required for a first working version.
-2. **Metallicity/star-type gradients** (coordinate doc §7 Q2's other half)
-   — whether star type/composition selection should itself vary with
-   `r_cyl` (real disk galaxies are more metal-rich toward the core). Stays
-   explicitly out of scope here; this document only decides *whether/how
-   much* gets generated, not *what*.
-3. **Tuning the proposed constants** (§1's table) is a "generate and look at
-   it" exercise, not something to over-derive on paper — expect the first
-   implementation pass to include a small visualization/inspection script
-   (or reuse of the existing Sector Map work) to eyeball arm contrast and
-   disk thickness before locking in defaults.
-
-## 7. Testing plan
-
-- `src/tests/test_galaxy_density.py` (new, mirroring
-  `test_galaxy_geometry.py`'s style): `relative_stellar_density` is
-  hand-checked at a handful of exact points (galactic center, the solar
-  calibration point evaluating to `1.0`, on-arm vs. inter-arm at fixed
-  `r_cyl`, far off-plane vs. in-plane at fixed `r_cyl`), plus monotonicity
-  checks (density strictly decreases with `r_cyl` at fixed `theta`/`z` past
-  the arm modulation's own period, and with `|z|` at fixed `r_cyl`).
-- `_occupancy_roll` determinism: same `(shell_index, shell_slot_index)`
-  always yields the same float across repeated calls/processes.
-- `run_shell_batch` with `--uniform`: byte-identical sector count/positions
-  to today's behavior (regression guard that the new default path didn't
-  change the escape hatch).
-- `run_shell_batch` without `--uniform`, on a shell straddling the disk
-  plane: statistically, generated slots concentrate at low `|z|` and near
-  arm phases; a distant/highly-inclined shell generates few-to-none.
+- `src/tests/test_galaxy_density.py`: `relative_density`/`raw_density`
+  hand-checked at exact points (bulge center, solar calibration point
+  evaluating to exactly `1.0`, on-arm vs. inter-arm contrast, in-plane vs.
+  off-plane falloff), `K_NORM`'s derivation, `expected_star_count`
+  threshold arithmetic.
+- `src/tests/test_galaxy_plan_geometry.py`: the solid-core fast path and
+  grid-band scan against small, hand-verifiable shells (a shell forced
+  fully solid; a shell with a known, checkable band; a shell confirmed
+  empty) — plus a slow/regression test comparing pruned output against
+  brute-force full-shell enumeration on a handful of small shells, to
+  guard the pruning's correctness (never excluding a true qualifier).
+- `src/tests/test_galaxy_plan.py`: `galaxyPlan.py` end-to-end on a small
+  `--max-shell` slice — resumability (kill mid-build, restart, confirm no
+  gaps/duplicates in `sector_index`), schema creation, index-after-build
+  ordering.
+- `galaxyGen.py`'s existing `test_galaxy_gen.py` gains coverage for
+  plan-table consumption (a shell with some plan rows already generated,
+  some not; a `--center-sector` search whose candidates only partially
+  exist in the plan).

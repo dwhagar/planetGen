@@ -143,14 +143,22 @@ the web database picker and from a subsequent migration run
   the v3->v4 `sectors` schema migration, `src/stellarObjects/galaxyGeometry.py`,
   and `galaxyGen.py` (`--shell K` / `--center-sector ID --radius-pc R`),
   with end-to-end CLI coverage in `src/tests/test_galaxy_gen.py`.
-- [ ] **Galaxy thickness / shape (disk-density envelope) — design drafted,
-  not implemented.** Exponential-disk-plus-bulge-plus-spiral-arm density
-  model over galaxy-frame position, gating which `(shell_index,
-  shell_slot_index)` addresses `galaxyGen.py` generates at all and scaling
-  `--density` for the ones that do; deterministic (hash-based) occupancy,
-  no schema change. See `docs/design/galaxy-disk-density.md` (the design
-  pass this item and `docs/design/galaxy-coordinate-system.md` section 7
-  question 2 called for).
+- [ ] **Galaxy thickness / shape (disk-density envelope) — design drafted
+  (revision 2), not implemented.** Milky-Way-scale exponential-disk-plus-
+  bulge-plus-spiral-arm density model, evaluated and persisted for every
+  possible sector up front in a new `galaxy_sector_plan` table (built by a
+  new `galaxyPlan.py` batch tool) rather than decided at generation time —
+  gated by a deterministic "predicted less than 1 star per sector" cutoff
+  that stops the radial scan outward, with each planned sector getting a
+  stable sequential index. `galaxyGen.py` consumes plan rows instead of
+  computing occupancy itself. A feasibility investigation during this
+  design pass measured ~10.5 billion qualifying sectors at real Milky-Way
+  scale (~1 TB, several hours to build with pruning + NumPy vectorization,
+  down from a naive ~12+ days) — see
+  `docs/design/galaxy-disk-density.md` for the full model, schema, and
+  benchmarked numbers (the design pass this item and
+  `docs/design/galaxy-coordinate-system.md` section 7 question 2 called
+  for).
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 
