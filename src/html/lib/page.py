@@ -76,10 +76,13 @@ def _sidenav_html():
     """
     Builds the site-wide vertical nav bar shown on the left of every page:
     a fixed set of "functions" rather than a breadcrumb -- Databases, then
-    Search, Sectors, and Systems for the current `?db=` when one is present
-    in the request's own query string. Sectors/Systems jump straight to the
-    matching anchor on `browse.py` (`id="sectors"`/`id="standalone-systems"`)
-    rather than duplicating that page's own listing here.
+    Search, Galaxy, Sectors, and Systems for the current `?db=` when one is
+    present in the request's own query string. Sectors/Systems jump
+    straight to the matching anchor on `browse.py` (`id="sectors"`/
+    `id="standalone-systems"`) rather than duplicating that page's own
+    listing here; Galaxy goes to `galaxy.py`, the galaxy-scale map of every
+    sector that actually has a galaxy position (see that page's own
+    docstring) -- a different view than `browse.py`'s flat sector list.
 
     The Databases item always links to `index.py?all=1` (never bare
     `index.py`) whenever at least one `.db` file exists -- `index.py` on its
@@ -109,6 +112,7 @@ def _sidenav_html():
         db = esc(db_name)
         items.extend([
             (f"search.py?db={db}", "Search"),
+            (f"galaxy.py?db={db}", "Galaxy"),
             (f"browse.py?db={db}#sectors", "Sectors"),
             (f"browse.py?db={db}#standalone-systems", "Systems"),
         ])

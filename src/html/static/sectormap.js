@@ -58,7 +58,7 @@
     var dl = document.createElement("dl");
     addField(dl, "Star type", dot.dataset.type);
     addField(dl, "Temperature", dot.dataset.temp);
-    addField(dl, "Quadrant", dot.dataset.quadrant);
+    addField(dl, "Octant", dot.dataset.quadrant);
     addField(dl, "Location", dot.dataset.location);
     panel.appendChild(dl);
 

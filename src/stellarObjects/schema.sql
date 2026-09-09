@@ -46,11 +46,17 @@
 --
 -- star_systems.quadrant stores the sector octant label (Roman numerals
 -- I-VIII, one of the 8 sign(x)/sign(y)/sign(z) combinations -- see
--- spaceSector.py's `classify_octant`/`program_constants.SECTOR_OCTANT_LABELS`;
--- the code's own naming calls these "quadrants" despite being a 3D octant
--- scheme) alongside the raw x/y/z -- purely derived from position, but
--- worth storing (not just recomputing on read) so it's directly
--- queryable/indexable without a UDF or generated-column expression.
+-- spaceSector.py's `classify_octant`/`program_constants.SECTOR_OCTANT_LABELS`)
+-- alongside the raw x/y/z -- purely derived from position, but worth
+-- storing (not just recomputing on read) so it's directly
+-- queryable/indexable without a UDF or generated-column expression. The
+-- column name is kept as `quadrant` for schema stability, but every
+-- human-facing label now displays it as "Octant" (html/sector.py,
+-- html/system.py, html/static/sectormap.js) so it doesn't collide with
+-- the unrelated, galaxy-scale "Quadrant" concept `sectors.center_x/y/z_pc`
+-- and html/lib/galaxymap.py introduced later (4 azimuthal regions
+-- spanning many sectors, not this column's 8 sign-combination regions
+-- within one sector's own cube).
 --
 -- v3: star_systems.location stores a human-readable "sector name + nearest
 -- neighbors" summary, e.g. "Voranthis Kelmoor -- nearest: Alpha Prime

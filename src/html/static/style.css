@@ -608,6 +608,81 @@ tbody tr:last-child td {
   margin: 0;
 }
 
+/* Galaxy map: flat SVG plot of galaxy-placed sectors (html/lib/galaxymap.py,
+   html/galaxy.py) -- no static/*.js file of its own; Quadrant zoom is a
+   plain server-rendered link that changes the SVG's own viewBox, and every
+   dot is a plain <a> to sector.py, so this needs no client-side script the
+   3D sector map (.starmap-*, above) does. */
+.galaxymap-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.galaxymap-viewport {
+  flex: 0 0 auto;
+  width: min(100%, 26rem);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.galaxymap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.galaxymap-ring {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.galaxymap-ring-label {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-sans);
+}
+
+.galaxymap-axis {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.galaxymap-quadrant-label {
+  fill: var(--text-muted);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+
+a:hover .galaxymap-quadrant-label,
+a:focus-visible .galaxymap-quadrant-label {
+  fill: var(--accent);
+}
+
+.galaxymap-star-core {
+  cursor: pointer;
+}
+
+a:hover .galaxymap-star-core,
+a:focus-visible .galaxymap-star-core {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.galaxymap-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 14rem;
+  min-width: 12rem;
+}
+
 /* Search page: tag facets, name-search form, active-filter chips */
 .tag-group {
   margin-bottom: 1.25rem;
