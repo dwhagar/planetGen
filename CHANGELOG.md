@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.6.0] - 2026-09-09
+
+### Added
+- **Rate limiting (Flask-Limiter), applied to the whole API out of the
+  box.** Default limits (200/day, 50/hour per client IP -- Flask-Limiter's
+  own quickstart example, overridable via `PLANETGEN_RATELIMIT_DEFAULT`)
+  apply to every route except `/api/health`; every write endpoint (below)
+  additionally layers a stricter 10/minute limit on top
+  (`routes.WRITE_RATE_LIMIT`). Exceeding a limit returns `429
+  {"error": "rate limit exceeded", "detail": "..."}` (never Flask-Limiter's
+  own default plain-text body) with `Retry-After`/`X-RateLimit-*`
+  headers. Storage backend defaults to in-memory
+  (`PLANETGEN_RATELIMIT_STORAGE_URI`, correct for a single-process
+  deployment; a multi-worker `mod_wsgi`/`gunicorn` deployment needs a
+  shared backend, e.g. Redis, or each worker under-enforces the
+  configured limit by tracking its own separate counters).
+- **Write-stub endpoints**: `POST`/`PATCH`/`DELETE` on `/api/sectors` and
+  `/api/systems`. Every one validates its JSON request body (sectors get
+  a fully mapped-out `{"name", "edge_ly"}` schema; systems only check
+  "is a JSON object" for now -- see docs/api.md for why that one's
+  field-level schema is still an open design question) and applies
+  `WRITE_RATE_LIMIT`, but always responds `501 {"error": "... is not
+  implemented yet"}` -- no row is ever inserted, updated, or deleted.
+  Exists now so the request/response contract is settled and testable
+  before the real database logic lands; see docs/api.md's "Write
+  endpoints" section for what filling them in for real will also need
+  (a write-capable database account, and authentication/authorization --
+  neither exists yet, and both are load-bearing on this API staying
+  read-only in practice today).
+
 ## [5.5.0] - 2026-09-09
 
 ### Added

@@ -73,7 +73,7 @@ setup(
     ],
     extras_require={
         'test': ['pytest'],
-        'api': ['flask'],
+        'api': ['flask', 'flask-limiter'],
     },
     author='David Hagar',
     author_email='david.hagar@gmail.com',

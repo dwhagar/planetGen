@@ -1,21 +1,23 @@
 # api/app.py
 
 """
-Flask application factory for the read-only planetGen API.
+Flask application factory for the planetGen API.
 
-See `api/README.md` for how to run this in development and how it deploys
-behind the project's existing Apache2 vhost (`apache/`).
+See `docs/api.md` for how to run this in development and how it deploys
+behind the project's existing Apache2 vhost (`examples/apache/`).
 """
 
 from flask import Flask, jsonify
 
 from .config import Config
+from .limiter import limiter
 from .routes import ApiError, bp, close_db
 
 
 def create_app(config_object=Config):
     app = Flask(__name__)
     app.config.from_object(config_object)
+    limiter.init_app(app)
     app.register_blueprint(bp)
     app.teardown_appcontext(close_db)
     _register_error_handlers(app)
@@ -53,6 +55,16 @@ def _register_error_handlers(app):
         # The real detail still reaches Flask's own logger.
         app.logger.exception("Unhandled exception in API request")
         return jsonify({"error": "internal server error"}), 500
+
+    @app.errorhandler(429)
+    def _handle_rate_limit_exceeded(exc):
+        # Flask-Limiter raises flask_limiter.errors.RateLimitExceeded, a
+        # werkzeug HTTPException subclass for 429 -- registering by the
+        # plain integer code catches it (and anything else that ever
+        # raises a bare 429) the same way `404`/`405` above catch Flask's
+        # own routing exceptions, without importing Flask-Limiter's
+        # exception type here just to reference it once.
+        return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429
 
 
 if __name__ == "__main__":

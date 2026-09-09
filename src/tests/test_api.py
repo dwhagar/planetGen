@@ -15,6 +15,7 @@ exercise the exact same read path (`queryDb.py`/`stellarObjects._db.load_sector`
 import pytest
 
 from api.app import create_app
+from api.config import Config
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import SpaceSector
@@ -55,7 +56,15 @@ def seeded_sector(mysql_config):
 
 @pytest.fixture
 def client(mysql_config):
-    class TestConfig:
+    # Subclasses the real Config (not a bare new class carrying only
+    # MYSQL_CONFIG) so tests exercise the actual rate-limit configuration
+    # production uses -- a from-scratch class here would silently leave
+    # RATELIMIT_DEFAULT/RATELIMIT_STORAGE_URI unset, making the global
+    # default limit untestable (confirmed by testing: Flask-Limiter falls
+    # back to an unconfigured in-memory store with no default limit at
+    # all rather than erroring, so this gap wouldn't show up as a
+    # failure -- just as tests silently not covering what they claim to).
+    class TestConfig(Config):
         MYSQL_CONFIG = mysql_config
 
     app = create_app(TestConfig)
@@ -164,3 +173,83 @@ def test_unmatched_route_returns_json_404(client):
     response = client.get("/api/no-such-route")
     assert response.status_code == 404
     assert response.get_json() == {"error": "not found"}
+
+
+# ---------------------------------------------------------------------
+# Write endpoints -- stubs (see routes.py's module docstring). These
+# never touch the database, so they don't need `seeded_sector`/a real
+# sector or system id to exist first -- every one of them responds 501
+# regardless, as long as the request body passes validation.
+# ---------------------------------------------------------------------
+
+def test_create_sector_validates_then_returns_not_implemented(client):
+    response = client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0})
+    assert response.status_code == 501
+    assert "error" in response.get_json()
+
+    response = client.post("/api/sectors", json={"name": "Test"})
+    assert response.status_code == 400
+
+    response = client.post("/api/sectors", json={"name": "", "edge_ly": 10.0})
+    assert response.status_code == 400
+
+    response = client.post("/api/sectors", json={"name": "Test", "edge_ly": -1})
+    assert response.status_code == 400
+
+    response = client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0, "bogus": 1})
+    assert response.status_code == 400
+
+    response = client.post("/api/sectors", data="not json", content_type="text/plain")
+    assert response.status_code == 400
+
+
+def test_update_sector_validates_then_returns_not_implemented(client):
+    response = client.patch("/api/sectors/1", json={"name": "Renamed"})
+    assert response.status_code == 501
+
+    response = client.patch("/api/sectors/1", json={"edge_ly": 5.0})
+    assert response.status_code == 501
+
+    response = client.patch("/api/sectors/1", json={})
+    assert response.status_code == 400
+
+    response = client.patch("/api/sectors/1", json={"edge_ly": -1})
+    assert response.status_code == 400
+
+
+def test_delete_sector_returns_not_implemented(client):
+    response = client.delete("/api/sectors/1")
+    assert response.status_code == 501
+    assert "error" in response.get_json()
+
+
+def test_create_system_requires_json_object_then_returns_not_implemented(client):
+    response = client.post("/api/systems", json={"name": "Testworld"})
+    assert response.status_code == 501
+
+    response = client.post("/api/systems", data="not json", content_type="text/plain")
+    assert response.status_code == 400
+
+
+def test_update_system_requires_json_object_then_returns_not_implemented(client):
+    response = client.patch("/api/systems/1", json={"star_type": "G2V"})
+    assert response.status_code == 501
+
+
+def test_delete_system_returns_not_implemented(client):
+    response = client.delete("/api/systems/1")
+    assert response.status_code == 501
+
+
+def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(client):
+    # WRITE_RATE_LIMIT is 10/minute -- the 11th write in one minute must
+    # be rejected with 429, well before the 50/hour global default would
+    # ever kick in.
+    for _ in range(10):
+        response = client.delete("/api/sectors/1")
+        assert response.status_code == 501
+
+    response = client.delete("/api/sectors/1")
+    assert response.status_code == 429
+    body = response.get_json()
+    assert body["error"] == "rate limit exceeded"

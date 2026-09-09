@@ -1,11 +1,16 @@
 # planetGen API
 
-A read-only JSON API over the planetGen database (`src/stellarObjects/schema.sql`),
+A JSON API over the planetGen database (`src/stellarObjects/schema.sql`),
 built with [Flask](https://flask.palletsprojects.com/). This is `TODO.md`'s
-Phase 5 backend — no write path (generation still happens through
-`sectorGen.py`/`systemGen.py`, which persist directly), no frontend yet, and
-now backed by the same MySQL database every other tool in this project uses
-(see [`database-schema.md`](database-schema.md) for the MySQL port).
+Phase 5 backend — backed by the same MySQL database every other tool in this
+project uses (see [`database-schema.md`](database-schema.md) for the MySQL
+port), no frontend yet.
+
+Every read endpoint is fully implemented. The write endpoints (create/modify/
+delete a sector or system) are **stubs**: routed, rate-limited, and
+validating their request body against the schema below, but not yet wired
+up to the database — see "Write endpoints" below before building anything
+against them.
 
 ## Why Flask
 
@@ -27,12 +32,14 @@ benefit from generated docs. Worth revisiting if/when a dedicated frontend
 
 ## Endpoints
 
-All under `/api/`, all read-only, all JSON:
+All under `/api/`, all JSON in, JSON out.
+
+### Read
 
 - `GET /api/health` — liveness/readiness check: confirms the process is up
   and the configured database can actually be opened. Returns
   `{"status": "ok"}`, or `{"status": "error", "detail": "..."}` with a `503`
-  if the database can't be reached.
+  if the database can't be reached. Exempt from rate limiting.
 - `GET /api/sectors?limit=<n>&offset=<n>` — every sector, with system count
   (`queryDb.list_sectors`/`count_sectors`), paginated (see "Pagination"
   below).
@@ -44,6 +51,15 @@ All under `/api/`, all read-only, all JSON:
   moons, belts) (`stellarObjects._db.load_star_system(...).to_dict()`).
 - `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
   sector within `radius` light-years (`queryDb.systems_within_radius`).
+
+### Write (stubs — see below)
+
+- `POST /api/sectors` — create a sector.
+- `PATCH /api/sectors/<id>` — modify a sector.
+- `DELETE /api/sectors/<id>` — remove a sector.
+- `POST /api/systems` — create a system.
+- `PATCH /api/systems/<id>` — modify a system.
+- `DELETE /api/systems/<id>` — remove a system.
 
 ### Pagination
 
@@ -70,11 +86,92 @@ request gets a `400`.
 
 Every error response is JSON, `{"error": "..."}`, regardless of what raised
 it: a missing sector/system id is a `404`, a missing/invalid query parameter
-(including an out-of-range `limit`/`offset`, or a non-numeric/non-positive
-`radius`) is a `400`, an unmatched URL is a `404`, an unsupported HTTP method
-is a `405`, and an unexpected server-side failure is a `500` — the API never
-falls through to Flask's default HTML error page or leaks a stack trace to
-the client (the real detail still reaches Flask's own logger).
+or request body (including an out-of-range `limit`/`offset`, a
+non-numeric/non-positive `radius`, or a write endpoint's body failing
+validation — see below) is a `400`, an unmatched URL is a `404`, an
+unsupported HTTP method is a `405`, exceeding a rate limit is a `429`
+(`{"error": "rate limit exceeded", "detail": "..."}`, see "Rate limiting"),
+and an unexpected server-side failure is a `500` — the API never falls
+through to Flask's default HTML error page or leaks a stack trace to the
+client (the real detail still reaches Flask's own logger).
+
+## Write endpoints
+
+**These are stubs.** Every one validates its request body against the
+schema below and applies the rate limit, but always responds
+`501 {"error": "... is not implemented yet"}` — no row is ever inserted,
+updated, or deleted. They exist now so the request/response contract is
+settled and something can already build/test against the validation and
+error shape before the actual database logic lands.
+
+Before filling them in for real, two things this stub stage deliberately
+doesn't need yet still have to land first:
+
+- **A write-capable database account.** `MYSQL_CONFIG` (see `config.py`)
+  is the same connection every read endpoint uses, and this project's own
+  docs recommend a `SELECT`-only account for it. A real write needs a
+  second, write-capable account/config — reusing the read-only one will
+  simply fail with a permissions error.
+- **Authentication/authorization.** Nothing in this API currently checks
+  *who* is calling — fine when every route only reads, not once a request
+  can create/modify/delete data. Decide on an auth scheme (API key, JWT,
+  mTLS, ...) before wiring real logic behind these routes.
+
+### Sectors — request body
+
+`POST /api/sectors` (all fields required) and `PATCH /api/sectors/<id>`
+(any non-empty subset) both take:
+
+```json
+{
+  "name": "Voranthis Kelmoor",
+  "edge_ly": 11.5
+}
+```
+
+- `name`: non-empty string.
+- `edge_ly`: number, greater than 0 — the sector's cube edge, in
+  light-years (matches `sectors.edge_mpc` after unit conversion; see
+  `database-schema.md`).
+
+An unrecognized field, a missing required field (`POST` only), a wrong
+type, or a value failing the constraints above is a `400`.
+
+### Systems — request body
+
+**Not yet decided.** `POST`/`PATCH /api/systems` today only check that the
+body is a JSON object — a system is a much richer nested object (stars,
+planets, moons, belts) than a sector, and this project hasn't settled
+whether creating one via the API should take a generation "recipe" (shaped
+like `SystemConfig` — `star_type`, `planets`, `moons`, ... — closer to what
+`systemGen.py --star-type ...` takes and letting the server generate the
+system), a fully-specified object graph (shaped like
+`StarSystem.to_dict()`, with every star/planet/moon/belt spelled out), or
+both. Settle this alongside filling in the stub itself, and document the
+chosen shape here.
+
+## Rate limiting
+
+Every route (`/api/health` excepted) is rate-limited via
+[Flask-Limiter](https://flask-limiter.readthedocs.io/), on top of which
+every write endpoint applies its own stricter limit
+(`routes.WRITE_RATE_LIMIT`, currently 10/minute):
+
+- Default: **200 requests/day, 50/hour**, per client IP — Flask-Limiter's
+  own quickstart example limit, a reasonable starting point for a
+  low-traffic public API with no other usage data to tune against yet.
+  Override with `PLANETGEN_RATELIMIT_DEFAULT` (semicolon-separated, e.g.
+  `"1000 per day;200 per hour"`).
+- Storage backend: in-memory by default (`PLANETGEN_RATELIMIT_STORAGE_URI`,
+  default `memory://`) — correct for a single-process deployment (Flask's
+  dev server, or `mod_wsgi`/`gunicorn` with exactly one worker). **A
+  multi-worker deployment needs a shared backend** (e.g. Redis:
+  `PLANETGEN_RATELIMIT_STORAGE_URI=redis://host:6379/0`), since each
+  worker otherwise tracks its own separate counters and the real,
+  aggregate request rate can exceed the configured limit by roughly the
+  worker count.
+- Exceeding a limit returns `429` with a `Retry-After` header and
+  `X-RateLimit-*` headers (`RATELIMIT_HEADERS_ENABLED`).
 
 ## Running locally
 
@@ -91,9 +188,12 @@ defaults to (`PLANETGEN_MYSQL_*` env vars, or their built-in defaults — see
 PLANETGEN_MYSQL_HOST=db.example.com PLANETGEN_MYSQL_DATABASE=planetgen_alpha python src/wsgi.py
 ```
 
-This API never writes — point `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD`
-at a database account with `SELECT`-only grants in production, same
-recommendation as `queryDb.py`'s (see that script's module docstring).
+Every read goes through `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` —
+point those at a database account with `SELECT`-only grants in production,
+same recommendation as `queryDb.py`'s (see that script's module docstring).
+This is safe today even with the write endpoints present, since they're
+stubs that never touch the database — revisit once they're implemented for
+real (see "Write endpoints" above).
 
 ## Deploying behind Apache (mod_wsgi)
 
@@ -106,8 +206,12 @@ behind `gunicorn` + `mod_proxy`/`mod_proxy_http` if `mod_wsgi` isn't
 available. Either way, set `PLANETGEN_MYSQL_*` in the process environment
 (e.g. the vhost's `SetEnv` directives, or the `gunicorn` service's
 environment file) to point at the deployed MySQL database, ideally via a
-read-only account (see above).
+read-only account (see above). If running more than one `mod_wsgi`/
+`gunicorn` worker, also set `PLANETGEN_RATELIMIT_STORAGE_URI` to a shared
+backend (see "Rate limiting").
 
 ## Not done yet
 
-See `TODO.md`'s Phase 5 section — a frontend is the remaining open item.
+See `TODO.md`'s Phase 5 section — a frontend, plus everything under
+"Write endpoints" above (the real insert/update/delete logic, a
+write-capable database account, and authentication/authorization).
