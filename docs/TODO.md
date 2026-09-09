@@ -285,6 +285,24 @@ check with a clipboard-copy fallback (commit `ee8daab`).
       `getBoundingClientRect()` (which stays reliable regardless), ties
       going to whichever center is nearest the click.
   See CHANGELOG.md [5.4.4].
+- [x] **Sector Map: real on-shell wedge shape, compass arrow, scale
+  bar** -- done. A galaxy-placed sector (`shell_index`/`shell_slot_index`
+  set) now draws its actual approximate on-shell wedge cell (new
+  `sector_wedge_vertices_pc` in `src/stellarObjects/galaxyGeometry.py`)
+  as a 12-edge wireframe instead of a generic cube; a sector with no
+  placement still gets the plain cube. Also added a "Galactic Center"
+  compass arrow (computed from the sector's own `center_x/y/z_pc`) and a
+  live distance scale bar. Both the wedge and the compass arrow assume
+  the sector's own local (x, y, z) axes run parallel to the galaxy
+  frame's axes -- `galaxyGen.py` never actually rotates a sector's local
+  star positions to the "Cube orientation" convention
+  docs/design/galaxy-coordinate-system.md describes (that section only
+  ever proposes it as a default, never wires it up), so this is the only
+  assumption consistent with how every other galaxy-frame quantity on
+  this map already renders. Implementing that orientation convention for
+  real (rotating stored positions, or rotating only at render time) would
+  let both drop this assumption -- open follow-up, not done here.
+  See CHANGELOG.md [5.4.7].
 
 ### Deployment history (interim `../src/html/` browser)
 

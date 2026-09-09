@@ -92,8 +92,8 @@ def sector_position_pc(shell_index, shell_slot_index, edge_pc):
 
     r_k = shell_radius_pc(shell_index, edge_pc)
     i = shell_slot_index
-    phi = math.acos(1 - 2 * (i + 0.5) / n_k)
-    theta = (2 * math.pi * i / GOLDEN_RATIO) % (2 * math.pi)
+    phi = _phi_for_index(i, n_k)
+    theta = _theta_for_index(i)
 
     sin_phi = math.sin(phi)
     x = r_k * sin_phi * math.cos(theta)
@@ -115,6 +115,79 @@ def galactic_radius_pc(position):
     """
     x, y, z = position
     return math.sqrt(x * x + y * y + z * z)
+
+
+def sector_wedge_vertices_pc(shell_index, shell_slot_index, edge_pc):
+    """
+    Approximates the 8 vertices of the actual (non-cubic) cell a sector
+    occupies on its shell -- unlike `sector_position_pc`'s single center
+    point, or the model's fixed `edge_pc`-sided cube (the sector's
+    generation *volume*, unrelated to where that volume sits on the
+    shell -- see docs/design/galaxy-coordinate-system.md's "The
+    geometric problem, stated plainly"), this is a curved-sided wedge:
+    bounded radially by the shell's own thickness (`shell_radius_pc`
+    +/- half of `edge_pc`) and, in angle, by roughly how much of the
+    shell's surface this slot's Fibonacci placement "owns" relative to
+    its immediate neighbors.
+
+    The angular half-widths are a deliberate approximation, not an exact
+    spherical-Voronoi boundary -- computing the real Voronoi cell among a
+    shell's slots (up to ~227 million in the outermost shells) is
+    unnecessary just to draw an outline. Each slot is instead assumed to
+    cover a solid angle of `4*pi/n_k` steradians (the shell's total solid
+    angle split evenly across its `n_k` slots) laid out as a roughly
+    square patch in `(phi, theta)`: `dphi ~ sqrt(4*pi/n_k)`, and
+    `dtheta ~ dphi/sin(phi)` so the patch keeps that same area (not the
+    same angular width) as the theta-circles narrow toward the poles.
+
+    Args:
+        shell_index (int): The shell index `k`.
+        shell_slot_index (int): The slot index `i` within the shell.
+        edge_pc (float): The sector edge length, in parsecs.
+
+    Returns:
+        list[tuple]: 8 `(x, y, z)` points in parsecs, in the same
+                     galaxy-frame origin/axes as `sector_position_pc`.
+                     Ordered by `(r_bit, phi_bit, theta_bit)`, each 0
+                     (low bound) or 1 (high bound), as list index
+                     `4*r_bit + 2*phi_bit + theta_bit` -- so index `i`
+                     and index `i ^ 1`/`i ^ 2`/`i ^ 4` are always the
+                     cell's 12 edges (differ in exactly one bit).
+
+    Raises:
+        ValueError: If `shell_slot_index` is out of range for this shell.
+    """
+    n_k = shell_sector_count(shell_index)
+    if not (0 <= shell_slot_index < n_k):
+        raise ValueError(
+            f"shell_slot_index {shell_slot_index} out of range for shell {shell_index} "
+            f"(holds {n_k} slots, 0..{n_k - 1})"
+        )
+
+    r_k = shell_radius_pc(shell_index, edge_pc)
+    phi = _phi_for_index(shell_slot_index, n_k)
+    theta = _theta_for_index(shell_slot_index)
+
+    dphi_half = 0.5 * math.sqrt(4 * math.pi / n_k)
+    sin_phi = math.sin(phi)
+    dtheta_half = dphi_half / max(sin_phi, 1e-6)
+
+    r_bounds = (r_k - edge_pc / 2, r_k + edge_pc / 2)
+    phi_bounds = (max(0.0, phi - dphi_half), min(math.pi, phi + dphi_half))
+    theta_bounds = (theta - dtheta_half, theta + dtheta_half)
+
+    vertices = []
+    for r in r_bounds:
+        for phi_bound in phi_bounds:
+            sin_phi_bound = math.sin(phi_bound)
+            cos_phi_bound = math.cos(phi_bound)
+            for theta_bound in theta_bounds:
+                vertices.append((
+                    r * sin_phi_bound * math.cos(theta_bound),
+                    r * sin_phi_bound * math.sin(theta_bound),
+                    r * cos_phi_bound,
+                ))
+    return vertices
 
 
 def _phi_for_index(i, n_k):
