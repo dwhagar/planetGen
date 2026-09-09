@@ -4,8 +4,9 @@
 """
 Sector detail page: the sector's name/size and every system placed in it,
 with quadrant and star-type info, linking to `system.py` for each -- plus
-an isometric "Sector Map" (see `lib/starmap.py`) of the same systems
-plotted by position within the sector's cube.
+an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
+plotted by position within the sector, outlined by the sector's real
+on-shell wedge shape when it has a galaxy placement (else a plain cube).
 """
 
 import os
@@ -112,7 +113,14 @@ def handler():
                     ],
                 })
         rows_html = "".join(rows) or '<tr><td colspan="5"><em>None</em></td></tr>'
-        map_html = render_map_panel(db_name, sector["edge_mpc"], map_systems)
+        center_pc = (
+            (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
+            if sector["center_x_pc"] is not None
+            else None
+        )
+        map_html = render_map_panel(
+            db_name, sector["edge_mpc"], sector["shell_index"], sector["shell_slot_index"], center_pc, map_systems
+        )
 
         edge_ly = milliparsecs_to_ly(sector["edge_mpc"]) if milliparsecs_to_ly else None
         edge_text = f"{edge_ly:,.2f} ly" if edge_ly is not None else f"{sector['edge_mpc']:,.2f} mpc"

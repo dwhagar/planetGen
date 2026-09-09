@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.4.7] - 2026-09-09
+
+### Added
+- **Sector Map now draws a galaxy-placed sector's real on-shell shape
+  instead of a generic cube.** Added `sector_wedge_vertices_pc` to
+  `src/stellarObjects/galaxyGeometry.py`: the 8 vertices of the sector's
+  approximate curved-sided wedge cell on its shell (bounded radially by
+  the shell's own thickness and, in angle, by roughly how much of the
+  shell's surface this slot's Fibonacci placement owns among its
+  neighbors -- `dphi ~ sqrt(4*pi/n_k)`, `dtheta ~ dphi/sin(phi)`). Most
+  of this shape's faces are curved (pieces of a sphere or a cone, not a
+  plane), so `src/html/lib/starmap.py` renders it as a 12-edge wireframe
+  (each edge one `<div>` pointed between two exact 3D points via
+  `rotateY`+`rotateZ`) rather than the old 6 filled `.cube-face`
+  rectangles. A sector with no galaxy placement (`shell_index`/
+  `shell_slot_index` unset) still falls back to the plain cube.
+- **Sector Map now shows a "Galactic Center" compass arrow and a real
+  distance scale bar.** The arrow points from the sector's own local
+  origin toward the galactic center, computed exactly from the sector's
+  stored `center_x/y/z_pc` (`-normalize(center_pc)`) rather than a fixed
+  screen direction; omitted for a sector with no galaxy placement. The
+  scale-bar legend (bottom-left of the viewport) shows the sector's true
+  physical scale -- `src/html/static/sectormap.js` recomputes its width
+  and "N ly" label live as the user zooms, from an exact ly-per-pixel
+  ratio computed server-side from the sector's own `edge_mpc` (never a
+  fixed guess).
+
 ## [5.4.6] - 2026-09-07
 
 ### Fixed
