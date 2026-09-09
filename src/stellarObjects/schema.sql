@@ -47,11 +47,17 @@
 --
 -- star_systems.quadrant stores the sector octant label (Roman numerals
 -- I-VIII, one of the 8 sign(x)/sign(y)/sign(z) combinations -- see
--- spaceSector.py's `classify_octant`/`program_constants.SECTOR_OCTANT_LABELS`;
--- the code's own naming calls these "quadrants" despite being a 3D octant
--- scheme) alongside the raw x/y/z -- purely derived from position, but
--- worth storing (not just recomputing on read) so it's directly
--- queryable/indexable without a UDF or generated-column expression.
+-- spaceSector.py's `classify_octant`/`program_constants.SECTOR_OCTANT_LABELS`)
+-- alongside the raw x/y/z -- purely derived from position, but worth
+-- storing (not just recomputing on read) so it's directly
+-- queryable/indexable without a UDF or generated-column expression. The
+-- column name is kept as `quadrant` for schema stability, but every
+-- human-facing label now displays it as "Octant" (html/sector.py,
+-- html/system.py, html/static/sectormap.js) so it doesn't collide with
+-- the unrelated, galaxy-scale "Quadrant" concept `sectors.center_x/y/z_pc`
+-- and html/lib/galaxymap.py introduced later (4 azimuthal regions
+-- spanning many sectors, not this column's 8 sign-combination regions
+-- within one sector's own cube).
 --
 -- v3: star_systems.location stores a human-readable "sector name + nearest
 -- neighbors" summary, e.g. "Voranthis Kelmoor -- nearest: Alpha Prime
@@ -128,6 +134,69 @@
 -- pre-rendered copy (`html/lib/tabledisplay.py` for the HTML viewer;
 -- `get_table_properties()` is still used, unchanged, to build the actual
 -- wiki-page text in `wikitext_content`/`markdown_content`).
+-- v6/v7: give every galaxy-placed sector exact vertices -- built from a
+-- local spherical Voronoi tessellation among its own same-shell
+-- neighbors, extruded radially between the shell's inner and outer
+-- bounding spheres (`stellarObjects/sectorGeometry.prism_vertices`) --
+-- genuinely gap-free against same-shell neighbors (not merely reduced;
+-- see that module's docstring for why exact circumcenters, not nudged
+-- approximations, make this possible) and area-matched (not vertex-
+-- matched) against the shells in front of and behind it. Vertex/face
+-- count varies per sector (typically 5-7, not a fixed number) because it
+-- has to: a cube tiling of a sphere cannot be gap-free in general (the
+-- same reason a soccer ball needs pentagons mixed with hexagons).
+-- Supersedes an earlier, never-released "relax a fixed 8-vertex cube
+-- toward its neighbors" approach, which only approximately closed gaps.
+--   - v6 stored this as `sectors.vertices_pc`, a JSON `{"inner": [...],
+--     "outer": [...]}` blob -- reconsidered almost immediately in favor
+--     of v7's plain relational table below, so no released version ever
+--     depended on the JSON shape.
+--   - v7 replaces `sectors.vertices_pc` with the `sector_vertices` table
+--     (see that table's own comment) -- one row per vertex, ordinary
+--     columns throughout, no serialized blob anywhere in the schema.
+--
+-- v8: the galaxy-wide density "skeleton" (`galaxyPlan.py`), stored as
+-- compact structural facts rather than one row per sector. Position,
+-- density, and vertices are pure deterministic functions of `(shell_index,
+-- shell_slot_index)` and a handful of galaxy-wide shape parameters
+-- (`galaxyDensity.GalaxyShape`, `sectorGeometry.prism_vertices`) -- none
+-- of that needs to be stored per candidate sector, since it's cheaper to
+-- recompute on demand than to look up. What genuinely needs precomputing
+-- is *where the galaxy has any content at all*, which is why this adds:
+--   - `galaxy_shape`: one singleton row holding the whole galaxy's shape
+--     parameters, its calibration constant, its sector edge length, and
+--     its outer edge (the last shell with any qualifying content) -- the
+--     handful of numbers `stellarObjects.galaxyDensity`/`galaxySkeleton`
+--     need to recompute any sector's exact position/density on demand.
+--   - `galaxy_shell_band`: one row per contiguous *candidate* slot-index
+--     band per shell (`stellarObjects.galaxySkeleton.find_shell_bands`) --
+--     the safe (possibly slightly wider than exact) range of slots that
+--     might hold qualifying content in that shell, found via the exact
+--     closed-form phi<->slot-index inverse
+--     (`galaxyGeometry.slot_index_bounds_for_phi_range`) already used
+--     elsewhere in this codebase. Deliberately NOT one row per qualifying
+--     sector, and deliberately NOT storing that sector's position/density/
+--     vertices -- an individual slot's exact qualification is checked live
+--     (cheap: a single `relative_density` evaluation) only when that slot
+--     is actually visited (see `galaxyGen.ensure_sector_generated`), which
+--     is also the only time its full content, vertices, and everything
+--     else about it get generated and stored in `sectors`/`sector_vertices`
+--     /the star-system tables -- lazily, once, never recomputed again.
+--     Almost every shell has exactly one band (this density model is
+--     symmetric about and peaks at the galactic plane for any realistic
+--     parameter choice -- verified directly across a full real-Milky-Way-
+--     scale build), but the schema allows more than one per shell rather
+--     than assuming it, since nothing about the model rules it out for
+--     every possible parameter choice.
+--   - `sectors` also gains a `UNIQUE (shell_index, shell_slot_index)`
+--     constraint (see that table's own comment) -- now that a sector can
+--     be lazily generated the moment it's visited
+--     (`galaxyGen.ensure_sector_generated`), rather than only ever
+--     through a single-process batch script, two concurrent visits to the
+--     same never-before-generated address are possible; this constraint
+--     turns that race into a clear `IntegrityError` the visit path
+--     recovers from (re-fetch and return the sector the other visit just
+--     created) instead of a silent duplicate row at the same address.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -215,8 +284,102 @@ CREATE TABLE IF NOT EXISTS sectors (
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
         (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
     ),
+
+    -- v8: at most one sector per (shell_index, shell_slot_index) address --
+    -- see the header comment's "v8" note (galaxyGen.ensure_sector_generated
+    -- relies on this to make a lazy-generation race produce a clear
+    -- IntegrityError rather than a silent duplicate sector at the same
+    -- address). NULL-together sectors (never placed in a galaxy) don't
+    -- collide with each other or with a placed sector -- ordinary SQL NULL
+    -- semantics for UNIQUE.
+    UNIQUE (shell_index, shell_slot_index),
+
     KEY idx_sectors_galactic_radius_pc (galactic_radius_pc),
     KEY idx_sectors_shell_index (shell_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- This sector's own exact prism vertices (v7 -- see the header comment's
+-- "v6/v7" note), one row per vertex rather than a serialized blob:
+-- `sectorGeometry.prism_vertices` returns a variable number of vertices
+-- per sector (typically 5-7, not fixed), split into an "inner" ring (on
+-- the shell's inner bounding sphere) and an "outer" ring (on its outer
+-- bounding sphere), both in the same cyclic order. `vertex_index` is that
+-- cyclic position (0-based) within its own ring, not a global ordering --
+-- pairing `(sector_id, vertex_index)` across the two rings gives the
+-- lateral edge each pair of inner/outer vertices spans. No row exists for
+-- a sector never placed in a galaxy (mirrors, at the application level
+-- rather than a cross-table CHECK -- SQLite can't express "rows exist in
+-- another table" as a CHECK constraint -- the same NULL-together
+-- condition `sectors`'s own galaxy-placement columns enforce directly).
+CREATE TABLE IF NOT EXISTS sector_vertices (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sector_id     BIGINT UNSIGNED NOT NULL,
+    ring          VARCHAR(8) NOT NULL CHECK (ring IN ('inner', 'outer')),
+    vertex_index  INT NOT NULL,
+    x_pc          DOUBLE NOT NULL,
+    y_pc          DOUBLE NOT NULL,
+    z_pc          DOUBLE NOT NULL,
+
+    CONSTRAINT fk_sector_vertices_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    UNIQUE (sector_id, ring, vertex_index),
+    KEY idx_sector_vertices_sector_id (sector_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- galaxy_shape / galaxy_shell_band -- the galaxy-wide density "skeleton"
+-- (v8 -- see the header comment's "v8" note). `galaxy_shape` is a
+-- singleton (`id` pinned to 1, enforced by the CHECK) -- there is exactly
+-- one galaxy. Building or rebuilding the skeleton (`galaxyPlan.py`)
+-- replaces this row and every `galaxy_shell_band` row wholesale; neither
+-- table is ever partially updated.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS galaxy_shape (
+    id                          BIGINT UNSIGNED PRIMARY KEY CHECK (id = 1),
+
+    -- galaxyDensity.GalaxyShape fields, verbatim -- see that module for
+    -- what each one means and how `k_norm` is calibrated.
+    disk_scale_length_pc        DOUBLE NOT NULL,
+    disk_scale_height_pc        DOUBLE NOT NULL,
+    bulge_scale_radius_pc       DOUBLE NOT NULL,
+    bulge_amplitude             DOUBLE NOT NULL,
+    arm_count                   INT NOT NULL,
+    pitch_angle_rad             DOUBLE NOT NULL,
+    arm_amplitude               DOUBLE NOT NULL,
+    spiral_reference_radius_pc  DOUBLE NOT NULL,
+    spiral_reference_angle_rad  DOUBLE NOT NULL,
+    k_norm                      DOUBLE NOT NULL,
+
+    -- The sector edge length this skeleton was built at, in parsecs
+    -- (galaxyGeometry's own scope -- every shell/sector-address formula
+    -- takes this as a parameter rather than assuming a fixed constant).
+    edge_pc                     DOUBLE NOT NULL,
+
+    -- SpaceSector(edge_ly=...).expected_system_count() at relative_density
+    -- = 1 -- cached because every qualification check
+    -- (predicted_star_count >= 1.0) needs it, and it's a fixed galaxy-wide
+    -- fact, not worth re-deriving from edge_pc on every call.
+    expected_system_count_at_density_1  DOUBLE NOT NULL,
+
+    -- The last shell index with any qualifying content -- this galaxy's
+    -- real edge, discovered by `galaxyPlan.py` (a run of consecutive empty
+    -- shells beyond it), not picked as an arbitrary radius.
+    outer_shell_index           INT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One contiguous candidate slot-index band per shell (almost always
+-- exactly one -- see the header comment's "v8" note). `band_index` orders
+-- multiple bands within the same shell (0-based); a shell with no
+-- qualifying content at all has no rows here.
+CREATE TABLE IF NOT EXISTS galaxy_shell_band (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    shell_index      INT NOT NULL,
+    band_index       INT NOT NULL,
+    slot_index_min   INT NOT NULL,
+    slot_index_max   INT NOT NULL,
+
+    UNIQUE (shell_index, band_index),
+    KEY idx_galaxy_shell_band_shell_index (shell_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

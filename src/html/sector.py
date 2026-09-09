@@ -4,8 +4,9 @@
 """
 Sector detail page: the sector's name/size and every system placed in it,
 with quadrant and star-type info, linking to `system.py` for each -- plus
-an isometric "Sector Map" (see `lib/starmap.py`) of the same systems
-plotted by position within the sector's cube.
+an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
+plotted by position within the sector, outlined by the sector's real
+on-shell wedge shape when it has a galaxy placement (else a plain cube).
 """
 
 import os
@@ -20,6 +21,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
 from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_name
+from galaxymap import sector_quadrant
 from page import query_params, run
 from starmap import render_map_panel
 
@@ -112,7 +114,14 @@ def handler():
                     ],
                 })
         rows_html = "".join(rows) or '<tr><td colspan="5"><em>None</em></td></tr>'
-        map_html = render_map_panel(db_name, sector["edge_mpc"], map_systems)
+        center_pc = (
+            (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
+            if sector["center_x_pc"] is not None
+            else None
+        )
+        map_html = render_map_panel(
+            db_name, sector["edge_mpc"], sector["shell_index"], sector["shell_slot_index"], center_pc, map_systems
+        )
 
         edge_ly = milliparsecs_to_ly(sector["edge_mpc"]) if milliparsecs_to_ly else None
         edge_text = f"{edge_ly:,.2f} ly" if edge_ly is not None else f"{sector['edge_mpc']:,.2f} mpc"
@@ -120,11 +129,17 @@ def handler():
         conn.close()
 
     system_count = len(systems)
-    badges_html = "<p class=\"badges\">" + "".join(
-        f'<span class="badge">{bit}</span>' for bit in (
-            f"Cube edge {esc(edge_text)}",
-            f"{system_count} system{'s' if system_count != 1 else ''}",
+    badge_bits = [
+        f"Cube edge {esc(edge_text)}",
+        f"{system_count} system{'s' if system_count != 1 else ''}",
+    ]
+    if sector["center_x_pc"] is not None:
+        quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
+        badge_bits.append(
+            f'<a href="galaxy.py?db={esc(db_name)}&amp;quadrant={quadrant}">View on Galaxy Map (Quadrant {quadrant})</a>'
         )
+    badges_html = "<p class=\"badges\">" + "".join(
+        f'<span class="badge">{bit}</span>' for bit in badge_bits
     ) + "</p>"
 
     body = f"""
@@ -134,7 +149,7 @@ def handler():
 <section class="panel">
 <h2>Systems</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Quadrant</th><th>Binary</th><th>Star type</th><th>Location</th></tr></thead>
+  <thead><tr><th>Name</th><th>Octant</th><th>Binary</th><th>Star type</th><th>Location</th></tr></thead>
   <tbody>{rows_html}</tbody>
 </table></div>
 </section>

@@ -46,6 +46,7 @@ connection per call, per TODO.md's "add real connection pooling" note.
 """
 
 import os
+from collections import namedtuple
 
 import pymysql
 import pymysql.cursors
@@ -55,13 +56,14 @@ from . import physical_constants
 from .asteroidData import AsteroidBelt
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
+from .galaxyDensity import GalaxyShape
 from .planetData import Planet
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 8
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -198,6 +200,29 @@ def _get_pool(config):
     return _pools[key]
 
 
+class _Cursor:
+    """
+    Thin proxy around a real `pymysql` cursor that normalizes
+    `fetchall()` to always return a `list` -- confirmed by testing,
+    `pymysql`'s own cursor returns `()` (a tuple) for zero matching rows
+    but a `list` when rows exist, an inconsistency `sqlite3`'s cursor
+    (always a `list`, regardless of row count) never had, and that a
+    caller comparing a query result against `[]` (rather than checking
+    `len(...)` or truthiness) would otherwise trip over. Every other
+    attribute (`.lastrowid`, `.fetchone()`, ...) is forwarded to the real
+    cursor unchanged.
+    """
+
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def fetchall(self):
+        return list(self._cursor.fetchall())
+
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
+
+
 class Connection:
     """
     Thin wrapper around a pooled `pymysql` connection that keeps this
@@ -215,6 +240,8 @@ class Connection:
       - Rows come back from `pymysql.cursors.DictCursor` already
         supporting `row["column"]`, matching `sqlite3.Row` -- no
         additional translation needed there.
+      - The returned cursor is wrapped in `_Cursor` so `.fetchall()`
+        always returns a `list` -- see that class's own docstring.
       - `with conn:` commits on a clean exit and rolls back on an
         exception, same as `sqlite3.Connection`'s context-manager
         behavior -- and, same as `sqlite3.Connection`, does NOT close the
@@ -227,7 +254,21 @@ class Connection:
     def execute(self, sql, params=()):
         cur = self._conn.cursor()
         cur.execute(sql.replace("?", "%s"), params)
-        return cur
+        return _Cursor(cur)
+
+    def executemany(self, sql, seq_of_params):
+        """
+        Runs one parameterized `INSERT`/`UPDATE`/`DELETE` against every
+        tuple in `seq_of_params` -- `pymysql.cursors.Cursor.executemany`
+        batches these into as few round trips as the driver can manage,
+        rather than this module looping `execute` once per row itself.
+        `seq_of_params` may be a generator (`insert_sector`'s per-vertex
+        rows, in particular, are built as one) -- consumed exactly once,
+        same as `sqlite3.Connection.executemany`.
+        """
+        cur = self._conn.cursor()
+        cur.executemany(sql.replace("?", "%s"), list(seq_of_params))
+        return _Cursor(cur)
 
     def executescript(self, script):
         """
@@ -854,18 +895,26 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
         conn (Connection): An open, schema-initialized connection.
         sector (SpaceSector): The sector to persist.
         galaxy_position (dict, optional): This sector's galaxy-frame
-            placement (see `schema.sql`'s "v4" header note), or `None`
-            (the default) for a sector never placed in a galaxy --
+            placement (see `schema.sql`'s "v4"/"v6/v7" header notes), or
+            `None` (the default) for a sector never placed in a galaxy --
             `sectorGen.py`'s own standalone CLI keeps producing these.
             When given, must have keys `center_x_pc`, `center_y_pc`,
-            `center_z_pc`, `galactic_radius_pc` (all required together --
-            the schema's CHECK constraint enforces this on every other
-            path, but this function trusts the caller rather than
-            re-deriving `galactic_radius_pc` itself), and optionally
-            `shell_index`/`shell_slot_index` (each independently
-            optional -- `None`/omitted leaves that one column NULL, per
-            `schema.sql`'s note that they aren't implied by a center point
-            the way the other four are).
+            `center_z_pc`, `galactic_radius_pc`, `vertices_pc` (all
+            required together -- the schema's CHECK constraint enforces
+            the first four on every other path, but this function trusts
+            the caller rather than re-deriving `galactic_radius_pc`
+            itself; `vertices_pc` isn't part of that CHECK since it lives
+            in a separate table SQLite can't cross-reference in a CHECK,
+            but is expected NULL-together with the other four all the
+            same), and optionally `shell_index`/`shell_slot_index` (each
+            independently optional -- `None`/omitted leaves that one
+            column NULL, per `schema.sql`'s note that they aren't implied
+            by a center point the way the other five are). `vertices_pc`
+            is a `{"inner": [...], "outer": [...]}` dict, each a list of
+            `(x, y, z)` tuples -- variable length, not fixed at 8 (see
+            `sectorGeometry.prism_vertices`) -- written as one
+            `sector_vertices` row per vertex, ordinary columns throughout,
+            never serialized.
 
     Returns:
         int: The new `sectors.id`.
@@ -885,12 +934,22 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
                 galaxy_position.get("shell_index"), galaxy_position.get("shell_slot_index"),
             ),
         )
+        sector_id = cur.lastrowid
+        for ring in ("inner", "outer"):
+            conn.executemany(
+                "INSERT INTO sector_vertices (sector_id, ring, vertex_index, x_pc, y_pc, z_pc) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    (sector_id, ring, i, x, y, z)
+                    for i, (x, y, z) in enumerate(galaxy_position["vertices_pc"][ring])
+                ),
+            )
     else:
         cur = conn.execute(
             "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
             (sector.name, ly_to_milliparsecs(sector.edge_ly)),
         )
-    sector_id = cur.lastrowid
+        sector_id = cur.lastrowid
 
     for entry in sector.entries:
         insert_star_system(
@@ -916,8 +975,11 @@ def get_sector_galaxy_position(conn, sector_id):
     Returns:
         dict or None: A dict with keys `center_x_pc`, `center_y_pc`,
             `center_z_pc`, `galactic_radius_pc`, `shell_index`,
-            `shell_slot_index`, or `None` if this sector has never been
-            placed in a galaxy (all six columns NULL).
+            `shell_slot_index`, `vertices_pc` (rebuilt from `sector_vertices`
+            rows into a `{"inner": [...], "outer": [...]}` dict of
+            `[x, y, z]` lists, ordered by `vertex_index`), or `None` if
+            this sector has never been placed in a galaxy (the four
+            galaxy-position columns NULL).
 
     Raises:
         ValueError: If no such `sectors` row exists.
@@ -934,7 +996,20 @@ def get_sector_galaxy_position(conn, sector_id):
         raise ValueError(f"no sectors row with id {sector_id}")
     if row["center_x_pc"] is None:
         return None
-    return dict(row)
+
+    result = dict(row)
+    vertex_rows = conn.execute(
+        """
+        SELECT ring, x_pc, y_pc, z_pc FROM sector_vertices
+        WHERE sector_id = ? ORDER BY ring, vertex_index
+        """,
+        (sector_id,),
+    ).fetchall()
+    vertices_pc = {"inner": [], "outer": []}
+    for vrow in vertex_rows:
+        vertices_pc[vrow["ring"]].append([vrow["x_pc"], vrow["y_pc"], vrow["z_pc"]])
+    result["vertices_pc"] = vertices_pc
+    return result
 
 
 def get_occupied_shell_slots(conn, shell_indices):
@@ -964,6 +1039,191 @@ def get_occupied_shell_slots(conn, shell_indices):
         tuple(shell_indices),
     ).fetchall()
     return {(row["shell_index"], row["shell_slot_index"]) for row in rows}
+
+
+def get_sector_id_at(conn, shell_index, shell_slot_index):
+    """
+    Looks up the `sectors.id` already generated at a specific galaxy
+    address, if any -- the single-address counterpart to
+    `get_occupied_shell_slots`'s batch-of-a-shell query, used by
+    `galaxyGen.ensure_sector_generated` to check (and, on an `INSERT`
+    race, re-check) one address at a time.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        shell_index (int): The shell index to look up.
+        shell_slot_index (int): The slot index within that shell.
+
+    Returns:
+        int or None: The existing `sectors.id`, or `None` if no sector has
+            been generated at this address yet.
+    """
+    row = conn.execute(
+        "SELECT id FROM sectors WHERE shell_index = ? AND shell_slot_index = ?",
+        (shell_index, shell_slot_index),
+    ).fetchone()
+    return row["id"] if row is not None else None
+
+
+GalaxySkeletonInfo = namedtuple(
+    "GalaxySkeletonInfo",
+    ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1"],
+)
+"""The galaxy's stored skeleton -- everything needed to recompute any
+sector's exact position/density on demand (see schema.sql's "v8" header
+note). `shape` is a `galaxyDensity.GalaxyShape`; the other three fields
+are `galaxy_shape`'s own remaining columns."""
+
+
+def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
+                       expected_system_count_at_density_1, config=None):
+    """
+    Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
+    one galaxy, so this always overwrites whatever was there before rather
+    than inserting a second row (`galaxyPlan.py` calls this once per full
+    skeleton (re)build).
+
+    Args:
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        edge_pc (float): The sector edge length this skeleton was built
+                         at, parsecs.
+        outer_shell_index (int): The last shell index with any qualifying
+            content (`galaxyPlan.py`'s own discovered galaxy edge).
+        expected_system_count_at_density_1 (float): See
+            `galaxySkeleton.expected_system_count_at_density_1`.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
+    """
+    conn = get_connection(config)
+    try:
+        with conn:
+            conn.execute(
+                """
+                INSERT INTO galaxy_shape (
+                    id, disk_scale_length_pc, disk_scale_height_pc,
+                    bulge_scale_radius_pc, bulge_amplitude, arm_count,
+                    pitch_angle_rad, arm_amplitude, spiral_reference_radius_pc,
+                    spiral_reference_angle_rad, k_norm, edge_pc,
+                    expected_system_count_at_density_1, outer_shell_index
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    disk_scale_length_pc = VALUES(disk_scale_length_pc),
+                    disk_scale_height_pc = VALUES(disk_scale_height_pc),
+                    bulge_scale_radius_pc = VALUES(bulge_scale_radius_pc),
+                    bulge_amplitude = VALUES(bulge_amplitude),
+                    arm_count = VALUES(arm_count),
+                    pitch_angle_rad = VALUES(pitch_angle_rad),
+                    arm_amplitude = VALUES(arm_amplitude),
+                    spiral_reference_radius_pc = VALUES(spiral_reference_radius_pc),
+                    spiral_reference_angle_rad = VALUES(spiral_reference_angle_rad),
+                    k_norm = VALUES(k_norm),
+                    edge_pc = VALUES(edge_pc),
+                    expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
+                    outer_shell_index = VALUES(outer_shell_index)
+                """,
+                (
+                    shape.disk_scale_length_pc, shape.disk_scale_height_pc,
+                    shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
+                    shape.pitch_angle_rad, shape.arm_amplitude, shape.spiral_reference_radius_pc,
+                    shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
+                    expected_system_count_at_density_1, outer_shell_index,
+                ),
+            )
+    finally:
+        conn.close()
+
+
+def get_galaxy_shape(conn):
+    """
+    Reads back the galaxy's stored skeleton parameters.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+
+    Returns:
+        GalaxySkeletonInfo or None: `None` if `galaxyPlan.py` has never
+            been run against this database (the `galaxy_shape` singleton
+            row doesn't exist yet).
+    """
+    row = conn.execute(
+        """
+        SELECT disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,
+               bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,
+               spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm,
+               edge_pc, expected_system_count_at_density_1, outer_shell_index
+        FROM galaxy_shape WHERE id = 1
+        """
+    ).fetchone()
+    if row is None:
+        return None
+
+    shape = GalaxyShape(
+        disk_scale_length_pc=row["disk_scale_length_pc"],
+        disk_scale_height_pc=row["disk_scale_height_pc"],
+        bulge_scale_radius_pc=row["bulge_scale_radius_pc"],
+        bulge_amplitude=row["bulge_amplitude"],
+        arm_count=row["arm_count"],
+        pitch_angle_rad=row["pitch_angle_rad"],
+        arm_amplitude=row["arm_amplitude"],
+        spiral_reference_radius_pc=row["spiral_reference_radius_pc"],
+        spiral_reference_angle_rad=row["spiral_reference_angle_rad"],
+        k_norm=row["k_norm"],
+    )
+    return GalaxySkeletonInfo(
+        shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
+        expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
+    )
+
+
+def replace_galaxy_shell_bands(shell_bands, config=None):
+    """
+    Replaces every `galaxy_shell_band` row wholesale -- `galaxyPlan.py`'s
+    own full-galaxy skeleton build is the only writer, and it always
+    produces a complete, coherent set for the whole galaxy in one pass, so
+    there is no notion of an incremental/partial update here (matches
+    `save_galaxy_shape`'s own "replace the one true answer" behavior).
+
+    Args:
+        shell_bands (iterable): `(shell_index, band_index, slot_index_min,
+            slot_index_max)` tuples, any order -- `band_index` is the
+            0-based position of that band within its own shell (almost
+            always just `0`; see `galaxySkeleton.find_shell_bands`).
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
+    """
+    conn = get_connection(config)
+    try:
+        with conn:
+            conn.execute("DELETE FROM galaxy_shell_band")
+            conn.executemany(
+                "INSERT INTO galaxy_shell_band (shell_index, band_index, slot_index_min, slot_index_max) "
+                "VALUES (?, ?, ?, ?)",
+                shell_bands,
+            )
+    finally:
+        conn.close()
+
+
+def get_galaxy_shell_bands(conn, shell_index):
+    """
+    This shell's stored candidate band(s), in `band_index` order.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        shell_index (int): The shell index to look up.
+
+    Returns:
+        list: `(slot_index_min, slot_index_max)` tuples, in ascending
+              `band_index` order -- empty if this shell has no stored
+              qualifying content (including if the skeleton was never
+              built at all).
+    """
+    rows = conn.execute(
+        "SELECT slot_index_min, slot_index_max FROM galaxy_shell_band "
+        "WHERE shell_index = ? ORDER BY band_index",
+        (shell_index,),
+    ).fetchall()
+    return [(row["slot_index_min"], row["slot_index_max"]) for row in rows]
 
 
 def save_system(star_system: StarSystem, system_config: SystemConfig, config=None) -> int:
@@ -1363,7 +1623,6 @@ def load_sector(conn, sector_id) -> SpaceSector:
     return sector
 
 
-
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -1372,7 +1631,7 @@ def migrate_database(config=None):
     Unlike the pre-MySQL-port version of this function, there is no
     version this project's own MySQL databases can already be at other
     than the current one: `get_connection`/`_ensure_schema` always create
-    a schema-v5 (`SCHEMA_VERSION`) database from scratch (this project
+    a schema-v8 (`SCHEMA_VERSION`) database from scratch (this project
     never shipped a MySQL deployment at an earlier schema version to
     migrate *from* -- the version history in `schema.sql`'s header
     comment predates the MySQL port and describes the SQLite schema's own

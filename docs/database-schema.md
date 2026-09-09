@@ -133,25 +133,32 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `5`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `8`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
   Independent of the DDL version because a JSON export/import could bring
   an older object-graph shape into a newer database.
 
-#### Schema history
-
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v5" notes) rather than duplicated here, since that
+comment ("v2" through "v8" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
 `star_systems.location`; v3→v4 added `sectors`' galaxy-frame placement
 columns; v4→v5 dropped every pre-rendered `table_*`/`binary_table_*`
 display-string column (superseded by computing display formatting on
-demand from the underlying data columns, e.g. `html/lib/tabledisplay.py`).
+demand from the underlying data columns, e.g. `html/lib/tabledisplay.py`);
+v6/v7 gave every galaxy-placed sector exact vertices (`sector_vertices`,
+built from an exact local spherical Voronoi tessellation among its
+same-shell neighbors — see `stellarObjects/sectorGeometry.py`); v8 added
+the galaxy-wide density "skeleton" (`galaxy_shape`/`galaxy_shell_band`,
+built by `galaxyPlan.py` — see `stellarObjects/galaxyDensity.py`/
+`galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`
+constraint on `sectors`, turning a concurrent lazy-generation race
+(`galaxyGen.ensure_sector_generated`) into a recoverable `IntegrityError`
+instead of a silent duplicate row.
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (`migrate_database`'s per-version
@@ -161,7 +168,7 @@ project creates starts at the current schema directly, so there is no
 "upgrade an older MySQL database" case to handle yet. A pre-existing
 SQLite database from before the port is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
-docstring) — it only accepts a source already at schema v5, so a database
+docstring) — it only accepts a source already at schema v8, so a database
 still on an older SQLite schema needs a pre-MySQL-port release of this
 project first.
 
@@ -202,8 +209,102 @@ One row per generated sector.
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 `galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema
-history" above for why this needed a wholesale table rewrite rather than
-an incremental `ALTER TABLE`).
+history" above for why that addition needed a wholesale table rewrite
+rather than an incremental `ALTER TABLE`). This sector's vertices live in
+the separate `sector_vertices` table below, present iff this sector has
+been placed in a galaxy — neither SQLite nor MySQL can express "rows
+exist in another table" as a `CHECK` constraint, so that condition is
+enforced at the application level (`stellarObjects._db.insert_sector`)
+rather than by the schema itself. A `UNIQUE (shell_index, shell_slot_index)` constraint (v8)
+guarantees at most one sector per galaxy address — NULL-together rows
+(never placed in a galaxy) don't collide with each other or with a placed
+sector, ordinary SQL `NULL` semantics for `UNIQUE`. This is what turns a
+lazy-generation race (`galaxyGen.ensure_sector_generated`, see below) into
+a clear `IntegrityError` its caller recovers from, instead of a silent
+duplicate row at the same address.
+
+### `sector_vertices`
+
+This sector's own exact vertices — one row per vertex, a normalized child
+table rather than a JSON column (this schema has no JSON-blob columns
+anywhere; see `planet_reflection_spectrum` below for the same treatment
+applied to another variable-length list). Built from an exact local
+spherical Voronoi tessellation among a sector's same-shell neighbors,
+extruded radially between its shell's inner and outer bounding spheres
+(`stellarObjects/sectorGeometry.prism_vertices`) — genuinely gap-free
+laterally (against same-shell neighbors, not merely reduced — see that
+module's own docstring for why exact circumcenters make this possible) and
+area-matched (not vertex-matched) radially against the shells in front of
+and behind it. No rows exist for a sector never placed in a galaxy.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `ring` | VARCHAR(8) | NOT NULL | `'inner'` (on the shell's inner bounding sphere) or `'outer'` (its outer one). |
+| `vertex_index` | INT | NOT NULL | This vertex's cyclic position (0-based) within its own ring — pairing `(sector_id, vertex_index)` across the two rings gives the lateral edge each inner/outer vertex pair spans. Not a global ordering across rings. |
+| `x_pc`, `y_pc`, `z_pc` | DOUBLE | NOT NULL | Galaxy-frame Cartesian position, parsecs (same frame as `sectors.center_x/y/z_pc`). |
+
+`UNIQUE (sector_id, ring, vertex_index)`; indexed on `sector_id` for the
+"every vertex of this sector" query pattern.
+
+### `galaxy_shape`
+
+The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
+`1`) holding everything needed to recompute any sector's exact position
+and density on demand, built by `galaxyPlan.py`. Deliberately **not** one
+row per sector: a sector's position (`stellarObjects.galaxyGeometry.
+sector_position_pc`), density (`stellarObjects.galaxyDensity.
+relative_density`), and vertices (`sectorGeometry.prism_vertices`) are all
+pure deterministic functions of its `(shell_index, shell_slot_index)`
+address plus this handful of galaxy-wide numbers — cheaper to recompute
+on demand (sub-millisecond per sector) than to look up, so none of it is
+stored per address. What genuinely needs precomputing — where the galaxy
+has any content at all — lives in `galaxy_shell_band` below instead.
+Building or rebuilding the skeleton replaces this row (and every
+`galaxy_shell_band` row) wholesale; there is no partial update, since a
+full build is well under a minute even at real Milky-Way scale (the
+per-shell work is a closed-form calculation over ~4,100 shells, not a
+per-sector scan over billions of candidates).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Pinned to `1` — there is exactly one galaxy. |
+| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `pitch_angle_rad`, `arm_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | DOUBLE | NOT NULL | `stellarObjects.galaxyDensity.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
+| `arm_count` | INT | NOT NULL | Same source. |
+| `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs. |
+| `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
+| `outer_shell_index` | INT | NOT NULL | The last shell index with any qualifying content — this galaxy's real edge, discovered by `galaxyPlan.py` (a run of consecutive empty shells beyond it), not an arbitrary radius. |
+
+### `galaxy_shell_band`
+
+One row per contiguous *candidate* slot-index band per shell (v8) — a
+safe, cheap-to-compute superset of where a shell's qualifying sectors
+could be (`stellarObjects.galaxySkeleton.find_shell_bands`), not an exact
+per-sector list: found via an exact upper bound over every possible spiral-
+arm azimuth at a given polar angle, so a slot inside the band isn't
+guaranteed to individually qualify, but a slot outside every band is
+guaranteed *not* to (the bound can only overstate density, never
+understate it). The exact per-slot answer — a single `relative_density`
+evaluation — is deferred to the moment that slot is actually visited
+(`galaxyGen.ensure_sector_generated`), not computed or stored here.
+Almost every shell has exactly one band (this density model is symmetric
+about and peaks at the galactic plane for any realistic parameter choice —
+verified directly across a full real-Milky-Way-scale build: ~4,100 rows
+total, all singletons), but nothing stops a shell from having more than
+one (`band_index` orders them), and a shell with no qualifying content at
+all simply has no rows here.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `shell_index` | INT | NOT NULL | The shell this band belongs to. |
+| `band_index` | INT | NOT NULL | 0-based position of this band within its own shell (almost always just `0`). |
+| `slot_index_min`, `slot_index_max` | INT | NOT NULL | The candidate slot-index range, inclusive. |
+
+`UNIQUE (shell_index, band_index)`; indexed on `shell_index` for the
+"every band of this shell" query `ensure_sector_generated` makes on every
+visit to a not-yet-generated address.
 
 ### `system_configs`
 
@@ -474,3 +575,11 @@ planets.star_id ──────────> stars.id   (nullable; NULL for b
 moons.star_id   ──────────> stars.id   (nullable; NULL for binary systems)
 moons.star_system_id ─────> star_systems.id   (redundant with moons.planet_id's own owner)
 ```
+
+`galaxy_shape`/`galaxy_shell_band` (v8) stand apart from the tree above —
+neither has a foreign key to `sectors` or anything else. They describe the
+galaxy as a whole (its shape parameters, and which addresses could hold
+content), not any individual sector; `sectors.shell_index`/
+`shell_slot_index` is the address both an actual generated sector and a
+`galaxy_shell_band` row are independently expressed in, not an FK
+relationship.

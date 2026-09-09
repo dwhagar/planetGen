@@ -1,5 +1,49 @@
 # Changelog
 
+## [5.7.0] - 2026-09-09
+
+### Changed
+- **Merged the parallel Phase 4 "galaxy density skeleton" work (schema
+  v6-v8: `sector_vertices`, `galaxy_shape`, `galaxy_shell_band`,
+  `galaxyGen.ensure_sector_generated` lazy generation -- see [5.4.7] and
+  [5.4.8] below) into the MySQL backend from [5.5.0].** That work landed
+  on `main` entirely against the pre-port SQLite backend while this
+  branch's MySQL port was in flight from the same base commit, so every
+  new table, `_db.py` function (`get_sector_id_at`, `save_galaxy_shape`,
+  `get_galaxy_shape`, `replace_galaxy_shell_bands`,
+  `get_galaxy_shell_bands`, the vertex-writing/-reading in
+  `insert_sector`/`get_sector_galaxy_position`), and CLI script
+  (`galaxyGen.py`'s rewrite, the new `galaxyPlan.py`) needed porting to
+  MySQL/`pymysql`/`MySQLConfig` as part of reconciling the two lines of
+  work, same conventions as the rest of the MySQL port: `?` placeholders
+  (translated by the `Connection` wrapper), `--mysql-*`/`config=` instead
+  of `--db-path`/`db_path=`, and MySQL's `INSERT ... ON DUPLICATE KEY
+  UPDATE` instead of SQLite's `INSERT ... ON CONFLICT DO UPDATE` for
+  `save_galaxy_shape`'s singleton-row upsert.
+
+### Fixed
+- **`stellarObjects/galaxyGeometry.py` called an undefined
+  `_theta_for_index` in both `sector_position_pc` and
+  `sector_wedge_vertices_pc`** -- a pre-existing bug on `main` (confirmed
+  present there independent of this merge), only `_phi_for_index` had
+  ever been defined despite the module's own `GOLDEN_RATIO` docstring
+  describing the golden-angle azimuthal step it was supposed to compute.
+  Every galaxy-placement test failed with `NameError` until this merge's
+  full test run surfaced it. Added the missing function
+  (`theta_i = (2*pi*i / GOLDEN_RATIO) mod 2*pi`), matching the exact
+  formula `test_galaxy_geometry.py`'s own worked-example test already
+  documented and asserted against.
+- **`stellarObjects._db.Connection`'s `execute`/`executemany` could
+  return a `tuple` instead of a `list` from `.fetchall()` when zero rows
+  matched** -- confirmed by testing, `pymysql`'s own cursor returns `()`
+  for no rows but a `list` when rows exist, unlike `sqlite3`'s cursor
+  (always a `list`). Surfaced by a real MariaDB test run as a spurious
+  `assert result == []` failure (`test_ensure_sector_generated_reports_no_content_outside_every_stored_band`)
+  that never appeared without a live server. Added a `_Cursor` proxy
+  wrapping every returned cursor to normalize `fetchall()` to always
+  return a `list`, so no other call site (present or future) can trip
+  over the same inconsistency.
+
 ## [5.6.0] - 2026-09-09
 
 ### Added
@@ -83,6 +127,124 @@
   alphabetically) inserting the correct path first.** Deleting
   `test_db_migration.py` (see above) exposed it; fixed the path
   computation directly.
+
+## [5.4.8] - 2026-09-09
+
+### Added
+- **Galaxy-wide density "skeleton"** (schema v8: `galaxy_shape`,
+  `galaxy_shell_band`; `stellarObjects/galaxySkeleton.py`; `galaxyPlan.py`):
+  precomputes and persists where the galaxy has any content at all,
+  without storing a single sector's position/density/vertices -- those are
+  pure deterministic functions of `(shell_index, shell_slot_index)` plus a
+  handful of galaxy-wide shape parameters, so they're recomputed on demand
+  instead. `galaxy_shape` holds the galaxy's shape parameters as one
+  singleton row; `galaxy_shell_band` holds one row per contiguous
+  *candidate* slot-index band per shell (almost always exactly one, found
+  via an exact upper bound over spiral-arm azimuth, bisected to precision)
+  -- a safe superset, not a per-sector list. Reduces the galaxy's
+  structural storage from the ~1 TB a naive per-sector plan table would
+  need down to ~350 KB at real Milky-Way scale (~4,076 rows), built in
+  parallel across shells (`multiprocessing.Pool`) in under a second. See
+  `docs/design/galaxy-coordinate-system.md` section 10 for the full
+  analysis and measurements.
+- **`galaxyGen.ensure_sector_generated(shell_index, shell_slot_index)`**:
+  the lazy, visit-triggered generation entry point built on the skeleton
+  above -- returns an already-generated sector if one exists; otherwise
+  checks the stored band and exact density to decide whether the address
+  holds anything, and if so generates and persists it on the spot, using
+  that position's own `relative_density` as the actual system-count
+  multiplier (so a bulge sector and a sparse outer-disk sector generate
+  proportionally different counts, not a uniform default). A new
+  `sectors.UNIQUE (shell_index, shell_slot_index)` constraint (schema v8)
+  turns a concurrent visit race into a recoverable `IntegrityError`
+  instead of a duplicate row.
+- **Galaxy disk/spiral density model implemented** (`stellarObjects/galaxyDensity.py`):
+  exponential disk radial falloff x sech^2 vertical scale-height x
+  logarithmic spiral-arm modulation, plus a spherical bulge, normalized so
+  `relative_density == 1.0` at a calibration point. `build_galaxy_shape`
+  auto-calibrates the normalization constant; `predicted_star_count` scales
+  a caller-supplied baseline expected system count by relative density.
+  Tested in `tests/test_galaxy_density.py`, and exercised end-to-end
+  alongside sector geometry in a full (unfilled) small spiral galaxy
+  simulation.
+
+### Fixed
+- **`galaxyDensity.relative_density` could raise `OverflowError` far off
+  the galactic plane** relative to `disk_scale_height_pc`: its vertical
+  falloff term computed `1.0 / math.cosh(x) ** 2` directly, which raises
+  once `|x|` exceeds ~710 -- found by a new skeleton test using a
+  toy-scale shape, reachable in production for any shape with a small
+  scale height relative to its own radius. Fixed with an algebraically
+  equivalent, overflow-safe rewrite (`_sech_squared`) that underflows to
+  the correct `0.0` limit instead of crashing.
+- **Two same-shell Voronoi tessellation bugs found by that end-to-end
+  simulation, both specific to small/sparse shells** (`sectorGeometry.py`):
+  (1) the same-shell candidate projection used the raw chord vector
+  instead of a proper gnomonic (central) projection, understating real
+  separation worse the farther away a candidate was; (2) the half-plane
+  test applied after that projection used the flat-plane bisector formula,
+  which only approximates the true spherical bisector in the small-angle
+  limit and was too permissive on sparse shells, silently under-clipping
+  cells. Both fixes are covered by new regression tests parametrized to
+  include a small shell (shell 1), plus an exhaustive
+  every-vertex-is-shared check for a fully-populated small shell. See
+  `docs/design/galaxy-coordinate-system.md` section 9 for the full
+  derivation. Re-running the simulation after both fixes: 0 unexplained
+  gaps across 31,255 generated outer vertices (previously 4,798).
+
+## [5.4.7] - 2026-09-09
+
+### Added
+- **Every galaxy-placed sector now has explicit vertices with genuinely
+  zero gaps against its same-shell neighbors, stored as plain relational
+  rows.** New `sector_vertices` table (schema v7) -- one row per vertex,
+  no JSON or other serialized blob anywhere in the schema (matching this
+  project's existing convention: variable-length structured lists always
+  get their own child table, the same treatment `asteroid_belt_composition`/
+  `planet_reflection_spectrum` already have). Each sector's vertices are
+  built from an exact local spherical Voronoi tessellation among its
+  same-shell neighbors (`stellarObjects/sectorGeometry.local_lateral_cell`)
+  extruded radially between the shell's inner and outer bounding spheres
+  (`prism_vertices`). Lateral sharing is exact, not approximate: each
+  shared corner is the 3D circumcenter of a sector and two of its
+  neighbors -- a plain geometric fact independent of which of the three
+  computes it, so two real neighbors land on identical floating-point
+  values (~1e-16 agreement, verified directly) rather than two nudged
+  approximations. Vertex/face count varies per sector (typically 5-7, mean
+  6.0) because it has to: a cube tiling of a sphere can't be gap-free in
+  general (the same reason a soccer ball needs pentagons mixed with
+  hexagons), so a fixed 8-vertex shape cannot exactly reconcile a sector
+  with more real neighbors than it has faces -- confirmed by an earlier,
+  never-released attempt at exactly that (fixed-cube corner averaging),
+  which only ever reduced gaps (~35% aggregate), not eliminated them.
+  Radially, adjacent shells match in total area covered, not
+  vertex-for-vertex (a "non-conforming mesh interface," the same technique
+  used where independently-meshed regions meet in finite-element/CFD
+  meshing) -- shell k's outer bound and shell k+1's inner bound are the
+  same sphere, and each shell's own sectors fully and independently tile
+  it. Getting this fast required exploiting that the underlying placement
+  is a Fibonacci lattice: true same-shell neighbors concentrate at
+  Fibonacci-number index offsets (confirmed against real data: exact
+  offsets of F_20 through F_23), which collapses same-shell neighbor
+  search from ~0.4-0.5s/sector (the naive radius-search cost near a large
+  outer shell's equator, exactly where the disk/spiral density model
+  concentrates real generation) down to ~0.3-0.4ms/sector -- validated
+  against a guaranteed-correct brute-force search across 840 cases
+  spanning the full polar range and shell sizes from 3 to 211 million
+  slots with zero mismatches, with small shells
+  (`shell_sector_count(k) <= 2000`) falling back to unconditionally-correct
+  brute force since the underlying asymptotic theory isn't reliable that
+  close to the galactic core. `galaxyGen.py` computes and stores this for
+  every sector it generates; `sectorGen.py`'s standalone (non-galaxy) CLI
+  is unaffected, same as every other galaxy-frame data. New
+  `_migrate_v6_to_v7` schema migration drops any v6 database's briefly-lived
+  `vertices_pc` JSON column entirely rather than converting it into rows
+  (a sector's vertices are cheap to recompute from its address if ever
+  actually needed) -- `_migrate_v4_to_v5`/`_migrate_v5_to_v6` need no
+  special-casing at all, since a v4 or v5 source's `sectors` table already
+  has the same shape as the current one.
+
+## [5.4.6] - 2026-09-07
 
 ### Fixed
 - **System page table of contents was simply unavailable below a 90rem

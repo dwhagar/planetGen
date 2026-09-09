@@ -25,10 +25,11 @@ import pytest
 from stellarObjects.galaxyGeometry import (
     GOLDEN_RATIO,
     _candidate_shell_range,
-    _slot_index_bounds_for_phi_range,
+    slot_index_bounds_for_phi_range,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
     sector_position_pc,
+    sector_wedge_vertices_pc,
     shell_radius_pc,
     shell_sector_count,
 )
@@ -74,6 +75,49 @@ def test_sector_position_pc_rejects_out_of_range_slot_index():
         sector_position_pc(0, n_0, EDGE_PC)  # exactly one past the end
     with pytest.raises(ValueError):
         sector_position_pc(0, -1, EDGE_PC)
+
+
+# ---------------------------------------------------------------------------
+# sector_wedge_vertices_pc -- the sector's approximate on-shell cell shape,
+# for the "proper 3D shape" sector-map outline (html/lib/starmap.py).
+# ---------------------------------------------------------------------------
+
+def test_sector_wedge_vertices_pc_returns_8_points_at_the_two_radial_bounds():
+    shell_index, slot_index = 50, 12000
+    r_k = shell_radius_pc(shell_index, EDGE_PC)
+    r_min, r_max = r_k - EDGE_PC / 2, r_k + EDGE_PC / 2
+
+    vertices = sector_wedge_vertices_pc(shell_index, slot_index, EDGE_PC)
+    assert len(vertices) == 8
+
+    radii = sorted(galactic_radius_pc(v) for v in vertices)
+    for radius in radii[:4]:
+        assert radius == pytest.approx(r_min, abs=1e-6)
+    for radius in radii[4:]:
+        assert radius == pytest.approx(r_max, abs=1e-6)
+
+
+def test_sector_wedge_vertices_pc_is_centered_near_the_sector_position():
+    # The wedge's own angular half-widths are small for a shell this
+    # populated (n_50 = 32047), so its 8 vertices should average out
+    # close to the exact center point `sector_position_pc` returns --
+    # loosely (this is an approximate patch, not an exact one), but not
+    # off by anything close to a full sector edge.
+    shell_index, slot_index = 50, 12000
+    center = sector_position_pc(shell_index, slot_index, EDGE_PC)
+    vertices = sector_wedge_vertices_pc(shell_index, slot_index, EDGE_PC)
+
+    mean = tuple(sum(v[axis] for v in vertices) / 8 for axis in range(3))
+    for axis in range(3):
+        assert mean[axis] == pytest.approx(center[axis], abs=EDGE_PC / 2)
+
+
+def test_sector_wedge_vertices_pc_rejects_out_of_range_slot_index():
+    n_0 = shell_sector_count(0)
+    with pytest.raises(ValueError):
+        sector_wedge_vertices_pc(0, n_0, EDGE_PC)
+    with pytest.raises(ValueError):
+        sector_wedge_vertices_pc(0, -1, EDGE_PC)
 
 
 # ---------------------------------------------------------------------------
@@ -212,5 +256,5 @@ def test_slot_index_bounds_round_trip_through_phi_for_index():
     n_k = shell_sector_count(20)
     for i in (0, 1, n_k // 2, n_k - 2, n_k - 1):
         phi = math.acos(1 - 2 * (i + 0.5) / n_k)
-        i_min, i_max = _slot_index_bounds_for_phi_range(phi, phi, n_k)
+        i_min, i_max = slot_index_bounds_for_phi_range(phi, phi, n_k)
         assert i_min <= i <= i_max

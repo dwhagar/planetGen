@@ -26,17 +26,59 @@ Every test here takes the `mysql_config` fixture -- they're skipped, not
 failed, when no MySQL test server is configured/reachable.
 """
 
+import math
 import sys
 
+import pymysql
 import pytest
 
 import galaxyGen
 import sectorGen
 from stellarObjects import _db, program_constants
-from stellarObjects.galaxyGeometry import enumerate_sectors_within_radius, shell_sector_count
+from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density
+from stellarObjects.galaxyGeometry import (
+    enumerate_sectors_within_radius, sector_position_pc, shell_sector_count,
+)
 from stellarObjects.utils import ly_to_pc
 
 EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+
+# A small, fast-to-evaluate toy shape -- same parameters test_galaxy_skeleton.py
+# uses, deep enough in its own bulge at shell 0 that every slot there
+# qualifies under any reasonable threshold, with a real, findable edge
+# a few hundred shells out (not real Milky-Way scale, which would make
+# these tests slow for no benefit -- ensure_sector_generated's own logic
+# doesn't care about scale).
+_SKELETON_SHAPE = build_galaxy_shape(
+    disk_scale_length_pc=40.0,
+    disk_scale_height_pc=12.0,
+    bulge_scale_radius_pc=10.0,
+    bulge_amplitude=2.0,
+    arm_count=2,
+    pitch_angle_rad=math.radians(15),
+    arm_amplitude=0.4,
+)
+
+
+def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e_value=1.0, bands=()):
+    """
+    Directly writes a `galaxy_shape`/`galaxy_shell_band` skeleton, without
+    running `galaxyPlan.py`'s own scan -- these tests exercise
+    `ensure_sector_generated`'s own logic against a skeleton it can
+    already read, not `find_shell_bands`'s search (covered separately in
+    `test_galaxy_skeleton.py`).
+
+    Args:
+        mysql_config (MySQLConfig): The fixture's throwaway database.
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        outer_shell_index (int): See `_db.save_galaxy_shape`.
+        e_value (float): `expected_system_count_at_density_1`.
+        bands (iterable): `(shell_index, band_index, slot_index_min,
+            slot_index_max)` tuples -- see `_db.replace_galaxy_shell_bands`.
+    """
+    _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=outer_shell_index,
+                           expected_system_count_at_density_1=e_value, config=mysql_config)
+    _db.replace_galaxy_shell_bands(list(bands), config=mysql_config)
 
 
 def _mysql_argv(mysql_config):
@@ -222,3 +264,176 @@ def test_shell_batch_mode_rejects_large_shell_without_limit_or_yes(mysql_config)
     # --limit bypasses the guard even without --yes.
     _run_cli(["--shell", "20", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 2
+
+
+# ---------------------------------------------------------------------------
+# ensure_sector_generated -- the visit-triggered lazy-generation entry point
+# built on top of the galaxyPlan.py skeleton (galaxy_shape/galaxy_shell_band),
+# rather than an explicit --shell/--center-sector batch.
+# ---------------------------------------------------------------------------
+
+def test_ensure_sector_generated_raises_without_a_skeleton(mysql_config):
+    with pytest.raises(RuntimeError):
+        galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
+
+
+def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_config):
+    n_0 = shell_sector_count(0)
+    # Shell 0 sits deep in this toy shape's own bulge -- every slot there
+    # clears even a demanding threshold.
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    first = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
+    assert first["created"] is True
+    assert first["qualifies"] is True
+    assert first["sector_id"] is not None
+    assert first["sector_name"]
+
+    second = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
+    assert second["created"] is False
+    assert second["qualifies"] is True
+    assert second["sector_id"] == first["sector_id"]
+
+    assert len(_all_sectors(mysql_config)) == 1
+
+
+def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(mysql_config):
+    # A shell with NO stored band at all (e.g. beyond the galaxy's outer
+    # edge, or simply never populated) -- find_shell_bands's own bound is
+    # exact, so this must be a certain "no", no live density check needed.
+    _seed_skeleton(mysql_config, bands=[])
+
+    result = galaxyGen.ensure_sector_generated(5000, 0, config=mysql_config)
+    assert result == {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+    assert _all_sectors(mysql_config) == []
+
+
+def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql_config):
+    """
+    A stored candidate band is a safe *superset*, not an exact membership
+    list (see `galaxySkeleton`'s own module docstring) -- a slot inside
+    the band can still fail the real, exact check. This seeds a band
+    deliberately wider than reality (the whole shell) and confirms
+    ensure_sector_generated still tells a genuinely dense slot apart from
+    a genuinely sparse one within it, rather than trusting the band alone.
+    """
+    shell_index = 5
+    n_k = shell_sector_count(shell_index)
+
+    # Ground truth, computed directly (not via find_shell_bands) --
+    # sort every slot in this shell by its own exact relative_density.
+    densities = sorted(
+        ((relative_density(sector_position_pc(shell_index, i, EDGE_PC), _SKELETON_SHAPE), i)
+         for i in range(n_k)),
+        reverse=True,
+    )
+    densest_slot = densities[0][1]
+    sparsest_slot = densities[-1][1]
+    threshold_rho = (densities[0][0] + densities[-1][0]) / 2.0
+    assert densities[0][0] >= threshold_rho > densities[-1][0], (
+        "test setup needs a real spread of densities within this shell"
+    )
+
+    # A deliberately over-wide band -- the whole shell -- with a
+    # threshold picked so only some of it genuinely qualifies.
+    _seed_skeleton(mysql_config, e_value=1.0 / threshold_rho, bands=[(shell_index, 0, 0, n_k - 1)])
+
+    dense_result = galaxyGen.ensure_sector_generated(shell_index, densest_slot, config=mysql_config)
+    assert dense_result["qualifies"] is True
+    assert dense_result["created"] is True
+
+    sparse_result = galaxyGen.ensure_sector_generated(shell_index, sparsest_slot, config=mysql_config)
+    assert sparse_result == {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+
+    assert len(_all_sectors(mysql_config)) == 1
+
+
+def test_ensure_sector_generated_passes_relative_density_as_the_density_multiplier(mysql_config, monkeypatch):
+    """
+    A qualifying sector's actual system count should be driven by its own
+    `relative_density` (from the stored skeleton), not a uniform default
+    -- confirmed by intercepting `sectorGen.generate_sector` and checking
+    what `args.density` it was actually called with, rather than relying
+    on the Poisson-sampled system count to differ across a single run.
+    """
+    n_0 = shell_sector_count(0)
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    captured = {}
+
+    def _fake_generate_sector(args, galactic_center_dist_ly=None):
+        captured["density"] = args.density
+        captured["num_systems"] = args.num_systems
+        from stellarObjects.spaceSector import SpaceSector
+        return "Fake Sector", SpaceSector(name="Fake Sector")
+
+    monkeypatch.setattr(sectorGen, "generate_sector", _fake_generate_sector)
+
+    position = sector_position_pc(0, 0, EDGE_PC)
+    expected_density = relative_density(position, _SKELETON_SHAPE)
+
+    result = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
+    assert result["created"] is True
+    assert captured["density"] == pytest.approx(expected_density)
+    assert captured["num_systems"] is None
+
+
+def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_config, monkeypatch):
+    """
+    Simulates the race `sectors`'s `UNIQUE (shell_index, shell_slot_index)`
+    constraint (schema.sql's "v8" note) exists to catch: another caller's
+    `INSERT` lands between this call's own "not yet generated" check and
+    its own `INSERT`. Forces `generate_and_save_sector_at` to raise
+    `pymysql.err.IntegrityError` (what a real UNIQUE-constraint violation
+    raises) after a sector already exists at the address, and confirms
+    `ensure_sector_generated` recovers by returning that sector rather
+    than propagating the error.
+    """
+    n_0 = shell_sector_count(0)
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    # A sector generated at a different address, standing in for "the
+    # concurrent winner's row" the mocked recovery re-check below returns
+    # regardless of which address it's actually asked about.
+    winner = galaxyGen.ensure_sector_generated(0, 1, config=mysql_config)
+    assert winner["created"] is True
+
+    calls = {"n": 0}
+
+    def _fake_get_sector_id_at(conn, shell_index, shell_slot_index):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return None  # ensure_sector_generated's own initial "not yet generated" check
+        return winner["sector_id"]  # its post-IntegrityError recovery re-check
+
+    monkeypatch.setattr(galaxyGen._db, "get_sector_id_at", _fake_get_sector_id_at)
+
+    def _fake_generate_and_save_sector_at(*_args, **_kwargs):
+        raise pymysql.err.IntegrityError(1062, "Duplicate entry for key 'shell_index'")
+
+    monkeypatch.setattr(galaxyGen, "generate_and_save_sector_at", _fake_generate_and_save_sector_at)
+
+    result = galaxyGen.ensure_sector_generated(0, 0, config=mysql_config)
+    assert result == {
+        "created": False, "qualifies": True,
+        "sector_id": winner["sector_id"], "sector_name": None,
+    }
+
+
+def test_sectors_table_rejects_duplicate_shell_slot_address(mysql_config):
+    """The schema-level guarantee ensure_sector_generated's own race
+    recovery depends on: two sectors can never share a (shell_index,
+    shell_slot_index) address."""
+    conn = _db.get_connection(mysql_config)
+    try:
+        from stellarObjects.spaceSector import SpaceSector
+        galaxy_position = {
+            "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
+            "galactic_radius_pc": 3.74, "shell_index": 0, "shell_slot_index": 0,
+            "vertices_pc": {"inner": [], "outer": []},
+        }
+        _db.insert_sector(conn, SpaceSector(name="First"), galaxy_position=galaxy_position)
+        with pytest.raises(pymysql.err.IntegrityError):
+            _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
+    finally:
+        conn.close()

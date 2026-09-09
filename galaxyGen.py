@@ -20,7 +20,10 @@ difference is that this script also supplies a real galaxy-frame position
 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant every
 standalone-generated system otherwise uses) and records that position in
 `sectors.center_x/y/z_pc`/`galactic_radius_pc`/`shell_index`/
-`shell_slot_index`.
+`shell_slot_index`, plus this sector's own exact local-Voronoi prism
+vertices (gap-free against its same-shell neighbors -- see
+`stellarObjects/sectorGeometry.prism_vertices`) into the `sector_vertices`
+table, one row per vertex.
 
 Two generation modes, both reducing to one call of
 `stellarObjects.galaxyGeometry.enumerate_sectors_within_radius` (see
@@ -49,6 +52,17 @@ Either mode skips any candidate slot a sector already occupies
 (`stellarObjects._db.get_occupied_shell_slots`) rather than regenerating
 or erroring on it, so re-running this script over a partially-generated
 shell or neighborhood only fills in what's missing.
+
+A third, non-CLI entry point, `ensure_sector_generated`, is this same
+per-sector generation logic exposed for lazy, visit-triggered generation
+against the precomputed galaxy-wide skeleton (`galaxyPlan.py`) instead of
+an explicit `--shell`/`--center-sector` batch: given just a `(shell_index,
+shell_slot_index)` address, it returns the sector already there if one
+exists, or -- consulting the skeleton to decide, cheaply and exactly,
+whether the address is even worth generating -- lazily generates and
+saves it on the spot. This is what a game map's "recompute what's needed
+as soon as a sector is visited" behavior calls into; wiring an actual
+UI/game-loop trigger to it is separate, future work.
 """
 
 import argparse
@@ -58,6 +72,8 @@ import random
 import secrets
 import sys
 
+import pymysql
+
 # stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
 # import path so this keeps working without requiring `pip install .`
 # first, matching sectorGen.py/systemGen.py's own fallback.
@@ -66,9 +82,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src
 import sectorGen
 from stellarObjects import _db, program_constants
 from stellarObjects._version import VersionAction, version_banner
+from stellarObjects.galaxyDensity import predicted_star_count, relative_density
 from stellarObjects.galaxyGeometry import (
     enumerate_sectors_within_radius, galactic_radius_pc, sector_position_pc, shell_sector_count,
 )
+from stellarObjects.sectorGeometry import prism_vertices
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
@@ -187,7 +205,7 @@ def _edge_pc():
     return ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 
 
-def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc):
+def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc, edge_pc):
     """
     Generates one sector via `sectorGen.generate_sector` at the given
     galaxy-frame position and shell address, and saves it -- the one
@@ -202,6 +220,9 @@ def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_p
                              galaxy-frame center (from `sector_position_pc`
                              or an `enumerate_sectors_within_radius`
                              result).
+        edge_pc (float): The sector edge length, in parsecs (`_edge_pc`) --
+                         threaded in rather than recomputed, since both
+                         callers already have it.
 
     Returns:
         tuple: `(sector_id, sector_name)` of the newly saved sector.
@@ -212,13 +233,166 @@ def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_p
 
     sector_name, sector = sectorGen.generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
 
+    vertices_pc = prism_vertices(shell_index, shell_slot_index, edge_pc)
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": radius_pc,
         "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+        "vertices_pc": vertices_pc,
     }
     sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args), galaxy_position=galaxy_position)
     return sector_id, sector_name
+
+
+def _default_generation_args(config=None):
+    """
+    Builds a minimal `argparse.Namespace`, shaped exactly like
+    `sectorGen.process_args()`'s own output, for a caller with no actual
+    command line to parse -- `ensure_sector_generated` in particular,
+    which runs at sector-visit time.
+
+    Built by feeding an empty argument list through `sectorGen`'s own
+    `add_shared_generation_options`/`validate_shared_generation_args`
+    (rather than hand-listing every field here) so this can never
+    silently drift from whatever options those functions actually
+    declare -- the same "call into sectorGen.py rather than duplicating
+    its argparse logic" brief `process_args` itself follows.
+
+    Args:
+        config (MySQLConfig, optional): Connection parameters, copied
+            onto the returned namespace's `mysql_*` attributes so
+            `generate_and_save_sector_at`'s own
+            `_db.mysql_config_from_args(args)` call works on this
+            synthetic namespace exactly like it does on a real
+            `process_args()` result. Defaults to `DEFAULT_MYSQL_CONFIG`.
+
+    Returns:
+        argparse.Namespace: Every shared generation option at its
+            documented default (`num_systems` resolved to `10`, since
+            neither `--density` nor `--num-systems` was "given") -- a
+            caller overriding density-driven generation (as
+            `ensure_sector_generated` does) should set `args.density`
+            and clear `args.num_systems` back to `None` before calling
+            `generate_sector`/`generate_and_save_sector_at`.
+    """
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    sectorGen.add_shared_generation_options(parser)
+    args = parser.parse_args([])
+    sectorGen.validate_shared_generation_args(args, parser)
+
+    # Shaped like process_args()'s own output -- see that function's
+    # docstring for why these fields must exist even though their value
+    # is never used here.
+    args.sector_name = None
+    args.system_file = None
+    args.num_orbits = None
+    args.name = None
+    args.output = None
+
+    config = config or _db.MySQLConfig()
+    args.mysql_host = config.host
+    args.mysql_port = config.port
+    args.mysql_user = config.user
+    args.mysql_password = config.password
+    args.mysql_database = config.database
+    return args
+
+
+def ensure_sector_generated(shell_index, shell_slot_index, config=None):
+    """
+    The galaxy map's "recalculate on visit" entry point: returns the
+    sector already generated at this address if one exists; otherwise
+    uses the stored skeleton (`galaxyPlan.py`) to decide, cheaply and
+    exactly, whether this address is even worth generating, and -- if so
+    -- generates and saves it on the spot. This is the backend half of
+    "recompute whatever's needed as soon as a sector is visited"; wiring
+    an actual UI/game-loop trigger to call this is separate, future work.
+
+    A sector's own `relative_density` at its position (from the stored
+    skeleton) becomes the `--density` multiplier `sectorGen.generate_sector`
+    uses, rather than a uniform default -- so a bulge sector and a sparse
+    outer-disk sector generate proportionally different system counts,
+    matching what the skeleton itself predicted when deciding this address
+    was worth visiting at all.
+
+    A concurrent visit to the same never-before-generated address is
+    possible (this isn't a single-process batch script) -- handled via
+    `sectors`'s own `UNIQUE (shell_index, shell_slot_index)` constraint
+    (schema.sql's "v8" note): whichever caller's `INSERT` loses the race
+    gets `pymysql.err.IntegrityError` back from `generate_and_save_sector_at`,
+    caught here and turned into "return what the other call just created"
+    rather than a crash or a duplicate row.
+
+    Args:
+        shell_index (int): This sector's shell index.
+        shell_slot_index (int): This sector's slot index within that
+                                shell.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
+
+    Returns:
+        dict: `created` (bool -- whether this call generated a new sector,
+              as opposed to finding an existing one or confirming this
+              address holds nothing), `qualifies` (bool -- whether this
+              address holds, or would hold, any content at all),
+              `sector_id` (int or `None`), `sector_name` (str or `None`,
+              only set when `created` is `True`).
+
+    Raises:
+        RuntimeError: If the galaxy's skeleton has never been built --
+                     run `galaxyPlan.py` first.
+    """
+    conn = _db.get_connection(config)
+    try:
+        existing_id = _db.get_sector_id_at(conn, shell_index, shell_slot_index)
+        if existing_id is not None:
+            return {"created": False, "qualifies": True, "sector_id": existing_id, "sector_name": None}
+
+        skeleton = _db.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError(
+                "The galaxy's skeleton has never been built (no galaxy_shape row) -- run galaxyPlan.py "
+                "first."
+            )
+
+        bands = _db.get_galaxy_shell_bands(conn, shell_index)
+    finally:
+        conn.close()
+
+    if not any(lo <= shell_slot_index <= hi for lo, hi in bands):
+        # Outside every stored candidate band -- galaxySkeleton.find_shell_bands's
+        # own bound is exact, not sampled, so this is a certain "no",
+        # not a heuristic one; no need to fall through to the exact check.
+        return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+
+    position_pc = sector_position_pc(shell_index, shell_slot_index, skeleton.edge_pc)
+    density = relative_density(position_pc, skeleton.shape)
+    star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
+    if star_count < 1.0:
+        # Inside the shell's candidate band (a safe superset) but this
+        # particular slot's own theta didn't clear the exact threshold --
+        # see galaxySkeleton's own module docstring for why that's expected.
+        return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+
+    args = _default_generation_args(config=config)
+    args.density = density
+    args.num_systems = None
+
+    try:
+        sector_id, sector_name = generate_and_save_sector_at(
+            args, shell_index, shell_slot_index, position_pc, skeleton.edge_pc,
+        )
+    except pymysql.err.IntegrityError:
+        conn = _db.get_connection(config)
+        try:
+            existing_id = _db.get_sector_id_at(conn, shell_index, shell_slot_index)
+        finally:
+            conn.close()
+        if existing_id is None:
+            raise
+        return {"created": False, "qualifies": True, "sector_id": existing_id, "sector_name": None}
+
+    return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
 
 
 def run_shell_batch(args, edge_pc):
@@ -260,7 +434,7 @@ def run_shell_batch(args, edge_pc):
             continue
 
         position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
-        sector_id, sector_name = _generate_and_save_sector_at(args, shell_index, slot_index, position_pc)
+        sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, position_pc, edge_pc)
         generated += 1
         print(f"Saved sector '{sector_name}' at shell {shell_index} slot {slot_index} (sector_id={sector_id}).")
 
@@ -322,7 +496,7 @@ def run_local_neighborhood(args, edge_pc):
         if (shell_index, slot_index) in occupied:
             continue
 
-        sector_id, sector_name = _generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z))
+        sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z), edge_pc)
         generated += 1
         print(
             f"Saved sector '{sector_name}' at shell {shell_index} slot {slot_index}, "

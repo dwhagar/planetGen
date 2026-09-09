@@ -12,6 +12,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from dbutil import esc, fetch_all, format_density, open_readonly, resolve_db_name
+from galaxymap import sector_quadrant
 from page import query_params, run
 
 
@@ -30,6 +31,17 @@ def _star_summary(conn, star_system_id, is_binary):
     return row["star_type"] if row else ""
 
 
+def _galaxy_position_cell(db_name, row):
+    """Links a placed sector's row straight into its Quadrant on
+    `galaxy.py`; an unplaced sector (`center_x_pc IS NULL` -- everything
+    made via `sectorGen.py`'s own standalone CLI, likely most rows in an
+    existing database) has no galaxy position to link to at all."""
+    if row["center_x_pc"] is None:
+        return '<span class="hint">Unplaced</span>'
+    quadrant = sector_quadrant(row["center_x_pc"], row["center_y_pc"])
+    return f'<a href="galaxy.py?db={esc(db_name)}&quadrant={quadrant}">Quadrant {quadrant}</a>'
+
+
 def handler():
     params = query_params()
     db_name = params.get("db", "")
@@ -39,7 +51,8 @@ def handler():
         sectors = fetch_all(
             conn,
             """
-            SELECT s.id, s.name, s.edge_mpc, COUNT(ss.id) AS system_count
+            SELECT s.id, s.name, s.edge_mpc, s.center_x_pc, s.center_y_pc,
+                   COUNT(ss.id) AS system_count
             FROM sectors s
             LEFT JOIN star_systems ss ON ss.sector_id = s.id
             GROUP BY s.id
@@ -61,9 +74,10 @@ def handler():
             f'<td><a href="sector.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
             f'<td>{row["system_count"]}</td>'
             f'<td>{format_density(row["edge_mpc"], row["system_count"])}</td>'
+            f'<td>{_galaxy_position_cell(db_name, row)}</td>'
             "</tr>"
             for row in sectors
-        ) or '<tr><td colspan="3"><em>None</em></td></tr>'
+        ) or '<tr><td colspan="4"><em>None</em></td></tr>'
 
         standalone_rows = "".join(
             "<tr>"
@@ -87,9 +101,12 @@ def handler():
 <p class="breadcrumb"><a href="index.py">Databases</a> &rarr; {esc(db_name)} &middot; <a href="search.py?db={esc(db_name)}">Search</a></p>
 {badges_html}
 <section class="panel" id="sectors">
-<h2>Sectors</h2>
+<div class="panel-header">
+  <h2>Sectors</h2>
+  <a href="galaxy.py?db={esc(db_name)}">Galaxy Map &rarr;</a>
+</div>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Systems</th><th>Density</th></tr></thead>
+  <thead><tr><th>Name</th><th>Systems</th><th>Density</th><th>Galaxy Position</th></tr></thead>
   <tbody>{sector_rows}</tbody>
 </table></div>
 </section>
