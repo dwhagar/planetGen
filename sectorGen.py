@@ -214,9 +214,7 @@ def process_args():
     parser.add_argument('--console', action='store_true',
                         help="Also print each sector's rendered Markdown/wikitext to the console. By "
                              "default, only status messages are printed.")
-    parser.add_argument('--db-path', type=str,
-                        help="Path to the SQLite database file the generated sector is saved to. "
-                             "Defaults to stellarObjects._db.DEFAULT_DB_PATH (db/planetgen.db).")
+    _db.add_mysql_connection_args(parser)
 
     args = parser.parse_args()
 
@@ -474,10 +472,10 @@ def main():
             if args.console:
                 print(output_text)
 
-        sector_id = _db.save_sector(sector, db_path=args.db_path)
-        db_path = args.db_path or _db.DEFAULT_DB_PATH
+        mysql_config = _db.mysql_config_from_args(args)
+        sector_id = _db.save_sector(sector, config=mysql_config)
         print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, "
-              f"{len(systems)} systems, {db_path}).")
+              f"{len(systems)} systems, {mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
     if args.num_sectors > 1:
         print(f"Generated {args.num_sectors} sectors.")

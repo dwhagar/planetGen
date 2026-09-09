@@ -1,6 +1,58 @@
 # Changelog
 
-## [5.4.6] - 2026-09-07
+## [5.5.0] - 2026-09-09
+
+### Added
+- **Flask API: pagination, input validation, health check, and JSON-only
+  error handling.** `/api/sectors`/`/api/systems` now return a paginated
+  `{"items", "total", "limit", "offset"}` envelope instead of a bare list
+  (`limit` defaults to 100, clamped to 500; `offset` defaults to 0) --
+  this project's own roadmap plans galaxy-scale generation, so an
+  unbounded listing endpoint would eventually return an unbounded
+  response. Every query parameter (`limit`/`offset`/`sector_id`/`radius`)
+  is now validated and rejected with a `400 {"error": "..."}` rather than
+  silently ignored or crashing. Added `GET /api/health` for
+  liveness/readiness monitoring. Every error response -- 400, 404
+  (including an unmatched route), 405, and 500 -- is now JSON, never
+  Flask's default HTML error page, and a 500 never leaks exception detail
+  to the client. See `docs/api.md`.
+- **MySQL backend (`TODO.md` Phase 5), replacing SQLite entirely.**
+  `stellarObjects/schema.sql` is now MySQL/InnoDB DDL (`BIGINT UNSIGNED`
+  ids, `DOUBLE`/`VARCHAR`/`TEXT`/`LONGTEXT` typing, a real
+  `schema_migrations` tracking table replacing `PRAGMA user_version`,
+  every index/foreign key declared inline per table for
+  `CREATE TABLE IF NOT EXISTS` idempotency). `stellarObjects/_db.py` now
+  talks to MySQL via `pymysql` (pure-Python driver) through a small
+  `Connection` wrapper that keeps every existing call site's
+  `conn.execute(sql, params)`/`row["column"]` shape unchanged, backed by
+  a real connection pool (`DBUtils.PooledDB`) per TODO.md's "add real
+  connection pooling" note. Every tool that touches the database
+  (`sectorGen.py`, `systemGen.py`, `galaxyGen.py`, `queryDb.py`,
+  `migrateDb.py`, `src/api/`, `src/html/`) now takes `--mysql-*` flags/
+  `PLANETGEN_MYSQL_*` environment variables (`stellarObjects._db.MySQLConfig`)
+  instead of `--db-path`/`PLANETGEN_DB_PATH`; the CGI browser's database
+  picker now lists MySQL schemas on the configured server (filtered by
+  `PLANETGEN_MYSQL_DATABASE_PREFIX`) instead of `.db` files in a
+  directory. A new one-time `src/migrateSqliteToMysql.py` script imports
+  an existing pre-port SQLite database (already at schema v5) into
+  MySQL. The SQLite-specific `v1`-`v5` in-place migration machinery
+  (`migrate_database`'s per-version steps, gzip file backups,
+  `BACKUP_MARKER`) is removed entirely, since every MySQL database this
+  project creates now starts at the current schema directly. See
+  `docs/database-schema.md`.
+
+### Changed
+- `setup.py`'s `install_requires` gained `pymysql`/`DBUtils` (core
+  dependencies now, not just the `api` extra) -- every database-touching
+  entry point needs them, not only the Flask API.
+
+### Fixed
+- **`test_mdconvert.py`'s own `sys.path` setup pointed at a
+  nonexistent top-level `html/lib/` instead of `src/html/lib/`,
+  silently masked by `test_db_migration.py` (collected first,
+  alphabetically) inserting the correct path first.** Deleting
+  `test_db_migration.py` (see above) exposed it; fixed the path
+  computation directly.
 
 ### Fixed
 - **System page table of contents was simply unavailable below a 90rem

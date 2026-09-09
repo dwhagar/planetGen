@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import esc, fetch_all, format_density, open_readonly, resolve_db_path
+from dbutil import esc, fetch_all, format_density, open_readonly, resolve_db_name
 from page import query_params, run
 
 
@@ -33,8 +33,8 @@ def _star_summary(conn, star_system_id, is_binary):
 def handler():
     params = query_params()
     db_name = params.get("db", "")
-    path = resolve_db_path(db_name)
-    conn = open_readonly(path)
+    config = resolve_db_name(db_name)
+    conn = open_readonly(config)
     try:
         sectors = fetch_all(
             conn,

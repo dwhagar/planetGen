@@ -15,9 +15,14 @@ already reads.
 This module is deliberately small and dependency-free (standard library
 `json`/`os` only), matching the rest of the web-interface plumbing (see
 `html/lib/dbutil.py`). It is not wired into any current feature -- it
-exists as scaffolding for code that will want site-level settings
-(`site_name`, `base_url`, and eventually a non-SQLite database backend's
-credentials) without needing to handle a missing config file itself.
+exists as scaffolding for site-level settings (`site_name`, `base_url`)
+without needing to handle a missing config file itself. The
+`db_username`/`db_password`/`db_name` placeholder fields below predate
+the MySQL port (TODO.md Phase 5) and are superseded by it: real database
+credentials now live in the `PLANETGEN_MYSQL_*` environment variables
+`stellarObjects._db.MySQLConfig` reads, not here -- kept only for
+`webconfig.json.example` backward-compatibility with any file already
+deployed from before this port.
 """
 
 import json

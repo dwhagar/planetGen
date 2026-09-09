@@ -3,35 +3,54 @@
 """
 Shared helpers for the planetGen CGI web interface.
 
-Deliberately dependency-free (standard library only) -- these scripts are
-meant to run as plain Apache2 CGI scripts on a VPS with nothing beyond a
-system Python 3 and the `planetGen` package itself installed. Every query
-here is read-only; the web interface never writes to a database.
+These scripts run as plain Apache2 CGI scripts on a VPS with a system
+Python 3, the `planetGen` package, and its `pymysql`/`DBUtils` runtime
+dependencies installed (see `setup.py`'s `install_requires` -- unlike the
+pre-MySQL-port version of this module, `stellarObjects` is no longer
+optional here: there's no standard-library fallback for talking to
+MySQL). Every query here is read-only; the web interface never writes to
+a database -- see `queryDb.py`'s module docstring for the same
+read-only-by-account-grant convention this module's `open_readonly`
+follows.
 
 Not part of the `stellarObjects` package's public API -- this module is
 web-plumbing specific to `html/`, kept out of the CGI-mapped document root
 (see `examples/apache/planetgen.conf.example`, which denies direct web access to
 this `lib/` directory) purely so it can't accidentally be requested and
 executed as a script in its own right.
+
+"Multiple databases" (`index.py`'s picker, `?db=` on every other page)
+means multiple MySQL schemas on one configured server -- e.g. one
+schema per campaign/galaxy (`planetgen`, `planetgen_alpha`, ...) -- rather
+than the pre-MySQL-port meaning of multiple `.db` files in a directory.
+`DB_PREFIX_ENV_VAR` restricts which schemas on the server are offered,
+both so a shared server's unrelated schemas never show up in the picker
+and so `?db=` can't be used to probe/open a schema this deployment was
+never meant to expose (`resolve_db_name` validates against that same
+prefix-filtered list before ever connecting with it).
 """
 
-import glob
 import html
 import os
 import re
-import sqlite3
 import sys
 
-DB_DIR_ENV_VAR = "PLANETGEN_DB_DIR"
-"""str: Apache `SetEnv` variable name that overrides the default db
-directory -- see the example vhost config."""
+DB_PREFIX_ENV_VAR = "PLANETGEN_MYSQL_DATABASE_PREFIX"
+"""str: Apache `SetEnv` variable name overriding the default schema-name
+prefix -- see the example vhost config."""
+
+DEFAULT_DB_PREFIX = "planetgen"
+"""str: Matches `stellarObjects._db.MySQLConfig`'s own default database
+name -- a deployment with just one schema names it `planetgen` and never
+needs to set `DB_PREFIX_ENV_VAR` at all; one with several names them
+`planetgen_<something>` to share the prefix."""
 
 _LIB_DIR = os.path.dirname(os.path.abspath(__file__))
 _HTML_DIR = os.path.dirname(_LIB_DIR)
 _SRC_DIR = os.path.dirname(_HTML_DIR)
 _PROJECT_ROOT = os.path.dirname(_SRC_DIR)
 
-# Falls back to src/ (stellarObjects now lives at src/stellarObjects/, src
+# Falls back to src/ (stellarObjects lives at src/stellarObjects/, src
 # layout) so `stellarObjects` is importable even when it hasn't been
 # `pip install`-ed system-wide -- true for the default deployment layout
 # (`html/` and `src/` as siblings under /var/lib/planetGen). Every caller
@@ -40,26 +59,10 @@ _PROJECT_ROOT = os.path.dirname(_SRC_DIR)
 # module makes sure of it independently rather than relying on import
 # order.
 sys.path.append(os.path.join(_PROJECT_ROOT, "src"))
-try:
-    from stellarObjects.utils import milliparsecs_to_ly
-    from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
-    from stellarObjects._db import BACKUP_MARKER
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # callers fall back to showing raw stored units rather than failing.
-    milliparsecs_to_ly = None
-    LOCAL_STELLAR_DENSITY_LY3 = None
-    # Matches `stellarObjects._db.BACKUP_MARKER` -- duplicated here as a
-    # literal fallback since that's the one piece of `_db` this module
-    # can't do without: excluding migration backups from the database
-    # picker still has to work even in a deployment where the rest of
-    # `stellarObjects` isn't importable.
-    BACKUP_MARKER = "-backup-"
 
-DEFAULT_DB_DIR = os.path.join(_PROJECT_ROOT, "db")
-"""str: `db/` alongside `html/`, matching the repo layout and the
-recommended deployment layout (`/var/lib/planetGen/db` next to
-`/var/lib/planetGen/html`)."""
+from stellarObjects.utils import milliparsecs_to_ly
+from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
+from stellarObjects._db import MySQLConfig, get_connection
 
 
 class NotFoundError(Exception):
@@ -67,105 +70,99 @@ class NotFoundError(Exception):
     turn this into a 404 response."""
 
 
-def get_db_dir():
+def _server_connection():
     """
-    Returns the directory to look for `.db` files in: `PLANETGEN_DB_DIR`
-    if the Apache config sets it, otherwise `DEFAULT_DB_DIR`.
-
-    Returns:
-        str: Absolute path to the database directory.
+    Opens a connection to the configured MySQL server with no specific
+    schema selected -- used only to list what schemas exist
+    (`information_schema`), never to query planetGen data itself.
+    `ensure_schema=False`: there's no default schema selected for
+    `_ensure_schema`'s `CREATE TABLE` statements to even apply against,
+    and this is a read-only account regardless (see the module docstring).
     """
-    return os.environ.get(DB_DIR_ENV_VAR) or DEFAULT_DB_DIR
+    return get_connection(MySQLConfig(database=""), ensure_schema=False)
 
 
 def list_databases():
     """
-    Lists every `*.db` file directly inside the database directory,
-    excluding schema-migration backups (see `BACKUP_MARKER`) -- a backup
-    is a gzip-compressed `.db.gz` file so it wouldn't match the `*.db`
-    glob anyway, but the exclusion is also applied by name explicitly so
-    the intent reads clearly here and this stays correct even if the
-    backup naming scheme changes again later.
+    Lists every MySQL schema on the configured server whose name starts
+    with the configured prefix (`DB_PREFIX_ENV_VAR`, or `DEFAULT_DB_PREFIX`).
 
     Returns:
-        list[dict]: One entry per file, sorted by name, each with `name`,
-                    `size_bytes`, and `modified_at` (ISO 8601 local time).
+        list[dict]: One entry per schema, sorted by name, each with
+                    `name`, `size_bytes` (sum of `data_length`/
+                    `index_length` across its tables), and `modified_at`
+                    (the latest `information_schema.tables.update_time`
+                    across its tables, formatted, or `"unknown"` when
+                    the storage engine doesn't track it).
     """
-    db_dir = get_db_dir()
-    entries = []
-    for path in sorted(glob.glob(os.path.join(db_dir, "*.db"))):
-        if BACKUP_MARKER in os.path.basename(path):
-            continue
-        stat = os.stat(path)
-        entries.append({
-            "name": os.path.basename(path),
-            "size_bytes": stat.st_size,
-            "modified_at": _format_mtime(stat.st_mtime),
-        })
-    return entries
+    prefix = os.environ.get(DB_PREFIX_ENV_VAR) or DEFAULT_DB_PREFIX
+    conn = _server_connection()
+    try:
+        schema_rows = conn.execute(
+            "SELECT schema_name AS name FROM information_schema.schemata "
+            "WHERE schema_name LIKE ? ORDER BY schema_name",
+            (f"{prefix}%",),
+        ).fetchall()
+
+        entries = []
+        for schema_row in schema_rows:
+            name = schema_row["name"]
+            stats = conn.execute(
+                "SELECT COALESCE(SUM(data_length + index_length), 0) AS size_bytes, "
+                "MAX(update_time) AS modified_at "
+                "FROM information_schema.tables WHERE table_schema = ?",
+                (name,),
+            ).fetchone()
+            modified_at = stats["modified_at"]
+            entries.append({
+                "name": name,
+                "size_bytes": int(stats["size_bytes"] or 0),
+                "modified_at": modified_at.strftime("%Y-%m-%d %H:%M") if modified_at else "unknown",
+            })
+        return entries
+    finally:
+        conn.close()
 
 
-def _format_mtime(epoch_seconds):
-    import datetime
-    return datetime.datetime.fromtimestamp(epoch_seconds).strftime("%Y-%m-%d %H:%M")
-
-
-def resolve_db_path(name):
+def resolve_db_name(name):
     """
-    Validates a database name supplied via a query string and resolves it
-    to a real file inside the database directory.
+    Validates a database name supplied via a query string against the
+    same prefix-filtered list `list_databases` offers.
 
-    Only an exact basename match against a file that's actually present is
-    accepted -- this is what keeps `?db=` from being used for path
-    traversal (`../../etc/passwd` et al.) or for opening arbitrary files
-    outside the database directory. A schema-migration backup is refused
-    the same way `list_databases` excludes it from the picker (matched by
-    `BACKUP_MARKER`, not just its `.db.gz` extension failing the `.db`
-    suffix check below) -- a backup should never be openable as a
-    database even if someone guesses/hardcodes its exact filename in a
-    `?db=` link.
+    This is what keeps `?db=` from selecting a schema this deployment
+    never meant to expose (every other schema on a shared MySQL server,
+    `information_schema` itself, etc.) -- only an exact, case-sensitive
+    match against a currently-listed schema is accepted.
 
     Args:
-        name (str): The `db` query parameter, e.g. `"planetgen.db"`.
+        name (str): The `db` query parameter, e.g. `"planetgen"`.
 
     Returns:
-        str: Absolute path to the validated `.db` file.
+        MySQLConfig: Ready to pass to `open_readonly`.
 
     Raises:
-        NotFoundError: If `name` is empty or doesn't match a listed file.
+        NotFoundError: If `name` is empty or doesn't match a listed schema.
     """
     if not name:
         raise NotFoundError("No database specified.")
-    candidate = os.path.basename(name)
-    db_dir = get_db_dir()
-    path = os.path.join(db_dir, candidate)
-    if (
-        candidate != name
-        or not os.path.isfile(path)
-        or not candidate.endswith(".db")
-        or BACKUP_MARKER in candidate
-    ):
+    if name not in {entry["name"] for entry in list_databases()}:
         raise NotFoundError(f"No such database: {name!r}")
-    return path
+    return MySQLConfig(database=name)
 
 
-def open_readonly(path):
+def open_readonly(config):
     """
-    Opens a SQLite database strictly read-only, via a `file:` URI with
-    `mode=ro` -- this fails outright if the database doesn't already
-    exist, rather than silently creating one, and guarantees the web
-    interface can never write to it even if a query is buggy.
+    Opens a connection for this read-only web interface -- see the
+    module docstring for why "read-only" is enforced by the configured
+    account's grants rather than anything this function does itself.
 
     Args:
-        path (str): Absolute path to the `.db` file (from `resolve_db_path`).
+        config (MySQLConfig): From `resolve_db_name`.
 
     Returns:
-        sqlite3.Connection: A read-only connection with `Row` row access.
+        stellarObjects._db.Connection: An open connection.
     """
-    uri = f"file:{path}?mode=ro"
-    conn = sqlite3.connect(uri, uri=True)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return get_connection(config, ensure_schema=False)
 
 
 def fetch_one(conn, query, params=()):
@@ -262,13 +259,8 @@ def format_density(edge_mpc, system_count):
         system_count (int): How many systems are placed in the sector.
 
     Returns:
-        str: e.g. `"0.00329 systems/ly&sup3; (116% of local average)"`, or
-             `"unknown (cube edge unit unavailable)"` if `stellarObjects`
-             isn't importable in this deployment.
+        str: e.g. `"0.00329 systems/ly&sup3; (116% of local average)"`.
     """
-    if milliparsecs_to_ly is None:
-        return "unknown (cube edge unit unavailable)"
-
     edge_ly = milliparsecs_to_ly(edge_mpc)
     if not edge_ly:
         return "n/a"

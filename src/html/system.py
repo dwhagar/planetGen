@@ -17,7 +17,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_path
+from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_name
 from mdconvert import markdown_to_html_with_headings
 from page import query_params, run
 from systemmap import render_system_map_panel
@@ -252,8 +252,8 @@ def handler():
     if fmt not in ("wikitext", "markdown"):
         fmt = "wikitext"
 
-    path = resolve_db_path(db_name)
-    conn = open_readonly(path)
+    config = resolve_db_name(db_name)
+    conn = open_readonly(config)
     try:
         system = fetch_one(conn, "SELECT * FROM star_systems WHERE id = ?", (system_id,))
         if system is None:

@@ -63,6 +63,13 @@ setup(
     },
     install_requires=[
         'nltk',
+        # MySQL persistence (stellarObjects/_db.py, TODO.md Phase 5) --
+        # every entry point that touches the database (sectorGen.py,
+        # systemGen.py, galaxyGen.py, queryDb.py, migrateDb.py, the
+        # html/ CGI browser) needs these, not just the Flask API, so
+        # they're core requirements rather than the 'api' extra below.
+        'pymysql',
+        'dbutils',
     ],
     extras_require={
         'test': ['pytest'],

@@ -6,15 +6,18 @@ specifically that a freshly generated system's planets and moons land in
 their respective schema-v2 tables (`planets` vs. `moons`, see
 `schema.sql`'s "v2" header note) rather than sharing one table the way
 schema v1 did. There's otherwise no test coverage of `_db.py`'s save path
-at all (`db/README.md`'s own "no read path yet" status), so this is
-deliberately a real generate-then-save-then-query round trip rather than
-a unit test against a hand-built object graph -- it's the same shape of
-bug (an `INSERT`'s column list and value tuple silently drifting out of
-count/order) that unit tests calling `insert_moon` directly with
-hand-picked arguments would be less likely to catch.
-"""
+at all (`docs/database-schema.md`'s own "no read path yet" status,
+historical, since resolved), so this is deliberately a real
+generate-then-save-then-query round trip rather than a unit test against
+a hand-built object graph -- it's the same shape of bug (an `INSERT`'s
+column list and value tuple silently drifting out of count/order) that
+unit tests calling `insert_moon` directly with hand-picked arguments
+would be less likely to catch.
 
-import sqlite3
+Every test here takes the `mysql_config` fixture (see `conftest.py`) --
+they're skipped, not failed, when no MySQL test server is configured/
+reachable.
+"""
 
 import pytest
 
@@ -44,11 +47,10 @@ def _make_system_with_moons_and_belt():
     pytest.fail("could not generate a system with both a moon and an asteroid belt")
 
 
-def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(tmp_path):
+def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
-    db_path = str(tmp_path / "test.db")
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         with conn:
             system_id = _db.insert_star_system(conn, system, cfg)
@@ -60,8 +62,7 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(tmp_p
     expected_moon_names = sorted(moon.name for planet in expected_planets for moon in planet.moons)
     assert expected_moon_names, "test fixture must actually contain moons"
 
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    conn = _db.get_connection(mysql_config)
     try:
         db_planets = conn.execute("SELECT * FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()
         assert len(db_planets) == len(expected_planets)
@@ -79,25 +80,23 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(tmp_p
         belts = conn.execute("SELECT * FROM asteroid_belts WHERE star_system_id = ?", (system_id,)).fetchall()
         assert len(belts) == len(expected_belts)
 
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == _db.SCHEMA_VERSION
+        version_row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
+        assert version_row["version"] == _db.SCHEMA_VERSION
     finally:
         conn.close()
 
 
 # ---------------------------------------------------------------------------
-# Read path (_db.load_star_system / load_sector / load_system_config) --
-# previously entirely untested (db/README.md's "no read path yet" status,
-# now built). Covers the gaps this module's own docstring called out as
-# still missing: binary systems, lifespan_gy round-tripping, and
-# PRAGMA foreign_key_check, plus save_sector/insert_sector and
-# insert_system_config's SLOTS child rows.
+# Read path (_db.load_star_system / load_sector / load_system_config).
+# Covers the gaps this module's own docstring called out as still missing:
+# binary systems, lifespan_gy round-tripping, and foreign-key integrity,
+# plus save_sector/insert_sector and insert_system_config's SLOTS child rows.
 # ---------------------------------------------------------------------------
 
-def test_load_star_system_round_trips_single_star_system_exactly(tmp_path):
+def test_load_star_system_round_trips_single_star_system_exactly(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
-    db_path = str(tmp_path / "test.db")
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         with conn:
             system_id = _db.insert_star_system(conn, system, cfg)
@@ -118,15 +117,14 @@ def test_load_star_system_round_trips_single_star_system_exactly(tmp_path):
             assert obj.star is reloaded.star
 
 
-def test_load_star_system_round_trips_binary_system_exactly(tmp_path):
+def test_load_star_system_round_trips_binary_system_exactly(mysql_config):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.BINARY_SYSTEM = True
     cfg.PLANETS = False
     system = StarSystem(system_config=cfg)
-    db_path = str(tmp_path / "test.db")
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         with conn:
             system_id = _db.insert_star_system(conn, system, cfg)
@@ -147,15 +145,14 @@ def test_load_star_system_round_trips_binary_system_exactly(tmp_path):
     assert reloaded.primary_star.system_config is reloaded.system_config
 
 
-def test_lifespan_gy_null_round_trips_to_infinite_lifespan(tmp_path):
+def test_lifespan_gy_null_round_trips_to_infinite_lifespan(mysql_config):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "M2VII"  # white dwarf: lifespan == float('inf')
     cfg.PLANETS = False
     system = StarSystem(system_config=cfg)
     assert system.star.lifespan == float('inf')
-    db_path = str(tmp_path / "test.db")
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         with conn:
             system_id = _db.insert_star_system(conn, system, cfg)
@@ -172,22 +169,25 @@ def test_lifespan_gy_null_round_trips_to_infinite_lifespan(tmp_path):
     assert str(reloaded) == str(system)
 
 
-def test_foreign_key_check_is_clean_after_insert(tmp_path):
+def test_insert_star_system_respects_foreign_keys(mysql_config):
+    # MySQL/InnoDB enforces every foreign key eagerly, at INSERT time --
+    # unlike SQLite (which needs a separate `PRAGMA foreign_key_check`
+    # pass after the fact to catch a constraint left unenforced mid-
+    # transaction), an insert violating a foreign key here would already
+    # have raised `pymysql.err.IntegrityError` above rather than
+    # completing silently. This test's real assertion is simply that the
+    # insert-then-reload round trip above completes without one.
     system, cfg = _make_system_with_moons_and_belt()
-    db_path = str(tmp_path / "test.db")
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         with conn:
             _db.insert_star_system(conn, system, cfg)
-        violations = conn.execute("PRAGMA foreign_key_check").fetchall()
     finally:
         conn.close()
 
-    assert violations == []
 
-
-def test_save_sector_and_load_sector_round_trip(tmp_path):
+def test_save_sector_and_load_sector_round_trip(mysql_config):
     sector = SpaceSector("Persisted Sector", edge_ly=20.0)
 
     system_a, cfg_a = _make_system_with_moons_and_belt()
@@ -198,10 +198,9 @@ def test_save_sector_and_load_sector_round_trip(tmp_path):
     system_b = StarSystem(system_config=cfg_b)
     sector.add_system(system_b, position=(-4.0, 0.0, 5.5), system_config=cfg_b)
 
-    db_path = str(tmp_path / "test.db")
-    sector_id = _db.save_sector(sector, db_path=db_path)
+    sector_id = _db.save_sector(sector, config=mysql_config)
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         reloaded_sector = _db.load_sector(conn, sector_id)
     finally:
@@ -220,7 +219,7 @@ def test_save_sector_and_load_sector_round_trip(tmp_path):
         assert entry.position == pytest.approx(original_position)
 
 
-def test_insert_system_config_round_trips_slots_child_rows(tmp_path):
+def test_insert_system_config_round_trips_slots_child_rows(mysql_config):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.SLOTS = [
@@ -228,9 +227,8 @@ def test_insert_system_config_round_trips_slots_child_rows(tmp_path):
         {"type": "planet", "planet_class": "M", "moons": 2},
         {"type": "asteroid_belt", "planet_class": None, "moons": None},
     ]
-    db_path = str(tmp_path / "test.db")
 
-    conn = _db.get_connection(db_path)
+    conn = _db.get_connection(mysql_config)
     try:
         with conn:
             config_id = _db.insert_system_config(conn, cfg)

@@ -12,14 +12,30 @@ re-implementing the same SQL a third time; the two detail endpoints go
 through `stellarObjects._db.load_sector`/`load_star_system` for the full
 nested object graph, serialized via each class's own `to_dict()` (Phase 1
 serialization, `stellarObjects/serialization.py`).
+
+Listing endpoints (`/sectors`, `/systems`) are paginated -- this project's
+own roadmap (docs/TODO.md, Phase 4) plans galaxy-scale generation, so an
+unbounded `SELECT *` here would eventually return an unbounded response.
+`_paginate` centralizes parsing/validating `limit`/`offset` so both routes
+apply the same defaults, cap, and error behavior.
 """
 
 from flask import Blueprint, current_app, g, jsonify, request
 
-from queryDb import list_sectors, list_systems, open_readonly, systems_within_radius
+from queryDb import (
+    count_sectors,
+    count_systems,
+    list_sectors,
+    list_systems,
+    open_readonly,
+    systems_within_radius,
+)
 from stellarObjects._db import load_sector, load_star_system
 
 bp = Blueprint("api", __name__, url_prefix="/api")
+
+DEFAULT_PAGE_LIMIT = 100
+MAX_PAGE_LIMIT = 500
 
 
 def get_db():
@@ -29,7 +45,7 @@ def get_db():
     per query, then closed by `close_db` in the app's teardown handler.
     """
     if "db" not in g:
-        g.db = open_readonly(current_app.config["DB_PATH"])
+        g.db = open_readonly(current_app.config["MYSQL_CONFIG"])
     return g.db
 
 
@@ -39,9 +55,96 @@ def close_db(exception=None):
         db.close()
 
 
+class ApiError(Exception):
+    """
+    Raised by a route to end the request with a JSON `{"error": ...}` body
+    and a specific status code, handled by `app.py`'s error handler. Beats
+    each route hand-rolling its own `return jsonify(...), status` for
+    validation failures, so every 400 in this API is worded and shaped the
+    same way.
+    """
+
+    def __init__(self, message, status_code=400):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
+
+def _paginate(query_args):
+    """
+    Parses and validates the `limit`/`offset` query parameters shared by
+    every listing endpoint.
+
+    `limit` defaults to `DEFAULT_PAGE_LIMIT` and is capped at
+    `MAX_PAGE_LIMIT` (silently clamped, not rejected -- a client asking for
+    "too much" isn't an error, just more than this API will hand back in
+    one response). `offset` defaults to 0. Both must be non-negative
+    integers when given at all.
+
+    Args:
+        query_args (werkzeug.datastructures.MultiDict): `request.args`.
+
+    Returns:
+        tuple[int, int]: `(limit, offset)`.
+
+    Raises:
+        ApiError: If `limit`/`offset` is present but not a non-negative
+            integer.
+    """
+    raw_limit = query_args.get("limit")
+    raw_offset = query_args.get("offset")
+
+    if raw_limit is None:
+        limit = DEFAULT_PAGE_LIMIT
+    else:
+        try:
+            limit = int(raw_limit)
+        except ValueError:
+            raise ApiError(f"limit must be an integer, got {raw_limit!r}")
+        if limit < 1:
+            raise ApiError("limit must be at least 1")
+        limit = min(limit, MAX_PAGE_LIMIT)
+
+    if raw_offset is None:
+        offset = 0
+    else:
+        try:
+            offset = int(raw_offset)
+        except ValueError:
+            raise ApiError(f"offset must be an integer, got {raw_offset!r}")
+        if offset < 0:
+            raise ApiError("offset must be at least 0")
+
+    return limit, offset
+
+
+@bp.route("/health")
+def health():
+    """
+    Liveness/readiness check for monitoring -- confirms the process is up
+    and the configured database can actually be opened, not just that
+    Flask is responding. Returns 503 (rather than letting the connection
+    error propagate to a generic 500) so a monitor can tell "the API is
+    running but its database is unreachable" apart from "the API itself is
+    down".
+    """
+    try:
+        get_db().execute("SELECT 1")
+    except Exception as exc:
+        return jsonify({"status": "error", "detail": str(exc)}), 503
+    return jsonify({"status": "ok"})
+
+
 @bp.route("/sectors")
 def sectors():
-    return jsonify(list_sectors(get_db()))
+    limit, offset = _paginate(request.args)
+    db = get_db()
+    return jsonify({
+        "items": list_sectors(db, limit=limit, offset=offset),
+        "total": count_sectors(db),
+        "limit": limit,
+        "offset": offset,
+    })
 
 
 @bp.route("/sectors/<int:sector_id>")
@@ -56,9 +159,24 @@ def sector_detail(sector_id):
 @bp.route("/systems")
 def systems():
     star_type = request.args.get("star_type")
-    sector_id = request.args.get("sector_id", type=int)
-    rows = list_systems(get_db(), star_type_prefix=star_type, sector_id=sector_id)
-    return jsonify([dict(row) for row in rows])
+
+    raw_sector_id = request.args.get("sector_id")
+    sector_id = None
+    if raw_sector_id is not None:
+        try:
+            sector_id = int(raw_sector_id)
+        except ValueError:
+            raise ApiError(f"sector_id must be an integer, got {raw_sector_id!r}")
+
+    limit, offset = _paginate(request.args)
+    db = get_db()
+    rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset)
+    return jsonify({
+        "items": [dict(row) for row in rows],
+        "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id),
+        "limit": limit,
+        "offset": offset,
+    })
 
 
 @bp.route("/systems/<int:system_id>")
@@ -80,9 +198,16 @@ def systems_near(system_id):
     # between them in galactic space" would build on this route's existing
     # data rather than needing new queries. See docs/TODO.md, "Investigate
     # Further".
-    radius = request.args.get("radius", type=float)
-    if radius is None:
-        return jsonify({"error": "radius query parameter is required"}), 400
+    raw_radius = request.args.get("radius")
+    if raw_radius is None:
+        raise ApiError("radius query parameter is required")
+    try:
+        radius = float(raw_radius)
+    except ValueError:
+        raise ApiError(f"radius must be a number, got {raw_radius!r}")
+    if radius <= 0:
+        raise ApiError("radius must be greater than 0")
+
     try:
         matches = systems_within_radius(get_db(), system_id, radius)
     except SystemExit as exc:

@@ -13,9 +13,16 @@ columnar listings, not full object-graph reconstructions, so a raw query
 is the more direct tool for the job -- the read path remains what a
 future richer tool (or a re-upload/re-render workflow) would build on.
 
-Opens the database strictly read-only (a `file:` URI with `mode=ro`) so
-this can never accidentally write to a database another process is also
-using.
+This tool never writes -- `open_readonly` below connects with the same
+`MySQLConfig` every other entry point uses, but the actual enforcement
+that the connection can't write is a deployment concern: point
+`PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` at a database account
+with `SELECT`-only grants for this tool (and the read-only Flask API,
+`api/config.py`) rather than the read-write account `sectorGen.py`/
+`systemGen.py` use -- MySQL has no per-connection "open this read-only"
+flag the way SQLite's `file:...?mode=ro` URI trick gave the old SQLite
+version of this function, so the guarantee lives in the account's grants
+instead of the connection itself.
 
 Run directly as `python src/queryDb.py`: this file lives alongside
 `stellarObjects/` under `src/`, so Python's own sys.path[0] (the running
@@ -26,67 +33,66 @@ sys.path shim needed, unlike the root-level entry scripts
 
 import argparse
 import math
-import sqlite3
 
-from stellarObjects._db import DEFAULT_DB_PATH
+import pymysql
+
+from stellarObjects._db import add_mysql_connection_args, get_connection, mysql_config_from_args
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.utils import milliparsecs_to_ly
 
 
-def open_readonly(db_path):
+def open_readonly(config=None):
     """
-    Opens `db_path` strictly read-only -- fails outright if the file
-    doesn't exist, rather than silently creating one (this tool never
-    writes).
+    Opens a connection for this read-only tool -- see the module
+    docstring for why "read-only" is enforced by the configured account's
+    grants rather than anything this function does itself.
 
     Args:
-        db_path (str): Path to the `.db` file.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
-        sqlite3.Connection: A read-only connection with `Row` row access.
+        stellarObjects._db.Connection: An open connection.
 
     Raises:
-        SystemExit: If the file doesn't exist or can't be opened.
+        SystemExit: If the database can't be reached.
     """
-    # TODO: this whole function -- and the --db-path/DEFAULT_DB_PATH
-    # convention it's built on -- assumes a SQLite file path throughout.
-    # Part of the Phase 5 MySQL migration (docs/TODO.md) is porting this
-    # CLI off that assumption: `db_path` would become a connection
-    # string/host+credentials pair instead of a bare path, and this
-    # function's `file:...?mode=ro` URI trick (SQLite-specific) would need
-    # a MySQL-appropriate equivalent (a real read-only user/grant, since
-    # MySQL has no per-connection "open this file read-only" flag). See
-    # docs/TODO.md, "Phase 5 -- Web interface".
     try:
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        conn.row_factory = sqlite3.Row
-        conn.execute("SELECT 1")  # forces the file to actually be opened now
-    except sqlite3.OperationalError as exc:
-        raise SystemExit(f"Error: could not open database at {db_path!r} ({exc}).")
-    return conn
+        return get_connection(config, ensure_schema=False)
+    except pymysql.MySQLError as exc:
+        raise SystemExit(f"Error: could not open the database ({exc}).")
 
 
-def list_sectors(conn):
+def list_sectors(conn, limit=None, offset=None):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains.
 
     Args:
-        conn (sqlite3.Connection): An open, read-only connection.
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        limit (int, optional): Caps the number of rows returned. `None`
+            (the default -- what every existing caller of this function
+            still gets) returns every sector.
+        offset (int, optional): Skips this many rows first. Ignored
+            unless `limit` is also given; meaningless on its own.
 
     Returns:
-        list[sqlite3.Row]: One row per sector, with `id`, `name`,
+        list[dict]: One row per sector, with `id`, `name`,
                            `edge_ly`, `system_count`.
     """
-    rows = conn.execute(
-        """
+    query = """
         SELECT sec.id, sec.name, sec.edge_mpc, COUNT(ss.id) AS system_count
         FROM sectors sec
         LEFT JOIN star_systems ss ON ss.sector_id = sec.id
         GROUP BY sec.id
         ORDER BY sec.name
         """
-    ).fetchall()
+    params = []
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset or 0])
+
+    rows = conn.execute(query, params).fetchall()
     return [
         {"id": r["id"], "name": r["name"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
          "system_count": r["system_count"]}
@@ -94,29 +100,38 @@ def list_sectors(conn):
     ]
 
 
-def list_systems(conn, star_type_prefix=None, sector_id=None):
+def count_sectors(conn):
     """
-    Returns systems, optionally filtered by star type and/or sector.
+    Returns the total number of sectors, ignoring any pagination --
+    the denominator `list_sectors(conn, limit=...)` callers (the API's
+    `/api/sectors`) need to report how many pages exist.
 
     Args:
-        conn (sqlite3.Connection): An open, read-only connection.
-        star_type_prefix (str, optional): Matches any system with at least
-            one star (single, primary, or secondary) whose `star_type`
-            starts with this text, e.g. `"G"` for every G-type system,
-            `"G2V"` for an exact spectral/subclass/luminosity match.
-            Case-sensitive, matching the stored spectral class letters.
-        sector_id (int, optional): Restricts to one sector's systems.
+        conn (stellarObjects._db.Connection): An open, read-only connection.
 
     Returns:
-        list[sqlite3.Row]: One row per matching system, with `id`, `name`,
-                           `sector_id`, `is_binary`.
+        int: Total sector count.
     """
-    query = "SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.is_binary FROM star_systems ss"
+    return conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+
+
+def _systems_filter_clause(star_type_prefix, sector_id):
+    """
+    Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
+    `count_systems` both need -- factored out so the count query can't
+    silently drift out of sync with what the listing query actually
+    matches.
+
+    Returns:
+        tuple: `(join_sql, where_sql, params)`, each usable standalone
+              (empty strings/list when no filter applies).
+    """
+    join_sql = ""
     conditions = []
     params = []
 
     if star_type_prefix is not None:
-        query += " JOIN stars s ON s.star_system_id = ss.id"
+        join_sql = " JOIN stars s ON s.star_system_id = ss.id"
         conditions.append("s.star_type LIKE ?")
         params.append(f"{star_type_prefix}%")
 
@@ -124,11 +139,60 @@ def list_systems(conn, star_type_prefix=None, sector_id=None):
         conditions.append("ss.sector_id = ?")
         params.append(sector_id)
 
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    query += " ORDER BY ss.name"
+    where_sql = (" WHERE " + " AND ".join(conditions)) if conditions else ""
+    return join_sql, where_sql, params
+
+
+def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None):
+    """
+    Returns systems, optionally filtered by star type and/or sector.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        star_type_prefix (str, optional): Matches any system with at least
+            one star (single, primary, or secondary) whose `star_type`
+            starts with this text, e.g. `"G"` for every G-type system,
+            `"G2V"` for an exact spectral/subclass/luminosity match.
+            Case-sensitive, matching the stored spectral class letters.
+        sector_id (int, optional): Restricts to one sector's systems.
+        limit (int, optional): Caps the number of rows returned. `None`
+            (the default -- what every existing caller of this function
+            still gets) returns every matching system.
+        offset (int, optional): Skips this many rows first. Ignored
+            unless `limit` is also given; meaningless on its own.
+
+    Returns:
+        list[dict]: One row per matching system, with `id`, `name`,
+                           `sector_id`, `is_binary`.
+    """
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    query = f"SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.is_binary FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name"
+
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params = params + [limit, offset or 0]
 
     return conn.execute(query, params).fetchall()
+
+
+def count_systems(conn, star_type_prefix=None, sector_id=None):
+    """
+    Returns the total number of systems matching the same filters
+    `list_systems` accepts, ignoring any pagination -- the denominator
+    `list_systems(conn, limit=...)` callers (the API's `/api/systems`)
+    need to report how many pages exist.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        star_type_prefix (str, optional): Same meaning as `list_systems`.
+        sector_id (int, optional): Same meaning as `list_systems`.
+
+    Returns:
+        int: Total matching system count.
+    """
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    query = f"SELECT COUNT(DISTINCT ss.id) AS n FROM star_systems ss{join_sql}{where_sql}"
+    return conn.execute(query, params).fetchone()["n"]
 
 
 def systems_within_radius(conn, system_id, radius_ly):
@@ -137,7 +201,7 @@ def systems_within_radius(conn, system_id, radius_ly):
     `radius_ly` light-years, nearest first.
 
     Args:
-        conn (sqlite3.Connection): An open, read-only connection.
+        conn (stellarObjects._db.Connection): An open, read-only connection.
         system_id (int): The `star_systems.id` to measure distances from.
         radius_ly (float): The search radius, in light-years.
 
@@ -199,8 +263,7 @@ def process_args():
         description="List/query what's already stored in the planetGen database.",
     )
     parser.add_argument('--version', action=VersionAction, banner=version_banner('queryDb.py'))
-    parser.add_argument('--db-path', type=str,
-                        help=f"Path to the SQLite database file to query. Defaults to {DEFAULT_DB_PATH}.")
+    add_mysql_connection_args(parser)
 
     subparsers = parser.add_subparsers(dest='command', required=True)
 
@@ -238,8 +301,7 @@ def main():
     a plain-text listing of the results.
     """
     args = process_args()
-    db_path = args.db_path or DEFAULT_DB_PATH
-    conn = open_readonly(db_path)
+    conn = open_readonly(mysql_config_from_args(args))
     try:
         if args.command == 'sectors':
             sectors = list_sectors(conn)
