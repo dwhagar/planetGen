@@ -3,31 +3,50 @@
 ## [5.4.7] - 2026-09-09
 
 ### Added
-- **Every galaxy-placed sector now has an explicit 8-vertex cube, nudged to
-  reduce gaps with its neighbors.** `sectors.vertices_pc` (schema v6) stores
-  a JSON array of 8 galaxy-frame `(x, y, z)` corners, built from the fixed
-  radial-outward-`+Z`/projected-galactic-north-`+X` orientation convention
-  (`docs/design/galaxy-coordinate-system.md` section 3) and then relaxed
-  (`stellarObjects/sectorGeometry.relax_vertices`) by averaging each corner
-  with the matching corners of nearby sector addresses (found via the
-  existing `galaxyGeometry.enumerate_sectors_within_radius`), so adjacent
-  cubes' shared faces land much closer to coincident than two independently
-  placed cubes would. Not an exact zero-gap tiling -- a cube tiling of a
-  sphere without any gaps isn't geometrically possible (the same reason a
-  soccer ball needs pentagons mixed with hexagons; see `sectorGeometry.py`'s
-  module docstring) -- and a real check against generated output confirmed
-  this precisely: across a full generated shell, every sector's *aggregate*
-  local corner-gap-to-neighbors improved (~35% on average), but a handful of
-  individual pairwise gaps can still grow slightly where a sector has more
-  real neighbors (5-6+, common on this Fibonacci-sphere placement) than a
-  cube's 6 faces can simultaneously reconcile with only 8 shared corners.
-  `galaxyGen.py` computes and stores this for every sector it generates;
-  `sectorGen.py`'s standalone (non-galaxy) CLI is unaffected, same as every
-  other galaxy-frame column. New `_migrate_v5_to_v6` schema migration
-  (`_migrate_v4_to_v5` updated to match, now that it maps a v4 source
-  straight into the current v6 schema rather than v5) leaves `vertices_pc`
-  `NULL` for any migrated sector, per the established "no way to recover
-  this after the fact" precedent for the other galaxy-placement columns.
+- **Every galaxy-placed sector now has explicit vertices with genuinely
+  zero gaps against its same-shell neighbors.** `sectors.vertices_pc`
+  (schema v6) stores a JSON `{"inner": [...], "outer": [...]}` object --
+  this sector's own exact 3D vertices (variable count per sector, not
+  fixed at 8), built from an exact local spherical Voronoi tessellation
+  among its same-shell neighbors (`stellarObjects/sectorGeometry.
+  local_lateral_cell`) extruded radially between the shell's inner and
+  outer bounding spheres (`prism_vertices`). Lateral sharing is exact, not
+  approximate: each shared corner is the 3D circumcenter of a sector and
+  two of its neighbors -- a plain geometric fact independent of which of
+  the three computes it, so two real neighbors land on identical
+  floating-point values (~1e-16 agreement, verified directly) rather than
+  two nudged approximations. Vertex/face count varies per sector (typically
+  5-7, mean 6.0) because it has to: a cube tiling of a sphere can't be
+  gap-free in general (the same reason a soccer ball needs pentagons mixed
+  with hexagons), so a fixed 8-vertex shape cannot exactly reconcile a
+  sector with more real neighbors than it has faces -- confirmed by an
+  earlier, never-released attempt at exactly that (fixed-cube corner
+  averaging), which only ever reduced gaps (~35% aggregate), not
+  eliminated them. Radially, adjacent shells match in total area covered,
+  not vertex-for-vertex (a "non-conforming mesh interface," the same
+  technique used where independently-meshed regions meet in finite-
+  element/CFD meshing) -- shell k's outer bound and shell k+1's inner
+  bound are the same sphere, and each shell's own sectors fully and
+  independently tile it. Getting this fast required exploiting that the
+  underlying placement is a Fibonacci lattice: true same-shell neighbors
+  concentrate at Fibonacci-number index offsets (confirmed against real
+  data: exact offsets of F_20 through F_23), which collapses same-shell
+  neighbor search from ~0.4-0.5s/sector (the naive radius-search cost near
+  a large outer shell's equator, exactly where the disk/spiral density
+  model concentrates real generation) down to ~0.3-0.4ms/sector --
+  validated against a guaranteed-correct brute-force search across 840
+  cases spanning the full polar range and shell sizes from 3 to 211
+  million slots with zero mismatches, with small shells
+  (`shell_sector_count(k) <= 2000`) falling back to unconditionally-correct
+  brute force since the underlying asymptotic theory isn't reliable that
+  close to the galactic core. `galaxyGen.py` computes and stores this for
+  every sector it generates; `sectorGen.py`'s standalone (non-galaxy) CLI
+  is unaffected, same as every other galaxy-frame column. New
+  `_migrate_v5_to_v6` schema migration (`_migrate_v4_to_v5` updated to
+  match, now that it maps a v4 source straight into the current v6 schema
+  rather than v5) leaves `vertices_pc` `NULL` for any migrated sector, per
+  the established "no way to recover this after the fact" precedent for
+  the other galaxy-placement columns.
 
 ## [5.4.6] - 2026-09-07
 

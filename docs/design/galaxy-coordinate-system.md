@@ -499,9 +499,9 @@ exactly the kind of case that flag matters for.
    suffices, given the radial axis itself is already fixed by the center
    point) — not proposed here since it's pure additional complexity with
    no identified requirement yet. §9's `vertices_pc` implements the fixed
-   convention concretely (as 8 stored corners, relaxed toward neighbors),
-   but still doesn't add a roll degree of freedom -- that half of this
-   question remains open.
+   convention concretely (as the tangent-plane basis its exact prism
+   vertices are derived in), but still doesn't add a roll degree of
+   freedom -- that half of this question remains open.
 5. **Deterministic Fibonacci-sphere placement vs. randomized placement.**
    §3's scheme is fully deterministic — the same `(shell_index,
    shell_slot_index)` always yields the same position, which makes shells
@@ -698,29 +698,93 @@ there is no cliff where this approach stops working; it simply does
 progressively more of the genuinely-necessary work as the requested
 neighborhood grows.
 
-## 9. Sector cube vertices and neighbor relaxation (addendum)
+## 9. Sector prism vertices: exact per-shell Voronoi tessellation (addendum, revision 2)
 
 **Status:** implemented (`stellarObjects/sectorGeometry.py`, `sectors.
-vertices_pc` — schema v6). Partially resolves §7 question 4 above: every
-galaxy-placed sector's cube is now built from §3's fixed orientation
-convention (radial-outward local `+Z`, projected-galactic-north local
-`+X`) into 8 explicit vertices, which are then nudged toward the matching
-corners of the sector's nearest other addresses before being stored —
-shrinking the seams §3's "why this is fine despite the gaps/overlaps"
-section already accepted as unavoidable, without pretending they can be
-eliminated (a cube tiling of a sphere without any gaps is not
-geometrically possible; see `sectorGeometry.py`'s own module docstring for
-the full argument and the soccer-ball analogy). No roll/orientation degree
-of freedom was added — the fixed convention from §3 is unchanged; only the
-corner *positions* are adjusted, not which way the cube points.
+vertices_pc` — schema v6). This revises an earlier version of this same
+addendum, which gave every sector a fixed 8-vertex cube and *nudged*
+corners toward nearby neighbors' — that approach shipped, worked, and was
+tested, but only ever reduced gaps (~35% aggregate improvement, measured
+against real `galaxyGen.py` output), never eliminated them, because a
+fixed 8-vertex/6-face shape cannot exactly reconcile a sector with more
+real neighbors than it has faces — common on this Fibonacci-sphere
+placement, which has no fixed "6 neighbors" the way a structured grid
+would. Following a direct request for literal zero gaps, this revision
+replaces corner-nudging with an **exact local spherical Voronoi
+tessellation**, letting vertex/face count vary per sector instead of
+staying fixed.
 
-A real check against `galaxyGen.py --shell 2` output found the relaxation
-does exactly what it's meant to in aggregate (every one of 79 generated
-sectors' total local corner-gap-to-neighbors dropped, ~35% on average) but
-not always per specific neighbor pair — a sector with 5-6+ near-equidistant
-real neighbors (common on this Fibonacci-sphere placement, which has no
-fixed "6 face neighbors" the way a structured grid would) cannot have every
-one of those relationships perfectly reconciled by only 8 shared corners,
-so a handful of individual pairwise gaps can grow slightly even as the
-sector's overall fit improves. This is the same geometric impossibility
-already named above, observed concretely rather than just argued abstractly.
+### The model
+
+- **Lateral (same-shell) sharing is exact, not approximate.** For sector
+  `P`, `stellarObjects.sectorGeometry.local_lateral_cell` finds `P`'s real
+  same-shell geometric neighbors and computes the cell boundary as the
+  exact 3D **circumcenter** of each pair of cyclically-adjacent neighbors
+  together with `P` — the one point in 3D equidistant from all three. This
+  is a plain geometric fact about three points, independent of which of
+  them "does the computing," so two real neighbors, computing their own
+  cells entirely independently, land on the identical floating-point value
+  for their shared corner (verified directly: ~1e-16 agreement, i.e.
+  floating-point noise, not an approximation residual). Vertex count
+  varies per sector (typically 5-7, mean 6.0, matching standard Voronoi/
+  Euler-formula theory for a near-uniform point set) — the direct,
+  necessary consequence of insisting on exact gaps: a cube tiling of a
+  sphere cannot be gap-free in general (the same reason a soccer ball
+  needs pentagons mixed with hexagons; a plane tiles perfectly with
+  squares, a sphere never does), so face count has to match each sector's
+  own real neighbor count instead of staying fixed.
+- **Radial (between-shell) coverage matches in area, not vertex-for-
+  vertex.** Each lateral vertex is scaled along its own ray from the
+  galactic origin to sit exactly on the shell's inner bound
+  (`shell_index * edge_pc`) and outer bound (`(shell_index + 1) *
+  edge_pc`) in turn (`prism_vertices`), giving every sector a radially-
+  extruded prism. Shell `k`'s outer bound and shell `k+1`'s inner bound
+  are the same sphere; each shell tiles that whole sphere completely and
+  independently via its own sectors (Voronoi cells always partition their
+  full surface), so there is no net gap in area between the two shells'
+  sectors even though the two tessellations don't share edges with each
+  other — a "non-conforming mesh interface," the same technique used
+  where two independently-meshed regions meet in finite-element/CFD
+  meshing. Shell 0 is a degenerate but correct special case: its inner
+  bound is radius 0, so its sectors are wedges/cones from the galactic
+  center rather than full prisms.
+- No roll/orientation degree of freedom was added — §3's fixed convention
+  (radial-outward local `+Z`, projected-galactic-north local `+X`) is
+  still used as the tangent-plane basis the lateral cell's connectivity is
+  worked out in, even though final vertex positions are exact 3D
+  circumcenters rather than tangent-plane approximations.
+
+### The performance problem this required solving, and how
+
+A naive same-shell neighbor search — reusing
+`galaxyGeometry.enumerate_sectors_within_radius` with a small physical
+radius — is fast near a shell's poles but **catastrophically slow near its
+equator for large outer shells**: that primitive prunes by polar angle
+(`phi`) alone, and this placement's slot index is uniform in `cos(phi)`,
+not `phi` itself, so a tiny physical radius maps to a huge slot-index range
+right at the equator (measured: 100,000+ candidates to find ~6-8 true
+neighbors, ~0.4-0.5 seconds per sector) — precisely where the disk/spiral
+density model (this session's other major addendum) concentrates real
+generation activity.
+
+The fix exploits what this placement actually *is*: a Fibonacci sphere
+built from the golden angle, which makes it a golden-ratio irrational
+rotation in disguise. By the three-distance theorem, two slot indices land
+at close azimuths essentially when their difference is a Fibonacci number
+(golden-ratio continued-fraction convergents are exactly consecutive
+Fibonacci numbers) — confirmed directly against real generated positions,
+where true neighbor offsets were exactly `F_20` through `F_23`
+(6765/10946/17711/28657) plus small integer combinations of adjacent pairs
+(e.g. `76 = 2*F_10 - F_9`). Combined with polar angle changing
+(approximately) linearly with index, the relevant offset scale works out
+to `sin(phi) * sqrt(pi * N)` — shrinking away from the equator.
+`sectorGeometry._same_shell_candidate_offsets` checks small integer
+combinations of the few Fibonacci-number pairs nearest that scale, cutting
+per-sector cost to ~0.3-0.4ms regardless of shell size (a ~1000x
+improvement for the worst outer-equatorial case) — validated against the
+guaranteed-correct brute-force search across 840 cases spanning the full
+polar range and shell sizes from 3 to 211 million slots, with **zero
+mismatches** once shells small enough that this asymptotic theory doesn't
+apply cleanly (`shell_sector_count(k) <= 2000`, in practice only the
+galactic-core-adjacent shells) fall back to plain brute force instead,
+which is unconditionally correct and still cheap at that size.

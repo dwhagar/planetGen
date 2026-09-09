@@ -653,8 +653,9 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
             independently optional -- `None`/omitted leaves that one
             column NULL, per `schema.sql`'s note that they aren't implied
             by a center point the way the other five are). `vertices_pc`
-            is a list of 8 `(x, y, z)` tuples (see
-            `sectorGeometry.relax_vertices`), JSON-encoded here before
+            is a `{"inner": [...], "outer": [...]}` dict, each a list of
+            `(x, y, z)` tuples -- variable length, not fixed at 8 (see
+            `sectorGeometry.prism_vertices`) -- JSON-encoded here before
             storage.
 
     Returns:
@@ -708,8 +709,9 @@ def get_sector_galaxy_position(conn, sector_id):
         dict or None: A dict with keys `center_x_pc`, `center_y_pc`,
             `center_z_pc`, `galactic_radius_pc`, `shell_index`,
             `shell_slot_index`, `vertices_pc` (decoded back from JSON into
-            a list of 8 `[x, y, z]` lists), or `None` if this sector has
-            never been placed in a galaxy (all seven columns NULL).
+            a `{"inner": [...], "outer": [...]}` dict of `[x, y, z]`
+            lists), or `None` if this sector has never been placed in a
+            galaxy (all seven columns NULL).
 
     Raises:
         ValueError: If no such `sectors` row exists.

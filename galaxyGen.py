@@ -20,8 +20,9 @@ difference is that this script also supplies a real galaxy-frame position
 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant every
 standalone-generated system otherwise uses) and records that position in
 `sectors.center_x/y/z_pc`/`galactic_radius_pc`/`shell_index`/
-`shell_slot_index`/`vertices_pc` (this sector's own neighbor-relaxed cube
-corners -- see `stellarObjects/sectorGeometry.relax_vertices`).
+`shell_slot_index`/`vertices_pc` (this sector's own exact local-Voronoi
+prism vertices, gap-free against its same-shell neighbors -- see
+`stellarObjects/sectorGeometry.prism_vertices`).
 
 Two generation modes, both reducing to one call of
 `stellarObjects.galaxyGeometry.enumerate_sectors_within_radius` (see
@@ -70,7 +71,7 @@ from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.galaxyGeometry import (
     enumerate_sectors_within_radius, galactic_radius_pc, sector_position_pc, shell_sector_count,
 )
-from stellarObjects.sectorGeometry import relax_vertices
+from stellarObjects.sectorGeometry import prism_vertices
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
@@ -219,7 +220,7 @@ def _generate_and_save_sector_at(args, shell_index, shell_slot_index, position_p
 
     sector_name, sector = sectorGen.generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
 
-    vertices_pc = relax_vertices(shell_index, shell_slot_index, edge_pc)
+    vertices_pc = prism_vertices(shell_index, shell_slot_index, edge_pc)
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": radius_pc,

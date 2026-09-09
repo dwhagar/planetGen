@@ -143,14 +143,19 @@ the web database picker and from a subsequent migration run
   the v3->v4 `sectors` schema migration, `src/stellarObjects/galaxyGeometry.py`,
   and `galaxyGen.py` (`--shell K` / `--center-sector ID --radius-pc R`),
   with end-to-end CLI coverage in `src/tests/test_galaxy_gen.py`.
-- [x] **Sector cube vertices with neighbor relaxation — implemented and
-  merged.** Every galaxy-placed sector's cube is now built as 8 explicit
-  vertices (`sectors.vertices_pc`, v6) from Track C's fixed orientation
-  convention, then nudged toward nearby sectors' matching corners
-  (`stellarObjects/sectorGeometry.relax_vertices`) to shrink -- not
-  eliminate, which isn't geometrically possible for a cube tiling of a
-  sphere -- the seams between them. See
-  `docs/design/galaxy-coordinate-system.md` section 9.
+- [x] **Sector prism vertices with exact per-shell Voronoi tessellation —
+  implemented and merged.** Every galaxy-placed sector's vertices
+  (`sectors.vertices_pc`, v6) are now built from an exact local spherical
+  Voronoi cell among its same-shell neighbors (genuinely gap-free
+  laterally, not just reduced -- vertex count varies per sector, typically
+  5-7, since a fixed-shape cube can't reconcile more neighbors than it has
+  faces), extruded radially between the shell's inner/outer bounding
+  spheres (area-matched, not vertex-matched, against adjacent shells).
+  Same-shell neighbor search exploits this placement's Fibonacci-lattice
+  structure for ~1000x speedup on large outer shells versus a naive radius
+  search. Supersedes an earlier, never-released fixed-8-vertex corner-
+  relaxation approach. See `docs/design/galaxy-coordinate-system.md`
+  section 9.
 - [ ] **Galaxy thickness / shape (disk-density envelope) — design drafted
   (revision 2), not implemented.** Milky-Way-scale exponential-disk-plus-
   bulge-plus-spiral-arm density model, evaluated and persisted for every

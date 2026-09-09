@@ -131,25 +131,29 @@
 -- pre-rendered copy (`html/lib/tabledisplay.py` for the HTML viewer;
 -- `get_table_properties()` is still used, unchanged, to build the actual
 -- wiki-page text in `wikitext_content`/`markdown_content`).
--- v6: added `sectors.vertices_pc` -- a JSON array of this sector's own 8
--- cube corners, in galaxy-frame parsecs, alongside the v4 center/radius
--- columns. `center_x/y/z_pc` alone (plus `edge_mpc` and the fixed
--- orientation convention -- radial-outward local +Z, projected-galactic-
--- north local +X, per `docs/design/galaxy-coordinate-system.md` section 3)
--- already implies a "naive" cube; `vertices_pc` instead stores the
--- *relaxed* one, where corners have been nudged to coincide with the
--- matching corners of this sector's nearest neighbors (see
--- `stellarObjects/sectorGeometry.py`), shrinking (not eliminating -- a
--- cube tiling of a sphere without any gaps is not geometrically possible,
--- see that module's docstring) the small seams the coordinate doc's
--- section 3 already flagged as an accepted consequence of cubes on a
--- Fibonacci-sphere placement. NULL together with `center_x/y/z_pc`/
--- `galactic_radius_pc` for the same reason those are: a sector never
--- placed in a galaxy has no cube to relax against neighbors in the first
--- place. Stored as JSON (one TEXT column) rather than 24 separate REAL
--- columns since all 8 vertices are always read/written together and never
--- individually queried/indexed -- the same "structured value, not a
--- query facet" treatment `star_systems.location` already gets.
+-- v6: added `sectors.vertices_pc` -- a JSON `{"inner": [...], "outer":
+-- [...]}` object, each a list of this sector's own exact 3D vertices in
+-- galaxy-frame parsecs (variable length per sector, not fixed -- see
+-- below), alongside the v4 center/radius columns. Built from an exact
+-- local spherical Voronoi tessellation among this sector's own same-shell
+-- neighbors, extruded radially between the shell's inner and outer
+-- bounding spheres (`stellarObjects/sectorGeometry.prism_vertices`) --
+-- genuinely gap-free against same-shell neighbors (not merely reduced;
+-- see that module's docstring for why exact circumcenters, not nudged
+-- approximations, make this possible) and area-matched (not vertex-
+-- matched) against the shells in front of and behind it. Supersedes an
+-- earlier, never-released "relax a fixed 8-vertex cube toward its
+-- neighbors" approach, which only approximately closed gaps; superseded
+-- because a cube tiling of a sphere cannot be gap-free in general (the
+-- same reason a soccer ball needs pentagons mixed with hexagons), so
+-- vertex/face count has to vary per sector to reach true zero gaps. NULL
+-- together with `center_x/y/z_pc`/`galactic_radius_pc` for the same
+-- reason those are: a sector never placed in a galaxy has no same-shell
+-- neighbors to tessellate against. Stored as JSON (one TEXT column)
+-- rather than fixed REAL columns since the vertex count varies and both
+-- lists are always read/written together, never individually queried --
+-- the same "structured value, not a query facet" treatment
+-- `star_systems.location` already gets.
 PRAGMA foreign_keys = ON;
 PRAGMA user_version = 6;
 
@@ -176,7 +180,7 @@ CREATE TABLE IF NOT EXISTS sectors (
     shell_index         INTEGER,
     shell_slot_index    INTEGER,
 
-    -- This sector's own relaxed cube corners (v6) -- see the header
+    -- This sector's own exact prism vertices (v6) -- see the header
     -- comment's "v6" note and `stellarObjects/sectorGeometry.py`.
     vertices_pc         TEXT,
 
