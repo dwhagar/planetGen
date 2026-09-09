@@ -143,10 +143,58 @@ the web database picker and from a subsequent migration run
   the v3->v4 `sectors` schema migration, `src/stellarObjects/galaxyGeometry.py`,
   and `galaxyGen.py` (`--shell K` / `--center-sector ID --radius-pc R`),
   with end-to-end CLI coverage in `src/tests/test_galaxy_gen.py`.
-- [ ] Galaxy thickness / shape (disk-density envelope, and support for
-  different overall galaxy shapes — spiral, elliptical, irregular, etc.)
-  — still needs its own dedicated design pass, deliberately not tackled
-  as part of Track C above (design doc section 7, question 2).
+- [x] **Sector prism vertices with exact per-shell Voronoi tessellation —
+  implemented and merged.** Every galaxy-placed sector's vertices
+  (`sector_vertices` table, v7 -- one row per vertex, no JSON blobs) are
+  now built from an exact local spherical Voronoi cell among its
+  same-shell neighbors (genuinely gap-free
+  laterally, not just reduced -- vertex count varies per sector, typically
+  5-7, since a fixed-shape cube can't reconcile more neighbors than it has
+  faces), extruded radially between the shell's inner/outer bounding
+  spheres (area-matched, not vertex-matched, against adjacent shells).
+  Same-shell neighbor search exploits this placement's Fibonacci-lattice
+  structure for ~1000x speedup on large outer shells versus a naive radius
+  search. Supersedes an earlier, never-released fixed-8-vertex corner-
+  relaxation approach. See `docs/design/galaxy-coordinate-system.md`
+  section 9.
+- [x] **Galaxy thickness / shape (disk-density envelope) — implemented,
+  as a compact "skeleton" rather than the originally-designed
+  `galaxy_sector_plan` table.** The Milky-Way-scale exponential-disk-plus-
+  bulge-plus-spiral-arm density model (`stellarObjects/galaxyDensity.py`,
+  `relative_density`/`predicted_star_count`) is implemented and tested.
+  `docs/design/galaxy-disk-density.md`'s revision-2 plan -- persisting
+  every one of ~10.5 billion qualifying sectors' position/density up front
+  in a `galaxy_sector_plan` table (~1 TB) -- was superseded before being
+  built: a sector's position, density, and vertices are all pure
+  deterministic functions of its `(shell_index, shell_slot_index)` address
+  and a handful of galaxy-wide shape parameters, so none of that needs
+  storing per sector at all -- it's cheaper to recompute on demand
+  (sub-millisecond) than to look up. What's actually implemented instead
+  (`stellarObjects/galaxySkeleton.py`, `galaxyPlan.py`, schema v8's
+  `galaxy_shape`/`galaxy_shell_band`): one singleton row for the galaxy's
+  shape parameters, plus one row per shell (almost always exactly one)
+  recording the *candidate* slot-index band that shell's qualifying
+  sectors could fall in -- a safe superset (an exact upper bound over
+  every possible spiral-arm azimuth), not a per-sector list. Built in
+  parallel across shells (`multiprocessing.Pool`, since each shell's
+  band-finding is independent) by `galaxyPlan.py`; a full real-Milky-Way-
+  scale build takes well under a second of actual compute and produces
+  roughly 4,000 rows (~350 KB total), a many-orders-of-magnitude reduction
+  from the ~1 TB `galaxy_sector_plan` design would have needed for the
+  same information. Individual sectors are never batch-generated from the
+  skeleton -- `galaxyGen.ensure_sector_generated(shell_index,
+  shell_slot_index)` is the actual per-address entry point, called lazily
+  the moment an address is visited: it consults the stored skeleton to
+  decide, cheaply and exactly, whether that address holds anything at all,
+  and if so generates and persists it on the spot (with that position's
+  own `relative_density` driving the actual system count, not a uniform
+  default) -- most of the galaxy is never visited, so it's never
+  generated. A `sectors.UNIQUE (shell_index, shell_slot_index)` constraint
+  (schema v8) turns a concurrent visit to the same never-before-generated
+  address into a recoverable `IntegrityError` rather than a duplicate row.
+  See `docs/design/galaxy-coordinate-system.md` section 9's storage-
+  analysis addendum for the full reasoning and the real numbers measured
+  against a real Milky-Way-scale build.
 
 ## Phase 5 — Web interface (long-term; needs its own dedicated planning pass)
 

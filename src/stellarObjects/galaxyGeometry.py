@@ -192,19 +192,12 @@ def sector_wedge_vertices_pc(shell_index, shell_slot_index, edge_pc):
 
 def _phi_for_index(i, n_k):
     """The exact polar angle `sector_position_pc` uses for slot `i` of an
-    `n_k`-slot shell -- factored out so `_slot_index_bounds_for_phi_range`
+    `n_k`-slot shell -- factored out so `slot_index_bounds_for_phi_range`
     (the inverse) can be checked against the same formula."""
     return math.acos(1 - 2 * (i + 0.5) / n_k)
 
 
-def _theta_for_index(i):
-    """The exact azimuthal angle `sector_position_pc` uses for slot `i`
-    (independent of `n_k`, unlike `_phi_for_index`) -- factored out so
-    `sector_wedge_vertices_pc` shares the same formula."""
-    return (2 * math.pi * i / GOLDEN_RATIO) % (2 * math.pi)
-
-
-def _slot_index_bounds_for_phi_range(phi_min, phi_max, n_k):
+def slot_index_bounds_for_phi_range(phi_min, phi_max, n_k):
     """
     Inverts `_phi_for_index`: given a target polar-angle range `[phi_min,
     phi_max]` (`0 <= phi_min <= phi_max <= pi`), returns the contiguous
@@ -289,7 +282,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
        fixed radius `r_k` is within `radius_pc` of `|center|` are visited
        at all -- an O(1) exact bound, not an approximation, since every
        slot in a shell sits at that same radius.
-    2. **Slot pruning within a shell** (`_slot_index_bounds_for_phi_range`):
+    2. **Slot pruning within a shell** (`slot_index_bounds_for_phi_range`):
        within a visited shell, only the contiguous band of slot indices
        whose polar angle could possibly be close enough to `center`'s own
        direction is examined, using the exact necessary condition
@@ -392,7 +385,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
 
         phi_min = max(0.0, phi_center - alpha_max)
         phi_max = min(math.pi, phi_center + alpha_max)
-        i_min, i_max = _slot_index_bounds_for_phi_range(phi_min, phi_max, n_k)
+        i_min, i_max = slot_index_bounds_for_phi_range(phi_min, phi_max, n_k)
 
         for i in range(i_min, i_max + 1):
             x, y, z = sector_position_pc(k, i, edge_pc)
