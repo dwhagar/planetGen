@@ -327,6 +327,60 @@ def _circumcenter_3d(p, q, r):
     return _add(p, _add(_scale(a, s), _scale(b, t)))
 
 
+def _gnomonic_projection(candidate_pc, local_x, local_y, local_z, r_k):
+    """
+    Projects `candidate_pc` onto the tangent plane at the query sector's
+    own position, via a **gnomonic** (central) projection -- i.e. following
+    the ray from the galactic origin through `candidate_pc` out to where it
+    crosses the tangent plane -- rather than the naive alternative (using
+    the raw chord vector's own components along `local_x`/`local_y`).
+
+    This distinction matters, and isn't just a refinement: the raw-chord
+    approach systematically *understates* how far away a candidate really
+    is, worse the farther away it actually is (a same-shell candidate a
+    real 10.5 pc away could project to as little as 1.5 pc -- confirmed
+    directly on shell 1 during this module's own development, where it
+    silently produced wrong lateral cells for every sector in shells 1-5,
+    despite those shells being 100% covered -- not a rare edge case, since
+    it corrupted the *majority* of sectors in this galaxy's own dense inner
+    region). A gnomonic projection never does this: it maps great circles
+    on the sphere to straight lines on the plane, so a candidate's
+    projected distance grows monotonically with its true angular distance
+    from the query point (`R*tan(theta)`, unbounded as `theta -> 90 deg`)
+    -- exactly the standard technique for reducing a spherical Voronoi
+    problem to a planar one, not a project-specific workaround.
+
+    Args:
+        candidate_pc (tuple): `(x, y, z)`, parsecs -- the candidate's own
+                              galaxy-frame position (not relative to the
+                              query sector).
+        local_x, local_y, local_z (tuple): The query sector's own local
+            axes (`cube_orientation`) -- `local_z` is its own radial
+            (outward) direction, the gnomonic projection's center of
+            projection direction.
+        r_k (float): The query sector's own distance from the galactic
+                     origin (`galactic_radius_pc`) -- both points are
+                     assumed to be on (or very near) this same shell
+                     radius, per this whole module's own scope.
+
+    Returns:
+        tuple or None: `(u, v)` in the query sector's own tangent-plane
+                       coordinates, or `None` if `candidate_pc` is beyond
+                       the horizon (past 90 degrees from the query
+                       sector's own radial direction) -- a gnomonic
+                       projection is undefined there, and a candidate that
+                       far away could never be a true nearest-neighbor
+                       regardless.
+    """
+    forward_component = _dot(candidate_pc, local_z)
+    if forward_component <= 1e-9:
+        return None
+    t = r_k / forward_component
+    projected = _scale(candidate_pc, t)
+    rel = _sub(projected, _scale(local_z, r_k))
+    return _dot(rel, local_x), _dot(rel, local_y)
+
+
 def _clip_polygon_by_halfplane(vertices, owners, a, b, c, new_owner):
     """
     Sutherland-Hodgman polygon clipping by one 2D half-plane (`a*x + b*y <=
@@ -410,13 +464,15 @@ def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
     """
     position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
     local_x, local_y, local_z = cube_orientation(position)
+    r_k = galactic_radius_pc(position)
 
     neighbors = _same_shell_neighbors(shell_index, shell_slot_index, edge_pc)
     projected = []
     for slot, npos in neighbors:
-        rel = _sub(npos, position)
-        u, v = _dot(rel, local_x), _dot(rel, local_y)
-        projected.append((slot, npos, u, v))
+        uv = _gnomonic_projection(npos, local_x, local_y, local_z, r_k)
+        if uv is None:
+            continue  # beyond the horizon -- cannot be a true neighbor, see _gnomonic_projection
+        projected.append((slot, npos, uv[0], uv[1]))
     projected.sort(key=lambda item: item[2] ** 2 + item[3] ** 2)
 
     bound = BOUNDING_POLYGON_RADIUS_FACTOR * edge_pc
@@ -424,7 +480,20 @@ def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
     owners = [None, None, None, None]
     owner_positions = {}
     for slot, npos, u, v in projected:
-        a_coef, b_coef, c_coef = u, v, (u * u + v * v) / 2.0
+        # NOT `(u*u + v*v) / 2.0` (the flat-plane bisector of (0,0) and
+        # (u, v)): gnomonic projection maps the true spherical bisector to a
+        # straight line in (u, v), but not to *that* line -- the correct
+        # right-hand side, derived from equidistance in 3D between this
+        # sector (radius r_k) and a same-shell (co-radial) candidate whose
+        # projection is (u, v), is `r_k * (sqrt(r_k**2 + u**2 + v**2) -
+        # r_k)`. The two agree only in the small-angle limit (dense/large
+        # shells, where every candidate is close); for a small, sparse
+        # shell the flat formula is too permissive and silently under-clips,
+        # confirmed on shell 1 where it let two non-adjacent sectors'
+        # cells meet at a vertex a third, genuinely closer sector should
+        # have cut off.
+        a_coef, b_coef = u, v
+        c_coef = r_k * (math.sqrt(r_k * r_k + u * u + v * v) - r_k)
         vertices, owners = _clip_polygon_by_halfplane(vertices, owners, a_coef, b_coef, c_coef, slot)
         owner_positions[slot] = npos
 
@@ -439,7 +508,14 @@ def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
     n = len(vertices)
     for i in range(n):
         qa, qb = owners[i - 1], owners[i]
-        if qa == qb:
+        if qa == qb and qa is not None:
+            # A genuine duplicate: two adjacent edges ended up attributed to
+            # the same real neighbor (a floating-point-precision artifact at
+            # a near-degenerate corner), not a real vertex. `qa is qb is
+            # None` is different -- it means this edge was never clipped at
+            # all (only possible for shell 0's 2-neighbor degenerate case,
+            # see this function's own docstring), and its corner is a real,
+            # if arbitrary, part of the fallback square -- keep it.
             continue
         vertex = None
         if qa is not None and qb is not None:

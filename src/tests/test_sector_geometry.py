@@ -150,13 +150,20 @@ def test_local_lateral_cell_has_plausible_vertex_count(shell_index, shell_slot_i
     assert 3 <= len(cell) <= 10
 
 
-def test_local_lateral_cell_shares_exact_vertices_with_a_real_neighbor():
-    shell_index, slot_a = 50, 12000
+@pytest.mark.parametrize("shell_index,slot_a", [
+    (1, 0), (1, 12), (5, 100), (50, 12000),
+])
+def test_local_lateral_cell_shares_exact_vertices_with_a_real_neighbor(shell_index, slot_a):
     cell_a = local_lateral_cell(shell_index, slot_a, EDGE_PC)
 
     # Find slot_a's nearest same-shell neighbor and confirm cell_b (computed
     # entirely independently, from slot_b's own perspective) shares at
-    # least one vertex with cell_a to within floating-point noise.
+    # least one vertex with cell_a to within floating-point noise. Small,
+    # sparse shells (n_k small enough to use the brute-force candidate
+    # path) are included deliberately: a past bug in the half-plane
+    # bisector formula used after gnomonic projection was only wrong for
+    # widely-separated candidates, so it passed unnoticed with only
+    # large/dense shells (shell 50+) under test.
     neighbors = _same_shell_neighbors(shell_index, slot_a, EDGE_PC)
     position_a = sector_position_pc(shell_index, slot_a, EDGE_PC)
     slot_b, _pos_b = min(neighbors, key=lambda item: _dist(item[1], position_a))
@@ -164,6 +171,29 @@ def test_local_lateral_cell_shares_exact_vertices_with_a_real_neighbor():
 
     best = min(_dist(va, vb) for va in cell_a for vb in cell_b)
     assert best < 1e-6  # floating-point noise, not an approximation residual
+
+
+def test_local_lateral_cell_fully_tiles_a_small_shell_with_no_orphan_vertices():
+    # Regression test for a bug where the half-plane test used after
+    # gnomonic projection was the *flat*-plane bisector of (0, 0) and
+    # (u, v) -- a good approximation only when every candidate is close
+    # (large/dense shells), but wrong enough on a small, sparse, fully
+    # populated shell (every sector present, so every vertex must be
+    # shared with at least one other sector's cell) that it silently
+    # produced extra, unshared "orphan" vertices: two non-adjacent
+    # sectors' cells met at a point a third, genuinely closer sector
+    # should have cut off first.
+    shell_index = 1
+    n_k = shell_sector_count(shell_index)
+    cells = {i: local_lateral_cell(shell_index, i, EDGE_PC) for i in range(n_k)}
+
+    for i, cell in cells.items():
+        for v in cell:
+            shared = any(
+                any(_dist(v, ov) < 1e-6 for ov in other_cell)
+                for j, other_cell in cells.items() if j != i
+            )
+            assert shared, f"sector {i}'s vertex {v} is not shared with any other same-shell sector"
 
 
 def test_prism_vertices_inner_and_outer_sit_on_the_right_spheres():

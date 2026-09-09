@@ -157,15 +157,21 @@ the web database picker and from a subsequent migration run
   search. Supersedes an earlier, never-released fixed-8-vertex corner-
   relaxation approach. See `docs/design/galaxy-coordinate-system.md`
   section 9.
-- [ ] **Galaxy thickness / shape (disk-density envelope) — design drafted
-  (revision 2), not implemented.** Milky-Way-scale exponential-disk-plus-
-  bulge-plus-spiral-arm density model, evaluated and persisted for every
-  possible sector up front in a new `galaxy_sector_plan` table (built by a
-  new `galaxyPlan.py` batch tool) rather than decided at generation time —
-  gated by a deterministic "predicted less than 1 star per sector" cutoff
-  that stops the radial scan outward, with each planned sector getting a
-  stable sequential index. `galaxyGen.py` consumes plan rows instead of
-  computing occupancy itself. A feasibility investigation during this
+- [ ] **Galaxy thickness / shape (disk-density envelope) — density model
+  implemented (`stellarObjects/galaxyDensity.py`); the batch-planning
+  infrastructure below it is still design-only.** The Milky-Way-scale
+  exponential-disk-plus-bulge-plus-spiral-arm `relative_density` /
+  `predicted_star_count` functions are implemented and tested
+  (`tests/test_galaxy_density.py`) and were exercised end-to-end in a
+  small (unfilled) simulated galaxy alongside `sectorGeometry` — see
+  `docs/design/galaxy-coordinate-system.md` section 9's regression-test
+  addendum. Not yet built: persisting every possible sector's occupancy up
+  front in a new `galaxy_sector_plan` table (via a new `galaxyPlan.py`
+  batch tool) rather than deciding at generation time — gated by a
+  deterministic "predicted less than 1 star per sector" cutoff that stops
+  the radial scan outward, with each planned sector getting a stable
+  sequential index; `galaxyGen.py` would then consume plan rows instead of
+  computing occupancy itself. A feasibility investigation during the
   design pass measured ~10.5 billion qualifying sectors at real Milky-Way
   scale (~1 TB, several hours to build with pruning + NumPy vectorization,
   down from a naive ~12+ days) — see

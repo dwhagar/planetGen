@@ -791,3 +791,46 @@ mismatches** once shells small enough that this asymptotic theory doesn't
 apply cleanly (`shell_sector_count(k) <= 2000`, in practice only the
 galactic-core-adjacent shells) fall back to plain brute force instead,
 which is unconditionally correct and still cheap at that size.
+
+### Two correctness bugs found by an end-to-end simulation, and fixed
+
+Running a real (small, unfilled) galaxy through this module end-to-end —
+sector layout, density, and vertices for every qualifying sector, with an
+exhaustive check that every outer vertex is shared with another same-shell
+sector's cell — surfaced two bugs neither unit test caught, both specific
+to small/sparse shells (the galactic-core-adjacent shells that unit tests,
+by convention, under-sampled in favor of large ones like shell 50):
+
+1. **Naive tangent-plane projection understated distance.** The same-shell
+   candidate projection originally used the raw chord vector's own
+   components along the local axes (`dot(candidate - position, local_x)`
+   etc.), which systematically *understates* how far away a candidate
+   really is, worse the farther it is (a real 10.5 pc separation projected
+   to as little as 1.5 pc on shell 1). Fixed with a proper **gnomonic**
+   (central) projection (`_gnomonic_projection`): following the ray from
+   the galactic origin through the candidate out to where it crosses the
+   query sector's tangent plane, which grows monotonically with true
+   angular separation and is the standard technique for reducing a
+   spherical Voronoi problem to a planar one.
+2. **The half-plane test after that projection used the wrong bisector.**
+   Gnomonic projection maps the true spherical bisector between two
+   co-radial points to a straight line in the projected `(u, v)` plane —
+   but not to the *flat*-plane perpendicular bisector of `(0, 0)` and
+   `(u, v)` (`u*x + v*y <= (u**2 + v**2) / 2`), which was the formula used.
+   The two agree only in the small-angle limit (why large/dense shells
+   were unaffected); on a small, sparse, fully-populated shell it was
+   permissive enough to let two non-adjacent sectors' cells meet at a
+   point a third, genuinely closer sector should have cut off first — a
+   real, silent gap. The correct right-hand side, derived from equidistance
+   in 3D between the query sector (radius `r_k`) and a co-radial candidate
+   projected to `(u, v)`, is `r_k * (sqrt(r_k**2 + u**2 + v**2) - r_k)`.
+
+Both fixes are covered by regression tests parametrized to include a small
+shell (shell 1) alongside the large ones already under test, plus an
+exhaustive "every vertex of every sector in a fully-populated small shell
+is shared with another sector" check
+(`test_local_lateral_cell_fully_tiles_a_small_shell_with_no_orphan_vertices`)
+that reproduces the exact condition the simulation used to find these bugs.
+Re-running the same simulation after both fixes: **0 unexplained gaps**
+across all 31,255 outer vertices generated (previously 4,798, then 164 as
+each fix landed).

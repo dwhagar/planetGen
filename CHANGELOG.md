@@ -1,5 +1,34 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Galaxy disk/spiral density model implemented** (`stellarObjects/galaxyDensity.py`):
+  exponential disk radial falloff x sech^2 vertical scale-height x
+  logarithmic spiral-arm modulation, plus a spherical bulge, normalized so
+  `relative_density == 1.0` at a calibration point. `build_galaxy_shape`
+  auto-calibrates the normalization constant; `predicted_star_count` scales
+  a caller-supplied baseline expected system count by relative density.
+  Tested in `tests/test_galaxy_density.py`, and exercised end-to-end
+  alongside sector geometry in a full (unfilled) small spiral galaxy
+  simulation.
+
+### Fixed
+- **Two same-shell Voronoi tessellation bugs found by that end-to-end
+  simulation, both specific to small/sparse shells** (`sectorGeometry.py`):
+  (1) the same-shell candidate projection used the raw chord vector
+  instead of a proper gnomonic (central) projection, understating real
+  separation worse the farther away a candidate was; (2) the half-plane
+  test applied after that projection used the flat-plane bisector formula,
+  which only approximates the true spherical bisector in the small-angle
+  limit and was too permissive on sparse shells, silently under-clipping
+  cells. Both fixes are covered by new regression tests parametrized to
+  include a small shell (shell 1), plus an exhaustive
+  every-vertex-is-shared check for a fully-populated small shell. See
+  `docs/design/galaxy-coordinate-system.md` section 9 for the full
+  derivation. Re-running the simulation after both fixes: 0 unexplained
+  gaps across 31,255 generated outer vertices (previously 4,798).
+
 ## [5.4.7] - 2026-09-09
 
 ### Added
