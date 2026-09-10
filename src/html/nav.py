@@ -47,6 +47,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
 from dbutil import NotFoundError, esc, fetch_all, fetch_one, open_readonly, resolve_db_name
+from navmap import render_nav_map_panel
 from page import query_params, run
 
 from queryDb import NavUnavailable, nav_between
@@ -137,7 +138,28 @@ def _course_panel_html(db_name, direct, warp_times, scope):
 """
 
 
-def _route_panel_html(conn, db_name, route):
+def _route_names(conn, route):
+    """
+    Looks up every route hop's display name in one query -- shared by
+    `_route_panel_html` (the hop-by-hop list) and `render_nav_map_panel`
+    (each waypoint's label/tooltip), so a route with N hops needs one
+    lookup total rather than one per consumer.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        route (dict or None): `nav_between`'s `result["route"]`.
+
+    Returns:
+        dict: `{star_systems.id: name}`, empty if `route` is `None`.
+    """
+    if route is None or not route["path"]:
+        return {}
+    placeholders = ", ".join("?" for _ in route["path"])
+    rows = fetch_all(conn, f"SELECT id, name FROM star_systems WHERE id IN ({placeholders})", tuple(route["path"]))
+    return {row["id"]: row["name"] for row in rows}
+
+
+def _route_panel_html(db_name, route, names):
     if route is None:
         return """
 <section class="panel">
@@ -147,12 +169,6 @@ def _route_panel_html(conn, db_name, route):
 """
 
     path = route["path"]
-    names = {}
-    if path:
-        placeholders = ", ".join("?" for _ in path)
-        rows = fetch_all(conn, f"SELECT id, name FROM star_systems WHERE id IN ({placeholders})", tuple(path))
-        names = {row["id"]: row["name"] for row in rows}
-
     hops = "".join(
         f'<li><a href="system.py?db={esc(db_name)}&id={system_id}">{esc(names.get(system_id, system_id))}</a></li>'
         for system_id in path
@@ -164,6 +180,38 @@ def _route_panel_html(conn, db_name, route):
 <ol class="nav-route">{hops}</ol>
 </section>
 """
+
+
+def _nav_map_waypoints(from_id, to_id, origin_name, destination_name, origin_position, destination_position, route, names):
+    """
+    Builds the ordered origin-to-destination waypoint list
+    `render_nav_map_panel` plots: the origin, then any route hops (in path
+    order) between the two endpoints, then the destination.
+
+    Args:
+        from_id (int): The origin `star_systems.id`.
+        to_id (int): The destination `star_systems.id`.
+        origin_name (str): The origin's display name.
+        destination_name (str): The destination's display name.
+        origin_position (tuple): `nav_between`'s `origin_position`.
+        destination_position (tuple): `nav_between`'s `destination_position`.
+        route (dict or None): `nav_between`'s `result["route"]`.
+        names (dict): `_route_names`'s `{id: name}` lookup, for hop labels.
+
+    Returns:
+        list[dict]: See `render_nav_map_panel`'s `waypoints` parameter.
+    """
+    waypoints = [{"id": from_id, "name": origin_name, "position": origin_position, "role": "origin"}]
+    if route is not None:
+        for system_id in route["path"][1:-1]:
+            waypoints.append({
+                "id": system_id,
+                "name": names.get(system_id, str(system_id)),
+                "position": route["positions"][system_id],
+                "role": "hop",
+            })
+    waypoints.append({"id": to_id, "name": destination_name, "position": destination_position, "role": "destination"})
+    return waypoints
 
 
 def handler():
@@ -228,11 +276,20 @@ def handler():
         course_html = _course_panel_html(db_name, result["direct"]._asdict(), [
             leg._asdict() for leg in result["warp_times"]
         ], result["scope"])
-        route_html = _route_panel_html(conn, db_name, result["route"])
+
+        route_names = _route_names(conn, result["route"])
+        route_html = _route_panel_html(db_name, result["route"], route_names)
+
+        waypoints = _nav_map_waypoints(
+            from_id, to_id, origin["name"], destination["name"],
+            result["origin_position"], result["destination_position"],
+            result["route"], route_names,
+        )
+        map_html = render_nav_map_panel(db_name, waypoints, has_route=result["route"] is not None)
     finally:
         conn.close()
 
-    body = back_html + title_html + course_html + route_html
+    body = back_html + title_html + course_html + map_html + route_html
     return f"Nav: {origin['name']}", body
 
 

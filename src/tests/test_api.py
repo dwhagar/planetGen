@@ -180,6 +180,9 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert set(body["direct"]) == {"distance_ly", "azimuth_deg", "altitude_deg"}
     assert [leg["warp_factor"] for leg in body["warp_times"]] == [1, 3, 6, 9]
     assert body["route"]["path"] == [system_ids[0], system_ids[1]]
+    assert len(body["origin_position"]) == 3
+    assert len(body["destination_position"]) == 3
+    assert set(body["route"]["positions"]) == {str(system_ids[0]), str(system_ids[1])}
 
 
 def test_nav_requires_from_and_to(client, seeded_sector):

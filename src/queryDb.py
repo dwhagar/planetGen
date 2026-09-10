@@ -423,10 +423,17 @@ def nav_between(conn, from_system_id, to_system_id, adjacency_k=NAV_ADJACENCY_K)
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
             `navigation.Course`), `warp_times` (a list of
-            `navigation.WarpLeg`, for `direct.distance_ly`), and `route`:
-            `None` if `from_system_id == to_system_id` or no path exists
-            through the adjacency graph, else `{"path": [...system ids...],
-            "distance_ly": float}`.
+            `navigation.WarpLeg`, for `direct.distance_ly`),
+            `origin_position`/`destination_position` (the `(x, y, z)`
+            light-year positions `direct` was computed from, in `scope`'s
+            frame -- sector-local for `"sector"`, galaxy-frame for
+            `"galaxy"`), and `route`: `None` if `from_system_id ==
+            to_system_id` or no path exists through the adjacency graph,
+            else `{"path": [...system ids...], "distance_ly": float,
+            "positions": {system_id: (x, y, z), ...}}` (one entry per id in
+            `path`, same frame as `origin_position`/`destination_position`
+            -- for rendering the route, e.g. `html/lib/navmap.py`, without
+            a second position lookup).
 
     Raises:
         ValueError: If either system id doesn't exist.
@@ -460,12 +467,18 @@ def nav_between(conn, from_system_id, to_system_id, adjacency_k=NAV_ADJACENCY_K)
         found = shortest_path(graph, from_system_id, to_system_id)
         if found is not None:
             path, distance_ly = found
-            route = {"path": path, "distance_ly": distance_ly}
+            route = {
+                "path": path,
+                "distance_ly": distance_ly,
+                "positions": {system_id: positions[system_id] for system_id in path},
+            }
 
     return {
         "scope": scope,
         "direct": direct,
         "warp_times": warp_travel_times(direct.distance_ly),
+        "origin_position": origin_position,
+        "destination_position": destination_position,
         "route": route,
     }
 

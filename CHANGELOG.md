@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.8.1] - 2026-09-10
+
+### Added
+- **NAV Map: a rendered plot of the NAV feature's origin/destination/route.**
+  `queryDb.nav_between` now also returns `origin_position`/
+  `destination_position` (the light-year positions its `direct` course was
+  computed from) and, when a route was found, each hop's own position
+  (`route["positions"]`) -- surfaced from `GET /api/nav`'s JSON response
+  too (see `docs/api.md`'s updated "NAV" section). `src/html/lib/navmap.py`
+  builds a new "NAV Map" panel on `html/nav.py`'s results page from that
+  data: a flat, static, top-down SVG plot of the galactic X-Y plane --
+  origin and destination as labeled, clickable points, a dashed line for
+  the direct course, and a solid polyline through the optimal route's
+  intermediate hops when one exists. Modeled on `galaxymap.py`'s flat 2D
+  SVG rather than `starmap.py`'s rotatable 3D CSS scene: like a galaxy
+  Quadrant, it's deliberately blind to altitude (the course panel's own
+  Altitude figure already covers that axis), auto-scaled to whatever
+  points it's given (no fixed sector size to normalize against) with one
+  uniform light-years-per-pixel ratio on both axes so azimuth angles
+  aren't visually distorted, plus a `+X` compass tick tying the plot's
+  orientation to the course panel's own azimuth convention and a
+  light-year scale-bar legend. Closes the rendered-image gap the original
+  NAV feature (CHANGELOG [5.8.0]) left open in `docs/TODO.md` and
+  `src/api/routes.py`'s `systems_near` TODO comment.
+
 ## [5.8.0] - 2026-09-10
 
 ### Added

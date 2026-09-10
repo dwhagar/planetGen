@@ -240,12 +240,10 @@ def system_detail(system_id):
 
 @bp.route("/systems/<int:system_id>/near")
 def systems_near(system_id):
-    # TODO: this endpoint still returns bare JSON, just a number -- there's
-    # no way to actually see the two points. `/api/nav` (see `nav` below)
-    # now covers course/distance/route between two systems with a web page
-    # (`html/nav.py`) around it, but still as numbers/links, not a
-    # rendered image. An actual 2D-projection plot of the two points would
-    # build on that same data. See docs/TODO.md, "Investigate Further".
+    # This endpoint itself still returns bare JSON, just a list of ids and
+    # distances -- but "no way to actually see the two points" is covered
+    # now by /api/nav's web page (`html/nav.py`), which renders the
+    # `navmap.py` top-down plot on top of the same course/route data.
     raw_radius = request.args.get("radius")
     if raw_radius is None:
         raise ApiError("radius query parameter is required")
@@ -313,6 +311,8 @@ def nav():
         "scope": result["scope"],
         "direct": result["direct"]._asdict(),
         "warp_times": [leg._asdict() for leg in result["warp_times"]],
+        "origin_position": result["origin_position"],
+        "destination_position": result["destination_position"],
         "route": result["route"],
     })
 

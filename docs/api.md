@@ -138,9 +138,12 @@ not a bearing relative to any particular ship heading.
     {"warp_factor": 6, "velocity_multiple_of_c": 392.5, "years": 0.01, "formatted": "3 days 17 hours and 20 minutes"},
     {"warp_factor": 9, "velocity_multiple_of_c": 1516.38, "years": 0.003, "formatted": "23 hours and 7 minutes"}
   ],
+  "origin_position": [0.0, 0.0, 0.0],
+  "destination_position": [4.0, 0.0, 0.0],
   "route": {
     "path": [1, 3],
-    "distance_ly": 4.0
+    "distance_ly": 4.0,
+    "positions": {"1": [0.0, 0.0, 0.0], "3": [4.0, 0.0, 0.0]}
   }
 }
 ```
@@ -151,13 +154,19 @@ not a bearing relative to any particular ship heading.
 - `warp_times`: travel time for `direct.distance_ly` at warp 1, 3, 6, and 9
   (`velocity_multiple_of_c = warp_factor ** (10/3)`), formatted via the same
   duration formatter used elsewhere in this project.
+- `origin_position`/`destination_position`: the `[x, y, z]` light-year
+  positions `direct` was computed from, in `scope`'s frame (sector-local for
+  `"sector"`, absolute galaxy-frame for `"galaxy"`) — what `html/nav.py`'s
+  NAV Map plot (`html/lib/navmap.py`) draws.
 - `route`: the shortest path via adjacent systems (nodes: every system in
   scope; edges: each system's `k`-nearest neighbors, symmetrized), as a list
-  of system ids from `from` to `to` inclusive, plus its total distance.
-  `null` if no path exists through the adjacency graph (only possible for
-  the `"galaxy"` scope — the `"sector"` scope's graph is always fully
-  reachable since every system in a sector gets an edge once `k` is at
-  least the sector's own system count minus one).
+  of system ids from `from` to `to` inclusive, its total distance, and
+  `positions` (one `[x, y, z]` entry per id in `path`, same frame as
+  `origin_position`/`destination_position`). `null` if no path exists
+  through the adjacency graph (only possible for the `"galaxy"` scope — the
+  `"sector"` scope's graph is always fully reachable since every system in a
+  sector gets an edge once `k` is at least the sector's own system count
+  minus one).
 
 ## Write endpoints
 

@@ -220,6 +220,12 @@ def test_nav_between_same_sector(two_sector_galaxy):
     assert result["route"]["distance_ly"] == pytest.approx(4.0)
     assert [leg.warp_factor for leg in result["warp_times"]] == [1, 3, 6, 9]
 
+    assert result["origin_position"] == pytest.approx((0.0, 0.0, 0.0))
+    assert result["destination_position"] == pytest.approx((4.0, 0.0, 0.0))
+    assert set(result["route"]["positions"]) == set(result["route"]["path"])
+    assert result["route"]["positions"][ids["a"][0]] == pytest.approx(result["origin_position"])
+    assert result["route"]["positions"][ids["a"][2]] == pytest.approx(result["destination_position"])
+
 
 def test_nav_between_cross_sector_galaxy_scope(two_sector_galaxy):
     config, ids = two_sector_galaxy
@@ -236,6 +242,9 @@ def test_nav_between_cross_sector_galaxy_scope(two_sector_galaxy):
     assert result["route"] is not None
     assert result["route"]["path"][0] == ids["a"][0]
     assert result["route"]["path"][-1] == ids["b"][0]
+
+    assert result["origin_position"] == pytest.approx((0.0, 0.0, 0.0))
+    assert set(result["route"]["positions"]) == set(result["route"]["path"])
 
 
 def test_nav_between_same_system_has_no_route(two_sector_galaxy):
