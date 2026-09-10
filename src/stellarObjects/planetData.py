@@ -246,7 +246,7 @@ class Planet:
         self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.generate_orbital_motion_properties(self)
+        planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
 
         if not self.is_moon:
             if moon_count is not None:

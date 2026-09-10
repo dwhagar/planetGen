@@ -3,11 +3,13 @@
 """
 Regression tests for the orbital-motion feature (docs/TODO.md's
 "Introducing realistic orbital paths and speeds..." entry; CHANGELOG.md
-[5.11.0]): `Planet.orbital_inclination_deg`/`orbital_ascending_node_deg`/
-`orbital_phase_deg`/`rotation_period_hours`, the primary-mass-aware
-`period` formula (Kepler's third law using the actual body a planet/moon
-orbits, not always the star), and
-`planetPhysics.generate_orbital_motion_properties`.
+[5.11.0]/[5.11.1]): `Planet.orbital_inclination_deg`/
+`orbital_ascending_node_deg`/`orbital_phase_deg`/`rotation_period_hours`,
+the primary-mass-aware `period` formula (Kepler's third law using the
+actual body a planet/moon orbits, not always the star), and
+`planetPhysics.generate_orbital_motion_properties`/
+`_tidal_locking_timescale_seconds` (real tidal-despinning physics decides
+whether a moon is tidally locked, not a flat probability -- see [5.11.1]).
 
 DB-backed tests for the persistence/migration/update-script side of this
 feature (`insert_planet`/`insert_moon`'s new columns,
@@ -16,11 +18,13 @@ feature (`insert_planet`/`insert_moon`'s new columns,
 """
 
 import math
+import types
 
 import pytest
 
 from stellarObjects import physical_constants as pc
 from stellarObjects.config import SystemConfig
+from stellarObjects.planetPhysics import _tidal_locking_timescale_seconds, generate_orbital_motion_properties
 from stellarObjects.starData import Star
 from stellarObjects.systemData import StarSystem
 
@@ -99,18 +103,96 @@ def test_rotation_period_within_body_type_range_or_tidally_locked(bodies):
         assert _is_tidally_locked(moon) or (min_h <= moon.rotation_period_hours <= max_h)
 
 
-def test_moon_tidal_lock_rate_is_close_to_configured_probability(bodies):
+def test_moon_tidal_lock_is_not_universal(bodies):
     """
-    Statistical check, not exact -- across many independently generated
-    moons, the tidally-locked fraction should land near
-    MOON_TIDAL_LOCK_PROBABILITY (0.75), well outside plausible binomial
-    noise for this sample size (used as a sanity check that the tidal-lock
-    branch is wired up at all, not a precise calibration test).
+    Real tidal physics (`_tidal_locking_timescale_seconds`) decides
+    locking, not a flat probability -- across many independently
+    generated moons (spanning a wide range of mass/radius/distance/
+    primary-mass/system-age combinations), that should produce both
+    locked and unlocked outcomes, not push every moon to one extreme.
     """
     _, moons = bodies
-    assert len(moons) >= 30, "sample too small for a meaningful rate check"
-    rate = sum(1 for m in moons if _is_tidally_locked(m)) / len(moons)
-    assert 0.55 < rate < 0.9
+    assert len(moons) >= 30, "sample too small for a meaningful check"
+    locked = sum(1 for m in moons if _is_tidally_locked(m))
+    assert 0 < locked < len(moons)
+
+
+def test_tidal_locking_timescale_matches_real_earth_moon_order_of_magnitude():
+    """
+    Real Earth-Moon system: real estimates for how long tidal forces took
+    to lock the Moon are commonly cited as tens of millions of years (the
+    Moon has long since been observed in its locked state). Generously
+    bounded -- this formula is an order-of-magnitude estimate (fixed
+    Q/k2), not a precision calculation.
+    """
+    moon = types.SimpleNamespace(distance=384400 / pc.AU_TO_KM, mass=7.342e22, radius=1737.4)
+    earth_mass_kg = 5.972e24
+    t_lock_years = _tidal_locking_timescale_seconds(moon, earth_mass_kg, initial_rotation_period_hours=10.0) / pc.SECONDS_PER_YEAR
+    assert 1e6 < t_lock_years < 5e8
+
+
+def test_tidal_locking_timescale_increases_with_distance_and_decreases_with_primary_mass():
+    close = types.SimpleNamespace(distance=0.001, mass=1e22, radius=1500)
+    far = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500)
+    t_close = _tidal_locking_timescale_seconds(close, 6e24, 10.0)
+    t_far = _tidal_locking_timescale_seconds(far, 6e24, 10.0)
+    assert t_far > t_close
+
+    moon = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500)
+    t_light_primary = _tidal_locking_timescale_seconds(moon, 1e23, 10.0)
+    t_heavy_primary = _tidal_locking_timescale_seconds(moon, 1e26, 10.0)
+    assert t_heavy_primary < t_light_primary
+
+
+def test_generate_orbital_motion_properties_locks_a_close_moon_around_an_old_system():
+    """
+    Small/close moon, massive primary, old system -- the locking
+    timescale at either end of the candidate-rotation-period range (10h
+    or 1400h) comes out to a couple hundred years at most (verified
+    directly), utterly dwarfed by a 5 Gy system age, so this must lock
+    regardless of which candidate period the random draw lands on.
+    """
+    star = types.SimpleNamespace(age=5.0)
+    moon = types.SimpleNamespace(
+        is_moon=True, body_type="t", distance=0.0005, mass=5e20, radius=800,
+        period=0.001, star=star,
+    )
+    generate_orbital_motion_properties(moon, primary_mass_kg=6e24)
+    expected_locked_hours = moon.period * pc.SECONDS_PER_YEAR / 3600
+    assert moon.rotation_period_hours == pytest.approx(expected_locked_hours)
+
+
+def test_generate_orbital_motion_properties_does_not_lock_a_far_moon_around_a_young_system():
+    """
+    Large-orbit moon, light primary, young system -- the locking
+    timescale at either end of the candidate-rotation-period range comes
+    out to 1e14+ years (verified directly), so this must NOT lock
+    regardless of which candidate period the random draw lands on.
+    """
+    star = types.SimpleNamespace(age=1.0)
+    moon = types.SimpleNamespace(
+        is_moon=True, body_type="t", distance=0.05, mass=5e22, radius=2000,
+        period=5.0, star=star,
+    )
+    generate_orbital_motion_properties(moon, primary_mass_kg=6e23)
+    min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
+    assert min_h <= moon.rotation_period_hours <= max_h
+    expected_locked_hours = moon.period * pc.SECONDS_PER_YEAR / 3600
+    assert moon.rotation_period_hours != pytest.approx(expected_locked_hours)
+
+
+def test_generate_orbital_motion_properties_never_evaluates_locking_for_a_planet():
+    """A planet (is_moon=False) should never take the tidal-locking
+    branch at all -- rotation_period_hours always comes from the plain
+    body_type range, regardless of star.age."""
+    star = types.SimpleNamespace(age=100.0)
+    planet = types.SimpleNamespace(
+        is_moon=False, body_type="t", distance=0.0005, mass=5e20, radius=800,
+        period=0.001, star=star,
+    )
+    generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
+    min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
+    assert min_h <= planet.rotation_period_hours <= max_h
 
 
 def test_period_uses_the_actual_primary_not_always_the_star(bodies):

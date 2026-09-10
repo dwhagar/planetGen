@@ -337,8 +337,26 @@ ROTATION_PERIOD_RANGE_HOURS = {
     "g": (8.0, 20.0),
 }
 
-# Most large real moons (including every major moon of Earth, Mars,
-# Jupiter, and Saturn) are tidally locked to their parent planet -- close
-# orbital distance and comparatively strong tidal forces make it the norm
-# rather than the exception, not a rare special case.
-MOON_TIDAL_LOCK_PROBABILITY = 0.75
+# Tidal-locking (despinning) timescale, per the standard simplified
+# formula (Murray & Dermott, "Solar System Dynamics"; the uniform-sphere
+# moment of inertia I = (2/5) m R^2 folds Q/k2 into a single 2Q/(15*k2)
+# factor -- see planetPhysics._tidal_locking_timescale_seconds):
+#
+#   t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
+#
+# Q (tidal dissipation factor) and k2 (Love number) aren't modeled per
+# body -- real values are only known precisely for a handful of solar-
+# system bodies -- so these are single representative values for a
+# rocky/icy moon (order-of-magnitude figures spanning the Moon's real
+# Q~30-100/k2~0.024 and similar estimates for other rocky/icy satellites).
+# Verified directly against real examples: with a 10-hour candidate
+# initial rotation period, this formula gives ~47 million years for the
+# real Earth-Moon system (real estimates: tens of millions of years,
+# consistent with the Moon's long-since-locked observed state), ~90 years
+# for Mars/Deimos (consistent with Deimos being locked given its tiny
+# size and short distance), and ~1 billion years for Saturn/Iapetus
+# (consistent with real estimates of a billion-year-plus despinning time
+# for that unusually slow case) -- three real systems spanning many
+# orders of magnitude in outcome, all landing in the right ballpark.
+MOON_TIDAL_DISSIPATION_Q = 100.0
+MOON_TIDAL_LOVE_NUMBER_K2 = 0.03

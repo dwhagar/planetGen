@@ -1,5 +1,47 @@
 # Changelog
 
+## [5.11.1] - 2026-09-10
+
+### Changed
+- **Moon tidal locking is now physics-based, not a flat probability.**
+  [5.11.0] gave a moon a flat 75% (`MOON_TIDAL_LOCK_PROBABILITY`) chance
+  of being tidally locked; replaced with an actual tidal-despinning
+  timescale estimate (new `planetPhysics._tidal_locking_timescale_seconds`,
+  the standard simplified Murray & Dermott formula: `t_lock = (2Q/15k2) *
+  omega0 * a^6 * m_moon / (G * M_primary^2 * R_moon^3)`, with fixed
+  representative `Q`/`k2` values for a rocky/icy body -- new
+  `physical_constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2`).
+  Verified directly against three real systems spanning many orders of
+  magnitude: ~47 million years for the real Earth-Moon system (real
+  estimates: tens of millions of years), ~90 years for Mars/Deimos
+  (consistent with Deimos being locked given its tiny size), and ~1
+  billion years for Saturn/Iapetus (consistent with real estimates of a
+  billion-year-plus despinning time for that unusually slow case). A
+  candidate (pre-locking) rotation period is drawn first, same as any
+  planet; a moon actually ends up locked only if that timescale is
+  shorter than the system's age (`star.age`, the best available proxy --
+  planets/moons don't carry an independent age of their own).
+- **Moon orbital distance is now drawn log-uniformly, not
+  linearly-uniformly.** Surfaced by the physics-based tidal locking
+  above: `generate_moons`' distance range can span many orders of
+  magnitude (its outer bound reaches 1/5 of the parent planet's own Hill
+  radius -- tens to hundreds of millions of km for a large planet, far
+  beyond where any real large moon actually orbits, e.g. our Moon at
+  384,400 km), and a plain `random.uniform` over that range spends almost
+  all its density in the single largest order of magnitude -- nearly
+  every generated moon landed implausibly far out, so almost none had
+  time to tidally lock (measured: ~1.3% of moons locked). Real moon
+  systems are much closer to log-spaced (e.g. the Galilean moons run
+  421,700 / 671,100 / 1,070,400 / 1,882,700 km, each roughly 1.5-1.6x the
+  last), which log-uniform sampling matches far better while still
+  allowing occasional genuinely distant/irregular moons. Measured effect:
+  ~1.3% -> ~14% of moons locked over the same sample size -- still a
+  minority overall (this generator's moons span a much wider population
+  than just the handful of large, close, well-known real moons that
+  dominate popular intuition about "most moons are locked"), but an order
+  of magnitude more of them landing close enough to plausibly have
+  locked.
+
 ## [5.11.0] - 2026-09-10
 
 ### Added
