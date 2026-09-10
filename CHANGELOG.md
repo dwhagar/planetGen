@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.15.0] - 2026-09-10
+
+### Added
+- **Noticeable-motion interval.** Every star, planet, and moon now gets a
+  new stat estimating how long it must move along its orbit before that
+  motion would be noticeable: the time to displace by its own diameter,
+  at its already-known orbital speed
+  (`utils.position_change_interval_hours`, `2 * radius_km / speed_kms`) --
+  a body-relative, observer-independent threshold that needs only the
+  body's own physical size and orbital speed, not an external vantage
+  point or an arbitrary angular-resolution constant. Feeds off the
+  orbital-speed work from the last two releases:
+  `Star.galactic_orbital_speed_kms` for a star's galactic motion,
+  `Planet.orbital_speed_kms` for a planet's/moon's motion around its
+  anchor. Typical values land in the minutes-to-a-few-hours range (e.g. a
+  Sol-like star: ~1.5-2 hours; an Earth-like planet: several minutes) --
+  formatted for display via a new `utils.format_duration_hours` helper
+  (the hours-scale counterpart to `years_to_time_string`, including
+  seconds so a fast-moving close-in moon doesn't round away to nothing).
+  Surfaced as a new "Noticeable Motion"/"Notice" row in every star's/
+  binary pair's/planet's/moon's rendered data table. Persisted as
+  `stars.galactic_position_change_interval_hours` (plus the
+  `star_systems.binary_galactic_position_change_interval_hours`
+  counterpart for binaries) and `planets`/`moons.position_change_interval_hours`
+  -- schema v12, with a migration that backfills real derived values (not
+  a placeholder) for existing rows. All four columns are nullable,
+  `NULL` meaning `float('inf')` (a body with exactly zero orbital speed --
+  the same convention `stars.lifespan_gy` already uses, generalized via a
+  new `_db._none_if_infinite` helper, since pymysql itself rejects a raw
+  `float('inf')` before it ever reaches the server).
+
 ## [5.14.0] - 2026-09-10
 
 ### Added

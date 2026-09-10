@@ -14,12 +14,17 @@ Also covers the later position/speed follow-up: `Planet.position_x/y/z`/
 `orbital_speed_kms`, derived from the orbital elements above via
 `utils.orbital_position_au`/`circular_orbital_speed_kms` and
 `planetPhysics.update_orbital_position` (called both at generation and by
-`StarSystem.validate_system` whenever it corrects a planet's `distance`).
+`StarSystem.validate_system` whenever it corrects a planet's `distance`);
+and the noticeable-motion-interval follow-up after that:
+`Planet.position_change_interval_hours` (`utils.
+position_change_interval_hours`, `2 * radius_km / speed_kms` converted to
+hours) and its display formatter `utils.format_duration_hours`.
 
 DB-backed tests for the persistence/migration/update-script side of this
 feature (`insert_planet`/`insert_moon`'s new columns,
-`advance_orbital_phases`, `migrate_database`'s v8->v9/v10->v11 steps) live
-in `test_db_persistence.py` instead, alongside every other `_db.py` test.
+`advance_orbital_phases`, `migrate_database`'s v8->v9/v10->v11/v11->v12
+steps) live in `test_db_persistence.py` instead, alongside every other
+`_db.py` test.
 """
 
 import math
@@ -235,7 +240,7 @@ def test_serializable_fields_include_orbital_motion_attributes():
     for field in (
         "orbital_inclination_deg", "orbital_ascending_node_deg",
         "orbital_phase_deg", "position_x", "position_y", "position_z",
-        "orbital_speed_kms", "rotation_period_hours",
+        "orbital_speed_kms", "position_change_interval_hours", "rotation_period_hours",
     ):
         assert field in Planet.SERIALIZABLE_FIELDS
 
@@ -325,3 +330,47 @@ def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
         for moon in planet.moons:
             moon_radius = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
             assert moon_radius == pytest.approx(moon.distance, rel=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Noticeable-motion interval (CHANGELOG's "Noticeable-motion interval"
+# entry): `utils.position_change_interval_hours`/`format_duration_hours`,
+# plus their wiring into generation via `planetPhysics.update_orbital_position`.
+# ---------------------------------------------------------------------------
+
+from stellarObjects.utils import format_duration_hours, position_change_interval_hours
+
+
+def test_position_change_interval_hours_matches_manual_formula():
+    interval = position_change_interval_hours(1000.0, 5.0)
+    expected = (2 * 1000.0 / 5.0) / 3600
+    assert interval == pytest.approx(expected, rel=1e-9)
+
+
+def test_position_change_interval_hours_is_infinite_for_zero_speed():
+    assert position_change_interval_hours(1000.0, 0.0) == float('inf')
+    assert position_change_interval_hours(1000.0, -1.0) == float('inf')
+
+
+def test_position_change_interval_hours_matches_earth_order_of_magnitude():
+    """Earth: ~12,742 km diameter, ~29.8 km/s orbital speed -- real-world
+    intuition says this should land around 7 minutes (~0.117 hours)."""
+    interval = position_change_interval_hours(6371.0, 29.8)
+    assert 0.1 <= interval <= 0.14
+
+
+def test_format_duration_hours_matches_years_to_time_string_style():
+    assert format_duration_hours(float('inf')) == "never"
+    assert format_duration_hours(0.0) == "0 seconds"
+    assert format_duration_hours(1.0) == "1 hour"
+    assert format_duration_hours(25.0) == "1 day and 1 hour"
+
+
+def test_generated_bodies_have_finite_positive_position_change_interval(bodies):
+    planets, moons = bodies
+    for body in planets + moons:
+        assert math.isfinite(body.position_change_interval_hours)
+        assert body.position_change_interval_hours > 0
+
+        expected = position_change_interval_hours(body.radius, body.orbital_speed_kms)
+        assert body.position_change_interval_hours == pytest.approx(expected, rel=1e-9)

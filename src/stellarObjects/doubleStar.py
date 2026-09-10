@@ -20,8 +20,9 @@ from .config import SystemConfig
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
-                    format_relative_to_sol, properties_to_string, to_scientific_notation)
+from .utils import (format_age_string, format_duration_hours, calculate_habitable_zone,
+                    calculate_hill_sphere, format_relative_to_sol, position_change_interval_hours,
+                    properties_to_string, to_scientific_notation)
 
 class BinaryStarProxy(Star):
     """
@@ -46,6 +47,7 @@ class BinaryStarProxy(Star):
         "name", "type", "temperature", "radius", "age", "lifespan",
         "habitable_zone", "system_perimeter", "heliosphere_radius",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_position_change_interval_hours",
         "_binary_separation_au", "_effective_mass", "_effective_luminosity",
     ]
     """
@@ -125,6 +127,9 @@ class BinaryStarProxy(Star):
         # variant the way `_calculate_system_perimeter_static` does.
         self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
             self.calculate_galactic_orbit(galactic_center_dist_ly)
+        self.galactic_position_change_interval_hours = position_change_interval_hours(
+            self.radius, self.galactic_orbital_speed_kms
+        )
         # For heliosphere, we need an effective radius and type for the static method.
         # This is a simplification, as binary heliospheres are complex.
         self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
@@ -171,6 +176,10 @@ class BinaryStarProxy(Star):
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["habitable_zone"] = list(self.habitable_zone)
         data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
+        data["galactic_position_change_interval_hours"] = (
+            None if self.galactic_position_change_interval_hours == float('inf')
+            else self.galactic_position_change_interval_hours
+        )
         data["primary"] = self._primary.to_dict()
         data["secondary"] = self._secondary.to_dict()
         return data
@@ -204,6 +213,10 @@ class BinaryStarProxy(Star):
         fields_from_dict(proxy, data, cls.SERIALIZABLE_FIELDS)
         proxy.habitable_zone = tuple(data["habitable_zone"])
         proxy.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
+        proxy.galactic_position_change_interval_hours = (
+            float('inf') if data["galactic_position_change_interval_hours"] is None
+            else data["galactic_position_change_interval_hours"]
+        )
         return proxy
 
     def adjust_age_for_planets(self, planets):
@@ -234,7 +247,7 @@ class BinaryStarProxy(Star):
 
         Returns:
             dict: Keys `type`, `mass`, `lum`, `hab`, `separation`, `orbit`,
-                 `loc`, each an already-formatted display string.
+                 `notice`, `loc`, each an already-formatted display string.
         """
         mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
@@ -259,6 +272,7 @@ class BinaryStarProxy(Star):
             "hab": f"Between {hab_lower} and {hab_upper} AU",
             "separation": separation_string,
             "orbit": orbit_string,
+            "notice": format_duration_hours(self.galactic_position_change_interval_hours),
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
 
@@ -277,7 +291,7 @@ class BinaryStarProxy(Star):
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "lum": "Luminosity",
             "hab": "Habitable Zone", "separation": "Stellar Separation",
-            "orbit": "Galactic Orbit", "loc": "Location"
+            "orbit": "Galactic Orbit", "notice": "Noticeable Motion", "loc": "Location"
         }
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 

@@ -63,7 +63,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -501,11 +501,36 @@ def _tristate(value):
     return None if value is None else int(bool(value))
 
 
+def _none_if_infinite(value):
+    """
+    Converts a value that may be `float('inf')` to `None` -- this
+    schema's NULL-means-infinite convention, generalized from
+    `_lifespan_gy` (its original, single-purpose form) to also cover
+    `galactic_position_change_interval_hours`/`position_change_interval_hours`
+    (`stars`/`planets`/`moons`), which can legitimately come out infinite
+    the same way `lifespan` can (a body with exactly zero orbital speed --
+    see `utils.position_change_interval_hours`'s docstring). pymysql
+    itself rejects a raw `float('inf')` before it ever reaches the server
+    ("inf can not be used with MySQL"), so every column that can come out
+    infinite must route through this before an `INSERT`. Never the
+    non-standard JSON `Infinity` token either, for the same reason (see
+    `Star.to_dict`'s docstring).
+
+    Args:
+        value (float): The value to convert, or `float('inf')`.
+
+    Returns:
+        float or None: `value`, or `None` if infinite.
+    """
+    return None if value == float("inf") else value
+
+
 def _lifespan_gy(value):
     """
     Converts a star's `lifespan` (a float, or `float('inf')` for white
     dwarfs) to the schema's convention: `NULL` means infinite. Never the
-    non-standard JSON `Infinity` token.
+    non-standard JSON `Infinity` token. A thin, semantically-named alias
+    for `_none_if_infinite` at `lifespan`'s own call sites.
 
     Args:
         value (float): The lifespan in billions of years, or `float('inf')`.
@@ -513,7 +538,7 @@ def _lifespan_gy(value):
     Returns:
         float or None: The lifespan, or `None` if infinite.
     """
-    return None if value == float("inf") else value
+    return _none_if_infinite(value)
 
 
 def insert_system_config(conn, config: SystemConfig) -> int:
@@ -593,8 +618,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             temperature_k, luminosity_w, age_gy, lifespan_gy,
             habitable_zone_inner_km, habitable_zone_outer_km,
             system_perimeter_km, heliosphere_radius_km,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            galactic_position_change_interval_hours
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -606,6 +632,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.heliosphere_radius * physical_constants.AU_TO_KM,
             star.galactic_orbital_speed_kms,
             star.galactic_orbital_period_gy,
+            _none_if_infinite(star.galactic_position_change_interval_hours),
         ),
     )
     return cur.lastrowid
@@ -671,8 +698,9 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
             orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
             position_x_km, position_y_km, position_z_km, orbital_speed_kms,
+            position_change_interval_hours,
             rotation_period_hours
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, orbital_index, planet.body_type, planet.name,
@@ -694,6 +722,7 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             planet.position_y * physical_constants.AU_TO_KM,
             planet.position_z * physical_constants.AU_TO_KM,
             planet.orbital_speed_kms,
+            _none_if_infinite(planet.position_change_interval_hours),
             planet.rotation_period_hours,
         ),
     )
@@ -749,8 +778,9 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
             orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
             position_x_km, position_y_km, position_z_km, orbital_speed_kms,
+            position_change_interval_hours,
             rotation_period_hours
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             planet_id, star_system_id, star_id, orbital_index, moon.body_type, moon.name,
@@ -772,6 +802,7 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             moon.position_y * physical_constants.AU_TO_KM,
             moon.position_z * physical_constants.AU_TO_KM,
             moon.orbital_speed_kms,
+            _none_if_infinite(moon.position_change_interval_hours),
             moon.rotation_period_hours,
         ),
     )
@@ -833,14 +864,14 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
-_NULL_BINARY_FIELDS = (None,) * 14
+_NULL_BINARY_FIELDS = (None,) * 15
 """Placeholder for every `binary_*` column when `star_system.star` isn't a
 `BinaryStarProxy` -- see `_binary_fields`."""
 
 
 def _binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 14 `star_systems.binary_*` column values from a
+    Extracts the 15 `star_systems.binary_*` column values from a
     `BinaryStarProxy`, in the exact order `insert_star_system`'s `INSERT`
     lists them.
 
@@ -848,7 +879,7 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy (BinaryStarProxy): The system's combined-pair proxy.
 
     Returns:
-        tuple: 14 values, ready to splice into the `INSERT` parameters.
+        tuple: 15 values, ready to splice into the `INSERT` parameters.
     """
     return (
         proxy.binary_separation_au * physical_constants.AU_TO_KM,
@@ -865,6 +896,7 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.heliosphere_radius * physical_constants.AU_TO_KM,
         proxy.galactic_orbital_speed_kms,
         proxy.galactic_orbital_period_gy,
+        _none_if_infinite(proxy.galactic_position_change_interval_hours),
     )
 
 
@@ -992,8 +1024,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
             binary_galactic_orbital_speed_kms, binary_galactic_orbital_period_gy,
+            binary_galactic_position_change_interval_hours,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -1515,6 +1548,7 @@ def _star_row_to_dict(row):
         "heliosphere_radius": row["heliosphere_radius_km"] / physical_constants.AU_TO_KM,
         "galactic_orbital_speed_kms": row["galactic_orbital_speed_kms"],
         "galactic_orbital_period_gy": row["galactic_orbital_period_gy"],
+        "galactic_position_change_interval_hours": row["galactic_position_change_interval_hours"],
     }
 
 
@@ -1538,6 +1572,7 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "heliosphere_radius": row["binary_heliosphere_radius_km"] / physical_constants.AU_TO_KM,
         "galactic_orbital_speed_kms": row["binary_galactic_orbital_speed_kms"],
         "galactic_orbital_period_gy": row["binary_galactic_orbital_period_gy"],
+        "galactic_position_change_interval_hours": row["binary_galactic_position_change_interval_hours"],
         "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
@@ -1626,6 +1661,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "position_y": row["position_y_km"] / physical_constants.AU_TO_KM,
         "position_z": row["position_z_km"] / physical_constants.AU_TO_KM,
         "orbital_speed_kms": row["orbital_speed_kms"],
+        "position_change_interval_hours": row["position_change_interval_hours"],
         "rotation_period_hours": row["rotation_period_hours"],
         "moons": [],
     }
@@ -1917,6 +1953,81 @@ def _migrate_v10_to_v11(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
 
 
+def _migrate_v11_to_v12(conn):
+    """
+    Adds v12's noticeable-motion-interval columns
+    (`stars.galactic_position_change_interval_hours`,
+    `star_systems.binary_galactic_position_change_interval_hours`,
+    `planets`/`moons.position_change_interval_hours`) to an existing v11
+    database -- see `schema.sql`'s header comment's "v12" note.
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates every one of these tables
+    with these columns from `schema.sql` directly. This is only for a
+    database whose tables already existed at the older, v11 shape.
+
+    Every pre-existing row already has everything this is derived from --
+    `radius_km` and an already-known orbital speed column
+    (`galactic_orbital_speed_kms`/`binary_galactic_orbital_speed_kms`/
+    `orbital_speed_kms`) -- so, like `_migrate_v10_to_v11`, this backfills
+    real values via the same formula `utils.position_change_interval_hours`
+    uses, computed directly in SQL, rather than an arbitrary placeholder.
+    All four columns are nullable (`NULL` = `float('inf')`, see
+    `_none_if_infinite`), so the `ALTER TABLE`s here need no `DEFAULT` at
+    all -- a fresh nullable column already defaults to `NULL`, correctly
+    describing a not-yet-backfilled row (and, after the `UPDATE`, a
+    genuinely-infinite one) alike. `star_systems.binary_*` needs no
+    `is_binary` filter in its `UPDATE`: `binary_galactic_orbital_speed_kms`
+    is already `NULL` for a non-binary row, and SQL's three-valued logic
+    makes `NULL > 0` evaluate to `NULL` (neither branch of the `CASE`'s
+    `WHEN` matches), so the `ELSE NULL` naturally applies there too.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("ALTER TABLE stars ADD COLUMN galactic_position_change_interval_hours DOUBLE")
+    conn.execute(
+        """
+        UPDATE stars
+        SET galactic_position_change_interval_hours = CASE
+            WHEN galactic_orbital_speed_kms > 0
+                THEN (2 * radius_km / galactic_orbital_speed_kms) / 3600
+            ELSE NULL
+        END
+        """
+    )
+
+    conn.execute(
+        "ALTER TABLE star_systems ADD COLUMN binary_galactic_position_change_interval_hours DOUBLE"
+    )
+    conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_galactic_position_change_interval_hours = CASE
+            WHEN binary_galactic_orbital_speed_kms > 0
+                THEN (2 * binary_radius_km / binary_galactic_orbital_speed_kms) / 3600
+            ELSE NULL
+        END
+        """
+    )
+
+    for table in ("planets", "moons"):
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN position_change_interval_hours DOUBLE")
+        conn.execute(
+            f"""
+            UPDATE {table}
+            SET position_change_interval_hours = CASE
+                WHEN orbital_speed_kms > 0 THEN (2 * radius_km / orbital_speed_kms) / 3600
+                ELSE NULL
+            END
+            """
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -1928,10 +2039,11 @@ def migrate_database(config=None):
     only has real work to do against a database created by an older
     version of this project -- `_migrate_v8_to_v9` (added for the v9
     orbital-motion columns), `_migrate_v9_to_v10` (added for the v10
-    galactic-orbit columns), and `_migrate_v10_to_v11` (added for the v11
-    planet/moon position columns) are the migration steps so far; see
-    `schema.sql`'s header comment for the versioning convention, and
-    `migrateDb.py` for the CLI wrapper around this.
+    galactic-orbit columns), `_migrate_v10_to_v11` (added for the v11
+    planet/moon position columns), and `_migrate_v11_to_v12` (added for
+    the v12 noticeable-motion-interval columns) are the migration steps
+    so far; see `schema.sql`'s header comment for the versioning
+    convention, and `migrateDb.py` for the CLI wrapper around this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -1957,6 +2069,10 @@ def migrate_database(config=None):
         if version < 11:
             _migrate_v10_to_v11(conn)
             version = 11
+
+        if version < 12:
+            _migrate_v11_to_v12(conn)
+            version = 12
 
         conn.commit()
         return version

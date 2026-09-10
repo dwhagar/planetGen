@@ -21,7 +21,7 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects import program_constants as prog_c
-from stellarObjects.utils import circular_orbital_speed_kms, orbital_position_au
+from stellarObjects.utils import circular_orbital_speed_kms, orbital_position_au, position_change_interval_hours
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track
@@ -113,12 +113,14 @@ def assert_positions_and_speeds_are_consistent(system):
     Every planet's/moon's `position_x/y/z` must sit exactly on the sphere
     of radius `distance` (the point `orbital_position_au` derives is, by
     construction, at that fixed radius from the orbital anchor regardless
-    of inclination/node/phase), and `orbital_speed_kms` must match
-    `circular_orbital_speed_kms(distance, period)` -- a guard against the
-    same "recomputed value silently drifts from a corrected distance"
-    staleness bug `StarSystem.validate_system`'s own docstring warns
-    `period` used to have, now extended to position/speed (see
-    `planetPhysics.update_orbital_position`).
+    of inclination/node/phase), `orbital_speed_kms` must match
+    `circular_orbital_speed_kms(distance, period)`, and
+    `position_change_interval_hours` must match
+    `position_change_interval_hours(radius, orbital_speed_kms)` -- a guard
+    against the same "recomputed value silently drifts from a corrected
+    distance" staleness bug `StarSystem.validate_system`'s own docstring
+    warns `period` used to have, now extended to position/speed/notice-
+    interval (see `planetPhysics.update_orbital_position`).
     """
     for body in _all_planets_and_moons(system):
         radius = math.sqrt(body.position_x ** 2 + body.position_y ** 2 + body.position_z ** 2)
@@ -134,6 +136,12 @@ def assert_positions_and_speeds_are_consistent(system):
         expected_speed = circular_orbital_speed_kms(body.distance, body.period)
         assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-9), (
             f"{body.name}: orbital_speed_kms {body.orbital_speed_kms} != expected {expected_speed}"
+        )
+
+        expected_interval = position_change_interval_hours(body.radius, body.orbital_speed_kms)
+        assert body.position_change_interval_hours == pytest.approx(expected_interval, rel=1e-9), (
+            f"{body.name}: position_change_interval_hours {body.position_change_interval_hours} "
+            f"!= expected {expected_interval}"
         )
 
 
@@ -308,3 +316,12 @@ def test_binary_system_star_properties_are_sane():
             # value should match either constituent star's own value.
             assert proxy.galactic_orbital_speed_kms == pytest.approx(primary.galactic_orbital_speed_kms)
             assert proxy.galactic_orbital_period_gy == pytest.approx(primary.galactic_orbital_period_gy)
+            # The notice interval DOES depend on radius (the proxy uses the
+            # larger constituent's, per its own __init__), so check it
+            # against the formula rather than against either star directly.
+            assert proxy.galactic_position_change_interval_hours > 0 and math.isfinite(
+                proxy.galactic_position_change_interval_hours
+            )
+            assert proxy.galactic_position_change_interval_hours == pytest.approx(
+                position_change_interval_hours(proxy.radius, proxy.galactic_orbital_speed_kms)
+            )
