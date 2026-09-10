@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.9.0] - 2026-09-10
+
+### Removed
+- **Class W ("a tidally locked world with extreme temperature
+  variations") removed entirely.** Its day/night-split identity can't be
+  produced from a single global `surface_temperature` scalar under this
+  generator's climate model -- no per-class range (albedo, molar density,
+  greenhouse multiplier, or atmosphere density) reaches it without an
+  actual dayside/nightside model this generator doesn't have, flagged as
+  a known gap during the [5.3.7] climate-tuning pass and left open in
+  `docs/TODO.md`'s "Investigate Further" section ever since. Rather than
+  build a whole day/night thermal model for one class, cut it entirely --
+  removed from `PLANET_CLASSES`, `PLANET_CLASS_PROBABILITIES` (its
+  0.0001 weight just dropped; these are relative weights, not a
+  normalized distribution, so nothing needed redistributing),
+  `HABITABLE_PLANET_CLASSES`, and `MOON_BLACKLIST`
+  (`program_constants.py`), plus its color entry in
+  `html/lib/systemmap.py`'s `_CLASS_COLORS`.
+
 ## [5.8.3] - 2026-09-10
 
 ### Changed

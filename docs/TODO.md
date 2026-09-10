@@ -87,12 +87,14 @@ and git history.
 
 ## Investigate Further
 
-- [ ] Class W's "tidally locked world with extreme temperature variations"
-  identity is a day/night split that no per-class range (albedo, molar
-  density, greenhouse multiplier, or atmosphere density) can produce from a
-  single global `surface_temperature` scalar -- would need an actual
-  dayside/nightside model, flagged during the greenhouse-formula/per-class
-  climate tuning pass (CHANGELOG.md [5.3.7]) but out of scope for it.
+- [x] Class W's "tidally locked world with extreme temperature variations"
+  identity was a day/night split that no per-class range (albedo, molar
+  density, greenhouse multiplier, or atmosphere density) could produce from
+  a single global `surface_temperature` scalar -- would have needed an
+  actual dayside/nightside model, flagged during the greenhouse-formula/
+  per-class climate tuning pass (CHANGELOG.md [5.3.7]) but out of scope for
+  it. Resolved by removing the class entirely rather than building that
+  model (CHANGELOG.md [5.9.0]).
 - [ ] Class K (Mars analog) and, by construction, every other ecosphere-zone
   class are generated at the same zone-midpoint orbital distance as Class M
   -- this generator doesn't place different terrestrial classes at

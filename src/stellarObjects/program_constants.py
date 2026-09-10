@@ -724,7 +724,7 @@ PLANET_CLASSES = {
         # Was h/e/c all True -- but Q carries a life_chemical (it's a
         # life-bearing class), and habitable/life-bearing classes are
         # restricted to the ecosphere zone only (every other
-        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V/W -- is
+        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V -- is
         # already e-only; see test_life_bearing_classes_are_ecosphere_only in
         # test_planets.py). Its "eccentric orbit" flavor still
         # holds fully confined to zone e -- a highly eccentric orbit *within*
@@ -799,52 +799,29 @@ PLANET_CLASSES = {
             "slow": (8.0, 50.0)
         }
     },
-    "W": {
-        "description": "a tidally locked world with extreme temperature variations",
-        "composition": "iron, potassium, and silicon",
-        "radius_range": (500, 10000),
-        # No single real analog; real tidally-locked habitable worlds
-        # studied (TRAPPIST-1's planets, Proxima b) are Earth-scale or
-        # smaller, so skewed toward the lower-mid range.
-        "size_mode": 0.35,
-        # Was h/e True (valid in the hot zone too) -- but W carries a
-        # life_chemical, and habitable/life-bearing classes are restricted
-        # to the ecosphere zone only (see Class Q's note above and
-        # test_life_bearing_classes_are_ecosphere_only in
-        # test_planets.py). This also happens to be more
-        # scientifically apt: real tidally-locked *habitable* worlds are an
-        # actively studied trope specifically because a cool star's
-        # habitable zone sits close enough in for tidal locking to be near-
-        # guaranteed (e.g. TRAPPIST-1's planets, Proxima b) -- a
-        # tidally-locked world already searingly placed in the hot zone
-        # wouldn't need "extreme temperature variations" to explain why it's
-        # inhospitable.
-        "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of oxygen, sodium, and hydrogen",
-        "type": "t",
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
-        "age_ranges": {
-            "fast": (0.015, 0.1),
-            "normal": (1.5, 9.0),
-            "slow": (8.0, 50.0)
-        }
-    },
 }
 
-# Probabilities for each planet class to be generated. Five classes were
+# Probabilities for each planet class to be generated. Six classes were
 # removed over time: two small hot-zone rocky variants merged into A/B, two
 # brown-dwarf-like sub-stellar classes cut entirely once their radius ranges
 # were corrected to real physics and turned out to be redundant
-# near-duplicates of each other, and Class R (never reachable -- h/e/c were
-# all False) cut entirely rather than left as permanent dead weight (see
+# near-duplicates of each other, Class R (never reachable -- h/e/c were all
+# False) cut entirely rather than left as permanent dead weight, and Class W
+# ("tidally locked world with extreme temperature variations") cut entirely
+# -- its day/night-split identity can't be produced from a single global
+# surface_temperature scalar under this generator's climate model (see
+# docs/TODO.md's now-resolved "Investigate Further" entry) -- (see
 # CHANGELOG.md). Each removed class's weight was folded into the class(es)
 # that absorbed its concept rather than just dropped; R already carried a
-# weight of 0.0000, so nothing needed redistributing.
+# weight of 0.0000, so nothing needed redistributing, and these weights are
+# just relative (this dict isn't required to sum to 1.0 -- see
+# planetPhysics._choose_weighted_planet_class), so dropping W's tiny 0.0001
+# share needed no redistribution either.
 PLANET_CLASS_PROBABILITIES = {
     'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
     'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0531, 'K': 0.0142, 'L': 0.0335,
     'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001,
-    'T': 0.0001, 'V': 0.0045, 'W': 0.0001
+    'T': 0.0001, 'V': 0.0045
 }
 
 # --- Life and Photosynthesis Data ---
@@ -1033,12 +1010,12 @@ EVOLUTIONARY_TEXT = {
 }
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """
 
-MOON_BLACKLIST = ['Q', 'V', 'W']
+MOON_BLACKLIST = ['Q', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.
 """
