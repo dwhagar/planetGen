@@ -1,5 +1,68 @@
 # Changelog
 
+## [5.11.0] - 2026-09-10
+
+### Added
+- **Orbital and rotational motion.** Every planet/moon now has a real 3D
+  orbital orientation and a rotation period, plus a live position that a
+  new, separately-run script advances over time -- resolves
+  `docs/TODO.md`'s "Introducing realistic orbital paths and speeds..."
+  entry.
+  - `Planet` gains four new attributes (`planetPhysics.
+    generate_orbital_motion_properties`): `orbital_inclination_deg`/
+    `orbital_ascending_node_deg` (fixed at generation time -- together
+    they orient this generator's circular-orbit model in 3D; planets draw
+    from a tighter, real-solar-system-like range than moons, which can be
+    tilted much further), `orbital_phase_deg` (this body's current
+    position angle around its orbit -- the one field that changes after
+    generation), and `rotation_period_hours` (axial "day length" -- a
+    static descriptive stat; no rotational phase is tracked, by design,
+    since nothing consumes "which side currently faces the primary"). A
+    moon has a real chance (75%, `MOON_TIDAL_LOCK_PROBABILITY`) of being
+    tidally locked (rotation period equal to orbital period) -- the norm
+    for real large moons, not a rare special case; otherwise rotation
+    period is drawn from a `body_type`-appropriate range (`physical_constants.
+    ROTATION_PERIOD_RANGE_HOURS`).
+  - **New `src/updateOrbits.py`.** Advances every planet's/moon's
+    `orbital_phase_deg` in the configured database based on real elapsed
+    time since the last run (`stellarObjects._db.advance_orbital_phases`,
+    a single set-based `UPDATE` per table, not a per-row Python loop) --
+    meant to be run periodically (e.g. cron, "once a month or so"), not
+    on every generation run. A new `orbit_simulation_state` singleton row
+    tracks when it last ran, measured server-side via `TIMESTAMPDIFF`
+    rather than trusting the calling process' own clock to agree with the
+    database server's (`get_orbit_update_elapsed_years`). The first run
+    against a database just establishes that reference point (nothing to
+    advance yet) rather than guessing a start time.
+  - **Orbital period fix, needed for this feature to mean anything.**
+    `Planet.period` used to be `sqrt(distance_au^3)` unconditionally --
+    correct Kepler's-third-law shorthand only for a 1-solar-mass primary.
+    For an ordinary planet orbiting a star of very different mass, and
+    *especially* for a moon (whose real primary is its parent planet, not
+    the grandparent star `self.star` still points at for other purposes
+    like life chemistry) this was wrong by orders of magnitude -- a moon's
+    period came out as if it orbited its host star directly at that same
+    tiny distance. New `planetPhysics.calculate_orbital_period_years(distance_au,
+    primary_mass_kg)` takes the actual primary's mass
+    (`Planet.__init__`'s new `primary_mass_kg` parameter, threaded in
+    from `generate_moons` as the parent planet's own `mass` for a moon,
+    defaulting to `star.mass` for an ordinary planet -- transparently
+    correct for a binary system too via `BinaryStarProxy.mass`'s existing
+    effective-mass property). Also fixed a related latent staleness bug
+    found while testing this: `StarSystem.validate_system` adjusts a
+    planet's `distance` after generation to resolve orbital overlap and
+    already recomputed atmospheric conditions to match, but never
+    recomputed `period` -- now it does.
+  - Schema v8 -> v9: `orbital_inclination_deg`/`orbital_ascending_node_deg`/
+    `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, and
+    the new `orbit_simulation_state` table. `stellarObjects._db.
+    _migrate_v8_to_v9` is the first real per-version migration step of the
+    MySQL era (every database before this one started fresh, already at
+    the then-current schema) -- existing rows default to `0`/`24` (an
+    arbitrary but harmless placeholder), since this generator never ran
+    its actual random generation for them; every body generated from this
+    point on gets real values. See `docs/database-schema.md`.
+
 ## [5.10.1] - 2026-09-10
 
 ### Fixed

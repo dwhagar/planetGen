@@ -313,3 +313,32 @@ CO2_BASE_MOLAR_DENSITY = 0.04345
 float: The real molar density of CO2 (kg/mol), used as a reference point in
 atmospheric greenhouse-effect calculations.
 """
+
+# --- Orbital motion (planetPhysics.generate_orbital_motion_properties) ---
+# Real solar-system planets sit close to the ecliptic (Mercury, the most
+# tilted, is ~7 degrees) -- 10 degrees gives a little headroom without
+# implying a genuinely different orbital-plane population. Moons range much
+# wider in reality (close-in regular moons are typically near-equatorial,
+# but captured/irregular moons can be tilted or even retrograde) -- 25
+# degrees is a simple, larger-but-still-modest scatter that doesn't require
+# separately modeling regular vs. irregular moon populations.
+PLANET_ORBITAL_INCLINATION_MAX_DEG = 10.0
+MOON_ORBITAL_INCLINATION_MAX_DEG = 25.0
+
+# Axial rotation ("day length") ranges, by body_type, in hours. Terrestrial:
+# real solar-system terrestrial bodies span Earth/Mars-fast (~24-25h) to
+# Mercury/Venus-slow (~1400-5800h) -- capped at 1400h (Mercury's own,
+# real 58.6-day rotation) rather than reaching all the way to Venus' still
+# slower, retrograde ~5800h, so the range stays "slow" without a separate
+# retrograde-rotation concept. Gas giant: real gas giants all spin fast
+# (Jupiter ~9.9h, Saturn ~10.7h, Uranus ~17.2h, Neptune ~16.1h).
+ROTATION_PERIOD_RANGE_HOURS = {
+    "t": (10.0, 1400.0),
+    "g": (8.0, 20.0),
+}
+
+# Most large real moons (including every major moon of Earth, Mars,
+# Jupiter, and Saturn) are tidally locked to their parent planet -- close
+# orbital distance and comparatively strong tidal forces make it the norm
+# rather than the exception, not a rare special case.
+MOON_TIDAL_LOCK_PROBABILITY = 0.75

@@ -63,7 +63,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -556,8 +556,10 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
             scale_height_km, hill_radius_km, min_orbit_distance_km,
             habitable_zone_inner_km, habitable_zone_outer_km,
-            life_chemical, evolutionary_speed, flavor_text, flavor_text_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
+            orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
+            rotation_period_hours
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, orbital_index, planet.body_type, planet.name,
@@ -573,6 +575,8 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             planet.habitable_zone[1] * physical_constants.AU_TO_KM,
             planet.life_chemical, planet.evolutionary_speed,
             planet.flavor_text, planet.flavor_text_count,
+            planet.orbital_inclination_deg, planet.orbital_ascending_node_deg,
+            planet.orbital_phase_deg, planet.rotation_period_hours,
         ),
     )
     planet_id = cur.lastrowid
@@ -624,8 +628,10 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
             scale_height_km, hill_radius_km, min_orbit_distance_km,
             habitable_zone_inner_km, habitable_zone_outer_km,
-            life_chemical, evolutionary_speed, flavor_text, flavor_text_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
+            orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
+            rotation_period_hours
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             planet_id, star_system_id, star_id, orbital_index, moon.body_type, moon.name,
@@ -641,6 +647,8 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             moon.habitable_zone[1] * physical_constants.AU_TO_KM,
             moon.life_chemical, moon.evolutionary_speed,
             moon.flavor_text, moon.flavor_text_count,
+            moon.orbital_inclination_deg, moon.orbital_ascending_node_deg,
+            moon.orbital_phase_deg, moon.rotation_period_hours,
         ),
     )
     moon_id = cur.lastrowid
@@ -1480,6 +1488,10 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         ],
         "volume": row["volume_km3"],
         "period": row["period_years"],
+        "orbital_inclination_deg": row["orbital_inclination_deg"],
+        "orbital_ascending_node_deg": row["orbital_ascending_node_deg"],
+        "orbital_phase_deg": row["orbital_phase_deg"],
+        "rotation_period_hours": row["rotation_period_hours"],
         "moons": [],
     }
 
@@ -1623,37 +1635,169 @@ def load_sector(conn, sector_id) -> SpaceSector:
     return sector
 
 
+def _migrate_v8_to_v9(conn):
+    """
+    Adds v9's orbital-motion columns (`orbital_inclination_deg`,
+    `orbital_ascending_node_deg`, `orbital_phase_deg`,
+    `rotation_period_hours`) to `planets`/`moons` on an existing v8
+    database -- see `schema.sql`'s header comment's "v9" note.
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates `planets`/`moons` with
+    these columns from `schema.sql` directly. This is only for a database
+    whose `planets`/`moons` tables already existed at the older, v8 shape.
+
+    Every existing row gets `0` for the three fixed-at-generation-time
+    orbital-orientation columns and `24` (an arbitrary but harmless
+    Earth-like placeholder) for `rotation_period_hours` -- not physically
+    meaningful for those pre-existing bodies (this generator never ran its
+    actual random orbital-motion generation for them), but a simple,
+    always-valid default that keeps the columns `NOT NULL` and lets
+    `updateOrbits.py` run against them without special-casing "does this
+    row predate v9". Every body generated from this point on gets real,
+    randomly-generated values instead (see
+    `planetPhysics.generate_orbital_motion_properties`).
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in ("planets", "moons"):
+        conn.execute(
+            f"""
+            ALTER TABLE {table}
+                ADD COLUMN orbital_inclination_deg    DOUBLE NOT NULL DEFAULT 0,
+                ADD COLUMN orbital_ascending_node_deg  DOUBLE NOT NULL DEFAULT 0,
+                ADD COLUMN orbital_phase_deg           DOUBLE NOT NULL DEFAULT 0,
+                ADD COLUMN rotation_period_hours       DOUBLE NOT NULL DEFAULT 24
+            """
+        )
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS orbit_simulation_state ("
+        "    id BIGINT UNSIGNED PRIMARY KEY CHECK (id = 1),"
+        "    last_updated_at TIMESTAMP NOT NULL"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
     `SCHEMA_VERSION`, applying any migration step in between.
 
-    Unlike the pre-MySQL-port version of this function, there is no
-    version this project's own MySQL databases can already be at other
-    than the current one: `get_connection`/`_ensure_schema` always create
-    a schema-v8 (`SCHEMA_VERSION`) database from scratch (this project
-    never shipped a MySQL deployment at an earlier schema version to
-    migrate *from* -- the version history in `schema.sql`'s header
-    comment predates the MySQL port and describes the SQLite schema's own
-    evolution), so today this is a no-op the moment `get_connection`'s
-    own `_ensure_schema` call has already run once against `config`'s
-    database. It stays a real function (rather than being inlined into
-    `_ensure_schema`) as the intended home for the next
-    `_migrate_vN_to_vN+1`-style function this project adds -- see
-    `schema.sql`'s header comment for the versioning convention, and
-    `migrateDb.py` for the CLI wrapper around this.
+    `get_connection`/`_ensure_schema` always create a brand-new database
+    already at `SCHEMA_VERSION` (every `CREATE TABLE IF NOT EXISTS` in
+    `schema.sql` reflects the current shape directly), so this function
+    only has real work to do against a database created by an older
+    version of this project -- `_migrate_v8_to_v9` (added for the v9
+    orbital-motion columns) is the first such step; see `schema.sql`'s
+    header comment for the versioning convention, and `migrateDb.py` for
+    the CLI wrapper around this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
-        int: The database's current `schema_migrations` version (always
-            `SCHEMA_VERSION` today) after this call.
+        int: The database's `schema_migrations` version (always
+            `SCHEMA_VERSION` after this call).
     """
     conn = get_connection(config)
     try:
         row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
-        return row["version"]
+        version = row["version"]
+
+        if version < 9:
+            _migrate_v8_to_v9(conn)
+            version = 9
+
+        conn.commit()
+        return version
     finally:
         conn.close()
+
+
+def get_orbit_update_elapsed_years(conn):
+    """
+    Returns how many years have elapsed since `updateOrbits.py` last
+    advanced this database's orbital phases, or `None` if it has never run
+    against this database before (nothing to measure elapsed time from
+    yet).
+
+    Computed server-side via `TIMESTAMPDIFF` rather than comparing
+    `orbit_simulation_state.last_updated_at` against this process' own
+    clock (`datetime.now()`) -- correct even when the script runs on a
+    different host than the database server, whose clocks aren't
+    guaranteed to agree.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+
+    Returns:
+        float or None.
+    """
+    row = conn.execute(
+        "SELECT TIMESTAMPDIFF(SECOND, last_updated_at, NOW()) AS elapsed_seconds "
+        "FROM orbit_simulation_state WHERE id = 1"
+    ).fetchone()
+    if row is None:
+        return None
+    return row["elapsed_seconds"] / physical_constants.SECONDS_PER_YEAR
+
+
+def advance_orbital_phases(conn, elapsed_years):
+    """
+    Advances every planet's and moon's `orbital_phase_deg` in place by the
+    fraction of a full revolution `elapsed_years` represents, given each
+    body's own already-stored `period_years` -- one set-based `UPDATE` per
+    table rather than a per-row Python loop, so this stays fast regardless
+    of how many bodies the database holds (see `updateOrbits.py`).
+
+    `orbital_inclination_deg`/`orbital_ascending_node_deg`/
+    `rotation_period_hours` are untouched -- fixed at generation time, per
+    `planetPhysics.generate_orbital_motion_properties`.
+
+    Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
+    reference point the *next* call's `elapsed_years` should be measured
+    from), in the same transaction, so a caller can never advance phases
+    without also recording that it did.
+
+    Args:
+        conn (Connection): An open, schema-initialized, read-write
+                           connection.
+        elapsed_years (float): How much simulated time has passed since
+                               the reference point `elapsed_years` was
+                               computed from (typically
+                               `get_last_orbit_update`'s return value).
+                               Must be >= 0.
+
+    Returns:
+        tuple: (planets_updated, moons_updated) -- row counts, straight
+              from each `UPDATE`'s own affected-row count.
+
+    Raises:
+        ValueError: If `elapsed_years` is negative.
+    """
+    if elapsed_years < 0:
+        raise ValueError(f"elapsed_years must be >= 0, got {elapsed_years}")
+
+    counts = []
+    for table in ("planets", "moons"):
+        cur = conn.execute(
+            f"""
+            UPDATE {table}
+            SET orbital_phase_deg = MOD(orbital_phase_deg + (? / period_years) * 360, 360)
+            WHERE period_years > 0
+            """,
+            (elapsed_years,),
+        )
+        counts.append(cur.rowcount)
+
+    conn.execute(
+        "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, NOW()) "
+        "ON DUPLICATE KEY UPDATE last_updated_at = NOW()"
+    )
+    conn.commit()
+    return tuple(counts)

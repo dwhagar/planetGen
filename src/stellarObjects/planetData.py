@@ -109,6 +109,21 @@ class Planet:
         star (Star): The Star object this planet orbits.
         volume (float): The planet's volume in km^3.
         period (float): The planet's orbital period in years.
+        orbital_inclination_deg (float): The tilt of this body's orbital
+                                         plane, in degrees, relative to its
+                                         primary's reference plane.
+        orbital_ascending_node_deg (float): The longitude of the ascending
+                                            node, in degrees -- together
+                                            with `orbital_inclination_deg`,
+                                            fully orients the (circular)
+                                            orbital plane in 3D.
+        orbital_phase_deg (float): This body's current position angle
+                                   around its (circular) orbit, in degrees.
+                                   Mutated in place by `updateOrbits.py` as
+                                   time passes -- everything else here is
+                                   fixed at generation time.
+        rotation_period_hours (float): This body's axial rotation period
+                                       ("day length"), in hours.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
                                   (set by `planetLife.apply_life_data`, empty until then).
         flavor_text (str): A randomly selected flavor text for the planet.
@@ -123,6 +138,8 @@ class Planet:
         "life_chemical", "evolutionary_speed", "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "evolutionary_data", "flavor_text",
         "flavor_text_count", "habitable_zone", "volume", "period",
+        "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+        "rotation_period_hours",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -136,7 +153,7 @@ class Planet:
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False, moon_count=None):
+                 is_moon=False, moon_count=None, primary_mass_kg=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -167,6 +184,15 @@ class Planet:
                                         if `is_moon` is True. If None, moon
                                         generation falls back to
                                         `system_config.MOONS`/random chance.
+            primary_mass_kg (float, optional): The mass (in kg) of the body
+                                               this one actually orbits, for
+                                               Kepler's third law. Defaults to
+                                               `star.mass` -- correct for an
+                                               ordinary planet, but a moon
+                                               orbits its parent planet, not
+                                               the star (`generate_moons`
+                                               passes the parent planet's own
+                                               `mass` here).
         """
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
@@ -197,6 +223,10 @@ class Planet:
         self.evolutionary_data = [] # Populated later by planetLife.apply_life_data
         self.flavor_text = None # Initialize flavor text
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
+        self.orbital_inclination_deg = None
+        self.orbital_ascending_node_deg = None
+        self.orbital_phase_deg = None
+        self.rotation_period_hours = None
 
         # From the star, should not be changed.
         self.habitable_zone = habitable_zone
@@ -209,9 +239,14 @@ class Planet:
 
         # Calculate physical/orbital properties (no life data yet).
         planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
-        self.period = math.sqrt(self.distance ** 3)
+        # The primary is the star for an ordinary planet, but a moon orbits
+        # its parent planet -- primary_mass_kg (defaulted to star.mass)
+        # carries that distinction in from generate_moons below.
+        primary_mass_kg = primary_mass_kg if primary_mass_kg is not None else star.mass
+        self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
+        planetPhysics.generate_orbital_motion_properties(self)
 
         if not self.is_moon:
             if moon_count is not None:

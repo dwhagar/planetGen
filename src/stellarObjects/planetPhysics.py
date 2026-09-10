@@ -183,6 +183,29 @@ def _validate_mass(planet):
         raise ValueError("Invalid mass for planet class")
 
 
+def calculate_orbital_period_years(distance_au, primary_mass_kg):
+    """
+    Kepler's third law: T(years) = sqrt(a(AU)^3 / M_primary(Msun)).
+
+    "Primary" is whatever body this orbit is actually around -- the host
+    star for an ordinary planet, but the parent planet for a moon (see
+    `Planet.__init__`'s `primary_mass_kg` parameter). A single shared
+    helper so this formula is computed the same way wherever an orbital
+    distance is set or changed -- also `StarSystem.validate_system`, which
+    adjusts `distance` after generation to resolve overlapping orbits and
+    must keep `period` in sync with it.
+
+    Args:
+        distance_au (float): Orbital distance from the primary, in AU.
+        primary_mass_kg (float): The primary's mass, in kg.
+
+    Returns:
+        float: Orbital period in years.
+    """
+    primary_mass_sol = primary_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+    return math.sqrt(distance_au ** 3 / primary_mass_sol)
+
+
 def generate_planet_properties(planet, zone_override=None):
     """
     Generates a planet's physical and orbital properties: zone, class,
@@ -544,6 +567,48 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         #         planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
 
 
+def generate_orbital_motion_properties(planet):
+    """
+    Sets a planet's (or moon's) 3D orbital orientation and rotation period.
+
+    Together with `planet.distance` (this generator only ever models
+    circular orbits -- no eccentricity), `orbital_inclination_deg` (the
+    tilt of the orbital plane) and `orbital_ascending_node_deg` (where that
+    plane crosses its primary's reference plane) fully orient the orbit in
+    3D; `orbital_phase_deg` is where the body currently sits around it.
+    Only `orbital_phase_deg` ever changes after generation --
+    `updateOrbits.py` advances it over time based on `planet.period` -- the
+    plane itself is fixed for the body's lifetime, the same way its
+    `distance` is.
+
+    `rotation_period_hours` is a separate, purely descriptive "day length"
+    stat (this generator doesn't track rotational phase -- nothing consumes
+    "which side currently faces the primary"). A moon has a real chance of
+    being tidally locked (rotation period equal to orbital period), the
+    norm rather than the exception for real large moons; otherwise (and for
+    every planet) it's drawn from a `body_type`-appropriate range.
+
+    Args:
+        planet (Planet): The planet or moon to set these properties on.
+                         Must already have `distance`, `period`, and
+                         `body_type` set (see `Planet.__init__`).
+    """
+    reseed_rng()
+    inclination_max = (
+        physical_constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
+        else physical_constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
+    )
+    planet.orbital_inclination_deg = random.uniform(0, inclination_max)
+    planet.orbital_ascending_node_deg = random.uniform(0, 360)
+    planet.orbital_phase_deg = random.uniform(0, 360)
+
+    if planet.is_moon and random.random() < physical_constants.MOON_TIDAL_LOCK_PROBABILITY:
+        planet.rotation_period_hours = planet.period * (physical_constants.SECONDS_PER_YEAR / 3600)
+    else:
+        min_hours, max_hours = physical_constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
+        planet.rotation_period_hours = random.uniform(min_hours, max_hours)
+
+
 def generate_moons(planet, moon_count=None):
     """
     Generates a system of moons for the given planet.
@@ -611,6 +676,6 @@ def generate_moons(planet, moon_count=None):
 
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
-                          distance_override=planet.distance, is_moon=True)
+                          distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
         planet.moons.append(new_moon)
         total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)

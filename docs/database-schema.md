@@ -133,7 +133,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `8`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `9`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -158,19 +158,30 @@ built by `galaxyPlan.py` — see `stellarObjects/galaxyDensity.py`/
 `galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`
 constraint on `sectors`, turning a concurrent lazy-generation race
 (`galaxyGen.ensure_sector_generated`) into a recoverable `IntegrityError`
-instead of a silent duplicate row.
+instead of a silent duplicate row; v9 added orbital motion —
+`orbital_inclination_deg`/`orbital_ascending_node_deg`/
+`orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, plus the
+`orbit_simulation_state` singleton row `updateOrbits.py` uses to track
+elapsed time between runs (see that table's own section above).
 
 The SQLite-specific machinery that once converted an existing database
-between these versions in place (`migrate_database`'s per-version
-`_migrate_vN_to_vN+1` functions, gzip-compressed file backups) was removed
-during the MySQL port (TODO.md Phase 5): every MySQL database this
-project creates starts at the current schema directly, so there is no
-"upgrade an older MySQL database" case to handle yet. A pre-existing
-SQLite database from before the port is brought in with the separate,
-one-time `src/migrateSqliteToMysql.py` script instead (see its module
-docstring) — it only accepts a source already at schema v8, so a database
-still on an older SQLite schema needs a pre-MySQL-port release of this
-project first.
+between these versions in place (gzip-compressed file backups, a
+`_migrate_vN_to_vN+1` function per version) was removed during the MySQL
+port (TODO.md Phase 5) on the assumption that every MySQL database this
+project creates starts at the current schema directly, with no "upgrade
+an older MySQL database" case to handle — true until v9, whose
+`_migrate_v8_to_v9` (`stellarObjects/_db.py`) is the first real migration
+function of the MySQL era, reviving the same per-version-step pattern
+(minus the file backups, which made no sense for a live database anyway)
+for a database created under the v8 schema. `migrate_database` applies
+whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
+wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
+every deploy). A pre-existing SQLite database from before the MySQL port
+itself is brought in with the separate, one-time
+`src/migrateSqliteToMysql.py` script instead (see its module docstring)
+— it only accepts a source already at schema v8, so a database still on
+an older SQLite schema needs a pre-MySQL-port release of this project
+first.
 
 ### Booleans and tri-state flags
 
@@ -305,6 +316,32 @@ all simply has no rows here.
 `UNIQUE (shell_index, band_index)`; indexed on `shell_index` for the
 "every band of this shell" query `ensure_sector_generated` makes on every
 visit to a not-yet-generated address.
+
+### `orbit_simulation_state`
+
+Singleton row (same pattern as `galaxy_shape` above) added in v9, tracking
+when `updateOrbits.py` last advanced every planet's/moon's
+`orbital_phase_deg` in this database — absent entirely until that
+script's first run against a given database (it creates this row
+itself). `stellarObjects._db.get_orbit_update_elapsed_years` reads it
+(via `TIMESTAMPDIFF` against `NOW()`, server-side, rather than trusting
+the calling process' own clock) to compute how much simulated time has
+passed since the last update.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Always `1` — singleton. |
+| `last_updated_at` | TIMESTAMP | NOT NULL | When `updateOrbits.py` last ran against this database. |
+
+Meant to run on a schedule, not on every deploy (`install.sh`/`update.sh`
+don't call it) -- e.g. a monthly cron entry:
+
+```
+0 3 1 * * cd /var/lib/planetGen && python3 src/updateOrbits.py >> /var/log/planetgen-orbits.log 2>&1
+```
+
+`updateOrbits.py` mutates rows, so it needs the same read-write database
+account `sectorGen.py`/`systemGen.py` use, not `queryDb.py`'s read-only one.
 
 ### `system_configs`
 
@@ -446,7 +483,9 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `life_chemical`, `evolutionary_speed` | TEXT | nullable | Set by life-data generation, if any. |
 | `flavor_text` | TEXT | nullable | |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
-| `table_class`, `table_distance`, `table_period`, `table_radius`, `table_gravity` | TEXT | `table_distance`/`table_period`/`table_radius` NOT NULL, `table_class`/`table_gravity` nullable | The "Planet Data" table (`planetData.py:291-302`), one column per key. |
+| `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
+| `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `updateOrbits.py` (see `orbit_simulation_state` below). |
+| `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
 
 ### `planet_evolutionary_paragraphs`
 
@@ -491,8 +530,7 @@ orbits. No self-reference here: moons never generate their own moons
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
 | `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above. |
-| `table_class`, `table_distance`, `table_period`, `table_radius`, `table_gravity` | TEXT | `table_distance`/`table_period`/`table_radius` NOT NULL, `table_class`/`table_gravity` nullable | The "Class Data" table (`planetData.py:291-302`) — same dict shape as `planets.table_*` above. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above. |
 
 ### `moon_evolutionary_paragraphs`
 
