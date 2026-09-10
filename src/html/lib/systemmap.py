@@ -44,7 +44,7 @@ import colorsys
 import math
 import statistics
 
-from dbutil import esc
+from fmt import esc
 from starmap import _star_color, _SUN_RADIUS_KM
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -412,25 +412,34 @@ def _data_attrs(attrs):
     return "".join(f' data-{key}="{esc(value)}"' for key, value in attrs.items() if value is not None)
 
 
+_LIFE_BADGE_FILL = "#3ecf6e"
+_LIFE_BADGE_STROKE = "#1c7a3e"
+
+
 def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False,
-                      label_above=False, show_label=True):
+                      label_above=False, show_label=True, has_life=False):
     """
     Builds one clickable `<g>` for a planet or moon: a filled/stroked
     circle colored by `planet_class` (see `_CLASS_COLORS`), the class
     letter centered inside it once the circle is big enough to hold text
     legibly, a small tilted ring behind gas giants (`body_type == "g"`)
-    for an at-a-glance silhouette cue beyond just color, and (when
-    `show_label` is set) a name label underneath -- or, when `label_above`
-    is also set (see `_label_sides`), above, to keep it clear of a
-    tightly-packed neighbor's own label. `show_label` alone going False
-    (also from `_label_sides`, when even alternating sides couldn't clear
-    a tight enough cluster) only drops the visible text, not the body's
-    name from `aria-label` -- it's still reachable, just via a click on
-    the marker rather than a glance at the diagram. `is_self` marks the
-    one body a moon-scene is *about* (the planet drilled into, now
-    standing in for the scene's star) -- drawn with a soft halo and picked
-    out by `static/systemmap.js` as the default info-panel content when
-    that scene opens, via its `data-self="true"` marker.
+    for an at-a-glance silhouette cue beyond just color, a small green
+    "supports life" badge at the marker's own edge when `has_life` is set
+    (`planets`/`moons`.`life_chemical` is non-NULL -- the sprite-view
+    enhancement docs/TODO.md's "Phase 5" once asked for icon sprites
+    sized/colored by class alone; this is the one piece of state a body's
+    circle+letter still couldn't show at a glance), and (when `show_label`
+    is set) a name label underneath -- or, when `label_above` is also set
+    (see `_label_sides`), above, to keep it clear of a tightly-packed
+    neighbor's own label. `show_label` alone going False (also from
+    `_label_sides`, when even alternating sides couldn't clear a tight
+    enough cluster) only drops the visible text, not the body's name from
+    `aria-label` -- it's still reachable, just via a click on the marker
+    rather than a glance at the diagram. `is_self` marks the one body a
+    moon-scene is *about* (the planet drilled into, now standing in for
+    the scene's star) -- drawn with a soft halo and picked out by
+    `static/systemmap.js` as the default info-panel content when that
+    scene opens, via its `data-self="true"` marker.
     """
     fill = _class_color(planet_class)
     stroke = _darken_hex(fill, 0.22)
@@ -449,6 +458,14 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
         parts.append(
             f'<text class="sysmap-classletter" x="{cx:.1f}" y="{cy:.1f}" fill="{text_color}" '
             f'text-anchor="middle" dominant-baseline="central">{esc(planet_class.upper())}</text>'
+        )
+    if has_life:
+        badge_r = max(2.5, r_px * 0.32)
+        badge_x = cx + r_px * 0.72
+        badge_y = cy - r_px * 0.72
+        parts.append(
+            f'<circle class="sysmap-life-badge" cx="{badge_x:.1f}" cy="{badge_y:.1f}" r="{badge_r:.1f}" '
+            f'fill="{_LIFE_BADGE_FILL}" stroke="{_LIFE_BADGE_STROKE}"><title>Supports life</title></circle>'
         )
     if label_text and show_label:
         label_y = cy - r_px - 8 if label_above else cy + r_px + 14
@@ -524,6 +541,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "distance": format_body_distance(planet["distance_km"], planet.get("_is_moon", False)),
         "period": format_period(planet["period_years"]),
         "gravity": f'{round(planet["gravity_g"], 3) if planet["gravity_g"] is not None else ""} g',
+        "life": planet.get("life_chemical"),
     }
     if parent_name is not None:
         attrs["parent"] = parent_name
@@ -659,6 +677,7 @@ def _render_row_svg(scene_id, aria_label, star_x, star_y, star_svg, orbit_entrie
             _planet_attrs(row, kind="moon" if row.get("_is_moon") else "planet",
                           parent_name=row.get("_parent_name"), scene_target=scene_target),
             label_above=(side == "above"), show_label=(side is not None),
+            has_life=bool(row.get("life_chemical")),
         ))
 
     return (
@@ -689,6 +708,7 @@ def _render_moon_scene(planet):
     center_svg = _body_marker_svg(
         _STAR_X_PX, _STAR_Y_PX, _CENTER_PLANET_R, planet["planet_class"], planet["body_type"], planet["name"],
         "sysmap-planet", _planet_attrs(planet), is_self=True,
+        has_life=bool(planet.get("life_chemical")),
     )
     svg = _render_row_svg(
         f'planet-{planet["id"]}', f'Moons of {planet["name"]}', _STAR_X_PX, _STAR_Y_PX, center_svg, orbit_entries,
@@ -744,7 +764,7 @@ def render_system_map_panel(system, stars, planets, belts):
 <section class="panel">
 <div class="panel-header">
   <h2>System Map</h2>
-  <span class="hint">Click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class</span>
+  <span class="hint">Click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life</span>
 </div>
 <div class="starmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">

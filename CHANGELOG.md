@@ -1,5 +1,43 @@
 # Changelog
 
+## [5.9.0] - 2026-09-10
+
+### Changed
+- **`../src/html/` is now a thin frontend for the Flask API instead of a
+  direct MySQL client.** Every CGI page (`index.py`, `browse.py`,
+  `sector.py`, `system.py`, `nav.py`, `search.py`, `galaxy.py`) fetches
+  its data from `GET /api/...` via a new stdlib-only HTTP client
+  (`html/lib/apiclient.py`, `PLANETGEN_API_BASE_URL`) rather than opening
+  its own read-only MySQL connection -- the database-querying logic those
+  pages used to duplicate now lives once in `queryDb.py`, shared with the
+  API. `html/lib/dbutil.py` is gone; its non-DB formatting helpers
+  (`esc`/`linkify_location`/`format_density`) moved to a new
+  `html/lib/fmt.py`. The API itself gained what this needed: `?db=` on
+  every route (multi-schema, matching the browser's own picker --
+  `stellarObjects._db.list_databases`/`resolve_database`, moved out of
+  `html/lib/dbutil.py` into the package itself), `GET /api/databases`,
+  `GET /api/galaxy/sectors`, `GET /api/search` (the full faceted-search
+  query layer, ported from `html/search.py`), `sector_id=none` on
+  `GET /api/systems` (standalone systems), and richer `GET /api/sectors`/
+  `GET /api/sectors/<id>`/`GET /api/systems/<id>` responses (display-
+  ready fields -- ids, quadrant/location, star summaries, galaxy
+  placement -- distinct from `stellarObjects._db.load_sector`/
+  `load_star_system`'s *generation* object graph, still reachable the
+  same way). Apache's example vhost
+  (`examples/apache/planetgen.conf.example`) now mounts the API at
+  `/api/` (`WSGIScriptAlias`) on the same vhost that serves `../src/html/`,
+  aliased in rather than relocated into its `DocumentRoot` -- resolves
+  the open question `TODO.md` left from the 5.3.2/5.3.3 file-system
+  cleanup. See `docs/api.md` and `docs/html-interface.md`.
+- System Map: a body with `life_chemical` set (habitable) now gets a
+  small green badge on its marker, surfaced in the info panel's "Life
+  Chemistry" field too (`html/lib/systemmap.py`'s `has_life`,
+  `static/systemmap.js`) -- the one piece of state the existing
+  circle+letter marker couldn't show at a glance. `docs/TODO.md`'s long-
+  stale "sprite-based graphical system view" item is resolved: the System
+  Map (an interactive scaled-orbit SVG diagram, not bitmap sprite art)
+  already satisfied it, per that module's own docstring.
+
 ## [5.8.3] - 2026-09-10
 
 ### Changed

@@ -107,12 +107,15 @@ def test_sectors_rejects_invalid_limit(client):
 
 
 def test_sector_detail_found_and_not_found(client, seeded_sector):
-    _config, sector_id, _system_ids = seeded_sector
+    _config, sector_id, system_ids = seeded_sector
 
     response = client.get(f"/api/sectors/{sector_id}")
     assert response.status_code == 200
     body = response.get_json()
     assert body["name"] == "Test Sector"
+    assert body["system_count"] == len(system_ids)
+    assert {s["id"] for s in body["systems"]} == set(system_ids)
+    assert body["systems"][0]["stars"]
 
     response = client.get("/api/sectors/999999999")
     assert response.status_code == 404
@@ -132,6 +135,7 @@ def test_systems_filters_by_star_type_and_sector(client, seeded_sector):
     body = response.get_json()
     assert body["total"] == 1
     assert body["items"][0]["is_binary"] == 0
+    assert body["items"][0]["star_summary"].startswith("G2V")
 
 
 def test_systems_rejects_invalid_sector_id(client):
@@ -140,13 +144,26 @@ def test_systems_rejects_invalid_sector_id(client):
     assert "error" in response.get_json()
 
 
-def test_system_detail_found_and_not_found(client, seeded_sector):
+def test_systems_sector_id_none_matches_standalone_systems(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
+
+    response = client.get("/api/systems?sector_id=none")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert not (set(system_ids) & {item["id"] for item in body["items"]})
+
+
+def test_system_detail_found_and_not_found(client, seeded_sector):
+    _config, sector_id, system_ids = seeded_sector
 
     response = client.get(f"/api/systems/{system_ids[0]}")
     assert response.status_code == 200
     body = response.get_json()
-    assert "star" in body
+    assert body["id"] == system_ids[0]
+    assert body["sector_id"] == sector_id
+    assert "stars" in body and body["stars"]
+    assert "markdown_content" in body
+    assert {s["id"] for s in body["sector_siblings"]} == set(system_ids)
 
     response = client.get("/api/systems/999999999")
     assert response.status_code == 404
@@ -228,6 +245,100 @@ def test_nav_returns_400_when_system_has_no_sector(client, mysql_config):
     response = client.get(f"/api/nav?from={origin_id}&to={destination_id}")
     assert response.status_code == 400
     assert "error" in response.get_json()
+
+
+def test_databases_lists_the_seeded_schema(client, seeded_sector):
+    mysql_config, sector_id, system_ids = seeded_sector
+
+    response = client.get("/api/databases")
+    assert response.status_code == 200
+    body = response.get_json()
+    entry = next((item for item in body["items"] if item["name"] == mysql_config.database), None)
+    assert entry is not None
+    assert entry["sector_count"] == 1
+    assert entry["system_count"] == len(system_ids)
+
+
+def test_db_query_param_selects_a_different_database(client, mysql_config):
+    # `client`'s own Config is pinned to `mysql_config`'s database --
+    # this creates a *second*, separate schema (sharing the "planetgen"
+    # prefix `list_databases`/`resolve_database` filter by, same as
+    # `conftest.py`'s own throwaway names) to prove `?db=` actually
+    # switches connections rather than coincidentally matching the default.
+    import uuid
+
+    other_name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+    other_config = _db.MySQLConfig(
+        host=mysql_config.host, port=mysql_config.port,
+        user=mysql_config.user, password=mysql_config.password, database=other_name,
+    )
+    admin_conn = _db.get_connection(
+        _db.MySQLConfig(
+            host=mysql_config.host, port=mysql_config.port,
+            user=mysql_config.user, password=mysql_config.password, database="",
+        ),
+        ensure_schema=False,
+    )
+    try:
+        admin_conn.execute(f"CREATE DATABASE `{other_name}`")
+
+        sector = SpaceSector("Other DB Sector", edge_ly=5.0)
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "K5V"
+        cfg.PLANETS = False
+        system = StarSystem(system_config=cfg)
+        sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+        other_sector_id = _db.save_sector(sector, config=other_config)
+
+        response = client.get(f"/api/sectors/{other_sector_id}?db={other_name}")
+        assert response.status_code == 200
+        assert response.get_json()["name"] == "Other DB Sector"
+
+        # The same id, without ?db=, resolves against client's own
+        # default database (mysql_config's) -- schema-initialize it first
+        # (conftest.py's mysql_config fixture only CREATEs the database,
+        # it never applies the schema -- that normally happens the first
+        # time something writes to it, e.g. seeded_sector's save_sector
+        # call, which this test doesn't use) so the "not found there"
+        # case below is a clean 404, not a missing-table error.
+        _db.get_connection(mysql_config).close()
+        response = client.get(f"/api/sectors/{other_sector_id}")
+        assert response.status_code == 404
+    finally:
+        admin_conn.execute(f"DROP DATABASE IF EXISTS `{other_name}`")
+        admin_conn.close()
+
+
+def test_db_query_param_rejects_unknown_database(client):
+    response = client.get("/api/sectors?db=not_a_real_schema")
+    assert response.status_code == 404
+    assert "error" in response.get_json()
+
+
+def test_galaxy_sectors_excludes_unplaced_sectors(client, seeded_sector):
+    # seeded_sector's own sector is never given a galaxy placement.
+    response = client.get("/api/galaxy/sectors")
+    assert response.status_code == 200
+    assert response.get_json() == {"items": []}
+
+
+def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
+    _config, _sector_id, system_ids = seeded_sector
+
+    response = client.get("/api/search")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert set(body["facets"]) == {
+        "type", "spectral", "luminosity", "class", "body", "life",
+        "moon_class", "moon_body", "moon_life", "density",
+    }
+    assert body["results"]["stars"] is None  # no filter active yet -- no reason to run
+
+    response = client.get("/api/search?spectral=G")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["results"]["stars"] is not None
+    assert all(row["star_system_id"] in system_ids for row in body["results"]["stars"]["rows"])
 
 
 def test_unmatched_route_returns_json_404(client):
