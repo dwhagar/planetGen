@@ -1158,3 +1158,34 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
     "colonial organisms that briefly link into a single distributed nervous system during seasonal migration.",
     "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
 ]
+
+# --- Navigation Parameters ---
+
+WARP_FACTORS_FOR_NAV = (1, 3, 6, 9)
+"""
+The warp factors NAV output reports travel time at (see
+`stellarObjects.navigation.warp_travel_times`) -- 1 (baseline), 3 and 6
+(common "cruise" references in the genre this package draws its flavor
+text from), and 9 (historically depicted as a practical top speed).
+"""
+
+WARP_VELOCITY_EXPONENT = 10 / 3
+"""
+The exponent in `velocity = warp_factor ** WARP_VELOCITY_EXPONENT` (in
+multiples of light-speed) -- i.e. "warp factor to the 3.33..." -- used by
+`stellarObjects.navigation.warp_travel_times`.
+"""
+
+NAV_COURSE_DECIMAL_PLACES = 2
+"""
+Decimal places used when formatting NAV distance/azimuth/altitude output.
+"""
+
+NAV_ADJACENCY_K = 6
+"""
+How many nearest neighbors each system is connected to when building the
+NAV adjacency graph (`stellarObjects.navGraph.build_knn_adjacency`) that
+optimal-route pathfinding runs over. Symmetrized after building (see that
+function's docstring), so a system can end up connected to more than `k`
+neighbors if others chose it as one of theirs.
+"""
