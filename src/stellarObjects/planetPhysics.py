@@ -22,7 +22,8 @@ import re
 import secrets
 
 from . import physical_constants, program_constants
-from .utils import calculate_object_mass, calculate_hill_sphere, reseed_rng, sample_bounded_bell
+from .utils import (calculate_object_mass, calculate_hill_sphere, circular_orbital_speed_kms,
+                    orbital_position_au, reseed_rng, sample_bounded_bell)
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -612,17 +613,28 @@ def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_per
 
 def generate_orbital_motion_properties(planet, primary_mass_kg):
     """
-    Sets a planet's (or moon's) 3D orbital orientation and rotation period.
+    Sets a planet's (or moon's) 3D orbital orientation, position, orbital
+    speed, and rotation period.
 
     Together with `planet.distance` (this generator only ever models
     circular orbits -- no eccentricity), `orbital_inclination_deg` (the
     tilt of the orbital plane) and `orbital_ascending_node_deg` (where that
     plane crosses its primary's reference plane) fully orient the orbit in
     3D; `orbital_phase_deg` is where the body currently sits around it.
-    Only `orbital_phase_deg` ever changes after generation --
-    `updateOrbits.py` advances it over time based on `planet.period` -- the
-    plane itself is fixed for the body's lifetime, the same way its
-    `distance` is.
+    Only `orbital_phase_deg` (and the `position_x/y/z`/`orbital_speed_kms`
+    derived from it, see `update_orbital_position`) ever change after
+    generation -- `updateOrbits.py` advances phase (and position in
+    lockstep) over time based on `planet.period` -- the plane itself is
+    fixed for the body's lifetime, the same way its `distance` is.
+
+    `position_x/y/z` (AU, via `update_orbital_position`) are this body's
+    Cartesian position *relative to its orbital anchor* -- the star (or,
+    for a binary system, the `BinaryStarProxy` standing in for the system's
+    combined center) for a planet, the parent planet for a moon -- the same
+    "each body positioned relative to its immediate primary, not some
+    absolute frame" convention `docs/design/galaxy-coordinate-system.md`
+    already uses one level up for sectors/systems relative to the galactic
+    center.
 
     `rotation_period_hours` is a separate, purely descriptive "day length"
     stat (this generator doesn't track rotational phase -- nothing consumes
@@ -676,6 +688,46 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
         planet.rotation_period_hours = planet.period * (physical_constants.SECONDS_PER_YEAR / 3600)
     else:
         planet.rotation_period_hours = candidate_rotation_period_hours
+
+    update_orbital_position(planet)
+
+
+def update_orbital_position(planet):
+    """
+    Recomputes `planet.position_x/y/z` (AU, relative to its orbital
+    anchor) and `planet.orbital_speed_kms` from its current `distance`,
+    `period`, and orbital elements (`orbital_inclination_deg`/
+    `orbital_ascending_node_deg`/`orbital_phase_deg`), via
+    `utils.orbital_position_au`/`circular_orbital_speed_kms`.
+
+    Called both at initial generation (`generate_orbital_motion_properties`,
+    right after `orbital_phase_deg` is rolled) and again by
+    `StarSystem.validate_system` whenever it corrects a top-level planet's
+    `distance` post-hoc to resolve an orbital overlap -- the same
+    "recompute anything that depends on distance" treatment `period`
+    already gets there (see that method's docstring). Position/speed would
+    otherwise silently go stale relative to the corrected `distance` the
+    same way `period` used to before that fix.
+
+    `updateOrbits.py`'s periodic time-based advancement is a separate,
+    SQL-only path (`stellarObjects._db.advance_orbital_phases`) that
+    recomputes position directly in the database rather than through this
+    function -- this generator has no live "simulation loop" over
+    in-memory objects, only one-shot generation (this function) followed
+    by periodic database updates (see that module's own docstring).
+
+    Args:
+        planet (Planet): The planet or moon to update in place. Must
+                         already have `distance`, `period`,
+                         `orbital_inclination_deg`,
+                         `orbital_ascending_node_deg`, and
+                         `orbital_phase_deg` set.
+    """
+    planet.position_x, planet.position_y, planet.position_z = orbital_position_au(
+        planet.distance, planet.orbital_inclination_deg,
+        planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
+    )
+    planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
 
 
 def generate_moons(planet, moon_count=None):

@@ -593,12 +593,14 @@ class StarSystem:
         The method accounts for the different types of objects, such as planets
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
-        If an adjustment is made, the planet's atmospheric conditions and
-        orbital period (which depends on `distance` via Kepler's third law,
-        see `planetPhysics.calculate_orbital_period_years`) are both
-        recalculated to reflect its new orbital distance -- before this,
-        `period` could silently go stale relative to the corrected
-        `distance` whenever this method moved a planet.
+        If an adjustment is made, the planet's atmospheric conditions, orbital
+        period (which depends on `distance` via Kepler's third law, see
+        `planetPhysics.calculate_orbital_period_years`), and position/orbital
+        speed (which depend on `distance`/`period` in turn, see
+        `planetPhysics.update_orbital_position`) are all recalculated to
+        reflect its new orbital distance -- before this, `period` (and now
+        position/speed too) could silently go stale relative to the
+        corrected `distance` whenever this method moved a planet.
         """
         if len(self.planets) < 2:
             return
@@ -633,12 +635,14 @@ class StarSystem:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         planetPhysics.calculate_atmospheric_conditions(planet)
                         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+                        planetPhysics.update_orbital_position(planet)
                 else:
                     min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
                     if distance_to_last < min_orbit:
                         planet.distance += min_orbit + additional_correction
                         planetPhysics.calculate_atmospheric_conditions(planet)
                         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+                        planetPhysics.update_orbital_position(planet)
 
     def __str__(self):
         """

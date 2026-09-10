@@ -122,6 +122,23 @@ class Planet:
                                    Mutated in place by `updateOrbits.py` as
                                    time passes -- everything else here is
                                    fixed at generation time.
+        position_x, position_y, position_z (float): This body's current
+                                   Cartesian position, in AU, relative to
+                                   its orbital anchor -- the star (or, for
+                                   a binary system, the `BinaryStarProxy`
+                                   standing in for the system's combined
+                                   center) for a planet, the parent planet
+                                   for a moon. Derived from `distance` and
+                                   the orbital elements above (see
+                                   `planetPhysics.update_orbital_position`);
+                                   mutated in lockstep with
+                                   `orbital_phase_deg` as time passes.
+        orbital_speed_kms (float): This body's circular orbital speed, in
+                                   km/s -- constant around a circular orbit,
+                                   so (unlike position) unaffected by
+                                   `orbital_phase_deg` changing over time;
+                                   only changes if `distance`/`period` do
+                                   (see `StarSystem.validate_system`).
         rotation_period_hours (float): This body's axial rotation period
                                        ("day length"), in hours.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
@@ -139,6 +156,7 @@ class Planet:
         "reflection_spectrum_non_visible", "evolutionary_data", "flavor_text",
         "flavor_text_count", "habitable_zone", "volume", "period",
         "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+        "position_x", "position_y", "position_z", "orbital_speed_kms",
         "rotation_period_hours",
     ]
     """
@@ -226,6 +244,10 @@ class Planet:
         self.orbital_inclination_deg = None
         self.orbital_ascending_node_deg = None
         self.orbital_phase_deg = None
+        self.position_x = None
+        self.position_y = None
+        self.position_z = None
+        self.orbital_speed_kms = None
         self.rotation_period_hours = None
 
         # From the star, should not be changed.
@@ -357,9 +379,9 @@ class Planet:
         `to_paragraph_list`, not here).
 
         Returns:
-            dict: Keys `class`, `distance`, `period`, `radius`, `gravity`,
-                 each an already-formatted display string (`class` may be
-                 `None`).
+            dict: Keys `class`, `distance`, `period`, `speed`, `radius`,
+                 `gravity`, each an already-formatted display string
+                 (`class` may be `None`).
         """
         if self.is_moon:
             # Moons orbit their parent planet, so their distance is from the planet, not the star.
@@ -383,6 +405,7 @@ class Planet:
             "class": self.planet_class,
             "distance": distance_text,
             "period": years_to_time_string(self.period),
+            "speed": f"{self.orbital_speed_kms:.2f} km/s",
             "radius": radius_string,
             "gravity": f"{round(self.gravity, 3)} g",
         }

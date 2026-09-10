@@ -230,6 +230,23 @@
 --   pair among its `binary_*` columns, NULL under the same
 --   binary-only condition as `binary_system_perimeter_km`.
 --
+-- v11: planet/moon position. `planets`/`moons` each gain
+--   `position_x_km`/`_y_km`/`_z_km` (this body's Cartesian position
+--   relative to its orbital anchor -- the star, or a binary system's
+--   combined center, for a planet; the parent planet for a moon) and
+--   `orbital_speed_kms` (its constant circular-orbit speed). Position is
+--   derived from `distance_km` and the v9 orbital-motion columns
+--   (`orbital_inclination_deg`/`orbital_ascending_node_deg`/
+--   `orbital_phase_deg`) via `utils.orbital_position_au` -- the same
+--   "each body positioned relative to its immediate primary" convention
+--   `docs/design/galaxy-coordinate-system.md` already uses one level up
+--   for sectors/systems relative to the galactic center (see v10 above).
+--   `updateOrbits.py`/`_db.advance_orbital_phases` recomputes position in
+--   lockstep with `orbital_phase_deg` as time passes; `orbital_speed_kms`
+--   only changes if `distance_km`/`period_years` themselves do (e.g.
+--   `StarSystem.validate_system` resolving an orbital overlap at
+--   generation time), never from phase advancing alone.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -621,6 +638,17 @@ CREATE TABLE IF NOT EXISTS planets (
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
     orbital_phase_deg           DOUBLE NOT NULL,
+    -- Position/speed (v11, see header comment) -- Cartesian position
+    -- relative to this planet's orbital anchor (the star, or the
+    -- BinaryStarProxy's combined center for a binary system), derived from
+    -- distance_km and the orbital-motion columns above; changes in
+    -- lockstep with orbital_phase_deg as updateOrbits.py advances it.
+    -- orbital_speed_kms is constant around a circular orbit -- it only
+    -- changes if distance_km/period_years do.
+    position_x_km               DOUBLE NOT NULL,
+    position_y_km               DOUBLE NOT NULL,
+    position_z_km               DOUBLE NOT NULL,
+    orbital_speed_kms           DOUBLE NOT NULL,
     rotation_period_hours       DOUBLE NOT NULL,
 
     CONSTRAINT fk_planets_star_system
@@ -711,6 +739,14 @@ CREATE TABLE IF NOT EXISTS moons (
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
     orbital_phase_deg           DOUBLE NOT NULL,
+    -- Position/speed (v11, see header comment) -- Cartesian position
+    -- relative to this moon's orbital anchor, its parent planet; derived
+    -- from distance_km and the orbital-motion columns above the same way
+    -- planets.position_x/y/z_km are (see that table's comment).
+    position_x_km               DOUBLE NOT NULL,
+    position_y_km               DOUBLE NOT NULL,
+    position_z_km               DOUBLE NOT NULL,
+    orbital_speed_kms           DOUBLE NOT NULL,
     rotation_period_hours       DOUBLE NOT NULL,
 
     CONSTRAINT fk_moons_planet

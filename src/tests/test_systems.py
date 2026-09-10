@@ -21,6 +21,7 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects import program_constants as prog_c
+from stellarObjects.utils import circular_orbital_speed_kms, orbital_position_au
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track
@@ -97,6 +98,45 @@ def assert_no_orbital_overlap(system):
         )
 
 
+def _all_planets_and_moons(system):
+    bodies = []
+    for obj in system.planets:
+        if obj.body_type == "a":
+            continue
+        bodies.append(obj)
+        bodies.extend(obj.moons)
+    return bodies
+
+
+def assert_positions_and_speeds_are_consistent(system):
+    """
+    Every planet's/moon's `position_x/y/z` must sit exactly on the sphere
+    of radius `distance` (the point `orbital_position_au` derives is, by
+    construction, at that fixed radius from the orbital anchor regardless
+    of inclination/node/phase), and `orbital_speed_kms` must match
+    `circular_orbital_speed_kms(distance, period)` -- a guard against the
+    same "recomputed value silently drifts from a corrected distance"
+    staleness bug `StarSystem.validate_system`'s own docstring warns
+    `period` used to have, now extended to position/speed (see
+    `planetPhysics.update_orbital_position`).
+    """
+    for body in _all_planets_and_moons(system):
+        radius = math.sqrt(body.position_x ** 2 + body.position_y ** 2 + body.position_z ** 2)
+        assert radius == pytest.approx(body.distance, rel=1e-9), (
+            f"{body.name}: position radius {radius} AU != distance {body.distance} AU"
+        )
+        expected_position = orbital_position_au(
+            body.distance, body.orbital_inclination_deg,
+            body.orbital_ascending_node_deg, body.orbital_phase_deg,
+        )
+        assert (body.position_x, body.position_y, body.position_z) == pytest.approx(expected_position)
+
+        expected_speed = circular_orbital_speed_kms(body.distance, body.period)
+        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-9), (
+            f"{body.name}: orbital_speed_kms {body.orbital_speed_kms} != expected {expected_speed}"
+        )
+
+
 def assert_counts_are_consistent(system):
     planet_count, belt_count, moon_count = system.count_objects()
     assert planet_count == system.planet_count
@@ -117,6 +157,7 @@ def test_baseline_random_system_generates_without_error(star_type):
         assert_ages_never_exceed_lifespan(system)
         assert_no_orbital_overlap(system)
         assert_counts_are_consistent(system)
+        assert_positions_and_speeds_are_consistent(system)
 
 
 @pytest.mark.parametrize("attr", TRISTATE_ATTRS)
@@ -129,6 +170,7 @@ def test_each_tristate_flag_forced(star_type, value, attr):
         assert_ages_never_exceed_lifespan(system)
         assert_no_orbital_overlap(system)
         assert_counts_are_consistent(system)
+        assert_positions_and_speeds_are_consistent(system)
 
         if attr == "HABITABLE_WORLD" and value is True:
             assert system.hab_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"

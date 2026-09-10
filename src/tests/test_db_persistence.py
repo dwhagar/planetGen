@@ -19,13 +19,17 @@ they're skipped, not failed, when no MySQL test server is configured/
 reachable.
 """
 
+import math
+
 import pytest
 
 from stellarObjects import _db
+from stellarObjects import physical_constants as pc
 from stellarObjects.config import SystemConfig
 from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
+from stellarObjects.utils import orbital_position_au
 
 
 def _make_system_with_moons_and_belt():
@@ -288,6 +292,10 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
         assert reloaded_planet.orbital_inclination_deg == pytest.approx(planet.orbital_inclination_deg)
         assert reloaded_planet.orbital_ascending_node_deg == pytest.approx(planet.orbital_ascending_node_deg)
         assert reloaded_planet.orbital_phase_deg == pytest.approx(planet.orbital_phase_deg)
+        assert reloaded_planet.position_x == pytest.approx(planet.position_x)
+        assert reloaded_planet.position_y == pytest.approx(planet.position_y)
+        assert reloaded_planet.position_z == pytest.approx(planet.position_z)
+        assert reloaded_planet.orbital_speed_kms == pytest.approx(planet.orbital_speed_kms)
         assert reloaded_planet.rotation_period_hours == pytest.approx(planet.rotation_period_hours)
 
         reloaded_moons_by_name = {m.name: m for m in reloaded_planet.moons}
@@ -296,6 +304,10 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
             assert reloaded_moon.orbital_inclination_deg == pytest.approx(moon.orbital_inclination_deg)
             assert reloaded_moon.orbital_ascending_node_deg == pytest.approx(moon.orbital_ascending_node_deg)
             assert reloaded_moon.orbital_phase_deg == pytest.approx(moon.orbital_phase_deg)
+            assert reloaded_moon.position_x == pytest.approx(moon.position_x)
+            assert reloaded_moon.position_y == pytest.approx(moon.position_y)
+            assert reloaded_moon.position_z == pytest.approx(moon.position_z)
+            assert reloaded_moon.orbital_speed_kms == pytest.approx(moon.orbital_speed_kms)
             assert reloaded_moon.rotation_period_hours == pytest.approx(moon.rotation_period_hours)
 
 
@@ -322,7 +334,8 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
 
         before = conn.execute(
             "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
-            "rotation_period_hours, period_years FROM planets"
+            "rotation_period_hours, period_years, distance_km, "
+            "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
 
         planets_updated, moons_updated = _db.advance_orbital_phases(conn, elapsed_years=0.5)
@@ -331,7 +344,8 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
 
         after = conn.execute(
             "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
-            "rotation_period_hours, period_years FROM planets"
+            "rotation_period_hours, period_years, distance_km, "
+            "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
     finally:
         conn.close()
@@ -339,13 +353,24 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
     after_by_id = {row["id"]: row for row in after}
     for row in before:
         updated = after_by_id[row["id"]]
-        # Orientation/rotation are fixed at generation time -- only phase moves.
+        # Orientation/rotation are fixed at generation time -- only phase
+        # (and position, in lockstep with it) moves. Speed is constant
+        # around a circular orbit.
         assert updated["orbital_inclination_deg"] == pytest.approx(row["orbital_inclination_deg"])
         assert updated["orbital_ascending_node_deg"] == pytest.approx(row["orbital_ascending_node_deg"])
         assert updated["rotation_period_hours"] == pytest.approx(row["rotation_period_hours"])
+        assert updated["orbital_speed_kms"] == pytest.approx(row["orbital_speed_kms"])
 
         expected_phase = (row["orbital_phase_deg"] + (0.5 / row["period_years"]) * 360) % 360
         assert updated["orbital_phase_deg"] == pytest.approx(expected_phase, abs=1e-6)
+
+        expected_x_au, expected_y_au, expected_z_au = orbital_position_au(
+            row["distance_km"] / pc.AU_TO_KM, row["orbital_inclination_deg"],
+            row["orbital_ascending_node_deg"], expected_phase,
+        )
+        assert updated["position_x_km"] == pytest.approx(expected_x_au * pc.AU_TO_KM, abs=1e-3)
+        assert updated["position_y_km"] == pytest.approx(expected_y_au * pc.AU_TO_KM, abs=1e-3)
+        assert updated["position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=1e-3)
 
     # get_orbit_update_elapsed_years should now report ~0 elapsed time
     # (the call above just set last_updated_at to NOW()), not None.
@@ -370,12 +395,13 @@ def test_advance_orbital_phases_rejects_negative_elapsed_years(mysql_config):
 def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
-    creates at the current schema (v10) -- so this simulates an existing v8
-    database by tearing both the v9 *and* v10 additions back out (a real
-    v8 database would have neither), then confirms `migrate_database` puts
-    everything back and reports the database as fully current again (not
-    just v9 -- `migrate_database` applies every step up to `SCHEMA_VERSION`
-    in one call, so a v8 database now lands on v10 directly).
+    creates at the current schema (v11) -- so this simulates an existing v8
+    database by tearing the v9, v10, *and* v11 additions back out (a real
+    v8 database would have none of them), then confirms `migrate_database`
+    puts everything back and reports the database as fully current again
+    (not just v9 -- `migrate_database` applies every step up to
+    `SCHEMA_VERSION` in one call, so a v8 database now lands on v11
+    directly).
     """
     conn = _db.get_connection(mysql_config)
     try:
@@ -383,7 +409,9 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
             conn.execute(
                 f"ALTER TABLE {table} "
                 f"DROP COLUMN orbital_inclination_deg, DROP COLUMN orbital_ascending_node_deg, "
-                f"DROP COLUMN orbital_phase_deg, DROP COLUMN rotation_period_hours"
+                f"DROP COLUMN orbital_phase_deg, "
+                f"DROP COLUMN position_x_km, DROP COLUMN position_y_km, DROP COLUMN position_z_km, "
+                f"DROP COLUMN orbital_speed_kms, DROP COLUMN rotation_period_hours"
             )
         conn.execute("DROP TABLE orbit_simulation_state")
         conn.execute(
@@ -394,7 +422,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
             "ALTER TABLE star_systems "
             "DROP COLUMN binary_galactic_orbital_speed_kms, DROP COLUMN binary_galactic_orbital_period_gy"
         )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -404,7 +432,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 10
+    assert version_after == _db.SCHEMA_VERSION == 11
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -412,6 +440,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         assert {
             "orbital_inclination_deg", "orbital_ascending_node_deg",
             "orbital_phase_deg", "rotation_period_hours",
+            "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
         } <= planet_columns
         assert _db.get_orbit_update_elapsed_years(conn) is None  # table exists, no row yet
 
@@ -421,18 +450,19 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 10
+    assert _db.migrate_database(mysql_config) == 11
 
 
 def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
-    creates at the current schema (v10) -- so this simulates an existing v9
-    database by tearing just the v10 additions back out (the new
-    `stars`/`star_systems` columns and the `schema_migrations` v10 row)
-    before calling `migrate_database`, and confirms it puts them back and
-    reports the database as current again, without disturbing the v9
-    orbital-motion columns already in place.
+    creates at the current schema (v11) -- so this simulates an existing v9
+    database by tearing the v10 *and* v11 additions back out (the new
+    `stars`/`star_systems`/`planets`/`moons` columns and the
+    `schema_migrations` v10/v11 rows) before calling `migrate_database`,
+    and confirms it puts everything back and reports the database as
+    current again, without disturbing the v9 orbital-motion columns
+    already in place.
     """
     conn = _db.get_connection(mysql_config)
     try:
@@ -444,7 +474,13 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
             "ALTER TABLE star_systems "
             "DROP COLUMN binary_galactic_orbital_speed_kms, DROP COLUMN binary_galactic_orbital_period_gy"
         )
-        conn.execute("DELETE FROM schema_migrations WHERE version = 10")
+        for table in ("planets", "moons"):
+            conn.execute(
+                f"ALTER TABLE {table} "
+                f"DROP COLUMN position_x_km, DROP COLUMN position_y_km, DROP COLUMN position_z_km, "
+                f"DROP COLUMN orbital_speed_kms"
+            )
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -454,7 +490,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 10
+    assert version_after == _db.SCHEMA_VERSION == 11
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -466,14 +502,78 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
             "binary_galactic_orbital_speed_kms", "binary_galactic_orbital_period_gy",
         } <= star_system_columns
 
-        # v9's orbital-motion columns are untouched by this migration step.
         planet_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM planets").fetchall()}
+        assert {"position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms"} <= planet_columns
+        # v9's orbital-motion columns are untouched by these migration steps.
         assert "orbital_phase_deg" in planet_columns
     finally:
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 10
+    assert _db.migrate_database(mysql_config) == 11
+
+
+def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
+    """
+    `mysql_config` yields a fresh database, which `get_connection` already
+    creates at the current schema (v11) -- so this simulates an existing
+    v10 database by tearing just the v11 additions back out (the new
+    `planets`/`moons` columns and the `schema_migrations` v11 row) before
+    calling `migrate_database`, and confirms it not only adds the columns
+    back but backfills them with real derived values (not an arbitrary
+    placeholder) from each row's own already-stored `distance_km`/
+    `period_years`/orbital-motion columns -- see `_migrate_v10_to_v11`'s
+    docstring.
+    """
+    system, cfg = _make_system_with_moons_and_belt()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        for table in ("planets", "moons"):
+            conn.execute(
+                f"ALTER TABLE {table} "
+                f"DROP COLUMN position_x_km, DROP COLUMN position_y_km, DROP COLUMN position_z_km, "
+                f"DROP COLUMN orbital_speed_kms"
+            )
+        conn.execute("DELETE FROM schema_migrations WHERE version = 11")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
+        conn.commit()
+
+        version_before = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()["version"]
+        assert version_before == 10
+    finally:
+        conn.close()
+
+    version_after = _db.migrate_database(mysql_config)
+    assert version_after == _db.SCHEMA_VERSION == 11
+
+    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    try:
+        rows = conn.execute(
+            "SELECT distance_km, orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg, "
+            "period_years, position_x_km, position_y_km, position_z_km, orbital_speed_kms "
+            "FROM planets WHERE star_system_id = ?", (system_id,)
+        ).fetchall()
+        assert rows, "test fixture must actually contain planets"
+        for row in rows:
+            expected_x_au, expected_y_au, expected_z_au = orbital_position_au(
+                row["distance_km"] / pc.AU_TO_KM, row["orbital_inclination_deg"],
+                row["orbital_ascending_node_deg"], row["orbital_phase_deg"],
+            )
+            assert row["position_x_km"] == pytest.approx(expected_x_au * pc.AU_TO_KM, abs=1e-3)
+            assert row["position_y_km"] == pytest.approx(expected_y_au * pc.AU_TO_KM, abs=1e-3)
+            assert row["position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=1e-3)
+
+            expected_speed = (2 * math.pi * row["distance_km"]) / (row["period_years"] * pc.SECONDS_PER_YEAR)
+            assert row["orbital_speed_kms"] == pytest.approx(expected_speed, rel=1e-9)
+    finally:
+        conn.close()
+
+    # Idempotent: running it again against an already-current database is a no-op.
+    assert _db.migrate_database(mysql_config) == 11
 
 
 def test_insert_system_config_round_trips_slots_child_rows(mysql_config):

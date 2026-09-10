@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.14.0] - 2026-09-10
+
+### Added
+- **Planet/moon position.** Every generated planet and moon now gets an
+  actual 3D Cartesian position (`Planet.position_x/y/z`, in AU), relative
+  to its orbital anchor -- the star (or, for a binary system, the
+  `BinaryStarProxy` standing in for the system's combined center) for a
+  planet, the parent planet for a moon -- continuing the same "each body
+  positioned relative to its immediate primary" hierarchy
+  `docs/design/galaxy-coordinate-system.md` already uses one level up for
+  sectors/systems relative to the galactic center. Derived from the
+  existing orbital-motion elements (`orbital_inclination_deg`/
+  `orbital_ascending_node_deg`/`orbital_phase_deg`, schema v9) via the
+  standard circular-orbit-to-Cartesian transform
+  (`utils.orbital_position_au`). Also adds `Planet.orbital_speed_kms`, a
+  circular orbit's constant tangential speed (`utils.
+  circular_orbital_speed_kms`, `v = 2*pi*r/T`) -- exact here, unlike the
+  galactic orbit's rotation-curve model, since a planet's/moon's period is
+  already known exactly from Kepler's third law. Surfaced as a new
+  "Speed" row in every planet's/moon's rendered data table. Persisted as
+  `planets`/`moons`.`position_x_km`/`_y_km`/`_z_km`/`orbital_speed_kms` --
+  schema v11, with a migration that backfills real derived values (not a
+  placeholder) for existing rows.
+- `updateOrbits.py`/`_db.advance_orbital_phases` now recomputes position
+  in lockstep with `orbital_phase_deg` as real time passes (a single
+  set-based SQL `UPDATE` per table, matching phase advancement's own
+  performance characteristics); `StarSystem.validate_system` recomputes
+  position/speed too whenever it corrects a planet's `distance` post-hoc
+  to resolve an orbital overlap, closing the same kind of staleness gap
+  its own docstring already flagged for `period` before this.
+
 ## [5.13.0] - 2026-09-10
 
 ### Added

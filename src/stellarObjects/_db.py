@@ -63,7 +63,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 10
+SCHEMA_VERSION = 11
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -670,8 +670,9 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             habitable_zone_inner_km, habitable_zone_outer_km,
             life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
             orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
+            position_x_km, position_y_km, position_z_km, orbital_speed_kms,
             rotation_period_hours
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, orbital_index, planet.body_type, planet.name,
@@ -688,7 +689,12 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             planet.life_chemical, planet.evolutionary_speed,
             planet.flavor_text, planet.flavor_text_count,
             planet.orbital_inclination_deg, planet.orbital_ascending_node_deg,
-            planet.orbital_phase_deg, planet.rotation_period_hours,
+            planet.orbital_phase_deg,
+            planet.position_x * physical_constants.AU_TO_KM,
+            planet.position_y * physical_constants.AU_TO_KM,
+            planet.position_z * physical_constants.AU_TO_KM,
+            planet.orbital_speed_kms,
+            planet.rotation_period_hours,
         ),
     )
     planet_id = cur.lastrowid
@@ -742,8 +748,9 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             habitable_zone_inner_km, habitable_zone_outer_km,
             life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
             orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
+            position_x_km, position_y_km, position_z_km, orbital_speed_kms,
             rotation_period_hours
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             planet_id, star_system_id, star_id, orbital_index, moon.body_type, moon.name,
@@ -760,7 +767,12 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
             moon.life_chemical, moon.evolutionary_speed,
             moon.flavor_text, moon.flavor_text_count,
             moon.orbital_inclination_deg, moon.orbital_ascending_node_deg,
-            moon.orbital_phase_deg, moon.rotation_period_hours,
+            moon.orbital_phase_deg,
+            moon.position_x * physical_constants.AU_TO_KM,
+            moon.position_y * physical_constants.AU_TO_KM,
+            moon.position_z * physical_constants.AU_TO_KM,
+            moon.orbital_speed_kms,
+            moon.rotation_period_hours,
         ),
     )
     moon_id = cur.lastrowid
@@ -1610,6 +1622,10 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "orbital_inclination_deg": row["orbital_inclination_deg"],
         "orbital_ascending_node_deg": row["orbital_ascending_node_deg"],
         "orbital_phase_deg": row["orbital_phase_deg"],
+        "position_x": row["position_x_km"] / physical_constants.AU_TO_KM,
+        "position_y": row["position_y_km"] / physical_constants.AU_TO_KM,
+        "position_z": row["position_z_km"] / physical_constants.AU_TO_KM,
+        "orbital_speed_kms": row["orbital_speed_kms"],
         "rotation_period_hours": row["rotation_period_hours"],
         "moons": [],
     }
@@ -1843,6 +1859,64 @@ def _migrate_v9_to_v10(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
 
 
+def _migrate_v10_to_v11(conn):
+    """
+    Adds v11's position/speed columns (`planets`/`moons`.
+    `position_x_km`/`_y_km`/`_z_km`/`orbital_speed_kms`) to an existing v10
+    database -- see `schema.sql`'s header comment's "v11" note.
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates `planets`/`moons` with
+    these columns from `schema.sql` directly. This is only for a database
+    whose tables already existed at the older, v10 shape.
+
+    Unlike `_migrate_v9_to_v10`'s `stars` columns (which needed a fixed
+    fallback distance since a pre-v10 row carries no record of which
+    sector, if any, it was placed in), every pre-existing `planets`/`moons`
+    row already has everything position/speed are derived from --
+    `distance_km`, `period_years`, and the v9 orbital-motion columns
+    (`orbital_inclination_deg`/`orbital_ascending_node_deg`/
+    `orbital_phase_deg`) -- so this backfills real values via the same
+    formula `advance_orbital_phases`/`utils.orbital_position_au` use,
+    computed directly in SQL, rather than an arbitrary placeholder. The
+    `ADD COLUMN ... DEFAULT 0` only has to satisfy `NOT NULL` for the
+    instant between the `ALTER TABLE` and the `UPDATE` that immediately
+    follows it -- no row is ever left at that placeholder.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in ("planets", "moons"):
+        conn.execute(
+            f"ALTER TABLE {table} "
+            f"ADD COLUMN position_x_km DOUBLE NOT NULL DEFAULT 0, "
+            f"ADD COLUMN position_y_km DOUBLE NOT NULL DEFAULT 0, "
+            f"ADD COLUMN position_z_km DOUBLE NOT NULL DEFAULT 0, "
+            f"ADD COLUMN orbital_speed_kms DOUBLE NOT NULL DEFAULT 0"
+        )
+        conn.execute(
+            f"""
+            UPDATE {table}
+            SET position_x_km = distance_km * (
+                    COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                    - SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                position_y_km = distance_km * (
+                    SIN(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                    + COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                position_z_km = distance_km * SIN(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg)),
+                orbital_speed_kms = (2 * PI() * distance_km) / (period_years * {physical_constants.SECONDS_PER_YEAR})
+            WHERE period_years > 0
+            """
+        )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -1853,8 +1927,9 @@ def migrate_database(config=None):
     `schema.sql` reflects the current shape directly), so this function
     only has real work to do against a database created by an older
     version of this project -- `_migrate_v8_to_v9` (added for the v9
-    orbital-motion columns) and `_migrate_v9_to_v10` (added for the v10
-    galactic-orbit columns) are the migration steps so far; see
+    orbital-motion columns), `_migrate_v9_to_v10` (added for the v10
+    galactic-orbit columns), and `_migrate_v10_to_v11` (added for the v11
+    planet/moon position columns) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -1878,6 +1953,10 @@ def migrate_database(config=None):
         if version < 10:
             _migrate_v9_to_v10(conn)
             version = 10
+
+        if version < 11:
+            _migrate_v10_to_v11(conn)
+            version = 11
 
         conn.commit()
         return version
@@ -1920,10 +1999,25 @@ def advance_orbital_phases(conn, elapsed_years):
     body's own already-stored `period_years` -- one set-based `UPDATE` per
     table rather than a per-row Python loop, so this stays fast regardless
     of how many bodies the database holds (see `updateOrbits.py`).
+    `position_x/y/z_km` are recomputed in lockstep from the *new* phase --
+    position is a pure function of distance/inclination/ascending-node/
+    phase, so it has no independent update of its own; it just has to move
+    whenever phase does. `orbital_phase_deg` is assigned first in the
+    `SET` list and every position expression below reads it back
+    afterward, relying on documented single-table `UPDATE` behavior (MySQL/
+    MariaDB evaluate a single table's `SET` assignments left to right, so a
+    later expression sees an earlier assignment's *new* value) rather than
+    a CTE -- tried first, but MariaDB (unlike MySQL 8) doesn't allow a CTE
+    to be joined into a multi-table `UPDATE`; see
+    `utils.orbital_position_au`'s docstring for the same formula in its
+    Python form.
 
     `orbital_inclination_deg`/`orbital_ascending_node_deg`/
     `rotation_period_hours` are untouched -- fixed at generation time, per
-    `planetPhysics.generate_orbital_motion_properties`.
+    `planetPhysics.generate_orbital_motion_properties`. `orbital_speed_kms`
+    is also untouched -- constant around a circular orbit, it only changes
+    if `distance_km`/`period_years` themselves do (never from phase
+    advancing alone).
 
     Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
     reference point the *next* call's `elapsed_years` should be measured
@@ -1954,7 +2048,18 @@ def advance_orbital_phases(conn, elapsed_years):
         cur = conn.execute(
             f"""
             UPDATE {table}
-            SET orbital_phase_deg = MOD(orbital_phase_deg + (? / period_years) * 360, 360)
+            SET orbital_phase_deg = MOD(orbital_phase_deg + (? / period_years) * 360, 360),
+                position_x_km = distance_km * (
+                    COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                    - SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                position_y_km = distance_km * (
+                    SIN(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                    + COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                position_z_km = distance_km * SIN(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg))
             WHERE period_years > 0
             """,
             (elapsed_years,),
