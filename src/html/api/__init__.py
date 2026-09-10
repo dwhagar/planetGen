@@ -1,4 +1,4 @@
-# api/__init__.py
+# html/api/__init__.py
 
 """
 JSON API over the planetGen database (Phase 5, TODO.md).
@@ -11,13 +11,15 @@ exist as stubs -- routed and validated, but not yet wired up to the
 database; see `docs/api.md`'s "Write endpoints" section for what's still
 needed before they do anything real.
 
+Lives under `html/` (moved here from `src/api/`) so it's served from the
+same tree/DocumentRoot as the interim CGI browser -- see `html/wsgi.py`
+for the mod_wsgi entry point that imports this package, and
+`examples/apache/planetgen.conf.example` for the vhost `<Directory>`
+block that denies direct requests into this package the same way it
+already does for `html/lib/`.
+
 See `docs/api.md` for how to run this and `docs/TODO.md`'s Phase 5
 section for what's still open (a frontend is the remaining major item;
 the MySQL migration this package's config once called "eventual" is
 done).
 """
-
-# TODO: whether this package should eventually move into `../src/html/` (so
-# the API is served from the same tree/DocumentRoot as the interim browser)
-# is still an open question, not a decision -- see docs/TODO.md,
-# "Investigate Further" for the full reasoning already written up there.

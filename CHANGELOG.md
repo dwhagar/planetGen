@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.10.0] - 2026-09-10
+
+### Changed
+- **Moved the Flask API (`src/api/`) into `src/html/`.** Resolves the
+  open question `docs/TODO.md` had carried since the 5.3.2/5.3.3
+  file-system cleanup: the API now lives at `src/html/api/`, served from
+  the same checkout/deployment tree as the interim CGI browser instead of
+  a second, separately-tracked location. `src/wsgi.py` moved alongside it
+  to `src/html/wsgi.py` (same "lives next to `api/`, so `import api` just
+  works via `sys.path[0]`" property as before, plus an explicit
+  `sys.path` entry for `src/` now that `queryDb`/`stellarObjects` are a
+  directory farther away). `pytest.ini`'s `pythonpath` gained `src/html`
+  so `test_api.py`'s `from api...` imports keep resolving unchanged.
+  `examples/apache/planetgen.conf.example` gained a `WSGIScriptAlias /api`
+  pointing at `html/wsgi.py`, plus deny-all `<Directory>`/`<Files>` blocks
+  for `html/api/` and `html/wsgi.py` itself (mirroring the existing
+  `html/lib/` block -- both hold source that's imported, never meant to
+  be requested directly). Along the way, corrected a pre-existing
+  inaccuracy in `docs/api.md`'s Apache deployment guidance: the vhost's
+  `SetEnv` directives configure the CGI browser (`mod_cgi`/`mod_cgid`
+  copies them into each script's real process environment) but never
+  reach `os.environ` under `mod_wsgi` -- `PLANETGEN_MYSQL_*` for the API
+  needs to come from the Apache service's own process environment instead
+  (e.g. `/etc/apache2/envvars`).
+
 ## [5.9.1] - 2026-09-10
 
 ### Changed

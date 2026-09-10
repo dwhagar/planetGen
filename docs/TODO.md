@@ -116,17 +116,19 @@ and git history.
   alone -- mean surface_temperature ~219K, clearly colder than Class M's
   ~286K. (Class W, the other class this item named, was removed entirely
   instead -- CHANGELOG.md [5.9.0].)
-- [x] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`. Done via the NAV feature (CHANGELOG.md [5.8.0]): `GET /api/nav`/`src/html/nav.py` give course/distance/route between two systems. The rendered-image gap that first pass left open is closed too (CHANGELOG.md [5.8.1]): `src/html/lib/navmap.py`'s "NAV Map" panel plots the origin, destination, and route hops as a flat, top-down SVG in the galactic X-Y plane (deliberately blind to altitude, same as the Galaxy Map's Quadrant view -- the course panel's own Altitude figure already covers that axis).
+- [x] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/html/api/routes.py near `systems_near`. Done via the NAV feature (CHANGELOG.md [5.8.0]): `GET /api/nav`/`src/html/nav.py` give course/distance/route between two systems. The rendered-image gap that first pass left open is closed too (CHANGELOG.md [5.8.1]): `src/html/lib/navmap.py`'s "NAV Map" panel plots the origin, destination, and route hops as a flat, top-down SVG in the galactic X-Y plane (deliberately blind to altitude, same as the Galaxy Map's Quadrant view -- the course panel's own Altitude figure already covers that axis).
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and src/html/search.py near `_planets_panel`.
-- [ ] Still open from the file-system cleanup (5.3.2/5.3.3): consider
-  moving `src/api/` into `../src/html/` to expose the API endpoint from the same
-  served tree. Deliberately not done -- it was posed as an open question,
-  not a decision, and moving a Flask package into `../src/html/`'s Apache
-  `DocumentRoot` needs its own look at exposure/routing implications
-  first. The rest of the file-system cleanup this pointed at is done as
-  of 5.3.3 (see CHANGELOG.md [5.3.3]); short pointer note in
-  `src/api/__init__.py`.
+- [x] Still open from the file-system cleanup (5.3.2/5.3.3): consider
+  moving `src/api/` into `../src/html/` to expose the API endpoint from the
+  same served tree. Was deliberately left open, not decided, since moving
+  a Flask package into `../src/html/`'s Apache `DocumentRoot` needed its
+  own look at exposure/routing implications first. Done (CHANGELOG.md
+  [5.10.0]): `src/api/` moved to `src/html/api/`, `src/wsgi.py` moved to
+  `src/html/wsgi.py` alongside it, and `examples/apache/planetgen.conf.example`
+  gained a `WSGIScriptAlias /api` plus a deny-all `<Directory>` block for
+  `html/api/` (mirroring the existing one for `html/lib/`) so its raw
+  source is never directly requestable.
 
 ## File Management
 

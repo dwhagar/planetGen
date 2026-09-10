@@ -1,4 +1,4 @@
-# api/routes.py
+# html/api/routes.py
 
 """
 JSON endpoints over the planetGen database.

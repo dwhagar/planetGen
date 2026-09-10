@@ -1,4 +1,4 @@
-# api/app.py
+# html/api/app.py
 
 """
 Flask application factory for the planetGen API.

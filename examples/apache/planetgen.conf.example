@@ -1,31 +1,37 @@
 # examples/apache/planetgen.conf.example
 #
 # Example Apache2 virtual host for the planetGen database browser
-# (docs/html-interface.md documents the application itself). Copy this file to
+# (docs/html-interface.md documents the application itself) and the
+# read-only JSON API (docs/api.md) that now lives alongside it under the
+# same DocumentRoot. Copy this file to
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
-#   sudo a2enmod cgid
+#   sudo a2enmod cgid wsgi
 #   sudo a2ensite planetgen
 #   sudo systemctl reload apache2
 #
 # `cgid` (the threaded MPM-safe CGI module) is preferred over the older
 # `cgi` module; either works, but `cgid` is required if apache2 is running
 # mpm_event or mpm_worker (the Ubuntu default), since plain `mod_cgi` only
-# supports mpm_prefork.
+# supports mpm_prefork. `wsgi` (libapache2-mod-wsgi-py3) serves the API
+# (`html/wsgi.py`) -- skip that module and the WSGIScriptAlias block below
+# if you only want the CGI browser.
 #
 # Expected layout on the server (see the repo's set-permissions.sh, which
 # assumes this same layout):
 #
 #   /var/lib/planetGen/
-#     html/     -- this vhost's DocumentRoot (the repo's html/ directory)
+#     html/     -- this vhost's DocumentRoot (the repo's html/ directory),
+#                  api/ included (moved there from src/api/ so the API
+#                  deploys from the same tree instead of a second location)
 #     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
 #                   particular), so html/'s scripts can import the
 #                   planetGen package without a separate `pip install`
 #
 # The database itself is a MySQL server, not a local file under this
-# layout (TODO.md Phase 5) -- point the CGI scripts at it with the
-# PLANETGEN_MYSQL_* SetEnv directives below.
+# layout (TODO.md Phase 5) -- point the CGI scripts and the API at it with
+# the PLANETGEN_MYSQL_* SetEnv directives below.
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
@@ -35,6 +41,18 @@
     # if any differs from stellarObjects._db.MySQLConfig's own defaults
     # (127.0.0.1:3306, user/database "planetgen"). Use a SELECT-only
     # database account here -- this web interface never writes.
+    #
+    # This only configures the CGI browser above, NOT the mod_wsgi API
+    # below: mod_cgi(d) copies SetEnv values into each CGI script's real
+    # process environment, but mod_wsgi only exposes them through the
+    # per-request WSGI `environ` dict, never `os.environ` -- and
+    # html/api/config.py reads PLANETGEN_MYSQL_* from `os.environ` once,
+    # at process startup, before any request (and its `environ` dict) has
+    # ever existed. To point the API at a different database, export the
+    # same variables in the Apache service's own process environment
+    # instead (e.g. `/etc/apache2/envvars`, or an `Environment=` line on
+    # the apache2 systemd unit) -- every mod_wsgi interpreter inherits
+    # that, unlike SetEnv.
     # SetEnv PLANETGEN_MYSQL_HOST db.example.com
     # SetEnv PLANETGEN_MYSQL_PORT 3306
     # SetEnv PLANETGEN_MYSQL_USER planetgen_readonly
@@ -47,6 +65,16 @@
         DirectoryIndex index.py
         Require all granted
     </Directory>
+
+    # html/wsgi.py isn't a CGI script -- it's mounted at /api below via
+    # WSGIScriptAlias, which takes priority for that URL prefix, but a
+    # direct request for /wsgi.py would still fall through to the
+    # <Directory html> CGI handler above and try (and fail) to execute it
+    # as one. Deny that path directly rather than relying on the alias
+    # always winning.
+    <Files "wsgi.py">
+        Require all denied
+    </Files>
 
     # html/lib/ holds shared Python modules imported by the CGI scripts,
     # not pages of their own -- deny it outright rather than relying on
@@ -61,6 +89,17 @@
     <Directory /var/lib/planetGen/src/html/static>
         Options -ExecCGI -Indexes
         Require all granted
+    </Directory>
+
+    # Mounts the Flask API (docs/api.md) at /api, handled by mod_wsgi via
+    # html/wsgi.py rather than the CGI handler above -- WSGIScriptAlias
+    # takes priority over the <Directory html> CGI config for this URL
+    # prefix. html/api/ itself holds only importable Python source (never
+    # requested directly), so it gets the same deny-all belt-and-suspenders
+    # treatment as html/lib/ above.
+    WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py
+    <Directory /var/lib/planetGen/src/html/api>
+        Require all denied
     </Directory>
 
     ErrorLog ${APACHE_LOG_DIR}/planetgen_error.log

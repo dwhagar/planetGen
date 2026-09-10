@@ -79,7 +79,7 @@ class MySQLConfig:
     """
     MySQL connection parameters, read from environment variables --
     mirrors every other entry point in this project (`sectorGen.py`,
-    `systemGen.py`, `queryDb.py`, `api/config.py`) reading its own
+    `systemGen.py`, `queryDb.py`, `html/api/config.py`) reading its own
     `PLANETGEN_*` variable rather than hardcoding a value, so a deployment
     points every tool at the same server via its process environment
     (e.g. the Apache vhost's `SetEnv`, or a `systemd`/`gunicorn` unit's
