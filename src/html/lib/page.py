@@ -70,6 +70,20 @@ def incoming_cookie_header():
     return os.environ.get("HTTP_COOKIE")
 
 
+def _write_security_headers():
+    """
+    Written by both `send_headers` and `redirect` -- `'self'` in the CSP
+    is safe for every page this browser renders: `render()`'s shared shell
+    (see below) only ever loads `static/style.css` and each page's own
+    `static/*.js`, both same-origin, and no page here builds an inline
+    `<script>`/`<style>` block from request- or database-derived content.
+    """
+    sys.stdout.write("X-Content-Type-Options: nosniff\r\n")
+    sys.stdout.write("X-Frame-Options: DENY\r\n")
+    sys.stdout.write("Referrer-Policy: no-referrer\r\n")
+    sys.stdout.write("Content-Security-Policy: default-src 'self'\r\n")
+
+
 def send_headers(status="200 OK", set_cookie_headers=None):
     """
     Writes the CGI response status + header block, terminated by the
@@ -91,6 +105,7 @@ def send_headers(status="200 OK", set_cookie_headers=None):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.write(f"Status: {status}\r\n")
     sys.stdout.write("Content-Type: text/html; charset=utf-8\r\n")
+    _write_security_headers()
     for cookie in set_cookie_headers or []:
         sys.stdout.write(f"Set-Cookie: {cookie}\r\n")
     sys.stdout.write("\r\n")
@@ -120,6 +135,7 @@ def redirect(url, set_cookie_headers=None):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.write("Status: 302 Found\r\n")
     sys.stdout.write(f"Location: {url}\r\n")
+    _write_security_headers()
     for cookie in set_cookie_headers or []:
         sys.stdout.write(f"Set-Cookie: {cookie}\r\n")
     sys.stdout.write("\r\n")

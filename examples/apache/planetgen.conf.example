@@ -7,7 +7,7 @@
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
-#   sudo a2enmod cgid wsgi
+#   sudo a2enmod cgid wsgi headers
 #   sudo a2ensite planetgen
 #   sudo systemctl reload apache2
 #
@@ -16,7 +16,9 @@
 # mpm_event or mpm_worker (the Ubuntu default), since plain `mod_cgi` only
 # supports mpm_prefork. `wsgi` (`libapache2-mod-wsgi-py3` on Debian/
 # Ubuntu) serves the API (`html/wsgi.py`) -- skip that module and the
-# WSGIScriptAlias block below if you only want the CGI browser.
+# WSGIScriptAlias block below if you only want the CGI browser. `headers`
+# is needed for the `Header always set ...` lines below regardless of
+# which of those two you use.
 #
 # Expected layout on the server (see the repo's set-permissions.sh, which
 # assumes this same layout):
@@ -48,6 +50,16 @@
 <VirtualHost *:80>
     ServerName planetgen.example.com
     DocumentRoot /var/lib/planetGen/src/html
+
+    # Defense-in-depth response headers applied to every response from
+    # this vhost -- CGI pages, the API, and static/ alike. html/api/app.py
+    # and html/lib/page.py already set the same ones (plus a stricter,
+    # surface-specific Content-Security-Policy of their own) on their own
+    # responses; this is a floor underneath both, not the only place
+    # they're decided, so static/'s plain CSS/JS gets them too.
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "no-referrer"
 
     # Tell the CGI scripts which MySQL server/account to use. Only needed
     # if any differs from stellarObjects._db.MySQLConfig's own defaults
@@ -132,6 +144,12 @@
     # Python source (never requested directly), so it gets the same
     # deny-all belt-and-suspenders treatment as html/lib/ above.
     WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
+    # Keep `processes=1` unless PLANETGEN_RATELIMIT_STORAGE_URI (see
+    # html/api/config.py) is also set to a shared backend (e.g.
+    # redis://...): Flask-Limiter's default in-memory storage only counts
+    # requests correctly within a single process, and `create_app` logs a
+    # warning at startup if that assumption stops holding. `threads=5`
+    # alone shares this one process's memory, so it stays accurate.
     WSGIDaemonProcess planetgen-api processes=1 threads=5
     <Directory /var/lib/planetGen/src/html/api>
         Require all denied
@@ -141,6 +159,24 @@
     CustomLog ${APACHE_LOG_DIR}/planetgen_access.log combined
 </VirtualHost>
 
-# For HTTPS, terminate TLS the usual way (e.g. `certbot --apache`) or add
-# a second <VirtualHost *:443> block with SSLEngine/SSLCertificateFile
-# directives and the same DocumentRoot/Directory blocks above.
+# --- HTTPS ---
+# The `:80` VirtualHost above serves plain HTTP; a production deployment
+# should terminate TLS in front of it rather than serve real traffic this
+# way. Simplest path: `certbot --apache`, which rewrites the `:80` block
+# into a redirect and generates the `:443` block below for you. To do it
+# by hand instead:
+#
+#   1. Copy every line from `<VirtualHost *:80>` down to `</VirtualHost>`
+#      into a new `<VirtualHost *:443>` block, then add:
+#
+#        SSLEngine on
+#        SSLCertificateFile /etc/letsencrypt/live/planetgen.example.com/fullchain.pem
+#        SSLCertificateKeyFile /etc/letsencrypt/live/planetgen.example.com/privkey.pem
+#
+#   2. Replace the `:80` block's contents (keep `ServerName`) with a
+#      redirect to the `:443` one:
+#
+#        RewriteEngine On
+#        RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+#
+# Needs `a2enmod ssl rewrite` in addition to the modules enabled above.
