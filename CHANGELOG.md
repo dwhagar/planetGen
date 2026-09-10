@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.8.3] - 2026-09-10
+
+### Changed
+- **Provisional sector designation is now a single packed hex number.**
+  `provisional_sector_designation` (added in [5.8.2]) dropped its
+  `"R<ring>-Q<quadrant>-<slot>"` letter/dash format for a plain
+  bit-packed hex integer -- `ring` in the high bits, `quadrant - 1` in
+  the next 2, the raw `shell_slot_index` in the low 32
+  (`DESIGNATION_SLOT_BITS`/`DESIGNATION_QUADRANT_BITS`), e.g.
+  `"1500002EE0"` (was `"R5-Q2-2EE0"`). Genuinely reversible back to
+  `(ring, quadrant, shell_slot_index)` now too -- the fixed-width bit
+  fields have no ambiguous boundary the way concatenating separately-
+  sized hex numbers would.
+
 ## [5.8.2] - 2026-09-10
 
 ### Added
