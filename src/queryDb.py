@@ -38,7 +38,10 @@ import pymysql
 
 from stellarObjects._db import add_mysql_connection_args, get_connection, mysql_config_from_args
 from stellarObjects._version import VersionAction, version_banner
-from stellarObjects.utils import milliparsecs_to_ly
+from stellarObjects.navGraph import build_knn_adjacency, shortest_path
+from stellarObjects.navigation import course_between, warp_travel_times
+from stellarObjects.program_constants import NAV_ADJACENCY_K
+from stellarObjects.utils import milliparsecs_to_ly, pc_to_ly
 
 
 def open_readonly(config=None):
@@ -248,6 +251,236 @@ def systems_within_radius(conn, system_id, radius_ly):
 
     results.sort(key=lambda entry: entry["distance_ly"])
     return results
+
+
+class NavUnavailable(Exception):
+    """
+    Raised by `nav_between` when NAV is unavailable between two systems --
+    per the rule set NAV was designed against: either system isn't
+    assigned to a sector at all, or the two systems are in different
+    sectors and at least one of those sectors has no galaxy placement.
+    Distinct from a plain `ValueError` (raised for a system id that
+    doesn't exist at all -- see `_load_nav_endpoint`), so the API layer
+    can tell "no such system" (404) apart from "these two exist but NAV
+    doesn't apply to this pair" (400) without string-matching a message.
+    """
+
+
+def _load_nav_endpoint(conn, system_id):
+    """
+    Loads the sector placement and position (both sector-local and, when
+    the sector itself is galaxy-placed, absolute galaxy-frame) needed to
+    resolve one end of a NAV request.
+
+    There is no existing function that combines a sector's galaxy-frame
+    center (`sectors.center_x/y/z_pc`, parsecs) with a system's
+    sector-local offset (`star_systems.position_x/y/z_mpc`,
+    milliparsecs) into one absolute position -- both get converted to
+    light-years (`pc_to_ly`/`milliparsecs_to_ly`) and summed componentwise
+    here, since light-years is the unit `stellarObjects.navigation`
+    already works in for sector-local distances (see
+    `spaceSector.distance_between`).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        system_id (int): The `star_systems.id` to look up.
+
+    Returns:
+        dict: `sector_id` (int or None), `position_ly` (sector-local
+            `(x, y, z)` tuple, or None if unplaced), `galaxy_position_ly`
+            (absolute `(x, y, z)` tuple, or None if `sector_id` is None or
+            that sector has no galaxy placement).
+
+    Raises:
+        ValueError: If `system_id` doesn't exist.
+    """
+    row = conn.execute(
+        """
+        SELECT ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+               sec.center_x_pc, sec.center_y_pc, sec.center_z_pc
+        FROM star_systems ss
+        LEFT JOIN sectors sec ON sec.id = ss.sector_id
+        WHERE ss.id = ?
+        """,
+        (system_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"no star_systems row with id {system_id}")
+
+    if row["position_x_mpc"] is None:
+        return {"sector_id": row["sector_id"], "position_ly": None, "galaxy_position_ly": None}
+
+    position_ly = (
+        milliparsecs_to_ly(row["position_x_mpc"]),
+        milliparsecs_to_ly(row["position_y_mpc"]),
+        milliparsecs_to_ly(row["position_z_mpc"]),
+    )
+
+    galaxy_position_ly = None
+    if row["center_x_pc"] is not None:
+        galaxy_position_ly = (
+            pc_to_ly(row["center_x_pc"]) + position_ly[0],
+            pc_to_ly(row["center_y_pc"]) + position_ly[1],
+            pc_to_ly(row["center_z_pc"]) + position_ly[2],
+        )
+
+    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly}
+
+
+def _sector_local_positions(conn, sector_id):
+    """
+    Returns every placed system's sector-local position (in light-years)
+    within one sector -- the position set an in-sector NAV route's
+    adjacency graph is built from.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        sector_id (int): The sector to gather positions from.
+
+    Returns:
+        dict: `{star_systems.id: (x, y, z)}`, light-years, sector-local.
+    """
+    rows = conn.execute(
+        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "
+        "WHERE sector_id = ? AND position_x_mpc IS NOT NULL",
+        (sector_id,),
+    ).fetchall()
+    return {
+        row["id"]: (
+            milliparsecs_to_ly(row["position_x_mpc"]),
+            milliparsecs_to_ly(row["position_y_mpc"]),
+            milliparsecs_to_ly(row["position_z_mpc"]),
+        )
+        for row in rows
+    }
+
+
+def _galaxy_frame_positions(conn):
+    """
+    Returns every placed system's absolute galaxy-frame position (in
+    light-years) across every galaxy-placed sector -- the position set a
+    cross-sector NAV route's adjacency graph is built from. Systems in a
+    sector with no galaxy placement (`sectors.center_x_pc IS NULL`, e.g. a
+    standalone sector in a database with no galaxy at all) are excluded,
+    same as an unplaced system within a sector -- neither has an absolute
+    position to route through.
+
+    This necessarily only sees sectors that have actually been generated
+    and stored (see `galaxyGen.ensure_sector_generated`'s lazy generation),
+    not every sector a galaxy's skeleton says *could* exist -- there is no
+    position to route through for a sector nothing has visited yet either.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        dict: `{star_systems.id: (x, y, z)}`, light-years, galaxy-frame.
+    """
+    rows = conn.execute(
+        """
+        SELECT ss.id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+               sec.center_x_pc, sec.center_y_pc, sec.center_z_pc
+        FROM star_systems ss
+        JOIN sectors sec ON sec.id = ss.sector_id
+        WHERE ss.position_x_mpc IS NOT NULL AND sec.center_x_pc IS NOT NULL
+        """
+    ).fetchall()
+    positions = {}
+    for row in rows:
+        positions[row["id"]] = (
+            pc_to_ly(row["center_x_pc"]) + milliparsecs_to_ly(row["position_x_mpc"]),
+            pc_to_ly(row["center_y_pc"]) + milliparsecs_to_ly(row["position_y_mpc"]),
+            pc_to_ly(row["center_z_pc"]) + milliparsecs_to_ly(row["position_z_mpc"]),
+        )
+    return positions
+
+
+def nav_between(conn, from_system_id, to_system_id, adjacency_k=NAV_ADJACENCY_K):
+    """
+    Resolves full NAV information between two systems: a direct course
+    (distance/azimuth/altitude/warp travel times, from
+    `stellarObjects.navigation`) plus an optimal route via adjacent
+    systems (`stellarObjects.navGraph`), or raises if NAV doesn't apply to
+    this pair.
+
+    NAV availability rules (see docs/api.md's NAV section for the
+    user-facing statement of these):
+        - Either system not assigned to any sector -> unavailable.
+        - Same sector -> available, scoped to that sector's own systems
+          (sector-local positions).
+        - Different sectors, both galaxy-placed -> available, scoped to
+          every system in every galaxy-placed sector (absolute
+          galaxy-frame positions).
+        - Different sectors, either not galaxy-placed -> unavailable.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        from_system_id (int): The `star_systems.id` to route from.
+        to_system_id (int): The `star_systems.id` to route to.
+        adjacency_k (int): Passed through to
+            `navGraph.build_knn_adjacency` as `k`.
+
+    Returns:
+        dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
+            `navigation.Course`), `warp_times` (a list of
+            `navigation.WarpLeg`, for `direct.distance_ly`),
+            `origin_position`/`destination_position` (the `(x, y, z)`
+            light-year positions `direct` was computed from, in `scope`'s
+            frame -- sector-local for `"sector"`, galaxy-frame for
+            `"galaxy"`), and `route`: `None` if `from_system_id ==
+            to_system_id` or no path exists through the adjacency graph,
+            else `{"path": [...system ids...], "distance_ly": float,
+            "positions": {system_id: (x, y, z), ...}}` (one entry per id in
+            `path`, same frame as `origin_position`/`destination_position`
+            -- for rendering the route, e.g. `html/lib/navmap.py`, without
+            a second position lookup).
+
+    Raises:
+        ValueError: If either system id doesn't exist.
+        NavUnavailable: If NAV doesn't apply to this pair, per the rules
+            above. `str(exc)` explains why.
+    """
+    origin = _load_nav_endpoint(conn, from_system_id)
+    destination = _load_nav_endpoint(conn, to_system_id)
+
+    if origin["sector_id"] is None or destination["sector_id"] is None:
+        raise NavUnavailable("NAV requires both systems to be assigned to a sector")
+
+    if origin["sector_id"] == destination["sector_id"]:
+        scope = "sector"
+        positions = _sector_local_positions(conn, origin["sector_id"])
+        origin_position, destination_position = origin["position_ly"], destination["position_ly"]
+    else:
+        if origin["galaxy_position_ly"] is None or destination["galaxy_position_ly"] is None:
+            raise NavUnavailable(
+                "NAV between different sectors requires both sectors to have a galaxy placement"
+            )
+        scope = "galaxy"
+        positions = _galaxy_frame_positions(conn)
+        origin_position, destination_position = origin["galaxy_position_ly"], destination["galaxy_position_ly"]
+
+    direct = course_between(origin_position, destination_position)
+
+    route = None
+    if from_system_id != to_system_id:
+        graph = build_knn_adjacency(positions, adjacency_k)
+        found = shortest_path(graph, from_system_id, to_system_id)
+        if found is not None:
+            path, distance_ly = found
+            route = {
+                "path": path,
+                "distance_ly": distance_ly,
+                "positions": {system_id: positions[system_id] for system_id in path},
+            }
+
+    return {
+        "scope": scope,
+        "direct": direct,
+        "warp_times": warp_travel_times(direct.distance_ly),
+        "origin_position": origin_position,
+        "destination_position": destination_position,
+        "route": route,
+    }
 
 
 def process_args():

@@ -117,6 +117,135 @@ def galactic_radius_pc(position):
     return math.sqrt(x * x + y * y + z * z)
 
 
+def sector_ring(shell_index, edge_ly, ring_target_ly=100.0):
+    """
+    The Ring index -- a fixed-width band of consecutive `shell_index`
+    values approximately `ring_target_ly` light-years thick -- that
+    `shell_index` falls in. Matches `html/lib/galaxymap.py`'s own
+    identically-named Ring concept (the Galaxy Map's radial grouping)
+    exactly whenever it's called with the same `edge_ly` that module
+    displays -- always `program_constants.DEFAULT_SECTOR_EDGE_LY` today,
+    since nothing in this codebase varies a galaxy's sector edge length
+    once generation starts. Duplicated here (rather than importing that
+    CGI-only module) so this module stays usable from `galaxyGen.py`'s
+    CLI, which has no business depending on the web front-end layer.
+
+    Args:
+        shell_index (int): The shell index `k`.
+        edge_ly (float): The sector edge length, in light-years -- note
+                         this is light-years, unlike every other
+                         `edge_pc` parameter in this module (see
+                         `provisional_sector_designation`'s docstring on
+                         why).
+        ring_target_ly (float): The approximate light-year thickness a
+                                Ring should aim for. Defaults to 100.0,
+                                matching `html/lib/galaxymap.py`'s own
+                                `RING_TARGET_LY`.
+
+    Returns:
+        int: The Ring index.
+    """
+    ring_shell_width = max(1, round(ring_target_ly / edge_ly))
+    return shell_index // ring_shell_width
+
+
+def sector_quadrant(x_pc, y_pc):
+    """
+    Classifies a galaxy-frame `(x, y)` position into one of 4 azimuthal
+    Quadrants, numbered 1-4 counterclockwise from `+X` -- the same
+    `theta = atan2(y, x)` split as `html/lib/galaxymap.py`'s own
+    `sector_quadrant` (which labels the same four arcs "I"-"IV"), just a
+    plain int here for `provisional_sector_designation`'s digit.
+
+    Args:
+        x_pc (float): Galaxy-frame x. Any unit is fine (parsecs,
+                      light-years, ...) -- only the ratio to `y_pc`
+                      matters.
+        y_pc (float): Galaxy-frame y, same unit as `x_pc`.
+
+    Returns:
+        int: 1, 2, 3, or 4.
+    """
+    theta = math.atan2(y_pc, x_pc) % (2 * math.pi)
+    return min(3, int(theta // (math.pi / 2))) + 1
+
+
+DESIGNATION_SLOT_BITS = 32
+"""int: How many low bits of `provisional_sector_designation`'s packed
+integer are reserved for the raw `shell_slot_index`. 32 bits (up to
+~4.29 billion) comfortably covers even a Milky-Way-scale galaxy's largest
+shells -- ~227 million slots for a 15,000 pc galaxy, see
+`docs/design/galaxy-coordinate-system.md` section 3's own worked table --
+with enormous headroom to spare."""
+
+DESIGNATION_QUADRANT_BITS = 2
+"""int: How many bits above the slot field hold the Quadrant -- packed
+zero-based (`quadrant - 1`, i.e. 0-3) since exactly 4 values fit an exact
+2-bit field, then the Ring occupies every remaining higher bit."""
+
+
+def provisional_sector_designation(shell_index, shell_slot_index, edge_pc, edge_ly):
+    """
+    Builds a short provisional designation for a sector address as a
+    single hex number: Ring, Quadrant, and the raw slot index bit-packed
+    into one integer (`ring` in the high bits, `quadrant - 1` in the next
+    `DESIGNATION_QUADRANT_BITS`, `shell_slot_index` in the low
+    `DESIGNATION_SLOT_BITS`) and printed as plain uppercase hex, e.g.
+    `"1500002EE0"`. For referring to a `(shell_index, shell_slot_index)`
+    address before (or without) ever generating it, the way a real
+    astronomical catalog gives a not-yet-fully-characterized object a
+    provisional name derived from its position rather than waiting for a
+    proper one.
+
+    Deterministic and O(1) -- no scan over the shell's other slots is
+    needed (unlike, say, "the Nth sector generated in this Ring/Quadrant
+    so far" would require), consistent with this codebase's galaxy-
+    skeleton design principle of never doing per-sector work proportional
+    to a shell's slot count (which runs into the hundreds of millions for
+    an outer shell -- see docs/design/galaxy-coordinate-system.md section
+    9's storage-analysis addendum).
+
+    Genuinely reversible back to `(ring, quadrant, shell_slot_index)` --
+    the fixed-width bit fields have no ambiguous boundary the way
+    concatenating separately-sized hex numbers would. `ring` (see
+    `sector_ring`) is still a lossy bucket of `shell_index` though, so
+    this can't be unpacked all the way back to the exact `shell_index` --
+    a caller who needs the real address keeps it around itself; this
+    designation is a display label, not an addressing scheme of its own.
+
+    Args:
+        shell_index (int): The shell index `k`.
+        shell_slot_index (int): The slot index within the shell. Must be
+                                less than `2**DESIGNATION_SLOT_BITS` --
+                                true of every shell this codebase's
+                                galaxy-skeleton design targets (see
+                                `DESIGNATION_SLOT_BITS`'s own docstring).
+        edge_pc (float): The sector edge length, in parsecs -- passed
+                         straight through to `sector_position_pc` for the
+                         Quadrant lookup.
+        edge_ly (float): The same edge length, in light-years -- passed
+                         to `sector_ring`. Taken as a second parameter
+                         rather than converted from `edge_pc` internally
+                         because this module deliberately has no opinion
+                         on light-years (see the module docstring); a
+                         caller that already has one unit derives the
+                         other via `stellarObjects.utils`'
+                         `pc_to_ly`/`ly_to_pc` before calling in here.
+
+    Returns:
+        str: The designation, uppercase hex, e.g. `"1500002EE0"`.
+    """
+    x_pc, y_pc, _z_pc = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    ring = sector_ring(shell_index, edge_ly)
+    quadrant = sector_quadrant(x_pc, y_pc)
+    packed = (
+        (ring << (DESIGNATION_QUADRANT_BITS + DESIGNATION_SLOT_BITS))
+        | ((quadrant - 1) << DESIGNATION_SLOT_BITS)
+        | shell_slot_index
+    )
+    return f"{packed:X}"
+
+
 def sector_wedge_vertices_pc(shell_index, shell_slot_index, edge_pc):
     """
     Approximates the 8 vertices of the actual (non-cubic) cell a sector

@@ -792,6 +792,90 @@ a:focus-visible .galaxymap-star-core {
   min-width: 12rem;
 }
 
+/* NAV map: flat SVG plot of a NAV request's origin/destination/route
+   (html/lib/navmap.py, html/nav.py) -- a static plot with no static/*.js
+   file of its own, same reasoning as the Galaxy map above (a top-down,
+   height-blind projection has no "rotate to inspect" need). */
+.navmap-viewport {
+  width: min(100%, 22rem);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.navmap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.navmap-direct-line {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.navmap-route-line {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.navmap-point circle {
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.navmap-point text {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-sans);
+}
+
+.navmap-origin circle {
+  fill: var(--bg-elevated);
+  stroke: var(--text);
+}
+
+.navmap-destination circle {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.navmap-hop circle {
+  fill: var(--bg-subtle);
+  stroke: var(--text-muted);
+}
+
+a:hover .navmap-point circle,
+a:focus-visible .navmap-point circle {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.navmap-compass {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.navmap-compass-label {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-sans);
+}
+
+.navmap-scale-bar,
+.navmap-scale-tick {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.navmap-scale-label {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-sans);
+}
+
 /* Search page: tag facets, name-search form, active-filter chips */
 .tag-group {
   margin-bottom: 1.25rem;
@@ -862,7 +946,9 @@ a:focus-visible .galaxymap-star-core {
   flex: 1 1 12rem;
 }
 
-.search-field input[type="text"] {
+.search-field input[type="text"],
+.search-field input[type="number"],
+.search-field select {
   font: inherit;
   font-weight: 400;
   color: var(--text);
@@ -870,6 +956,14 @@ a:focus-visible .galaxymap-star-core {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.45rem 0.65rem;
+}
+
+.nav-route {
+  padding-left: 1.5rem;
+}
+
+.nav-route li {
+  margin: 0.2rem 0;
 }
 
 .search-actions {

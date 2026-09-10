@@ -1,5 +1,97 @@
 # Changelog
 
+## [5.8.3] - 2026-09-10
+
+### Changed
+- **Provisional sector designation is now a single packed hex number.**
+  `provisional_sector_designation` (added in [5.8.2]) dropped its
+  `"R<ring>-Q<quadrant>-<slot>"` letter/dash format for a plain
+  bit-packed hex integer -- `ring` in the high bits, `quadrant - 1` in
+  the next 2, the raw `shell_slot_index` in the low 32
+  (`DESIGNATION_SLOT_BITS`/`DESIGNATION_QUADRANT_BITS`), e.g.
+  `"1500002EE0"` (was `"R5-Q2-2EE0"`). Genuinely reversible back to
+  `(ring, quadrant, shell_slot_index)` now too -- the fixed-width bit
+  fields have no ambiguous boundary the way concatenating separately-
+  sized hex numbers would.
+
+## [5.8.2] - 2026-09-10
+
+### Added
+- **Provisional sector designations for un-generated/unvisited addresses.**
+  `stellarObjects.galaxyGeometry.provisional_sector_designation(shell_index,
+  shell_slot_index, edge_pc, edge_ly)` builds a short, human-readable label
+  for a `(shell_index, shell_slot_index)` sector address --
+  `R<ring>-Q<quadrant>-<slot>`, Ring and slot index in uppercase hex, Quadrant
+  a plain 1-4 digit (e.g. `"R5-Q2-2EE0"`) -- the way a real astronomical
+  catalog gives a not-yet-fully-characterized object a provisional name from
+  its position rather than waiting for one. `sector_ring`/`sector_quadrant`
+  (new, duplicating `html/lib/galaxymap.py`'s identically-named Ring/Quadrant
+  concept in the dependency-free `galaxyGeometry` module so `galaxyGen.py`'s
+  CLI doesn't need to import the web front-end layer) back it, and are both
+  O(1) -- no scan over a shell's other slots, consistent with this codebase's
+  galaxy-skeleton design principle of never doing per-sector work
+  proportional to a shell's slot count. `galaxyGen.py`'s `--shell`/
+  `--center-sector` generation modes now print this designation alongside
+  each newly saved sector's procedural name and raw shell/slot numbers.
+
+## [5.8.1] - 2026-09-10
+
+### Added
+- **NAV Map: a rendered plot of the NAV feature's origin/destination/route.**
+  `queryDb.nav_between` now also returns `origin_position`/
+  `destination_position` (the light-year positions its `direct` course was
+  computed from) and, when a route was found, each hop's own position
+  (`route["positions"]`) -- surfaced from `GET /api/nav`'s JSON response
+  too (see `docs/api.md`'s updated "NAV" section). `src/html/lib/navmap.py`
+  builds a new "NAV Map" panel on `html/nav.py`'s results page from that
+  data: a flat, static, top-down SVG plot of the galactic X-Y plane --
+  origin and destination as labeled, clickable points, a dashed line for
+  the direct course, and a solid polyline through the optimal route's
+  intermediate hops when one exists. Modeled on `galaxymap.py`'s flat 2D
+  SVG rather than `starmap.py`'s rotatable 3D CSS scene: like a galaxy
+  Quadrant, it's deliberately blind to altitude (the course panel's own
+  Altitude figure already covers that axis), auto-scaled to whatever
+  points it's given (no fixed sector size to normalize against) with one
+  uniform light-years-per-pixel ratio on both axes so azimuth angles
+  aren't visually distorted, plus a `+X` compass tick tying the plot's
+  orientation to the course panel's own azimuth convention and a
+  light-year scale-bar legend. Closes the rendered-image gap the original
+  NAV feature (CHANGELOG [5.8.0]) left open in `docs/TODO.md` and
+  `src/api/routes.py`'s `systems_near` TODO comment.
+
+## [5.8.0] - 2026-09-10
+
+### Added
+- **NAV feature: course, distance, and optimal routing between two
+  systems.** Three new pure/query modules plus an API endpoint and a web
+  page:
+  - `stellarObjects/navigation.py` -- `course_between` (Euclidean
+    distance plus galactic-plane-relative azimuth/altitude: azimuth from
+    +X in the galactic X-Y plane, altitude as elevation above/below that
+    plane) and `warp_travel_times` (`velocity_multiple_of_c = warp_factor
+    ** (10/3)`, reported at warp 1/3/6/9, formatted via the existing
+    `utils.years_to_time_string`).
+  - `stellarObjects/navGraph.py` -- `build_knn_adjacency` (a symmetrized
+    k-nearest-neighbor adjacency graph over a `{id: (x, y, z)}` position
+    set) and `shortest_path` (Dijkstra) for the "optimal route via
+    adjacent systems" half of NAV.
+  - `queryDb.nav_between` -- resolves NAV availability between two
+    systems (unavailable if either has no sector; same-sector always
+    available; cross-sector only when both sectors have a galaxy
+    placement), combining a sector's galaxy-frame center (parsecs) with a
+    system's sector-local offset (milliparsecs) into one absolute
+    position (no such combinator existed before this), then returns the
+    direct course plus the optimal route.
+  - `GET /api/nav?from=<id>&to=<id>` -- JSON endpoint over `nav_between`,
+    `404` for an unknown system id, `400` (`NavUnavailable`) when NAV
+    doesn't apply to the pair. See `docs/api.md`'s new "NAV" section.
+  - `src/html/nav.py` -- a destination picker (a `<select>` of the
+    origin's own sector-mates, plus a typed destination-id field when
+    cross-sector NAV is available) and a results page (direct course,
+    warp travel times, and the hop-by-hop optimal route, each hop linking
+    to `system.py`). `system.py` links here ("Navigate from here")
+    whenever a system has a sector.
+
 ## [5.7.0] - 2026-09-09
 
 ### Changed

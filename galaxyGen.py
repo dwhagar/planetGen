@@ -84,7 +84,8 @@ from stellarObjects import _db, program_constants
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.galaxyDensity import predicted_star_count, relative_density
 from stellarObjects.galaxyGeometry import (
-    enumerate_sectors_within_radius, galactic_radius_pc, sector_position_pc, shell_sector_count,
+    enumerate_sectors_within_radius, galactic_radius_pc, provisional_sector_designation,
+    sector_position_pc, shell_sector_count,
 )
 from stellarObjects.sectorGeometry import prism_vertices
 from stellarObjects.utils import ly_to_pc, pc_to_ly
@@ -436,7 +437,10 @@ def run_shell_batch(args, edge_pc):
         position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
         sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, position_pc, edge_pc)
         generated += 1
-        print(f"Saved sector '{sector_name}' at shell {shell_index} slot {slot_index} (sector_id={sector_id}).")
+        designation = provisional_sector_designation(
+            shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
+        )
+        print(f"Saved sector '{sector_name}' [{designation}] at shell {shell_index} slot {slot_index} (sector_id={sector_id}).")
 
     already_existed = len(occupied)
     print(
@@ -498,8 +502,11 @@ def run_local_neighborhood(args, edge_pc):
 
         sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z), edge_pc)
         generated += 1
+        designation = provisional_sector_designation(
+            shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
+        )
         print(
-            f"Saved sector '{sector_name}' at shell {shell_index} slot {slot_index}, "
+            f"Saved sector '{sector_name}' [{designation}] at shell {shell_index} slot {slot_index}, "
             f"{distance_pc:.2f} pc from sector_id={args.center_sector} (sector_id={sector_id})."
         )
 

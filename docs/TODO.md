@@ -108,7 +108,7 @@ and git history.
   other habitable classes -- P already has a working `albedo_range` from an
   earlier pass and wasn't part of this round's ordered list; W has the
   day/night structural gap noted above.
-- [ ] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`.
+- [x] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`. Done via the NAV feature (CHANGELOG.md [5.8.0]): `GET /api/nav`/`src/html/nav.py` give course/distance/route between two systems. The rendered-image gap that first pass left open is closed too (CHANGELOG.md [5.8.1]): `src/html/lib/navmap.py`'s "NAV Map" panel plots the origin, destination, and route hops as a flat, top-down SVG in the galactic X-Y plane (deliberately blind to altitude, same as the Galaxy Map's Quadrant view -- the course panel's own Altitude figure already covers that axis).
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and src/html/search.py near `_planets_panel`.
 - [ ] Still open from the file-system cleanup (5.3.2/5.3.3): consider
