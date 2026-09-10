@@ -28,7 +28,10 @@ from stellarObjects.galaxyGeometry import (
     slot_index_bounds_for_phi_range,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
+    provisional_sector_designation,
     sector_position_pc,
+    sector_quadrant,
+    sector_ring,
     sector_wedge_vertices_pc,
     shell_radius_pc,
     shell_sector_count,
@@ -75,6 +78,54 @@ def test_sector_position_pc_rejects_out_of_range_slot_index():
         sector_position_pc(0, n_0, EDGE_PC)  # exactly one past the end
     with pytest.raises(ValueError):
         sector_position_pc(0, -1, EDGE_PC)
+
+
+# ---------------------------------------------------------------------------
+# sector_ring / sector_quadrant / provisional_sector_designation -- the
+# human-readable "R<ring>-Q<quadrant>-<slot>" label for a not-yet-generated
+# (or not-yet-visited) sector address, matching html/lib/galaxymap.py's own
+# Ring/Quadrant concept but duplicated here so galaxyGen.py's CLI doesn't
+# need to depend on that CGI-only module.
+# ---------------------------------------------------------------------------
+
+DEFAULT_EDGE_LY = 11.5  # matches program_constants.DEFAULT_SECTOR_EDGE_LY
+
+
+@pytest.mark.parametrize("shell_index,expected_ring", [
+    (0, 0), (8, 0), (9, 1), (17, 1), (18, 2), (50, 5),
+])
+def test_sector_ring_matches_galaxymap_9_shell_bands(shell_index, expected_ring):
+    # html/lib/galaxymap.py's RING_SHELL_WIDTH is round(100 / 11.5) = 9 --
+    # cross-checked by hand here rather than importing that module.
+    assert sector_ring(shell_index, DEFAULT_EDGE_LY) == expected_ring
+
+
+def test_sector_ring_clamps_shell_width_to_at_least_1():
+    # An edge length larger than the ring target must not divide by 0 or
+    # produce a 0-width band.
+    assert sector_ring(5, edge_ly=500.0) == 5
+
+
+@pytest.mark.parametrize("x_pc,y_pc,expected_quadrant", [
+    (1.0, 0.0, 1), (0.0, 1.0, 2), (-1.0, 0.0, 3), (0.0, -1.0, 4),
+    (1.0, 1.0, 1), (-1.0, 1.0, 2), (-1.0, -1.0, 3), (1.0, -1.0, 4),
+])
+def test_sector_quadrant_returns_1_through_4_counterclockwise_from_plus_x(x_pc, y_pc, expected_quadrant):
+    assert sector_quadrant(x_pc, y_pc) == expected_quadrant
+
+
+def test_provisional_sector_designation_matches_worked_example():
+    # Reuses test_sector_position_pc_matches_design_doc_worked_example's
+    # shell=50/slot=12000 position (x=-144.4, y=94.2 -> Quadrant II/2;
+    # shell 50 -> ring 5 per the table above; slot 12000 = 0x2EE0).
+    designation = provisional_sector_designation(50, 12000, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
+    assert designation == "R5-Q2-2EE0"
+
+
+def test_provisional_sector_designation_is_deterministic():
+    first = provisional_sector_designation(50, 12000, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
+    second = provisional_sector_designation(50, 12000, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
+    assert first == second
 
 
 # ---------------------------------------------------------------------------

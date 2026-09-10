@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.8.2] - 2026-09-10
+
+### Added
+- **Provisional sector designations for un-generated/unvisited addresses.**
+  `stellarObjects.galaxyGeometry.provisional_sector_designation(shell_index,
+  shell_slot_index, edge_pc, edge_ly)` builds a short, human-readable label
+  for a `(shell_index, shell_slot_index)` sector address --
+  `R<ring>-Q<quadrant>-<slot>`, Ring and slot index in uppercase hex, Quadrant
+  a plain 1-4 digit (e.g. `"R5-Q2-2EE0"`) -- the way a real astronomical
+  catalog gives a not-yet-fully-characterized object a provisional name from
+  its position rather than waiting for one. `sector_ring`/`sector_quadrant`
+  (new, duplicating `html/lib/galaxymap.py`'s identically-named Ring/Quadrant
+  concept in the dependency-free `galaxyGeometry` module so `galaxyGen.py`'s
+  CLI doesn't need to import the web front-end layer) back it, and are both
+  O(1) -- no scan over a shell's other slots, consistent with this codebase's
+  galaxy-skeleton design principle of never doing per-sector work
+  proportional to a shell's slot count. `galaxyGen.py`'s `--shell`/
+  `--center-sector` generation modes now print this designation alongside
+  each newly saved sector's procedural name and raw shell/slot numbers.
+
 ## [5.8.1] - 2026-09-10
 
 ### Added
