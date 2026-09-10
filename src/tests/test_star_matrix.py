@@ -114,6 +114,34 @@ def test_white_dwarfs_have_infinite_lifespan(yerkes_class):
         assert prog_c.WHITE_DWARF_MIN_AGE_GY <= s.age <= prog_c.WHITE_DWARF_MAX_AGE_GY
 
 
+def test_subdwarf_age_never_exceeds_universe_age():
+    """
+    Regression test for "subdwarf (Yerkes VI) age modeling" (see
+    CHANGELOG.md and docs/TODO.md's now-resolved "Future ideas" entry):
+    before Yerkes VI got its own age-generation path, it was routed through
+    the generic evolved-star branch, which derives age/lifespan from the
+    star's own generated mass -- but class VI's *entire* allowed mass range
+    (0.1-0.8 Msun) implies a main-sequence lifespan longer than the age of
+    the universe on its own, and generate_star deliberately samples a
+    subdwarf's mass uniformly across that whole range (unlike every other
+    evolved class, see _sample_evolved_star_mass_sol's docstring for why).
+    That combination meant a generated subdwarf's age came out equal to its
+    own (pre-Big-Bang) implied main-sequence lifespan, routinely hundreds of
+    billions of years old. Every subdwarf's age must now stay within the
+    age of the universe regardless.
+    """
+    for spec in SPECTRAL_CLASSES:
+        for _ in range(TRIALS):
+            s = make_star(f"{spec}5VI")
+            assert s.age <= prog_c.UNIVERSE_AGE_GY * 1.001, (
+                f"{spec}5VI: age {s.age} Gy exceeds the age of the universe "
+                f"({prog_c.UNIVERSE_AGE_GY} Gy)"
+            )
+            assert prog_c.SUBDWARF_MIN_AGE_GY * 0.999 <= s.age <= prog_c.SUBDWARF_MAX_AGE_GY * 1.001
+            assert math.isfinite(s.lifespan)
+            assert s.age <= s.lifespan * 1.001
+
+
 @pytest.mark.parametrize("yerkes_class", ["II", "III", "IV", "IB", "IAB", "IA", "IA+", "0"])
 def test_evolved_stars_are_at_least_as_old_as_their_own_main_sequence_lifespan(yerkes_class):
     """

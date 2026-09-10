@@ -1,5 +1,44 @@
 # Changelog
 
+## [5.10.1] - 2026-09-10
+
+### Fixed
+- **Subdwarf (Yerkes VI) age modeling could produce a pre-Big-Bang star.**
+  `Star._calculate_initial_star_age_and_lifespan` routed every non-main-
+  sequence, non-white-dwarf Yerkes class (giants, subgiants, bright
+  giants, supergiants, hypergiants, *and* subdwarfs) through the same
+  model: derive main-sequence lifespan from the star's own already-
+  generated mass, then draw age from the post-main-sequence window. That
+  model's mass-sampling side already got a reject-and-resample guard
+  against pre-Big-Bang progenitor masses ([5.3.1]) for every class it
+  applies to -- except Yerkes VI, deliberately excluded because its
+  *entire* allowed mass range (0.1-0.8 Msun) implies a main-sequence
+  lifespan longer than the age of the universe, so every draw would have
+  been rejected. That left subdwarfs still running through the age *model*
+  itself, unguarded, which routinely produced ages of hundreds of billions
+  of years -- because real subdwarfs (sdB/sdO) are thought to form via
+  binary mass-stripping near the tip of a lower/intermediate-mass
+  progenitor's red-giant branch, not single-star post-main-sequence
+  evolution, so this star's own post-strip mass was never a valid stand-in
+  for a progenitor's main-sequence lifespan in the first place -- the
+  model was wrong for this class, not just missing a guard rail (flagged
+  as an open design question in `docs/TODO.md`'s "Future ideas" ever
+  since).
+  - Yerkes VI now has its own age-generation branch, entirely independent
+    of the star's own mass: age is drawn directly from a dedicated,
+    old-population-biased range (new `program_constants.SUBDWARF_MIN_AGE_GY`
+    /`SUBDWARF_MAX_AGE_GY`, 1.0-13.5 Gy, with the same young/old
+    `SystemConfig.AGE` bias every other branch applies), reflecting that
+    real subdwarf progenitors are typically old, low-mass population stars
+    (a short-lived, higher-mass star wouldn't have had time to reach the
+    RGB tip and get stripped). Lifespan is that age plus a short
+    remaining-phase window (new `SUBDWARF_REMAINING_PHASE_MIN_GY`/
+    `_MAX_GY`, 0.05-0.3 Gy) rather than a separately-derived value, since
+    the real core-helium-burning subdwarf phase is short relative to the
+    age itself.
+  - New regression test `test_subdwarf_age_never_exceeds_universe_age`
+    (`test_star_matrix.py`) locks this in across every spectral letter.
+
 ## [5.10.0] - 2026-09-10
 
 ### Changed

@@ -206,22 +206,44 @@ WHITE_DWARF_AGE_ADDITION_GY = 5
 # cooling ages of ~12-13 Gy, close to the age of the universe.
 WHITE_DWARF_MIN_AGE_GY = 0.1
 WHITE_DWARF_MAX_AGE_GY = 12.0
-# For any evolved-star Yerkes class other than main-sequence (V) or white
-# dwarf (VII/D) -- giants, subgiants, bright giants, supergiants,
-# hypergiants, subdwarfs -- the current spectral letter reflects only
-# present-day temperature, not a lifespan (see get_star_evolutionary_profile
-# in utils.py for the same issue on the planet-life side). Instead, the
-# star's own already-generated mass is run through the standard
-# mass-luminosity-based main-sequence lifetime scaling (the same
-# t = 10 Gy * (M/Msun)^-2.5 relation used to derive the STAR_EVOLUTION
-# table above, anchored to the Sun), then extended by the standard
-# rule-of-thumb that a star spends about 90% of its total lifetime on the
-# main sequence -- so the star must already be at least as old as that
-# main-sequence lifespan (it has to have finished that phase to be observed
-# as an evolved class), and at most its total (MS + post-MS) lifespan.
+# For any evolved-star Yerkes class other than main-sequence (V), white
+# dwarf (VII/D), or subdwarf (VI, see below) -- giants, subgiants, bright
+# giants, supergiants, hypergiants -- the current spectral letter reflects
+# only present-day temperature, not a lifespan (see
+# get_star_evolutionary_profile in utils.py for the same issue on the
+# planet-life side). Instead, the star's own already-generated mass is run
+# through the standard mass-luminosity-based main-sequence lifetime scaling
+# (the same t = 10 Gy * (M/Msun)^-2.5 relation used to derive the
+# STAR_EVOLUTION table above, anchored to the Sun), then extended by the
+# standard rule-of-thumb that a star spends about 90% of its total lifetime
+# on the main sequence -- so the star must already be at least as old as
+# that main-sequence lifespan (it has to have finished that phase to be
+# observed as an evolved class), and at most its total (MS + post-MS)
+# lifespan.
 SOLAR_MS_LIFESPAN_GY = 10.0
 MS_LIFESPAN_MASS_EXPONENT = -2.5
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
+# Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
+# mass-derived model above -- not just from its mass-sampling rejection
+# check (_sample_evolved_star_mass_sol), but from the model itself. Real
+# subdwarfs are thought to form via binary mass-stripping near the tip of a
+# lower/intermediate-mass progenitor's red-giant branch, not through
+# ordinary single-star post-main-sequence evolution, so a star's *current*
+# (post-strip) mass has no direct relationship to its progenitor's own
+# main-sequence lifespan the way it does for an ordinary giant/supergiant --
+# using it that way is what let a generated subdwarf's age come out older
+# than the universe (formerly tracked in TODO.md's Future Ideas). Real
+# subdwarf progenitors are typically old, low-mass population stars (a
+# short-lived, higher-mass star wouldn't have had time to reach the RGB
+# tip and get stripped), so age is instead drawn directly from an
+# old-population-biased range, independent of this star's own mass. The
+# core-helium-burning subdwarf phase itself is short relative to that age
+# (real sdB stars: roughly 0.05-0.3 Gy) -- see
+# Star._calculate_initial_star_age_and_lifespan's Yerkes-VI branch.
+SUBDWARF_MIN_AGE_GY = 1.0
+SUBDWARF_MAX_AGE_GY = 13.5
+SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
+SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # A sub-solar-mass progenitor (roughly under ~0.88 Msun, per the
 # SOLAR_MS_LIFESPAN_GY/MS_LIFESPAN_MASS_EXPONENT formula above) already has
 # a main-sequence lifespan longer than the universe itself -- it couldn't

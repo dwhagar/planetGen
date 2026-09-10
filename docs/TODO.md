@@ -312,19 +312,27 @@ around `install.sh`/`update.sh`/`examples/apache/set-permissions.sh`.
 
 ## Future ideas — not scheduled, just parking so it isn't lost
 
-- [ ] **Subdwarf (Yerkes VI) progenitor mass/age modeling is a known gap**:
+- [x] **Subdwarf (Yerkes VI) progenitor mass/age modeling was a known gap**:
   fixing the pre-Big-Bang evolved-star mass issue required excluding
   Yerkes class VI from the new mass-sampling check, because its *entire*
   allowed mass range (0.1-0.8 Msun,
   `physical_constants.YERKES_MASS_CONSTRAINTS["VI"]`) sits below the
   ~0.88 Msun cutoff where a progenitor's own main-sequence lifespan would
   already exceed `UNIVERSE_AGE_GY` — every possible mass would be
-  rejected. `Star._calculate_initial_star_age_and_lifespan` still runs
+  rejected. `Star._calculate_initial_star_age_and_lifespan` still ran
   subdwarfs through the same "derive lifespan from progenitor mass"
   evolved-star logic as giants/supergiants, so a generated subdwarf's age
-  can still come out older than the universe. Real subdwarfs (sdB/sdO) are
+  could come out older than the universe. Real subdwarfs (sdB/sdO) are
   thought to form via binary mass-stripping rather than single-star
   post-main-sequence evolution, so the single-star progenitor-lifespan
-  model may just be the wrong model for this class entirely — needs its
-  own design pass (a different age-generation path for VI, rather than
-  another mass-sampling tweak).
+  model was just the wrong model for this class entirely — needed its own
+  design pass (a different age-generation path for VI, rather than
+  another mass-sampling tweak). Done (CHANGELOG.md [5.10.1]): Yerkes VI
+  now has its own age-generation branch, independent of this star's own
+  mass — age drawn directly from a dedicated, old-population-biased range
+  (`program_constants.SUBDWARF_MIN/MAX_AGE_GY`), lifespan set to that age
+  plus a short remaining-phase window
+  (`SUBDWARF_REMAINING_PHASE_MIN/MAX_GY`, reflecting the real, short
+  core-helium-burning subdwarf phase) rather than derived from mass at
+  all. See `test_subdwarf_age_never_exceeds_universe_age` in
+  `test_star_matrix.py`.
