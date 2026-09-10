@@ -169,6 +169,64 @@ def test_systems_near_requires_radius(client, seeded_sector):
     assert system_ids[1] in other_ids
 
 
+def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sector):
+    _config, _sector_id, system_ids = seeded_sector
+
+    response = client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["scope"] == "sector"
+    assert body["direct"]["distance_ly"] > 0
+    assert set(body["direct"]) == {"distance_ly", "azimuth_deg", "altitude_deg"}
+    assert [leg["warp_factor"] for leg in body["warp_times"]] == [1, 3, 6, 9]
+    assert body["route"]["path"] == [system_ids[0], system_ids[1]]
+
+
+def test_nav_requires_from_and_to(client, seeded_sector):
+    _config, _sector_id, system_ids = seeded_sector
+
+    response = client.get(f"/api/nav?to={system_ids[0]}")
+    assert response.status_code == 400
+
+    response = client.get(f"/api/nav?from={system_ids[0]}")
+    assert response.status_code == 400
+
+    response = client.get(f"/api/nav?from=not-an-int&to={system_ids[0]}")
+    assert response.status_code == 400
+
+
+def test_nav_returns_404_for_unknown_system(client, seeded_sector):
+    _config, _sector_id, system_ids = seeded_sector
+
+    response = client.get(f"/api/nav?from={system_ids[0]}&to=999999999")
+    assert response.status_code == 404
+    assert "error" in response.get_json()
+
+
+def test_nav_returns_400_when_system_has_no_sector(client, mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        config_cur = conn.execute("INSERT INTO system_configs (markdown) VALUES (0)")
+        config_id = config_cur.lastrowid
+        origin_cur = conn.execute(
+            "INSERT INTO star_systems (sector_id, system_config_id, name, quadrant) VALUES (NULL, ?, ?, ?)",
+            (config_id, "Adrift", "I"),
+        )
+        origin_id = origin_cur.lastrowid
+        destination_cur = conn.execute(
+            "INSERT INTO star_systems (sector_id, system_config_id, name, quadrant) VALUES (NULL, ?, ?, ?)",
+            (config_id, "Alsoadrift", "I"),
+        )
+        destination_id = destination_cur.lastrowid
+        conn.commit()
+    finally:
+        conn.close()
+
+    response = client.get(f"/api/nav?from={origin_id}&to={destination_id}")
+    assert response.status_code == 400
+    assert "error" in response.get_json()
+
+
 def test_unmatched_route_returns_json_404(client):
     response = client.get("/api/no-such-route")
     assert response.status_code == 404

@@ -51,6 +51,8 @@ All under `/api/`, all JSON in, JSON out.
   moons, belts) (`stellarObjects._db.load_star_system(...).to_dict()`).
 - `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
   sector within `radius` light-years (`queryDb.systems_within_radius`).
+- `GET /api/nav?from=<id>&to=<id>` — course, distance, and an optimal route
+  between two systems (`queryDb.nav_between`) — see "NAV" below.
 
 ### Write (stubs — see below)
 
@@ -94,6 +96,68 @@ unsupported HTTP method is a `405`, exceeding a rate limit is a `429`
 and an unexpected server-side failure is a `500` — the API never falls
 through to Flask's default HTML error page or leaks a stack trace to the
 client (the real detail still reaches Flask's own logger).
+
+## NAV
+
+`GET /api/nav?from=<system_id>&to=<system_id>` returns a direct course
+(distance, azimuth, altitude, warp travel times) plus an optimal route via
+adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
+graph with Dijkstra shortest-path) between two systems.
+
+**Availability.** NAV only applies to a pair of systems that satisfy all of:
+
+- Both systems are assigned to a sector (`star_systems.sector_id IS NOT
+  NULL`) — a `404` (unknown system id) or a `400` with `"NAV requires both
+  systems to be assigned to a sector"` otherwise.
+- If the two systems are in different sectors, both of those sectors must
+  have a galaxy placement (`sectors.center_x/y/z_pc IS NOT NULL`, i.e. both
+  were placed by `galaxyGen.py`) — otherwise a `400` with `"NAV between
+  different sectors requires both sectors to have a galaxy placement"`.
+  Same-sector NAV never needs this — it works even in a database with no
+  galaxy generated at all.
+
+**Course convention.** Azimuth and altitude are both galactic-plane-relative
+(see `stellarObjects/navigation.py`'s module docstring): azimuth is the
+angle in the galactic X-Y plane measured counterclockwise from +X (0-360°),
+altitude is elevation above (+) or below (-) that plane (-90° to +90°) —
+not a bearing relative to any particular ship heading.
+
+**Response:**
+
+```json
+{
+  "scope": "sector",
+  "direct": {
+    "distance_ly": 4.0,
+    "azimuth_deg": 0.0,
+    "altitude_deg": 0.0
+  },
+  "warp_times": [
+    {"warp_factor": 1, "velocity_multiple_of_c": 1.0, "years": 4.0, "formatted": "4 years and 1 day"},
+    {"warp_factor": 3, "velocity_multiple_of_c": 38.94, "years": 0.1, "formatted": "37 days 12 hours and 27 minutes"},
+    {"warp_factor": 6, "velocity_multiple_of_c": 392.5, "years": 0.01, "formatted": "3 days 17 hours and 20 minutes"},
+    {"warp_factor": 9, "velocity_multiple_of_c": 1516.38, "years": 0.003, "formatted": "23 hours and 7 minutes"}
+  ],
+  "route": {
+    "path": [1, 3],
+    "distance_ly": 4.0
+  }
+}
+```
+
+- `scope`: `"sector"` (same-sector, sector-local positions) or `"galaxy"`
+  (cross-sector, absolute galaxy-frame positions).
+- `direct`: straight-line course from `from` to `to`.
+- `warp_times`: travel time for `direct.distance_ly` at warp 1, 3, 6, and 9
+  (`velocity_multiple_of_c = warp_factor ** (10/3)`), formatted via the same
+  duration formatter used elsewhere in this project.
+- `route`: the shortest path via adjacent systems (nodes: every system in
+  scope; edges: each system's `k`-nearest neighbors, symmetrized), as a list
+  of system ids from `from` to `to` inclusive, plus its total distance.
+  `null` if no path exists through the adjacency graph (only possible for
+  the `"galaxy"` scope — the `"sector"` scope's graph is always fully
+  reachable since every system in a sector gets an edge once `k` is at
+  least the sector's own system count minus one).
 
 ## Write endpoints
 

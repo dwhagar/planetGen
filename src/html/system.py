@@ -272,6 +272,18 @@ def handler():
             f'<span class="badge">{bit}</span>' for bit in summary_bits
         ) + "</p>"
 
+        nav_html = ""
+        if system["sector_id"] is not None:
+            # NAV needs a sector to measure a position from at all -- see
+            # queryDb.nav_between's own availability rules, which this only
+            # pre-checks the first (cheapest, no extra query) condition of.
+            # A system in a non-galaxy-placed sector still gets the link:
+            # same-sector NAV is always available once that much is true,
+            # nav.py itself works out whether cross-sector NAV also applies.
+            nav_html = (
+                f'<p><a class="btn" href="nav.py?db={esc(db_name)}&from={system_id}">Navigate from here</a></p>'
+            )
+
         location_html = ""
         if system["location"]:
             name_to_id = {}
@@ -297,6 +309,7 @@ def handler():
     body = f"""
 {back_html}
 {summary_html}
+{nav_html}
 {location_html}
 {map_html}
 {description_html}

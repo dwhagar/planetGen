@@ -33,10 +33,12 @@ authentication/authorization, neither of which exists yet).
 from flask import Blueprint, current_app, g, jsonify, request
 
 from queryDb import (
+    NavUnavailable,
     count_sectors,
     count_systems,
     list_sectors,
     list_systems,
+    nav_between,
     open_readonly,
     systems_within_radius,
 )
@@ -238,14 +240,12 @@ def system_detail(system_id):
 
 @bp.route("/systems/<int:system_id>/near")
 def systems_near(system_id):
-    # TODO: this endpoint already computes the distance between two placed
-    # systems (via `systems_within_radius`) but returns bare JSON -- there's
-    # no way to actually see the two points, just a number. A rendered
-    # image (even a simple 2D projection) or a small web-page
-    # visualization of "here's system A, here's system B, here's the line
-    # between them in galactic space" would build on this route's existing
-    # data rather than needing new queries. See docs/TODO.md, "Investigate
-    # Further".
+    # TODO: this endpoint still returns bare JSON, just a number -- there's
+    # no way to actually see the two points. `/api/nav` (see `nav` below)
+    # now covers course/distance/route between two systems with a web page
+    # (`html/nav.py`) around it, but still as numbers/links, not a
+    # rendered image. An actual 2D-projection plot of the two points would
+    # build on that same data. See docs/TODO.md, "Investigate Further".
     raw_radius = request.args.get("radius")
     if raw_radius is None:
         raise ApiError("radius query parameter is required")
@@ -265,6 +265,56 @@ def systems_near(system_id):
         # behavior just for this one caller.
         return jsonify({"error": str(exc)}), 404
     return jsonify(matches)
+
+
+def _parse_system_id_param(query_args, name):
+    """
+    Parses a required `<name>` query parameter as a `star_systems.id`.
+
+    Args:
+        query_args (werkzeug.datastructures.MultiDict): `request.args`.
+        name (str): The query parameter's name (`"from"` or `"to"`).
+
+    Returns:
+        int: The parsed id.
+
+    Raises:
+        ApiError: If the parameter is missing or not an integer.
+    """
+    raw_value = query_args.get(name)
+    if raw_value is None:
+        raise ApiError(f"{name} query parameter is required")
+    try:
+        return int(raw_value)
+    except ValueError:
+        raise ApiError(f"{name} must be an integer, got {raw_value!r}")
+
+
+@bp.route("/nav")
+def nav():
+    """
+    Course, distance, and optimal route between two systems -- see
+    `queryDb.nav_between` for the full availability rules (a system not
+    assigned to any sector, or two systems in different sectors where
+    either sector lacks a galaxy placement, both mean NAV isn't
+    available for that pair) and docs/api.md for the response shape.
+    """
+    from_id = _parse_system_id_param(request.args, "from")
+    to_id = _parse_system_id_param(request.args, "to")
+
+    try:
+        result = nav_between(get_db(), from_id, to_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except NavUnavailable as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify({
+        "scope": result["scope"],
+        "direct": result["direct"]._asdict(),
+        "warp_times": [leg._asdict() for leg in result["warp_times"]],
+        "route": result["route"],
+    })
 
 
 # ---------------------------------------------------------------------

@@ -862,7 +862,9 @@ a:focus-visible .galaxymap-star-core {
   flex: 1 1 12rem;
 }
 
-.search-field input[type="text"] {
+.search-field input[type="text"],
+.search-field input[type="number"],
+.search-field select {
   font: inherit;
   font-weight: 400;
   color: var(--text);
@@ -870,6 +872,14 @@ a:focus-visible .galaxymap-star-core {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.45rem 0.65rem;
+}
+
+.nav-route {
+  padding-left: 1.5rem;
+}
+
+.nav-route li {
+  margin: 0.2rem 0;
 }
 
 .search-actions {

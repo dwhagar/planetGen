@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.8.0] - 2026-09-10
+
+### Added
+- **NAV feature: course, distance, and optimal routing between two
+  systems.** Three new pure/query modules plus an API endpoint and a web
+  page:
+  - `stellarObjects/navigation.py` -- `course_between` (Euclidean
+    distance plus galactic-plane-relative azimuth/altitude: azimuth from
+    +X in the galactic X-Y plane, altitude as elevation above/below that
+    plane) and `warp_travel_times` (`velocity_multiple_of_c = warp_factor
+    ** (10/3)`, reported at warp 1/3/6/9, formatted via the existing
+    `utils.years_to_time_string`).
+  - `stellarObjects/navGraph.py` -- `build_knn_adjacency` (a symmetrized
+    k-nearest-neighbor adjacency graph over a `{id: (x, y, z)}` position
+    set) and `shortest_path` (Dijkstra) for the "optimal route via
+    adjacent systems" half of NAV.
+  - `queryDb.nav_between` -- resolves NAV availability between two
+    systems (unavailable if either has no sector; same-sector always
+    available; cross-sector only when both sectors have a galaxy
+    placement), combining a sector's galaxy-frame center (parsecs) with a
+    system's sector-local offset (milliparsecs) into one absolute
+    position (no such combinator existed before this), then returns the
+    direct course plus the optimal route.
+  - `GET /api/nav?from=<id>&to=<id>` -- JSON endpoint over `nav_between`,
+    `404` for an unknown system id, `400` (`NavUnavailable`) when NAV
+    doesn't apply to the pair. See `docs/api.md`'s new "NAV" section.
+  - `src/html/nav.py` -- a destination picker (a `<select>` of the
+    origin's own sector-mates, plus a typed destination-id field when
+    cross-sector NAV is available) and a results page (direct course,
+    warp travel times, and the hop-by-hop optimal route, each hop linking
+    to `system.py`). `system.py` links here ("Navigate from here")
+    whenever a system has a sector.
+
 ## [5.7.0] - 2026-09-09
 
 ### Changed
