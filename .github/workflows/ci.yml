@@ -67,4 +67,13 @@ jobs:
         run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
 
       - name: Scan installed dependencies for known vulnerabilities
-        run: pip install pip-audit && pip-audit
+        # PYSEC-2026-3740 (nltk): a path-sandbox bypass in its model
+        # persistence helpers (TransitionParser.train/parse,
+        # AveragedPerceptron.save/load, PerceptronTagger.save_to_json,
+        # save_maxent_params) -- unpatched upstream as of this writing.
+        # stellarObjects/names.py only ever calls nltk.corpus.words,
+        # nltk.data.find, and nltk.download, never any of the affected
+        # APIs, so this isn't reachable here. Ignored by ID (not skipped
+        # wholesale) so a real, relevant finding still fails this job, and
+        # so this line itself needs revisiting once a fix ships.
+        run: pip install pip-audit && pip-audit --ignore-vuln PYSEC-2026-3740
