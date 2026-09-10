@@ -5,15 +5,14 @@
 One-time import of an existing planetGen SQLite database (from before the
 MySQL port, TODO.md Phase 5) into a MySQL database.
 
-Only migrates a SQLite database already at schema v5 (`PRAGMA
-user_version`) -- the version every schema-version-N-to-N+1 migration
-this project ever shipped converted up to, and the same version this
+Only migrates a SQLite database already at the current `SCHEMA_VERSION`
+(`stellarObjects._db.SCHEMA_VERSION`, today v9) -- the same version this
 project's MySQL schema (`stellarObjects/schema.sql`) starts at. A SQLite
 database still on an older schema needs to go through a pre-MySQL-port
 release of this project first (any version through `migrateDb.py`'s old
 SQLite-to-SQLite `stellarObjects._db.migrate_database`, since removed --
 see git history/CHANGELOG.md for the last release that still had it) to
-reach v5, then through this script.
+reach that version, then through this script.
 
 The copy is column-name-preserving and generic across all 13 tables
 (`_TABLES_IN_FK_ORDER` below): every table in the current schema has the
@@ -124,7 +123,7 @@ def migrate(sqlite_path, mysql_config):
         mysql_config (MySQLConfig): Destination connection parameters.
 
     Raises:
-        SystemExit: If the source isn't schema v5, or can't be opened.
+        SystemExit: If the source isn't at the current SCHEMA_VERSION, or can't be opened.
     """
     try:
         sqlite_conn = sqlite3.connect(f"file:{sqlite_path}?mode=ro", uri=True)
@@ -153,7 +152,8 @@ def migrate(sqlite_path, mysql_config):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="One-time import of an existing schema-v5 SQLite database into MySQL.",
+        description="One-time import of an existing SQLite database (at the current schema "
+                    "version) into MySQL.",
     )
     parser.add_argument("sqlite_path", help="Path to the source SQLite .db file.")
     add_mysql_connection_args(parser)

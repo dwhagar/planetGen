@@ -179,9 +179,9 @@ wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
-— it only accepts a source already at schema v8, so a database still on
-an older SQLite schema needs a pre-MySQL-port release of this project
-first.
+— it only accepts a source already at the database's current
+`SCHEMA_VERSION` (today, v9), so a database still on an older SQLite
+schema needs a pre-MySQL-port release of this project first.
 
 ### Booleans and tri-state flags
 
@@ -204,6 +204,17 @@ individual stars/planets/moons are sections within that one page, not
 separate pages.
 
 ## Tables
+
+### `schema_migrations`
+
+One row per applied DDL migration step — see "Versioning" above. Not tied
+to any generated object; exists purely to track `MAX(version)` against
+`SCHEMA_VERSION`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `version` | INT | PK | |
+| `applied_at` | TIMESTAMP | NOT NULL, default `CURRENT_TIMESTAMP` | |
 
 ### `sectors`
 
@@ -449,7 +460,6 @@ above (the `binary_*` columns), not here.
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | |
 | `system_perimeter_km` | DOUBLE | NOT NULL | Hill sphere relative to the galaxy. |
 | `heliosphere_radius_km` | DOUBLE | NOT NULL | |
-| `table_type`, `table_radius`, `table_mass`, `table_temp`, `table_lum`, `table_hab`, `table_loc` | TEXT | NOT NULL | The "Star Data" table (`starData.py:488-509`), one column per key. Always present — every constituent star renders its own individual table even inside a binary (in addition to the combined `star_systems.binary_table_*` block). |
 
 ### `planets`
 

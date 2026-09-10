@@ -934,7 +934,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term):
 
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term):
     # TODO: no way to filter or sort by planet size (planets.radius_km)
-    # here -- see docs/TODO.md, "Investigate Further".
+    # here -- see docs/TODO.md, "Open items" > "Search".
     clauses, params = [], []
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -1159,7 +1159,7 @@ def process_args():
     # values, already exposed as a search facet in ../src/html/search.py)
     # plus a new --min-radius-km/--max-radius-km pair (or a --sort-by
     # radius_km flag) over the `planets`/`moons` tables' radius_km column.
-    # See docs/TODO.md, "Investigate Further".
+    # See docs/TODO.md, "Open items" > "Search".
 
     return parser.parse_args()
 

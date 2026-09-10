@@ -134,24 +134,15 @@ a "class M world".
 | `N` | Hot world with a dense, reducing atmosphere | terrestrial | e | no |
 | `O` | Pelagic (ocean) world, >90% liquid water | terrestrial | e | yes |
 | `P` | Cold, glaciated world | terrestrial | e | yes |
-| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | h, e, c | no |
-| `R` | Ejected, geologically active world (rogue-like) | terrestrial | none¹ | no |
-| `S` | Supergiant that shields the inner planets | gas giant | c | no |
+| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | yes |
 | `T` | Gas dwarf with a thick atmosphere | gas giant | c | no |
-| `U` | Ultragiant that could become a star | gas giant | c | no |
 | `V` | Super-Earth with high gravity | terrestrial | e | yes |
-| `W` | Tidally locked world, extreme temperature variation | terrestrial | h, e | yes |
-| `X` | Stripped gas-giant core, no atmosphere | terrestrial | h | no |
-| `Y` | "Demon" class world with a toxic atmosphere | terrestrial | h | no |
 
-¹ `R` has no zone flags set (`h`/`e`/`c` are all `false`), so requesting it
-explicitly in a slot will raise an error — it currently only appears from
-free-form random generation via other code paths, not from a slot request.
-
-Classes `Q`, `R`, `V`, `W`, `X`, and `Y` can't be generated as **moons**
-(they're too large or physically implausible as satellites) — this only
-matters for random moon generation, since a slot's own `planet_class` always
-describes the planet itself, never its moons.
+Classes `Q` and `V` can't be generated as **moons**
+(they're too large or physically implausible as satellites,
+`program_constants.MOON_BLACKLIST`) — this only matters for random moon
+generation, since a slot's own `planet_class` always describes the planet
+itself, never its moons.
 
 ## Full example
 

@@ -22,11 +22,12 @@
 # assumes this same layout):
 #
 #   /var/lib/planetGen/
-#     html/     -- this vhost's DocumentRoot (the repo's html/ directory),
-#                  api/ included (moved there from src/api/ so the API
-#                  deploys from the same tree instead of a second location)
+#     src/html/  -- this vhost's DocumentRoot (the repo's src/html/
+#                   directory), api/ included (moved there from src/api/
+#                   so the API deploys from the same tree instead of a
+#                   second location)
 #     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
-#                   particular), so html/'s scripts can import the
+#                   particular), so src/html/'s scripts can import the
 #                   planetGen package without a separate `pip install`
 #
 # The database itself is a MySQL server, not a local file under this
