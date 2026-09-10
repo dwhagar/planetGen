@@ -9,9 +9,11 @@ behind the project's existing Apache2 vhost (`examples/apache/`).
 
 from flask import Flask, jsonify
 
+from .auth import bp as auth_bp
+from .common import ApiError, close_control_db
 from .config import Config
 from .limiter import limiter
-from .routes import ApiError, bp, close_db
+from .routes import bp, close_db
 
 
 def create_app(config_object=Config):
@@ -19,7 +21,9 @@ def create_app(config_object=Config):
     app.config.from_object(config_object)
     limiter.init_app(app)
     app.register_blueprint(bp)
+    app.register_blueprint(auth_bp)
     app.teardown_appcontext(close_db)
+    app.teardown_appcontext(close_control_db)
     _register_error_handlers(app)
     return app
 

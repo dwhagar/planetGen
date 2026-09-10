@@ -33,18 +33,29 @@ Usage:
 import argparse
 import sys
 
-from stellarObjects._db import SCHEMA_VERSION, add_mysql_connection_args, migrate_database, mysql_config_from_args
+from stellarObjects import adminAuth
+from stellarObjects._db import (
+    SCHEMA_VERSION,
+    add_mysql_connection_args,
+    control_mysql_config,
+    migrate_database,
+    mysql_config_from_args,
+)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Bring the configured MySQL database's schema_migrations bookkeeping up to date.",
+        description="Bring the configured MySQL database's schema_migrations bookkeeping up to date, "
+                     "and the control schema (admin logins/sessions/API keys -- see control_schema.sql) "
+                     "alongside it.",
     )
     add_mysql_connection_args(parser)
     args = parser.parse_args()
 
+    config = mysql_config_from_args(args)
+
     try:
-        version = migrate_database(mysql_config_from_args(args))
+        version = migrate_database(config)
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
@@ -54,6 +65,21 @@ def main():
     else:
         print(f"Database is at schema v{version}, expected v{SCHEMA_VERSION} -- no migration path available yet.")
         sys.exit(1)
+
+    # The control schema (admin_users/admin_sessions/admin_api_keys/
+    # admin_audit_log) is a separate schema from the content database just
+    # migrated above (see control_schema.sql's header comment) -- ensured/
+    # seeded here too so a fresh deploy's default admin/password login
+    # exists without a separate manual step. Reuses this same account's
+    # host/user/password (the full-access account this script already
+    # runs as, same as install.sh's existing step 2) against the control
+    # schema's own name instead of the content database's.
+    try:
+        adminAuth.bootstrap_control_schema(control_mysql_config(config))
+    except Exception as exc:
+        print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
+        sys.exit(1)
+    print("Control schema (admin logins) is up to date.")
 
 
 if __name__ == "__main__":

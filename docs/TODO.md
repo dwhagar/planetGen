@@ -80,16 +80,33 @@ open items need working detail.
 
 ### Web API/frontend
 
-- [ ] **API write endpoints are stubs.** `POST`/`PATCH`/`DELETE` on
-  `/api/sectors` and `/api/systems` validate their request body and apply
-  the rate limit, but always respond `501` — no row is ever written. Two
-  things need to land before filling them in for real: a write-capable
-  MySQL account (every read endpoint intentionally uses a `SELECT`-only
-  one) and an auth scheme (nothing currently checks *who* is calling).
-  The systems write body shape is also undecided — a generation "recipe"
-  (like `SystemConfig`), a fully-specified object graph (like
-  `StarSystem.to_dict()`), or both. See `docs/api.md`'s "Write endpoints"
-  section.
+- [ ] **Sector-attached system creation isn't supported via the API.**
+  `POST /api/systems` (real now — see `docs/api.md`'s "Systems — request
+  body") only ever creates a **standalone** system (`sector_id = NULL`).
+  Attaching a newly generated system to an existing sector needs that
+  sector's own placement/Hill-sphere separation logic
+  (`SpaceSector.add_system`), deliberately not wired into the write API
+  in this pass (kept the validation/generation surface smaller for the
+  admin-auth work that landed alongside it — see `docs/api.md`).
+- [ ] **Editing a system's generated content isn't supported via the
+  API.** `PATCH /api/systems/<id>` only renames a system — no way to
+  modify its stars/planets/moons/belts short of `DELETE` + `POST`
+  (regenerate). Not clear this needs solving at all (vs. "just
+  regenerate"), but flagged in case it does.
+- [ ] **`GET /api/health` can crash instead of returning `503`.**
+  `routes.get_db()` -> `queryDb.open_readonly` -> `_db.get_connection`
+  raises a bare `SystemExit` (not `Exception`) when the configured MySQL
+  server is unreachable -- `health()`'s own `except Exception` doesn't
+  catch it, so the exact "database unreachable" case this endpoint exists
+  to report as a clean `503` instead propagates out of the request
+  entirely (confirmed via `python -c` against an unreachable MySQL host
+  while building the admin-auth/write-API work below; pre-existing, not
+  introduced by that work, and not fixed here since it touches the
+  read-only path this pass otherwise left alone). Likely fix:
+  `open_readonly`'s `SystemExit` was designed for `queryDb.py`'s CLI
+  use, not for reuse inside a long-running Flask process -- `get_db()`
+  probably wants its own `except (Exception, SystemExit)` (or a version
+  of `open_readonly` that raises an ordinary exception instead).
 - [ ] Sector Map's on-shell wedge shape and "Galactic Center" compass arrow
   (`docs/html-interface.md`'s `starmap.py` entry, CHANGELOG [5.4.7]) both
   assume a sector's own local (x, y, z) axes run parallel to the galaxy
@@ -114,6 +131,25 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **Write-capable API + admin auth.** `POST`/`PATCH`/`DELETE` on
+  `/api/sectors`/`/api/systems` do real inserts/updates/deletes now,
+  gated behind admin login (session cookie, `HttpOnly`/`Secure`/
+  `SameSite=Strict`) or an API key (`Authorization: Bearer`) —
+  `stellarObjects/adminAuth.py` + a new, deployment-global control schema
+  (`stellarObjects/control_schema.sql`: `admin_users`/`admin_sessions`/
+  `admin_api_keys`/`admin_audit_log`), seeded with a default `admin`/
+  `password` login that's blocked from doing anything else until its
+  credentials are changed. Writes run against a separate,
+  less-privileged `PLANETGEN_MYSQL_WRITE_*` account, never the
+  `SELECT`-only one every read endpoint uses. New admin web pages
+  (`html/login.py`/`changecreds.py`/`admin.py`) for logging in, the
+  forced credential change, and API key management. See `docs/api.md`'s
+  "Authentication"/"Write endpoints" sections,
+  `docs/database-schema.md`'s "The control schema", and
+  `docs/apache-deployment.md`'s "MySQL accounts". Deliberately **not**
+  included (per explicit direction): any database-file-management
+  surface (create/rename/duplicate/delete a whole MySQL schema) — this
+  deployment doesn't expose that over the Internet.
 - Backend API (Flask) mounted at `/api/` alongside the interim `html/`
   browser, with pagination/validation/health-check/JSON-error-handling —
   CHANGELOG [5.5.0]; see `docs/api.md`.

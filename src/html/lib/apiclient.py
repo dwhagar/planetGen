@@ -49,8 +49,20 @@ class NotFoundError(Exception):
 
 
 class ApiError(Exception):
-    """Raised for any other failure talking to the API: an unreachable
-    process, a non-2xx/404 response, or an unparseable body."""
+    """
+    Raised for any other failure talking to the API: an unreachable
+    process, a non-2xx/404 response, or an unparseable body.
+
+    `status_code` (`None` for a connection-level failure -- the API never
+    responded at all) lets a caller that needs to handle one specific
+    status differently do so without string-matching the message -- e.g.
+    `auth_me` treating 401 ("not logged in") as a normal, expected outcome
+    rather than propagating it as a page-breaking error.
+    """
+
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def _request(path, params=None):
@@ -86,7 +98,7 @@ def _request(path, params=None):
         detail = _error_detail(exc)
         if exc.code == 404:
             raise NotFoundError(detail)
-        raise ApiError(f"planetGen API error ({exc.code}): {detail}")
+        raise ApiError(f"planetGen API error ({exc.code}): {detail}", status_code=exc.code)
     except urllib.error.URLError as exc:
         raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc.reason}")
 
@@ -94,6 +106,68 @@ def _request(path, params=None):
         return json.loads(body)
     except ValueError as exc:
         raise ApiError(f"planetGen API returned an unparseable response: {exc}")
+
+
+def _auth_request(method, path, json_body=None, cookie_header=None):
+    """
+    Runs one JSON request against the API supporting any HTTP method and
+    an optional request body/`Cookie` header -- the primitive every
+    `auth_*` function below builds on, kept separate from `_request`
+    (GET-only, no body/cookie support) rather than complicating that
+    function's simpler, far more common case.
+
+    Args:
+        method (str): `"POST"`, `"DELETE"`, etc.
+        path (str): The path under `API_BASE_URL`, e.g. `"/auth/login"`.
+        json_body (dict, optional): Sent as the request body
+            (`Content-Type: application/json`) if given.
+        cookie_header (str, optional): Forwarded as-is as the outgoing
+            `Cookie` header -- callers pass the CGI request's own
+            `HTTP_COOKIE` environment variable verbatim (see
+            `page.incoming_cookie_header`); this module never parses or
+            constructs cookie values itself, only relays them.
+
+    Returns:
+        tuple[dict or None, list[str]]: The parsed JSON body (`None` for
+            an empty response), and every `Set-Cookie` response header
+            verbatim (for `page.py` to relay back to the browser as-is --
+            this module never parses those either).
+
+    Raises:
+        NotFoundError: On a 404 response.
+        ApiError: On any other non-2xx response (with `.status_code` set
+            -- see that class's docstring), or if the API can't be
+            reached/returns an unparseable body.
+    """
+    url = f"{API_BASE_URL}{path}"
+    data = None
+    headers = {}
+    if json_body is not None:
+        data = json.dumps(json_body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    if cookie_header:
+        headers["Cookie"] = cookie_header
+
+    request = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:
+            raw_body = response.read().decode("utf-8")
+            set_cookie_headers = response.headers.get_all("Set-Cookie") or []
+    except urllib.error.HTTPError as exc:
+        detail = _error_detail(exc)
+        if exc.code == 404:
+            raise NotFoundError(detail)
+        raise ApiError(f"planetGen API error ({exc.code}): {detail}", status_code=exc.code)
+    except urllib.error.URLError as exc:
+        raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc.reason}")
+
+    parsed_body = None
+    if raw_body:
+        try:
+            parsed_body = json.loads(raw_body)
+        except ValueError as exc:
+            raise ApiError(f"planetGen API returned an unparseable response: {exc}")
+    return parsed_body, set_cookie_headers
 
 
 def _build_query(params):
@@ -225,3 +299,106 @@ def get_search(db, texts, tags):
     for facet, values in tags.items():
         pairs.extend((facet, value) for value in values)
     return _request("/search", pairs)
+
+
+# ---------------------------------------------------------------------
+# Admin auth -- see `docs/api.md`'s "Authentication" section. Every
+# function below takes/returns the incoming/outgoing `Cookie`/`Set-Cookie`
+# headers verbatim (see `_auth_request`'s docstring) -- `login.py`/
+# `changecreds.py`/`admin.py` are the only callers, and relay them to/from
+# the browser via `page.py`'s own cookie helpers.
+# ---------------------------------------------------------------------
+
+def auth_login(username, password):
+    """
+    `POST /api/auth/login`.
+
+    Returns:
+        tuple[dict, list[str]]: `({"username", "must_change_credentials"},
+            set_cookie_headers)` on success.
+
+    Raises:
+        ApiError: `status_code == 401` for a wrong username/password --
+            callers should catch this specifically and show an inline
+            "invalid username or password" message rather than a generic
+            error page.
+    """
+    return _auth_request("POST", "/auth/login", json_body={"username": username, "password": password})
+
+
+def auth_logout(cookie_header):
+    """`POST /api/auth/logout`. Returns the `Set-Cookie` headers to relay
+    (clears the session cookie) -- a no-op, not an error, if the caller
+    was already logged out (no valid cookie to begin with)."""
+    try:
+        _body, set_cookie_headers = _auth_request("POST", "/auth/logout", cookie_header=cookie_header)
+        return set_cookie_headers
+    except ApiError as exc:
+        if exc.status_code == 401:
+            return []
+        raise
+
+
+def auth_me(cookie_header):
+    """
+    `GET /api/auth/me` equivalent (this module has no bare-GET-with-cookie
+    helper, so this goes through `_auth_request` too).
+
+    Returns:
+        dict or None: `{"username", "must_change_credentials"}`, or
+            `None` if `cookie_header` names no valid session (a normal,
+            expected "not logged in" outcome -- not an error).
+    """
+    try:
+        body, _set_cookie_headers = _auth_request("GET", "/auth/me", cookie_header=cookie_header)
+        return body
+    except ApiError as exc:
+        if exc.status_code == 401:
+            return None
+        raise
+
+
+def auth_change_credentials(cookie_header, current_password, new_username, new_password):
+    """
+    `POST /api/auth/change-credentials`.
+
+    Returns:
+        tuple[dict, list[str]]: The updated identity and fresh session's
+            `Set-Cookie` headers (the old session is invalidated server-
+            side -- see `adminAuth.change_credentials`).
+
+    Raises:
+        ApiError: `status_code == 400` for a wrong current password, a
+            taken username, or a `new_password` failing policy -- the
+            message is safe to show the caller as-is (see
+            `adminAuth.AuthError`).
+    """
+    return _auth_request(
+        "POST", "/auth/change-credentials", cookie_header=cookie_header,
+        json_body={
+            "current_password": current_password,
+            "new_username": new_username,
+            "new_password": new_password,
+        },
+    )
+
+
+def auth_list_api_keys(cookie_header):
+    """`GET /api/auth/api-keys` equivalent -- returns the `items` list
+    (label/timestamps only, never the key itself)."""
+    body, _set_cookie_headers = _auth_request("GET", "/auth/api-keys", cookie_header=cookie_header)
+    return body["items"]
+
+
+def auth_create_api_key(cookie_header, label):
+    """`POST /api/auth/api-keys` -- returns `{"id", "label", "key"}`; `key`
+    is the raw key, shown this once (see `adminAuth.create_api_key`)."""
+    body, _set_cookie_headers = _auth_request(
+        "POST", "/auth/api-keys", cookie_header=cookie_header, json_body={"label": label},
+    )
+    return body
+
+
+def auth_revoke_api_key(cookie_header, key_id):
+    """`DELETE /api/auth/api-keys/<id>`."""
+    _auth_request("DELETE", f"/auth/api-keys/{key_id}", cookie_header=cookie_header)
