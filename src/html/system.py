@@ -17,7 +17,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, linkify_location, open_readonly, resolve_db_name
+from apiclient import get_system
+from fmt import esc, linkify_location
 from mdconvert import markdown_to_html_with_headings
 from page import query_params, run
 from systemmap import render_system_map_panel
@@ -26,26 +27,21 @@ from tabledisplay import (
 )
 
 
-def _stars_html(conn, system_id):
-    stars = fetch_all(
-        conn,
-        "SELECT * FROM stars WHERE star_system_id = ? ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
-        (system_id,),
-    )
+def _stars_html(stars):
     rows = "".join(
         "<tr>"
-        f'<td>{esc(row["role"])}</td>'
-        f'<td>{esc(row["name"])}</td>'
-        f'<td>{esc(row["star_type"])}</td>'
+        f'<td>{esc(star["role"])}</td>'
+        f'<td>{esc(star["name"])}</td>'
+        f'<td>{esc(star["star_type"])}</td>'
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td>{format_star_mass(row["mass_kg"])}</td>'
-        f'<td>{format_star_radius(row["radius_km"])}</td>'
-        f'<td>{int(row["temperature_k"])} K</td>'
-        f'<td>{format_star_luminosity(row["luminosity_w"])}</td>'
+        f'<td>{format_star_mass(star["mass_kg"])}</td>'
+        f'<td>{format_star_radius(star["radius_km"])}</td>'
+        f'<td>{int(star["temperature_k"])} K</td>'
+        f'<td>{format_star_luminosity(star["luminosity_w"])}</td>'
         "</tr>"
-        for row in stars
+        for star in stars
     )
     if not rows:
         return ""
@@ -75,62 +71,21 @@ def _body_row(row, is_moon, indent=""):
     )
 
 
-def _planet_rows(conn, planet):
-    """One row for `planet` plus one indented row per moon -- moons live
-    in their own table as of schema v2 and never have moons of their own
-    (`Planet.__init__` only calls `generate_moons` `if not self.is_moon`),
-    so this never needs to recurse further."""
+def _planet_rows(planet):
+    """One row for `planet` plus one indented row per moon -- moons never
+    have moons of their own, so this never needs to recurse further."""
     rows = [_body_row(planet, is_moon=False)]
-    moons = fetch_all(conn, "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],))
-    rows.extend(_body_row(moon, is_moon=True, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ ") for moon in moons)
+    rows.extend(
+        _body_row(moon, is_moon=True, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ ")
+        for moon in planet["moons"]
+    )
     return rows
 
 
-def _map_html(conn, system_id, system):
-    """Builds the "System Map" panel (see `lib/systemmap.py`) -- the
-    graphical, scaled-orbit view of `docs/TODO.md`'s "Phase 5 -- Web
-    interface" sprite-view idea, drawn as an interactive SVG diagram
-    rather than sprite art."""
-    stars = fetch_all(
-        conn,
-        "SELECT * FROM stars WHERE star_system_id = ? ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
-        (system_id,),
-    )
-    planets = [dict(row) for row in fetch_all(
-        conn,
-        "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
-        (system_id,),
-    )]
-    for planet in planets:
-        planet["moons"] = [
-            dict(row) for row in
-            fetch_all(conn, "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],))
-        ]
-    belts = fetch_all(
-        conn,
-        "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index",
-        (system_id,),
-    )
-    if not stars:
-        return ""
-    return render_system_map_panel(system, stars, planets, belts)
-
-
-def _bodies_html(conn, system_id):
-    planets = fetch_all(
-        conn,
-        "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index",
-        (system_id,),
-    )
-    belts = fetch_all(
-        conn,
-        "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index",
-        (system_id,),
-    )
-
+def _bodies_html(planets, belts):
     planet_rows = []
     for planet in planets:
-        planet_rows.extend(_planet_rows(conn, planet))
+        planet_rows.extend(_planet_rows(planet))
     planet_html = ""
     if planet_rows:
         planet_html = f"""
@@ -252,59 +207,49 @@ def handler():
     if fmt not in ("wikitext", "markdown"):
         fmt = "wikitext"
 
-    config = resolve_db_name(db_name)
-    conn = open_readonly(config)
-    try:
-        system = fetch_one(conn, "SELECT * FROM star_systems WHERE id = ?", (system_id,))
-        if system is None:
-            raise NotFoundError(f"No such system: {system_id!r}")
+    system = get_system(db_name, system_id)
 
-        back_html = '<p class="breadcrumb"><a href="index.py">Databases</a>'
-        if system["sector_id"] is not None:
-            back_html += f' &rarr; <a href="sector.py?db={esc(db_name)}&id={system["sector_id"]}">Sector</a>'
-        back_html += f" &rarr; {esc(system['name'])}</p>"
+    back_html = '<p class="breadcrumb"><a href="index.py">Databases</a>'
+    if system["sector_id"] is not None:
+        back_html += f' &rarr; <a href="sector.py?db={esc(db_name)}&id={system["sector_id"]}">Sector</a>'
+    back_html += f" &rarr; {esc(system['name'])}</p>"
 
-        summary_bits = []
-        if system["quadrant"]:
-            summary_bits.append(f"Octant {esc(system['quadrant'])}")
-        summary_bits.append("Binary system" if system["is_binary"] else "Single star")
-        summary_html = "<p class=\"badges\">" + "".join(
-            f'<span class="badge">{bit}</span>' for bit in summary_bits
-        ) + "</p>"
+    summary_bits = []
+    if system["quadrant"]:
+        summary_bits.append(f"Octant {esc(system['quadrant'])}")
+    summary_bits.append("Binary system" if system["is_binary"] else "Single star")
+    summary_html = "<p class=\"badges\">" + "".join(
+        f'<span class="badge">{bit}</span>' for bit in summary_bits
+    ) + "</p>"
 
-        nav_html = ""
-        if system["sector_id"] is not None:
-            # NAV needs a sector to measure a position from at all -- see
-            # queryDb.nav_between's own availability rules, which this only
-            # pre-checks the first (cheapest, no extra query) condition of.
-            # A system in a non-galaxy-placed sector still gets the link:
-            # same-sector NAV is always available once that much is true,
-            # nav.py itself works out whether cross-sector NAV also applies.
-            nav_html = (
-                f'<p><a class="btn" href="nav.py?db={esc(db_name)}&from={system_id}">Navigate from here</a></p>'
-            )
-
-        location_html = ""
-        if system["location"]:
-            name_to_id = {}
-            if system["sector_id"] is not None:
-                siblings = fetch_all(
-                    conn, "SELECT id, name FROM star_systems WHERE sector_id = ?", (system["sector_id"],)
-                )
-                name_to_id = {row["name"]: row["id"] for row in siblings}
-            location_html = (
-                f'<p class="location">Location: '
-                f'{linkify_location(db_name, system["location"], name_to_id)}</p>'
-            )
-
-        map_html = _map_html(conn, system_id, system)
-        stars_html = _stars_html(conn, system_id)
-        bodies_html = _bodies_html(conn, system_id)
-        description_html = _description_html(
-            db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"]
+    nav_html = ""
+    if system["sector_id"] is not None:
+        # NAV needs a sector to measure a position from at all -- see
+        # queryDb.nav_between's own availability rules, which this only
+        # pre-checks the first (cheapest) condition of. A system in a
+        # non-galaxy-placed sector still gets the link: same-sector NAV
+        # is always available once that much is true, nav.py itself
+        # works out whether cross-sector NAV also applies.
+        nav_html = (
+            f'<p><a class="btn" href="nav.py?db={esc(db_name)}&from={system_id}">Navigate from here</a></p>'
         )
-    finally:
-        conn.close()
+
+    location_html = ""
+    if system["location"]:
+        name_to_id = {row["name"]: row["id"] for row in system["sector_siblings"]}
+        location_html = (
+            f'<p class="location">Location: '
+            f'{linkify_location(db_name, system["location"], name_to_id)}</p>'
+        )
+
+    map_html = ""
+    if system["stars"]:
+        map_html = render_system_map_panel(system, system["stars"], system["planets"], system["belts"])
+    stars_html = _stars_html(system["stars"])
+    bodies_html = _bodies_html(system["planets"], system["belts"])
+    description_html = _description_html(
+        db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"]
+    )
 
     body = f"""
 {back_html}

@@ -48,7 +48,7 @@ different ways:
 
 import math
 
-from dbutil import esc
+from fmt import esc
 
 try:
     from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY

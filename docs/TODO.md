@@ -123,12 +123,21 @@ and git history.
   moving `src/api/` into `../src/html/` to expose the API endpoint from the
   same served tree. Was deliberately left open, not decided, since moving
   a Flask package into `../src/html/`'s Apache `DocumentRoot` needed its
-  own look at exposure/routing implications first. Done (CHANGELOG.md
-  [5.10.0]): `src/api/` moved to `src/html/api/`, `src/wsgi.py` moved to
-  `src/html/wsgi.py` alongside it, and `examples/apache/planetgen.conf.example`
-  gained a `WSGIScriptAlias /api` plus a deny-all `<Directory>` block for
-  `html/api/` (mirroring the existing one for `html/lib/`) so its raw
-  source is never directly requestable.
+  own look at exposure/routing implications first. Done: `src/api/` moved
+  to `src/html/api/`, `src/wsgi.py` moved to `src/html/wsgi.py` alongside
+  it (CHANGELOG.md [5.10.0]), and `examples/apache/planetgen.conf.example`
+  mounts it with a `WSGIScriptAlias /api` (in its own `WSGIDaemonProcess`
+  for isolation from the CGI browser's own requests) plus a deny-all
+  `<Directory>` block for `html/api/` (mirroring the existing one for
+  `html/lib/`) so its raw source is never directly requestable. Landed
+  alongside a separate, independently-decided change to the same open
+  question (`../src/html/` becoming this API's own frontend -- every CGI
+  page now fetches its data from `/api/...` instead of querying MySQL
+  directly, via new `html/lib/apiclient.py` -- see
+  [`api.md`](api.md#deploying-behind-apache-mod_wsgi) and
+  [`html-interface.md`](html-interface.md)); the two combine cleanly since
+  they're orthogonal (one is about where the API's source files live, the
+  other about how `html/` gets its data).
 
 ## File Management
 
@@ -247,9 +256,18 @@ header; database picker skipped when only one database exists (and, as of
 that case); site configuration via `webconfig.json`; wiki-URL reachability
 check with a clipboard-copy fallback (commit `ee8daab`).
 
-- [ ] **Sprite-based graphical system view**: render a system's star,
-  planets, and moons as small icon sprites sized relative to each other --
-  see TODO in src/html/system.py near `_bodies_html`.
+- [x] **Sprite-based graphical system view** -- done, as an interactive
+  SVG diagram rather than bitmap sprite art: `html/lib/systemmap.py`'s
+  "System Map" panel already draws a system's star(s)/planets/moons as
+  sized, color-coded circular markers on a scaled-orbit diagram (see that
+  module's own docstring, which explains the substitution), same goal
+  (bodies rendered graphically, sized/styled relative to each other) via
+  a technique that scales to a generated system's real orbital layout
+  instead of a fixed icon set. The one piece of state the original
+  circle+letter marker couldn't show at a glance -- whether a body
+  supports life (`planets`/`moons`.`life_chemical`) -- now gets a small
+  green badge on its marker (`_body_marker_svg`'s `has_life`), surfaced
+  in the info panel too (`static/systemmap.js`'s "Life Chemistry" field).
 - [x] **Sector Map: interactive 3D (drag-to-rotate, scroll-to-zoom)** --
   done. `src/html/lib/starmap.py` now emits a real CSS 3D scene instead of
   a fixed-projection SVG: 6 bordered `<div>` cube faces (the standard

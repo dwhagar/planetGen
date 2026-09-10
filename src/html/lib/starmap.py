@@ -48,7 +48,7 @@ the panel's own link is what navigates away.
 import colorsys
 import math
 
-from dbutil import esc
+from fmt import esc
 
 try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M

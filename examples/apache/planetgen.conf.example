@@ -14,9 +14,9 @@
 # `cgid` (the threaded MPM-safe CGI module) is preferred over the older
 # `cgi` module; either works, but `cgid` is required if apache2 is running
 # mpm_event or mpm_worker (the Ubuntu default), since plain `mod_cgi` only
-# supports mpm_prefork. `wsgi` (libapache2-mod-wsgi-py3) serves the API
-# (`html/wsgi.py`) -- skip that module and the WSGIScriptAlias block below
-# if you only want the CGI browser.
+# supports mpm_prefork. `wsgi` (`libapache2-mod-wsgi-py3` on Debian/
+# Ubuntu) serves the API (`html/wsgi.py`) -- skip that module and the
+# WSGIScriptAlias block below if you only want the CGI browser.
 #
 # Expected layout on the server (see the repo's set-permissions.sh, which
 # assumes this same layout):
@@ -32,6 +32,17 @@
 # The database itself is a MySQL server, not a local file under this
 # layout (TODO.md Phase 5) -- point the CGI scripts and the API at it with
 # the PLANETGEN_MYSQL_* SetEnv directives below.
+#
+# /api/ (mod_wsgi): every page under html/ now fetches its data from the
+# planetGen API (docs/api.md) instead of querying MySQL directly (see
+# docs/html-interface.md) -- PLANETGEN_API_BASE_URL (default
+# "http://127.0.0.1/api", i.e. this same vhost) is where each CGI script
+# looks for it; no override needed for the common case of API and browser
+# sharing one vhost the way this example does. WSGIScriptAlias below
+# mounts html/wsgi.py's `application` at /api/, in its own daemon process
+# (WSGIDaemonProcess) rather than Apache's embedded/shared-process mode,
+# for the same isolation a real deployment wants regardless of where the
+# API's own source happens to live. Needs `a2enmod wsgi`.
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
@@ -40,7 +51,9 @@
     # Tell the CGI scripts which MySQL server/account to use. Only needed
     # if any differs from stellarObjects._db.MySQLConfig's own defaults
     # (127.0.0.1:3306, user/database "planetgen"). Use a SELECT-only
-    # database account here -- this web interface never writes.
+    # database account here -- neither the web interface nor the API's
+    # read endpoints ever write (see docs/api.md's "Write endpoints" --
+    # those are stubs today regardless of account).
     #
     # This only configures the CGI browser above, NOT the mod_wsgi API
     # below: mod_cgi(d) copies SetEnv values into each CGI script's real
@@ -85,7 +98,7 @@
         Require all denied
     </Directory>
 
-    # static/ is plain CSS -- served directly, never as CGI.
+    # static/ is plain CSS/JS -- served directly, never as CGI.
     <Directory /var/lib/planetGen/src/html/static>
         Options -ExecCGI -Indexes
         Require all granted
@@ -94,10 +107,13 @@
     # Mounts the Flask API (docs/api.md) at /api, handled by mod_wsgi via
     # html/wsgi.py rather than the CGI handler above -- WSGIScriptAlias
     # takes priority over the <Directory html> CGI config for this URL
-    # prefix. html/api/ itself holds only importable Python source (never
-    # requested directly), so it gets the same deny-all belt-and-suspenders
-    # treatment as html/lib/ above.
-    WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py
+    # prefix. Runs in its own daemon process (WSGIDaemonProcess), not
+    # Apache's embedded/shared-process mode, for real isolation from the
+    # CGI browser's own requests. html/api/ itself holds only importable
+    # Python source (never requested directly), so it gets the same
+    # deny-all belt-and-suspenders treatment as html/lib/ above.
+    WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
+    WSGIDaemonProcess planetgen-api processes=1 threads=5
     <Directory /var/lib/planetGen/src/html/api>
         Require all denied
     </Directory>

@@ -14,7 +14,8 @@ import sys
 import traceback
 from urllib.parse import parse_qs
 
-from dbutil import NotFoundError
+from apiclient import ApiError, NotFoundError
+from fmt import esc
 
 
 def query_params():
@@ -103,9 +104,19 @@ def _sidenav_html():
     Returns:
         str: The `<nav class="sidenav">` element's inner HTML.
     """
-    from dbutil import esc, list_databases
+    from apiclient import list_databases
     items = []
-    if list_databases():
+    try:
+        has_databases = bool(list_databases())
+    except ApiError:
+        # The API itself is unreachable -- the page's own handler is
+        # about to hit (or already hit) the same failure and render a
+        # clear error page for it; this only decides whether the shared
+        # nav chrome around that error page also tries (and fails) to
+        # show a "Databases" link, so it fails quiet here instead of
+        # taking the whole page shell down with it.
+        has_databases = False
+    if has_databases:
         items.append(("index.py?all=1", "Databases"))
     db_name = query_params().get("db")
     if db_name:
@@ -131,11 +142,10 @@ def render(title, body_html, status="200 OK"):
                      pre-sanitized HTML.
         body_html (str): Pre-built HTML for the page body (each caller is
                          responsible for escaping its own interpolated
-                         values via `dbutil.esc`).
+                         values via `fmt.esc`).
         status (str): CGI status line -- `"200 OK"` unless the caller is
                       rendering an error page.
     """
-    from dbutil import esc
     safe_title = esc(title)
     send_headers(status)
     sys.stdout.write(f"""<!doctype html>
@@ -171,7 +181,6 @@ def render_error(message, status="404 Not Found", raw=False):
         raw (bool): Set only for the developer-only `PLANETGEN_DEBUG`
                    traceback dump, which is pre-wrapped in `<pre>`.
     """
-    from dbutil import esc
     body = message if raw else esc(message)
     render("Error", f'<section class="panel"><p class="error">{body}</p></section>', status=status)
     sys.exit(0)
@@ -180,10 +189,11 @@ def render_error(message, status="404 Not Found", raw=False):
 def run(handler):
     """
     Calls `handler()` (which returns `(title, body_html)`) and renders the
-    result, turning a `NotFoundError` into a 404 page and any other
-    exception into a generic 500 page instead of a raw traceback -- this
-    is a public-facing script, so unhandled errors must not leak file
-    paths or query text back to the browser.
+    result, turning a `NotFoundError` into a 404 page, an `ApiError`
+    (the planetGen API unreachable, or itself erroring) into a 502 page,
+    and any other exception into a generic 500 page instead of a raw
+    traceback -- this is a public-facing script, so unhandled errors must
+    not leak file paths or query text back to the browser.
 
     Args:
         handler (callable): Zero-argument function returning
@@ -194,13 +204,15 @@ def run(handler):
         render(title, body_html)
     except NotFoundError as exc:
         render_error(str(exc), status="404 Not Found")
+    except ApiError as exc:
+        traceback.print_exc(file=sys.stderr)
+        render_error(str(exc), status="502 Bad Gateway")
     except Exception:
         # Always logged to stderr (Apache's error log); only echoed into
         # the page itself when PLANETGEN_DEBUG is set, since a public 500
         # page must not leak file paths or query text by default.
         traceback.print_exc(file=sys.stderr)
         if os.environ.get("PLANETGEN_DEBUG"):
-            from dbutil import esc
             render_error(f"<pre>{esc(traceback.format_exc())}</pre>", status="500 Internal Server Error", raw=True)
         else:
             render_error("An unexpected error occurred.", status="500 Internal Server Error")
