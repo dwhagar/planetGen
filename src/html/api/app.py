@@ -21,7 +21,48 @@ def create_app(config_object=Config):
     app.register_blueprint(bp)
     app.teardown_appcontext(close_db)
     _register_error_handlers(app)
+    _register_security_headers(app)
+    _warn_if_unshared_ratelimit_storage(app)
     return app
+
+
+def _register_security_headers(app):
+    """
+    Adds a handful of defense-in-depth response headers this JSON-only API
+    has no legitimate reason to omit -- `default-src 'none'` in particular
+    is safe here specifically because every response is `application/
+    json` (see `routes.py`), never HTML/JS that would need to load
+    anything of its own.
+    """
+
+    @app.after_request
+    def _add_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        response.headers.setdefault("Content-Security-Policy", "default-src 'none'")
+        return response
+
+
+def _warn_if_unshared_ratelimit_storage(app):
+    """
+    `config.py`'s own docstring already explains why `RATELIMIT_STORAGE_URI`
+    defaults to `memory://` and when that stops being accurate (more than
+    one worker process); this surfaces the same warning in the running
+    app's own logs, at the moment it's actually decided, so a deployment
+    that later grows past one worker doesn't have to go re-read that
+    docstring to notice the mismatch.
+    """
+    if app.config.get("RATELIMIT_STORAGE_URI") == "memory://":
+        app.logger.warning(
+            "Flask-Limiter is using in-memory storage: rate limits are "
+            "tracked per worker process, not shared across them. This is "
+            "correct for a single-process deployment (Flask's dev server, "
+            "or mod_wsgi/gunicorn with exactly one worker) but silently "
+            "under-enforces limits by roughly a factor of the worker count "
+            "otherwise -- set PLANETGEN_RATELIMIT_STORAGE_URI to a shared "
+            "backend (e.g. redis://...) before scaling past one worker."
+        )
 
 
 def _register_error_handlers(app):
