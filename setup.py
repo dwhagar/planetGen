@@ -62,18 +62,21 @@ setup(
         ],
     },
     install_requires=[
-        'nltk',
+        # Lower-bounded (not pinned exact/upper-bounded) to floors with no
+        # known security advisories as of this writing, so patch releases
+        # keep flowing without needing this file edited for each one.
+        'nltk>=3.9.1',
         # MySQL persistence (stellarObjects/_db.py, TODO.md Phase 5) --
         # every entry point that touches the database (sectorGen.py,
         # systemGen.py, galaxyGen.py, queryDb.py, migrateDb.py, the
         # html/ CGI browser) needs these, not just the Flask API, so
         # they're core requirements rather than the 'api' extra below.
-        'pymysql',
-        'dbutils',
+        'pymysql>=1.1.1',
+        'dbutils>=3.1.0',
     ],
     extras_require={
-        'test': ['pytest'],
-        'api': ['flask', 'flask-limiter'],
+        'test': ['pytest>=7.4.0'],
+        'api': ['flask>=3.0.3', 'flask-limiter>=3.7.0'],
     },
     author='David Hagar',
     author_email='david.hagar@gmail.com',
@@ -87,5 +90,7 @@ setup(
         'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',
+    # Driven by the 'api' extra's floors above (Flask 3.x/PyMySQL 1.1.x
+    # both need 3.9+) rather than anything in this package's own code.
+    python_requires='>=3.9',
 )

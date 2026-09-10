@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+
+    services:
+      # conftest.py's own docstring says database-backed tests expect CI to
+      # provision a real MySQL server (there's no SQLite fallback since the
+      # MySQL port); everything else just skips gracefully without one.
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: planetgen
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      PLANETGEN_TEST_MYSQL_HOST: 127.0.0.1
+      PLANETGEN_TEST_MYSQL_PORT: 3306
+      PLANETGEN_TEST_MYSQL_USER: root
+      PLANETGEN_TEST_MYSQL_PASSWORD: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package with test/api extras
+        run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
+
+      # stellarObjects/names.py checks nltk.data.find() before ever
+      # downloading -- pre-fetching here means a flaky/rate-limited
+      # download never fails a test run partway through.
+      - name: Pre-fetch the NLTK 'words' corpus
+        run: python -m nltk.downloader words
+
+      - name: Run tests
+        run: pytest
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package with test/api extras
+        run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
+
+      - name: Scan installed dependencies for known vulnerabilities
+        run: pip install pip-audit && pip-audit
