@@ -1,10 +1,13 @@
 # Galaxy Coordinate System — Design Proposal
 
-**Status:** proposal, not implemented. This document is the design pass
-`docs/TODO.md` Phase 4 calls for ("needs its own design pass") before
-`galaxyGen.py` is written. No generation code changes here — the schema
-migration below is written out concretely so it can be reviewed, but it has
-not been applied to `stellarObjects/schema.sql`.
+**Status:** implemented and merged (Track C — see `docs/TODO.md`'s Phase 4).
+This document was originally the design pass `docs/TODO.md` Phase 4 called
+for ("needs its own design pass") before `galaxyGen.py` was written; the
+core design in sections 0-7 below now describes shipped behavior
+(`stellarObjects/galaxyGeometry.py`, `galaxyGen.py`'s `--shell K`/
+`--center-sector ID --radius-pc R`, and the v3->v4 `sectors` schema
+migration), extended by the addenda in sections 8 and 9, each separately
+marked "Status: implemented" where it lives.
 
 **Scope:** the galaxy-scale coordinate system and the `sectors` schema
 changes it needs. Explicitly **out of scope**: `galaxyGen.py` itself,

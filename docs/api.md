@@ -42,7 +42,7 @@ this API instead.
 ## Endpoints
 
 All under `/api/`, all JSON in, JSON out. Every endpoint below except
-`/health` and `/databases` accepts an optional `db=<name>` query
+`/databases` accepts an optional `db=<name>` query
 parameter selecting *which* MySQL schema on the configured server to
 read from (validated against the same prefix-filtered list
 `/api/databases` itself returns — an unrecognized name is a `404`, same
@@ -50,14 +50,15 @@ as an unrecognized sector/system id); omitted, it falls back to
 `MYSQL_CONFIG`'s own configured default database (`config.py`). This is
 what lets one API process back `../src/html/`'s multi-database picker
 (`index.py`'s `?db=`) — see `stellarObjects._db.list_databases`/
-`resolve_database`.
+`resolve_database`. `/api/health` also honors `db=` — passing it checks
+connectivity to that specific schema rather than the default one.
 
 ### Read
 
 - `GET /api/health` — liveness/readiness check: confirms the process is up
-  and the configured database can actually be opened. Returns
-  `{"status": "ok"}`, or `{"status": "error", "detail": "..."}` with a `503`
-  if the database can't be reached. Exempt from rate limiting.
+  and the configured (or `db=`-selected) database can actually be opened.
+  Returns `{"status": "ok"}`, or `{"status": "error", "detail": "..."}`
+  with a `503` if the database can't be reached. Exempt from rate limiting.
 - `GET /api/databases` — every MySQL schema on the configured server
   matching this deployment's prefix (`stellarObjects._db.list_databases`),
   each with `name`, `size_bytes`, `modified_at`, and a quick-glance
@@ -149,8 +150,9 @@ return an unbounded response:
 
 `limit` defaults to 100 and is silently clamped to 500 (asking for "too
 much" isn't an error, just more than one response will return); `offset`
-defaults to 0. Both must be non-negative integers when given at all, or the
-request gets a `400`.
+defaults to 0. `limit` must be a positive integer (≥1) when given at all;
+`offset` must be a non-negative integer (≥0) when given at all. Either
+violation gets a `400`.
 
 ### Errors
 
@@ -343,13 +345,16 @@ expects, and now lives inside the same `html/` tree the vhost's
 `DocumentRoot` already points at (see "Why Flask" above -- moved there
 from `src/wsgi.py`/`src/api/` so the API is served from the same
 checkout/deployment tree as the CGI browser instead of a second,
-separately-tracked location). Add a `WSGIScriptAlias` for `/api` pointing
-at `src/html/wsgi.py` to the existing vhost config in `examples/apache/`
-(see [`apache-deployment.md`](apache-deployment.md) for the vhost this
-project already deploys, including `set-permissions.sh` and the
-`<Directory>` block that denies direct requests into `html/api/` the same
-way it already does for `html/lib/`), or run it behind `gunicorn` +
-`mod_proxy`/`mod_proxy_http` if `mod_wsgi` isn't available. No separate
+separately-tracked location). The example vhost config in
+`examples/apache/` already mounts it out of the box -- a
+`WSGIScriptAlias` for `/api` pointing at `src/html/wsgi.py`, in its own
+`WSGIDaemonProcess`, plus the `<Directory>` block that denies direct
+requests into `html/api/` the same way it already does for `html/lib/`
+(see [`apache-deployment.md`](apache-deployment.md)) -- so the common
+single-vhost case needs no changes, just copying/enabling that example as
+usual; replicate the same block into a custom vhost, or run it behind
+`gunicorn` + `mod_proxy`/`mod_proxy_http`, if `mod_wsgi` isn't available.
+No separate
 vhost/`ServerName` is needed either way: `../src/html/`'s own pages read
 `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. this same
 vhost) to find the API -- point it at wherever `gunicorn` ends up

@@ -24,6 +24,6 @@ already does for `html/lib/`.
 API's own frontend now: every CGI page there fetches its data from
 `GET /api/...` instead of querying MySQL directly (`html/lib/apiclient.py`)
 -- see `docs/api.md` for how to run this and `docs/html-interface.md` for
-that side of it. `docs/TODO.md`'s Phase 5 section covers what's still open
-(the write endpoints above, mainly).
+that side of it. `docs/TODO.md`'s "Open items" section covers what's still
+open (the write endpoints above, mainly).
 """

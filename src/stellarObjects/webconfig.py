@@ -9,7 +9,7 @@ planetGen web interface (`html/`), documented in full in
 [`webconfig.md`](../../docs/webconfig.md). That file covers what
 each field means, why the real `webconfig.json` is gitignored while
 `webconfig.json.example` is committed as a template, and how this relates
-to the `PLANETGEN_DB_DIR`/`PLANETGEN_DEBUG` environment variables `html/`
+to the `PLANETGEN_MYSQL_*`/`PLANETGEN_DEBUG` environment variables `html/`
 already reads.
 
 This module is deliberately small and dependency-free (standard library
