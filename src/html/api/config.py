@@ -36,7 +36,7 @@ worker count.
 
 import os
 
-from stellarObjects._db import MySQLConfig
+from stellarObjects._db import MySQLConfig, control_mysql_config
 
 DEFAULT_RATE_LIMITS = "200 per day;50 per hour"
 """str: Flask-Limiter's own quickstart uses this exact pair as its
@@ -50,9 +50,57 @@ testing) if handed a list of strings instead, however natural that looks
 in Python."""
 
 
+def _write_mysql_config(read_only):
+    """
+    Builds the write-capable `MySQLConfig` from `PLANETGEN_MYSQL_WRITE_*`,
+    falling back field-by-field to `read_only`'s own values (the existing
+    `SELECT`-only `PLANETGEN_MYSQL_*` config) when a given `WRITE_*`
+    variable isn't set -- so a single-account local/dev setup (one set of
+    credentials for everything) keeps working with no extra
+    configuration, while a production deployment is documented
+    (`docs/apache-deployment.md`) to point `PLANETGEN_MYSQL_WRITE_*` at a
+    distinct account with `INSERT`/`UPDATE`/`DELETE` (but not `CREATE`/
+    `DROP`) grants on both the content schemas and the control schema
+    (`stellarObjects._db.control_mysql_config`), instead of reusing the
+    read-only one -- reusing it would simply fail every write with a
+    permissions error.
+
+    Args:
+        read_only (MySQLConfig): The existing `PLANETGEN_MYSQL_*` config,
+            used as the fallback for any `WRITE_*` field left unset.
+
+    Returns:
+        MySQLConfig: Ready to pass to `stellarObjects._db.open_write`.
+    """
+    return MySQLConfig(
+        host=os.environ.get("PLANETGEN_MYSQL_WRITE_HOST", read_only.host),
+        port=int(os.environ.get("PLANETGEN_MYSQL_WRITE_PORT", read_only.port)),
+        user=os.environ.get("PLANETGEN_MYSQL_WRITE_USER", read_only.user),
+        password=os.environ.get("PLANETGEN_MYSQL_WRITE_PASSWORD", read_only.password),
+        database=os.environ.get("PLANETGEN_MYSQL_WRITE_DATABASE", read_only.database),
+    )
+
+
 class Config:
     MYSQL_CONFIG = MySQLConfig()
+
+    # Write-capable config for the (now real, no longer stub) sector/
+    # system write endpoints -- see `_write_mysql_config` above and
+    # `routes.py`'s write handlers. `CONTROL_MYSQL_CONFIG` reuses this
+    # same account's host/user/password against the separate control
+    # schema (`control_schema.sql`'s header comment) that holds admin
+    # logins/sessions/API keys/audit log -- see `auth.py`.
+    WRITE_MYSQL_CONFIG = _write_mysql_config(MYSQL_CONFIG)
+    CONTROL_MYSQL_CONFIG = control_mysql_config(WRITE_MYSQL_CONFIG)
 
     RATELIMIT_DEFAULT = os.environ.get("PLANETGEN_RATELIMIT_DEFAULT", DEFAULT_RATE_LIMITS)
     RATELIMIT_STORAGE_URI = os.environ.get("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
     RATELIMIT_HEADERS_ENABLED = True
+
+    # The admin session cookie (auth.py) is Secure by default -- never
+    # sent over plain HTTP -- matching this project's documented
+    # deployment (Apache + Let's Encrypt, docs/apache-deployment.md).
+    # Only ever disable this for local development over plain HTTP (e.g.
+    # `python src/html/wsgi.py` without TLS in front of it); a production
+    # deployment must never set PLANETGEN_ADMIN_COOKIE_INSECURE.
+    SESSION_COOKIE_SECURE = os.environ.get("PLANETGEN_ADMIN_COOKIE_INSECURE") != "1"

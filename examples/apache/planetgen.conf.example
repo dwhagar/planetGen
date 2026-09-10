@@ -84,6 +84,24 @@
     # SetEnv PLANETGEN_MYSQL_USER planetgen_readonly
     # SetEnv PLANETGEN_MYSQL_PASSWORD changeme
     # SetEnv PLANETGEN_MYSQL_DATABASE_PREFIX planetgen
+    #
+    # NOTE: none of the SetEnv lines on this page reach the mod_wsgi API
+    # below (see the WSGIScriptAlias block's own comment) -- set every
+    # PLANETGEN_* variable (including the two below) in Apache's own
+    # process environment instead (e.g. /etc/apache2/envvars) for the API
+    # to see it at all.
+    #
+    # A separate, write-capable (INSERT/UPDATE/DELETE, not CREATE/DROP)
+    # account for the API's write endpoints (sector/system create/update/
+    # delete, and everything under /api/auth/) -- see
+    # docs/apache-deployment.md#mysql-accounts. Falls back to
+    # PLANETGEN_MYSQL_* above when unset.
+    # SetEnv PLANETGEN_MYSQL_WRITE_USER planetgen_write
+    # SetEnv PLANETGEN_MYSQL_WRITE_PASSWORD changeme
+    #
+    # The control schema (admin logins/sessions/API keys/audit log) --
+    # defaults to "planetgen_control" if unset.
+    # SetEnv PLANETGEN_CONTROL_DATABASE planetgen_control
 
     <Directory /var/lib/planetGen/src/html>
         Options +ExecCGI -Indexes

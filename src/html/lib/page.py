@@ -14,7 +14,7 @@ import sys
 import traceback
 from urllib.parse import parse_qs
 
-from apiclient import ApiError, NotFoundError
+from apiclient import ApiError, NotFoundError, auth_me
 from fmt import esc
 
 
@@ -31,6 +31,45 @@ def query_params():
     return {key: values[0] for key, values in raw.items()}
 
 
+def form_params():
+    """
+    Parses an `application/x-www-form-urlencoded` POST body from stdin
+    (`CONTENT_LENGTH` bytes, per the CGI spec) -- the admin pages'
+    (`login.py`/`changecreds.py`/`admin.py`) login/credential/API-key
+    forms, the first POST handling anywhere in `html/` (every other page
+    here is GET-only). Reads at most `CONTENT_LENGTH` bytes, never the
+    whole of stdin, so a misbehaving/absent header can't make this block
+    waiting for input that never arrives.
+
+    Returns:
+        dict[str, str]: One value per field (the first, if a field
+                        repeats) -- same single-valued convention as
+                        `query_params`.
+    """
+    try:
+        length = int(os.environ.get("CONTENT_LENGTH", "0") or "0")
+    except ValueError:
+        length = 0
+    raw = sys.stdin.buffer.read(length).decode("utf-8", errors="replace") if length > 0 else ""
+    parsed = parse_qs(raw)
+    return {key: values[0] for key, values in parsed.items()}
+
+
+def incoming_cookie_header():
+    """
+    Returns the browser's own `Cookie` header for this request (the CGI
+    `HTTP_COOKIE` environment variable), unparsed -- forwarded verbatim to
+    the planetGen API by every `apiclient.auth_*` call that needs the
+    session cookie. This module never inspects or parses cookie values
+    itself, only relays them (see `apiclient._auth_request`'s docstring).
+
+    Returns:
+        str or None: The raw `Cookie` header value, or `None` if the
+                     browser sent none.
+    """
+    return os.environ.get("HTTP_COOKIE")
+
+
 def _write_security_headers():
     """
     Written by both `send_headers` and `redirect` -- `'self'` in the CSP
@@ -45,7 +84,7 @@ def _write_security_headers():
     sys.stdout.write("Content-Security-Policy: default-src 'self'\r\n")
 
 
-def send_headers(status="200 OK"):
+def send_headers(status="200 OK", set_cookie_headers=None):
     """
     Writes the CGI response status + header block, terminated by the
     required blank line, then flushes -- must be called exactly once,
@@ -53,6 +92,12 @@ def send_headers(status="200 OK"):
 
     Args:
         status (str): e.g. `"200 OK"`, `"404 Not Found"`.
+        set_cookie_headers (list[str], optional): Raw `Set-Cookie` header
+            values to relay verbatim (from the planetGen API's own login/
+            logout/change-credentials response -- see
+            `apiclient._auth_request`) -- this module never constructs a
+            cookie value itself, only relays what the API already set
+            (`HttpOnly`/`Secure`/`SameSite` included).
     """
     # The response declares charset=utf-8 below; stdout's default encoding
     # is platform/locale-dependent (e.g. cp1252 on Windows) and would
@@ -61,10 +106,12 @@ def send_headers(status="200 OK"):
     sys.stdout.write(f"Status: {status}\r\n")
     sys.stdout.write("Content-Type: text/html; charset=utf-8\r\n")
     _write_security_headers()
+    for cookie in set_cookie_headers or []:
+        sys.stdout.write(f"Set-Cookie: {cookie}\r\n")
     sys.stdout.write("\r\n")
 
 
-def redirect(url):
+def redirect(url, set_cookie_headers=None):
     """
     Writes a CGI 302 redirect response to stdout and nothing else -- must
     be called instead of (never alongside) `send_headers`/`render`, and
@@ -72,7 +119,9 @@ def redirect(url):
 
     Used by `index.py` to skip straight to `browse.py?db=...` when exactly
     one database exists, instead of rendering the picker table for a
-    choice of one.
+    choice of one; also by `login.py`/`changecreds.py` to redirect after a
+    successful POST, carrying the API's `Set-Cookie` response along (see
+    `send_headers`'s own parameter of the same name).
 
     Args:
         url (str): The target URL, e.g. `"browse.py?db=planetgen.db"`.
@@ -81,11 +130,14 @@ def redirect(url):
                    this just writes the header block, the same division of
                    responsibility `send_headers` already has for the
                    `Content-Type` header.
+        set_cookie_headers (list[str], optional): See `send_headers`.
     """
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.write("Status: 302 Found\r\n")
     sys.stdout.write(f"Location: {url}\r\n")
     _write_security_headers()
+    for cookie in set_cookie_headers or []:
+        sys.stdout.write(f"Set-Cookie: {cookie}\r\n")
     sys.stdout.write("\r\n")
 
 
@@ -143,10 +195,27 @@ def _sidenav_html():
             (f"browse.py?db={db}#sectors", "Sectors"),
             (f"browse.py?db={db}#standalone-systems", "Systems"),
         ])
+
+    # Admin/Login: one extra GET /api/auth/me per page render (same
+    # "fails quiet, doesn't take the page down" treatment as the
+    # Databases link above) -- an admin session is the exception, not the
+    # common case, for this project's read-mostly browsing traffic, so
+    # the extra request isn't worth caching/avoiding.
+    admin = None
+    try:
+        admin = auth_me(incoming_cookie_header())
+    except ApiError:
+        admin = None
+    if admin is None:
+        items.append(("login.py", "Login"))
+    else:
+        items.append(("admin.py", "Admin"))
+        items.append(("logout.py", "Logout"))
+
     return "".join(f'<a href="{href}" class="sidenav-item">{label}</a>' for href, label in items)
 
 
-def render(title, body_html, status="200 OK"):
+def render(title, body_html, status="200 OK", set_cookie_headers=None):
     """
     Sends headers and a complete HTML page (shared shell + `body_html`)
     to stdout.
@@ -161,9 +230,10 @@ def render(title, body_html, status="200 OK"):
                          values via `fmt.esc`).
         status (str): CGI status line -- `"200 OK"` unless the caller is
                       rendering an error page.
+        set_cookie_headers (list[str], optional): See `send_headers`.
     """
     safe_title = esc(title)
-    send_headers(status)
+    send_headers(status, set_cookie_headers=set_cookie_headers)
     sys.stdout.write(f"""<!doctype html>
 <html lang="en">
 <head>

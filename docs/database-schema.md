@@ -183,6 +183,50 @@ itself is brought in with the separate, one-time
 `SCHEMA_VERSION` (today, v9), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
+**This versioning is independent of the control schema's own.** Admin
+logins/sessions/API keys/the write-action audit log live in a separate
+MySQL schema entirely (`stellarObjects/control_schema.sql`,
+`control_schema_migrations`, currently version 1) — see "The control
+schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
+describe the per-galaxy content schema this whole document is otherwise
+about.
+
+## The control schema
+
+A second, deployment-global MySQL schema (`PLANETGEN_CONTROL_DATABASE`,
+default `planetgen_control`) holds everything about *who can administer
+this deployment*, separate from every per-galaxy content schema this
+document otherwise describes — see `stellarObjects/control_schema.sql`'s
+header comment for the full rationale (in short: a deployment can host
+several galaxy databases sharing one MySQL server, and admin identities
+describe the deployment, not any one galaxy, so they aren't duplicated
+into each content schema's `schema.sql`).
+
+Four tables, versioned independently via `control_schema_migrations`
+(currently version 1, mirroring `schema_migrations`'s own shape):
+
+- **`admin_users`** — one row per admin (`username`, `password_hash`,
+  `must_change_credentials`). No roles/permissions column — every admin
+  has the same full access (see `docs/TODO.md`; this project deliberately
+  has no general user-accounts system, just a handful of admins).
+- **`admin_sessions`** — web-UI login sessions (`token_hash`, a SHA-256
+  digest of the actual cookie value — never the raw token itself;
+  `expires_at`, a fixed lifetime set at creation, no sliding renewal).
+- **`admin_api_keys`** — API keys for programmatic callers (`key_hash`,
+  same "hash only, never the raw key" treatment; `revoked_at` rather than
+  a hard delete, so a revoked key's history stays visible).
+- **`admin_audit_log`** — one row per write/admin action (`admin_user_id`
+  + a denormalized `admin_username` snapshot, `action`, `target`,
+  `detail`, `created_at`) — written by `html/api/routes.py`'s write
+  routes (`html/api/authz.audit`) after each one actually succeeds.
+
+`stellarObjects/adminAuth.py` is the only code that reads/writes these
+tables directly — `bootstrap_control_schema` creates the schema and seeds
+the default `admin`/`password` row (`migrateDb.py` calls this
+automatically, alongside its usual content-schema migration), and every
+other function there implements one piece of the login/session/API-key/
+audit lifecycle `html/api/auth.py`'s routes expose.
+
 ### Booleans and tri-state flags
 
 MySQL has no dedicated boolean type either. Plain booleans are `TINYINT(1)`

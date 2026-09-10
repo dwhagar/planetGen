@@ -48,8 +48,14 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
+from stellarObjects import _db
 from stellarObjects._db import MySQLConfig, list_databases, resolve_database
+from stellarObjects.config import SystemConfig
+from stellarObjects.systemData import StarSystem
+from stellarObjects.utils import ly_to_milliparsecs
 
+from .authz import audit, require_admin
+from .common import ApiError, require_json_body
 from .limiter import limiter
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -58,16 +64,14 @@ DEFAULT_PAGE_LIMIT = 100
 MAX_PAGE_LIMIT = 500
 
 WRITE_RATE_LIMIT = "10 per minute"
-"""str: Applied to every write stub, on top of the app-wide default
+"""str: Applied to every write route, on top of the app-wide default
 limits (`config.Config.RATELIMIT_DEFAULT`) -- both apply together
 (Flask-Limiter doesn't replace the default with a route's own `@limit`
 unless told to), so a mutating endpoint is always throttled at least
 this tightly regardless of how the global default is configured. Tighter
 than any read endpoint's effective limit is today, on the general
 principle that a request able to change data deserves more headroom
-against abuse than one that only reads it -- revisit once these are real
-writes rather than stubs, since the right number depends on actual usage
-patterns this project doesn't have yet."""
+against abuse than one that only reads it."""
 
 
 def _resolve_requested_db_config():
@@ -117,21 +121,6 @@ def close_db(exception=None):
         db.close()
 
 
-class ApiError(Exception):
-    """
-    Raised by a route to end the request with a JSON `{"error": ...}` body
-    and a specific status code, handled by `app.py`'s error handler. Beats
-    each route hand-rolling its own `return jsonify(...), status` for
-    validation failures, so every 400 in this API is worded and shaped the
-    same way.
-    """
-
-    def __init__(self, message, status_code=400):
-        super().__init__(message)
-        self.message = message
-        self.status_code = status_code
-
-
 def _paginate(query_args):
     """
     Parses and validates the `limit`/`offset` query parameters shared by
@@ -178,29 +167,6 @@ def _paginate(query_args):
             raise ApiError("offset must be at least 0")
 
     return limit, offset
-
-
-def _require_json_body():
-    """
-    Parses the request body as JSON, for every write endpoint below.
-
-    `request.get_json(silent=True)` returns `None` for a missing/empty
-    body, a body that isn't valid JSON, *or* a `Content-Type` other than
-    `application/json` -- this API doesn't need to tell those apart for a
-    caller, they're all just "you didn't send a JSON object".
-
-    Returns:
-        dict: The parsed body.
-
-    Raises:
-        ApiError: If the body is missing, isn't valid JSON, or isn't a
-            JSON *object* (a bare list/string/number is valid JSON but
-            not a usable request body here).
-    """
-    body = request.get_json(silent=True)
-    if not isinstance(body, dict):
-        raise ApiError("request body must be a JSON object")
-    return body
 
 
 @bp.route("/health")
@@ -440,11 +406,15 @@ def search():
 
 
 # ---------------------------------------------------------------------
-# Write endpoints -- stubs. See the module docstring: these validate
-# their request body against the shape documented in docs/api.md and
-# always respond 501, without touching the database. `_require_json_body`
-# doesn't get to know that, though, so it still runs against every
-# request, malformed or not, exactly as it will once these are real.
+# Write endpoints. Every one requires an authenticated admin
+# (`authz.require_admin`) whose credentials aren't still the seeded
+# default (`fresh=True` -- see `authz.py`/`adminAuth.py`), runs against
+# `WRITE_MYSQL_CONFIG` (a separate, less-privileged-than-`CREATE`
+# account -- see `config.py`) rather than the request-scoped read-only
+# `get_db()` every read route above uses, and records one
+# `admin_audit_log` row (`authz.audit`) after it actually succeeds, never
+# speculatively. See docs/api.md's "Write endpoints" section for the
+# request/response shapes.
 # ---------------------------------------------------------------------
 
 SECTOR_FIELDS = {
@@ -488,75 +458,259 @@ def _validate_sector_fields(body, required):
             raise ApiError(f"'{field}' is invalid: {value!r}")
 
 
+def _resolve_requested_write_db_config():
+    """
+    Same as `_resolve_requested_db_config` above, but resolved against
+    `WRITE_MYSQL_CONFIG` (see `config.py`) instead of the read-only
+    `MYSQL_CONFIG` every read route uses -- every write route's `?db=`
+    selection (or lack of one, falling back to the write account's own
+    configured default database) needs the write-capable account's
+    credentials, not the `SELECT`-only one.
+    """
+    base_config = current_app.config["WRITE_MYSQL_CONFIG"]
+    requested = request.args.get("db")
+    if requested is None:
+        return base_config
+    try:
+        return resolve_database(base_config, requested)
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=404)
+
+
+def _write_conn():
+    """Opens a write-capable connection against the content database
+    `?db=` (or the configured default) selects -- `ensure_schema=False`,
+    same reasoning as `queryDb.open_readonly`/`_db.open_write`: the
+    write-capable account has no `CREATE` grant (see `config.py`), so the
+    schema must already exist."""
+    return _db.open_write(_resolve_requested_write_db_config())
+
+
 @bp.route("/sectors", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
 def create_sector():
-    """
-    Stub. Request body: `{"name": str, "edge_ly": number > 0}` (both
-    required) -- see docs/api.md. Validates the body, then always
-    responds 501; no `sectors` row is ever inserted.
-    """
-    body = _require_json_body()
+    """`POST /api/sectors` `{"name": str, "edge_ly": number > 0}` (both
+    required) -- inserts a new, empty `sectors` row (no systems -- use
+    `sectorGen.py`/`galaxyGen.py` to generate a populated one) and
+    returns its id."""
+    body = require_json_body()
     _validate_sector_fields(body, required={"name", "edge_ly"})
-    raise ApiError("sector creation is not implemented yet", status_code=501)
+
+    conn = _write_conn()
+    try:
+        with conn:
+            cur = conn.execute(
+                "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
+                (body["name"], ly_to_milliparsecs(body["edge_ly"])),
+            )
+            sector_id = cur.lastrowid
+    finally:
+        conn.close()
+
+    audit("sector.create", target=f"sector:{sector_id}", detail=f"name={body['name']!r} edge_ly={body['edge_ly']}")
+    return jsonify({"id": sector_id, "name": body["name"], "edge_ly": body["edge_ly"]}), 201
 
 
 @bp.route("/sectors/<int:sector_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
 def update_sector(sector_id):
-    """
-    Stub. Request body: any non-empty subset of `{"name": str,
-    "edge_ly": number > 0}` -- see docs/api.md. Validates the body, then
-    always responds 501; no `sectors` row is ever modified. Doesn't
-    check `sector_id` actually exists first (there's nothing to apply
-    the update to yet either way), so a nonexistent id also gets 501,
-    not 404 -- revisit once this does something real.
-    """
-    body = _require_json_body()
+    """`PATCH /api/sectors/<id>` -- any non-empty subset of `{"name": str,
+    "edge_ly": number > 0}`."""
+    body = require_json_body()
     if not body:
         raise ApiError("body must include at least one field to update")
     _validate_sector_fields(body, required=set())
-    raise ApiError(f"sector {sector_id} modification is not implemented yet", status_code=501)
+
+    set_clauses, params = [], []
+    if "name" in body:
+        set_clauses.append("name = ?")
+        params.append(body["name"])
+    if "edge_ly" in body:
+        set_clauses.append("edge_mpc = ?")
+        params.append(ly_to_milliparsecs(body["edge_ly"]))
+    params.append(sector_id)
+
+    conn = _write_conn()
+    try:
+        with conn:
+            # Existence is checked explicitly rather than relying on the
+            # UPDATE's own affected-row count: MySQL (and so pymysql)
+            # reports 0 affected rows for a matched row whose new values
+            # equal its current ones, which would otherwise misreport a
+            # real, unchanged sector as "not found".
+            if conn.execute("SELECT id FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
+                raise ApiError(f"no such sector: {sector_id}", status_code=404)
+            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)} WHERE id = ?", tuple(params))
+    finally:
+        conn.close()
+
+    audit("sector.update", target=f"sector:{sector_id}", detail=str(body))
+    return jsonify({"status": "ok"})
 
 
 @bp.route("/sectors/<int:sector_id>", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
 def delete_sector(sector_id):
-    """Stub. No request body. Always responds 501; no `sectors` row is
-    ever deleted."""
-    raise ApiError(f"sector {sector_id} deletion is not implemented yet", status_code=501)
+    """`DELETE /api/sectors/<id>` -- no request body. Its systems are
+    detached, not deleted (`star_systems.sector_id` is `ON DELETE SET
+    NULL`, per `schema.sql`), matching how a system can already exist
+    with no sector at all."""
+    conn = _write_conn()
+    try:
+        with conn:
+            deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
+    finally:
+        conn.close()
+
+    if not deleted:
+        raise ApiError(f"no such sector: {sector_id}", status_code=404)
+    audit("sector.delete", target=f"sector:{sector_id}")
+    return jsonify({"status": "ok"})
+
+
+SYSTEM_CONFIG_TRISTATE_FIELDS = {
+    "habitable_world", "asteroid_belt", "large_star", "moons",
+    "max_planets", "planets", "intelligent_life", "binary_system",
+}
+"""set[str]: `SystemConfig` fields that are `bool` or `None` (`None` = let
+the generator decide) -- see `config.py`'s own field docstrings."""
+
+SYSTEM_CONFIG_ALLOWED_FIELDS = SYSTEM_CONFIG_TRISTATE_FIELDS | {"markdown", "star_type", "name", "age", "num_orbits"}
+"""set[str]: Every recipe field `POST /api/systems` currently accepts --
+`SystemConfig.SERIALIZABLE_FIELDS` minus `SLOTS` (a nested per-orbit
+structure not validated in this pass; a request naming it is rejected as
+an unrecognized field rather than silently accepted-but-ignored)."""
+
+
+def _validate_system_config_body(body):
+    """
+    Validates a `POST /api/systems` recipe body against
+    `SYSTEM_CONFIG_ALLOWED_FIELDS` -- deliberately stricter than
+    `SystemConfig.from_dict`/`fields_from_dict` itself (which silently
+    ignores an unrecognized key rather than rejecting it), since a typo
+    in a request body should be a `400`, not a silently-ignored no-op.
+
+    Raises:
+        ApiError: On an unrecognized field or one with an invalid type/
+            value.
+    """
+    unknown = set(body) - SYSTEM_CONFIG_ALLOWED_FIELDS
+    if unknown:
+        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
+
+    if "markdown" in body and not isinstance(body["markdown"], bool):
+        raise ApiError("'markdown' must be a boolean")
+    for field in SYSTEM_CONFIG_TRISTATE_FIELDS:
+        if field in body and body[field] is not None and not isinstance(body[field], bool):
+            raise ApiError(f"'{field}' must be a boolean or null")
+    for field in ("star_type", "name"):
+        if field in body and body[field] is not None and not isinstance(body[field], str):
+            raise ApiError(f"'{field}' must be a string or null")
+    if "age" in body and body["age"] not in (None, "young", "old"):
+        raise ApiError("'age' must be 'young', 'old', or null")
+    if "num_orbits" in body:
+        value = body["num_orbits"]
+        if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value <= 0):
+            raise ApiError("'num_orbits' must be a positive integer or null")
 
 
 @bp.route("/systems", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
 def create_system():
     """
-    Stub. Request body must be a JSON object -- unlike sectors, this
-    project hasn't yet decided a system's create schema (a generation
-    "recipe" shaped like `SystemConfig`, e.g. `star_type`/`planets`/
-    `moons`, closer to what `systemGen.py --star-type ...` takes; vs. a
-    fully-specified object graph shaped like `StarSystem.to_dict()`, with
-    every star/planet/moon/belt spelled out; or supporting both) -- see
-    docs/api.md. Always responds 501; no `star_systems` row is ever
-    inserted.
+    `POST /api/systems` -- a generation "recipe" body (see
+    `SYSTEM_CONFIG_ALLOWED_FIELDS`), the same shape `systemGen.py
+    --system-file` already takes (`SystemConfig.from_dict`). Generates a
+    new **standalone** system (no `sector_id` -- attaching a newly
+    generated system to an existing sector needs that sector's own
+    placement/Hill-sphere separation logic, tracked as follow-up work in
+    docs/TODO.md, not implemented here) and persists it via the same
+    `insert_star_system` every other entry point uses. Returns the new
+    `star_systems.id`.
     """
-    _require_json_body()
-    raise ApiError("system creation is not implemented yet", status_code=501)
+    body = require_json_body()
+    _validate_system_config_body(body)
+    system_config = SystemConfig.from_dict(body)
+
+    try:
+        star_system = StarSystem(system_config=system_config)
+    except Exception as exc:
+        # Generation can reject an internally-inconsistent recipe (e.g. an
+        # impossible num_orbits/planet-class combination) -- surfaced as a
+        # 400 (the request body was the problem), not an unhandled 500.
+        raise ApiError(f"system generation failed: {exc}")
+
+    conn = _write_conn()
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, star_system, system_config)
+    finally:
+        conn.close()
+
+    audit("system.create", target=f"system:{system_id}", detail=f"star_type={body.get('star_type')!r}")
+    return jsonify({"id": system_id}), 201
+
+
+SYSTEM_UPDATE_FIELDS = {
+    "name": (str, lambda v: bool(v.strip())),
+}
+"""dict: `PATCH /api/systems/<id>`'s allowed fields -- metadata only
+(a rename) in this pass; editing a system's generated content (stars/
+planets/moons/belts) is out of scope here, same reasoning as `POST
+/api/systems` accepting only a generation recipe rather than a
+hand-edited object graph (see docs/api.md)."""
 
 
 @bp.route("/systems/<int:system_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
 def update_system(system_id):
-    """Stub. Request body must be a JSON object -- field-level schema
-    still TBD, same open question as `create_system`. Always responds
-    501; no `star_systems` row is ever modified."""
-    _require_json_body()
-    raise ApiError(f"system {system_id} modification is not implemented yet", status_code=501)
+    """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system."""
+    body = require_json_body()
+    if not body:
+        raise ApiError("body must include at least one field to update")
+    unknown = set(body) - set(SYSTEM_UPDATE_FIELDS)
+    if unknown:
+        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
+    for field, (expected_type, is_valid) in SYSTEM_UPDATE_FIELDS.items():
+        if field not in body:
+            continue
+        value = body[field]
+        if not isinstance(value, expected_type) or not is_valid(value):
+            raise ApiError(f"'{field}' is invalid: {value!r}")
+
+    conn = _write_conn()
+    try:
+        with conn:
+            if conn.execute("SELECT id FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
+                raise ApiError(f"no such system: {system_id}", status_code=404)
+            conn.execute("UPDATE star_systems SET name = ? WHERE id = ?", (body["name"], system_id))
+    finally:
+        conn.close()
+
+    audit("system.update", target=f"system:{system_id}", detail=str(body))
+    return jsonify({"status": "ok"})
 
 
 @bp.route("/systems/<int:system_id>", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
 def delete_system(system_id):
-    """Stub. No request body. Always responds 501; no `star_systems` row
-    (or its stars/planets/moons/belts) is ever deleted."""
-    raise ApiError(f"system {system_id} deletion is not implemented yet", status_code=501)
+    """`DELETE /api/systems/<id>` -- no request body. Its stars/planets/
+    moons/belts are deleted with it (all `ON DELETE CASCADE`, per
+    `schema.sql`)."""
+    conn = _write_conn()
+    try:
+        with conn:
+            deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
+    finally:
+        conn.close()
+
+    if not deleted:
+        raise ApiError(f"no such system: {system_id}", status_code=404)
+    audit("system.delete", target=f"system:{system_id}")
+    return jsonify({"status": "ok"})

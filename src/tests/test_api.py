@@ -16,10 +16,12 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db
+from stellarObjects import _db, adminAuth
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
+
+TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
 
 
 @pytest.fixture
@@ -64,12 +66,66 @@ def client(mysql_config):
     # back to an unconfigured in-memory store with no default limit at
     # all rather than erroring, so this gap wouldn't show up as a
     # failure -- just as tests silently not covering what they claim to).
+    #
+    # WRITE_MYSQL_CONFIG/CONTROL_MYSQL_CONFIG both point at this same
+    # throwaway database as MYSQL_CONFIG -- there's no privilege
+    # separation to test here (that's a deployment/grants concern, not
+    # application logic), and the control schema's tables never collide
+    # with the content schema's own (see test_admin_auth.py's module
+    # docstring), so one database serves for all three roles in tests.
     class TestConfig(Config):
         MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
 
     app = create_app(TestConfig)
     app.testing = True
     return app.test_client()
+
+
+@pytest.fixture
+def default_admin_client(mysql_config, client):
+    """
+    A `client` already logged in as the seeded default `admin`/`password`
+    admin -- `must_change_credentials` is still set, so this is the
+    fixture for tests confirming that gate actually blocks write/admin
+    routes (see `authz.require_admin(fresh=True)`), not for exercising
+    the writes themselves (use `admin_client` for that).
+
+    Flask's test client keeps its own cookie jar across requests made on
+    the same `client` instance, so the session cookie `POST /api/auth/login`
+    sets is carried automatically into every later request this fixture's
+    caller makes -- no manual cookie plumbing needed in tests, unlike the
+    real CGI admin pages (`html/login.py` etc.), which do that relay by
+    hand precisely because a CGI script has no persistent client object.
+    """
+    adminAuth.bootstrap_control_schema(mysql_config)
+    # The write endpoints intentionally run with ensure_schema=False (see
+    # routes._write_conn) -- a real deployment's content schema already
+    # exists by the time an admin account is in use. This throwaway test
+    # database starts completely empty, so lay the content schema down
+    # here the same way any first `sectorGen.py`/`migrateDb.py` run would.
+    _db.get_connection(mysql_config).close()
+    response = client.post("/api/auth/login", json={
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+    })
+    assert response.status_code == 200
+    assert response.get_json()["must_change_credentials"] is True
+    return client
+
+
+@pytest.fixture
+def admin_client(default_admin_client):
+    """A `client` logged in and past the forced credential change -- ready
+    to exercise real write/admin endpoints against."""
+    response = default_admin_client.post("/api/auth/change-credentials", json={
+        "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "new_username": "test-admin",
+        "new_password": TEST_ADMIN_PASSWORD,
+    })
+    assert response.status_code == 200
+    assert response.get_json()["must_change_credentials"] is False
+    return default_admin_client
 
 
 def test_health_ok(client):
@@ -348,80 +404,224 @@ def test_unmatched_route_returns_json_404(client):
 
 
 # ---------------------------------------------------------------------
-# Write endpoints -- stubs (see routes.py's module docstring). These
-# never touch the database, so they don't need `seeded_sector`/a real
-# sector or system id to exist first -- every one of them responds 501
-# regardless, as long as the request body passes validation.
+# Authentication (see auth.py/authz.py) -- login, the forced default-
+# credential change, and API keys.
 # ---------------------------------------------------------------------
 
-def test_create_sector_validates_then_returns_not_implemented(client):
+def test_login_wrong_password_is_generic_401(mysql_config, client):
+    adminAuth.bootstrap_control_schema(mysql_config)
+    response = client.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
+    assert response.status_code == 401
+    unknown_user_response = client.post("/api/auth/login", json={"username": "no-such-admin", "password": "wrong"})
+    assert unknown_user_response.status_code == 401
+    assert response.get_json()["error"] == unknown_user_response.get_json()["error"]
+
+
+def test_login_success_sets_cookie_and_reports_must_change_credentials(default_admin_client):
+    response = default_admin_client.get("/api/auth/me")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["username"] == "admin"
+    assert body["must_change_credentials"] is True
+
+
+def test_me_requires_auth(client):
+    response = client.get("/api/auth/me")
+    assert response.status_code == 401
+
+
+def test_write_route_requires_auth(client):
     response = client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0})
-    assert response.status_code == 501
-    assert "error" in response.get_json()
+    assert response.status_code == 401
 
-    response = client.post("/api/sectors", json={"name": "Test"})
-    assert response.status_code == 400
 
-    response = client.post("/api/sectors", json={"name": "", "edge_ly": 10.0})
-    assert response.status_code == 400
+def test_write_route_blocked_until_default_credentials_are_changed(default_admin_client):
+    response = default_admin_client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0})
+    assert response.status_code == 403
 
-    response = client.post("/api/sectors", json={"name": "Test", "edge_ly": -1})
-    assert response.status_code == 400
 
-    response = client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0, "bogus": 1})
-    assert response.status_code == 400
-
-    response = client.post("/api/sectors", data="not json", content_type="text/plain")
+def test_change_credentials_requires_current_password(default_admin_client):
+    response = default_admin_client.post("/api/auth/change-credentials", json={
+        "current_password": "wrong", "new_username": "someone", "new_password": TEST_ADMIN_PASSWORD,
+    })
     assert response.status_code == 400
 
 
-def test_update_sector_validates_then_returns_not_implemented(client):
-    response = client.patch("/api/sectors/1", json={"name": "Renamed"})
-    assert response.status_code == 501
-
-    response = client.patch("/api/sectors/1", json={"edge_ly": 5.0})
-    assert response.status_code == 501
-
-    response = client.patch("/api/sectors/1", json={})
-    assert response.status_code == 400
-
-    response = client.patch("/api/sectors/1", json={"edge_ly": -1})
+def test_change_credentials_rejects_weak_password(default_admin_client):
+    response = default_admin_client.post("/api/auth/change-credentials", json={
+        "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD, "new_username": "someone", "new_password": "short",
+    })
     assert response.status_code == 400
 
 
-def test_delete_sector_returns_not_implemented(client):
-    response = client.delete("/api/sectors/1")
-    assert response.status_code == 501
-    assert "error" in response.get_json()
+def test_change_credentials_success_clears_the_flag_and_reissues_session(admin_client):
+    response = admin_client.get("/api/auth/me")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["username"] == "test-admin"
+    assert body["must_change_credentials"] is False
 
 
-def test_create_system_requires_json_object_then_returns_not_implemented(client):
-    response = client.post("/api/systems", json={"name": "Testworld"})
-    assert response.status_code == 501
+def test_logout_ends_the_session(admin_client):
+    response = admin_client.post("/api/auth/logout")
+    assert response.status_code == 200
+    response = admin_client.get("/api/auth/me")
+    assert response.status_code == 401
 
-    response = client.post("/api/systems", data="not json", content_type="text/plain")
+
+def test_api_key_create_list_revoke(admin_client):
+    response = admin_client.get("/api/auth/api-keys")
+    assert response.status_code == 200
+    assert response.get_json()["items"] == []
+
+    response = admin_client.post("/api/auth/api-keys", json={"label": "ci key"})
+    assert response.status_code == 201
+    created = response.get_json()
+    assert created["key"].startswith("pg_")
+
+    response = admin_client.get("/api/auth/api-keys")
+    items = response.get_json()["items"]
+    assert len(items) == 1
+    assert items[0]["id"] == created["id"]
+    assert "key" not in items[0]
+    assert items[0]["revoked_at"] is None
+
+    # The raw key works as a Bearer credential against a write route.
+    response = admin_client.post(
+        "/api/sectors", json={"name": "Via API Key", "edge_ly": 8.0},
+        headers={"Authorization": f"Bearer {created['key']}"},
+    )
+    assert response.status_code == 201
+
+    response = admin_client.delete(f"/api/auth/api-keys/{created['id']}")
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        "/api/sectors", json={"name": "Should fail", "edge_ly": 8.0},
+        headers={"Authorization": f"Bearer {created['key']}"},
+    )
+    assert response.status_code == 401
+
+    response = admin_client.delete(f"/api/auth/api-keys/{created['id']}")
+    assert response.status_code == 404
+
+
+def test_login_is_rate_limited(mysql_config, client):
+    adminAuth.bootstrap_control_schema(mysql_config)
+    for _ in range(10):
+        response = client.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
+        assert response.status_code == 401
+
+    response = client.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
+    assert response.status_code == 429
+
+
+# ---------------------------------------------------------------------
+# Write endpoints -- real inserts/updates/deletes (see routes.py),
+# authenticated via `admin_client`.
+# ---------------------------------------------------------------------
+
+def test_create_sector_then_get_update_delete(admin_client):
+    response = admin_client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0})
+    assert response.status_code == 201
+    sector_id = response.get_json()["id"]
+
+    response = admin_client.get(f"/api/sectors/{sector_id}")
+    assert response.status_code == 200
+    assert response.get_json()["name"] == "Test"
+    assert response.get_json()["edge_ly"] == pytest.approx(10.0)
+
+    response = admin_client.patch(f"/api/sectors/{sector_id}", json={"name": "Renamed"})
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/sectors/{sector_id}").get_json()["name"] == "Renamed"
+
+    response = admin_client.patch("/api/sectors/999999999", json={"name": "Nope"})
+    assert response.status_code == 404
+
+    response = admin_client.delete(f"/api/sectors/{sector_id}")
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/sectors/{sector_id}").status_code == 404
+
+    response = admin_client.delete(f"/api/sectors/{sector_id}")
+    assert response.status_code == 404
+
+
+def test_create_sector_validates_request_body(admin_client):
+    response = admin_client.post("/api/sectors", json={"name": "Test"})
+    assert response.status_code == 400
+
+    response = admin_client.post("/api/sectors", json={"name": "", "edge_ly": 10.0})
+    assert response.status_code == 400
+
+    response = admin_client.post("/api/sectors", json={"name": "Test", "edge_ly": -1})
+    assert response.status_code == 400
+
+    response = admin_client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0, "bogus": 1})
+    assert response.status_code == 400
+
+    response = admin_client.post("/api/sectors", data="not json", content_type="text/plain")
     assert response.status_code == 400
 
 
-def test_update_system_requires_json_object_then_returns_not_implemented(client):
-    response = client.patch("/api/systems/1", json={"star_type": "G2V"})
-    assert response.status_code == 501
+def test_delete_sector_detaches_rather_than_deletes_its_systems(admin_client, seeded_sector):
+    _config, sector_id, system_ids = seeded_sector
+
+    response = admin_client.delete(f"/api/sectors/{sector_id}")
+    assert response.status_code == 200
+
+    response = admin_client.get(f"/api/systems/{system_ids[0]}")
+    assert response.status_code == 200
+    assert response.get_json()["sector_id"] is None
 
 
-def test_delete_system_returns_not_implemented(client):
-    response = client.delete("/api/systems/1")
-    assert response.status_code == 501
+def test_create_system_generates_and_persists_a_standalone_system(admin_client):
+    response = admin_client.post("/api/systems", json={"star_type": "G2V", "planets": False})
+    assert response.status_code == 201
+    system_id = response.get_json()["id"]
+
+    response = admin_client.get(f"/api/systems/{system_id}")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["sector_id"] is None
+    assert body["stars"][0]["star_type"].startswith("G2V")
 
 
-def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(client):
+def test_create_system_rejects_unrecognized_and_invalid_fields(admin_client):
+    response = admin_client.post("/api/systems", json={"sector_id": 1})
+    assert response.status_code == 400
+
+    response = admin_client.post("/api/systems", json={"age": "ancient"})
+    assert response.status_code == 400
+
+    response = admin_client.post("/api/systems", json={"num_orbits": -1})
+    assert response.status_code == 400
+
+
+def test_update_and_delete_system(admin_client):
+    response = admin_client.post("/api/systems", json={"star_type": "M5V", "planets": False})
+    system_id = response.get_json()["id"]
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"name": "Renamed World"})
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/systems/{system_id}").get_json()["name"] == "Renamed World"
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"star_type": "G2V"})
+    assert response.status_code == 400  # unrecognized field for PATCH
+
+    response = admin_client.delete(f"/api/systems/{system_id}")
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/systems/{system_id}").status_code == 404
+
+
+def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_client):
     # WRITE_RATE_LIMIT is 10/minute -- the 11th write in one minute must
     # be rejected with 429, well before the 50/hour global default would
     # ever kick in.
     for _ in range(10):
-        response = client.delete("/api/sectors/1")
-        assert response.status_code == 501
+        response = admin_client.delete("/api/sectors/999999999")
+        assert response.status_code == 404
 
-    response = client.delete("/api/sectors/1")
+    response = admin_client.delete("/api/sectors/999999999")
     assert response.status_code == 429
     body = response.get_json()
     assert body["error"] == "rate limit exceeded"

@@ -10,11 +10,10 @@ rather than a direct database consumer — see that doc's own note on the
 switch, and "Deploying behind Apache" below for how both are mounted on
 one vhost.
 
-Every read endpoint is fully implemented. The write endpoints (create/modify/
-delete a sector or system) are **stubs**: routed, rate-limited, and
-validating their request body against the schema below, but not yet wired
-up to the database — see "Write endpoints" below before building anything
-against them.
+Every read endpoint is fully implemented and unauthenticated (read-only,
+no account needed). Every write endpoint (create/modify/delete a sector or
+system) requires an authenticated admin whose credentials aren't still the
+seeded default — see "Authentication" and "Write endpoints" below.
 
 ## Why Flask
 
@@ -123,14 +122,40 @@ connectivity to that specific schema rather than the default one.
   `null` for an object type with no active reason to query it — see
   `queryDb.search`'s docstring for the exact inclusion rule).
 
-### Write (stubs — see below)
+### Write (admin auth required — see "Authentication" and "Write endpoints")
 
 - `POST /api/sectors` — create a sector.
 - `PATCH /api/sectors/<id>` — modify a sector.
 - `DELETE /api/sectors/<id>` — remove a sector.
-- `POST /api/systems` — create a system.
-- `PATCH /api/systems/<id>` — modify a system.
+- `POST /api/systems` — generate and create a standalone system.
+- `PATCH /api/systems/<id>` — rename a system.
 - `DELETE /api/systems/<id>` — remove a system.
+
+### Authentication
+
+- `POST /api/auth/login` `{"username", "password"}` — sets the session
+  cookie (`pg_admin_session`; `HttpOnly`/`Secure`/`SameSite=Strict`).
+  Returns `{"username", "must_change_credentials"}`. `401` for a wrong
+  username or password (same message either way — this never reveals
+  whether a username exists). Rate-limited to 10/minute/IP.
+- `POST /api/auth/logout` — ends the current session, clears the cookie.
+- `GET /api/auth/me` — the calling admin's identity.
+- `POST /api/auth/change-credentials`
+  `{"current_password", "new_username", "new_password"}` — always
+  requires the current password, regardless of whether
+  `must_change_credentials` is set. `new_password` must be at least 12
+  characters, not the seeded default password, and not equal to the
+  username. Re-issues a fresh session cookie on success.
+- `GET /api/auth/api-keys` — the calling admin's own API keys (label/
+  timestamps only, never the key or its hash).
+- `POST /api/auth/api-keys` `{"label"}` — creates a key, returning
+  `{"id", "label", "key"}`. `key` is the raw value, shown exactly once.
+- `DELETE /api/auth/api-keys/<id>` — revokes one of the calling admin's
+  own keys.
+
+Authenticate either with the session cookie (set by `/api/auth/login`,
+used by the `../src/html/` admin pages) or an API key, sent as
+`Authorization: Bearer <key>`, for programmatic callers.
 
 ### Pagination
 
@@ -240,25 +265,17 @@ not a bearing relative to any particular ship heading.
 
 ## Write endpoints
 
-**These are stubs.** Every one validates its request body against the
-schema below and applies the rate limit, but always responds
-`501 {"error": "... is not implemented yet"}` — no row is ever inserted,
-updated, or deleted. They exist now so the request/response contract is
-settled and something can already build/test against the validation and
-error shape before the actual database logic lands.
-
-Before filling them in for real, two things this stub stage deliberately
-doesn't need yet still have to land first:
-
-- **A write-capable database account.** `MYSQL_CONFIG` (see `config.py`)
-  is the same connection every read endpoint uses, and this project's own
-  docs recommend a `SELECT`-only account for it. A real write needs a
-  second, write-capable account/config — reusing the read-only one will
-  simply fail with a permissions error.
-- **Authentication/authorization.** Nothing in this API currently checks
-  *who* is calling — fine when every route only reads, not once a request
-  can create/modify/delete data. Decide on an auth scheme (API key, JWT,
-  mTLS, ...) before wiring real logic behind these routes.
+Every write route requires an authenticated admin (session cookie or
+`Authorization: Bearer <api-key>` — see "Authentication" above) whose
+`must_change_credentials` flag is clear — the seeded `admin`/`password`
+bootstrap admin can log in and call `/api/auth/change-credentials`, but
+nothing else, until it changes its own credentials (`403` otherwise). A
+missing/invalid credential is `401`. Every write route runs against a
+separate, less-privileged-than-`CREATE`-capable database account
+(`PLANETGEN_MYSQL_WRITE_*` — see `config.py` and
+[`apache-deployment.md`](apache-deployment.md)) than the `SELECT`-only one
+every read route above uses, and records one row in the control schema's
+`admin_audit_log` (who, what, when) after the write actually succeeds.
 
 ### Sectors — request body
 
@@ -282,16 +299,51 @@ type, or a value failing the constraints above is a `400`.
 
 ### Systems — request body
 
-**Not yet decided.** `POST`/`PATCH /api/systems` today only check that the
-body is a JSON object — a system is a much richer nested object (stars,
-planets, moons, belts) than a sector, and this project hasn't settled
-whether creating one via the API should take a generation "recipe" (shaped
-like `SystemConfig` — `star_type`, `planets`, `moons`, ... — closer to what
-`systemGen.py --star-type ...` takes and letting the server generate the
-system), a fully-specified object graph (shaped like
-`StarSystem.to_dict()`, with every star/planet/moon/belt spelled out), or
-both. Settle this alongside filling in the stub itself, and document the
-chosen shape here.
+`POST /api/systems` takes a generation **"recipe"**, the same shape
+`systemGen.py --system-file` already takes (`SystemConfig.to_dict()`/
+`from_dict()`) — every field is optional (`null`/omitted means "let the
+generator decide"), and the server generates a brand-new, real system from
+it the same way `systemGen.py` does, via `StarSystem(system_config=...)`:
+
+```json
+{
+  "star_type": "G2V",
+  "name": "Voranthis Prime",
+  "age": "old",
+  "habitable_world": true,
+  "asteroid_belt": null,
+  "large_star": false,
+  "moons": null,
+  "max_planets": null,
+  "planets": null,
+  "intelligent_life": null,
+  "binary_system": false,
+  "num_orbits": 6,
+  "markdown": false
+}
+```
+
+Accepted fields: `markdown`, `star_type`, `name`, `age` (`"young"`,
+`"old"`, or `null`), `num_orbits` (positive integer or `null`), and the
+tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
+`max_planets`/`planets`/`intelligent_life`/`binary_system` (`true`,
+`false`, or `null`). An unrecognized field (including `slots`, `sector_id`,
+or a fully-specified object graph shaped like `StarSystem.to_dict()`) is a
+`400` — not silently ignored.
+
+**Standalone only, for now.** The created system always has `sector_id =
+NULL` (same as `systemGen.py`'s own output) — attaching a newly generated
+system to an existing sector needs that sector's own placement/Hill-sphere
+separation logic (`SpaceSector.add_system`), which this endpoint doesn't
+call. Tracked as follow-up work in `docs/TODO.md`.
+
+A generation failure (an internally-inconsistent recipe, e.g. an
+impossible `num_orbits`/class combination) is reported as a `400`, not a
+`500` — the request body was the problem, not the server.
+
+`PATCH /api/systems/<id>` accepts only `{"name": str}` — a rename.
+Editing a system's generated content (stars/planets/moons/belts) isn't
+supported via this API; regenerate via `DELETE` + `POST` instead.
 
 ## Rate limiting
 
@@ -334,9 +386,23 @@ PLANETGEN_MYSQL_HOST=db.example.com PLANETGEN_MYSQL_DATABASE=planetgen_alpha pyt
 Every read goes through `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` —
 point those at a database account with `SELECT`-only grants in production,
 same recommendation as `queryDb.py`'s (see that script's module docstring).
-This is safe today even with the write endpoints present, since they're
-stubs that never touch the database — revisit once they're implemented for
-real (see "Write endpoints" above).
+
+Every write (sector/system create/update/delete) goes through a separate
+`PLANETGEN_MYSQL_WRITE_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE` config
+instead — falls back field-by-field to the read-only `PLANETGEN_MYSQL_*`
+values when unset, so a single local/dev account keeps working with no
+extra configuration, but production should point it at a distinct account
+with `INSERT`/`UPDATE`/`DELETE` (not `CREATE`/`DROP`) grants — see
+`html/api/config.py`'s `_write_mysql_config` and
+[`apache-deployment.md`](apache-deployment.md).
+
+Admin logins/sessions/API keys/audit log live in a separate **control
+schema** (`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`),
+global to the deployment rather than per-galaxy-database — see
+`stellarObjects/control_schema.sql`'s header comment and
+[`database-schema.md`](database-schema.md). `migrateDb.py` creates and
+seeds it (the default `admin`/`password` login) alongside its usual
+content-schema migration.
 
 ## Deploying behind Apache (mod_wsgi)
 
@@ -373,11 +439,19 @@ normal way. If running more than one `mod_wsgi`/`gunicorn` worker, also set
 `PLANETGEN_RATELIMIT_STORAGE_URI` to a shared backend (see "Rate
 limiting").
 
+**The admin session cookie requires HTTPS.** It's set `Secure` by default
+(`config.SESSION_COOKIE_SECURE`) -- the browser never sends it over plain
+HTTP, so `login.py`/`admin.py` won't work behind a vhost that's HTTP-only.
+Terminate TLS in front of this vhost (e.g. `certbot --apache`) before
+using the admin pages; only set `PLANETGEN_ADMIN_COOKIE_INSECURE=1` for
+local development without TLS in front, never in production.
+
 ## Not done yet
 
-See `TODO.md`'s Phase 5 section — everything under "Write endpoints"
-above (the real insert/update/delete logic, a write-capable database
-account, and authentication/authorization). The frontend gap that
+See `docs/TODO.md`'s open items — in particular, sector-attached system
+creation (`POST /api/systems` is standalone-only today, per "Systems —
+request body" above) and editing a system's generated content (stars/
+planets/moons/belts) beyond a plain rename. The frontend gap that this
 section used to describe is closed: `../src/html/` (see
 [`html-interface.md`](html-interface.md)) is this API's own server-
 rendered frontend now.

@@ -74,6 +74,23 @@ _PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "schema.sql")
 """str: Path to the DDL file applied by `_ensure_schema`."""
 
+CONTROL_SCHEMA_VERSION = 1
+"""int: Version counter for `control_schema.sql`, independent of
+`SCHEMA_VERSION` above -- see that file's header comment for why the
+control plane (admin identities/sessions/API keys/audit log) is a
+separate schema with its own versioning."""
+
+CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
+"""str: Path to the DDL file applied by `_ensure_control_schema`."""
+
+CONTROL_DB_ENV_VAR = "PLANETGEN_CONTROL_DATABASE"
+"""str: Env var naming the one MySQL schema the control plane lives in
+(admin identities are global to a deployment, not per-galaxy -- see
+`control_schema.sql`'s header comment)."""
+
+DEFAULT_CONTROL_DATABASE = "planetgen_control"
+"""str: Default control-schema name when `CONTROL_DB_ENV_VAR` isn't set."""
+
 
 class MySQLConfig:
     """
@@ -484,6 +501,97 @@ def _ensure_schema(conn):
     row = conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()
     if row["n"] == 0:
         conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (SCHEMA_VERSION,))
+        conn.commit()
+
+
+def open_write(config=None):
+    """
+    Opens a connection for a write-capable caller against an already-
+    existing content database (`ensure_schema=False` -- same reasoning as
+    `queryDb.open_readonly`: a write-capable account (see
+    `docs/apache-deployment.md`'s `PLANETGEN_MYSQL_WRITE_*`) deliberately
+    has no `CREATE`/`ALTER` grant, so attempting `_ensure_schema`'s DDL
+    here would fail every connection instead of just skipping a step a
+    full-access account has already done once, via `migrateDb.py`).
+
+    Args:
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
+
+    Returns:
+        Connection: An open connection.
+    """
+    return get_connection(config, ensure_schema=False)
+
+
+def control_mysql_config(base_config=None):
+    """
+    Builds a `MySQLConfig` pointed at the control schema (see
+    `control_schema.sql`'s header comment), reusing `base_config`'s
+    host/port/user/password -- typically the same write-capable account
+    `open_write` uses (`docs/apache-deployment.md`'s `PLANETGEN_MYSQL_WRITE_*`),
+    since the control schema needs the same `SELECT`/`INSERT`/`UPDATE`/
+    `DELETE` grants, just on a different schema name.
+
+    Args:
+        base_config (MySQLConfig, optional): Connection parameters to
+            reuse host/port/user/password from. Defaults to
+            `DEFAULT_MYSQL_CONFIG`.
+
+    Returns:
+        MySQLConfig: `base_config` with `database` replaced by
+            `CONTROL_DB_ENV_VAR` (or `DEFAULT_CONTROL_DATABASE`).
+    """
+    base_config = base_config or DEFAULT_MYSQL_CONFIG
+    database = os.environ.get(CONTROL_DB_ENV_VAR, DEFAULT_CONTROL_DATABASE)
+    return MySQLConfig(
+        host=base_config.host, port=base_config.port,
+        user=base_config.user, password=base_config.password, database=database,
+    )
+
+
+def get_control_connection(config=None, ensure_schema=False):
+    """
+    Opens a pooled connection to the control schema.
+
+    Args:
+        config (MySQLConfig, optional): Connection parameters. Defaults
+            to `control_mysql_config()`.
+        ensure_schema (bool): Whether to run `_ensure_control_schema`
+            (DDL) on this connection -- `False` by default (the normal
+            runtime case: the Flask API's write-capable account has no
+            `CREATE` grant, same reasoning as `open_write` above).
+            `adminAuth.bootstrap_control_schema` passes `True`, using a
+            full-access account (the same one `migrateDb.py` already
+            uses), to create/update the control schema once per deploy.
+
+    Returns:
+        Connection: An open connection.
+    """
+    config = config or control_mysql_config()
+    conn = Connection(_get_pool(config).connection())
+    if ensure_schema:
+        _ensure_control_schema(conn)
+    return conn
+
+
+def _ensure_control_schema(conn):
+    """
+    Applies `control_schema.sql` to `conn`, then bootstraps
+    `control_schema_migrations` (inserting `CONTROL_SCHEMA_VERSION` as the
+    baseline row) if it's empty -- idempotent, mirrors `_ensure_schema`
+    above exactly, just against the control schema's own DDL file/version
+    counter.
+
+    Args:
+        conn (Connection): The connection to apply the schema to.
+    """
+    with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
+        conn.executescript(f.read())
+
+    row = conn.execute("SELECT COUNT(*) AS n FROM control_schema_migrations").fetchone()
+    if row["n"] == 0:
+        conn.execute("INSERT INTO control_schema_migrations (version) VALUES (?)", (CONTROL_SCHEMA_VERSION,))
         conn.commit()
 
 
