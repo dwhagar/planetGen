@@ -4,7 +4,11 @@ A JSON API over the planetGen database (`src/stellarObjects/schema.sql`),
 built with [Flask](https://flask.palletsprojects.com/). This is `TODO.md`'s
 Phase 5 backend — backed by the same MySQL database every other tool in this
 project uses (see [`database-schema.md`](database-schema.md) for the MySQL
-port), no frontend yet.
+port). It now has a frontend: the interim `../src/html/` browser
+([`html-interface.md`](html-interface.md)) is a thin client over this API
+rather than a direct database consumer — see that doc's own note on the
+switch, and "Deploying behind Apache" below for how both are mounted on
+one vhost.
 
 Every read endpoint is fully implemented. The write endpoints (create/modify/
 delete a sector or system) are **stubs**: routed, rate-limited, and
@@ -22,17 +26,29 @@ interim `../src/html/` CGI browser (see [`apache-deployment.md`](apache-deployme
 Flask has no opinion
 about the data layer (route handlers call straight into `queryDb.py`'s and
 `stellarObjects._db`'s existing functions), deploys via `mod_wsgi` in the
-same Apache process model the CGI scripts already use, and can be mounted
-at `/api/` alongside `../src/html/` for an incremental rollout rather than a hard
-cutover. FastAPI's headline advantages (async, auto-generated OpenAPI docs)
-don't pay for themselves yet: this API is read-heavy and low-concurrency
-regardless of framework, and there's no separate frontend consuming this API yet to
-benefit from generated docs. Worth revisiting if/when a dedicated frontend
-(Phase 5's other open item) makes API-contract docs valuable.
+same Apache process model the CGI scripts already use, and is mounted
+at `/api/` alongside `../src/html/` on one vhost (see "Deploying behind
+Apache" below) -- `../src/html/` is now this API's own frontend (see that
+directory's docs), not a separate database consumer anymore. FastAPI's
+headline advantages (async, auto-generated OpenAPI docs) still don't pay
+for themselves: this API is read-heavy and low-concurrency regardless of
+framework, and `../src/html/` is a plain server-rendered CGI client with
+no use for generated API-contract docs the way a JS single-page app
+would. Worth revisiting if a richer JS frontend is ever built against
+this API instead.
 
 ## Endpoints
 
-All under `/api/`, all JSON in, JSON out.
+All under `/api/`, all JSON in, JSON out. Every endpoint below except
+`/health` and `/databases` accepts an optional `db=<name>` query
+parameter selecting *which* MySQL schema on the configured server to
+read from (validated against the same prefix-filtered list
+`/api/databases` itself returns — an unrecognized name is a `404`, same
+as an unrecognized sector/system id); omitted, it falls back to
+`MYSQL_CONFIG`'s own configured default database (`config.py`). This is
+what lets one API process back `../src/html/`'s multi-database picker
+(`index.py`'s `?db=`) — see `stellarObjects._db.list_databases`/
+`resolve_database`.
 
 ### Read
 
@@ -40,19 +56,69 @@ All under `/api/`, all JSON in, JSON out.
   and the configured database can actually be opened. Returns
   `{"status": "ok"}`, or `{"status": "error", "detail": "..."}` with a `503`
   if the database can't be reached. Exempt from rate limiting.
-- `GET /api/sectors?limit=<n>&offset=<n>` — every sector, with system count
-  (`queryDb.list_sectors`/`count_sectors`), paginated (see "Pagination"
-  below).
-- `GET /api/sectors/<id>` — one sector's full nested detail
-  (`stellarObjects._db.load_sector(...).to_dict()`).
-- `GET /api/systems?star_type=<prefix>&sector_id=<id>&limit=<n>&offset=<n>` —
-  filtered, paginated system listing (`queryDb.list_systems`/`count_systems`).
-- `GET /api/systems/<id>` — one system's full nested detail (stars, planets,
-  moons, belts) (`stellarObjects._db.load_star_system(...).to_dict()`).
+- `GET /api/databases` — every MySQL schema on the configured server
+  matching this deployment's prefix (`stellarObjects._db.list_databases`),
+  each with `name`, `size_bytes`, `modified_at`, and a quick-glance
+  `sector_count`/`system_count` (`null` for a matching schema missing this
+  project's own tables, e.g. mid-migration, rather than failing the whole
+  listing). `../src/html/index.py`'s database picker.
+- `GET /api/sectors?limit=<n>&offset=<n>` — every sector, paginated (see
+  "Pagination" below), each with `id`, `name`, `edge_mpc`, `edge_ly`,
+  `system_count`, and its galaxy placement (`center_x_pc`/`center_y_pc`/
+  `center_z_pc`/`shell_index`/`shell_slot_index`, all `null` together for
+  an unplaced sector, plus a `placed` bool) (`queryDb.list_sectors`/
+  `count_sectors`).
+- `GET /api/sectors/<id>` — one sector's full display detail: the same
+  fields as the listing above, plus `systems` (every system placed in
+  it — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
+  `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, and `stars`, each
+  with `role`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`)
+  (`queryDb.sector_detail`). Distinct from
+  `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
+  graph (config/provenance, no database ids) — this is the flat,
+  ids-and-display-fields shape `../src/html/sector.py`'s systems table
+  and Sector Map actually need.
+- `GET /api/systems?star_type=<prefix>&sector_id=<id|none>&limit=<n>&offset=<n>` —
+  filtered, paginated system listing (`queryDb.list_systems`/
+  `count_systems`), each with `id`, `name`, `sector_id`, `is_binary`, and
+  `star_summary` (the single star's `star_type`, or a binary's
+  `binary_type`). `sector_id=none` matches only standalone systems
+  (`sector_id IS NULL`, `../src/html/browse.py`'s own table) — distinct
+  from omitting `sector_id` entirely (no sector filter at all).
+- `GET /api/systems/<id>` — one system's full display detail: `id`,
+  `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
+  `markdown_content`, `wikitext_content`, `stars`, `planets` (each with
+  its own nested `moons`), `belts`, and `sector_siblings` (`{id, name}`
+  for every other system in the same sector, for linkifying `location`'s
+  "nearest: ..." names) (`queryDb.system_detail`) — same "flat display
+  shape, not the generation object graph" relationship to
+  `stellarObjects._db.load_star_system(...).to_dict()` as `/api/sectors/<id>`
+  above.
 - `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
   sector within `radius` light-years (`queryDb.systems_within_radius`).
 - `GET /api/nav?from=<id>&to=<id>` — course, distance, and an optimal route
   between two systems (`queryDb.nav_between`) — see "NAV" below.
+- `GET /api/galaxy/sectors` — every galaxy-placed sector (non-`null`
+  galaxy placement), each with `id`, `name`, `x`/`y`/`z`
+  (`center_x/y/z_pc`), `galactic_radius_pc`, `shell_index`, and
+  `system_count` (`queryDb.galaxy_placed_sectors`) — the data
+  `../src/html/galaxy.py`'s Galaxy Map plots. Not paginated: bounded by
+  how much of the galaxy has actually been generated (see `TODO.md`'s
+  Phase 4 lazy-generation design), not by the addressable galaxy's own
+  scale.
+- `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
+  the faceted search behind `../src/html/search.py`: click-to-filter tags
+  (object type; star spectral/luminosity class; planet/moon class, body
+  type, supported life chemistry; asteroid belt density — repeat a facet
+  name for multiple active values, e.g. `class=M&class=K`) plus a
+  per-entity name search. Returns `facets` (one `{value, label, count,
+  tooltip}` list per facet, built from the distinct values actually
+  present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
+  name lists), `facet_labels` (`"facet:value"` -> label, for an
+  active-filter chip), and `results` (`sectors`/`systems`/`stars`/
+  `planets`/`moons`/`belts` -> `{"rows": [...], "truncated": bool}`, or
+  `null` for an object type with no active reason to query it — see
+  `queryDb.search`'s docstring for the exact inclusion rule).
 
 ### Write (stubs — see below)
 
@@ -271,20 +337,30 @@ real (see "Write endpoints" above).
 ## Deploying behind Apache (mod_wsgi)
 
 `src/wsgi.py` exposes the standard `application` object `mod_wsgi`
-expects. Add a `WSGIScriptAlias` for `/api` pointing at `src/wsgi.py` to
-the existing vhost config in `examples/apache/` (see
-[`apache-deployment.md`](apache-deployment.md) for the vhost this project
-already deploys, including `set-permissions.sh`), or run it
-behind `gunicorn` + `mod_proxy`/`mod_proxy_http` if `mod_wsgi` isn't
-available. Either way, set `PLANETGEN_MYSQL_*` in the process environment
-(e.g. the vhost's `SetEnv` directives, or the `gunicorn` service's
-environment file) to point at the deployed MySQL database, ideally via a
-read-only account (see above). If running more than one `mod_wsgi`/
-`gunicorn` worker, also set `PLANETGEN_RATELIMIT_STORAGE_URI` to a shared
-backend (see "Rate limiting").
+expects. `examples/apache/planetgen.conf.example` already includes a
+`WSGIScriptAlias /api /var/lib/planetGen/src/wsgi.py` (plus the
+`<Files wsgi.py>` access rule it needs) on the *same* vhost that serves
+`../src/html/` — see [`apache-deployment.md`](apache-deployment.md) and
+that example file's own header comment for why it's aliased from outside
+`../src/html/`'s `DocumentRoot` rather than moved into it, and
+`set-permissions.sh`) for the rest of the deployment story. No separate
+vhost/`ServerName` is needed: `../src/html/`'s own pages read
+`PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. this same
+vhost) to find it. Run it behind `gunicorn` + `mod_proxy`/`mod_proxy_http`
+instead if `mod_wsgi` isn't available (point `PLANETGEN_API_BASE_URL` at
+wherever that ends up listening). Either way, set `PLANETGEN_MYSQL_*` in
+the process environment (e.g. the vhost's `SetEnv` directives, or the
+`gunicorn` service's environment file) to point at the deployed MySQL
+database, ideally via a read-only account (see above). If running more
+than one `mod_wsgi`/`gunicorn` worker, also set
+`PLANETGEN_RATELIMIT_STORAGE_URI` to a shared backend (see "Rate
+limiting").
 
 ## Not done yet
 
-See `TODO.md`'s Phase 5 section — a frontend, plus everything under
-"Write endpoints" above (the real insert/update/delete logic, a
-write-capable database account, and authentication/authorization).
+See `TODO.md`'s Phase 5 section — everything under "Write endpoints"
+above (the real insert/update/delete logic, a write-capable database
+account, and authentication/authorization). The frontend gap that
+section used to describe is closed: `../src/html/` (see
+[`html-interface.md`](html-interface.md)) is this API's own server-
+rendered frontend now.

@@ -1136,6 +1136,16 @@ code {
   font-size: 0.8rem;
 }
 
+.sysmap-legend-life-badge {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #3ecf6e;
+  border: 1px solid #1c7a3e;
+  vertical-align: middle;
+}
+
 .sysmap-crumb {
   display: flex;
   flex-wrap: wrap;

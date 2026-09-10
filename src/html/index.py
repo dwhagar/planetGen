@@ -3,7 +3,7 @@
 
 """
 Landing page: lists every MySQL schema on the configured server whose
-name matches this deployment's prefix (see `lib/dbutil.py`) and links to
+name matches this deployment's prefix (`GET /api/databases`) and links to
 `browse.py` for each one.
 """
 
@@ -13,19 +13,9 @@ from urllib.parse import quote
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from dbutil import esc, list_databases, open_readonly, resolve_db_name
+from apiclient import ApiError, list_databases
+from fmt import esc
 from page import query_params, redirect, run
-
-
-def _counts(config):
-    """Returns (sector_count, system_count) for a quick-glance summary."""
-    conn = open_readonly(config)
-    try:
-        sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
-        systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
-        return sectors, systems
-    finally:
-        conn.close()
 
 
 def handler():
@@ -43,12 +33,17 @@ def handler():
 
     rows = []
     for entry in databases:
-        sectors, systems = _counts(resolve_db_name(entry["name"]))
+        # sector_count/system_count come back None (not 0) for a schema
+        # matching the configured prefix but missing this project's own
+        # tables -- see GET /api/databases's own comment for why that's
+        # reported rather than 500ing the whole listing.
+        sector_count = entry["sector_count"] if entry["sector_count"] is not None else "?"
+        system_count = entry["system_count"] if entry["system_count"] is not None else "?"
         rows.append(
             "<tr>"
             f'<td><a href="browse.py?db={esc(entry["name"])}">{esc(entry["name"])}</a></td>'
-            f'<td>{sectors}</td>'
-            f'<td>{systems}</td>'
+            f'<td>{sector_count}</td>'
+            f'<td>{system_count}</td>'
             f'<td>{entry["size_bytes"]:,} bytes</td>'
             f'<td>{esc(entry["modified_at"])}</td>'
             "</tr>"
@@ -81,8 +76,16 @@ def handler():
 # only way back to the database-info page (size, sector/system counts,
 # last-modified) on the single-database deployments this redirect would
 # otherwise strand every other page behind.
-_databases = list_databases()
-if len(_databases) == 1 and not query_params().get("all"):
+try:
+    _databases = list_databases()
+except ApiError:
+    # The planetGen API is unreachable -- fall through to run(handler),
+    # whose own ApiError handling renders a clear 502 page instead of a
+    # raw traceback (this probe would otherwise crash before run() ever
+    # gets a chance to catch anything).
+    _databases = None
+
+if _databases is not None and len(_databases) == 1 and not query_params().get("all"):
     redirect(f"browse.py?db={quote(_databases[0]['name'])}")
 else:
     run(handler)

@@ -359,6 +359,115 @@ def get_connection(config=None, ensure_schema=True):
     return conn
 
 
+DB_PREFIX_ENV_VAR = "PLANETGEN_MYSQL_DATABASE_PREFIX"
+"""str: Env var overriding the default schema-name prefix `list_databases`/
+`resolve_database` filter by -- see `MySQLConfig`'s own `database` default.
+Shared by every entry point that offers a choice among several MySQL
+schemas on one server (the `html/` CGI browser's `?db=` picker, and the
+Flask API's own `?db=`/`/api/databases`, both via this one implementation)."""
+
+DEFAULT_DB_PREFIX = "planetgen"
+"""str: Matches `MySQLConfig`'s own default database name -- a deployment
+with just one schema names it `planetgen` and never needs to set
+`DB_PREFIX_ENV_VAR` at all; one with several names them
+`planetgen_<something>` to share the prefix."""
+
+
+def list_databases(base_config=None, prefix=None):
+    """
+    Lists every MySQL schema on `base_config`'s server whose name starts
+    with `prefix` (default: `DB_PREFIX_ENV_VAR`, or `DEFAULT_DB_PREFIX`) --
+    "multiple databases" here means multiple MySQL schemas on one
+    configured server (e.g. one schema per campaign/galaxy: `planetgen`,
+    `planetgen_alpha`, ...), the way both the `html/` CGI browser's
+    database picker and the Flask API's own `?db=`/`/api/databases`
+    offer a choice among them.
+
+    Args:
+        base_config (MySQLConfig, optional): Connection parameters
+            (host/port/user/password) to list schemas from -- its own
+            `database` field is ignored (this opens a connection with no
+            specific schema selected). Defaults to `DEFAULT_MYSQL_CONFIG`.
+        prefix (str, optional): Overrides the env-var-derived default.
+
+    Returns:
+        list[dict]: One entry per matching schema, sorted by name, each
+                    with `name`, `size_bytes` (sum of `data_length`/
+                    `index_length` across its tables), and `modified_at`
+                    (the latest `information_schema.tables.update_time`
+                    across its tables, formatted `"%Y-%m-%d %H:%M"`, or
+                    `"unknown"` when the storage engine doesn't track it).
+    """
+    base_config = base_config or DEFAULT_MYSQL_CONFIG
+    prefix = prefix or os.environ.get(DB_PREFIX_ENV_VAR) or DEFAULT_DB_PREFIX
+    conn = get_connection(
+        MySQLConfig(
+            host=base_config.host, port=base_config.port,
+            user=base_config.user, password=base_config.password, database="",
+        ),
+        ensure_schema=False,
+    )
+    try:
+        schema_rows = conn.execute(
+            "SELECT schema_name AS name FROM information_schema.schemata "
+            "WHERE schema_name LIKE ? ORDER BY schema_name",
+            (f"{prefix}%",),
+        ).fetchall()
+
+        entries = []
+        for schema_row in schema_rows:
+            name = schema_row["name"]
+            stats = conn.execute(
+                "SELECT COALESCE(SUM(data_length + index_length), 0) AS size_bytes, "
+                "MAX(update_time) AS modified_at "
+                "FROM information_schema.tables WHERE table_schema = ?",
+                (name,),
+            ).fetchone()
+            modified_at = stats["modified_at"]
+            entries.append({
+                "name": name,
+                "size_bytes": int(stats["size_bytes"] or 0),
+                "modified_at": modified_at.strftime("%Y-%m-%d %H:%M") if modified_at else "unknown",
+            })
+        return entries
+    finally:
+        conn.close()
+
+
+def resolve_database(base_config, name, prefix=None):
+    """
+    Validates a database name supplied by a caller (e.g. a web request's
+    `?db=`/`db` parameter) against the same prefix-filtered list
+    `list_databases` offers, and returns a ready-to-use `MySQLConfig`.
+
+    This is what keeps an externally-supplied database name from
+    selecting a schema this deployment never meant to expose (every other
+    schema on a shared MySQL server, `information_schema` itself, etc.) --
+    only an exact, case-sensitive match against a currently-listed schema
+    is accepted.
+
+    Args:
+        base_config (MySQLConfig): Connection parameters (host/port/user/
+            password) to validate/connect against.
+        name (str): The requested database name.
+        prefix (str, optional): Passed through to `list_databases`.
+
+    Returns:
+        MySQLConfig: `base_config` with `database` set to `name`.
+
+    Raises:
+        ValueError: If `name` is empty or doesn't match a listed schema.
+    """
+    if not name:
+        raise ValueError("No database specified.")
+    if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
+        raise ValueError(f"No such database: {name!r}")
+    return MySQLConfig(
+        host=base_config.host, port=base_config.port,
+        user=base_config.user, password=base_config.password, database=name,
+    )
+
+
 def _ensure_schema(conn):
     """
     Applies `schema.sql` to `conn`, then bootstraps `schema_migrations`

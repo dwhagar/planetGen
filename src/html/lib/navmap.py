@@ -31,7 +31,7 @@ angles away from what they actually are).
 
 import math
 
-from dbutil import esc
+from fmt import esc
 
 _SVG_SIZE = 360.0
 _CENTER = _SVG_SIZE / 2

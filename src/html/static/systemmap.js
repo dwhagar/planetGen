@@ -70,6 +70,7 @@
       addField(dl, "Distance", el.dataset.distance);
       addField(dl, "Period", el.dataset.period);
       addField(dl, "Gravity", el.dataset.gravity);
+      addField(dl, "Life Chemistry", el.dataset.life);
       if (kind === "moon") {
         addField(dl, "Orbits", el.dataset.parent);
       } else if (el.dataset.moons) {

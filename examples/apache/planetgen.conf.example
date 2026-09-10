@@ -5,36 +5,56 @@
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
-#   sudo a2enmod cgid
+#   sudo a2enmod cgid wsgi
 #   sudo a2ensite planetgen
 #   sudo systemctl reload apache2
 #
 # `cgid` (the threaded MPM-safe CGI module) is preferred over the older
 # `cgi` module; either works, but `cgid` is required if apache2 is running
 # mpm_event or mpm_worker (the Ubuntu default), since plain `mod_cgi` only
-# supports mpm_prefork.
+# supports mpm_prefork. `wsgi` (`libapache2-mod-wsgi-py3` on Debian/
+# Ubuntu) is what mounts the API at /api/ -- see that block below.
 #
 # Expected layout on the server (see the repo's set-permissions.sh, which
 # assumes this same layout):
 #
 #   /var/lib/planetGen/
 #     html/     -- this vhost's DocumentRoot (the repo's html/ directory)
-#     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
-#                   particular), so html/'s scripts can import the
-#                   planetGen package without a separate `pip install`
+#     src/, ...  -- the rest of the repo checkout (src/stellarObjects/,
+#                   src/wsgi.py, src/api/ in particular), so html/'s
+#                   scripts can import the planetGen package without a
+#                   separate `pip install`, and so /api/ (below) can be
+#                   mounted alongside the CGI browser in this same vhost.
 #
 # The database itself is a MySQL server, not a local file under this
-# layout (TODO.md Phase 5) -- point the CGI scripts at it with the
-# PLANETGEN_MYSQL_* SetEnv directives below.
+# layout (TODO.md Phase 5) -- point the CGI scripts (and the API) at it
+# with the PLANETGEN_MYSQL_* SetEnv directives below.
+#
+# /api/ (mod_wsgi): every page under html/ now fetches its data from the
+# planetGen API (docs/api.md) instead of querying MySQL directly (see
+# docs/html-interface.md) -- PLANETGEN_API_BASE_URL (default
+# "http://127.0.0.1/api", i.e. this same vhost) is where each CGI script
+# looks for it. WSGIScriptAlias below mounts api/app.py's application at
+# /api/ *without* moving src/api/ into this vhost's DocumentRoot (html/)
+# -- docs/TODO.md flagged that as a real option too, but decided against
+# it here: DocumentRoot is Apache's "serve these files as-is by default"
+# boundary, and src/api/ has no reason to sit inside it (its own Python
+# source has nothing there to serve -- unlike html/lib/, WSGIScriptAlias
+# doesn't need it on the same path CGI already trusts). Aliasing the
+# script from outside DocumentRoot gets both pieces onto one vhost/
+# ServerName without stretching what "this vhost's document root" means.
+# Needs `a2enmod wsgi` (`libapache2-mod-wsgi-py3` on Debian/Ubuntu).
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
     DocumentRoot /var/lib/planetGen/src/html
 
-    # Tell the CGI scripts which MySQL server/account to use. Only needed
-    # if any differs from stellarObjects._db.MySQLConfig's own defaults
-    # (127.0.0.1:3306, user/database "planetgen"). Use a SELECT-only
-    # database account here -- this web interface never writes.
+    # Tell the CGI scripts (and the API) which MySQL server/account to
+    # use. Only needed if any differs from stellarObjects._db.MySQLConfig's
+    # own defaults (127.0.0.1:3306, user/database "planetgen"). Use a
+    # SELECT-only database account here -- neither the web interface nor
+    # the API's read endpoints ever write (see docs/api.md's "Write
+    # endpoints" -- those are stubs today regardless of account).
     # SetEnv PLANETGEN_MYSQL_HOST db.example.com
     # SetEnv PLANETGEN_MYSQL_PORT 3306
     # SetEnv PLANETGEN_MYSQL_USER planetgen_readonly
@@ -57,10 +77,27 @@
         Require all denied
     </Directory>
 
-    # static/ is plain CSS -- served directly, never as CGI.
+    # static/ is plain CSS/JS -- served directly, never as CGI.
     <Directory /var/lib/planetGen/src/html/static>
         Options -ExecCGI -Indexes
         Require all granted
+    </Directory>
+
+    # Mounts the Flask API (src/api/, via src/wsgi.py's `application`
+    # object) at /api/ -- see this file's own header note above. Only
+    # src/wsgi.py itself needs to be reachable; nothing else under src/
+    # (stellarObjects/, queryDb.py, the rest of api/) is meant to be
+    # served as a plain file, so access is scoped to that one filename
+    # rather than granting the whole src/ directory (which sits outside
+    # DocumentRoot and has no static-file handler of its own regardless
+    # -- this is belt-and-suspenders, matching html/lib/'s own explicit
+    # deny above).
+    WSGIScriptAlias /api /var/lib/planetGen/src/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
+    WSGIDaemonProcess planetgen-api processes=1 threads=5
+    <Directory /var/lib/planetGen/src>
+        <Files wsgi.py>
+            Require all granted
+        </Files>
     </Directory>
 
     ErrorLog ${APACHE_LOG_DIR}/planetgen_error.log

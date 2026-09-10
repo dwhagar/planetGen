@@ -4,9 +4,10 @@
 """
 NAV page: course, distance, and optimal route between two systems.
 
-Reuses `queryDb.nav_between` (the same function `/api/nav` calls) rather
-than re-implementing the availability rules or the course/route math a
-third time -- this page is purely a form + rendering shell around it.
+Calls `GET /api/nav` (the same `queryDb.nav_between` the API itself
+calls) rather than re-implementing the availability rules or the
+course/route math -- this page is purely a form + rendering shell
+around it.
 
 Reaching this page: `system.py` links here (`?from=<id>`) whenever that
 system has a `sector_id` -- the same first gate `nav_between` itself
@@ -26,13 +27,13 @@ this renders a destination picker instead of a result:
       pretending a full picker would scale. `system.py`'s own page (and
       search results) is where that id would normally come from.
 
-Once `to=` is present, `nav_between` decides the rest: same-sector vs.
-cross-sector scope, or `NavUnavailable` if the two systems turn out not
-to support NAV together (rendered here as an inline message on this same
-page, a 200 response -- the visitor picked a real, existing system that
-just doesn't have a valid route, not a broken URL -- while a `to=` that
-isn't a real system id at all is the one case treated as a 404, via
-`NotFoundError`, matching every other page's convention for a bad id).
+Once `to=` is present, `GET /api/nav` decides the rest: same-sector vs.
+cross-sector scope, or a 400 if the two systems turn out not to support
+NAV together (rendered here as an inline message on this same page, a
+200 response -- the visitor picked a real, existing system that just
+doesn't have a valid route, not a broken URL -- while a `to=` that isn't
+a real system id at all is the one case treated as a 404, matching every
+other page's convention for a bad id).
 """
 
 import os
@@ -40,20 +41,14 @@ import sys
 
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
-# Falls back to src/ (stellarObjects lives at src/stellarObjects/, src
-# layout) so `stellarObjects`/`queryDb` are importable even when this
-# package hasn't been `pip install`-ed system-wide -- true for the default
-# deployment layout (`html/` and `src/` as siblings under /var/lib/planetGen).
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
-from dbutil import NotFoundError, esc, fetch_all, fetch_one, open_readonly, resolve_db_name
+from apiclient import ApiError, NotFoundError, get_nav, get_sector, get_system
+from fmt import esc
 from navmap import render_nav_map_panel
 from page import query_params, run
 
-from queryDb import NavUnavailable, nav_between
 
-
-def _destination_form_html(db_name, from_id, sector_id, sector_systems, cross_sector_available):
+def _destination_form_html(db_name, from_id, sector_systems, cross_sector_available):
     """
     Builds the destination-picker form shown before a `to=` is chosen --
     see the module docstring for why same-sector destinations get a
@@ -111,7 +106,7 @@ def _destination_form_html(db_name, from_id, sector_id, sector_systems, cross_se
 """
 
 
-def _course_panel_html(db_name, direct, warp_times, scope):
+def _course_panel_html(direct, warp_times, scope):
     rows = "".join(
         f"<tr><td>Warp {leg['warp_factor']}</td><td>{leg['velocity_multiple_of_c']:,.2f}&times; c</td>"
         f"<td>{esc(leg['formatted'])}</td></tr>"
@@ -138,25 +133,35 @@ def _course_panel_html(db_name, direct, warp_times, scope):
 """
 
 
-def _route_names(conn, route):
+def _route_names(db_name, route, known_names):
     """
-    Looks up every route hop's display name in one query -- shared by
+    Looks up every route hop's display name -- shared by
     `_route_panel_html` (the hop-by-hop list) and `render_nav_map_panel`
-    (each waypoint's label/tooltip), so a route with N hops needs one
-    lookup total rather than one per consumer.
+    (each waypoint's label/tooltip). `known_names` (`{id: name}`) is
+    consulted first, since the origin/destination are always already
+    known by the time this runs -- only genuinely new intermediate hop
+    ids need their own `GET /api/systems/<id>` lookup (a route's hop
+    count is small, bounded by the k-nearest-neighbor adjacency graph
+    `queryDb.nav_between` builds it from, so this stays a handful of
+    requests at most).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
-        route (dict or None): `nav_between`'s `result["route"]`.
+        db_name (str): The current `?db=` value.
+        route (dict or None): `GET /api/nav`'s `route`.
+        known_names (dict): `{system_id: name}` already available (the
+            origin and destination), consulted before falling back to
+            an API lookup for an intermediate hop.
 
     Returns:
         dict: `{star_systems.id: name}`, empty if `route` is `None`.
     """
     if route is None or not route["path"]:
         return {}
-    placeholders = ", ".join("?" for _ in route["path"])
-    rows = fetch_all(conn, f"SELECT id, name FROM star_systems WHERE id IN ({placeholders})", tuple(route["path"]))
-    return {row["id"]: row["name"] for row in rows}
+    names = dict(known_names)
+    for system_id in route["path"]:
+        if system_id not in names:
+            names[system_id] = get_system(db_name, system_id)["name"]
+    return names
 
 
 def _route_panel_html(db_name, route, names):
@@ -187,19 +192,6 @@ def _nav_map_waypoints(from_id, to_id, origin_name, destination_name, origin_pos
     Builds the ordered origin-to-destination waypoint list
     `render_nav_map_panel` plots: the origin, then any route hops (in path
     order) between the two endpoints, then the destination.
-
-    Args:
-        from_id (int): The origin `star_systems.id`.
-        to_id (int): The destination `star_systems.id`.
-        origin_name (str): The origin's display name.
-        destination_name (str): The destination's display name.
-        origin_position (tuple): `nav_between`'s `origin_position`.
-        destination_position (tuple): `nav_between`'s `destination_position`.
-        route (dict or None): `nav_between`'s `result["route"]`.
-        names (dict): `_route_names`'s `{id: name}` lookup, for hop labels.
-
-    Returns:
-        list[dict]: See `render_nav_map_panel`'s `waypoints` parameter.
     """
     waypoints = [{"id": from_id, "name": origin_name, "position": origin_position, "role": "origin"}]
     if route is not None:
@@ -207,7 +199,7 @@ def _nav_map_waypoints(from_id, to_id, origin_name, destination_name, origin_pos
             waypoints.append({
                 "id": system_id,
                 "name": names.get(system_id, str(system_id)),
-                "position": route["positions"][system_id],
+                "position": route["positions"][str(system_id)],
                 "role": "hop",
             })
     waypoints.append({"id": to_id, "name": destination_name, "position": destination_position, "role": "destination"})
@@ -220,74 +212,64 @@ def handler():
     raw_from_id = params.get("from", "")
     raw_to_id = params.get("to")
 
-    config = resolve_db_name(db_name)
-    conn = open_readonly(config)
+    origin = get_system(db_name, raw_from_id)
+    from_id = origin["id"]
+
+    back_html = (
+        f'<p class="breadcrumb"><a href="index.py">Databases</a>'
+        f' &rarr; <a href="system.py?db={esc(db_name)}&id={from_id}">{esc(origin["name"])}</a>'
+        f" &rarr; Nav</p>"
+    )
+
+    if origin["sector_id"] is None:
+        body = back_html + (
+            '<section class="panel"><p class="error">'
+            "NAV is not available: this system isn't assigned to a sector.</p></section>"
+        )
+        return f"Nav: {origin['name']}", body
+
+    if not raw_to_id:
+        sector = get_sector(db_name, origin["sector_id"])
+        sector_systems = [row for row in sector["systems"] if row["id"] != from_id]
+        cross_sector_available = sector["placed"]
+
+        form_html = _destination_form_html(db_name, from_id, sector_systems, cross_sector_available)
+        return f"Nav: {origin['name']}", back_html + form_html
+
     try:
-        origin = fetch_one(conn, "SELECT * FROM star_systems WHERE id = ?", (raw_from_id,))
-        if origin is None:
-            raise NotFoundError(f"No such system: {raw_from_id!r}")
-        from_id = origin["id"]
+        to_id = int(raw_to_id)
+    except ValueError:
+        raise NotFoundError(f"No such system: {raw_to_id!r}")
 
-        back_html = (
-            f'<p class="breadcrumb"><a href="index.py">Databases</a>'
-            f' &rarr; <a href="system.py?db={esc(db_name)}&id={from_id}">{esc(origin["name"])}</a>'
-            f" &rarr; Nav</p>"
-        )
+    try:
+        result = get_nav(db_name, from_id, to_id)
+    except ApiError as exc:
+        # GET /api/nav responds 400 (wrapped as ApiError, not
+        # NotFoundError) when the two systems exist but don't support
+        # NAV together -- e.g. different, non-galaxy-placed sectors. A
+        # genuinely unknown `to_id` is a 404, raised as NotFoundError
+        # instead, and lets `run()`'s own handling take over.
+        body = back_html + f'<section class="panel"><p class="error">{esc(str(exc))}</p></section>'
+        return f"Nav: {origin['name']}", body
 
-        if origin["sector_id"] is None:
-            body = back_html + (
-                '<section class="panel"><p class="error">'
-                "NAV is not available: this system isn't assigned to a sector.</p></section>"
-            )
-            return f"Nav: {origin['name']}", body
+    destination = get_system(db_name, to_id)
+    title_html = (
+        f'<p class="badges"><span class="badge">To: '
+        f'<a href="system.py?db={esc(db_name)}&id={to_id}">{esc(destination["name"])}</a></span></p>'
+    )
 
-        if not raw_to_id:
-            sector_systems = fetch_all(
-                conn, "SELECT id, name FROM star_systems WHERE sector_id = ? AND id != ? ORDER BY name",
-                (origin["sector_id"], from_id),
-            )
-            sector_row = fetch_one(conn, "SELECT center_x_pc FROM sectors WHERE id = ?", (origin["sector_id"],))
-            cross_sector_available = sector_row is not None and sector_row["center_x_pc"] is not None
+    course_html = _course_panel_html(result["direct"], result["warp_times"], result["scope"])
 
-            form_html = _destination_form_html(
-                db_name, from_id, origin["sector_id"], sector_systems, cross_sector_available,
-            )
-            return f"Nav: {origin['name']}", back_html + form_html
+    known_names = {from_id: origin["name"], to_id: destination["name"]}
+    route_names = _route_names(db_name, result["route"], known_names)
+    route_html = _route_panel_html(db_name, result["route"], route_names)
 
-        try:
-            to_id = int(raw_to_id)
-        except ValueError:
-            raise NotFoundError(f"No such system: {raw_to_id!r}")
-
-        try:
-            result = nav_between(conn, from_id, to_id)
-        except ValueError as exc:
-            raise NotFoundError(str(exc))
-        except NavUnavailable as exc:
-            body = back_html + f'<section class="panel"><p class="error">{esc(str(exc))}</p></section>'
-            return f"Nav: {origin['name']}", body
-
-        destination = fetch_one(conn, "SELECT name FROM star_systems WHERE id = ?", (to_id,))
-        title_html = (
-            f'<p class="badges"><span class="badge">To: '
-            f'<a href="system.py?db={esc(db_name)}&id={to_id}">{esc(destination["name"])}</a></span></p>'
-        )
-
-        course_html = _course_panel_html(db_name, result["direct"]._asdict(), [
-            leg._asdict() for leg in result["warp_times"]
-        ], result["scope"])
-
-        route_names = _route_names(conn, result["route"])
-        route_html = _route_panel_html(db_name, result["route"], route_names)
-
-        waypoints = _nav_map_waypoints(
-            from_id, to_id, origin["name"], destination["name"],
-            result["origin_position"], result["destination_position"],
-            result["route"], route_names,
-        )
-        map_html = render_nav_map_panel(db_name, waypoints, has_route=result["route"] is not None)
-    finally:
-        conn.close()
+    waypoints = _nav_map_waypoints(
+        from_id, to_id, origin["name"], destination["name"],
+        result["origin_position"], result["destination_position"],
+        result["route"], route_names,
+    )
+    map_html = render_nav_map_panel(db_name, waypoints, has_route=result["route"] is not None)
 
     body = back_html + title_html + course_html + map_html + route_html
     return f"Nav: {origin['name']}", body

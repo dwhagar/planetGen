@@ -26,13 +26,9 @@ import sys
 
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
-# Falls back to src/ (stellarObjects now lives at src/stellarObjects/, src
-# layout) so `stellarObjects` is importable even when it hasn't been
-# `pip install`-ed system-wide -- true for the default deployment layout
-# (`html/` and `src/` as siblings under /var/lib/planetGen).
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
-from dbutil import esc, fetch_all, open_readonly, resolve_db_name
+from apiclient import get_galaxy_sectors
+from fmt import esc
 from galaxymap import QUADRANT_LABELS, render_galaxy_map_panel, ring_bounds_ly, sector_quadrant, sector_ring
 from page import query_params, run
 
@@ -42,33 +38,6 @@ except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # fall back to showing the raw stored parsec unit rather than failing.
     pc_to_ly = None
-
-
-def _load_placed_sectors(conn):
-    """Every sector with a galaxy position, plus its live system count --
-    unplaced sectors (`center_x_pc IS NULL`) have nothing to plot here and
-    are excluded at the query itself."""
-    rows = fetch_all(
-        conn,
-        """
-        SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index,
-               (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
-        FROM sectors sec
-        WHERE sec.center_x_pc IS NOT NULL
-        ORDER BY sec.galactic_radius_pc
-        """,
-    )
-    return [
-        {
-            "id": r["id"], "name": r["name"],
-            "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-            "galactic_radius_pc": r["galactic_radius_pc"],
-            "shell_index": r["shell_index"],
-            "system_count": r["system_count"],
-        }
-        for r in rows
-    ]
 
 
 def _display_ly(galactic_radius_pc):
@@ -133,12 +102,7 @@ def handler():
     if quadrant not in QUADRANT_LABELS:
         quadrant = None
 
-    config = resolve_db_name(db_name)
-    conn = open_readonly(config)
-    try:
-        sectors = _load_placed_sectors(conn)
-    finally:
-        conn.close()
+    sectors = get_galaxy_sectors(db_name)
 
     map_html = render_galaxy_map_panel(db_name, sectors, quadrant=quadrant)
 

@@ -33,16 +33,22 @@ authentication/authorization, neither of which exists yet).
 from flask import Blueprint, current_app, g, jsonify, request
 
 from queryDb import (
+    NO_SECTOR,
     NavUnavailable,
+    SEARCH_TAG_FACETS,
     count_sectors,
     count_systems,
+    galaxy_placed_sectors,
     list_sectors,
     list_systems,
     nav_between,
     open_readonly,
+    search as run_search,
+    sector_detail as query_sector_detail,
+    system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects._db import load_sector, load_star_system
+from stellarObjects._db import MySQLConfig, list_databases, resolve_database
 
 from .limiter import limiter
 
@@ -64,14 +70,44 @@ writes rather than stubs, since the right number depends on actual usage
 patterns this project doesn't have yet."""
 
 
+def _resolve_requested_db_config():
+    """
+    Resolves the connection config for this request: `current_app.config["MYSQL_CONFIG"]`
+    (the process-wide default -- what every route used exclusively before
+    this API learned about `?db=`) unless the request supplies a `db`
+    query parameter, in which case it's validated against every schema on
+    that same server whose name matches the configured prefix (see
+    `stellarObjects._db.list_databases`/`resolve_database`) -- the same
+    validation `html/lib/dbutil.resolve_db_name` has always applied for
+    the CGI browser's own `?db=` picker, now shared by this API so a
+    request can't select a schema this deployment never meant to expose.
+
+    Returns:
+        MySQLConfig: Ready to pass to `open_readonly`.
+
+    Raises:
+        ApiError: 404, if `db` is given but doesn't match a listed schema.
+    """
+    base_config = current_app.config["MYSQL_CONFIG"]
+    requested = request.args.get("db")
+    if requested is None:
+        return base_config
+    try:
+        return resolve_database(base_config, requested)
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=404)
+
+
 def get_db():
     """
     Returns the request-scoped read-only connection, opening one on first
-    use. Reused for the lifetime of the request instead of one connection
-    per query, then closed by `close_db` in the app's teardown handler.
+    use (against `_resolve_requested_db_config`'s result -- the
+    process-wide default database, or `?db=` when given). Reused for the
+    lifetime of the request instead of one connection per query, then
+    closed by `close_db` in the app's teardown handler.
     """
     if "db" not in g:
-        g.db = open_readonly(current_app.config["MYSQL_CONFIG"])
+        g.db = open_readonly(_resolve_requested_db_config())
     return g.db
 
 
@@ -185,6 +221,40 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@bp.route("/databases")
+def databases():
+    """
+    Lists every MySQL schema on the configured server whose name matches
+    this deployment's prefix (`stellarObjects._db.list_databases`), each
+    with its size/last-modified stats plus a quick-glance sector/system
+    count -- the data `html/index.py`'s database picker needs, and (via
+    the sidenav's "Databases" link, shown on every page) whether that
+    picker has anything to offer at all. Every other endpoint's own
+    `?db=` selects among these same names (see `get_db`).
+    """
+    base_config = current_app.config["MYSQL_CONFIG"]
+    entries = list_databases(base_config)
+    items = []
+    for entry in entries:
+        conn = open_readonly(MySQLConfig(
+            host=base_config.host, port=base_config.port,
+            user=base_config.user, password=base_config.password, database=entry["name"],
+        ))
+        try:
+            sector_count = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+            system_count = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
+        except Exception:
+            # A schema matching the configured prefix but missing this
+            # project's own tables (e.g. mid-migration, or a stray
+            # unrelated database sharing the prefix) shouldn't take down
+            # the whole listing -- report it with unknown counts instead.
+            sector_count = system_count = None
+        finally:
+            conn.close()
+        items.append({**entry, "sector_count": sector_count, "system_count": system_count})
+    return jsonify({"items": items})
+
+
 @bp.route("/sectors")
 def sectors():
     limit, offset = _paginate(request.args)
@@ -200,29 +270,42 @@ def sectors():
 @bp.route("/sectors/<int:sector_id>")
 def sector_detail(sector_id):
     try:
-        sector = load_sector(get_db(), sector_id)
+        detail = query_sector_detail(get_db(), sector_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
-    return jsonify(sector.to_dict())
+    return jsonify(detail)
+
+
+def _parse_sector_id_filter(raw_sector_id):
+    """
+    Parses the `sector_id` query parameter `/api/systems` accepts: an
+    integer (one sector), the literal `"none"` (standalone systems --
+    `queryDb.NO_SECTOR`, `html/browse.py`'s own table of systems generated
+    with no sector), or absent (no filter).
+
+    Raises:
+        ApiError: If present and neither `"none"` nor a valid integer.
+    """
+    if raw_sector_id is None:
+        return None
+    if raw_sector_id.strip().lower() == "none":
+        return NO_SECTOR
+    try:
+        return int(raw_sector_id)
+    except ValueError:
+        raise ApiError(f"sector_id must be an integer or 'none', got {raw_sector_id!r}")
 
 
 @bp.route("/systems")
 def systems():
     star_type = request.args.get("star_type")
-
-    raw_sector_id = request.args.get("sector_id")
-    sector_id = None
-    if raw_sector_id is not None:
-        try:
-            sector_id = int(raw_sector_id)
-        except ValueError:
-            raise ApiError(f"sector_id must be an integer, got {raw_sector_id!r}")
+    sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
 
     limit, offset = _paginate(request.args)
     db = get_db()
     rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset)
     return jsonify({
-        "items": [dict(row) for row in rows],
+        "items": rows,
         "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id),
         "limit": limit,
         "offset": offset,
@@ -232,10 +315,10 @@ def systems():
 @bp.route("/systems/<int:system_id>")
 def system_detail(system_id):
     try:
-        system = load_star_system(get_db(), system_id)
+        detail = query_system_detail(get_db(), system_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
-    return jsonify(system.to_dict())
+    return jsonify(detail)
 
 
 @bp.route("/systems/<int:system_id>/near")
@@ -315,6 +398,45 @@ def nav():
         "destination_position": result["destination_position"],
         "route": result["route"],
     })
+
+
+@bp.route("/galaxy/sectors")
+def galaxy_sectors():
+    """
+    Every galaxy-placed sector (`sectors.center_x/y/z_pc` not NULL), with
+    its live system count -- the data `html/galaxy.py`'s Galaxy Map plots.
+    Not paginated: bounded by how much of the galaxy has actually been
+    generated so far (see `docs/TODO.md`'s Phase 4 lazy-generation design),
+    not by the addressable galaxy's own astronomical scale.
+    """
+    return jsonify({"items": galaxy_placed_sectors(get_db())})
+
+
+@bp.route("/search")
+def search():
+    """
+    Faceted search over the chosen database: click-to-filter attribute
+    tags (object type; star spectral/luminosity class; planet/moon class,
+    body type, supported life chemistry; asteroid belt density) plus a
+    per-entity name search -- see `queryDb.search`'s own docstring for the
+    full request/response shape. `html/search.py` is a thin renderer over
+    this endpoint's JSON.
+
+    Query parameters: `sector_q`/`system_q`/`star_q`/`planet_q`/`moon_q`
+    (name search terms) plus every name in `queryDb.SEARCH_TAG_FACETS`
+    (repeatable, e.g. `?class=M&class=K` for two active Class tags).
+    """
+    args = request.args
+    texts = {
+        key: (args.get(key) or "").strip()
+        for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q")
+    }
+    tags = {facet: {v.strip() for v in args.getlist(facet) if v.strip()} for facet in SEARCH_TAG_FACETS}
+    tags["type"] &= {"star", "planet", "moon", "belt"}
+    tags["body"] &= {"t", "g"}
+    tags["moon_body"] &= {"t", "g"}
+
+    return jsonify(run_search(get_db(), texts, tags))
 
 
 # ---------------------------------------------------------------------

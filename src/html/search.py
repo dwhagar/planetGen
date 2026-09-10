@@ -35,6 +35,10 @@ own tags/name field is active, or its type is explicitly selected via the
 "Object Type" tag group. Picking an explicit Object Type tag acts as a
 master filter: e.g. selecting only "Stars" hides the Planets panel even
 if a planet-class tag happens to also be selected.
+
+This page is a thin renderer over `GET /api/search` -- every query
+(facet-option discovery, name search, autocomplete) lives once, in
+`queryDb.search` (shared with the API itself), not duplicated here.
 """
 
 import os
@@ -43,27 +47,17 @@ from urllib.parse import parse_qs, urlencode
 
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
-# Falls back to src/ (stellarObjects now lives at src/stellarObjects/, src
-# layout) so `stellarObjects` is importable even when it hasn't been
-# `pip install`-ed system-wide -- true for the default deployment layout
-# (`html/` and `src/` as siblings under /var/lib/planetGen).
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(_HTML_DIR)), "src"))
 
-from dbutil import esc, fetch_all, fetch_one, open_readonly, resolve_db_name
+from apiclient import get_search
+from fmt import esc
+
 from page import run
 
-try:
-    from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
-    from stellarObjects.program_constants import PLANET_CLASSES
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # tag labels fall back to their raw codes rather than failing outright.
-    SPECTRAL_CLASS_COLORS = {}
-    PLANET_CLASSES = {}
-
-RESULT_LIMIT = 300
-AUTOCOMPLETE_LIMIT = 500
-
+# Mirrors queryDb.SEARCH_TAG_FACETS -- duplicated, not imported, since
+# this page only ever talks to the database through the API (see the
+# module docstring); it needs to know the set of valid facet names to
+# parse the incoming query string before it has a response to derive
+# them from.
 TAG_FACETS = (
     "type", "spectral", "luminosity",
     "class", "body", "life",
@@ -71,170 +65,21 @@ TAG_FACETS = (
     "density",
 )
 
-# starData.py's own Yerkes-class-to-descriptive-label mapping (Star.__init__),
-# duplicated here (not imported) since it's a plain literal there, not an
-# importable constant. "D" is an alternate white-dwarf code seen elsewhere
-# in starData.py alongside "VII".
-YERKES_LABELS = {
-    "0": "Hypergiant",
-    "IA": "Supergiant",
-    "IAB": "Intermediate-size Luminous Supergiant",
-    "IB": "Less Luminous Supergiant",
-    "II": "Bright Giant",
-    "III": "Giant",
-    "IV": "Subgiant",
-    "V": "Main Sequence",
-    "VII": "White Dwarf",
-    "D": "White Dwarf",
-}
-YERKES_ORDER = ["0", "IA", "IAB", "IB", "II", "III", "IV", "V", "VII", "D"]
-
-BODY_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
-
-
-def _like_pattern(term):
-    """Escapes `%`/`_`/`\\` in a user-supplied substring so it's safe to
-    use as a SQL LIKE pattern (paired with `ESCAPE '\\'` in the query)."""
-    escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    return f"%{escaped}%"
-
 
 def _count_suffix(n, truncated):
     return f" ({n}{'+' if truncated else ''})"
 
 
-def _truncated_note(truncated):
+def _truncated_note(result_limit, truncated):
     if not truncated:
         return ""
-    return f'<p class="hint">Showing the first {RESULT_LIMIT} matches -- refine your search for more precise results.</p>'
+    return f'<p class="hint">Showing the first {result_limit} matches -- refine your search for more precise results.</p>'
 
 
 def _sector_link(db_name, sector_id):
     if sector_id is None:
         return "Standalone"
     return f'<a href="sector.py?db={esc(db_name)}&id={sector_id}">View</a>'
-
-
-def _system_star_summary(conn, star_system_id, is_binary):
-    """One-line star description for a system row, same logic as
-    browse.py's own helper of the same purpose (small enough, and
-    specific enough to this page's query shape, not to share a module
-    over)."""
-    if is_binary:
-        row = fetch_one(conn, "SELECT binary_type FROM star_systems WHERE id = ?", (star_system_id,))
-        return row["binary_type"] if row else ""
-    row = fetch_one(
-        conn,
-        "SELECT star_type FROM stars WHERE star_system_id = ? AND role = 'single'",
-        (star_system_id,),
-    )
-    return row["star_type"] if row else ""
-
-
-# ---------------------------------------------------------------------
-# Facet option discovery -- each returns a list of
-# (value, label, count, tooltip_or_None) tuples, one per distinct value
-# actually present in the database (never a fixed/static enumeration).
-# ---------------------------------------------------------------------
-
-def _facet_options_type(conn):
-    star_c = fetch_one(conn, "SELECT COUNT(*) AS c FROM stars")["c"]
-    planet_c = fetch_one(conn, "SELECT COUNT(*) AS c FROM planets")["c"]
-    moon_c = fetch_one(conn, "SELECT COUNT(*) AS c FROM moons")["c"]
-    belt_c = fetch_one(conn, "SELECT COUNT(*) AS c FROM asteroid_belts")["c"]
-    opts = []
-    for value, label, count in (
-        ("star", "Stars", star_c),
-        ("planet", "Planets", planet_c),
-        ("moon", "Moons", moon_c),
-        ("belt", "Asteroid Belts", belt_c),
-    ):
-        if count:
-            opts.append((value, label, count, None))
-    return opts
-
-
-def _facet_options_spectral(conn):
-    rows = fetch_all(conn, "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v")
-    opts = []
-    for row in rows:
-        letter = row["v"]
-        color = SPECTRAL_CLASS_COLORS.get(letter)
-        tip = f"{color} star" if color else None
-        opts.append((letter, f"{letter}-Type Star", row["c"], tip))
-    return opts
-
-
-def _facet_options_luminosity(conn):
-    rows = fetch_all(
-        conn,
-        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v",
-    )
-    rows = sorted(rows, key=lambda r: YERKES_ORDER.index(r["v"]) if r["v"] in YERKES_ORDER else len(YERKES_ORDER))
-    return [
-        (row["v"], YERKES_LABELS.get(row["v"], row["v"]), row["c"], f"Yerkes class {row['v']}")
-        for row in rows
-    ]
-
-
-def _facet_options_class(conn):
-    rows = fetch_all(
-        conn,
-        "SELECT planet_class AS v, COUNT(*) AS c FROM planets WHERE planet_class IS NOT NULL GROUP BY v ORDER BY v",
-    )
-    opts = []
-    for row in rows:
-        info = PLANET_CLASSES.get(row["v"], {})
-        opts.append((row["v"], f"Class {row['v']} Planet", row["c"], info.get("description")))
-    return opts
-
-
-def _facet_options_body(conn):
-    rows = fetch_all(conn, "SELECT body_type AS v, COUNT(*) AS c FROM planets GROUP BY v ORDER BY v")
-    return [(row["v"], BODY_LABELS.get(row["v"], row["v"]), row["c"], None) for row in rows]
-
-
-def _facet_options_life(conn):
-    rows = fetch_all(
-        conn,
-        "SELECT life_chemical AS v, COUNT(*) AS c FROM planets WHERE life_chemical IS NOT NULL GROUP BY v ORDER BY v",
-    )
-    return [(row["v"], row["v"], row["c"], None) for row in rows]
-
-
-def _facet_options_moon_class(conn):
-    rows = fetch_all(
-        conn,
-        "SELECT planet_class AS v, COUNT(*) AS c FROM moons WHERE planet_class IS NOT NULL GROUP BY v ORDER BY v",
-    )
-    opts = []
-    for row in rows:
-        info = PLANET_CLASSES.get(row["v"], {})
-        opts.append((row["v"], f"Class {row['v']} Moon", row["c"], info.get("description")))
-    return opts
-
-
-def _facet_options_moon_body(conn):
-    rows = fetch_all(conn, "SELECT body_type AS v, COUNT(*) AS c FROM moons GROUP BY v ORDER BY v")
-    return [(row["v"], BODY_LABELS.get(row["v"], row["v"]), row["c"], None) for row in rows]
-
-
-def _facet_options_moon_life(conn):
-    rows = fetch_all(
-        conn,
-        "SELECT life_chemical AS v, COUNT(*) AS c FROM moons WHERE life_chemical IS NOT NULL GROUP BY v ORDER BY v",
-    )
-    return [(row["v"], row["v"], row["c"], None) for row in rows]
-
-
-def _facet_options_density(conn):
-    rows = fetch_all(conn, "SELECT density AS v, COUNT(*) AS c FROM asteroid_belts GROUP BY v ORDER BY v")
-    return [(row["v"], row["v"].capitalize(), row["c"], None) for row in rows]
-
-
-def _name_list(conn, table, limit=AUTOCOMPLETE_LIMIT):
-    rows = fetch_all(conn, f"SELECT DISTINCT name FROM {table} ORDER BY name LIMIT ?", (limit,))
-    return [row["name"] for row in rows]
 
 
 def _datalist_html(list_id, names):
@@ -282,7 +127,8 @@ def _tag_group_html(title, facet, options, selected, state):
     if not options:
         return ""
     buttons = []
-    for value, label, count, tip in options:
+    for option in options:
+        value, label, count, tip = option["value"], option["label"], option["count"], option["tooltip"]
         css_class = "tag active" if value in selected else "tag"
         title_attr = f' title="{esc(tip)}"' if tip else ""
         buttons.append(
@@ -309,7 +155,7 @@ def _active_filters_html(state, facet_labels):
             chips.append((f'{esc(label)}: &ldquo;{esc(value)}&rdquo;', _remove_text_url(state, key)))
     for facet in TAG_FACETS:
         for value in sorted(state["tags"].get(facet, ())):
-            label = facet_labels.get((facet, value), value)
+            label = facet_labels.get(f"{facet}:{value}", value)
             chips.append((esc(label), _toggle_url(state, facet, value)))
     if not chips:
         return ""
@@ -321,17 +167,12 @@ def _active_filters_html(state, facet_labels):
 
 
 # ---------------------------------------------------------------------
-# Result panels
+# Result panels -- each renders one `results[panel]` entry
+# (`{"rows": [...], "truncated": bool}`) from GET /api/search.
 # ---------------------------------------------------------------------
 
-def _sectors_panel(conn, db_name, term):
-    rows = fetch_all(
-        conn,
-        "SELECT id, name, edge_mpc FROM sectors WHERE name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?",
-        (_like_pattern(term), RESULT_LIMIT + 1),
-    )
-    truncated = len(rows) > RESULT_LIMIT
-    rows = rows[:RESULT_LIMIT]
+def _sectors_panel(db_name, result):
+    rows = result["rows"]
     body_rows = "".join(
         "<tr>"
         f'<td><a href="sector.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
@@ -341,78 +182,41 @@ def _sectors_panel(conn, db_name, term):
     ) or '<tr><td colspan="2"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
-<h2>Sectors{_count_suffix(len(rows), truncated)}</h2>
+<h2>Sectors{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Cube Edge</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(truncated)}
+{_truncated_note(len(rows), result["truncated"])}
 </section>
 """
 
 
-def _systems_panel(conn, db_name, term):
-    rows = fetch_all(
-        conn,
-        """
-        SELECT id, name, sector_id, is_binary
-        FROM star_systems
-        WHERE name LIKE ? ESCAPE '\\'
-        ORDER BY name
-        LIMIT ?
-        """,
-        (_like_pattern(term), RESULT_LIMIT + 1),
-    )
-    truncated = len(rows) > RESULT_LIMIT
-    rows = rows[:RESULT_LIMIT]
+def _systems_panel(db_name, result):
+    rows = result["rows"]
     body_rows = "".join(
         "<tr>"
         f'<td><a href="system.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
-        f'<td>{esc(_system_star_summary(conn, row["id"], row["is_binary"]))}</td>'
+        f'<td>{esc(row["star_summary"])}</td>'
         "</tr>"
         for row in rows
     ) or '<tr><td colspan="4"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
-<h2>Systems{_count_suffix(len(rows), truncated)}</h2>
+<h2>Systems{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Sector</th><th>Binary</th><th>Star type</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(truncated)}
+{_truncated_note(len(rows), result["truncated"])}
 </section>
 """
 
 
-def _stars_panel(conn, db_name, spectral_tags, luminosity_tags, term):
-    clauses, params = [], []
-    if spectral_tags:
-        clauses.append(f"SUBSTR(s.star_type, 1, 1) IN ({','.join('?' * len(spectral_tags))})")
-        params.extend(sorted(spectral_tags))
-    if luminosity_tags:
-        clauses.append(f"s.yerkes_class IN ({','.join('?' * len(luminosity_tags))})")
-        params.extend(sorted(luminosity_tags))
-    if term:
-        clauses.append("s.name LIKE ? ESCAPE '\\'")
-        params.append(_like_pattern(term))
-    where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(RESULT_LIMIT + 1)
-    rows = fetch_all(
-        conn,
-        f"""
-        SELECT s.name, s.role, s.star_type, s.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM stars s
-        JOIN star_systems ss ON ss.id = s.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, s.name
-        LIMIT ?
-        """,
-        params,
-    )
-    truncated = len(rows) > RESULT_LIMIT
-    rows = rows[:RESULT_LIMIT]
+def _stars_panel(db_name, result):
+    rows = result["rows"]
     body_rows = "".join(
         "<tr>"
         f'<td>{esc(row["name"])}</td>'
@@ -425,62 +229,23 @@ def _stars_panel(conn, db_name, spectral_tags, luminosity_tags, term):
     ) or '<tr><td colspan="5"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
-<h2>Stars{_count_suffix(len(rows), truncated)}</h2>
+<h2>Stars{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Role</th><th>Type</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(truncated)}
+{_truncated_note(len(rows), result["truncated"])}
 </section>
 """
 
 
-def _planets_panel(conn, db_name, class_tags, body_tags, life_tags, term):
-    # TODO: this panel has no way to filter or sort by planet size
-    # (planets.radius_km) -- only by the tag facets above (class/body/
-    # life) plus a name substring. "Class D but smaller than the Moon" or
-    # "these results, biggest first" can't be expressed today. Unlike the
-    # existing tag facets, radius_km is continuous, not a small set of
-    # discrete values, so it doesn't fit the _facet_options_* pattern
-    # as-is -- would need either range-bucketed tags (e.g. "< 5,000 km",
-    # "5,000-15,000 km", ...) or a plain sortable column header on this
-    # table (ORDER BY p.radius_km), plus matching CLI-side support in
-    # src/queryDb.py. See docs/TODO.md, "Investigate Further".
-    clauses, params = [], []
-    if class_tags:
-        clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
-    if body_tags:
-        clauses.append(f"p.body_type IN ({','.join('?' * len(body_tags))})")
-        params.extend(sorted(body_tags))
-    if life_tags:
-        clauses.append(f"p.life_chemical IN ({','.join('?' * len(life_tags))})")
-        params.extend(sorted(life_tags))
-    if term:
-        clauses.append("p.name LIKE ? ESCAPE '\\'")
-        params.append(_like_pattern(term))
-    where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(RESULT_LIMIT + 1)
-    rows = fetch_all(
-        conn,
-        f"""
-        SELECT p.name, p.planet_class, p.body_type, p.life_chemical,
-               p.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM planets p
-        JOIN star_systems ss ON ss.id = p.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index
-        LIMIT ?
-        """,
-        params,
-    )
-    truncated = len(rows) > RESULT_LIMIT
-    rows = rows[:RESULT_LIMIT]
+def _planets_panel(db_name, result):
+    rows = result["rows"]
     body_rows = "".join(
         "<tr>"
         f'<td>{esc(row["name"])}</td>'
         f'<td>{esc(row["planet_class"]) or "&mdash;"}</td>'
-        f'<td>{BODY_LABELS.get(row["body_type"], esc(row["body_type"]))}</td>'
+        f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
         f'<td>{esc(row["life_chemical"]) or "&mdash;"}</td>'
         f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
@@ -489,53 +254,23 @@ def _planets_panel(conn, db_name, class_tags, body_tags, life_tags, term):
     ) or '<tr><td colspan="6"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
-<h2>Planets{_count_suffix(len(rows), truncated)}</h2>
+<h2>Planets{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Life Chemistry</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(truncated)}
+{_truncated_note(len(rows), result["truncated"])}
 </section>
 """
 
 
-def _moons_panel(conn, db_name, class_tags, body_tags, life_tags, term):
-    clauses, params = [], []
-    if class_tags:
-        clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
-    if body_tags:
-        clauses.append(f"m.body_type IN ({','.join('?' * len(body_tags))})")
-        params.extend(sorted(body_tags))
-    if life_tags:
-        clauses.append(f"m.life_chemical IN ({','.join('?' * len(life_tags))})")
-        params.extend(sorted(life_tags))
-    if term:
-        clauses.append("m.name LIKE ? ESCAPE '\\'")
-        params.append(_like_pattern(term))
-    where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(RESULT_LIMIT + 1)
-    rows = fetch_all(
-        conn,
-        f"""
-        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, p.name AS planet_name,
-               m.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM moons m
-        JOIN planets p ON p.id = m.planet_id
-        JOIN star_systems ss ON ss.id = m.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index, m.orbital_index
-        LIMIT ?
-        """,
-        params,
-    )
-    truncated = len(rows) > RESULT_LIMIT
-    rows = rows[:RESULT_LIMIT]
+def _moons_panel(db_name, result):
+    rows = result["rows"]
     body_rows = "".join(
         "<tr>"
         f'<td>{esc(row["name"])}</td>'
         f'<td>{esc(row["planet_class"]) or "&mdash;"}</td>'
-        f'<td>{BODY_LABELS.get(row["body_type"], esc(row["body_type"]))}</td>'
+        f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
         f'<td>{esc(row["life_chemical"]) or "&mdash;"}</td>'
         f'<td>{esc(row["planet_name"])}</td>'
         f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
@@ -545,37 +280,18 @@ def _moons_panel(conn, db_name, class_tags, body_tags, life_tags, term):
     ) or '<tr><td colspan="7"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
-<h2>Moons{_count_suffix(len(rows), truncated)}</h2>
+<h2>Moons{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Life Chemistry</th><th>Orbits</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(truncated)}
+{_truncated_note(len(rows), result["truncated"])}
 </section>
 """
 
 
-def _belts_panel(conn, db_name, density_tags):
-    clauses, params = [], []
-    if density_tags:
-        clauses.append(f"ab.density IN ({','.join('?' * len(density_tags))})")
-        params.extend(sorted(density_tags))
-    where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(RESULT_LIMIT + 1)
-    rows = fetch_all(
-        conn,
-        f"""
-        SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM asteroid_belts ab
-        JOIN star_systems ss ON ss.id = ab.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, ab.orbital_index
-        LIMIT ?
-        """,
-        params,
-    )
-    truncated = len(rows) > RESULT_LIMIT
-    rows = rows[:RESULT_LIMIT]
+def _belts_panel(db_name, result):
+    rows = result["rows"]
     body_rows = "".join(
         "<tr>"
         f'<td>{esc(row["density"]).capitalize()}</td>'
@@ -587,58 +303,32 @@ def _belts_panel(conn, db_name, density_tags):
     ) or '<tr><td colspan="4"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
-<h2>Asteroid Belts{_count_suffix(len(rows), truncated)}</h2>
+<h2>Asteroid Belts{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Density</th><th>Composition</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(truncated)}
+{_truncated_note(len(rows), result["truncated"])}
 </section>
 """
 
 
-def _render_results(conn, db_name, texts, tags):
-    type_tags = tags["type"]
-    spectral_tags, luminosity_tags = tags["spectral"], tags["luminosity"]
-    class_tags, body_tags, life_tags = tags["class"], tags["body"], tags["life"]
-    moon_class_tags, moon_body_tags, moon_life_tags = tags["moon_class"], tags["moon_body"], tags["moon_life"]
-    density_tags = tags["density"]
+_PANEL_RENDERERS = {
+    "sectors": _sectors_panel,
+    "systems": _systems_panel,
+    "stars": _stars_panel,
+    "planets": _planets_panel,
+    "moons": _moons_panel,
+    "belts": _belts_panel,
+}
 
-    star_has_reason = bool(spectral_tags or luminosity_tags or texts["star_q"])
-    planet_has_reason = bool(class_tags or body_tags or life_tags or texts["planet_q"])
-    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or texts["moon_q"])
-    belt_has_reason = bool(density_tags)
 
-    if type_tags:
-        # An explicit Object Type selection is a master filter: it wins
-        # over an attribute tag from another object type that also
-        # happens to be selected (see the module docstring).
-        stars_included = "star" in type_tags
-        planets_included = "planet" in type_tags
-        moons_included = "moon" in type_tags
-        belts_included = "belt" in type_tags
-    else:
-        stars_included = star_has_reason
-        planets_included = planet_has_reason
-        moons_included = moon_has_reason
-        belts_included = belt_has_reason
-
+def _render_results(db_name, results):
     sections = []
-    if texts["sector_q"]:
-        sections.append(_sectors_panel(conn, db_name, texts["sector_q"]))
-    if texts["system_q"]:
-        sections.append(_systems_panel(conn, db_name, texts["system_q"]))
-    if stars_included:
-        sections.append(_stars_panel(conn, db_name, spectral_tags, luminosity_tags, texts["star_q"]))
-    if planets_included:
-        sections.append(_planets_panel(conn, db_name, class_tags, body_tags, life_tags, texts["planet_q"]))
-    if moons_included:
-        sections.append(
-            _moons_panel(conn, db_name, moon_class_tags, moon_body_tags, moon_life_tags, texts["moon_q"])
-        )
-    if belts_included:
-        sections.append(_belts_panel(conn, db_name, density_tags))
-
+    for panel in ("sectors", "systems", "stars", "planets", "moons", "belts"):
+        result = results[panel]
+        if result is not None:
+            sections.append(_PANEL_RENDERERS[panel](db_name, result))
     return "".join(sections) if sections else '<p class="hint">No matching objects.</p>'
 
 
@@ -650,62 +340,53 @@ def handler():
         return values[0].strip() if values else ""
 
     db_name = _first("db")
-    config = resolve_db_name(db_name)
-    conn = open_readonly(config)
-    try:
-        texts = {
-            "sector_q": _first("sector_q"),
-            "system_q": _first("system_q"),
-            "star_q": _first("star_q"),
-            "planet_q": _first("planet_q"),
-            "moon_q": _first("moon_q"),
-        }
-        tags = {facet: {v.strip() for v in raw.get(facet, []) if v.strip()} for facet in TAG_FACETS}
-        tags["type"] &= {"star", "planet", "moon", "belt"}
-        tags["body"] &= {"t", "g"}
-        tags["moon_body"] &= {"t", "g"}
+    texts = {
+        "sector_q": _first("sector_q"),
+        "system_q": _first("system_q"),
+        "star_q": _first("star_q"),
+        "planet_q": _first("planet_q"),
+        "moon_q": _first("moon_q"),
+    }
+    tags = {facet: {v.strip() for v in raw.get(facet, []) if v.strip()} for facet in TAG_FACETS}
+    tags["type"] &= {"star", "planet", "moon", "belt"}
+    tags["body"] &= {"t", "g"}
+    tags["moon_body"] &= {"t", "g"}
 
-        state = {"db": db_name, "texts": texts, "tags": tags}
+    state = {"db": db_name, "texts": texts, "tags": tags}
 
-        facet_defs = (
-            ("Object Type", "type", _facet_options_type(conn)),
-            ("Star: Spectral Class", "spectral", _facet_options_spectral(conn)),
-            ("Star: Luminosity Class", "luminosity", _facet_options_luminosity(conn)),
-            ("Planet Class", "class", _facet_options_class(conn)),
-            ("Planet Body Type", "body", _facet_options_body(conn)),
-            ("Planet Supported Life Chemistry", "life", _facet_options_life(conn)),
-            ("Moon Class", "moon_class", _facet_options_moon_class(conn)),
-            ("Moon Body Type", "moon_body", _facet_options_moon_body(conn)),
-            ("Moon Supported Life Chemistry", "moon_life", _facet_options_moon_life(conn)),
-            ("Asteroid Belt Density", "density", _facet_options_density(conn)),
-        )
+    data = get_search(db_name, texts, tags)
 
-        facet_labels = {
-            (facet, value): label
-            for _, facet, options in facet_defs
-            for value, label, _count, _tip in options
-        }
+    facet_titles = {
+        "type": "Object Type",
+        "spectral": "Star: Spectral Class",
+        "luminosity": "Star: Luminosity Class",
+        "class": "Planet Class",
+        "body": "Planet Body Type",
+        "life": "Planet Supported Life Chemistry",
+        "moon_class": "Moon Class",
+        "moon_body": "Moon Body Type",
+        "moon_life": "Moon Supported Life Chemistry",
+        "density": "Asteroid Belt Density",
+    }
+    tag_browser_html = "".join(
+        _tag_group_html(facet_titles[facet], facet, data["facets"][facet], tags[facet], state)
+        for facet in TAG_FACETS
+    )
 
-        tag_browser_html = "".join(
-            _tag_group_html(title, facet, options, tags[facet], state) for title, facet, options in facet_defs
-        )
+    hidden_tag_inputs = "".join(
+        f'<input type="hidden" name="{facet}" value="{esc(v)}">'
+        for facet in TAG_FACETS
+        for v in sorted(tags[facet])
+    )
+    datalists = "".join([
+        _datalist_html("dl-sector", data["autocomplete"]["sectors"]),
+        _datalist_html("dl-system", data["autocomplete"]["systems"]),
+        _datalist_html("dl-star", data["autocomplete"]["stars"]),
+        _datalist_html("dl-planet", data["autocomplete"]["planets"]),
+        _datalist_html("dl-moon", data["autocomplete"]["moons"]),
+    ])
 
-        hidden_tag_inputs = "".join(
-            f'<input type="hidden" name="{facet}" value="{esc(v)}">'
-            for facet in TAG_FACETS
-            for v in sorted(tags[facet])
-        )
-        datalists = "".join(
-            [
-                _datalist_html("dl-sector", _name_list(conn, "sectors")),
-                _datalist_html("dl-system", _name_list(conn, "star_systems")),
-                _datalist_html("dl-star", _name_list(conn, "stars")),
-                _datalist_html("dl-planet", _name_list(conn, "planets")),
-                _datalist_html("dl-moon", _name_list(conn, "moons")),
-            ]
-        )
-
-        form_html = f"""
+    form_html = f"""
 <form method="get" action="search.py" class="search-form">
   <input type="hidden" name="db" value="{esc(db_name)}">
   {hidden_tag_inputs}
@@ -734,17 +415,13 @@ def handler():
 </form>
 """
 
-        active_filters_html = _active_filters_html(state, facet_labels)
+    active_filters_html = _active_filters_html(state, data["facet_labels"])
 
-        any_active = bool(
-            any(tags[facet] for facet in TAG_FACETS) or any(texts.values())
-        )
-        if any_active:
-            results_html = _render_results(conn, db_name, texts, tags)
-        else:
-            results_html = '<p class="hint">Select a tag below, or enter a name above and press Search, to see matching results.</p>'
-    finally:
-        conn.close()
+    any_active = bool(any(tags[facet] for facet in TAG_FACETS) or any(texts.values()))
+    if any_active:
+        results_html = _render_results(db_name, data["results"])
+    else:
+        results_html = '<p class="hint">Select a tag below, or enter a name above and press Search, to see matching results.</p>'
 
     breadcrumb = (
         '<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; '
