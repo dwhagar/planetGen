@@ -708,6 +708,30 @@ PLANET_CLASSES = {
         # genuine cold bias from the unclamped physics instead of relying on
         # a post-hoc temperature clamp (see planetPhysics.calculate_atmospheric_conditions).
         "albedo_range": (0.5, 0.7),
+        # Given the same atm_molar_density_range/atm_density_range/
+        # greenhouse_multiplier_range treatment the M/O/H/K/L/N/E/F/G/V pass
+        # (CHANGELOG.md [5.3.7]) gave the other habitable classes -- P had
+        # already stopped there with just its own albedo_range, per that
+        # pass's note. No single real analog, so this isn't chasing a target
+        # delta the way M/K/N are; instead the composition/quantity/potency
+        # levers are set to make the class's own "cold, glaciated"/"thinning
+        # with age" flavor text physically real rather than incidental.
+        # atm_molar_density stays near Earth's own real ~0.02897 kg/mol
+        # (the class's atmosphere text names oxygen/nitrogen/argon, not a
+        # heavier CO2-like mix the way K/N's do) -- composition isn't what
+        # makes this class cold. atm_density is set thin (between Mars'
+        # ~0.02 and Earth's ~1.2 kg/m^3) for "thinning with age", and
+        # greenhouse_multiplier is set weak (well below M's own 1.65-1.85)
+        # so the cold comes from genuine physics, on top of the high albedo
+        # above, rather than albedo alone. Verified via
+        # climate_tuning_cli.py --class P: mean surface_temperature ~219K
+        # (well below freezing, clearly colder than Class M's ~286K -- see
+        # test_class_p_is_colder_on_average_than_class_m), mean
+        # atmospheric_pressure ~10.4kPa (~0.1 atm, genuinely thin) over a
+        # 400-sample run across the full host-star grid.
+        "atm_molar_density_range": (0.0285, 0.0300),
+        "atm_density_range": (0.05, 0.35),
+        "greenhouse_multiplier_range": (0.3, 0.6),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.08, 0.1),

@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.9.1] - 2026-09-10
+
+### Changed
+- **Class P climate tuning.** Gave Class P the same
+  `atm_molar_density_range`/`atm_density_range`/`greenhouse_multiplier_range`
+  treatment the M/O/H/K/L/N/E/F/G/V pass ([5.3.7]) gave the other habitable
+  classes; P had stopped at just its own `albedo_range` that pass. No
+  single real-world analog for P, so this isn't chasing a target delta the
+  way M/K/N are -- instead the new ranges make the class's own "cold,
+  glaciated"/"thinning with age" flavor text physically real: molar
+  density stays near Earth's real value (P's atmosphere text names
+  oxygen/nitrogen/argon, not a heavier CO2-like mix), `atm_density` is set
+  thin, and `greenhouse_multiplier` is set weak so the cold comes from
+  genuine physics on top of the class's already-tuned high albedo, not
+  albedo alone. Verified via `climate_tuning_cli.py --class P`: mean
+  surface_temperature ~219K (well below freezing, clearly colder than
+  Class M's ~286K), mean atmospheric_pressure ~10.4kPa (~0.1 atm) over a
+  400-sample run across the full host-star grid.
+
 ## [5.9.0] - 2026-09-10
 
 ### Removed

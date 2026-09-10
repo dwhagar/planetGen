@@ -104,12 +104,18 @@ and git history.
   that constraint (~231K/~0.57kPa vs real ~210K/~610Pa) but can't fully
   close the gap without a zone/distance-placement change, which is a larger
   design question than per-class range tuning.
-- [ ] Classes P and W could still receive the same
+- [x] Class P could still receive the same
   `atm_molar_density_range`/`atm_density_range`/`greenhouse_multiplier_range`
   treatment the M/O/H/K/L/N/E/F/G/V pass (CHANGELOG.md [5.3.7]) gave the
-  other habitable classes -- P already has a working `albedo_range` from an
-  earlier pass and wasn't part of this round's ordered list; W has the
-  day/night structural gap noted above.
+  other habitable classes -- P already had a working `albedo_range` from an
+  earlier pass and wasn't part of this round's ordered list. Done
+  (CHANGELOG.md [5.9.1]): near-Earth molar density (its atmosphere text
+  names oxygen/nitrogen/argon, not a CO2-like mix), thin `atm_density`
+  ("thinning with age"), and a weak `greenhouse_multiplier` so the class's
+  cold, glaciated identity comes from real physics rather than albedo
+  alone -- mean surface_temperature ~219K, clearly colder than Class M's
+  ~286K. (Class W, the other class this item named, was removed entirely
+  instead -- CHANGELOG.md [5.9.0].)
 - [x] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`. Done via the NAV feature (CHANGELOG.md [5.8.0]): `GET /api/nav`/`src/html/nav.py` give course/distance/route between two systems. The rendered-image gap that first pass left open is closed too (CHANGELOG.md [5.8.1]): `src/html/lib/navmap.py`'s "NAV Map" panel plots the origin, destination, and route hops as a flat, top-down SVG in the galactic X-Y plane (deliberately blind to altitude, same as the Galaxy Map's Quadrant view -- the course panel's own Altitude figure already covers that axis).
 - [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
 - [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and src/html/search.py near `_planets_panel`.
