@@ -1,7 +1,7 @@
 # tests/test_api.py
 
 """
-End-to-end tests for the read-only Flask API (`src/api/`) against a real,
+End-to-end tests for the read-only Flask API (`src/html/api/`) against a real,
 throwaway MySQL database (see `conftest.py`'s `mysql_config` fixture) --
 every test here is skipped, not failed, when no MySQL test server is
 configured/reachable.

@@ -1,4 +1,4 @@
-# api/limiter.py
+# html/api/limiter.py
 
 """
 Rate limiting for the planetGen API (Flask-Limiter).

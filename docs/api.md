@@ -26,9 +26,11 @@ interim `../src/html/` CGI browser (see [`apache-deployment.md`](apache-deployme
 Flask has no opinion
 about the data layer (route handlers call straight into `queryDb.py`'s and
 `stellarObjects._db`'s existing functions), deploys via `mod_wsgi` in the
-same Apache process model the CGI scripts already use, and is mounted
-at `/api/` alongside `../src/html/` on one vhost (see "Deploying behind
-Apache" below) -- `../src/html/` is now this API's own frontend (see that
+same Apache process model the CGI scripts already use, and lives at
+`../src/html/api/` -- served from the same tree/DocumentRoot as the CGI
+browser rather than a separately-deployed package -- mounted at `/api/`
+alongside `../src/html/` on one vhost (see "Deploying behind Apache"
+below). `../src/html/` is now this API's own frontend (see that
 directory's docs), not a separate database consumer anymore. FastAPI's
 headline advantages (async, auto-generated OpenAPI docs) still don't pay
 for themselves: this API is read-heavy and low-concurrency regardless of
@@ -316,7 +318,7 @@ every write endpoint applies its own stricter limit
 
 ```bash
 pip install -e .[api]
-python src/wsgi.py
+python src/html/wsgi.py
 ```
 
 Connects to the same MySQL database every other tool in this project
@@ -324,7 +326,7 @@ defaults to (`PLANETGEN_MYSQL_*` env vars, or their built-in defaults — see
 `stellarObjects._db.MySQLConfig`). Point it at a different database with:
 
 ```bash
-PLANETGEN_MYSQL_HOST=db.example.com PLANETGEN_MYSQL_DATABASE=planetgen_alpha python src/wsgi.py
+PLANETGEN_MYSQL_HOST=db.example.com PLANETGEN_MYSQL_DATABASE=planetgen_alpha python src/html/wsgi.py
 ```
 
 Every read goes through `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` —
@@ -336,23 +338,33 @@ real (see "Write endpoints" above).
 
 ## Deploying behind Apache (mod_wsgi)
 
-`src/wsgi.py` exposes the standard `application` object `mod_wsgi`
-expects. `examples/apache/planetgen.conf.example` already includes a
-`WSGIScriptAlias /api /var/lib/planetGen/src/wsgi.py` (plus the
-`<Files wsgi.py>` access rule it needs) on the *same* vhost that serves
-`../src/html/` — see [`apache-deployment.md`](apache-deployment.md) and
-that example file's own header comment for why it's aliased from outside
-`../src/html/`'s `DocumentRoot` rather than moved into it, and
-`set-permissions.sh`) for the rest of the deployment story. No separate
-vhost/`ServerName` is needed: `../src/html/`'s own pages read
+`src/html/wsgi.py` exposes the standard `application` object `mod_wsgi`
+expects, and now lives inside the same `html/` tree the vhost's
+`DocumentRoot` already points at (see "Why Flask" above -- moved there
+from `src/wsgi.py`/`src/api/` so the API is served from the same
+checkout/deployment tree as the CGI browser instead of a second,
+separately-tracked location). Add a `WSGIScriptAlias` for `/api` pointing
+at `src/html/wsgi.py` to the existing vhost config in `examples/apache/`
+(see [`apache-deployment.md`](apache-deployment.md) for the vhost this
+project already deploys, including `set-permissions.sh` and the
+`<Directory>` block that denies direct requests into `html/api/` the same
+way it already does for `html/lib/`), or run it behind `gunicorn` +
+`mod_proxy`/`mod_proxy_http` if `mod_wsgi` isn't available. No separate
+vhost/`ServerName` is needed either way: `../src/html/`'s own pages read
 `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. this same
-vhost) to find it. Run it behind `gunicorn` + `mod_proxy`/`mod_proxy_http`
-instead if `mod_wsgi` isn't available (point `PLANETGEN_API_BASE_URL` at
-wherever that ends up listening). Either way, set `PLANETGEN_MYSQL_*` in
-the process environment (e.g. the vhost's `SetEnv` directives, or the
-`gunicorn` service's environment file) to point at the deployed MySQL
-database, ideally via a read-only account (see above). If running more
-than one `mod_wsgi`/`gunicorn` worker, also set
+vhost) to find the API -- point it at wherever `gunicorn` ends up
+listening if using that instead. Either way, set `PLANETGEN_MYSQL_*` in
+the process environment to point at the deployed MySQL database, ideally
+via a read-only account (see above) -- under `mod_wsgi` this means the
+Apache service's own process environment (e.g. `/etc/apache2/envvars`, or
+an `Environment=` line on the apache2 systemd unit), **not** the vhost's
+`SetEnv` directives: those work for the CGI browser (`mod_cgi`/`mod_cgid`
+copies them into each script's real process environment) but never reach
+`os.environ` under `mod_wsgi` -- `html/api/config.py` reads its config
+from `os.environ` once, at process startup, and `SetEnv` values only ever
+show up in a request's `environ` dict, which doesn't exist yet at that
+point. Under `gunicorn`, its own service's environment file works the
+normal way. If running more than one `mod_wsgi`/`gunicorn` worker, also set
 `PLANETGEN_RATELIMIT_STORAGE_URI` to a shared backend (see "Rate
 limiting").
 

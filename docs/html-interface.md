@@ -8,7 +8,7 @@ rendered wikitext/Markdown page saved for each one.
 
 This is a read-only browser, and the frontend half of `TODO.md`'s Phase 5
 web application: every page here is a thin server-rendered client of the
-Flask API in [`../src/api/`](api.md), never touching the database
+Flask API in [`../src/html/api/`](api.md), never touching the database
 directly itself, though [`../src/html/search.py`](#how-it-works) does
 provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a
@@ -68,12 +68,12 @@ rendered page.
 
 ## Locating the database (and the API)
 
-Every page here needs the planetGen API (`../src/api/`, see
+Every page here needs the planetGen API (`../src/html/api/`, see
 [`api.md`](api.md)) reachable to work at all now -- set
 `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. the same
 host this CGI script itself runs on) if it's deployed somewhere else,
-e.g. `http://127.0.0.1:5000/api` for `python src/wsgi.py`'s own local dev
-server. The *database* server/account, and which schemas the picker
+e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own local
+dev server. The *database* server/account, and which schemas the picker
 (`index.py`/`?db=`) offers, are entirely the API's own configuration now
 (`PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE_PREFIX`,
 `stellarObjects._db.MySQLConfig`/`list_databases`) -- see

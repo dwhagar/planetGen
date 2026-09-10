@@ -198,6 +198,23 @@
 --     recovers from (re-fetch and return the sector the other visit just
 --     created) instead of a silent duplicate row at the same address.
 --
+-- v9: orbital motion. `planets`/`moons` each gain three fixed-at-
+--   generation-time orbital-orientation columns (`orbital_inclination_deg`,
+--   `orbital_ascending_node_deg`) plus one that changes over time
+--   (`orbital_phase_deg`, this body's current position angle around its
+--   otherwise-circular orbit) and one static descriptive stat
+--   (`rotation_period_hours`, axial "day length" -- this generator doesn't
+--   track rotational phase, only period). `updateOrbits.py` is a new,
+--   separately-run script that advances every body's `orbital_phase_deg`
+--   in place based on `period_years` and real elapsed time, using the new
+--   `orbit_simulation_state` singleton row (one per database, same
+--   pattern as `galaxy_shape` above) to track when it last ran --
+--   `stellarObjects.galaxyGeometry`'s "derive, don't store" principle
+--   doesn't apply here: the whole point of this feature is a value that
+--   changes with real-world time rather than being a pure function of the
+--   body's other (fixed) generative facts, so it has to be stored and
+--   periodically updated, not recomputed on read.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -380,6 +397,16 @@ CREATE TABLE IF NOT EXISTS galaxy_shell_band (
 
     UNIQUE (shell_index, band_index),
     KEY idx_galaxy_shell_band_shell_index (shell_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Singleton row (same pattern as galaxy_shape above) tracking when
+-- updateOrbits.py last advanced every planet's/moon's orbital_phase_deg in
+-- this database, so the next run knows how much real time has actually
+-- elapsed since then. Absent entirely until updateOrbits.py's first run
+-- against a given database (it creates this row itself).
+CREATE TABLE IF NOT EXISTS orbit_simulation_state (
+    id               BIGINT UNSIGNED PRIMARY KEY CHECK (id = 1),
+    last_updated_at  TIMESTAMP NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -568,6 +595,14 @@ CREATE TABLE IF NOT EXISTS planets (
     evolutionary_speed        VARCHAR(64),
     flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
+    -- Orbital motion (v9, see header comment) -- inclination/ascending
+    -- node are fixed at generation time; phase changes over time, advanced
+    -- in place by updateOrbits.py. rotation_period_hours is a separate,
+    -- static "day length" stat.
+    orbital_inclination_deg     DOUBLE NOT NULL,
+    orbital_ascending_node_deg  DOUBLE NOT NULL,
+    orbital_phase_deg           DOUBLE NOT NULL,
+    rotation_period_hours       DOUBLE NOT NULL,
 
     CONSTRAINT fk_planets_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
@@ -650,6 +685,14 @@ CREATE TABLE IF NOT EXISTS moons (
     evolutionary_speed        VARCHAR(64),
     flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
+    -- Orbital motion (v9, see header comment) -- inclination/ascending
+    -- node are fixed at generation time; phase changes over time, advanced
+    -- in place by updateOrbits.py. rotation_period_hours is a separate,
+    -- static "day length" stat.
+    orbital_inclination_deg     DOUBLE NOT NULL,
+    orbital_ascending_node_deg  DOUBLE NOT NULL,
+    orbital_phase_deg           DOUBLE NOT NULL,
+    rotation_period_hours       DOUBLE NOT NULL,
 
     CONSTRAINT fk_moons_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,

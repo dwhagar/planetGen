@@ -1,6 +1,10 @@
 # Changelog
 
-## [5.9.0] - 2026-09-10
+## [5.12.0] - 2026-09-10
+
+_Originally developed and released as `5.9.0` on a separate branch; renumbered
+on merge since `5.9.0` was independently already used below for the same-day
+Class W removal. No functional difference from the original release._
 
 ### Changed
 - **`../src/html/` is now a thin frontend for the Flask API instead of a
@@ -24,11 +28,14 @@
   placement -- distinct from `stellarObjects._db.load_sector`/
   `load_star_system`'s *generation* object graph, still reachable the
   same way). Apache's example vhost
-  (`examples/apache/planetgen.conf.example`) now mounts the API at
-  `/api/` (`WSGIScriptAlias`) on the same vhost that serves `../src/html/`,
-  aliased in rather than relocated into its `DocumentRoot` -- resolves
-  the open question `TODO.md` left from the 5.3.2/5.3.3 file-system
-  cleanup. See `docs/api.md` and `docs/html-interface.md`.
+  (`examples/apache/planetgen.conf.example`) mounts the API at `/api/`
+  (`WSGIScriptAlias`, in its own `WSGIDaemonProcess`) on the same vhost
+  that serves `../src/html/` -- landed alongside `html/api/`'s own move
+  into the same `DocumentRoot` (`[5.10.0]`), resolving the open question
+  `TODO.md` left from the 5.3.2/5.3.3 file-system cleanup from two
+  independent, orthogonal angles at once (where the API's source lives,
+  and how `html/` gets its data) that happen to combine cleanly. See
+  `docs/api.md` and `docs/html-interface.md`.
 - System Map: a body with `life_chemical` set (habitable) now gets a
   small green badge on its marker, surfaced in the info panel's "Life
   Chemistry" field too (`html/lib/systemmap.py`'s `has_life`,
@@ -37,6 +44,213 @@
   stale "sprite-based graphical system view" item is resolved: the System
   Map (an interactive scaled-orbit SVG diagram, not bitmap sprite art)
   already satisfied it, per that module's own docstring.
+
+## [5.11.1] - 2026-09-10
+
+### Changed
+- **Moon tidal locking is now physics-based, not a flat probability.**
+  [5.11.0] gave a moon a flat 75% (`MOON_TIDAL_LOCK_PROBABILITY`) chance
+  of being tidally locked; replaced with an actual tidal-despinning
+  timescale estimate (new `planetPhysics._tidal_locking_timescale_seconds`,
+  the standard simplified Murray & Dermott formula: `t_lock = (2Q/15k2) *
+  omega0 * a^6 * m_moon / (G * M_primary^2 * R_moon^3)`, with fixed
+  representative `Q`/`k2` values for a rocky/icy body -- new
+  `physical_constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2`).
+  Verified directly against three real systems spanning many orders of
+  magnitude: ~47 million years for the real Earth-Moon system (real
+  estimates: tens of millions of years), ~90 years for Mars/Deimos
+  (consistent with Deimos being locked given its tiny size), and ~1
+  billion years for Saturn/Iapetus (consistent with real estimates of a
+  billion-year-plus despinning time for that unusually slow case). A
+  candidate (pre-locking) rotation period is drawn first, same as any
+  planet; a moon actually ends up locked only if that timescale is
+  shorter than the system's age (`star.age`, the best available proxy --
+  planets/moons don't carry an independent age of their own).
+- **Moon orbital distance is now drawn log-uniformly, not
+  linearly-uniformly.** Surfaced by the physics-based tidal locking
+  above: `generate_moons`' distance range can span many orders of
+  magnitude (its outer bound reaches 1/5 of the parent planet's own Hill
+  radius -- tens to hundreds of millions of km for a large planet, far
+  beyond where any real large moon actually orbits, e.g. our Moon at
+  384,400 km), and a plain `random.uniform` over that range spends almost
+  all its density in the single largest order of magnitude -- nearly
+  every generated moon landed implausibly far out, so almost none had
+  time to tidally lock (measured: ~1.3% of moons locked). Real moon
+  systems are much closer to log-spaced (e.g. the Galilean moons run
+  421,700 / 671,100 / 1,070,400 / 1,882,700 km, each roughly 1.5-1.6x the
+  last), which log-uniform sampling matches far better while still
+  allowing occasional genuinely distant/irregular moons. Measured effect:
+  ~1.3% -> ~14% of moons locked over the same sample size -- still a
+  minority overall (this generator's moons span a much wider population
+  than just the handful of large, close, well-known real moons that
+  dominate popular intuition about "most moons are locked"), but an order
+  of magnitude more of them landing close enough to plausibly have
+  locked.
+
+## [5.11.0] - 2026-09-10
+
+### Added
+- **Orbital and rotational motion.** Every planet/moon now has a real 3D
+  orbital orientation and a rotation period, plus a live position that a
+  new, separately-run script advances over time -- resolves
+  `docs/TODO.md`'s "Introducing realistic orbital paths and speeds..."
+  entry.
+  - `Planet` gains four new attributes (`planetPhysics.
+    generate_orbital_motion_properties`): `orbital_inclination_deg`/
+    `orbital_ascending_node_deg` (fixed at generation time -- together
+    they orient this generator's circular-orbit model in 3D; planets draw
+    from a tighter, real-solar-system-like range than moons, which can be
+    tilted much further), `orbital_phase_deg` (this body's current
+    position angle around its orbit -- the one field that changes after
+    generation), and `rotation_period_hours` (axial "day length" -- a
+    static descriptive stat; no rotational phase is tracked, by design,
+    since nothing consumes "which side currently faces the primary"). A
+    moon has a real chance (75%, `MOON_TIDAL_LOCK_PROBABILITY`) of being
+    tidally locked (rotation period equal to orbital period) -- the norm
+    for real large moons, not a rare special case; otherwise rotation
+    period is drawn from a `body_type`-appropriate range (`physical_constants.
+    ROTATION_PERIOD_RANGE_HOURS`).
+  - **New `src/updateOrbits.py`.** Advances every planet's/moon's
+    `orbital_phase_deg` in the configured database based on real elapsed
+    time since the last run (`stellarObjects._db.advance_orbital_phases`,
+    a single set-based `UPDATE` per table, not a per-row Python loop) --
+    meant to be run periodically (e.g. cron, "once a month or so"), not
+    on every generation run. A new `orbit_simulation_state` singleton row
+    tracks when it last ran, measured server-side via `TIMESTAMPDIFF`
+    rather than trusting the calling process' own clock to agree with the
+    database server's (`get_orbit_update_elapsed_years`). The first run
+    against a database just establishes that reference point (nothing to
+    advance yet) rather than guessing a start time.
+  - **Orbital period fix, needed for this feature to mean anything.**
+    `Planet.period` used to be `sqrt(distance_au^3)` unconditionally --
+    correct Kepler's-third-law shorthand only for a 1-solar-mass primary.
+    For an ordinary planet orbiting a star of very different mass, and
+    *especially* for a moon (whose real primary is its parent planet, not
+    the grandparent star `self.star` still points at for other purposes
+    like life chemistry) this was wrong by orders of magnitude -- a moon's
+    period came out as if it orbited its host star directly at that same
+    tiny distance. New `planetPhysics.calculate_orbital_period_years(distance_au,
+    primary_mass_kg)` takes the actual primary's mass
+    (`Planet.__init__`'s new `primary_mass_kg` parameter, threaded in
+    from `generate_moons` as the parent planet's own `mass` for a moon,
+    defaulting to `star.mass` for an ordinary planet -- transparently
+    correct for a binary system too via `BinaryStarProxy.mass`'s existing
+    effective-mass property). Also fixed a related latent staleness bug
+    found while testing this: `StarSystem.validate_system` adjusts a
+    planet's `distance` after generation to resolve orbital overlap and
+    already recomputed atmospheric conditions to match, but never
+    recomputed `period` -- now it does.
+  - Schema v8 -> v9: `orbital_inclination_deg`/`orbital_ascending_node_deg`/
+    `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, and
+    the new `orbit_simulation_state` table. `stellarObjects._db.
+    _migrate_v8_to_v9` is the first real per-version migration step of the
+    MySQL era (every database before this one started fresh, already at
+    the then-current schema) -- existing rows default to `0`/`24` (an
+    arbitrary but harmless placeholder), since this generator never ran
+    its actual random generation for them; every body generated from this
+    point on gets real values. See `docs/database-schema.md`.
+
+## [5.10.1] - 2026-09-10
+
+### Fixed
+- **Subdwarf (Yerkes VI) age modeling could produce a pre-Big-Bang star.**
+  `Star._calculate_initial_star_age_and_lifespan` routed every non-main-
+  sequence, non-white-dwarf Yerkes class (giants, subgiants, bright
+  giants, supergiants, hypergiants, *and* subdwarfs) through the same
+  model: derive main-sequence lifespan from the star's own already-
+  generated mass, then draw age from the post-main-sequence window. That
+  model's mass-sampling side already got a reject-and-resample guard
+  against pre-Big-Bang progenitor masses ([5.3.1]) for every class it
+  applies to -- except Yerkes VI, deliberately excluded because its
+  *entire* allowed mass range (0.1-0.8 Msun) implies a main-sequence
+  lifespan longer than the age of the universe, so every draw would have
+  been rejected. That left subdwarfs still running through the age *model*
+  itself, unguarded, which routinely produced ages of hundreds of billions
+  of years -- because real subdwarfs (sdB/sdO) are thought to form via
+  binary mass-stripping near the tip of a lower/intermediate-mass
+  progenitor's red-giant branch, not single-star post-main-sequence
+  evolution, so this star's own post-strip mass was never a valid stand-in
+  for a progenitor's main-sequence lifespan in the first place -- the
+  model was wrong for this class, not just missing a guard rail (flagged
+  as an open design question in `docs/TODO.md`'s "Future ideas" ever
+  since).
+  - Yerkes VI now has its own age-generation branch, entirely independent
+    of the star's own mass: age is drawn directly from a dedicated,
+    old-population-biased range (new `program_constants.SUBDWARF_MIN_AGE_GY`
+    /`SUBDWARF_MAX_AGE_GY`, 1.0-13.5 Gy, with the same young/old
+    `SystemConfig.AGE` bias every other branch applies), reflecting that
+    real subdwarf progenitors are typically old, low-mass population stars
+    (a short-lived, higher-mass star wouldn't have had time to reach the
+    RGB tip and get stripped). Lifespan is that age plus a short
+    remaining-phase window (new `SUBDWARF_REMAINING_PHASE_MIN_GY`/
+    `_MAX_GY`, 0.05-0.3 Gy) rather than a separately-derived value, since
+    the real core-helium-burning subdwarf phase is short relative to the
+    age itself.
+  - New regression test `test_subdwarf_age_never_exceeds_universe_age`
+    (`test_star_matrix.py`) locks this in across every spectral letter.
+
+## [5.10.0] - 2026-09-10
+
+### Changed
+- **Moved the Flask API (`src/api/`) into `src/html/`.** Resolves the
+  open question `docs/TODO.md` had carried since the 5.3.2/5.3.3
+  file-system cleanup: the API now lives at `src/html/api/`, served from
+  the same checkout/deployment tree as the interim CGI browser instead of
+  a second, separately-tracked location. `src/wsgi.py` moved alongside it
+  to `src/html/wsgi.py` (same "lives next to `api/`, so `import api` just
+  works via `sys.path[0]`" property as before, plus an explicit
+  `sys.path` entry for `src/` now that `queryDb`/`stellarObjects` are a
+  directory farther away). `pytest.ini`'s `pythonpath` gained `src/html`
+  so `test_api.py`'s `from api...` imports keep resolving unchanged.
+  `examples/apache/planetgen.conf.example` gained a `WSGIScriptAlias /api`
+  pointing at `html/wsgi.py`, plus deny-all `<Directory>`/`<Files>` blocks
+  for `html/api/` and `html/wsgi.py` itself (mirroring the existing
+  `html/lib/` block -- both hold source that's imported, never meant to
+  be requested directly). Along the way, corrected a pre-existing
+  inaccuracy in `docs/api.md`'s Apache deployment guidance: the vhost's
+  `SetEnv` directives configure the CGI browser (`mod_cgi`/`mod_cgid`
+  copies them into each script's real process environment) but never
+  reach `os.environ` under `mod_wsgi` -- `PLANETGEN_MYSQL_*` for the API
+  needs to come from the Apache service's own process environment instead
+  (e.g. `/etc/apache2/envvars`).
+
+## [5.9.1] - 2026-09-10
+
+### Changed
+- **Class P climate tuning.** Gave Class P the same
+  `atm_molar_density_range`/`atm_density_range`/`greenhouse_multiplier_range`
+  treatment the M/O/H/K/L/N/E/F/G/V pass ([5.3.7]) gave the other habitable
+  classes; P had stopped at just its own `albedo_range` that pass. No
+  single real-world analog for P, so this isn't chasing a target delta the
+  way M/K/N are -- instead the new ranges make the class's own "cold,
+  glaciated"/"thinning with age" flavor text physically real: molar
+  density stays near Earth's real value (P's atmosphere text names
+  oxygen/nitrogen/argon, not a heavier CO2-like mix), `atm_density` is set
+  thin, and `greenhouse_multiplier` is set weak so the cold comes from
+  genuine physics on top of the class's already-tuned high albedo, not
+  albedo alone. Verified via `climate_tuning_cli.py --class P`: mean
+  surface_temperature ~219K (well below freezing, clearly colder than
+  Class M's ~286K), mean atmospheric_pressure ~10.4kPa (~0.1 atm) over a
+  400-sample run across the full host-star grid.
+
+## [5.9.0] - 2026-09-10
+
+### Removed
+- **Class W ("a tidally locked world with extreme temperature
+  variations") removed entirely.** Its day/night-split identity can't be
+  produced from a single global `surface_temperature` scalar under this
+  generator's climate model -- no per-class range (albedo, molar density,
+  greenhouse multiplier, or atmosphere density) reaches it without an
+  actual dayside/nightside model this generator doesn't have, flagged as
+  a known gap during the [5.3.7] climate-tuning pass and left open in
+  `docs/TODO.md`'s "Investigate Further" section ever since. Rather than
+  build a whole day/night thermal model for one class, cut it entirely --
+  removed from `PLANET_CLASSES`, `PLANET_CLASS_PROBABILITIES` (its
+  0.0001 weight just dropped; these are relative weights, not a
+  normalized distribution, so nothing needed redistributing),
+  `HABITABLE_PLANET_CLASSES`, and `MOON_BLACKLIST`
+  (`program_constants.py`), plus its color entry in
+  `html/lib/systemmap.py`'s `_CLASS_COLORS`.
 
 ## [5.8.3] - 2026-09-10
 

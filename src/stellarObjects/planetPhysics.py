@@ -183,6 +183,29 @@ def _validate_mass(planet):
         raise ValueError("Invalid mass for planet class")
 
 
+def calculate_orbital_period_years(distance_au, primary_mass_kg):
+    """
+    Kepler's third law: T(years) = sqrt(a(AU)^3 / M_primary(Msun)).
+
+    "Primary" is whatever body this orbit is actually around -- the host
+    star for an ordinary planet, but the parent planet for a moon (see
+    `Planet.__init__`'s `primary_mass_kg` parameter). A single shared
+    helper so this formula is computed the same way wherever an orbital
+    distance is set or changed -- also `StarSystem.validate_system`, which
+    adjusts `distance` after generation to resolve overlapping orbits and
+    must keep `period` in sync with it.
+
+    Args:
+        distance_au (float): Orbital distance from the primary, in AU.
+        primary_mass_kg (float): The primary's mass, in kg.
+
+    Returns:
+        float: Orbital period in years.
+    """
+    primary_mass_sol = primary_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+    return math.sqrt(distance_au ** 3 / primary_mass_sol)
+
+
 def generate_planet_properties(planet, zone_override=None):
     """
     Generates a planet's physical and orbital properties: zone, class,
@@ -544,6 +567,117 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         #         planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
 
 
+def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
+    """
+    Estimates how long tidal forces would take to lock `moon`'s rotation
+    to its orbital period, in seconds, via the standard simplified
+    tidal-despinning formula (Murray & Dermott, "Solar System Dynamics"):
+
+        t_lock = omega0 * a^6 * I * Q / (3 * G * M_primary^2 * k2 * R_moon^5)
+
+    with the uniform-sphere moment of inertia I = (2/5) * m_moon * R^2
+    substituted in, which simplifies to:
+
+        t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
+
+    `Q`/`k2` are fixed representative values for a rocky/icy body
+    (`physical_constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2` --
+    see that constant's own comment for real-example verification), not
+    modeled per body.
+
+    Args:
+        moon (Planet): The moon (`is_moon=True`) -- must already have
+                       `distance` (AU), `mass` (kg), and `radius` (km) set.
+        primary_mass_kg (float): The parent planet's mass, in kg -- the
+                                 actual body raising the tide, not the
+                                 grandparent star `moon.star` points at.
+        initial_rotation_period_hours (float): The moon's assumed
+                                               pre-locking rotation period,
+                                               in hours -- despinning takes
+                                               longer starting from a
+                                               faster spin (more angular
+                                               momentum to shed).
+
+    Returns:
+        float: Estimated locking timescale, in seconds.
+    """
+    omega0 = 2 * math.pi / (initial_rotation_period_hours * 3600)
+    distance_m = moon.distance * physical_constants.AU_TO_M
+    radius_m = moon.radius * 1000
+    q_over_k2 = physical_constants.MOON_TIDAL_DISSIPATION_Q / physical_constants.MOON_TIDAL_LOVE_NUMBER_K2
+    numerator = omega0 * (distance_m ** 6) * moon.mass
+    denominator = physical_constants.G * (primary_mass_kg ** 2) * (radius_m ** 3)
+    return (2 * q_over_k2 / 15) * (numerator / denominator)
+
+
+def generate_orbital_motion_properties(planet, primary_mass_kg):
+    """
+    Sets a planet's (or moon's) 3D orbital orientation and rotation period.
+
+    Together with `planet.distance` (this generator only ever models
+    circular orbits -- no eccentricity), `orbital_inclination_deg` (the
+    tilt of the orbital plane) and `orbital_ascending_node_deg` (where that
+    plane crosses its primary's reference plane) fully orient the orbit in
+    3D; `orbital_phase_deg` is where the body currently sits around it.
+    Only `orbital_phase_deg` ever changes after generation --
+    `updateOrbits.py` advances it over time based on `planet.period` -- the
+    plane itself is fixed for the body's lifetime, the same way its
+    `distance` is.
+
+    `rotation_period_hours` is a separate, purely descriptive "day length"
+    stat (this generator doesn't track rotational phase -- nothing consumes
+    "which side currently faces the primary"). A candidate (pre-locking)
+    rotation period is always drawn first from a `body_type`-appropriate
+    range; for a moon, that candidate is kept only if real tidal physics
+    (`_tidal_locking_timescale_seconds`) says there *hasn't* been enough
+    time (`planet.star.age`, the best available proxy for the system's
+    age -- planets/moons don't carry an independent age of their own) to
+    lock it yet. Otherwise the moon ends up actually locked
+    (`rotation_period_hours` == its own orbital period, converted to
+    hours) -- which real physics makes the norm for large or close-in
+    moons, not a rare special case, but genuinely not universal: a large
+    moon far from a low-mass primary can easily have a locking timescale
+    longer than the system itself, which is exactly why not every moon
+    comes out tidally locked here either.
+
+    Args:
+        planet (Planet): The planet or moon to set these properties on.
+                         Must already have `distance`, `period`, `mass`,
+                         `radius`, and `body_type` set (see
+                         `Planet.__init__`).
+        primary_mass_kg (float): The mass (kg) of the body this one
+                                 actually orbits -- the star for an
+                                 ordinary planet, the parent planet for a
+                                 moon (see `Planet.__init__`'s parameter of
+                                 the same name, which this is threaded
+                                 straight through from).
+    """
+    reseed_rng()
+    inclination_max = (
+        physical_constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
+        else physical_constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
+    )
+    planet.orbital_inclination_deg = random.uniform(0, inclination_max)
+    planet.orbital_ascending_node_deg = random.uniform(0, 360)
+    planet.orbital_phase_deg = random.uniform(0, 360)
+
+    min_hours, max_hours = physical_constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
+    candidate_rotation_period_hours = random.uniform(min_hours, max_hours)
+
+    is_locked = False
+    if planet.is_moon:
+        lock_timescale_s = _tidal_locking_timescale_seconds(
+            planet, primary_mass_kg, candidate_rotation_period_hours
+        )
+        system_age_s = planet.star.age * 1e9 * physical_constants.SECONDS_PER_YEAR
+        is_locked = lock_timescale_s < system_age_s
+
+    if is_locked:
+        planet.rotation_period_hours = planet.period * (physical_constants.SECONDS_PER_YEAR / 3600)
+    else:
+        planet.rotation_period_hours = candidate_rotation_period_hours
+
+
 def generate_moons(planet, moon_count=None):
     """
     Generates a system of moons for the given planet.
@@ -601,7 +735,25 @@ def generate_moons(planet, moon_count=None):
         radius_limit = program_constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
                                                                         program_constants.PLANET_CLASSES[moon_class]['radius_range'][
                                                                             1] else max_moon_radius
-        moon_distance = random.uniform(total_orbit_distance, high_orbit) / physical_constants.AU_TO_KM
+        # Log-uniform, not linear-uniform: [total_orbit_distance, high_orbit]
+        # can span many orders of magnitude (high_orbit reaches out to 1/5 of
+        # the planet's own Hill radius, which for a large planet is tens to
+        # hundreds of millions of km -- far beyond where any real large moon
+        # actually orbits, e.g. our Moon at ~384,400 km), and a plain
+        # random.uniform over that range spends almost all its density in the
+        # single largest order of magnitude, so nearly every moon landed
+        # implausibly far out. Real moon systems are much closer to
+        # log-spaced -- e.g. the Galilean moons run 421,700 / 671,100 /
+        # 1,070,400 / 1,882,700 km, each roughly 1.5-1.6x the last, not a
+        # near-flat distribution across the whole possible range. Sampling
+        # log-uniformly gives every order of magnitude equal weight instead,
+        # which both matches that real spacing pattern better and -- since
+        # tidal-locking timescale scales with distance^6
+        # (_tidal_locking_timescale_seconds) -- stops real tidal-locking
+        # physics from calling almost every moon unlocked purely because the
+        # old distribution pushed it implausibly far from its primary.
+        moon_distance_km = math.exp(random.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
+        moon_distance = moon_distance_km / physical_constants.AU_TO_KM
         # radius_limit may be narrower than moon_class's own declared
         # radius_range ceiling (capped by the parent's Hill sphere/mass
         # above) -- _sample_class_radius's size_mode reading is evaluated
@@ -611,6 +763,6 @@ def generate_moons(planet, moon_count=None):
 
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
-                          distance_override=planet.distance, is_moon=True)
+                          distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
         planet.moons.append(new_moon)
         total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)

@@ -313,3 +313,50 @@ CO2_BASE_MOLAR_DENSITY = 0.04345
 float: The real molar density of CO2 (kg/mol), used as a reference point in
 atmospheric greenhouse-effect calculations.
 """
+
+# --- Orbital motion (planetPhysics.generate_orbital_motion_properties) ---
+# Real solar-system planets sit close to the ecliptic (Mercury, the most
+# tilted, is ~7 degrees) -- 10 degrees gives a little headroom without
+# implying a genuinely different orbital-plane population. Moons range much
+# wider in reality (close-in regular moons are typically near-equatorial,
+# but captured/irregular moons can be tilted or even retrograde) -- 25
+# degrees is a simple, larger-but-still-modest scatter that doesn't require
+# separately modeling regular vs. irregular moon populations.
+PLANET_ORBITAL_INCLINATION_MAX_DEG = 10.0
+MOON_ORBITAL_INCLINATION_MAX_DEG = 25.0
+
+# Axial rotation ("day length") ranges, by body_type, in hours. Terrestrial:
+# real solar-system terrestrial bodies span Earth/Mars-fast (~24-25h) to
+# Mercury/Venus-slow (~1400-5800h) -- capped at 1400h (Mercury's own,
+# real 58.6-day rotation) rather than reaching all the way to Venus' still
+# slower, retrograde ~5800h, so the range stays "slow" without a separate
+# retrograde-rotation concept. Gas giant: real gas giants all spin fast
+# (Jupiter ~9.9h, Saturn ~10.7h, Uranus ~17.2h, Neptune ~16.1h).
+ROTATION_PERIOD_RANGE_HOURS = {
+    "t": (10.0, 1400.0),
+    "g": (8.0, 20.0),
+}
+
+# Tidal-locking (despinning) timescale, per the standard simplified
+# formula (Murray & Dermott, "Solar System Dynamics"; the uniform-sphere
+# moment of inertia I = (2/5) m R^2 folds Q/k2 into a single 2Q/(15*k2)
+# factor -- see planetPhysics._tidal_locking_timescale_seconds):
+#
+#   t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
+#
+# Q (tidal dissipation factor) and k2 (Love number) aren't modeled per
+# body -- real values are only known precisely for a handful of solar-
+# system bodies -- so these are single representative values for a
+# rocky/icy moon (order-of-magnitude figures spanning the Moon's real
+# Q~30-100/k2~0.024 and similar estimates for other rocky/icy satellites).
+# Verified directly against real examples: with a 10-hour candidate
+# initial rotation period, this formula gives ~47 million years for the
+# real Earth-Moon system (real estimates: tens of millions of years,
+# consistent with the Moon's long-since-locked observed state), ~90 years
+# for Mars/Deimos (consistent with Deimos being locked given its tiny
+# size and short distance), and ~1 billion years for Saturn/Iapetus
+# (consistent with real estimates of a billion-year-plus despinning time
+# for that unusually slow case) -- three real systems spanning many
+# orders of magnitude in outcome, all landing in the right ballpark.
+MOON_TIDAL_DISSIPATION_Q = 100.0
+MOON_TIDAL_LOVE_NUMBER_K2 = 0.03

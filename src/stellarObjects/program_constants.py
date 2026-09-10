@@ -206,22 +206,44 @@ WHITE_DWARF_AGE_ADDITION_GY = 5
 # cooling ages of ~12-13 Gy, close to the age of the universe.
 WHITE_DWARF_MIN_AGE_GY = 0.1
 WHITE_DWARF_MAX_AGE_GY = 12.0
-# For any evolved-star Yerkes class other than main-sequence (V) or white
-# dwarf (VII/D) -- giants, subgiants, bright giants, supergiants,
-# hypergiants, subdwarfs -- the current spectral letter reflects only
-# present-day temperature, not a lifespan (see get_star_evolutionary_profile
-# in utils.py for the same issue on the planet-life side). Instead, the
-# star's own already-generated mass is run through the standard
-# mass-luminosity-based main-sequence lifetime scaling (the same
-# t = 10 Gy * (M/Msun)^-2.5 relation used to derive the STAR_EVOLUTION
-# table above, anchored to the Sun), then extended by the standard
-# rule-of-thumb that a star spends about 90% of its total lifetime on the
-# main sequence -- so the star must already be at least as old as that
-# main-sequence lifespan (it has to have finished that phase to be observed
-# as an evolved class), and at most its total (MS + post-MS) lifespan.
+# For any evolved-star Yerkes class other than main-sequence (V), white
+# dwarf (VII/D), or subdwarf (VI, see below) -- giants, subgiants, bright
+# giants, supergiants, hypergiants -- the current spectral letter reflects
+# only present-day temperature, not a lifespan (see
+# get_star_evolutionary_profile in utils.py for the same issue on the
+# planet-life side). Instead, the star's own already-generated mass is run
+# through the standard mass-luminosity-based main-sequence lifetime scaling
+# (the same t = 10 Gy * (M/Msun)^-2.5 relation used to derive the
+# STAR_EVOLUTION table above, anchored to the Sun), then extended by the
+# standard rule-of-thumb that a star spends about 90% of its total lifetime
+# on the main sequence -- so the star must already be at least as old as
+# that main-sequence lifespan (it has to have finished that phase to be
+# observed as an evolved class), and at most its total (MS + post-MS)
+# lifespan.
 SOLAR_MS_LIFESPAN_GY = 10.0
 MS_LIFESPAN_MASS_EXPONENT = -2.5
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
+# Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
+# mass-derived model above -- not just from its mass-sampling rejection
+# check (_sample_evolved_star_mass_sol), but from the model itself. Real
+# subdwarfs are thought to form via binary mass-stripping near the tip of a
+# lower/intermediate-mass progenitor's red-giant branch, not through
+# ordinary single-star post-main-sequence evolution, so a star's *current*
+# (post-strip) mass has no direct relationship to its progenitor's own
+# main-sequence lifespan the way it does for an ordinary giant/supergiant --
+# using it that way is what let a generated subdwarf's age come out older
+# than the universe (formerly tracked in TODO.md's Future Ideas). Real
+# subdwarf progenitors are typically old, low-mass population stars (a
+# short-lived, higher-mass star wouldn't have had time to reach the RGB
+# tip and get stripped), so age is instead drawn directly from an
+# old-population-biased range, independent of this star's own mass. The
+# core-helium-burning subdwarf phase itself is short relative to that age
+# (real sdB stars: roughly 0.05-0.3 Gy) -- see
+# Star._calculate_initial_star_age_and_lifespan's Yerkes-VI branch.
+SUBDWARF_MIN_AGE_GY = 1.0
+SUBDWARF_MAX_AGE_GY = 13.5
+SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
+SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # A sub-solar-mass progenitor (roughly under ~0.88 Msun, per the
 # SOLAR_MS_LIFESPAN_GY/MS_LIFESPAN_MASS_EXPONENT formula above) already has
 # a main-sequence lifespan longer than the universe itself -- it couldn't
@@ -708,6 +730,30 @@ PLANET_CLASSES = {
         # genuine cold bias from the unclamped physics instead of relying on
         # a post-hoc temperature clamp (see planetPhysics.calculate_atmospheric_conditions).
         "albedo_range": (0.5, 0.7),
+        # Given the same atm_molar_density_range/atm_density_range/
+        # greenhouse_multiplier_range treatment the M/O/H/K/L/N/E/F/G/V pass
+        # (CHANGELOG.md [5.3.7]) gave the other habitable classes -- P had
+        # already stopped there with just its own albedo_range, per that
+        # pass's note. No single real analog, so this isn't chasing a target
+        # delta the way M/K/N are; instead the composition/quantity/potency
+        # levers are set to make the class's own "cold, glaciated"/"thinning
+        # with age" flavor text physically real rather than incidental.
+        # atm_molar_density stays near Earth's own real ~0.02897 kg/mol
+        # (the class's atmosphere text names oxygen/nitrogen/argon, not a
+        # heavier CO2-like mix the way K/N's do) -- composition isn't what
+        # makes this class cold. atm_density is set thin (between Mars'
+        # ~0.02 and Earth's ~1.2 kg/m^3) for "thinning with age", and
+        # greenhouse_multiplier is set weak (well below M's own 1.65-1.85)
+        # so the cold comes from genuine physics, on top of the high albedo
+        # above, rather than albedo alone. Verified via
+        # climate_tuning_cli.py --class P: mean surface_temperature ~219K
+        # (well below freezing, clearly colder than Class M's ~286K -- see
+        # test_class_p_is_colder_on_average_than_class_m), mean
+        # atmospheric_pressure ~10.4kPa (~0.1 atm, genuinely thin) over a
+        # 400-sample run across the full host-star grid.
+        "atm_molar_density_range": (0.0285, 0.0300),
+        "atm_density_range": (0.05, 0.35),
+        "greenhouse_multiplier_range": (0.3, 0.6),
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.08, 0.1),
@@ -724,7 +770,7 @@ PLANET_CLASSES = {
         # Was h/e/c all True -- but Q carries a life_chemical (it's a
         # life-bearing class), and habitable/life-bearing classes are
         # restricted to the ecosphere zone only (every other
-        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V/W -- is
+        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V -- is
         # already e-only; see test_life_bearing_classes_are_ecosphere_only in
         # test_planets.py). Its "eccentric orbit" flavor still
         # holds fully confined to zone e -- a highly eccentric orbit *within*
@@ -799,52 +845,29 @@ PLANET_CLASSES = {
             "slow": (8.0, 50.0)
         }
     },
-    "W": {
-        "description": "a tidally locked world with extreme temperature variations",
-        "composition": "iron, potassium, and silicon",
-        "radius_range": (500, 10000),
-        # No single real analog; real tidally-locked habitable worlds
-        # studied (TRAPPIST-1's planets, Proxima b) are Earth-scale or
-        # smaller, so skewed toward the lower-mid range.
-        "size_mode": 0.35,
-        # Was h/e True (valid in the hot zone too) -- but W carries a
-        # life_chemical, and habitable/life-bearing classes are restricted
-        # to the ecosphere zone only (see Class Q's note above and
-        # test_life_bearing_classes_are_ecosphere_only in
-        # test_planets.py). This also happens to be more
-        # scientifically apt: real tidally-locked *habitable* worlds are an
-        # actively studied trope specifically because a cool star's
-        # habitable zone sits close enough in for tidal locking to be near-
-        # guaranteed (e.g. TRAPPIST-1's planets, Proxima b) -- a
-        # tidally-locked world already searingly placed in the hot zone
-        # wouldn't need "extreme temperature variations" to explain why it's
-        # inhospitable.
-        "h": False, "e": True, "c": False,
-        "atmosphere": "a mix of oxygen, sodium, and hydrogen",
-        "type": "t",
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
-        "age_ranges": {
-            "fast": (0.015, 0.1),
-            "normal": (1.5, 9.0),
-            "slow": (8.0, 50.0)
-        }
-    },
 }
 
-# Probabilities for each planet class to be generated. Five classes were
+# Probabilities for each planet class to be generated. Six classes were
 # removed over time: two small hot-zone rocky variants merged into A/B, two
 # brown-dwarf-like sub-stellar classes cut entirely once their radius ranges
 # were corrected to real physics and turned out to be redundant
-# near-duplicates of each other, and Class R (never reachable -- h/e/c were
-# all False) cut entirely rather than left as permanent dead weight (see
+# near-duplicates of each other, Class R (never reachable -- h/e/c were all
+# False) cut entirely rather than left as permanent dead weight, and Class W
+# ("tidally locked world with extreme temperature variations") cut entirely
+# -- its day/night-split identity can't be produced from a single global
+# surface_temperature scalar under this generator's climate model (see
+# docs/TODO.md's now-resolved "Investigate Further" entry) -- (see
 # CHANGELOG.md). Each removed class's weight was folded into the class(es)
 # that absorbed its concept rather than just dropped; R already carried a
-# weight of 0.0000, so nothing needed redistributing.
+# weight of 0.0000, so nothing needed redistributing, and these weights are
+# just relative (this dict isn't required to sum to 1.0 -- see
+# planetPhysics._choose_weighted_planet_class), so dropping W's tiny 0.0001
+# share needed no redistribution either.
 PLANET_CLASS_PROBABILITIES = {
     'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
     'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0531, 'K': 0.0142, 'L': 0.0335,
     'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001,
-    'T': 0.0001, 'V': 0.0045, 'W': 0.0001
+    'T': 0.0001, 'V': 0.0045
 }
 
 # --- Life and Photosynthesis Data ---
@@ -1033,12 +1056,12 @@ EVOLUTIONARY_TEXT = {
 }
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """
 
-MOON_BLACKLIST = ['Q', 'V', 'W']
+MOON_BLACKLIST = ['Q', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.
 """

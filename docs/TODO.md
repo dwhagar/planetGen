@@ -87,12 +87,14 @@ and git history.
 
 ## Investigate Further
 
-- [ ] Class W's "tidally locked world with extreme temperature variations"
-  identity is a day/night split that no per-class range (albedo, molar
-  density, greenhouse multiplier, or atmosphere density) can produce from a
-  single global `surface_temperature` scalar -- would need an actual
-  dayside/nightside model, flagged during the greenhouse-formula/per-class
-  climate tuning pass (CHANGELOG.md [5.3.7]) but out of scope for it.
+- [x] Class W's "tidally locked world with extreme temperature variations"
+  identity was a day/night split that no per-class range (albedo, molar
+  density, greenhouse multiplier, or atmosphere density) could produce from
+  a single global `surface_temperature` scalar -- would have needed an
+  actual dayside/nightside model, flagged during the greenhouse-formula/
+  per-class climate tuning pass (CHANGELOG.md [5.3.7]) but out of scope for
+  it. Resolved by removing the class entirely rather than building that
+  model (CHANGELOG.md [5.9.0]).
 - [ ] Class K (Mars analog) and, by construction, every other ecosphere-zone
   class are generated at the same zone-midpoint orbital distance as Class M
   -- this generator doesn't place different terrestrial classes at
@@ -102,29 +104,40 @@ and git history.
   that constraint (~231K/~0.57kPa vs real ~210K/~610Pa) but can't fully
   close the gap without a zone/distance-placement change, which is a larger
   design question than per-class range tuning.
-- [ ] Classes P and W could still receive the same
+- [x] Class P could still receive the same
   `atm_molar_density_range`/`atm_density_range`/`greenhouse_multiplier_range`
   treatment the M/O/H/K/L/N/E/F/G/V pass (CHANGELOG.md [5.3.7]) gave the
-  other habitable classes -- P already has a working `albedo_range` from an
-  earlier pass and wasn't part of this round's ordered list; W has the
-  day/night structural gap noted above.
-- [x] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/api/routes.py near `systems_near`. Done via the NAV feature (CHANGELOG.md [5.8.0]): `GET /api/nav`/`src/html/nav.py` give course/distance/route between two systems. The rendered-image gap that first pass left open is closed too (CHANGELOG.md [5.8.1]): `src/html/lib/navmap.py`'s "NAV Map" panel plots the origin, destination, and route hops as a flat, top-down SVG in the galactic X-Y plane (deliberately blind to altitude, same as the Galaxy Map's Quadrant view -- the course panel's own Altitude figure already covers that axis).
-- [ ] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates.
-- [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and `_search_result_planets`.
-- [x] Exposing the API from the same served tree as `../src/html/` --
-  done, via `WSGIScriptAlias /api` on the same Apache vhost that serves
-  `../src/html/` (`examples/apache/planetgen.conf.example`), rather than
-  the file-system-cleanup idea this line originally posed (moving
-  `src/api/`'s actual package files into `../src/html/`'s `DocumentRoot`).
-  Same practical outcome (one vhost/`ServerName`, `/api/` reachable
-  alongside every CGI page) without the exposure/routing risk that
-  literal move would have needed its own look at first (a Flask
-  package's source sitting inside Apache's "serve these files by
-  default" boundary). `../src/html/` is now this API's own frontend --
-  every CGI page fetches its data from `/api/...` instead of querying
-  MySQL directly (`html/lib/apiclient.py`) -- see
+  other habitable classes -- P already had a working `albedo_range` from an
+  earlier pass and wasn't part of this round's ordered list. Done
+  (CHANGELOG.md [5.9.1]): near-Earth molar density (its atmosphere text
+  names oxygen/nitrogen/argon, not a CO2-like mix), thin `atm_density`
+  ("thinning with age"), and a weak `greenhouse_multiplier` so the class's
+  cold, glaciated identity comes from real physics rather than albedo
+  alone -- mean surface_temperature ~219K, clearly colder than Class M's
+  ~286K. (Class W, the other class this item named, was removed entirely
+  instead -- CHANGELOG.md [5.9.0].)
+- [x] Render an image or web interface to visualize the location of 2 points in galactic space -- see TODO in src/html/api/routes.py near `systems_near`. Done via the NAV feature (CHANGELOG.md [5.8.0]): `GET /api/nav`/`src/html/nav.py` give course/distance/route between two systems. The rendered-image gap that first pass left open is closed too (CHANGELOG.md [5.8.1]): `src/html/lib/navmap.py`'s "NAV Map" panel plots the origin, destination, and route hops as a flat, top-down SVG in the galactic X-Y plane (deliberately blind to altitude, same as the Galaxy Map's Quadrant view -- the course panel's own Altitude figure already covers that axis).
+- [x] Introducing realistic orbital paths and speeds to all bodies in space, would need a dedicated update script to update like once a month or something to adjust all of the coordinates. Done (CHANGELOG.md [5.11.0]): every planet/moon now has a fixed 3D orbital orientation (`orbital_inclination_deg`/`orbital_ascending_node_deg`) and a rotation period (`rotation_period_hours`), plus `orbital_phase_deg` -- its live position around its (circular) orbit, advanced in place by the new `src/updateOrbits.py` script based on real elapsed time and each body's own Kepler-derived `period`, meant to be run periodically (e.g. cron, "once a month or so") rather than on every generation run. Along the way, fixed `period` itself to actually use the correct primary's mass (the parent planet's, not the star's, for a moon -- previously every body used a 1-solar-mass-equivalent formula regardless) and to stay in sync with `distance` when `StarSystem.validate_system` adjusts a planet's orbit to resolve overlap (previously left stale). Schema v8 -> v9. Moon tidal locking was initially a flat 75% probability -- replaced with a real tidal-despinning timescale estimate, plus a fix to `generate_moons`' distance draw (log-uniform, not linear-uniform) that was pushing most moons implausibly far from their primary (CHANGELOG.md [5.11.1]).
+- [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args` and src/html/search.py near `_planets_panel`.
+- [x] Still open from the file-system cleanup (5.3.2/5.3.3): consider
+  moving `src/api/` into `../src/html/` to expose the API endpoint from the
+  same served tree. Was deliberately left open, not decided, since moving
+  a Flask package into `../src/html/`'s Apache `DocumentRoot` needed its
+  own look at exposure/routing implications first. Done: `src/api/` moved
+  to `src/html/api/`, `src/wsgi.py` moved to `src/html/wsgi.py` alongside
+  it (CHANGELOG.md [5.10.0]), and `examples/apache/planetgen.conf.example`
+  mounts it with a `WSGIScriptAlias /api` (in its own `WSGIDaemonProcess`
+  for isolation from the CGI browser's own requests) plus a deny-all
+  `<Directory>` block for `html/api/` (mirroring the existing one for
+  `html/lib/`) so its raw source is never directly requestable. Landed
+  alongside a separate, independently-decided change to the same open
+  question (`../src/html/` becoming this API's own frontend -- every CGI
+  page now fetches its data from `/api/...` instead of querying MySQL
+  directly, via new `html/lib/apiclient.py` -- see
   [`api.md`](api.md#deploying-behind-apache-mod_wsgi) and
-  [`html-interface.md`](html-interface.md).
+  [`html-interface.md`](html-interface.md)); the two combine cleanly since
+  they're orthogonal (one is about where the API's source files live, the
+  other about how `html/` gets its data).
 
 ## File Management
 
@@ -317,19 +330,27 @@ around `install.sh`/`update.sh`/`examples/apache/set-permissions.sh`.
 
 ## Future ideas — not scheduled, just parking so it isn't lost
 
-- [ ] **Subdwarf (Yerkes VI) progenitor mass/age modeling is a known gap**:
+- [x] **Subdwarf (Yerkes VI) progenitor mass/age modeling was a known gap**:
   fixing the pre-Big-Bang evolved-star mass issue required excluding
   Yerkes class VI from the new mass-sampling check, because its *entire*
   allowed mass range (0.1-0.8 Msun,
   `physical_constants.YERKES_MASS_CONSTRAINTS["VI"]`) sits below the
   ~0.88 Msun cutoff where a progenitor's own main-sequence lifespan would
   already exceed `UNIVERSE_AGE_GY` — every possible mass would be
-  rejected. `Star._calculate_initial_star_age_and_lifespan` still runs
+  rejected. `Star._calculate_initial_star_age_and_lifespan` still ran
   subdwarfs through the same "derive lifespan from progenitor mass"
   evolved-star logic as giants/supergiants, so a generated subdwarf's age
-  can still come out older than the universe. Real subdwarfs (sdB/sdO) are
+  could come out older than the universe. Real subdwarfs (sdB/sdO) are
   thought to form via binary mass-stripping rather than single-star
   post-main-sequence evolution, so the single-star progenitor-lifespan
-  model may just be the wrong model for this class entirely — needs its
-  own design pass (a different age-generation path for VI, rather than
-  another mass-sampling tweak).
+  model was just the wrong model for this class entirely — needed its own
+  design pass (a different age-generation path for VI, rather than
+  another mass-sampling tweak). Done (CHANGELOG.md [5.10.1]): Yerkes VI
+  now has its own age-generation branch, independent of this star's own
+  mass — age drawn directly from a dedicated, old-population-biased range
+  (`program_constants.SUBDWARF_MIN/MAX_AGE_GY`), lifespan set to that age
+  plus a short remaining-phase window
+  (`SUBDWARF_REMAINING_PHASE_MIN/MAX_GY`, reflecting the real, short
+  core-helium-burning subdwarf phase) rather than derived from mass at
+  all. See `test_subdwarf_age_never_exceeds_universe_age` in
+  `test_star_matrix.py`.

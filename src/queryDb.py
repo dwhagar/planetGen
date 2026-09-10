@@ -18,7 +18,7 @@ This tool never writes -- `open_readonly` below connects with the same
 that the connection can't write is a deployment concern: point
 `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` at a database account
 with `SELECT`-only grants for this tool (and the read-only Flask API,
-`api/config.py`) rather than the read-write account `sectorGen.py`/
+`html/api/config.py`) rather than the read-write account `sectorGen.py`/
 `systemGen.py` use -- MySQL has no per-connection "open this read-only"
 flag the way SQLite's `file:...?mode=ro` URI trick gave the old SQLite
 version of this function, so the guarantee lives in the account's grants

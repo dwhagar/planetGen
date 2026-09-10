@@ -1,7 +1,7 @@
 # html/lib/apiclient.py
 
 """
-JSON HTTP client for the planetGen Flask API (`src/api/`), used by every
+JSON HTTP client for the planetGen Flask API (`html/api/`), used by every
 CGI script in `html/` instead of querying the database directly.
 
 This is the concrete result of moving the interim web browser onto the
@@ -36,7 +36,7 @@ the same host this CGI script itself runs on (see
 `examples/apache/planetgen.conf.example`'s `WSGIScriptAlias /api`) --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
 for local testing) when the API is deployed at a different host/port,
-e.g. `http://127.0.0.1:5000/api` for `python src/wsgi.py`'s own dev
+e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own dev
 server running alongside a locally-invoked CGI script."""
 
 _TIMEOUT_SECONDS = 15
