@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.13.0] - 2026-09-10
+
+### Added
+- **Galactic orbit.** Every generated star system now gets a circular
+  orbital speed and period around the galactic center
+  (`Star.galactic_orbital_speed_kms`/`galactic_orbital_period_gy`,
+  `utils.calculate_galactic_orbit`), derived from the system's actual
+  distance from the galactic center where known (a sector-placed system)
+  or the same fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY`
+  fallback `system_perimeter`/`heliosphere_radius` already use otherwise.
+  Uses a simple rotation-curve model
+  (`GALACTIC_ROTATION_FLAT_VELOCITY_KMS`/`GALACTIC_ROTATION_CORE_RADIUS_PC`)
+  rather than a Keplerian point-mass orbit around the galaxy's total mass,
+  which would overshoot Sol's real ~220-240 km/s orbital speed by roughly
+  4x -- calibrated against Sol's own distance (~206 km/s, ~236 million
+  years per orbit, both close to the real Sun's measured values). Surfaced
+  as a new "Galactic Orbit" row in every star's/binary pair's rendered data
+  table, and persisted as `stars.galactic_orbital_speed_kms`/
+  `galactic_orbital_period_gy` (plus the `star_systems.binary_galactic_orbital_*`
+  equivalents for binaries) -- schema v10, see `docs/database-schema.md`.
+
 ## [5.12.0] - 2026-09-10
 
 _Originally developed and released as `5.9.0` on a separate branch; renumbered

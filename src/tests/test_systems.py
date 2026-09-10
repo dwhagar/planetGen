@@ -260,3 +260,9 @@ def test_binary_system_star_properties_are_sane():
             assert 0 < secondary.mass
             assert proxy.system_perimeter > 0 and math.isfinite(proxy.system_perimeter)
             assert proxy.heliosphere_radius > 0 and math.isfinite(proxy.heliosphere_radius)
+            assert proxy.galactic_orbital_speed_kms > 0 and math.isfinite(proxy.galactic_orbital_speed_kms)
+            assert proxy.galactic_orbital_period_gy > 0 and math.isfinite(proxy.galactic_orbital_period_gy)
+            # Galactic orbit doesn't depend on mass -- the proxy's combined
+            # value should match either constituent star's own value.
+            assert proxy.galactic_orbital_speed_kms == pytest.approx(primary.galactic_orbital_speed_kms)
+            assert proxy.galactic_orbital_period_gy == pytest.approx(primary.galactic_orbital_period_gy)

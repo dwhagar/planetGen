@@ -276,6 +276,50 @@ def test_gravitational_sphere_of_influence_scales_with_mass_cube_root():
     assert 80_000 <= ratios[0] <= 250_000
 
 
+@pytest.mark.parametrize("star_type", ALL_STAR_TYPES)
+def test_galactic_orbit_is_positive_and_finite(star_type):
+    for _ in range(TRIALS):
+        s = make_star(star_type)
+        assert math.isfinite(s.galactic_orbital_speed_kms)
+        assert math.isfinite(s.galactic_orbital_period_gy)
+        assert s.galactic_orbital_speed_kms > 0
+        assert s.galactic_orbital_period_gy > 0
+
+
+def test_galactic_orbit_is_independent_of_stellar_mass():
+    """
+    Unlike `system_perimeter` (a Hill sphere, scaling with the star's own
+    mass), circular orbital speed/period around the galactic center depends
+    only on distance from the galactic center -- every star type generated
+    without an explicit `galactic_center_dist_ly` falls back to the same
+    fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY`, so its
+    galactic-orbit values should be identical (not just proportional)
+    across wildly different masses.
+    """
+    speeds = []
+    periods = []
+    for star_type in ["G2V", "M5V", "K3III", "B2V", "A0VII"]:
+        s = make_star(star_type)
+        speeds.append(s.galactic_orbital_speed_kms)
+        periods.append(s.galactic_orbital_period_gy)
+
+    for speed, period in zip(speeds[1:], periods[1:]):
+        assert speed == pytest.approx(speeds[0], rel=1e-9)
+        assert period == pytest.approx(periods[0], rel=1e-9)
+
+
+def test_sun_like_star_galactic_orbit_matches_real_measurements():
+    """
+    Falling back to the fixed `GALACTIC_CENTER_DISTANCE_LY` (Sol's own
+    galactocentric distance), a generated star's circular orbital
+    speed/period should land near the Sun's own measured values: ~220-240
+    km/s circular velocity and a ~225-250 million-year "galactic year".
+    """
+    s = make_star("G2V")
+    assert 150 <= s.galactic_orbital_speed_kms <= 260
+    assert 0.15 <= s.galactic_orbital_period_gy <= 0.30
+
+
 _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
     note["evolutionary_constraint_notes"]
     for note in prog_c.STAR_EVOLUTION.values()

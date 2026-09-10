@@ -162,7 +162,12 @@ instead of a silent duplicate row; v9 added orbital motion —
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/
 `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, plus the
 `orbit_simulation_state` singleton row `updateOrbits.py` uses to track
-elapsed time between runs (see that table's own section above).
+elapsed time between runs (see that table's own section above); v10 added
+`galactic_orbital_speed_kms`/`galactic_orbital_period_gy` to `stars` (and
+their `binary_galactic_orbital_*` counterparts on `star_systems`) — a star
+system's circular orbital speed/period around the galactic center, from a
+simple rotation-curve model (see `stellarObjects/physical_constants.py`'s
+`GALACTIC_ROTATION_FLAT_VELOCITY_KMS` comment).
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
@@ -173,14 +178,15 @@ an older MySQL database" case to handle — true until v9, whose
 `_migrate_v8_to_v9` (`stellarObjects/_db.py`) is the first real migration
 function of the MySQL era, reviving the same per-version-step pattern
 (minus the file backups, which made no sense for a live database anyway)
-for a database created under the v8 schema. `migrate_database` applies
+for a database created under the v8 schema; `_migrate_v9_to_v10` follows
+the same pattern for the v10 galactic-orbit columns. `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v9), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v10), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 ### Booleans and tri-state flags
@@ -415,6 +421,7 @@ One row per generated system (single-star or binary).
 | `binary_habitable_zone_inner_km`, `_outer_km` | DOUBLE | nullable | Computed from the pair's combined luminosity. |
 | `binary_system_perimeter_km` | DOUBLE | nullable | Hill sphere, combined mass. |
 | `binary_heliosphere_radius_km` | DOUBLE | nullable | |
+| `binary_galactic_orbital_speed_kms`, `binary_galactic_orbital_period_gy` | DOUBLE | nullable | Added in v10. Circular orbital speed/period around the galactic center (see `stars.galactic_orbital_speed_kms` below) — independent of mass, so identical to the primary/secondary stars' own values, just mirrored here for the combined-pair row. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -460,6 +467,8 @@ above (the `binary_*` columns), not here.
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | |
 | `system_perimeter_km` | DOUBLE | NOT NULL | Hill sphere relative to the galaxy. |
 | `heliosphere_radius_km` | DOUBLE | NOT NULL | |
+| `galactic_orbital_speed_kms` | DOUBLE | NOT NULL | Added in v10. Circular orbital speed around the galactic center (`utils.calculate_galactic_orbit`), from this system's actual distance from the galactic center where known (a sector-placed system), or the fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback otherwise — same fallback convention as `system_perimeter_km`. |
+| `galactic_orbital_period_gy` | DOUBLE | NOT NULL | Added in v10. Orbital period for the circular orbit above, in billions of years (Gy) — the same unit `age_gy`/`lifespan_gy` use. |
 
 ### `planets`
 

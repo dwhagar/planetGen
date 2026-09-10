@@ -6,7 +6,7 @@ One-time import of an existing planetGen SQLite database (from before the
 MySQL port, TODO.md Phase 5) into a MySQL database.
 
 Only migrates a SQLite database already at the current `SCHEMA_VERSION`
-(`stellarObjects._db.SCHEMA_VERSION`, today v9) -- the same version this
+(`stellarObjects._db.SCHEMA_VERSION`, today v10) -- the same version this
 project's MySQL schema (`stellarObjects/schema.sql`) starts at. A SQLite
 database still on an older schema needs to go through a pre-MySQL-port
 release of this project first (any version through `migrateDb.py`'s old

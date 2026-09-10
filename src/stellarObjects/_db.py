@@ -63,7 +63,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 10
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -592,8 +592,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star_system_id, role, name, star_type, yerkes_class, mass_kg, radius_km,
             temperature_k, luminosity_w, age_gy, lifespan_gy,
             habitable_zone_inner_km, habitable_zone_outer_km,
-            system_perimeter_km, heliosphere_radius_km
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            system_perimeter_km, heliosphere_radius_km,
+            galactic_orbital_speed_kms, galactic_orbital_period_gy
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -603,6 +604,8 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.habitable_zone[1] * physical_constants.AU_TO_KM,
             star.system_perimeter * physical_constants.AU_TO_KM,
             star.heliosphere_radius * physical_constants.AU_TO_KM,
+            star.galactic_orbital_speed_kms,
+            star.galactic_orbital_period_gy,
         ),
     )
     return cur.lastrowid
@@ -818,14 +821,14 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
-_NULL_BINARY_FIELDS = (None,) * 12
+_NULL_BINARY_FIELDS = (None,) * 14
 """Placeholder for every `binary_*` column when `star_system.star` isn't a
 `BinaryStarProxy` -- see `_binary_fields`."""
 
 
 def _binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 12 `star_systems.binary_*` column values from a
+    Extracts the 14 `star_systems.binary_*` column values from a
     `BinaryStarProxy`, in the exact order `insert_star_system`'s `INSERT`
     lists them.
 
@@ -833,7 +836,7 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy (BinaryStarProxy): The system's combined-pair proxy.
 
     Returns:
-        tuple: 12 values, ready to splice into the `INSERT` parameters.
+        tuple: 14 values, ready to splice into the `INSERT` parameters.
     """
     return (
         proxy.binary_separation_au * physical_constants.AU_TO_KM,
@@ -848,6 +851,8 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.habitable_zone[1] * physical_constants.AU_TO_KM,
         proxy.system_perimeter * physical_constants.AU_TO_KM,
         proxy.heliosphere_radius * physical_constants.AU_TO_KM,
+        proxy.galactic_orbital_speed_kms,
+        proxy.galactic_orbital_period_gy,
     )
 
 
@@ -974,8 +979,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy, binary_lifespan_gy,
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
+            binary_galactic_orbital_speed_kms, binary_galactic_orbital_period_gy,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -1495,6 +1501,8 @@ def _star_row_to_dict(row):
         ],
         "system_perimeter": row["system_perimeter_km"] / physical_constants.AU_TO_KM,
         "heliosphere_radius": row["heliosphere_radius_km"] / physical_constants.AU_TO_KM,
+        "galactic_orbital_speed_kms": row["galactic_orbital_speed_kms"],
+        "galactic_orbital_period_gy": row["galactic_orbital_period_gy"],
     }
 
 
@@ -1516,6 +1524,8 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         ],
         "system_perimeter": row["binary_system_perimeter_km"] / physical_constants.AU_TO_KM,
         "heliosphere_radius": row["binary_heliosphere_radius_km"] / physical_constants.AU_TO_KM,
+        "galactic_orbital_speed_kms": row["binary_galactic_orbital_speed_kms"],
+        "galactic_orbital_period_gy": row["binary_galactic_orbital_period_gy"],
         "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
@@ -1791,6 +1801,48 @@ def _migrate_v8_to_v9(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
 
 
+def _migrate_v9_to_v10(conn):
+    """
+    Adds v10's galactic-orbit columns (`stars.galactic_orbital_speed_kms`/
+    `galactic_orbital_period_gy`, `star_systems.binary_galactic_orbital_speed_kms`/
+    `binary_galactic_orbital_period_gy`) to an existing v9 database -- see
+    `schema.sql`'s header comment's "v10" note.
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates `stars`/`star_systems` with
+    these columns from `schema.sql` directly. This is only for a database
+    whose tables already existed at the older, v9 shape.
+
+    `star_systems`'s pair stays nullable, same as every other `binary_*`
+    column (no default needed -- MySQL's own column-add default is `NULL`
+    for a nullable column). `stars`' pair is `NOT NULL`, matching
+    `system_perimeter_km`/`heliosphere_radius_km` on the same table, so
+    every pre-existing row is backfilled with the value
+    `utils.calculate_galactic_orbit(physical_constants.GALACTIC_CENTER_DISTANCE_LY)`
+    itself produces -- the same fixed-fallback distance every pre-v10 row
+    was already implicitly generated at (`Star.galactic_center_dist_ly`
+    defaults to this same constant whenever a system isn't placed in a
+    sector), rather than an arbitrary placeholder like
+    `_migrate_v8_to_v9`'s `rotation_period_hours` default.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute(
+        "ALTER TABLE stars "
+        "ADD COLUMN galactic_orbital_speed_kms DOUBLE NOT NULL DEFAULT 205.7034718241521, "
+        "ADD COLUMN galactic_orbital_period_gy DOUBLE NOT NULL DEFAULT 0.2362604506547502"
+    )
+    conn.execute(
+        "ALTER TABLE star_systems "
+        "ADD COLUMN binary_galactic_orbital_speed_kms DOUBLE, "
+        "ADD COLUMN binary_galactic_orbital_period_gy DOUBLE"
+    )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -1801,9 +1853,10 @@ def migrate_database(config=None):
     `schema.sql` reflects the current shape directly), so this function
     only has real work to do against a database created by an older
     version of this project -- `_migrate_v8_to_v9` (added for the v9
-    orbital-motion columns) is the first such step; see `schema.sql`'s
-    header comment for the versioning convention, and `migrateDb.py` for
-    the CLI wrapper around this.
+    orbital-motion columns) and `_migrate_v9_to_v10` (added for the v10
+    galactic-orbit columns) are the migration steps so far; see
+    `schema.sql`'s header comment for the versioning convention, and
+    `migrateDb.py` for the CLI wrapper around this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -1821,6 +1874,10 @@ def migrate_database(config=None):
         if version < 9:
             _migrate_v8_to_v9(conn)
             version = 9
+
+        if version < 10:
+            _migrate_v9_to_v10(conn)
+            version = 10
 
         conn.commit()
         return version

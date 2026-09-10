@@ -45,6 +45,7 @@ class BinaryStarProxy(Star):
     SERIALIZABLE_FIELDS = [
         "name", "type", "temperature", "radius", "age", "lifespan",
         "habitable_zone", "system_perimeter", "heliosphere_radius",
+        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "_binary_separation_au", "_effective_mass", "_effective_luminosity",
     ]
     """
@@ -118,6 +119,12 @@ class BinaryStarProxy(Star):
         self.system_perimeter = self._calculate_system_perimeter_static(
             self._effective_mass, galactic_center_dist_ly
         )
+        # Galactic orbit doesn't depend on mass (see
+        # `Star.calculate_galactic_orbit`'s docstring), so the inherited
+        # instance method is reused directly rather than needing a static
+        # variant the way `_calculate_system_perimeter_static` does.
+        self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
+            self.calculate_galactic_orbit(galactic_center_dist_ly)
         # For heliosphere, we need an effective radius and type for the static method.
         # This is a simplification, as binary heliospheres are complex.
         self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
@@ -226,8 +233,8 @@ class BinaryStarProxy(Star):
         each constituent star still has its own copy of).
 
         Returns:
-            dict: Keys `type`, `mass`, `lum`, `hab`, `separation`, `loc`,
-                 each an already-formatted display string.
+            dict: Keys `type`, `mass`, `lum`, `hab`, `separation`, `orbit`,
+                 `loc`, each an already-formatted display string.
         """
         mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
@@ -240,12 +247,18 @@ class BinaryStarProxy(Star):
         separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
         separation_string = f"{separation_km_scientific} km ({self.binary_separation_au:.2f} AU)"
 
+        orbit_string = (
+            f"{self.galactic_orbital_speed_kms:,.1f} km/s "
+            f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
+        )
+
         return {
             "type": self.type,
             "mass": mass_string,
             "lum": lum_string,
             "hab": f"Between {hab_lower} and {hab_upper} AU",
             "separation": separation_string,
+            "orbit": orbit_string,
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
 
@@ -263,7 +276,8 @@ class BinaryStarProxy(Star):
         binary_properties = self.get_table_properties()
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "lum": "Luminosity",
-            "hab": "Habitable Zone", "separation": "Stellar Separation", "loc": "Location"
+            "hab": "Habitable Zone", "separation": "Stellar Separation",
+            "orbit": "Galactic Orbit", "loc": "Location"
         }
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 

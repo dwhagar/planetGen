@@ -215,6 +215,21 @@
 --   body's other (fixed) generative facts, so it has to be stored and
 --   periodically updated, not recomputed on read.
 --
+-- v10: galactic orbit. `stars` gains `galactic_orbital_speed_kms` and
+--   `galactic_orbital_period_gy` -- a star system's circular orbital speed
+--   and period around the galactic center, derived from its (or the fixed
+--   `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback's) distance
+--   from it via a simple rotation-curve model (see
+--   `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`'s comment and
+--   `utils.calculate_galactic_orbit`) -- the same "fixed at generation
+--   time, stored rather than re-derived on read" treatment
+--   `system_perimeter_km`/`heliosphere_radius_km` already get on this same
+--   table, since both ultimately depend on which sector (if any) the
+--   system was placed in. `star_systems` gains the equivalent
+--   `binary_galactic_orbital_speed_kms`/`binary_galactic_orbital_period_gy`
+--   pair among its `binary_*` columns, NULL under the same
+--   binary-only condition as `binary_system_perimeter_km`.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -487,6 +502,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_habitable_zone_outer_km  DOUBLE,
     binary_system_perimeter_km      DOUBLE,
     binary_heliosphere_radius_km    DOUBLE,
+    binary_galactic_orbital_speed_kms   DOUBLE,
+    binary_galactic_orbital_period_gy   DOUBLE,
 
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,
@@ -539,6 +556,8 @@ CREATE TABLE IF NOT EXISTS stars (
     habitable_zone_outer_km   DOUBLE NOT NULL,
     system_perimeter_km       DOUBLE NOT NULL,
     heliosphere_radius_km     DOUBLE NOT NULL,
+    galactic_orbital_speed_kms    DOUBLE NOT NULL,
+    galactic_orbital_period_gy    DOUBLE NOT NULL,
 
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,

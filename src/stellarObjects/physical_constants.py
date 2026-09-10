@@ -30,6 +30,21 @@ SOLAR_MASS_TO_KG = 1.989e30  # Solar mass to kilograms conversion factor
 SOLAR_LUMINOSITY = 3.82e26  # Solar luminosity in Watts
 MILKY_WAY_MASS = 1.15e12 * SOLAR_MASS_TO_KG  # Mass of the Milky Way in kg
 GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
+
+# Rotation-curve model for a star's circular orbit around the galactic
+# center (see `utils.calculate_galactic_orbit`): v(r) = FLAT_VELOCITY * r /
+# sqrt(r^2 + CORE_RADIUS^2) -- a pseudo-isothermal-halo-style curve that
+# rises ~linearly (near-solid-body) inside the core radius and flattens to
+# the asymptotic velocity well outside it, the same qualitative shape real
+# spiral-galaxy rotation curves show (steep bulge rise, flat disk plateau)
+# and the standard explanation for why "flat rotation curve" is cited as
+# dark-matter evidence in the first place. Validated against Sol's own
+# GALACTIC_CENTER_DISTANCE_LY above: this gives ~206 km/s and a ~236
+# million-year orbital period, both close to the real Sun's measured
+# ~220-240 km/s circular velocity and ~225-250 million-year "galactic year".
+GALACTIC_ROTATION_FLAT_VELOCITY_KMS = 220.0  # Asymptotic circular velocity, km/s -- the IAU (1985) standard local-standard-of-rest value, still within the range of modern estimates (~220-236 km/s)
+GALACTIC_ROTATION_CORE_RADIUS_PC = 3000  # Turnover radius of the rotation curve (rise -> plateau), in parsecs -- approximates the real Milky Way's bulge/inner-disk transition
+
 LY_TO_M = 9.461e+15  # Light-year to meters conversion factor
 AU_TO_M = 1.496e+11  # Astronomical Unit to meters conversion factor
 ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (N/m^2)
