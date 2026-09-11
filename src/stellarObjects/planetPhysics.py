@@ -325,6 +325,21 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_mass(planet)
 
     class_data = program_constants.PLANET_CLASSES[planet.planet_class]
+
+    # Ecosphere-zone classes with a declared "zone_position_mode" (Venus/
+    # Earth/Mars-analog-style classes -- see program_constants.PLANET_CLASSES)
+    # get placed at a class-appropriate distance within the zone instead of
+    # wherever the caller's initial estimate happened to land -- the zone
+    # itself doesn't change (still 'e'), only the position within it, so
+    # this runs after `zone`/`planet.zone` are already settled above. Moons
+    # are excluded: `planet.distance` for a moon is its orbit around the
+    # *parent planet*, not an AU-scale position within the star's habitable
+    # zone `planet.habitable_zone` describes, so redrawing it here would
+    # corrupt it, not correct it (see generate_moons/zone_override).
+    if zone == 'e' and not planet.is_moon and "zone_position_mode" in class_data:
+        inner_bound, outer_bound = planet.habitable_zone
+        planet.distance = sample_bounded_bell(inner_bound, outer_bound, class_data["zone_position_mode"])
+
     planet.composition = class_data["composition"]
     planet.description = class_data["description"]
     if planet.is_moon:

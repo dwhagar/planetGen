@@ -263,6 +263,7 @@ def _extract_record(body, star_type, is_moon):
         "density": body.density,
         "mass": body.mass,
         "radius": body.radius,
+        "distance": body.distance,
     }
 
 

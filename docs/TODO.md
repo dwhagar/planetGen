@@ -62,18 +62,6 @@ open items need working detail.
 
 ## Open items
 
-### Simulation / world-generation design questions
-
-- [ ] Class K (Mars analog) and, by construction, every other ecosphere-zone
-  class are generated at the same zone-midpoint orbital distance as Class M
-  -- this generator doesn't place different terrestrial classes at
-  different distances within (or beyond) the habitable zone the way real
-  Mars sits much farther from the Sun than Earth. K's tuned values get as
-  close to real Mars' absolute temperature/pressure as achievable under
-  that constraint (~231K/~0.57kPa vs real ~210K/~610Pa) but can't fully
-  close the gap without a zone/distance-placement change, which is a larger
-  design question than per-class range tuning.
-
 ### Search
 
 - [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args`/`_search_result_planets` and src/html/search.py near `_planets_panel`.
@@ -131,6 +119,30 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **Ecosphere-zone classes now generate at a class-appropriate distance
+  within the zone, not a distance-blind draw shared with every other
+  class.** Resolves the "Class K (Mars analog)...generated at the same
+  zone-midpoint orbital distance as Class M" design question above.
+  `PLANET_CLASSES`' new per-class `zone_position_mode` (E/F/G/H/K/L/M/N/
+  O/P/V; Q deliberately excluded — its "eccentric orbit" identity has no
+  single fixed position) says how far through the zone's own
+  `[inner, outer]` AU range that class's real-or-reasoned analog sits;
+  `planetPhysics.generate_planet_properties` redraws a matching planet's
+  `distance` there (`utils.sample_bounded_bell`, the same bell-curve
+  mechanism `size_mode` already uses for radius) once its class is
+  settled, for ordinary planets only — a moon's own `distance` is its
+  orbit around its *parent planet*, not an AU-scale position in the
+  star's zone, so it's left alone. K (Mars) and N (Venus), the two
+  classes with a real numeric target and an explicit "tuned to compensate
+  for the wrong distance" comment, were retuned once real insolation did
+  most of the work: K now measures ~214K/~611Pa vs real Mars'
+  210K/610Pa (was ~231K/~540Pa), and N ~737K/~9.17MPa vs real Venus'
+  737K/9.2MPa (was already ~737K on temperature via an oversized
+  greenhouse-multiplier hack, but ~17% low on pressure) — both verified
+  via `climate_tuning_cli.py`. `validate_system`'s existing orbital-
+  overlap correction absorbs whatever reordering a class-biased redraw
+  causes against already-placed neighbors, same as it already did for
+  `calculate_distance_for_class`'s explicit-slot nudging.
 - **Write-capable API + admin auth.** `POST`/`PATCH`/`DELETE` on
   `/api/sectors`/`/api/systems` do real inserts/updates/deletes now,
   gated behind admin login (session cookie, `HttpOnly`/`Secure`/

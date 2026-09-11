@@ -1,5 +1,73 @@
 # Changelog
 
+## [5.21.0] - 2026-09-11
+
+### Added
+- **Ecosphere-zone classes now generate at a class-appropriate distance
+  within the habitable zone, instead of every class sharing the same
+  distance-blind draw.** Resolves `docs/TODO.md`'s "Class K (Mars analog)
+  ... generated at the same zone-midpoint orbital distance as Class M"
+  open item -- this generator previously picked a planet's *class* only
+  after its *distance* was already fixed by unrelated orbital-spacing
+  logic, so real-world position (Venus close-in, Mars farther out) had no
+  influence on which class actually generated where. `program_constants.
+  PLANET_CLASSES` gains a new per-class `zone_position_mode` (0.0-1.0,
+  "how far through the zone's `[inner, outer]` AU range this class's real
+  or reasoned analog sits") on every class with a single, fixed
+  identity within the ecosphere zone: E/F/G/H/K/L/M/N/O/P/V. Class Q
+  (eccentric orbit, extreme temperature swings) deliberately has none --
+  it has no single fixed position by its own flavor. `planetPhysics.
+  generate_planet_properties` reads it once a planet's class is settled
+  and redraws `planet.distance` there via `utils.sample_bounded_bell`
+  (the same bounded-bell-curve mechanism `size_mode` already uses for
+  radius), for ordinary planets only -- explicitly skipped for moons,
+  since a moon's own `distance` is its orbit around its *parent planet*,
+  not an AU-scale position within the star's own zone `planet.
+  habitable_zone` describes; redrawing it there would corrupt it, not
+  correct it. `StarSystem.validate_system`'s existing orbital-overlap
+  correction absorbs whatever reordering a class-biased redraw causes
+  against already-placed neighbors, the same way it already absorbed
+  `calculate_distance_for_class`'s explicit-slot distance nudging.
+  `stellarObjects.plausibility._extract_record` now also reports
+  `distance`, letting a new `test_planets.py` regression suite verify
+  the bias directly (per-class mean zone-fraction close to its declared
+  mode; Class N < Class M < Class K in mean orbital distance; a moon's
+  distance is provably untouched).
+
+### Changed
+- **Class K and Class N retuned now that they're placed at a real,
+  class-appropriate distance instead of sharing Class M's midpoint.**
+  Both carried an explicit "tuned to compensate for the wrong distance"
+  comment (see above) -- with `zone_position_mode` now doing the
+  distance part of the work for real, their climate ranges needed
+  re-deriving via `climate_tuning_cli.py` rather than staying tuned
+  against the old, distance-blind placement:
+  - **K (Mars analog)**: `albedo_range` raised slightly (0.34-0.42 ->
+    0.36-0.44) and `atm_density_range` widened/raised (0.012-0.025 ->
+    0.022-0.042) to fit the new, colder starting point. Mean
+    surface_temperature ~214K (real Mars ~210K, +1.9%, was +9.9% before
+    this pass) and mean atmospheric_pressure ~611Pa (real Mars ~610Pa,
+    +0.2%, was -11.6%) over a 1000-sample run -- the "as close as
+    achievable without a zone change" caveat the old K tuning note
+    carried is resolved by the zone change.
+  - **N (Venus analog)**: `greenhouse_multiplier_range` cut roughly in
+    half (370-420 -> 260-295) and `atm_density_range` raised (270-320 ->
+    300-350) -- the old range was deliberately oversized specifically to
+    compensate for N's too-cold midpoint placement, so keeping it at the
+    same size now overshoots real Venus's temperature once N is
+    correctly placed near the zone's hot inner edge. Mean
+    surface_temperature ~737K (real Venus 737K, +0.0%) and mean
+    atmospheric_pressure ~9.17MPa (real Venus ~9.2MPa, -0.3%, was -16.8%)
+    over a 1000-sample run.
+  - Every other affected class (E/F/G/H/L/O/P/V) keeps its existing
+    albedo/atmosphere/greenhouse ranges unchanged -- none of them chase a
+    single real-world numeric target the way K/N do, and each one's
+    existing relative ordering (hotter/colder than its neighbors in the
+    E->F->G->M/O progression, K/L, P) still holds with the new
+    distance-aware placement. Their "Verified via climate_tuning_cli.py"
+    comments are refreshed with new measured means reflecting the new
+    placement.
+
 ## [5.20.0] - 2026-09-11
 
 ### Changed
