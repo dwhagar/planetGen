@@ -56,11 +56,27 @@ open items need working detail.
   System Map orbit diagram, a galaxy-scale Galaxy Map, faceted search, and
   NAV (course/distance/route between two systems) — CHANGELOG [5.8.0],
   [5.8.1], [5.10.0], [5.12.0]. Deployed via `install.sh`/`update.sh` to
-  Apache2 (`examples/apache/`, see `docs/apache-deployment.md`). The read
-  side is done; the API's write endpoints are still stubs — see "Open
-  items" below.
+  Apache2 (`examples/apache/`, see `docs/apache-deployment.md`). Both the
+  read side and the write endpoints (admin-authenticated `POST`/`PATCH`/
+  `DELETE` on sectors/systems) are real now — see "Open items" below for
+  what those write endpoints still don't cover.
 
 ## Open items
+
+### Simulation / world-generation design questions
+
+- [ ] Orbital spacing between adjacent planets (`StarSystem`'s placement
+  loop/`validate_system`) uses `5 x the inner planet's own Hill radius` as
+  its minimum-separation rule (`min_orbit_distance`) — a reasonable
+  approximation, but the standard real-world stability criterion (Chambers,
+  Wetherill & Boslough 1996; Smith & Lissauer 2009) uses the pair's *mutual*
+  Hill radius (`((a1+a2)/2) * ((m1+m2)/(3*M_star))^(1/3)`, depending on
+  both bodies' masses and their average distance) with a recommended ~8-10x
+  margin for long-term stability, vs. the analytically rigorous two-planet
+  minimum of `2*sqrt(3)` (Gladman 1993). The current flat "5" sits
+  reasonably within that range, so this isn't urgent — flagged as a
+  worthwhile accuracy upgrade if this spacing logic gets touched again,
+  not a correctness bug like the zone/system-perimeter issues just fixed.
 
 ### Search
 
@@ -119,78 +135,24 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
-- **`validate_system` could strand a planet outside the zone its class
-  needs, and the sequential orbit-spacing loop had no outer bound.**
-  Found via full-system stress testing (not the existing per-class
-  plausibility tooling, which never exercises `StarSystem`'s sequential
-  placement loop at all): a planet's class was chosen once, early, from
-  its *initial* estimated distance, but `validate_system`'s later
-  orbital-overlap correction could push that distance arbitrarily far
-  out (Hill-radius-based spacing compounds geometrically across a
-  many-planet system) without ever re-checking whether the class it
-  already had still made sense there — e.g. a "Class M, Earth-like
-  world" ending up at hundreds of thousands of AU and 30-some Kelvin.
-  Measured before the fix: 10% of a 400-system sample had at least one
-  misplaced ecosphere-class planet (45.6% of all ecosphere-class planets
-  in that sample), concentrated almost entirely in O/B-type stars, zero
-  in G/K/M dwarfs. Two-part fix, mirroring real orbital-dynamics
-  constraints already used elsewhere in this codebase:
-  - New `planetPhysics.reconcile_zone_and_class` re-derives a body's zone
-    from its *current* distance and, only if its existing class no
-    longer fits there, regenerates the class and everything derived from
-    it (radius/mass/density/atmosphere/period/gravity/orbital motion) —
-    called by `StarSystem._reconcile_moved_planet` every time
-    `validate_system` moves a planet, for the planet and each of its
-    moons (a moon's zone is always its parent's, and a reclassified
-    parent's new mass changes a moon's own period/rotation too, via
-    Kepler's third law, even when the moon's own class didn't change).
-  - The sequential placement loop (`StarSystem._generate_planets`, split
-    out of `__init__` so it's retryable) now stops adding slots once the
-    next one would land beyond `star.system_perimeter` — the star's own
-    Hill sphere *relative to the galaxy*, already computed for an
-    analogous purpose elsewhere (`spaceSector.py`) but never enforced
-    during generation — rather than letting the geometric compounding
-    run unbounded. A system that runs out of stable room this way simply
-    ends up with fewer planets, the same outcome a real protoplanetary
-    disk of finite extent would produce.
-  - Reconciliation can occasionally reclassify away the specific body
-    `HABITABLE_WORLD=True`/`ASTEROID_BELT=True` was relying on to satisfy
-    that guarantee (previously silently masked by the same bug -- an
-    invalid class sitting in the wrong zone still counted). `__init__`
-    now retries the whole placement (same star, fresh positions, up to
-    `MAX_SYSTEM_GENERATION_ATTEMPTS`) when a requested guarantee isn't
-    met afterward, rather than accepting a system that quietly drops it.
-    A smaller, complementary fix (`_distance_within_zone_with_margin`)
-    reserves a safety margin against the fixed
-    `MIN_ASTEROID_BELT_SEPARATION` nudge specifically when placing a
-    forced-habitable or explicit-slot-class planet, reducing (not
-    eliminating -- a large neighboring planet's own Hill-radius push has
-    no fixed size to margin against, which is what the retry loop is for)
-    how often the retry is even needed.
-- **Ecosphere-zone classes now generate at a class-appropriate distance
-  within the zone, not a distance-blind draw shared with every other
-  class.** Resolves the "Class K (Mars analog)...generated at the same
-  zone-midpoint orbital distance as Class M" design question above.
-  `PLANET_CLASSES`' new per-class `zone_position_mode` (E/F/G/H/K/L/M/N/
-  O/P/V; Q deliberately excluded — its "eccentric orbit" identity has no
-  single fixed position) says how far through the zone's own
-  `[inner, outer]` AU range that class's real-or-reasoned analog sits;
-  `planetPhysics.generate_planet_properties` redraws a matching planet's
-  `distance` there (`utils.sample_bounded_bell`, the same bell-curve
-  mechanism `size_mode` already uses for radius) once its class is
-  settled, for ordinary planets only — a moon's own `distance` is its
-  orbit around its *parent planet*, not an AU-scale position in the
-  star's zone, so it's left alone. K (Mars) and N (Venus), the two
-  classes with a real numeric target and an explicit "tuned to compensate
-  for the wrong distance" comment, were retuned once real insolation did
-  most of the work: K now measures ~214K/~611Pa vs real Mars'
-  210K/610Pa (was ~231K/~540Pa), and N ~737K/~9.17MPa vs real Venus'
-  737K/9.2MPa (was already ~737K on temperature via an oversized
-  greenhouse-multiplier hack, but ~17% low on pressure) — both verified
-  via `climate_tuning_cli.py`. `validate_system`'s existing orbital-
-  overlap correction absorbs whatever reordering a class-biased redraw
-  causes against already-placed neighbors, same as it already did for
-  `calculate_distance_for_class`'s explicit-slot nudging.
+- `validate_system`'s orbital-overlap correction could strand a planet
+  outside the zone its class needs (e.g. an "Earth-like" Class M at
+  ~30K, hundreds of thousands of AU out — 10% of a 400-system sample
+  affected, almost entirely O/B-type stars), and the sequential
+  placement loop had no outer bound to begin with. Fixed via
+  `planetPhysics.reconcile_zone_and_class` (re-derives zone/class after
+  any post-hoc distance correction, for a planet and its moons), a
+  `star.system_perimeter` cap on the placement loop
+  (`StarSystem._generate_planets`), and a generation-retry loop
+  (`MAX_SYSTEM_GENERATION_ATTEMPTS`) so reconciliation can't silently
+  break a requested `HABITABLE_WORLD`/`ASTEROID_BELT` guarantee —
+  CHANGELOG [5.22.0].
+- Ecosphere-zone classes (E/F/G/H/K/L/M/N/O/P/V) now generate at a
+  class-appropriate distance within the zone via per-class
+  `zone_position_mode`, instead of every class sharing the same
+  distance-blind draw; K (Mars) and N (Venus) retuned to real-world
+  targets now that real insolation does the work instead of a
+  compensating albedo/greenhouse hack — CHANGELOG [5.21.0].
 - **Write-capable API + admin auth.** `POST`/`PATCH`/`DELETE` on
   `/api/sectors`/`/api/systems` do real inserts/updates/deletes now,
   gated behind admin login (session cookie, `HttpOnly`/`Secure`/
