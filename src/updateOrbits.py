@@ -2,11 +2,16 @@
 # src/updateOrbits.py
 
 """
-Advances every planet's and moon's `orbital_phase_deg` in the configured
-database based on real elapsed time since the last run -- the "dedicated
-update script" `docs/TODO.md`'s orbital-motion entry called for, meant to
-be run periodically (e.g. via cron, "once a month or so") rather than on
-every generation run.
+Advances every planet's, moon's, star's, and binary system's orbital
+position in the configured database based on real elapsed time since the
+last run -- the "dedicated update script" `docs/TODO.md`'s orbital-motion
+entry called for, meant to be run periodically (e.g. via cron, "once a
+month or so") rather than on every generation run. This is the one
+script that has to touch every table with a floating-point position/phase
+column -- `planets`/`moons` (their own orbit) and `stars`/`star_systems`
+(a star's galactic orbit, plus a binary pair's mutual orbit around each
+other) -- so a single run brings the whole database's motion up to date
+in one pass.
 
 `stellarObjects._db.advance_orbital_phases` does the actual work: a
 single set-based `UPDATE` per table (`planets`/`moons`), driven by each
@@ -77,7 +82,8 @@ from stellarObjects._version import VersionAction, version_banner
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Advance every planet's/moon's orbital position based on real elapsed time.",
+        description="Advance every planet's, moon's, star's, and binary system's orbital position "
+                    "based on real elapsed time.",
     )
     add_mysql_connection_args(parser)
     parser.add_argument('--version', action=VersionAction, banner=version_banner('updateOrbits.py'))
