@@ -64,7 +64,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 12
+SCHEMA_VERSION = 13
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -596,8 +596,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             temperature_k, luminosity_w, age_gy, lifespan_gy,
             habitable_zone_inner_km, habitable_zone_outer_km,
             system_perimeter_km, heliosphere_radius_km,
-            galactic_orbital_speed_kms, galactic_orbital_period_gy
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_speed_kms, galactic_orbital_period_gy,
+            galactic_orbital_phase_deg, galactic_min_update_interval_years
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -609,6 +610,8 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.heliosphere_radius * physical_constants.AU_TO_KM,
             star.galactic_orbital_speed_kms,
             star.galactic_orbital_period_gy,
+            star.galactic_orbital_phase_deg,
+            star.galactic_min_update_interval_years,
         ),
     )
     return cur.lastrowid
@@ -840,14 +843,14 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
-_NULL_BINARY_FIELDS = (None,) * 14
+_NULL_BINARY_FIELDS = (None,) * 22
 """Placeholder for every `binary_*` column when `star_system.star` isn't a
 `BinaryStarProxy` -- see `_binary_fields`."""
 
 
 def _binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 14 `star_systems.binary_*` column values from a
+    Extracts the 22 `star_systems.binary_*` column values from a
     `BinaryStarProxy`, in the exact order `insert_star_system`'s `INSERT`
     lists them.
 
@@ -855,7 +858,7 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy (BinaryStarProxy): The system's combined-pair proxy.
 
     Returns:
-        tuple: 14 values, ready to splice into the `INSERT` parameters.
+        tuple: 22 values, ready to splice into the `INSERT` parameters.
     """
     return (
         proxy.binary_separation_au * physical_constants.AU_TO_KM,
@@ -872,6 +875,14 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.heliosphere_radius * physical_constants.AU_TO_KM,
         proxy.galactic_orbital_speed_kms,
         proxy.galactic_orbital_period_gy,
+        proxy.galactic_orbital_phase_deg,
+        proxy.galactic_min_update_interval_years,
+        proxy.binary_mutual_orbital_period_years,
+        proxy.binary_mutual_orbital_speed_kms,
+        proxy.binary_mutual_orbital_inclination_deg,
+        proxy.binary_mutual_orbital_ascending_node_deg,
+        proxy.binary_mutual_orbital_phase_deg,
+        proxy.binary_mutual_min_update_interval_years,
     )
 
 
@@ -999,8 +1010,12 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
             binary_galactic_orbital_speed_kms, binary_galactic_orbital_period_gy,
+            binary_galactic_orbital_phase_deg, binary_galactic_min_update_interval_years,
+            binary_mutual_orbital_period_years, binary_mutual_orbital_speed_kms,
+            binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg,
+            binary_mutual_orbital_phase_deg, binary_mutual_min_update_interval_years,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -1522,6 +1537,8 @@ def _star_row_to_dict(row):
         "heliosphere_radius": row["heliosphere_radius_km"] / physical_constants.AU_TO_KM,
         "galactic_orbital_speed_kms": row["galactic_orbital_speed_kms"],
         "galactic_orbital_period_gy": row["galactic_orbital_period_gy"],
+        "galactic_orbital_phase_deg": row["galactic_orbital_phase_deg"],
+        "galactic_min_update_interval_years": row["galactic_min_update_interval_years"],
     }
 
 
@@ -1545,6 +1562,14 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "heliosphere_radius": row["binary_heliosphere_radius_km"] / physical_constants.AU_TO_KM,
         "galactic_orbital_speed_kms": row["binary_galactic_orbital_speed_kms"],
         "galactic_orbital_period_gy": row["binary_galactic_orbital_period_gy"],
+        "galactic_orbital_phase_deg": row["binary_galactic_orbital_phase_deg"],
+        "galactic_min_update_interval_years": row["binary_galactic_min_update_interval_years"],
+        "binary_mutual_orbital_period_years": row["binary_mutual_orbital_period_years"],
+        "binary_mutual_orbital_speed_kms": row["binary_mutual_orbital_speed_kms"],
+        "binary_mutual_orbital_inclination_deg": row["binary_mutual_orbital_inclination_deg"],
+        "binary_mutual_orbital_ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
+        "binary_mutual_orbital_phase_deg": row["binary_mutual_orbital_phase_deg"],
+        "binary_mutual_min_update_interval_years": row["binary_mutual_min_update_interval_years"],
         "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
@@ -1964,6 +1989,105 @@ def _migrate_v11_to_v12(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
 
 
+def _migrate_v12_to_v13(conn):
+    """
+    Adds v13's star-motion columns to an existing v12 database -- see
+    `schema.sql`'s header comment's "v13" note: `stars.
+    galactic_orbital_phase_deg`/`galactic_min_update_interval_years`, and
+    `star_systems`' matching `binary_galactic_orbital_phase_deg`/
+    `binary_galactic_min_update_interval_years` plus the six
+    `binary_mutual_orbital_*`/`binary_mutual_min_update_interval_years`
+    columns for a binary pair's own mutual orbit.
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates `stars`/`star_systems`
+    with these columns from `schema.sql` directly. This is only for a
+    database whose tables already existed at the older, v12 shape.
+
+    Every pre-existing row has everything the *_min_update_interval_years
+    guards and the mutual orbit's period/speed are derived from
+    (`galactic_orbital_period_gy`, `binary_galactic_orbital_period_gy`,
+    `binary_separation_km`, `binary_effective_mass_kg`) already stored --
+    so, like `_migrate_v10_to_v11`/`_migrate_v11_to_v12`, those get
+    backfilled with real derived values via the same formulas
+    `utils.minimum_update_interval_years`/`planetPhysics.
+    calculate_orbital_period_years`/`utils.circular_orbital_speed_kms` use,
+    computed directly in SQL. There is no pre-existing record of what any
+    body's random *phase*/orientation roll would have been, so
+    `galactic_orbital_phase_deg`, `binary_galactic_orbital_phase_deg`, and
+    the three `binary_mutual_orbital_{inclination,ascending_node,phase}_deg`
+    columns get an arbitrary but harmless `0` placeholder instead -- the
+    same treatment `_migrate_v8_to_v9` already gives `orbital_inclination_deg`/
+    `orbital_ascending_node_deg`/`orbital_phase_deg` for pre-v9 planets/
+    moons.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    ulp_360_deg = math.ulp(360.0)
+    au_to_km = physical_constants.AU_TO_KM
+    solar_mass_to_kg = physical_constants.SOLAR_MASS_TO_KG
+    seconds_per_year = physical_constants.SECONDS_PER_YEAR
+
+    conn.execute(
+        "ALTER TABLE stars "
+        "ADD COLUMN galactic_orbital_phase_deg DOUBLE NOT NULL DEFAULT 0, "
+        "ADD COLUMN galactic_min_update_interval_years DOUBLE NOT NULL DEFAULT 0"
+    )
+    conn.execute(
+        f"UPDATE stars SET galactic_min_update_interval_years = "
+        f"galactic_orbital_period_gy * 1e9 * {ulp_360_deg} / 360"
+    )
+
+    conn.execute(
+        "ALTER TABLE star_systems "
+        "ADD COLUMN binary_galactic_orbital_phase_deg DOUBLE, "
+        "ADD COLUMN binary_galactic_min_update_interval_years DOUBLE, "
+        "ADD COLUMN binary_mutual_orbital_period_years DOUBLE, "
+        "ADD COLUMN binary_mutual_orbital_speed_kms DOUBLE, "
+        "ADD COLUMN binary_mutual_orbital_inclination_deg DOUBLE, "
+        "ADD COLUMN binary_mutual_orbital_ascending_node_deg DOUBLE, "
+        "ADD COLUMN binary_mutual_orbital_phase_deg DOUBLE, "
+        "ADD COLUMN binary_mutual_min_update_interval_years DOUBLE"
+    )
+    conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_galactic_orbital_phase_deg = 0,
+            binary_galactic_min_update_interval_years =
+                binary_galactic_orbital_period_gy * 1e9 * ? / 360,
+            binary_mutual_orbital_period_years =
+                SQRT(POW(binary_separation_km / ?, 3) / (binary_effective_mass_kg / ?)),
+            binary_mutual_orbital_inclination_deg = 0,
+            binary_mutual_orbital_ascending_node_deg = 0,
+            binary_mutual_orbital_phase_deg = 0
+        WHERE is_binary = 1
+        """,
+        (ulp_360_deg, au_to_km, solar_mass_to_kg),
+    )
+    # Separate UPDATE: binary_mutual_orbital_speed_kms/min_update_interval_years
+    # both depend on binary_mutual_orbital_period_years, which the UPDATE
+    # above just persisted -- a later statement can safely read it back,
+    # unlike relying on same-statement SET left-to-right evaluation (see
+    # advance_orbital_phases's docstring for why that trick works within
+    # one UPDATE but isn't needed -- or reached for -- across two).
+    conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_mutual_orbital_speed_kms =
+                (2 * PI() * binary_separation_km) / (binary_mutual_orbital_period_years * ?),
+            binary_mutual_min_update_interval_years =
+                binary_mutual_orbital_period_years * ? / 360
+        WHERE is_binary = 1
+        """,
+        (seconds_per_year, ulp_360_deg),
+    )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -1976,8 +2100,9 @@ def migrate_database(config=None):
     version of this project -- `_migrate_v8_to_v9` (added for the v9
     orbital-motion columns), `_migrate_v9_to_v10` (added for the v10
     galactic-orbit columns), `_migrate_v10_to_v11` (added for the v11
-    planet/moon position columns), and `_migrate_v11_to_v12` (added for
-    the v12 floating-point update-guard column) are the migration steps
+    planet/moon position columns), `_migrate_v11_to_v12` (added for
+    the v12 floating-point update-guard column), and `_migrate_v12_to_v13`
+    (added for the v13 star-motion columns) are the migration steps
     so far; see `schema.sql`'s header comment for the versioning
     convention, and `migrateDb.py` for the CLI wrapper around this.
 
@@ -2009,6 +2134,10 @@ def migrate_database(config=None):
         if version < 12:
             _migrate_v11_to_v12(conn)
             version = 12
+
+        if version < 13:
+            _migrate_v12_to_v13(conn)
+            version = 13
 
         conn.commit()
         return version
@@ -2083,6 +2212,23 @@ def advance_orbital_phases(conn, elapsed_years):
     a circular orbit, only changing if `distance_km`/`period_years`
     themselves do (never from phase advancing alone).
 
+    Also advances `stars.galactic_orbital_phase_deg` (guarded by that row's
+    own `galactic_min_update_interval_years`, `galactic_orbital_period_gy`
+    converted from Gy to years the same way `Star.__init__` computes the
+    guard itself) and, for a binary pair's `star_systems` row,
+    `binary_galactic_orbital_phase_deg` and `binary_mutual_orbital_phase_deg`
+    together (guarded by *either* of their own two intervals qualifying --
+    unlike the per-table guards above, one combined `UPDATE` covers both
+    phases on this shared row rather than a separate statement per column;
+    a phase whose own individual guard isn't met just rounds back to its
+    already-stored value in that pass, the same true floating-point no-op
+    the guard exists to detect, so combining them costs nothing but a
+    slightly less granular skip). Neither galactic nor mutual orbit has a
+    stored `position_x/y/z_km` to keep in lockstep -- see `schema.sql`'s
+    "v13" note: the galactic orbit is treated as planar (no inclination/
+    ascending node to resolve a 3D position from), and the mutual orbit's
+    position was never asked for, only its speed/direction/phase.
+
     Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
     reference point the *next* call's `elapsed_years` should be measured
     from), in the same transaction, so a caller can never advance phases
@@ -2098,8 +2244,9 @@ def advance_orbital_phases(conn, elapsed_years):
                                Must be >= 0.
 
     Returns:
-        tuple: (planets_updated, moons_updated) -- row counts, straight
-              from each `UPDATE`'s own affected-row count.
+        tuple: (planets_updated, moons_updated, stars_updated,
+              binary_systems_updated) -- row counts, straight from each
+              `UPDATE`'s own affected-row count.
 
     Raises:
         ValueError: If `elapsed_years` is negative.
@@ -2129,6 +2276,33 @@ def advance_orbital_phases(conn, elapsed_years):
             (elapsed_years, elapsed_years),
         )
         counts.append(cur.rowcount)
+
+    cur = conn.execute(
+        """
+        UPDATE stars
+        SET galactic_orbital_phase_deg =
+            MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360)
+        WHERE galactic_orbital_period_gy > 0 AND ? >= galactic_min_update_interval_years
+        """,
+        (elapsed_years, elapsed_years),
+    )
+    counts.append(cur.rowcount)
+
+    cur = conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_galactic_orbital_phase_deg =
+                MOD(binary_galactic_orbital_phase_deg
+                    + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360),
+            binary_mutual_orbital_phase_deg =
+                MOD(binary_mutual_orbital_phase_deg + (? / binary_mutual_orbital_period_years) * 360, 360)
+        WHERE is_binary = 1
+          AND binary_galactic_orbital_period_gy > 0 AND binary_mutual_orbital_period_years > 0
+          AND (? >= binary_galactic_min_update_interval_years OR ? >= binary_mutual_min_update_interval_years)
+        """,
+        (elapsed_years, elapsed_years, elapsed_years, elapsed_years),
+    )
+    counts.append(cur.rowcount)
 
     conn.execute(
         "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, NOW()) "

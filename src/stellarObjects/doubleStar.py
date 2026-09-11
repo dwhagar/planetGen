@@ -18,11 +18,13 @@ import random
 
 from .config import SystemConfig
 from . import physical_constants, program_constants
+from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (format_age_string, calculate_habitable_zone,
-                    calculate_hill_sphere, format_relative_to_sol,
-                    properties_to_string, to_scientific_notation)
+                    calculate_hill_sphere, circular_orbital_speed_kms,
+                    format_relative_to_sol, minimum_update_interval_years,
+                    properties_to_string, to_scientific_notation, years_to_time_string)
 
 class BinaryStarProxy(Star):
     """
@@ -47,6 +49,10 @@ class BinaryStarProxy(Star):
         "name", "type", "temperature", "radius", "age", "lifespan",
         "habitable_zone", "system_perimeter", "heliosphere_radius",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
+        "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
+        "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
         "_binary_separation_au", "_effective_mass", "_effective_luminosity",
     ]
     """
@@ -61,7 +67,7 @@ class BinaryStarProxy(Star):
     """
 
     def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star,
-                 galactic_center_dist_ly=None):
+                 galactic_center_dist_ly=None, galactic_orbital_phase_deg=None):
         """
         Initializes a BinaryStarProxy object.
 
@@ -75,6 +81,14 @@ class BinaryStarProxy(Star):
                 `Star.calculate_system_perimeter`'s docstring for the same
                 parameter. `None` (the default) uses the fixed
                 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+            galactic_orbital_phase_deg (float, optional): This system's
+                current angular position around its galactic orbit, in
+                degrees -- see `Star.__init__`'s docstring for the same
+                parameter. `StarSystem.__init__` rolls this once and passes
+                the identical value here and to both `primary_star`/
+                `secondary_star`, so all three agree (a binary pair moves
+                around the galaxy together, not independently). `None` (the
+                default) rolls a fresh random value in `[0, 360)`.
         """
         # Initialize the base Star class with _skip_property_init=True
         # The name will be overridden, and other properties will be handled by getters.
@@ -126,6 +140,37 @@ class BinaryStarProxy(Star):
         # variant the way `_calculate_system_perimeter_static` does.
         self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
             self.calculate_galactic_orbit(galactic_center_dist_ly)
+        self.galactic_orbital_phase_deg = (
+            galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else random.uniform(0, 360)
+        )
+        self.galactic_min_update_interval_years = \
+            minimum_update_interval_years(self.galactic_orbital_period_gy * 1e9)
+
+        # The pair's own mutual orbit -- the two stars circling their common
+        # barycenter, entirely separate from (and vastly faster than) their
+        # shared galactic orbit above. Kepler's third law in (AU, years,
+        # Msun) units needs only the *combined* mass, not which star is
+        # "primary" (planetPhysics.calculate_orbital_period_years's own
+        # "primary" parameter is just whatever mass the orbit is around --
+        # here that's the pair's own barycenter, so the combined mass is
+        # exactly right, not an approximation). inclination/ascending_node
+        # get the same full-sphere random draw utils.orbital_position_au's
+        # other callers use for a rotation plane with no preferred
+        # alignment -- unlike a planet/moon's, a binary pair's orbital plane
+        # has no protoplanetary-disk reason to sit near any particular
+        # reference plane, so this isn't restricted to a small
+        # near-ecliptic tilt the way PLANET_ORBITAL_INCLINATION_MAX_DEG is.
+        self.binary_mutual_orbital_period_years = calculate_orbital_period_years(
+            self._binary_separation_au, self._effective_mass
+        )
+        self.binary_mutual_orbital_speed_kms = circular_orbital_speed_kms(
+            self._binary_separation_au, self.binary_mutual_orbital_period_years
+        )
+        self.binary_mutual_orbital_inclination_deg = random.uniform(0, 180)
+        self.binary_mutual_orbital_ascending_node_deg = random.uniform(0, 360)
+        self.binary_mutual_orbital_phase_deg = random.uniform(0, 360)
+        self.binary_mutual_min_update_interval_years = \
+            minimum_update_interval_years(self.binary_mutual_orbital_period_years)
         # For heliosphere, we need an effective radius and type for the static method.
         # This is a simplification, as binary heliospheres are complex.
         self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
@@ -234,8 +279,9 @@ class BinaryStarProxy(Star):
         each constituent star still has its own copy of).
 
         Returns:
-            dict: Keys `type`, `mass`, `lum`, `hab`, `separation`, `orbit`,
-                 `loc`, each an already-formatted display string.
+            dict: Keys `type`, `mass`, `lum`, `hab`, `separation`,
+                 `mutual_orbit`, `orbit`, `loc`, each an already-formatted
+                 display string.
         """
         mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
@@ -252,6 +298,10 @@ class BinaryStarProxy(Star):
             f"{self.galactic_orbital_speed_kms:,.1f} km/s "
             f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
         )
+        mutual_orbit_string = (
+            f"{self.binary_mutual_orbital_speed_kms:,.2f} km/s "
+            f"({years_to_time_string(self.binary_mutual_orbital_period_years)} per orbit)"
+        )
 
         return {
             "type": self.type,
@@ -259,6 +309,7 @@ class BinaryStarProxy(Star):
             "lum": lum_string,
             "hab": f"Between {hab_lower} and {hab_upper} AU",
             "separation": separation_string,
+            "mutual_orbit": mutual_orbit_string,
             "orbit": orbit_string,
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
@@ -278,7 +329,7 @@ class BinaryStarProxy(Star):
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "lum": "Luminosity",
             "hab": "Habitable Zone", "separation": "Stellar Separation",
-            "orbit": "Galactic Orbit", "loc": "Location"
+            "mutual_orbit": "Mutual Orbit", "orbit": "Galactic Orbit", "loc": "Location"
         }
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 

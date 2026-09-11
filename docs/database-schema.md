@@ -179,9 +179,29 @@ guard, not a narrative stat: the shortest `elapsed_years` worth calling
 smaller than `orbital_phase_deg`'s own IEEE 754 double-precision
 resolution and so is guaranteed to round back to the exact value already
 stored (see `stellarObjects/utils.py`'s `minimum_update_interval_years`).
-Scoped to `planets`/`moons` only — `stars`' galactic-orbit values are
-fixed forever at generation time, with no periodic update mechanism to
-guard.
+Scoped to `planets`/`moons` only at v12 — `stars`' galactic-orbit values
+were, at that point, fixed forever at generation time, with no periodic
+update mechanism to guard; v13 changed that (see below). v13 added star
+motion: `stars.galactic_orbital_phase_deg`/`galactic_min_update_interval_years`
+(the same phase/guard pair planets/moons have, now advanced by
+`_db.advance_orbital_phases` too, based on `galactic_orbital_period_gy`),
+`star_systems`' matching `binary_galactic_orbital_phase_deg`/
+`binary_galactic_min_update_interval_years` (always identical to both
+constituent stars' own values — a binary pair's negligible AU-scale
+separation next to its light-year-scale galactic orbit means the pair
+moves around the galaxy together, not independently — see
+`StarSystem.__init__`), plus the binary pair's own *mutual* orbit around
+each other (entirely separate from, and vastly faster than, the galactic
+orbit above): `binary_mutual_orbital_period_years`/`_speed_kms`
+(`planetPhysics.calculate_orbital_period_years`/
+`utils.circular_orbital_speed_kms`, the same Kepler/circular-orbit formulas
+a planet's orbit around its star already uses, applied to the pair's
+`binary_separation_km`/`binary_effective_mass_kg`), `_inclination_deg`/
+`_ascending_node_deg`/`_phase_deg` (the same `utils.orbital_position_au`
+orbital-element convention planets/moons use, drawn from the full
+`[0, 180)`/`[0, 360)` range with no small-tilt bias — a binary's mutual
+orbital plane has no protoplanetary-disk reason to prefer any alignment,
+unlike a planet's), and `binary_mutual_min_update_interval_years`.
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
@@ -438,6 +458,10 @@ One row per generated system (single-star or binary).
 | `binary_system_perimeter_km` | DOUBLE | nullable | Hill sphere, combined mass. |
 | `binary_heliosphere_radius_km` | DOUBLE | nullable | |
 | `binary_galactic_orbital_speed_kms`, `binary_galactic_orbital_period_gy` | DOUBLE | nullable | Added in v10. Circular orbital speed/period around the galactic center (see `stars.galactic_orbital_speed_kms` below) — independent of mass, so identical to the primary/secondary stars' own values, just mirrored here for the combined-pair row. |
+| `binary_galactic_orbital_phase_deg`, `binary_galactic_min_update_interval_years` | DOUBLE | nullable | Added in v13. Same pair as `stars.galactic_orbital_phase_deg`/`galactic_min_update_interval_years` below, mirrored here — always identical to both constituent stars' own values (see "Schema history" above for why). |
+| `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`utils.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
+| `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `utils.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
+| `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -485,6 +509,8 @@ above (the `binary_*` columns), not here.
 | `heliosphere_radius_km` | DOUBLE | NOT NULL | |
 | `galactic_orbital_speed_kms` | DOUBLE | NOT NULL | Added in v10. Circular orbital speed around the galactic center (`utils.calculate_galactic_orbit`), from this system's actual distance from the galactic center where known (a sector-placed system), or the fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback otherwise — same fallback convention as `system_perimeter_km`. |
 | `galactic_orbital_period_gy` | DOUBLE | NOT NULL | Added in v10. Orbital period for the circular orbit above, in billions of years (Gy) — the same unit `age_gy`/`lifespan_gy` use. |
+| `galactic_orbital_phase_deg` | DOUBLE | NOT NULL | Added in v13. This star's current angular position around its galactic orbit — the same role `planets.orbital_phase_deg` plays, advanced by `_db.advance_orbital_phases`. Both stars of a binary pair always carry the identical value (see "Schema history" above for why — `StarSystem.__init__` rolls it once and threads it to primary/secondary/proxy alike). |
+| `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`utils.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
 
 ### `planets`
 

@@ -34,6 +34,14 @@ value already stored (see `stellarObjects.utils.minimum_update_interval_years`).
 doesn't track rotational phase) are untouched; see
 `stellarObjects.planetPhysics.generate_orbital_motion_properties`.
 
+Every star's `galactic_orbital_phase_deg` (its position around the galactic
+center) and, for a binary pair, `star_systems.binary_galactic_orbital_phase_deg`
+and `binary_mutual_orbital_phase_deg` (the pair's own mutual orbit around
+each other, entirely separate from their shared galactic orbit) are
+advanced the same way, each guarded by its own `*_min_update_interval_years`
+-- see `schema.sql`'s "v13" note and `stellarObjects._db.advance_orbital_phases`'s
+docstring.
+
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
@@ -88,8 +96,12 @@ def main():
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 
-        planets_updated, moons_updated = advance_orbital_phases(conn, elapsed_years)
-        print(f"Updated {planets_updated} planet(s) and {moons_updated} moon(s).")
+        planets_updated, moons_updated, stars_updated, binary_systems_updated = \
+            advance_orbital_phases(conn, elapsed_years)
+        print(
+            f"Updated {planets_updated} planet(s), {moons_updated} moon(s), "
+            f"{stars_updated} star(s), and {binary_systems_updated} binary system(s)."
+        )
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)

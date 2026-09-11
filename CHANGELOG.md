@@ -1,5 +1,49 @@
 # Changelog
 
+## [5.16.0] - 2026-09-11
+
+### Added
+- **Star motion: galactic orbit phase, plus binary mutual orbit.** Stars
+  now get the same floating-point update guard planets/moons already
+  have, and binary pairs get a real orbit around each other, both
+  actively advanced over time.
+  - Every star gains `galactic_orbital_phase_deg` (its current angular
+    position around the galactic center, randomly rolled at generation --
+    the same role `orbital_phase_deg` plays for a planet/moon) and
+    `galactic_min_update_interval_years` (the same guard formula,
+    `utils.minimum_update_interval_years` applied to
+    `galactic_orbital_period_gy * 1e9` years). `_db.advance_orbital_phases`
+    now advances this phase too, guarded by its own interval, reversing
+    v12's "stars have no periodic update mechanism" scoping note -- they
+    do now. Both stars of a binary pair, and `star_systems`' own mirrored
+    `binary_galactic_orbital_phase_deg`/`binary_galactic_min_update_interval_years`,
+    always carry the identical value: a binary's AU-scale separation is
+    negligible next to its light-year-scale galactic orbit, so the pair
+    moves around the galaxy together, not independently
+    (`StarSystem.__init__` rolls the phase once and threads it to both
+    stars and the proxy).
+  - Binary pairs also get their own **mutual orbit** -- the two stars
+    circling their common barycenter, entirely separate from (and vastly
+    faster than) the galactic orbit above:
+    `star_systems.binary_mutual_orbital_period_years`/`_speed_kms`
+    (Kepler's third law / circular-orbit speed --
+    `planetPhysics.calculate_orbital_period_years`/
+    `utils.circular_orbital_speed_kms`, the same formulas a planet's own
+    orbit already uses, applied to the pair's separation/combined mass),
+    `_inclination_deg`/`_ascending_node_deg`/`_phase_deg` (the same
+    `utils.orbital_position_au` orbital-element convention planets/moons
+    use for "direction", but drawn from the full `[0, 180)`/`[0, 360)`
+    range -- a binary's mutual orbital plane has no protoplanetary-disk
+    reason to prefer any alignment), and its own
+    `binary_mutual_min_update_interval_years` guard. `advance_orbital_phases`
+    advances `binary_mutual_orbital_phase_deg` the same way.
+  - Schema v13, with a migration that backfills every real-derivable
+    value (both `*_min_update_interval_years` guards, plus the mutual
+    orbit's period/speed) from existing rows' own already-stored data;
+    the phase/orientation columns with no derivable "correct" value get
+    an arbitrary `0` placeholder, the same treatment v9 already gives
+    pre-existing planets'/moons' orbital orientation.
+
 ## [5.15.0] - 2026-09-10
 
 ### Added

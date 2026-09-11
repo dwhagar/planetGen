@@ -115,8 +115,17 @@ class StarSystem:
                 (e.g. `sectorGen.py`'s own standalone CLI).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        # Rolled once here (not left for each Star/BinaryStarProxy to roll
+        # its own) and passed identically to every constituent star below --
+        # a binary pair's AU-scale separation is negligible next to its
+        # light-year-scale galactic orbit radius, so both stars (and the
+        # proxy standing in for the pair) move around the galaxy together,
+        # sharing one phase, not three independent ones. See
+        # `Star.__init__`'s `galactic_orbital_phase_deg` docstring.
+        galactic_orbital_phase_deg = random.uniform(0, 360)
         self.star = Star(self.system_config, name=self.system_config.NAME,
-                          galactic_center_dist_ly=galactic_center_dist_ly) # Pass system_config and use its NAME
+                          galactic_center_dist_ly=galactic_center_dist_ly,
+                          galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
         self.stars = [self.primary_star] # Keep track of individual stars
@@ -135,10 +144,12 @@ class StarSystem:
             # Create secondary star, potentially with a different name or type if desired
             self.secondary_star = Star(secondary_star_config, name=f"{self.primary_star.name} B",
                                         mass_override=secondary_mass,
-                                        galactic_center_dist_ly=galactic_center_dist_ly)
+                                        galactic_center_dist_ly=galactic_center_dist_ly,
+                                        galactic_orbital_phase_deg=galactic_orbital_phase_deg)
             self.stars.append(self.secondary_star)
             self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
-                                         galactic_center_dist_ly=galactic_center_dist_ly) # self.star now points to the proxy
+                                         galactic_center_dist_ly=galactic_center_dist_ly,
+                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()

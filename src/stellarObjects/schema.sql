@@ -270,6 +270,53 @@
 --   them the way `advance_orbital_phases` exists for `orbital_phase_deg`),
 --   so there's nothing for this guard to protect there.
 --
+-- v13: star motion -- galactic orbit phase, plus binary mutual orbit.
+--   Supersedes v12's stars scoping note above: stars now DO have a
+--   periodic update mechanism, so they need the same guard planets/moons
+--   already have.
+--     `stars` gains `galactic_orbital_phase_deg` (this star's current
+--   angular position around its galactic orbit -- the same role
+--   `orbital_phase_deg` plays for a planet/moon, advanced by
+--   `_db.advance_orbital_phases` based on `galactic_orbital_period_gy`) and
+--   `galactic_min_update_interval_years` (the same floating-point update
+--   guard v12 added for planets/moons, `utils.minimum_update_interval_years`
+--   applied to `galactic_orbital_period_gy * 1e9` years instead of
+--   `period_years`). Both stars of a binary pair -- and `star_systems`'
+--   own `binary_galactic_orbital_phase_deg`/
+--   `binary_galactic_min_update_interval_years` pair, added alongside the
+--   existing `binary_galactic_orbital_speed_kms`/`_period_gy` -- always
+--   carry the identical phase: a binary's AU-scale separation is
+--   negligible next to its light-year-scale galactic orbit radius, so the
+--   pair moves around the galaxy together, not independently
+--   (`StarSystem.__init__` rolls the phase once and threads it to both
+--   stars and the proxy -- see that method's docstring).
+--     `star_systems` also gains the binary pair's own MUTUAL orbit --
+--   entirely separate from (and vastly faster than) the galactic orbit
+--   above: the two stars circling their common barycenter, NULL under the
+--   same binary-only condition as every other `binary_*` column.
+--   `binary_mutual_orbital_period_years`/`_speed_kms` are Kepler's third
+--   law and the standard circular-orbit speed formula
+--   (`planetPhysics.calculate_orbital_period_years`/
+--   `utils.circular_orbital_speed_kms`) applied to the pair's already-
+--   stored `binary_separation_km`/`binary_effective_mass_kg` -- the same
+--   formulas a planet's orbit around its star already uses, just with the
+--   combined pair mass standing in for "the primary". `_inclination_deg`/
+--   `_ascending_node_deg`/`_phase_deg` fully orient this mutual orbit in
+--   3D and track the pair's current position within it (the "orbital
+--   direction" a binary's own orbital plane needs, unlike the galactic
+--   orbit above, which this generator treats as planar) -- the same
+--   `utils.orbital_position_au` orbital-element convention planets/moons
+--   already use, just with no small-tilt bias the way
+--   `PLANET_ORBITAL_INCLINATION_MAX_DEG` gives a planet's protoplanetary-
+--   disk-derived orbit: a binary pair's mutual orbital plane has no
+--   preferred alignment, so `_inclination_deg` is drawn from the full
+--   `[0, 180)` range. `binary_mutual_min_update_interval_years` is the
+--   same guard formula again, applied to
+--   `binary_mutual_orbital_period_years`. `_db.advance_orbital_phases`
+--   advances `binary_mutual_orbital_phase_deg` the same way it advances
+--   `orbital_phase_deg`/`galactic_orbital_phase_deg` elsewhere, guarded by
+--   its own interval.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -544,6 +591,17 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_heliosphere_radius_km    DOUBLE,
     binary_galactic_orbital_speed_kms   DOUBLE,
     binary_galactic_orbital_period_gy   DOUBLE,
+    binary_galactic_orbital_phase_deg          DOUBLE,  -- v13, see header comment
+    binary_galactic_min_update_interval_years  DOUBLE,  -- v13, see header comment
+
+    -- v13 (see header comment): the pair's own mutual orbit -- separate
+    -- from the galactic_* columns above.
+    binary_mutual_orbital_period_years         DOUBLE,
+    binary_mutual_orbital_speed_kms            DOUBLE,
+    binary_mutual_orbital_inclination_deg      DOUBLE,
+    binary_mutual_orbital_ascending_node_deg   DOUBLE,
+    binary_mutual_orbital_phase_deg            DOUBLE,
+    binary_mutual_min_update_interval_years    DOUBLE,
 
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,
@@ -598,6 +656,8 @@ CREATE TABLE IF NOT EXISTS stars (
     heliosphere_radius_km     DOUBLE NOT NULL,
     galactic_orbital_speed_kms    DOUBLE NOT NULL,
     galactic_orbital_period_gy    DOUBLE NOT NULL,
+    galactic_orbital_phase_deg          DOUBLE NOT NULL,  -- v13, see header comment
+    galactic_min_update_interval_years  DOUBLE NOT NULL,  -- v13, see header comment
 
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,

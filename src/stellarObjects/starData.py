@@ -28,7 +28,7 @@ from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_length_km,
                     format_relative_to_sol, generate_phoneme_salad_name,
-                    get_star_evolutionary_profile,
+                    get_star_evolutionary_profile, minimum_update_interval_years,
                     properties_to_string, reseed_rng)
 
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
@@ -124,6 +124,7 @@ class Star:
         "name", "type", "yerkes_class", "mass", "radius", "temperature",
         "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
         "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -692,6 +693,22 @@ class Star:
                 into `calculate_system_perimeter` -- see that method's
                 docstring. `None` (the default) uses the fixed
                 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+            galactic_orbital_phase_deg (float, optional): This star's
+                current angular position around its galactic orbit, in
+                degrees -- the value `stellarObjects._db.advance_orbital_phases`
+                advances over time, the same role `orbital_phase_deg` plays
+                for a planet/moon's own orbit (see
+                `planetPhysics.generate_orbital_motion_properties`).
+                `StarSystem.__init__` rolls this once per system and passes
+                the *same* value to the primary star, the secondary star
+                (if any), and the `BinaryStarProxy` -- a binary pair's
+                negligible internal separation (AU) next to its galactic
+                orbit radius (light-years) means both stars move around the
+                galaxy together, not independently, so they must share one
+                phase rather than each rolling their own. `None` (the
+                default) rolls a fresh random value in `[0, 360)` -- the
+                correct behavior for a standalone `Star` with no system
+                threading this through.
         """
         self.system_config = system_config # Storing the SystemConfig instance
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
@@ -709,6 +726,8 @@ class Star:
             self.heliosphere_radius = None
             self.galactic_orbital_speed_kms = None
             self.galactic_orbital_period_gy = None
+            self.galactic_orbital_phase_deg = None
+            self.galactic_min_update_interval_years = None
             # Added mass_override for secondary star generation in binary systems
             self.generate_star(mass_override=kwargs.get('mass_override'))
             self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
@@ -717,6 +736,10 @@ class Star:
             self.heliosphere_radius = self.calculate_heliosphere()
             self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
                 self.calculate_galactic_orbit(self.galactic_center_dist_ly)
+            phase = kwargs.get('galactic_orbital_phase_deg')
+            self.galactic_orbital_phase_deg = phase if phase is not None else random.uniform(0, 360)
+            self.galactic_min_update_interval_years = \
+                minimum_update_interval_years(self.galactic_orbital_period_gy * 1e9)
 
     def get_table_properties(self):
         """

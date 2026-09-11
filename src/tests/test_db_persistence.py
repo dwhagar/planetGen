@@ -27,9 +27,10 @@ from stellarObjects import _db
 from stellarObjects import physical_constants as pc
 from stellarObjects.config import SystemConfig
 from stellarObjects.doubleStar import BinaryStarProxy
+from stellarObjects.planetPhysics import calculate_orbital_period_years
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
-from stellarObjects.utils import minimum_update_interval_years, orbital_position_au
+from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
 
 
 def _make_system_with_moons_and_belt():
@@ -340,9 +341,11 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
             "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
 
-        planets_updated, moons_updated = _db.advance_orbital_phases(conn, elapsed_years=0.5)
+        planets_updated, moons_updated, stars_updated, binary_systems_updated = \
+            _db.advance_orbital_phases(conn, elapsed_years=0.5)
         assert planets_updated > 0
         assert moons_updated > 0
+        assert stars_updated > 0
 
         after = conn.execute(
             "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
@@ -397,13 +400,13 @@ def test_advance_orbital_phases_rejects_negative_elapsed_years(mysql_config):
 def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
-    creates at the current schema (v12) -- so this simulates an existing v8
-    database by tearing the v9, v10, v11, *and* v12 additions back out (a
+    creates at the current schema (v13) -- so this simulates an existing v8
+    database by tearing the v9 through v13 additions back out (a
     real v8 database would have none of them), then confirms
     `migrate_database` puts everything back and reports the database as
     fully current again (not just v9 -- `migrate_database` applies every
     step up to `SCHEMA_VERSION` in one call, so a v8 database now lands on
-    v12 directly).
+    v13 directly).
     """
     conn = _db.get_connection(mysql_config)
     try:
@@ -419,13 +422,18 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.execute("DROP TABLE orbit_simulation_state")
         conn.execute(
             "ALTER TABLE stars "
-            "DROP COLUMN galactic_orbital_speed_kms, DROP COLUMN galactic_orbital_period_gy"
+            "DROP COLUMN galactic_orbital_speed_kms, DROP COLUMN galactic_orbital_period_gy, "
+            "DROP COLUMN galactic_orbital_phase_deg, DROP COLUMN galactic_min_update_interval_years"
         )
         conn.execute(
             "ALTER TABLE star_systems "
-            "DROP COLUMN binary_galactic_orbital_speed_kms, DROP COLUMN binary_galactic_orbital_period_gy"
+            "DROP COLUMN binary_galactic_orbital_speed_kms, DROP COLUMN binary_galactic_orbital_period_gy, "
+            "DROP COLUMN binary_galactic_orbital_phase_deg, DROP COLUMN binary_galactic_min_update_interval_years, "
+            "DROP COLUMN binary_mutual_orbital_period_years, DROP COLUMN binary_mutual_orbital_speed_kms, "
+            "DROP COLUMN binary_mutual_orbital_inclination_deg, DROP COLUMN binary_mutual_orbital_ascending_node_deg, "
+            "DROP COLUMN binary_mutual_orbital_phase_deg, DROP COLUMN binary_mutual_min_update_interval_years"
         )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -435,7 +443,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 12
+    assert version_after == _db.SCHEMA_VERSION == 13
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -451,21 +459,22 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         star_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM stars").fetchall()}
         assert {
             "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+            "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
         } <= star_columns
     finally:
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 12
+    assert _db.migrate_database(mysql_config) == 13
 
 
 def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
-    creates at the current schema (v12) -- so this simulates an existing v9
-    database by tearing the v10, v11, *and* v12 additions back out (the new
+    creates at the current schema (v13) -- so this simulates an existing v9
+    database by tearing the v10 through v13 additions back out (the new
     `stars`/`star_systems`/`planets`/`moons` columns and the
-    `schema_migrations` v10/v11/v12 rows) before calling `migrate_database`,
+    `schema_migrations` v10/v11/v12/v13 rows) before calling `migrate_database`,
     and confirms it puts everything back and reports the database as
     current again, without disturbing the v9 orbital-motion columns
     already in place.
@@ -474,11 +483,16 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
     try:
         conn.execute(
             "ALTER TABLE stars "
-            "DROP COLUMN galactic_orbital_speed_kms, DROP COLUMN galactic_orbital_period_gy"
+            "DROP COLUMN galactic_orbital_speed_kms, DROP COLUMN galactic_orbital_period_gy, "
+            "DROP COLUMN galactic_orbital_phase_deg, DROP COLUMN galactic_min_update_interval_years"
         )
         conn.execute(
             "ALTER TABLE star_systems "
-            "DROP COLUMN binary_galactic_orbital_speed_kms, DROP COLUMN binary_galactic_orbital_period_gy"
+            "DROP COLUMN binary_galactic_orbital_speed_kms, DROP COLUMN binary_galactic_orbital_period_gy, "
+            "DROP COLUMN binary_galactic_orbital_phase_deg, DROP COLUMN binary_galactic_min_update_interval_years, "
+            "DROP COLUMN binary_mutual_orbital_period_years, DROP COLUMN binary_mutual_orbital_speed_kms, "
+            "DROP COLUMN binary_mutual_orbital_inclination_deg, DROP COLUMN binary_mutual_orbital_ascending_node_deg, "
+            "DROP COLUMN binary_mutual_orbital_phase_deg, DROP COLUMN binary_mutual_min_update_interval_years"
         )
         for table in ("planets", "moons"):
             conn.execute(
@@ -486,7 +500,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
                 f"DROP COLUMN position_x_km, DROP COLUMN position_y_km, DROP COLUMN position_z_km, "
                 f"DROP COLUMN orbital_speed_kms, DROP COLUMN min_update_interval_years"
             )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -496,18 +510,23 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 12
+    assert version_after == _db.SCHEMA_VERSION == 13
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
         star_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM stars").fetchall()}
         assert {
             "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+            "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
         } <= star_columns
 
         star_system_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
         assert {
             "binary_galactic_orbital_speed_kms", "binary_galactic_orbital_period_gy",
+            "binary_galactic_orbital_phase_deg", "binary_galactic_min_update_interval_years",
+            "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
+            "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
+            "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
         } <= star_system_columns
 
         planet_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM planets").fetchall()}
@@ -521,20 +540,20 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 12
+    assert _db.migrate_database(mysql_config) == 13
 
 
 def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
-    creates at the current schema (v12) -- so this simulates an existing
-    v10 database by tearing the v11 *and* v12 additions back out (the new
-    `planets`/`moons` columns and the `schema_migrations` v11/v12 rows)
-    before calling `migrate_database`, and confirms it not only adds the
-    columns back but backfills them with real derived values (not an
-    arbitrary placeholder) from each row's own already-stored
-    `distance_km`/`period_years`/orbital-motion columns -- see
-    `_migrate_v10_to_v11`'s docstring.
+    creates at the current schema (v13) -- so this simulates an existing
+    v10 database by tearing the v11 through v13 additions back out (the new
+    `planets`/`moons`/`stars`/`star_systems` columns and the
+    `schema_migrations` v11/v12/v13 rows) before calling `migrate_database`,
+    and confirms it not only adds the columns back but backfills them with
+    real derived values (not an arbitrary placeholder) from each row's own
+    already-stored `distance_km`/`period_years`/orbital-motion columns --
+    see `_migrate_v10_to_v11`'s docstring.
     """
     system, cfg = _make_system_with_moons_and_belt()
 
@@ -549,7 +568,19 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
                 f"DROP COLUMN position_x_km, DROP COLUMN position_y_km, DROP COLUMN position_z_km, "
                 f"DROP COLUMN orbital_speed_kms, DROP COLUMN min_update_interval_years"
             )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12)")
+        # A "v10" database also predates v13's stars/star_systems columns.
+        conn.execute(
+            "ALTER TABLE stars "
+            "DROP COLUMN galactic_orbital_phase_deg, DROP COLUMN galactic_min_update_interval_years"
+        )
+        conn.execute(
+            "ALTER TABLE star_systems "
+            "DROP COLUMN binary_galactic_orbital_phase_deg, DROP COLUMN binary_galactic_min_update_interval_years, "
+            "DROP COLUMN binary_mutual_orbital_period_years, DROP COLUMN binary_mutual_orbital_speed_kms, "
+            "DROP COLUMN binary_mutual_orbital_inclination_deg, DROP COLUMN binary_mutual_orbital_ascending_node_deg, "
+            "DROP COLUMN binary_mutual_orbital_phase_deg, DROP COLUMN binary_mutual_min_update_interval_years"
+        )
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -559,7 +590,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 12
+    assert version_after == _db.SCHEMA_VERSION == 13
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -587,17 +618,17 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
 def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
-    creates at the current schema (v12) -- so this simulates an existing
-    v11 database by tearing just the v12 addition back out (the new
-    `planets`/`moons.min_update_interval_years` column and the
-    `schema_migrations` v12 row) before calling `migrate_database`, and
-    confirms it not only adds the column back but backfills it with a
-    real derived value (not an arbitrary placeholder) from each row's own
-    already-stored `period_years` -- see `_migrate_v11_to_v12`'s
-    docstring. Scoped to `planets`/`moons` only: `stars`/`star_systems`
-    never gain a column here (see `_migrate_v11_to_v12`'s docstring for
-    why -- no periodic update mechanism exists for their galactic-orbit
-    values).
+    creates at the current schema (v13) -- so this simulates an existing
+    v11 database by tearing the v12 *and* v13 additions back out (the new
+    `planets`/`moons.min_update_interval_years` column, `stars`/
+    `star_systems`' v13 columns, and the `schema_migrations` v12/v13 rows)
+    before calling `migrate_database`, and confirms it not only adds the
+    column back but backfills it with a real derived value (not an
+    arbitrary placeholder) from each row's own already-stored
+    `period_years` -- see `_migrate_v11_to_v12`'s docstring. Scoped to
+    `planets`/`moons` only for v12: `stars`/`star_systems` didn't gain a
+    column there (see `_migrate_v11_to_v12`'s docstring for why), only
+    later at v13.
     """
     system, cfg = _make_system_with_moons_and_belt()
 
@@ -608,7 +639,18 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
 
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN min_update_interval_years")
-        conn.execute("DELETE FROM schema_migrations WHERE version = 12")
+        conn.execute(
+            "ALTER TABLE stars "
+            "DROP COLUMN galactic_orbital_phase_deg, DROP COLUMN galactic_min_update_interval_years"
+        )
+        conn.execute(
+            "ALTER TABLE star_systems "
+            "DROP COLUMN binary_galactic_orbital_phase_deg, DROP COLUMN binary_galactic_min_update_interval_years, "
+            "DROP COLUMN binary_mutual_orbital_period_years, DROP COLUMN binary_mutual_orbital_speed_kms, "
+            "DROP COLUMN binary_mutual_orbital_inclination_deg, DROP COLUMN binary_mutual_orbital_ascending_node_deg, "
+            "DROP COLUMN binary_mutual_orbital_phase_deg, DROP COLUMN binary_mutual_min_update_interval_years"
+        )
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -618,7 +660,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 12
+    assert version_after == _db.SCHEMA_VERSION == 13
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -643,7 +685,111 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 12
+    assert _db.migrate_database(mysql_config) == 13
+
+
+def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config):
+    """
+    `mysql_config` yields a fresh database, which `get_connection` already
+    creates at the current schema (v13) -- so this simulates an existing
+    v12 database by tearing just the v13 additions back out (the new
+    `stars`/`star_systems` columns and the `schema_migrations` v13 row)
+    before calling `migrate_database`, and confirms it not only adds the
+    columns back but backfills every real-derived one (the two
+    `*_min_update_interval_years` guards, plus the binary pair's
+    `binary_mutual_orbital_period_years`/`_speed_kms`) with real values
+    from each row's own already-stored `galactic_orbital_period_gy`/
+    `binary_separation_km`/`binary_effective_mass_kg` -- see
+    `_migrate_v12_to_v13`'s docstring. The phase/orientation columns with
+    no derivable "correct" value (`galactic_orbital_phase_deg` and the
+    three `binary_mutual_orbital_{inclination,ascending_node,phase}_deg`
+    columns) get the arbitrary `0` placeholder instead.
+    """
+    system, cfg = _make_system_with_moons_and_belt()
+    binary_config = SystemConfig()
+    binary_config.BINARY_SYSTEM = True
+    binary_system = StarSystem(binary_config)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+            binary_id = _db.insert_star_system(conn, binary_system, binary_config)
+
+        conn.execute(
+            "ALTER TABLE stars "
+            "DROP COLUMN galactic_orbital_phase_deg, DROP COLUMN galactic_min_update_interval_years"
+        )
+        conn.execute(
+            "ALTER TABLE star_systems "
+            "DROP COLUMN binary_galactic_orbital_phase_deg, DROP COLUMN binary_galactic_min_update_interval_years, "
+            "DROP COLUMN binary_mutual_orbital_period_years, DROP COLUMN binary_mutual_orbital_speed_kms, "
+            "DROP COLUMN binary_mutual_orbital_inclination_deg, DROP COLUMN binary_mutual_orbital_ascending_node_deg, "
+            "DROP COLUMN binary_mutual_orbital_phase_deg, DROP COLUMN binary_mutual_min_update_interval_years"
+        )
+        conn.execute("DELETE FROM schema_migrations WHERE version = 13")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
+        conn.commit()
+
+        version_before = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()["version"]
+        assert version_before == 12
+    finally:
+        conn.close()
+
+    version_after = _db.migrate_database(mysql_config)
+    assert version_after == _db.SCHEMA_VERSION == 13
+
+    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    try:
+        star_rows = conn.execute(
+            "SELECT galactic_orbital_phase_deg, galactic_orbital_period_gy, galactic_min_update_interval_years "
+            "FROM stars WHERE star_system_id = ?", (system_id,)
+        ).fetchall()
+        assert star_rows, "test fixture must actually contain a star"
+        for row in star_rows:
+            assert row["galactic_orbital_phase_deg"] == 0
+            expected = minimum_update_interval_years(row["galactic_orbital_period_gy"] * 1e9)
+            assert row["galactic_min_update_interval_years"] == pytest.approx(expected, rel=1e-9)
+
+        binary_row = conn.execute(
+            "SELECT binary_galactic_orbital_phase_deg, binary_galactic_orbital_period_gy, "
+            "binary_galactic_min_update_interval_years, binary_separation_km, binary_effective_mass_kg, "
+            "binary_mutual_orbital_period_years, binary_mutual_orbital_speed_kms, "
+            "binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg, "
+            "binary_mutual_orbital_phase_deg, binary_mutual_min_update_interval_years "
+            "FROM star_systems WHERE id = ?", (binary_id,)
+        ).fetchone()
+        assert binary_row["binary_galactic_orbital_phase_deg"] == 0
+        expected_galactic_guard = minimum_update_interval_years(
+            binary_row["binary_galactic_orbital_period_gy"] * 1e9
+        )
+        assert binary_row["binary_galactic_min_update_interval_years"] == pytest.approx(
+            expected_galactic_guard, rel=1e-9
+        )
+
+        expected_mutual_period = calculate_orbital_period_years(
+            binary_row["binary_separation_km"] / pc.AU_TO_KM, binary_row["binary_effective_mass_kg"]
+        )
+        assert binary_row["binary_mutual_orbital_period_years"] == pytest.approx(expected_mutual_period, rel=1e-9)
+
+        expected_mutual_speed = circular_orbital_speed_kms(
+            binary_row["binary_separation_km"] / pc.AU_TO_KM, expected_mutual_period
+        )
+        assert binary_row["binary_mutual_orbital_speed_kms"] == pytest.approx(expected_mutual_speed, rel=1e-9)
+
+        assert binary_row["binary_mutual_orbital_inclination_deg"] == 0
+        assert binary_row["binary_mutual_orbital_ascending_node_deg"] == 0
+        assert binary_row["binary_mutual_orbital_phase_deg"] == 0
+
+        expected_mutual_guard = minimum_update_interval_years(expected_mutual_period)
+        assert binary_row["binary_mutual_min_update_interval_years"] == pytest.approx(
+            expected_mutual_guard, rel=1e-9
+        )
+    finally:
+        conn.close()
+
+    # Idempotent: running it again against an already-current database is a no-op.
+    assert _db.migrate_database(mysql_config) == 13
 
 
 def test_insert_system_config_round_trips_slots_child_rows(mysql_config):
