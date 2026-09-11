@@ -1,6 +1,20 @@
 # Changelog
 
-## [5.19.0] - 2026-09-11
+## [5.20.0] - 2026-09-11
+
+### Changed
+- **`update.sh` skips the package reinstall when there's nothing new to
+  install.** Previously it unconditionally re-ran the whole of
+  `install.sh` (`pip install --force-reinstall`, an NLTK re-fetch,
+  re-enabling Apache modules, a full permissions pass) every single
+  invocation, even when `git pull` found no new commits at all -- pure
+  wasted work for a caller like `examples/maintenance/planetgen-update.timer`
+  that may run this monthly for years between real updates. Now, when the
+  pull is a no-op, `update.sh` runs `src/migrateDb.py` directly instead
+  (a cheap, idempotent no-op once the schema is already current) and
+  skips the rest; `install.sh` (migration included, as its own step 2)
+  still runs in full whenever the pull actually brought new commits, same
+  as before.
 
 ### Added
 - **`examples/maintenance/`: `update.sh` runs on the same schedule as the
