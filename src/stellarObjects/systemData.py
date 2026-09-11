@@ -28,7 +28,13 @@ from .doubleStar import BinaryStarProxy
 from . import physical_constants, planetLife, planetPhysics, program_constants
 from .planetData import Planet
 from .starData import Star
-from .utils import to_paragraph
+from .utils import (
+    disk_surface_density_scale,
+    mmsn_surface_density_gcm2,
+    isolation_mass_kg,
+    snow_line_au,
+    to_paragraph,
+)
 
 # Tracks the shape of `StarSystem.to_dict()`'s output (the serialized
 # object-graph -- see TODO.md's Phase 1), independent of
@@ -627,15 +633,17 @@ class StarSystem:
 
     def estimate_num_objects(self):
         """
-        Estimates the number of objects in a star system based on the star's mass.
+        Estimates the number of objects in a star system from real
+        protoplanetary-disk physics, rather than an arbitrary curve fit to
+        the star's mass alone.
 
-        This method calculates the potential number of celestial objects a star
-        can support based on its mass. The number of objects scales with the
-        star's mass, with more massive stars being able to support more objects.
-        The calculation is tempered by a logarithmic function to prevent an
-        excessive number of objects for very massive stars. The final number can
-        be a random value between the minimum and calculated maximum, or the
-        maximum/minimum itself if `MAX_PLANETS` is True/False.
+        `_estimate_max_objects_from_disk_physics` derives a ceiling from
+        the star's own disk-mass budget (scaled from the Sun's own
+        Minimum Mass Solar Nebula -- see that method's docstring) rather
+        than a logarithmic fudge factor. The final number is a random
+        value between the minimum and that ceiling, or the ceiling/minimum
+        itself if `MAX_PLANETS` is True/False -- this part of the
+        contract is unchanged from before.
 
         `NUM_ORBITS`, when set, bypasses this estimate entirely and is
         returned as-is. `PLANETS` set to False forces zero objects; set to
@@ -650,19 +658,7 @@ class StarSystem:
         if self.system_config.NUM_ORBITS is not None:
             return self.system_config.NUM_ORBITS
 
-        solar_masses = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
-
-        # This provides a continuous scaling factor based on mass.
-        # For a 1 solar mass star, this is 1.
-        # For smaller stars, it's < 1; for larger stars, it's > 1.
-        # The logarithm helps temper the explosive growth for very massive stars.
-        scaling_factor = 1 + math.log10(solar_masses) if solar_masses >= 1 else solar_masses
-
-        # Base number of objects for a 1 solar mass star is 15.
-        max_objects = program_constants.BASE_MAX_SYSTEM_OBJECTS * scaling_factor
-        if max_objects > program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS:
-            max_objects = program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
-        max_objects = math.ceil(max_objects)
+        max_objects = self._estimate_max_objects_from_disk_physics()
 
         min_objects = 1 if self.system_config.PLANETS is True else 0
         max_objects = max(max_objects, min_objects)
@@ -672,6 +668,84 @@ class StarSystem:
         if self.system_config.MAX_PLANETS is False:
             return min_objects
         return random.randint(min_objects, max_objects)
+
+    def _estimate_max_objects_from_disk_physics(self):
+        """
+        Derives a physically-grounded ceiling on planet/belt count from
+        this system's own protoplanetary disk, instead of an arbitrary
+        curve fit to stellar mass.
+
+        Real planet formation gives a natural way to turn "how much solid
+        material did this star's disk have" into "how many planets could
+        that have made": embryos grow by clearing their own feeding zone
+        until they reach their oligarchic-growth *isolation mass*
+        (`utils.isolation_mass_kg` -- Lissauer 1993; Kokubo & Ida 2000,
+        2002), then space apart from their neighbors by the same *mutual*
+        Hill radius `_mutual_min_distance_au` already enforces during
+        placement (`program_constants.MUTUAL_HILL_RADII_SEPARATION`) --
+        so this walk and that spacing rule are provably consistent with
+        each other, unlike the old log-mass formula, which had no
+        relationship to it at all.
+
+        The walk starts at the same inner-edge distance
+        `_generate_planets` itself seeds its first slot at
+        (`program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor`)
+        and steps outward -- at each step, computing the local isolation
+        mass from the disk's surface density there (scaled for this star
+        via `utils.disk_surface_density_scale`, boosted beyond the snow
+        line via `utils.snow_line_au`), then advancing by that embryo's
+        own mutual-Hill-radius feeding zone -- until reaching the disk's
+        outer edge, at
+        `program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times
+        the snow line (real disks are truncated far short of
+        `self.star.system_perimeter`'s galactic-tidal scale; see that
+        constant's docstring), or `ABSOLUTE_MAX_SYSTEM_OBJECTS` isolation-
+        mass slots, whichever comes first.
+
+        Not every one of those oligarchs survives as a final planet --
+        real N-body integrations of the subsequent giant-impact phase
+        (Chambers 2001) show most merge or get ejected -- so the raw slot
+        count is scaled down by
+        `program_constants.GIANT_IMPACT_SURVIVAL_FRACTION` before being
+        returned.
+
+        Returns:
+            int: The physically-derived ceiling on this system's object
+                count (`max_objects`, as `estimate_num_objects` already
+                names it).
+        """
+        star_mass_kg = self.star.mass
+        star_factor = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+        snow_line = snow_line_au(self.star.luminosity)
+        density_scale = disk_surface_density_scale(star_mass_kg)
+        outer_edge_au = min(
+            program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
+            self.star.system_perimeter,
+        )
+
+        distance_au = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
+        oligarch_count = 0
+        while (
+            distance_au < outer_edge_au
+            and oligarch_count < program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
+        ):
+            surface_density = mmsn_surface_density_gcm2(distance_au, snow_line, density_scale)
+            embryo_mass_kg = isolation_mass_kg(distance_au, surface_density, star_mass_kg)
+
+            # Two neighboring oligarchs of roughly the same isolation mass
+            # (2 * embryo_mass_kg is the pair's combined mass) -- the same
+            # kappa/clamp `_mutual_min_distance_au` uses, so this step and
+            # that later spacing check agree on how far apart is "enough."
+            kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
+                (2 * embryo_mass_kg) / (3 * star_mass_kg)
+            ) ** (1 / 3)
+            kappa = min(kappa, 1.8)
+
+            distance_au *= (1 + kappa / 2) / (1 - kappa / 2)
+            oligarch_count += 1
+
+        max_objects = math.ceil(oligarch_count * program_constants.GIANT_IMPACT_SURVIVAL_FRACTION)
+        return min(max_objects, program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS)
 
     def validate_system(self):
         """

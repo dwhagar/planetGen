@@ -1,5 +1,78 @@
 # Changelog
 
+## [5.24.0] - 2026-09-11
+
+### Changed
+- **`StarSystem.estimate_num_objects` now derives its planet/belt ceiling
+  from real protoplanetary-disk physics instead of an arbitrary curve fit
+  to stellar mass.** The old formula (`BASE_MAX_SYSTEM_OBJECTS *
+  (1 + log10(solar_masses))`, base 15) had no grounding in orbital
+  dynamics and no relationship at all to the mutual-Hill-radius spacing
+  rule `validate_system` enforces ([5.23.0]) -- two disconnected dials
+  governing "how many" and "how far apart," tuned independently by feel.
+  The replacement, `StarSystem._estimate_max_objects_from_disk_physics`,
+  walks outward from the same inner-edge distance `_generate_planets`
+  itself seeds its first slot at, and at each step: computes the local
+  *isolation mass* an oligarchic-growth embryo would reach there
+  (Lissauer 1993; Kokubo & Ida 2000, 2002 -- new `utils.isolation_mass_kg`,
+  closed-form-solved the same way `_mutual_min_distance_au` is, since the
+  embryo's own Hill radius depends on its own still-unknown mass), from
+  the Minimum Mass Solar Nebula's real solid surface-density profile
+  (Hayashi 1981 -- new `utils.mmsn_surface_density_gcm2`,
+  `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0 g/cm^2` at
+  1 AU falling off as `distance^-1.5`, jumping `SNOW_LINE_ICE_BOOST_FACTOR
+  = 30/7` beyond the snow line where ices condense), scaled for this
+  star's own disk-mass budget (new `utils.disk_surface_density_scale`,
+  `program_constants.DISK_MASS_STELLAR_MASS_EXPONENT = 1.8` --
+  mm-continuum disk-demographics surveys, Andrews et al. 2013; Pascucci
+  et al. 2016, find real disk dust mass scales roughly as
+  `M_star^1.8-2.7`, not logarithmically), then advances by that same
+  embryo's own mutual-Hill-radius feeding zone (the *same*
+  `program_constants.MUTUAL_HILL_RADII_SEPARATION = 10` and kappa/clamp
+  algebra `_mutual_min_distance_au` uses, so the count estimate and the
+  spacing rule that will later constrain actual placement are provably
+  consistent with each other) and counts a slot. The walk terminates at
+  the disk's outer edge -- new `program_constants.
+  DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18` times the star's own snow
+  line (new `utils.snow_line_au`, `physical_constants.
+  SNOW_LINE_AU_AT_1_LSUN = 2.7`, the same `sqrt(luminosity)` shape
+  `calculate_habitable_zone` already uses) -- deliberately *not*
+  `star.system_perimeter` (that's the star's own galactic-tidal Hill
+  sphere, tens to hundreds of thousands of AU; real disks are truncated
+  far short of it by viscous spreading/photoevaporation) -- or
+  `ABSOLUTE_MAX_SYSTEM_OBJECTS` isolation-mass slots, whichever comes
+  first. Not every oligarch survives as a final planet: real N-body
+  integrations of the subsequent giant-impact phase (Chambers 2001) show
+  most merge or get ejected, so the raw slot count is scaled by new
+  `program_constants.GIANT_IMPACT_SURVIVAL_FRACTION = 0.4` (tuned toward
+  the middle of that literature's own range, empirically checked to keep
+  a solar-mass star's typical resulting count in the same well-tested,
+  playable range this generator already verified via repeated full-suite
+  runs) before being returned. `estimate_num_objects`'s own override
+  contract (`PLANETS`/`NUM_ORBITS`/`MAX_PLANETS`) is entirely unchanged --
+  only what `max_objects` means changed. The resulting shape now tracks
+  real demographics better than the old mass-scaling formula did: cool
+  low-mass stars (whose smaller mutual-Hill spacing packs oligarchs more
+  tightly per unit distance -- the real, observed TRAPPIST-1-style
+  "compact multis favor small stars" pattern) come out *more*
+  planet-rich on average than hot, luminous, high-mass stars (whose
+  correspondingly larger isolation masses claim proportionally more of
+  their own, larger disk per embryo, and whose short main-sequence
+  lifetimes and intense UV output make real, confirmed planets around
+  O/B-type stars genuinely rare) -- the reverse of the old formula's
+  "bigger star, more objects" curve, and a better match to what's
+  actually been observed. `BASE_MAX_SYSTEM_OBJECTS` removed (no longer
+  referenced); `ABSOLUTE_MAX_SYSTEM_OBJECTS` unchanged, still the same
+  hard safety cap.
+- New `src/tests/test_disk_physics.py`: unit coverage for the new
+  `utils` helpers directly (snow-line `sqrt(luminosity)` scaling,
+  disk-density-scale monotonicity, MMSN falloff/snow-line jump,
+  isolation mass matching the literature's own ~0.05-0.1 Earth-mass
+  figure at 1 AU) plus `estimate_num_objects`'s override contract and the
+  `ABSOLUTE_MAX_SYSTEM_OBJECTS` cap, exercised via `MAX_PLANETS=True`
+  (deterministic, no `random.randint` draw) the same way test_systems.py
+  already does.
+
 ## [5.23.0] - 2026-09-11
 
 ### Changed

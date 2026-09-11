@@ -24,7 +24,6 @@ INITIAL_PLANET_DISTANCE_FACTOR = 0.55
 ASTEROID_BELT_PROBABILITY = 0.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
-BASE_MAX_SYSTEM_OBJECTS = 15
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
 MIN_ASTEROID_BELT_SEPARATION = 0.05
 
@@ -43,6 +42,46 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # parent is a single-body Hill-sphere question, not a mutual one -- see
 # `Planet.min_orbit_distance`/`planetPhysics.generate_moons`).
 MUTUAL_HILL_RADII_SEPARATION = 10
+
+# Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
+# to carry more solid mass around more massive stars, and steeply so --
+# not the flat "1 + log10(solar_masses)" scaling the old
+# StarSystem.estimate_num_objects formula used. Disk dust-mass-vs-
+# stellar-mass surveys (Andrews et al. 2013, Taurus; Pascucci et al. 2016,
+# multi-region) find M_dust ~ M_star^1.8 in young (~1-3 Myr) star-forming
+# regions, steepening further (~M_star^2.7) in older ones. This scales
+# `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2` for any given
+# star relative to the Sun -- see `utils.disk_surface_density_scale`,
+# used by `StarSystem._estimate_max_objects_from_disk_physics`. The
+# younger-region exponent is used since this generator has no notion of a
+# system's disk-formation age (only its current, post-formation age).
+DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
+
+# Real disks are truncated far short of a star's own galactic-tidal Hill
+# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU) --
+# viscous spreading and photoevaporation cut them off at tens to a few
+# hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
+# scales with the same star-dependent quantity that sets where solids can
+# even condense in the first place: the snow line
+# (`physical_constants.SNOW_LINE_AU_AT_1_LSUN`/`utils.snow_line_au`) --
+# our own Solar System's own giant-planet/Kuiper-belt region extends to
+# roughly this same multiple (~18x) of its own 2.7 AU snow line. See
+# `StarSystem._estimate_max_objects_from_disk_physics`.
+DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
+
+# The disk-physics walk (`StarSystem._estimate_max_objects_from_disk_physics`)
+# first counts how many isolation-mass "oligarchs" (Kokubo & Ida
+# 2000/2002) the disk's solid budget can support, spaced by their own
+# mutual Hill radius -- but not every oligarch survives as a final planet.
+# N-body integrations of the subsequent giant-impact phase (Chambers 2001)
+# show a large fraction of oligarchs merge or get ejected before the
+# system settles down; only a minority survive as the final planet
+# count. This is the multiplicative attrition factor applied to the raw
+# oligarch count. Tuned toward the middle of that literature's range
+# (rather than one precise figure) so a solar-mass star's typical final
+# count stays in the same well-tested, playable range this generator
+# already verified via repeated full-suite runs (see CHANGELOG.md).
+GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 
 # How many times StarSystem.__init__ retries its whole placement loop (fresh
 # object count, positions, and validate_system pass, same star) before

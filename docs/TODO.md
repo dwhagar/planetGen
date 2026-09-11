@@ -106,6 +106,17 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **`estimate_num_objects` now derives its planet/belt ceiling from real
+  protoplanetary-disk physics** (Minimum Mass Solar Nebula surface
+  density, Hayashi 1981; oligarchic-growth isolation mass, Lissauer 1993/
+  Kokubo & Ida 2000-2002; real disk-mass-vs-stellar-mass scaling,
+  Andrews 2013/Pascucci 2016) instead of an arbitrary curve fit to
+  stellar mass, and reuses the exact mutual-Hill-radius spacing rule
+  (`MUTUAL_HILL_RADII_SEPARATION`, [5.23.0]) that will later constrain
+  actual placement, so the two are provably consistent
+  (`StarSystem._estimate_max_objects_from_disk_physics`,
+  `utils.snow_line_au`/`disk_surface_density_scale`/
+  `mmsn_surface_density_gcm2`/`isolation_mass_kg`) — CHANGELOG [5.24.0].
 - **Orbital spacing now uses the mutual Hill radius, not either planet's
   own individual one.** Real stability criteria (Gladman 1993; Chambers,
   Wetherill & Boslough 1996; Smith & Lissauer 2009) express minimum
