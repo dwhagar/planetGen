@@ -28,6 +28,22 @@ BASE_MAX_SYSTEM_OBJECTS = 15
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
 MIN_ASTEROID_BELT_SEPARATION = 0.05
 
+# Minimum stable orbital separation between two adjacent planets, in units
+# of their *mutual* Hill radius (utils.mutual_hill_radius_m -- the pair's
+# combined mass and average distance, not either body's own individual
+# Hill radius alone). The analytically rigorous minimum for guaranteed
+# two-planet Hill stability in the circular, coplanar case is 2*sqrt(3)
+# ~= 3.46 mutual Hill radii (Gladman 1993); long-term (10^8-10^9 orbit)
+# N-body integrations of systems with more than two planets recommend a
+# larger safety margin, commonly cited around 8-10 mutual Hill radii
+# (Chambers, Wetherill & Boslough 1996; Smith & Lissauer 1999/2009). This
+# generator uses the upper/safer end of that range -- see
+# `StarSystem.validate_system`'s planet-planet spacing check, which is
+# the only place this applies (a moon's own orbital limit around its
+# parent is a single-body Hill-sphere question, not a mutual one -- see
+# `Planet.min_orbit_distance`/`planetPhysics.generate_moons`).
+MUTUAL_HILL_RADII_SEPARATION = 10
+
 # How many times StarSystem.__init__ retries its whole placement loop (fresh
 # object count, positions, and validate_system pass, same star) before
 # giving up when HABITABLE_WORLD=True/ASTEROID_BELT=True still isn't

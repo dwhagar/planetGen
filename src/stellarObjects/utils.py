@@ -474,6 +474,41 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
 
 
+def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_mass_kg):
+    """
+    Calculates the *mutual* Hill radius of two bodies that orbit the same
+    primary -- the length scale real orbital-dynamics stability criteria
+    (Gladman 1993; Chambers, Wetherill & Boslough 1996; Smith & Lissauer
+    1999/2009) use for how close two adjacent planets' orbits can safely
+    be, as distinct from `calculate_hill_sphere`'s single-body sphere of
+    gravitational dominance (the right tool for "how far can a satellite
+    orbit *this* body," not for "how close can two planets orbit each
+    other").
+
+    R_H,mutual = ((a1 + a2) / 2) * ((m1 + m2) / (3 * M_central)) ** (1/3)
+
+    -- i.e. the single-body formula generalized to use the *pair's*
+    combined mass and average distance, rather than either body's own
+    mass and distance alone. See
+    `program_constants.MUTUAL_HILL_RADII_SEPARATION` for how this
+    generator turns this length into an actual minimum separation.
+
+    Args:
+        distance1_m (float): The first body's distance from the shared
+                             primary, in meters.
+        distance2_m (float): The second body's distance from the shared
+                             primary, in meters.
+        mass1_kg (float): The first body's mass, in kilograms.
+        mass2_kg (float): The second body's mass, in kilograms.
+        central_mass_kg (float): The shared primary's mass, in kilograms.
+
+    Returns:
+        float: The mutual Hill radius, in meters.
+    """
+    avg_distance_m = (distance1_m + distance2_m) / 2
+    return avg_distance_m * ((mass1_kg + mass2_kg) / (3 * central_mass_kg)) ** (1 / 3)
+
+
 def calculate_galactic_orbit(distance_ly):
     """
     Estimates a star system's circular orbital speed and orbital period

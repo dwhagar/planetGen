@@ -112,15 +112,21 @@ connectivity to that specific schema rather than the default one.
   the faceted search behind `../src/html/search.py`: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
   type, supported life chemistry; asteroid belt density — repeat a facet
-  name for multiple active values, e.g. `class=M&class=K`) plus a
-  per-entity name search. Returns `facets` (one `{value, label, count,
+  name for multiple active values, e.g. `class=M&class=K`), a per-entity
+  name search, and a min/max size range per entity —
+  `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
+  in km, either bound optional (a size range is a continuous quantity,
+  not a discrete facet value, so it's its own pair of query parameters
+  rather than a tag). Returns `facets` (one `{value, label, count,
   tooltip}` list per facet, built from the distinct values actually
   present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
   name lists), `facet_labels` (`"facet:value"` -> label, for an
   active-filter chip), and `results` (`sectors`/`systems`/`stars`/
   `planets`/`moons`/`belts` -> `{"rows": [...], "truncated": bool}`, or
   `null` for an object type with no active reason to query it — see
-  `queryDb.search`'s docstring for the exact inclusion rule).
+  `queryDb.search`'s docstring for the exact inclusion rule; a size range
+  alone is reason enough, same as a tag or name term). `stars`/`planets`/
+  `moons` result rows each include their own `radius_km`.
 
 ### Write (admin auth required — see "Authentication" and "Write endpoints")
 

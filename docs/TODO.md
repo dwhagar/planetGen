@@ -63,24 +63,18 @@ open items need working detail.
 
 ## Open items
 
-### Simulation / world-generation design questions
-
-- [ ] Orbital spacing between adjacent planets (`StarSystem`'s placement
-  loop/`validate_system`) uses `5 x the inner planet's own Hill radius` as
-  its minimum-separation rule (`min_orbit_distance`) — a reasonable
-  approximation, but the standard real-world stability criterion (Chambers,
-  Wetherill & Boslough 1996; Smith & Lissauer 2009) uses the pair's *mutual*
-  Hill radius (`((a1+a2)/2) * ((m1+m2)/(3*M_star))^(1/3)`, depending on
-  both bodies' masses and their average distance) with a recommended ~8-10x
-  margin for long-term stability, vs. the analytically rigorous two-planet
-  minimum of `2*sqrt(3)` (Gladman 1993). The current flat "5" sits
-  reasonably within that range, so this isn't urgent — flagged as a
-  worthwhile accuracy upgrade if this spacing logic gets touched again,
-  not a correctness bug like the zone/system-perimeter issues just fixed.
-
 ### Search
 
-- [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args`/`_search_result_planets` and src/html/search.py near `_planets_panel`.
+- [ ] `queryDb.py`'s CLI (`sectors`/`systems`/`near` subcommands) still has
+  no `planets`/`moons` equivalent at all -- `systems` only filters by
+  `star_type_prefix`/`sector_id`, so "every Class D planet smaller than
+  Earth" can't be asked of this particular tool (the web/API faceted
+  search now supports a planet/moon/star size range plus class/body/life
+  tags -- CHANGELOG [5.23.0] -- this item is specifically about the
+  separate `queryDb.py` CLI never getting its own `planets` subcommand).
+  See the TODO comment in `src/queryDb.py` near `process_args` for the
+  concrete shape (`--class`, `--min-radius-km`/`--max-radius-km`) this
+  would need.
 
 ### Web API/frontend
 
@@ -97,29 +91,6 @@ open items need working detail.
   modify its stars/planets/moons/belts short of `DELETE` + `POST`
   (regenerate). Not clear this needs solving at all (vs. "just
   regenerate"), but flagged in case it does.
-- [ ] **`GET /api/health` can crash instead of returning `503`.**
-  `routes.get_db()` -> `queryDb.open_readonly` -> `_db.get_connection`
-  raises a bare `SystemExit` (not `Exception`) when the configured MySQL
-  server is unreachable -- `health()`'s own `except Exception` doesn't
-  catch it, so the exact "database unreachable" case this endpoint exists
-  to report as a clean `503` instead propagates out of the request
-  entirely (confirmed via `python -c` against an unreachable MySQL host
-  while building the admin-auth/write-API work below; pre-existing, not
-  introduced by that work, and not fixed here since it touches the
-  read-only path this pass otherwise left alone). Likely fix:
-  `open_readonly`'s `SystemExit` was designed for `queryDb.py`'s CLI
-  use, not for reuse inside a long-running Flask process -- `get_db()`
-  probably wants its own `except (Exception, SystemExit)` (or a version
-  of `open_readonly` that raises an ordinary exception instead).
-- [ ] Sector Map's on-shell wedge shape and "Galactic Center" compass arrow
-  (`docs/html-interface.md`'s `starmap.py` entry, CHANGELOG [5.4.7]) both
-  assume a sector's own local (x, y, z) axes run parallel to the galaxy
-  frame's axes, since `galaxyGen.py` never actually rotates a sector's
-  local star positions to the "Cube orientation" convention
-  `docs/design/galaxy-coordinate-system.md` describes (that section only
-  ever proposes it as a default, never wires it up). Implementing that
-  orientation convention for real (rotating stored positions, or rotating
-  only at render time) would let both drop this assumption.
 
 ## Population and Politics
 
@@ -135,6 +106,47 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **Orbital spacing now uses the mutual Hill radius, not either planet's
+  own individual one.** Real stability criteria (Gladman 1993; Chambers,
+  Wetherill & Boslough 1996; Smith & Lissauer 2009) express minimum
+  planet-planet separation in units of the *pair's* combined mass and
+  average distance, not one body's own Hill sphere -- `StarSystem.
+  validate_system`'s planet-planet spacing check now does the same
+  (`_mutual_min_distance_au`, `utils.mutual_hill_radius_m`,
+  `program_constants.MUTUAL_HILL_RADII_SEPARATION = 10`), solved in
+  closed form for the exact minimum distance rather than approximated at
+  the pre-correction position (the naive version measurably undershot,
+  since the mutual radius depends on the average of both distances and
+  grows once the correction moves one of them) — CHANGELOG [5.23.0].
+- **`GET /api/health` no longer crashes on an unreachable database.**
+  `routes.get_db()` now catches `open_readonly`'s `SystemExit` and
+  re-raises it as an `ApiError` (503) -- fixes `/health` itself and,
+  since every other read route shares `get_db()`, every one of them too
+  (previously an uncaught `SystemExit`, a `BaseException`, would
+  propagate straight through Flask's dispatch instead of becoming any
+  HTTP response) — CHANGELOG [5.23.0].
+- **Faceted search gained a min/max size (`radius_km`) range for
+  stars/planets/moons.** `queryDb.search`'s new `sizes` argument (`GET
+  /api/search`'s `star_min_radius_km`/`_max_radius_km`, likewise
+  `planet_`/`moon_`) filters alongside the existing class/body/life tags;
+  `html/search.py` gained matching form fields, active-filter chips, and
+  a Radius column on the Stars/Planets/Moons result panels — CHANGELOG
+  [5.23.0]. `queryDb.py`'s own CLI still has no `planets`/`moons`
+  subcommand at all -- see "Open items" > "Search" above, a narrower,
+  still-open item.
+- **Sector Map star dots now rotate into the galaxy frame at render
+  time.** The wedge outline and "Galactic Center" compass arrow were
+  always computed directly from galaxy-frame quantities and so were
+  always correct; star dots (`star_systems.position_x/y/z_mpc`) were
+  plotted as if their own sector-local axes already ran parallel to the
+  galaxy frame's, which generation never actually guarantees.
+  `starmap.py`'s new `_rotate_to_galaxy_frame` applies the "Cube
+  orientation" convention (`docs/design/galaxy-coordinate-system.md`
+  section 3: radial-outward local `+Z`, projected-galactic-north local
+  `+X`) from the sector's own stored `center_x/y/z_pc` alone, reusing
+  `stellarObjects.sectorGeometry.cube_orientation` -- the same basis that
+  module already computes for this sector's own wedge vertices -- so no
+  new stored orientation column was needed — CHANGELOG [5.23.0].
 - `validate_system`'s orbital-overlap correction could strand a planet
   outside the zone its class needs (e.g. an "Earth-like" Class M at
   ~30K, hundreds of thousands of AU out — 10% of a 400-system sample

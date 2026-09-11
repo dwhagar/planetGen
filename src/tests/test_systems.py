@@ -20,8 +20,9 @@ import pytest
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects import program_constants as prog_c
-from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
+from stellarObjects import physical_constants, program_constants as prog_c
+from stellarObjects.utils import (circular_orbital_speed_kms, minimum_update_interval_years,
+                                   mutual_hill_radius_m, orbital_position_au)
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track
@@ -78,6 +79,10 @@ def assert_no_orbital_overlap(system):
     Mirrors StarSystem.validate_system's own separation case matrix, as a
     check that its correction pass actually converges rather than as
     independent new physics -- the minimums it enforces are its own.
+    Two real planets' minimum gap is their *mutual* Hill radius (see
+    StarSystem._mutual_min_separation_au/program_constants.
+    MUTUAL_HILL_RADII_SEPARATION), not either one's own individual Hill
+    radius alone.
     """
     objects = system.planets
     for i in range(1, len(objects)):
@@ -91,9 +96,22 @@ def assert_no_orbital_overlap(system):
         elif cur.body_type == 'a':
             min_gap = prev.min_orbit_distance
         else:
-            min_gap = max(cur.min_orbit_distance, prev.min_orbit_distance)
+            mutual_radius_m = mutual_hill_radius_m(
+                cur.distance * physical_constants.AU_TO_M, prev.distance * physical_constants.AU_TO_M,
+                cur.mass, prev.mass, system.star.mass,
+            )
+            min_gap = (mutual_radius_m / physical_constants.AU_TO_M) * prog_c.MUTUAL_HILL_RADII_SEPARATION
 
-        assert gap >= min_gap - 1e-9, (
+        # A relative tolerance, not a fixed 1e-9 AU: `min_gap` here and the
+        # value `validate_system` actually enforced are the same quantity
+        # computed via two different (mathematically but not
+        # floating-point-identically equivalent) arithmetic paths, and a
+        # system that pushes a body out to hundreds of thousands of AU
+        # (an M50 star's own `MAX_PLANETS` case, e.g.) needs a tolerance
+        # that scales with that magnitude, not a fixed absolute slop sized
+        # for AU-scale gaps.
+        tolerance = max(1e-9, abs(min_gap) * 1e-9)
+        assert gap >= min_gap - tolerance, (
             f"objects {i - 1} ({prev.body_type}) and {i} ({cur.body_type}) overlap: gap={gap}, required>={min_gap}"
         )
 

@@ -1,5 +1,102 @@
 # Changelog
 
+## [5.23.0] - 2026-09-11
+
+### Changed
+- **Orbital spacing between adjacent planets now uses their *mutual* Hill
+  radius, not either planet's own individual one.** The previous rule
+  (`min_orbit_distance = 5 x this planet's own Hill radius`) was a
+  reasonable approximation, but the real orbital-dynamics stability
+  literature (the analytically rigorous two-planet minimum of `2*sqrt(3)`
+  mutual Hill radii, Gladman 1993; a recommended ~8-10x margin for
+  longer-term N-body stability, Chambers, Wetherill & Boslough 1996 and
+  Smith & Lissauer 2009) expresses this in terms of the *pair's* combined
+  mass and average distance instead. New `utils.mutual_hill_radius_m`
+  (`((a1+a2)/2) * ((m1+m2)/(3*M_star))^(1/3)`) and
+  `program_constants.MUTUAL_HILL_RADII_SEPARATION = 10` (the safer end of
+  the literature's recommended range) back `StarSystem.
+  _mutual_min_distance_au`, which `validate_system`'s planet-planet
+  spacing check now calls instead of `max(planet.min_orbit_distance,
+  last_planet.min_orbit_distance)`. Solved in closed form for the exact
+  minimum distance rather than evaluated once at the pre-correction
+  position and added on top: since the mutual radius depends on the
+  *average* of both distances, that naive approach understates the
+  requirement once the correction actually moves one of them -- confirmed
+  by a real `assert_no_orbital_overlap` failure before the closed-form
+  version replaced it. Reclassification (`planetPhysics.
+  reconcile_zone_and_class`, [5.22.0]) can change a planet's own mass,
+  which can in turn invalidate a spacing decision already made against
+  its predecessor -- `validate_system` now retries the mutual-distance
+  check (bounded to 3 iterations; converges in practice within 2) after
+  any reclassification triggered by its own push. `Planet.
+  min_orbit_distance` itself is unchanged and still single-body -- it
+  remains the right tool for a *moon's* own orbital limit around its
+  parent (`planetPhysics.generate_moons`), a different physical question
+  from planet-to-planet spacing. `assert_no_orbital_overlap` (test_systems.py)
+  updated to check the same mutual-radius formula, with a relative (not
+  fixed-1e-9) tolerance -- the two independent computations of the same
+  quantity can differ at the floating-point-noise level even when both
+  are correct, and that noise scales with the (sometimes very large, for
+  a massive star's own extreme systems) distances involved.
+- **`html/search.py`/`GET /api/search` gained a min/max size filter for
+  stars, planets, and moons.** `queryDb.search`'s new `sizes` argument
+  (`{"star", "planet", "moon"} -> (min_km, max_km)`, either bound
+  optional) filters/joins alongside the existing class/body/life-
+  chemistry tags and per-entity name search, via a new shared
+  `_append_size_clause` helper across `_search_result_stars`/
+  `_search_result_planets`/`_search_result_moons` -- a continuous
+  quantity like size has no discrete set of values to offer as a facet,
+  so it's its own query-parameter pair
+  (`star_min_radius_km`/`star_max_radius_km`, likewise `planet_`/
+  `moon_`) rather than a tag. `GET /api/search` validates and parses
+  these (`routes._parse_size_range`); `html/search.py` gained matching
+  number-input fields, active-filter chips (e.g. "Planet size: 5,000–
+  8,000 km"), and a Radius column on the Stars/Planets/Moons result
+  tables. `queryDb.py`'s own CLI (`sectors`/`systems`/`near`
+  subcommands) still has no `planets`/`moons` equivalent at all -- see
+  `docs/TODO.md`'s "Open items" > "Search" for that narrower, separate,
+  still-open gap.
+
+### Fixed
+- **`GET /api/health` could crash instead of returning a clean `503`.**
+  `queryDb.open_readonly` raises a bare `SystemExit` (correct for its own
+  CLI callers) when the configured MySQL server is unreachable --
+  `SystemExit` is a `BaseException`, not an `Exception`, so left
+  uncaught it would propagate straight through Flask's request dispatch
+  (and the WSGI worker handling it) instead of becoming any HTTP
+  response at all, from *every* route that opens a connection via
+  `routes.get_db()`, not just `/health`'s own explicit check. `get_db()`
+  now catches it and re-raises an `ApiError` (503 -- the same status
+  `/health` already wanted to report), which the app's existing
+  `ApiError` handler turns into the usual JSON error response for every
+  other route, and which `/health`'s own `except Exception` catches
+  directly. Regression test builds its own Flask app against a
+  deliberately-unreachable config (a closed local port), so it runs
+  without needing a real MySQL server the way every other API test does.
+- **Sector Map star dots were plotted as if their own sector-local axes
+  already ran parallel to the galaxy frame's.** The wedge outline and
+  "Galactic Center" compass arrow (`_wedge_edges_px`/`_compass_html`)
+  were always computed directly from galaxy-frame quantities
+  (`sectors.center_x/y/z_pc`, `sector_wedge_vertices_pc`) and so were
+  always correct on their own terms; star dots
+  (`star_systems.position_x/y/z_mpc`) were plotted directly in the same
+  scene without ever being rotated into that frame -- a design
+  convention this project documents (`docs/design/
+  galaxy-coordinate-system.md`'s "Cube orientation" section: radial-
+  outward local `+Z`, projected-galactic-north local `+X`) but never
+  actually applies at generation time. Rather than rotate stored
+  positions, `starmap.py`'s new `_rotate_to_galaxy_frame` applies that
+  convention at render time, computed fresh from the sector's own stored
+  `center_x/y/z_pc` -- reusing `stellarObjects.sectorGeometry.
+  cube_orientation`, the exact same basis that module already computes
+  as the tangent-plane frame for this sector's own wedge vertices, so no
+  new stored orientation column was needed. A sector with no galaxy
+  placement (`center_pc=None`) keeps the previous unrotated behavior
+  unchanged. New `src/tests/test_starmap.py` covers the rotation's
+  length-preservation, the on-galactic-axis degeneracy case, and that
+  `render_map_panel` actually renders a different on-screen position for
+  a placed vs. unplaced sector.
+
 ## [5.22.0] - 2026-09-11
 
 ### Fixed

@@ -686,6 +686,14 @@ class StarSystem:
         The method accounts for the different types of objects, such as planets
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
+        Two adjacent planets' minimum separation is enforced via their
+        *mutual* Hill radius (`_mutual_min_separation_au`), not either
+        one's own individual Hill radius alone -- see
+        `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+        why. A belt has no mass/Hill-radius concept of its own, so any
+        correction involving one still falls back to the fixed
+        `MIN_ASTEROID_BELT_SEPARATION` or the single real planet's own
+        `min_orbit_distance`, whichever case applies.
         If an adjustment is made to a planet (as opposed to an asteroid belt,
         which carries no class/climate of its own), `_reconcile_moved_planet`
         re-derives its zone from the corrected distance and, if its
@@ -732,10 +740,70 @@ class StarSystem:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         self._reconcile_moved_planet(planet)
                 else:
-                    min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
-                    if distance_to_last < min_orbit:
-                        planet.distance += min_orbit + additional_correction
-                        self._reconcile_moved_planet(planet)
+                    # Bounded, not a single shot: reclassifying `planet`
+                    # (inside `_reconcile_moved_planet`) can change its own
+                    # `mass`, which the mutual Hill radius depends on --
+                    # re-deriving the requirement against the *new* mass
+                    # can call for a further push, so retry until a push
+                    # doesn't trigger another reclassification (in
+                    # practice at most 2 iterations; the cap is just a
+                    # guard against a pathological cycle).
+                    for _ in range(3):
+                        min_distance = self._mutual_min_distance_au(planet, last_planet)
+                        if planet.distance >= min_distance:
+                            break
+                        planet.distance = min_distance
+                        if not self._reconcile_moved_planet(planet):
+                            break
+
+    def _mutual_min_distance_au(self, planet, last_planet):
+        """
+        The closest `planet` (the later/farther of the pair) can stably
+        sit to `last_planet` (fixed -- it's already been placed and
+        won't move again this pass), via their *mutual* Hill radius
+        (`utils.mutual_hill_radius_m`) rather than either one's own
+        individual Hill radius alone -- see
+        `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+        the stability-literature basis.
+
+        Solved in closed form for `planet`'s own distance rather than
+        evaluated once at the current (pre-correction) positions and
+        added on top: the mutual Hill radius depends on the *average* of
+        the two distances, so a naive "compute now, then push `planet`
+        out by that much" approximation understates the requirement --
+        moving `planet` out raises the average, which raises the
+        requirement further, and `MUTUAL_HILL_RADII_SEPARATION`'s margin
+        (10x) is large enough that this understatement is measurable, not
+        just a rounding-level slip (confirmed by a real
+        `assert_no_orbital_overlap` failure before this closed form
+        replaced the naive version).
+
+        Derivation: let d = `last_planet.distance` (fixed this pass), x =
+        `planet`'s target distance, and kappa =
+        `MUTUAL_HILL_RADII_SEPARATION * ((m_planet + m_last) / (3 *
+        M_star)) ** (1/3)`. The stability requirement `x - d >= kappa *
+        (x + d) / 2` rearranges to `x >= d * (1 + kappa/2) / (1 -
+        kappa/2)`.
+
+        Args:
+            planet (Planet): The planet whose distance may need raising.
+            last_planet (Planet): The fixed reference planet, closer to
+                                  the star.
+
+        Returns:
+            float: The minimum distance (AU) `planet` can sit at,
+                  measured from the star -- not a gap.
+        """
+        kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
+            (planet.mass + last_planet.mass) / (3 * self.star.mass)
+        ) ** (1 / 3)
+        # A pair whose combined mass is a large enough fraction of the
+        # star's own that kappa approaches/exceeds 2 has no finite stable
+        # separation under this linear model at all -- clamp well short
+        # of that so the formula below always returns a large-but-finite,
+        # rather than negative or infinite, distance.
+        kappa = min(kappa, 1.8)
+        return last_planet.distance * (1 + kappa / 2) / (1 - kappa / 2)
 
     def _reconcile_moved_planet(self, planet):
         """
@@ -773,6 +841,13 @@ class StarSystem:
         `rotation_period_hours` can itself be period-derived (a tidally
         locked moon's day equals its orbit) in a way an ordinary planet's
         never is, and a period change can flip whether that still holds.
+
+        Returns:
+            bool: True if `planet` itself was reclassified (and so may
+                 have come out with a different `mass` than before --
+                 relevant to `validate_system`'s mutual-Hill-radius
+                 spacing check, which depends on both planets' masses);
+                 False if its existing class remained valid.
         """
         reclassified = planetPhysics.reconcile_zone_and_class(planet, planet.star.mass)
         if not reclassified:
@@ -789,6 +864,8 @@ class StarSystem:
                 if reclassified:
                     moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
+
+        return reclassified
 
     def __str__(self):
         """

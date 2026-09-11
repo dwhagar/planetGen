@@ -280,7 +280,7 @@ def get_galaxy_sectors(db):
     return _request("/galaxy/sectors", {"db": db})["items"]
 
 
-def get_search(db, texts, tags):
+def get_search(db, texts, tags, sizes=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `queryDb.search`'s docstring for the full shape.
@@ -292,12 +292,25 @@ def get_search(db, texts, tags):
         tags (dict): `{facet: iterable of value}` -- one entry per
             `queryDb.SEARCH_TAG_FACETS` name; a repeated query parameter
             per active value (e.g. `class=M&class=K`).
+        sizes (dict, optional): `{"star", "planet", "moon"} -> (min_km,
+            max_km)`, each bound `None` for "unbounded" -- sent as
+            `<entity>_min_radius_km`/`<entity>_max_radius_km`, omitting
+            either bound that's `None`. An absent key (or `sizes` itself
+            being `None`) sends no size filter for that entity.
     """
     _require_db(db)
     pairs = [("db", db)]
     pairs.extend((key, value) for key, value in texts.items() if value)
     for facet, values in tags.items():
         pairs.extend((facet, value) for value in values)
+    for entity, size_range in (sizes or {}).items():
+        if size_range is None:
+            continue
+        min_km, max_km = size_range
+        if min_km is not None:
+            pairs.append((f"{entity}_min_radius_km", min_km))
+        if max_km is not None:
+            pairs.append((f"{entity}_max_radius_km", max_km))
     return _request("/search", pairs)
 
 

@@ -959,6 +959,33 @@ a:focus-visible .navmap-point circle {
   padding: 0.45rem 0.65rem;
 }
 
+.search-fields-size {
+  margin-top: -0.25rem;
+}
+
+.search-field-size {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex: 1 1 16rem;
+}
+
+.search-field-size input[type="number"] {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  width: 6rem;
+  min-width: 0;
+  flex: 1 1 6rem;
+}
+
 .nav-route {
   padding-left: 1.5rem;
 }
