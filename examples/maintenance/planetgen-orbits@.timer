@@ -12,14 +12,16 @@
 Description=Run planetGen orbital motion update monthly (%i database)
 
 [Timer]
-OnCalendar=monthly
+# Fixed time, 30 minutes after planetgen-update.timer's own fixed time
+# (no `RandomizedDelaySec`) -- deliberately sequenced, not independently
+# scheduled: see planetgen-update.timer's comment for why update.sh needs
+# to finish first. If planetgen-update.timer isn't installed (e.g.
+# install-maintenance-timer.sh was run with `--skip-update-timer`), this
+# still just runs on its own schedule as before.
+OnCalendar=*-*-01 03:30:00
 # Runs the missed monthly update on next boot if the machine was off at
 # the scheduled time, rather than silently skipping a whole month.
 Persistent=true
-# Spreads the actual run over the following hour rather than every
-# deployment's timer firing at exactly 00:00:00 on the 1st -- harmless
-# here (unlike, say, a shared external API), but costs nothing either.
-RandomizedDelaySec=1h
 
 [Install]
 WantedBy=timers.target

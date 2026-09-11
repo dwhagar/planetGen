@@ -28,6 +28,13 @@ Description=planetGen orbital motion update (%i database)
 # production deployment's database server is often a separate host.
 After=network-online.target
 Wants=network-online.target
+# Ordering only (no `Wants=`) -- if planetgen-update.timer isn't
+# installed at all, this unit still runs fine on its own; but if both are
+# installed, this makes sure a code update that happened to be triggered
+# around the same time finishes first. The real ordering guarantee comes
+# from planetgen-update.timer/planetgen-orbits@.timer's fixed,
+# non-overlapping schedule times -- see the timer files' own comments.
+After=planetgen-update.service
 
 [Service]
 Type=oneshot

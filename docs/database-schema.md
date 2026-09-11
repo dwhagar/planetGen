@@ -447,7 +447,9 @@ don't call it) -- e.g. a monthly cron entry:
 or, on a systemd-based (Ubuntu/Debian) host, the equivalent systemd timer
 under [`../examples/maintenance/`](../examples/maintenance/) -- journald
 captures the run's output automatically, with no logfile/logrotate entry
-to maintain:
+to maintain, and (unless installed with `--skip-update-timer`) `sudo
+./update.sh` itself is scheduled too, 30 minutes ahead of the orbit
+update on the same monthly run:
 
 ```
 sudo ../examples/maintenance/install-maintenance-timer.sh [database ...]

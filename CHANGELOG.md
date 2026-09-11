@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.19.0] - 2026-09-11
+
+### Added
+- **`examples/maintenance/`: `update.sh` runs on the same schedule as the
+  orbit update.** New `planetgen-update.service`/`.timer` run
+  `sudo ./update.sh` (git pull + `install.sh`) monthly, at a fixed time
+  30 minutes ahead of `planetgen-orbits@.timer`'s own now-fixed time (both
+  timers dropped `RandomizedDelaySec` in favor of this deliberate,
+  guaranteed ordering) -- update.sh can `pip install --force-reinstall` a
+  new version of the very `stellarObjects` code `updateOrbits.py` imports,
+  so the code update needs to land first, not run independently sometime
+  in the same month. `planetgen-orbits@.service` also gained an
+  `After=planetgen-update.service` ordering line for the case where both
+  happen to be queued together. `install-maintenance-timer.sh` installs
+  and enables both by default, sharing the same `/etc/planetgen/
+  maintenance.env` credentials file (`update.sh`'s `install.sh` step needs
+  DB credentials for `src/migrateDb.py` too); pass `--skip-update-timer`
+  to opt out of unattended code updates and keep only the orbit timer, if
+  this deployment's branch should only ever be updated by a human running
+  `update.sh` deliberately.
+
 ## [5.18.0] - 2026-09-11
 
 ### Added
