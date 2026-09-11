@@ -1,0 +1,27 @@
+{
+  "site_name": "planetGen",
+  "base_url": "http://localhost/",
+  "api_base_url": "http://127.0.0.1/api",
+  "debug": false,
+  "mysql": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "planetgen",
+    "password": "",
+    "database": "planetgen",
+    "database_prefix": "planetgen"
+  },
+  "mysql_write": {
+    "host": "",
+    "port": "",
+    "user": "",
+    "password": "",
+    "database": ""
+  },
+  "control_database": "planetgen_control",
+  "ratelimit": {
+    "default": "200 per day;50 per hour",
+    "storage_uri": "memory://"
+  },
+  "admin_cookie_insecure": false
+}

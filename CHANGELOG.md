@@ -1,5 +1,33 @@
 # Changelog
 
+## [5.23.0] - 2026-09-11
+
+### Added
+- **`config.json`: one unified deployment config file, replacing
+  `webconfig.json`.** Every entry point in this project (generation CLIs,
+  the Flask API, the `html/` CGI browser) used to read its own scattered
+  `PLANETGEN_*` environment variables, each with its own hardcoded
+  default -- fine per-variable, but it meant a deployment that just wants
+  "one MySQL server, one account, one API base URL" still had to set half
+  a dozen `SetEnv`/`EnvironmentFile` lines to get there. `webconfig.json`
+  existed to solve exactly this for the web interface, but only ever
+  covered `site_name`/`base_url` plus three `db_*` placeholders that
+  predated the MySQL port and were never wired to anything.
+  `stellarObjects.appconfig.load_config()` replaces it: a single
+  `config.json` at the repo root, deep-merged onto built-in defaults, now
+  covering the read-only and write-capable MySQL connections, the control
+  schema name, the database-listing prefix, the API's rate limits, the
+  admin cookie's `Secure` flag, the debug-page toggle, and the site's own
+  name/base URL/API endpoint -- see `docs/config.md` for the full field
+  list. Every `PLANETGEN_*` environment variable still works and still
+  takes precedence over `config.json` (needed for, e.g.,
+  `planetgen-orbits@.service`'s per-instance
+  `PLANETGEN_MYSQL_DATABASE=%i`); `config.json` only adds a place to set
+  the shared defaults once instead of repeating them everywhere.
+  `config.json.example` (repo root) is the committed template;
+  `config.json` itself is gitignored, next to the `webconfig.json` entry
+  it replaces.
+
 ## [5.22.0] - 2026-09-11
 
 ### Fixed

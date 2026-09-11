@@ -26,9 +26,11 @@ walkthrough.
 ## MySQL accounts
 
 Three distinct MySQL accounts are relevant to a production deployment
-(see [`api.md`](api.md)'s "Running locally"/"Not done yet" sections and
+(see [`api.md`](api.md)'s "Running locally"/"Not done yet" sections,
 [`database-schema.md`](database-schema.md#the-control-schema) for the
-full detail behind each):
+full detail behind each, and [`config.md`](config.md) for setting any of
+the environment variables below once, in a shared `config.json`, instead
+of repeating them across every vhost/service file):
 
 - **`PLANETGEN_MYSQL_*`** — `SELECT`-only, used by every read endpoint
   and the CGI browser. The account `install.sh`/`migrateDb.py` runs as
@@ -55,5 +57,6 @@ HTTPS** — its session cookie is `Secure` by default and simply won't be
 sent by the browser over plain HTTP. Terminate TLS in front of this vhost
 (e.g. `certbot --apache`) before relying on it; see
 [`api.md`](api.md#deploying-behind-apache-mod_wsgi)'s note on
-`PLANETGEN_ADMIN_COOKIE_INSECURE` for the local-development-only escape
-hatch.
+`PLANETGEN_ADMIN_COOKIE_INSECURE` (or `config.json`'s
+`admin_cookie_insecure`, see [`config.md`](config.md)) for the
+local-development-only escape hatch.
