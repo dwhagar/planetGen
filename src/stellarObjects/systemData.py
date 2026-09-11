@@ -136,7 +136,7 @@ class StarSystem:
         self.planets = []
         self.stars = [self.primary_star] # Keep track of individual stars
 
-        if self.system_config.BINARY_SYSTEM:
+        if self._should_generate_binary():
             # Create a copy of the system_config for the secondary star
             secondary_star_config = copy.deepcopy(self.system_config)
             # Ensure LARGE_STAR is not forced for the secondary star
@@ -202,6 +202,36 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+
+    def _should_generate_binary(self):
+        """
+        Decides whether this system gets a secondary star, honoring
+        `system_config.BINARY_SYSTEM`'s tri-state contract the same way
+        every other tri-state flag (`HABITABLE_WORLD`, `ASTEROID_BELT`,
+        etc.) does: `True`/`False` force the outcome, `None` (the default)
+        rolls real chance instead of always coming out single.
+
+        That "real chance" is
+        `program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
+        keyed by the *primary* star's already-resolved spectral letter
+        (`self.primary_star.type[0]`) -- real stellar-multiplicity surveys
+        (Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
+        2017, cited on that table) find companionship rate rising sharply
+        with primary mass, from ~26% for M dwarfs up to ~90%+ for O stars,
+        not a single flat rate. This runs after the primary star already
+        exists (`__init__` constructs `self.star`/`self.primary_star`
+        first) specifically so its real, already-rolled spectral type
+        can drive the lookup.
+
+        Returns:
+            bool: Whether to generate a secondary star.
+        """
+        if self.system_config.BINARY_SYSTEM is not None:
+            return bool(self.system_config.BINARY_SYSTEM)
+
+        letter = self.primary_star.type[0] if self.primary_star.type else 'G'
+        probability = program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
+        return random.random() < probability
 
     def _generate_planets(self):
         """

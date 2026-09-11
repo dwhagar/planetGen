@@ -106,6 +106,14 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **`BINARY_SYSTEM=None` now rolls real stellar-multiplicity chance
+  instead of always producing a single star**, keyed by the primary's
+  own spectral letter (Duchene & Kraus 2013; Raghavan et al. 2010; Moe &
+  Di Stefano 2017 — `program_constants.
+  BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
+  `StarSystem._should_generate_binary`) — the same tri-state contract
+  (`True`/`False` force, `None` rolls chance) every other `SystemConfig`
+  flag already follows — CHANGELOG [5.25.0].
 - **`estimate_num_objects` now derives its planet/belt ceiling from real
   protoplanetary-disk physics** (Minimum Mass Solar Nebula surface
   density, Hayashi 1981; oligarchic-growth isolation mass, Lissauer 1993/

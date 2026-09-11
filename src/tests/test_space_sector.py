@@ -243,7 +243,11 @@ def test_nearest_neighbors_orders_by_distance_and_excludes_self():
 
 def test_to_dict_and_from_dict_round_trip_positions_and_names():
     sector = SpaceSector("Round Trip Sector", edge_ly=25.0)
-    system, cfg = make_system(star_type="M5V", NAME="Trantor")
+    # BINARY_SYSTEM pinned False: this test is about name/position
+    # round-tripping, not binary-star naming (a real binary rolled here
+    # would append " Binary System" to the configured name -- see
+    # BinaryStarProxy -- unrelated to what's under test).
+    system, cfg = make_system(star_type="M5V", NAME="Trantor", BINARY_SYSTEM=False)
     sector.add_system(system, position=(1.5, -2.5, 0.0), system_config=cfg)
 
     data = sector.to_dict()
@@ -290,7 +294,12 @@ def test_reload_without_generated_key_falls_back_to_recipe_regeneration():
     are freshly randomized.
     """
     sector = SpaceSector("Recipe Sector")
-    system, cfg = make_system(star_type="G2V", NAME="Sol", HABITABLE_WORLD=True)
+    # BINARY_SYSTEM pinned False: the recipe-fallback path re-rolls
+    # everything not pinned by `config`, including binary status -- an
+    # unpinned system could come back single when the original rolled
+    # binary (or vice versa), which the `star.type` equality below isn't
+    # about and shouldn't depend on.
+    system, cfg = make_system(star_type="G2V", NAME="Sol", HABITABLE_WORLD=True, BINARY_SYSTEM=False)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
 
     data = sector.to_dict()
@@ -318,7 +327,11 @@ def test_reload_pins_an_unset_name_to_the_originally_generated_one():
 
 def test_save_and_load_round_trip_via_file(tmp_path):
     sector = SpaceSector("File Sector")
-    system, cfg = make_system(star_type="K3V", NAME="Vulcan")
+    # BINARY_SYSTEM pinned False: this test is about name/position
+    # round-tripping through a file, not binary-star naming (a real binary
+    # rolled here would append " Binary System" to the configured name --
+    # see BinaryStarProxy -- unrelated to what's under test).
+    system, cfg = make_system(star_type="K3V", NAME="Vulcan", BINARY_SYSTEM=False)
     sector.add_system(system, position=(4.0, 4.0, 4.0), system_config=cfg)
 
     path = os.path.join(tmp_path, "sector.json")

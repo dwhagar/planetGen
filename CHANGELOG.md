@@ -1,5 +1,40 @@
 # Changelog
 
+## [5.25.0] - 2026-09-11
+
+### Changed
+- **`SystemConfig.BINARY_SYSTEM` now follows the same tri-state contract
+  as every other flag (`HABITABLE_WORLD`, `ASTEROID_BELT`, etc.):
+  `None` (the default) is no longer treated as "always single."** It now
+  rolls real chance instead, from new
+  `program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` --
+  keyed by the primary star's own spectral letter, since real
+  stellar-multiplicity surveys consistently find companionship rate
+  rising with primary mass rather than sitting at one flat rate: ~26% for
+  M dwarfs (Duchene & Kraus 2013) up through ~44% for solar-type F/G/K
+  (anchored to Raghavan et al. 2010's 46%; Duchene & Kraus's own review
+  groups F/G/K together at 44+/-2%) to ~90% for O-type primaries (Moe &
+  Di Stefano 2017's 94+/-14%). New `StarSystem._should_generate_binary`
+  (called from `__init__`, replacing the old flat `if self.system_config.
+  BINARY_SYSTEM:` check) looks this up against `self.primary_star.type[0]`
+  -- run *after* the primary star already exists, specifically so its
+  real, already-rolled spectral type can drive the roll. `True`/`False`
+  still force the outcome exactly as before; only `None`'s meaning
+  changed, from "never" to "real chance for this star." `SystemConfig.
+  BINARY_SYSTEM`'s own docstring updated to match.
+- Four tests that generate systems without pinning `BINARY_SYSTEM`
+  (two in `test_space_sector.py`'s name/position round-trip and
+  recipe-fallback-reload coverage, one more in `test_space_sector.py`'s
+  file save/load round trip, one in `test_serialization.py`'s
+  single-star full-object-graph round trip) were relying on the old
+  "`None` always means single" behavior to keep specific expected
+  names/types deterministic, or (the `test_serialization.py` one) for
+  `reloaded.star is reloaded.primary_star` to hold -- true only for a
+  single star, since `__init__` never repoints `primary_star` at the
+  `BinaryStarProxy` it reassigns `star` to for a real binary. All four
+  now pin `BINARY_SYSTEM=False` explicitly, since binary-vs-single was
+  always incidental to what each was actually testing.
+
 ## [5.24.0] - 2026-09-11
 
 ### Changed

@@ -333,6 +333,38 @@ PERCENT_MULTIPLIER = 100
 SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
 SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
 
+# Real stellar-multiplicity surveys consistently find binary/multiple
+# companionship rising with primary mass, not a single flat rate: low-mass
+# M dwarfs are the *least* likely to have a companion, while the most
+# massive O stars are very nearly certain to. Keyed by spectral letter
+# (`Star.type[0]`) the same way SPECTRAL_PROBABILITIES_NORMAL above is,
+# and used the same way when `SystemConfig.BINARY_SYSTEM` is left at its
+# default `None` -- see `StarSystem._should_generate_binary`. Anchor
+# points, in solar-mass order:
+#   M: 0.26  -- Duchene & Kraus 2013 (Annual Review of Astronomy and
+#               Astrophysics 51:269-310), low-mass-star multiplicity
+#               fraction 26 +/- 3%.
+#   G: 0.44  -- Raghavan et al. 2010 (ApJS 190:1), solar-type (F6-K3)
+#               multiplicity fraction 46% (Duchene & Kraus's own review
+#               cites this population as 44 +/- 2%; G anchors the middle
+#               of that same F/G/K grouping here).
+#   F, K: 0.47/0.40 -- interpolated either side of the G anchor along the
+#               same "solar-type" grouping (F/G/K aren't broken out
+#               separately in the literature above), consistent with the
+#               broader monotonic-with-mass trend every other anchor here
+#               shows.
+#   A, B: 0.55/0.65 -- Duchene & Kraus 2013 describe intermediate-mass
+#               (A/B) multiplicity as ">=50%"; split across the two
+#               letters along the same mass trend, both comfortably at or
+#               above that floor.
+#   O: 0.90  -- Moe & Di Stefano 2017 (ApJS 230:15) revise O-star
+#               multiplicity up to 94 +/- 14%; kept just under certainty
+#               given that real uncertainty rather than treating O stars
+#               as *always* binary.
+BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
+    'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
+}
+
 # --- Planet Classification Data ---
 
 # A dictionary defining the properties of different planet classes.
