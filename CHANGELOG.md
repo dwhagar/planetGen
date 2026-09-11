@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.18.0] - 2026-09-11
+
+### Added
+- **`examples/maintenance/`: systemd timer for `updateOrbits.py`.** An
+  Ubuntu/Debian-native alternative to the raw crontab line
+  `docs/database-schema.md` already documented for running the periodic
+  orbital-motion update ("once a month or so"). `planetgen-orbits@.service`/
+  `.timer` are a systemd *template* unit -- the instance name (e.g.
+  `planetgen-orbits@planetgen.timer`) selects which database gets
+  updated, so a deployment with more than one `PLANETGEN_MYSQL_DATABASE_PREFIX`
+  schema enables one timer instance per database rather than needing a
+  separate script per database. `install-maintenance-timer.sh` installs
+  both units, writes `/etc/planetgen/maintenance.env` (mode 600) from
+  `maintenance.env.example` for the shared read-write MySQL credentials
+  (skipped if that file already exists, so it never clobbers credentials
+  already set up), and enables the timer for each database name given on
+  its command line (defaulting to `$PLANETGEN_MYSQL_DATABASE`, or
+  "planetgen"). Output is captured by journald automatically, so there's
+  no logfile/logrotate entry to maintain the way the crontab example
+  needs.
+
 ## [5.17.0] - 2026-09-11
 
 ### Added

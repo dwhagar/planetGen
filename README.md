@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.15.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.18.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -147,7 +147,9 @@ on demand.
 - **`src/updateOrbits.py`** — advances every planet's/moon's live orbital
   position based on real elapsed time since the last run; meant to be run
   periodically (e.g. via cron, "once a month or so"), not on every
-  generation run.
+  generation run. See [`docs/database-schema.md`](docs/database-schema.md#orbit_simulation_state)
+  for a cron example, or [`examples/maintenance/`](examples/maintenance/)
+  for a systemd timer to run it the Ubuntu/Debian-native way.
 - **`src/migrateDb.py`** — brings an existing database's schema up to the
   version this checkout expects, applying any migration steps in between
   (a no-op if it's already current). Run automatically by

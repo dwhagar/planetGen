@@ -1,0 +1,49 @@
+# examples/maintenance/planetgen-orbits@.service
+#
+# Runs `src/updateOrbits.py` once against a single database -- the
+# periodic orbital-motion update the README/docs/database-schema.md call
+# for ("meant to be run periodically, e.g. via cron, 'once a month or
+# so'"). This is the systemd-native alternative to the raw crontab line
+# shown in docs/database-schema.md: same script, but with journald
+# capturing its output automatically (no `>> /var/log/...` redirect or
+# logrotate entry to maintain) and `systemctl status`/`journalctl -u`
+# available for checking the last run.
+#
+# A *template* unit (the "@" before .service): the instance name --
+# whatever follows the "@" when the unit is enabled/started, e.g.
+# `planetgen-orbits@planetgen.timer` -- becomes the target database via
+# `%i` below. updateOrbits.py only ever updates the one database named by
+# $PLANETGEN_MYSQL_DATABASE (see its own header comment), so a deployment
+# with more than one game database (multiple `PLANETGEN_MYSQL_DATABASE_PREFIX`
+# schemas -- see docs/database-schema.md) enables one timer instance per
+# database rather than this unit trying to iterate them itself.
+#
+# Install with examples/maintenance/install-maintenance-timer.sh, which
+# also sets up the credentials file this unit reads.
+
+[Unit]
+Description=planetGen orbital motion update (%i database)
+# Adjust if MySQL runs on this same host, e.g. `After=mysql.service` /
+# `Wants=mysql.service` -- left as network-online.target only since a
+# production deployment's database server is often a separate host.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Matches the deployment layout examples/apache/planetgen.conf.example
+# documents (DocumentRoot at /var/lib/planetGen/src/html, i.e. this repo
+# checked out at /var/lib/planetGen) -- change if deployed elsewhere.
+WorkingDirectory=/var/lib/planetGen
+# Optional: host/port/user/password shared by every instance. Must be a
+# read-write account (like sectorGen.py/systemGen.py use), not
+# queryDb.py's read-only one -- this script mutates rows. "-" prefix
+# makes the file optional so the unit doesn't fail to start if it's
+# missing (falling back to updateOrbits.py's own built-in defaults).
+EnvironmentFile=-/etc/planetgen/maintenance.env
+# Which database this instance updates -- overrides any
+# PLANETGEN_MYSQL_DATABASE set in the file above, since the whole point
+# of templating is one shared credentials file with a per-instance
+# target database.
+Environment=PLANETGEN_MYSQL_DATABASE=%i
+ExecStart=/usr/bin/python3 src/updateOrbits.py
