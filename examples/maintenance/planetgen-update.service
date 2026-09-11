@@ -1,0 +1,51 @@
+# examples/maintenance/planetgen-update.service
+#
+# Runs `update.sh` (git pull, then -- only if that pull actually brought
+# new commits -- a re-run of install.sh; either way, a direct
+# `src/migrateDb.py` check) unattended -- the same thing a human would run
+# by hand per README.md's "Web Interface" section, on a schedule instead
+# of "whenever someone remembers to." See update.sh's own header comment
+# for why most months, when nothing changed, this ends up cheap (no
+# package reinstall/Apache churn, just an idempotent schema check). Not
+# templated (unlike planetgen-orbits@.service): update.sh operates on the
+# whole checkout, not a single database, so one run covers every database
+# this deployment serves.
+#
+# Paired with planetgen-orbits@.service via planetgen-update.timer/
+# planetgen-orbits@.timer's fixed (not randomized) schedule times -- see
+# those files' own comments for why the ordering matters: update.sh can
+# change the very code updateOrbits.py runs.
+#
+# NOTE on what this means: enabling this timer means whatever is on the
+# tracked branch's remote gets pulled and deployed automatically, once a
+# month, with no human review in between. update.sh itself still refuses
+# to run over uncommitted local changes or a diverged/detached HEAD (see
+# its own header comment) rather than forcing past either, but it does
+# not gate on *what* the pull brings in. Skip installing this unit (pass
+# `--skip-update-timer` to install-maintenance-timer.sh) if this
+# deployment's branch should only ever be updated by a human running
+# `sudo ./update.sh` deliberately.
+#
+# Install with examples/maintenance/install-maintenance-timer.sh, which
+# also sets up the credentials file this unit reads (needed for
+# install.sh's `src/migrateDb.py` step).
+
+[Unit]
+Description=planetGen deployment update (git pull + install.sh)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Matches the deployment layout examples/apache/planetgen.conf.example
+# documents (this repo checked out at /var/lib/planetGen) -- change if
+# deployed elsewhere. update.sh itself resolves its own paths from
+# $BASH_SOURCE regardless, but this also has to be where update.sh (and
+# the git checkout it pulls into) actually lives.
+WorkingDirectory=/var/lib/planetGen
+# Read-write MySQL credentials -- needed for install.sh's
+# `src/migrateDb.py` step, same file planetgen-orbits@.service reads.
+# "-" prefix makes it optional so a missing file falls back to
+# migrateDb.py's own built-in defaults rather than failing to start.
+EnvironmentFile=-/etc/planetgen/maintenance.env
+ExecStart=/var/lib/planetGen/update.sh

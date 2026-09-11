@@ -1,5 +1,61 @@
 # Changelog
 
+## [5.20.0] - 2026-09-11
+
+### Changed
+- **`update.sh` skips the package reinstall when there's nothing new to
+  install.** Previously it unconditionally re-ran the whole of
+  `install.sh` (`pip install --force-reinstall`, an NLTK re-fetch,
+  re-enabling Apache modules, a full permissions pass) every single
+  invocation, even when `git pull` found no new commits at all -- pure
+  wasted work for a caller like `examples/maintenance/planetgen-update.timer`
+  that may run this monthly for years between real updates. Now, when the
+  pull is a no-op, `update.sh` runs `src/migrateDb.py` directly instead
+  (a cheap, idempotent no-op once the schema is already current) and
+  skips the rest; `install.sh` (migration included, as its own step 2)
+  still runs in full whenever the pull actually brought new commits, same
+  as before.
+
+### Added
+- **`examples/maintenance/`: `update.sh` runs on the same schedule as the
+  orbit update.** New `planetgen-update.service`/`.timer` run
+  `sudo ./update.sh` (git pull + `install.sh`) monthly, at a fixed time
+  30 minutes ahead of `planetgen-orbits@.timer`'s own now-fixed time (both
+  timers dropped `RandomizedDelaySec` in favor of this deliberate,
+  guaranteed ordering) -- update.sh can `pip install --force-reinstall` a
+  new version of the very `stellarObjects` code `updateOrbits.py` imports,
+  so the code update needs to land first, not run independently sometime
+  in the same month. `planetgen-orbits@.service` also gained an
+  `After=planetgen-update.service` ordering line for the case where both
+  happen to be queued together. `install-maintenance-timer.sh` installs
+  and enables both by default, sharing the same `/etc/planetgen/
+  maintenance.env` credentials file (`update.sh`'s `install.sh` step needs
+  DB credentials for `src/migrateDb.py` too); pass `--skip-update-timer`
+  to opt out of unattended code updates and keep only the orbit timer, if
+  this deployment's branch should only ever be updated by a human running
+  `update.sh` deliberately.
+
+## [5.18.0] - 2026-09-11
+
+### Added
+- **`examples/maintenance/`: systemd timer for `updateOrbits.py`.** An
+  Ubuntu/Debian-native alternative to the raw crontab line
+  `docs/database-schema.md` already documented for running the periodic
+  orbital-motion update ("once a month or so"). `planetgen-orbits@.service`/
+  `.timer` are a systemd *template* unit -- the instance name (e.g.
+  `planetgen-orbits@planetgen.timer`) selects which database gets
+  updated, so a deployment with more than one `PLANETGEN_MYSQL_DATABASE_PREFIX`
+  schema enables one timer instance per database rather than needing a
+  separate script per database. `install-maintenance-timer.sh` installs
+  both units, writes `/etc/planetgen/maintenance.env` (mode 600) from
+  `maintenance.env.example` for the shared read-write MySQL credentials
+  (skipped if that file already exists, so it never clobbers credentials
+  already set up), and enables the timer for each database name given on
+  its command line (defaulting to `$PLANETGEN_MYSQL_DATABASE`, or
+  "planetgen"). Output is captured by journald automatically, so there's
+  no logfile/logrotate entry to maintain the way the crontab example
+  needs.
+
 ## [5.17.0] - 2026-09-11
 
 ### Added

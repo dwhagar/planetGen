@@ -444,6 +444,17 @@ don't call it) -- e.g. a monthly cron entry:
 0 3 1 * * cd /var/lib/planetGen && python3 src/updateOrbits.py >> /var/log/planetgen-orbits.log 2>&1
 ```
 
+or, on a systemd-based (Ubuntu/Debian) host, the equivalent systemd timer
+under [`../examples/maintenance/`](../examples/maintenance/) -- journald
+captures the run's output automatically, with no logfile/logrotate entry
+to maintain, and (unless installed with `--skip-update-timer`) `sudo
+./update.sh` itself is scheduled too, 30 minutes ahead of the orbit
+update on the same monthly run:
+
+```
+sudo ../examples/maintenance/install-maintenance-timer.sh [database ...]
+```
+
 `updateOrbits.py` mutates rows, so it needs the same read-write database
 account `sectorGen.py`/`systemGen.py` use, not `queryDb.py`'s read-only one.
 

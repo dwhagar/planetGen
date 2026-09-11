@@ -1,0 +1,27 @@
+# examples/maintenance/planetgen-orbits@.timer
+#
+# Fires planetgen-orbits@.service (see that file) on the "once a month
+# or so" cadence updateOrbits.py's own header comment asks for. Pair with
+# it under the same instance name, e.g.:
+#
+#   sudo systemctl enable --now planetgen-orbits@planetgen.timer
+#
+# Installed automatically by install-maintenance-timer.sh.
+
+[Unit]
+Description=Run planetGen orbital motion update monthly (%i database)
+
+[Timer]
+# Fixed time, 30 minutes after planetgen-update.timer's own fixed time
+# (no `RandomizedDelaySec`) -- deliberately sequenced, not independently
+# scheduled: see planetgen-update.timer's comment for why update.sh needs
+# to finish first. If planetgen-update.timer isn't installed (e.g.
+# install-maintenance-timer.sh was run with `--skip-update-timer`), this
+# still just runs on its own schedule as before.
+OnCalendar=*-*-01 03:30:00
+# Runs the missed monthly update on next boot if the machine was off at
+# the scheduled time, rather than silently skipping a whole month.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

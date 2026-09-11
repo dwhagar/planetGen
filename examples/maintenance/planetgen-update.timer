@@ -1,0 +1,27 @@
+# examples/maintenance/planetgen-update.timer
+#
+# Fires planetgen-update.service (see that file) monthly, at a fixed time
+# 30 minutes ahead of planetgen-orbits@.timer's own fixed time -- a
+# deliberate, guaranteed ordering (not `RandomizedDelaySec`, which
+# planetgen-orbits@.timer also skips for the same reason): update.sh can
+# `pip install --force-reinstall` a new version of the very
+# `stellarObjects` code updateOrbits.py imports, so the update needs to
+# have already landed before the orbit update runs, not "sometime this
+# month, independently." 30 minutes is comfortably more than update.sh's
+# own steps (git pull, pip install, migrateDb.py, NLTK fetch, permissions)
+# take in practice.
+#
+# Installed automatically by install-maintenance-timer.sh, unless it's
+# run with `--skip-update-timer`.
+
+[Unit]
+Description=Run planetGen deployment update monthly, ahead of the orbit update
+
+[Timer]
+OnCalendar=*-*-01 03:00:00
+# Runs the missed monthly update on next boot if the machine was off at
+# the scheduled time, rather than silently skipping a whole month.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
