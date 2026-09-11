@@ -1,5 +1,69 @@
 # Changelog
 
+## [5.22.0] - 2026-09-11
+
+### Fixed
+- **`validate_system` could strand a planet outside the zone its class
+  needs, and the sequential orbit-spacing loop had no outer bound.**
+  Found via full `StarSystem` stress testing rather than the existing
+  per-class plausibility tooling (`physical_plausibility_cli.py`), which
+  only ever constructs isolated planets directly and never exercises the
+  sequential placement loop or `validate_system` at all. A planet's class
+  was chosen once, early, from its *initial* estimated distance -- but
+  `validate_system`'s orbital-overlap correction could later push that
+  distance arbitrarily far out (Hill-radius-based minimum spacing scales
+  with a planet's own distance, so it compounds geometrically across a
+  many-planet system) without ever re-checking whether the already-chosen
+  class still made physical sense there. Measured before this fix: 10% of
+  a 400-system sample had at least one ecosphere-class planet (M/K/N/etc.)
+  stranded outside its own zone -- e.g. a "Class M, Earth-like world"
+  ending up hundreds of thousands of AU out at ~30K -- concentrated almost
+  entirely in O/B-type stars (92% of occurrences), none in G/K/M dwarfs.
+  - **`planetPhysics.reconcile_zone_and_class(planet, primary_mass_kg,
+    distance_override=None)`**: re-derives a body's zone from its
+    *current* distance and, only if its existing class is no longer valid
+    there, regenerates the class and everything derived from it
+    (composition/radius/mass/density/atmosphere/period/gravity/orbital
+    motion) -- the same thing real orbital migration does to a body's
+    actual final conditions, not just its originally-assumed ones.
+  - **`StarSystem._reconcile_moved_planet`** calls it every time
+    `validate_system` moves a top-level planet's distance, for the planet
+    itself and each of its moons: a moon's zone is always its parent's
+    (`generate_moons`' `zone_override`), and a reclassified parent can
+    come out with a different mass, which changes a moon's own
+    period/position/rotation (Kepler's third law around the parent) even
+    when the moon's own class didn't need to change.
+  - **The sequential placement loop never bounded how far a system could
+    grow.** `StarSystem._generate_planets` (split out of `__init__` so it
+    can be retried -- see below) now stops adding slots once the next
+    one would land beyond `star.system_perimeter` -- the star's own Hill
+    sphere *relative to the galaxy*, already computed for an analogous
+    purpose elsewhere (`spaceSector.py`, keeping neighboring systems'
+    spheres of influence from overlapping) but never enforced during
+    planet placement itself. A system that runs out of stable room this
+    way ends up with fewer planets, the same outcome a real
+    protoplanetary disk of finite extent would produce, rather than
+    letting the geometric compounding above run unbounded.
+  - **Reconciliation can occasionally reclassify away the specific body a
+    requested `HABITABLE_WORLD`/`ASTEROID_BELT` guarantee was relying on**
+    (previously silently masked by the same bug -- an invalid class
+    sitting in the wrong zone still counted as satisfying it).
+    `StarSystem.__init__` now retries the whole placement (same star,
+    fresh positions and object count) up to the new
+    `program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS` (8) when a
+    requested guarantee isn't met afterward, rather than silently
+    dropping it. A smaller, complementary fix
+    (`StarSystem._distance_within_zone_with_margin`) reserves a safety
+    margin against the fixed `MIN_ASTEROID_BELT_SEPARATION` nudge when
+    placing a forced-habitable or explicit-slot-class planet, reducing
+    (not eliminating -- a large neighboring planet's own Hill-radius push
+    has no fixed size to margin against, which is what the retry loop is
+    for) how often the retry actually triggers.
+  - Verified via a 500-system randomized stress test (mixed
+    `HABITABLE_WORLD`/`ASTEROID_BELT`/`BINARY_SYSTEM` flags): zero orbital
+    overlaps, zero misplaced ecosphere-class planets, zero guarantee
+    failures, repeated across multiple runs.
+
 ## [5.21.0] - 2026-09-11
 
 ### Added

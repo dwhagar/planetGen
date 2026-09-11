@@ -28,6 +28,19 @@ BASE_MAX_SYSTEM_OBJECTS = 15
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
 MIN_ASTEROID_BELT_SEPARATION = 0.05
 
+# How many times StarSystem.__init__ retries its whole placement loop (fresh
+# object count, positions, and validate_system pass, same star) before
+# giving up when HABITABLE_WORLD=True/ASTEROID_BELT=True still isn't
+# satisfied afterward. Needed because validate_system's own orbital-overlap
+# correction can, in rare cases, push a deliberately-placed guaranteed body
+# (e.g. the forced Class M world) into a zone its class no longer supports --
+# planetPhysics.reconcile_zone_and_class correctly reclassifies it away
+# rather than reporting a physically inconsistent class, which can undo the
+# very guarantee that placement was satisfying. Retrying with a fresh
+# placement is simpler and more robust than trying to reshuffle every
+# neighbor's spacing to protect one body's zone in place.
+MAX_SYSTEM_GENERATION_ATTEMPTS = 8
+
 # Asteroid Belt Configuration
 ASTEROID_COMPONENTS = [
     "carbon", "silicon", "magnesium", "aluminum", "calcium",

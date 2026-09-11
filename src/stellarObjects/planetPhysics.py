@@ -754,6 +754,81 @@ def update_orbital_position(planet):
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 
 
+def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
+    """
+    Re-derives `planet`'s zone from its *current* orbital distance and, if
+    the class it already has isn't valid there, regenerates its class and
+    every class-derived physical property from scratch for the corrected
+    zone -- rather than silently reporting a stale class (e.g. "a
+    terrestrial Earth-like world") at a distance that class doesn't
+    physically support.
+
+    Meant to be called only after something external to normal generation
+    -- `StarSystem.validate_system`'s orbital-overlap correction -- has
+    moved `planet.distance` (for an ordinary planet) or its parent's
+    distance (for a moon, via `distance_override`) out from under an
+    already-chosen class. A class is a statement about the conditions at a
+    body's *actual* final position, not an independently-revisable label:
+    once something else changes that position, the class has to be
+    re-derived from it, the same way real orbital migration changes a
+    body's real climate, not just its assumed one.
+
+    Args:
+        planet (Planet): The planet or moon to reconcile in place. Must
+                         already have `distance`, `planet_class`, `zone`,
+                         and `habitable_zone` set (i.e. already fully
+                         generated once).
+        primary_mass_kg (float): The mass (kg) of the body this one
+                                 actually orbits -- the star for an
+                                 ordinary planet, the parent planet for a
+                                 moon (same meaning as everywhere else this
+                                 parameter appears).
+        distance_override (float, optional): The distance (AU) to
+                                              determine the zone from and
+                                              feed to
+                                              `calculate_atmospheric_conditions`,
+                                              when it differs from
+                                              `planet.distance` -- a moon's
+                                              own `distance` is its orbit
+                                              around its *parent planet*,
+                                              not an AU-scale position in
+                                              the star's own zone, so a
+                                              moon always passes its
+                                              parent's (corrected)
+                                              `distance` here instead.
+
+    Returns:
+        bool: True if the class (and everything derived from it) was
+             actually regenerated; False if the existing class remained
+             valid for the (possibly still new) zone, in which case only
+             `planet.zone` itself was refreshed.
+    """
+    inner_bound, outer_bound = planet.habitable_zone
+    distance = distance_override if distance_override is not None else planet.distance
+    if distance < inner_bound:
+        new_zone = 'h'
+    elif distance > outer_bound:
+        new_zone = 'c'
+    else:
+        new_zone = 'e'
+
+    zone_changed = new_zone != planet.zone
+    planet.zone = new_zone
+
+    if not zone_changed or program_constants.PLANET_CLASSES[planet.planet_class][new_zone]:
+        return False
+
+    planet.planet_class = None
+    planet.radius = None
+    planet.mass = None
+    generate_planet_properties(planet, zone_override=new_zone)
+    planet.period = calculate_orbital_period_years(planet.distance, primary_mass_kg)
+    calculate_surface_gravity(planet)
+    calculate_atmospheric_conditions(planet, distance_override)
+    generate_orbital_motion_properties(planet, primary_mass_kg)
+    return True
+
+
 def generate_moons(planet, moon_count=None):
     """
     Generates a system of moons for the given planet.
