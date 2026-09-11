@@ -29,7 +29,7 @@ from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
                     PLANET_PREFIXES, PLANET_SUFFIXES)
 from . import physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_duration_hours, format_length_km, generate_phoneme_salad_name,
+from .utils import (format_length_km, generate_phoneme_salad_name,
                     properties_to_string, to_paragraph, to_scientific_notation,
                     years_to_time_string)
 
@@ -140,15 +140,16 @@ class Planet:
                                    `orbital_phase_deg` changing over time;
                                    only changes if `distance`/`period` do
                                    (see `StarSystem.validate_system`).
-        position_change_interval_hours (float): How long this body must
-                                   move along its orbit before that motion
-                                   would be noticeable -- the time to
-                                   displace by its own diameter, at
-                                   `orbital_speed_kms` (see
-                                   `utils.position_change_interval_hours`).
-                                   Like `orbital_speed_kms`, constant
-                                   around a circular orbit -- unaffected by
-                                   phase changing over time.
+        min_update_interval_years (float): The shortest `elapsed_years`
+                                   worth calling `_db.advance_orbital_phases`
+                                   for -- below this, the phase delta added
+                                   is smaller than `orbital_phase_deg`'s own
+                                   floating-point resolution, so the update
+                                   would be a silent no-op (see
+                                   `utils.minimum_update_interval_years`).
+                                   Not a narrative stat -- a guard value for
+                                   the update path, derived purely from
+                                   `period`.
         rotation_period_hours (float): This body's axial rotation period
                                        ("day length"), in hours.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
@@ -167,7 +168,7 @@ class Planet:
         "flavor_text_count", "habitable_zone", "volume", "period",
         "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
-        "position_change_interval_hours",
+        "min_update_interval_years",
         "rotation_period_hours",
     ]
     """
@@ -259,7 +260,7 @@ class Planet:
         self.position_y = None
         self.position_z = None
         self.orbital_speed_kms = None
-        self.position_change_interval_hours = None
+        self.min_update_interval_years = None
         self.rotation_period_hours = None
 
         # From the star, should not be changed.
@@ -295,13 +296,6 @@ class Planet:
         serialized the same way.
 
         `habitable_zone` is stored as a list (JSON has no tuple type).
-        `position_change_interval_hours` is stored as `None` in place of
-        `float('inf')` -- the same convention `Star.to_dict`/
-        `stellarObjects/_db.py`'s `_none_if_infinite` use, for the same
-        reason (a body with exactly zero orbital speed, structurally
-        unreachable through normal generation today but not guarded
-        against at `utils.position_change_interval_hours`'s own boundary --
-        see that function's docstring).
 
         Returns:
             dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
@@ -309,10 +303,6 @@ class Planet:
         """
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["habitable_zone"] = list(self.habitable_zone)
-        data["position_change_interval_hours"] = (
-            None if self.position_change_interval_hours == float('inf')
-            else self.position_change_interval_hours
-        )
         data["moons"] = [moon.to_dict() for moon in self.moons]
         return data
 
@@ -339,10 +329,6 @@ class Planet:
         planet.star = star
         fields_from_dict(planet, data, cls.SERIALIZABLE_FIELDS)
         planet.habitable_zone = tuple(data["habitable_zone"])
-        planet.position_change_interval_hours = (
-            float('inf') if data["position_change_interval_hours"] is None
-            else data["position_change_interval_hours"]
-        )
         planet.moons = [cls.from_dict(moon_data, star, system_config) for moon_data in data.get("moons", [])]
         return planet
 
@@ -406,9 +392,9 @@ class Planet:
         `to_paragraph_list`, not here).
 
         Returns:
-            dict: Keys `class`, `distance`, `period`, `speed`, `notice`,
-                 `radius`, `gravity`, each an already-formatted display
-                 string (`class` may be `None`).
+            dict: Keys `class`, `distance`, `period`, `speed`, `radius`,
+                 `gravity`, each an already-formatted display string
+                 (`class` may be `None`).
         """
         if self.is_moon:
             # Moons orbit their parent planet, so their distance is from the planet, not the star.
@@ -433,7 +419,6 @@ class Planet:
             "distance": distance_text,
             "period": years_to_time_string(self.period),
             "speed": f"{self.orbital_speed_kms:.2f} km/s",
-            "notice": format_duration_hours(self.position_change_interval_hours),
             "radius": radius_string,
             "gravity": f"{round(self.gravity, 3)} g",
         }

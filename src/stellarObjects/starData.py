@@ -25,10 +25,10 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_age_string, format_duration_hours, calculate_galactic_orbit,
+from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_length_km,
                     format_relative_to_sol, generate_phoneme_salad_name,
-                    get_star_evolutionary_profile, position_change_interval_hours,
+                    get_star_evolutionary_profile,
                     properties_to_string, reseed_rng)
 
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
@@ -124,7 +124,6 @@ class Star:
         "name", "type", "yerkes_class", "mass", "radius", "temperature",
         "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
         "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-        "galactic_position_change_interval_hours",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -142,10 +141,7 @@ class Star:
         dwarfs) -- the same convention `stellarObjects/_db.py` uses via
         `_lifespan_gy` -- since `float('inf')` round-trips through the
         standard `json` module as a non-standard `Infinity` token that not
-        every JSON consumer accepts. `galactic_position_change_interval_hours`
-        gets the same treatment for the same reason -- it can also come out
-        infinite (a star with exactly zero galactic orbital speed, see
-        `utils.position_change_interval_hours`'s docstring).
+        every JSON consumer accepts.
 
         Returns:
             dict: One entry per field in `SERIALIZABLE_FIELDS`.
@@ -153,10 +149,6 @@ class Star:
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["habitable_zone"] = list(self.habitable_zone)
         data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
-        data["galactic_position_change_interval_hours"] = (
-            None if self.galactic_position_change_interval_hours == float('inf')
-            else self.galactic_position_change_interval_hours
-        )
         return data
 
     @classmethod
@@ -181,10 +173,6 @@ class Star:
         fields_from_dict(star, data, cls.SERIALIZABLE_FIELDS)
         star.habitable_zone = tuple(data["habitable_zone"])
         star.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
-        star.galactic_position_change_interval_hours = (
-            float('inf') if data["galactic_position_change_interval_hours"] is None
-            else data["galactic_position_change_interval_hours"]
-        )
         return star
 
     def _calculate_initial_star_age_and_lifespan(self):
@@ -721,7 +709,6 @@ class Star:
             self.heliosphere_radius = None
             self.galactic_orbital_speed_kms = None
             self.galactic_orbital_period_gy = None
-            self.galactic_position_change_interval_hours = None
             # Added mass_override for secondary star generation in binary systems
             self.generate_star(mass_override=kwargs.get('mass_override'))
             self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
@@ -730,9 +717,6 @@ class Star:
             self.heliosphere_radius = self.calculate_heliosphere()
             self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
                 self.calculate_galactic_orbit(self.galactic_center_dist_ly)
-            self.galactic_position_change_interval_hours = position_change_interval_hours(
-                self.radius, self.galactic_orbital_speed_kms
-            )
 
     def get_table_properties(self):
         """
@@ -744,7 +728,7 @@ class Star:
 
         Returns:
             dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,
-                 `notice`, `loc`, each an already-formatted display string.
+                 `loc`, each an already-formatted display string.
         """
         if round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU):
             hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
@@ -779,7 +763,6 @@ class Star:
             "lum": lum_string,
             "hab": f"Between {hab_lower} and {hab_upper} AU",
             "orbit": orbit_string,
-            "notice": format_duration_hours(self.galactic_position_change_interval_hours),
             "loc": self.name # Adding the star's name as location
         }
 
@@ -814,7 +797,6 @@ class Star:
             "lum": "Luminosity",
             "hab": "Habitable Zone",
             "orbit": "Galactic Orbit",
-            "notice": "Noticeable Motion",
             "loc": "Location"
         }
 

@@ -23,7 +23,7 @@ import secrets
 
 from . import physical_constants, program_constants
 from .utils import (calculate_object_mass, calculate_hill_sphere, circular_orbital_speed_kms,
-                    orbital_position_au, position_change_interval_hours, reseed_rng,
+                    minimum_update_interval_years, orbital_position_au, reseed_rng,
                     sample_bounded_bell)
 
 
@@ -697,11 +697,11 @@ def update_orbital_position(planet):
     """
     Recomputes `planet.position_x/y/z` (AU, relative to its orbital
     anchor), `planet.orbital_speed_kms`, and
-    `planet.position_change_interval_hours` from its current `distance`,
-    `period`, `radius`, and orbital elements (`orbital_inclination_deg`/
+    `planet.min_update_interval_years` from its current `distance`,
+    `period`, and orbital elements (`orbital_inclination_deg`/
     `orbital_ascending_node_deg`/`orbital_phase_deg`), via
     `utils.orbital_position_au`/`circular_orbital_speed_kms`/
-    `position_change_interval_hours`.
+    `minimum_update_interval_years`.
 
     Called both at initial generation (`generate_orbital_motion_properties`,
     right after `orbital_phase_deg` is rolled) and again by
@@ -709,8 +709,9 @@ def update_orbital_position(planet):
     `distance` post-hoc to resolve an orbital overlap -- the same
     "recompute anything that depends on distance" treatment `period`
     already gets there (see that method's docstring). Position/speed/
-    notice-interval would otherwise silently go stale relative to the
-    corrected `distance` the same way `period` used to before that fix.
+    `min_update_interval_years` would otherwise silently go stale relative
+    to the corrected `distance`/`period` the same way `period` itself
+    used to before that fix.
 
     `updateOrbits.py`'s periodic time-based advancement is a separate,
     SQL-only path (`stellarObjects._db.advance_orbital_phases`) that
@@ -718,13 +719,14 @@ def update_orbital_position(planet):
     function -- this generator has no live "simulation loop" over
     in-memory objects, only one-shot generation (this function) followed
     by periodic database updates (see that module's own docstring).
-    `position_change_interval_hours` doesn't depend on phase at all
-    (only `distance`/`radius`/`period`, all fixed once generated), so
-    `advance_orbital_phases` never needs to touch it.
+    `min_update_interval_years` doesn't depend on phase at all (only
+    `period`, fixed once generated), so `advance_orbital_phases` never
+    needs to touch it -- it only *reads* the column, to decide whether a
+    given call's `elapsed_years` is even worth writing for this row.
 
     Args:
         planet (Planet): The planet or moon to update in place. Must
-                         already have `distance`, `period`, `radius`,
+                         already have `distance`, `period`,
                          `orbital_inclination_deg`,
                          `orbital_ascending_node_deg`, and
                          `orbital_phase_deg` set.
@@ -734,9 +736,7 @@ def update_orbital_position(planet):
         planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
     )
     planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
-    planet.position_change_interval_hours = position_change_interval_hours(
-        planet.radius, planet.orbital_speed_kms
-    )
+    planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 
 
 def generate_moons(planet, moon_count=None):

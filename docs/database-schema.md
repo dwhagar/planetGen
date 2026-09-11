@@ -173,14 +173,15 @@ each body's Cartesian position relative to its orbital anchor (the star,
 or a binary's combined center, for a planet; the parent planet for a
 moon), derived from `distance_km` and the v9 orbital-motion columns (see
 `stellarObjects/utils.py`'s `orbital_position_au`); v12 added
-`galactic_position_change_interval_hours` to `stars` (and
-`binary_galactic_position_change_interval_hours` to `star_systems`) and
-`position_change_interval_hours` to `planets`/`moons` — how long a body
-must move along its orbit before that motion would be noticeable (the
-time to displace by its own diameter at its already-known orbital speed,
-see `stellarObjects/utils.py`'s `position_change_interval_hours`). All
-four are nullable, `NULL` meaning `float('inf')` — the same convention
-`stars.lifespan_gy` uses (see `_db._none_if_infinite`).
+`planets`/`moons.min_update_interval_years` — a floating-point update
+guard, not a narrative stat: the shortest `elapsed_years` worth calling
+`_db.advance_orbital_phases` for, below which the phase delta added is
+smaller than `orbital_phase_deg`'s own IEEE 754 double-precision
+resolution and so is guaranteed to round back to the exact value already
+stored (see `stellarObjects/utils.py`'s `minimum_update_interval_years`).
+Scoped to `planets`/`moons` only — `stars`' galactic-orbit values are
+fixed forever at generation time, with no periodic update mechanism to
+guard.
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
@@ -437,7 +438,6 @@ One row per generated system (single-star or binary).
 | `binary_system_perimeter_km` | DOUBLE | nullable | Hill sphere, combined mass. |
 | `binary_heliosphere_radius_km` | DOUBLE | nullable | |
 | `binary_galactic_orbital_speed_kms`, `binary_galactic_orbital_period_gy` | DOUBLE | nullable | Added in v10. Circular orbital speed/period around the galactic center (see `stars.galactic_orbital_speed_kms` below) — independent of mass, so identical to the primary/secondary stars' own values, just mirrored here for the combined-pair row. |
-| `binary_galactic_position_change_interval_hours` | DOUBLE | nullable | Added in v12. How long until this pair's galactic motion would be noticeable (see `stars.galactic_position_change_interval_hours` below). `NULL` = `float('inf')` (see `_db._none_if_infinite`) as well as the usual "not `is_binary`" nullability. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -485,7 +485,6 @@ above (the `binary_*` columns), not here.
 | `heliosphere_radius_km` | DOUBLE | NOT NULL | |
 | `galactic_orbital_speed_kms` | DOUBLE | NOT NULL | Added in v10. Circular orbital speed around the galactic center (`utils.calculate_galactic_orbit`), from this system's actual distance from the galactic center where known (a sector-placed system), or the fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback otherwise — same fallback convention as `system_perimeter_km`. |
 | `galactic_orbital_period_gy` | DOUBLE | NOT NULL | Added in v10. Orbital period for the circular orbit above, in billions of years (Gy) — the same unit `age_gy`/`lifespan_gy` use. |
-| `galactic_position_change_interval_hours` | DOUBLE | nullable | Added in v12. How long this star must move along its galactic orbit before that motion would be noticeable — the time to displace by its own diameter at `galactic_orbital_speed_kms` (`utils.position_change_interval_hours`, `2 * radius_km / speed_kms`). `NULL` = `float('inf')` (a body with zero orbital speed — see `_db._none_if_infinite`), same convention as `lifespan_gy`. |
 
 ### `planets`
 
@@ -523,7 +522,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `updateOrbits.py` (see `orbit_simulation_state` below). |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`utils.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `updateOrbits.py` advances it. |
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`utils.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
-| `position_change_interval_hours` | DOUBLE | nullable | Added in v12. How long this body must move along its orbit before that motion would be noticeable — the time to displace by its own diameter at `orbital_speed_kms` (`utils.position_change_interval_hours`). `NULL` = `float('inf')` (a body with zero orbital speed — see `_db._none_if_infinite`), same convention as `stars.lifespan_gy`. Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
+| `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`utils.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
 
 ### `planet_evolutionary_paragraphs`
@@ -569,7 +568,7 @@ orbits. No self-reference here: moons never generate their own moons
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
 | `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `position_change_interval_hours`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `min_update_interval_years`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
 
 ### `moon_evolutionary_paragraphs`
 

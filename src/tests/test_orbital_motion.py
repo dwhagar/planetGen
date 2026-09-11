@@ -15,10 +15,11 @@ Also covers the later position/speed follow-up: `Planet.position_x/y/z`/
 `utils.orbital_position_au`/`circular_orbital_speed_kms` and
 `planetPhysics.update_orbital_position` (called both at generation and by
 `StarSystem.validate_system` whenever it corrects a planet's `distance`);
-and the noticeable-motion-interval follow-up after that:
-`Planet.position_change_interval_hours` (`utils.
-position_change_interval_hours`, `2 * radius_km / speed_kms` converted to
-hours) and its display formatter `utils.format_duration_hours`.
+and the floating-point update-guard follow-up after that:
+`Planet.min_update_interval_years` (`utils.minimum_update_interval_years`,
+`period_years * math.ulp(360.0) / 360` -- the shortest `elapsed_years`
+worth calling `_db.advance_orbital_phases` for before the phase delta
+added would be too small to change the stored value at all).
 
 DB-backed tests for the persistence/migration/update-script side of this
 feature (`insert_planet`/`insert_moon`'s new columns,
@@ -240,7 +241,7 @@ def test_serializable_fields_include_orbital_motion_attributes():
     for field in (
         "orbital_inclination_deg", "orbital_ascending_node_deg",
         "orbital_phase_deg", "position_x", "position_y", "position_z",
-        "orbital_speed_kms", "position_change_interval_hours", "rotation_period_hours",
+        "orbital_speed_kms", "min_update_interval_years", "rotation_period_hours",
     ):
         assert field in Planet.SERIALIZABLE_FIELDS
 
@@ -333,44 +334,66 @@ def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
 
 
 # ---------------------------------------------------------------------------
-# Noticeable-motion interval (CHANGELOG's "Noticeable-motion interval"
-# entry): `utils.position_change_interval_hours`/`format_duration_hours`,
-# plus their wiring into generation via `planetPhysics.update_orbital_position`.
+# Floating-point update guard (CHANGELOG's "Floating-point update guard"
+# entry): `utils.minimum_update_interval_years`, plus its wiring into
+# generation via `planetPhysics.update_orbital_position`.
 # ---------------------------------------------------------------------------
 
-from stellarObjects.utils import format_duration_hours, position_change_interval_hours
+from stellarObjects.utils import minimum_update_interval_years
 
 
-def test_position_change_interval_hours_matches_manual_formula():
-    interval = position_change_interval_hours(1000.0, 5.0)
-    expected = (2 * 1000.0 / 5.0) / 3600
+def test_minimum_update_interval_years_matches_manual_formula():
+    interval = minimum_update_interval_years(10.0)
+    expected = 10.0 * math.ulp(360.0) / 360
     assert interval == pytest.approx(expected, rel=1e-9)
 
 
-def test_position_change_interval_hours_is_infinite_for_zero_speed():
-    assert position_change_interval_hours(1000.0, 0.0) == float('inf')
-    assert position_change_interval_hours(1000.0, -1.0) == float('inf')
+def test_minimum_update_interval_years_scales_linearly_with_period():
+    """A pure function of period -- doubling the period should exactly
+    double the guard interval (both sides of the formula are linear in
+    period_years)."""
+    base = minimum_update_interval_years(5.0)
+    doubled = minimum_update_interval_years(10.0)
+    assert doubled == pytest.approx(2 * base, rel=1e-9)
 
 
-def test_position_change_interval_hours_matches_earth_order_of_magnitude():
-    """Earth: ~12,742 km diameter, ~29.8 km/s orbital speed -- real-world
-    intuition says this should land around 7 minutes (~0.117 hours)."""
-    interval = position_change_interval_hours(6371.0, 29.8)
-    assert 0.1 <= interval <= 0.14
+def test_minimum_update_interval_years_is_far_below_any_realistic_cadence():
+    """
+    For a 1-year period, the guard floor should be many orders of
+    magnitude below `updateOrbits.py`'s own "once a month or so" cadence
+    (a month is roughly 0.083 years) -- confirming this guard exists for
+    correctness against pathological callers, not because real usage ever
+    comes close to it.
+    """
+    interval = minimum_update_interval_years(1.0)
+    assert interval < 1e-10
+    assert interval > 0
 
 
-def test_format_duration_hours_matches_years_to_time_string_style():
-    assert format_duration_hours(float('inf')) == "never"
-    assert format_duration_hours(0.0) == "0 seconds"
-    assert format_duration_hours(1.0) == "1 hour"
-    assert format_duration_hours(25.0) == "1 day and 1 hour"
+def test_advancing_phase_by_less_than_the_guard_interval_is_a_true_float_noop():
+    """
+    Directly confirms the floating-point claim the guard is built on: at a
+    delta smaller than the guard interval, `MOD(phase + delta, 360)` (the
+    same expression `advance_orbital_phases` uses) really does round back
+    to the exact original phase in Python's own `float`, the same IEEE 754
+    double `DOUBLE` uses.
+    """
+    period_years = 3.0
+    phase_deg = 271.3384217  # arbitrary, not near a clean boundary
+    interval = minimum_update_interval_years(period_years)
+
+    # A comfortable margin below the guard interval (not exactly at it,
+    # to avoid a rounding-to-even tie-break right at the ULP boundary).
+    delta_deg = (interval * 0.1 / period_years) * 360
+    new_phase = math.fmod(phase_deg + delta_deg, 360)
+    assert new_phase == phase_deg
 
 
-def test_generated_bodies_have_finite_positive_position_change_interval(bodies):
+def test_generated_bodies_have_finite_positive_min_update_interval(bodies):
     planets, moons = bodies
     for body in planets + moons:
-        assert math.isfinite(body.position_change_interval_hours)
-        assert body.position_change_interval_hours > 0
+        assert math.isfinite(body.min_update_interval_years)
+        assert body.min_update_interval_years > 0
 
-        expected = position_change_interval_hours(body.radius, body.orbital_speed_kms)
-        assert body.position_change_interval_hours == pytest.approx(expected, rel=1e-9)
+        expected = minimum_update_interval_years(body.period)
+        assert body.min_update_interval_years == pytest.approx(expected, rel=1e-9)

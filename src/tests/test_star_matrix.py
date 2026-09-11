@@ -320,38 +320,6 @@ def test_sun_like_star_galactic_orbit_matches_real_measurements():
     assert 0.15 <= s.galactic_orbital_period_gy <= 0.30
 
 
-@pytest.mark.parametrize("star_type", ALL_STAR_TYPES)
-def test_galactic_position_change_interval_is_positive_and_finite(star_type):
-    """
-    No generated star falls back to the `float('inf')` degenerate case
-    (that only happens at galactic_center_dist_ly <= 0, structurally
-    unreachable through this fallback path -- see
-    `utils.calculate_galactic_orbit`'s own `distance_ly <= 0` guard).
-    """
-    for _ in range(TRIALS):
-        s = make_star(star_type)
-        assert math.isfinite(s.galactic_position_change_interval_hours)
-        assert s.galactic_position_change_interval_hours > 0
-
-
-def test_galactic_position_change_interval_matches_manual_formula():
-    from stellarObjects.utils import position_change_interval_hours
-
-    s = make_star("G2V")
-    expected = position_change_interval_hours(s.radius, s.galactic_orbital_speed_kms)
-    assert s.galactic_position_change_interval_hours == pytest.approx(expected, rel=1e-9)
-
-
-def test_sun_like_star_galactic_position_change_interval_is_a_couple_hours():
-    """
-    Sanity check against the hand-computed order of magnitude: a Sol-like
-    star's own diameter (~1.39 million km) divided by its ~206 km/s
-    galactic orbital speed comes out to roughly 1.5-2.5 hours.
-    """
-    s = make_star("G2V")
-    assert 0.5 <= s.galactic_position_change_interval_hours <= 5.0
-
-
 _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
     note["evolutionary_constraint_notes"]
     for note in prog_c.STAR_EVOLUTION.values()

@@ -343,53 +343,6 @@ def years_to_time_string(years):
     return " ".join(time_parts)
 
 
-def format_duration_hours(hours):
-    """
-    Formats a duration given in hours into a human-readable string
-    ("x days y hours z minutes w seconds"), omitting zero-value
-    components for brevity -- the hours-scale counterpart to
-    `years_to_time_string`, for durations too short to sensibly express
-    in years (`Star.galactic_position_change_interval_hours`,
-    `Planet.position_change_interval_hours`, both typically minutes to a
-    few hours -- see `position_change_interval_hours`'s docstring).
-    Includes seconds (`years_to_time_string` rounds to the nearest
-    minute), since a fast-moving, close-in moon can otherwise round away
-    to nothing at minute resolution.
-
-    Args:
-        hours (float): The number of hours to convert. `float('inf')`
-                       (a body with no orbital motion) is handled
-                       specially.
-
-    Returns:
-        str: A human-readable string representing the time duration, or
-            `"never"` for an infinite duration.
-    """
-    if hours == float('inf'):
-        return "never"
-
-    total_seconds = round(hours * 3600)
-    days, remainder = divmod(total_seconds, 86400)
-    hrs, remainder = divmod(remainder, 3600)
-    minutes, seconds = divmod(remainder, 60)
-
-    time_parts = []
-    if days > 0:
-        time_parts.append(f"{days} day{'s' if days > 1 else ''}")
-    if hrs > 0:
-        time_parts.append(f"{hrs} hour{'s' if hrs > 1 else ''}")
-    if minutes > 0:
-        time_parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
-    # Shown even at 0 if nothing else is -- a duration under half a
-    # second should still render as "0 seconds", not an empty string.
-    if seconds > 0 or not time_parts:
-        time_parts.append(f"{seconds} second{'s' if seconds != 1 else ''}")
-
-    if len(time_parts) > 1:
-        time_parts[-1] = f"and {time_parts[-1]}"
-    return " ".join(time_parts)
-
-
 def calculate_object_mass(object_class, object_radius, planet_classes, planet_density, object_density=None):
     """
     Calculates the mass of a celestial object in kilograms.
@@ -649,38 +602,55 @@ def orbital_position_au(distance_au, inclination_deg, ascending_node_deg, phase_
     return x, y, z
 
 
-def position_change_interval_hours(radius_km, speed_kms):
+def minimum_update_interval_years(period_years):
     """
-    Estimates how long a body must move along its orbit before that
-    motion would be noticeable -- the time to displace by its own
-    diameter, at its (constant, circular-orbit) speed.
+    The shortest `elapsed_years` worth advancing a body's
+    `orbital_phase_deg` for at all -- below this, the phase delta added is
+    smaller than `orbital_phase_deg`'s own floating-point resolution, so
+    `MOD(orbital_phase_deg + delta, 360)` is guaranteed to round right
+    back to the exact value already stored: a wasted write that changes
+    nothing. Exists specifically to guard `_db.advance_orbital_phases`
+    against that silent no-op, not as a narrative/display stat -- unlike
+    this package's other derived quantities, there is no scale at which a
+    human would want to read this number (it lands in the nanosecond
+    range for any realistic orbital period, see below).
 
-    A body-relative, observer-independent proxy for "visibly moved":
-    once a body has shifted by about its own width, it no longer overlaps
-    its earlier position at all -- a natural, unambiguous "distinctly
-    moved" threshold that needs only the body's own already-known
-    physical size and orbital speed, not an external vantage point or an
-    arbitrary angular-resolution constant. Reusable at any scale this
-    package models an orbit at: `Star.galactic_orbital_speed_kms`
-    (galactic orbit) and `Planet.orbital_speed_kms` (stellar/planetary
-    orbit) both feed the same formula here.
+    Derivation: `orbital_phase_deg` ranges over `[0, 360)`, stored as an
+    IEEE 754 double (MySQL `DOUBLE`, Python `float` -- identical
+    representation). The coarsest (least precise) representable step
+    anywhere in that range is the unit-in-the-last-place at magnitudes
+    just under 360 -- `math.ulp(360.0)` -- used here as a single,
+    domain-wide conservative bound rather than a per-row value that would
+    depend on the body's current phase (tighter near 0, coarser near 360)
+    and so would itself need updating every time phase does, for no real
+    benefit. A phase delta at or above this many degrees is guaranteed to
+    change the stored value, regardless of where in `[0, 360)` the
+    current phase happens to sit; anything smaller might not.
+
+    `elapsed_years / period_years * 360 >= ulp_deg`
+    `elapsed_years >= period_years * ulp_deg / 360`
+
+    Worked example: a 1-year period gives a floor around 5e-9 seconds --
+    roughly 16 orders of magnitude below `updateOrbits.py`'s own "once a
+    month or so" real-world cadence (see that module's docstring), so
+    this guard exists for correctness/defensiveness (a future caller
+    advancing time in much smaller steps, e.g. a fast-forward simulation)
+    rather than because today's actual usage pattern ever comes close to
+    triggering it.
 
     Args:
-        radius_km (float): The body's own physical radius, in km.
-        speed_kms (float): The body's orbital speed, in km/s.
+        period_years (float): The body's own orbital period, in years.
+                              Always positive and finite for a real
+                              generated planet/moon (Kepler's third law on
+                              a positive distance and mass).
 
     Returns:
-        float: Hours until the body has displaced by its own diameter, or
-              `float('inf')` if `speed_kms` is zero or negative (a body
-              with no orbital motion -- e.g. placed exactly at its
-              orbital anchor, the same degenerate case
-              `calculate_galactic_orbit` returns `0.0` speed for).
+        float: The minimum `elapsed_years` worth calling
+              `_db.advance_orbital_phases` for, for a body with this
+              period.
     """
-    if speed_kms <= 0:
-        return float('inf')
-    diameter_km = 2 * radius_km
-    seconds = diameter_km / speed_kms
-    return seconds / 3600
+    ulp_deg = math.ulp(360.0)
+    return period_years * ulp_deg / 360
 
 
 def split_into_syllables(name):

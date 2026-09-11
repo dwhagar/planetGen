@@ -247,33 +247,28 @@
 --   `StarSystem.validate_system` resolving an orbital overlap at
 --   generation time), never from phase advancing alone.
 --
--- v12: noticeable-motion interval. `stars` gains
---   `galactic_position_change_interval_hours` (and `star_systems` the
---   `binary_galactic_position_change_interval_hours` counterpart);
---   `planets`/`moons` gain `position_change_interval_hours`. All four
---   estimate how long a body must move along its orbit before that
---   motion would be noticeable -- the time to displace by its own
---   diameter at its already-known orbital speed (`utils.
---   position_change_interval_hours`: `2 * radius_km / speed_kms`,
---   converted to hours) -- a body-relative, observer-independent
---   threshold that needs only the body's own physical size and orbital
---   speed, not an external vantage point or an arbitrary angular
---   constant. Fixed at generation time for `planets`/`moons` (like
---   `orbital_speed_kms`, it doesn't depend on phase, so
---   `advance_orbital_phases` never touches it); `StarSystem.
---   validate_system` recomputes it alongside `orbital_speed_kms`
---   whenever it corrects a planet's `distance` post-hoc. All three
---   `stars`/`planets`/`moons` columns are nullable, same
---   NULL-means-`float('inf')` convention as `stars.lifespan_gy` (see
---   `_db._none_if_infinite`, which generalizes `_lifespan_gy`) -- pymysql
---   itself rejects a raw `float('inf')` before it ever reaches the
---   server ("inf can not be used with MySQL"), and a body with exactly
---   zero orbital speed (the degenerate case
---   `utils.calculate_galactic_orbit`/`circular_orbital_speed_kms` both
---   return for a body placed exactly at its orbital anchor, r=0 --
---   structurally unreachable through normal generation today, but not
---   guarded against at this function's own boundary) would otherwise
---   have no finite interval to store at all.
+-- v12: floating-point update guard. `planets`/`moons` gain
+--   `min_update_interval_years` -- the shortest `elapsed_years` worth
+--   calling `_db.advance_orbital_phases` for. Below this, the phase delta
+--   `elapsed_years` would add is smaller than `orbital_phase_deg`'s own
+--   IEEE 754 double-precision resolution, so `MOD(orbital_phase_deg +
+--   delta, 360)` is guaranteed to round right back to the exact value
+--   already stored -- a wasted write that changes nothing. Derived purely
+--   from `period_years` (`utils.minimum_update_interval_years`:
+--   `period_years * math.ulp(360.0) / 360` -- the coarsest representable
+--   step anywhere in `orbital_phase_deg`'s `[0, 360)` range, used as a
+--   single conservative bound rather than a per-row value that would
+--   itself need updating every time phase does), so it's fixed at
+--   generation time and only changes if `period_years` itself does (e.g.
+--   `StarSystem.validate_system` resolving an orbital overlap post-hoc,
+--   the same trigger `orbital_speed_kms` recomputes on); phase advancing
+--   alone never touches it. Not a narrative/display stat -- purely a
+--   guard value `advance_orbital_phases` reads to skip a row's `UPDATE`
+--   entirely when a call's `elapsed_years` wouldn't move it. Scoped to
+--   `planets`/`moons` only: `stars`' galactic-orbit values are fixed
+--   forever at generation time (no periodic update mechanism exists for
+--   them the way `advance_orbital_phases` exists for `orbital_phase_deg`),
+--   so there's nothing for this guard to protect there.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -549,7 +544,6 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_heliosphere_radius_km    DOUBLE,
     binary_galactic_orbital_speed_kms   DOUBLE,
     binary_galactic_orbital_period_gy   DOUBLE,
-    binary_galactic_position_change_interval_hours   DOUBLE,  -- v12 (see header comment) -- NULL = float('inf'), also NULL if not is_binary
 
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,
@@ -604,7 +598,6 @@ CREATE TABLE IF NOT EXISTS stars (
     heliosphere_radius_km     DOUBLE NOT NULL,
     galactic_orbital_speed_kms    DOUBLE NOT NULL,
     galactic_orbital_period_gy    DOUBLE NOT NULL,
-    galactic_position_change_interval_hours   DOUBLE,  -- v12 (see header comment) -- NULL = float('inf')
 
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
@@ -679,7 +672,7 @@ CREATE TABLE IF NOT EXISTS planets (
     position_y_km               DOUBLE NOT NULL,
     position_z_km               DOUBLE NOT NULL,
     orbital_speed_kms           DOUBLE NOT NULL,
-    position_change_interval_hours   DOUBLE,  -- v12 (see header comment) -- NULL = float('inf')
+    min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
 
     CONSTRAINT fk_planets_star_system
@@ -778,7 +771,7 @@ CREATE TABLE IF NOT EXISTS moons (
     position_y_km               DOUBLE NOT NULL,
     position_z_km               DOUBLE NOT NULL,
     orbital_speed_kms           DOUBLE NOT NULL,
-    position_change_interval_hours   DOUBLE,  -- v12 (see header comment) -- NULL = float('inf')
+    min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
 
     CONSTRAINT fk_moons_planet

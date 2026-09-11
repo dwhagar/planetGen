@@ -22,9 +22,15 @@ yet) rather than guessing a start time.
 `position_x/y/z_km` are recomputed in lockstep with `orbital_phase_deg`
 (both are handled by the same `advance_orbital_phases` call -- position is
 a pure function of distance/inclination/ascending-node/phase, so it has no
-independent update of its own). `orbital_inclination_deg`/
-`orbital_ascending_node_deg`/`orbital_speed_kms` (fixed at generation time)
-and `rotation_period_hours` (a static descriptive stat -- this generator
+independent update of its own). A body is skipped entirely (no `UPDATE`
+attempted at all, not just a no-op write) when this run's elapsed time is
+below that body's own `min_update_interval_years` -- the point past which
+the phase delta added would be smaller than `orbital_phase_deg`'s own
+floating-point resolution and so is guaranteed to round back to the exact
+value already stored (see `stellarObjects.utils.minimum_update_interval_years`).
+`orbital_inclination_deg`/`orbital_ascending_node_deg`/`orbital_speed_kms`/
+`min_update_interval_years` (fixed at generation time) and
+`rotation_period_hours` (a static descriptive stat -- this generator
 doesn't track rotational phase) are untouched; see
 `stellarObjects.planetPhysics.generate_orbital_motion_properties`.
 
