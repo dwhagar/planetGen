@@ -185,12 +185,12 @@ one step, and `sudo ./update.sh` later to pull and apply updates (plain
 comment). [`examples/apache/`](docs/apache-deployment.md) has an example
 virtual host config (default document root `/var/lib/planetGen/src/html`,
 mounting the API at `/api` via `WSGIScriptAlias` on the same vhost) and
-the `set-permissions.sh` script it calls. Site-level settings (currently a
-name and base URL, unrelated to the `PLANETGEN_MYSQL_*`/
-`PLANETGEN_API_BASE_URL`/`PLANETGEN_DEBUG` environment variables) live in
-a `webconfig.json` file at the repo root,
-kept outside `src/html/`'s served document root the same way `db/` already
-is -- see [`webconfig.md`](docs/webconfig.md). See
+the `set-permissions.sh` script it calls. Every deployment-level setting
+(MySQL connection details, rate limits, site name/base URL, and more) can
+be set once in a `config.json` file at the repo root, instead of (or
+alongside) the `PLANETGEN_*` environment variables, kept outside
+`src/html/`'s served document root the same way `db/` already is -- see
+[`config.md`](docs/config.md). See
 [`docs/html-interface.md`](docs/html-interface.md) for how the interface works and how to
 deploy or test it locally.
 

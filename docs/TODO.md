@@ -70,7 +70,7 @@ open items need working detail.
   `star_type_prefix`/`sector_id`, so "every Class D planet smaller than
   Earth" can't be asked of this particular tool (the web/API faceted
   search now supports a planet/moon/star size range plus class/body/life
-  tags -- CHANGELOG [5.23.0] -- this item is specifically about the
+  tags -- CHANGELOG [5.24.0] -- this item is specifically about the
   separate `queryDb.py` CLI never getting its own `planets` subcommand).
   See the TODO comment in `src/queryDb.py` near `process_args` for the
   concrete shape (`--class`, `--min-radius-km`/`--max-radius-km`) this
@@ -113,18 +113,18 @@ and git history.
   BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
   `StarSystem._should_generate_binary`) — the same tri-state contract
   (`True`/`False` force, `None` rolls chance) every other `SystemConfig`
-  flag already follows — CHANGELOG [5.25.0].
+  flag already follows — CHANGELOG [5.26.0].
 - **`estimate_num_objects` now derives its planet/belt ceiling from real
   protoplanetary-disk physics** (Minimum Mass Solar Nebula surface
   density, Hayashi 1981; oligarchic-growth isolation mass, Lissauer 1993/
   Kokubo & Ida 2000-2002; real disk-mass-vs-stellar-mass scaling,
   Andrews 2013/Pascucci 2016) instead of an arbitrary curve fit to
   stellar mass, and reuses the exact mutual-Hill-radius spacing rule
-  (`MUTUAL_HILL_RADII_SEPARATION`, [5.23.0]) that will later constrain
+  (`MUTUAL_HILL_RADII_SEPARATION`, [5.24.0]) that will later constrain
   actual placement, so the two are provably consistent
   (`StarSystem._estimate_max_objects_from_disk_physics`,
   `utils.snow_line_au`/`disk_surface_density_scale`/
-  `mmsn_surface_density_gcm2`/`isolation_mass_kg`) — CHANGELOG [5.24.0].
+  `mmsn_surface_density_gcm2`/`isolation_mass_kg`) — CHANGELOG [5.25.0].
 - **Orbital spacing now uses the mutual Hill radius, not either planet's
   own individual one.** Real stability criteria (Gladman 1993; Chambers,
   Wetherill & Boslough 1996; Smith & Lissauer 2009) express minimum
@@ -136,21 +136,21 @@ and git history.
   closed form for the exact minimum distance rather than approximated at
   the pre-correction position (the naive version measurably undershot,
   since the mutual radius depends on the average of both distances and
-  grows once the correction moves one of them) — CHANGELOG [5.23.0].
+  grows once the correction moves one of them) — CHANGELOG [5.24.0].
 - **`GET /api/health` no longer crashes on an unreachable database.**
   `routes.get_db()` now catches `open_readonly`'s `SystemExit` and
   re-raises it as an `ApiError` (503) -- fixes `/health` itself and,
   since every other read route shares `get_db()`, every one of them too
   (previously an uncaught `SystemExit`, a `BaseException`, would
   propagate straight through Flask's dispatch instead of becoming any
-  HTTP response) — CHANGELOG [5.23.0].
+  HTTP response) — CHANGELOG [5.24.0].
 - **Faceted search gained a min/max size (`radius_km`) range for
   stars/planets/moons.** `queryDb.search`'s new `sizes` argument (`GET
   /api/search`'s `star_min_radius_km`/`_max_radius_km`, likewise
   `planet_`/`moon_`) filters alongside the existing class/body/life tags;
   `html/search.py` gained matching form fields, active-filter chips, and
   a Radius column on the Stars/Planets/Moons result panels — CHANGELOG
-  [5.23.0]. `queryDb.py`'s own CLI still has no `planets`/`moons`
+  [5.24.0]. `queryDb.py`'s own CLI still has no `planets`/`moons`
   subcommand at all -- see "Open items" > "Search" above, a narrower,
   still-open item.
 - **Sector Map star dots now rotate into the galaxy frame at render
@@ -165,7 +165,7 @@ and git history.
   `+X`) from the sector's own stored `center_x/y/z_pc` alone, reusing
   `stellarObjects.sectorGeometry.cube_orientation` -- the same basis that
   module already computes for this sector's own wedge vertices -- so no
-  new stored orientation column was needed — CHANGELOG [5.23.0].
+  new stored orientation column was needed — CHANGELOG [5.24.0].
 - `validate_system`'s orbital-overlap correction could strand a planet
   outside the zone its class needs (e.g. an "Earth-like" Class M at
   ~30K, hundreds of thousands of AU out — 10% of a 400-system sample

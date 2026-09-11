@@ -54,6 +54,7 @@ import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
 from . import physical_constants
+from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
@@ -87,10 +88,13 @@ CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
 CONTROL_DB_ENV_VAR = "PLANETGEN_CONTROL_DATABASE"
 """str: Env var naming the one MySQL schema the control plane lives in
 (admin identities are global to a deployment, not per-galaxy -- see
-`control_schema.sql`'s header comment)."""
+`control_schema.sql`'s header comment). Falls back to `config.json`'s
+`control_database` (see `stellarObjects.appconfig`), then
+`DEFAULT_CONTROL_DATABASE`, when unset."""
 
 DEFAULT_CONTROL_DATABASE = "planetgen_control"
-"""str: Default control-schema name when `CONTROL_DB_ENV_VAR` isn't set."""
+"""str: Default control-schema name when neither `CONTROL_DB_ENV_VAR` nor
+`config.json`'s `control_database` is set."""
 
 
 class MySQLConfig:
@@ -111,14 +115,20 @@ class MySQLConfig:
     (every test in this project's own suite included -- see
     `src/tests/conftest.py`) builds its own `MySQLConfig` instance
     directly rather than going through environment variables at all.
+
+    Precedence for each field left unset here is: the matching
+    `PLANETGEN_MYSQL_*` environment variable, then `config.json`'s
+    `mysql` section (see `stellarObjects.appconfig`), then the
+    hardcoded default below.
     """
 
     def __init__(self, host=None, port=None, user=None, password=None, database=None):
-        self.host = host if host is not None else os.environ.get("PLANETGEN_MYSQL_HOST", "127.0.0.1")
-        self.port = int(port if port is not None else os.environ.get("PLANETGEN_MYSQL_PORT", 3306))
-        self.user = user if user is not None else os.environ.get("PLANETGEN_MYSQL_USER", "planetgen")
-        self.password = password if password is not None else os.environ.get("PLANETGEN_MYSQL_PASSWORD", "")
-        self.database = database if database is not None else os.environ.get("PLANETGEN_MYSQL_DATABASE", "planetgen")
+        defaults = load_config()["mysql"]
+        self.host = host if host is not None else os.environ.get("PLANETGEN_MYSQL_HOST", defaults["host"])
+        self.port = int(port if port is not None else os.environ.get("PLANETGEN_MYSQL_PORT", defaults["port"]))
+        self.user = user if user is not None else os.environ.get("PLANETGEN_MYSQL_USER", defaults["user"])
+        self.password = password if password is not None else os.environ.get("PLANETGEN_MYSQL_PASSWORD", defaults["password"])
+        self.database = database if database is not None else os.environ.get("PLANETGEN_MYSQL_DATABASE", defaults["database"])
 
     def _key(self):
         """A hashable identity for this config, used to key the pool
@@ -382,13 +392,15 @@ DB_PREFIX_ENV_VAR = "PLANETGEN_MYSQL_DATABASE_PREFIX"
 `resolve_database` filter by -- see `MySQLConfig`'s own `database` default.
 Shared by every entry point that offers a choice among several MySQL
 schemas on one server (the `html/` CGI browser's `?db=` picker, and the
-Flask API's own `?db=`/`/api/databases`, both via this one implementation)."""
+Flask API's own `?db=`/`/api/databases`, both via this one implementation).
+Falls back to `config.json`'s `mysql.database_prefix` (see
+`stellarObjects.appconfig`), then to `DEFAULT_DB_PREFIX`, when unset."""
 
 DEFAULT_DB_PREFIX = "planetgen"
 """str: Matches `MySQLConfig`'s own default database name -- a deployment
 with just one schema names it `planetgen` and never needs to set
-`DB_PREFIX_ENV_VAR` at all; one with several names them
-`planetgen_<something>` to share the prefix."""
+`DB_PREFIX_ENV_VAR` (or `config.json`'s `mysql.database_prefix`) at all;
+one with several names them `planetgen_<something>` to share the prefix."""
 
 
 def list_databases(base_config=None, prefix=None):
@@ -417,7 +429,12 @@ def list_databases(base_config=None, prefix=None):
                     `"unknown"` when the storage engine doesn't track it).
     """
     base_config = base_config or DEFAULT_MYSQL_CONFIG
-    prefix = prefix or os.environ.get(DB_PREFIX_ENV_VAR) or DEFAULT_DB_PREFIX
+    prefix = (
+        prefix
+        or os.environ.get(DB_PREFIX_ENV_VAR)
+        or load_config()["mysql"]["database_prefix"]
+        or DEFAULT_DB_PREFIX
+    )
     conn = get_connection(
         MySQLConfig(
             host=base_config.host, port=base_config.port,
@@ -544,7 +561,7 @@ def control_mysql_config(base_config=None):
             `CONTROL_DB_ENV_VAR` (or `DEFAULT_CONTROL_DATABASE`).
     """
     base_config = base_config or DEFAULT_MYSQL_CONFIG
-    database = os.environ.get(CONTROL_DB_ENV_VAR, DEFAULT_CONTROL_DATABASE)
+    database = os.environ.get(CONTROL_DB_ENV_VAR) or load_config()["control_database"] or DEFAULT_CONTROL_DATABASE
     return MySQLConfig(
         host=base_config.host, port=base_config.port,
         user=base_config.user, password=base_config.password, database=database,

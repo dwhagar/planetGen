@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.25.0] - 2026-09-11
+## [5.26.0] - 2026-09-11
 
 ### Changed
 - **`SystemConfig.BINARY_SYSTEM` now follows the same tri-state contract
@@ -35,7 +35,7 @@
   now pin `BINARY_SYSTEM=False` explicitly, since binary-vs-single was
   always incidental to what each was actually testing.
 
-## [5.24.0] - 2026-09-11
+## [5.25.0] - 2026-09-11
 
 ### Changed
 - **`StarSystem.estimate_num_objects` now derives its planet/belt ceiling
@@ -43,7 +43,7 @@
   to stellar mass.** The old formula (`BASE_MAX_SYSTEM_OBJECTS *
   (1 + log10(solar_masses))`, base 15) had no grounding in orbital
   dynamics and no relationship at all to the mutual-Hill-radius spacing
-  rule `validate_system` enforces ([5.23.0]) -- two disconnected dials
+  rule `validate_system` enforces ([5.24.0]) -- two disconnected dials
   governing "how many" and "how far apart," tuned independently by feel.
   The replacement, `StarSystem._estimate_max_objects_from_disk_physics`,
   walks outward from the same inner-edge distance `_generate_planets`
@@ -108,7 +108,7 @@
   (deterministic, no `random.randint` draw) the same way test_systems.py
   already does.
 
-## [5.23.0] - 2026-09-11
+## [5.24.0] - 2026-09-11
 
 ### Changed
 - **Orbital spacing between adjacent planets now uses their *mutual* Hill
@@ -204,6 +204,34 @@
   length-preservation, the on-galactic-axis degeneracy case, and that
   `render_map_panel` actually renders a different on-screen position for
   a placed vs. unplaced sector.
+
+## [5.23.0] - 2026-09-11
+
+### Added
+- **`config.json`: one unified deployment config file, replacing
+  `webconfig.json`.** Every entry point in this project (generation CLIs,
+  the Flask API, the `html/` CGI browser) used to read its own scattered
+  `PLANETGEN_*` environment variables, each with its own hardcoded
+  default -- fine per-variable, but it meant a deployment that just wants
+  "one MySQL server, one account, one API base URL" still had to set half
+  a dozen `SetEnv`/`EnvironmentFile` lines to get there. `webconfig.json`
+  existed to solve exactly this for the web interface, but only ever
+  covered `site_name`/`base_url` plus three `db_*` placeholders that
+  predated the MySQL port and were never wired to anything.
+  `stellarObjects.appconfig.load_config()` replaces it: a single
+  `config.json` at the repo root, deep-merged onto built-in defaults, now
+  covering the read-only and write-capable MySQL connections, the control
+  schema name, the database-listing prefix, the API's rate limits, the
+  admin cookie's `Secure` flag, the debug-page toggle, and the site's own
+  name/base URL/API endpoint -- see `docs/config.md` for the full field
+  list. Every `PLANETGEN_*` environment variable still works and still
+  takes precedence over `config.json` (needed for, e.g.,
+  `planetgen-orbits@.service`'s per-instance
+  `PLANETGEN_MYSQL_DATABASE=%i`); `config.json` only adds a place to set
+  the shared defaults once instead of repeating them everywhere.
+  `config.json.example` (repo root) is the committed template;
+  `config.json` itself is gitignored, next to the `webconfig.json` entry
+  it replaces.
 
 ## [5.22.0] - 2026-09-11
 

@@ -26,16 +26,26 @@ alongside `html/` in a real deployment.
 
 import json
 import os
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 
-API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL", "http://127.0.0.1/api")
+# stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
+# at src/html/lib/, two levels down from src/ -- add src/ to sys.path the
+# same way every other html/ script already does (see e.g. nav.py) so
+# `stellarObjects.appconfig` is importable here too.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from stellarObjects.appconfig import load_config  # noqa: E402
+
+API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL") or load_config()["api_base_url"]
 """str: Base URL of the planetGen API's `/api` mount point. Defaults to
 the same host this CGI script itself runs on (see
 `examples/apache/planetgen.conf.example`'s `WSGIScriptAlias /api`) --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
-for local testing) when the API is deployed at a different host/port,
+for local testing), or `config.json`'s `api_base_url` (see
+`docs/config.md`), when the API is deployed at a different host/port,
 e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own dev
 server running alongside a locally-invoked CGI script."""
 
