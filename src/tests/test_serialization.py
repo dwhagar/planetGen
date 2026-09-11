@@ -193,7 +193,13 @@ def test_star_system_round_trip_single_star_full_fidelity():
 
     system, _ = _first_matching(
         rich_enough,
-        lambda: make_system("G2V", MOONS=True, ASTEROID_BELT=True, MAX_PLANETS=True, HABITABLE_WORLD=True),
+        # BINARY_SYSTEM pinned False: this test is specifically the
+        # single-star case (see test_star_system_round_trip_binary_...
+        # below for the binary one) -- `reloaded.star is
+        # reloaded.primary_star` a few lines down only holds for a single
+        # star; `__init__` never repoints `primary_star` at the
+        # `BinaryStarProxy` it reassigns `star` to.
+        lambda: make_system("G2V", MOONS=True, ASTEROID_BELT=True, MAX_PLANETS=True, HABITABLE_WORLD=True, BINARY_SYSTEM=False),
     )
 
     # distance (not name) is the one attribute common to both Planet and

@@ -28,7 +28,13 @@ from .doubleStar import BinaryStarProxy
 from . import physical_constants, planetLife, planetPhysics, program_constants
 from .planetData import Planet
 from .starData import Star
-from .utils import to_paragraph
+from .utils import (
+    disk_surface_density_scale,
+    mmsn_surface_density_gcm2,
+    isolation_mass_kg,
+    snow_line_au,
+    to_paragraph,
+)
 
 # Tracks the shape of `StarSystem.to_dict()`'s output (the serialized
 # object-graph -- see TODO.md's Phase 1), independent of
@@ -130,7 +136,7 @@ class StarSystem:
         self.planets = []
         self.stars = [self.primary_star] # Keep track of individual stars
 
-        if self.system_config.BINARY_SYSTEM:
+        if self._should_generate_binary():
             # Create a copy of the system_config for the secondary star
             secondary_star_config = copy.deepcopy(self.system_config)
             # Ensure LARGE_STAR is not forced for the secondary star
@@ -196,6 +202,36 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+
+    def _should_generate_binary(self):
+        """
+        Decides whether this system gets a secondary star, honoring
+        `system_config.BINARY_SYSTEM`'s tri-state contract the same way
+        every other tri-state flag (`HABITABLE_WORLD`, `ASTEROID_BELT`,
+        etc.) does: `True`/`False` force the outcome, `None` (the default)
+        rolls real chance instead of always coming out single.
+
+        That "real chance" is
+        `program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
+        keyed by the *primary* star's already-resolved spectral letter
+        (`self.primary_star.type[0]`) -- real stellar-multiplicity surveys
+        (Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
+        2017, cited on that table) find companionship rate rising sharply
+        with primary mass, from ~26% for M dwarfs up to ~90%+ for O stars,
+        not a single flat rate. This runs after the primary star already
+        exists (`__init__` constructs `self.star`/`self.primary_star`
+        first) specifically so its real, already-rolled spectral type
+        can drive the lookup.
+
+        Returns:
+            bool: Whether to generate a secondary star.
+        """
+        if self.system_config.BINARY_SYSTEM is not None:
+            return bool(self.system_config.BINARY_SYSTEM)
+
+        letter = self.primary_star.type[0] if self.primary_star.type else 'G'
+        probability = program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
+        return random.random() < probability
 
     def _generate_planets(self):
         """
@@ -627,15 +663,17 @@ class StarSystem:
 
     def estimate_num_objects(self):
         """
-        Estimates the number of objects in a star system based on the star's mass.
+        Estimates the number of objects in a star system from real
+        protoplanetary-disk physics, rather than an arbitrary curve fit to
+        the star's mass alone.
 
-        This method calculates the potential number of celestial objects a star
-        can support based on its mass. The number of objects scales with the
-        star's mass, with more massive stars being able to support more objects.
-        The calculation is tempered by a logarithmic function to prevent an
-        excessive number of objects for very massive stars. The final number can
-        be a random value between the minimum and calculated maximum, or the
-        maximum/minimum itself if `MAX_PLANETS` is True/False.
+        `_estimate_max_objects_from_disk_physics` derives a ceiling from
+        the star's own disk-mass budget (scaled from the Sun's own
+        Minimum Mass Solar Nebula -- see that method's docstring) rather
+        than a logarithmic fudge factor. The final number is a random
+        value between the minimum and that ceiling, or the ceiling/minimum
+        itself if `MAX_PLANETS` is True/False -- this part of the
+        contract is unchanged from before.
 
         `NUM_ORBITS`, when set, bypasses this estimate entirely and is
         returned as-is. `PLANETS` set to False forces zero objects; set to
@@ -650,19 +688,7 @@ class StarSystem:
         if self.system_config.NUM_ORBITS is not None:
             return self.system_config.NUM_ORBITS
 
-        solar_masses = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
-
-        # This provides a continuous scaling factor based on mass.
-        # For a 1 solar mass star, this is 1.
-        # For smaller stars, it's < 1; for larger stars, it's > 1.
-        # The logarithm helps temper the explosive growth for very massive stars.
-        scaling_factor = 1 + math.log10(solar_masses) if solar_masses >= 1 else solar_masses
-
-        # Base number of objects for a 1 solar mass star is 15.
-        max_objects = program_constants.BASE_MAX_SYSTEM_OBJECTS * scaling_factor
-        if max_objects > program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS:
-            max_objects = program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
-        max_objects = math.ceil(max_objects)
+        max_objects = self._estimate_max_objects_from_disk_physics()
 
         min_objects = 1 if self.system_config.PLANETS is True else 0
         max_objects = max(max_objects, min_objects)
@@ -672,6 +698,84 @@ class StarSystem:
         if self.system_config.MAX_PLANETS is False:
             return min_objects
         return random.randint(min_objects, max_objects)
+
+    def _estimate_max_objects_from_disk_physics(self):
+        """
+        Derives a physically-grounded ceiling on planet/belt count from
+        this system's own protoplanetary disk, instead of an arbitrary
+        curve fit to stellar mass.
+
+        Real planet formation gives a natural way to turn "how much solid
+        material did this star's disk have" into "how many planets could
+        that have made": embryos grow by clearing their own feeding zone
+        until they reach their oligarchic-growth *isolation mass*
+        (`utils.isolation_mass_kg` -- Lissauer 1993; Kokubo & Ida 2000,
+        2002), then space apart from their neighbors by the same *mutual*
+        Hill radius `_mutual_min_distance_au` already enforces during
+        placement (`program_constants.MUTUAL_HILL_RADII_SEPARATION`) --
+        so this walk and that spacing rule are provably consistent with
+        each other, unlike the old log-mass formula, which had no
+        relationship to it at all.
+
+        The walk starts at the same inner-edge distance
+        `_generate_planets` itself seeds its first slot at
+        (`program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor`)
+        and steps outward -- at each step, computing the local isolation
+        mass from the disk's surface density there (scaled for this star
+        via `utils.disk_surface_density_scale`, boosted beyond the snow
+        line via `utils.snow_line_au`), then advancing by that embryo's
+        own mutual-Hill-radius feeding zone -- until reaching the disk's
+        outer edge, at
+        `program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times
+        the snow line (real disks are truncated far short of
+        `self.star.system_perimeter`'s galactic-tidal scale; see that
+        constant's docstring), or `ABSOLUTE_MAX_SYSTEM_OBJECTS` isolation-
+        mass slots, whichever comes first.
+
+        Not every one of those oligarchs survives as a final planet --
+        real N-body integrations of the subsequent giant-impact phase
+        (Chambers 2001) show most merge or get ejected -- so the raw slot
+        count is scaled down by
+        `program_constants.GIANT_IMPACT_SURVIVAL_FRACTION` before being
+        returned.
+
+        Returns:
+            int: The physically-derived ceiling on this system's object
+                count (`max_objects`, as `estimate_num_objects` already
+                names it).
+        """
+        star_mass_kg = self.star.mass
+        star_factor = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+        snow_line = snow_line_au(self.star.luminosity)
+        density_scale = disk_surface_density_scale(star_mass_kg)
+        outer_edge_au = min(
+            program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
+            self.star.system_perimeter,
+        )
+
+        distance_au = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
+        oligarch_count = 0
+        while (
+            distance_au < outer_edge_au
+            and oligarch_count < program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
+        ):
+            surface_density = mmsn_surface_density_gcm2(distance_au, snow_line, density_scale)
+            embryo_mass_kg = isolation_mass_kg(distance_au, surface_density, star_mass_kg)
+
+            # Two neighboring oligarchs of roughly the same isolation mass
+            # (2 * embryo_mass_kg is the pair's combined mass) -- the same
+            # kappa/clamp `_mutual_min_distance_au` uses, so this step and
+            # that later spacing check agree on how far apart is "enough."
+            kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
+                (2 * embryo_mass_kg) / (3 * star_mass_kg)
+            ) ** (1 / 3)
+            kappa = min(kappa, 1.8)
+
+            distance_au *= (1 + kappa / 2) / (1 - kappa / 2)
+            oligarch_count += 1
+
+        max_objects = math.ceil(oligarch_count * program_constants.GIANT_IMPACT_SURVIVAL_FRACTION)
+        return min(max_objects, program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS)
 
     def validate_system(self):
         """
@@ -686,6 +790,14 @@ class StarSystem:
         The method accounts for the different types of objects, such as planets
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
+        Two adjacent planets' minimum separation is enforced via their
+        *mutual* Hill radius (`_mutual_min_separation_au`), not either
+        one's own individual Hill radius alone -- see
+        `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+        why. A belt has no mass/Hill-radius concept of its own, so any
+        correction involving one still falls back to the fixed
+        `MIN_ASTEROID_BELT_SEPARATION` or the single real planet's own
+        `min_orbit_distance`, whichever case applies.
         If an adjustment is made to a planet (as opposed to an asteroid belt,
         which carries no class/climate of its own), `_reconcile_moved_planet`
         re-derives its zone from the corrected distance and, if its
@@ -732,10 +844,70 @@ class StarSystem:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         self._reconcile_moved_planet(planet)
                 else:
-                    min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
-                    if distance_to_last < min_orbit:
-                        planet.distance += min_orbit + additional_correction
-                        self._reconcile_moved_planet(planet)
+                    # Bounded, not a single shot: reclassifying `planet`
+                    # (inside `_reconcile_moved_planet`) can change its own
+                    # `mass`, which the mutual Hill radius depends on --
+                    # re-deriving the requirement against the *new* mass
+                    # can call for a further push, so retry until a push
+                    # doesn't trigger another reclassification (in
+                    # practice at most 2 iterations; the cap is just a
+                    # guard against a pathological cycle).
+                    for _ in range(3):
+                        min_distance = self._mutual_min_distance_au(planet, last_planet)
+                        if planet.distance >= min_distance:
+                            break
+                        planet.distance = min_distance
+                        if not self._reconcile_moved_planet(planet):
+                            break
+
+    def _mutual_min_distance_au(self, planet, last_planet):
+        """
+        The closest `planet` (the later/farther of the pair) can stably
+        sit to `last_planet` (fixed -- it's already been placed and
+        won't move again this pass), via their *mutual* Hill radius
+        (`utils.mutual_hill_radius_m`) rather than either one's own
+        individual Hill radius alone -- see
+        `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+        the stability-literature basis.
+
+        Solved in closed form for `planet`'s own distance rather than
+        evaluated once at the current (pre-correction) positions and
+        added on top: the mutual Hill radius depends on the *average* of
+        the two distances, so a naive "compute now, then push `planet`
+        out by that much" approximation understates the requirement --
+        moving `planet` out raises the average, which raises the
+        requirement further, and `MUTUAL_HILL_RADII_SEPARATION`'s margin
+        (10x) is large enough that this understatement is measurable, not
+        just a rounding-level slip (confirmed by a real
+        `assert_no_orbital_overlap` failure before this closed form
+        replaced the naive version).
+
+        Derivation: let d = `last_planet.distance` (fixed this pass), x =
+        `planet`'s target distance, and kappa =
+        `MUTUAL_HILL_RADII_SEPARATION * ((m_planet + m_last) / (3 *
+        M_star)) ** (1/3)`. The stability requirement `x - d >= kappa *
+        (x + d) / 2` rearranges to `x >= d * (1 + kappa/2) / (1 -
+        kappa/2)`.
+
+        Args:
+            planet (Planet): The planet whose distance may need raising.
+            last_planet (Planet): The fixed reference planet, closer to
+                                  the star.
+
+        Returns:
+            float: The minimum distance (AU) `planet` can sit at,
+                  measured from the star -- not a gap.
+        """
+        kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
+            (planet.mass + last_planet.mass) / (3 * self.star.mass)
+        ) ** (1 / 3)
+        # A pair whose combined mass is a large enough fraction of the
+        # star's own that kappa approaches/exceeds 2 has no finite stable
+        # separation under this linear model at all -- clamp well short
+        # of that so the formula below always returns a large-but-finite,
+        # rather than negative or infinite, distance.
+        kappa = min(kappa, 1.8)
+        return last_planet.distance * (1 + kappa / 2) / (1 - kappa / 2)
 
     def _reconcile_moved_planet(self, planet):
         """
@@ -773,6 +945,13 @@ class StarSystem:
         `rotation_period_hours` can itself be period-derived (a tidally
         locked moon's day equals its orbit) in a way an ordinary planet's
         never is, and a period change can flip whether that still holds.
+
+        Returns:
+            bool: True if `planet` itself was reclassified (and so may
+                 have come out with a different `mass` than before --
+                 relevant to `validate_system`'s mutual-Hill-radius
+                 spacing check, which depends on both planets' masses);
+                 False if its existing class remained valid.
         """
         reclassified = planetPhysics.reconcile_zone_and_class(planet, planet.star.mass)
         if not reclassified:
@@ -789,6 +968,8 @@ class StarSystem:
                 if reclassified:
                     moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
+
+        return reclassified
 
     def __str__(self):
         """

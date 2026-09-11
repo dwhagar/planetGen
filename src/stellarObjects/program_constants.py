@@ -24,9 +24,64 @@ INITIAL_PLANET_DISTANCE_FACTOR = 0.55
 ASTEROID_BELT_PROBABILITY = 0.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
-BASE_MAX_SYSTEM_OBJECTS = 15
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
 MIN_ASTEROID_BELT_SEPARATION = 0.05
+
+# Minimum stable orbital separation between two adjacent planets, in units
+# of their *mutual* Hill radius (utils.mutual_hill_radius_m -- the pair's
+# combined mass and average distance, not either body's own individual
+# Hill radius alone). The analytically rigorous minimum for guaranteed
+# two-planet Hill stability in the circular, coplanar case is 2*sqrt(3)
+# ~= 3.46 mutual Hill radii (Gladman 1993); long-term (10^8-10^9 orbit)
+# N-body integrations of systems with more than two planets recommend a
+# larger safety margin, commonly cited around 8-10 mutual Hill radii
+# (Chambers, Wetherill & Boslough 1996; Smith & Lissauer 1999/2009). This
+# generator uses the upper/safer end of that range -- see
+# `StarSystem.validate_system`'s planet-planet spacing check, which is
+# the only place this applies (a moon's own orbital limit around its
+# parent is a single-body Hill-sphere question, not a mutual one -- see
+# `Planet.min_orbit_distance`/`planetPhysics.generate_moons`).
+MUTUAL_HILL_RADII_SEPARATION = 10
+
+# Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
+# to carry more solid mass around more massive stars, and steeply so --
+# not the flat "1 + log10(solar_masses)" scaling the old
+# StarSystem.estimate_num_objects formula used. Disk dust-mass-vs-
+# stellar-mass surveys (Andrews et al. 2013, Taurus; Pascucci et al. 2016,
+# multi-region) find M_dust ~ M_star^1.8 in young (~1-3 Myr) star-forming
+# regions, steepening further (~M_star^2.7) in older ones. This scales
+# `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2` for any given
+# star relative to the Sun -- see `utils.disk_surface_density_scale`,
+# used by `StarSystem._estimate_max_objects_from_disk_physics`. The
+# younger-region exponent is used since this generator has no notion of a
+# system's disk-formation age (only its current, post-formation age).
+DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
+
+# Real disks are truncated far short of a star's own galactic-tidal Hill
+# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU) --
+# viscous spreading and photoevaporation cut them off at tens to a few
+# hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
+# scales with the same star-dependent quantity that sets where solids can
+# even condense in the first place: the snow line
+# (`physical_constants.SNOW_LINE_AU_AT_1_LSUN`/`utils.snow_line_au`) --
+# our own Solar System's own giant-planet/Kuiper-belt region extends to
+# roughly this same multiple (~18x) of its own 2.7 AU snow line. See
+# `StarSystem._estimate_max_objects_from_disk_physics`.
+DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
+
+# The disk-physics walk (`StarSystem._estimate_max_objects_from_disk_physics`)
+# first counts how many isolation-mass "oligarchs" (Kokubo & Ida
+# 2000/2002) the disk's solid budget can support, spaced by their own
+# mutual Hill radius -- but not every oligarch survives as a final planet.
+# N-body integrations of the subsequent giant-impact phase (Chambers 2001)
+# show a large fraction of oligarchs merge or get ejected before the
+# system settles down; only a minority survive as the final planet
+# count. This is the multiplicative attrition factor applied to the raw
+# oligarch count. Tuned toward the middle of that literature's range
+# (rather than one precise figure) so a solar-mass star's typical final
+# count stays in the same well-tested, playable range this generator
+# already verified via repeated full-suite runs (see CHANGELOG.md).
+GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 
 # How many times StarSystem.__init__ retries its whole placement loop (fresh
 # object count, positions, and validate_system pass, same star) before
@@ -277,6 +332,38 @@ RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
 PERCENT_MULTIPLIER = 100
 SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
 SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
+
+# Real stellar-multiplicity surveys consistently find binary/multiple
+# companionship rising with primary mass, not a single flat rate: low-mass
+# M dwarfs are the *least* likely to have a companion, while the most
+# massive O stars are very nearly certain to. Keyed by spectral letter
+# (`Star.type[0]`) the same way SPECTRAL_PROBABILITIES_NORMAL above is,
+# and used the same way when `SystemConfig.BINARY_SYSTEM` is left at its
+# default `None` -- see `StarSystem._should_generate_binary`. Anchor
+# points, in solar-mass order:
+#   M: 0.26  -- Duchene & Kraus 2013 (Annual Review of Astronomy and
+#               Astrophysics 51:269-310), low-mass-star multiplicity
+#               fraction 26 +/- 3%.
+#   G: 0.44  -- Raghavan et al. 2010 (ApJS 190:1), solar-type (F6-K3)
+#               multiplicity fraction 46% (Duchene & Kraus's own review
+#               cites this population as 44 +/- 2%; G anchors the middle
+#               of that same F/G/K grouping here).
+#   F, K: 0.47/0.40 -- interpolated either side of the G anchor along the
+#               same "solar-type" grouping (F/G/K aren't broken out
+#               separately in the literature above), consistent with the
+#               broader monotonic-with-mass trend every other anchor here
+#               shows.
+#   A, B: 0.55/0.65 -- Duchene & Kraus 2013 describe intermediate-mass
+#               (A/B) multiplicity as ">=50%"; split across the two
+#               letters along the same mass trend, both comfortably at or
+#               above that floor.
+#   O: 0.90  -- Moe & Di Stefano 2017 (ApJS 230:15) revise O-star
+#               multiplicity up to 94 +/- 14%; kept just under certainty
+#               given that real uncertainty rather than treating O stars
+#               as *always* binary.
+BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
+    'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
+}
 
 # --- Planet Classification Data ---
 

@@ -17,6 +17,7 @@ import pytest
 from api.app import create_app
 from api.config import Config
 from stellarObjects import _db, adminAuth
+from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
@@ -132,6 +133,42 @@ def test_health_ok(client):
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok"}
+
+
+def test_unreachable_database_returns_503_not_a_crash():
+    """
+    Regression guard for a fixed bug: `queryDb.open_readonly` raises a
+    bare `SystemExit` (correct for its own CLI callers) when the
+    configured MySQL server is unreachable. `SystemExit` is a
+    `BaseException`, not an `Exception` -- left uncaught, it would
+    propagate straight through Flask's request dispatch instead of
+    becoming any HTTP response at all, from every route that opens a
+    connection via `routes.get_db()`, not just `/health`'s own explicit
+    check. `get_db()` now converts it into an `ApiError` (503) so it
+    becomes an ordinary exception from that point on.
+
+    Deliberately builds its own app against a config that can never
+    connect (a closed port on localhost, so this fails fast and needs no
+    real MySQL server at all -- unlike every other test in this module,
+    this one always runs, never skipped).
+    """
+    unreachable = MySQLConfig(host="127.0.0.1", port=1, user="x", password="x", database="x")
+
+    class UnreachableConfig(Config):
+        MYSQL_CONFIG = unreachable
+        WRITE_MYSQL_CONFIG = unreachable
+        CONTROL_MYSQL_CONFIG = unreachable
+        RATELIMIT_STORAGE_URI = "memory://"
+
+    test_client = create_app(UnreachableConfig).test_client()
+
+    health_response = test_client.get("/api/health")
+    assert health_response.status_code == 503
+    assert health_response.get_json()["status"] == "error"
+
+    sectors_response = test_client.get("/api/sectors")
+    assert sectors_response.status_code == 503
+    assert "error" in sectors_response.get_json()
 
 
 def test_sectors_lists_seeded_sector(client, seeded_sector):
