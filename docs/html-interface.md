@@ -83,22 +83,25 @@ rendered page.
 
 Every page here needs the planetGen API (`../src/html/api/`, see
 [`api.md`](api.md)) reachable to work at all now -- set
-`PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. the same
-host this CGI script itself runs on) if it's deployed somewhere else,
-e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own local
-dev server. The *database* server/account, and which schemas the picker
-(`index.py`/`?db=`) offers, are entirely the API's own configuration now
-(`PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE_PREFIX`,
+`PLANETGEN_API_BASE_URL` (or `config.json`'s `api_base_url`; default
+`http://127.0.0.1/api`, i.e. the same host this CGI script itself runs on)
+if it's deployed somewhere else, e.g. `http://127.0.0.1:5000/api` for
+`python src/html/wsgi.py`'s own local dev server. The *database*
+server/account, and which schemas the picker (`index.py`/`?db=`) offers,
+are entirely the API's own configuration now
+(`PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE_PREFIX`, or
+`config.json`'s `mysql` section, via
 `stellarObjects._db.MySQLConfig`/`list_databases`) -- see
 [`api.md`](api.md#running-locally) for those; `html/` itself no longer
 reads any `PLANETGEN_MYSQL_*` variable at all.
 
-Separately from all of the above, a `webconfig.json`
+Separately from all of the above, a `config.json`
 file at the repo root (a sibling of `../src/html/`, not a file inside `../src/html/`
-itself) holds site-level settings such as `site_name` and `base_url`,
+itself) holds every deployment-level setting in one place -- MySQL
+connection details, the site's own `site_name`/`base_url`, and more --
 edited once per deployment rather than passed through the vhost config --
-see [`webconfig.md`](webconfig.md) for the full field list
-and how it relates to `PLANETGEN_DEBUG`.
+see [`config.md`](config.md) for the full field list
+and how it relates to the `PLANETGEN_*` environment variables.
 
 ## Deploying
 

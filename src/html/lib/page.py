@@ -17,6 +17,13 @@ from urllib.parse import parse_qs
 from apiclient import ApiError, NotFoundError, auth_me
 from fmt import esc
 
+# stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
+# at src/html/lib/ -- add src/ to sys.path the same way apiclient.py
+# already does, so `stellarObjects.appconfig` is importable here too.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from stellarObjects.appconfig import load_config  # noqa: E402
+
 
 def query_params():
     """
@@ -295,10 +302,13 @@ def run(handler):
         render_error(str(exc), status="502 Bad Gateway")
     except Exception:
         # Always logged to stderr (Apache's error log); only echoed into
-        # the page itself when PLANETGEN_DEBUG is set, since a public 500
-        # page must not leak file paths or query text by default.
+        # the page itself when PLANETGEN_DEBUG (or config.json's "debug")
+        # is set, since a public 500 page must not leak file paths or
+        # query text by default.
         traceback.print_exc(file=sys.stderr)
-        if os.environ.get("PLANETGEN_DEBUG"):
+        debug_env = os.environ.get("PLANETGEN_DEBUG")
+        debug = bool(debug_env) if debug_env is not None else load_config()["debug"]
+        if debug:
             render_error(f"<pre>{esc(traceback.format_exc())}</pre>", status="500 Internal Server Error", raw=True)
         else:
             render_error("An unexpected error occurred.", status="500 Internal Server Error")

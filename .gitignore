@@ -67,10 +67,10 @@ db.sqlite3-journal
 *.db
 *.db-journal
 
-# planetGen web interface site config (see docs/webconfig.md) -- the real,
-# per-deployment file, which may hold credentials later; never committed.
-# webconfig.json.example is the template and stays tracked.
-webconfig.json
+# planetGen deployment config (see docs/config.md) -- the real,
+# per-deployment file, holding MySQL credentials among other settings;
+# never committed. config.json.example is the template and stays tracked.
+config.json
 
 # Flask stuff:
 instance/

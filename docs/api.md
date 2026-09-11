@@ -376,12 +376,20 @@ python src/html/wsgi.py
 ```
 
 Connects to the same MySQL database every other tool in this project
-defaults to (`PLANETGEN_MYSQL_*` env vars, or their built-in defaults — see
-`stellarObjects._db.MySQLConfig`). Point it at a different database with:
+defaults to (`PLANETGEN_MYSQL_*` env vars, `config.json`'s `mysql` section,
+or their built-in defaults — see `stellarObjects._db.MySQLConfig` and
+[`config.md`](config.md)). Point it at a different database with either a
+`config.json` at the repo root or:
 
 ```bash
 PLANETGEN_MYSQL_HOST=db.example.com PLANETGEN_MYSQL_DATABASE=planetgen_alpha python src/html/wsgi.py
 ```
+
+Every other `PLANETGEN_*` variable mentioned throughout this document
+(rate limits, the write-capable/control-schema overrides, the admin
+cookie's `Secure` flag) has a matching `config.json` field too — see
+[`config.md`](config.md) for the full list; env vars still take
+precedence over `config.json` when both are set.
 
 Every read goes through `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` —
 point those at a database account with `SELECT`-only grants in production,
