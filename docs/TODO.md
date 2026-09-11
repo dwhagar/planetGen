@@ -126,7 +126,7 @@ Exploratory ideas, not yet scoped or designed:
 - [ ] Probably going to need a space fairing species database.
 - [ ] Need to think about under-developed / older civilizations and the differences and how to store and present that data based on society age.
 
-## Completed work log (through 2026-09-10)
+## Completed work log (through 2026-09-11)
 
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
@@ -198,7 +198,23 @@ and git history.
   periodically, e.g. via cron) — schema v8 -> v9, CHANGELOG [5.11.0].
   Moon tidal locking replaced with a real tidal-despinning timescale
   estimate, plus a log-uniform (not linear-uniform) moon distance draw —
-  CHANGELOG [5.11.1].
+  CHANGELOG [5.11.1]. Extended in the same vein since: galactic orbital
+  speed/period for every star system (schema v10, CHANGELOG [5.13.0]);
+  real 3D Cartesian position + orbital speed for every planet/moon
+  (schema v11, [5.14.0]); a floating-point update guard so
+  `advance_orbital_phases` skips a body once `elapsed_years` can no
+  longer move its phase (schema v12, [5.15.0]); stars themselves now
+  advance a galactic orbital phase, and binary pairs get a real mutual
+  orbit around their barycenter (schema v13, [5.16.0]), including that
+  mutual orbit's own Cartesian position (schema v14, [5.17.0]) — all
+  advanced by the same `updateOrbits.py` run. `examples/maintenance/`
+  gained systemd timer units (`planetgen-orbits@.timer`, per-database
+  template instance) as an Ubuntu/Debian-native alternative to a raw
+  crontab line for running `updateOrbits.py` — [5.18.0] — plus a second
+  timer (`planetgen-update.timer`) that runs `update.sh` on a schedule
+  30 minutes ahead of it so code updates land before the orbit run picks
+  them up, with `update.sh` itself now skipping its full reinstall step
+  when `git pull` found nothing new — [5.20.0].
 - `../src/html/` rearchitected as a thin frontend for the Flask API
   instead of a direct MySQL client (`html/lib/apiclient.py`,
   `PLANETGEN_API_BASE_URL`); API gained `?db=` on every route,
