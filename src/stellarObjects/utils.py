@@ -474,6 +474,185 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
 
 
+def calculate_galactic_orbit(distance_ly):
+    """
+    Estimates a star system's circular orbital speed and orbital period
+    around the galactic center, given its distance from it.
+
+    Uses `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`/
+    `GALACTIC_ROTATION_CORE_RADIUS_PC`'s simple rotation-curve model (see
+    that module's comment for the physical justification and calibration
+    against Sol's own distance) rather than a Keplerian point-mass orbit
+    around `physical_constants.MILKY_WAY_MASS` -- the latter would put a
+    Sol-distance orbit at nearly 800 km/s, ~4x the real value, since most
+    of the galaxy's mass isn't actually enclosed within that radius the way
+    a naive point-mass calculation assumes. This function is deliberately
+    independent of the orbiting body's own mass (unlike
+    `calculate_hill_sphere`), matching real orbital mechanics at galactic
+    scale: essentially every star's mass is negligible next to the
+    galaxy's, so orbital speed at a given radius is the same for any star
+    there, not a function of that star's own mass.
+
+    Args:
+        distance_ly (float): The star system's distance from the galactic
+                             center, in light-years.
+
+    Returns:
+        tuple: `(orbital_speed_kms, orbital_period_gy)` -- circular orbital
+              speed in km/s, and orbital period in billions of years (Gy),
+              the same unit `Star.age`/`lifespan` already use. Both `0.0`
+              for a system placed exactly at the galactic center (r = 0,
+              where a circular orbit is degenerate).
+    """
+    if distance_ly <= 0:
+        return 0.0, 0.0
+
+    distance_pc = ly_to_pc(distance_ly)
+    core_radius_pc = physical_constants.GALACTIC_ROTATION_CORE_RADIUS_PC
+    orbital_speed_kms = (
+        physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS
+        * distance_pc / math.sqrt(distance_pc ** 2 + core_radius_pc ** 2)
+    )
+
+    circumference_m = 2 * math.pi * distance_ly * physical_constants.LY_TO_M
+    orbital_period_s = circumference_m / (orbital_speed_kms * physical_constants.KM_TO_M_FACTOR)
+    orbital_period_gy = (orbital_period_s / physical_constants.SECONDS_PER_YEAR) / 1e9
+
+    return orbital_speed_kms, orbital_period_gy
+
+
+def circular_orbital_speed_kms(distance_au, period_years):
+    """
+    Tangential speed of a circular orbit, given its radius and period:
+    `v = 2*pi*r / T`. Exact (constant at every point of the orbit), since
+    this generator only ever models circular orbits for planets and moons
+    (see `planetPhysics.generate_orbital_motion_properties`) -- unlike
+    `calculate_galactic_orbit`, which has to *assume* a rotation-curve
+    model to get a speed at all, a planet's/moon's period is already known
+    exactly from Kepler's third law (`planetPhysics.
+    calculate_orbital_period_years`), so speed here is a direct
+    geometric consequence of the two, not a separate physical model.
+
+    Args:
+        distance_au (float): Orbital radius (semi-major axis), in AU.
+        period_years (float): Orbital period, in years.
+
+    Returns:
+        float: Orbital speed, in km/s.
+    """
+    circumference_km = 2 * math.pi * distance_au * physical_constants.AU_TO_KM
+    period_seconds = period_years * physical_constants.SECONDS_PER_YEAR
+    return circumference_km / period_seconds
+
+
+def orbital_position_au(distance_au, inclination_deg, ascending_node_deg, phase_deg):
+    """
+    Converts a circular orbit's elements -- radius, inclination, ascending
+    node, and current phase -- into a 3D Cartesian position relative to
+    the orbit's primary (the body actually being orbited: a star/binary
+    system center for a planet, a planet for a moon).
+
+    Standard orbital-plane-to-reference-frame rotation, specialized for a
+    circular orbit: `orbital_phase_deg` already plays the role of the
+    argument of latitude `u = omega + true_anomaly` directly (no separate
+    argument-of-periapsis term, since a circular orbit has no periapsis to
+    measure one from -- see `planetPhysics.generate_orbital_motion_properties`'s
+    docstring). `inclination_deg`/`ascending_node_deg` orient the orbital
+    plane itself; `phase_deg` is where the body sits within it:
+
+        u = radians(phase_deg), i = radians(inclination_deg), Om = radians(ascending_node_deg)
+        x = r * (cos(Om)*cos(u) - sin(Om)*sin(u)*cos(i))
+        y = r * (sin(Om)*cos(u) + cos(Om)*sin(u)*cos(i))
+        z = r * sin(u)*sin(i)
+
+    At `i = 0` (an uninclined orbit) this correctly collapses to a flat
+    circle in the primary's own reference plane (`z = 0` always); `node`
+    and `phase` become degenerate there (no inclined plane left for the
+    ascending node to describe the crossing of), so only their sum
+    matters: `(r*cos(node+u), r*sin(node+u), 0)` -- the standard,
+    physically expected behavior at this degenerate case, same as in real
+    orbital mechanics, not a bug.
+
+    Args:
+        distance_au (float): Orbital radius, in AU.
+        inclination_deg (float): Orbital plane tilt, in degrees, relative
+                                 to the primary's reference plane.
+        ascending_node_deg (float): Longitude of the ascending node, in
+                                    degrees.
+        phase_deg (float): Current argument of latitude (position angle
+                           around the orbit), in degrees.
+
+    Returns:
+        tuple: `(x_au, y_au, z_au)`, relative to the primary, in the same
+              reference frame `inclination_deg`/`ascending_node_deg` are
+              measured against.
+    """
+    u = math.radians(phase_deg)
+    i = math.radians(inclination_deg)
+    node = math.radians(ascending_node_deg)
+
+    cos_u, sin_u = math.cos(u), math.sin(u)
+    cos_i = math.cos(i)
+    cos_node, sin_node = math.cos(node), math.sin(node)
+
+    x = distance_au * (cos_node * cos_u - sin_node * sin_u * cos_i)
+    y = distance_au * (sin_node * cos_u + cos_node * sin_u * cos_i)
+    z = distance_au * sin_u * math.sin(i)
+
+    return x, y, z
+
+
+def minimum_update_interval_years(period_years):
+    """
+    The shortest `elapsed_years` worth advancing a body's
+    `orbital_phase_deg` for at all -- below this, the phase delta added is
+    smaller than `orbital_phase_deg`'s own floating-point resolution, so
+    `MOD(orbital_phase_deg + delta, 360)` is guaranteed to round right
+    back to the exact value already stored: a wasted write that changes
+    nothing. Exists specifically to guard `_db.advance_orbital_phases`
+    against that silent no-op, not as a narrative/display stat -- unlike
+    this package's other derived quantities, there is no scale at which a
+    human would want to read this number (it lands in the nanosecond
+    range for any realistic orbital period, see below).
+
+    Derivation: `orbital_phase_deg` ranges over `[0, 360)`, stored as an
+    IEEE 754 double (MySQL `DOUBLE`, Python `float` -- identical
+    representation). The coarsest (least precise) representable step
+    anywhere in that range is the unit-in-the-last-place at magnitudes
+    just under 360 -- `math.ulp(360.0)` -- used here as a single,
+    domain-wide conservative bound rather than a per-row value that would
+    depend on the body's current phase (tighter near 0, coarser near 360)
+    and so would itself need updating every time phase does, for no real
+    benefit. A phase delta at or above this many degrees is guaranteed to
+    change the stored value, regardless of where in `[0, 360)` the
+    current phase happens to sit; anything smaller might not.
+
+    `elapsed_years / period_years * 360 >= ulp_deg`
+    `elapsed_years >= period_years * ulp_deg / 360`
+
+    Worked example: a 1-year period gives a floor around 5e-9 seconds --
+    roughly 16 orders of magnitude below `updateOrbits.py`'s own "once a
+    month or so" real-world cadence (see that module's docstring), so
+    this guard exists for correctness/defensiveness (a future caller
+    advancing time in much smaller steps, e.g. a fast-forward simulation)
+    rather than because today's actual usage pattern ever comes close to
+    triggering it.
+
+    Args:
+        period_years (float): The body's own orbital period, in years.
+                              Always positive and finite for a real
+                              generated planet/moon (Kepler's third law on
+                              a positive distance and mass).
+
+    Returns:
+        float: The minimum `elapsed_years` worth calling
+              `_db.advance_orbital_phases` for, for a body with this
+              period.
+    """
+    ulp_deg = math.ulp(360.0)
+    return period_years * ulp_deg / 360
+
+
 def split_into_syllables(name):
     """
     Splits a word into a list of syllables.

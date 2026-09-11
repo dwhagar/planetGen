@@ -25,9 +25,11 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_age_string, calculate_habitable_zone, calculate_hill_sphere,
-                    format_length_km, format_relative_to_sol, generate_phoneme_salad_name,
-                    get_star_evolutionary_profile, properties_to_string, reseed_rng)
+from .utils import (format_age_string, calculate_galactic_orbit,
+                    calculate_habitable_zone, calculate_hill_sphere, format_length_km,
+                    format_relative_to_sol, generate_phoneme_salad_name,
+                    get_star_evolutionary_profile, minimum_update_interval_years,
+                    properties_to_string, reseed_rng)
 
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     """
@@ -121,7 +123,8 @@ class Star:
     SERIALIZABLE_FIELDS = [
         "name", "type", "yerkes_class", "mass", "radius", "temperature",
         "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
-        "heliosphere_radius",
+        "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -495,6 +498,32 @@ class Star:
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, physical_constants.MILKY_WAY_MASS)
         return hill_radius_m / physical_constants.AU_TO_M
 
+    def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
+        """
+        Calculates this star system's circular orbital speed and period
+        around the galactic center, via `utils.calculate_galactic_orbit`.
+
+        Unlike `calculate_system_perimeter`, the result doesn't depend on
+        this star's own mass -- see that function's docstring -- so this
+        method exists purely to thread the star's `galactic_center_dist_ly`
+        fallback convention through, the same way `calculate_system_perimeter`
+        does.
+
+        Args:
+            galactic_center_dist_ly (float, optional): This system's actual
+                distance from the galactic center, in light-years -- see
+                `calculate_system_perimeter`'s docstring for the same
+                parameter. `None` (the default) uses the fixed
+                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+
+        Returns:
+            tuple: `(orbital_speed_kms, orbital_period_gy)` -- see
+                  `utils.calculate_galactic_orbit`.
+        """
+        if galactic_center_dist_ly is None:
+            galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+        return calculate_galactic_orbit(galactic_center_dist_ly)
+
     @staticmethod
     def _calculate_heliosphere_radius_static(mass, luminosity, radius_km, star_type, yerkes_class):
         """
@@ -664,6 +693,22 @@ class Star:
                 into `calculate_system_perimeter` -- see that method's
                 docstring. `None` (the default) uses the fixed
                 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+            galactic_orbital_phase_deg (float, optional): This star's
+                current angular position around its galactic orbit, in
+                degrees -- the value `stellarObjects._db.advance_orbital_phases`
+                advances over time, the same role `orbital_phase_deg` plays
+                for a planet/moon's own orbit (see
+                `planetPhysics.generate_orbital_motion_properties`).
+                `StarSystem.__init__` rolls this once per system and passes
+                the *same* value to the primary star, the secondary star
+                (if any), and the `BinaryStarProxy` -- a binary pair's
+                negligible internal separation (AU) next to its galactic
+                orbit radius (light-years) means both stars move around the
+                galaxy together, not independently, so they must share one
+                phase rather than each rolling their own. `None` (the
+                default) rolls a fresh random value in `[0, 360)` -- the
+                correct behavior for a standalone `Star` with no system
+                threading this through.
         """
         self.system_config = system_config # Storing the SystemConfig instance
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
@@ -679,12 +724,22 @@ class Star:
             self.habitable_zone = None
             self.system_perimeter = None
             self.heliosphere_radius = None
+            self.galactic_orbital_speed_kms = None
+            self.galactic_orbital_period_gy = None
+            self.galactic_orbital_phase_deg = None
+            self.galactic_min_update_interval_years = None
             # Added mass_override for secondary star generation in binary systems
             self.generate_star(mass_override=kwargs.get('mass_override'))
             self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
             self.habitable_zone = calculate_habitable_zone(self.luminosity)
             self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
             self.heliosphere_radius = self.calculate_heliosphere()
+            self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
+                self.calculate_galactic_orbit(self.galactic_center_dist_ly)
+            phase = kwargs.get('galactic_orbital_phase_deg')
+            self.galactic_orbital_phase_deg = phase if phase is not None else random.uniform(0, 360)
+            self.galactic_min_update_interval_years = \
+                minimum_update_interval_years(self.galactic_orbital_period_gy * 1e9)
 
     def get_table_properties(self):
         """
@@ -695,8 +750,8 @@ class Star:
         `stellarObjects/_db.py`).
 
         Returns:
-            dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `loc`,
-                 each an already-formatted display string.
+            dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,
+                 `loc`, each an already-formatted display string.
         """
         if round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU):
             hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
@@ -718,6 +773,11 @@ class Star:
         radius_string = format_length_km(self.system_config, self.radius, program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
                                          program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)
 
+        orbit_string = (
+            f"{self.galactic_orbital_speed_kms:,.1f} km/s "
+            f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
+        )
+
         return {
             "type": self.type,
             "radius": radius_string,
@@ -725,6 +785,7 @@ class Star:
             "temp": f"{self.temperature} K",
             "lum": lum_string,
             "hab": f"Between {hab_lower} and {hab_upper} AU",
+            "orbit": orbit_string,
             "loc": self.name # Adding the star's name as location
         }
 
@@ -758,6 +819,7 @@ class Star:
             "temp": "Temperature",
             "lum": "Luminosity",
             "hab": "Habitable Zone",
+            "orbit": "Galactic Orbit",
             "loc": "Location"
         }
 

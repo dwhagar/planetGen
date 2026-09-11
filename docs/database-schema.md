@@ -162,7 +162,53 @@ instead of a silent duplicate row; v9 added orbital motion —
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/
 `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, plus the
 `orbit_simulation_state` singleton row `updateOrbits.py` uses to track
-elapsed time between runs (see that table's own section above).
+elapsed time between runs (see that table's own section above); v10 added
+`galactic_orbital_speed_kms`/`galactic_orbital_period_gy` to `stars` (and
+their `binary_galactic_orbital_*` counterparts on `star_systems`) — a star
+system's circular orbital speed/period around the galactic center, from a
+simple rotation-curve model (see `stellarObjects/physical_constants.py`'s
+`GALACTIC_ROTATION_FLAT_VELOCITY_KMS` comment); v11 added
+`position_x_km`/`_y_km`/`_z_km`/`orbital_speed_kms` to `planets`/`moons` —
+each body's Cartesian position relative to its orbital anchor (the star,
+or a binary's combined center, for a planet; the parent planet for a
+moon), derived from `distance_km` and the v9 orbital-motion columns (see
+`stellarObjects/utils.py`'s `orbital_position_au`); v12 added
+`planets`/`moons.min_update_interval_years` — a floating-point update
+guard, not a narrative stat: the shortest `elapsed_years` worth calling
+`_db.advance_orbital_phases` for, below which the phase delta added is
+smaller than `orbital_phase_deg`'s own IEEE 754 double-precision
+resolution and so is guaranteed to round back to the exact value already
+stored (see `stellarObjects/utils.py`'s `minimum_update_interval_years`).
+Scoped to `planets`/`moons` only at v12 — `stars`' galactic-orbit values
+were, at that point, fixed forever at generation time, with no periodic
+update mechanism to guard; v13 changed that (see below). v13 added star
+motion: `stars.galactic_orbital_phase_deg`/`galactic_min_update_interval_years`
+(the same phase/guard pair planets/moons have, now advanced by
+`_db.advance_orbital_phases` too, based on `galactic_orbital_period_gy`),
+`star_systems`' matching `binary_galactic_orbital_phase_deg`/
+`binary_galactic_min_update_interval_years` (always identical to both
+constituent stars' own values — a binary pair's negligible AU-scale
+separation next to its light-year-scale galactic orbit means the pair
+moves around the galaxy together, not independently — see
+`StarSystem.__init__`), plus the binary pair's own *mutual* orbit around
+each other (entirely separate from, and vastly faster than, the galactic
+orbit above): `binary_mutual_orbital_period_years`/`_speed_kms`
+(`planetPhysics.calculate_orbital_period_years`/
+`utils.circular_orbital_speed_kms`, the same Kepler/circular-orbit formulas
+a planet's orbit around its star already uses, applied to the pair's
+`binary_separation_km`/`binary_effective_mass_kg`), `_inclination_deg`/
+`_ascending_node_deg`/`_phase_deg` (the same `utils.orbital_position_au`
+orbital-element convention planets/moons use, drawn from the full
+`[0, 180)`/`[0, 360)` range with no small-tilt bias — a binary's mutual
+orbital plane has no protoplanetary-disk reason to prefer any alignment,
+unlike a planet's), and `binary_mutual_min_update_interval_years`. v14
+added `binary_mutual_position_x_km`/`_y_km`/`_z_km` — the secondary's
+Cartesian position relative to the primary, derived from
+`binary_separation_km` and the v13 `binary_mutual_orbital_*` columns via
+`utils.orbital_position_au`, the same "position relative to whatever this
+orbit is around" convention `planets`/`moons.position_x/y/z_km` already
+use (see v11 above) — recomputed by `_db.advance_orbital_phases` in
+lockstep every time `binary_mutual_orbital_phase_deg` advances.
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
@@ -173,14 +219,17 @@ an older MySQL database" case to handle — true until v9, whose
 `_migrate_v8_to_v9` (`stellarObjects/_db.py`) is the first real migration
 function of the MySQL era, reviving the same per-version-step pattern
 (minus the file backups, which made no sense for a live database anyway)
-for a database created under the v8 schema. `migrate_database` applies
+for a database created under the v8 schema; `_migrate_v9_to_v10` follows
+the same pattern for the v10 galactic-orbit columns, `_migrate_v10_to_v11`
+for the v11 planet/moon position columns, and `_migrate_v11_to_v12` for
+the v12 noticeable-motion-interval columns. `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v9), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v12), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -459,6 +508,12 @@ One row per generated system (single-star or binary).
 | `binary_habitable_zone_inner_km`, `_outer_km` | DOUBLE | nullable | Computed from the pair's combined luminosity. |
 | `binary_system_perimeter_km` | DOUBLE | nullable | Hill sphere, combined mass. |
 | `binary_heliosphere_radius_km` | DOUBLE | nullable | |
+| `binary_galactic_orbital_speed_kms`, `binary_galactic_orbital_period_gy` | DOUBLE | nullable | Added in v10. Circular orbital speed/period around the galactic center (see `stars.galactic_orbital_speed_kms` below) — independent of mass, so identical to the primary/secondary stars' own values, just mirrored here for the combined-pair row. |
+| `binary_galactic_orbital_phase_deg`, `binary_galactic_min_update_interval_years` | DOUBLE | nullable | Added in v13. Same pair as `stars.galactic_orbital_phase_deg`/`galactic_min_update_interval_years` below, mirrored here — always identical to both constituent stars' own values (see "Schema history" above for why). |
+| `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`utils.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
+| `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `utils.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
+| `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
+| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -504,6 +559,10 @@ above (the `binary_*` columns), not here.
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | |
 | `system_perimeter_km` | DOUBLE | NOT NULL | Hill sphere relative to the galaxy. |
 | `heliosphere_radius_km` | DOUBLE | NOT NULL | |
+| `galactic_orbital_speed_kms` | DOUBLE | NOT NULL | Added in v10. Circular orbital speed around the galactic center (`utils.calculate_galactic_orbit`), from this system's actual distance from the galactic center where known (a sector-placed system), or the fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback otherwise — same fallback convention as `system_perimeter_km`. |
+| `galactic_orbital_period_gy` | DOUBLE | NOT NULL | Added in v10. Orbital period for the circular orbit above, in billions of years (Gy) — the same unit `age_gy`/`lifespan_gy` use. |
+| `galactic_orbital_phase_deg` | DOUBLE | NOT NULL | Added in v13. This star's current angular position around its galactic orbit — the same role `planets.orbital_phase_deg` plays, advanced by `_db.advance_orbital_phases`. Both stars of a binary pair always carry the identical value (see "Schema history" above for why — `StarSystem.__init__` rolls it once and threads it to primary/secondary/proxy alike). |
+| `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`utils.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
 
 ### `planets`
 
@@ -539,6 +598,9 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `updateOrbits.py` (see `orbit_simulation_state` below). |
+| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`utils.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `updateOrbits.py` advances it. |
+| `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`utils.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
+| `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`utils.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
 
 ### `planet_evolutionary_paragraphs`
@@ -584,7 +646,7 @@ orbits. No self-reference here: moons never generate their own moons
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
 | `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `min_update_interval_years`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
 
 ### `moon_evolutionary_paragraphs`
 

@@ -2,11 +2,16 @@
 # src/updateOrbits.py
 
 """
-Advances every planet's and moon's `orbital_phase_deg` in the configured
-database based on real elapsed time since the last run -- the "dedicated
-update script" `docs/TODO.md`'s orbital-motion entry called for, meant to
-be run periodically (e.g. via cron, "once a month or so") rather than on
-every generation run.
+Advances every planet's, moon's, star's, and binary system's orbital
+position in the configured database based on real elapsed time since the
+last run -- the "dedicated update script" `docs/TODO.md`'s orbital-motion
+entry called for, meant to be run periodically (e.g. via cron, "once a
+month or so") rather than on every generation run. This is the one
+script that has to touch every table with a floating-point position/phase
+column -- `planets`/`moons` (their own orbit) and `stars`/`star_systems`
+(a star's galactic orbit, plus a binary pair's mutual orbit around each
+other) -- so a single run brings the whole database's motion up to date
+in one pass.
 
 `stellarObjects._db.advance_orbital_phases` does the actual work: a
 single set-based `UPDATE` per table (`planets`/`moons`), driven by each
@@ -19,10 +24,32 @@ against yet has no `orbit_simulation_state` row -- the first run just
 establishes that reference point (zero elapsed time, nothing to advance
 yet) rather than guessing a start time.
 
-`orbital_inclination_deg`/`orbital_ascending_node_deg` (fixed at
-generation time) and `rotation_period_hours` (a static descriptive stat --
-this generator doesn't track rotational phase) are untouched; see
+`position_x/y/z_km` are recomputed in lockstep with `orbital_phase_deg`
+(both are handled by the same `advance_orbital_phases` call -- position is
+a pure function of distance/inclination/ascending-node/phase, so it has no
+independent update of its own). A body is skipped entirely (no `UPDATE`
+attempted at all, not just a no-op write) when this run's elapsed time is
+below that body's own `min_update_interval_years` -- the point past which
+the phase delta added would be smaller than `orbital_phase_deg`'s own
+floating-point resolution and so is guaranteed to round back to the exact
+value already stored (see `stellarObjects.utils.minimum_update_interval_years`).
+`orbital_inclination_deg`/`orbital_ascending_node_deg`/`orbital_speed_kms`/
+`min_update_interval_years` (fixed at generation time) and
+`rotation_period_hours` (a static descriptive stat -- this generator
+doesn't track rotational phase) are untouched; see
 `stellarObjects.planetPhysics.generate_orbital_motion_properties`.
+
+Every star's `galactic_orbital_phase_deg` (its position around the galactic
+center) and, for a binary pair, `star_systems.binary_galactic_orbital_phase_deg`
+and `binary_mutual_orbital_phase_deg` (the pair's own mutual orbit around
+each other, entirely separate from their shared galactic orbit) are
+advanced the same way, each guarded by its own `*_min_update_interval_years`
+-- see `schema.sql`'s "v13" note and `stellarObjects._db.advance_orbital_phases`'s
+docstring. `binary_mutual_position_x/y/z_km` (the secondary's position
+relative to the primary) are recomputed in lockstep with
+`binary_mutual_orbital_phase_deg`, the same "position has no independent
+update of its own" treatment `position_x/y/z_km` gets above -- see
+`schema.sql`'s "v14" note.
 
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
@@ -55,7 +82,8 @@ from stellarObjects._version import VersionAction, version_banner
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Advance every planet's/moon's orbital position based on real elapsed time.",
+        description="Advance every planet's, moon's, star's, and binary system's orbital position "
+                    "based on real elapsed time.",
     )
     add_mysql_connection_args(parser)
     parser.add_argument('--version', action=VersionAction, banner=version_banner('updateOrbits.py'))
@@ -78,8 +106,12 @@ def main():
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 
-        planets_updated, moons_updated = advance_orbital_phases(conn, elapsed_years)
-        print(f"Updated {planets_updated} planet(s) and {moons_updated} moon(s).")
+        planets_updated, moons_updated, stars_updated, binary_systems_updated = \
+            advance_orbital_phases(conn, elapsed_years)
+        print(
+            f"Updated {planets_updated} planet(s), {moons_updated} moon(s), "
+            f"{stars_updated} star(s), and {binary_systems_updated} binary system(s)."
+        )
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)

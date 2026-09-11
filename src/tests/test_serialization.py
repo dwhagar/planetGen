@@ -104,7 +104,9 @@ def test_binary_star_proxy_round_trip_snapshots_without_recomputing():
          patch.object(BinaryStarProxy, "_calculate_system_perimeter_static",
                       side_effect=AssertionError("system_perimeter should not be recomputed")), \
          patch.object(Star, "_calculate_heliosphere_radius_static",
-                      side_effect=AssertionError("heliosphere_radius should not be recomputed")):
+                      side_effect=AssertionError("heliosphere_radius should not be recomputed")), \
+         patch.object(Star, "calculate_galactic_orbit",
+                      side_effect=AssertionError("galactic_orbit should not be recomputed")):
         reloaded = BinaryStarProxy.from_dict(data, system.system_config)
 
     for field in BinaryStarProxy.SERIALIZABLE_FIELDS:

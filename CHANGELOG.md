@@ -1,5 +1,147 @@
 # Changelog
 
+## [5.17.0] - 2026-09-11
+
+### Added
+- **Binary mutual-orbit position.** `updateOrbits.py`/`_db.advance_orbital_phases`
+  now recomputes `star_systems.binary_mutual_position_x_km`/`_y_km`/`_z_km`
+  (the secondary star's Cartesian position relative to the primary) every
+  time it advances `binary_mutual_orbital_phase_deg` -- the same "position
+  has no independent update of its own, it just has to move whenever
+  phase does" treatment `position_x/y/z_km` already gets for planets/
+  moons. Derived via `utils.orbital_position_au` from
+  `binary_separation_km` and the mutual orbit's own (non-near-ecliptic,
+  full `[0, 180)`/`[0, 360)`-range) inclination/ascending-node/phase --
+  the pair's true "direction of orbit" was already fully captured by
+  those v13 orbital elements; this just keeps the derived position
+  correctly in sync with them as time passes, rather than only at
+  generation. Schema v14, with a migration that backfills real position
+  values for existing binary rows from their own already-stored
+  separation/orbital-element columns.
+
+## [5.16.0] - 2026-09-11
+
+### Added
+- **Star motion: galactic orbit phase, plus binary mutual orbit.** Stars
+  now get the same floating-point update guard planets/moons already
+  have, and binary pairs get a real orbit around each other, both
+  actively advanced over time.
+  - Every star gains `galactic_orbital_phase_deg` (its current angular
+    position around the galactic center, randomly rolled at generation --
+    the same role `orbital_phase_deg` plays for a planet/moon) and
+    `galactic_min_update_interval_years` (the same guard formula,
+    `utils.minimum_update_interval_years` applied to
+    `galactic_orbital_period_gy * 1e9` years). `_db.advance_orbital_phases`
+    now advances this phase too, guarded by its own interval, reversing
+    v12's "stars have no periodic update mechanism" scoping note -- they
+    do now. Both stars of a binary pair, and `star_systems`' own mirrored
+    `binary_galactic_orbital_phase_deg`/`binary_galactic_min_update_interval_years`,
+    always carry the identical value: a binary's AU-scale separation is
+    negligible next to its light-year-scale galactic orbit, so the pair
+    moves around the galaxy together, not independently
+    (`StarSystem.__init__` rolls the phase once and threads it to both
+    stars and the proxy).
+  - Binary pairs also get their own **mutual orbit** -- the two stars
+    circling their common barycenter, entirely separate from (and vastly
+    faster than) the galactic orbit above:
+    `star_systems.binary_mutual_orbital_period_years`/`_speed_kms`
+    (Kepler's third law / circular-orbit speed --
+    `planetPhysics.calculate_orbital_period_years`/
+    `utils.circular_orbital_speed_kms`, the same formulas a planet's own
+    orbit already uses, applied to the pair's separation/combined mass),
+    `_inclination_deg`/`_ascending_node_deg`/`_phase_deg` (the same
+    `utils.orbital_position_au` orbital-element convention planets/moons
+    use for "direction", but drawn from the full `[0, 180)`/`[0, 360)`
+    range -- a binary's mutual orbital plane has no protoplanetary-disk
+    reason to prefer any alignment), and its own
+    `binary_mutual_min_update_interval_years` guard. `advance_orbital_phases`
+    advances `binary_mutual_orbital_phase_deg` the same way.
+  - Schema v13, with a migration that backfills every real-derivable
+    value (both `*_min_update_interval_years` guards, plus the mutual
+    orbit's period/speed) from existing rows' own already-stored data;
+    the phase/orientation columns with no derivable "correct" value get
+    an arbitrary `0` placeholder, the same treatment v9 already gives
+    pre-existing planets'/moons' orbital orientation.
+
+## [5.15.0] - 2026-09-10
+
+### Added
+- **Floating-point update guard.** Every planet and moon now stores
+  `min_update_interval_years` -- the shortest `elapsed_years` worth
+  calling `_db.advance_orbital_phases` for. Below this threshold, the
+  phase delta `elapsed_years` would add is smaller than
+  `orbital_phase_deg`'s own IEEE 754 double-precision resolution, so
+  `MOD(orbital_phase_deg + delta, 360)` is guaranteed to round right back
+  to the exact value already stored -- a wasted write that changes
+  nothing. Derived purely from `period_years`
+  (`utils.minimum_update_interval_years`: `period_years *
+  math.ulp(360.0) / 360`, the coarsest representable step anywhere in
+  `orbital_phase_deg`'s `[0, 360)` range). Not a narrative/display stat --
+  purely a guard value: `advance_orbital_phases` now skips a row's
+  `UPDATE` entirely (not just a no-op write, no attempt at all) when a
+  call's `elapsed_years` is below it. In practice this floor sits many
+  orders of magnitude below any realistic elapsed time
+  (`updateOrbits.py` runs "once a month or so"), so it exists for
+  correctness against a caller advancing time in much smaller steps, not
+  because today's actual usage pattern comes close to tripping it.
+  Scoped to `planets`/`moons` only -- `stars`' galactic-orbit values are
+  fixed forever at generation time, with no periodic update mechanism to
+  guard. Persisted as `planets`/`moons.min_update_interval_years` --
+  schema v12, with a migration that backfills real derived values (not a
+  placeholder) for existing rows.
+
+## [5.14.0] - 2026-09-10
+
+### Added
+- **Planet/moon position.** Every generated planet and moon now gets an
+  actual 3D Cartesian position (`Planet.position_x/y/z`, in AU), relative
+  to its orbital anchor -- the star (or, for a binary system, the
+  `BinaryStarProxy` standing in for the system's combined center) for a
+  planet, the parent planet for a moon -- continuing the same "each body
+  positioned relative to its immediate primary" hierarchy
+  `docs/design/galaxy-coordinate-system.md` already uses one level up for
+  sectors/systems relative to the galactic center. Derived from the
+  existing orbital-motion elements (`orbital_inclination_deg`/
+  `orbital_ascending_node_deg`/`orbital_phase_deg`, schema v9) via the
+  standard circular-orbit-to-Cartesian transform
+  (`utils.orbital_position_au`). Also adds `Planet.orbital_speed_kms`, a
+  circular orbit's constant tangential speed (`utils.
+  circular_orbital_speed_kms`, `v = 2*pi*r/T`) -- exact here, unlike the
+  galactic orbit's rotation-curve model, since a planet's/moon's period is
+  already known exactly from Kepler's third law. Surfaced as a new
+  "Speed" row in every planet's/moon's rendered data table. Persisted as
+  `planets`/`moons`.`position_x_km`/`_y_km`/`_z_km`/`orbital_speed_kms` --
+  schema v11, with a migration that backfills real derived values (not a
+  placeholder) for existing rows.
+- `updateOrbits.py`/`_db.advance_orbital_phases` now recomputes position
+  in lockstep with `orbital_phase_deg` as real time passes (a single
+  set-based SQL `UPDATE` per table, matching phase advancement's own
+  performance characteristics); `StarSystem.validate_system` recomputes
+  position/speed too whenever it corrects a planet's `distance` post-hoc
+  to resolve an orbital overlap, closing the same kind of staleness gap
+  its own docstring already flagged for `period` before this.
+
+## [5.13.0] - 2026-09-10
+
+### Added
+- **Galactic orbit.** Every generated star system now gets a circular
+  orbital speed and period around the galactic center
+  (`Star.galactic_orbital_speed_kms`/`galactic_orbital_period_gy`,
+  `utils.calculate_galactic_orbit`), derived from the system's actual
+  distance from the galactic center where known (a sector-placed system)
+  or the same fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY`
+  fallback `system_perimeter`/`heliosphere_radius` already use otherwise.
+  Uses a simple rotation-curve model
+  (`GALACTIC_ROTATION_FLAT_VELOCITY_KMS`/`GALACTIC_ROTATION_CORE_RADIUS_PC`)
+  rather than a Keplerian point-mass orbit around the galaxy's total mass,
+  which would overshoot Sol's real ~220-240 km/s orbital speed by roughly
+  4x -- calibrated against Sol's own distance (~206 km/s, ~236 million
+  years per orbit, both close to the real Sun's measured values). Surfaced
+  as a new "Galactic Orbit" row in every star's/binary pair's rendered data
+  table, and persisted as `stars.galactic_orbital_speed_kms`/
+  `galactic_orbital_period_gy` (plus the `star_systems.binary_galactic_orbital_*`
+  equivalents for binaries) -- schema v10, see `docs/database-schema.md`.
+
 ## [5.12.0] - 2026-09-10
 
 _Originally developed and released as `5.9.0` on a separate branch; renumbered

@@ -115,8 +115,17 @@ class StarSystem:
                 (e.g. `sectorGen.py`'s own standalone CLI).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        # Rolled once here (not left for each Star/BinaryStarProxy to roll
+        # its own) and passed identically to every constituent star below --
+        # a binary pair's AU-scale separation is negligible next to its
+        # light-year-scale galactic orbit radius, so both stars (and the
+        # proxy standing in for the pair) move around the galaxy together,
+        # sharing one phase, not three independent ones. See
+        # `Star.__init__`'s `galactic_orbital_phase_deg` docstring.
+        galactic_orbital_phase_deg = random.uniform(0, 360)
         self.star = Star(self.system_config, name=self.system_config.NAME,
-                          galactic_center_dist_ly=galactic_center_dist_ly) # Pass system_config and use its NAME
+                          galactic_center_dist_ly=galactic_center_dist_ly,
+                          galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
         self.stars = [self.primary_star] # Keep track of individual stars
@@ -135,10 +144,12 @@ class StarSystem:
             # Create secondary star, potentially with a different name or type if desired
             self.secondary_star = Star(secondary_star_config, name=f"{self.primary_star.name} B",
                                         mass_override=secondary_mass,
-                                        galactic_center_dist_ly=galactic_center_dist_ly)
+                                        galactic_center_dist_ly=galactic_center_dist_ly,
+                                        galactic_orbital_phase_deg=galactic_orbital_phase_deg)
             self.stars.append(self.secondary_star)
             self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
-                                         galactic_center_dist_ly=galactic_center_dist_ly) # self.star now points to the proxy
+                                         galactic_center_dist_ly=galactic_center_dist_ly,
+                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         system_objects = self.estimate_num_objects()
@@ -593,12 +604,14 @@ class StarSystem:
         The method accounts for the different types of objects, such as planets
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
-        If an adjustment is made, the planet's atmospheric conditions and
-        orbital period (which depends on `distance` via Kepler's third law,
-        see `planetPhysics.calculate_orbital_period_years`) are both
-        recalculated to reflect its new orbital distance -- before this,
-        `period` could silently go stale relative to the corrected
-        `distance` whenever this method moved a planet.
+        If an adjustment is made, the planet's atmospheric conditions, orbital
+        period (which depends on `distance` via Kepler's third law, see
+        `planetPhysics.calculate_orbital_period_years`), and position/orbital
+        speed (which depend on `distance`/`period` in turn, see
+        `planetPhysics.update_orbital_position`) are all recalculated to
+        reflect its new orbital distance -- before this, `period` (and now
+        position/speed too) could silently go stale relative to the
+        corrected `distance` whenever this method moved a planet.
         """
         if len(self.planets) < 2:
             return
@@ -633,12 +646,14 @@ class StarSystem:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
                         planetPhysics.calculate_atmospheric_conditions(planet)
                         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+                        planetPhysics.update_orbital_position(planet)
                 else:
                     min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
                     if distance_to_last < min_orbit:
                         planet.distance += min_orbit + additional_correction
                         planetPhysics.calculate_atmospheric_conditions(planet)
                         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+                        planetPhysics.update_orbital_position(planet)
 
     def __str__(self):
         """
