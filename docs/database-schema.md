@@ -201,7 +201,14 @@ a planet's orbit around its star already uses, applied to the pair's
 orbital-element convention planets/moons use, drawn from the full
 `[0, 180)`/`[0, 360)` range with no small-tilt bias — a binary's mutual
 orbital plane has no protoplanetary-disk reason to prefer any alignment,
-unlike a planet's), and `binary_mutual_min_update_interval_years`.
+unlike a planet's), and `binary_mutual_min_update_interval_years`. v14
+added `binary_mutual_position_x_km`/`_y_km`/`_z_km` — the secondary's
+Cartesian position relative to the primary, derived from
+`binary_separation_km` and the v13 `binary_mutual_orbital_*` columns via
+`utils.orbital_position_au`, the same "position relative to whatever this
+orbit is around" convention `planets`/`moons.position_x/y/z_km` already
+use (see v11 above) — recomputed by `_db.advance_orbital_phases` in
+lockstep every time `binary_mutual_orbital_phase_deg` advances.
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
@@ -462,6 +469,7 @@ One row per generated system (single-star or binary).
 | `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`utils.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
 | `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `utils.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
 | `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
+| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |

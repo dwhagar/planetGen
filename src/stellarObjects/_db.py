@@ -64,7 +64,7 @@ from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 14
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -843,14 +843,14 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
-_NULL_BINARY_FIELDS = (None,) * 22
+_NULL_BINARY_FIELDS = (None,) * 25
 """Placeholder for every `binary_*` column when `star_system.star` isn't a
 `BinaryStarProxy` -- see `_binary_fields`."""
 
 
 def _binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 22 `star_systems.binary_*` column values from a
+    Extracts the 25 `star_systems.binary_*` column values from a
     `BinaryStarProxy`, in the exact order `insert_star_system`'s `INSERT`
     lists them.
 
@@ -858,7 +858,7 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy (BinaryStarProxy): The system's combined-pair proxy.
 
     Returns:
-        tuple: 22 values, ready to splice into the `INSERT` parameters.
+        tuple: 25 values, ready to splice into the `INSERT` parameters.
     """
     return (
         proxy.binary_separation_au * physical_constants.AU_TO_KM,
@@ -883,6 +883,9 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.binary_mutual_orbital_ascending_node_deg,
         proxy.binary_mutual_orbital_phase_deg,
         proxy.binary_mutual_min_update_interval_years,
+        proxy.binary_mutual_position_x * physical_constants.AU_TO_KM,
+        proxy.binary_mutual_position_y * physical_constants.AU_TO_KM,
+        proxy.binary_mutual_position_z * physical_constants.AU_TO_KM,
     )
 
 
@@ -1014,8 +1017,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_mutual_orbital_period_years, binary_mutual_orbital_speed_kms,
             binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg,
             binary_mutual_orbital_phase_deg, binary_mutual_min_update_interval_years,
+            binary_mutual_position_x_km, binary_mutual_position_y_km, binary_mutual_position_z_km,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -1570,6 +1574,9 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "binary_mutual_orbital_ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
         "binary_mutual_orbital_phase_deg": row["binary_mutual_orbital_phase_deg"],
         "binary_mutual_min_update_interval_years": row["binary_mutual_min_update_interval_years"],
+        "binary_mutual_position_x": row["binary_mutual_position_x_km"] / physical_constants.AU_TO_KM,
+        "binary_mutual_position_y": row["binary_mutual_position_y_km"] / physical_constants.AU_TO_KM,
+        "binary_mutual_position_z": row["binary_mutual_position_z_km"] / physical_constants.AU_TO_KM,
         "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
@@ -2088,6 +2095,59 @@ def _migrate_v12_to_v13(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
 
 
+def _migrate_v13_to_v14(conn):
+    """
+    Adds v14's `star_systems.binary_mutual_position_x_km`/`_y_km`/`_z_km`
+    columns to an existing v13 database -- see `schema.sql`'s header
+    comment's "v14" note: the secondary's Cartesian position relative to
+    the primary, kept in lockstep with `binary_mutual_orbital_phase_deg`.
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates `star_systems` with these
+    columns from `schema.sql` directly. This is only for a database whose
+    table already existed at the older, v13 shape.
+
+    Every pre-existing binary row already has everything this is derived
+    from -- `binary_separation_km` and the v13 `binary_mutual_orbital_
+    {inclination,ascending_node,phase}_deg` columns -- so, like
+    `_migrate_v10_to_v11`, this backfills real values via the same formula
+    `utils.orbital_position_au` uses, computed directly in SQL (the same
+    trig `advance_orbital_phases` already relies on for planets'/moons'
+    position columns).
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute(
+        "ALTER TABLE star_systems "
+        "ADD COLUMN binary_mutual_position_x_km DOUBLE, "
+        "ADD COLUMN binary_mutual_position_y_km DOUBLE, "
+        "ADD COLUMN binary_mutual_position_z_km DOUBLE"
+    )
+    conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_mutual_position_x_km = binary_separation_km * (
+                COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
+                - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
+                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
+            ),
+            binary_mutual_position_y_km = binary_separation_km * (
+                SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
+                + COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
+                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
+            ),
+            binary_mutual_position_z_km = binary_separation_km
+                * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg))
+        WHERE is_binary = 1
+        """
+    )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (14)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -2101,10 +2161,12 @@ def migrate_database(config=None):
     orbital-motion columns), `_migrate_v9_to_v10` (added for the v10
     galactic-orbit columns), `_migrate_v10_to_v11` (added for the v11
     planet/moon position columns), `_migrate_v11_to_v12` (added for
-    the v12 floating-point update-guard column), and `_migrate_v12_to_v13`
-    (added for the v13 star-motion columns) are the migration steps
-    so far; see `schema.sql`'s header comment for the versioning
-    convention, and `migrateDb.py` for the CLI wrapper around this.
+    the v12 floating-point update-guard column), `_migrate_v12_to_v13`
+    (added for the v13 star-motion columns), and `_migrate_v13_to_v14`
+    (added for the v14 binary-mutual-orbit position columns) are the
+    migration steps so far; see `schema.sql`'s header comment for the
+    versioning convention, and `migrateDb.py` for the CLI wrapper around
+    this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -2138,6 +2200,10 @@ def migrate_database(config=None):
         if version < 13:
             _migrate_v12_to_v13(conn)
             version = 13
+
+        if version < 14:
+            _migrate_v13_to_v14(conn)
+            version = 14
 
         conn.commit()
         return version
@@ -2223,11 +2289,15 @@ def advance_orbital_phases(conn, elapsed_years):
     a phase whose own individual guard isn't met just rounds back to its
     already-stored value in that pass, the same true floating-point no-op
     the guard exists to detect, so combining them costs nothing but a
-    slightly less granular skip). Neither galactic nor mutual orbit has a
-    stored `position_x/y/z_km` to keep in lockstep -- see `schema.sql`'s
-    "v13" note: the galactic orbit is treated as planar (no inclination/
-    ascending node to resolve a 3D position from), and the mutual orbit's
-    position was never asked for, only its speed/direction/phase.
+    slightly less granular skip). `binary_mutual_position_x/y/z_km` are
+    recomputed in lockstep from the *new* `binary_mutual_orbital_phase_deg`
+    the same way a planet's/moon's position is -- see `schema.sql`'s "v14"
+    note; `binary_mutual_orbital_phase_deg` is assigned earlier in this
+    same `SET` list so the position expressions read back its new value,
+    the identical left-to-right trick the planets/moons `UPDATE`s above
+    use. The galactic orbit has no such position to keep in lockstep --
+    it's treated as planar (no inclination/ascending node to resolve a 3D
+    position from), unlike the mutual orbit's full orbital-element set.
 
     Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
     reference point the *next* call's `elapsed_years` should be measured
@@ -2295,7 +2365,19 @@ def advance_orbital_phases(conn, elapsed_years):
                 MOD(binary_galactic_orbital_phase_deg
                     + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360),
             binary_mutual_orbital_phase_deg =
-                MOD(binary_mutual_orbital_phase_deg + (? / binary_mutual_orbital_period_years) * 360, 360)
+                MOD(binary_mutual_orbital_phase_deg + (? / binary_mutual_orbital_period_years) * 360, 360),
+            binary_mutual_position_x_km = binary_separation_km * (
+                COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
+                - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
+                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
+            ),
+            binary_mutual_position_y_km = binary_separation_km * (
+                SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
+                + COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
+                  * COS(RADIANS(binary_mutual_orbital_inclination_deg))
+            ),
+            binary_mutual_position_z_km = binary_separation_km
+                * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg))
         WHERE is_binary = 1
           AND binary_galactic_orbital_period_gy > 0 AND binary_mutual_orbital_period_years > 0
           AND (? >= binary_galactic_min_update_interval_years OR ? >= binary_mutual_min_update_interval_years)

@@ -317,6 +317,23 @@
 --   `orbital_phase_deg`/`galactic_orbital_phase_deg` elsewhere, guarded by
 --   its own interval.
 --
+-- v14: binary mutual orbit position. `star_systems` gains
+--   `binary_mutual_position_x_km`/`_y_km`/`_z_km` -- the secondary's
+--   Cartesian position relative to the primary, derived from
+--   `binary_separation_km` and the v13 `binary_mutual_orbital_
+--   {inclination,ascending_node,phase}_deg` columns via
+--   `utils.orbital_position_au`, the same "each body positioned relative
+--   to whatever it actually orbits" convention `planets`/`moons.
+--   position_x/y/z_km` already use one level down (a planet relative to
+--   its star, a moon relative to its parent planet -- see the v11 note
+--   above) and `sectors`/`star_systems` use one level up (relative to the
+--   galactic center). `_db.advance_orbital_phases` recomputes this in
+--   lockstep every time `binary_mutual_orbital_phase_deg` advances, mirroring
+--   exactly how it already keeps a planet's/moon's position in lockstep
+--   with its own phase -- position has no independent update of its own,
+--   it just has to move whenever phase does. NULL under the same
+--   binary-only condition as every other `binary_*` column.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -602,6 +619,13 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_mutual_orbital_ascending_node_deg   DOUBLE,
     binary_mutual_orbital_phase_deg            DOUBLE,
     binary_mutual_min_update_interval_years    DOUBLE,
+    -- v14 (see header comment): the secondary's position relative to the
+    -- primary, kept in lockstep with binary_mutual_orbital_phase_deg --
+    -- same "position relative to whatever this orbit is around" convention
+    -- as planets/moons' own position_x/y/z_km.
+    binary_mutual_position_x_km   DOUBLE,
+    binary_mutual_position_y_km   DOUBLE,
+    binary_mutual_position_z_km   DOUBLE,
 
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,

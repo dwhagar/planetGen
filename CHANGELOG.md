@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.17.0] - 2026-09-11
+
+### Added
+- **Binary mutual-orbit position.** `updateOrbits.py`/`_db.advance_orbital_phases`
+  now recomputes `star_systems.binary_mutual_position_x_km`/`_y_km`/`_z_km`
+  (the secondary star's Cartesian position relative to the primary) every
+  time it advances `binary_mutual_orbital_phase_deg` -- the same "position
+  has no independent update of its own, it just has to move whenever
+  phase does" treatment `position_x/y/z_km` already gets for planets/
+  moons. Derived via `utils.orbital_position_au` from
+  `binary_separation_km` and the mutual orbit's own (non-near-ecliptic,
+  full `[0, 180)`/`[0, 360)`-range) inclination/ascending-node/phase --
+  the pair's true "direction of orbit" was already fully captured by
+  those v13 orbital elements; this just keeps the derived position
+  correctly in sync with them as time passes, rather than only at
+  generation. Schema v14, with a migration that backfills real position
+  values for existing binary rows from their own already-stored
+  separation/orbital-element columns.
+
 ## [5.16.0] - 2026-09-11
 
 ### Added

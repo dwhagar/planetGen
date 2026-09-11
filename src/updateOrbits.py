@@ -40,7 +40,11 @@ and `binary_mutual_orbital_phase_deg` (the pair's own mutual orbit around
 each other, entirely separate from their shared galactic orbit) are
 advanced the same way, each guarded by its own `*_min_update_interval_years`
 -- see `schema.sql`'s "v13" note and `stellarObjects._db.advance_orbital_phases`'s
-docstring.
+docstring. `binary_mutual_position_x/y/z_km` (the secondary's position
+relative to the primary) are recomputed in lockstep with
+`binary_mutual_orbital_phase_deg`, the same "position has no independent
+update of its own" treatment `position_x/y/z_km` gets above -- see
+`schema.sql`'s "v14" note.
 
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes

@@ -24,7 +24,8 @@ from .starData import Star
 from .utils import (format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
                     format_relative_to_sol, minimum_update_interval_years,
-                    properties_to_string, to_scientific_notation, years_to_time_string)
+                    orbital_position_au, properties_to_string,
+                    to_scientific_notation, years_to_time_string)
 
 class BinaryStarProxy(Star):
     """
@@ -53,6 +54,7 @@ class BinaryStarProxy(Star):
         "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
         "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
         "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
+        "binary_mutual_position_x", "binary_mutual_position_y", "binary_mutual_position_z",
         "_binary_separation_au", "_effective_mass", "_effective_luminosity",
     ]
     """
@@ -171,6 +173,20 @@ class BinaryStarProxy(Star):
         self.binary_mutual_orbital_phase_deg = random.uniform(0, 360)
         self.binary_mutual_min_update_interval_years = \
             minimum_update_interval_years(self.binary_mutual_orbital_period_years)
+        # The secondary's position relative to the primary (AU) -- the same
+        # "position relative to whatever this orbit is actually around"
+        # convention planetPhysics.update_orbital_position uses for a
+        # planet/moon, just with the mutual orbit's own (unrestricted,
+        # non-near-ecliptic) inclination/ascending_node/phase above rather
+        # than a planet's small-tilt ones. `updateOrbits.py`/
+        # `_db.advance_orbital_phases` recomputes this in lockstep every
+        # time `binary_mutual_orbital_phase_deg` advances, the same way it
+        # already does for planets/moons.
+        self.binary_mutual_position_x, self.binary_mutual_position_y, self.binary_mutual_position_z = \
+            orbital_position_au(
+                self._binary_separation_au, self.binary_mutual_orbital_inclination_deg,
+                self.binary_mutual_orbital_ascending_node_deg, self.binary_mutual_orbital_phase_deg,
+            )
         # For heliosphere, we need an effective radius and type for the static method.
         # This is a simplification, as binary heliospheres are complex.
         self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
