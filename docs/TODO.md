@@ -62,18 +62,6 @@ open items need working detail.
 
 ## Open items
 
-### Simulation / world-generation design questions
-
-- [ ] Class K (Mars analog) and, by construction, every other ecosphere-zone
-  class are generated at the same zone-midpoint orbital distance as Class M
-  -- this generator doesn't place different terrestrial classes at
-  different distances within (or beyond) the habitable zone the way real
-  Mars sits much farther from the Sun than Earth. K's tuned values get as
-  close to real Mars' absolute temperature/pressure as achievable under
-  that constraint (~231K/~0.57kPa vs real ~210K/~610Pa) but can't fully
-  close the gap without a zone/distance-placement change, which is a larger
-  design question than per-class range tuning.
-
 ### Search
 
 - [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args`/`_search_result_planets` and src/html/search.py near `_planets_panel`.
@@ -126,11 +114,83 @@ Exploratory ideas, not yet scoped or designed:
 - [ ] Probably going to need a space fairing species database.
 - [ ] Need to think about under-developed / older civilizations and the differences and how to store and present that data based on society age.
 
-## Completed work log (through 2026-09-10)
+## Completed work log (through 2026-09-11)
 
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **`validate_system` could strand a planet outside the zone its class
+  needs, and the sequential orbit-spacing loop had no outer bound.**
+  Found via full-system stress testing (not the existing per-class
+  plausibility tooling, which never exercises `StarSystem`'s sequential
+  placement loop at all): a planet's class was chosen once, early, from
+  its *initial* estimated distance, but `validate_system`'s later
+  orbital-overlap correction could push that distance arbitrarily far
+  out (Hill-radius-based spacing compounds geometrically across a
+  many-planet system) without ever re-checking whether the class it
+  already had still made sense there — e.g. a "Class M, Earth-like
+  world" ending up at hundreds of thousands of AU and 30-some Kelvin.
+  Measured before the fix: 10% of a 400-system sample had at least one
+  misplaced ecosphere-class planet (45.6% of all ecosphere-class planets
+  in that sample), concentrated almost entirely in O/B-type stars, zero
+  in G/K/M dwarfs. Two-part fix, mirroring real orbital-dynamics
+  constraints already used elsewhere in this codebase:
+  - New `planetPhysics.reconcile_zone_and_class` re-derives a body's zone
+    from its *current* distance and, only if its existing class no
+    longer fits there, regenerates the class and everything derived from
+    it (radius/mass/density/atmosphere/period/gravity/orbital motion) —
+    called by `StarSystem._reconcile_moved_planet` every time
+    `validate_system` moves a planet, for the planet and each of its
+    moons (a moon's zone is always its parent's, and a reclassified
+    parent's new mass changes a moon's own period/rotation too, via
+    Kepler's third law, even when the moon's own class didn't change).
+  - The sequential placement loop (`StarSystem._generate_planets`, split
+    out of `__init__` so it's retryable) now stops adding slots once the
+    next one would land beyond `star.system_perimeter` — the star's own
+    Hill sphere *relative to the galaxy*, already computed for an
+    analogous purpose elsewhere (`spaceSector.py`) but never enforced
+    during generation — rather than letting the geometric compounding
+    run unbounded. A system that runs out of stable room this way simply
+    ends up with fewer planets, the same outcome a real protoplanetary
+    disk of finite extent would produce.
+  - Reconciliation can occasionally reclassify away the specific body
+    `HABITABLE_WORLD=True`/`ASTEROID_BELT=True` was relying on to satisfy
+    that guarantee (previously silently masked by the same bug -- an
+    invalid class sitting in the wrong zone still counted). `__init__`
+    now retries the whole placement (same star, fresh positions, up to
+    `MAX_SYSTEM_GENERATION_ATTEMPTS`) when a requested guarantee isn't
+    met afterward, rather than accepting a system that quietly drops it.
+    A smaller, complementary fix (`_distance_within_zone_with_margin`)
+    reserves a safety margin against the fixed
+    `MIN_ASTEROID_BELT_SEPARATION` nudge specifically when placing a
+    forced-habitable or explicit-slot-class planet, reducing (not
+    eliminating -- a large neighboring planet's own Hill-radius push has
+    no fixed size to margin against, which is what the retry loop is for)
+    how often the retry is even needed.
+- **Ecosphere-zone classes now generate at a class-appropriate distance
+  within the zone, not a distance-blind draw shared with every other
+  class.** Resolves the "Class K (Mars analog)...generated at the same
+  zone-midpoint orbital distance as Class M" design question above.
+  `PLANET_CLASSES`' new per-class `zone_position_mode` (E/F/G/H/K/L/M/N/
+  O/P/V; Q deliberately excluded — its "eccentric orbit" identity has no
+  single fixed position) says how far through the zone's own
+  `[inner, outer]` AU range that class's real-or-reasoned analog sits;
+  `planetPhysics.generate_planet_properties` redraws a matching planet's
+  `distance` there (`utils.sample_bounded_bell`, the same bell-curve
+  mechanism `size_mode` already uses for radius) once its class is
+  settled, for ordinary planets only — a moon's own `distance` is its
+  orbit around its *parent planet*, not an AU-scale position in the
+  star's zone, so it's left alone. K (Mars) and N (Venus), the two
+  classes with a real numeric target and an explicit "tuned to compensate
+  for the wrong distance" comment, were retuned once real insolation did
+  most of the work: K now measures ~214K/~611Pa vs real Mars'
+  210K/610Pa (was ~231K/~540Pa), and N ~737K/~9.17MPa vs real Venus'
+  737K/9.2MPa (was already ~737K on temperature via an oversized
+  greenhouse-multiplier hack, but ~17% low on pressure) — both verified
+  via `climate_tuning_cli.py`. `validate_system`'s existing orbital-
+  overlap correction absorbs whatever reordering a class-biased redraw
+  causes against already-placed neighbors, same as it already did for
+  `calculate_distance_for_class`'s explicit-slot nudging.
 - **Write-capable API + admin auth.** `POST`/`PATCH`/`DELETE` on
   `/api/sectors`/`/api/systems` do real inserts/updates/deletes now,
   gated behind admin login (session cookie, `HttpOnly`/`Secure`/
@@ -198,7 +258,23 @@ and git history.
   periodically, e.g. via cron) — schema v8 -> v9, CHANGELOG [5.11.0].
   Moon tidal locking replaced with a real tidal-despinning timescale
   estimate, plus a log-uniform (not linear-uniform) moon distance draw —
-  CHANGELOG [5.11.1].
+  CHANGELOG [5.11.1]. Extended in the same vein since: galactic orbital
+  speed/period for every star system (schema v10, CHANGELOG [5.13.0]);
+  real 3D Cartesian position + orbital speed for every planet/moon
+  (schema v11, [5.14.0]); a floating-point update guard so
+  `advance_orbital_phases` skips a body once `elapsed_years` can no
+  longer move its phase (schema v12, [5.15.0]); stars themselves now
+  advance a galactic orbital phase, and binary pairs get a real mutual
+  orbit around their barycenter (schema v13, [5.16.0]), including that
+  mutual orbit's own Cartesian position (schema v14, [5.17.0]) — all
+  advanced by the same `updateOrbits.py` run. `examples/maintenance/`
+  gained systemd timer units (`planetgen-orbits@.timer`, per-database
+  template instance) as an Ubuntu/Debian-native alternative to a raw
+  crontab line for running `updateOrbits.py` — [5.18.0] — plus a second
+  timer (`planetgen-update.timer`) that runs `update.sh` on a schedule
+  30 minutes ahead of it so code updates land before the orbit run picks
+  them up, with `update.sh` itself now skipping its full reinstall step
+  when `git pull` found nothing new — [5.20.0].
 - `../src/html/` rearchitected as a thin frontend for the Flask API
   instead of a direct MySQL client (`html/lib/apiclient.py`,
   `PLANETGEN_API_BASE_URL`); API gained `?db=` on every route,

@@ -12,6 +12,7 @@ coverage of the star itself belongs to test_star_matrix.py.
 Run with: pytest tests/test_planets.py
 """
 import math
+import statistics
 
 import pytest
 
@@ -195,3 +196,95 @@ def test_fully_random_planet_respects_zone_and_habitable_world(host_star, zone, 
         assert prog_c.PLANET_CLASSES[planet.planet_class][zone]
         if habitable_world is False:
             assert planet.planet_class not in prog_c.HABITABLE_PLANET_CLASSES
+
+
+# (class, zone_position_mode) pairs for every ecosphere class that declares
+# one -- see planetPhysics.generate_planet_properties and Class K's own
+# `zone_position_mode` note in program_constants.PLANET_CLASSES.
+ZONE_POSITION_MODE_CLASSES = [
+    (cls, data["zone_position_mode"])
+    for cls, data in prog_c.PLANET_CLASSES.items()
+    if "zone_position_mode" in data
+]
+
+
+def _zone_fraction(host_star, distance):
+    inner, outer = host_star.habitable_zone
+    return (distance - inner) / (outer - inner)
+
+
+@pytest.mark.parametrize("cls,mode", ZONE_POSITION_MODE_CLASSES, ids=[c for c, _ in ZONE_POSITION_MODE_CLASSES])
+def test_zone_position_mode_biases_distance_within_ecosphere_zone(host_star, cls, mode):
+    """
+    A class with a declared `zone_position_mode` should, on average, be
+    generated near that fraction through the ecosphere zone's [inner,
+    outer] AU range -- not spread uniformly across the whole zone the way
+    generation used to work (see docs/TODO.md's now-resolved "Open items"
+    entry on Class K/Mars). Distance is passed in at the zone's exact
+    midpoint; `generate_planet_properties` should redraw it toward `mode`.
+    """
+    midpoint = distance_for_zone(host_star, 'e')
+    fractions = []
+    for _ in range(200):
+        planet = Planet(
+            SystemConfig(), host_star, host_star.habitable_zone, midpoint,
+            planet_class=cls,
+        )
+        assert planet.zone == 'e'
+        fractions.append(_zone_fraction(host_star, planet.distance))
+
+    mean_fraction = statistics.mean(fractions)
+    assert abs(mean_fraction - mode) < 0.15, (
+        f"Class {cls!r} (zone_position_mode={mode}) has mean zone_fraction "
+        f"{mean_fraction:.3f} over 200 samples -- expected it near {mode}"
+    )
+
+
+def test_ecosphere_classes_are_ordered_by_zone_position_mode(host_star):
+    """
+    End-to-end sanity check of the Venus/Earth/Mars ordering the
+    `zone_position_mode` feature exists for: Class N (Venus analog) should
+    generate closer to the star than Class M (Earth analog), which in turn
+    should generate closer than Class K (Mars analog) -- on average, across
+    many independent draws.
+    """
+    midpoint = distance_for_zone(host_star, 'e')
+
+    def mean_distance(cls):
+        distances = [
+            Planet(SystemConfig(), host_star, host_star.habitable_zone, midpoint, planet_class=cls).distance
+            for _ in range(200)
+        ]
+        return statistics.mean(distances)
+
+    n_mean = mean_distance("N")
+    m_mean = mean_distance("M")
+    k_mean = mean_distance("K")
+
+    assert n_mean < m_mean < k_mean, (
+        f"Expected Class N (Venus) < Class M (Earth) < Class K (Mars) mean orbital "
+        f"distance; got N={n_mean:.4f}, M={m_mean:.4f}, K={k_mean:.4f} AU"
+    )
+
+
+def test_zone_position_mode_does_not_move_a_moon(host_star):
+    """
+    `zone_position_mode` is only meant to reposition a planet within the
+    *star's* habitable zone -- a moon's `distance` is its orbit around its
+    *parent planet*, an entirely different (much smaller) AU-scale value,
+    so `generate_planet_properties` must not redraw it even when the
+    moon's own class (e.g. K) declares a `zone_position_mode`. Forces a
+    Class K moon directly (bypassing the random moon-class draw) to check
+    this deterministically rather than relying on chance.
+    """
+    cfg = SystemConfig()
+    parent = Planet(cfg, host_star, host_star.habitable_zone, distance_for_zone(host_star, 'e'))
+    moon_distance = 384400 / 149_597_870.7  # real Moon's distance, in AU
+
+    moon = Planet(
+        cfg, host_star, host_star.habitable_zone, moon_distance,
+        planet_class="K", zone_override=parent.zone, is_moon=True,
+        primary_mass_kg=parent.mass,
+    )
+
+    assert moon.distance == pytest.approx(moon_distance)

@@ -221,15 +221,17 @@ function of the MySQL era, reviving the same per-version-step pattern
 (minus the file backups, which made no sense for a live database anyway)
 for a database created under the v8 schema; `_migrate_v9_to_v10` follows
 the same pattern for the v10 galactic-orbit columns, `_migrate_v10_to_v11`
-for the v11 planet/moon position columns, and `_migrate_v11_to_v12` for
-the v12 noticeable-motion-interval columns. `migrate_database` applies
+for the v11 planet/moon position columns, `_migrate_v11_to_v12` for
+the v12 floating-point update-guard column, `_migrate_v12_to_v13` for the
+v13 star-motion/binary-mutual-orbit columns, and `_migrate_v13_to_v14` for
+the v14 binary-mutual-orbit-position columns. `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v12), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v14), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin

@@ -152,6 +152,61 @@ class StarSystem:
                                          galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
+        # `validate_system`'s orbital-overlap correction can, in rare cases,
+        # push a deliberately-placed guaranteed body (the forced habitable
+        # world, or an asteroid belt's own guaranteed fallback slot) into a
+        # zone/spacing its own placement no longer supports -- retry the
+        # whole placement (same star, fresh positions) rather than accept a
+        # system that silently fails a requirement `system_config` explicitly
+        # asked for. See `_generate_planets`/`MAX_SYSTEM_GENERATION_ATTEMPTS`.
+        for _attempt in range(program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS):
+            self.planets = []
+            self._generate_planets()
+            self.validate_system()
+
+            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable()[0] > 0
+            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects()[1] > 0
+            if habitable_satisfied and belt_satisfied:
+                break
+
+        self.star.adjust_age_for_planets(self.planets)
+
+        # Decided once, here, at generation time -- __str__ (which may be called
+        # more than once) reads this rather than re-rolling and double-counting
+        # system_flavor_count on every render.
+        self.system_flavor_text = None
+        if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
+            self.system_flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
+            self.system_config.system_flavor_count += 1
+
+        # All planets and moons are generated without life data (see planetPhysics's
+        # module docstring). Apply it now, in one pass over the finished system, so
+        # evolutionary timelines are computed against the star's final, planet-adjusted
+        # age rather than its provisional pre-adjustment one. Flavor text is decided
+        # in the same pass (after life data, since it reads evolutionary_data) so it
+        # too is a fixed, pre-rendered fact rather than something __str__ rolls.
+        for obj in self.planets:
+            if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
+                continue
+            planetLife.apply_life_data(obj)
+            planetLife.decide_flavor_text(obj)
+            for moon in obj.moons:
+                planetLife.apply_life_data(moon)
+                planetLife.decide_flavor_text(moon)
+
+        self.planet_count, self.belt_count, self.moon_count = self.count_objects()
+        self.hab_count, self.m_count = self.count_habitable()
+
+    def _generate_planets(self):
+        """
+        Populates `self.planets` with a fresh, sequentially-placed set of
+        planets/asteroid belts around `self.star` -- extracted out of
+        `__init__` so it can be retried wholesale (same star, fresh
+        positions) when the result doesn't satisfy an explicitly requested
+        `HABITABLE_WORLD`/`ASTEROID_BELT` guarantee (see `__init__`'s own
+        retry loop). Appends directly to `self.planets`, which the caller
+        is responsible for resetting to `[]` first.
+        """
         system_objects = self.estimate_num_objects()
         star_factor = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
 
@@ -186,6 +241,24 @@ class StarSystem:
                         last_asteroid = True
                     else:
                         estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
+
+                    # Each successive slot's minimum spacing scales with the
+                    # previous object's own Hill radius, which itself scales
+                    # with its distance -- for a system with many objects
+                    # (especially several giant planets around a massive
+                    # star), that compounds geometrically. `system_perimeter`
+                    # (the star's own Hill sphere *relative to the galaxy*,
+                    # see `Star.calculate_system_perimeter`) is the real
+                    # physical boundary past which nothing is gravitationally
+                    # bound to this star at all -- stop adding slots once
+                    # the sequential spacing would place one beyond it,
+                    # rather than letting that compounding run unbounded.
+                    # A system that runs out of stable room this way simply
+                    # ends up with fewer objects than `system_objects`
+                    # estimated, the same physically-honest outcome a real
+                    # protoplanetary disk of finite extent would produce.
+                    if estimated_distance > self.star.system_perimeter:
+                        break
                 else:
                     estimated_distance = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
 
@@ -206,8 +279,7 @@ class StarSystem:
                     if not hz and i == 0:
                         if (estimated_distance > self.star.habitable_zone[1] or
                                 0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
-                            estimated_distance = random.uniform(self.star.habitable_zone[0],
-                                                                self.star.habitable_zone[1])
+                            estimated_distance = self._forced_habitable_distance()
                             hz = True
                     elif not hz and i > 0:
                         last_planet = self.planets[i - 1]
@@ -223,8 +295,7 @@ class StarSystem:
                         belt_is_protected = last_planet.body_type == 'a' and self.system_config.ASTEROID_BELT is True
 
                         if beyond_hz and not prev_slot_explicit and not belt_is_protected:
-                            estimated_distance = random.uniform(self.star.habitable_zone[0],
-                                                                self.star.habitable_zone[1])
+                            estimated_distance = self._forced_habitable_distance()
                             planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, # Pass system_config
                                             planet_class="M")
                             self.planets[i - 1] = planet
@@ -232,8 +303,7 @@ class StarSystem:
                             found_hab = True
                             continue
                         elif i == system_objects - 1:
-                            estimated_distance = random.uniform(self.star.habitable_zone[0],
-                                                                self.star.habitable_zone[1])
+                            estimated_distance = self._forced_habitable_distance()
                             hz = True
 
                     if hz:
@@ -268,35 +338,6 @@ class StarSystem:
                     if planet.planet_class == "M":
                         found_hab = True
                     self.planets.append(planet)
-
-        self.validate_system()
-        self.star.adjust_age_for_planets(self.planets)
-
-        # Decided once, here, at generation time -- __str__ (which may be called
-        # more than once) reads this rather than re-rolling and double-counting
-        # system_flavor_count on every render.
-        self.system_flavor_text = None
-        if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
-            self.system_flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
-            self.system_config.system_flavor_count += 1
-
-        # All planets and moons are generated without life data (see planetPhysics's
-        # module docstring). Apply it now, in one pass over the finished system, so
-        # evolutionary timelines are computed against the star's final, planet-adjusted
-        # age rather than its provisional pre-adjustment one. Flavor text is decided
-        # in the same pass (after life data, since it reads evolutionary_data) so it
-        # too is a fixed, pre-rendered fact rather than something __str__ rolls.
-        for obj in self.planets:
-            if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
-                continue
-            planetLife.apply_life_data(obj)
-            planetLife.decide_flavor_text(obj)
-            for moon in obj.moons:
-                planetLife.apply_life_data(moon)
-                planetLife.decide_flavor_text(moon)
-
-        self.planet_count, self.belt_count, self.moon_count = self.count_objects()
-        self.hab_count, self.m_count = self.count_habitable()
 
     def to_dict(self):
         """
@@ -481,7 +522,7 @@ class StarSystem:
             return estimated_distance
 
         if class_data.get('e'):
-            return random.uniform(inner, outer)
+            return self._distance_within_zone_with_margin(inner, outer)
         if class_data.get('h'):
             return random.uniform(inner * 0.05, inner * 0.95)
         if class_data.get('c'):
@@ -490,6 +531,47 @@ class StarSystem:
         # No zone supports this class; leave the distance as-is and let
         # planetPhysics raise its usual, clearer validation error.
         return estimated_distance
+
+    def _distance_within_zone_with_margin(self, inner, outer):
+        """
+        Draws a distance uniformly within `[inner, outer]`, leaving a
+        safety margin at both edges against `validate_system`'s own
+        `MIN_ASTEROID_BELT_SEPARATION` nudge.
+
+        A planet deliberately placed right at a zone boundary (by the
+        forced-habitable-world logic, via `_forced_habitable_distance`, or
+        an explicit slot request via `calculate_distance_for_class`) could
+        otherwise get pushed across that boundary later, when
+        `validate_system` enforces minimum separation from a neighboring
+        asteroid belt -- which `planetPhysics.reconcile_zone_and_class`
+        would then have to reclassify away from the very class this draw
+        was placing it as. Reserving this margin up front avoids that in
+        the common case; margin is capped at a quarter of the zone's own
+        width so a pathologically narrow zone still gets a valid
+        (non-empty) range to draw from.
+
+        Args:
+            inner (float): Zone's inner bound, in AU.
+            outer (float): Zone's outer bound, in AU.
+
+        Returns:
+            float: A distance in AU, safely inside `[inner, outer]`.
+        """
+        margin = min(program_constants.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
+        return random.uniform(inner + margin, outer - margin)
+
+    def _forced_habitable_distance(self):
+        """
+        Draws a distance for a planet the generation loop is forcing into
+        the habitable zone (`HABITABLE_WORLD=True`), via
+        `_distance_within_zone_with_margin`.
+
+        Returns:
+            float: A distance in AU, safely inside the star's
+                  `habitable_zone`.
+        """
+        inner, outer = self.star.habitable_zone
+        return self._distance_within_zone_with_margin(inner, outer)
 
     def count_objects(self):
         """
@@ -604,14 +686,18 @@ class StarSystem:
         The method accounts for the different types of objects, such as planets
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
-        If an adjustment is made, the planet's atmospheric conditions, orbital
-        period (which depends on `distance` via Kepler's third law, see
-        `planetPhysics.calculate_orbital_period_years`), and position/orbital
-        speed (which depend on `distance`/`period` in turn, see
-        `planetPhysics.update_orbital_position`) are all recalculated to
-        reflect its new orbital distance -- before this, `period` (and now
-        position/speed too) could silently go stale relative to the
-        corrected `distance` whenever this method moved a planet.
+        If an adjustment is made to a planet (as opposed to an asteroid belt,
+        which carries no class/climate of its own), `_reconcile_moved_planet`
+        re-derives its zone from the corrected distance and, if its
+        already-rolled class is no longer valid there, regenerates the class
+        and everything derived from it -- composition, radius, mass,
+        density, atmosphere, period, gravity, and orbital motion -- along
+        with the same treatment for each of its moons. Before this, a
+        pushed-out planet could keep reporting a class the corrected
+        distance no longer physically supports at all (e.g. an "Earth-like"
+        Class M at a Class-M-invalid distance, sometimes thousands of AU
+        past the actual habitable zone -- see docs/TODO.md's now-resolved
+        "validate_system can strand a planet outside its own zone" entry).
         """
         if len(self.planets) < 2:
             return
@@ -644,16 +730,65 @@ class StarSystem:
                 if last_planet.body_type == 'a':
                     if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
                         planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        planetPhysics.calculate_atmospheric_conditions(planet)
-                        planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
-                        planetPhysics.update_orbital_position(planet)
+                        self._reconcile_moved_planet(planet)
                 else:
                     min_orbit = max(planet.min_orbit_distance, last_planet.min_orbit_distance)
                     if distance_to_last < min_orbit:
                         planet.distance += min_orbit + additional_correction
-                        planetPhysics.calculate_atmospheric_conditions(planet)
-                        planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
-                        planetPhysics.update_orbital_position(planet)
+                        self._reconcile_moved_planet(planet)
+
+    def _reconcile_moved_planet(self, planet):
+        """
+        Call right after `validate_system` moves a top-level planet's
+        `distance` to resolve an orbital overlap.
+
+        A class is only a valid description of a body at the distance it
+        actually ends up at -- pushing `distance` out to fix spacing can
+        carry a planet into a zone ('h'/'e'/'c') its already-rolled class
+        was never valid in (e.g. an "Earth-like" Class M shoved out past
+        the habitable zone into the cold zone), which would otherwise
+        report a class the corrected position no longer supports at all.
+        `planetPhysics.reconcile_zone_and_class` re-derives the zone from
+        the new `distance` and, only if the existing class no longer fits
+        there, regenerates the class and everything derived from it
+        (radius/mass/density/atmosphere/period/gravity/orbital motion) --
+        physically, this is the same thing real orbital migration does:
+        change the body's actual final conditions, not just its assumed
+        ones.
+
+        Every moon is reconciled the same way: a moon's own zone is always
+        its parent's (see `planetPhysics.generate_moons`' `zone_override`),
+        and its climate depends on the parent's distance (its
+        `distance_override`), so a moon whose parent just got reclassified
+        needs the identical treatment even though the moon's own orbit
+        around its parent never changed. A reclassified parent can also
+        come out with a different `mass` than before -- and Kepler's third
+        law makes a moon's own `period` (and the position/orbital speed/
+        rotation-period-if-tidally-locked derived from it) depend on the
+        *parent's* mass, not just the moon's own (unchanged) distance
+        around it, so every moon's period needs refreshing whenever the
+        parent was reclassified, even a moon that didn't need
+        reclassifying itself -- via `generate_orbital_motion_properties`
+        rather than only `update_orbital_position`, since a *moon's*
+        `rotation_period_hours` can itself be period-derived (a tidally
+        locked moon's day equals its orbit) in a way an ordinary planet's
+        never is, and a period change can flip whether that still holds.
+        """
+        reclassified = planetPhysics.reconcile_zone_and_class(planet, planet.star.mass)
+        if not reclassified:
+            planetPhysics.calculate_atmospheric_conditions(planet)
+            planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+            planetPhysics.update_orbital_position(planet)
+
+        for moon in planet.moons:
+            moon_reclassified = planetPhysics.reconcile_zone_and_class(
+                moon, planet.mass, distance_override=planet.distance
+            )
+            if not moon_reclassified:
+                planetPhysics.calculate_atmospheric_conditions(moon, planet.distance)
+                if reclassified:
+                    moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
+                    planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
 
     def __str__(self):
         """
