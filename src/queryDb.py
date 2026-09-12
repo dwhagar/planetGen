@@ -202,9 +202,13 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     """
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
     query = f"""
-        SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_type,
+        SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
-                   AS single_star_type
+                   AS single_star_type,
+               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'primary' LIMIT 1)
+                   AS primary_star_type,
+               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
+                   AS secondary_star_type
         FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name
         """
 
@@ -216,10 +220,40 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     return [
         {
             "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
-            "star_summary": r["binary_type"] if r["is_binary"] else r["single_star_type"],
+            "star_summary": _star_summary(r),
         }
         for r in rows
     ]
+
+
+def _star_summary(row):
+    """
+    Builds the "Star type" summary `list_systems`/`_search_result_systems`
+    show, from a row carrying `is_binary`/`binary_configuration`/
+    `binary_type`/`single_star_type`/`primary_star_type`/`secondary_star_type`.
+
+    - Single star: that star's own `star_type`.
+    - `'close'` (P-type) binary: the merged `BinaryStarProxy`'s `binary_type`
+      string (e.g. `"Binary (G/K)"`).
+    - `'wide'` (S-type) binary: `binary_type` is NULL (no merged effective
+      star exists to summarize -- see `schema.sql`'s "v15" note), so this
+      builds an equivalent summary directly from the two stars' own types
+      instead, rather than showing a blank cell.
+
+    Args:
+        row (dict): A `star_systems` row (or equivalent), joined with the
+            per-role star-type subqueries above.
+
+    Returns:
+        str or None: The summary string, or `None` for a pre-v15 wide-binary
+            row this can't happen for (every `is_binary` row predating v15
+            was necessarily `'close'`).
+    """
+    if not row["is_binary"]:
+        return row["single_star_type"]
+    if row["binary_configuration"] == "wide":
+        return f"{row['primary_star_type']} / {row['secondary_star_type']} (wide binary)"
+    return row["binary_type"]
 
 
 def count_systems(conn, star_type_prefix=None, sector_id=None):
@@ -615,14 +649,18 @@ def system_detail(conn, system_id):
 
     Returns:
         dict: `id`, `name`, `sector_id`, `quadrant`, `location`,
-            `is_binary`, `binary_type`, `markdown_content`,
-            `wikitext_content`, `stars` (role/name/star_type/mass_kg/
-            radius_km/temperature_k/luminosity_w), `planets` (each a
-            `planets` row plus its own `moons` list), `belts`
-            (`asteroid_belts` rows), and `sector_siblings` (`{id, name}`
-            for every other system in the same sector, empty if
-            standalone -- for linkifying `location`'s "nearest: ..."
-            names without a second round trip).
+            `is_binary`, `binary_type`, `binary_configuration` (`'close'`,
+            `'wide'`, or `None` -- see `schema.sql`'s "v15" note),
+            `markdown_content`, `wikitext_content`, `stars` (id/role/name/
+            star_type/mass_kg/radius_km/temperature_k/luminosity_w --
+            `id` matches a `'wide'` binary's `planets`/`belts` rows' own
+            `star_id`, disambiguating which star each orbits), `planets`
+            (each a `planets` row, including its own `star_id`, plus its
+            own `moons` list), `belts` (`asteroid_belts` rows, including
+            `star_id`), and `sector_siblings` (`{id, name}` for every
+            other system in the same sector, empty if standalone -- for
+            linkifying `location`'s "nearest: ..." names without a second
+            round trip).
 
     Raises:
         ValueError: If no such system exists.
@@ -632,7 +670,7 @@ def system_detail(conn, system_id):
         raise ValueError(f"no star_systems row with id {system_id}")
 
     stars = conn.execute(
-        "SELECT role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w"
+        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
         (system_id,),
@@ -665,6 +703,7 @@ def system_detail(conn, system_id):
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
         "quadrant": system["quadrant"], "location": system["location"],
         "is_binary": system["is_binary"], "binary_type": system["binary_type"],
+        "binary_configuration": system["binary_configuration"],
         "markdown_content": system["markdown_content"], "wikitext_content": system["wikitext_content"],
         "stars": [dict(s) for s in stars],
         "planets": planets,
@@ -880,9 +919,13 @@ def _search_result_sectors(conn, term):
 def _search_result_systems(conn, term):
     rows = conn.execute(
         """
-        SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_type,
+        SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
-                   AS single_star_type
+                   AS single_star_type,
+               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'primary' LIMIT 1)
+                   AS primary_star_type,
+               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
+                   AS secondary_star_type
         FROM star_systems ss
         WHERE ss.name LIKE ? ESCAPE '\\'
         ORDER BY ss.name
@@ -896,7 +939,7 @@ def _search_result_systems(conn, term):
         "rows": [
             {
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
-                "star_summary": r["binary_type"] if r["is_binary"] else r["single_star_type"],
+                "star_summary": _star_summary(r),
             }
             for r in rows
         ],

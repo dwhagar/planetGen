@@ -28,7 +28,8 @@ TRISTATE_OPTIONS = [
     ("moons", "MOONS", "moons on every planet"),
     ("max_planets", "MAX_PLANETS", "the maximum number of orbital objects"),
     ("intelligent_life", "INTELLIGENT_LIFE", "intelligent life on a planet"),
-    ("binary_system", "BINARY_SYSTEM", "a binary (P-type) star system"),
+    ("binary_system", "BINARY_SYSTEM", "a binary star system"),
+    ("wide_binary", "WIDE_BINARY", "an S-type (wide) binary instead of a P-type (close) one"),
     ("planets", "PLANETS", "at least one planet or asteroid belt"),
 ]
 
@@ -60,6 +61,8 @@ def process_args():
         - `+max_planets` / `-max_planets`
         - `+intelligent_life` / `-intelligent_life`
         - `+binary_system` / `-binary_system`
+        - `+wide_binary` / `-wide_binary` (only meaningful together with
+          `+binary_system`; see `SystemConfig.WIDE_BINARY`)
         - `+planets` / `-planets`
 
     The remaining, non-tri-state options:
@@ -199,8 +202,8 @@ def load_system_file(path):
     to a `SystemConfig` attribute of the same name (see that class's
     docstrings for details): `star_type`, `name`, `age`, `num_orbits`,
     `slots`, `habitable_world`, `asteroid_belt`, `large_star`, `moons`,
-    `max_planets`, `intelligent_life`, `binary_system`, `planets`,
-    `markdown`, `flavor_chance_system`, `flavor_chance_planet`,
+    `max_planets`, `intelligent_life`, `binary_system`, `wide_binary`,
+    `planets`, `markdown`, `flavor_chance_system`, `flavor_chance_planet`,
     `max_planet_flavor`, `output`.
 
     `slots`, if present, is a list whose entries are either `null` or an
@@ -243,8 +246,8 @@ def apply_system_file(system_config, data):
     simple_keys = [
         "star_type", "name", "age", "num_orbits", "slots",
         "habitable_world", "asteroid_belt", "large_star", "moons",
-        "max_planets", "intelligent_life", "binary_system", "planets",
-        "markdown",
+        "max_planets", "intelligent_life", "binary_system", "wide_binary",
+        "planets", "markdown",
     ]
     key_to_attr = {key: key.upper() for key in simple_keys}
 

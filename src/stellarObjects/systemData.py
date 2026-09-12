@@ -28,7 +28,8 @@ from .doubleStar import BinaryStarProxy
 from . import physical_constants, planetLife, planetPhysics, program_constants
 from .planetData import Planet
 from .starData import Star
-from .utils import to_paragraph
+from .utils import mutual_hill_radius_au, to_paragraph
+from .wideBinary import WideBinaryPair
 
 # Tracks the shape of `StarSystem.to_dict()`'s output (the serialized
 # object-graph -- see TODO.md's Phase 1), independent of
@@ -37,7 +38,45 @@ from .utils import to_paragraph
 # raise a clear error if a file's shape is newer than the code understands,
 # rather than a confusing `KeyError`/`AttributeError` partway through
 # reconstruction.
-SERIALIZATION_SCHEMA_VERSION = 1
+#
+# Bumped 1 -> 2 to add S-type (wide) binary support: `binary_type`
+# (None | "close" | "wide", now the authoritative discriminator --
+# `is_binary` is kept for backward compatibility and now means "this system
+# has two stars", true for either configuration), `secondary_star` and
+# `wide_binary` (both null unless `binary_type == "wide"`), and
+# `secondary_planets` (the wide binary secondary's own independently
+# generated planet list; empty otherwise). A pre-v2 save has no
+# `binary_type` key at all -- `from_dict` treats that as "close" whenever
+# its `is_binary` is true, since P-type was the only binary configuration
+# that existed before this version.
+SERIALIZATION_SCHEMA_VERSION = 2
+
+
+def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
+    """
+    True if `obj`'s own outer edge -- `upper_limit` for an `AsteroidBelt`,
+    or `distance + min_orbit_distance` (5x its own Hill radius) for a
+    `Planet` -- extends past `orbit_ceiling_au`.
+
+    Used by `StarSystem._generate_planets` to enforce that a newly placed
+    body's own sphere of influence, not just its central distance, stays
+    inside a star's stability ceiling (see `StarSystem._orbit_ceiling_au`)
+    -- mirroring the same `distance + min_orbit_distance` idiom already
+    used to space successive planets around one star (see
+    `planetPhysics.py`'s `min_orbit_distance`, `5 * hill_radius`). Without
+    this, a candidate's *center* could sit just inside a tight,
+    companion-driven S-type limit while its own Hill sphere still reached
+    past it.
+
+    Args:
+        obj (Planet or AsteroidBelt): The most recently placed body.
+        orbit_ceiling_au (float): The boundary to check against, in AU.
+
+    Returns:
+        bool: True if `obj` extends past `orbit_ceiling_au`.
+    """
+    outer_edge = obj.upper_limit if obj.body_type == 'a' else obj.distance + obj.min_orbit_distance
+    return outer_edge > orbit_ceiling_au
 
 
 class StarSystem:
@@ -128,6 +167,9 @@ class StarSystem:
                           galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
+        self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
+        self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
+        self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
         self.stars = [self.primary_star] # Keep track of individual stars
 
         if self.system_config.BINARY_SYSTEM:
@@ -147,9 +189,27 @@ class StarSystem:
                                         galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg)
             self.stars.append(self.secondary_star)
-            self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
-                                         galactic_center_dist_ly=galactic_center_dist_ly,
-                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
+
+            # WIDE_BINARY picks which of the two real binary configurations
+            # this pair becomes -- see SystemConfig.WIDE_BINARY's own
+            # docstring. Only consulted here, once, since BINARY_SYSTEM is
+            # the gate for even having a second star at all.
+            is_wide = self.system_config.WIDE_BINARY
+            if is_wide is None:
+                is_wide = random.random() < program_constants.WIDE_BINARY_DEFAULT_CHANCE
+            self.binary_type = "wide" if is_wide else "close"
+
+            if self.binary_type == "close":
+                self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
+                                             galactic_center_dist_ly=galactic_center_dist_ly,
+                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
+            else:
+                # An S-type pair never merges into one effective star --
+                # self.star stays the primary Star itself (set above), and
+                # WideBinaryPair.__init__ sets primary_star.a_crit_au /
+                # secondary_star.a_crit_au directly on the two Star
+                # instances (see Star.a_crit_au's own docstring).
+                self.wide_binary = WideBinaryPair(self.system_config, self.primary_star, self.secondary_star)
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         # `validate_system`'s orbital-overlap correction can, in rare cases,
@@ -159,17 +219,51 @@ class StarSystem:
         # whole placement (same star, fresh positions) rather than accept a
         # system that silently fails a requirement `system_config` explicitly
         # asked for. See `_generate_planets`/`MAX_SYSTEM_GENERATION_ATTEMPTS`.
+        #
+        # For an S-type binary, the primary and secondary are each generated
+        # independently via their own `_generate_planets` call -- the
+        # secondary always gets `apply_guarantees=False` (see that method's
+        # docstring), so a HABITABLE_WORLD/ASTEROID_BELT guarantee or an
+        # explicit SLOTS spec unambiguously describes the primary's own
+        # list only. `_validate_cross_star_clearance` then prunes either
+        # list's outermost planet if the two stars' own disks would
+        # otherwise gravitationally encroach on each other -- see that
+        # method's docstring.
         for _attempt in range(program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS):
-            self.planets = []
-            self._generate_planets()
-            self.validate_system()
+            primary_ceiling_au = self._orbit_ceiling_au(self.star)
+            self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
+            self.validate_system(self.planets)
+            # validate_system only ever pushes a body's distance further
+            # OUTWARD to resolve a spacing collision with its inner
+            # neighbor, never closer -- for the galactic-Hill-sphere
+            # ceiling this correction is negligible next to a light-year-
+            # scale boundary, but a much tighter S-type a_crit ceiling
+            # makes it a real possibility, so re-trim afterward using each
+            # body's own final position.
+            self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
 
-            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable()[0] > 0
-            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects()[1] > 0
+            self.secondary_planets = []
+            if self.binary_type == "wide":
+                secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
+                self.secondary_planets = self._generate_planets(
+                    self.secondary_star, self.secondary_star.habitable_zone,
+                    secondary_ceiling_au, apply_guarantees=False,
+                )
+                self.validate_system(self.secondary_planets)
+                self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                # Runs last, once both lists reflect their own truly final
+                # (post-validate_system, post-trim) positions -- see this
+                # method's own docstring.
+                self._validate_cross_star_clearance()
+
+            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
+            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             if habitable_satisfied and belt_satisfied:
                 break
 
         self.star.adjust_age_for_planets(self.planets)
+        if self.binary_type == "wide":
+            self.secondary_star.adjust_age_for_planets(self.secondary_planets)
 
         # Decided once, here, at generation time -- __str__ (which may be called
         # more than once) reads this rather than re-rolling and double-counting
@@ -185,7 +279,7 @@ class StarSystem:
         # age rather than its provisional pre-adjustment one. Flavor text is decided
         # in the same pass (after life data, since it reads evolutionary_data) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
-        for obj in self.planets:
+        for obj in self.planets + self.secondary_planets:
             if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                 continue
             planetLife.apply_life_data(obj)
@@ -197,29 +291,64 @@ class StarSystem:
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
 
-    def _generate_planets(self):
+    def _generate_planets(self, star, habitable_zone, orbit_ceiling_au, apply_guarantees=True):
         """
-        Populates `self.planets` with a fresh, sequentially-placed set of
-        planets/asteroid belts around `self.star` -- extracted out of
-        `__init__` so it can be retried wholesale (same star, fresh
-        positions) when the result doesn't satisfy an explicitly requested
-        `HABITABLE_WORLD`/`ASTEROID_BELT` guarantee (see `__init__`'s own
-        retry loop). Appends directly to `self.planets`, which the caller
-        is responsible for resetting to `[]` first.
+        Builds a fresh, sequentially-placed list of planets/asteroid belts
+        around `star` -- extracted out of `__init__` so it can be retried
+        wholesale (same star, fresh positions) when the result doesn't
+        satisfy an explicitly requested `HABITABLE_WORLD`/`ASTEROID_BELT`
+        guarantee (see `__init__`'s own retry loop), and so it can be
+        called independently for each star of an S-type (wide) binary.
+
+        Args:
+            star (Star): The star to generate this list around -- `self.star`
+                for a single star or a P-type (close) binary's merged
+                proxy, or `self.primary_star`/`self.secondary_star`
+                individually for an S-type (wide) binary.
+            habitable_zone (tuple): `(inner_au, outer_au)` -- `star`'s own
+                habitable zone, passed explicitly rather than re-read from
+                `star.habitable_zone` inline so every call site is
+                self-documenting about which zone this list is placed
+                against.
+            orbit_ceiling_au (float): The AU distance beyond which no
+                further slot is placed -- see `_orbit_ceiling_au`, which
+                every caller uses to compute this (a star's own
+                `system_perimeter`, or for an S-type binary star, the
+                tighter of that and its companion-driven
+                `a_crit_au`). This method itself doesn't need to know
+                binaries exist at all.
+            apply_guarantees (bool): Whether `system_config.HABITABLE_WORLD`/
+                `ASTEROID_BELT`'s forced placement and `system_config.SLOTS`'s
+                explicit per-orbit spec apply to this call. True (the
+                default) for a single star, a P-type proxy, and an S-type
+                binary's primary. False only for an S-type binary's
+                SECONDARY: its list is always fully, independently random,
+                never a `SLOTS` override or a forced habitable-world/
+                asteroid-belt placement -- otherwise a hand-authored
+                `SLOTS` scenario or `HABITABLE_WORLD=True` guarantee would
+                be ambiguous between "the primary's Nth slot" and "the
+                secondary's Nth slot".
+
+        Returns:
+            list: Newly generated `Planet`/`AsteroidBelt` objects, in
+                 orbital order. Does not touch `self.planets` or
+                 `self.secondary_planets` -- the caller assigns the result
+                 to whichever one applies.
         """
-        system_objects = self.estimate_num_objects()
-        star_factor = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
+        planets = []
+        system_objects = self.estimate_num_objects(star)
+        star_factor = star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         required_objects = 0
-        if self.system_config.HABITABLE_WORLD is True:
+        if apply_guarantees and self.system_config.HABITABLE_WORLD is True:
             required_objects += 1
-        if self.system_config.ASTEROID_BELT is True:
+        if apply_guarantees and self.system_config.ASTEROID_BELT is True:
             required_objects += 1
 
         if system_objects < required_objects:
             system_objects = required_objects
 
-        slots = self.system_config.SLOTS or []
+        slots = (self.system_config.SLOTS or []) if apply_guarantees else []
 
         if system_objects > 0:
             belt_index = random.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
@@ -234,7 +363,7 @@ class StarSystem:
                 prev_slot_explicit = i > 0 and (i - 1) < len(slots) and slots[i - 1] is not None
 
                 if i > 0:
-                    last_planet = self.planets[i - 1]
+                    last_planet = planets[i - 1]
                     random_buffer = random.uniform(0, star_factor)
                     if last_planet.body_type == 'a':
                         estimated_distance = last_planet.upper_limit + random_buffer * 2
@@ -246,23 +375,25 @@ class StarSystem:
                     # previous object's own Hill radius, which itself scales
                     # with its distance -- for a system with many objects
                     # (especially several giant planets around a massive
-                    # star), that compounds geometrically. `system_perimeter`
-                    # (the star's own Hill sphere *relative to the galaxy*,
-                    # see `Star.calculate_system_perimeter`) is the real
-                    # physical boundary past which nothing is gravitationally
-                    # bound to this star at all -- stop adding slots once
-                    # the sequential spacing would place one beyond it,
-                    # rather than letting that compounding run unbounded.
-                    # A system that runs out of stable room this way simply
-                    # ends up with fewer objects than `system_objects`
-                    # estimated, the same physically-honest outcome a real
-                    # protoplanetary disk of finite extent would produce.
-                    if estimated_distance > self.star.system_perimeter:
+                    # star), that compounds geometrically. `orbit_ceiling_au`
+                    # (the star's own Hill sphere relative to the galaxy, or
+                    # for an S-type binary star, the tighter of that and its
+                    # companion-driven stability limit -- see
+                    # `_orbit_ceiling_au`) is the real physical boundary past
+                    # which nothing is gravitationally bound to this star at
+                    # all -- stop adding slots once the sequential spacing
+                    # would place one beyond it, rather than letting that
+                    # compounding run unbounded. A system that runs out of
+                    # stable room this way simply ends up with fewer objects
+                    # than `system_objects` estimated, the same
+                    # physically-honest outcome a real protoplanetary disk of
+                    # finite extent would produce.
+                    if estimated_distance > orbit_ceiling_au:
                         break
                 else:
                     estimated_distance = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
 
-                hz = self.star.habitable_zone[0] < estimated_distance < self.star.habitable_zone[1]
+                hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
 
                 # An explicit per-slot specification takes priority over all of the
                 # normal random/forced generation logic below.
@@ -272,20 +403,23 @@ class StarSystem:
                         found_hab = True
                     if getattr(obj, 'body_type', None) == 'a':
                         found_belt = True
-                    self.planets.append(obj)
+                    planets.append(obj)
+                    if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
+                        planets.pop()
+                        break
                     continue
 
-                if self.system_config.HABITABLE_WORLD is True and not found_hab:
+                if apply_guarantees and self.system_config.HABITABLE_WORLD is True and not found_hab:
                     if not hz and i == 0:
-                        if (estimated_distance > self.star.habitable_zone[1] or
-                                0 < self.star.habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
+                        if (estimated_distance > habitable_zone[1] or
+                                0 < habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
                             estimated_distance = self._forced_habitable_distance()
                             hz = True
                     elif not hz and i > 0:
-                        last_planet = self.planets[i - 1]
-                        beyond_hz = last_planet.body_type == 'a' and last_planet.upper_limit > self.star.habitable_zone[1] or \
+                        last_planet = planets[i - 1]
+                        beyond_hz = last_planet.body_type == 'a' and last_planet.upper_limit > habitable_zone[1] or \
                                     last_planet.body_type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
-                                                                 self.star.habitable_zone[1])
+                                                                 habitable_zone[1])
 
                         # Never retroactively overwrite a belt if ASTEROID_BELT is
                         # required: this could be the belt satisfying that guarantee
@@ -296,21 +430,27 @@ class StarSystem:
 
                         if beyond_hz and not prev_slot_explicit and not belt_is_protected:
                             estimated_distance = self._forced_habitable_distance()
-                            planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, # Pass system_config
+                            planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
                                             planet_class="M")
-                            self.planets[i - 1] = planet
+                            planets[i - 1] = planet
                             i -= 1
                             found_hab = True
+                            if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
+                                planets.pop()
+                                break
                             continue
                         elif i == system_objects - 1:
                             estimated_distance = self._forced_habitable_distance()
                             hz = True
 
                     if hz:
-                        planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance, # Pass system_config
+                        planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
                                         planet_class="M")
                         found_hab = True
-                        self.planets.append(planet)
+                        planets.append(planet)
+                        if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
+                            planets.pop()
+                            break
                         continue
 
                 # Guaranteed last-resort fallback, mirroring HABITABLE_WORLD's own
@@ -322,48 +462,225 @@ class StarSystem:
                 # own unconditional `continue` above would otherwise steal this one
                 # out from under the belt), so the belt's fallback claims the slot
                 # just before it instead, guaranteeing each requirement its own slot.
-                hab_still_pending = self.system_config.HABITABLE_WORLD is True and not found_hab
+                hab_still_pending = apply_guarantees and self.system_config.HABITABLE_WORLD is True and not found_hab
                 belt_fallback_index = (system_objects - 2) if hab_still_pending else (system_objects - 1)
-                force_belt = self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
+                force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
 
                 if self.system_config.ASTEROID_BELT is not False and (
                     force_belt or (not last_asteroid and not hz and (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index))
                 ):
                     min_distance = estimated_distance
                     max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
-                    self.planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
+                    planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
                     found_belt = True
                 else:
-                    planet = Planet(self.system_config, self.star, self.star.habitable_zone, estimated_distance) # Pass system_config
+                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance) # Pass system_config
                     if planet.planet_class == "M":
                         found_hab = True
-                    self.planets.append(planet)
+                    planets.append(planet)
+
+                if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
+                    planets.pop()
+                    break
+
+        return planets
+
+    def _orbit_ceiling_au(self, star):
+        """
+        The AU distance beyond which `_generate_planets` stops placing
+        slots around `star` -- that star's own Hill sphere relative to the
+        galaxy (`system_perimeter`), or, for a star that is one constituent
+        of an S-type (wide) binary, the tighter of that and its
+        companion-driven Holman & Wiegert stability limit (`a_crit_au`,
+        see `Star.a_crit_au`'s own docstring). `a_crit_au` is `None` for a
+        single star or either star of a P-type (close) binary (whose
+        merged `BinaryStarProxy` never sets it), so this is a no-op
+        fallback to `system_perimeter` alone in those cases.
+
+        Args:
+            star (Star): The star to compute this boundary for.
+
+        Returns:
+            float: The orbit ceiling, in AU.
+        """
+        if star.a_crit_au is None:
+            return star.system_perimeter
+        return min(star.system_perimeter, star.a_crit_au)
+
+    def _trim_to_orbit_ceiling(self, planets, orbit_ceiling_au):
+        """
+        Removes trailing planets/belts from `planets` that `validate_system`'s
+        own overlap correction pushed past `orbit_ceiling_au`.
+
+        `_generate_planets` already keeps every body it places within
+        `orbit_ceiling_au` (via `_exceeds_orbit_ceiling`), but
+        `validate_system` (called afterward, to resolve spacing collisions
+        between neighbors) only ever pushes a body's `distance` further
+        OUTWARD, never closer -- for the galactic-Hill-sphere ceiling that
+        correction was never practically reachable (negligible next to a
+        light-year-scale boundary), but a much tighter S-type `a_crit_au`
+        ceiling makes it a real possibility. Trims from the end (outermost
+        first) since an outward-only correction cannot newly push an
+        *interior* body past the ceiling without its outer neighbor
+        already having been pushed past it first.
+
+        Args:
+            planets (list): The list to trim in place (`self.planets` or
+                `self.secondary_planets`).
+            orbit_ceiling_au (float): The boundary to check against, in AU
+                (see `_orbit_ceiling_au`).
+        """
+        while planets and _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
+            planets.pop()
+
+    def _validate_cross_star_clearance(self):
+        """
+        For an S-type (wide) binary, prunes the outermost planet from
+        whichever star's list gravitationally encroaches on the other
+        star's own outermost planet, using a Gladman (1993)-derived mutual
+        Hill radius between the two systems' outermost bodies.
+
+        Each star's own Holman & Wiegert (1999) `a_crit_au` (see
+        `_orbit_ceiling_au`) only guarantees a *test particle* is long-term
+        stable there -- a real generated planet carries its own mass and
+        Hill sphere, so the two stars' outermost planets (the ones nearest
+        the gap between the stars) can still encroach on each other even
+        though each individually respects its own star's `a_crit_au`. This
+        is a physically-motivated EXTENSION of Gladman's mutual-Hill-radius
+        criterion, not a literal application of it: Gladman's own
+        derivation assumes both bodies orbit the SAME central star, but
+        here they orbit two different ones. `M_relevant` (Gladman's
+        "central mass") is taken as the pair's COMBINED mass
+        (`primary_star.mass + secondary_star.mass`) -- the same
+        "combined mass governs the pair's local dynamics" reasoning
+        `WideBinaryPair` already applies via `mu` in the Holman & Wiegert
+        formula, and a reasonable proxy specifically near the gap between
+        the two disks, where both stars' gravity is comparably significant
+        (that's the entire reason `a_crit_au` exists in the first place).
+
+        Computes the worst-case center-to-center separation between the two
+        stars' outermost planets as `a_bin - outer_primary.distance -
+        outer_secondary.distance` -- the conservative case where the two
+        planets' independent, uncorrelated `orbital_phase_deg` happen to
+        point directly at each other along the binary axis. This is
+        deliberately the worst case, not an average: nothing in this
+        generator correlates a primary-planet's instantaneous phase against
+        a secondary-planet's (each is rolled independently, and
+        `updateOrbits.py` advances them independently over time too), so
+        it's the only separation value that stays valid across the whole
+        orbital cycle, not just at generation time.
+
+        If that worst-case gap is smaller than
+        `physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR` mutual
+        Hill radii, the offending outermost planet is removed -- starting
+        with whichever star's outermost planet has the least margin to its
+        own `a_crit_au` -- and the check repeats until clearance holds or
+        one star's planet list is exhausted of real planets. Framed
+        physically as the companion star's gravity "clearing"/"capturing"
+        that orbital slot, the same spirit as `_generate_planets`'s own
+        documented "runs out of stable room" behavior.
+
+        Trailing `AsteroidBelt` objects are skipped when finding a star's
+        "outermost planet" -- a belt has no discrete mass/Hill sphere to
+        evaluate here -- by walking inward past any trailing belt(s); if
+        either star's list contains no real `Planet` at all, this is a
+        no-op.
+
+        As the equal-mass, circular-orbit sanity check in
+        `utils.holman_wiegert_critical_semimajor_axis`'s own docstring
+        shows (`a_crit_au` sitting at roughly 0.27-0.30 * a_bin for that
+        case, comfortably under half of `a_bin`), this should rarely
+        trigger for ordinary wide, low-eccentricity pairs -- it exists as a
+        safety net for tight/eccentric edge cases and `MAX_PLANETS=True`-
+        forced systems, where both stars' lists are pushed all the way out
+        to their own `a_crit_au`.
+
+        Called from `__init__`'s retry loop only after both lists reflect
+        their own truly final positions -- each star's own `validate_system`
+        pass and `_trim_to_orbit_ceiling` trim have already run -- so the
+        worst-case gap below is computed from real, final distances rather
+        than positions `validate_system` might still push outward.
+
+        Mutates `self.planets`/`self.secondary_planets` in place. No-op if
+        `binary_type != "wide"` or either list is empty.
+        """
+        if self.binary_type != "wide" or not self.planets or not self.secondary_planets:
+            return
+
+        a_bin = self.wide_binary.separation_au
+        central_mass_kg = self.primary_star.mass + self.secondary_star.mass
+
+        def outermost_planet(planet_list):
+            for obj in reversed(planet_list):
+                if obj.body_type != 'a':
+                    return obj
+            return None
+
+        while self.planets and self.secondary_planets:
+            outer_p = outermost_planet(self.planets)
+            outer_s = outermost_planet(self.secondary_planets)
+            if outer_p is None or outer_s is None:
+                break
+
+            worst_case_gap_au = a_bin - outer_p.distance - outer_s.distance
+            r_h_mutual_au = mutual_hill_radius_au(
+                outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg
+            )
+            threshold_au = physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
+
+            if worst_case_gap_au >= threshold_au:
+                break
+
+            primary_room = self.primary_star.a_crit_au - outer_p.distance
+            secondary_room = self.secondary_star.a_crit_au - outer_s.distance
+            if primary_room <= secondary_room:
+                self.planets.remove(outer_p)
+            else:
+                self.secondary_planets.remove(outer_s)
 
     def to_dict(self):
         """
         Returns a JSON-serializable dict of the entire generated object
         graph: this system's config, star (polymorphic -- includes nested
-        primary/secondary if binary), every planet/belt (in orbital order,
-        each recursively including its own moons), and the system-level
-        flavor text (see TODO.md's Phase 0 fix, which moved this to
-        generation time so it's a plain, idempotent read here).
+        primary/secondary if a P-type/close binary), every planet/belt (in
+        orbital order, each recursively including its own moons), and the
+        system-level flavor text (see TODO.md's Phase 0 fix, which moved
+        this to generation time so it's a plain, idempotent read here).
+
+        `binary_type` (`None`/`"close"`/`"wide"`) is the authoritative
+        discriminator going forward; `is_binary` is kept alongside it for
+        backward compatibility and now means "this system has two stars",
+        true for either configuration (a strict superset of its old,
+        P-type-only meaning, so nothing that already reads it as "does
+        this system have a companion star" breaks). `secondary_star` and
+        `wide_binary` are only non-null when `binary_type == "wide"` (a
+        P-type binary's secondary is already nested inside `star`, the
+        `BinaryStarProxy` dict). `secondary_planets` is the wide binary
+        secondary's own independently-generated planet list -- empty for
+        every other configuration.
 
         Deliberately omits `planet_count`/`belt_count`/`moon_count`/
         `hab_count`/`m_count` (bookkeeping recomputed on load via
         `count_objects`/`count_habitable`, never trusted from disk) and
-        `stars`/`primary_star`/`secondary_star` (resolvable from `star`
+        `stars`/`primary_star` (resolvable from `star`/`secondary_star`
         alone -- see `from_dict`).
 
         Returns:
             dict: `schema_version`, `system_config`, `star`, `is_binary`,
-                 `planets`, `system_flavor_text`.
+                 `binary_type`, `secondary_star`, `wide_binary`, `planets`,
+                 `secondary_planets`, `system_flavor_text`.
         """
+        is_wide = self.binary_type == "wide"
         return {
             "schema_version": SERIALIZATION_SCHEMA_VERSION,
             "system_config": self.system_config.to_dict(),
             "star": self.star.to_dict(),
-            "is_binary": isinstance(self.star, BinaryStarProxy),
+            "is_binary": self.binary_type is not None,
+            "binary_type": self.binary_type,
+            "secondary_star": self.secondary_star.to_dict() if is_wide else None,
+            "wide_binary": self.wide_binary.to_dict() if is_wide else None,
             "planets": [obj.to_dict() for obj in self.planets],
+            "secondary_planets": [obj.to_dict() for obj in self.secondary_planets],
             "system_flavor_text": self.system_flavor_text,
         }
 
@@ -383,20 +700,26 @@ class StarSystem:
         This is the single place that resolves both shared back-references
         once and re-attaches the same instances everywhere: `system_config`
         is built once and threaded into every child; `star` is built once
-        (via a `is_binary` discriminator choosing `Star.from_dict` vs.
+        (via a `binary_type` discriminator choosing `Star.from_dict` vs.
         `BinaryStarProxy.from_dict`) and threaded into every top-level
-        `Planet`/`AsteroidBelt`. For a binary system, the secondary star is
-        deliberately reattached to the *same* shared `system_config` as
-        everything else, collapsing the generation-time-only asymmetry
-        where `StarSystem.__init__` gives the secondary its own deep-copied
+        `Planet`/`AsteroidBelt` of `self.planets`. A pre-v2 save has no
+        `binary_type` key at all -- treated as `"close"` whenever its
+        (older, P-type-only) `is_binary` is true, since P-type was the only
+        binary configuration that existed before S-type support. For a
+        P-type (close) binary, the secondary star is deliberately
+        reattached to the *same* shared `system_config` as everything else,
+        collapsing the generation-time-only asymmetry where
+        `StarSystem.__init__` gives the secondary its own deep-copied
         config (`LARGE_STAR` forced `False`) -- that flag is only ever
         consulted during `generate_star()`, so it has no meaning once a
-        star already exists to be reloaded.
+        star already exists to be reloaded. For an S-type (wide) binary,
+        `star` IS the primary (never wrapped), and the secondary is
+        reconstructed separately from `data["secondary_star"]`.
 
-        Each item in `planets` is dispatched to `AsteroidBelt.from_dict` or
-        `Planet.from_dict` based on its own `body_type` (`'a'` vs.
-        `'t'`/`'g'`), the same discriminator `StarSystem` itself already
-        uses to tell the two apart at runtime.
+        Each item in `planets`/`secondary_planets` is dispatched to
+        `AsteroidBelt.from_dict` or `Planet.from_dict` based on its own
+        `body_type` (`'a'` vs. `'t'`/`'g'`), the same discriminator
+        `StarSystem` itself already uses to tell the two apart at runtime.
 
         Args:
             data (dict): A dict in the shape `to_dict()` produces.
@@ -417,7 +740,11 @@ class StarSystem:
 
         system_config = SystemConfig.from_dict(data["system_config"])
 
-        if data["is_binary"]:
+        binary_type = data.get("binary_type")
+        if binary_type is None and data.get("is_binary"):
+            binary_type = "close"  # Pre-v2 save: P-type was the only binary configuration that existed.
+
+        if binary_type == "close":
             star = BinaryStarProxy.from_dict(data["star"], system_config)
         else:
             star = Star.from_dict(data["star"], system_config)
@@ -425,22 +752,40 @@ class StarSystem:
         system = object.__new__(cls)
         system.system_config = system_config
         system.star = star
+        system.binary_type = binary_type
 
-        if isinstance(star, BinaryStarProxy):
+        if binary_type == "close":
             system.primary_star = star._primary
             system.secondary_star = star._secondary
             system.stars = [star._primary, star._secondary]
+            system.wide_binary = None
+        elif binary_type == "wide":
+            system.primary_star = star
+            system.secondary_star = Star.from_dict(data["secondary_star"], system_config)
+            system.stars = [system.primary_star, system.secondary_star]
+            system.wide_binary = WideBinaryPair.from_dict(
+                data["wide_binary"], system_config, system.primary_star, system.secondary_star
+            )
         else:
             system.primary_star = star
             system.stars = [star]
+            system.wide_binary = None
 
-        system.planets = []
-        for obj_data in data["planets"]:
-            if obj_data.get("body_type") == "a":
-                obj = AsteroidBelt.from_dict(obj_data, system_config)
-            else:
-                obj = Planet.from_dict(obj_data, star, system_config)
-            system.planets.append(obj)
+        def _load_objects(obj_data_list, obj_star):
+            objects = []
+            for obj_data in obj_data_list:
+                if obj_data.get("body_type") == "a":
+                    obj = AsteroidBelt.from_dict(obj_data, system_config)
+                else:
+                    obj = Planet.from_dict(obj_data, obj_star, system_config)
+                objects.append(obj)
+            return objects
+
+        system.planets = _load_objects(data["planets"], star)
+        system.secondary_planets = (
+            _load_objects(data.get("secondary_planets", []), system.secondary_star)
+            if binary_type == "wide" else []
+        )
 
         system.system_flavor_text = data.get("system_flavor_text")
 
@@ -573,7 +918,7 @@ class StarSystem:
         inner, outer = self.star.habitable_zone
         return self._distance_within_zone_with_margin(inner, outer)
 
-    def count_objects(self):
+    def count_objects(self, planets=None):
         """
         Counts the number of planets, asteroid belts, and moons in the system.
 
@@ -583,12 +928,25 @@ class StarSystem:
         planets. This information is used to provide a summary of the system's
         composition in the `__str__` method.
 
+        Args:
+            planets (list, optional): Defaults to `self.planets +
+                self.secondary_planets` -- the whole system's objects
+                across both stars (for a single star or P-type binary,
+                `self.secondary_planets` is always `[]`, so this is
+                identical to `self.planets` alone). Pass `self.planets` or
+                `self.secondary_planets` explicitly to count just one
+                star's own list, e.g. to check a HABITABLE_WORLD/
+                ASTEROID_BELT guarantee against the primary alone (see
+                `__init__`'s retry loop).
+
         Returns:
             tuple: A tuple containing the total number of planets, asteroid belts,
                    and moons in the system, in that order.
         """
+        if planets is None:
+            planets = self.planets + self.secondary_planets
         planet_counter, moon_counter, belt_counter = 0, 0, 0
-        for planet in self.planets:
+        for planet in planets:
             if planet.body_type == 'a':
                 belt_counter += 1
             else:
@@ -596,7 +954,7 @@ class StarSystem:
                 moon_counter += len(planet.moons)
         return planet_counter, belt_counter, moon_counter
 
-    def count_habitable(self):
+    def count_habitable(self, planets=None):
         """
         Counts the number of potentially habitable worlds in the system.
 
@@ -606,13 +964,19 @@ class StarSystem:
         count of Class M worlds, which are considered the most Earth-like. This
         is used for the system summary output.
 
+        Args:
+            planets (list, optional): See `count_objects`'s identical
+                parameter -- defaults to both stars' combined lists.
+
         Returns:
             tuple: A tuple containing the total number of potentially habitable
                    worlds and the total number of Class M worlds, in that order.
         """
+        if planets is None:
+            planets = self.planets + self.secondary_planets
         habitable_classes = program_constants.HABITABLE_PLANET_CLASSES
         hab_count, m_count = 0, 0
-        for planet in self.planets:
+        for planet in planets:
             if planet.body_type != 'a':
                 if planet.planet_class in habitable_classes:
                     hab_count += 1
@@ -625,9 +989,9 @@ class StarSystem:
                         m_count += 1
         return hab_count, m_count
 
-    def estimate_num_objects(self):
+    def estimate_num_objects(self, star):
         """
-        Estimates the number of objects in a star system based on the star's mass.
+        Estimates the number of objects in a star system based on `star`'s mass.
 
         This method calculates the potential number of celestial objects a star
         can support based on its mass. The number of objects scales with the
@@ -641,6 +1005,12 @@ class StarSystem:
         returned as-is. `PLANETS` set to False forces zero objects; set to
         True, it raises the minimum considered to 1.
 
+        Args:
+            star (Star): The star to estimate object count for -- `self.star`
+                for a single star or P-type binary, or individually
+                `self.primary_star`/`self.secondary_star` for an S-type
+                binary (see `_generate_planets`, this method's only caller).
+
         Returns:
             int: The estimated number of objects to be generated in the system.
         """
@@ -650,7 +1020,7 @@ class StarSystem:
         if self.system_config.NUM_ORBITS is not None:
             return self.system_config.NUM_ORBITS
 
-        solar_masses = self.star.mass / physical_constants.SOLAR_MASS_TO_KG
+        solar_masses = star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         # This provides a continuous scaling factor based on mass.
         # For a 1 solar mass star, this is 1.
@@ -673,7 +1043,7 @@ class StarSystem:
             return min_objects
         return random.randint(min_objects, max_objects)
 
-    def validate_system(self):
+    def validate_system(self, planets=None):
         """
         Validates and adjusts the distances of stellar objects to prevent orbital overlap.
 
@@ -698,13 +1068,24 @@ class StarSystem:
         Class M at a Class-M-invalid distance, sometimes thousands of AU
         past the actual habitable zone -- see docs/TODO.md's now-resolved
         "validate_system can strand a planet outside its own zone" entry).
+
+        Args:
+            planets (list, optional): Defaults to `self.planets`. Pass
+                `self.secondary_planets` to separately validate an S-type
+                binary's secondary list -- the two lists orbit different
+                stars and are spaced/validated independently; a *cross*-star
+                clearance check (which does matter) is handled separately
+                by `_validate_cross_star_clearance`, called before either
+                list reaches this method (see `__init__`'s retry loop).
         """
-        if len(self.planets) < 2:
+        if planets is None:
+            planets = self.planets
+        if len(planets) < 2:
             return
 
-        for i in range(1, len(self.planets)):
-            planet = self.planets[i]
-            last_planet = self.planets[i - 1]
+        for i in range(1, len(planets)):
+            planet = planets[i]
+            last_planet = planets[i - 1]
 
             if last_planet.body_type == 'a':
                 distance_to_last = planet.distance - last_planet.upper_limit
@@ -874,7 +1255,7 @@ class StarSystem:
         combined_system_summary_paragraph = to_paragraph(system_summary_sentences)
 
 
-        if isinstance(self.star, BinaryStarProxy):
+        if self.binary_type == "close":
             # Get combined binary system data and age from the proxy
             # BinaryStarProxy.to_paragraph_list() returns [data_block, age_sentence]
             binary_proxy_paragraphs = self.star.to_paragraph_list()
@@ -908,6 +1289,42 @@ class StarSystem:
                 all_output_parts.append('\n\n') # Blank line after data block
                 all_output_parts.append(individual_star_details[1]) # Individual Star Age sentence
 
+        elif self.binary_type == "wide":
+            # Unlike the close/P-type pair (whose circumbinary planets
+            # belong to neither star individually, and are rendered flat,
+            # after both star sections), each S-type star's own planets are
+            # interleaved right after that star's own section below --
+            # more intuitive, since each list genuinely belongs to one
+            # star, not the pair as a whole.
+
+            # 1. Append the pair's own orbital-relationship data block.
+            all_output_parts.append(self.wide_binary.to_paragraph_list()[0])
+            all_output_parts.append('\n\n')
+
+            # 2. Append the system summary.
+            all_output_parts.append(combined_system_summary_paragraph)
+
+            # Flavor text was already decided at generation time; this is a pure
+            # read so repeated renders don't re-roll or double-count it.
+            if self.system_flavor_text:
+                all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
+
+            # 3. Append each star's own section, immediately followed by its own planets.
+            for star_obj, star_planets in ((self.primary_star, self.planets),
+                                            (self.secondary_star, self.secondary_planets)):
+                all_output_parts.append('\n\n')
+                header_level = '===' if not self.system_config.MARKDOWN else '###'
+                all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
+                all_output_parts.append('\n')
+
+                individual_star_details = star_obj.to_paragraph_list()
+                all_output_parts.append(individual_star_details[0])
+                all_output_parts.append('\n\n')
+                all_output_parts.append(individual_star_details[1])
+
+                for planet in star_planets:
+                    all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
+
         else:
             # For single star:
             # Get single star data and age from the star object
@@ -929,7 +1346,9 @@ class StarSystem:
                 all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
 
         # Add planet/belt paragraphs, each separated by a double newline from the previous.
-        if self.planets:
+        # Skipped for an S-type (wide) binary -- its planets were already
+        # emitted above, interleaved with each star's own section.
+        if self.binary_type != "wide" and self.planets:
             for planet in self.planets:
                 all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
 

@@ -64,8 +64,9 @@ from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distan
 from .starData import Star
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
+from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -714,6 +715,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
     Returns:
         int: The new `stars.id`.
     """
+    wide_binary_a_crit_km = (
+        star.a_crit_au * physical_constants.AU_TO_KM if star.a_crit_au is not None else None
+    )
     cur = conn.execute(
         """
         INSERT INTO stars (
@@ -722,8 +726,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             habitable_zone_inner_km, habitable_zone_outer_km,
             system_perimeter_km, heliosphere_radius_km,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_phase_deg, galactic_min_update_interval_years,
+            wide_binary_a_crit_km
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -737,6 +742,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.galactic_orbital_period_gy,
             star.galactic_orbital_phase_deg,
             star.galactic_min_update_interval_years,
+            wide_binary_a_crit_km,
         ),
     )
     return cur.lastrowid
@@ -921,7 +927,7 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     return moon_id
 
 
-def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index) -> int:
+def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index, star_id=None) -> int:
     """
     Inserts an `asteroid_belts` row (plus its `asteroid_belt_composition`
     child rows).
@@ -930,10 +936,17 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
         conn (Connection): An open, schema-initialized connection.
         belt (AsteroidBelt): The belt to persist.
         star_system_id (int): The owning `star_systems.id`.
-        orbital_index (int): This belt's position in the star's `planets`
-                             list (shared index space with `Planet`
-                             entries, so orbital order across both types is
-                             preserved).
+        orbital_index (int): This belt's position in its owning star's
+                             `planets`/`secondary_planets` list (shared
+                             index space with `Planet` entries within that
+                             same list, so orbital order across both types
+                             is preserved -- see `insert_star_system` for
+                             how a 'wide' binary's two lists each restart
+                             this index at 0, disambiguated by `star_id`).
+        star_id (int, optional): The specific owning `stars.id`, same
+            semantics as `planets.star_id` (see that column's own schema
+            comment) -- `None` for a single star's or a 'close' binary's
+            belt, set for a 'wide' binary's.
 
     Returns:
         int: The new `asteroid_belts.id`.
@@ -941,12 +954,12 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     cur = conn.execute(
         """
         INSERT INTO asteroid_belts (
-            star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km,
+            star_system_id, star_id, orbital_index, distance_km, lower_limit_km, upper_limit_km,
             density, composition_summary
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            star_system_id, orbital_index,
+            star_system_id, star_id, orbital_index,
             belt.distance * physical_constants.AU_TO_KM,
             belt.lower_limit * physical_constants.AU_TO_KM,
             belt.upper_limit * physical_constants.AU_TO_KM,
@@ -968,25 +981,39 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
-_NULL_BINARY_FIELDS = (None,) * 25
-"""Placeholder for every `binary_*` column when `star_system.star` isn't a
-`BinaryStarProxy` -- see `_binary_fields`."""
+_NULL_PROXY_ONLY_BINARY_FIELDS = (None,) * 15
+"""Placeholder for the 15 `star_systems.binary_*` columns that only ever
+describe a merged `BinaryStarProxy` (a 'close'/P-type pair) -- always NULL
+for a 'wide'/S-type pair or a single star, since no merged effective star
+exists to describe in either of those cases. See `schema.sql`'s "v15"
+header note and `_proxy_only_binary_fields`."""
+
+_NULL_MUTUAL_ORBIT_FIELDS = (None,) * 9
+"""Placeholder for the 9 `star_systems.binary_mutual_*` columns (excluding
+`binary_separation_km`, handled separately in `insert_star_system` since it
+sits earlier in column order, alongside the eccentricity/periapsis/apoapsis
+columns it's grouped with) -- NULL for a single (non-binary) star. See
+`_mutual_orbit_fields_from_proxy`/`_mutual_orbit_fields_from_wide_binary`."""
 
 
-def _binary_fields(proxy: BinaryStarProxy):
+def _proxy_only_binary_fields(proxy: BinaryStarProxy):
     """
-    Extracts the 25 `star_systems.binary_*` column values from a
-    `BinaryStarProxy`, in the exact order `insert_star_system`'s `INSERT`
-    lists them.
+    Extracts the 15 `star_systems.binary_*` column values that only ever
+    apply to a merged `BinaryStarProxy` -- `binary_type` (the pair's
+    combined spectral-summary string) through
+    `binary_galactic_min_update_interval_years` -- in the exact order
+    `insert_star_system`'s `INSERT` lists them. NOT used for a 'wide'
+    (S-type) pair, which has no merged effective star (see `schema.sql`'s
+    "v15" header note); its two stars' own equivalent data lives on their
+    own `stars` rows instead.
 
     Args:
         proxy (BinaryStarProxy): The system's combined-pair proxy.
 
     Returns:
-        tuple: 25 values, ready to splice into the `INSERT` parameters.
+        tuple: 15 values, ready to splice into the `INSERT` parameters.
     """
     return (
-        proxy.binary_separation_au * physical_constants.AU_TO_KM,
         proxy.type,
         proxy.temperature,
         proxy.radius,
@@ -1002,6 +1029,20 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.galactic_orbital_period_gy,
         proxy.galactic_orbital_phase_deg,
         proxy.galactic_min_update_interval_years,
+    )
+
+
+def _mutual_orbit_fields_from_proxy(proxy: BinaryStarProxy):
+    """
+    Extracts the 9 `star_systems.binary_mutual_*` column values (period,
+    speed, inclination, ascending node, phase, update-guard interval, and
+    x/y/z position -- everything except `binary_separation_km`, handled
+    separately) from a 'close' pair's `BinaryStarProxy`.
+
+    Returns:
+        tuple: 9 values, ready to splice into the `INSERT` parameters.
+    """
+    return (
         proxy.binary_mutual_orbital_period_years,
         proxy.binary_mutual_orbital_speed_kms,
         proxy.binary_mutual_orbital_inclination_deg,
@@ -1011,6 +1052,34 @@ def _binary_fields(proxy: BinaryStarProxy):
         proxy.binary_mutual_position_x * physical_constants.AU_TO_KM,
         proxy.binary_mutual_position_y * physical_constants.AU_TO_KM,
         proxy.binary_mutual_position_z * physical_constants.AU_TO_KM,
+    )
+
+
+def _mutual_orbit_fields_from_wide_binary(pair):
+    """
+    The same 9 `star_systems.binary_mutual_*` columns as
+    `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
+    `doubleStar.WideBinaryPair` instead -- these columns are reused
+    unchanged across both binary configurations (see `schema.sql`'s "v15"
+    header note): a wide pair's own (circular-approximation) mutual orbit
+    fits the exact same shape a close pair's already occupies.
+
+    Args:
+        pair (WideBinaryPair): The system's wide-binary orbital pair.
+
+    Returns:
+        tuple: 9 values, ready to splice into the `INSERT` parameters.
+    """
+    return (
+        pair.period_years,
+        pair.speed_kms,
+        pair.inclination_deg,
+        pair.ascending_node_deg,
+        pair.phase_deg,
+        pair.min_update_interval_years,
+        pair.position_x_au * physical_constants.AU_TO_KM,
+        pair.position_y_au * physical_constants.AU_TO_KM,
+        pair.position_z_au * physical_constants.AU_TO_KM,
     )
 
 
@@ -1104,8 +1173,36 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     """
     config_id = insert_system_config(conn, system_config)
 
-    is_binary = isinstance(star_system.star, BinaryStarProxy)
-    binary_fields = _binary_fields(star_system.star) if is_binary else _NULL_BINARY_FIELDS
+    # binary_type (None | "close" | "wide") is the authoritative
+    # discriminator (see systemData.StarSystem.__init__); is_binary is kept
+    # for the schema's own pre-existing column and now means "this system
+    # has two stars", true for either configuration. proxy_like gates
+    # exactly the columns that only ever describe a merged BinaryStarProxy
+    # -- see schema.sql's "v15" header note.
+    binary_configuration = getattr(star_system, "binary_type", None)
+    is_binary = binary_configuration is not None
+    proxy_like = isinstance(star_system.star, BinaryStarProxy)
+
+    if proxy_like:
+        proxy_only_fields = _proxy_only_binary_fields(star_system.star)
+        mutual_orbit_fields = _mutual_orbit_fields_from_proxy(star_system.star)
+        separation_km = star_system.star.binary_separation_au * physical_constants.AU_TO_KM
+        # A close pair's mutual orbit is treated as circular (tidal
+        # circularization is a legitimate simplification at its 0.05-0.25
+        # AU separations) -- periapsis == apoapsis == separation, eccentricity 0.
+        eccentricity = 0.0
+        periapsis_km = apoapsis_km = separation_km
+    elif binary_configuration == "wide":
+        proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
+        mutual_orbit_fields = _mutual_orbit_fields_from_wide_binary(star_system.wide_binary)
+        separation_km = star_system.wide_binary.separation_au * physical_constants.AU_TO_KM
+        eccentricity = star_system.wide_binary.eccentricity
+        periapsis_km = star_system.wide_binary.periapsis_au * physical_constants.AU_TO_KM
+        apoapsis_km = star_system.wide_binary.apoapsis_au * physical_constants.AU_TO_KM
+    else:
+        proxy_only_fields = _NULL_PROXY_ONLY_BINARY_FIELDS
+        mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
+        separation_km = eccentricity = periapsis_km = apoapsis_km = None
 
     if position is not None:
         position_x_mpc = ly_to_milliparsecs(position[0])
@@ -1132,8 +1229,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         INSERT INTO star_systems (
             sector_id, system_config_id, name,
             position_x_mpc, position_y_mpc, position_z_mpc, quadrant, location,
-            is_binary,
-            binary_separation_km, binary_type, binary_temperature_k, binary_radius_km,
+            is_binary, binary_configuration,
+            binary_separation_km, binary_eccentricity, binary_periapsis_km, binary_apoapsis_km,
+            binary_type, binary_temperature_k, binary_radius_km,
             binary_effective_mass_kg, binary_effective_luminosity_w, binary_age_gy, binary_lifespan_gy,
             binary_habitable_zone_inner_km, binary_habitable_zone_outer_km,
             binary_system_perimeter_km, binary_heliosphere_radius_km,
@@ -1144,30 +1242,45 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_mutual_orbital_phase_deg, binary_mutual_min_update_interval_years,
             binary_mutual_position_x_km, binary_mutual_position_y_km, binary_mutual_position_z_km,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
             position_x_mpc, position_y_mpc, position_z_mpc, quadrant, location,
-            int(is_binary),
-            *binary_fields,
+            int(is_binary), binary_configuration,
+            separation_km, eccentricity, periapsis_km, apoapsis_km,
+            *proxy_only_fields,
+            *mutual_orbit_fields,
             star_system.system_flavor_text, SCHEMA_VERSION, wikitext_content, markdown_content,
         ),
     )
     star_system_id = cur.lastrowid
 
-    if is_binary:
+    if proxy_like:
         insert_star(conn, star_system.primary_star, star_system_id, "primary")
         insert_star(conn, star_system.secondary_star, star_system_id, "secondary")
-        planet_star_id = None  # planets orbit the proxy, not a stored star row -- see planets.star_id
+        primary_star_id = secondary_star_id = None  # planets orbit the proxy, not a stored star row -- see planets.star_id
+    elif binary_configuration == "wide":
+        primary_star_id = insert_star(conn, star_system.primary_star, star_system_id, "primary")
+        secondary_star_id = insert_star(conn, star_system.secondary_star, star_system_id, "secondary")
     else:
-        planet_star_id = insert_star(conn, star_system.star, star_system_id, "single")
+        primary_star_id = insert_star(conn, star_system.star, star_system_id, "single")
+        secondary_star_id = None
 
     for orbital_index, obj in enumerate(star_system.planets):
         if obj.body_type == "a":
-            insert_asteroid_belt(conn, obj, star_system_id, orbital_index)
+            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=primary_star_id)
         else:
-            insert_planet(conn, obj, star_system_id, planet_star_id, orbital_index)
+            insert_planet(conn, obj, star_system_id, primary_star_id, orbital_index)
+
+    # Only ever non-empty for a 'wide' binary (see StarSystem.__init__) --
+    # its own, independent index space, disambiguated from star_system.planets'
+    # by secondary_star_id (see load_star_system's own per-star_id grouping).
+    for orbital_index, obj in enumerate(star_system.secondary_planets):
+        if obj.body_type == "a":
+            insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id)
+        else:
+            insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
 
     return star_system_id
 
@@ -1668,13 +1781,18 @@ def _star_row_to_dict(row):
         "galactic_orbital_period_gy": row["galactic_orbital_period_gy"],
         "galactic_orbital_phase_deg": row["galactic_orbital_phase_deg"],
         "galactic_min_update_interval_years": row["galactic_min_update_interval_years"],
+        "a_crit_au": (
+            row["wide_binary_a_crit_km"] / physical_constants.AU_TO_KM
+            if row["wide_binary_a_crit_km"] is not None else None
+        ),
     }
 
 
 def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
     """Maps a `star_systems` row's `binary_*` columns to
     `BinaryStarProxy.from_dict`'s expected dict shape, inverting every unit
-    conversion `_binary_fields` applies."""
+    conversion `_proxy_only_binary_fields`/`_mutual_orbit_fields_from_proxy`
+    apply."""
     row = star_system_row
     return {
         "name": row["name"],
@@ -1707,6 +1825,34 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "_effective_luminosity": row["binary_effective_luminosity_w"],
         "primary": primary_dict,
         "secondary": secondary_dict,
+    }
+
+
+def _wide_binary_row_to_dict(star_system_row):
+    """
+    Maps a `star_systems` row's reused `binary_separation_km`/
+    `binary_mutual_*` columns plus the new `binary_eccentricity`/
+    `binary_periapsis_km`/`binary_apoapsis_km` columns to
+    `WideBinaryPair.from_dict`'s expected dict shape (its
+    `SERIALIZABLE_FIELDS`), inverting every unit conversion
+    `_mutual_orbit_fields_from_wide_binary` applies. Only ever called for a
+    `binary_configuration == 'wide'` row -- see `load_star_system`.
+    """
+    row = star_system_row
+    return {
+        "separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
+        "eccentricity": row["binary_eccentricity"],
+        "period_years": row["binary_mutual_orbital_period_years"],
+        "speed_kms": row["binary_mutual_orbital_speed_kms"],
+        "periapsis_au": row["binary_periapsis_km"] / physical_constants.AU_TO_KM,
+        "apoapsis_au": row["binary_apoapsis_km"] / physical_constants.AU_TO_KM,
+        "inclination_deg": row["binary_mutual_orbital_inclination_deg"],
+        "ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
+        "phase_deg": row["binary_mutual_orbital_phase_deg"],
+        "min_update_interval_years": row["binary_mutual_min_update_interval_years"],
+        "position_x_au": row["binary_mutual_position_x_km"] / physical_constants.AU_TO_KM,
+        "position_y_au": row["binary_mutual_position_y_km"] / physical_constants.AU_TO_KM,
+        "position_z_au": row["binary_mutual_position_z_km"] / physical_constants.AU_TO_KM,
     }
 
 
@@ -1831,7 +1977,18 @@ def load_star_system(conn, star_system_id) -> StarSystem:
 
     system_config = load_system_config(conn, row["system_config_id"])
 
-    if row["is_binary"]:
+    # binary_configuration is the authoritative discriminator (see
+    # schema.sql's "v15" header note); a row written before that column
+    # existed has it NULL, so fall back to the pre-v15 meaning of
+    # is_binary (which only ever meant a 'close'/P-type pair back then).
+    binary_configuration = row["binary_configuration"]
+    if binary_configuration is None and row["is_binary"]:
+        binary_configuration = "close"
+
+    secondary_star = None
+    wide_binary = None
+
+    if binary_configuration == "close":
         primary_row = conn.execute(
             "SELECT * FROM stars WHERE star_system_id = ? AND role = 'primary'", (star_system_id,)
         ).fetchone()
@@ -1842,6 +1999,18 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             row, _star_row_to_dict(primary_row), _star_row_to_dict(secondary_row)
         )
         star = BinaryStarProxy.from_dict(proxy_data, system_config)
+    elif binary_configuration == "wide":
+        primary_row = conn.execute(
+            "SELECT * FROM stars WHERE star_system_id = ? AND role = 'primary'", (star_system_id,)
+        ).fetchone()
+        secondary_row = conn.execute(
+            "SELECT * FROM stars WHERE star_system_id = ? AND role = 'secondary'", (star_system_id,)
+        ).fetchone()
+        star = Star.from_dict(_star_row_to_dict(primary_row), system_config)
+        secondary_star = Star.from_dict(_star_row_to_dict(secondary_row), system_config)
+        wide_binary = WideBinaryPair.from_dict(
+            _wide_binary_row_to_dict(row), system_config, star, secondary_star
+        )
     else:
         single_row = conn.execute(
             "SELECT * FROM stars WHERE star_system_id = ? AND role = 'single'", (star_system_id,)
@@ -1851,10 +2020,17 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system = object.__new__(StarSystem)
     system.system_config = system_config
     system.star = star
-    if isinstance(star, BinaryStarProxy):
+    system.binary_type = binary_configuration
+    system.wide_binary = wide_binary
+
+    if binary_configuration == "close":
         system.primary_star = star._primary
         system.secondary_star = star._secondary
         system.stars = [star._primary, star._secondary]
+    elif binary_configuration == "wide":
+        system.primary_star = star
+        system.secondary_star = secondary_star
+        system.stars = [star, secondary_star]
     else:
         system.primary_star = star
         system.stars = [star]
@@ -1866,28 +2042,50 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)
     ).fetchall()
 
-    # planets/belts share one orbital_index space (see insert_star_system's
-    # enumerate over star_system.planets) -- merge and re-sort by it to
-    # restore that original interleaved order.
-    combined = [("p", r) for r in planet_rows] + [("b", r) for r in belt_rows]
-    combined.sort(key=lambda item: item[1]["orbital_index"])
+    def _build_object_list(planet_rows_subset, belt_rows_subset, owning_star):
+        # planets/belts owned by the same star share one orbital_index
+        # space (see insert_star_system's enumerate over
+        # star_system.planets/secondary_planets) -- merge and re-sort by
+        # it to restore that original interleaved order.
+        combined = [("p", r) for r in planet_rows_subset] + [("b", r) for r in belt_rows_subset]
+        combined.sort(key=lambda item: item[1]["orbital_index"])
 
-    system.planets = []
-    for kind, r in combined:
-        if kind == "b":
-            comp_rows = conn.execute(
-                "SELECT component, concentration FROM asteroid_belt_composition "
-                "WHERE belt_id = ? ORDER BY position",
-                (r["id"],),
-            ).fetchall()
-            system.planets.append(AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config))
-        else:
-            planet_data = _planet_or_moon_row_to_dict(conn, r, is_moon=False)
-            moon_rows = conn.execute(
-                "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (r["id"],)
-            ).fetchall()
-            planet_data["moons"] = [_planet_or_moon_row_to_dict(conn, mr, is_moon=True) for mr in moon_rows]
-            system.planets.append(Planet.from_dict(planet_data, star, system_config))
+        objects = []
+        for kind, r in combined:
+            if kind == "b":
+                comp_rows = conn.execute(
+                    "SELECT component, concentration FROM asteroid_belt_composition "
+                    "WHERE belt_id = ? ORDER BY position",
+                    (r["id"],),
+                ).fetchall()
+                objects.append(AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config))
+            else:
+                planet_data = _planet_or_moon_row_to_dict(conn, r, is_moon=False)
+                moon_rows = conn.execute(
+                    "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (r["id"],)
+                ).fetchall()
+                planet_data["moons"] = [_planet_or_moon_row_to_dict(conn, mr, is_moon=True) for mr in moon_rows]
+                objects.append(Planet.from_dict(planet_data, owning_star, system_config))
+        return objects
+
+    if binary_configuration == "wide":
+        # star_id disambiguates the two stars' independent orbital-index
+        # spaces (both restart at 0 -- see insert_star_system) -- group by
+        # it before restoring each star's own orbital order.
+        primary_db_id, secondary_db_id = primary_row["id"], secondary_row["id"]
+        system.planets = _build_object_list(
+            [r for r in planet_rows if r["star_id"] == primary_db_id],
+            [r for r in belt_rows if r["star_id"] == primary_db_id],
+            star,
+        )
+        system.secondary_planets = _build_object_list(
+            [r for r in planet_rows if r["star_id"] == secondary_db_id],
+            [r for r in belt_rows if r["star_id"] == secondary_db_id],
+            secondary_star,
+        )
+    else:
+        system.planets = _build_object_list(planet_rows, belt_rows, star)
+        system.secondary_planets = []
 
     system.system_flavor_text = row["system_flavor_text"]
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
@@ -2273,6 +2471,61 @@ def _migrate_v13_to_v14(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (14)")
 
 
+def _migrate_v14_to_v15(conn):
+    """
+    Adds v15's S-type (wide) binary columns to an existing v14 database --
+    see `schema.sql`'s header comment's "v15" note: `star_systems` gains
+    `binary_configuration`/`binary_eccentricity`/`binary_periapsis_km`/
+    `binary_apoapsis_km`; `stars` gains `wide_binary_a_crit_km`;
+    `asteroid_belts` gains `star_id` (+ its FK/index).
+
+    A fresh database never reaches this function: `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` already creates every table at this shape
+    directly from `schema.sql`. This is only for a database whose tables
+    already existed at the older, v14 shape.
+
+    Every pre-existing binary row predates S-type support entirely -- it is
+    necessarily a 'close' (P-type) pair, whose mutual orbit has always been
+    (documented as) circular, so it's backfilled with `binary_configuration
+    = 'close'`, `binary_eccentricity = 0`, and
+    `binary_periapsis_km = binary_apoapsis_km = binary_separation_km`
+    (a circular orbit's periapsis/apoapsis both equal its semi-major axis).
+    `wide_binary_a_crit_km` and `asteroid_belts.star_id` have no equivalent
+    pre-existing data to backfill from (no 'wide' pair could have existed
+    yet) -- both stay `NULL` for every pre-existing row, the correct value
+    regardless (a single star's or 'close' pair's asteroid belt has never
+    had a specific owning star; see `planets.star_id`'s own comment for the
+    identical, pre-existing convention).
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute(
+        "ALTER TABLE star_systems "
+        "ADD COLUMN binary_configuration VARCHAR(8) CHECK (binary_configuration IN ('close', 'wide')), "
+        "ADD COLUMN binary_eccentricity DOUBLE, "
+        "ADD COLUMN binary_periapsis_km DOUBLE, "
+        "ADD COLUMN binary_apoapsis_km DOUBLE"
+    )
+    conn.execute(
+        "UPDATE star_systems SET "
+        "binary_configuration = 'close', binary_eccentricity = 0, "
+        "binary_periapsis_km = binary_separation_km, binary_apoapsis_km = binary_separation_km "
+        "WHERE is_binary = 1"
+    )
+    conn.execute("ALTER TABLE stars ADD COLUMN wide_binary_a_crit_km DOUBLE")
+    conn.execute("ALTER TABLE asteroid_belts ADD COLUMN star_id BIGINT UNSIGNED")
+    conn.execute(
+        "ALTER TABLE asteroid_belts ADD CONSTRAINT fk_asteroid_belts_star "
+        "FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL"
+    )
+    conn.execute("ALTER TABLE asteroid_belts ADD KEY idx_asteroid_belts_star_id (star_id)")
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (15)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -2287,9 +2540,10 @@ def migrate_database(config=None):
     galactic-orbit columns), `_migrate_v10_to_v11` (added for the v11
     planet/moon position columns), `_migrate_v11_to_v12` (added for
     the v12 floating-point update-guard column), `_migrate_v12_to_v13`
-    (added for the v13 star-motion columns), and `_migrate_v13_to_v14`
-    (added for the v14 binary-mutual-orbit position columns) are the
-    migration steps so far; see `schema.sql`'s header comment for the
+    (added for the v13 star-motion columns), `_migrate_v13_to_v14`
+    (added for the v14 binary-mutual-orbit position columns), and
+    `_migrate_v14_to_v15` (added for v15's S-type/wide-binary columns) are
+    the migration steps so far; see `schema.sql`'s header comment for the
     versioning convention, and `migrateDb.py` for the CLI wrapper around
     this.
 
@@ -2329,6 +2583,10 @@ def migrate_database(config=None):
         if version < 14:
             _migrate_v13_to_v14(conn)
             version = 14
+
+        if version < 15:
+            _migrate_v14_to_v15(conn)
+            version = 15
 
         conn.commit()
         return version
@@ -2406,23 +2664,37 @@ def advance_orbital_phases(conn, elapsed_years):
     Also advances `stars.galactic_orbital_phase_deg` (guarded by that row's
     own `galactic_min_update_interval_years`, `galactic_orbital_period_gy`
     converted from Gy to years the same way `Star.__init__` computes the
-    guard itself) and, for a binary pair's `star_systems` row,
-    `binary_galactic_orbital_phase_deg` and `binary_mutual_orbital_phase_deg`
-    together (guarded by *either* of their own two intervals qualifying --
-    unlike the per-table guards above, one combined `UPDATE` covers both
-    phases on this shared row rather than a separate statement per column;
-    a phase whose own individual guard isn't met just rounds back to its
-    already-stored value in that pass, the same true floating-point no-op
-    the guard exists to detect, so combining them costs nothing but a
-    slightly less granular skip). `binary_mutual_position_x/y/z_km` are
-    recomputed in lockstep from the *new* `binary_mutual_orbital_phase_deg`
-    the same way a planet's/moon's position is -- see `schema.sql`'s "v14"
-    note; `binary_mutual_orbital_phase_deg` is assigned earlier in this
-    same `SET` list so the position expressions read back its new value,
-    the identical left-to-right trick the planets/moons `UPDATE`s above
-    use. The galactic orbit has no such position to keep in lockstep --
-    it's treated as planar (no inclination/ascending node to resolve a 3D
-    position from), unlike the mutual orbit's full orbital-element set.
+    guard itself) and, for a binary `star_systems` row,
+    `binary_mutual_orbital_phase_deg` (both binary configurations --
+    `binary_configuration` 'close' and 'wide' alike, see `schema.sql`'s
+    "v15" header note on why these columns are shared) and, separately,
+    `binary_galactic_orbital_phase_deg` (a 'close' pair only -- a 'wide'
+    pair's two stars already each advance their own galactic phase via the
+    per-row `stars` `UPDATE` above, individually, since they're real
+    stored `stars` rows rather than a merged proxy). These are TWO
+    separate `UPDATE`s, not one combined statement: an earlier version
+    combined them, guarded by "either interval qualifies" against a single
+    `WHERE` that (incorrectly) required BOTH `binary_galactic_orbital_period_gy`
+    and `binary_mutual_orbital_period_years` to be positive -- for a 'wide'
+    pair, `binary_galactic_orbital_period_gy` is always NULL (see
+    `schema.sql`'s "v15" note), which made that combined `WHERE` silently
+    false for every 'wide' row, forever, so its mutual-orbit phase (and
+    the P-type-only-in-spirit galactic phase this generator never intended
+    to apply to it in the first place) would never advance. Splitting
+    the mutual-orbit update out with its own, independent guard fixes
+    this: it now applies correctly to both configurations, matching the
+    exact same "own guard interval" pattern the per-table planets/moons/
+    stars `UPDATE`s above already use, rather than the removed combined
+    approach's non-independent one.
+    `binary_mutual_position_x/y/z_km` are recomputed in lockstep from the
+    *new* `binary_mutual_orbital_phase_deg` the same way a planet's/moon's
+    position is -- see `schema.sql`'s "v14" note; `binary_mutual_orbital_phase_deg`
+    is assigned earlier in this same `SET` list so the position expressions
+    read back its new value, the identical left-to-right trick the
+    planets/moons `UPDATE`s above use. The galactic orbit has no such
+    position to keep in lockstep -- it's treated as planar (no
+    inclination/ascending node to resolve a 3D position from), unlike the
+    mutual orbit's full orbital-element set.
 
     Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
     reference point the *next* call's `elapsed_years` should be measured
@@ -2440,8 +2712,12 @@ def advance_orbital_phases(conn, elapsed_years):
 
     Returns:
         tuple: (planets_updated, moons_updated, stars_updated,
-              binary_systems_updated) -- row counts, straight from each
-              `UPDATE`'s own affected-row count.
+              binary_mutual_orbits_updated, binary_galactic_orbits_updated)
+              -- row counts, straight from each `UPDATE`'s own affected-row
+              count. The last two are separate (not one combined
+              "binary_systems_updated" count as in earlier versions) since
+              they're now two independent `UPDATE`s with independent
+              guards -- see this function's own docstring.
 
     Raises:
         ValueError: If `elapsed_years` is negative.
@@ -2483,13 +2759,13 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts.append(cur.rowcount)
 
+    # Mutual orbit: shared by both binary configurations (see this
+    # function's own docstring on why this is now a separate UPDATE from
+    # the galactic-phase one below, guarded independently).
     cur = conn.execute(
         """
         UPDATE star_systems
-        SET binary_galactic_orbital_phase_deg =
-                MOD(binary_galactic_orbital_phase_deg
-                    + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360),
-            binary_mutual_orbital_phase_deg =
+        SET binary_mutual_orbital_phase_deg =
                 MOD(binary_mutual_orbital_phase_deg + (? / binary_mutual_orbital_period_years) * 360, 360),
             binary_mutual_position_x_km = binary_separation_km * (
                 COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
@@ -2504,10 +2780,27 @@ def advance_orbital_phases(conn, elapsed_years):
             binary_mutual_position_z_km = binary_separation_km
                 * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg))
         WHERE is_binary = 1
-          AND binary_galactic_orbital_period_gy > 0 AND binary_mutual_orbital_period_years > 0
-          AND (? >= binary_galactic_min_update_interval_years OR ? >= binary_mutual_min_update_interval_years)
+          AND binary_mutual_orbital_period_years > 0
+          AND ? >= binary_mutual_min_update_interval_years
         """,
-        (elapsed_years, elapsed_years, elapsed_years, elapsed_years),
+        (elapsed_years, elapsed_years),
+    )
+    counts.append(cur.rowcount)
+
+    # Galactic phase: a 'close' pair only -- a 'wide' pair's two stars
+    # already each advance their own galactic phase individually via the
+    # per-row `stars` UPDATE above (real stored rows, not a merged proxy).
+    cur = conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_galactic_orbital_phase_deg =
+                MOD(binary_galactic_orbital_phase_deg
+                    + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360)
+        WHERE binary_configuration = 'close'
+          AND binary_galactic_orbital_period_gy > 0
+          AND ? >= binary_galactic_min_update_interval_years
+        """,
+        (elapsed_years, elapsed_years),
     )
     counts.append(cur.rowcount)
 

@@ -474,6 +474,128 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
 
 
+def holman_wiegert_critical_semimajor_axis(binary_separation_au, companion_mass_fraction, eccentricity):
+    """
+    Holman, M. & Wiegert, P. (1999), AJ 117:621, "Long-Term Stability of
+    Planets in Binary Systems" -- the empirical fit for an S-type (wide)
+    binary's critical semi-major axis: the largest orbit around ONE star of
+    the pair that remains long-term stable against the other star's
+    periodic gravitational perturbation.
+
+        a_crit / a_bin = 0.464 - 0.380*mu - 0.631*e + 0.586*mu*e
+                         + 0.150*e^2 - 0.198*mu*e^2
+
+    `mu` is the *perturbing companion's* mass fraction of the pair's total
+    mass, `mu = M_companion / (M_this_star + M_companion)` -- this is
+    evaluated once per star, using that star's own companion, so calling
+    this twice for one pair (once from each star's perspective) generally
+    yields two different `a_crit` values unless the two masses are equal.
+
+    Valid over roughly `mu` in [0.1, 0.9] and `e` in [0.0, 0.8] (Holman &
+    Wiegert's own numerical grid doesn't extend meaningfully further) --
+    inputs are clamped to `physical_constants.HOLMAN_WIEGERT_MU_RANGE`/
+    `HOLMAN_WIEGERT_ECCENTRICITY_RANGE` rather than extrapolated, since a
+    saturated-at-the-boundary estimate is more useful than either an
+    exception or a silently invalid extrapolation.
+
+    Args:
+        binary_separation_au (float): The binary pair's own semi-major
+                                      axis (separation), in AU.
+        companion_mass_fraction (float): `mu`, as defined above (0-1).
+        eccentricity (float): The binary orbit's own eccentricity (0-1).
+
+    Returns:
+        float: The critical semi-major axis, in AU (same unit as
+              `binary_separation_au`) -- this star's own maximum stable
+              planetary orbit given the companion's influence.
+
+    Example (equal-mass, circular pair -- a standard reference case):
+        `holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0)` gives
+        `0.464 - 0.380*0.5 = 0.274` exactly, consistent with the commonly
+        cited ~0.27-0.30 * a_bin figure for this case.
+    """
+    mu_min, mu_max = physical_constants.HOLMAN_WIEGERT_MU_RANGE
+    e_min, e_max = physical_constants.HOLMAN_WIEGERT_ECCENTRICITY_RANGE
+    mu = min(max(companion_mass_fraction, mu_min), mu_max)
+    e = min(max(eccentricity, e_min), e_max)
+
+    ratio = (0.464 - 0.380 * mu - 0.631 * e
+             + 0.586 * mu * e + 0.150 * e ** 2 - 0.198 * mu * e ** 2)
+    return ratio * binary_separation_au
+
+
+def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, central_mass_kg):
+    """
+    Gladman (1993), Icarus 106:247, "Dynamical stability of the outer solar
+    system and the delivery of comets" -- the mutual Hill radius of two
+    orbiting bodies:
+
+        R_H,mutual = ((m1 + m2) / (3 * M_central))^(1/3) * ((a1 + a2) / 2)
+
+    Gladman's own derivation assumes both bodies orbit the SAME central
+    mass -- used here (see `systemData.StarSystem._validate_cross_star_clearance`)
+    across two planets that orbit *different* stars of a wide binary, this
+    is a physically-motivated extension of the criterion's spirit rather
+    than a literal textbook application; see that method's docstring for
+    the specific choice of `central_mass_kg` and its justification.
+
+    Args:
+        mass1_kg (float): First body's own mass, in kg.
+        mass2_kg (float): Second body's own mass, in kg.
+        distance1_au (float): First body's distance from whatever it
+                              orbits, in AU.
+        distance2_au (float): Second body's distance from whatever it
+                              orbits, in AU.
+        central_mass_kg (float): The mass, in kg, both distances above are
+                                 measured against (see docstring above for
+                                 how this generator chooses it when the two
+                                 bodies orbit different stars).
+
+    Returns:
+        float: The mutual Hill radius, in AU (same unit as
+              `distance1_au`/`distance2_au`).
+    """
+    return ((mass1_kg + mass2_kg) / (3 * central_mass_kg)) ** (1 / 3) * ((distance1_au + distance2_au) / 2)
+
+
+def sample_wide_binary_separation_au():
+    """
+    Draws an S-type (wide) binary's separation (semi-major axis), log-
+    uniformly between `program_constants.WIDE_BINARY_SEPARATION_MIN_AU`
+    and `WIDE_BINARY_SEPARATION_MAX_AU` -- see those constants' own
+    docstring for why log-uniform (not linear-uniform) sampling is used.
+    Uses the same `math.exp(random.uniform(math.log(...), math.log(...)))`
+    idiom already used for moon-distance placement
+    (`planetPhysics.generate_moons`).
+
+    Returns:
+        float: A separation, in AU.
+    """
+    low = program_constants.WIDE_BINARY_SEPARATION_MIN_AU
+    high = program_constants.WIDE_BINARY_SEPARATION_MAX_AU
+    return math.exp(random.uniform(math.log(low), math.log(high)))
+
+
+def sample_wide_binary_eccentricity():
+    """
+    Draws an S-type (wide) binary's orbital eccentricity from a "thermal"
+    distribution, `f(e) = 2e`, capped at
+    `program_constants.WIDE_BINARY_ECCENTRICITY_MAX` -- see that constant's
+    own docstring for why wide pairs (unlike the close/P-type pair) keep a
+    realistic, generally non-zero eccentricity.
+
+    Derivation: the thermal PDF `f(e) = 2e` restricted to `[0, e_max]` and
+    renormalized is still exactly proportional to `e` (just rescaled), so
+    its CDF is `F(e) = (e / e_max)^2` and the closed-form inverse-CDF
+    sample is `e = e_max * sqrt(u)`, `u ~ Uniform(0, 1)` -- no rejection
+    sampling needed.
+
+    Returns:
+        float: An eccentricity, in [0, `WIDE_BINARY_ECCENTRICITY_MAX`).
+    """
+    return program_constants.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(random.random())
+
+
 def calculate_galactic_orbit(distance_ly):
     """
     Estimates a star system's circular orbital speed and orbital period

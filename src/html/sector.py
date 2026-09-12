@@ -34,7 +34,15 @@ def handler():
     rows = []
     map_systems = []
     for row in systems:
-        star_type = row["binary_type"] if row["is_binary"] else (row["stars"][0]["star_type"] if row["stars"] else "")
+        # binary_type only ever describes a 'close' (P-type) pair's merged
+        # effective star -- NULL for a single star and for a 'wide' (S-type)
+        # pair (no merged star exists there; see schema.sql's "v15" note),
+        # so both fall back to joining each of row["stars"]'s own types
+        # instead of showing a blank cell.
+        if row["is_binary"] and row.get("binary_type"):
+            star_type = row["binary_type"]
+        else:
+            star_type = " / ".join(star["star_type"] for star in row["stars"]) if row["stars"] else ""
         rows.append(
             "<tr>"
             f'<td><a href="system.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'

@@ -22,6 +22,7 @@ reference.
 | `zeta_ophiuchi_system.json` | Zeta Ophiuchi (real) | A real O-type main-sequence runaway star; covers the hot O/B dwarf wind path. |
 | `vy_canis_majoris_system.json` | VY Canis Majoris (real) | One of the largest known stars; covers the extreme hypergiant (`0`) wind path. |
 | `procyon_system.json` | Procyon (real) | A real F-type subgiant; covers the subgiant (`IV`) evolved-star age path. |
+| `wide_binary_demo_system.json` | Kelmoor (synthetic) | An S-type (wide) binary (`wide_binary: true`) — unlike `tatooine_system.json`/`solaris_system.json` (both pinned `wide_binary: false`, since their planets are meant to orbit both suns), each star here hosts its own independent, fully random planets. |
 
 These last four exist mainly for **test coverage**: the original seven only
 ever exercise Yerkes classes `V` (main sequence), `III` (giant), and `IB`
@@ -43,6 +44,14 @@ normally. A couple of notable limitations worth knowing about:
   pins the primary; a binary system's secondary star always gets a randomly
   generated mass fraction of the primary. Solaris's actual red-star/blue-star
   pairing isn't achievable exactly for this reason.
+- **`binary_system: true` alone picks a binary configuration at random.**
+  Tatooine and Solaris both need their planet(s) orbiting *both* suns
+  (P-type/circumbinary), so both pin `"wide_binary": false` explicitly —
+  otherwise a random draw could turn either into an S-type (wide) pair,
+  where the "secondary" is just a distant, gravitationally separate
+  companion star with no bearing on the desert world's twin sunsets or
+  the ocean world's sky. See `wide_binary_demo_system.json` for the other
+  configuration, where that's the point.
 - **Moon counts are best-effort.** A planet only has so much stable orbital
   room; `"moons": N` may generate fewer than `N` if there isn't room for all
   of them (see e.g. `krypton_system.json`, which asks for 2 but may get fewer).

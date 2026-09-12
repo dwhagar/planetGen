@@ -1,13 +1,13 @@
 # planetGen
 
-**Version:** 5.20.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.24.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
 ## Features
 
 *   **Star generation**: Stars are generated with physically-grounded mass, radius, temperature, and luminosity, either fully at random (weighted by realistic galactic spectral-class prevalence) or pinned to a specific spectral type and Yerkes luminosity class (e.g. `G2V`) via `--star-type`. `+large_star` biases generation toward hotter, more massive stars.
-*   **Binary star systems**: `+binary_system` generates a P-type (circumbinary) binary pair — a primary and secondary star orbiting each other — represented as a single unified effective star (combined mass, luminosity, and habitable zone) for the purposes of planet placement, while still reporting each star's individual properties in the output.
+*   **Binary star systems**: `+binary_system` generates a binary pair — a primary and secondary star orbiting each other — in one of the two real binary-star configurations, selected by `+wide_binary`/`-wide_binary` (random if omitted): a **P-type (close/circumbinary)** pair, represented as a single unified effective star (combined mass, luminosity, and habitable zone) for the purposes of planet placement, while still reporting each star's individual properties in the output; or an **S-type (wide)** pair, separated by tens to thousands of AU, where each star keeps its own identity and hosts its own independently-generated planets, with each star's maximum stable orbit limited by the companion's gravity (Holman & Wiegert 1999) and a mutual-Hill-radius safety check (Gladman 1993) preventing the two stars' own planetary disks from encroaching on each other.
 *   **Planet and moon generation**: Planets are drawn from 25 distinct planet classes (terrestrial and gas giant), each with its own composition, atmosphere, and valid orbital zones (hot/ecosphere/cold). Planets can generate their own moons, with orbital placement, atmospheric conditions, and surface gravity calculated per body. Orbital spacing is validated against each object's Hill sphere to keep the system physically plausible.
 *   **Asteroid belts**: Belts can appear between planets (or be forced/forbidden with `+asteroid_belt`/`-asteroid_belt`), each with a randomly generated density and mineral/gem composition.
 *   **Explicit orbit/slot specification**: The number of orbital slots (planets and asteroid belts combined) can be pinned exactly with `--num-orbits`, and a `--system-file` JSON specification can dictate the exact contents of any specific orbital slot — whether it's a planet or an asteroid belt, the planet's class, and how many moons it has — leaving unspecified slots to normal random generation.
@@ -52,7 +52,8 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `+moons` / `-moons`: Force / forbid moons on the system's planets.
 *   `+max_planets` / `-max_planets`: Force the system to the maximum, or the minimum, number of orbital objects it can support.
 *   `+intelligent_life` / `-intelligent_life`: Ensure a planet with intelligent life is (or is not) generated. Either implies `+habitable_world`.
-*   `+binary_system` / `-binary_system`: Force / forbid a binary star system (P-type).
+*   `+binary_system` / `-binary_system`: Force / forbid a binary star system.
+*   `+wide_binary` / `-wide_binary`: Force an S-type (wide) binary, or force a P-type (close) one instead. Only meaningful together with `+binary_system`; if omitted, one of the two is chosen at random.
 *   `+planets` / `-planets`: Ensure the system has at least one planet or asteroid belt, or none at all (star only).
 *   `--system-file`, `-f <path>`: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.
 *   `--num-orbits <int>`: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.

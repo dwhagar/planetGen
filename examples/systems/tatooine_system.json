@@ -2,6 +2,7 @@
   "star_type": "G8V",
   "name": "Tatoo",
   "binary_system": true,
+  "wide_binary": false,
   "intelligent_life": true,
   "num_orbits": 4,
   "slots": [

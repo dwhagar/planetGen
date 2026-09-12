@@ -375,3 +375,25 @@ ROTATION_PERIOD_RANGE_HOURS = {
 # orders of magnitude in outcome, all landing in the right ballpark.
 MOON_TIDAL_DISSIPATION_Q = 100.0
 MOON_TIDAL_LOVE_NUMBER_K2 = 0.03
+
+# --- S-type (wide) binary stability (utils.holman_wiegert_a_crit_au,
+# utils.mutual_hill_radius_au, systemData.StarSystem) ---
+
+# Holman & Wiegert (1999), AJ 117:621, "Long-Term Stability of Planets in
+# Binary Systems" -- their numerically-fit S-type critical semi-major axis
+# formula was tested over companion mass fraction mu in [0.1, 0.9] and
+# binary eccentricity e in [0.0, 0.7-0.8]; inputs are clamped to this range
+# (utils.holman_wiegert_a_crit_au) rather than extrapolated.
+HOLMAN_WIEGERT_MU_RANGE = (0.1, 0.9)
+HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
+
+# Gladman (1993), "Dynamical stability of the outer solar system and the
+# delivery of comets," Icarus 106, 247 -- for two coplanar, circular-orbit
+# planets sharing one central mass, a mutual separation of at least
+# 2*sqrt(3) (~3.464) mutual Hill radii guarantees Hill stability (no close
+# encounters ever occur). Used by
+# systemData.StarSystem._validate_cross_star_clearance as a physically-
+# motivated extension of this criterion across two planets that orbit
+# *different* stars of a wide binary rather than one shared star -- see
+# that method's docstring and utils.mutual_hill_radius_au for the caveat.
+GLADMAN_MUTUAL_HILL_STABILITY_FACTOR = 2 * math.sqrt(3)

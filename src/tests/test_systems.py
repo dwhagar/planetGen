@@ -73,13 +73,7 @@ def assert_ages_never_exceed_lifespan(system):
         )
 
 
-def assert_no_orbital_overlap(system):
-    """
-    Mirrors StarSystem.validate_system's own separation case matrix, as a
-    check that its correction pass actually converges rather than as
-    independent new physics -- the minimums it enforces are its own.
-    """
-    objects = system.planets
+def _assert_no_overlap_within(objects):
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
         gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
@@ -98,9 +92,26 @@ def assert_no_orbital_overlap(system):
         )
 
 
+def assert_no_orbital_overlap(system):
+    """
+    Mirrors StarSystem.validate_system's own separation case matrix, as a
+    check that its correction pass actually converges rather than as
+    independent new physics -- the minimums it enforces are its own.
+
+    For an S-type (wide) binary, `system.planets`/`system.secondary_planets`
+    are two independent orbital sequences around two different stars --
+    each is checked for internal overlap on its own; there is no ordering
+    relationship between an object in one list and an object in the other
+    for this check to apply to (their cross-star clearance is a separate
+    concern, see `StarSystem._validate_cross_star_clearance`).
+    """
+    _assert_no_overlap_within(system.planets)
+    _assert_no_overlap_within(system.secondary_planets)
+
+
 def _all_planets_and_moons(system):
     bodies = []
-    for obj in system.planets:
+    for obj in system.planets + system.secondary_planets:
         if obj.body_type == "a":
             continue
         bodies.append(obj)
@@ -150,7 +161,11 @@ def assert_counts_are_consistent(system):
     assert planet_count == system.planet_count
     assert belt_count == system.belt_count
     assert moon_count == system.moon_count
-    assert planet_count + belt_count == len(system.planets)
+    # count_objects() defaults to both stars' combined lists (see its own
+    # docstring) -- for a single star or P-type binary,
+    # system.secondary_planets is always [], so this is unchanged from
+    # `len(system.planets)` alone in those cases.
+    assert planet_count + belt_count == len(system.planets) + len(system.secondary_planets)
     hab_count, m_count = system.count_habitable()
     assert hab_count == system.hab_count
     assert m_count == system.m_count
@@ -186,13 +201,26 @@ def test_each_tristate_flag_forced(star_type, value, attr):
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
         if attr == "PLANETS" and value is False:
             assert len(system.planets) == 0
+            assert len(system.secondary_planets) == 0
         if attr == "MOONS" and value is False:
             assert system.moon_count == 0
         if attr == "BINARY_SYSTEM" and value is True:
-            assert isinstance(system.star, BinaryStarProxy)
+            # BINARY_SYSTEM=True with WIDE_BINARY left at its default (None)
+            # picks either binary configuration at random (see
+            # SystemConfig.WIDE_BINARY) -- assertions below cover whichever
+            # one this trial happened to roll; test_binary_system_star_properties_are_sane
+            # and test_wide_binary.py's own tests force each configuration
+            # explicitly for configuration-specific checks.
             assert len(system.stars) == 2
-            assert math.isclose(system.star.mass, sum(s.mass for s in system.stars))
             assert all(s.mass > 0 for s in system.stars)
+            if isinstance(system.star, BinaryStarProxy):
+                assert system.binary_type == "close"
+                assert math.isclose(system.star.mass, sum(s.mass for s in system.stars))
+            else:
+                assert system.binary_type == "wide"
+                assert system.star is system.primary_star
+                assert system.primary_star.a_crit_au is not None
+                assert system.secondary_star.a_crit_au is not None
 
 
 def test_asteroid_belt_forcing_is_reliable():
@@ -294,9 +322,12 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
 
 
 def test_binary_system_star_properties_are_sane():
+    # WIDE_BINARY=False forces the P-type (close) configuration this test
+    # specifically checks -- see test_wide_binary.py for the S-type
+    # equivalent (WideBinaryPair/a_crit-based) checks.
     for star_type in ["G2V", "M2VII", "O5V"]:
         for _ in range(TRIALS):
-            system = StarSystem(system_config=make_config(star_type, BINARY_SYSTEM=True))
+            system = StarSystem(system_config=make_config(star_type, BINARY_SYSTEM=True, WIDE_BINARY=False))
             proxy = system.star
             assert isinstance(proxy, BinaryStarProxy)
             primary, secondary = proxy.stars
