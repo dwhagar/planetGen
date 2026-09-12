@@ -63,19 +63,6 @@ open items need working detail.
 
 ## Open items
 
-### Search
-
-- [ ] `queryDb.py`'s CLI (`sectors`/`systems`/`near` subcommands) still has
-  no `planets`/`moons` equivalent at all -- `systems` only filters by
-  `star_type_prefix`/`sector_id`, so "every Class D planet smaller than
-  Earth" can't be asked of this particular tool (the web/API faceted
-  search now supports a planet/moon/star size range plus class/body/life
-  tags -- CHANGELOG [5.24.0] -- this item is specifically about the
-  separate `queryDb.py` CLI never getting its own `planets` subcommand).
-  See the TODO comment in `src/queryDb.py` near `process_args` for the
-  concrete shape (`--class`, `--min-radius-km`/`--max-radius-km`) this
-  would need.
-
 ### Web API/frontend
 
 - [ ] **Sector-attached system creation isn't supported via the API.**
@@ -101,11 +88,17 @@ Exploratory ideas, not yet scoped or designed:
 - [ ] Probably going to need a space fairing species database.
 - [ ] Need to think about under-developed / older civilizations and the differences and how to store and present that data based on society age.
 
-## Completed work log (through 2026-09-11)
+## Completed work log (through 2026-09-12)
 
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **`queryDb.py` gained `planets`/`moons` CLI subcommands**, filterable by
+  exact class, radius range, sector, and/or system (`list_planets`/
+  `list_moons`, reusing `_append_size_clause` the faceted-search result
+  panels already use) — the CLI-side counterpart to the web/API faceted
+  search's existing size/class filters, closing the gap this document
+  used to track under "Open items" > "Search".
 - **`BINARY_SYSTEM=None` now rolls real stellar-multiplicity chance
   instead of always producing a single star**, keyed by the primary's
   own spectral letter (Duchene & Kraus 2013; Raghavan et al. 2010; Moe &

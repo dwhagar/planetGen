@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.28.0] - 2026-09-12
+
+### Added
+- **`queryDb.py`: `planets`/`moons` CLI subcommands.** Closes the gap
+  `docs/TODO.md`'s "Open items" > "Search" tracked: the `systems`
+  subcommand only ever filtered by star type/sector, with no way to ask
+  this CLI "every Class D planet smaller than Earth" the way the web/API
+  faceted search (`GET /api/search`, `queryDb.search`) already could.
+  New `list_planets`/`list_moons` (mirroring `list_systems`'s shape) take
+  an exact `--class`, a `--min-radius-km`/`--max-radius-km` range, and a
+  `--sector-id`/`--system-id` scope, reusing the existing
+  `_append_size_clause` helper the faceted-search result panels already
+  share -- new `_body_filter_clause` factors the class/size/sector/system
+  `WHERE` fragment the same way `_systems_filter_clause` already does for
+  `systems`, so the two CLI-side query functions can't drift out of sync
+  with each other. `moons` rows also report their parent planet's name,
+  since a moon's own name alone doesn't say which planet it orbits.
+
+### Fixed
+- **README.md's version badge had drifted 3 releases stale** (5.24.0 while
+  `_version.py`'s `__version__` was already 5.27.0), caught by hand during
+  a deploy-readiness check with no CI signal at all. New
+  `src/tests/test_version_sync.py` asserts the README badge and
+  `CHANGELOG.md`'s own top entry both match `__version__`, so this can't
+  silently recur.
+- **CI's `dependency-audit` job had no explicit `setuptools` upgrade step**,
+  leaving it exposed to whatever `setuptools` version happens to ship
+  preinstalled on the runner's Python image -- caught locally via
+  `pip-audit` flagging `PYSEC-2026-3447` against a preinstalled 79.0.1.
+  `.github/workflows/ci.yml` now upgrades `setuptools` alongside `pip`
+  before installing this project's own dependencies, the same way the
+  `test` job's setup already keeps `pip` itself current.
+
 ## [5.27.0] - 2026-09-12
 
 ### Added
