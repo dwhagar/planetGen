@@ -67,7 +67,7 @@ def test_list_planets_returns_every_planet_with_no_filter(mysql_config):
         conn.close()
 
     assert sorted(r["name"] for r in rows) == expected_names
-    assert all(r["system_name"] == system.name for r in rows)
+    assert all(r["system_name"] == system.star.name for r in rows)
 
 
 def test_list_planets_filters_by_class(mysql_config):
@@ -90,12 +90,12 @@ def test_list_planets_filters_by_class(mysql_config):
 def test_list_planets_filters_by_radius_range(mysql_config):
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)
-    planets = sorted((p for p in system.planets if p.body_type != "a"), key=lambda p: p.radius_km)
+    planets = sorted((p for p in system.planets if p.body_type != "a"), key=lambda p: p.radius)
     # A midpoint bound that necessarily excludes the smallest planet (and
     # keeps at least the largest), so the filter is provably doing
     # something rather than vacuously matching everything.
-    min_radius = (planets[0].radius_km + planets[-1].radius_km) / 2
-    expected_names = sorted(p.name for p in planets if p.radius_km >= min_radius)
+    min_radius = (planets[0].radius + planets[-1].radius) / 2
+    expected_names = sorted(p.name for p in planets if p.radius >= min_radius)
     assert expected_names, "test fixture needs at least one planet above the midpoint"
     assert len(expected_names) < len(planets), "test fixture needs at least one planet below the midpoint"
 
@@ -134,7 +134,7 @@ def test_list_planets_filters_by_sector_id(mysql_config):
 def test_list_moons_filters_by_class_and_radius(mysql_config):
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)
-    all_moons = [m for p in system.planets for m in p.moons]
+    all_moons = [m for p in system.planets if p.body_type != "a" for m in p.moons]
     assert all_moons, "test fixture must actually contain moons"
     target_class = all_moons[0].planet_class
     expected_names = sorted(m.name for m in all_moons if m.planet_class == target_class)
