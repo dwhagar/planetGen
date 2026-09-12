@@ -265,6 +265,19 @@ def test_atmosphere_retention_factor_increases_with_gravity():
     assert low < earth < high
 
 
+def _pearson_correlation(xs, ys):
+    """Pearson correlation coefficient, computed directly rather than via
+    `statistics.correlation` (Python 3.10+ only -- this repo's CI matrix
+    still runs a 3.9 job, see CHANGELOG.md)."""
+    n = len(xs)
+    mean_x = sum(xs) / n
+    mean_y = sum(ys) / n
+    cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
+    var_x = sum((x - mean_x) ** 2 for x in xs)
+    var_y = sum((y - mean_y) ** 2 for y in ys)
+    return cov / (var_x * var_y) ** 0.5
+
+
 def _spearman_correlation(xs, ys):
     """Rank-based (Spearman) correlation -- more appropriate than Pearson
     here since atmospheric_pressure = effective_atm_density * gravity_ms2 *
@@ -283,7 +296,7 @@ def _spearman_correlation(xs, ys):
             ranks[i] = rank_pos
         return ranks
 
-    return statistics.correlation(rank(xs), rank(ys))
+    return _pearson_correlation(rank(xs), rank(ys))
 
 
 def test_atmospheric_pressure_correlates_positively_with_gravity():
@@ -322,7 +335,7 @@ def test_atmospheric_pressure_correlates_positively_with_gravity():
     pressures = [r["atmospheric_pressure"] for r in records]
     assert len(gravities) >= 300
 
-    pearson = statistics.correlation(gravities, pressures)
+    pearson = _pearson_correlation(gravities, pressures)
     assert pearson > 0, f"gravity/pressure Pearson correlation {pearson:.3f} is not even positive"
 
     spearman = _spearman_correlation(gravities, pressures)

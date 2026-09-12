@@ -50,6 +50,13 @@
   the same precedent already established when [5.26.0] itself pinned it
   in four other tests -- binary-vs-single was always incidental to what
   each of these was actually testing.
+- **CI's `test (3.9)` job failed on every PR, unrelated to whatever the PR
+  actually changed.** `test_planet_physics_fixes.py` called
+  `statistics.correlation`, added in Python 3.10 -- this repo's CI matrix
+  still runs a `3.9` job. Replaced with a small `_pearson_correlation`
+  helper (matches `statistics.correlation` exactly; verified against it
+  directly) used by both `test_atmospheric_pressure_correlates_positively_
+  with_gravity` and `_spearman_correlation`'s own rank-based call.
 
 ## [5.26.0] - 2026-09-11
 
