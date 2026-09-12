@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.24.0] - 2026-09-12
+## [5.27.0] - 2026-09-12
 
 ### Added
 - **S-type (wide) binary star systems.** `+binary_system` previously only
@@ -32,6 +32,229 @@
   never have advanced a wide pair's mutual-orbit phase even after this
   release, had it not been caught -- now two independently-guarded
   `UPDATE`s.
+
+### Fixed
+- **Several tests that don't pin `BINARY_SYSTEM` could intermittently fail
+  once merged against [5.26.0]'s real, spectral-class-dependent binary
+  chance.** A companion star landing on a system those tests otherwise
+  treat as single (or as a fixed planet count) could throw off an
+  unrelated assertion -- most seriously, an S-type (wide) pair's own
+  `a_crit_au` stability ceiling can make a forced `HABITABLE_WORLD`/
+  `ASTEROID_BELT` guarantee geometrically impossible for an especially
+  luminous host (an O-type supergiant's habitable zone can sit beyond any
+  sampled companion's stability limit), which `test_full_matrix.py`'s
+  full-star-type sweep and several of `test_systems.py`'s tri-state-flag
+  tests surfaced; `test_disk_physics.py`, `test_db_persistence.py`, and
+  `test_api.py` had similar exposure via an unexpected second star's own
+  planet count/DB rows. Pinned `BINARY_SYSTEM=False` in each, following
+  the same precedent already established when [5.26.0] itself pinned it
+  in four other tests -- binary-vs-single was always incidental to what
+  each of these was actually testing.
+
+## [5.26.0] - 2026-09-11
+
+### Changed
+- **`SystemConfig.BINARY_SYSTEM` now follows the same tri-state contract
+  as every other flag (`HABITABLE_WORLD`, `ASTEROID_BELT`, etc.):
+  `None` (the default) is no longer treated as "always single."** It now
+  rolls real chance instead, from new
+  `program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` --
+  keyed by the primary star's own spectral letter, since real
+  stellar-multiplicity surveys consistently find companionship rate
+  rising with primary mass rather than sitting at one flat rate: ~26% for
+  M dwarfs (Duchene & Kraus 2013) up through ~44% for solar-type F/G/K
+  (anchored to Raghavan et al. 2010's 46%; Duchene & Kraus's own review
+  groups F/G/K together at 44+/-2%) to ~90% for O-type primaries (Moe &
+  Di Stefano 2017's 94+/-14%). New `StarSystem._should_generate_binary`
+  (called from `__init__`, replacing the old flat `if self.system_config.
+  BINARY_SYSTEM:` check) looks this up against `self.primary_star.type[0]`
+  -- run *after* the primary star already exists, specifically so its
+  real, already-rolled spectral type can drive the roll. `True`/`False`
+  still force the outcome exactly as before; only `None`'s meaning
+  changed, from "never" to "real chance for this star." `SystemConfig.
+  BINARY_SYSTEM`'s own docstring updated to match.
+- Four tests that generate systems without pinning `BINARY_SYSTEM`
+  (two in `test_space_sector.py`'s name/position round-trip and
+  recipe-fallback-reload coverage, one more in `test_space_sector.py`'s
+  file save/load round trip, one in `test_serialization.py`'s
+  single-star full-object-graph round trip) were relying on the old
+  "`None` always means single" behavior to keep specific expected
+  names/types deterministic, or (the `test_serialization.py` one) for
+  `reloaded.star is reloaded.primary_star` to hold -- true only for a
+  single star, since `__init__` never repoints `primary_star` at the
+  `BinaryStarProxy` it reassigns `star` to for a real binary. All four
+  now pin `BINARY_SYSTEM=False` explicitly, since binary-vs-single was
+  always incidental to what each was actually testing.
+
+## [5.25.0] - 2026-09-11
+
+### Changed
+- **`StarSystem.estimate_num_objects` now derives its planet/belt ceiling
+  from real protoplanetary-disk physics instead of an arbitrary curve fit
+  to stellar mass.** The old formula (`BASE_MAX_SYSTEM_OBJECTS *
+  (1 + log10(solar_masses))`, base 15) had no grounding in orbital
+  dynamics and no relationship at all to the mutual-Hill-radius spacing
+  rule `validate_system` enforces ([5.24.0]) -- two disconnected dials
+  governing "how many" and "how far apart," tuned independently by feel.
+  The replacement, `StarSystem._estimate_max_objects_from_disk_physics`,
+  walks outward from the same inner-edge distance `_generate_planets`
+  itself seeds its first slot at, and at each step: computes the local
+  *isolation mass* an oligarchic-growth embryo would reach there
+  (Lissauer 1993; Kokubo & Ida 2000, 2002 -- new `utils.isolation_mass_kg`,
+  closed-form-solved the same way `_mutual_min_distance_au` is, since the
+  embryo's own Hill radius depends on its own still-unknown mass), from
+  the Minimum Mass Solar Nebula's real solid surface-density profile
+  (Hayashi 1981 -- new `utils.mmsn_surface_density_gcm2`,
+  `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0 g/cm^2` at
+  1 AU falling off as `distance^-1.5`, jumping `SNOW_LINE_ICE_BOOST_FACTOR
+  = 30/7` beyond the snow line where ices condense), scaled for this
+  star's own disk-mass budget (new `utils.disk_surface_density_scale`,
+  `program_constants.DISK_MASS_STELLAR_MASS_EXPONENT = 1.8` --
+  mm-continuum disk-demographics surveys, Andrews et al. 2013; Pascucci
+  et al. 2016, find real disk dust mass scales roughly as
+  `M_star^1.8-2.7`, not logarithmically), then advances by that same
+  embryo's own mutual-Hill-radius feeding zone (the *same*
+  `program_constants.MUTUAL_HILL_RADII_SEPARATION = 10` and kappa/clamp
+  algebra `_mutual_min_distance_au` uses, so the count estimate and the
+  spacing rule that will later constrain actual placement are provably
+  consistent with each other) and counts a slot. The walk terminates at
+  the disk's outer edge -- new `program_constants.
+  DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18` times the star's own snow
+  line (new `utils.snow_line_au`, `physical_constants.
+  SNOW_LINE_AU_AT_1_LSUN = 2.7`, the same `sqrt(luminosity)` shape
+  `calculate_habitable_zone` already uses) -- deliberately *not*
+  `star.system_perimeter` (that's the star's own galactic-tidal Hill
+  sphere, tens to hundreds of thousands of AU; real disks are truncated
+  far short of it by viscous spreading/photoevaporation) -- or
+  `ABSOLUTE_MAX_SYSTEM_OBJECTS` isolation-mass slots, whichever comes
+  first. Not every oligarch survives as a final planet: real N-body
+  integrations of the subsequent giant-impact phase (Chambers 2001) show
+  most merge or get ejected, so the raw slot count is scaled by new
+  `program_constants.GIANT_IMPACT_SURVIVAL_FRACTION = 0.4` (tuned toward
+  the middle of that literature's own range, empirically checked to keep
+  a solar-mass star's typical resulting count in the same well-tested,
+  playable range this generator already verified via repeated full-suite
+  runs) before being returned. `estimate_num_objects`'s own override
+  contract (`PLANETS`/`NUM_ORBITS`/`MAX_PLANETS`) is entirely unchanged --
+  only what `max_objects` means changed. The resulting shape now tracks
+  real demographics better than the old mass-scaling formula did: cool
+  low-mass stars (whose smaller mutual-Hill spacing packs oligarchs more
+  tightly per unit distance -- the real, observed TRAPPIST-1-style
+  "compact multis favor small stars" pattern) come out *more*
+  planet-rich on average than hot, luminous, high-mass stars (whose
+  correspondingly larger isolation masses claim proportionally more of
+  their own, larger disk per embryo, and whose short main-sequence
+  lifetimes and intense UV output make real, confirmed planets around
+  O/B-type stars genuinely rare) -- the reverse of the old formula's
+  "bigger star, more objects" curve, and a better match to what's
+  actually been observed. `BASE_MAX_SYSTEM_OBJECTS` removed (no longer
+  referenced); `ABSOLUTE_MAX_SYSTEM_OBJECTS` unchanged, still the same
+  hard safety cap.
+- New `src/tests/test_disk_physics.py`: unit coverage for the new
+  `utils` helpers directly (snow-line `sqrt(luminosity)` scaling,
+  disk-density-scale monotonicity, MMSN falloff/snow-line jump,
+  isolation mass matching the literature's own ~0.05-0.1 Earth-mass
+  figure at 1 AU) plus `estimate_num_objects`'s override contract and the
+  `ABSOLUTE_MAX_SYSTEM_OBJECTS` cap, exercised via `MAX_PLANETS=True`
+  (deterministic, no `random.randint` draw) the same way test_systems.py
+  already does.
+
+## [5.24.0] - 2026-09-11
+
+### Changed
+- **Orbital spacing between adjacent planets now uses their *mutual* Hill
+  radius, not either planet's own individual one.** The previous rule
+  (`min_orbit_distance = 5 x this planet's own Hill radius`) was a
+  reasonable approximation, but the real orbital-dynamics stability
+  literature (the analytically rigorous two-planet minimum of `2*sqrt(3)`
+  mutual Hill radii, Gladman 1993; a recommended ~8-10x margin for
+  longer-term N-body stability, Chambers, Wetherill & Boslough 1996 and
+  Smith & Lissauer 2009) expresses this in terms of the *pair's* combined
+  mass and average distance instead. New `utils.mutual_hill_radius_m`
+  (`((a1+a2)/2) * ((m1+m2)/(3*M_star))^(1/3)`) and
+  `program_constants.MUTUAL_HILL_RADII_SEPARATION = 10` (the safer end of
+  the literature's recommended range) back `StarSystem.
+  _mutual_min_distance_au`, which `validate_system`'s planet-planet
+  spacing check now calls instead of `max(planet.min_orbit_distance,
+  last_planet.min_orbit_distance)`. Solved in closed form for the exact
+  minimum distance rather than evaluated once at the pre-correction
+  position and added on top: since the mutual radius depends on the
+  *average* of both distances, that naive approach understates the
+  requirement once the correction actually moves one of them -- confirmed
+  by a real `assert_no_orbital_overlap` failure before the closed-form
+  version replaced it. Reclassification (`planetPhysics.
+  reconcile_zone_and_class`, [5.22.0]) can change a planet's own mass,
+  which can in turn invalidate a spacing decision already made against
+  its predecessor -- `validate_system` now retries the mutual-distance
+  check (bounded to 3 iterations; converges in practice within 2) after
+  any reclassification triggered by its own push. `Planet.
+  min_orbit_distance` itself is unchanged and still single-body -- it
+  remains the right tool for a *moon's* own orbital limit around its
+  parent (`planetPhysics.generate_moons`), a different physical question
+  from planet-to-planet spacing. `assert_no_orbital_overlap` (test_systems.py)
+  updated to check the same mutual-radius formula, with a relative (not
+  fixed-1e-9) tolerance -- the two independent computations of the same
+  quantity can differ at the floating-point-noise level even when both
+  are correct, and that noise scales with the (sometimes very large, for
+  a massive star's own extreme systems) distances involved.
+- **`html/search.py`/`GET /api/search` gained a min/max size filter for
+  stars, planets, and moons.** `queryDb.search`'s new `sizes` argument
+  (`{"star", "planet", "moon"} -> (min_km, max_km)`, either bound
+  optional) filters/joins alongside the existing class/body/life-
+  chemistry tags and per-entity name search, via a new shared
+  `_append_size_clause` helper across `_search_result_stars`/
+  `_search_result_planets`/`_search_result_moons` -- a continuous
+  quantity like size has no discrete set of values to offer as a facet,
+  so it's its own query-parameter pair
+  (`star_min_radius_km`/`star_max_radius_km`, likewise `planet_`/
+  `moon_`) rather than a tag. `GET /api/search` validates and parses
+  these (`routes._parse_size_range`); `html/search.py` gained matching
+  number-input fields, active-filter chips (e.g. "Planet size: 5,000–
+  8,000 km"), and a Radius column on the Stars/Planets/Moons result
+  tables. `queryDb.py`'s own CLI (`sectors`/`systems`/`near`
+  subcommands) still has no `planets`/`moons` equivalent at all -- see
+  `docs/TODO.md`'s "Open items" > "Search" for that narrower, separate,
+  still-open gap.
+
+### Fixed
+- **`GET /api/health` could crash instead of returning a clean `503`.**
+  `queryDb.open_readonly` raises a bare `SystemExit` (correct for its own
+  CLI callers) when the configured MySQL server is unreachable --
+  `SystemExit` is a `BaseException`, not an `Exception`, so left
+  uncaught it would propagate straight through Flask's request dispatch
+  (and the WSGI worker handling it) instead of becoming any HTTP
+  response at all, from *every* route that opens a connection via
+  `routes.get_db()`, not just `/health`'s own explicit check. `get_db()`
+  now catches it and re-raises an `ApiError` (503 -- the same status
+  `/health` already wanted to report), which the app's existing
+  `ApiError` handler turns into the usual JSON error response for every
+  other route, and which `/health`'s own `except Exception` catches
+  directly. Regression test builds its own Flask app against a
+  deliberately-unreachable config (a closed local port), so it runs
+  without needing a real MySQL server the way every other API test does.
+- **Sector Map star dots were plotted as if their own sector-local axes
+  already ran parallel to the galaxy frame's.** The wedge outline and
+  "Galactic Center" compass arrow (`_wedge_edges_px`/`_compass_html`)
+  were always computed directly from galaxy-frame quantities
+  (`sectors.center_x/y/z_pc`, `sector_wedge_vertices_pc`) and so were
+  always correct on their own terms; star dots
+  (`star_systems.position_x/y/z_mpc`) were plotted directly in the same
+  scene without ever being rotated into that frame -- a design
+  convention this project documents (`docs/design/
+  galaxy-coordinate-system.md`'s "Cube orientation" section: radial-
+  outward local `+Z`, projected-galactic-north local `+X`) but never
+  actually applies at generation time. Rather than rotate stored
+  positions, `starmap.py`'s new `_rotate_to_galaxy_frame` applies that
+  convention at render time, computed fresh from the sector's own stored
+  `center_x/y/z_pc` -- reusing `stellarObjects.sectorGeometry.
+  cube_orientation`, the exact same basis that module already computes
+  as the tangent-plane frame for this sector's own wedge vertices, so no
+  new stored orientation column was needed. A sector with no galaxy
+  placement (`center_pc=None`) keeps the previous unrotated behavior
+  unchanged. New `src/tests/test_starmap.py` covers the rotation's
+  length-preservation, the on-galactic-axis degeneracy case, and that
+  `render_map_panel` actually renders a different on-screen position for
+  a placed vs. unplaced sector.
 
 ## [5.23.0] - 2026-09-11
 

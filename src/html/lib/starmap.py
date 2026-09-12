@@ -24,9 +24,13 @@ sector's plain axis-aligned `edge_mpc` cube (6 bordered `.cube-face`
 `<div>`s), same as before this wedge shape existed.
 
 Unlike a hand-rolled JS rotation-matrix/projection routine, this hands
-the actual 3D math to the browser: each star's (x, y, z) is placed once,
-as-is, via plain layout position (`left`/`top`) plus `transform:
-translateZ()` for depth (the wedge wireframe's edges instead use a single
+the actual 3D math to the browser: each star's (x, y, z) -- rotated once,
+server-side, from its own sector-local axes into the galaxy frame when
+the sector has a galaxy placement (`_rotate_to_galaxy_frame`, so it
+agrees with the wedge outline/compass arrow below, both already
+galaxy-frame quantities) -- is placed via plain layout position
+(`left`/`top`) plus `transform: translateZ()` for depth (the wedge
+wireframe's edges instead use a single
 combined `translate3d()` + two rotations each, since an edge's endpoints
 are two arbitrary points rather than one point plus a flat XY-plane
 circle -- see `_wedge_wireframe_html`) -- rotating the whole
@@ -66,14 +70,18 @@ except ImportError:
 
 try:
     from stellarObjects.galaxyGeometry import sector_position_pc, sector_wedge_vertices_pc
+    from stellarObjects.sectorGeometry import cube_orientation
     from stellarObjects.utils import milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
 except ImportError:
     # Same deployment gap as above -- without these, a sector with no
     # galaxy placement (or one this deployment can't reach the geometry
     # module for) just keeps the plain axis-aligned cube outline and no
-    # scale bar; see `_wedge_edges_px`/`_scale_bar_attrs` below.
+    # scale bar; see `_wedge_edges_px`/`_scale_bar_attrs` below. Without
+    # `cube_orientation` specifically, star dots fall back to being
+    # plotted in their own unrotated local axes (see `_rotate_to_galaxy_frame`).
     sector_position_pc = None
     sector_wedge_vertices_pc = None
+    cube_orientation = None
     mpc_to_pc = None
     pc_to_mpc = None
     milliparsecs_to_ly = None
@@ -244,19 +252,21 @@ def _compass_html(center_pc):
     radial direction, `-normalize(center_pc)`) rather than fixed to a
     constant screen direction.
 
-    This assumes the sector's own local (x, y, z) axes -- the same axes
-    `star_systems.position_x/y/z_mpc` and `sector_wedge_vertices_pc`'s
-    delta-from-center are expressed in -- run parallel to the galaxy
-    frame's own axes. That's not a design convention actually enforced
-    anywhere in generation (`galaxyGen.py` never rotates a sector's local
-    star positions to align with its galaxy-frame placement -- see
-    docs/design/galaxy-coordinate-system.md's "Cube orientation" section,
-    which only ever proposes this as a *default*, never wires it up), but
-    it's the only assumption consistent with how every other galaxy-frame
-    quantity is already rendered on this map (`_wedge_edges_px` above
-    takes the same delta directly, with no rotation applied either) --
-    introducing a real rotation here alone would make the arrow point
-    somewhere the wedge outline and the star dots don't agree with.
+    This arrow and `_wedge_edges_px`'s wedge outline are both computed
+    directly from galaxy-frame quantities (`sectors.center_x/y/z_pc`,
+    `sector_wedge_vertices_pc`), so they were always correct on their own
+    terms and need no rotation of their own. What used to be wrong is that
+    star dots (`render_map_panel`, `star_systems.position_x/y/z_mpc`) were
+    plotted as if their own local (x, y, z) axes already ran parallel to
+    the galaxy frame's -- not a design convention this project actually
+    enforces at generation time (`galaxyGen.py` never rotates a sector's
+    local star positions to align with its galaxy-frame placement).
+    `render_map_panel` now rotates star positions into the galaxy frame
+    at render time instead (`_rotate_to_galaxy_frame`, the "Cube
+    orientation" convention docs/design/galaxy-coordinate-system.md's
+    section 3 already proposes and `sectorGeometry.py` already applies to
+    this sector's own wedge vertices), so this arrow, the wedge outline,
+    and the star dots it surrounds all agree on one frame.
 
     Args:
         center_pc (tuple or None): `(center_x_pc, center_y_pc,
@@ -297,6 +307,56 @@ def _compass_html(center_pc):
         "</div>"
     )
     return arrow + label
+
+
+def _rotate_to_galaxy_frame(center_pc, local_vec):
+    """
+    Re-expresses `local_vec` -- a star system's position relative to its
+    sector's own center (`star_systems.position_x/y/z_mpc`, in whatever
+    axes the sector's own local frame uses) -- along the galaxy frame's
+    axes instead, via `sectorGeometry.cube_orientation`'s fixed convention
+    (radial-outward local `+Z`, projected-galactic-north local `+X`; see
+    `docs/design/galaxy-coordinate-system.md`'s "Cube orientation"
+    section). This is the same convention `sectorGeometry.py` already
+    uses as the tangent-plane basis for this sector's own wedge vertices
+    -- computed once per sector there at generation time (baked into the
+    stored vertex positions), and once per render here, from the stored
+    `center_pc` alone, with no extra state of its own.
+
+    Without this, a star dot's local (x, y, z) was plotted as if it were
+    already expressed in the galaxy frame -- consistent with itself, but
+    not with the wedge outline or the "Galactic Center" compass arrow
+    (`_wedge_edges_px`/`_compass_html`), which read the sector's *actual*
+    galaxy-frame placement directly and always were correct. Rotating the
+    star dots into that same frame is what makes all three agree.
+
+    Args:
+        center_pc (tuple or None): `(center_x_pc, center_y_pc,
+                                    center_z_pc)` -- `None` for a sector
+                                    with no galaxy placement, in which
+                                    case there's no galaxy frame to
+                                    rotate into at all and `local_vec` is
+                                    returned unchanged (the map's fallback
+                                    plain-cube behavior, same as before
+                                    this rotation existed).
+        local_vec (tuple): `(x, y, z)`, in the sector's own local axes --
+                           any consistent unit (this only rotates
+                           direction, never rescales).
+
+    Returns:
+        tuple: `(x, y, z)`, re-expressed along the galaxy frame's axes,
+              in `local_vec`'s original units.
+    """
+    if center_pc is None or any(c is None for c in center_pc) or cube_orientation is None:
+        return local_vec
+
+    axis_x, axis_y, axis_z = cube_orientation(center_pc)
+    lx, ly, lz = local_vec
+    return (
+        lx * axis_x[0] + ly * axis_y[0] + lz * axis_z[0],
+        lx * axis_x[1] + ly * axis_y[1] + lz * axis_z[1],
+        lx * axis_x[2] + ly * axis_y[2] + lz * axis_z[2],
+    )
 
 
 def _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge):
@@ -582,9 +642,15 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
                                         `sectors.shell_slot_index`.
         center_pc (tuple or None): `(center_x_pc, center_y_pc,
                                    center_z_pc)` -- drives the "Galactic
-                                   Center" compass arrow (`_compass_html`);
-                                   `None` for a sector with no galaxy
-                                   placement, which omits the arrow.
+                                   Center" compass arrow (`_compass_html`)
+                                   and rotates each system's local
+                                   position into the galaxy frame
+                                   (`_rotate_to_galaxy_frame`) before it's
+                                   plotted, so star dots agree with the
+                                   arrow and the wedge outline on one
+                                   frame; `None` for a sector with no
+                                   galaxy placement, which omits the
+                                   arrow and leaves positions unrotated.
         systems (list[dict]): One entry per placed system (position not
                               NULL), each with `id`, `name`, `quadrant`,
                               `location`, `x`/`y`/`z` (the raw
@@ -609,9 +675,12 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
         # isometric SVG) -- `preserve-3d` composites every dot and cube
         # face by its real depth as the scene rotates, live, in the
         # browser itself.
-        nx = max(-1.05, min(1.05, (system["x"] or 0) / half_edge))
-        ny = max(-1.05, min(1.05, (system["y"] or 0) / half_edge))
-        nz = max(-1.05, min(1.05, (system["z"] or 0) / half_edge))
+        galaxy_x, galaxy_y, galaxy_z = _rotate_to_galaxy_frame(
+            center_pc, (system["x"] or 0, system["y"] or 0, system["z"] or 0)
+        )
+        nx = max(-1.05, min(1.05, galaxy_x / half_edge))
+        ny = max(-1.05, min(1.05, galaxy_y / half_edge))
+        nz = max(-1.05, min(1.05, galaxy_z / half_edge))
         x_px = nx * _SCENE_HALF_PX
         y_px = -ny * _SCENE_HALF_PX
         z_px = nz * _SCENE_HALF_PX

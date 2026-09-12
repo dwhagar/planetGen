@@ -20,8 +20,9 @@ import pytest
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects import program_constants as prog_c
-from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
+from stellarObjects import physical_constants, program_constants as prog_c
+from stellarObjects.utils import (circular_orbital_speed_kms, minimum_update_interval_years,
+                                   mutual_hill_radius_m, orbital_position_au)
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track
@@ -47,9 +48,22 @@ def make_config(star_type, **overrides):
     HABITABLE_WORLD + ASTEROID_BELT together imply LARGE_STAR) so configs
     built directly here stay consistent with what the CLI ever actually
     produces.
+
+    Defaults `BINARY_SYSTEM` to False: since `StarSystem._should_generate_binary`
+    rolls real, spectral-class-dependent chance whenever it's left at its
+    own default (None), every test in this module that isn't specifically
+    about binary generation would otherwise sometimes get a companion star
+    unpredictably -- most incidentally harmless, but a wide (S-type) pair's
+    own `a_crit_au` stability ceiling can make a forced HABITABLE_WORLD/
+    ASTEROID_BELT guarantee geometrically impossible for an especially
+    luminous host (e.g. an O-type supergiant's habitable zone can sit
+    beyond any sampled companion's stability limit) -- an explicit
+    `BINARY_SYSTEM=...` override (including the dedicated tri-state sweep
+    below) still takes precedence over this default.
     """
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
+    cfg.BINARY_SYSTEM = False
     for attr, value in overrides.items():
         setattr(cfg, attr, value)
     if cfg.INTELLIGENT_LIFE is not None:
@@ -85,9 +99,26 @@ def _assert_no_overlap_within(objects):
         elif cur.body_type == 'a':
             min_gap = prev.min_orbit_distance
         else:
-            min_gap = max(cur.min_orbit_distance, prev.min_orbit_distance)
+            # `cur.star.mass` (not `system.star.mass`): for an S-type (wide)
+            # binary's secondary list, `system.star` is still the primary --
+            # see `StarSystem._mutual_min_distance_au`'s own docstring for
+            # why the owning planet's own `.star` is used instead.
+            mutual_radius_m = mutual_hill_radius_m(
+                cur.distance * physical_constants.AU_TO_M, prev.distance * physical_constants.AU_TO_M,
+                cur.mass, prev.mass, cur.star.mass,
+            )
+            min_gap = (mutual_radius_m / physical_constants.AU_TO_M) * prog_c.MUTUAL_HILL_RADII_SEPARATION
 
-        assert gap >= min_gap - 1e-9, (
+        # A relative tolerance, not a fixed 1e-9 AU: `min_gap` here and the
+        # value `validate_system` actually enforced are the same quantity
+        # computed via two different (mathematically but not
+        # floating-point-identically equivalent) arithmetic paths, and a
+        # system that pushes a body out to hundreds of thousands of AU
+        # (an M50 star's own `MAX_PLANETS` case, e.g.) needs a tolerance
+        # that scales with that magnitude, not a fixed absolute slop sized
+        # for AU-scale gaps.
+        tolerance = max(1e-9, abs(min_gap) * 1e-9)
+        assert gap >= min_gap - tolerance, (
             f"objects {i - 1} ({prev.body_type}) and {i} ({cur.body_type}) overlap: gap={gap}, required>={min_gap}"
         )
 

@@ -21,13 +21,10 @@ unbounded `SELECT *` here would eventually return an unbounded response.
 apply the same defaults, cap, and error behavior.
 
 The write endpoints (`POST`/`PATCH`/`DELETE` on `/sectors`/`/systems`,
-near the bottom of this file) are deliberately stubs: they validate their
-request body against the JSON shape documented in `docs/api.md` and
-return `501 Not Implemented`, but never touch the database. Wiring them
-up to real inserts/updates/deletes is future work -- see each stub's own
-docstring and `config.py`'s module docstring for what that will also
-require (a write-capable database account, and some form of
-authentication/authorization, neither of which exists yet).
+near the bottom of this file) do real inserts/updates/deletes now, gated
+behind admin authentication (`authz.require_admin`) and run against a
+separate, write-capable database account -- see `docs/api.md`'s
+"Write endpoints" section and `stellarObjects/adminAuth.py`.
 """
 
 from flask import Blueprint, current_app, g, jsonify, request
@@ -109,9 +106,26 @@ def get_db():
     process-wide default database, or `?db=` when given). Reused for the
     lifetime of the request instead of one connection per query, then
     closed by `close_db` in the app's teardown handler.
+
+    `queryDb.open_readonly` raises a bare `SystemExit` when the
+    configured MySQL server is unreachable -- correct for its own CLI
+    callers (a clean process exit with a message), but `SystemExit` is a
+    `BaseException`, not an `Exception`: uncaught, it would propagate
+    straight through Flask's request dispatch (and the WSGI worker
+    handling it) instead of being turned into any HTTP response at all,
+    from *every* route that calls this, not just `/health`'s own explicit
+    check. Converted here into an `ApiError` (503 -- the same "database
+    unreachable" status `/health` already wants to report) so it's just
+    an ordinary exception from this point on: the app's registered
+    `ApiError` handler turns it into the usual JSON error response for
+    every other route, and `/health`'s own `except Exception` catches it
+    directly.
     """
     if "db" not in g:
-        g.db = open_readonly(_resolve_requested_db_config())
+        try:
+            g.db = open_readonly(_resolve_requested_db_config())
+        except SystemExit as exc:
+            raise ApiError(str(exc), status_code=503)
     return g.db
 
 
@@ -167,6 +181,47 @@ def _paginate(query_args):
             raise ApiError("offset must be at least 0")
 
     return limit, offset
+
+
+def _parse_size_range(query_args, prefix):
+    """
+    Parses a `<prefix>_min_radius_km`/`<prefix>_max_radius_km` query
+    parameter pair into a `(min_km, max_km)` tuple for `queryDb.search`'s
+    `sizes` argument -- either bound may be omitted (`None`) for "no
+    lower/upper limit"; giving neither returns `None` altogether (no size
+    filter for this entity at all), the same "absent means inactive"
+    convention every other search filter here already uses.
+
+    Args:
+        query_args (werkzeug.datastructures.MultiDict): `request.args`.
+        prefix (str): `"star"`, `"planet"`, or `"moon"`.
+
+    Returns:
+        tuple[float or None, float or None] or None.
+
+    Raises:
+        ApiError: If either bound is present but not a valid non-negative
+            number, or if both are given with min > max.
+    """
+    def _parse_bound(name):
+        raw = query_args.get(name)
+        if raw is None or raw.strip() == "":
+            return None
+        try:
+            value = float(raw)
+        except ValueError:
+            raise ApiError(f"{name} must be a number, got {raw!r}")
+        if value < 0:
+            raise ApiError(f"{name} must be at least 0")
+        return value
+
+    min_km = _parse_bound(f"{prefix}_min_radius_km")
+    max_km = _parse_bound(f"{prefix}_max_radius_km")
+    if min_km is None and max_km is None:
+        return None
+    if min_km is not None and max_km is not None and min_km > max_km:
+        raise ApiError(f"{prefix}_min_radius_km must not exceed {prefix}_max_radius_km")
+    return (min_km, max_km)
 
 
 @bp.route("/health")
@@ -383,14 +438,16 @@ def search():
     """
     Faceted search over the chosen database: click-to-filter attribute
     tags (object type; star spectral/luminosity class; planet/moon class,
-    body type, supported life chemistry; asteroid belt density) plus a
-    per-entity name search -- see `queryDb.search`'s own docstring for the
-    full request/response shape. `html/search.py` is a thin renderer over
-    this endpoint's JSON.
+    body type, supported life chemistry; asteroid belt density), a
+    min/max size range per entity, plus a per-entity name search -- see
+    `queryDb.search`'s own docstring for the full request/response shape.
+    `html/search.py` is a thin renderer over this endpoint's JSON.
 
     Query parameters: `sector_q`/`system_q`/`star_q`/`planet_q`/`moon_q`
-    (name search terms) plus every name in `queryDb.SEARCH_TAG_FACETS`
-    (repeatable, e.g. `?class=M&class=K` for two active Class tags).
+    (name search terms); every name in `queryDb.SEARCH_TAG_FACETS`
+    (repeatable, e.g. `?class=M&class=K` for two active Class tags); and
+    `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/
+    `moon_`) for a size range, in km -- either bound may be omitted.
     """
     args = request.args
     texts = {
@@ -401,8 +458,13 @@ def search():
     tags["type"] &= {"star", "planet", "moon", "belt"}
     tags["body"] &= {"t", "g"}
     tags["moon_body"] &= {"t", "g"}
+    sizes = {
+        "star": _parse_size_range(args, "star"),
+        "planet": _parse_size_range(args, "planet"),
+        "moon": _parse_size_range(args, "moon"),
+    }
 
-    return jsonify(run_search(get_db(), texts, tags))
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes))
 
 
 # ---------------------------------------------------------------------

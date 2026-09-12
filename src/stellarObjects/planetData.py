@@ -90,7 +90,17 @@ class Planet:
                         and the unrelated `Star.type`.
         scale_height (float): The atmospheric scale height in kilometers.
         hill_radius (float): The Hill radius of the planet in kilometers.
-        min_orbit_distance (float): The minimum stable orbit distance for a satellite in AU.
+        min_orbit_distance (float): This body's own individual Hill
+                                   radius x 5, in AU -- the outer bound
+                                   for a *satellite*'s orbit around it
+                                   (`planetPhysics.generate_moons`), and
+                                   `StarSystem`'s own initial spacing
+                                   estimate/belt-adjacent-planet spacing.
+                                   Two real planets' minimum separation
+                                   from each other uses their *mutual*
+                                   Hill radius instead -- see
+                                   `StarSystem._mutual_min_separation_au`
+                                   -- not this single-body value.
         name (str): The generated name of the planet or moon.
         life_chemical (str): The primary chemical basis for any potential life
                              (set by `planetLife.apply_life_data`, None until then).

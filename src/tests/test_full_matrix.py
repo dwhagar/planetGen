@@ -148,9 +148,19 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
     both guarantees (see systemData.py's dedicated fallback slots for each)
     must hold everywhere, and moons (left at the default MOONS=None, i.e.
     random per-planet) must never break anything regardless of host star.
+
+    `BINARY_SYSTEM` is pinned False: left at its own default it now rolls
+    real, spectral-class-dependent chance (see
+    `StarSystem._should_generate_binary`), and an S-type (wide) pair's own
+    `a_crit_au` stability ceiling can make these two guarantees
+    geometrically impossible for an especially luminous host (e.g. an
+    O-type supergiant's habitable zone can sit beyond any sampled
+    companion's stability limit) -- binary-vs-single is incidental to what
+    this test actually checks.
     """
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
+    cfg.BINARY_SYSTEM = False
     cfg.ASTEROID_BELT = True
     cfg.HABITABLE_WORLD = True
     if cfg.HABITABLE_WORLD is True and cfg.ASTEROID_BELT is True:

@@ -30,6 +30,33 @@ SOLAR_MASS_TO_KG = 1.989e30  # Solar mass to kilograms conversion factor
 SOLAR_LUMINOSITY = 3.82e26  # Solar luminosity in Watts
 MILKY_WAY_MASS = 1.15e12 * SOLAR_MASS_TO_KG  # Mass of the Milky Way in kg
 GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
+EARTH_MASS_TO_KG = 5.972e24  # Earth mass to kilograms conversion factor
+
+# Minimum Mass Solar Nebula (MMSN, Hayashi 1981) *solid* surface density at
+# 1 AU, and its power-law falloff exponent: Sigma_s(a) = SOL_GCM2 *
+# (a/1AU)^EXPONENT, valid inside the snow line. This is the *dust/ice*
+# surface density (what actually accretes into planetesimals/embryos), not
+# the much larger *gas* surface density Hayashi's model is often quoted
+# with (~1700 g/cm^2 at 1 AU) -- using the gas value here would overstate
+# every isolation mass below by roughly (1700/7)^1.5 ~= 3800x. See
+# `utils.mmsn_surface_density_gcm2`/`utils.isolation_mass_kg`, used by
+# `StarSystem._estimate_max_objects_from_disk_physics`.
+MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0
+MMSN_SURFACE_DENSITY_EXPONENT = -1.5
+
+# Beyond the snow line, water ice condenses onto grains and adds to the
+# solid budget -- Hayashi (1981) puts the boosted surface density at
+# 30 g/cm^2 (a/1AU)^-1.5, vs. 7 g/cm^2 inside it (see
+# MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 above): a factor of 30/7 ~= 4.3.
+SNOW_LINE_ICE_BOOST_FACTOR = 30 / 7
+
+# Where the snow line (ice condensation point, ~170K) sits for a 1-solar-
+# luminosity star, in AU (Hayashi 1981). Scales as sqrt(L/Lsun) for other
+# luminosities -- the same shape `utils.calculate_habitable_zone` already
+# uses for the (physically related, both driven by stellar flux falling
+# off as 1/distance^2) habitable-zone boundaries. See
+# `utils.snow_line_au`.
+SNOW_LINE_AU_AT_1_LSUN = 2.7
 
 # Rotation-curve model for a star's circular orbit around the galactic
 # center (see `utils.calculate_galactic_orbit`): v(r) = FLAT_VELOCITY * r /

@@ -793,6 +793,39 @@ def _search_like_pattern(term):
     return f"%{escaped}%"
 
 
+def _append_size_clause(clauses, params, column, size_range):
+    """
+    Appends a `column BETWEEN`/`>=`/`<=` clause for a min/max size filter
+    (in km, over any of `stars`/`planets`/`moons`' own `radius_km`) to an
+    in-progress `clauses`/`params` pair, shared by
+    `_search_result_stars`/`_search_result_planets`/`_search_result_moons`
+    rather than duplicating the same three-way "both bounds, min only,
+    max only" branching in each.
+
+    Args:
+        clauses (list[str]): SQL WHERE fragments to append to, in place.
+        params (list): Query parameters to append to, in place, matching
+                       `clauses`' own `?` placeholders in order.
+        column (str): The (already-aliased, e.g. `"p.radius_km"`) column
+                      to filter on.
+        size_range (tuple[float or None, float or None] or None): `(min_km,
+            max_km)` -- either may be `None` for "no lower/upper bound".
+            `None` itself (not a tuple) means no size filter at all.
+    """
+    if size_range is None:
+        return
+    min_km, max_km = size_range
+    if min_km is not None and max_km is not None:
+        clauses.append(f"{column} BETWEEN ? AND ?")
+        params.extend((min_km, max_km))
+    elif min_km is not None:
+        clauses.append(f"{column} >= ?")
+        params.append(min_km)
+    elif max_km is not None:
+        clauses.append(f"{column} <= ?")
+        params.append(max_km)
+
+
 # --- Facet option discovery -- each returns a list of {"value", "label",
 # "count", "tooltip"} dicts, one per distinct value actually present in
 # the database (never a fixed/static enumeration). ---
@@ -947,7 +980,7 @@ def _search_result_systems(conn, term):
     }
 
 
-def _search_result_stars(conn, spectral_tags, luminosity_tags, term):
+def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=None):
     clauses, params = [], []
     if spectral_tags:
         clauses.append(f"SUBSTR(s.star_type, 1, 1) IN ({','.join('?' * len(spectral_tags))})")
@@ -955,6 +988,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term):
     if luminosity_tags:
         clauses.append(f"s.yerkes_class IN ({','.join('?' * len(luminosity_tags))})")
         params.extend(sorted(luminosity_tags))
+    _append_size_clause(clauses, params, "s.radius_km", size_range)
     if term:
         clauses.append("s.name LIKE ? ESCAPE '\\'")
         params.append(_search_like_pattern(term))
@@ -962,7 +996,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term):
     params.append(SEARCH_RESULT_LIMIT + 1)
     rows = conn.execute(
         f"""
-        SELECT s.name, s.role, s.star_type, s.star_system_id, ss.name AS system_name, ss.sector_id
+        SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id
         FROM stars s
         JOIN star_systems ss ON ss.id = s.star_system_id
         WHERE 1=1{where}
@@ -975,9 +1009,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term):
     return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
 
 
-def _search_result_planets(conn, class_tags, body_tags, life_tags, term):
-    # TODO: no way to filter or sort by planet size (planets.radius_km)
-    # here -- see docs/TODO.md, "Open items" > "Search".
+def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -988,6 +1020,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term):
     if life_tags:
         clauses.append(f"p.life_chemical IN ({','.join('?' * len(life_tags))})")
         params.extend(sorted(life_tags))
+    _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
         clauses.append("p.name LIKE ? ESCAPE '\\'")
         params.append(_search_like_pattern(term))
@@ -995,7 +1028,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term):
     params.append(SEARCH_RESULT_LIMIT + 1)
     rows = conn.execute(
         f"""
-        SELECT p.name, p.planet_class, p.body_type, p.life_chemical,
+        SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         FROM planets p
         JOIN star_systems ss ON ss.id = p.star_system_id
@@ -1009,7 +1042,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term):
     return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
 
 
-def _search_result_moons(conn, class_tags, body_tags, life_tags, term):
+def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -1020,6 +1053,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term):
     if life_tags:
         clauses.append(f"m.life_chemical IN ({','.join('?' * len(life_tags))})")
         params.extend(sorted(life_tags))
+    _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
         clauses.append("m.name LIKE ? ESCAPE '\\'")
         params.append(_search_like_pattern(term))
@@ -1027,7 +1061,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term):
     params.append(SEARCH_RESULT_LIMIT + 1)
     rows = conn.execute(
         f"""
-        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, p.name AS planet_name,
+        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
         FROM moons m
         JOIN planets p ON p.id = m.planet_id
@@ -1064,17 +1098,20 @@ def _search_result_belts(conn, density_tags):
     return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
 
 
-def search(conn, texts, tags):
+def search(conn, texts, tags, sizes=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
     luminosity class; planet/moon class, body type, supported life
     chemistry; asteroid belt density) plus a per-entity name search this
     project's search page has always offered -- ported from
-    `html/search.py`'s previous direct-SQL implementation unchanged (same
-    queries, same "which result panels actually have a reason to run"
-    logic: a panel only appears when one of its own tags/name field is
-    active, or its object type is explicitly selected).
+    `html/search.py`'s previous direct-SQL implementation (same queries,
+    same "which result panels actually have a reason to run" logic: a
+    panel only appears when one of its own tags/name field/size range is
+    active, or its object type is explicitly selected), plus a min/max
+    size (`radius_km`) range filter for stars/planets/moons each
+    (`sizes`) -- there's no discrete set of values to offer as a facet
+    for a continuous quantity like size, so it's a range, not a tag.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -1083,6 +1120,9 @@ def search(conn, texts, tags):
         tags (dict): `{facet: set(value, ...)}`, one entry per name in
             `SEARCH_TAG_FACETS` -- an absent/empty set means no active
             filter for that facet.
+        sizes (dict, optional): `{"star", "planet", "moon"} -> (min_km,
+            max_km)`, each bound `None` for "unbounded" -- an absent key
+            (or `None` altogether) means no size filter for that entity.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -1094,6 +1134,9 @@ def search(conn, texts, tags):
             `belts` -> `{"rows": [...], "truncated": bool}`, or `None`
             for a panel with no reason to run).
     """
+    sizes = sizes or {}
+    star_size, planet_size, moon_size = sizes.get("star"), sizes.get("planet"), sizes.get("moon")
+
     spectral_tags, luminosity_tags = tags.get("spectral", set()), tags.get("luminosity", set())
     class_tags, body_tags, life_tags = tags.get("class", set()), tags.get("body", set()), tags.get("life", set())
     moon_class_tags, moon_body_tags = tags.get("moon_class", set()), tags.get("moon_body", set())
@@ -1127,9 +1170,9 @@ def search(conn, texts, tags):
         "moons": _search_name_list(conn, "moons"),
     }
 
-    star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q"))
-    planet_has_reason = bool(class_tags or body_tags or life_tags or texts.get("planet_q"))
-    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or texts.get("moon_q"))
+    star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q") or star_size)
+    planet_has_reason = bool(class_tags or body_tags or life_tags or texts.get("planet_q") or planet_size)
+    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or texts.get("moon_q") or moon_size)
     belt_has_reason = bool(density_tags)
 
     if type_tags:
@@ -1149,12 +1192,16 @@ def search(conn, texts, tags):
     if texts.get("system_q"):
         results["systems"] = _search_result_systems(conn, texts["system_q"])
     if stars_included:
-        results["stars"] = _search_result_stars(conn, spectral_tags, luminosity_tags, texts.get("star_q", ""))
+        results["stars"] = _search_result_stars(
+            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), size_range=star_size
+        )
     if planets_included:
-        results["planets"] = _search_result_planets(conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""))
+        results["planets"] = _search_result_planets(
+            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), size_range=planet_size
+        )
     if moons_included:
         results["moons"] = _search_result_moons(
-            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", "")
+            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), size_range=moon_size
         )
     if belts_included:
         results["belts"] = _search_result_belts(conn, density_tags)
@@ -1197,12 +1244,16 @@ def process_args():
     # TODO: no subcommand here queries planets/moons directly -- `systems`
     # above only filters by star_type_prefix/sector_id, so "every Class D
     # planet smaller than Earth" or "sort these results by radius_km" can't
-    # be asked of this CLI at all today. A `planets` subcommand (mirroring
-    # `systems` above) would need --class (the existing planet_class
-    # values, already exposed as a search facet in ../src/html/search.py)
-    # plus a new --min-radius-km/--max-radius-km pair (or a --sort-by
-    # radius_km flag) over the `planets`/`moons` tables' radius_km column.
-    # See docs/TODO.md, "Open items" > "Search".
+    # be asked of this CLI at all today (the web/API faceted search --
+    # `search()`/`GET /api/search` above -- does support a planet/moon/
+    # star size range now; this is specifically about this CLI's own
+    # `sectors`/`systems`/`near` subcommands never getting a `planets`
+    # equivalent). A `planets` subcommand (mirroring `systems` above)
+    # would need --class (the existing planet_class values, already
+    # exposed as a search facet in ../src/html/search.py) plus a new
+    # --min-radius-km/--max-radius-km pair (or a --sort-by radius_km
+    # flag) over the `planets`/`moons` tables' radius_km column. See
+    # docs/TODO.md, "Open items" > "Search".
 
     return parser.parse_args()
 

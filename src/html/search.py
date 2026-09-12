@@ -65,6 +65,14 @@ TAG_FACETS = (
     "density",
 )
 
+# Min/max size (radius_km) query-string field names, one pair per entity
+# with a size of its own -- threaded through `_build_url`/`handler()`
+# exactly like the plain text fields (`sector_q` etc.) below: opaque
+# strings preserved verbatim across a tag toggle, parsed to a float only
+# at the `get_search()` call site (see `_size_range_from_texts`).
+SIZE_ENTITIES = ("star", "planet", "moon")
+SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bound in ("min", "max"))
+
 
 def _count_suffix(n, truncated):
     return f" ({n}{'+' if truncated else ''})"
@@ -95,7 +103,7 @@ def _datalist_html(list_id, names):
 
 def _build_url(db_name, texts, tags):
     params = [("db", db_name)]
-    for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q"):
+    for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q") + SIZE_FIELDS:
         value = texts.get(key)
         if value:
             params.append((key, value))
@@ -121,6 +129,41 @@ def _remove_text_url(state, key):
     new_texts = dict(state["texts"])
     new_texts[key] = ""
     return _build_url(state["db"], new_texts, state["tags"])
+
+
+def _remove_size_url(state, entity):
+    new_texts = dict(state["texts"])
+    new_texts[f"{entity}_min_radius_km"] = ""
+    new_texts[f"{entity}_max_radius_km"] = ""
+    return _build_url(state["db"], new_texts, state["tags"])
+
+
+def _size_range_from_texts(texts, entity):
+    """
+    Parses `texts["<entity>_min_radius_km"]`/`"_max_radius_km"` (plain
+    strings from the query string, same as every other search field) into
+    a `(min_km, max_km)` tuple for `apiclient.get_search`'s `sizes`
+    argument -- `None` for a bound that's empty or, from a hand-edited
+    URL, not actually a valid number (silently ignored rather than
+    erroring this read-only browse page over it; `GET /api/search`
+    itself still validates strictly). Returns `None` altogether when
+    neither bound is set, matching `get_search`'s own "absent means no
+    filter" convention.
+    """
+    def _parse(key):
+        raw = texts.get(key, "")
+        if not raw:
+            return None
+        try:
+            return float(raw)
+        except ValueError:
+            return None
+
+    min_km = _parse(f"{entity}_min_radius_km")
+    max_km = _parse(f"{entity}_max_radius_km")
+    if min_km is None and max_km is None:
+        return None
+    return (min_km, max_km)
 
 
 def _tag_group_html(title, facet, options, selected, state):
@@ -153,6 +196,18 @@ def _active_filters_html(state, facet_labels):
         value = state["texts"].get(key)
         if value:
             chips.append((f'{esc(label)}: &ldquo;{esc(value)}&rdquo;', _remove_text_url(state, key)))
+    size_labels = {"star": "Star size", "planet": "Planet size", "moon": "Moon size"}
+    for entity, label in size_labels.items():
+        size_range = _size_range_from_texts(state["texts"], entity)
+        if size_range is not None:
+            min_km, max_km = size_range
+            if min_km is not None and max_km is not None:
+                range_text = f"{min_km:,.0f}&ndash;{max_km:,.0f} km"
+            elif min_km is not None:
+                range_text = f"&ge; {min_km:,.0f} km"
+            else:
+                range_text = f"&le; {max_km:,.0f} km"
+            chips.append((f'{esc(label)}: {range_text}', _remove_size_url(state, entity)))
     for facet in TAG_FACETS:
         for value in sorted(state["tags"].get(facet, ())):
             label = facet_labels.get(f"{facet}:{value}", value)
@@ -215,6 +270,10 @@ def _systems_panel(db_name, result):
 """
 
 
+def _radius_km(row):
+    return f'{row["radius_km"]:,.0f} km' if row.get("radius_km") is not None else "&mdash;"
+
+
 def _stars_panel(db_name, result):
     rows = result["rows"]
     body_rows = "".join(
@@ -222,16 +281,17 @@ def _stars_panel(db_name, result):
         f'<td>{esc(row["name"])}</td>'
         f'<td>{esc(row["role"])}</td>'
         f'<td>{esc(row["star_type"])}</td>'
+        f'<td>{_radius_km(row)}</td>'
         f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
-    ) or '<tr><td colspan="5"><em>None</em></td></tr>'
+    ) or '<tr><td colspan="6"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
 <h2>Stars{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Role</th><th>Type</th><th>System</th><th>Sector</th></tr></thead>
+  <thead><tr><th>Name</th><th>Role</th><th>Type</th><th>Radius</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
 {_truncated_note(len(rows), result["truncated"])}
@@ -246,17 +306,18 @@ def _planets_panel(db_name, result):
         f'<td>{esc(row["name"])}</td>'
         f'<td>{esc(row["planet_class"]) or "&mdash;"}</td>'
         f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
+        f'<td>{_radius_km(row)}</td>'
         f'<td>{esc(row["life_chemical"]) or "&mdash;"}</td>'
         f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
-    ) or '<tr><td colspan="6"><em>None</em></td></tr>'
+    ) or '<tr><td colspan="7"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
 <h2>Planets{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Life Chemistry</th><th>System</th><th>Sector</th></tr></thead>
+  <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Radius</th><th>Life Chemistry</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
 {_truncated_note(len(rows), result["truncated"])}
@@ -271,18 +332,19 @@ def _moons_panel(db_name, result):
         f'<td>{esc(row["name"])}</td>'
         f'<td>{esc(row["planet_class"]) or "&mdash;"}</td>'
         f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
+        f'<td>{_radius_km(row)}</td>'
         f'<td>{esc(row["life_chemical"]) or "&mdash;"}</td>'
         f'<td>{esc(row["planet_name"])}</td>'
         f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
-    ) or '<tr><td colspan="7"><em>None</em></td></tr>'
+    ) or '<tr><td colspan="8"><em>None</em></td></tr>'
     return f"""
 <section class="panel">
 <h2>Moons{_count_suffix(len(rows), result["truncated"])}</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Life Chemistry</th><th>Orbits</th><th>System</th><th>Sector</th></tr></thead>
+  <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Radius</th><th>Life Chemistry</th><th>Orbits</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
 {_truncated_note(len(rows), result["truncated"])}
@@ -347,6 +409,8 @@ def handler():
         "planet_q": _first("planet_q"),
         "moon_q": _first("moon_q"),
     }
+    for field in SIZE_FIELDS:
+        texts[field] = _first(field)
     tags = {facet: {v.strip() for v in raw.get(facet, []) if v.strip()} for facet in TAG_FACETS}
     tags["type"] &= {"star", "planet", "moon", "belt"}
     tags["body"] &= {"t", "g"}
@@ -354,7 +418,8 @@ def handler():
 
     state = {"db": db_name, "texts": texts, "tags": tags}
 
-    data = get_search(db_name, texts, tags)
+    sizes = {entity: _size_range_from_texts(texts, entity) for entity in SIZE_ENTITIES}
+    data = get_search(db_name, texts, tags, sizes=sizes)
 
     facet_titles = {
         "type": "Object Type",
@@ -386,6 +451,22 @@ def handler():
         _datalist_html("dl-moon", data["autocomplete"]["moons"]),
     ])
 
+    def _size_field_html(entity, label, placeholder_min, placeholder_max):
+        min_key, max_key = f"{entity}_min_radius_km", f"{entity}_max_radius_km"
+        return f"""
+    <div class="search-field search-field-size">
+      <span>{esc(label)} radius (km)</span>
+      <input type="number" name="{min_key}" value="{esc(texts[min_key])}" min="0" step="any" placeholder="{placeholder_min}" aria-label="Minimum {esc(label)} radius, km">
+      <span>&ndash;</span>
+      <input type="number" name="{max_key}" value="{esc(texts[max_key])}" min="0" step="any" placeholder="{placeholder_max}" aria-label="Maximum {esc(label)} radius, km">
+    </div>"""
+
+    size_fields_html = "".join([
+        _size_field_html("star", "Star", "e.g. 0", "e.g. 696000 (Sun)"),
+        _size_field_html("planet", "Planet", "e.g. 0", "e.g. 6371 (Earth)"),
+        _size_field_html("moon", "Moon", "e.g. 0", "e.g. 1737 (Moon)"),
+    ])
+
     form_html = f"""
 <form method="get" action="search.py" class="search-form">
   <input type="hidden" name="db" value="{esc(db_name)}">
@@ -406,6 +487,9 @@ def handler():
     <label class="search-field">Moon name
       <input type="text" name="moon_q" value="{esc(texts['moon_q'])}" list="dl-moon" autocomplete="off" placeholder="e.g. Kepler-42 b I">
     </label>
+  </div>
+  <div class="search-fields search-fields-size">
+    {size_fields_html}
   </div>
   {datalists}
   <div class="search-actions">

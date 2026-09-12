@@ -56,15 +56,25 @@ open items need working detail.
   System Map orbit diagram, a galaxy-scale Galaxy Map, faceted search, and
   NAV (course/distance/route between two systems) — CHANGELOG [5.8.0],
   [5.8.1], [5.10.0], [5.12.0]. Deployed via `install.sh`/`update.sh` to
-  Apache2 (`examples/apache/`, see `docs/apache-deployment.md`). The read
-  side is done; the API's write endpoints are still stubs — see "Open
-  items" below.
+  Apache2 (`examples/apache/`, see `docs/apache-deployment.md`). Both the
+  read side and the write endpoints (admin-authenticated `POST`/`PATCH`/
+  `DELETE` on sectors/systems) are real now — see "Open items" below for
+  what those write endpoints still don't cover.
 
 ## Open items
 
 ### Search
 
-- [ ] Search parameter for searching by not only planet class but planet size, or sort by size in the tagged search field -- see TODO in src/queryDb.py near `process_args`/`_search_result_planets` and src/html/search.py near `_planets_panel`.
+- [ ] `queryDb.py`'s CLI (`sectors`/`systems`/`near` subcommands) still has
+  no `planets`/`moons` equivalent at all -- `systems` only filters by
+  `star_type_prefix`/`sector_id`, so "every Class D planet smaller than
+  Earth" can't be asked of this particular tool (the web/API faceted
+  search now supports a planet/moon/star size range plus class/body/life
+  tags -- CHANGELOG [5.24.0] -- this item is specifically about the
+  separate `queryDb.py` CLI never getting its own `planets` subcommand).
+  See the TODO comment in `src/queryDb.py` near `process_args` for the
+  concrete shape (`--class`, `--min-radius-km`/`--max-radius-km`) this
+  would need.
 
 ### Web API/frontend
 
@@ -81,29 +91,6 @@ open items need working detail.
   modify its stars/planets/moons/belts short of `DELETE` + `POST`
   (regenerate). Not clear this needs solving at all (vs. "just
   regenerate"), but flagged in case it does.
-- [ ] **`GET /api/health` can crash instead of returning `503`.**
-  `routes.get_db()` -> `queryDb.open_readonly` -> `_db.get_connection`
-  raises a bare `SystemExit` (not `Exception`) when the configured MySQL
-  server is unreachable -- `health()`'s own `except Exception` doesn't
-  catch it, so the exact "database unreachable" case this endpoint exists
-  to report as a clean `503` instead propagates out of the request
-  entirely (confirmed via `python -c` against an unreachable MySQL host
-  while building the admin-auth/write-API work below; pre-existing, not
-  introduced by that work, and not fixed here since it touches the
-  read-only path this pass otherwise left alone). Likely fix:
-  `open_readonly`'s `SystemExit` was designed for `queryDb.py`'s CLI
-  use, not for reuse inside a long-running Flask process -- `get_db()`
-  probably wants its own `except (Exception, SystemExit)` (or a version
-  of `open_readonly` that raises an ordinary exception instead).
-- [ ] Sector Map's on-shell wedge shape and "Galactic Center" compass arrow
-  (`docs/html-interface.md`'s `starmap.py` entry, CHANGELOG [5.4.7]) both
-  assume a sector's own local (x, y, z) axes run parallel to the galaxy
-  frame's axes, since `galaxyGen.py` never actually rotates a sector's
-  local star positions to the "Cube orientation" convention
-  `docs/design/galaxy-coordinate-system.md` describes (that section only
-  ever proposes it as a default, never wires it up). Implementing that
-  orientation convention for real (rotating stored positions, or rotating
-  only at render time) would let both drop this assumption.
 
 ## Population and Politics
 
@@ -119,78 +106,84 @@ Exploratory ideas, not yet scoped or designed:
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
-- **`validate_system` could strand a planet outside the zone its class
-  needs, and the sequential orbit-spacing loop had no outer bound.**
-  Found via full-system stress testing (not the existing per-class
-  plausibility tooling, which never exercises `StarSystem`'s sequential
-  placement loop at all): a planet's class was chosen once, early, from
-  its *initial* estimated distance, but `validate_system`'s later
-  orbital-overlap correction could push that distance arbitrarily far
-  out (Hill-radius-based spacing compounds geometrically across a
-  many-planet system) without ever re-checking whether the class it
-  already had still made sense there — e.g. a "Class M, Earth-like
-  world" ending up at hundreds of thousands of AU and 30-some Kelvin.
-  Measured before the fix: 10% of a 400-system sample had at least one
-  misplaced ecosphere-class planet (45.6% of all ecosphere-class planets
-  in that sample), concentrated almost entirely in O/B-type stars, zero
-  in G/K/M dwarfs. Two-part fix, mirroring real orbital-dynamics
-  constraints already used elsewhere in this codebase:
-  - New `planetPhysics.reconcile_zone_and_class` re-derives a body's zone
-    from its *current* distance and, only if its existing class no
-    longer fits there, regenerates the class and everything derived from
-    it (radius/mass/density/atmosphere/period/gravity/orbital motion) —
-    called by `StarSystem._reconcile_moved_planet` every time
-    `validate_system` moves a planet, for the planet and each of its
-    moons (a moon's zone is always its parent's, and a reclassified
-    parent's new mass changes a moon's own period/rotation too, via
-    Kepler's third law, even when the moon's own class didn't change).
-  - The sequential placement loop (`StarSystem._generate_planets`, split
-    out of `__init__` so it's retryable) now stops adding slots once the
-    next one would land beyond `star.system_perimeter` — the star's own
-    Hill sphere *relative to the galaxy*, already computed for an
-    analogous purpose elsewhere (`spaceSector.py`) but never enforced
-    during generation — rather than letting the geometric compounding
-    run unbounded. A system that runs out of stable room this way simply
-    ends up with fewer planets, the same outcome a real protoplanetary
-    disk of finite extent would produce.
-  - Reconciliation can occasionally reclassify away the specific body
-    `HABITABLE_WORLD=True`/`ASTEROID_BELT=True` was relying on to satisfy
-    that guarantee (previously silently masked by the same bug -- an
-    invalid class sitting in the wrong zone still counted). `__init__`
-    now retries the whole placement (same star, fresh positions, up to
-    `MAX_SYSTEM_GENERATION_ATTEMPTS`) when a requested guarantee isn't
-    met afterward, rather than accepting a system that quietly drops it.
-    A smaller, complementary fix (`_distance_within_zone_with_margin`)
-    reserves a safety margin against the fixed
-    `MIN_ASTEROID_BELT_SEPARATION` nudge specifically when placing a
-    forced-habitable or explicit-slot-class planet, reducing (not
-    eliminating -- a large neighboring planet's own Hill-radius push has
-    no fixed size to margin against, which is what the retry loop is for)
-    how often the retry is even needed.
-- **Ecosphere-zone classes now generate at a class-appropriate distance
-  within the zone, not a distance-blind draw shared with every other
-  class.** Resolves the "Class K (Mars analog)...generated at the same
-  zone-midpoint orbital distance as Class M" design question above.
-  `PLANET_CLASSES`' new per-class `zone_position_mode` (E/F/G/H/K/L/M/N/
-  O/P/V; Q deliberately excluded — its "eccentric orbit" identity has no
-  single fixed position) says how far through the zone's own
-  `[inner, outer]` AU range that class's real-or-reasoned analog sits;
-  `planetPhysics.generate_planet_properties` redraws a matching planet's
-  `distance` there (`utils.sample_bounded_bell`, the same bell-curve
-  mechanism `size_mode` already uses for radius) once its class is
-  settled, for ordinary planets only — a moon's own `distance` is its
-  orbit around its *parent planet*, not an AU-scale position in the
-  star's zone, so it's left alone. K (Mars) and N (Venus), the two
-  classes with a real numeric target and an explicit "tuned to compensate
-  for the wrong distance" comment, were retuned once real insolation did
-  most of the work: K now measures ~214K/~611Pa vs real Mars'
-  210K/610Pa (was ~231K/~540Pa), and N ~737K/~9.17MPa vs real Venus'
-  737K/9.2MPa (was already ~737K on temperature via an oversized
-  greenhouse-multiplier hack, but ~17% low on pressure) — both verified
-  via `climate_tuning_cli.py`. `validate_system`'s existing orbital-
-  overlap correction absorbs whatever reordering a class-biased redraw
-  causes against already-placed neighbors, same as it already did for
-  `calculate_distance_for_class`'s explicit-slot nudging.
+- **`BINARY_SYSTEM=None` now rolls real stellar-multiplicity chance
+  instead of always producing a single star**, keyed by the primary's
+  own spectral letter (Duchene & Kraus 2013; Raghavan et al. 2010; Moe &
+  Di Stefano 2017 — `program_constants.
+  BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
+  `StarSystem._should_generate_binary`) — the same tri-state contract
+  (`True`/`False` force, `None` rolls chance) every other `SystemConfig`
+  flag already follows — CHANGELOG [5.26.0].
+- **`estimate_num_objects` now derives its planet/belt ceiling from real
+  protoplanetary-disk physics** (Minimum Mass Solar Nebula surface
+  density, Hayashi 1981; oligarchic-growth isolation mass, Lissauer 1993/
+  Kokubo & Ida 2000-2002; real disk-mass-vs-stellar-mass scaling,
+  Andrews 2013/Pascucci 2016) instead of an arbitrary curve fit to
+  stellar mass, and reuses the exact mutual-Hill-radius spacing rule
+  (`MUTUAL_HILL_RADII_SEPARATION`, [5.24.0]) that will later constrain
+  actual placement, so the two are provably consistent
+  (`StarSystem._estimate_max_objects_from_disk_physics`,
+  `utils.snow_line_au`/`disk_surface_density_scale`/
+  `mmsn_surface_density_gcm2`/`isolation_mass_kg`) — CHANGELOG [5.25.0].
+- **Orbital spacing now uses the mutual Hill radius, not either planet's
+  own individual one.** Real stability criteria (Gladman 1993; Chambers,
+  Wetherill & Boslough 1996; Smith & Lissauer 2009) express minimum
+  planet-planet separation in units of the *pair's* combined mass and
+  average distance, not one body's own Hill sphere -- `StarSystem.
+  validate_system`'s planet-planet spacing check now does the same
+  (`_mutual_min_distance_au`, `utils.mutual_hill_radius_m`,
+  `program_constants.MUTUAL_HILL_RADII_SEPARATION = 10`), solved in
+  closed form for the exact minimum distance rather than approximated at
+  the pre-correction position (the naive version measurably undershot,
+  since the mutual radius depends on the average of both distances and
+  grows once the correction moves one of them) — CHANGELOG [5.24.0].
+- **`GET /api/health` no longer crashes on an unreachable database.**
+  `routes.get_db()` now catches `open_readonly`'s `SystemExit` and
+  re-raises it as an `ApiError` (503) -- fixes `/health` itself and,
+  since every other read route shares `get_db()`, every one of them too
+  (previously an uncaught `SystemExit`, a `BaseException`, would
+  propagate straight through Flask's dispatch instead of becoming any
+  HTTP response) — CHANGELOG [5.24.0].
+- **Faceted search gained a min/max size (`radius_km`) range for
+  stars/planets/moons.** `queryDb.search`'s new `sizes` argument (`GET
+  /api/search`'s `star_min_radius_km`/`_max_radius_km`, likewise
+  `planet_`/`moon_`) filters alongside the existing class/body/life tags;
+  `html/search.py` gained matching form fields, active-filter chips, and
+  a Radius column on the Stars/Planets/Moons result panels — CHANGELOG
+  [5.24.0]. `queryDb.py`'s own CLI still has no `planets`/`moons`
+  subcommand at all -- see "Open items" > "Search" above, a narrower,
+  still-open item.
+- **Sector Map star dots now rotate into the galaxy frame at render
+  time.** The wedge outline and "Galactic Center" compass arrow were
+  always computed directly from galaxy-frame quantities and so were
+  always correct; star dots (`star_systems.position_x/y/z_mpc`) were
+  plotted as if their own sector-local axes already ran parallel to the
+  galaxy frame's, which generation never actually guarantees.
+  `starmap.py`'s new `_rotate_to_galaxy_frame` applies the "Cube
+  orientation" convention (`docs/design/galaxy-coordinate-system.md`
+  section 3: radial-outward local `+Z`, projected-galactic-north local
+  `+X`) from the sector's own stored `center_x/y/z_pc` alone, reusing
+  `stellarObjects.sectorGeometry.cube_orientation` -- the same basis that
+  module already computes for this sector's own wedge vertices -- so no
+  new stored orientation column was needed — CHANGELOG [5.24.0].
+- `validate_system`'s orbital-overlap correction could strand a planet
+  outside the zone its class needs (e.g. an "Earth-like" Class M at
+  ~30K, hundreds of thousands of AU out — 10% of a 400-system sample
+  affected, almost entirely O/B-type stars), and the sequential
+  placement loop had no outer bound to begin with. Fixed via
+  `planetPhysics.reconcile_zone_and_class` (re-derives zone/class after
+  any post-hoc distance correction, for a planet and its moons), a
+  `star.system_perimeter` cap on the placement loop
+  (`StarSystem._generate_planets`), and a generation-retry loop
+  (`MAX_SYSTEM_GENERATION_ATTEMPTS`) so reconciliation can't silently
+  break a requested `HABITABLE_WORLD`/`ASTEROID_BELT` guarantee —
+  CHANGELOG [5.22.0].
+- Ecosphere-zone classes (E/F/G/H/K/L/M/N/O/P/V) now generate at a
+  class-appropriate distance within the zone via per-class
+  `zone_position_mode`, instead of every class sharing the same
+  distance-blind draw; K (Mars) and N (Venus) retuned to real-world
+  targets now that real insolation does the work instead of a
+  compensating albedo/greenhouse hack — CHANGELOG [5.21.0].
 - **Write-capable API + admin auth.** `POST`/`PATCH`/`DELETE` on
   `/api/sectors`/`/api/systems` do real inserts/updates/deletes now,
   gated behind admin login (session cookie, `HttpOnly`/`Secure`/

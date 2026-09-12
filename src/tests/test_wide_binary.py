@@ -148,7 +148,12 @@ def test_eccentricity_sampler_stays_in_range_and_follows_thermal_distribution():
 
 @pytest.mark.parametrize("star_type", STAR_TYPES)
 def test_orbit_ceiling_falls_back_to_system_perimeter_without_a_crit(star_type):
-    system = StarSystem(system_config=make_config(star_type, PLANETS=False))
+    # Pinned False: `BINARY_SYSTEM` now rolls real chance when left at its
+    # default (see StarSystem._should_generate_binary), and a "close"
+    # (P-type) pair's merged proxy star never sets a_crit_au either -- but
+    # this test is specifically about the single-star case, so binary-vs-
+    # single must not be left to chance here.
+    system = StarSystem(system_config=make_config(star_type, PLANETS=False, BINARY_SYSTEM=False))
     assert system.star.a_crit_au is None
     assert system._orbit_ceiling_au(system.star) == system.star.system_perimeter
 

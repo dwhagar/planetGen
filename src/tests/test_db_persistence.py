@@ -44,6 +44,12 @@ def _make_system_with_moons_and_belt():
         cfg.MOONS = True
         cfg.MAX_PLANETS = True
         cfg.ASTEROID_BELT = True
+        # Pinned False: left at its own default, `BINARY_SYSTEM` now rolls
+        # real chance (StarSystem._should_generate_binary), and this
+        # helper's only caller counts expected rows from `system.planets`
+        # alone -- an S-type (wide) pair's own `secondary_planets` would
+        # add real DB rows that count wouldn't account for.
+        cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         planets = [obj for obj in system.planets if obj.body_type != "a"]
         belts = [obj for obj in system.planets if obj.body_type == "a"]

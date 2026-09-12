@@ -122,8 +122,13 @@ class SystemConfig:
         self.BINARY_SYSTEM = None
         """
         bool or None: If True, the system generation will attempt to create a
-        binary star system. If False (or None), a single star system is
-        generated. Defaults to None.
+        binary star system. If False, a single star system is generated. If
+        None, whether the system is binary is rolled against real
+        stellar-multiplicity statistics for the primary star's own spectral
+        type (see `stellarObjects.program_constants.
+        BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, used by
+        `StarSystem._should_generate_binary`) rather than always coming out
+        single. Defaults to None.
         """
 
         self.WIDE_BINARY = None
