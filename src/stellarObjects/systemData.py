@@ -29,6 +29,7 @@ from . import physical_constants, planetLife, planetPhysics, program_constants
 from .planetData import Planet
 from .starData import Star
 from .utils import (
+    calculate_reflex_offset,
     disk_surface_density_scale,
     isolation_mass_kg,
     mmsn_surface_density_gcm2,
@@ -286,6 +287,29 @@ class StarSystem:
         if self.binary_type == "wide":
             self.secondary_star.adjust_age_for_planets(self.secondary_planets)
 
+        # Each hosting star's own reflex-offset "wobble" (schema v18) --
+        # see `Star.reflex_offset_x`'s own docstring and
+        # `utils.calculate_reflex_offset`. Positions are now final (planet
+        # placement/validation above is done), so this is computed once,
+        # here, same as everything else in this pass.
+        self.binary_planetary_wobble_x = self.binary_planetary_wobble_y = self.binary_planetary_wobble_z = 0.0
+        if self.binary_type == "close":
+            # Circumbinary planets orbit the merged proxy, not either
+            # individual star (star_id IS NULL -- see schema.sql), so their
+            # combined pull is modeled as one shared wobble on the whole
+            # pair rather than split between primary/secondary -- splitting
+            # it would require solving a real 3+-body problem, out of scope
+            # (see the "Investigated and explicitly out of scope" plan note
+            # on a related, larger case).
+            self.binary_planetary_wobble_x, self.binary_planetary_wobble_y, self.binary_planetary_wobble_z = \
+                calculate_reflex_offset(self.star.mass, self._reflex_children(self.planets))
+        else:
+            self.primary_star.reflex_offset_x, self.primary_star.reflex_offset_y, self.primary_star.reflex_offset_z = \
+                calculate_reflex_offset(self.primary_star.mass, self._reflex_children(self.planets))
+            if self.binary_type == "wide":
+                self.secondary_star.reflex_offset_x, self.secondary_star.reflex_offset_y, self.secondary_star.reflex_offset_z = \
+                    calculate_reflex_offset(self.secondary_star.mass, self._reflex_children(self.secondary_planets))
+
         # Decided once, here, at generation time -- __str__ (which may be called
         # more than once) reads this rather than re-rolling and double-counting
         # system_flavor_count on every render.
@@ -311,6 +335,26 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+
+    @staticmethod
+    def _reflex_children(planets):
+        """
+        Builds the `(mass_kg, x_au, y_au, z_au)` list `utils.
+        calculate_reflex_offset` expects, out of a `planets`-shaped list
+        (`self.planets`/`self.secondary_planets`) -- excludes
+        `AsteroidBelt` entries (`body_type == 'a'`), which carry no mass
+        anywhere in this codebase (see `AsteroidBelt`'s own class
+        docstring), the same exclusion `_db.advance_orbital_phases`'s own
+        `planets`-table `UPDATE`s get for free (asteroid belts are stored
+        in their own separate table).
+
+        Args:
+            planets (list): `Planet`/`AsteroidBelt` objects.
+
+        Returns:
+            list: `(mass_kg, x_au, y_au, z_au)` tuples, one per real planet.
+        """
+        return [(p.mass, p.position_x, p.position_y, p.position_z) for p in planets if p.body_type != 'a']
 
     def _should_generate_binary(self):
         """
@@ -744,6 +788,9 @@ class StarSystem:
             "planets": [obj.to_dict() for obj in self.planets],
             "secondary_planets": [obj.to_dict() for obj in self.secondary_planets],
             "system_flavor_text": self.system_flavor_text,
+            "binary_planetary_wobble_x": self.binary_planetary_wobble_x,
+            "binary_planetary_wobble_y": self.binary_planetary_wobble_y,
+            "binary_planetary_wobble_z": self.binary_planetary_wobble_z,
         }
 
     @classmethod
@@ -850,6 +897,13 @@ class StarSystem:
         )
 
         system.system_flavor_text = data.get("system_flavor_text")
+
+        # Schema v18: absent on a pre-v18 save -- 0.0 (no wobble) is the
+        # correct default there, same "was implicitly zero before this
+        # field existed" reasoning as Star.reflex_offset_x's own docstring.
+        system.binary_planetary_wobble_x = data.get("binary_planetary_wobble_x", 0.0)
+        system.binary_planetary_wobble_y = data.get("binary_planetary_wobble_y", 0.0)
+        system.binary_planetary_wobble_z = data.get("binary_planetary_wobble_z", 0.0)
 
         system.planet_count, system.belt_count, system.moon_count = system.count_objects()
         system.hab_count, system.m_count = system.count_habitable()
@@ -1391,6 +1445,21 @@ class StarSystem:
                 if reclassified:
                     moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
+
+        # v18: planet.reflex_offset_x/y/z (this planet's own wobble from
+        # its moons -- see Planet.reflex_offset_x's docstring) depends on
+        # planet.mass and every moon's own mass/position, any of which the
+        # reconciliation above may just have changed (a reclassified
+        # planet gets a new mass; a reclassified moon gets a new mass; a
+        # moon whose period got refreshed above gets a new position via
+        # generate_orbital_motion_properties). Recomputed unconditionally
+        # here rather than only in the specific branches that changed
+        # something, the same "cheap, always recompute from current state"
+        # treatment _db.advance_orbital_phases gives this same value.
+        if planet.moons:
+            planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
+                planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
+            )
 
         return reclassified
 

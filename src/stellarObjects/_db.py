@@ -71,7 +71,7 @@ from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 17
+SCHEMA_VERSION = 18
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -732,8 +732,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             system_perimeter_km, heliosphere_radius_km,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            wide_binary_a_crit_km
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            wide_binary_a_crit_km,
+            reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -748,6 +749,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.galactic_orbital_phase_deg,
             star.galactic_min_update_interval_years,
             wide_binary_a_crit_km,
+            star.reflex_offset_x * physical_constants.AU_TO_KM,
+            star.reflex_offset_y * physical_constants.AU_TO_KM,
+            star.reflex_offset_z * physical_constants.AU_TO_KM,
         ),
     )
     return cur.lastrowid
@@ -814,8 +818,9 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
             position_x_km, position_y_km, position_z_km, orbital_speed_kms,
             min_update_interval_years,
-            rotation_period_hours
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            rotation_period_hours,
+            reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, orbital_index, planet.body_type, planet.name,
@@ -839,6 +844,9 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
             planet.orbital_speed_kms,
             planet.min_update_interval_years,
             planet.rotation_period_hours,
+            planet.reflex_offset_x * physical_constants.AU_TO_KM,
+            planet.reflex_offset_y * physical_constants.AU_TO_KM,
+            planet.reflex_offset_z * physical_constants.AU_TO_KM,
         ),
     )
     planet_id = cur.lastrowid
@@ -1335,11 +1343,13 @@ for a 'wide'/S-type pair or a single star, since no merged effective star
 exists to describe in either of those cases. See `schema.sql`'s "v15"
 header note and `_proxy_only_binary_fields`."""
 
-_NULL_MUTUAL_ORBIT_FIELDS = (None,) * 9
-"""Placeholder for the 9 `star_systems.binary_mutual_*` columns (excluding
-`binary_separation_km`, handled separately in `insert_star_system` since it
-sits earlier in column order, alongside the eccentricity/periapsis/apoapsis
-columns it's grouped with) -- NULL for a single (non-binary) star. See
+_NULL_MUTUAL_ORBIT_FIELDS = (None,) * 16
+"""Placeholder for the 16 `star_systems.binary_mutual_*`/
+`binary_primary_position_*`/`binary_secondary_position_*`/
+`binary_secondary_mass_fraction` columns (excluding `binary_separation_km`,
+handled separately in `insert_star_system` since it sits earlier in column
+order, alongside the eccentricity/periapsis/apoapsis columns it's grouped
+with) -- NULL for a single (non-binary) star. See
 `_mutual_orbit_fields_from_proxy`/`_mutual_orbit_fields_from_wide_binary`."""
 
 
@@ -1381,13 +1391,16 @@ def _proxy_only_binary_fields(proxy: BinaryStarProxy):
 
 def _mutual_orbit_fields_from_proxy(proxy: BinaryStarProxy):
     """
-    Extracts the 9 `star_systems.binary_mutual_*` column values (period,
-    speed, inclination, ascending node, phase, update-guard interval, and
-    x/y/z position -- everything except `binary_separation_km`, handled
-    separately) from a 'close' pair's `BinaryStarProxy`.
+    Extracts the 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
+    `binary_secondary_position_*`/`binary_secondary_mass_fraction` column
+    values (period, speed, inclination, ascending node, phase,
+    update-guard interval, x/y/z position, each star's own barycenter
+    offset, and the mass fraction -- everything except
+    `binary_separation_km`, handled separately) from a 'close' pair's
+    `BinaryStarProxy`.
 
     Returns:
-        tuple: 9 values, ready to splice into the `INSERT` parameters.
+        tuple: 16 values, ready to splice into the `INSERT` parameters.
     """
     return (
         proxy.binary_mutual_orbital_period_years,
@@ -1399,14 +1412,22 @@ def _mutual_orbit_fields_from_proxy(proxy: BinaryStarProxy):
         proxy.binary_mutual_position_x * physical_constants.AU_TO_KM,
         proxy.binary_mutual_position_y * physical_constants.AU_TO_KM,
         proxy.binary_mutual_position_z * physical_constants.AU_TO_KM,
+        proxy.binary_primary_position_x * physical_constants.AU_TO_KM,
+        proxy.binary_primary_position_y * physical_constants.AU_TO_KM,
+        proxy.binary_primary_position_z * physical_constants.AU_TO_KM,
+        proxy.binary_secondary_position_x * physical_constants.AU_TO_KM,
+        proxy.binary_secondary_position_y * physical_constants.AU_TO_KM,
+        proxy.binary_secondary_position_z * physical_constants.AU_TO_KM,
+        proxy.binary_secondary_mass_fraction,
     )
 
 
 def _mutual_orbit_fields_from_wide_binary(pair):
     """
-    The same 9 `star_systems.binary_mutual_*` columns as
-    `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
-    `doubleStar.WideBinaryPair` instead -- these columns are reused
+    The same 16 `star_systems.binary_mutual_*`/`binary_primary_position_*`/
+    `binary_secondary_position_*`/`binary_secondary_mass_fraction` columns
+    as `_mutual_orbit_fields_from_proxy`, from a 'wide' pair's
+    `wideBinary.WideBinaryPair` instead -- these columns are reused
     unchanged across both binary configurations (see `schema.sql`'s "v15"
     header note): a wide pair's own (circular-approximation) mutual orbit
     fits the exact same shape a close pair's already occupies.
@@ -1415,7 +1436,7 @@ def _mutual_orbit_fields_from_wide_binary(pair):
         pair (WideBinaryPair): The system's wide-binary orbital pair.
 
     Returns:
-        tuple: 9 values, ready to splice into the `INSERT` parameters.
+        tuple: 16 values, ready to splice into the `INSERT` parameters.
     """
     return (
         pair.period_years,
@@ -1427,6 +1448,13 @@ def _mutual_orbit_fields_from_wide_binary(pair):
         pair.position_x_au * physical_constants.AU_TO_KM,
         pair.position_y_au * physical_constants.AU_TO_KM,
         pair.position_z_au * physical_constants.AU_TO_KM,
+        pair.primary_position_x_au * physical_constants.AU_TO_KM,
+        pair.primary_position_y_au * physical_constants.AU_TO_KM,
+        pair.primary_position_z_au * physical_constants.AU_TO_KM,
+        pair.secondary_position_x_au * physical_constants.AU_TO_KM,
+        pair.secondary_position_y_au * physical_constants.AU_TO_KM,
+        pair.secondary_position_z_au * physical_constants.AU_TO_KM,
+        pair.secondary_mass_fraction,
     )
 
 
@@ -1551,6 +1579,19 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
         separation_km = eccentricity = periapsis_km = apoapsis_km = None
 
+    # v18: circumbinary (P-type) planets' combined pull on the whole pair
+    # -- only meaningful for a 'close' pair (see schema.sql's "v18" header
+    # note); NULL for 'wide'/single, same "meaningful only when applicable"
+    # convention `black_holes`' galactic columns already use.
+    if binary_configuration == "close":
+        planetary_wobble_fields = (
+            star_system.binary_planetary_wobble_x * physical_constants.AU_TO_KM,
+            star_system.binary_planetary_wobble_y * physical_constants.AU_TO_KM,
+            star_system.binary_planetary_wobble_z * physical_constants.AU_TO_KM,
+        )
+    else:
+        planetary_wobble_fields = (None, None, None)
+
     if position is not None:
         position_x_mpc = ly_to_milliparsecs(position[0])
         position_y_mpc = ly_to_milliparsecs(position[1])
@@ -1588,8 +1629,12 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_mutual_orbital_inclination_deg, binary_mutual_orbital_ascending_node_deg,
             binary_mutual_orbital_phase_deg, binary_mutual_min_update_interval_years,
             binary_mutual_position_x_km, binary_mutual_position_y_km, binary_mutual_position_z_km,
+            binary_primary_position_x_km, binary_primary_position_y_km, binary_primary_position_z_km,
+            binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km,
+            binary_secondary_mass_fraction,
+            binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
             system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -1598,6 +1643,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             separation_km, eccentricity, periapsis_km, apoapsis_km,
             *proxy_only_fields,
             *mutual_orbit_fields,
+            *planetary_wobble_fields,
             star_system.system_flavor_text, SCHEMA_VERSION, wikitext_content, markdown_content,
         ),
     )
@@ -2142,6 +2188,13 @@ def _star_row_to_dict(row):
             row["wide_binary_a_crit_km"] / physical_constants.AU_TO_KM
             if row["wide_binary_a_crit_km"] is not None else None
         ),
+        # v18: NULL for a planet-less star (row column, not the Star's own
+        # 0.0 class-level default) -- normalize back to 0.0 the same way
+        # every other "0.0 in memory, NULL when not applicable" v18 column
+        # does on its own read path.
+        "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
+        "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
+        "reflex_offset_z": row["reflex_offset_z_km"] / physical_constants.AU_TO_KM if row["reflex_offset_z_km"] is not None else 0.0,
     }
 
 
@@ -2261,6 +2314,13 @@ def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
         "binary_mutual_position_x": row["binary_mutual_position_x_km"] / physical_constants.AU_TO_KM,
         "binary_mutual_position_y": row["binary_mutual_position_y_km"] / physical_constants.AU_TO_KM,
         "binary_mutual_position_z": row["binary_mutual_position_z_km"] / physical_constants.AU_TO_KM,
+        "binary_primary_position_x": row["binary_primary_position_x_km"] / physical_constants.AU_TO_KM,
+        "binary_primary_position_y": row["binary_primary_position_y_km"] / physical_constants.AU_TO_KM,
+        "binary_primary_position_z": row["binary_primary_position_z_km"] / physical_constants.AU_TO_KM,
+        "binary_secondary_position_x": row["binary_secondary_position_x_km"] / physical_constants.AU_TO_KM,
+        "binary_secondary_position_y": row["binary_secondary_position_y_km"] / physical_constants.AU_TO_KM,
+        "binary_secondary_position_z": row["binary_secondary_position_z_km"] / physical_constants.AU_TO_KM,
+        "binary_secondary_mass_fraction": row["binary_secondary_mass_fraction"],
         "_binary_separation_au": row["binary_separation_km"] / physical_constants.AU_TO_KM,
         "_effective_mass": row["binary_effective_mass_kg"],
         "_effective_luminosity": row["binary_effective_luminosity_w"],
@@ -2294,6 +2354,13 @@ def _wide_binary_row_to_dict(star_system_row):
         "position_x_au": row["binary_mutual_position_x_km"] / physical_constants.AU_TO_KM,
         "position_y_au": row["binary_mutual_position_y_km"] / physical_constants.AU_TO_KM,
         "position_z_au": row["binary_mutual_position_z_km"] / physical_constants.AU_TO_KM,
+        "primary_position_x_au": row["binary_primary_position_x_km"] / physical_constants.AU_TO_KM,
+        "primary_position_y_au": row["binary_primary_position_y_km"] / physical_constants.AU_TO_KM,
+        "primary_position_z_au": row["binary_primary_position_z_km"] / physical_constants.AU_TO_KM,
+        "secondary_position_x_au": row["binary_secondary_position_x_km"] / physical_constants.AU_TO_KM,
+        "secondary_position_y_au": row["binary_secondary_position_y_km"] / physical_constants.AU_TO_KM,
+        "secondary_position_z_au": row["binary_secondary_position_z_km"] / physical_constants.AU_TO_KM,
+        "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
     }
 
 
@@ -2379,6 +2446,17 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "orbital_speed_kms": row["orbital_speed_kms"],
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
+        # v18: only the `planets` table has these columns (a planet's own
+        # wobble from its moons) -- `moons` has no such column at all
+        # (moons never host their own moons), so a moon always gets the
+        # same 0.0 `Planet.reflex_offset_x` class-level default instead.
+        **(
+            {} if is_moon else {
+                "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
+                "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
+                "reflex_offset_z": row["reflex_offset_z_km"] / physical_constants.AU_TO_KM if row["reflex_offset_z_km"] is not None else 0.0,
+            }
+        ),
         "moons": [],
     }
 
@@ -2460,6 +2538,21 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.star = star
     system.binary_type = binary_configuration
     system.wide_binary = wide_binary
+
+    # v18: only meaningful (non-NULL) for a 'close' pair -- see
+    # schema.sql's "v18" header note and StarSystem.__init__'s own comment.
+    system.binary_planetary_wobble_x = (
+        row["binary_planetary_wobble_x_km"] / physical_constants.AU_TO_KM
+        if row["binary_planetary_wobble_x_km"] is not None else 0.0
+    )
+    system.binary_planetary_wobble_y = (
+        row["binary_planetary_wobble_y_km"] / physical_constants.AU_TO_KM
+        if row["binary_planetary_wobble_y_km"] is not None else 0.0
+    )
+    system.binary_planetary_wobble_z = (
+        row["binary_planetary_wobble_z_km"] / physical_constants.AU_TO_KM
+        if row["binary_planetary_wobble_z_km"] is not None else 0.0
+    )
 
     if binary_configuration == "close":
         system.primary_star = star._primary
@@ -3053,6 +3146,154 @@ def _migrate_v16_to_v17(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (17)")
 
 
+def _migrate_v17_to_v18(conn):
+    """
+    Adds v18's proper two-body (barycentric) trajectory columns to
+    `star_systems`, `stars`, and `planets` -- see `schema.sql`'s "v18"
+    header note. Real `ALTER TABLE` steps, the same as v17's.
+
+    Unlike `_migrate_v16_to_v17` (whose objects were "long gone by
+    migration time"), every value these new columns need is fully
+    derivable from data already stored on existing rows -- each star's/
+    planet's own `mass_kg` and already-stored `position_x/y/z_km`, and
+    (for the binary columns) each pair's already-stored
+    `binary_mutual_position_x/y/z_km` plus both stars' own `mass_kg` --
+    so this backfills every pre-existing row with real, correct values
+    using the exact same formulas `utils.calculate_reflex_offset`/this
+    file's own `advance_orbital_phases` use going forward, rather than
+    leaving them `NULL` until the next `updateOrbits.py` run.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute(
+        "ALTER TABLE stars "
+        "ADD COLUMN reflex_offset_x_km DOUBLE, "
+        "ADD COLUMN reflex_offset_y_km DOUBLE, "
+        "ADD COLUMN reflex_offset_z_km DOUBLE"
+    )
+    conn.execute(
+        "ALTER TABLE planets "
+        "ADD COLUMN reflex_offset_x_km DOUBLE, "
+        "ADD COLUMN reflex_offset_y_km DOUBLE, "
+        "ADD COLUMN reflex_offset_z_km DOUBLE"
+    )
+    conn.execute(
+        "ALTER TABLE star_systems "
+        "ADD COLUMN binary_primary_position_x_km DOUBLE, "
+        "ADD COLUMN binary_primary_position_y_km DOUBLE, "
+        "ADD COLUMN binary_primary_position_z_km DOUBLE, "
+        "ADD COLUMN binary_secondary_position_x_km DOUBLE, "
+        "ADD COLUMN binary_secondary_position_y_km DOUBLE, "
+        "ADD COLUMN binary_secondary_position_z_km DOUBLE, "
+        "ADD COLUMN binary_secondary_mass_fraction DOUBLE, "
+        "ADD COLUMN binary_planetary_wobble_x_km DOUBLE, "
+        "ADD COLUMN binary_planetary_wobble_y_km DOUBLE, "
+        "ADD COLUMN binary_planetary_wobble_z_km DOUBLE"
+    )
+
+    # Backfill each star's own reflex offset from planets it already hosts
+    # -- mirrors advance_orbital_phases' own "stars" UPDATE exactly.
+    conn.execute(
+        """
+        UPDATE stars s
+        SET reflex_offset_x_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (s.mass_kg + p.mass_kg)) * p.position_x_km), 0)
+                FROM planets p WHERE p.star_id = s.id
+            ),
+            reflex_offset_y_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (s.mass_kg + p.mass_kg)) * p.position_y_km), 0)
+                FROM planets p WHERE p.star_id = s.id
+            ),
+            reflex_offset_z_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (s.mass_kg + p.mass_kg)) * p.position_z_km), 0)
+                FROM planets p WHERE p.star_id = s.id
+            )
+        WHERE EXISTS (SELECT 1 FROM planets p WHERE p.star_id = s.id)
+        """
+    )
+
+    # Backfill each planet's own reflex offset from moons it already hosts.
+    conn.execute(
+        """
+        UPDATE planets pl
+        SET reflex_offset_x_km = -(
+                SELECT COALESCE(SUM((m.mass_kg / (pl.mass_kg + m.mass_kg)) * m.position_x_km), 0)
+                FROM moons m WHERE m.planet_id = pl.id
+            ),
+            reflex_offset_y_km = -(
+                SELECT COALESCE(SUM((m.mass_kg / (pl.mass_kg + m.mass_kg)) * m.position_y_km), 0)
+                FROM moons m WHERE m.planet_id = pl.id
+            ),
+            reflex_offset_z_km = -(
+                SELECT COALESCE(SUM((m.mass_kg / (pl.mass_kg + m.mass_kg)) * m.position_z_km), 0)
+                FROM moons m WHERE m.planet_id = pl.id
+            )
+        WHERE EXISTS (SELECT 1 FROM moons m WHERE m.planet_id = pl.id)
+        """
+    )
+
+    # Backfill binary_secondary_mass_fraction for every existing binary --
+    # both configurations' total mass is exactly primary.mass_kg +
+    # secondary.mass_kg (for a 'close' pair this equals the already-stored
+    # binary_effective_mass_kg by construction), so joining the two stars
+    # directly works uniformly for both configurations without needing
+    # that column at all.
+    conn.execute(
+        """
+        UPDATE star_systems ss
+        JOIN stars sp ON sp.star_system_id = ss.id AND sp.role = 'primary'
+        JOIN stars ssec ON ssec.star_system_id = ss.id AND ssec.role = 'secondary'
+        SET ss.binary_secondary_mass_fraction = ssec.mass_kg / (sp.mass_kg + ssec.mass_kg)
+        WHERE ss.is_binary = 1
+        """
+    )
+
+    # Backfill binary_primary/secondary_position from the already-stored
+    # binary_mutual_position (the secondary's position relative to the
+    # primary) and the mass fraction just backfilled above -- the exact
+    # formula doubleStar.BinaryStarProxy.__init__/wideBinary.WideBinaryPair.
+    # __init__ compute at generation time going forward.
+    conn.execute(
+        """
+        UPDATE star_systems
+        SET binary_primary_position_x_km = -binary_secondary_mass_fraction * binary_mutual_position_x_km,
+            binary_primary_position_y_km = -binary_secondary_mass_fraction * binary_mutual_position_y_km,
+            binary_primary_position_z_km = -binary_secondary_mass_fraction * binary_mutual_position_z_km,
+            binary_secondary_position_x_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_x_km,
+            binary_secondary_position_y_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_y_km,
+            binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km
+        WHERE is_binary = 1 AND binary_secondary_mass_fraction IS NOT NULL
+        """
+    )
+
+    # Backfill binary_planetary_wobble for existing 'close' pairs from
+    # already-stored circumbinary planets (star_id IS NULL), against the
+    # proxy's already-stored binary_effective_mass_kg.
+    conn.execute(
+        """
+        UPDATE star_systems ss
+        SET binary_planetary_wobble_x_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_x_km), 0)
+                FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
+            ),
+            binary_planetary_wobble_y_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_y_km), 0)
+                FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
+            ),
+            binary_planetary_wobble_z_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_z_km), 0)
+                FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
+            )
+        WHERE ss.binary_configuration = 'close'
+        """
+    )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (18)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -3070,9 +3311,11 @@ def migrate_database(config=None):
     (added for the v13 star-motion columns), `_migrate_v13_to_v14`
     (added for the v14 binary-mutual-orbit position columns),
     `_migrate_v14_to_v15` (added for v15's S-type/wide-binary columns),
-    `_migrate_v15_to_v16` (added for v16's exotic-phenomenon tables), and
+    `_migrate_v15_to_v16` (added for v16's exotic-phenomenon tables),
     `_migrate_v16_to_v17` (added for v17's galactic-orbital-motion columns
-    on those tables plus the new `asteroid_fields` phenomenon) are the
+    on those tables plus the new `asteroid_fields` phenomenon), and
+    `_migrate_v17_to_v18` (added for v18's proper two-body/barycentric
+    trajectory columns on `star_systems`/`stars`/`planets`) are the
     migration steps so far; see `schema.sql`'s header comment for the
     versioning convention, and `migrateDb.py` for the CLI wrapper around
     this.
@@ -3125,6 +3368,10 @@ def migrate_database(config=None):
         if version < 17:
             _migrate_v16_to_v17(conn)
             version = 17
+
+        if version < 18:
+            _migrate_v17_to_v18(conn)
+            version = 18
 
         conn.commit()
         return version
@@ -3251,6 +3498,36 @@ def advance_orbital_phases(conn, elapsed_years):
     from), in the same transaction, so a caller can never advance phases
     without also recording that it did.
 
+    v18 additionally recomputes three "reflex offset"/"wobble" values --
+    a proper two-body (barycentric) treatment layered on top of the
+    existing relative-position model, never changing what any existing
+    column means (see `schema.sql`'s "v18" header note and
+    `utils.calculate_reflex_offset`'s docstring for the underlying
+    formula):
+      - `stars.reflex_offset_x/y/z_km`, from each star's own hosted
+        planets (`planets.star_id`).
+      - `planets.reflex_offset_x/y/z_km`, from each planet's own hosted
+        moons (`moons.planet_id`).
+      - `star_systems.binary_primary_position_*_km`/
+        `binary_secondary_position_*_km`, recomputed from the same-`SET`-
+        list's freshly-advanced `binary_mutual_position_*_km` and the
+        stored constant `binary_secondary_mass_fraction`, folded into the
+        existing mutual-orbit `UPDATE` rather than a separate statement.
+      - `star_systems.binary_planetary_wobble_*_km`, a 'close' pair's
+        combined pull from its own circumbinary planets (`star_id IS
+        NULL`).
+    Unlike every phase-advancing `UPDATE` above, these three are cheap
+    values *derived from* other rows' just-advanced positions rather than
+    an independently advancing phase of their own, so they're recomputed
+    unconditionally on every call -- no `min_update_interval_years`-style
+    guard of their own. The two per-child-table ones use a correlated
+    subquery (`SELECT SUM(...) FROM <children> WHERE <parent link>`) to
+    sum a parent's pull from *multiple* children in one set-based
+    statement -- a different, well-supported mechanism from the CTE-in-
+    multi-table-UPDATE approach flagged as unsupported above; this one
+    works because it's a plain correlated scalar subquery in a
+    single-table `UPDATE`'s own `SET` clause, not a join.
+
     Args:
         conn (Connection): An open, schema-initialized, read-write
                            connection.
@@ -3263,9 +3540,10 @@ def advance_orbital_phases(conn, elapsed_years):
     Returns:
         dict: `{table_name: rows_updated}` for every table this function
             touches -- `"planets"`, `"moons"`, `"stars"`,
-            `"binary_mutual_orbits"`, `"binary_galactic_orbits"`,
-            `"black_holes"`, `"neutron_stars"`, `"nebulae"`,
-            `"supernova_remnants"`, `"rogue_planets"`,
+            `"star_reflex_offsets"`, `"planet_reflex_offsets"`,
+            `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`,
+            `"binary_galactic_orbits"`, `"black_holes"`, `"neutron_stars"`,
+            `"nebulae"`, `"supernova_remnants"`, `"rogue_planets"`,
             `"interstellar_comets"`, `"asteroid_fields"`. A dict rather
             than a positional tuple (this function's shape before v17)
             specifically because this list keeps growing as new phenomena
@@ -3313,9 +3591,70 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["stars"] = cur.rowcount
 
+    # v18: each star's own reflex-offset "wobble" from the planets it
+    # hosts (planets.star_id) -- a correlated subquery summing every
+    # hosted planet's individual pairwise pull, the same
+    # utils.calculate_reflex_offset formula generation time uses (see its
+    # docstring). Recomputed unconditionally on every run, using each
+    # planet's just-advanced position_x/y/z_km above -- this is a cheap
+    # derived value, not an independently advancing phase, so (unlike
+    # every other UPDATE in this function) it has no min-update-interval
+    # guard of its own. NULL/0 rows (no planets) are simply left alone by
+    # the WHERE EXISTS guard, matching those rows' already-NULL default.
+    cur = conn.execute(
+        """
+        UPDATE stars s
+        SET reflex_offset_x_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (s.mass_kg + p.mass_kg)) * p.position_x_km), 0)
+                FROM planets p WHERE p.star_id = s.id
+            ),
+            reflex_offset_y_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (s.mass_kg + p.mass_kg)) * p.position_y_km), 0)
+                FROM planets p WHERE p.star_id = s.id
+            ),
+            reflex_offset_z_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (s.mass_kg + p.mass_kg)) * p.position_z_km), 0)
+                FROM planets p WHERE p.star_id = s.id
+            )
+        WHERE EXISTS (SELECT 1 FROM planets p WHERE p.star_id = s.id)
+        """
+    )
+    counts["star_reflex_offsets"] = cur.rowcount
+
+    # v18: each planet's own reflex-offset "wobble" from the moons it
+    # hosts -- identical shape/reasoning to the stars UPDATE above, one
+    # level down (moons.planet_id).
+    cur = conn.execute(
+        """
+        UPDATE planets pl
+        SET reflex_offset_x_km = -(
+                SELECT COALESCE(SUM((m.mass_kg / (pl.mass_kg + m.mass_kg)) * m.position_x_km), 0)
+                FROM moons m WHERE m.planet_id = pl.id
+            ),
+            reflex_offset_y_km = -(
+                SELECT COALESCE(SUM((m.mass_kg / (pl.mass_kg + m.mass_kg)) * m.position_y_km), 0)
+                FROM moons m WHERE m.planet_id = pl.id
+            ),
+            reflex_offset_z_km = -(
+                SELECT COALESCE(SUM((m.mass_kg / (pl.mass_kg + m.mass_kg)) * m.position_z_km), 0)
+                FROM moons m WHERE m.planet_id = pl.id
+            )
+        WHERE EXISTS (SELECT 1 FROM moons m WHERE m.planet_id = pl.id)
+        """
+    )
+    counts["planet_reflex_offsets"] = cur.rowcount
+
     # Mutual orbit: shared by both binary configurations (see this
     # function's own docstring on why this is now a separate UPDATE from
-    # the galactic-phase one below, guarded independently).
+    # the galactic-phase one below, guarded independently). v18: also
+    # recomputes each star's own offset from the pair's barycenter
+    # (binary_primary/secondary_position_*_km) from the freshly-advanced
+    # binary_mutual_position_*_km above and the constant
+    # binary_secondary_mass_fraction, using the same left-to-right
+    # single-table SET evaluation trick binary_mutual_position_*_km's own
+    # computation already relies on (each position expression here reads
+    # binary_mutual_position_*_km's *new* value, assigned earlier in this
+    # same SET list).
     cur = conn.execute(
         """
         UPDATE star_systems
@@ -3332,7 +3671,13 @@ def advance_orbital_phases(conn, elapsed_years):
                   * COS(RADIANS(binary_mutual_orbital_inclination_deg))
             ),
             binary_mutual_position_z_km = binary_separation_km
-                * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg))
+                * SIN(RADIANS(binary_mutual_orbital_phase_deg)) * SIN(RADIANS(binary_mutual_orbital_inclination_deg)),
+            binary_primary_position_x_km = -binary_secondary_mass_fraction * binary_mutual_position_x_km,
+            binary_primary_position_y_km = -binary_secondary_mass_fraction * binary_mutual_position_y_km,
+            binary_primary_position_z_km = -binary_secondary_mass_fraction * binary_mutual_position_z_km,
+            binary_secondary_position_x_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_x_km,
+            binary_secondary_position_y_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_y_km,
+            binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km
         WHERE is_binary = 1
           AND binary_mutual_orbital_period_years > 0
           AND ? >= binary_mutual_min_update_interval_years
@@ -3340,6 +3685,33 @@ def advance_orbital_phases(conn, elapsed_years):
         (elapsed_years, elapsed_years),
     )
     counts["binary_mutual_orbits"] = cur.rowcount
+
+    # v18: circumbinary (P-type) planets' combined pull on the whole pair
+    # -- same correlated-subquery shape as the stars/planets reflex-offset
+    # UPDATEs above, grouped by star_system_id instead (circumbinary
+    # planets have star_id IS NULL, so there's no stars row to attach this
+    # to -- see schema.sql's "v18" header note on why it's modeled as one
+    # shared wobble rather than split between primary/secondary). Also
+    # recomputed unconditionally, no guard interval of its own.
+    cur = conn.execute(
+        """
+        UPDATE star_systems ss
+        SET binary_planetary_wobble_x_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_x_km), 0)
+                FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
+            ),
+            binary_planetary_wobble_y_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_y_km), 0)
+                FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
+            ),
+            binary_planetary_wobble_z_km = -(
+                SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_z_km), 0)
+                FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
+            )
+        WHERE ss.binary_configuration = 'close'
+        """
+    )
+    counts["binary_planetary_wobbles"] = cur.rowcount
 
     # Galactic phase: a 'close' pair only -- a 'wide' pair's two stars
     # already each advance their own galactic phase individually via the

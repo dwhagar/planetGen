@@ -448,6 +448,50 @@
 --   `galactic_orbital_*` columns from the start (a new table, so no
 --   `ALTER TABLE` needed for it specifically).
 --
+-- v18: proper two-body (barycentric) trajectories for binary stars,
+--   star<->planet, and planet<->moon -- previously each pair modeled only
+--   "the lighter body orbits a fixed primary," which is a poor
+--   approximation for a binary's secondary (sampled at 0.1-0.8x the
+--   primary's mass) and for a moon near the generator's own mass cap
+--   (up to 1/10 its parent planet's mass, approaching real "double
+--   planet" ratios like Pluto/Charon). Existing "relative position"
+--   columns (`planets.position_x/y/z_km`, `moons.position_x/y/z_km`,
+--   `star_systems.binary_mutual_position_x/y/z_km`) are UNCHANGED --
+--   still the true separation a large amount of existing physics
+--   (insolation, Hill sphere, tidal locking) depends on. New columns add
+--   the ORBITED body's own small "reflex offset"/"wobble" away from its
+--   nominal fixed point instead -- see `utils.calculate_reflex_offset`'s
+--   docstring for the formula.
+--     `stars` gains `reflex_offset_x/y/z_km` -- a star's own displacement
+--   from the combined pull of every planet orbiting it directly
+--   (`planets.star_id`); class-blind, so applies identically to an
+--   anchored `black_holes`/`neutron_stars` row. NULL/0 with no planets.
+--     `planets` gains `reflex_offset_x/y/z_km` -- a planet's own
+--   displacement from the combined pull of its own moons (`moons.planet_id`).
+--   NULL/0 with no moons; not applicable to `asteroid_belts` (its own
+--   table, never modeled with a gravitating mass anywhere in this codebase).
+--     `star_systems` gains `binary_primary_position_x/y/z_km` and
+--   `binary_secondary_position_x/y/z_km` -- each binary member's own
+--   offset from the pair's barycenter, mirroring the pre-existing
+--   `binary_mutual_position_*` (still the secondary relative to the
+--   primary, unchanged); `secondary_position = primary_position +
+--   binary_mutual_position` always holds, but both are stored explicitly
+--   the same "ready-to-query, not derived on read" convention
+--   `binary_mutual_position_*` itself already set. Also gains
+--   `binary_secondary_mass_fraction` (the constant `secondary_mass /
+--   (primary_mass + secondary_mass)`, stored so `_db.advance_orbital_phases`
+--   never needs to join back to `stars` for either mass) and
+--   `binary_planetary_wobble_x/y/z_km` -- the additional pair-wide wobble
+--   from CIRCUMBINARY (P-type) planets, which orbit the merged proxy
+--   (`star_id IS NULL`), not either individual star; their pull is
+--   modeled as one shared wobble applied to the whole pair (splitting it
+--   unevenly between primary/secondary would require solving a real
+--   3+-body problem, out of scope) -- NULL unless `binary_configuration =
+--   'close'`.
+--     These are new columns on already-existing tables (`star_systems`,
+--   `stars`, `planets`), so `_migrate_v17_to_v18` needs real `ALTER TABLE`
+--   statements, the same as v17's column additions.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -755,6 +799,24 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_mutual_position_x_km   DOUBLE,
     binary_mutual_position_y_km   DOUBLE,
     binary_mutual_position_z_km   DOUBLE,
+    -- v18 (see header comment): each binary member's own offset from the
+    -- pair's barycenter -- secondary_position = primary_position +
+    -- binary_mutual_position above always holds, but both are stored
+    -- explicitly rather than derived on read.
+    binary_primary_position_x_km    DOUBLE,
+    binary_primary_position_y_km    DOUBLE,
+    binary_primary_position_z_km    DOUBLE,
+    binary_secondary_position_x_km  DOUBLE,
+    binary_secondary_position_y_km  DOUBLE,
+    binary_secondary_position_z_km  DOUBLE,
+    -- v18: secondary_mass / (primary_mass + secondary_mass), constant --
+    -- stored so advance_orbital_phases never needs to join back to `stars`.
+    binary_secondary_mass_fraction  DOUBLE,
+    -- v18: additional pair-wide wobble from circumbinary (P-type) planets
+    -- (star_id IS NULL) -- NULL unless binary_configuration = 'close'.
+    binary_planetary_wobble_x_km    DOUBLE,
+    binary_planetary_wobble_y_km    DOUBLE,
+    binary_planetary_wobble_z_km    DOUBLE,
 
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,
@@ -815,6 +877,13 @@ CREATE TABLE IF NOT EXISTS stars (
     -- -- NULL except for a constituent of a 'wide' binary. See the header
     -- comment's "v15" note.
     wide_binary_a_crit_km               DOUBLE,
+    -- v18 (see header comment): this star's own reflex-offset "wobble"
+    -- from the combined pull of every planet orbiting it directly --
+    -- NULL/0 with no planets. Class-blind: applies identically to an
+    -- anchored black_holes/neutron_stars row.
+    reflex_offset_x_km       DOUBLE,
+    reflex_offset_y_km       DOUBLE,
+    reflex_offset_z_km       DOUBLE,
 
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
@@ -891,6 +960,11 @@ CREATE TABLE IF NOT EXISTS planets (
     orbital_speed_kms           DOUBLE NOT NULL,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
+    -- v18 (see header comment): this planet's own reflex-offset "wobble"
+    -- from the combined pull of its own moons -- NULL/0 with no moons.
+    reflex_offset_x_km       DOUBLE,
+    reflex_offset_y_km       DOUBLE,
+    reflex_offset_z_km       DOUBLE,
 
     CONSTRAINT fk_planets_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,

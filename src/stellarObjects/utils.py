@@ -917,6 +917,51 @@ def orbital_position_au(distance_au, inclination_deg, ascending_node_deg, phase_
     return x, y, z
 
 
+def calculate_reflex_offset(parent_mass_kg, children):
+    """
+    A parent body's own displacement from its nominal fixed point, caused
+    by the combined gravitational pull of everything orbiting it -- the
+    "wobble"/reflex-motion half of a proper two-body (barycentric)
+    treatment, mirrored on the SQL side by the correlated-subquery
+    `UPDATE`s in `_db.advance_orbital_phases`.
+
+    For a single child, this is the exact two-body barycentric formula:
+    `offset = -(child_mass / (parent_mass + child_mass)) * relative_vector`,
+    where `relative_vector` is the child's own already-stored position
+    relative to the parent (e.g. `Planet.position_x/y/z`,
+    `BinaryStarProxy.binary_mutual_position_x/y/z`) -- deliberately never
+    recomputed or changed by this function, since a large amount of
+    existing physics (insolation, Hill sphere, tidal locking) depends on
+    that vector remaining the *true* separation, not a barycenter-reduced
+    one; this only computes the *parent's* own small displacement.
+
+    For multiple children (a star with several planets, a planet with
+    several moons), each child's individual pairwise pull is summed --
+    the standard linear-superposition approximation real radial-velocity
+    work uses for multi-planet reflex motion, exact to leading order
+    whenever the parent is much more massive than any single child (true
+    for every relationship in this generator).
+
+    Args:
+        parent_mass_kg (float): The parent body's own mass, in kg.
+        children (list): `(mass_kg, x_au, y_au, z_au)` tuples, one per
+                         body orbiting the parent, each already in the
+                         parent's own reference frame.
+
+    Returns:
+        tuple: `(x_au, y_au, z_au)`, the parent's own offset from its
+              nominal fixed point -- `(0.0, 0.0, 0.0)` if `children` is
+              empty.
+    """
+    offset_x = offset_y = offset_z = 0.0
+    for child_mass_kg, x_au, y_au, z_au in children:
+        mu_child = child_mass_kg / (parent_mass_kg + child_mass_kg)
+        offset_x -= mu_child * x_au
+        offset_y -= mu_child * y_au
+        offset_z -= mu_child * z_au
+    return offset_x, offset_y, offset_z
+
+
 def minimum_update_interval_years(period_years):
     """
     The shortest `elapsed_years` worth advancing a body's

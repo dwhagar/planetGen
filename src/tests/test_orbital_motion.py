@@ -397,3 +397,177 @@ def test_generated_bodies_have_finite_positive_min_update_interval(bodies):
 
         expected = minimum_update_interval_years(body.period)
         assert body.min_update_interval_years == pytest.approx(expected, rel=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Barycentric "reflex offset" trajectories (schema v18): `utils.
+# calculate_reflex_offset`, plus its wiring into generation via
+# `systemData.StarSystem.__init__` (a star's own offset from its planets)
+# and `planetPhysics.generate_moons` (a planet's own offset from its
+# moons), and each binary pair's own primary/secondary offset
+# (`doubleStar.BinaryStarProxy`/`wideBinary.WideBinaryPair`). Existing
+# `position_x/y/z`/`binary_mutual_position_*` fields are unchanged by any
+# of this -- see `calculate_reflex_offset`'s own docstring.
+# ---------------------------------------------------------------------------
+
+from stellarObjects.utils import calculate_reflex_offset
+
+
+def test_calculate_reflex_offset_is_zero_with_no_children():
+    assert calculate_reflex_offset(5e30, []) == (0.0, 0.0, 0.0)
+
+
+def test_calculate_reflex_offset_matches_manual_two_body_formula():
+    parent_mass = 2e30
+    child_mass = 1e27
+    x, y, z = 3.0, -1.5, 0.2
+    offset = calculate_reflex_offset(parent_mass, [(child_mass, x, y, z)])
+    mu = child_mass / (parent_mass + child_mass)
+    assert offset == pytest.approx((-mu * x, -mu * y, -mu * z))
+
+
+def test_calculate_reflex_offset_sums_multiple_children_independently():
+    """The multi-child case is the sum of each child's own independent
+    pairwise pull -- not, e.g., normalized by total children mass, which
+    would give a different (wrong) answer."""
+    parent_mass = 2e30
+    children = [(1e27, 3.0, -1.5, 0.2), (5e26, -2.0, 4.0, -0.5)]
+    offset = calculate_reflex_offset(parent_mass, children)
+    expected = [0.0, 0.0, 0.0]
+    for mass, x, y, z in children:
+        mu = mass / (parent_mass + mass)
+        expected[0] -= mu * x
+        expected[1] -= mu * y
+        expected[2] -= mu * z
+    assert offset == pytest.approx(tuple(expected))
+
+
+def test_moon_having_planet_reflex_offset_matches_manual_formula(bodies):
+    planets, _ = bodies
+    checked_any = False
+    for planet in planets:
+        if not planet.moons:
+            continue
+        expected = calculate_reflex_offset(
+            planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
+        )
+        assert (planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z) == pytest.approx(expected)
+        checked_any = True
+    assert checked_any
+
+
+def test_moonless_planet_and_every_moon_has_zero_reflex_offset(bodies):
+    planets, moons = bodies
+    for planet in planets:
+        if not planet.moons:
+            assert (planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z) == (0.0, 0.0, 0.0)
+    # A moon never hosts its own moons (Planet.__init__ only calls
+    # generate_moons `if not self.is_moon`), so every moon keeps the
+    # 0.0 class-level default.
+    for moon in moons:
+        assert (moon.reflex_offset_x, moon.reflex_offset_y, moon.reflex_offset_z) == (0.0, 0.0, 0.0)
+
+
+def test_planet_hosting_star_reflex_offset_matches_manual_formula(systems_with_moons):
+    checked_any = False
+    for system in systems_with_moons:
+        real_planets = [p for p in system.planets if p.body_type != "a"]
+        if not real_planets or system.binary_type is not None:
+            continue
+        star = system.primary_star
+        expected = calculate_reflex_offset(
+            star.mass, [(p.mass, p.position_x, p.position_y, p.position_z) for p in real_planets]
+        )
+        assert (star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z) == pytest.approx(expected)
+        checked_any = True
+    assert checked_any
+
+
+def test_star_with_no_planets_has_zero_reflex_offset():
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    # Retries a handful of times for a genuinely planet-less roll -- this
+    # config biases toward zero planets but doesn't force it.
+    for _ in range(30):
+        system = StarSystem(system_config=cfg)
+        if not [p for p in system.planets if p.body_type != "a"]:
+            assert system.primary_star.reflex_offset_x == 0.0
+            assert system.primary_star.reflex_offset_y == 0.0
+            assert system.primary_star.reflex_offset_z == 0.0
+            return
+    pytest.skip("could not roll a planet-less system in 30 attempts")
+
+
+def test_serializable_fields_include_reflex_offset_attributes():
+    from stellarObjects.planetData import Planet
+    from stellarObjects.starData import Star
+    for field in ("reflex_offset_x", "reflex_offset_y", "reflex_offset_z"):
+        assert field in Planet.SERIALIZABLE_FIELDS
+        assert field in Star.SERIALIZABLE_FIELDS
+
+
+def test_close_binary_primary_and_secondary_positions_sum_to_mutual_position():
+    """
+    Both binary stars now visibly orbit their common barycenter, not one
+    fixed while the other circles it -- secondary_position always equals
+    primary_position + binary_mutual_position (the pre-existing "secondary
+    relative to primary" vector, unchanged), and since the secondary's
+    mass is sampled as a genuinely comparable 0.1-0.8x the primary's
+    (systemData.py), the primary's own offset is never negligible.
+    """
+    for _ in range(5):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = False
+        system = StarSystem(system_config=cfg)
+        proxy = system.star
+
+        assert proxy.binary_secondary_position_x == pytest.approx(
+            proxy.binary_primary_position_x + proxy.binary_mutual_position_x
+        )
+        assert proxy.binary_secondary_position_y == pytest.approx(
+            proxy.binary_primary_position_y + proxy.binary_mutual_position_y
+        )
+        assert proxy.binary_secondary_position_z == pytest.approx(
+            proxy.binary_primary_position_z + proxy.binary_mutual_position_z
+        )
+
+        mu = proxy._secondary.mass / proxy._effective_mass
+        assert 0.0 < mu < 1.0
+        assert proxy.binary_secondary_mass_fraction == pytest.approx(mu)
+        assert proxy.binary_primary_position_x == pytest.approx(-mu * proxy.binary_mutual_position_x)
+        assert proxy.binary_primary_position_y == pytest.approx(-mu * proxy.binary_mutual_position_y)
+        assert proxy.binary_primary_position_z == pytest.approx(-mu * proxy.binary_mutual_position_z)
+        # The primary itself is never the trivial "sits exactly fixed"
+        # case -- confirms this isn't accidentally passing because the
+        # offset is always zero.
+        assert (proxy.binary_primary_position_x, proxy.binary_primary_position_y,
+                proxy.binary_primary_position_z) != (0.0, 0.0, 0.0)
+
+
+def test_wide_binary_primary_and_secondary_positions_sum_to_mutual_position():
+    """Same relationship as the close-binary case above, for the S-type
+    (`wideBinary.WideBinaryPair`) configuration instead."""
+    for _ in range(5):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = True
+        system = StarSystem(system_config=cfg)
+        pair = system.wide_binary
+
+        assert pair.secondary_position_x_au == pytest.approx(
+            pair.primary_position_x_au + pair.position_x_au
+        )
+        assert pair.secondary_position_y_au == pytest.approx(
+            pair.primary_position_y_au + pair.position_y_au
+        )
+        assert pair.secondary_position_z_au == pytest.approx(
+            pair.primary_position_z_au + pair.position_z_au
+        )
+
+        mu = pair.secondary.mass / (pair.primary.mass + pair.secondary.mass)
+        assert 0.0 < mu < 1.0
+        assert pair.secondary_mass_fraction == pytest.approx(mu)
+        assert pair.primary_position_x_au == pytest.approx(-mu * pair.position_x_au)

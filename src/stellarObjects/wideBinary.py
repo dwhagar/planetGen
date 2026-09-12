@@ -32,6 +32,7 @@ here only as a convenience back-reference (e.g. for rendering), never
 merged or wrapped.
 """
 
+import math
 import random
 
 from . import physical_constants
@@ -78,6 +79,9 @@ class WideBinaryPair:
         "periapsis_au", "apoapsis_au", "inclination_deg",
         "ascending_node_deg", "phase_deg", "min_update_interval_years",
         "position_x_au", "position_y_au", "position_z_au",
+        "primary_position_x_au", "primary_position_y_au", "primary_position_z_au",
+        "secondary_position_x_au", "secondary_position_y_au", "secondary_position_z_au",
+        "secondary_mass_fraction",
     ]
     """
     Orbital-elements state only -- deliberately excludes `primary`/
@@ -86,6 +90,14 @@ class WideBinaryPair:
     them again here would duplicate that data) and `a_crit_au` for either
     star (stored directly on each `Star` instance -- see
     `Star.a_crit_au`'s own docstring -- rather than duplicated here).
+
+    `primary_position_*_au`/`secondary_position_*_au` (schema v18) are each
+    star's own offset from the pair's barycenter -- the same proper
+    two-body treatment `doubleStar.BinaryStarProxy` gets, alongside the
+    pre-existing `position_x/y/z_au` (still the secondary's position
+    relative to the primary, unchanged). `secondary_mass_fraction` is the
+    constant `secondary.mass / (primary.mass + secondary.mass)`, stored so
+    `_db.advance_orbital_phases` never needs to join back to `stars`.
     """
 
     def __init__(self, system_config, primary: Star, secondary: Star):
@@ -150,6 +162,18 @@ class WideBinaryPair:
         self.position_x_au, self.position_y_au, self.position_z_au = orbital_position_au(
             self.separation_au, self.inclination_deg, self.ascending_node_deg, self.phase_deg
         )
+
+        # Each star's own offset from the pair's barycenter (AU) -- see
+        # doubleStar.BinaryStarProxy.__init__'s identical comment for why
+        # both stars get their own offset rather than one sitting fixed.
+        self.secondary_mass_fraction = secondary.mass / total_mass_kg
+        primary_mass_fraction = 1.0 - self.secondary_mass_fraction
+        self.primary_position_x_au = -self.secondary_mass_fraction * self.position_x_au
+        self.primary_position_y_au = -self.secondary_mass_fraction * self.position_y_au
+        self.primary_position_z_au = -self.secondary_mass_fraction * self.position_z_au
+        self.secondary_position_x_au = primary_mass_fraction * self.position_x_au
+        self.secondary_position_y_au = primary_mass_fraction * self.position_y_au
+        self.secondary_position_z_au = primary_mass_fraction * self.position_z_au
 
         # Each star's own critical semi-major axis is evaluated from THAT
         # star's perspective -- `mu` is always the *other* star's mass
@@ -234,11 +258,23 @@ class WideBinaryPair:
             f"{self.speed_kms:,.2f} km/s "
             f"({years_to_time_string(self.period_years)} per orbit)"
         )
+        primary_offset_km = math.sqrt(
+            self.primary_position_x_au ** 2 + self.primary_position_y_au ** 2 + self.primary_position_z_au ** 2
+        ) * physical_constants.AU_TO_KM
+        secondary_offset_km = math.sqrt(
+            self.secondary_position_x_au ** 2 + self.secondary_position_y_au ** 2 + self.secondary_position_z_au ** 2
+        ) * physical_constants.AU_TO_KM
+        wobble_string = (
+            f"{self.primary.name}: {to_scientific_notation(self.system_config, primary_offset_km)} km, "
+            f"{self.secondary.name}: {to_scientific_notation(self.system_config, secondary_offset_km)} km "
+            f"from the barycenter"
+        )
 
         return {
             "separation": separation_string,
             "eccentricity": f"{self.eccentricity:.3f}",
             "mutual_orbit": mutual_orbit_string,
+            "wobble": wobble_string,
             "primary_limit": f"{self.primary.name}'s planetary system is stable out to {self.primary_a_crit_au:.2f} AU due to {self.secondary.name}'s gravity.",
             "secondary_limit": f"{self.secondary.name}'s planetary system is stable out to {self.secondary_a_crit_au:.2f} AU due to {self.primary.name}'s gravity.",
         }
@@ -257,7 +293,8 @@ class WideBinaryPair:
         pair_properties = self.get_table_properties()
         markdown_key_map = {
             "separation": "Stellar Separation", "eccentricity": "Orbital Eccentricity",
-            "mutual_orbit": "Mutual Orbit", "primary_limit": "Primary's Planetary Limit",
+            "mutual_orbit": "Mutual Orbit", "wobble": "Barycenter Offset",
+            "primary_limit": "Primary's Planetary Limit",
             "secondary_limit": "Secondary's Planetary Limit",
         }
         return [properties_to_string(self.system_config, pair_properties, "Wide Binary System Data", markdown_key_map=markdown_key_map)]

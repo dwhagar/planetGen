@@ -29,7 +29,7 @@ from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
                     format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, get_star_evolutionary_profile,
-                    properties_to_string, reseed_rng)
+                    properties_to_string, reseed_rng, to_scientific_notation)
 
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     """
@@ -125,7 +125,7 @@ class Star:
         "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
         "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
-        "a_crit_au",
+        "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -153,6 +153,22 @@ class Star:
     of a wide pair exist -- a `Star` never computes this on its own, since
     it depends on the companion star's mass/separation/eccentricity, none
     of which a lone `Star` instance knows about.
+    """
+
+    reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
+    """
+    float: Class-level defaults (schema v18), same "still readable after
+    `from_dict`'s `object.__new__`+`fields_from_dict` path" reasoning as
+    `a_crit_au` above. This star's own displacement (AU) from its nominal
+    fixed point, caused by the combined gravitational pull of every planet
+    orbiting it directly -- the "wobble" half of a proper two-body
+    treatment, alongside the planets' own unchanged `position_x/y/z` (see
+    `utils.calculate_reflex_offset`'s docstring). Zero for a star with no
+    planets. Set directly by `StarSystem.__init__` once `self.planets`
+    exists -- a `Star` never computes this on its own construction, the
+    same reasoning `a_crit_au` documents above. Applies identically to a
+    `BlackHole`/`NeutronStar` (both subclass `Star`), consistent with
+    `_db.advance_orbital_phases`' class-blind bulk `UPDATE`s.
     """
 
     def to_dict(self):
@@ -795,7 +811,7 @@ class Star:
 
         orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
 
-        return {
+        properties = {
             "type": self.type,
             "radius": radius_string,
             "mass": mass_string,
@@ -805,6 +821,15 @@ class Star:
             "orbit": orbit_string,
             "loc": self.name # Adding the star's name as location
         }
+        # Only shown when this star actually hosts planets (reflex_offset_*
+        # defaults to 0.0 for a planet-less star -- see its own docstring)
+        # -- a star with nothing pulling on it has nothing to report here.
+        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
+            offset_km = math.sqrt(
+                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
+            ) * physical_constants.AU_TO_KM
+            properties["wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own planets"
+        return properties
 
     def to_paragraph_list(self):
         """
@@ -837,6 +862,7 @@ class Star:
             "lum": "Luminosity",
             "hab": "Habitable Zone",
             "orbit": "Galactic Orbit",
+            "wobble": "Planetary Wobble",
             "loc": "Location"
         }
 

@@ -14,6 +14,7 @@ its constituent stars, providing a consistent interface while encapsulating
 the complexity of a multi-star system.
 """
 
+import math
 import random
 
 from .config import SystemConfig
@@ -56,6 +57,9 @@ class BinaryStarProxy(Star):
         "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
         "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
         "binary_mutual_position_x", "binary_mutual_position_y", "binary_mutual_position_z",
+        "binary_primary_position_x", "binary_primary_position_y", "binary_primary_position_z",
+        "binary_secondary_position_x", "binary_secondary_position_y", "binary_secondary_position_z",
+        "binary_secondary_mass_fraction",
         "_binary_separation_au", "_effective_mass", "_effective_luminosity",
     ]
     """
@@ -67,6 +71,16 @@ class BinaryStarProxy(Star):
     included the same way, for its `binary_separation_au` property.
     `primary`/`secondary` are handled separately in `to_dict`/`from_dict`
     (nested full `Star` dicts), not via this list.
+
+    `binary_primary_position_*`/`binary_secondary_position_*` (schema v18)
+    are each star's own offset from the pair's barycenter -- a proper
+    two-body treatment alongside the pre-existing `binary_mutual_position_*`
+    (still the secondary's position relative to the primary, unchanged --
+    see `utils.calculate_reflex_offset`'s docstring for why that vector is
+    never altered). `binary_secondary_mass_fraction` (a plain attribute,
+    not a property) is the constant `secondary_mass / (primary_mass +
+    secondary_mass)`, stored so `_db.advance_orbital_phases`' SQL never
+    needs to join back to `stars` for either mass.
     """
 
     def __init__(self, system_config: SystemConfig, primary_star: Star, secondary_star: Star,
@@ -188,6 +202,24 @@ class BinaryStarProxy(Star):
                 self._binary_separation_au, self.binary_mutual_orbital_inclination_deg,
                 self.binary_mutual_orbital_ascending_node_deg, self.binary_mutual_orbital_phase_deg,
             )
+        # Each star's own offset from the pair's barycenter (AU) -- a proper
+        # two-body treatment, not just "the primary sits fixed and the
+        # secondary orbits it": both stars visibly orbit their common
+        # center, in exact opposite directions along the same
+        # binary_mutual_position_* vector, scaled by the OTHER star's mass
+        # fraction of the total. binary_secondary_mass_fraction is stored
+        # (rather than recomputed each time) so `_db.advance_orbital_phases`'
+        # SQL can rescale the freshly-advanced mutual vector without ever
+        # joining back to `stars` for either mass. secondary_position always
+        # equals primary_position + binary_mutual_position by construction.
+        self.binary_secondary_mass_fraction = self._secondary.mass / self._effective_mass
+        primary_mass_fraction = 1.0 - self.binary_secondary_mass_fraction
+        self.binary_primary_position_x = -self.binary_secondary_mass_fraction * self.binary_mutual_position_x
+        self.binary_primary_position_y = -self.binary_secondary_mass_fraction * self.binary_mutual_position_y
+        self.binary_primary_position_z = -self.binary_secondary_mass_fraction * self.binary_mutual_position_z
+        self.binary_secondary_position_x = primary_mass_fraction * self.binary_mutual_position_x
+        self.binary_secondary_position_y = primary_mass_fraction * self.binary_mutual_position_y
+        self.binary_secondary_position_z = primary_mass_fraction * self.binary_mutual_position_z
         # For heliosphere, we need an effective radius and type for the static method.
         # This is a simplification, as binary heliospheres are complex.
         self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
@@ -317,6 +349,23 @@ class BinaryStarProxy(Star):
             f"({years_to_time_string(self.binary_mutual_orbital_period_years)} per orbit)"
         )
 
+        # Each star's own distance from the pair's shared barycenter --
+        # both visibly orbit it, not just the secondary orbiting a fixed
+        # primary; see the offset fields' own comment in __init__.
+        primary_offset_km = math.sqrt(
+            self.binary_primary_position_x ** 2 + self.binary_primary_position_y ** 2
+            + self.binary_primary_position_z ** 2
+        ) * physical_constants.AU_TO_KM
+        secondary_offset_km = math.sqrt(
+            self.binary_secondary_position_x ** 2 + self.binary_secondary_position_y ** 2
+            + self.binary_secondary_position_z ** 2
+        ) * physical_constants.AU_TO_KM
+        wobble_string = (
+            f"{self._primary.name}: {to_scientific_notation(self.system_config, primary_offset_km)} km, "
+            f"{self._secondary.name}: {to_scientific_notation(self.system_config, secondary_offset_km)} km "
+            f"from the barycenter"
+        )
+
         return {
             "type": self.type,
             "mass": mass_string,
@@ -324,6 +373,7 @@ class BinaryStarProxy(Star):
             "hab": f"Between {hab_lower} and {hab_upper} AU",
             "separation": separation_string,
             "mutual_orbit": mutual_orbit_string,
+            "wobble": wobble_string,
             "orbit": orbit_string,
             "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
         }
@@ -343,7 +393,8 @@ class BinaryStarProxy(Star):
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "lum": "Luminosity",
             "hab": "Habitable Zone", "separation": "Stellar Separation",
-            "mutual_orbit": "Mutual Orbit", "orbit": "Galactic Orbit", "loc": "Location"
+            "mutual_orbit": "Mutual Orbit", "wobble": "Barycenter Offset",
+            "orbit": "Galactic Orbit", "loc": "Location"
         }
         paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
 

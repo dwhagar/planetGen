@@ -47,7 +47,7 @@ from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (calculate_habitable_zone, format_age_string, format_galactic_orbit,
                     format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
-                    properties_to_string, reseed_rng)
+                    properties_to_string, reseed_rng, to_scientific_notation)
 
 
 class CompactRemnant(Star):
@@ -248,7 +248,7 @@ class BlackHole(CompactRemnant):
             program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
         orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
-        return {
+        properties = {
             "type": self.type,
             "mass": mass_string,
             "event_horizon": radius_string,
@@ -257,6 +257,12 @@ class BlackHole(CompactRemnant):
             "orbit": orbit_string,
             "loc": self.name,
         }
+        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
+            offset_km = math.sqrt(
+                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
+            ) * physical_constants.AU_TO_KM
+            properties["wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own planets"
+        return properties
 
     def to_paragraph_list(self):
         """
@@ -271,7 +277,8 @@ class BlackHole(CompactRemnant):
         properties = self.get_table_properties()
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "event_horizon": "Event Horizon Radius",
-            "spin": "Spin Parameter", "disk": "Accretion Disk", "orbit": "Galactic Orbit", "loc": "Location",
+            "spin": "Spin Parameter", "disk": "Accretion Disk", "orbit": "Galactic Orbit",
+            "wobble": "Planetary Wobble", "loc": "Location",
         }
         paragraphs.append(properties_to_string(self.system_config, properties, "Black Hole Data", markdown_key_map=markdown_key_map))
 
@@ -375,7 +382,7 @@ class NeutronStar(CompactRemnant):
             program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
         orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
-        return {
+        properties = {
             "type": self.type,
             "mass": mass_string,
             "radius": radius_string,
@@ -385,6 +392,12 @@ class NeutronStar(CompactRemnant):
             "orbit": orbit_string,
             "loc": self.name,
         }
+        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
+            offset_km = math.sqrt(
+                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
+            ) * physical_constants.AU_TO_KM
+            properties["wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own planets"
+        return properties
 
     def to_paragraph_list(self):
         """
@@ -400,7 +413,8 @@ class NeutronStar(CompactRemnant):
         markdown_key_map = {
             "type": "Type", "mass": "Mass", "radius": "Radius",
             "spin_period": "Spin Period", "magnetic_field": "Magnetic Field",
-            "surface_temp": "Surface Temperature", "orbit": "Galactic Orbit", "loc": "Location",
+            "surface_temp": "Surface Temperature", "orbit": "Galactic Orbit",
+            "wobble": "Planetary Wobble", "loc": "Location",
         }
         paragraphs.append(properties_to_string(self.system_config, properties, "Neutron Star Data", markdown_key_map=markdown_key_map))
 

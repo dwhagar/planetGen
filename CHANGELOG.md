@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.31.0] - 2026-09-12
+
+### Added
+- **Proper two-body (barycentric) trajectories for binary stars, planets,
+  and moons.** Every orbital pair previously modeled only "the lighter
+  body orbits a fixed primary" -- a poor approximation for a binary
+  secondary (sampled at 0.1-0.8x the primary's mass) and for a moon near
+  this generator's own mass cap (up to 1/10 its parent planet's mass,
+  approaching real "double planet" ratios like Pluto/Charon). Existing
+  "relative position" columns (`planets`/`moons.position_x/y/z_km`,
+  `star_systems.binary_mutual_position_x/y/z_km`) are unchanged -- still
+  the true separation a large amount of existing physics (insolation,
+  Hill sphere, tidal locking) depends on. New columns instead add the
+  ORBITED body's own small "reflex offset"/"wobble" away from its
+  nominal fixed point (new shared `utils.calculate_reflex_offset`
+  helper): both binary members now visibly orbit their common barycenter
+  (`star_systems.binary_primary_position_*_km`/
+  `binary_secondary_position_*_km`, plus the constant
+  `binary_secondary_mass_fraction` and, for a 'close' pair, the
+  additional `binary_planetary_wobble_*_km` from its own circumbinary
+  planets), a planet-hosting star gets its own wobble from the combined
+  pull of its planets (`stars.reflex_offset_*_km`), and a moon-hosting
+  planet gets its own wobble from its moons
+  (`planets.reflex_offset_*_km`). `_db.advance_orbital_phases` recomputes
+  all of these fresh on every run (a cheap derived value, no independent
+  update-guard interval of its own), introducing a new correlated-
+  subquery `UPDATE` technique to sum a parent's pull from multiple
+  children in one set-based statement. Persisted via schema v18 (new
+  columns on the three already-existing `star_systems`/`stars`/`planets`
+  tables) and a `_migrate_v17_to_v18` migration step that backfills real
+  values for every pre-existing row (unlike v17's migration, every value
+  here is fully derivable from data already stored).
+
 ## [5.30.0] - 2026-09-12
 
 ### Added

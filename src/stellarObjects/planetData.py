@@ -180,6 +180,7 @@ class Planet:
         "position_x", "position_y", "position_z", "orbital_speed_kms",
         "min_update_interval_years",
         "rotation_period_hours",
+        "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -189,6 +190,16 @@ class Planet:
     `Planet` dicts, handled separately in `to_dict`/`from_dict`). Covers
     moons too -- a moon is just a `Planet` with `is_moon=True`, and nesting
     is exactly 2 levels (a moon's own `moons` is always empty).
+    """
+
+    reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
+    """
+    float: Class-level defaults (schema v18) so a `Planet` reconstructed
+    via `from_dict`'s `object.__new__`+`fields_from_dict` path still reads
+    back `0.0` for a system saved before this field existed, rather than
+    raising `AttributeError` -- same reasoning as `Star.a_crit_au`'s own
+    class-level default. See this class's `__init__` for the full
+    explanation of what this field means.
     """
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
@@ -237,6 +248,13 @@ class Planet:
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
         self.moons = []
+        # This planet's own reflex-offset "wobble" (schema v18) from its
+        # moons' combined pull -- 0.0 by default (no moons yet), recomputed
+        # by `planetPhysics.generate_moons` once `self.moons` is populated
+        # below. Always 0.0 for a moon itself (moons never generate their
+        # own moons). See `Star.reflex_offset_x`'s docstring for the same
+        # concept on the star side.
+        self.reflex_offset_x = self.reflex_offset_y = self.reflex_offset_z = 0.0
         self.zone = None
         self.description = None
         self.atm_molar_density = None
@@ -424,7 +442,7 @@ class Planet:
 
         radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config
 
-        return {
+        properties = {
             "class": self.planet_class,
             "distance": distance_text,
             "period": years_to_time_string(self.period),
@@ -432,6 +450,15 @@ class Planet:
             "radius": radius_string,
             "gravity": f"{round(self.gravity, 3)} g",
         }
+        # Only shown for a moon-having planet (reflex_offset_* defaults to
+        # 0.0 for a moonless planet or a moon itself -- see its own
+        # docstring) -- nothing to report for a body nothing pulls on.
+        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
+            offset_km = math.sqrt(
+                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
+            ) * physical_constants.AU_TO_KM
+            properties["moon_wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own moons"
+        return properties
 
     def _gas_giant_pressure_depth_text(self):
         """

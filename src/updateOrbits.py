@@ -60,6 +60,23 @@ identical way a lone star's is: unbound from any specific STAR doesn't
 mean unbound from the galaxy itself, so these still orbit the galactic
 center on the same timescale. See `schema.sql`'s "v17" header note.
 
+Schema v18 layers a proper two-body (barycentric) "reflex offset"/
+"wobble" on top of the above, for every relationship where the orbited
+body isn't overwhelmingly more massive than what orbits it: a
+planet-hosting star's own small displacement from its planets' combined
+pull, a moon-hosting planet's from its moons', and (for a binary pair)
+each star's own offset from the pair's shared barycenter rather than one
+star sitting fixed while the other orbits it. None of the position
+columns above change meaning -- these are new, additive columns
+(`reflex_offset_x/y/z_km` on `stars`/`planets`,
+`binary_primary/secondary_position_*_km` and
+`binary_planetary_wobble_*_km` on `star_systems`), recomputed fresh on
+every run from whatever the already-advanced children currently look
+like, with no independent update-guard interval of their own. See
+`schema.sql`'s "v18" header note and
+`stellarObjects.utils.calculate_reflex_offset`'s docstring for the
+formula.
+
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
@@ -93,7 +110,10 @@ TABLE_LABELS = {
     "planets": "planet(s)",
     "moons": "moon(s)",
     "stars": "star(s)",
+    "star_reflex_offsets": "planet-hosting star wobble(s)",
+    "planet_reflex_offsets": "moon-hosting planet wobble(s)",
     "binary_mutual_orbits": "binary mutual orbit(s)",
+    "binary_planetary_wobbles": "circumbinary planetary wobble(s)",
     "binary_galactic_orbits": "binary galactic orbit(s)",
     "black_holes": "standalone black hole(s)",
     "neutron_stars": "standalone neutron star(s)",

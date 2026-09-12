@@ -283,6 +283,33 @@ via the same shared `asteroidData.generate_asteroid_composition`/
 `format_composition_summary` helpers) but standalone, drifting in open
 space rather than orbiting a star.
 
+v18 added a proper two-body (barycentric) trajectory treatment for every
+orbital pair where the orbited body isn't overwhelmingly more massive than
+what orbits it: binary stars (a secondary is sampled at 0.1-0.8x the
+primary's mass), star↔planet, and planet↔moon (a moon can reach 1/10 its
+parent planet's mass). Every existing "relative position" column
+(`planets`/`moons.position_x/y/z_km`,
+`star_systems.binary_mutual_position_x/y/z_km`) is unchanged — still the
+true separation a large amount of existing physics (insolation, Hill
+sphere, tidal locking) depends on. New columns instead add the ORBITED
+body's own small "reflex offset"/"wobble" away from its nominal fixed
+point (see `utils.calculate_reflex_offset`): `stars`/`planets` each gain
+`reflex_offset_x/y/z_km` (a star's from the planets orbiting it directly,
+a planet's from its own moons — NULL/0 with none); `star_systems` gains
+`binary_primary_position_x/y/z_km`/`binary_secondary_position_x/y/z_km`
+(each binary member's own offset from the pair's barycenter —
+`secondary_position = primary_position + binary_mutual_position` always
+holds, but both are stored explicitly), the constant
+`binary_secondary_mass_fraction`, and `binary_planetary_wobble_x/y/z_km`
+(a 'close' pair's combined pull from its own circumbinary planets, which
+orbit the merged proxy rather than either individual star — modeled as
+one shared wobble rather than split between primary/secondary, since that
+would need a real 3+-body solve). These are new columns on already-
+existing tables (`star_systems`, `stars`, `planets`), so
+`_migrate_v17_to_v18` needs real `ALTER TABLE` steps — and, unlike v17's
+own migration, every value is fully derivable from data already on
+existing rows, so it backfills real values rather than leaving them NULL.
+
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
 `_migrate_vN_to_vN+1` function per version) was removed during the MySQL
@@ -303,16 +330,18 @@ v16's exotic-phenomenon tables (needing no `ALTER TABLE` at all — six
 brand-new tables are already created by `_ensure_schema`'s
 `CREATE TABLE IF NOT EXISTS` regardless of the database's recorded
 version; this step exists purely to keep the `schema_migrations`
-bookkeeping counter itself accurate), and `_migrate_v16_to_v17` for v17's
+bookkeeping counter itself accurate), `_migrate_v16_to_v17` for v17's
 galactic-orbital-motion columns (real `ALTER TABLE` steps this time, since
-v16's tables already existed with a fixed shape). `migrate_database` applies
+v16's tables already existed with a fixed shape), and `_migrate_v17_to_v18`
+for v18's binary/star/planet trajectory columns (also real `ALTER TABLE`
+steps, on `star_systems`/`stars`/`planets`). `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v17), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v18), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -610,7 +639,11 @@ One row per generated system (single-star or binary).
 | `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`utils.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
 | `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `utils.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
 | `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
-| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. |
+| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. **Unchanged in meaning by v18** — still the true separation, not a barycenter-reduced value. |
+| `binary_primary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. The primary star's own offset from the pair's barycenter — `-binary_secondary_mass_fraction * binary_mutual_position_*_km`. Reused unchanged for both binary configurations, like `binary_mutual_position_*_km` above. |
+| `binary_secondary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. The secondary star's own offset from the barycenter — always equal to `binary_primary_position_* + binary_mutual_position_*`, but stored explicitly rather than derived on read (same convention `binary_mutual_position_*_km` itself already set). |
+| `binary_secondary_mass_fraction` | DOUBLE | nullable | Added in v18. `secondary_mass / (primary_mass + secondary_mass)`, constant since masses don't change — stored so `_db.advance_orbital_phases` never needs to join back to `stars` for either mass. |
+| `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -681,6 +714,7 @@ anything.
 | `galactic_orbital_phase_deg` | DOUBLE | NOT NULL | Added in v13. This star's current angular position around its galactic orbit — the same role `planets.orbital_phase_deg` plays, advanced by `_db.advance_orbital_phases`. Both stars of a binary pair always carry the identical value (see "Schema history" above for why — `StarSystem.__init__` rolls it once and threads it to primary/secondary/proxy alike). |
 | `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`utils.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
 | `wide_binary_a_crit_km` | DOUBLE | nullable | Added in v15. This star's own Holman & Wiegert (1999) critical semi-major axis (`utils.holman_wiegert_critical_semimajor_axis`) — the maximum orbit distance that stays long-term stable given its companion's perturbation. NULL for a single star or either constituent of a `'close'` pair; populated for both stars of a `'wide'` pair. |
+| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. This star's own displacement from its nominal fixed point, from the combined pull of every planet orbiting it directly (`planets.star_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no planets. Class-blind: applies identically to an anchored `black_holes`/`neutron_stars` row. |
 
 ### `planets`
 
@@ -720,6 +754,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`utils.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
 | `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`utils.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
+| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
 
 ### `planet_evolutionary_paragraphs`
 

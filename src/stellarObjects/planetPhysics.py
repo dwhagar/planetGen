@@ -22,9 +22,9 @@ import re
 import secrets
 
 from . import physical_constants, program_constants
-from .utils import (calculate_object_mass, calculate_hill_sphere, circular_orbital_speed_kms,
-                    minimum_update_interval_years, orbital_position_au, reseed_rng,
-                    sample_bounded_bell)
+from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
+                    circular_orbital_speed_kms, minimum_update_interval_years,
+                    orbital_position_au, reseed_rng, sample_bounded_bell)
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -917,3 +917,14 @@ def generate_moons(planet, moon_count=None):
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
         planet.moons.append(new_moon)
         total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)
+
+    if planet.moons:
+        # This planet's own reflex-offset "wobble" (schema v18) from the
+        # combined pull of its own moons -- a proper two-body treatment
+        # alongside each moon's own unchanged position_x/y/z (relative to
+        # this planet); see Planet.reflex_offset_x's own docstring and
+        # utils.calculate_reflex_offset. Left at its 0.0 default when this
+        # planet ends up with no moons (every early-return path above).
+        planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
+            planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
+        )
