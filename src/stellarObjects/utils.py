@@ -780,6 +780,62 @@ def calculate_galactic_orbit(distance_ly):
     return orbital_speed_kms, orbital_period_gy
 
 
+def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbital_phase_deg=None):
+    """
+    Generates the four `galactic_orbital_*` fields every gravitationally-
+    bound-to-the-galaxy body this generator tracks needs: a `Star`
+    (`Star.__init__`), a compact remnant (`compactRemnant.CompactRemnant.
+    _finish_init`), and every standalone exotic phenomenon (`nebulaData.
+    Nebula`, `supernovaRemnantData.SupernovaRemnant`, `roguePlanetData.
+    RoguePlanet`/`InterstellarComet`, `asteroidFieldData.AsteroidField`) --
+    a rogue planet or a comet passing through is unbound from any specific
+    star, not from the galaxy itself, so it still orbits the galactic
+    center on the same timescale a lone star does, via the exact same
+    mass-independent `calculate_galactic_orbit` formula. Extracted here so
+    every caller computes this identically instead of re-deriving it.
+
+    Args:
+        galactic_center_dist_ly (float, optional): This body's actual
+            distance from the galactic center, in light-years -- see
+            `Star.calculate_system_perimeter`'s docstring for the same
+            parameter/fallback convention. `None` (the default) uses the
+            fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+        galactic_orbital_phase_deg (float, optional): This body's current
+            angular position around its galactic orbit, in degrees -- see
+            `Star.__init__`'s docstring for the same parameter. `None`
+            (the default) rolls a fresh random value in `[0, 360)`.
+
+    Returns:
+        tuple: `(galactic_orbital_speed_kms, galactic_orbital_period_gy,
+              galactic_orbital_phase_deg, galactic_min_update_interval_years)`.
+    """
+    if galactic_center_dist_ly is None:
+        galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+    speed_kms, period_gy = calculate_galactic_orbit(galactic_center_dist_ly)
+    phase_deg = galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else random.uniform(0, 360)
+    min_update_interval_years = minimum_update_interval_years(period_gy * 1e9)
+    return speed_kms, period_gy, phase_deg, min_update_interval_years
+
+
+def format_galactic_orbit(speed_kms, period_gy):
+    """
+    Formats a `(galactic_orbital_speed_kms, galactic_orbital_period_gy)`
+    pair as the display string every "Galactic Orbit" table row uses (e.g.
+    `Star.get_table_properties`, `doubleStar.BinaryStarProxy.
+    get_table_properties`, `compactRemnant.BlackHole`/`NeutronStar`, and
+    every standalone exotic phenomenon) -- extracted so all of them render
+    it identically instead of re-deriving the same f-string.
+
+    Args:
+        speed_kms (float): Circular orbital speed, km/s.
+        period_gy (float): Orbital period, billions of years.
+
+    Returns:
+        str: e.g. `"205.7 km/s (236.26 Million Years per orbit)"`.
+    """
+    return f"{speed_kms:,.1f} km/s ({format_age_string(period_gy)} per orbit)"
+
+
 def circular_orbital_speed_kms(distance_au, period_years):
     """
     Tangential speed of a circular orbit, given its radius and period:

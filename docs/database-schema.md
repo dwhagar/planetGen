@@ -242,6 +242,47 @@ constituent of a `'wide'` pair. `asteroid_belts` gains `star_id`, the same
 (see that column's own row below) — a `'wide'` pair's two stars can now
 each have their own asteroid belts, not just their own planets.
 
+v16 added six tables for `phenomenonGen.py`'s separate, rarer exotic-
+phenomenon generation mode (`stellarObjects/compactRemnant.py`/
+`nebulaData.py`/`supernovaRemnantData.py`/`roguePlanetData.py`) — never
+produced by `systemGen.py`/`sectorGen.py`'s normal generation odds, so no
+pre-existing table's shape changes. `black_holes`/`neutron_stars` are
+satellite tables extending a `stars` row (nullable `star_id`) when a
+compact remnant anchors a full `StarSystem` (`phenomenonGen.py
+--anchor-system` — the owning `stars.yerkes_class` is then the literal
+marker `'BH'`/`'NS'` rather than a real Yerkes class); `star_id` is NULL
+for a remnant generated standalone. `nebulae`/`supernova_remnants`/
+`rogue_planets`/`interstellar_comets` are always standalone, with a
+nullable `sector_id` reserved for a future sector-context encounter
+(unused by `phenomenonGen.py` today). `supernova_remnants` references at
+most one of `black_holes`/`neutron_stars` (`compact_remnant_kind`
+discriminator) for a core-collapse progenitor whose collapsed core is
+still detectable — always both NULL for a Type Ia progenitor, which
+leaves nothing behind. `interstellar_comets` has its own
+`interstellar_comet_composition` child table, mirroring
+`asteroid_belt_composition`'s per-component breakdown minus a
+concentration level.
+
+v17 added galactic-orbital motion for every standalone exotic phenomenon
+— a black hole/neutron star with no owning system, a nebula, a supernova
+remnant, a rogue planet, an interstellar comet, or a standalone asteroid
+field is still gravitationally part of the galaxy despite being bound to
+no star, so each now carries the same `galactic_orbital_speed_kms`/
+`_period_gy`/`_phase_deg`/`_min_update_interval_years` quartet a lone star
+has (new shared `utils.generate_galactic_orbit_fields`/
+`format_galactic_orbit` helpers). `black_holes`/`neutron_stars` gain these
+four columns nullable (populated only when `star_id IS NULL` — an
+anchored remnant's motion already lives on its own `stars` row);
+`nebulae`/`supernova_remnants`/`rogue_planets`/`interstellar_comets` gain
+them `NOT NULL` (always standalone, always populated). Also added a
+seventh phenomenon type, standalone asteroid fields (new `asteroid_fields`
+table plus child `asteroid_field_composition`, mirroring
+`asteroid_belts`/`asteroid_belt_composition`'s shape) — physically the
+same object as `asteroid_belts` (density + mineral composition, generated
+via the same shared `asteroidData.generate_asteroid_composition`/
+`format_composition_summary` helpers) but standalone, drifting in open
+space rather than orbiting a star.
+
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
 `_migrate_vN_to_vN+1` function per version) was removed during the MySQL
@@ -256,15 +297,22 @@ the same pattern for the v10 galactic-orbit columns, `_migrate_v10_to_v11`
 for the v11 planet/moon position columns, `_migrate_v11_to_v12` for
 the v12 floating-point update-guard column, `_migrate_v12_to_v13` for the
 v13 star-motion/binary-mutual-orbit columns, `_migrate_v13_to_v14` for
-the v14 binary-mutual-orbit-position columns, and `_migrate_v14_to_v15`
-for the v15 S-type/wide-binary columns. `migrate_database` applies
+the v14 binary-mutual-orbit-position columns, `_migrate_v14_to_v15`
+for the v15 S-type/wide-binary columns, `_migrate_v15_to_v16` for
+v16's exotic-phenomenon tables (needing no `ALTER TABLE` at all — six
+brand-new tables are already created by `_ensure_schema`'s
+`CREATE TABLE IF NOT EXISTS` regardless of the database's recorded
+version; this step exists purely to keep the `schema_migrations`
+bookkeeping counter itself accurate), and `_migrate_v16_to_v17` for v17's
+galactic-orbital-motion columns (real `ALTER TABLE` steps this time, since
+v16's tables already existed with a fixed shape). `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v15), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v17), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -757,6 +805,161 @@ Structured per-component detail behind `composition_summary` above.
 | `component` | TEXT | NOT NULL | e.g. `"iron"`. |
 | `concentration` | TEXT | NOT NULL, CHECK IN ('high','moderate','small','trace') | |
 
+### `black_holes` / `neutron_stars`
+
+Added in v16, for `phenomenonGen.py`'s separate, rarer exotic-phenomenon
+generation mode (`stellarObjects/compactRemnant.py`). Satellite tables
+extending a `stars` row (the same "extra detail alongside an existing row"
+shape `asteroid_belt_composition` has to `asteroid_belts`) when a compact
+remnant anchors a full `StarSystem` (`phenomenonGen.py --anchor-system`)
+— the owning `stars.yerkes_class` is then the literal marker `'BH'`/`'NS'`
+rather than a real Yerkes class. `star_id` is NULL for a remnant generated
+standalone (no owning `StarSystem` at all).
+
+**`black_holes`**
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE CASCADE`, nullable | NULL for a standalone black hole. |
+| `name` | TEXT | NOT NULL | |
+| `mass_solar` | DOUBLE | NOT NULL | |
+| `event_horizon_radius_km` | DOUBLE | NOT NULL | Schwarzschild radius, `2GM/c^2` — also `BlackHole.radius`. |
+| `spin` | DOUBLE | NOT NULL | Dimensionless spin parameter a* in [0, 1). |
+| `has_accretion_disk` | BOOLEAN | NOT NULL | |
+| `temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | Both 0 unless `has_accretion_disk`. |
+| `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. NULL when `star_id` is set (an anchored remnant's motion lives on its own `stars` row instead); populated only for a standalone black hole. See `stars`' identical columns below. |
+
+**`neutron_stars`**
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE CASCADE`, nullable | NULL for a standalone neutron star. |
+| `name` | TEXT | NOT NULL | |
+| `mass_solar`, `radius_km` | DOUBLE | NOT NULL | |
+| `spin_period_ms`, `magnetic_field_gauss` | DOUBLE | NOT NULL | |
+| `pulsar_type` | TEXT | NOT NULL, CHECK IN ('young','millisecond','non-pulsing') | |
+| `surface_temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | `luminosity_w` is thermal blackbody emission (Stefan-Boltzmann), always nonzero. |
+| `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. Same nullable-when-anchored convention as `black_holes` above. |
+
+### `nebulae`
+
+Added in v16. Always standalone (nothing in this generator places a
+nebula within a `StarSystem`); `sector_id` is reserved for a future
+sector-context encounter, unused (always NULL) by `phenomenonGen.py` today.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `name` | TEXT | NOT NULL | |
+| `nebula_type` | TEXT | NOT NULL, CHECK IN ('emission','reflection','planetary','dark') | |
+| `radius_ly` | DOUBLE | NOT NULL | |
+| `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
+
+### `supernova_remnants`
+
+Added in v16. Always standalone. At most one of
+`compact_remnant_black_hole_id`/`compact_remnant_neutron_star_id` is ever
+set (see `compact_remnant_kind`), and only for a core-collapse progenitor
+whose collapsed core is still detectable — never for a Type Ia progenitor,
+which leaves nothing behind (thermonuclear disruption of the progenitor
+white dwarf).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `name` | TEXT | NOT NULL | |
+| `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | |
+| `age_years` | DOUBLE | NOT NULL | |
+| `radius_ly` | DOUBLE | NOT NULL | Derived from `age_years` via the Sedov-Taylor blast-wave relation (`radius ∝ age^(2/5)`). |
+| `progenitor_type` | TEXT | NOT NULL, CHECK IN ('Type Ia','core-collapse') | |
+| `compact_remnant_kind` | TEXT | nullable, CHECK IN ('black_hole','neutron_star') | NULL when no compact remnant is embedded. |
+| `compact_remnant_black_hole_id` | INTEGER | FK -> `black_holes.id`, `ON DELETE SET NULL`, nullable | |
+| `compact_remnant_neutron_star_id` | INTEGER | FK -> `neutron_stars.id`, `ON DELETE SET NULL`, nullable | |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a supernova remnant is always standalone). |
+
+### `rogue_planets`
+
+Added in v16. Always standalone — a rogue planet is by definition unbound
+from any star.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `name` | TEXT | NOT NULL | |
+| `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
+| `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
+| `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
+| `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). |
+
+### `interstellar_comets`
+
+Added in v16. Always standalone — an interstellar comet is by definition
+unbound from any star.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `name` | TEXT | NOT NULL | |
+| `nucleus_diameter_km`, `velocity_kms` | DOUBLE | NOT NULL | `velocity_kms` is hyperbolic excess speed relative to any star it passes — a separate, non-advancing descriptive stat from the `galactic_orbital_*` columns below (its own bulk galactic motion). |
+| `is_active` | BOOLEAN | NOT NULL | Whether it currently shows a coma/tail. |
+| `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary`. |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (an interstellar comet is always standalone). |
+
+### `interstellar_comet_composition`
+
+Added in v16. Structured per-component detail behind `composition_summary`
+above, mirroring `asteroid_belt_composition` minus a concentration level
+(`InterstellarComet`'s own composition list carries no such gradient).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `comet_id` | INTEGER | FK -> `interstellar_comets.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `position` | INTEGER | NOT NULL | List order. |
+| `component` | TEXT | NOT NULL | e.g. `"water ice"`. |
+
+### `asteroid_fields`
+
+Added in v17, the seventh exotic phenomenon. Always standalone — a field
+drifting in open space, as opposed to `asteroid_belts`, which always
+orbits a star. `sector_id` is reserved for a future sector-context
+encounter, unused (always NULL) by `phenomenonGen.py` today.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `name` | TEXT | NOT NULL | |
+| `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | Same three levels `asteroid_belts.density` uses. |
+| `radius_ly` | DOUBLE | NOT NULL | |
+| `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |
+| `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Always populated (an asteroid field is always standalone). |
+
+### `asteroid_field_composition`
+
+Added in v17. Structured per-component detail behind `composition_summary`
+above, mirroring `asteroid_belt_composition` exactly (same per-component/
+concentration shape — both are generated via the same shared
+`asteroidData.generate_asteroid_composition`).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `field_id` | INTEGER | FK -> `asteroid_fields.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `position` | INTEGER | NOT NULL | List order. |
+| `component` | TEXT | NOT NULL | e.g. `"iron"`. |
+| `concentration` | TEXT | NOT NULL, CHECK IN ('high','moderate','small','trace') | |
+
 ### `sector_objects` (view, not a table)
 
 `UNION ALL` across `stars`, `planets`, `moons`, and `asteroid_belts` (each
@@ -801,6 +1004,13 @@ moons.star_id   ──────────> stars.id   (nullable; same conve
 asteroid_belts.star_id ───> stars.id   (nullable; same convention as planets.star_id, added in v15)
 moons.star_system_id ─────> star_systems.id   (redundant with moons.planet_id's own owner)
 ```
+
+`black_holes`/`neutron_stars` (v16) also stand apart from the tree above
+when generated standalone (`star_id` NULL) — only when `star_id` is set do
+they hang off a `stars` row the same way `asteroid_belt_composition` hangs
+off `asteroid_belts`. `nebulae`/`supernova_remnants`/`rogue_planets`/
+`interstellar_comets`/`asteroid_fields` (v16/v17) stand apart entirely —
+always standalone, with only a reserved, currently-unused `sector_id` FK.
 
 `galaxy_shape`/`galaxy_shell_band` (v8) stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the

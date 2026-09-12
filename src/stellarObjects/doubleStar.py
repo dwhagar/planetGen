@@ -23,9 +23,10 @@ from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
-                    format_relative_to_sol, minimum_update_interval_years,
-                    orbital_position_au, properties_to_string,
-                    to_scientific_notation, years_to_time_string)
+                    format_galactic_orbit, format_relative_to_sol,
+                    minimum_update_interval_years, orbital_position_au,
+                    properties_to_string, to_scientific_notation,
+                    years_to_time_string)
 
 class BinaryStarProxy(Star):
     """
@@ -310,10 +311,7 @@ class BinaryStarProxy(Star):
         separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
         separation_string = f"{separation_km_scientific} km ({self.binary_separation_au:.2f} AU)"
 
-        orbit_string = (
-            f"{self.galactic_orbital_speed_kms:,.1f} km/s "
-            f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
-        )
+        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
         mutual_orbit_string = (
             f"{self.binary_mutual_orbital_speed_kms:,.2f} km/s "
             f"({years_to_time_string(self.binary_mutual_orbital_period_years)} per orbit)"

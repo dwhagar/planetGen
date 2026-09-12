@@ -7,6 +7,14 @@ Asteroid Belt Generation
 This module contains the `AsteroidBelt` class, which provides a representation
 for asteroid belts within a star system. It also includes utility functions
 related to planet mass ranges, which are used by both planets and asteroid belts.
+
+`generate_asteroid_composition`/`format_composition_summary` are shared,
+module-level extractions of `AsteroidBelt`'s own composition-generation/
+formatting logic, reused as-is by `asteroidFieldData.AsteroidField` -- a
+standalone asteroid field encountered in open space is physically the same
+thing (density + mineral composition), just without a host star/orbit --
+so that field-specific class delegates to these rather than duplicating
+this module's logic.
 """
 
 import random
@@ -15,6 +23,71 @@ from .config import SystemConfig
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import reseed_rng
+
+
+def generate_asteroid_composition():
+    """
+    Generates a list of common compounds for an asteroid belt/field by
+    sampling a random, unique subset of `program_constants.ASTEROID_COMPONENTS`
+    (up to 4) and assigning each an ordered concentration level, from "high"
+    down to "trace".
+
+    Returns:
+        list: A list of (component, concentration) tuples, e.g.
+              [("iron", "high"), ("nickel", "moderate")].
+    """
+    all_concentrations = ["high", "moderate", "small", "trace"]
+
+    # Determine how many components to select (up to 4)
+    num_components_to_select = min(len(all_concentrations), len(program_constants.ASTEROID_COMPONENTS))
+
+    # Select unique components
+    selected_components = random.sample(program_constants.ASTEROID_COMPONENTS, k=num_components_to_select)
+
+    # Shuffle selected components to randomize which concentration they get
+    random.shuffle(selected_components)
+
+    # Take only the necessary number of concentrations
+    concentrations_for_use = all_concentrations[:num_components_to_select]
+
+    composition_data = []
+    for i in range(num_components_to_select):
+        component = selected_components[i]
+        concentration = concentrations_for_use[i]
+        composition_data.append((component, concentration))
+
+    return composition_data
+
+
+def format_composition_summary(composition):
+    """
+    Builds the human-readable composition summary sentence fragment (e.g.
+    "high concentrations of iron, moderate concentrations of nickel, and
+    trace amounts of platinum") for a (component, concentration) list in
+    the shape `generate_asteroid_composition` produces.
+
+    Args:
+        composition (list): A list of (component, concentration) tuples.
+
+    Returns:
+        str: The composition summary phrase, or "various unknown
+            materials" if `composition` is empty.
+    """
+    composition_phrases = []
+    for component, concentration in composition:
+        if concentration == "trace":
+            composition_phrases.append(f"trace amounts of {component}")
+        else:
+            composition_phrases.append(f"{concentration} concentrations of {component}")
+
+    if not composition_phrases:
+        return "various unknown materials"  # Fallback if no components are selected
+    if len(composition_phrases) == 1:
+        return composition_phrases[0]
+    if len(composition_phrases) == 2:
+        return f"{composition_phrases[0]} and {composition_phrases[1]}"
+    return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
+
 
 class AsteroidBelt:
     """
@@ -63,40 +136,7 @@ class AsteroidBelt:
         self.upper_limit = upper_limit
         self.body_type = 'a'
         self.density = random.choice(["dense", "sparse", "typical"])
-        self.composition = self._generate_composition()
-
-    def _generate_composition(self):
-        """
-        Generates a list of common compounds for the asteroid belt by sampling
-        a random, unique subset of `program_constants.ASTEROID_COMPONENTS` (up to 4)
-        and assigning each an ordered concentration level, from "high" down
-        to "trace".
-
-        Returns:
-            list: A list of (component, concentration) tuples, e.g.
-                  [("iron", "high"), ("nickel", "moderate")].
-        """
-        all_concentrations = ["high", "moderate", "small", "trace"]
-        
-        # Determine how many components to select (up to 4)
-        num_components_to_select = min(len(all_concentrations), len(program_constants.ASTEROID_COMPONENTS))
-        
-        # Select unique components
-        selected_components = random.sample(program_constants.ASTEROID_COMPONENTS, k=num_components_to_select)
-        
-        # Shuffle selected components to randomize which concentration they get
-        random.shuffle(selected_components)
-        
-        # Take only the necessary number of concentrations
-        concentrations_for_use = all_concentrations[:num_components_to_select]
-        
-        composition_data = []
-        for i in range(num_components_to_select):
-            component = selected_components[i]
-            concentration = concentrations_for_use[i]
-            composition_data.append((component, concentration))
-
-        return composition_data
+        self.composition = generate_asteroid_composition()
 
     def to_dict(self):
         """
@@ -147,20 +187,7 @@ class AsteroidBelt:
             str: The composition summary phrase, or
                 "various unknown materials" if no components were selected.
         """
-        composition_phrases = []
-        for component, concentration in self.composition:
-            if concentration == "trace":
-                composition_phrases.append(f"trace amounts of {component}")
-            else:
-                composition_phrases.append(f"{concentration} concentrations of {component}")
-
-        if not composition_phrases:
-            return "various unknown materials" # Fallback if no components are selected
-        if len(composition_phrases) == 1:
-            return composition_phrases[0]
-        if len(composition_phrases) == 2:
-            return f"{composition_phrases[0]} and {composition_phrases[1]}"
-        return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
+        return format_composition_summary(self.composition)
 
     def to_paragraph_list(self):
         """

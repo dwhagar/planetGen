@@ -21,6 +21,7 @@ EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
 EARTH_GRAVITY = 9.807  # Standard Earth gravity in m/s^2
 AU_TO_KM = 1.496e8  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
+SPEED_OF_LIGHT_M_S = 2.998e8  # Speed of light in a vacuum, m/s -- used for Schwarzschild radius (compactRemnant.BlackHole)
 R = 8.314  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.381e-23  # Boltzmann constant in J/K
 STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # Stefan-Boltzmann constant in W/m²/K⁴
@@ -31,6 +32,8 @@ SOLAR_LUMINOSITY = 3.82e26  # Solar luminosity in Watts
 MILKY_WAY_MASS = 1.15e12 * SOLAR_MASS_TO_KG  # Mass of the Milky Way in kg
 GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
 EARTH_MASS_TO_KG = 5.972e24  # Earth mass to kilograms conversion factor
+JUPITER_MASS_TO_KG = 1.898e27  # Jupiter mass to kilograms conversion factor
+JUPITER_RADIUS_KM = 71492  # Jupiter's mean equatorial radius in kilometers
 
 # Minimum Mass Solar Nebula (MMSN, Hayashi 1981) *solid* surface density at
 # 1 AU, and its power-law falloff exponent: Sigma_s(a) = SOL_GCM2 *

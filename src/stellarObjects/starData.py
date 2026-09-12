@@ -26,9 +26,9 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_age_string, calculate_galactic_orbit,
-                    calculate_habitable_zone, calculate_hill_sphere, format_length_km,
-                    format_relative_to_sol, generate_phoneme_salad_name,
-                    get_star_evolutionary_profile, minimum_update_interval_years,
+                    calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
+                    format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
+                    generate_phoneme_salad_name, get_star_evolutionary_profile,
                     properties_to_string, reseed_rng)
 
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
@@ -757,12 +757,9 @@ class Star:
             self.habitable_zone = calculate_habitable_zone(self.luminosity)
             self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
             self.heliosphere_radius = self.calculate_heliosphere()
-            self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
-                self.calculate_galactic_orbit(self.galactic_center_dist_ly)
-            phase = kwargs.get('galactic_orbital_phase_deg')
-            self.galactic_orbital_phase_deg = phase if phase is not None else random.uniform(0, 360)
-            self.galactic_min_update_interval_years = \
-                minimum_update_interval_years(self.galactic_orbital_period_gy * 1e9)
+            (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+             self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+                generate_galactic_orbit_fields(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
 
     def get_table_properties(self):
         """
@@ -796,10 +793,7 @@ class Star:
         radius_string = format_length_km(self.system_config, self.radius, program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
                                          program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)
 
-        orbit_string = (
-            f"{self.galactic_orbital_speed_kms:,.1f} km/s "
-            f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
-        )
+        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
 
         return {
             "type": self.type,
