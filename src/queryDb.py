@@ -276,6 +276,132 @@ def count_systems(conn, star_type_prefix=None, sector_id=None):
     return conn.execute(query, params).fetchone()["n"]
 
 
+def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
+    """
+    Builds the shared `WHERE`/params fragment `list_planets` and
+    `list_moons` both need -- factored out the same way
+    `_systems_filter_clause` is, so the two stay consistent with each
+    other rather than each hand-rolling the same class/size/sector/system
+    branching.
+
+    Args:
+        table_alias (str): The `planets`/`moons` table's own alias in the
+            calling query (`"p"` or `"m"`) -- prefixes `planet_class`/
+            `radius_km` in the clauses this returns.
+        planet_class (str, optional): Exact `planet_class` match (e.g.
+            `"M"`). `None` means no class filter.
+        min_radius_km (float, optional): Lower bound, inclusive.
+        max_radius_km (float, optional): Upper bound, inclusive.
+        sector_id (int, optional): Restricts to bodies whose system is in
+            this sector.
+        system_id (int, optional): Restricts to bodies in this one system.
+
+    Returns:
+        tuple: `(where_sql, params)`.
+    """
+    clauses = []
+    params = []
+    if planet_class is not None:
+        clauses.append(f"{table_alias}.planet_class = ?")
+        params.append(planet_class)
+    size_range = None
+    if min_radius_km is not None or max_radius_km is not None:
+        size_range = (min_radius_km, max_radius_km)
+    _append_size_clause(clauses, params, f"{table_alias}.radius_km", size_range)
+    if system_id is not None:
+        clauses.append(f"{table_alias}.star_system_id = ?")
+        params.append(system_id)
+    if sector_id is not None:
+        clauses.append("ss.sector_id = ?")
+        params.append(sector_id)
+    where_sql = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return where_sql, params
+
+
+def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
+                  sector_id=None, system_id=None, limit=None, offset=None):
+    """
+    Returns planets (never asteroid belts -- `body_type` is always `'t'`/
+    `'g'` here, `schema.sql`'s `planets` table holds only those), optionally
+    filtered by class, radius range, sector, and/or system -- the `planets`
+    equivalent of `list_systems` above, closing the gap `docs/TODO.md`'s
+    "Open items" > "Search" flagged: the web/API faceted search
+    (`search()`/`GET /api/search`) already supports a planet size range and
+    class tags, but this CLI's own subcommands never got an equivalent.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        planet_class (str, optional): Exact `planet_class` match (e.g. `"M"`).
+        min_radius_km (float, optional): Only planets at least this large.
+        max_radius_km (float, optional): Only planets at most this large.
+        sector_id (int, optional): Only planets whose system is in this sector.
+        system_id (int, optional): Only planets in this one system.
+        limit (int, optional): Caps the number of rows returned. `None`
+            (the default) returns every matching planet.
+        offset (int, optional): Skips this many rows first. Ignored
+            unless `limit` is also given.
+
+    Returns:
+        list[dict]: One row per matching planet, with `id`, `name`,
+            `planet_class`, `body_type`, `radius_km`, `star_system_id`,
+            `system_name`.
+    """
+    where_sql, params = _body_filter_clause("p", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
+    query = f"""
+        SELECT p.id, p.name, p.planet_class, p.body_type, p.radius_km, p.star_system_id, ss.name AS system_name
+        FROM planets p
+        JOIN star_systems ss ON ss.id = p.star_system_id{where_sql}
+        ORDER BY ss.name, p.orbital_index
+        """
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params = params + [limit, offset or 0]
+
+    rows = conn.execute(query, params).fetchall()
+    return [dict(r) for r in rows]
+
+
+def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
+                sector_id=None, system_id=None, limit=None, offset=None):
+    """
+    Returns moons, optionally filtered by class, radius range, sector,
+    and/or system -- the `moons` counterpart of `list_planets` above (see
+    its docstring for the gap this closes).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        planet_class (str, optional): Exact `planet_class` match (e.g. `"M"`).
+        min_radius_km (float, optional): Only moons at least this large.
+        max_radius_km (float, optional): Only moons at most this large.
+        sector_id (int, optional): Only moons whose system is in this sector.
+        system_id (int, optional): Only moons in this one system.
+        limit (int, optional): Caps the number of rows returned. `None`
+            (the default) returns every matching moon.
+        offset (int, optional): Skips this many rows first. Ignored
+            unless `limit` is also given.
+
+    Returns:
+        list[dict]: One row per matching moon, with `id`, `name`,
+            `planet_class`, `body_type`, `radius_km`, `star_system_id`,
+            `system_name`, `planet_name` (its parent planet's name).
+    """
+    where_sql, params = _body_filter_clause("m", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
+    query = f"""
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.radius_km, m.star_system_id,
+               ss.name AS system_name, p.name AS planet_name
+        FROM moons m
+        JOIN planets p ON p.id = m.planet_id
+        JOIN star_systems ss ON ss.id = m.star_system_id{where_sql}
+        ORDER BY ss.name, p.orbital_index, m.orbital_index
+        """
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params = params + [limit, offset or 0]
+
+    rows = conn.execute(query, params).fetchall()
+    return [dict(r) for r in rows]
+
+
 def systems_within_radius(conn, system_id, radius_ly):
     """
     Finds every other system in the same sector as `system_id`, within
@@ -1241,19 +1367,25 @@ def process_args():
     near_parser.add_argument('--radius', type=float, required=True,
                              help="Search radius in light-years (e.g. 50 for 'everything within 50 ly').")
 
-    # TODO: no subcommand here queries planets/moons directly -- `systems`
-    # above only filters by star_type_prefix/sector_id, so "every Class D
-    # planet smaller than Earth" or "sort these results by radius_km" can't
-    # be asked of this CLI at all today (the web/API faceted search --
-    # `search()`/`GET /api/search` above -- does support a planet/moon/
-    # star size range now; this is specifically about this CLI's own
-    # `sectors`/`systems`/`near` subcommands never getting a `planets`
-    # equivalent). A `planets` subcommand (mirroring `systems` above)
-    # would need --class (the existing planet_class values, already
-    # exposed as a search facet in ../src/html/search.py) plus a new
-    # --min-radius-km/--max-radius-km pair (or a --sort-by radius_km
-    # flag) over the `planets`/`moons` tables' radius_km column. See
-    # docs/TODO.md, "Open items" > "Search".
+    planets_parser = subparsers.add_parser(
+        'planets', help="List planets, optionally filtered by class, radius, sector, or system.",
+    )
+    planets_parser.add_argument('--class', dest='planet_class', type=str,
+                                help="Only planets of this exact class (e.g. 'M').")
+    planets_parser.add_argument('--min-radius-km', type=float, help="Only planets at least this large.")
+    planets_parser.add_argument('--max-radius-km', type=float, help="Only planets at most this large.")
+    planets_parser.add_argument('--sector-id', type=int, help="Only planets whose system is in this sector.")
+    planets_parser.add_argument('--system-id', type=int, help="Only planets in this one system.")
+
+    moons_parser = subparsers.add_parser(
+        'moons', help="List moons, optionally filtered by class, radius, sector, or system.",
+    )
+    moons_parser.add_argument('--class', dest='planet_class', type=str,
+                              help="Only moons of this exact class (e.g. 'M').")
+    moons_parser.add_argument('--min-radius-km', type=float, help="Only moons at least this large.")
+    moons_parser.add_argument('--max-radius-km', type=float, help="Only moons at most this large.")
+    moons_parser.add_argument('--sector-id', type=int, help="Only moons whose system is in this sector.")
+    moons_parser.add_argument('--system-id', type=int, help="Only moons in this one system.")
 
     return parser.parse_args()
 
@@ -1292,6 +1424,30 @@ def main():
                 return
             for match in matches:
                 print(f"[{match['id']}] {match['name']} -- {match['distance_ly']:.2f} ly")
+
+        elif args.command == 'planets':
+            planets = list_planets(
+                conn, planet_class=args.planet_class, min_radius_km=args.min_radius_km,
+                max_radius_km=args.max_radius_km, sector_id=args.sector_id, system_id=args.system_id,
+            )
+            if not planets:
+                print("No matching planets.")
+                return
+            for planet in planets:
+                print(f"[{planet['id']}] {planet['name']} (Class {planet['planet_class']}, "
+                      f"{planet['radius_km']:.0f} km) -- {planet['system_name']}")
+
+        elif args.command == 'moons':
+            moons = list_moons(
+                conn, planet_class=args.planet_class, min_radius_km=args.min_radius_km,
+                max_radius_km=args.max_radius_km, sector_id=args.sector_id, system_id=args.system_id,
+            )
+            if not moons:
+                print("No matching moons.")
+                return
+            for moon in moons:
+                print(f"[{moon['id']}] {moon['name']} (Class {moon['planet_class']}, "
+                      f"{moon['radius_km']:.0f} km) -- {moon['system_name']} / {moon['planet_name']}")
     finally:
         conn.close()
 
