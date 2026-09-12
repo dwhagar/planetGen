@@ -1694,6 +1694,23 @@ COMET_PARABOLIC_CHANCE = 0.3
 # comet has.
 PARABOLIC_COMET_INCLINATION_MAX_DEG = 180.0
 
+# Chance a given star (per `StarSystem._generate_comets`, one roll per
+# star -- the primary, and again for a wide binary's independently-rolled
+# secondary) has any native comets at all, when
+# `SystemConfig.COMETS` is left at its default `None` (random chance) --
+# most real stars aren't known to host an observed comet population, so
+# this stays well under 1.0 rather than guaranteeing every system gets
+# one.
+SYSTEM_COMET_CHANCE = 0.3
+
+# How many comets a star that DOES get any (per SYSTEM_COMET_CHANCE, or
+# `SystemConfig.COMETS = True` forcing at least this many) actually
+# generates -- a small handful, not a full population (this generator
+# only models a system's few most notable comets, the same way
+# ASTEROID_BELT models zero-or-one belts, not an exhaustive minor-body
+# catalog).
+SYSTEM_COMET_COUNT_RANGE = (1, 3)
+
 # --- Asteroid Fields (asteroidFieldData.AsteroidField) ---
 
 # Radius range for a standalone asteroid field drifting in open

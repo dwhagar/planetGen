@@ -29,7 +29,7 @@ from .serialization import fields_from_dict, fields_to_dict
 # configuration. `to_dict`/`from_dict` use this list so a config round-trips
 # through JSON in exactly the shape `--system-file` already expects.
 SERIALIZABLE_FIELDS = [
-    "MARKDOWN", "HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS",
+    "MARKDOWN", "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "PLANETS", "STAR_TYPE", "NAME", "AGE", "INTELLIGENT_LIFE",
     "BINARY_SYSTEM", "WIDE_BINARY", "NUM_ORBITS", "SLOTS",
 ]
@@ -58,6 +58,15 @@ class SystemConfig:
         bool or None: If True, the system generation will attempt to force the
         creation of at least one asteroid belt. If False, ensures no asteroid
         belt is generated. If None, left to random chance. Defaults to None.
+        """
+
+        self.COMETS = None
+        """
+        bool or None: If True, the system generation will attempt to force the
+        creation of at least one star-bound comet (see `cometData.Comet` --
+        contrast the always-standalone `roguePlanetData.InterstellarComet`,
+        which this flag has no effect on). If False, ensures no comet is
+        generated. If None, left to random chance. Defaults to None.
         """
 
         self.LARGE_STAR = None

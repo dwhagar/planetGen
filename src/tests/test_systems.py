@@ -34,7 +34,7 @@ STAR_TYPES = [
 ]
 
 TRISTATE_ATTRS = [
-    "HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS",
+    "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "INTELLIGENT_LIFE", "BINARY_SYSTEM", "PLANETS",
 ]
 
@@ -201,6 +201,12 @@ def assert_counts_are_consistent(system):
     assert hab_count == system.hab_count
     assert m_count == system.m_count
     assert hab_count >= m_count >= 0
+    # comets is its own list, separate from planets/secondary_planets (see
+    # StarSystem._generate_comets' docstring) -- count_comets() defaults
+    # to both stars' combined lists the same way count_objects() does.
+    comet_count = system.count_comets()
+    assert comet_count == system.comet_count
+    assert comet_count == len(system.comets) + len(system.secondary_comets)
 
 
 @pytest.mark.parametrize("star_type", STAR_TYPES)
@@ -230,6 +236,10 @@ def test_each_tristate_flag_forced(star_type, value, attr):
             assert system.hab_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
+        if attr == "COMETS" and value is True:
+            assert system.comet_count >= 1, f"{star_type}: COMETS=True produced no comet"
+        if attr == "COMETS" and value is False:
+            assert system.comet_count == 0, f"{star_type}: COMETS=False still produced a comet"
         if attr == "PLANETS" and value is False:
             assert len(system.planets) == 0
             assert len(system.secondary_planets) == 0

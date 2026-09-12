@@ -23,6 +23,7 @@ import math
 import random
 
 from .asteroidData import AsteroidBelt
+from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from . import physical_constants, planetLife, planetPhysics, program_constants
@@ -56,7 +57,18 @@ from .wideBinary import WideBinaryPair
 # `binary_type` key at all -- `from_dict` treats that as "close" whenever
 # its `is_binary` is true, since P-type was the only binary configuration
 # that existed before this version.
-SERIALIZATION_SCHEMA_VERSION = 2
+#
+# Bumped 2 -> 3 to add native star-bound comets (`cometData.Comet` -- see
+# `_generate_comets`): `comets` and `secondary_comets`, the same
+# "primary's own list" / "wide binary secondary's own independently
+# generated list" split `planets`/`secondary_planets` already uses, kept
+# as their own top-level keys rather than folded into `planets` (a
+# `Comet`'s `distance_au` is a continuously-varying current position, not
+# a fixed orbital-slot `distance` the way a `Planet`'s/`AsteroidBelt`'s
+# is -- see `_generate_comets`'s own docstring). A pre-v3 save has neither
+# key -- `from_dict` treats a missing key as `[]`, the same fallback
+# `secondary_planets` already gets for a pre-wide-binary save.
+SERIALIZATION_SCHEMA_VERSION = 3
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -104,8 +116,13 @@ class StarSystem:
     Attributes:
         star (Star): The central star of the system.
         planets (list): A list of `Planet` and `AsteroidBelt` objects orbiting the star.
+        comets (list): A list of native `cometData.Comet` objects bound to
+            this star -- kept separate from `planets` since a comet's
+            `distance_au` is a continuously-varying current position, not
+            a fixed orbital-slot `distance` (see `_generate_comets`).
         planet_count (int): The total number of planets in the system.
         belt_count (int): The total number of asteroid belts in the system.
+        comet_count (int): The total number of comets in the system.
         moon_count (int): The total number of moons in the system.
         hab_count (int): The total number of potentially habitable worlds.
         m_count (int): The total number of Class M worlds.
@@ -286,6 +303,13 @@ class StarSystem:
         if self.binary_type == "wide":
             self.secondary_star.adjust_age_for_planets(self.secondary_planets)
 
+        # Comets don't participate in the planet-slot retry loop above --
+        # see _generate_comets' own docstring for why -- so they're rolled
+        # once here, after that loop has settled on a final planet/belt
+        # layout, rather than inside it.
+        self.comets = self._generate_comets(self.star)
+        self.secondary_comets = self._generate_comets(self.secondary_star) if self.binary_type == "wide" else []
+
         # Decided once, here, at generation time -- __str__ (which may be called
         # more than once) reads this rather than re-rolling and double-counting
         # system_flavor_count on every render.
@@ -311,6 +335,49 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+        self.comet_count = self.count_comets()
+
+    def _generate_comets(self, star):
+        """
+        Rolls this star's own native comet population (see
+        `cometData.Comet` -- contrast the always-standalone, unbound
+        `roguePlanetData.InterstellarComet`, which `StarSystem` never
+        generates).
+
+        Comets deliberately don't participate in the planet-slot
+        generation/retry loop above (`_generate_planets`/
+        `validate_system`/`_orbit_ceiling_au`): a `Comet`'s `distance_au`
+        is its current, continuously-varying position along a highly
+        eccentric/arbitrarily inclined orbit, not a fixed slot in the
+        orderly, Hill-sphere-spaced sequence a `Planet`'s/`AsteroidBelt`'s
+        own `distance` occupies, so there's no orbital-overlap invariant
+        for a comet to satisfy there. Instead this rolls independently,
+        once per star, honoring `SystemConfig.COMETS`'s tri-state contract
+        the same way `ASTEROID_BELT`/`HABITABLE_WORLD` do elsewhere:
+        `True` forces at least `program_constants.SYSTEM_COMET_COUNT_RANGE[0]`
+        comets, `False` forces none, `None` rolls
+        `program_constants.SYSTEM_COMET_CHANCE`.
+
+        Args:
+            star: The `Star` or `BinaryStarProxy` this comet population is
+                 bound to -- its `.mass` (the pair's own combined mass for
+                 a close/P-type binary proxy, via `BinaryStarProxy.mass`)
+                 drives each comet's own orbital period, the same
+                 `star.mass` a `Planet`'s own period calculation reads.
+
+        Returns:
+            list: Newly generated `Comet` objects, zero or more.
+        """
+        if self.system_config.COMETS is False:
+            return []
+
+        has_comets = self.system_config.COMETS is True or random.random() < program_constants.SYSTEM_COMET_CHANCE
+        if not has_comets:
+            return []
+
+        count = random.randint(*program_constants.SYSTEM_COMET_COUNT_RANGE)
+        primary_mass_solar = star.mass / physical_constants.SOLAR_MASS_TO_KG
+        return [Comet(self.system_config, primary_mass_solar) for _ in range(count)]
 
     def _should_generate_binary(self):
         """
@@ -730,7 +797,8 @@ class StarSystem:
         Returns:
             dict: `schema_version`, `system_config`, `star`, `is_binary`,
                  `binary_type`, `secondary_star`, `wide_binary`, `planets`,
-                 `secondary_planets`, `system_flavor_text`.
+                 `secondary_planets`, `comets`, `secondary_comets`,
+                 `system_flavor_text`.
         """
         is_wide = self.binary_type == "wide"
         return {
@@ -743,6 +811,8 @@ class StarSystem:
             "wide_binary": self.wide_binary.to_dict() if is_wide else None,
             "planets": [obj.to_dict() for obj in self.planets],
             "secondary_planets": [obj.to_dict() for obj in self.secondary_planets],
+            "comets": [comet.to_dict() for comet in self.comets],
+            "secondary_comets": [comet.to_dict() for comet in self.secondary_comets],
             "system_flavor_text": self.system_flavor_text,
         }
 
@@ -849,10 +919,17 @@ class StarSystem:
             if binary_type == "wide" else []
         )
 
+        system.comets = [Comet.from_dict(c, system_config) for c in data.get("comets", [])]
+        system.secondary_comets = (
+            [Comet.from_dict(c, system_config) for c in data.get("secondary_comets", [])]
+            if binary_type == "wide" else []
+        )
+
         system.system_flavor_text = data.get("system_flavor_text")
 
         system.planet_count, system.belt_count, system.moon_count = system.count_objects()
         system.hab_count, system.m_count = system.count_habitable()
+        system.comet_count = system.count_comets()
 
         return system
 
@@ -1050,6 +1127,28 @@ class StarSystem:
                     if moon.planet_class == "M":
                         m_count += 1
         return hab_count, m_count
+
+    def count_comets(self, comets=None):
+        """
+        Counts native comets in the system (see `_generate_comets`).
+
+        Kept as its own method, separate from `count_objects`, since
+        `self.comets`/`self.secondary_comets` is its own list, not part of
+        `self.planets`/`self.secondary_planets` -- see `_generate_comets`'s
+        own docstring for why a comet doesn't share that list.
+
+        Args:
+            comets (list, optional): Defaults to `self.comets +
+                self.secondary_comets` -- both stars' combined comet
+                population (for a single star or P-type binary,
+                `self.secondary_comets` is always `[]`).
+
+        Returns:
+            int: The total number of comets.
+        """
+        if comets is None:
+            comets = self.comets + self.secondary_comets
+        return len(comets)
 
     def estimate_num_objects(self, star):
         """
@@ -1428,6 +1527,8 @@ class StarSystem:
             segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
         if self.belt_count > 0:
             segments.append(f"{self.belt_count} asteroid belt{'s' if self.belt_count > 1 else ''}")
+        if self.comet_count > 0:
+            segments.append(f"{self.comet_count} comet{'s' if self.comet_count > 1 else ''}")
         if self.moon_count > 0:
             segments.append(f"{self.moon_count} moon{'s' if self.moon_count > 1 else ''}")
 
@@ -1439,7 +1540,7 @@ class StarSystem:
                 system_string = system_string.replace(f", {segments[-1]}", f", and {segments[-1]}")
             system_string += "."
             system_summary_sentences.append(system_string)
-        elif self.planet_count == 0 and self.belt_count == 0 and self.moon_count == 0:
+        elif self.planet_count == 0 and self.belt_count == 0 and self.comet_count == 0 and self.moon_count == 0:
             # No segment was built and the system is genuinely empty (as opposed to having
             # its planet count omitted above to avoid redundancy with the habitability
             # sentence that follows).
@@ -1532,9 +1633,9 @@ class StarSystem:
             if self.system_flavor_text:
                 all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
 
-            # 3. Append each star's own section, immediately followed by its own planets.
-            for star_obj, star_planets in ((self.primary_star, self.planets),
-                                            (self.secondary_star, self.secondary_planets)):
+            # 3. Append each star's own section, immediately followed by its own planets and comets.
+            for star_obj, star_planets, star_comets in ((self.primary_star, self.planets, self.comets),
+                                                          (self.secondary_star, self.secondary_planets, self.secondary_comets)):
                 all_output_parts.append('\n\n')
                 header_level = '===' if not self.system_config.MARKDOWN else '###'
                 all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
@@ -1547,6 +1648,9 @@ class StarSystem:
 
                 for planet in star_planets:
                     all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
+
+                for comet in star_comets:
+                    all_output_parts.append('\n\n' + '\n\n'.join(comet.to_paragraph_list()))
 
         else:
             # For single star:
@@ -1574,6 +1678,14 @@ class StarSystem:
         if self.binary_type != "wide" and self.planets:
             for planet in self.planets:
                 all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
+
+        # Add comet paragraphs the same way -- skipped for a wide binary,
+        # whose comets were already emitted above per-star, alongside its
+        # own planets (see _generate_comets' docstring for why comets are
+        # a separate list from planets in the first place).
+        if self.binary_type != "wide" and self.comets:
+            for comet in self.comets:
+                all_output_parts.append('\n\n' + '\n\n'.join(comet.to_paragraph_list()))
 
         # Add category tag if not markdown
         if not self.system_config.MARKDOWN:

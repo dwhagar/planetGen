@@ -60,6 +60,15 @@ identical way a lone star's is: unbound from any specific STAR doesn't
 mean unbound from the galaxy itself, so these still orbit the galactic
 center on the same timescale. See `schema.sql`'s "v17" header note.
 
+Star-bound comets (schema v18, `stellarObjects._db.advance_comet_orbits`)
+are handled by a SEPARATE call, not folded into `advance_orbital_phases`
+above: a comet's position isn't a linear function of elapsed time the way
+a circular planet/moon orbit's is (Kepler's second law -- it moves far
+faster near perihelion), so turning its advanced orbital anomaly into a
+distance/position requires solving Kepler's or Barker's equation in
+Python, not a set-based SQL `UPDATE`. See `advance_comet_orbits`'s own
+docstring and `docs/design/comet-orbital-realism.md`.
+
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
@@ -81,6 +90,7 @@ import sys
 
 from stellarObjects._db import (
     add_mysql_connection_args,
+    advance_comet_orbits,
     advance_orbital_phases,
     get_connection,
     get_orbit_update_elapsed_years,
@@ -102,9 +112,13 @@ TABLE_LABELS = {
     "rogue_planets": "rogue planet(s)",
     "interstellar_comets": "interstellar comet(s)",
     "asteroid_fields": "asteroid field(s)",
+    "comets": "star-bound comet(s)",
 }
-"""dict: `advance_orbital_phases`' result dict key -> human-readable label
-for this script's own summary line."""
+"""dict: `advance_orbital_phases`' result dict key (plus `"comets"`,
+merged in separately from `advance_comet_orbits`' own return value below --
+see this module's docstring for why that one needs a separate Python-loop
+call rather than sharing `advance_orbital_phases`' set-based `UPDATE`s) ->
+human-readable label for this script's own summary line."""
 
 
 def main():
@@ -134,6 +148,11 @@ def main():
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 
         counts = advance_orbital_phases(conn, elapsed_years)
+        # Separate call/return shape (a plain int, not a per-table dict) --
+        # see this module's docstring and advance_comet_orbits' own
+        # docstring for why a comet's position can't be advanced by the
+        # same set-based SQL advance_orbital_phases uses for everything else.
+        counts["comets"] = advance_comet_orbits(conn, elapsed_years)
         summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
         print(f"Updated: {summary}.")
     except Exception as exc:

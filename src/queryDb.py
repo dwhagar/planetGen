@@ -763,8 +763,8 @@ def sector_detail(conn, sector_id):
 def system_detail(conn, system_id):
     """
     Returns one system's full web-display detail: stars, planets (each
-    with its own moons), asteroid belts, description text, and enough
-    sector context to render `html/system.py` -- in one function, the
+    with its own moons), asteroid belts, comets, description text, and
+    enough sector context to render `html/system.py` -- in one function, the
     same DB-row-shaped read `sector_detail` gives sectors (see that
     function's docstring for why this is distinct from
     `stellarObjects._db.load_star_system`'s generation object graph).
@@ -783,10 +783,12 @@ def system_detail(conn, system_id):
             `star_id`, disambiguating which star each orbits), `planets`
             (each a `planets` row, including its own `star_id`, plus its
             own `moons` list), `belts` (`asteroid_belts` rows, including
-            `star_id`), and `sector_siblings` (`{id, name}` for every
-            other system in the same sector, empty if standalone -- for
-            linkifying `location`'s "nearest: ..." names without a second
-            round trip).
+            `star_id`), `comets` (`comets` rows, including `star_id` --
+            no `orbital_index`, see `insert_comet`'s docstring), and
+            `sector_siblings` (`{id, name}` for every other system in the
+            same sector, empty if standalone -- for linkifying
+            `location`'s "nearest: ..." names without a second round
+            trip).
 
     Raises:
         ValueError: If no such system exists.
@@ -818,6 +820,10 @@ def system_detail(conn, system_id):
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall()
 
+    comets = conn.execute(
+        "SELECT * FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)
+    ).fetchall()
+
     sector_siblings = []
     if system["sector_id"] is not None:
         sibling_rows = conn.execute(
@@ -834,6 +840,7 @@ def system_detail(conn, system_id):
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": [dict(b) for b in belts],
+        "comets": [dict(c) for c in comets],
         "sector_siblings": sector_siblings,
     }
 

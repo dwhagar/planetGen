@@ -24,6 +24,7 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 TRISTATE_OPTIONS = [
     ("habitable_world", "HABITABLE_WORLD", "a habitable world"),
     ("asteroid_belt", "ASTEROID_BELT", "an asteroid belt"),
+    ("comets", "COMETS", "a star-bound comet"),
     ("large_star", "LARGE_STAR", "a large, massive star"),
     ("moons", "MOONS", "moons on every planet"),
     ("max_planets", "MAX_PLANETS", "the maximum number of orbital objects"),
@@ -56,6 +57,7 @@ def process_args():
     `TRISTATE_OPTIONS`):
         - `+habitable_world` / `-habitable_world`
         - `+asteroid_belt` / `-asteroid_belt`
+        - `+comets` / `-comets`
         - `+large_star` / `-large_star`
         - `+moons` / `-moons`
         - `+max_planets` / `-max_planets`
@@ -201,7 +203,7 @@ def load_system_file(path):
     The JSON file may contain any of the following keys, each corresponding
     to a `SystemConfig` attribute of the same name (see that class's
     docstrings for details): `star_type`, `name`, `age`, `num_orbits`,
-    `slots`, `habitable_world`, `asteroid_belt`, `large_star`, `moons`,
+    `slots`, `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons`,
     `max_planets`, `intelligent_life`, `binary_system`, `wide_binary`,
     `planets`, `markdown`, `flavor_chance_system`, `flavor_chance_planet`,
     `max_planet_flavor`, `output`.
@@ -245,7 +247,7 @@ def apply_system_file(system_config, data):
     """
     simple_keys = [
         "star_type", "name", "age", "num_orbits", "slots",
-        "habitable_world", "asteroid_belt", "large_star", "moons",
+        "habitable_world", "asteroid_belt", "comets", "large_star", "moons",
         "max_planets", "intelligent_life", "binary_system", "wide_binary",
         "planets", "markdown",
     ]
