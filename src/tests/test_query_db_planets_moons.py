@@ -134,7 +134,7 @@ def test_list_planets_filters_by_sector_id(mysql_config):
 def test_list_moons_filters_by_class_and_radius(mysql_config):
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)
-    all_moons = [m for p in system.planets for m in p.moons]
+    all_moons = [m for p in system.planets if p.body_type != "a" for m in p.moons]
     assert all_moons, "test fixture must actually contain moons"
     target_class = all_moons[0].planet_class
     expected_names = sorted(m.name for m in all_moons if m.planet_class == target_class)
