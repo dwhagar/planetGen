@@ -42,7 +42,7 @@ from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
 from stellarObjects.program_constants import NAV_ADJACENCY_K, PLANET_CLASSES
-from stellarObjects.utils import milliparsecs_to_ly, pc_to_ly
+from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
 
 def open_readonly(config=None):
@@ -712,7 +712,8 @@ def sector_detail(conn, sector_id):
             `is_binary`, `binary_type`, `position_x_mpc`/`position_y_mpc`/
             `position_z_mpc`, and `stars` -- 1 entry (single) or 2
             (primary then secondary), each `role`/`star_type`/
-            `temperature_k`/`radius_km`/`luminosity_w`).
+            `temperature_k`/`radius_km`/`luminosity_w`), and `phenomena`
+            (see `phenomena_near_sector`).
 
     Raises:
         ValueError: If no such sector exists.
@@ -757,7 +758,133 @@ def sector_detail(conn, sector_id):
         "placed": sector["center_x_pc"] is not None,
         "system_count": len(systems),
         "systems": systems,
+        "phenomena": phenomena_near_sector(conn, sector_id),
     }
+
+
+_PHENOMENON_TABLES = (
+    ("nebulae", "nebula", "nebula_type"),
+    ("asteroid_fields", "asteroid_field", "density"),
+)
+"""tuple: `(table_name, type_label, descriptor_column)` for each
+galaxy-placeable standalone phenomenon `phenomena_near_sector`/
+`galaxy_placed_phenomena` read from -- see `schema.sql`'s "v18" header
+note. `descriptor_column` is each table's own one-line flavor field (a
+nebula's `nebula_type`, a field's `density`), normalized to a common
+`descriptor` key so callers don't need to know which table a given `type`
+came from."""
+
+
+def _placed_phenomenon_rows(conn):
+    """
+    Reads every galaxy-placed nebula/asteroid-field row (non-NULL
+    `center_x_pc`) from both v18-placeable standalone-phenomenon tables,
+    normalized to one common shape -- shared by `phenomena_near_sector`
+    (which then filters by distance) and `galaxy_placed_phenomena` (which
+    doesn't need to).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        list[dict]: `id`, `type` (`"nebula"` or `"asteroid_field"`),
+            `name`, `descriptor`, `radius_ly`, `x`/`y`/`z` (`center_x/y/z_pc`),
+            `galactic_radius_pc`.
+    """
+    rows = []
+    for table, type_label, descriptor_column in _PHENOMENON_TABLES:
+        query_rows = conn.execute(
+            f"""
+            SELECT id, name, {descriptor_column} AS descriptor, radius_ly,
+                   center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+            FROM {table}
+            WHERE center_x_pc IS NOT NULL
+            """,
+        ).fetchall()
+        for row in query_rows:
+            rows.append({
+                "id": row["id"], "type": type_label, "name": row["name"],
+                "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
+                "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
+                "galactic_radius_pc": row["galactic_radius_pc"],
+            })
+    return rows
+
+
+def galaxy_placed_phenomena(conn):
+    """
+    Every galaxy-placed nebula/asteroid field -- the phenomenon
+    counterpart to `galaxy_placed_sectors`, plotted as small dots on the
+    same Galaxy Map (`html/lib/galaxymap.py`).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        list[dict]: See `_placed_phenomenon_rows`.
+    """
+    return _placed_phenomenon_rows(conn)
+
+
+def phenomena_near_sector(conn, sector_id):
+    """
+    Every galaxy-placed nebula/asteroid field whose sphere could plausibly
+    reach into `sector_id`'s own cube -- the data `html/lib/starmap.py`'s
+    Sector Map draws as translucent clouds.
+
+    An exact cube-vs-sphere overlap test isn't worth the complexity here,
+    so this compares against each cube's own *bounding* sphere (radius =
+    half its space diagonal, `edge_pc * sqrt(3) / 2`) instead: a safe,
+    exact upper bound that can only ever include a few extra phenomena
+    whose sphere clips the bounding sphere but not the cube itself (out
+    near a corner), never silently miss a real overlap -- consistent with
+    this project's existing "sector cubes already accept small real-world
+    gaps/overlaps" tolerance (`docs/design/galaxy-coordinate-system.md`
+    section 3) rather than a false-negative risk.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        sector_id (int): The `sectors.id` to check against.
+
+    Returns:
+        list[dict]: One entry per candidate phenomenon: `id`, `type`
+            (`"nebula"` or `"asteroid_field"`), `name`, `descriptor`,
+            `radius_ly`, `distance_ly` (sector center to phenomenon
+            center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
+            phenomenon's center relative to the sector's own center, in
+            light-years -- the same frame `starmap.py` already places
+            stars in). Empty if this sector has no galaxy placement of its
+            own.
+
+    Raises:
+        ValueError: If no such sector exists.
+    """
+    sector = conn.execute(
+        "SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors WHERE id = ?",
+        (sector_id,),
+    ).fetchone()
+    if sector is None:
+        raise ValueError(f"no sectors row with id {sector_id}")
+    if sector["center_x_pc"] is None:
+        return []
+
+    half_diagonal_pc = mpc_to_pc(sector["edge_mpc"]) * math.sqrt(3) / 2
+
+    matches = []
+    for phenomenon in _placed_phenomenon_rows(conn):
+        dx = phenomenon["x"] - sector["center_x_pc"]
+        dy = phenomenon["y"] - sector["center_y_pc"]
+        dz = phenomenon["z"] - sector["center_z_pc"]
+        distance_pc = math.sqrt(dx * dx + dy * dy + dz * dz)
+        if distance_pc > half_diagonal_pc + ly_to_pc(phenomenon["radius_ly"]):
+            continue
+        matches.append({
+            "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
+            "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
+            "distance_ly": pc_to_ly(distance_pc),
+            "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
+        })
+    return matches
 
 
 def system_detail(conn, system_id):
@@ -777,7 +904,10 @@ def system_detail(conn, system_id):
         dict: `id`, `name`, `sector_id`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `binary_configuration` (`'close'`,
             `'wide'`, or `None` -- see `schema.sql`'s "v15" note),
-            `markdown_content`, `wikitext_content`, `stars` (id/role/name/
+            `binary_mutual_position_x/y/z_km` (the secondary's position
+            relative to the primary -- NULL for a single star; see
+            `schema.sql`'s "v14"/"v15" notes), `markdown_content`,
+            `wikitext_content`, `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `planets`
@@ -801,6 +931,10 @@ def system_detail(conn, system_id):
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
         (system_id,),
     ).fetchall()
+    # mass_kg (already selected above) is what lets html/lib/systemmap.py
+    # split binary_mutual_position_x/y/z_km below into each star's own
+    # mass-weighted offset from the system's barycenter, rather than
+    # (incorrectly) anchoring the whole system on the primary alone.
 
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
@@ -830,6 +964,9 @@ def system_detail(conn, system_id):
         "quadrant": system["quadrant"], "location": system["location"],
         "is_binary": system["is_binary"], "binary_type": system["binary_type"],
         "binary_configuration": system["binary_configuration"],
+        "binary_mutual_position_x_km": system["binary_mutual_position_x_km"],
+        "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
+        "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "markdown_content": system["markdown_content"], "wikitext_content": system["wikitext_content"],
         "stars": [dict(s) for s in stars],
         "planets": planets,

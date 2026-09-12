@@ -290,6 +290,14 @@ def get_galaxy_sectors(db):
     return _request("/galaxy/sectors", {"db": db})["items"]
 
 
+def get_galaxy_phenomena(db):
+    """Returns `GET /api/galaxy/phenomena`'s `items` list (every
+    galaxy-placed nebula/asteroid field) -- see `queryDb.
+    galaxy_placed_phenomena`'s docstring for the shape."""
+    _require_db(db)
+    return _request("/galaxy/phenomena", {"db": db})["items"]
+
+
 def get_search(db, texts, tags, sizes=None):
     """
     Runs `GET /api/search` and returns its response dict -- see

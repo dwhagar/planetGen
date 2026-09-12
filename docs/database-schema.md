@@ -133,7 +133,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `9`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `18`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -283,6 +283,32 @@ via the same shared `asteroidData.generate_asteroid_composition`/
 `format_composition_summary` helpers) but standalone, drifting in open
 space rather than orbiting a star.
 
+v18 gave `nebulae`/`asteroid_fields` an actual galaxy placement — the
+first real use of `sector_id`, reserved-but-unused since v16/v17. A
+nebula/asteroid field is frequently far larger than a single sector's
+cube (an emission nebula can span up to 200 ly; the default sector edge
+is 11.5 ly), so unlike `star_systems.position_x/y/z_mpc` (relative to one
+owning sector's own center) these are placed directly in the same
+galaxy-frame Cartesian space `sectors.center_x/y/z_pc` already uses — a
+sphere (new `center_x/y/z_pc`/`galactic_radius_pc` columns, NULL together)
+that may overlap zero, one, or several sectors' cubes, not a single
+sector-relative offset. `sector_id` is now actually populated
+(`phenomenonGen.py --sector-id`) with the *nearest* already-generated
+sector to the phenomenon's own center — a convenience "home" link for
+browsing (`ON DELETE SET NULL` now, not `CASCADE`: deleting that sector
+shouldn't delete a phenomenon merely linked to it), not the authoritative
+geometry (`queryDb.phenomena_near_sector` finds every phenomenon whose
+sphere overlaps a given sector's cube by real distance, regardless of
+which sector it's linked to). `stellarObjects._db.compute_phenomenon_placement`
+picks the center: the given sector's own stored galaxy position plus a
+uniform random jitter within that sector's own cube half-extent. The
+null-together CHECK on each table is named explicitly
+(`chk_nebulae_placement`/`chk_asteroid_fields_placement`), unlike
+`sectors`' own identical v4 CHECK — MySQL auto-names an anonymous CHECK
+opaquely and refuses `DROP COLUMN` on a column it still references, so an
+explicit name is what lets `_migrate_v17_to_v18` add (and, for a test
+simulating an older database, drop) the exact same constraint by name.
+
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
 `_migrate_vN_to_vN+1` function per version) was removed during the MySQL
@@ -303,16 +329,21 @@ v16's exotic-phenomenon tables (needing no `ALTER TABLE` at all — six
 brand-new tables are already created by `_ensure_schema`'s
 `CREATE TABLE IF NOT EXISTS` regardless of the database's recorded
 version; this step exists purely to keep the `schema_migrations`
-bookkeeping counter itself accurate), and `_migrate_v16_to_v17` for v17's
+bookkeeping counter itself accurate), `_migrate_v16_to_v17` for v17's
 galactic-orbital-motion columns (real `ALTER TABLE` steps this time, since
-v16's tables already existed with a fixed shape). `migrate_database` applies
+v16's tables already existed with a fixed shape), and `_migrate_v17_to_v18`
+for v18's galaxy-frame placement columns on `nebulae`/`asteroid_fields`
+(also real `ALTER TABLE` steps, left NULL on every pre-existing row --
+there's no way to recover a legacy phenomenon's intended galaxy placement
+after the fact, the same situation `sectors.center_x/y/z_pc` is in for a
+`_migrate_v3_to_v4`-migrated sector). `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v17), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v18), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -848,18 +879,20 @@ standalone (no owning `StarSystem` at all).
 ### `nebulae`
 
 Added in v16. Always standalone (nothing in this generator places a
-nebula within a `StarSystem`); `sector_id` is reserved for a future
-sector-context encounter, unused (always NULL) by `phenomenonGen.py` today.
+nebula within a `StarSystem`); `sector_id` was reserved for a future
+sector-context encounter through v17, unused (always NULL) by
+`phenomenonGen.py` until v18 gave it one.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- a convenience "home" link, not this nebula's real geometry (its sphere may overlap several sectors, or none). NULL iff `center_x/y/z_pc` are NULL. `ON DELETE SET NULL` (not `CASCADE`, unlike v16/v17): deleting that sector doesn't delete a nebula that merely happens to be near it. |
 | `name` | TEXT | NOT NULL | |
 | `nebula_type` | TEXT | NOT NULL, CHECK IN ('emission','reflection','planetary','dark') | |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 (`phenomenonGen.py --sector-id`): this nebula's own galaxy-frame center, in the same Cartesian space `sectors.center_x/y/z_pc` uses -- a sphere (this + `radius_ly`), not a sector-relative offset, since a nebula (up to 200 ly across) is frequently far larger than one sector (default edge 11.5 ly) and may overlap several. NULL together: never placed in the galaxy (still the default -- `--sector-id` is optional). See `queryDb.phenomena_near_sector`/`galaxy_placed_phenomena` for how this is read back, and `docs/design/galaxy-coordinate-system.md` for the coordinate system itself. |
 
 ### `supernova_remnants`
 
@@ -932,18 +965,20 @@ above, mirroring `asteroid_belt_composition` minus a concentration level
 
 Added in v17, the seventh exotic phenomenon. Always standalone — a field
 drifting in open space, as opposed to `asteroid_belts`, which always
-orbits a star. `sector_id` is reserved for a future sector-context
-encounter, unused (always NULL) by `phenomenonGen.py` today.
+orbits a star. `sector_id` was reserved for a future sector-context
+encounter through v17, unused (always NULL) by `phenomenonGen.py` until
+v18 gave it one.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- see `nebulae`'s identical "v18" column note above. |
 | `name` | TEXT | NOT NULL | |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | Same three levels `asteroid_belts.density` uses. |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Always populated (an asteroid field is always standalone). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 -- see `nebulae`'s identical "v18" column note above (an asteroid field's `radius_ly` tops out much smaller, `program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY` = 0.001-1.0 ly, so it usually stays within a single sector, but the same galaxy-frame-sphere model is used for consistency). |
 
 ### `asteroid_field_composition`
 
@@ -1008,9 +1043,13 @@ moons.star_system_id ─────> star_systems.id   (redundant with moons.pl
 `black_holes`/`neutron_stars` (v16) also stand apart from the tree above
 when generated standalone (`star_id` NULL) — only when `star_id` is set do
 they hang off a `stars` row the same way `asteroid_belt_composition` hangs
-off `asteroid_belts`. `nebulae`/`supernova_remnants`/`rogue_planets`/
-`interstellar_comets`/`asteroid_fields` (v16/v17) stand apart entirely —
-always standalone, with only a reserved, currently-unused `sector_id` FK.
+off `asteroid_belts`. `supernova_remnants`/`rogue_planets`/
+`interstellar_comets` (v16/v17) stand apart entirely — always standalone,
+with only a reserved, currently-unused `sector_id` FK. `nebulae`/
+`asteroid_fields` (v16/v17) are the same shape but, as of v18, their
+`sector_id` is a real (if non-authoritative) link to the nearest
+already-generated sector, alongside their own galaxy-frame
+`center_x/y/z_pc`/`galactic_radius_pc` — see this file's "v18" note above.
 
 `galaxy_shape`/`galaxy_shell_band` (v8) stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the

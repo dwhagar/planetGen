@@ -71,7 +71,7 @@ except ImportError:
 try:
     from stellarObjects.galaxyGeometry import sector_position_pc, sector_wedge_vertices_pc
     from stellarObjects.sectorGeometry import cube_orientation
-    from stellarObjects.utils import milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
+    from stellarObjects.utils import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
 except ImportError:
     # Same deployment gap as above -- without these, a sector with no
     # galaxy placement (or one this deployment can't reach the geometry
@@ -79,12 +79,15 @@ except ImportError:
     # scale bar; see `_wedge_edges_px`/`_scale_bar_attrs` below. Without
     # `cube_orientation` specifically, star dots fall back to being
     # plotted in their own unrotated local axes (see `_rotate_to_galaxy_frame`).
+    # Without `ly_to_milliparsecs`, nebula/asteroid-field clouds
+    # (`_cloud_html`) can't be scaled/positioned at all and are omitted.
     sector_position_pc = None
     sector_wedge_vertices_pc = None
     cube_orientation = None
     mpc_to_pc = None
     pc_to_mpc = None
     milliparsecs_to_ly = None
+    ly_to_milliparsecs = None
 
 # The 3D scene's on-screen footprint, in pixels -- a fixed size (unlike
 # the old responsive SVG viewBox) since a CSS 3D scene needs an explicit
@@ -611,7 +614,117 @@ def _dot_html(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None)
     )
 
 
-def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems):
+# A cloud's own radius (`radius_ly`) is frequently far larger than a
+# single sector -- a big emission nebula can dwarf the whole scene -- so
+# unlike a star dot's radius (always tiny next to the scene), this needs
+# its own generous cap: large enough to visibly engulf/overflow the
+# viewport (`.starmap-viewport` clips it, same as the compass arrow/wedge
+# outline can already run past the scene's own bounds) without an
+# unbounded DOM element size for a pathological radius_ly value.
+_MAX_CLOUD_RADIUS_PX = 6 * _SCENE_SIZE_PX
+
+# Fill color (and base opacity, baked into the alpha channel below) per
+# `nebulae.nebula_type` -- not spectral-accurate the way `_star_color` is
+# (a nebula's visible color really does vary this much by type: emission
+# nebulae genuinely glow reddish-pink from ionized hydrogen's H-alpha
+# line, reflection nebulae blue from scattered starlight, planetary
+# nebulae teal/cyan from doubly-ionized oxygen, and a dark nebula is by
+# definition an opaque silhouette, not a glow at all -- hence its own
+# near-black, higher-opacity fill instead of a lighter translucent one).
+_NEBULA_TYPE_COLORS = {
+    "emission": "#ff6f91",
+    "reflection": "#6fa8ff",
+    "planetary": "#5be8c9",
+    "dark": "#1c1c24",
+}
+_NEBULA_TYPE_ALPHA = {
+    "emission": (0xB0, 0x40),
+    "reflection": (0xA0, 0x38),
+    "planetary": (0xA8, 0x3c),
+    "dark": (0xE8, 0x90),
+}
+_DEFAULT_NEBULA_COLOR = "#c9a8e0"
+_DEFAULT_NEBULA_ALPHA = (0x90, 0x38)
+
+# An asteroid field reads as a mottled, rocky scatter rather than a smooth
+# glow -- three small dark "clump" splotches (fixed relative positions,
+# not randomized per-instance: this is a texture cue, not a real debris
+# layout) layered under one soft tan base disc, all in one CSS
+# `background` (percentages are relative to the element's own box, so this
+# one string scales correctly to any field's own radius_px without
+# per-instance recomputation).
+_ASTEROID_FIELD_BACKGROUND = (
+    "radial-gradient(circle at 30% 32%, #00000070 0%, #00000070 9%, transparent 10%), "
+    "radial-gradient(circle at 68% 58%, #00000060 0%, #00000060 11%, transparent 12%), "
+    "radial-gradient(circle at 42% 78%, #00000055 0%, #00000055 7%, transparent 8%), "
+    "radial-gradient(circle, #b89a6ea0 0%, #b89a6e50 55%, transparent 78%)"
+)
+
+
+def _phenomenon_cloud_radius_px(radius_ly, half_edge):
+    if ly_to_milliparsecs is None or not half_edge:
+        return 0.0
+    radius_mpc = ly_to_milliparsecs(radius_ly)
+    radius_px = (radius_mpc / half_edge) * _SCENE_HALF_PX
+    return max(4.0, min(_MAX_CLOUD_RADIUS_PX, radius_px))
+
+
+def _cloud_html(phenomenon, x_px, y_px, z_px, radius_px):
+    """
+    Builds one nebula/asteroid-field cloud as a billboarded translucent
+    circle -- the same anchor-plus-inner-billboard split `_dot_html` uses
+    for a star (see that function's docstring for why: a flat disc must
+    billboard to avoid going edge-on as the scene rotates), just larger
+    and styled as a soft cloud/mottled field instead of a hard-edged star.
+    Unlike `_dot_html`, there's no `data-href` -- a phenomenon has no
+    detail page of its own to link to.
+
+    Args:
+        phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
+                           (`id`, `type`, `name`, `descriptor`, `radius_ly`,
+                           `distance_ly`).
+        x_px, y_px, z_px (float): Already-normalized scene-space pixel
+                                  position (see `render_map_panel`).
+        radius_px (float): This cloud's drawn radius, in pixels
+                           (`_phenomenon_cloud_radius_px`).
+
+    Returns:
+        str: The cloud's anchor+billboard HTML.
+    """
+    is_nebula = phenomenon["type"] == "nebula"
+    if is_nebula:
+        color = _NEBULA_TYPE_COLORS.get(phenomenon["descriptor"], _DEFAULT_NEBULA_COLOR)
+        core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(phenomenon["descriptor"], _DEFAULT_NEBULA_ALPHA)
+        background = (
+            f"radial-gradient(circle, {color}{core_alpha:02x} 0%, "
+            f"{color}{edge_alpha:02x} 55%, transparent 78%)"
+        )
+        css_class = "nebula-cloud"
+        type_label = f'{phenomenon["descriptor"].capitalize()} Nebula'
+    else:
+        background = _ASTEROID_FIELD_BACKGROUND
+        css_class = "asteroid-cloud"
+        type_label = f'Asteroid Field ({(phenomenon["descriptor"] or "").capitalize()})'
+
+    left = _SCENE_HALF_PX + x_px - radius_px
+    top = _SCENE_HALF_PX + y_px - radius_px
+    return (
+        '<div class="cloud-anchor" '
+        f'style="left:{left:.1f}px; top:{top:.1f}px; width:{radius_px * 2:.1f}px; '
+        f'height:{radius_px * 2:.1f}px; transform:translateZ({z_px:.1f}px);">'
+        f'<div class="phenomenon-cloud {css_class} billboard" tabindex="0" role="button" '
+        f'style="background:{background};" '
+        f'data-kind="phenomenon" '
+        f'data-name="{esc(phenomenon["name"])}" '
+        f'data-phenomenon-type="{esc(type_label)}" '
+        f'data-radius="{phenomenon["radius_ly"]:,.2f} ly" '
+        f'data-distance="{phenomenon["distance_ly"]:,.1f} ly from sector center" '
+        f'aria-label="{esc(phenomenon["name"])}" title="{esc(phenomenon["name"])}"></div>'
+        "</div>"
+    )
+
+
+def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems, phenomena=None):
     """
     Builds the "Sector Map" panel: a draggable/zoomable 3D scene (see
     `static/sectormap.js` for the rotate/zoom/click wiring) with one dot
@@ -659,6 +772,20 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
                               then secondary), each with `star_type`,
                               `temperature_k`, `radius_km`,
                               `luminosity_w`, `temp_display`.
+        phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
+                              return shape -- every nebula/asteroid field
+                              whose sphere could plausibly reach into this
+                              sector's cube, drawn as a translucent cloud
+                              (`_cloud_html`) rather than a hard dot, since
+                              (unlike a star system) these have a real
+                              physical size worth actually depicting. Its
+                              `offset_x/y/z_ly` are already galaxy-frame
+                              (computed directly from two galaxy-frame
+                              centers -- see `schema.sql`'s "v18" note), so
+                              -- unlike `systems`' sector-local `x`/`y`/`z`
+                              -- these are placed directly with no
+                              `_rotate_to_galaxy_frame` step. `None`/empty
+                              draws no clouds at all.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -698,6 +825,28 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
 
+    clouds = []
+    for phenomenon in (phenomena or []) if ly_to_milliparsecs is not None else ():
+        # Already galaxy-frame (see this function's own `phenomena`
+        # docstring) -- no `_rotate_to_galaxy_frame` step, unlike a
+        # system's sector-local x/y/z above. Position is intentionally
+        # NOT clamped the way a star system's normalized position is
+        # (+-1.05): a cloud is allowed to sit mostly outside this sector's
+        # own cube (that's the whole point of `phenomena_near_sector`'s
+        # bounding-sphere overlap test) and/or be far larger than it --
+        # `.starmap-viewport`'s `overflow: hidden` clips whatever spills
+        # past the visible scene, the same way the compass arrow is
+        # already allowed to reach past the cube's own edge.
+        nx = ly_to_milliparsecs(phenomenon["offset_x_ly"]) / half_edge
+        ny = ly_to_milliparsecs(phenomenon["offset_y_ly"]) / half_edge
+        nz = ly_to_milliparsecs(phenomenon["offset_z_ly"]) / half_edge
+        x_px = nx * _SCENE_HALF_PX
+        y_px = -ny * _SCENE_HALF_PX
+        z_px = nz * _SCENE_HALF_PX
+        radius_px = _phenomenon_cloud_radius_px(phenomenon["radius_ly"], half_edge)
+        if radius_px:
+            clouds.append(_cloud_html(phenomenon, x_px, y_px, z_px, radius_px))
+
     wedge_vertices = _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge)
     if wedge_vertices is not None:
         outline_html = _wedge_wireframe_html(wedge_vertices)
@@ -716,13 +865,14 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
     scene = (
         '<div class="starmap-scene" id="starmap-scene" '
         f'style="width:{_SCENE_SIZE_PX}px; height:{_SCENE_SIZE_PX}px;">'
-        f"{outline_html}{compass_html}{''.join(dots)}</div>"
+        f"{outline_html}{compass_html}{''.join(clouds)}{''.join(dots)}</div>"
     )
 
-    if systems:
+    if systems or clouds:
+        click_hint = "Click a star system or cloud for details." if clouds else "Click a star system for details."
         info_panel = (
             '<aside class="starmap-info" id="starmap-info">'
-            '<p class="hint">Click a star system for details.</p></aside>'
+            f'<p class="hint">{click_hint}</p></aside>'
         )
     else:
         info_panel = '<aside class="starmap-info" id="starmap-info"><p class="hint">No systems placed in this sector.</p></aside>'
@@ -746,7 +896,7 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; {shape_hint}</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields near this sector &middot; {shape_hint}</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">

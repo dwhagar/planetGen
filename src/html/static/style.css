@@ -660,6 +660,39 @@ tbody tr:last-child td {
   outline: none;
 }
 
+/* A nebula/asteroid-field cloud (lib/starmap.py's `_cloud_html`) shares
+   `.star-dot-anchor`'s exact positioning trick -- same billboard-anchor
+   split, just a much larger, softer, translucent circle instead of a
+   small hard-edged star. */
+.cloud-anchor {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.phenomenon-cloud {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  /* Its own `background` (a radial-gradient recipe) is set inline per
+     cloud by `_cloud_html` -- type/composition determines the fill, not
+     this stylesheet. */
+}
+
+.phenomenon-cloud:hover,
+.phenomenon-cloud:focus-visible {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+.nebula-cloud {
+  filter: blur(2px);
+}
+
+.asteroid-cloud {
+  filter: blur(0.5px);
+}
+
 .starmap-side {
   display: flex;
   flex-direction: column;
@@ -1077,20 +1110,22 @@ code {
   font-size: 0.9em;
 }
 
-/* System map: letterboxed concentric-orbit diagram (html/lib/systemmap.py,
+/* System map: true top-down position plot (html/lib/systemmap.py,
    html/static/systemmap.js) -- reuses the sector map's `.starmap-layout`/
    `.starmap-viewport`/`.starmap-info`/`.starmap-side` shell (same card/
-   side-panel look), but `.sysmap-viewport` overrides the sector map's
-   square box with this diagram's own short/wide fixed aspect ratio, and
-   there's no zoom/scroll/rotate machinery at all -- the whole diagram is
-   one fixed-size `viewBox`, scaled responsively like any plain
-   `<img>`/`<svg>` (`width: 100%`, height following from `aspect-ratio`)
-   rather than needing an interactive viewport. */
+   side-panel look), with `.sysmap-viewport` overriding the sector map's
+   own aspect ratio for this diagram's square coordinate space -- a real
+   position plot needs room in every direction, not just "away from the
+   star" the way the old schematic map's short/wide strip did. There's no
+   zoom/scroll/rotate machinery at all -- the whole diagram is one
+   fixed-size `viewBox`, scaled responsively like any plain `<img>`/`<svg>`
+   (`width: 100%`, height following from `aspect-ratio`) rather than
+   needing an interactive viewport. */
 .sysmap-viewport {
   display: block;
   width: 100%;
   max-width: none;
-  aspect-ratio: 1000 / 300;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
 }
 
@@ -1135,15 +1170,16 @@ code {
   outline-offset: 3px;
 }
 
-.sysmap-belt path {
-  fill: #8a7f7240;
+/* A belt is now a plain stroked `<circle>` (a full ring around its own
+   anchor -- see `lib/systemmap.py`'s `_belt_ring_svg`), not a filled path,
+   so its own visible "band" is the stroke itself. */
+.sysmap-belt {
+  fill: none;
   stroke: #8a7f72a0;
-  stroke-width: 1px;
 }
 
-.sysmap-belt:hover path,
-.sysmap-belt:focus-visible path {
-  fill: #8a7f7278;
+.sysmap-belt:hover,
+.sysmap-belt:focus-visible {
   stroke: #8a7f72d0;
 }
 
