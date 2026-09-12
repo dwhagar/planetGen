@@ -448,6 +448,27 @@
 --   `galactic_orbital_*` columns from the start (a new table, so no
 --   `ALTER TABLE` needed for it specifically).
 --
+-- v18: galaxy-frame placement for nebulae/asteroid fields, the first real
+--   use of the `sector_id` column v16/v17 left "reserved for a future
+--   sector-context encounter" on both tables. A nebula/asteroid field is
+--   frequently far larger than a single sector's cube (an emission nebula
+--   can span up to 200 ly; the default sector edge is 11.5 ly), so unlike
+--   `star_systems.position_x/y/z_mpc` (relative to one owning sector's own
+--   center) these are placed directly in the same galaxy-frame Cartesian
+--   space `sectors.center_x/y/z_pc` already uses (`docs/design/
+--   galaxy-coordinate-system.md`) -- a sphere (`center_x/y/z_pc`,
+--   `radius_ly`) that may overlap zero, one, or several sectors' cubes,
+--   not a single sector-relative offset. `nebulae`/`asteroid_fields` each
+--   gain `center_x_pc`/`center_y_pc`/`center_z_pc`/`galactic_radius_pc` --
+--   NULL together, mirroring `sectors`' own v4 null-together convention --
+--   plus `sector_id` is now actually populated (`phenomenonGen.py
+--   --sector-id`) with the *nearest* already-generated sector to the
+--   phenomenon's own center, a convenience "home" link for browsing, not
+--   the authoritative geometry (that's the sphere itself -- see
+--   `queryDb.phenomena_near_sector`, which finds every phenomenon whose
+--   sphere overlaps a given sector's cube by real distance, regardless of
+--   which sector it's linked to).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1138,6 +1159,10 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS nebulae (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    -- v18: the nearest already-generated sector to center_x/y/z_pc below --
+    -- a convenience "home" link, not this phenomenon's real geometry (a
+    -- nebula's sphere may overlap several sectors' cubes, or none). NULL
+    -- iff center_x/y/z_pc are NULL (never placed in the galaxy at all).
     sector_id         BIGINT UNSIGNED,
     name              VARCHAR(255) NOT NULL,
     nebula_type       VARCHAR(16) NOT NULL CHECK (nebula_type IN ('emission', 'reflection', 'planetary', 'dark')),
@@ -1151,9 +1176,24 @@ CREATE TABLE IF NOT EXISTS nebulae (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v18: this nebula's own galaxy-frame center -- see this file's "v18"
+    -- header note. NULL together: never placed in the galaxy (the default,
+    -- unless phenomenonGen.py --sector-id was given).
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
+    CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
     CONSTRAINT fk_nebulae_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
-    KEY idx_nebulae_sector_id (sector_id)
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
+    KEY idx_nebulae_sector_id (sector_id),
+    KEY idx_nebulae_galactic_radius_pc (galactic_radius_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1265,6 +1305,8 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS asteroid_fields (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    -- v18: the nearest already-generated sector to center_x/y/z_pc below --
+    -- see nebulae's identical "v18" column comment above.
     sector_id             BIGINT UNSIGNED,
     name                  VARCHAR(255) NOT NULL,
     density               VARCHAR(16) NOT NULL CHECK (density IN ('dense', 'sparse', 'typical')),
@@ -1275,9 +1317,23 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v18: this field's own galaxy-frame center -- see schema.sql's "v18"
+    -- header note. NULL together: never placed in the galaxy.
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
+    CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
     CONSTRAINT fk_asteroid_fields_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
-    KEY idx_asteroid_fields_sector_id (sector_id)
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
+    KEY idx_asteroid_fields_sector_id (sector_id),
+    KEY idx_asteroid_fields_galactic_radius_pc (galactic_radius_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS asteroid_field_composition (

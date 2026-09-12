@@ -6,7 +6,11 @@ Sector detail page: the sector's name/size and every system placed in it,
 with quadrant and star-type info, linking to `system.py` for each -- plus
 an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
 plotted by position within the sector, outlined by the sector's real
-on-shell wedge shape when it has a galaxy placement (else a plain cube).
+on-shell wedge shape when it has a galaxy placement (else a plain cube),
+plus a translucent cloud for every nebula/asteroid field whose real
+galaxy-frame sphere reaches into this sector's own cube (`queryDb.
+phenomena_near_sector`, via `GET /api/sectors/<id>`'s `phenomena` key --
+see `schema.sql`'s "v18" header note).
 """
 
 import os
@@ -84,16 +88,20 @@ def handler():
         else None
     )
     map_html = render_map_panel(
-        db_name, sector["edge_mpc"], sector["shell_index"], sector["shell_slot_index"], center_pc, map_systems
+        db_name, sector["edge_mpc"], sector["shell_index"], sector["shell_slot_index"], center_pc, map_systems,
+        phenomena=sector.get("phenomena"),
     )
 
     edge_text = f"{sector['edge_ly']:,.2f} ly"
 
     system_count = len(systems)
+    phenomenon_count = len(sector.get("phenomena") or [])
     badge_bits = [
         f"Cube edge {esc(edge_text)}",
         f"{system_count} system{'s' if system_count != 1 else ''}",
     ]
+    if phenomenon_count:
+        badge_bits.append(f"{phenomenon_count} nearby nebula/asteroid-field cloud{'s' if phenomenon_count != 1 else ''}")
     if sector["placed"]:
         quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
         badge_bits.append(

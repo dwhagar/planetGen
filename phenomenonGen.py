@@ -19,6 +19,13 @@ examples exist, PSR B1257+12) -- reusing all of `StarSystem`'s existing
 orbit-placement/rendering logic via `compactRemnant.py`'s `Star` subclass
 design (see that module's docstring). The other five phenomena are always
 standalone; `--anchor-system` doesn't apply to them.
+
+A nebula or standalone asteroid field may optionally be placed in the
+galaxy (`--sector-id`), near an already galaxy-placed sector -- see
+`stellarObjects._db.compute_phenomenon_placement`/schema.sql's "v18"
+header note for why this is a galaxy-frame sphere rather than a
+sector-relative offset. Every other phenomenon type stays unplaced;
+`--sector-id` doesn't apply to them.
 """
 
 import argparse
@@ -79,7 +86,8 @@ def process_args():
         "(black-hole/neutron-star only) builds a full star system around the compact remnant instead of",
         "describing it standalone -- disk-physics-driven planet generation naturally tends toward zero",
         "planets around a dark remnant, so pass --num-orbits (or edit the generated SystemConfig) to force",
-        "orbiting bodies if you want them.",
+        "orbiting bodies if you want them. --sector-id (nebula/asteroid-field only) places the generated",
+        "phenomenon in the galaxy near an already galaxy-placed sector, instead of leaving it unplaced.",
     ]
     additional_info = " ".join(additional_info)
 
@@ -101,6 +109,12 @@ def process_args():
                          help="With --anchor-system, force an exact number of orbital slots around the "
                               "compact remnant (see this script's epilog).")
 
+    parser.add_argument('--sector-id', type=int,
+                         help="Only valid with --type nebula or --type asteroid-field: place the generated "
+                              "phenomenon in the galaxy near this already-generated, already galaxy-placed "
+                              "sector (see stellarObjects._db.compute_phenomenon_placement). Omit to generate "
+                              "it unplaced, as before.")
+
     # Output to a file
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
 
@@ -121,6 +135,8 @@ def process_args():
         parser.error("--num-orbits must be zero or a positive integer.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
+    if args.sector_id is not None and args.type not in (None, "nebula", "asteroid-field"):
+        parser.error("--sector-id is only valid with --type nebula or --type asteroid-field.")
 
     return args
 
@@ -198,7 +214,8 @@ def main():
         print(phenomenon)
 
     mysql_config = _db.mysql_config_from_args(args)
-    phenomenon_id = _db.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config)
+    phenomenon_id = _db.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config,
+                                         sector_id=args.sector_id)
     print(f"Saved {TYPE_LABELS[phenomenon_type]} to the database (id={phenomenon_id}, "
           f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 

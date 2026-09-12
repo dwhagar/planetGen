@@ -1,5 +1,52 @@
 # Changelog
 
+## [5.31.0] - 2026-09-12
+
+### Added
+- **Galaxy-frame placement for nebulae/asteroid fields, and web-interface
+  map overhaul.** Nebulae/asteroid fields previously had no location at
+  all -- `sector_id` existed but was explicitly "reserved for a future
+  sector-context encounter" and always NULL. `phenomenonGen.py
+  --sector-id` now actually places one: a galaxy-frame sphere
+  (`center_x/y/z_pc`/`galactic_radius_pc`, schema v18) centered near an
+  already galaxy-placed sector (`stellarObjects._db.
+  compute_phenomenon_placement`), not a sector-relative offset -- a
+  nebula can span up to 200 ly, far larger than a single ~11.5 ly sector,
+  so it's a real sphere that may overlap several sectors' cubes, or none.
+  `sector_id` itself becomes a real (if non-authoritative) "nearest
+  sector" convenience link (`ON DELETE SET NULL`, not `CASCADE`). New
+  `queryDb.phenomena_near_sector` (bounding-sphere-vs-sector-cube overlap
+  test) and `galaxy_placed_phenomena`, exposed via `/api/sectors/<id>`'s
+  new `phenomena` key and a new `GET /api/galaxy/phenomena` endpoint.
+  `html/lib/starmap.py`'s Sector Map now draws a translucent spheroid
+  cloud for every nebula/asteroid field near that sector (nebula color by
+  type; a mottled tan/dark texture for an asteroid field); `html/
+  lib/galaxymap.py`'s Galaxy Map plots every placed one as a small fixed-
+  size dot instead -- a phenomenon's own real size is shown where it
+  actually fits (the Sector Map), not misleadingly as a galaxy-scale dot.
+- **System Map: real body positions, not a schematic.** `html/
+  lib/systemmap.py`'s System Map previously always drew every planet due
+  east of its star on one fixed concentric-orbit diagram, ignoring each
+  body's own real orbital angle entirely. It's now a true top-down plot:
+  every star/planet/moon/belt sits at its actual angle (from
+  `planets`/`moons.position_x/y_km`) and a distance from its own anchor
+  that's log-scaled into one shared pixel budget spanning the whole
+  scene -- a log scale is what lets a close binary's ~0.05 AU separation
+  and an outer planet's 30+ AU orbit coexist on the same diagram without
+  either collapsing to a point or blowing out the frame. A binary pair's
+  two stars are placed at their real mass-weighted offsets from the
+  system's own barycenter (new `binary_mutual_position_x/y/z_km` in
+  `queryDb.system_detail`'s response, split by each star's `mass_kg`) --
+  for a 'wide' (S-type) pair, this also removes the old map's "primary
+  only, see the tables below for the secondary" limitation: both stars
+  and each one's own independent planets now draw in the same
+  true-position scene. Asteroid belts are now full rings around their own
+  anchor (the natural true-position shape) rather than a one-directional
+  shaded band. A once-only pairwise-repulsion pass (`_relax_markers`)
+  nudges apart any two markers real placement happened to put too close
+  together -- real position first, decluttering only where legibility
+  actually needs it.
+
 ## [5.30.0] - 2026-09-12
 
 ### Added

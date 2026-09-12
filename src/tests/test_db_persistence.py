@@ -56,6 +56,24 @@ def _drop_v17_phenomenon_columns(conn):
         )
 
 
+def _drop_v18_phenomenon_columns(conn):
+    """
+    Drops the v18 galaxy-frame placement columns from `nebulae`/
+    `asteroid_fields` -- same "already exists on a freshly-bootstrapped
+    test database, so migrate_database's replayed _migrate_v17_to_v18
+    would hit a duplicate-column error" reasoning
+    `_drop_v17_phenomenon_columns` gives for its own six tables. See
+    `schema.sql`'s "v18" header note.
+    """
+    for table in ("nebulae", "asteroid_fields"):
+        conn.execute(
+            f"ALTER TABLE {table} "
+            f"DROP INDEX idx_{table}_galactic_radius_pc, "
+            "DROP COLUMN center_x_pc, DROP COLUMN center_y_pc, "
+            "DROP COLUMN center_z_pc, DROP COLUMN galactic_radius_pc"
+        )
+
+
 def _make_system_with_moons_and_belt():
     """Retries generation (bounded) until a system with at least one moon
     and one asteroid belt comes out -- MOONS/ASTEROID_BELT=True bias
@@ -611,7 +629,8 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
             "DROP COLUMN star_id"
         )
         _drop_v17_phenomenon_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17)")
+        _drop_v18_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -621,7 +640,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 17
+    assert version_after == _db.SCHEMA_VERSION == 18
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -643,7 +662,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 17
+    assert _db.migrate_database(mysql_config) == 18
 
 
 def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
@@ -689,7 +708,8 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
                 f"DROP COLUMN orbital_speed_kms, DROP COLUMN min_update_interval_years"
             )
         _drop_v17_phenomenon_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17)")
+        _drop_v18_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -699,7 +719,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 17
+    assert version_after == _db.SCHEMA_VERSION == 18
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -730,7 +750,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 17
+    assert _db.migrate_database(mysql_config) == 18
 
 
 def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
@@ -781,7 +801,8 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
             "DROP COLUMN star_id"
         )
         _drop_v17_phenomenon_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17)")
+        _drop_v18_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -791,7 +812,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 17
+    assert version_after == _db.SCHEMA_VERSION == 18
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -862,7 +883,8 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
             "DROP COLUMN star_id"
         )
         _drop_v17_phenomenon_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17)")
+        _drop_v18_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -872,7 +894,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 17
+    assert version_after == _db.SCHEMA_VERSION == 18
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -897,7 +919,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 17
+    assert _db.migrate_database(mysql_config) == 18
 
 
 def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config):
@@ -952,7 +974,8 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
             "DROP COLUMN star_id"
         )
         _drop_v17_phenomenon_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17)")
+        _drop_v18_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
         conn.commit()
 
@@ -962,7 +985,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 17
+    assert version_after == _db.SCHEMA_VERSION == 18
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1014,7 +1037,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 17
+    assert _db.migrate_database(mysql_config) == 18
 
 
 def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_config):
@@ -1055,7 +1078,8 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
             "DROP COLUMN star_id"
         )
         _drop_v17_phenomenon_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17)")
+        _drop_v18_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
         conn.commit()
 
@@ -1065,7 +1089,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 17
+    assert version_after == _db.SCHEMA_VERSION == 18
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1086,7 +1110,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 17
+    assert _db.migrate_database(mysql_config) == 18
 
 
 def test_insert_system_config_round_trips_slots_child_rows(mysql_config):

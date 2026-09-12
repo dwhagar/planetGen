@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.30.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.31.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -157,7 +157,10 @@ exist (PSR B1257+12) — reusing all of `systemGen.py`'s own orbit-placement
 logic; since a compact remnant's near-zero luminosity naturally collapses
 the disk-physics planet-count estimate toward zero (matching the real
 rarity of confirmed planets around black holes/neutron stars), pass
-`--num-orbits` to force orbiting bodies. `--markdown`, `--output`, and the
+`--num-orbits` to force orbiting bodies. `--sector-id` (nebula/asteroid-field
+only) places the generated phenomenon in the galaxy near an already
+galaxy-placed sector, instead of leaving it unplaced — see
+`docs/database-schema.md`'s "v18" note. `--markdown`, `--output`, and the
 `--mysql-*` connection options all work the same way they do on
 `systemGen.py`.
 
