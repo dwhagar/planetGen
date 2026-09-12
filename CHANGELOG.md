@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.28.0] - 2026-09-12
+
+### Added
+- **Exotic stellar phenomena, via a new, separate `phenomenonGen.py` CLI.**
+  Six phenomena -- black holes, neutron stars, nebulae, supernova remnants,
+  rogue planets, and interstellar comets -- can now be generated on demand,
+  each grounded in real astrophysics (Schwarzschild radius for black
+  holes; NICER-measured neutron star mass/radius ranges and ATNF-catalog
+  pulsar spin/field populations; the four standard ISM nebula classes;
+  Sedov-Taylor blast-wave expansion for supernova remnant age/size;
+  'Oumuamua/Borisov-informed interstellar comet speed/composition).
+  Deliberately **not** wired into `systemGen.py`/`sectorGen.py`'s normal
+  per-slot generation odds -- `StarSystem._generate_planets` never
+  produces one; they're reachable only through `phenomenonGen.py`'s own
+  `--type` choice (uniformly random among all six when omitted). A black
+  hole or neutron star (new `compactRemnant.py`, subclassing `Star` the
+  same way `doubleStar.BinaryStarProxy` does) can optionally anchor a full
+  `StarSystem` via `--anchor-system` -- real pulsar planets exist (PSR
+  B1257+12) -- reusing all of `StarSystem`'s existing orbit-placement/
+  rendering/serialization logic unchanged; its zero-or-near-zero
+  luminosity naturally collapses the habitable zone to (0, 0) AU and the
+  disk-physics planet-count ceiling to zero, matching the real rarity of
+  confirmed planets around compact remnants, without any special-casing.
+  Persisted via six new tables (schema v16: `black_holes`/`neutron_stars`
+  as satellite tables extending a `stars` row when anchored,
+  `nebulae`/`supernova_remnants`/`rogue_planets`/`interstellar_comets`
+  always standalone) and a `_migrate_v15_to_v16` bookkeeping-only
+  migration step (the six tables are brand new, so no existing table
+  needed an `ALTER TABLE`).
+
 ## [5.27.0] - 2026-09-12
 
 ### Added

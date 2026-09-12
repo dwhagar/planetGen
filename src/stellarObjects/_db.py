@@ -56,17 +56,21 @@ from dbutils.pooled_db import PooledDB
 from . import physical_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
+from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
+from .nebulaData import Nebula
 from .planetData import Planet
+from .roguePlanetData import InterstellarComet, RoguePlanet
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
+from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 15
+SCHEMA_VERSION = 16
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -981,6 +985,256 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
+def insert_black_hole(conn, black_hole: BlackHole, star_id=None) -> int:
+    """
+    Inserts a `black_holes` row (see `schema.sql`'s "v16" header note).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        black_hole (BlackHole): The black hole to persist.
+        star_id (int, optional): The owning `stars.id`, when this black
+            hole anchors a `StarSystem` (`phenomenonGen.py --anchor-system`
+            -- see `insert_star_system`'s single-star branch, the only
+            caller that passes this). `None` for one generated standalone.
+
+    Returns:
+        int: The new `black_holes.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO black_holes (
+            star_id, name, mass_solar, event_horizon_radius_km, spin,
+            has_accretion_disk, temperature_k, luminosity_w, age_gy
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            star_id, black_hole.name, black_hole.mass_solar,
+            black_hole.event_horizon_radius_km, black_hole.spin,
+            int(black_hole.has_accretion_disk), black_hole.temperature,
+            black_hole.luminosity, black_hole.age,
+        ),
+    )
+    return cur.lastrowid
+
+
+def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None) -> int:
+    """
+    Inserts a `neutron_stars` row (see `schema.sql`'s "v16" header note).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        neutron_star (NeutronStar): The neutron star to persist.
+        star_id (int, optional): The owning `stars.id`, when this neutron
+            star anchors a `StarSystem` (`phenomenonGen.py --anchor-system`
+            -- see `insert_star_system`'s single-star branch, the only
+            caller that passes this). `None` for one generated standalone.
+
+    Returns:
+        int: The new `neutron_stars.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO neutron_stars (
+            star_id, name, mass_solar, radius_km, spin_period_ms, magnetic_field_gauss,
+            pulsar_type, surface_temperature_k, luminosity_w, age_gy
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            star_id, neutron_star.name, neutron_star.mass_solar, neutron_star.radius,
+            neutron_star.spin_period_ms, neutron_star.magnetic_field_gauss,
+            neutron_star.pulsar_type, neutron_star.surface_temperature_k,
+            neutron_star.luminosity, neutron_star.age,
+        ),
+    )
+    return cur.lastrowid
+
+
+def insert_nebula(conn, nebula: Nebula, sector_id=None) -> int:
+    """
+    Inserts a `nebulae` row (see `schema.sql`'s "v16" header note).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        nebula (Nebula): The nebula to persist.
+        sector_id (int, optional): Reserved for a future sector-context
+            encounter. `None` (always, today -- `phenomenonGen.py` never
+            creates or attaches a sector).
+
+    Returns:
+        int: The new `nebulae.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO nebulae (sector_id, name, nebula_type, radius_ly, composition, formation_cause)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (sector_id, nebula.name, nebula.nebula_type, nebula.radius_ly, nebula.composition, nebula.formation_cause),
+    )
+    return cur.lastrowid
+
+
+def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None) -> int:
+    """
+    Inserts a `supernova_remnants` row (see `schema.sql`'s "v16" header
+    note), plus (for a core-collapse progenitor whose collapsed core is
+    still detectable) its embedded `black_holes`/`neutron_stars` row.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        remnant (SupernovaRemnant): The remnant to persist.
+        sector_id (int, optional): Reserved for a future sector-context
+            encounter. `None` (always, today).
+
+    Returns:
+        int: The new `supernova_remnants.id`.
+    """
+    compact_remnant_kind = None
+    black_hole_id = None
+    neutron_star_id = None
+    if isinstance(remnant.compact_remnant, BlackHole):
+        compact_remnant_kind = "black_hole"
+        black_hole_id = insert_black_hole(conn, remnant.compact_remnant)
+    elif isinstance(remnant.compact_remnant, NeutronStar):
+        compact_remnant_kind = "neutron_star"
+        neutron_star_id = insert_neutron_star(conn, remnant.compact_remnant)
+
+    cur = conn.execute(
+        """
+        INSERT INTO supernova_remnants (
+            sector_id, name, morphology, age_years, radius_ly, progenitor_type,
+            compact_remnant_kind, compact_remnant_black_hole_id, compact_remnant_neutron_star_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            sector_id, remnant.name, remnant.morphology, remnant.age_years, remnant.radius_ly,
+            remnant.progenitor_type, compact_remnant_kind, black_hole_id, neutron_star_id,
+        ),
+    )
+    return cur.lastrowid
+
+
+def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None) -> int:
+    """
+    Inserts a `rogue_planets` row (see `schema.sql`'s "v16" header note).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        planet (RoguePlanet): The rogue planet to persist.
+        sector_id (int, optional): Reserved for a future sector-context
+            encounter. `None` (always, today).
+
+    Returns:
+        int: The new `rogue_planets.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO rogue_planets (
+            sector_id, name, planet_type, mass_kg, radius_km, composition, has_internal_heat, has_moons
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            sector_id, planet.name, planet.planet_type, planet.mass_kg, planet.radius_km,
+            planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
+        ),
+    )
+    return cur.lastrowid
+
+
+def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None) -> int:
+    """
+    Inserts an `interstellar_comets` row (plus its
+    `interstellar_comet_composition` child rows; see `schema.sql`'s "v16"
+    header note).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        comet (InterstellarComet): The comet to persist.
+        sector_id (int, optional): Reserved for a future sector-context
+            encounter. `None` (always, today).
+
+    Returns:
+        int: The new `interstellar_comets.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO interstellar_comets (
+            sector_id, name, nucleus_diameter_km, velocity_kms, is_active, composition_summary
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            sector_id, comet.name, comet.nucleus_diameter_km, comet.velocity_kms,
+            int(comet.is_active), comet.get_composition_summary(),
+        ),
+    )
+    comet_id = cur.lastrowid
+
+    for position, component in enumerate(comet.composition):
+        conn.execute(
+            "INSERT INTO interstellar_comet_composition (comet_id, position, component) VALUES (?, ?, ?)",
+            (comet_id, position, component),
+        )
+
+    return comet_id
+
+
+def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: str, config=None) -> int:
+    """
+    Opens the database and persists a single generated exotic phenomenon
+    (`phenomenonGen.py`) in one transaction -- the exotic-phenomenon
+    counterpart to `save_system`.
+
+    Args:
+        phenomenon: The generated phenomenon -- a `BlackHole`/`NeutronStar`
+            (standalone), a `StarSystem` (an anchored compact remnant, see
+            `StarSystem.__init__`'s `compact_remnant` parameter and
+            `phenomenonGen.py --anchor-system`), a `Nebula`, a
+            `SupernovaRemnant`, a `RoguePlanet`, or an `InterstellarComet`.
+        system_config (SystemConfig): The config it was generated from --
+            only actually persisted (via `insert_star_system`) when
+            `phenomenon` is a `StarSystem`; no other phenomenon type has a
+            `SystemConfig` row of its own.
+        phenomenon_type (str): One of
+            `program_constants.PHENOMENON_TYPE_CHOICES`, naming which
+            table `phenomenon` belongs in (ignored when `phenomenon` is a
+            `StarSystem`, which always goes through `insert_star_system`
+            regardless of whether it's anchored by a black hole or a
+            neutron star).
+        config (MySQLConfig, optional): Connection parameters. Defaults to
+            `DEFAULT_MYSQL_CONFIG`.
+
+    Returns:
+        int: The new row's id, in whichever table `phenomenon`/
+            `phenomenon_type` maps to.
+
+    Raises:
+        ValueError: If `phenomenon_type` isn't one of the recognized
+                   choices (and `phenomenon` isn't a `StarSystem`).
+    """
+    conn = get_connection(config)
+    try:
+        with conn:
+            if isinstance(phenomenon, StarSystem):
+                # An anchored compact remnant: insert_star_system's own
+                # single-star branch already inserts the satellite
+                # black_holes/neutron_stars row -- see that function.
+                return insert_star_system(conn, phenomenon, system_config)
+            if phenomenon_type == "black-hole":
+                return insert_black_hole(conn, phenomenon)
+            if phenomenon_type == "neutron-star":
+                return insert_neutron_star(conn, phenomenon)
+            if phenomenon_type == "nebula":
+                return insert_nebula(conn, phenomenon)
+            if phenomenon_type == "supernova-remnant":
+                return insert_supernova_remnant(conn, phenomenon)
+            if phenomenon_type == "rogue-planet":
+                return insert_rogue_planet(conn, phenomenon)
+            if phenomenon_type == "comet":
+                return insert_interstellar_comet(conn, phenomenon)
+            raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
+    finally:
+        conn.close()
+
+
 _NULL_PROXY_ONLY_BINARY_FIELDS = (None,) * 15
 """Placeholder for the 15 `star_systems.binary_*` columns that only ever
 describe a merged `BinaryStarProxy` (a 'close'/P-type pair) -- always NULL
@@ -1266,6 +1520,16 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     else:
         primary_star_id = insert_star(conn, star_system.star, star_system_id, "single")
         secondary_star_id = None
+        # v16: a StarSystem anchored by a compact remnant (compactRemnant.py,
+        # phenomenonGen.py --anchor-system) -- insert_star above already
+        # wrote the stars row (BlackHole/NeutronStar's Star-compatible
+        # attribute surface, with yerkes_class set to the literal 'BH'/'NS'
+        # marker), so only the satellite black_holes/neutron_stars row
+        # (this remnant's own extra fields) remains.
+        if isinstance(star_system.star, BlackHole):
+            insert_black_hole(conn, star_system.star, star_id=primary_star_id)
+        elif isinstance(star_system.star, NeutronStar):
+            insert_neutron_star(conn, star_system.star, star_id=primary_star_id)
 
     for orbital_index, obj in enumerate(star_system.planets):
         if obj.body_type == "a":
@@ -2526,6 +2790,31 @@ def _migrate_v14_to_v15(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (15)")
 
 
+def _migrate_v15_to_v16(conn):
+    """
+    Records schema v16 -- six new exotic-phenomenon tables (`black_holes`,
+    `neutron_stars`, `nebulae`, `supernova_remnants`, `rogue_planets`,
+    `interstellar_comets`, plus `interstellar_comet_composition`; see
+    `schema.sql`'s "v16" header note) for `phenomenonGen.py`'s separate,
+    rarer generation mode.
+
+    Unlike every earlier migration step, this one needs no `ALTER TABLE`:
+    all six are brand-new tables, and `_ensure_schema`'s
+    `CREATE TABLE IF NOT EXISTS` (run on every new connection) already
+    creates them directly from the current `schema.sql`, even against a
+    database whose `schema_migrations` bookkeeping still says v15 -- there
+    is no pre-existing table whose shape needs changing the way earlier
+    migrations' `ALTER TABLE` calls did. This step exists purely to keep
+    that bookkeeping counter itself accurate.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (16)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -2541,8 +2830,9 @@ def migrate_database(config=None):
     planet/moon position columns), `_migrate_v11_to_v12` (added for
     the v12 floating-point update-guard column), `_migrate_v12_to_v13`
     (added for the v13 star-motion columns), `_migrate_v13_to_v14`
-    (added for the v14 binary-mutual-orbit position columns), and
-    `_migrate_v14_to_v15` (added for v15's S-type/wide-binary columns) are
+    (added for the v14 binary-mutual-orbit position columns),
+    `_migrate_v14_to_v15` (added for v15's S-type/wide-binary columns), and
+    `_migrate_v15_to_v16` (added for v16's exotic-phenomenon tables) are
     the migration steps so far; see `schema.sql`'s header comment for the
     versioning convention, and `migrateDb.py` for the CLI wrapper around
     this.
@@ -2587,6 +2877,10 @@ def migrate_database(config=None):
         if version < 15:
             _migrate_v14_to_v15(conn)
             version = 15
+
+        if version < 16:
+            _migrate_v15_to_v16(conn)
+            version = 16
 
         conn.commit()
         return version

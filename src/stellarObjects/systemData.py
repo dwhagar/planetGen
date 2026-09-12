@@ -114,7 +114,7 @@ class StarSystem:
             decided once at generation time (or None if the roll didn't select one).
     """
 
-    def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None):
+    def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None, compact_remnant=None):
         """
         Initializes a StarSystem object, generating a star and its planets.
 
@@ -159,6 +159,17 @@ class StarSystem:
                 `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant --
                 the correct behavior for a system with no galaxy placement
                 (e.g. `sectorGen.py`'s own standalone CLI).
+            compact_remnant (BlackHole or NeutronStar, optional): A
+                pre-built compact stellar remnant (see
+                `compactRemnant.py`'s module docstring) to anchor this
+                system in place of generating a normal `Star`. `None` (the
+                default) generates an ordinary `Star` as usual. When given,
+                the binary-generation step below is skipped entirely --
+                this generator doesn't model a compact remnant anchoring a
+                binary (e.g. a still-living stellar companion) -- so
+                `self.binary_type` stays `None` and `self.star` is exactly
+                `compact_remnant`, unwrapped. Used by
+                `phenomenonGen.py --anchor-system`.
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         # Rolled once here (not left for each Star/BinaryStarProxy to roll
@@ -169,9 +180,12 @@ class StarSystem:
         # sharing one phase, not three independent ones. See
         # `Star.__init__`'s `galactic_orbital_phase_deg` docstring.
         galactic_orbital_phase_deg = random.uniform(0, 360)
-        self.star = Star(self.system_config, name=self.system_config.NAME,
-                          galactic_center_dist_ly=galactic_center_dist_ly,
-                          galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
+        if compact_remnant is not None:
+            self.star = compact_remnant
+        else:
+            self.star = Star(self.system_config, name=self.system_config.NAME,
+                              galactic_center_dist_ly=galactic_center_dist_ly,
+                              galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
@@ -179,7 +193,7 @@ class StarSystem:
         self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
         self.stars = [self.primary_star] # Keep track of individual stars
 
-        if self._should_generate_binary():
+        if compact_remnant is None and self._should_generate_binary():
             # Create a copy of the system_config for the secondary star
             secondary_star_config = copy.deepcopy(self.system_config)
             # Ensure LARGE_STAR is not forced for the secondary star
@@ -701,6 +715,17 @@ class StarSystem:
         `count_objects`/`count_habitable`, never trusted from disk) and
         `stars`/`primary_star` (resolvable from `star`/`secondary_star`
         alone -- see `from_dict`).
+
+        Note: a system anchored by a `compactRemnant.BlackHole`/
+        `NeutronStar` (see `StarSystem.__init__`'s `compact_remnant`
+        parameter) serializes its `star` dict with that subclass's own
+        extra fields intact, but `from_dict` has no `star_kind`
+        discriminator to reconstruct it as anything other than a plain
+        `Star` -- round-tripping such a system through JSON is not
+        currently supported (`phenomenonGen.py`, the only caller that
+        creates one, never serializes to JSON -- only `_db.py`'s direct,
+        non-`to_dict`-based read/write path, via `insert_star_system`/
+        `load_star_system`, persists such a system today).
 
         Returns:
             dict: `schema_version`, `system_config`, `star`, `is_binary`,

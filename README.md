@@ -16,6 +16,7 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 *   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
 *   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
 *   **Sector generation**: `sectorGen.py` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below. Each system placed in a sector records a `location`: its sector's name plus distance (in light-years) to its 3 nearest neighboring systems.
+*   **Exotic stellar phenomena**: `phenomenonGen.py` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, or interstellar comet on demand — kept separate from normal system generation odds (`systemGen.py`/`sectorGen.py` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below.
 
 ## Setup
 
@@ -138,6 +139,27 @@ builds a small, cheap-to-recompute density "skeleton" (one singleton shape
 row plus one row per shell) that `galaxyGen.py` consults to decide, per
 address, whether anything exists there at all before generating it lazily
 on demand.
+
+## Exotic Phenomena Generation
+
+`phenomenonGen.py` generates a single exotic stellar phenomenon, kept
+deliberately separate from normal system generation — `systemGen.py`/
+`sectorGen.py`'s own generation odds never produce one:
+
+```bash
+python phenomenonGen.py --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet} [options]
+```
+
+Omitting `--type` picks uniformly at random among all six. `--anchor-system`
+(black hole/neutron star only) builds a full star system around the
+compact remnant instead of describing it standalone — real pulsar planets
+exist (PSR B1257+12) — reusing all of `systemGen.py`'s own orbit-placement
+logic; since a compact remnant's near-zero luminosity naturally collapses
+the disk-physics planet-count estimate toward zero (matching the real
+rarity of confirmed planets around black holes/neutron stars), pass
+`--num-orbits` to force orbiting bodies. `--markdown`, `--output`, and the
+`--mysql-*` connection options all work the same way they do on
+`systemGen.py`.
 
 ## Other Tools
 
