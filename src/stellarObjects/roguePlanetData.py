@@ -29,6 +29,32 @@ from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
 
 
+def format_comet_composition_summary(composition):
+    """
+    Builds the human-readable composition summary phrase (e.g. "water
+    ice, silicate dust, and complex organic compounds") for a plain list
+    of component strings, in the shape `InterstellarComet.composition`/
+    `cometData.Comet.composition` both use -- extracted here, the same
+    way `asteroidData.format_composition_summary` is, so `cometData.Comet`
+    (a star-bound sibling of `InterstellarComet`, see that module's own
+    docstring) can reuse this formatting logic instead of duplicating it.
+
+    Args:
+        composition (list): A list of component strings.
+
+    Returns:
+        str: The composition summary phrase, or "unknown composition" if
+            `composition` is empty.
+    """
+    if not composition:
+        return "unknown composition"
+    if len(composition) == 1:
+        return composition[0]
+    if len(composition) == 2:
+        return f"{composition[0]} and {composition[1]}"
+    return ", ".join(composition[:-1]) + f", and {composition[-1]}"
+
+
 class RoguePlanet:
     """
     A basic class to store information for a free-floating ("rogue"/nomad)
@@ -273,13 +299,7 @@ class InterstellarComet:
         Returns:
             str: The composition summary phrase.
         """
-        if not self.composition:
-            return "unknown composition"
-        if len(self.composition) == 1:
-            return self.composition[0]
-        if len(self.composition) == 2:
-            return f"{self.composition[0]} and {self.composition[1]}"
-        return ", ".join(self.composition[:-1]) + f", and {self.composition[-1]}"
+        return format_comet_composition_summary(self.composition)
 
     def to_paragraph_list(self):
         """

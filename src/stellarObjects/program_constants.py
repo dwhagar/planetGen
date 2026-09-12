@@ -1580,8 +1580,119 @@ COMET_COMPOSITION = [
 list: Common cometary nucleus components (real, spectroscopically-
 identified cometary ices/dust, e.g. as surveyed in A'Hearn et al. 1995,
 Icarus 118:223), used the same way ASTEROID_COMPONENTS is -- a random
-subset sampled per object for descriptive composition text.
+subset sampled per object for descriptive composition text. Shared by
+`InterstellarComet` and `cometData.Comet` alike -- nucleus chemistry
+doesn't depend on whether the comet is bound to a star.
 """
+
+# --- Star-Bound Comets (cometData.Comet) ---
+#
+# Unlike InterstellarComet (unbound, hyperbolic, encountered once, always
+# standalone), a Comet here is bound to a star's own system, propagated
+# via real two-body Kepler/Barker orbital mechanics (see keplerMotion.py)
+# rather than a fixed hyperbolic excess speed. See
+# docs/design/comet-orbital-realism.md for the full research/design
+# writeup this implements.
+
+# Bound short-period/long-period comet nuclei run larger, on average,
+# than the two confirmed interstellar visitors this generator also models
+# (INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM, ~0.1-1 km) -- e.g. Halley
+# is ~15x8 km (Keller et al. 1986, ESA Giotto results) and Jupiter-family
+# comet nuclei are typically observed in the 1-10 km range (Lamy et al.
+# 2004, "Sizes, Shapes, Albedos, and Colors of Cometary Nuclei"). A
+# separate, wider range reflects that real difference rather than reusing
+# the interstellar range as-is.
+BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
+
+# Perihelion distance range, in AU, for a star-bound comet -- wide enough
+# to cover both a sungrazer-like close pass and an outer-system comet that
+# never gets very active. COMET_ACTIVITY_PERIHELION_THRESHOLD_AU (below)
+# is what actually drives whether a given perihelion produces visible
+# activity, not this range's own bounds.
+COMET_PERIHELION_DISTANCE_RANGE_AU = (0.05, 5.0)
+
+# Real ices (dominated by water ice) begin sublimating noticeably inside
+# roughly 2.5-3 AU of a Sun-like star -- the classic "ices turn on" comet
+# activity threshold (e.g. Meech & Svoren 2004, "Physical and chemical
+# evolution of cometary nuclei", in "Comets II"). Used by
+# `Comet._roll_activity` to scale activity chance by perihelion distance
+# rather than a flat roll (contrast INTERSTELLAR_COMET_ACTIVE_CHANCE,
+# where an interstellar comet's arbitrary/often-irrelevant perihelion
+# makes a flat roll the more honest choice).
+COMET_ACTIVITY_PERIHELION_THRESHOLD_AU = 3.0
+
+# Activity-chance floor/ceiling `Comet._roll_activity` interpolates
+# between across COMET_ACTIVITY_PERIHELION_THRESHOLD_AU: near-certain
+# activity for a sungrazer-close perihelion, down to a small residual
+# chance (a comet can still show faint activity, or have shed enough
+# volatiles over past passages, well beyond the nominal sublimation
+# threshold) at or beyond it.
+COMET_ACTIVITY_MAX_CHANCE = 0.9
+COMET_ACTIVITY_MIN_CHANCE = 0.05
+
+COMET_PERIOD_CLASSES = {
+    # Real dynamical comet families (see docs/design/comet-orbital-realism.md's
+    # taxonomy table) -- each entry's period_range_years/eccentricity_range/
+    # inclination_max_deg are drawn from, in that order: Jupiter-family
+    # comets (repeatedly perturbed by Jupiter into short, low-inclination,
+    # moderately eccentric orbits -- e.g. 2P/Encke, 67P/Churyumov-
+    # Gerasimenko), Halley-type comets (intermediate period, can retain a
+    # high or even retrograde inclination from their less-processed
+    # Oort-Cloud-adjacent origin -- 1P/Halley itself is inclined 162 deg,
+    # i.e. retrograde), and long-period comets (e very close to 1,
+    # isotropic inclination -- true Oort Cloud origin, only weakly
+    # dynamically processed). `weight` is this family's relative share of
+    # generated elliptical comets, not a physical population estimate.
+    "jupiter_family": {
+        "period_range_years": (3.3, 20.0),
+        "eccentricity_range": (0.2, 0.75),
+        "inclination_max_deg": 30.0,
+        "weight": 0.5,
+    },
+    "halley_type": {
+        "period_range_years": (20.0, 200.0),
+        "eccentricity_range": (0.5, 0.97),
+        "inclination_max_deg": 180.0,
+        "weight": 0.3,
+    },
+    "long_period": {
+        "period_range_years": (200.0, 4_000_000.0),
+        "eccentricity_range": (0.9, 0.999),
+        "inclination_max_deg": 180.0,
+        "weight": 0.2,
+    },
+}
+"""
+dict: Elliptical star-bound comet subtype table, keyed by `period_class`
+(see `cometData.Comet`'s own docstring) -- flavor/plausibility metadata
+only (`keplerMotion.py`'s propagation is identical for every subtype; only
+the *sampled ranges* differ per family), not a separate physics model.
+"""
+
+# A "parabolic" Comet's stored eccentricity is drawn from just under 1.0
+# rather than fixed at exactly 1.0 -- realistic near-parabolic long-period/
+# single-apparition comets are never mathematically exact parabolas -- but
+# `keplerMotion.py` always propagates orbit_type == "parabolic" via the
+# exact Barker's-equation solution regardless of the specific value drawn
+# here (the numerical difference between e=1.0 and e=0.998 over a single
+# apparition is negligible, and the elliptical Kepler-equation solver
+# converges poorly as e -> 1 anyway -- see keplerMotion.solve_eccentric_anomaly).
+PARABOLIC_COMET_ECCENTRICITY_RANGE = (0.995, 1.0)
+
+# Chance a star-bound comet generates as parabolic (single-apparition,
+# escapes after this one perihelion passage) rather than elliptical
+# (periodic, returns every orbit) -- see docs/design/comet-orbital-realism.md's
+# taxonomy table. Most bound comets observed are periodic; long-period/
+# parabolic "great comets" are the rarer, more dramatic case.
+COMET_PARABOLIC_CHANCE = 0.3
+
+# Inclination is drawn independently of COMET_PERIOD_CLASSES'
+# inclination_max_deg for a parabolic comet (which has no period_class of
+# its own) -- isotropic, like a true long-period/Oort-Cloud-origin comet,
+# since a single-apparition object hasn't been dynamically flattened into
+# a low-inclination orbit the way a repeatedly-perturbed Jupiter-family
+# comet has.
+PARABOLIC_COMET_INCLINATION_MAX_DEG = 180.0
 
 # --- Asteroid Fields (asteroidFieldData.AsteroidField) ---
 
