@@ -1583,11 +1583,23 @@ Icarus 118:223), used the same way ASTEROID_COMPONENTS is -- a random
 subset sampled per object for descriptive composition text.
 """
 
+# --- Asteroid Fields (asteroidFieldData.AsteroidField) ---
+
+# Radius range for a standalone asteroid field drifting in open
+# interstellar space (as opposed to AsteroidBelt, which orbits a star),
+# in light-years. Lower bound is well above our own Kuiper Belt's real
+# scale (~30-50 AU, ~0.0005-0.0008 ly) -- a field with no central star to
+# hold it together can plausibly be spread far wider by galactic tidal
+# shear over billions of years -- while the upper bound stays below a
+# planetary nebula's own radius range (NEBULA_TYPES["planetary"], 0.1-3
+# ly) so the two remain visually/narratively distinct phenomena.
+ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
+
 # --- Phenomenon Generation Mode (phenomenonGen.py) ---
 
 PHENOMENON_TYPE_CHOICES = (
     "black-hole", "neutron-star", "nebula", "supernova-remnant",
-    "rogue-planet", "comet",
+    "rogue-planet", "comet", "asteroid-field",
 )
 """
 tuple: The valid `--type` values `phenomenonGen.py` accepts; omitting

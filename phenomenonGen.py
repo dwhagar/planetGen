@@ -3,20 +3,21 @@ phenomenonGen.py
 ================
 
 Generates a single exotic stellar phenomenon -- a black hole, neutron
-star, nebula, supernova remnant, rogue planet, or interstellar comet --
-kept deliberately separate from `systemGen.py`'s normal system generation.
+star, nebula, supernova remnant, rogue planet, interstellar comet, or
+standalone asteroid field -- kept deliberately separate from
+`systemGen.py`'s normal system generation.
 
 Per this feature's design, these phenomena are NOT part of normal system
 generation odds: `StarSystem._generate_planets`'s per-slot rolls never
 produce one, and `systemGen.py`/`sectorGen.py` never reference this
 module. They are reachable only through this script's own, rarer,
-on-demand `--type` choice (uniformly random among all six when omitted).
+on-demand `--type` choice (uniformly random among all seven when omitted).
 
 A black hole or neutron star may optionally anchor a full `StarSystem`
 (`--anchor-system`) -- e.g. a pulsar with a fallback-disk planet (real
 examples exist, PSR B1257+12) -- reusing all of `StarSystem`'s existing
 orbit-placement/rendering logic via `compactRemnant.py`'s `Star` subclass
-design (see that module's docstring). The other four phenomena are always
+design (see that module's docstring). The other five phenomena are always
 standalone; `--anchor-system` doesn't apply to them.
 """
 
@@ -32,6 +33,7 @@ import sys
 # first, matching how html/'s CGI scripts fall back to a no-install layout.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
+from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects import _db, program_constants
@@ -51,6 +53,7 @@ TYPE_LABELS = {
     "supernova-remnant": "supernova remnant",
     "rogue-planet": "rogue planet",
     "comet": "interstellar comet",
+    "asteroid-field": "asteroid field",
 }
 """dict: `--type` value -> human-readable label, used in this script's own
 status output (not part of the generated phenomenon's own text)."""
@@ -72,7 +75,7 @@ def process_args():
     additional_info = [
         "Additional Information:",
         "Generates a single exotic stellar phenomenon, kept separate from systemGen.py's normal system",
-        "generation. Omitting --type picks uniformly at random among all six phenomena. --anchor-system",
+        "generation. Omitting --type picks uniformly at random among all seven phenomena. --anchor-system",
         "(black-hole/neutron-star only) builds a full star system around the compact remnant instead of",
         "describing it standalone -- disk-physics-driven planet generation naturally tends toward zero",
         "planets around a dark remnant, so pass --num-orbits (or edit the generated SystemConfig) to force",
@@ -140,7 +143,7 @@ def generate_phenomenon(phenomenon_type, system_config, anchor_system, name=None
     Returns:
         The generated phenomenon: a `BlackHole`, `NeutronStar`, `StarSystem`
         (only when `anchor_system` is True), `Nebula`, `SupernovaRemnant`,
-        `RoguePlanet`, or `InterstellarComet`.
+        `RoguePlanet`, `InterstellarComet`, or `AsteroidField`.
 
     Raises:
         ValueError: If `phenomenon_type` isn't one of the recognized choices.
@@ -159,6 +162,8 @@ def generate_phenomenon(phenomenon_type, system_config, anchor_system, name=None
         return RoguePlanet(system_config, name=name)
     if phenomenon_type == "comet":
         return InterstellarComet(system_config, name=name)
+    if phenomenon_type == "asteroid-field":
+        return AsteroidField(system_config, name=name)
 
     raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
 

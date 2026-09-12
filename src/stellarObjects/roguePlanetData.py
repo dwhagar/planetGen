@@ -25,7 +25,8 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import generate_phoneme_salad_name, reseed_rng
+from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
+                    generate_phoneme_salad_name, reseed_rng)
 
 
 class RoguePlanet:
@@ -49,9 +50,14 @@ class RoguePlanet:
     SERIALIZABLE_FIELDS = [
         "name", "planet_type", "mass_kg", "radius_km", "composition",
         "has_internal_heat", "has_moons",
+        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
-    shared back-reference)."""
+    shared back-reference). The `galactic_orbital_*` fields (see
+    `nebulaData.Nebula`'s identical fields' docstring) reflect that a
+    rogue planet is unbound from any specific STAR, not from the galaxy
+    itself -- it still orbits the galactic center like a lone star does."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -89,6 +95,10 @@ class RoguePlanet:
 
         self.has_internal_heat = random.random() < program_constants.ROGUE_PLANET_INTERNAL_HEAT_CHANCE
         self.has_moons = random.random() < program_constants.ROGUE_PLANET_MOON_CHANCE
+
+        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+            generate_galactic_orbit_fields()
 
     def to_dict(self):
         """
@@ -147,6 +157,10 @@ class RoguePlanet:
             sentences.append("Its interior has long since cooled to the ambient temperature of deep space.")
         if self.has_moons:
             sentences.append("A smaller companion body, likely captured after ejection, still orbits it.")
+        sentences.append(
+            f"Though bound to no star, it still orbits the galactic center at "
+            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
+        )
 
         return [header, " ".join(sentences)]
 
@@ -176,11 +190,21 @@ class InterstellarComet:
             sublimating ices.
     """
 
-    SERIALIZABLE_FIELDS = ["name", "nucleus_diameter_km", "velocity_kms", "is_active"]
+    SERIALIZABLE_FIELDS = [
+        "name", "nucleus_diameter_km", "velocity_kms", "is_active",
+        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+    ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
     `to_dict`/`from_dict` -- a plain list, but kept alongside the others
-    for symmetry with `AsteroidBelt.composition`'s own separate handling)."""
+    for symmetry with `AsteroidBelt.composition`'s own separate handling).
+    `velocity_kms` (this comet's own hyperbolic excess speed relative to
+    whatever star it passes) is a separate, non-advancing descriptive
+    stat from `galactic_orbital_*` (its own bulk motion around the galactic
+    center, see `nebulaData.Nebula`'s identical fields' docstring) -- the
+    two don't conflict, the same way a planet's `rotation_period_hours`
+    doesn't conflict with its own orbital motion."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -201,6 +225,10 @@ class InterstellarComet:
 
         num_components = min(3, len(program_constants.COMET_COMPOSITION))
         self.composition = random.sample(program_constants.COMET_COMPOSITION, k=num_components)
+
+        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+            generate_galactic_orbit_fields()
 
     def to_dict(self):
         """
@@ -275,7 +303,9 @@ class InterstellarComet:
             f"{self.name} is a small icy body on a hyperbolic, unbound trajectory through interstellar space, "
             f"with a nucleus roughly {self.nucleus_diameter_km:.2f} km across, composed of "
             f"{self.get_composition_summary()}. It is traveling at a hyperbolic excess speed of "
-            f"{self.velocity_kms:.1f} km/s relative to any star it passes. {activity}"
+            f"{self.velocity_kms:.1f} km/s relative to any star it passes. {activity} Its own bulk motion "
+            f"still carries it around the galactic center at "
+            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )
 
         return [header, description]

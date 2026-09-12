@@ -418,6 +418,36 @@
 --   connection) already creates them directly from this file regardless
 --   of the database's recorded `schema_migrations` version.
 --
+-- v17: galactic-orbital motion for every standalone exotic phenomenon,
+--   plus a seventh phenomenon, standalone asteroid fields. A rogue planet,
+--   interstellar comet, nebula, supernova remnant, or asteroid field is
+--   unbound from any specific STAR, not from the galaxy itself -- it still
+--   orbits the galactic center on the same timescale a lone star does, via
+--   the same mass-independent rotation-curve model `stars.
+--   galactic_orbital_phase_deg` already uses (see `utils.
+--   generate_galactic_orbit_fields`). `black_holes`/`neutron_stars`/
+--   `nebulae`/`supernova_remnants`/`rogue_planets`/`interstellar_comets`
+--   each gain `galactic_orbital_speed_kms`, `galactic_orbital_period_gy`,
+--   `galactic_orbital_phase_deg`, `galactic_min_update_interval_years` --
+--   nullable on `black_holes`/`neutron_stars` (only meaningful/populated
+--   when `star_id IS NULL`; an anchored remnant's motion already lives on
+--   its owning `stars` row instead, avoiding two sources of truth for the
+--   same anchored object's position), `NOT NULL` on the other four (always
+--   standalone, always populated). Unlike v16's brand-new tables, these
+--   are new columns on already-existing tables, so (unlike
+--   `_migrate_v15_to_v16`) `_migrate_v16_to_v17` needs real `ALTER TABLE`
+--   statements, not just a bookkeeping row.
+--     New table `asteroid_fields` (plus child `asteroid_field_composition`,
+--   mirroring `asteroid_belt_composition`/`interstellar_comet_composition`)
+--   -- `asteroidFieldData.AsteroidField`, physically the same object as
+--   `asteroid_belts` (density + mineral composition, generated via the
+--   same shared `asteroidData.generate_asteroid_composition`/
+--   `format_composition_summary` helpers) but standalone, drifting in open
+--   space rather than orbiting a star -- same "always standalone, nullable
+--   `sector_id` reserved" shape as `nebulae` above, plus the four
+--   `galactic_orbital_*` columns from the start (a new table, so no
+--   `ALTER TABLE` needed for it specifically).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1065,6 +1095,13 @@ CREATE TABLE IF NOT EXISTS black_holes (
     temperature_k             DOUBLE NOT NULL,
     luminosity_w              DOUBLE NOT NULL,
     age_gy                    DOUBLE NOT NULL,
+    -- v17: NULL when star_id is set (an anchored remnant's galactic motion
+    -- lives on its own stars row instead); populated only for a standalone
+    -- black hole. See this file's "v17" header note.
+    galactic_orbital_speed_kms           DOUBLE,
+    galactic_orbital_period_gy           DOUBLE,
+    galactic_orbital_phase_deg           DOUBLE,
+    galactic_min_update_interval_years   DOUBLE,
 
     CONSTRAINT fk_black_holes_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
@@ -1083,6 +1120,11 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     surface_temperature_k     DOUBLE NOT NULL,
     luminosity_w              DOUBLE NOT NULL,
     age_gy                    DOUBLE NOT NULL,
+    -- v17: same nullable-when-anchored convention as black_holes above.
+    galactic_orbital_speed_kms           DOUBLE,
+    galactic_orbital_period_gy           DOUBLE,
+    galactic_orbital_phase_deg           DOUBLE,
+    galactic_min_update_interval_years   DOUBLE,
 
     CONSTRAINT fk_neutron_stars_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
@@ -1102,6 +1144,12 @@ CREATE TABLE IF NOT EXISTS nebulae (
     radius_ly         DOUBLE NOT NULL,
     composition       TEXT NOT NULL,
     formation_cause   TEXT NOT NULL,
+    -- v17: always populated (a nebula is always standalone). See this
+    -- file's "v17" header note.
+    galactic_orbital_speed_kms           DOUBLE NOT NULL,
+    galactic_orbital_period_gy           DOUBLE NOT NULL,
+    galactic_orbital_phase_deg           DOUBLE NOT NULL,
+    galactic_min_update_interval_years   DOUBLE NOT NULL,
 
     CONSTRAINT fk_nebulae_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
@@ -1126,6 +1174,11 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     compact_remnant_kind              VARCHAR(16) CHECK (compact_remnant_kind IN ('black_hole', 'neutron_star')),
     compact_remnant_black_hole_id     BIGINT UNSIGNED,
     compact_remnant_neutron_star_id   BIGINT UNSIGNED,
+    -- v17: always populated (a supernova remnant is always standalone).
+    galactic_orbital_speed_kms           DOUBLE NOT NULL,
+    galactic_orbital_period_gy           DOUBLE NOT NULL,
+    galactic_orbital_phase_deg           DOUBLE NOT NULL,
+    galactic_min_update_interval_years   DOUBLE NOT NULL,
 
     CONSTRAINT fk_supernova_remnants_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
@@ -1150,6 +1203,11 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     composition         TEXT NOT NULL,
     has_internal_heat   TINYINT(1) NOT NULL CHECK (has_internal_heat IN (0, 1)),
     has_moons           TINYINT(1) NOT NULL CHECK (has_moons IN (0, 1)),
+    -- v17: always populated (a rogue planet is always standalone).
+    galactic_orbital_speed_kms           DOUBLE NOT NULL,
+    galactic_orbital_period_gy           DOUBLE NOT NULL,
+    galactic_orbital_phase_deg           DOUBLE NOT NULL,
+    galactic_min_update_interval_years   DOUBLE NOT NULL,
 
     CONSTRAINT fk_rogue_planets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
@@ -1171,6 +1229,13 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     velocity_kms           DOUBLE NOT NULL,
     is_active              TINYINT(1) NOT NULL CHECK (is_active IN (0, 1)),
     composition_summary    TEXT NOT NULL,
+    -- v17: always populated (an interstellar comet is always standalone).
+    -- Its own hyperbolic velocity_kms above is a separate, non-advancing
+    -- descriptive stat -- see this file's "v17" header note.
+    galactic_orbital_speed_kms           DOUBLE NOT NULL,
+    galactic_orbital_period_gy           DOUBLE NOT NULL,
+    galactic_orbital_phase_deg           DOUBLE NOT NULL,
+    galactic_min_update_interval_years   DOUBLE NOT NULL,
 
     CONSTRAINT fk_interstellar_comets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
@@ -1186,6 +1251,45 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
     CONSTRAINT fk_interstellar_comet_composition_comet
         FOREIGN KEY (comet_id) REFERENCES interstellar_comets(id) ON DELETE CASCADE,
     KEY idx_interstellar_comet_composition_comet_id (comet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- asteroid_fields -- v17 exotic phenomenon (seventh phenomenon type),
+-- always standalone (a field drifting in open space, as opposed to
+-- asteroid_belts, which always orbits a star). `sector_id` is reserved
+-- for a future sector-context encounter; unused (always NULL) by
+-- phenomenonGen.py today, the same convention `nebulae` uses.
+-- `asteroid_field_composition` mirrors `asteroid_belt_composition`
+-- exactly (same per-component/concentration shape -- both are generated
+-- via the same shared `asteroidData.generate_asteroid_composition`).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS asteroid_fields (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sector_id             BIGINT UNSIGNED,
+    name                  VARCHAR(255) NOT NULL,
+    density               VARCHAR(16) NOT NULL CHECK (density IN ('dense', 'sparse', 'typical')),
+    radius_ly             DOUBLE NOT NULL,
+    composition_summary   TEXT NOT NULL,
+    galactic_orbital_speed_kms           DOUBLE NOT NULL,
+    galactic_orbital_period_gy           DOUBLE NOT NULL,
+    galactic_orbital_phase_deg           DOUBLE NOT NULL,
+    galactic_min_update_interval_years   DOUBLE NOT NULL,
+
+    CONSTRAINT fk_asteroid_fields_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    KEY idx_asteroid_fields_sector_id (sector_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS asteroid_field_composition (
+    id             BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    field_id       BIGINT UNSIGNED NOT NULL,
+    position       INT NOT NULL,
+    component      VARCHAR(64) NOT NULL,
+    concentration  VARCHAR(16) NOT NULL CHECK (concentration IN ('high', 'moderate', 'small', 'trace')),
+
+    CONSTRAINT fk_asteroid_field_composition_field
+        FOREIGN KEY (field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
+    KEY idx_asteroid_field_composition_field_id (field_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

@@ -23,7 +23,8 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import generate_phoneme_salad_name, reseed_rng
+from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
+                    generate_phoneme_salad_name, reseed_rng)
 
 
 class SupernovaRemnant:
@@ -46,12 +47,19 @@ class SupernovaRemnant:
             present/detectable for a core-collapse one.
     """
 
-    SERIALIZABLE_FIELDS = ["name", "morphology", "age_years", "radius_ly", "progenitor_type"]
+    SERIALIZABLE_FIELDS = [
+        "name", "morphology", "age_years", "radius_ly", "progenitor_type",
+        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+    ]
     """Every attribute set by `__init__` except `system_config` (a shared
     back-reference) and `compact_remnant` (a nested object, handled
     separately in `to_dict`/`from_dict` alongside its own
     `compact_remnant_kind` discriminator -- mirrors how `StarSystem.to_dict`
-    nests `secondary_star`/`wide_binary` outside its own field list)."""
+    nests `secondary_star`/`wide_binary` outside its own field list). See
+    `nebulaData.Nebula`'s identical `galactic_orbital_*` fields' docstring
+    -- a supernova remnant is likewise still gravitationally part of the
+    galaxy despite being bound to no star."""
 
     def __init__(self, system_config: SystemConfig, name=None):
         """
@@ -76,6 +84,10 @@ class SupernovaRemnant:
 
         is_type_ia = random.random() < program_constants.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
         self.progenitor_type = "Type Ia" if is_type_ia else "core-collapse"
+
+        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+            generate_galactic_orbit_fields()
 
         self.compact_remnant = None
         if not is_type_ia and random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
@@ -153,7 +165,8 @@ class SupernovaRemnant:
         description = (
             f"{self.name} is a {self.morphology} supernova remnant, the expanding wreckage of a "
             f"{self.progenitor_type} supernova approximately {self.age_years:,.0f} years ago. It now spans "
-            f"roughly {self.radius_ly:.2f} light-years across."
+            f"roughly {self.radius_ly:.2f} light-years across, and still orbits the galactic center at "
+            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )
 
         paragraphs = [header, description]

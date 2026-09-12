@@ -1,5 +1,54 @@
 # Changelog
 
+## [5.29.0] - 2026-09-12
+
+### Added
+- **Standalone asteroid fields, the seventh exotic phenomenon.**
+  `phenomenonGen.py --type asteroid-field` generates a field of asteroid
+  debris drifting in open interstellar space (new `asteroidFieldData.
+  AsteroidField`) -- physically the same object as an in-system
+  `AsteroidBelt` (density + mineral composition), just without a host
+  star/orbit, reusing `AsteroidBelt`'s own composition-generation logic
+  (now extracted into shared `asteroidData.generate_asteroid_composition`/
+  `format_composition_summary` functions rather than duplicated).
+- **Galactic-orbital motion for every standalone exotic phenomenon.**
+  A black hole/neutron star with no owning system, a nebula, a supernova
+  remnant, a rogue planet, an interstellar comet, and a standalone
+  asteroid field are all still gravitationally part of the galaxy even
+  though none is bound to any specific star -- each now gets the same
+  `galactic_orbital_speed_kms`/`_period_gy`/`_phase_deg`/
+  `_min_update_interval_years` quartet a lone `Star` has (new shared
+  `utils.generate_galactic_orbit_fields`/`format_galactic_orbit` helpers,
+  also adopted by `Star`/`BinaryStarProxy`/`BlackHole`/`NeutronStar` for
+  consistency), advanced over real elapsed time by `updateOrbits.py`/
+  `_db.advance_orbital_phases` the identical way a star's already is.
+  `advance_orbital_phases` now returns a name-keyed dict rather than a
+  positional tuple, since the set of tables it advances keeps growing.
+  Persisted via schema v17 (new columns on six pre-existing tables plus
+  the new `asteroid_fields`/`asteroid_field_composition` tables) and a
+  `_migrate_v16_to_v17` migration step.
+- **Fixed: an anchored black hole/neutron star silently lost its identity
+  on reload.** `_db.load_star_system`'s single-star branch always called
+  `Star.from_dict`, with no dispatch on the owning `stars.yerkes_class`
+  marker (`'BH'`/`'NS'`) and no query against the `black_holes`/
+  `neutron_stars` satellite tables -- a system saved via `phenomenonGen.py
+  --anchor-system` reloaded (via `queryDb.py` or the Flask API) as a
+  generic `Star` carrying a nonsensical Yerkes class, missing every
+  remnant-specific field, and rendered with `Star`'s own paragraph text
+  instead of the remnant's. New `_db._load_single_star` now dispatches
+  correctly, reusing the same satellite-row-plus-base-row combination
+  `_binary_proxy_row_to_dict` already does for a close binary's merged
+  proxy.
+- **`stellarObjects/phenomenaPlausibility.py`, a statistical anomaly
+  finder for all seven exotic phenomena** -- the same two-tier design as
+  the existing planet-focused `plausibility.py` (analytically-derived hard
+  invariants, e.g. an event horizon radius must match the Schwarzschild
+  formula for its own mass, gated by `test_phenomena_plausibility.py`;
+  Tukey's-fences statistical outliers plus category-frequency comparisons
+  against each phenomenon's own configured chance, reported for human
+  review via the new `src/tests/phenomena_plausibility_cli.py`, never
+  asserted exactly).
+
 ## [5.28.0] - 2026-09-12
 
 ### Added

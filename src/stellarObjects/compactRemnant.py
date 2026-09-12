@@ -45,8 +45,8 @@ from .config import SystemConfig
 from . import physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (calculate_habitable_zone, format_age_string, format_length_km,
-                    format_relative_to_sol, minimum_update_interval_years,
+from .utils import (calculate_habitable_zone, format_age_string, format_galactic_orbit,
+                    format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     properties_to_string, reseed_rng)
 
 
@@ -111,13 +111,9 @@ class CompactRemnant(Star):
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
         self.heliosphere_radius = 0.0
-        self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
-            self.calculate_galactic_orbit(self.galactic_center_dist_ly)
-        self.galactic_orbital_phase_deg = (
-            galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else random.uniform(0, 360)
-        )
-        self.galactic_min_update_interval_years = \
-            minimum_update_interval_years(self.galactic_orbital_period_gy * 1e9)
+        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+            generate_galactic_orbit_fields(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
 
     def to_dict(self):
         """
@@ -251,10 +247,7 @@ class BlackHole(CompactRemnant):
             program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
             program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
-        orbit_string = (
-            f"{self.galactic_orbital_speed_kms:,.1f} km/s "
-            f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
-        )
+        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
         return {
             "type": self.type,
             "mass": mass_string,
@@ -381,10 +374,7 @@ class NeutronStar(CompactRemnant):
             program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
             program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
-        orbit_string = (
-            f"{self.galactic_orbital_speed_kms:,.1f} km/s "
-            f"({format_age_string(self.galactic_orbital_period_gy)} per orbit)"
-        )
+        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
         return {
             "type": self.type,
             "mass": mass_string,

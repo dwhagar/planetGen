@@ -14,9 +14,10 @@ other) -- so a single run brings the whole database's motion up to date
 in one pass.
 
 `stellarObjects._db.advance_orbital_phases` does the actual work: a
-single set-based `UPDATE` per table (`planets`/`moons`), driven by each
-body's own already-stored `period_years` and the elapsed real time since
-`orbit_simulation_state.last_updated_at` (stored, not recomputed --
+single set-based `UPDATE` per table (`planets`/`moons`, plus every
+standalone exotic phenomenon's own galactic orbit -- see below), driven by
+each body's own already-stored `period_years` and the elapsed real time
+since `orbit_simulation_state.last_updated_at` (stored, not recomputed --
 `stellarObjects._db.get_orbit_update_elapsed_years` measures it
 server-side via `TIMESTAMPDIFF` rather than trusting this process' own
 clock to agree with the database server's). A database this has never run
@@ -51,6 +52,14 @@ relative to the primary) are recomputed in lockstep with
 update of its own" treatment `position_x/y/z_km` gets above -- see
 `schema.sql`'s "v14" note.
 
+Every standalone exotic phenomenon (`phenomenonGen.py`, schema v16/v17) --
+a black hole/neutron star with no owning `StarSystem`, a nebula, a
+supernova remnant, a rogue planet, an interstellar comet, or a standalone
+asteroid field -- gets its own `galactic_orbital_phase_deg` advanced the
+identical way a lone star's is: unbound from any specific STAR doesn't
+mean unbound from the galaxy itself, so these still orbit the galactic
+center on the same timescale. See `schema.sql`'s "v17" header note.
+
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
@@ -80,10 +89,28 @@ from stellarObjects._db import (
 from stellarObjects._version import VersionAction, version_banner
 
 
+TABLE_LABELS = {
+    "planets": "planet(s)",
+    "moons": "moon(s)",
+    "stars": "star(s)",
+    "binary_mutual_orbits": "binary mutual orbit(s)",
+    "binary_galactic_orbits": "binary galactic orbit(s)",
+    "black_holes": "standalone black hole(s)",
+    "neutron_stars": "standalone neutron star(s)",
+    "nebulae": "nebula(e)",
+    "supernova_remnants": "supernova remnant(s)",
+    "rogue_planets": "rogue planet(s)",
+    "interstellar_comets": "interstellar comet(s)",
+    "asteroid_fields": "asteroid field(s)",
+}
+"""dict: `advance_orbital_phases`' result dict key -> human-readable label
+for this script's own summary line."""
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Advance every planet's, moon's, star's, and binary system's orbital position "
-                    "based on real elapsed time.",
+        description="Advance every planet's, moon's, star's, binary system's, and standalone exotic "
+                    "phenomenon's orbital position based on real elapsed time.",
     )
     add_mysql_connection_args(parser)
     parser.add_argument('--version', action=VersionAction, banner=version_banner('updateOrbits.py'))
@@ -106,14 +133,9 @@ def main():
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 
-        planets_updated, moons_updated, stars_updated, \
-            binary_mutual_orbits_updated, binary_galactic_orbits_updated = \
-            advance_orbital_phases(conn, elapsed_years)
-        print(
-            f"Updated {planets_updated} planet(s), {moons_updated} moon(s), "
-            f"{stars_updated} star(s), {binary_mutual_orbits_updated} binary mutual orbit(s), "
-            f"and {binary_galactic_orbits_updated} binary galactic orbit(s)."
-        )
+        counts = advance_orbital_phases(conn, elapsed_years)
+        summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
+        print(f"Updated: {summary}.")
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)

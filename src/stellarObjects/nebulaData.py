@@ -19,7 +19,8 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import generate_phoneme_salad_name, reseed_rng
+from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
+                    generate_phoneme_salad_name, reseed_rng)
 
 
 class Nebula:
@@ -38,9 +39,26 @@ class Nebula:
         composition (str): A descriptive composition string for this type.
         formation_cause (str): A descriptive formation-cause string for
             this type.
+        galactic_orbital_speed_kms (float): Circular orbital speed around
+            the galactic center, km/s -- a nebula is still gravitationally
+            part of the galaxy even though it isn't bound to any star (see
+            `utils.generate_galactic_orbit_fields`).
+        galactic_orbital_period_gy (float): Orbital period, billions of
+            years.
+        galactic_orbital_phase_deg (float): Current angular position
+            around that orbit -- the value `_db.advance_orbital_phases`
+            advances over time, the same role `Star.galactic_orbital_phase_deg`
+            plays.
+        galactic_min_update_interval_years (float): Floating-point update
+            guard for `galactic_orbital_phase_deg` (`utils.
+            minimum_update_interval_years`).
     """
 
-    SERIALIZABLE_FIELDS = ["name", "nebula_type", "radius_ly", "composition", "formation_cause"]
+    SERIALIZABLE_FIELDS = [
+        "name", "nebula_type", "radius_ly", "composition", "formation_cause",
+        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
+        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+    ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference, threaded into `from_dict` rather than
     serialized redundantly)."""
@@ -63,6 +81,10 @@ class Nebula:
         self.radius_ly = random.uniform(*type_data["radius_range_ly"])
         self.composition = type_data["composition"]
         self.formation_cause = type_data["formation_cause"]
+
+        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+            generate_galactic_orbit_fields()
 
     def to_dict(self):
         """
@@ -109,7 +131,9 @@ class Nebula:
         article = "an" if self.nebula_type[0] in "aeiou" else "a"
         description = (
             f"{self.name} is {article} {self.nebula_type} nebula spanning roughly {self.radius_ly:.1f} "
-            f"light-years across, composed of {self.composition}. It formed via {self.formation_cause}."
+            f"light-years across, composed of {self.composition}. It formed via {self.formation_cause}. "
+            f"Though bound to no star, it still orbits the galactic center at "
+            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )
 
         return [header, description]
