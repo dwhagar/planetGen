@@ -64,10 +64,19 @@ def _drop_v18_phenomenon_columns(conn):
     would hit a duplicate-column error" reasoning
     `_drop_v17_phenomenon_columns` gives for its own six tables. See
     `schema.sql`'s "v18" header note.
+
+    The named `chk_{table}_placement` CHECK constraint must be dropped
+    first (`DROP CONSTRAINT`, portable across MySQL 8.0.19+/MariaDB --
+    MySQL's own `DROP CHECK` alias is not): MySQL refuses `DROP COLUMN` on
+    a column a CHECK still references (error 3959), and a fresh test
+    database already has this constraint (`schema.sql`'s own
+    `CREATE TABLE` body), unlike a real pre-v18 database, which never had
+    it either.
     """
     for table in ("nebulae", "asteroid_fields"):
         conn.execute(
             f"ALTER TABLE {table} "
+            f"DROP CONSTRAINT chk_{table}_placement, "
             f"DROP INDEX idx_{table}_galactic_radius_pc, "
             "DROP COLUMN center_x_pc, DROP COLUMN center_y_pc, "
             "DROP COLUMN center_z_pc, DROP COLUMN galactic_radius_pc"

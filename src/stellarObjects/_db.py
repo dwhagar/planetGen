@@ -3140,6 +3140,16 @@ def _migrate_v17_to_v18(conn):
     recover -- the new columns simply start NULL, the same "never placed"
     state a v18-era standalone phenomenon has too.
 
+    Also adds the same null-together CHECK constraint (`chk_nebulae_placement`/
+    `chk_asteroid_fields_placement`) a freshly created v18 database already
+    gets from `schema.sql`'s `CREATE TABLE` bodies directly -- a migrated
+    database would otherwise silently lack it. Named explicitly in
+    `schema.sql` (rather than left anonymous, as MySQL allows) specifically
+    so this step can add the identical constraint by name; MySQL fully
+    supports `ADD CONSTRAINT ... CHECK` via `ALTER TABLE`, unlike the
+    SQLite-era multi-column `CHECK` gap `sectors`' own v4 columns still
+    have (see `docs/design/galaxy-coordinate-system.md` section 4).
+
     Args:
         conn (Connection): An open connection, mid-migration (not yet
                            committed -- the caller commits once every step
@@ -3152,7 +3162,11 @@ def _migrate_v17_to_v18(conn):
             "ADD COLUMN center_y_pc DOUBLE, "
             "ADD COLUMN center_z_pc DOUBLE, "
             "ADD COLUMN galactic_radius_pc DOUBLE, "
-            f"ADD KEY idx_{table}_galactic_radius_pc (galactic_radius_pc)"
+            f"ADD KEY idx_{table}_galactic_radius_pc (galactic_radius_pc), "
+            f"ADD CONSTRAINT chk_{table}_placement CHECK ("
+            "(center_x_pc IS NULL) = (center_y_pc IS NULL) AND "
+            "(center_y_pc IS NULL) = (center_z_pc IS NULL) AND "
+            "(center_z_pc IS NULL) = (galactic_radius_pc IS NULL))"
         )
 
     conn.execute("INSERT INTO schema_migrations (version) VALUES (18)")

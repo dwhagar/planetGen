@@ -301,7 +301,13 @@ geometry (`queryDb.phenomena_near_sector` finds every phenomenon whose
 sphere overlaps a given sector's cube by real distance, regardless of
 which sector it's linked to). `stellarObjects._db.compute_phenomenon_placement`
 picks the center: the given sector's own stored galaxy position plus a
-uniform random jitter within that sector's own cube half-extent.
+uniform random jitter within that sector's own cube half-extent. The
+null-together CHECK on each table is named explicitly
+(`chk_nebulae_placement`/`chk_asteroid_fields_placement`), unlike
+`sectors`' own identical v4 CHECK — MySQL auto-names an anonymous CHECK
+opaquely and refuses `DROP COLUMN` on a column it still references, so an
+explicit name is what lets `_migrate_v17_to_v18` add (and, for a test
+simulating an older database, drop) the exact same constraint by name.
 
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a

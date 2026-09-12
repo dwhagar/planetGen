@@ -47,6 +47,27 @@
   together -- real position first, decluttering only where legibility
   actually needs it.
 
+### Fixed
+- **CI: schema v18's null-together CHECK on `nebulae`/`asteroid_fields`
+  broke `test_migrate_v*` on real MySQL 8.0** (`pymysql.err.
+  OperationalError: (3959, "Check constraint 'nebulae_chk_2' uses column
+  'center_x_pc', hence column cannot be dropped or renamed.")`) --
+  MySQL 8.0 refuses `DROP COLUMN` on a column an anonymous CHECK still
+  references, and the migration-rollback test helper had no name to drop
+  it by. Both CHECKs are now named explicitly
+  (`chk_nebulae_placement`/`chk_asteroid_fields_placement`) rather than
+  left anonymous; `_migrate_v17_to_v18` now also adds the same named
+  constraint (via the portable `ADD CONSTRAINT ... CHECK`/
+  `DROP CONSTRAINT`, not MySQL-only `DROP CHECK`), which it had
+  previously omitted -- a database migrated (not freshly created) would
+  otherwise silently lack this invariant's enforcement. Caught locally by
+  running the full suite against a real MariaDB server (which tolerated
+  the original anonymous CHECK's `DROP COLUMN` fine, masking this) rather
+  than against MySQL 8.0 as CI does. The workflow's own test matrix also
+  gained `fail-fast: false`, since the default had been silently
+  cancelling the 3.9 job the moment 3.12 failed, hiding whether a failure
+  was version-specific.
+
 ## [5.30.0] - 2026-09-12
 
 ### Added

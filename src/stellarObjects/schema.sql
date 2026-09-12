@@ -1184,7 +1184,13 @@ CREATE TABLE IF NOT EXISTS nebulae (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
-    CHECK (
+    -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
+    -- `_migrate_v17_to_v18` can add the exact same constraint by name to a
+    -- migrated (not freshly created) database -- an anonymous CHECK gets
+    -- an opaque, position-dependent auto-generated name (`nebulae_chk_2`,
+    -- shifting if another CHECK is ever added/removed above it), which a
+    -- migration step has no reliable way to reproduce or later reference.
+    CONSTRAINT chk_nebulae_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
         (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
@@ -1324,7 +1330,8 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
-    CHECK (
+    -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
+    CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
         (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
