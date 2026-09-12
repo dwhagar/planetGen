@@ -31,7 +31,7 @@ from .serialization import fields_from_dict, fields_to_dict
 SERIALIZABLE_FIELDS = [
     "MARKDOWN", "HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "PLANETS", "STAR_TYPE", "NAME", "AGE", "INTELLIGENT_LIFE",
-    "BINARY_SYSTEM", "NUM_ORBITS", "SLOTS",
+    "BINARY_SYSTEM", "WIDE_BINARY", "NUM_ORBITS", "SLOTS",
 ]
 
 
@@ -129,6 +129,23 @@ class SystemConfig:
         BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, used by
         `StarSystem._should_generate_binary`) rather than always coming out
         single. Defaults to None.
+        """
+
+        self.WIDE_BINARY = None
+        """
+        bool or None: Only consulted when BINARY_SYSTEM is True; ignored
+        otherwise. Selects which of the two real binary-star configurations
+        is generated. If True, forces an S-type (wide) binary -- two stars
+        separated by tens to thousands of AU, each hosting its own
+        independently-generated planets, with each star's maximum stable
+        orbit limited by the companion's gravity (see
+        `utils.holman_wiegert_critical_semimajor_axis`). If False, forces a
+        P-type (close/circumbinary) binary -- the original, and only,
+        binary behavior this generator had before this option existed,
+        where the two stars are merged into one effective star
+        (`doubleStar.BinaryStarProxy`) for the purposes of planet
+        placement. If None, one of the two is chosen at random (see
+        `program_constants.WIDE_BINARY_DEFAULT_CHANCE`). Defaults to None.
         """
 
         self.NUM_ORBITS = None

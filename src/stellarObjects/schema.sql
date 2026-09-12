@@ -334,6 +334,58 @@
 --   it just has to move whenever phase does. NULL under the same
 --   binary-only condition as every other `binary_*` column.
 --
+-- v15: S-type (wide) binary support (planetGen's second real binary
+--   configuration alongside the P-type/close pair every `binary_*` column
+--   above already covered). `star_systems` gains `binary_configuration`
+--   (`'close'` | `'wide'` | NULL for a single star -- the authoritative
+--   discriminator going forward; `is_binary` is kept, and now means "this
+--   system has two stars", true for either configuration) plus
+--   `binary_eccentricity`/`binary_periapsis_km`/`binary_apoapsis_km` (the
+--   pair's own orbital eccentricity and periapsis/apoapsis separation --
+--   real and used for `utils.holman_wiegert_critical_semimajor_axis`, but
+--   NOT used to make the pair's live position/phase-advance tracking
+--   eccentric -- see `doubleStar.WideBinaryPair`'s module docstring for why
+--   that stays the existing circular approximation). These three are 0/
+--   `binary_separation_km` for a `'close'` pair (tidal circularization
+--   makes near-zero eccentricity a legitimate simplification there) and
+--   real, generally non-zero values for a `'wide'` one. The existing
+--   `binary_separation_km`/`binary_mutual_orbital_*`/
+--   `binary_mutual_position_*_km` columns are reused UNCHANGED for a wide
+--   pair's own mutual orbit -- they already represent exactly what a wide
+--   pair's (circularly-approximated) mutual orbit needs, no new columns
+--   for that part. NULL for a `'wide'` pair, unlike a `'close'` one (no
+--   merged effective star exists to describe): `binary_type` (the
+--   pre-existing column -- note this is NOT the same thing as the new
+--   `binary_configuration` above; `binary_type` holds the close pair's
+--   merged spectral-summary string, e.g. "Binary (G/K)", a name chosen
+--   before S-type support existed and kept as-is for that pre-existing
+--   meaning rather than reused, to avoid a silent meaning change for
+--   existing data), `binary_temperature_k`, `binary_radius_km`,
+--   `binary_effective_mass_kg`, `binary_effective_luminosity_w`,
+--   `binary_age_gy`, `binary_lifespan_gy`,
+--   `binary_habitable_zone_inner_km`/`_outer_km`, `binary_system_perimeter_km`,
+--   `binary_heliosphere_radius_km`, `binary_galactic_orbital_*` (four
+--   columns) -- a wide binary's two stars already carry their own galactic
+--   orbit and habitable-zone columns individually on their own `stars`
+--   rows, so nothing here needs a merged/combined equivalent.
+--     `stars` gains `wide_binary_a_crit_km` -- this star's own Holman &
+--   Wiegert (1999) critical semi-major axis (`utils.
+--   holman_wiegert_critical_semimajor_axis`), the maximum orbit distance
+--   that stays long-term stable given its companion's perturbation. NULL
+--   for a single star or either constituent of a `'close'` pair (whose
+--   planets orbit the merged proxy instead, with no per-star limit of this
+--   kind), populated for both stars of a `'wide'` pair.
+--     `asteroid_belts` gains `star_id`, the same nullable "which specific
+--   star this orbits" column `planets`/`moons` already have (see
+--   `planets.star_id`'s own comment below) -- needed because a wide
+--   binary's two stars can now each have their own asteroid belts, not
+--   just their own planets.
+--     `planets.star_id`'s own comment (obsolete as of this version) is
+--   updated below: a wide binary's planets DO now populate `star_id` with
+--   the specific star (primary or secondary) they orbit, unlike a `'close'`
+--   pair's (still NULL, since a close pair's planets orbit the merged
+--   proxy, never one constituent star).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -588,13 +640,28 @@ CREATE TABLE IF NOT EXISTS star_systems (
     -- header comment's "v3" note -- NULL iff position is NULL.
     location                TEXT,
 
+    -- v15: now true for EITHER binary configuration (see binary_configuration
+    -- below), not just a 'close' (P-type) pair.
     is_binary              TINYINT(1) NOT NULL DEFAULT 0 CHECK (is_binary IN (0, 1)),
 
+    -- v15: 'close' (P-type/circumbinary, doubleStar.BinaryStarProxy) |
+    -- 'wide' (S-type, doubleStar.WideBinaryPair) | NULL for a single star --
+    -- see the header comment's "v15" note for why this is a distinct column
+    -- from the pre-existing binary_type below, not a repurposing of it.
+    binary_configuration   VARCHAR(8) CHECK (binary_configuration IN ('close', 'wide')),
+
     -- BinaryStarProxy-derived fields (doubleStar.py) -- all NULL for a
-    -- single-star system, stored rather than re-derived since
-    -- _effective_mass/_effective_luminosity are computed once at
-    -- generation time.
+    -- single-star system or a 'wide' binary (see the header comment's "v15"
+    -- note), stored rather than re-derived since _effective_mass/
+    -- _effective_luminosity are computed once at generation time.
     binary_separation_km            DOUBLE,
+    -- v15: the pair's own orbital eccentricity and periapsis/apoapsis
+    -- separation -- 0/binary_separation_km for a 'close' pair, real
+    -- (generally non-zero) values for a 'wide' one. See the header
+    -- comment's "v15" note.
+    binary_eccentricity              DOUBLE,
+    binary_periapsis_km              DOUBLE,
+    binary_apoapsis_km               DOUBLE,
     binary_type                     VARCHAR(64),
     binary_temperature_k            DOUBLE,
     binary_radius_km                DOUBLE,
@@ -682,6 +749,10 @@ CREATE TABLE IF NOT EXISTS stars (
     galactic_orbital_period_gy    DOUBLE NOT NULL,
     galactic_orbital_phase_deg          DOUBLE NOT NULL,  -- v13, see header comment
     galactic_min_update_interval_years  DOUBLE NOT NULL,  -- v13, see header comment
+    -- v15: this star's own Holman & Wiegert (1999) critical semi-major axis
+    -- -- NULL except for a constituent of a 'wide' binary. See the header
+    -- comment's "v15" note.
+    wide_binary_a_crit_km               DOUBLE,
 
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
@@ -701,14 +772,14 @@ CREATE TABLE IF NOT EXISTS planets (
     id                        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     star_system_id            BIGINT UNSIGNED NOT NULL,
     -- The specific star this planet orbits, when that's a real stored
-    -- `stars` row -- true for every single-star system. NULL for a
-    -- binary's planets: systemData.py always generates planets against
-    -- `self.star`, which for binaries is the `BinaryStarProxy` (never one
-    -- individual constituent star -- there is no S-type/circumbinary
-    -- choice in the current generator), and the proxy is deliberately not
-    -- stored as its own `stars` row (see star_systems.binary_* above).
-    -- `star_system_id` above is always the reliable owning link
-    -- regardless of star_id.
+    -- `stars` row -- true for every single-star system and, as of v15,
+    -- every 'wide' binary's planets too (each orbits one specific
+    -- constituent star). Still NULL for a 'close' (P-type) binary's
+    -- planets: systemData.py generates those against the merged
+    -- `BinaryStarProxy`, never one individual constituent star, and the
+    -- proxy is deliberately not stored as its own `stars` row (see
+    -- star_systems.binary_* above). `star_system_id` above is always the
+    -- reliable owning link regardless of star_id.
     star_id                   BIGINT UNSIGNED,
     orbital_index             INT NOT NULL,
     body_type                 VARCHAR(4) NOT NULL CHECK (body_type IN ('t', 'g')),
@@ -903,6 +974,10 @@ CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
 CREATE TABLE IF NOT EXISTS asteroid_belts (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     star_system_id       BIGINT UNSIGNED NOT NULL,
+    -- v15: same "which specific star this orbits" semantics as
+    -- planets.star_id above -- NULL for a single star's or a 'close'
+    -- binary's belt, set to the owning star for a 'wide' binary's.
+    star_id              BIGINT UNSIGNED,
     orbital_index        INT NOT NULL,
     distance_km          DOUBLE NOT NULL,
     lower_limit_km       DOUBLE NOT NULL,   -- distance, low (asteroidData.py's "distance_text" range)
@@ -920,7 +995,10 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
 
     CONSTRAINT fk_asteroid_belts_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
-    KEY idx_asteroid_belts_star_system_id (star_system_id)
+    CONSTRAINT fk_asteroid_belts_star
+        FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
+    KEY idx_asteroid_belts_star_system_id (star_system_id),
+    KEY idx_asteroid_belts_star_id (star_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Structured per-component detail behind composition_summary above --

@@ -94,7 +94,7 @@ def test_star_from_dict_does_not_rerun_generation():
 # ---------------------------------------------------------------------------
 
 def test_binary_star_proxy_round_trip_snapshots_without_recomputing():
-    system = make_system("G2V", BINARY_SYSTEM=True, PLANETS=False)
+    system = make_system("G2V", BINARY_SYSTEM=True, WIDE_BINARY=False, PLANETS=False)
     proxy = system.star
     assert isinstance(proxy, BinaryStarProxy)
     data = proxy.to_dict()
@@ -240,7 +240,7 @@ def test_star_system_round_trip_single_star_full_fidelity():
 
 
 def test_star_system_round_trip_binary_collapses_secondary_config_asymmetry():
-    system = make_system("G2V", BINARY_SYSTEM=True, PLANETS=False)
+    system = make_system("G2V", BINARY_SYSTEM=True, WIDE_BINARY=False, PLANETS=False)
     # Confirms the pre-existing generation-time-only asymmetry this is collapsing.
     assert system.secondary_star.system_config is not system.system_config
 

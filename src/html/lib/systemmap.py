@@ -734,18 +734,45 @@ def render_system_map_panel(system, stars, planets, belts):
     fills in on click and swaps between scenes.
 
     Args:
-        system (dict): The `star_systems` row.
+        system (dict): The `star_systems` row, including
+                      `binary_configuration` (`'close'`, `'wide'`, or
+                      `None` -- see `queryDb.system_detail`'s docstring).
         stars (list[dict]): 1 entry (single star) or 2 (primary, then
-                            secondary), each with `star_type`,
+                            secondary), each with `id`, `star_type`,
                             `temperature_k`, `radius_km`, `luminosity_w`,
                             and the `table_*` display strings.
-        planets (list[dict]): Each a `planets` row plus a `moons` key
-                              (list of `moons` rows, possibly empty).
-        belts (list[dict]): `asteroid_belts` rows.
+        planets (list[dict]): Each a `planets` row (including its own
+                              `star_id`) plus a `moons` key (list of
+                              `moons` rows, possibly empty).
+        belts (list[dict]): `asteroid_belts` rows, including `star_id`.
 
     Returns:
         str: A complete `<section class="panel">` block.
     """
+    # A 'wide' (S-type) binary's two stars are independent -- each hosts
+    # its own planets/belts (disambiguated by star_id), tens to thousands
+    # of AU apart. Drawing every one of them as orbit rings around this
+    # single scene's shared star marker (the existing single-star/'close'-
+    # binary path below) would place the secondary's own planets as if
+    # they literally orbited the primary -- a real, incorrect orbital
+    # relationship, not just a missing enhancement. This map has no
+    # mechanism (unlike the moon-scene links below) for switching between
+    # more than one "root" scene, so rather than half-build that, this map
+    # panel shows only the primary's own planets/belts for a 'wide' pair
+    # -- the secondary's own bodies are NOT silently misattributed here,
+    # they're simply left to the already-complete, correctly-grouped
+    # "Planets & Moons"/"Asteroid Belts" tables above (see
+    # `html/system.py`'s `_bodies_html`), which cover both stars in full.
+    wide_binary_note = ""
+    if system.get("binary_configuration") == "wide" and stars:
+        primary_id = stars[0]["id"]
+        planets = [p for p in planets if p["star_id"] == primary_id]
+        belts = [b for b in belts if b["star_id"] == primary_id]
+        stars = [stars[0]]
+        wide_binary_note = (
+            ' &middot; showing the primary star only -- see the "Planets &amp; Moons" '
+            "tables below for the secondary's own bodies"
+        )
     scenes = [_render_system_scene(system, stars, planets, belts)]
     scenes.extend(
         _render_moon_scene(planet) for planet in planets if planet.get("moons")
@@ -763,7 +790,7 @@ def render_system_map_panel(system, stars, planets, belts):
 <section class="panel">
 <div class="panel-header">
   <h2>System Map</h2>
-  <span class="hint">Click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life</span>
+  <span class="hint">Click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life{wide_binary_note}</span>
 </div>
 <div class="starmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">

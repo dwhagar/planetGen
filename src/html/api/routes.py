@@ -636,6 +636,7 @@ def delete_sector(sector_id):
 SYSTEM_CONFIG_TRISTATE_FIELDS = {
     "habitable_world", "asteroid_belt", "large_star", "moons",
     "max_planets", "planets", "intelligent_life", "binary_system",
+    "wide_binary",
 }
 """set[str]: `SystemConfig` fields that are `bool` or `None` (`None` = let
 the generator decide) -- see `config.py`'s own field docstrings."""

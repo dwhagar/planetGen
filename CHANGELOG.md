@@ -1,5 +1,63 @@
 # Changelog
 
+## [5.27.0] - 2026-09-12
+
+### Added
+- **S-type (wide) binary star systems.** `+binary_system` previously only
+  ever generated a P-type (close/circumbinary) pair -- the two stars merged
+  into one effective star (`doubleStar.BinaryStarProxy`) for planet
+  placement. A new `+wide_binary`/`-wide_binary` option (random if omitted)
+  selects the other real binary configuration instead: an S-type pair,
+  separated by tens to thousands of AU (log-uniformly sampled, matching the
+  real, roughly log-normal spread of observed wide-binary separations),
+  where each star keeps its own separate identity -- its own mass,
+  luminosity, habitable zone -- and hosts its own independently-generated
+  planets (new `doubleStar`-sibling module `wideBinary.py`'s
+  `WideBinaryPair`). Each star's maximum stable planetary orbit is capped
+  by Holman & Wiegert's (1999) empirical critical-semi-major-axis formula
+  for the companion's long-term perturbation, and a Gladman (1993)
+  mutual-Hill-radius check additionally prunes either star's outermost
+  planet if the two stars' own disks would otherwise gravitationally
+  encroach on each other -- a rare safety net for tight/eccentric pairs,
+  not the common case. The pair's own orbital eccentricity is sampled from
+  a realistic "thermal" distribution (unlike the close pair, a wide pair
+  never tidally circularizes) and feeds both the stability formula and the
+  reported periapsis/apoapsis separation, though (like every other orbit
+  this generator tracks) the pair's live position/phase-advance tracking
+  stays circular -- a deliberate, documented simplification consistent
+  with the rest of the engine. Persisted via new `star_systems`/`stars`/
+  `asteroid_belts` columns (schema v15) and a `_migrate_v14_to_v15`
+  migration step; also fixes a latent bug the new columns exposed in
+  `_db.advance_orbital_phases`, whose old single combined `UPDATE` could
+  never have advanced a wide pair's mutual-orbit phase even after this
+  release, had it not been caught -- now two independently-guarded
+  `UPDATE`s.
+
+### Fixed
+- **Several tests that don't pin `BINARY_SYSTEM` could intermittently fail
+  once merged against [5.26.0]'s real, spectral-class-dependent binary
+  chance.** A companion star landing on a system those tests otherwise
+  treat as single (or as a fixed planet count) could throw off an
+  unrelated assertion -- most seriously, an S-type (wide) pair's own
+  `a_crit_au` stability ceiling can make a forced `HABITABLE_WORLD`/
+  `ASTEROID_BELT` guarantee geometrically impossible for an especially
+  luminous host (an O-type supergiant's habitable zone can sit beyond any
+  sampled companion's stability limit), which `test_full_matrix.py`'s
+  full-star-type sweep and several of `test_systems.py`'s tri-state-flag
+  tests surfaced; `test_disk_physics.py`, `test_db_persistence.py`, and
+  `test_api.py` had similar exposure via an unexpected second star's own
+  planet count/DB rows. Pinned `BINARY_SYSTEM=False` in each, following
+  the same precedent already established when [5.26.0] itself pinned it
+  in four other tests -- binary-vs-single was always incidental to what
+  each of these was actually testing.
+- **CI's `test (3.9)` job failed on every PR, unrelated to whatever the PR
+  actually changed.** `test_planet_physics_fixes.py` called
+  `statistics.correlation`, added in Python 3.10 -- this repo's CI matrix
+  still runs a `3.9` job. Replaced with a small `_pearson_correlation`
+  helper (matches `statistics.correlation` exactly; verified against it
+  directly) used by both `test_atmospheric_pressure_correlates_positively_
+  with_gravity` and `_spearman_correlation`'s own rank-based call.
+
 ## [5.26.0] - 2026-09-11
 
 ### Changed

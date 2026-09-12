@@ -106,11 +106,13 @@ def main():
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 
-        planets_updated, moons_updated, stars_updated, binary_systems_updated = \
+        planets_updated, moons_updated, stars_updated, \
+            binary_mutual_orbits_updated, binary_galactic_orbits_updated = \
             advance_orbital_phases(conn, elapsed_years)
         print(
             f"Updated {planets_updated} planet(s), {moons_updated} moon(s), "
-            f"{stars_updated} star(s), and {binary_systems_updated} binary system(s)."
+            f"{stars_updated} star(s), {binary_mutual_orbits_updated} binary mutual orbit(s), "
+            f"and {binary_galactic_orbits_updated} binary galactic orbit(s)."
         )
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)

@@ -96,6 +96,44 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # neighbor's spacing to protect one body's zone in place.
 MAX_SYSTEM_GENERATION_ATTEMPTS = 8
 
+# --- Binary System Generation Parameters ---
+
+# Probability an S-type (wide) binary is chosen over a P-type (close) one
+# when BINARY_SYSTEM is True and WIDE_BINARY is left at None. A plain
+# coin-flip, not an attempt to model true field-star multiplicity
+# demographics (real wide pairs vastly outnumber sub-0.25-AU pairs) --
+# BINARY_SYSTEM's own binary-vs-none split is already a game-design toggle
+# rather than a demographic model, so this keeps the two forceable binary
+# configurations symmetric with each other.
+WIDE_BINARY_DEFAULT_CHANCE = 0.5
+
+# S-type binary separation is sampled log-uniformly between these bounds
+# (see doubleStar.WideBinaryPair.generate) rather than with plain
+# random.uniform -- real wide-binary separations are observed roughly
+# log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
+# Raghavan et al. 2010), and a flat-uniform draw would spend almost all its
+# density in the single largest order of magnitude (the same reasoning
+# `planetPhysics.generate_moons` already applies to moon spacing). The lower
+# bound sits comfortably above the close/P-type BinaryStarProxy separation
+# range (0.05-0.25 AU) so the two configurations' separations never overlap;
+# the upper bound keeps generated pairs within the separation regime that
+# typically survives Galactic tidal shear and passing-star perturbations
+# over a stellar lifetime (real wide pairs increasingly disrupt beyond
+# roughly 0.1-0.2 pc, ~20,000-41,000 AU -- Jiang & Tremaine 2010), without
+# this generator needing to model that disruption process directly.
+WIDE_BINARY_SEPARATION_MIN_AU = 50.0
+WIDE_BINARY_SEPARATION_MAX_AU = 10000.0
+
+# Cap on the sampled binary orbital eccentricity for an S-type pair (see
+# doubleStar.WideBinaryPair.generate's thermal-distribution sampling).
+# Wide binaries never tidally circularize the way the close/P-type pair
+# does, and real wide pairs are broadly consistent with a "thermal"
+# eccentricity distribution (f(e) = 2e) -- but this is capped short of the
+# full [0, 1) thermal range at physical_constants.HOLMAN_WIEGERT_ECCENTRICITY_RANGE's
+# own upper bound, since the Holman & Wiegert (1999) stability fit this
+# eccentricity feeds isn't validated past there.
+WIDE_BINARY_ECCENTRICITY_MAX = 0.8
+
 # Asteroid Belt Configuration
 ASTEROID_COMPONENTS = [
     "carbon", "silicon", "magnesium", "aluminum", "calcium",

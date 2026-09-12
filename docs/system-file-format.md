@@ -31,6 +31,7 @@ resembling our own solar system.
 | `max_planets` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `intelligent_life` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `binary_system` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
+| `wide_binary` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). Only meaningful together with `binary_system: true`. |
 | `planets` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `markdown` | `true`, `false`, or omitted | Output in Markdown instead of the default wikitext. |
 | `flavor_chance_system` | float `0.0`-`1.0` | Overrides the odds of a system-level "sensor readings" flavor line appearing. |
@@ -54,7 +55,8 @@ command line's `+name` / `-name` flags (`+habitable_world` sets it `true`,
 | `moons` | Every planet gets a chance at moons. | No planet in the system gets moons (unless a slot gives it an explicit `moons` count — see below). |
 | `max_planets` | The system generates the maximum number of orbital objects its star can support. | The system generates the minimum (0, or whatever `habitable_world`/`asteroid_belt`/`planets` require). |
 | `intelligent_life` | At least one planet reaches a technological civilization. Also forces `habitable_world` to `true`. | No planet reaches a technological civilization. Also forces `habitable_world` to `true` (a world can still be habitable without intelligent life). |
-| `binary_system` | A binary (P-type, circumbinary) star system is generated instead of a single star. | A single star (the default). |
+| `binary_system` | A binary star system is generated instead of a single star (which of the two real configurations below is used is decided by `wide_binary`). | A single star (the default). |
+| `wide_binary` | An S-type (wide) binary is generated: the two stars stay tens to thousands of AU apart, each keeping its own identity and independently-generated planets, with each star's maximum stable orbit limited by the companion's gravity. | A P-type (close/circumbinary) binary is generated instead: the two stars merge into one effective star for planet placement. If omitted, one of the two is chosen at random. Ignored entirely unless `binary_system` is also `true`. |
 | `planets` | The system has at least one planet or asteroid belt (count won't be forced down to 0). | The system has no planets or asteroid belts at all — just the star. |
 
 **Incompatible combinations** (the CLI will refuse these; take the same care

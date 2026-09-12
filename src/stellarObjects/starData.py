@@ -125,11 +125,34 @@ class Star:
         "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
         "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        "a_crit_au",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
     `system_config` (a shared back-reference threaded into `from_dict`
     rather than serialized redundantly on every star).
+    """
+
+    a_crit_au = None
+    """
+    float or None: Class-level default (rather than only an `__init__`
+    instance assignment) so a `Star` reconstructed via `from_dict`'s
+    `object.__new__`+`fields_from_dict` path -- which leaves a field
+    untouched when its key is absent from the loaded data (see
+    `serialization.fields_from_dict`) -- still reads back `None` for any
+    system saved before this field existed, rather than raising
+    `AttributeError`. Populated only for a star that is one constituent of
+    an S-type (wide) binary: this star's own Holman & Wiegert (1999)
+    critical semi-major axis (see
+    `utils.holman_wiegert_critical_semimajor_axis`), the maximum orbit
+    distance that stays long-term stable against its companion's
+    perturbation. `None` for a single star or either star of a P-type
+    (close) binary, where no such companion-driven limit applies (a P-type
+    pair's planets orbit the merged `BinaryStarProxy`, which never sets
+    this at all). Set directly by `StarSystem.__init__` after both stars
+    of a wide pair exist -- a `Star` never computes this on its own, since
+    it depends on the companion star's mass/separation/eccentricity, none
+    of which a lone `Star` instance knows about.
     """
 
     def to_dict(self):

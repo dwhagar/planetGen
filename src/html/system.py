@@ -82,15 +82,15 @@ def _planet_rows(planet):
     return rows
 
 
-def _bodies_html(planets, belts):
+def _planets_table_html(planets, heading="Planets &amp; Moons"):
     planet_rows = []
     for planet in planets:
         planet_rows.extend(_planet_rows(planet))
-    planet_html = ""
-    if planet_rows:
-        planet_html = f"""
+    if not planet_rows:
+        return ""
+    return f"""
 <section class="panel">
-<h2>Planets &amp; Moons</h2>
+<h2>{heading}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Type</th><th>Zone</th><th>Distance</th><th>Period</th><th>Gravity</th></tr></thead>
   <tbody>{''.join(planet_rows)}</tbody>
@@ -98,19 +98,21 @@ def _bodies_html(planets, belts):
 </section>
 """
 
-    belt_html = ""
-    if belts:
-        belt_rows = "".join(
-            "<tr>"
-            f'<td>{esc(row["density"])}</td>'
-            f'<td>{row["distance_km"]:,.0f} km</td>'
-            f'<td>{esc(row["composition_summary"])}</td>'
-            "</tr>"
-            for row in belts
-        )
-        belt_html = f"""
+
+def _belts_table_html(belts, heading="Asteroid Belts"):
+    if not belts:
+        return ""
+    belt_rows = "".join(
+        "<tr>"
+        f'<td>{esc(row["density"])}</td>'
+        f'<td>{row["distance_km"]:,.0f} km</td>'
+        f'<td>{esc(row["composition_summary"])}</td>'
+        "</tr>"
+        for row in belts
+    )
+    return f"""
 <section class="panel">
-<h2>Asteroid Belts</h2>
+<h2>{heading}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Density</th><th>Distance</th><th>Composition</th></tr></thead>
   <tbody>{belt_rows}</tbody>
@@ -118,7 +120,33 @@ def _bodies_html(planets, belts):
 </section>
 """
 
-    return planet_html + belt_html
+
+def _bodies_html(planets, belts, stars, binary_configuration):
+    """
+    Builds the "Planets & Moons"/"Asteroid Belts" section(s).
+
+    For a `'wide'` (S-type) binary, `planets`/`belts` belong to two
+    different, independent stars (disambiguated by each row's own
+    `star_id`, matched against `stars`' own `id` -- see
+    `queryDb.system_detail`'s docstring) -- rendering them in one flat
+    table the way a single star's or a `'close'` (P-type) pair's bodies
+    already are would misrepresent which star each one actually orbits
+    (a `'close'` pair's planets genuinely have no single owning star --
+    they orbit the merged pair together -- so that case is unaffected).
+    Grouped into one labeled section per star instead, in the same order
+    `stars` already comes in (primary first).
+    """
+    if binary_configuration != "wide":
+        return _planets_table_html(planets) + _belts_table_html(belts)
+
+    sections = []
+    for star in stars:
+        star_planets = [p for p in planets if p["star_id"] == star["id"]]
+        star_belts = [b for b in belts if b["star_id"] == star["id"]]
+        label = f'{esc(star["name"])} ({esc(star["role"])})'
+        sections.append(_planets_table_html(star_planets, heading=f"Planets &amp; Moons — {label}"))
+        sections.append(_belts_table_html(star_belts, heading=f"Asteroid Belts — {label}"))
+    return "".join(sections)
 
 
 def _toc_html(headings):
@@ -217,7 +245,11 @@ def handler():
     summary_bits = []
     if system["quadrant"]:
         summary_bits.append(f"Octant {esc(system['quadrant'])}")
-    summary_bits.append("Binary system" if system["is_binary"] else "Single star")
+    if system["is_binary"]:
+        config_label = {"close": " (close)", "wide": " (wide)"}.get(system.get("binary_configuration"), "")
+        summary_bits.append(f"Binary system{config_label}")
+    else:
+        summary_bits.append("Single star")
     summary_html = "<p class=\"badges\">" + "".join(
         f'<span class="badge">{bit}</span>' for bit in summary_bits
     ) + "</p>"
@@ -246,7 +278,7 @@ def handler():
     if system["stars"]:
         map_html = render_system_map_panel(system, system["stars"], system["planets"], system["belts"])
     stars_html = _stars_html(system["stars"])
-    bodies_html = _bodies_html(system["planets"], system["belts"])
+    bodies_html = _bodies_html(system["planets"], system["belts"], system["stars"], system.get("binary_configuration"))
     description_html = _description_html(
         db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"]
     )

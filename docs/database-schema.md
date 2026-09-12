@@ -210,6 +210,38 @@ orbit is around" convention `planets`/`moons.position_x/y/z_km` already
 use (see v11 above) — recomputed by `_db.advance_orbital_phases` in
 lockstep every time `binary_mutual_orbital_phase_deg` advances.
 
+v15 added S-type (wide) binary support, planetGen's second real binary
+configuration alongside the P-type/close pair every `binary_*` column
+above already covers (see `stellarObjects/wideBinary.py`'s module
+docstring for the physics). `star_systems` gains `binary_configuration`
+(`'close'` | `'wide'` | NULL for a single star — the authoritative
+discriminator going forward; `is_binary` is kept and now means "this
+system has two stars", true for either configuration) plus
+`binary_eccentricity`/`binary_periapsis_km`/`binary_apoapsis_km` (0/
+`binary_separation_km` for a `'close'` pair, real values for a `'wide'`
+one — see `utils.holman_wiegert_critical_semimajor_axis`). The existing
+`binary_separation_km`/`binary_mutual_orbital_*`/
+`binary_mutual_position_*_km` columns are reused UNCHANGED for a `'wide'`
+pair's own mutual orbit. NULL for a `'wide'` pair, unlike a `'close'` one
+(no merged effective star exists to describe): the pre-existing
+`binary_type` column (note this is a different thing from the new
+`binary_configuration` — `binary_type` holds the close pair's merged
+spectral-summary string, e.g. `"Binary (G/K)"`, kept under its original
+name rather than repurposed), `binary_temperature_k`, `binary_radius_km`,
+`binary_effective_mass_kg`, `binary_effective_luminosity_w`,
+`binary_age_gy`, `binary_lifespan_gy`,
+`binary_habitable_zone_inner_km`/`_outer_km`, `binary_system_perimeter_km`,
+`binary_heliosphere_radius_km`, and the four `binary_galactic_orbital_*`
+columns — a `'wide'` pair's two stars already carry their own galactic
+orbit and habitable-zone columns individually on their own `stars` rows.
+`stars` gains `wide_binary_a_crit_km` — this star's own Holman & Wiegert
+(1999) critical semi-major axis, the maximum orbit distance that stays
+long-term stable given its companion's perturbation; NULL except for a
+constituent of a `'wide'` pair. `asteroid_belts` gains `star_id`, the same
+"which specific star this orbits" column `planets`/`moons` already have
+(see that column's own row below) — a `'wide'` pair's two stars can now
+each have their own asteroid belts, not just their own planets.
+
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
 `_migrate_vN_to_vN+1` function per version) was removed during the MySQL
@@ -223,15 +255,16 @@ for a database created under the v8 schema; `_migrate_v9_to_v10` follows
 the same pattern for the v10 galactic-orbit columns, `_migrate_v10_to_v11`
 for the v11 planet/moon position columns, `_migrate_v11_to_v12` for
 the v12 floating-point update-guard column, `_migrate_v12_to_v13` for the
-v13 star-motion/binary-mutual-orbit columns, and `_migrate_v13_to_v14` for
-the v14 binary-mutual-orbit-position columns. `migrate_database` applies
+v13 star-motion/binary-mutual-orbit columns, `_migrate_v13_to_v14` for
+the v14 binary-mutual-orbit-position columns, and `_migrate_v14_to_v15`
+for the v15 S-type/wide-binary columns. `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v14), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v15), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -510,9 +543,12 @@ One row per generated system (single-star or binary).
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | DOUBLE | nullable | Position relative to the sector's cubic center. NULL iff not placed in a sector. |
 | `quadrant` | TEXT | nullable, CHECK IN ('I'..'VIII') | The sector octant label derived from the position above (see "Quadrant labeling" below). NULL iff position is NULL. |
 | `location` | TEXT | nullable | Human-readable "sector name + nearest neighbors" summary, e.g. `"Voranthis Kelmoor — nearest: Alpha Prime (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)"` — up to 3 neighbors, nearest first, computed once at write time from `SpaceSector.nearest_neighbors` (see "v3" in "Schema history" above). NULL iff position is NULL. |
-| `is_binary` | INTEGER (0/1) | NOT NULL, default 0 | |
-| `binary_separation_km` | DOUBLE | nullable | Orbital separation between the two stars. NULL for single-star systems. |
-| `binary_type` | TEXT | nullable | e.g. `"Binary (G/K)"`. |
+| `is_binary` | INTEGER (0/1) | NOT NULL, default 0 | True for either binary configuration as of v15 (see `binary_configuration`) — before v15, true only ever meant a `'close'` pair. |
+| `binary_configuration` | TEXT | nullable, CHECK IN ('close','wide') | Added in v15. `'close'` (P-type/circumbinary, `doubleStar.BinaryStarProxy`) or `'wide'` (S-type, `wideBinary.WideBinaryPair`) — NULL for a single star. The authoritative discriminator going forward; see "Binary configuration" below for which other columns apply to which value. |
+| `binary_separation_km` | DOUBLE | nullable | Orbital separation between the two stars. NULL for single-star systems. Reused unchanged for both binary configurations (see "Binary configuration" below). |
+| `binary_eccentricity` | DOUBLE | nullable | Added in v15. The pair's own orbital eccentricity — `0` for a `'close'` pair (tidal circularization is a legitimate simplification at its 0.05-0.25 AU separations), a real, generally non-zero value (sampled from a "thermal" distribution) for a `'wide'` pair, which never circularizes. |
+| `binary_periapsis_km`, `binary_apoapsis_km` | DOUBLE | nullable | Added in v15. Closest/farthest separation between the two stars — `binary_separation_km * (1 ∓ binary_eccentricity)`. Both equal `binary_separation_km` for a `'close'` pair (e=0). |
+| `binary_type` | TEXT | nullable | e.g. `"Binary (G/K)"`. **Not** the same thing as `binary_configuration` above — this pre-existing column holds a `'close'` pair's merged spectral-summary string; NULL for a `'wide'` pair (no merged effective star exists to summarize). |
 | `binary_temperature_k` | DOUBLE | nullable | Average of the two stars' temperatures. |
 | `binary_radius_km` | DOUBLE | nullable | The larger constituent star's radius (used as an approximation). |
 | `binary_effective_mass_kg` | DOUBLE | nullable | Sum of both stars' masses. |
@@ -550,12 +586,32 @@ rather than only computed on read because it's what a query like "every
 system in Quadrant III" filters on directly, without a UDF or generated
 column.
 
+**Binary configuration.** `binary_configuration` (added v15) decides which
+other `binary_*` columns are populated: `binary_separation_km`,
+`binary_eccentricity`, `binary_periapsis_km`, `binary_apoapsis_km`, and
+every `binary_mutual_*`/`binary_mutual_position_*_km` column are reused
+UNCHANGED for both `'close'` and `'wide'` pairs (a `'wide'` pair's own
+mutual orbit fits the exact same shape a `'close'` pair's already
+occupies). Every other `binary_*` column (`binary_type`,
+`binary_temperature_k`, `binary_radius_km`, `binary_effective_mass_kg`,
+`binary_effective_luminosity_w`, `binary_age_gy`, `binary_lifespan_gy`,
+`binary_habitable_zone_inner_km`/`_outer_km`, `binary_system_perimeter_km`,
+`binary_heliosphere_radius_km`, and the four `binary_galactic_orbital_*`
+columns) describes the `'close'` pair's *merged* `BinaryStarProxy` and is
+NULL for a `'wide'` pair — a `'wide'` pair's two stars never merge, so
+there's no combined effective star for these to describe; each star's own
+equivalent data lives on its own `stars` row instead (including its own
+`wide_binary_a_crit_km`, see below).
+
 ### `stars`
 
 One row per individual star: one row for a single-star system, two rows
-(`primary`/`secondary`) for a binary. There is **never** a row for the
-`BinaryStarProxy` itself — its combined-pair values live on `star_systems`
-above (the `binary_*` columns), not here.
+(`primary`/`secondary`) for either binary configuration. There is
+**never** a row for a `'close'` pair's `BinaryStarProxy` itself — its
+combined-pair values live on `star_systems` above (the `binary_*`
+columns), not here. A `'wide'` pair's two stars, by contrast, are two
+ordinary rows just like a single star's, since neither one merges into
+anything.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -576,6 +632,7 @@ above (the `binary_*` columns), not here.
 | `galactic_orbital_period_gy` | DOUBLE | NOT NULL | Added in v10. Orbital period for the circular orbit above, in billions of years (Gy) — the same unit `age_gy`/`lifespan_gy` use. |
 | `galactic_orbital_phase_deg` | DOUBLE | NOT NULL | Added in v13. This star's current angular position around its galactic orbit — the same role `planets.orbital_phase_deg` plays, advanced by `_db.advance_orbital_phases`. Both stars of a binary pair always carry the identical value (see "Schema history" above for why — `StarSystem.__init__` rolls it once and threads it to primary/secondary/proxy alike). |
 | `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`utils.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
+| `wide_binary_a_crit_km` | DOUBLE | nullable | Added in v15. This star's own Holman & Wiegert (1999) critical semi-major axis (`utils.holman_wiegert_critical_semimajor_axis`) — the maximum orbit distance that stays long-term stable given its companion's perturbation. NULL for a single star or either constituent of a `'close'` pair; populated for both stars of a `'wide'` pair. |
 
 ### `planets`
 
@@ -587,7 +644,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 |---|---|---|---|
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Always the reliable owning link, regardless of `star_id`. |
-| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | The specific star this planet orbits, when that's a real stored `stars` row — true for every single-star system. **NULL for a binary's planets**: the generator always builds planets against `self.star`, which for a binary is the `BinaryStarProxy` (never one individual constituent star — there's no S-type/circumbinary distinction in the current generator), and the proxy has no `stars` row to point at. |
+| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | The specific star this planet orbits, when that's a real stored `stars` row — true for every single-star system, and, as of v15, every `'wide'` binary's planets too (each orbits one specific constituent star). Still **NULL for a `'close'` binary's planets**: the generator builds those against the merged `BinaryStarProxy`, never one individual constituent star, and the proxy has no `stars` row to point at. |
 | `orbital_index` | INTEGER | NOT NULL | Position in the star's ordered `planets` list. |
 | `body_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Terrestrial or gas giant. Unrelated to `stars.star_type`. |
 | `name` | TEXT | NOT NULL | |
@@ -681,6 +738,7 @@ columns capture the facts the prose always states instead.
 |---|---|---|---|
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Added in v15. Same "which specific star this orbits" semantics as `planets.star_id` above — NULL for a single star's or a `'close'` binary's belt, set to the owning star for a `'wide'` binary's. |
 | `orbital_index` | INTEGER | NOT NULL | |
 | `distance_km` | DOUBLE | NOT NULL | Average distance from the star. |
 | `lower_limit_km`, `upper_limit_km` | DOUBLE | NOT NULL | The belt's inner/outer boundary. |
@@ -738,8 +796,9 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
 
-planets.star_id ──────────> stars.id   (nullable; NULL for binary systems)
-moons.star_id   ──────────> stars.id   (nullable; NULL for binary systems)
+planets.star_id ──────────> stars.id   (nullable; NULL for a 'close' binary's planets, set for a single star's or a 'wide' binary's)
+moons.star_id   ──────────> stars.id   (nullable; same convention as planets.star_id)
+asteroid_belts.star_id ───> stars.id   (nullable; same convention as planets.star_id, added in v15)
 moons.star_system_id ─────> star_systems.id   (redundant with moons.planet_id's own owner)
 ```
 

@@ -32,8 +32,18 @@ from stellarObjects.utils import (
 
 
 def _make_config(star_type, **overrides):
+    """
+    `BINARY_SYSTEM` defaults to False: none of this module's tests are
+    about binary generation, but `StarSystem._should_generate_binary`
+    rolls real chance whenever it's left at its own default (None), and a
+    second star (whether merged P-type or an independent S-type
+    secondary) would otherwise unpredictably add its own object count on
+    top of a single star's -- exactly what this module's disk-physics
+    estimates are trying to pin down deterministically.
+    """
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
+    cfg.BINARY_SYSTEM = False
     for attr, value in overrides.items():
         setattr(cfg, attr, value)
     return cfg

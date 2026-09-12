@@ -35,12 +35,17 @@ def seeded_sector(mysql_config):
     cfg_a = SystemConfig()
     cfg_a.STAR_TYPE = "G2V"
     cfg_a.PLANETS = False
+    # Pinned False: left at its own default, `BINARY_SYSTEM` now rolls
+    # real chance (StarSystem._should_generate_binary), and this fixture's
+    # own tests rely on both systems staying single (is_binary == 0).
+    cfg_a.BINARY_SYSTEM = False
     system_a = StarSystem(system_config=cfg_a)
     sector.add_system(system_a, position=(1.0, 1.0, 1.0), system_config=cfg_a)
 
     cfg_b = SystemConfig()
     cfg_b.STAR_TYPE = "M5V"
     cfg_b.PLANETS = False
+    cfg_b.BINARY_SYSTEM = False
     system_b = StarSystem(system_config=cfg_b)
     sector.add_system(system_b, position=(-2.0, 0.5, 3.0), system_config=cfg_b)
 

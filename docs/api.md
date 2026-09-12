@@ -324,6 +324,7 @@ it the same way `systemGen.py` does, via `StarSystem(system_config=...)`:
   "planets": null,
   "intelligent_life": null,
   "binary_system": false,
+  "wide_binary": null,
   "num_orbits": 6,
   "markdown": false
 }
@@ -332,8 +333,10 @@ it the same way `systemGen.py` does, via `StarSystem(system_config=...)`:
 Accepted fields: `markdown`, `star_type`, `name`, `age` (`"young"`,
 `"old"`, or `null`), `num_orbits` (positive integer or `null`), and the
 tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
-`max_planets`/`planets`/`intelligent_life`/`binary_system` (`true`,
-`false`, or `null`). An unrecognized field (including `slots`, `sector_id`,
+`max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
+(`true`, `false`, or `null`) — `wide_binary` selects an S-type (wide) vs.
+P-type (close) binary and is only meaningful together with
+`binary_system: true`. An unrecognized field (including `slots`, `sector_id`,
 or a fully-specified object graph shaped like `StarSystem.to_dict()`) is a
 `400` — not silently ignored.
 
