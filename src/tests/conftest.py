@@ -25,6 +25,8 @@ can still run everything else.
 """
 
 import os
+import urllib.error
+import urllib.request
 import uuid
 
 import pymysql
@@ -95,3 +97,46 @@ def mysql_config(_mysql_server_available):
             admin_conn.commit()
         finally:
             admin_conn.close()
+
+
+@pytest.fixture(scope="session")
+def wikijs_config():
+    """
+    Connection details for a real, disposable Wiki.js instance to test
+    `wikijs.WikiJsClient` against end-to-end -- unlike `mysql_config`
+    above, this project has no service of its own to provision one, so
+    this is opt-in only: set `PLANETGEN_TEST_WIKIJS_BASE_URL` and
+    `PLANETGEN_TEST_WIKIJS_TOKEN` (a Personal API Token from that
+    instance's Admin -> API Access) to run `test_wikijs_client_integration.py`
+    against it; every test depending on this fixture is skipped, not
+    failed, when either is unset or the instance isn't reachable -- same
+    "opt-in real service, skip without it" treatment `_mysql_server_available`
+    gives MySQL.
+
+    Yields:
+        tuple[str, str]: `(base_url, api_token)`.
+    """
+    base_url = os.environ.get("PLANETGEN_TEST_WIKIJS_BASE_URL")
+    api_token = os.environ.get("PLANETGEN_TEST_WIKIJS_TOKEN")
+    if not base_url or not api_token:
+        pytest.skip(
+            "No Wiki.js test instance configured -- set PLANETGEN_TEST_WIKIJS_BASE_URL "
+            "and PLANETGEN_TEST_WIKIJS_TOKEN to run wikijs integration tests."
+        )
+
+    try:
+        # A plain GET against the instance's own root, not /graphql --
+        # only checking that *something* answers at this host/port at all,
+        # kept separate from WikiJsClient itself so a real auth/GraphQL
+        # failure (a wrong token, wrong Wiki.js version) surfaces as a
+        # genuine test failure later rather than being swallowed here as
+        # "not reachable". An HTTPError (any status) still means the host
+        # answered, so only a connection-level URLError counts as
+        # unreachable.
+        urllib.request.urlopen(base_url, timeout=5).close()
+    except urllib.error.HTTPError:
+        pass
+    except urllib.error.URLError as exc:
+        pytest.skip(f"Wiki.js test instance at {base_url} not reachable: {exc}")
+
+    yield base_url, api_token

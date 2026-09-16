@@ -433,3 +433,28 @@ def auth_create_api_key(cookie_header, label):
 def auth_revoke_api_key(cookie_header, key_id):
     """`DELETE /api/auth/api-keys/<id>`."""
     _auth_request("DELETE", f"/auth/api-keys/{key_id}", cookie_header=cookie_header)
+
+
+# TODO(wiki.js publishing): add a typed wrapper here once
+# POST /api/systems/<id>/wiki exists (see routes.py's own TODO), e.g.:
+#
+#     def upload_system_to_wiki(cookie_header, db, system_id):
+#         """`POST /api/systems/<id>/wiki` -- returns the new page's
+#         `{"id", "path", "title", "url"}` on success.
+#
+#         Raises:
+#             ApiError: `status_code == 409` if a page already exists at
+#                 the target path (system.py should show this as an
+#                 inline "already uploaded" message, not a generic error).
+#         """
+#         _require_db(db)
+#         path = f"/systems/{system_id}/wiki?{_build_query({'db': db})}"
+#         body, _set_cookie_headers = _auth_request("POST", path, cookie_header=cookie_header)
+#         return body
+#
+# following `_auth_request`'s existing POST-with-cookie pattern (same
+# shape `auth_create_api_key` already uses above) -- `_auth_request` has
+# no query-param support of its own (unlike `_request`'s GET-only
+# `params`), so `db` gets folded into the path via `_build_query` like
+# this, rather than passed as a separate argument the way `get_system`
+# passes it to `_request`.
