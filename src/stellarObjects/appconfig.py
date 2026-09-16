@@ -86,6 +86,24 @@ DEFAULT_CONFIG = {
 any field/section missing from a deployment's real `config.json` (or when
 no such file exists yet at all)."""
 
+# TODO(wiki.js publishing): add a `"wiki"` section here (and to
+# config.json.example) once the "Upload to Wiki" feature is wired up --
+# see docs/TODO.md's "Wiki.js publishing isn't wired up yet" item and
+# src/wikijs/ (the already-built, standalone GraphQL client this would
+# configure). Something like:
+#     "wiki": {
+#         "enabled": False,
+#         "base_url": "",
+#         "api_token": "",
+#     },
+# following this file's own documented precedence (an explicit function
+# argument, then a PLANETGEN_WIKI_* env var, then this config.json
+# section, then a built-in default) -- see html/api/config.py's own TODO
+# for where `PLANETGEN_WIKI_BASE_URL`/`PLANETGEN_WIKI_API_TOKEN` would be
+# read and layered on top of this section, the same way
+# `_write_mysql_config` already layers PLANETGEN_MYSQL_WRITE_* over
+# config.json's `mysql_write` section above.
+
 
 def _merge(base, overrides):
     """Recursively merges `overrides` onto `base` in place -- a section

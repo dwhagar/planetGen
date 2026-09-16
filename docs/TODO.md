@@ -78,6 +78,16 @@ open items need working detail.
   modify its stars/planets/moons/belts short of `DELETE` + `POST`
   (regenerate). Not clear this needs solving at all (vs. "just
   regenerate"), but flagged in case it does.
+- [ ] **Wiki.js publishing isn't wired up yet.** A standalone,
+  fully-tested `wikijs.WikiJsClient` (`src/wikijs/`, see
+  `src/tests/test_wikijs_client.py`/`test_wikijs_client_integration.py`)
+  can create a Wiki.js page over its GraphQL API (create-only — see that
+  package's own docstring), but nothing in this project calls it yet.
+  Wiring an "Upload to Wiki" button on `html/system.py` into it — a new
+  `config.json` `wiki` section, a `POST /api/systems/<id>/wiki` write
+  route, an `apiclient.py` wrapper, and the button/form itself — is left
+  as `# TODO` comments at each of those spots; see those comments for the
+  specifics.
 
 ## Population and Politics
 

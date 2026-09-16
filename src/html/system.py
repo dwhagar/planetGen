@@ -283,6 +283,22 @@ def handler():
         f'<span class="badge">{bit}</span>' for bit in summary_bits
     ) + "</p>"
 
+    # TODO(wiki.js publishing): add an "Upload to Wiki" button/form here,
+    # shown only when `auth_me(incoming_cookie_header())` resolves an
+    # admin session (see admin.py for the identity-check pattern, and
+    # api/routes.py's own TODO for what it would call). Something like:
+    #     <form method="post" action="system.py?db=...&id=..." class="table-form">
+    #       <input type="hidden" name="action" value="upload_wiki">
+    #       <button type="submit" class="btn">Upload to Wiki</button>
+    #     </form>
+    # This page is GET-only today -- `handler()` would need a POST branch
+    # (mirroring admin.py's `form_params()`/`action`-dispatch, imported
+    # from `page.py`) that calls the new
+    # `apiclient.upload_system_to_wiki(incoming_cookie_header(), db_name,
+    # system_id)`, then renders either a success message linking to
+    # `page["url"]` or an inline error -- an `ApiError` with
+    # `status_code == 409` specifically should read as "already uploaded"
+    # rather than a generic failure (see apiclient.py's own TODO).
     nav_html = ""
     if system["sector_id"] is not None:
         # NAV needs a sector to measure a position from at all -- see

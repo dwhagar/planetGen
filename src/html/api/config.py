@@ -118,6 +118,19 @@ class Config:
     RATELIMIT_STORAGE_URI = os.environ.get("PLANETGEN_RATELIMIT_STORAGE_URI", _config_file["ratelimit"]["storage_uri"])
     RATELIMIT_HEADERS_ENABLED = True
 
+    # TODO(wiki.js publishing): once config.json grows a `wiki` section
+    # (see stellarObjects/appconfig.py's own TODO on DEFAULT_CONFIG), add
+    # WIKI_BASE_URL/WIKI_API_TOKEN here the same layered way
+    # _write_mysql_config resolves WRITE_MYSQL_CONFIG above (an explicit
+    # PLANETGEN_WIKI_BASE_URL/PLANETGEN_WIKI_API_TOKEN env var first, then
+    # _config_file["wiki"]["base_url"]/["api_token"], then "" for "not
+    # configured"). The new POST /api/systems/<id>/wiki route (see
+    # routes.py's own TODO in the "Write endpoints" section) would read
+    # these to construct a wikijs.WikiJsClient(...) per request -- an
+    # empty WIKI_BASE_URL/WIKI_API_TOKEN should make that route respond
+    # 501 "wiki publishing not configured" rather than trying (and
+    # failing) to reach an empty URL.
+
     # The admin session cookie (auth.py) is Secure by default -- never
     # sent over plain HTTP -- matching this project's documented
     # deployment (Apache + Let's Encrypt, docs/apache-deployment.md).
