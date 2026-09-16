@@ -56,12 +56,26 @@ def _set_session_cookie(resp, raw_token):
         httponly=True,
         secure=current_app.config.get("SESSION_COOKIE_SECURE", True),
         samesite="Strict",
-        path="/api",
+        # Not "/api": the documented Apache deployment (docs/apache-
+        # deployment.md, examples/apache/planetgen.conf.example) serves
+        # the CGI admin pages (admin.py, login.py, etc.) at the site root
+        # under the same DocumentRoot the API is mounted under at /api --
+        # those pages read this cookie via page.incoming_cookie_header()
+        # and relay it to the API themselves (see e.g. admin.py's
+        # `cookie_header = incoming_cookie_header()`). A cookie scoped to
+        # /api is never attached by the browser to a request for
+        # /admin.py, so a path scoped that narrowly locks every admin
+        # page out immediately after a successful login.
+        path="/",
     )
 
 
 def _clear_session_cookie(resp):
-    resp.delete_cookie(SESSION_COOKIE_NAME, path="/api")
+    # Must match _set_session_cookie's own path exactly -- a browser scopes
+    # a cookie by (name, domain, path) together, so deleting with a
+    # different path wouldn't clear the one actually set on login; it would
+    # just set a second, separate empty cookie under the old path.
+    resp.delete_cookie(SESSION_COOKIE_NAME, path="/")
 
 
 @bp.route("/login", methods=["POST"])

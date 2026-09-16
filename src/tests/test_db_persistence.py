@@ -169,6 +169,109 @@ def test_load_star_system_round_trips_comets_with_composition(mysql_config):
     assert str(reloaded) == str(system)
 
 
+def _make_wide_binary_system_with_comets():
+    """Retries generation (bounded) until a 'wide' (S-type) binary comes
+    out with at least one comet on EACH star -- needed to exercise
+    insert_star_system's/load_star_system's star_id-based grouping for
+    comets (see insert_comet's and load_star_system's own docstrings),
+    which _make_system_with_comets' single-star fixture above can't."""
+    for _ in range(50):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.COMETS = True
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = True
+        system = StarSystem(system_config=cfg)
+        if system.binary_type == "wide" and system.comets and system.secondary_comets:
+            return system, cfg
+    pytest.fail("could not generate a wide binary with comets on both stars")
+
+
+def test_insert_and_load_star_system_round_trips_comets_for_a_wide_binary(mysql_config):
+    """
+    A 'wide' binary's two stars each get their own, independently-rolled
+    comet population (StarSystem._generate_comets), disambiguated in the
+    database by each row's own star_id (see insert_comet's docstring) --
+    unlike the single-star case test_insert_star_system_persists_comets_in_their_own_table
+    and test_load_star_system_round_trips_comets_with_composition cover
+    above, this is the only place that star_id-based split is actually
+    exercised through a real insert/load round trip, rather than just the
+    in-memory to_dict/from_dict path StarSystem's own serialization tests
+    (test_serialization.py) cover.
+    """
+    system, cfg = _make_wide_binary_system_with_comets()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        primary_row = conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'primary'", (system_id,)
+        ).fetchone()
+        secondary_row = conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'secondary'", (system_id,)
+        ).fetchone()
+
+        db_comets = conn.execute("SELECT name, star_id FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
+        primary_names = {row["name"] for row in db_comets if row["star_id"] == primary_row["id"]}
+        secondary_names = {row["name"] for row in db_comets if row["star_id"] == secondary_row["id"]}
+        assert primary_names == {c.name for c in system.comets}
+        assert secondary_names == {c.name for c in system.secondary_comets}
+        # Every row's star_id must land in exactly one of the two buckets
+        # above -- confirms there's no third value (e.g. a stray NULL,
+        # only ever correct for a 'close' binary's merged proxy) hiding.
+        assert primary_names | secondary_names == {row["name"] for row in db_comets}
+
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
+    assert {c.name for c in reloaded.secondary_comets} == {c.name for c in system.secondary_comets}
+    assert reloaded.comet_count == system.comet_count
+
+
+def _make_close_binary_system_with_comets():
+    """Retries generation (bounded) until a 'close' (P-type) binary comes
+    out with at least one comet -- a close pair's comets are bound to the
+    merged BinaryStarProxy (StarSystem._generate_comets), not either
+    individually-stored star row, so insert_comet stores star_id as NULL
+    for them (see that function's own docstring); untested by any other
+    comet fixture above, all of which use a real star_id."""
+    for _ in range(50):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.COMETS = True
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = False
+        system = StarSystem(system_config=cfg)
+        if system.binary_type == "close" and system.comets:
+            return system, cfg
+    pytest.fail("could not generate a close binary with comets")
+
+
+def test_insert_and_load_star_system_round_trips_comets_for_a_close_binary(mysql_config):
+    system, cfg = _make_close_binary_system_with_comets()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        db_comets = conn.execute("SELECT name, star_id FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
+        assert len(db_comets) == system.comet_count
+        assert all(row["star_id"] is None for row in db_comets)
+
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
+    assert reloaded.secondary_comets == []
+    assert reloaded.comet_count == system.comet_count
+
+
 def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
 

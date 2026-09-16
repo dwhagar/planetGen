@@ -3555,12 +3555,15 @@ def advance_comet_orbits(conn, elapsed_years):
     expression: turning an advanced anomaly into a distance/position
     requires solving Kepler's equation (Newton-Raphson, elliptical) or
     Barker's equation (a real-cube-root closed form, parabolic) -- neither
-    expressible in standard SQL. So this fetches every `comets` row, does
-    that computation in Python, and writes each result back with its own
-    `UPDATE` -- one Python loop instead of one set-based statement, the
-    necessary tradeoff for correctness here (in practice a small table --
-    see `program_constants.SYSTEM_COMET_COUNT_RANGE` -- so this isn't the
-    scaling concern it would be for `planets`/`moons`).
+    expressible in standard SQL. So this fetches every `comets` row and
+    does that computation in Python -- one Python loop instead of one
+    set-based statement, the necessary tradeoff for correctness here (in
+    practice a small table -- see `program_constants.SYSTEM_COMET_COUNT_RANGE`
+    -- so this isn't the scaling concern it would be for `planets`/`moons`).
+    The resulting rows are still written back in one batched `UPDATE` via
+    `executemany` (like `insert_sector`'s per-vertex rows), not one
+    `execute` per row -- the per-row work has to stay in Python, but the
+    round trips to the database don't.
 
     An elliptical comet's `mean_anomaly_deg` advances the same
     `MOD(current + (elapsed_years / period_years) * 360, 360)` way
@@ -3600,7 +3603,7 @@ def advance_comet_orbits(conn, elapsed_years):
         "parabolic_mean_anomaly, min_update_interval_years, primary_mass_solar FROM comets"
     ).fetchall()
 
-    updated = 0
+    update_params = []
     for row in rows:
         perihelion_distance_au = row["perihelion_distance_km"] / physical_constants.AU_TO_KM
 
@@ -3630,7 +3633,20 @@ def advance_comet_orbits(conn, elapsed_years):
             orbital_period_years=row["orbital_period_years"],
         )
 
-        conn.execute(
+        update_params.append((
+            new_mean_anomaly_deg, new_parabolic_mean_anomaly,
+            state["distance_au"] * physical_constants.AU_TO_KM,
+            state["position_x_au"] * physical_constants.AU_TO_KM,
+            state["position_y_au"] * physical_constants.AU_TO_KM,
+            state["position_z_au"] * physical_constants.AU_TO_KM,
+            state["orbital_speed_kms"],
+            row["id"],
+        ))
+
+    # One batched round trip for every row that needs writing, not one
+    # `execute` per comet -- see this function's own docstring.
+    if update_params:
+        conn.executemany(
             """
             UPDATE comets
             SET mean_anomaly_deg = ?, parabolic_mean_anomaly = ?,
@@ -3638,17 +3654,8 @@ def advance_comet_orbits(conn, elapsed_years):
                 orbital_speed_kms = ?
             WHERE id = ?
             """,
-            (
-                new_mean_anomaly_deg, new_parabolic_mean_anomaly,
-                state["distance_au"] * physical_constants.AU_TO_KM,
-                state["position_x_au"] * physical_constants.AU_TO_KM,
-                state["position_y_au"] * physical_constants.AU_TO_KM,
-                state["position_z_au"] * physical_constants.AU_TO_KM,
-                state["orbital_speed_kms"],
-                row["id"],
-            ),
+            update_params,
         )
-        updated += 1
 
     conn.commit()
-    return updated
+    return len(update_params)

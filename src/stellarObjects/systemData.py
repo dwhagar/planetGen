@@ -1337,7 +1337,18 @@ class StarSystem:
                 distance_to_last = planet.distance - last_planet.distance
 
             if distance_to_last < 0:
-                additional_correction = abs(distance_to_last) + last_planet.distance
+                # abs(distance_to_last) alone is exactly enough to cancel
+                # the negative gap and land `planet` right on
+                # `last_planet`'s own edge (upper_limit for a belt,
+                # distance for a planet) -- the real minimum separation
+                # (MIN_ASTEROID_BELT_SEPARATION or min_orbit_distance) is
+                # then added on top of THIS corrected position by the
+                # branches below. An earlier version of this line also
+                # added `last_planet.distance`, double-counting that
+                # offset on top of the already-correct cancellation and
+                # roughly doubling the corrected distance instead of
+                # nudging it just past the obstruction.
+                additional_correction = abs(distance_to_last)
             else:
                 additional_correction = 0
 

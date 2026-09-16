@@ -17,6 +17,7 @@ import math
 
 import pytest
 
+from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
@@ -138,6 +139,28 @@ def assert_no_orbital_overlap(system):
     """
     _assert_no_overlap_within(system.planets)
     _assert_no_overlap_within(system.secondary_planets)
+
+
+def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
+    """
+    Regression test for a bug where `validate_system`'s
+    `additional_correction` term double-counted `last_planet.distance` on
+    top of the offset that already cancels the negative gap, roughly
+    doubling the corrected distance for any overlap correction involving
+    an asteroid belt instead of nudging the overlapping body just past
+    it. `_assert_no_overlap_within` (this file's own general invariant
+    check) can't catch this on its own -- it only asserts the resulting
+    gap is AT LEAST the required minimum, which a large overshoot still
+    (trivially) satisfies -- so this asserts the exact corrected value.
+    """
+    system = StarSystem(system_config=make_config("G2V", PLANETS=False))
+    belt = AsteroidBelt(system.system_config, distance=2.0, lower_limit=1.8, upper_limit=2.2)
+    overlapping_belt = AsteroidBelt(system.system_config, distance=2.0, lower_limit=1.8, upper_limit=2.2)
+
+    system.validate_system([belt, overlapping_belt])
+
+    expected_distance = belt.upper_limit + prog_c.MIN_ASTEROID_BELT_SEPARATION
+    assert overlapping_belt.distance == pytest.approx(expected_distance, rel=1e-9)
 
 
 def _all_planets_and_moons(system):
