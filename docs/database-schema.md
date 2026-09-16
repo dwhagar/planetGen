@@ -336,14 +336,17 @@ for v18's galaxy-frame placement columns on `nebulae`/`asteroid_fields`
 (also real `ALTER TABLE` steps, left NULL on every pre-existing row --
 there's no way to recover a legacy phenomenon's intended galaxy placement
 after the fact, the same situation `sectors.center_x/y/z_pc` is in for a
-`_migrate_v3_to_v4`-migrated sector). `migrate_database` applies
+`_migrate_v3_to_v4`-migrated sector), and `_migrate_v18_to_v19` for v19's
+new `comets`/`comet_composition` tables (needing no `ALTER TABLE` either,
+for the same "brand-new tables, bookkeeping-only step" reason as
+`_migrate_v15_to_v16`). `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v18), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v19), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -836,6 +839,48 @@ Structured per-component detail behind `composition_summary` above.
 | `component` | TEXT | NOT NULL | e.g. `"iron"`. |
 | `concentration` | TEXT | NOT NULL, CHECK IN ('high','moderate','small','trace') | |
 
+### `comets`
+
+Added in v19. One row per star-bound comet (`cometData.Comet`), propagated
+via real two-body Kepler/Barker orbital mechanics (`keplerMotion.py`) — see
+`docs/design/comet-orbital-realism.md`. Contrast `interstellar_comets`
+below, an always-standalone, unbound object on a fixed hyperbolic
+trajectory. Deliberately has no `orbital_index`: a comet's `distance_km`
+is its current, continuously-varying position along its orbit, not a
+fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same real semantics as `planets.star_id` above — a real `stars.id` for a single star or a `'wide'` binary's comet; NULL only for a `'close'` binary's, which orbits the merged pair rather than one individually-stored star row. |
+| `orbit_type` | TEXT | NOT NULL, CHECK IN ('elliptical','parabolic') | |
+| `period_class` | TEXT | nullable, CHECK IN ('jupiter_family','halley_type','long_period') | Only set for `orbit_type = 'elliptical'` — flavor/plausibility metadata only. |
+| `nucleus_diameter_km` | DOUBLE | NOT NULL | |
+| `composition_summary` | TEXT | NOT NULL | Searchable summary; structured breakdown lives in `comet_composition`. |
+| `perihelion_distance_km` | DOUBLE | NOT NULL | |
+| `eccentricity`, `inclination_deg`, `arg_periapsis_deg`, `ascending_node_deg` | DOUBLE | NOT NULL | Full 3D orbit orientation. |
+| `orbital_period_years`, `mean_anomaly_deg` | DOUBLE | nullable | Only set for `orbit_type = 'elliptical'`. |
+| `parabolic_mean_anomaly` | DOUBLE | nullable | Only set for `orbit_type = 'parabolic'`. |
+| `min_update_interval_years` | DOUBLE | nullable | Only set for `orbit_type = 'elliptical'` — a parabolic comet's anomaly doesn't wrap, so it has no periodic floating-point-resolution floor to guard. |
+| `primary_mass_solar` | DOUBLE | NOT NULL | |
+| `is_active` | BOOLEAN | NOT NULL | Coma/tail activity. |
+| `distance_km`, `position_x_km`, `position_y_km`, `position_z_km`, `orbital_speed_kms` | DOUBLE | NOT NULL | Current derived orbital state — recomputed by `_db.advance_comet_orbits` as `mean_anomaly_deg`/`parabolic_mean_anomaly` advance over time. |
+
+### `comet_composition`
+
+Structured per-component detail behind `composition_summary` above — a
+plain component list (no concentration gradient), mirroring
+`interstellar_comet_composition`'s shape rather than
+`asteroid_belt_composition`'s.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `comet_id` | INTEGER | FK -> `comets.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `position` | INTEGER | NOT NULL | List order. |
+| `component` | TEXT | NOT NULL | e.g. `"water ice"`. |
+
 ### `black_holes` / `neutron_stars`
 
 Added in v16, for `phenomenonGen.py`'s separate, rarer exotic-phenomenon
@@ -997,21 +1042,23 @@ concentration shape — both are generated via the same shared
 
 ### `sector_objects` (view, not a table)
 
-`UNION ALL` across `stars`, `planets`, `moons`, and `asteroid_belts` (each
-joined to `star_systems` for `sector_id`), for "every stellar object in
-this sector" queries without hand-writing the union each time:
+`UNION ALL` across `stars`, `planets`, `moons`, `asteroid_belts`, and
+`comets` (each joined to `star_systems` for `sector_id`), for "every
+stellar object in this sector" queries without hand-writing the union
+each time:
 
 ```sql
 SELECT * FROM sector_objects WHERE sector_id = ?;
 ```
 
-Columns: `object_type` (`'star'`/`'planet'`/`'moon'`/`'asteroid_belt'`),
-`object_id` (the row's real id in its own table), `star_system_id`,
-`sector_id`, `name`, `summary` (a short type-appropriate label — a star's
-`table_type`, a planet's/moon's class or body type, a belt's density),
-`orbital_index` (NULL for stars).
+Columns: `object_type` (`'star'`/`'planet'`/`'moon'`/`'asteroid_belt'`/
+`'comet'`), `object_id` (the row's real id in its own table),
+`star_system_id`, `sector_id`, `name`, `summary` (a short type-appropriate
+label — a star's `table_type`, a planet's/moon's class or body type, a
+belt's density, a comet's `orbit_type`), `orbital_index` (NULL for stars
+and comets).
 
-This is a view rather than a fifth physical table specifically to avoid
+This is a view rather than a sixth physical table specifically to avoid
 write-side upkeep: a real table would need to be kept in sync on every
 insert/update/delete to the tables it mirrors, or drift out of sync. A view
 has no storage and resolves against current data on every query.

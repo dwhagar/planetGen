@@ -17,6 +17,7 @@ import math
 
 import pytest
 
+from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
@@ -34,7 +35,7 @@ STAR_TYPES = [
 ]
 
 TRISTATE_ATTRS = [
-    "HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS",
+    "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "INTELLIGENT_LIFE", "BINARY_SYSTEM", "PLANETS",
 ]
 
@@ -140,6 +141,28 @@ def assert_no_orbital_overlap(system):
     _assert_no_overlap_within(system.secondary_planets)
 
 
+def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
+    """
+    Regression test for a bug where `validate_system`'s
+    `additional_correction` term double-counted `last_planet.distance` on
+    top of the offset that already cancels the negative gap, roughly
+    doubling the corrected distance for any overlap correction involving
+    an asteroid belt instead of nudging the overlapping body just past
+    it. `_assert_no_overlap_within` (this file's own general invariant
+    check) can't catch this on its own -- it only asserts the resulting
+    gap is AT LEAST the required minimum, which a large overshoot still
+    (trivially) satisfies -- so this asserts the exact corrected value.
+    """
+    system = StarSystem(system_config=make_config("G2V", PLANETS=False))
+    belt = AsteroidBelt(system.system_config, distance=2.0, lower_limit=1.8, upper_limit=2.2)
+    overlapping_belt = AsteroidBelt(system.system_config, distance=2.0, lower_limit=1.8, upper_limit=2.2)
+
+    system.validate_system([belt, overlapping_belt])
+
+    expected_distance = belt.upper_limit + prog_c.MIN_ASTEROID_BELT_SEPARATION
+    assert overlapping_belt.distance == pytest.approx(expected_distance, rel=1e-9)
+
+
 def _all_planets_and_moons(system):
     bodies = []
     for obj in system.planets + system.secondary_planets:
@@ -201,6 +224,12 @@ def assert_counts_are_consistent(system):
     assert hab_count == system.hab_count
     assert m_count == system.m_count
     assert hab_count >= m_count >= 0
+    # comets is its own list, separate from planets/secondary_planets (see
+    # StarSystem._generate_comets' docstring) -- count_comets() defaults
+    # to both stars' combined lists the same way count_objects() does.
+    comet_count = system.count_comets()
+    assert comet_count == system.comet_count
+    assert comet_count == len(system.comets) + len(system.secondary_comets)
 
 
 @pytest.mark.parametrize("star_type", STAR_TYPES)
@@ -230,6 +259,10 @@ def test_each_tristate_flag_forced(star_type, value, attr):
             assert system.hab_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
+        if attr == "COMETS" and value is True:
+            assert system.comet_count >= 1, f"{star_type}: COMETS=True produced no comet"
+        if attr == "COMETS" and value is False:
+            assert system.comet_count == 0, f"{star_type}: COMETS=False still produced a comet"
         if attr == "PLANETS" and value is False:
             assert len(system.planets) == 0
             assert len(system.secondary_planets) == 0

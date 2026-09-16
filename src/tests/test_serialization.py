@@ -216,6 +216,7 @@ def test_star_system_round_trip_single_star_full_fidelity():
     assert reloaded.moon_count == system.moon_count
     assert reloaded.hab_count == system.hab_count
     assert reloaded.m_count == system.m_count
+    assert reloaded.comet_count == system.comet_count
 
     # Orbital order preserved.
     assert [obj.distance for obj in reloaded.planets] == original_distances_in_order
@@ -237,6 +238,48 @@ def test_star_system_round_trip_single_star_full_fidelity():
     assert first_render == second_render
     assert reloaded.system_config.system_flavor_count == flavor_count_before
     assert first_render == original_render
+
+
+def test_star_system_round_trip_preserves_comets():
+    # Comets are their own list, separate from planets/secondary_planets
+    # (see StarSystem._generate_comets' docstring) -- this confirms
+    # to_dict/from_dict round-trips that list (and its comet_count
+    # bookkeeping) the same fidelity guarantee the other lists already get
+    # above, for both a single star and a wide binary's two independent
+    # comet populations.
+    system, _ = _first_matching(
+        lambda s: s if s.comet_count > 0 else None,
+        lambda: make_system("G2V", COMETS=True, PLANETS=False, BINARY_SYSTEM=False),
+    )
+    original_render = str(system)
+
+    reloaded = StarSystem.from_dict(system.to_dict())
+
+    assert reloaded.comet_count == system.comet_count
+    assert sorted(c.name for c in reloaded.comets) == sorted(c.name for c in system.comets)
+    for orig, new in zip(sorted(system.comets, key=lambda c: c.name), sorted(reloaded.comets, key=lambda c: c.name)):
+        assert new.orbit_type == orig.orbit_type
+        assert new.eccentricity == orig.eccentricity
+        assert new.perihelion_distance_au == orig.perihelion_distance_au
+        assert new.composition == orig.composition
+        assert new.system_config is reloaded.system_config
+
+    assert str(reloaded) == original_render
+
+
+def test_star_system_round_trip_preserves_comets_for_a_wide_binary():
+    system, _ = _first_matching(
+        lambda s: s if s.binary_type == "wide" and (s.comets or s.secondary_comets) else None,
+        lambda: make_system("G2V", COMETS=True, PLANETS=False, BINARY_SYSTEM=True, WIDE_BINARY=True),
+    )
+
+    reloaded = StarSystem.from_dict(system.to_dict())
+
+    assert reloaded.comet_count == system.comet_count
+    assert len(reloaded.comets) == len(system.comets)
+    assert len(reloaded.secondary_comets) == len(system.secondary_comets)
+    assert sorted(c.name for c in reloaded.comets) == sorted(c.name for c in system.comets)
+    assert sorted(c.name for c in reloaded.secondary_comets) == sorted(c.name for c in system.secondary_comets)
 
 
 def test_star_system_round_trip_binary_collapses_secondary_config_asymmetry():

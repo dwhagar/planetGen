@@ -320,9 +320,14 @@ def years_to_time_string(years):
     Returns:
         str: A human-readable string representing the time duration.
     """
-    total_minutes = round(years * 365.25 * 24 * 60)
-    years = total_minutes // (365 * 24 * 60)
-    remaining_minutes = total_minutes % (365 * 24 * 60)
+    # A year is 365.25 days everywhere in this function -- extracting whole
+    # years back out with a plain 365-day divisor (an earlier bug) leaked
+    # that quarter-day/year discrepancy into "days" instead, e.g.
+    # years_to_time_string(1.0) wrongly returned "1 year and 6 hours".
+    minutes_per_year = 365.25 * 24 * 60
+    total_minutes = round(years * minutes_per_year)
+    years = int(total_minutes // minutes_per_year)
+    remaining_minutes = total_minutes - round(years * minutes_per_year)
     days = remaining_minutes // (24 * 60)
     remaining_minutes %= 24 * 60
     hours = remaining_minutes // 60

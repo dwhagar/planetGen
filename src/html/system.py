@@ -2,7 +2,7 @@
 # html/system.py
 
 """
-System detail page: stars, planets/moons, asteroid belts, and the
+System detail page: stars, planets/moons, asteroid belts, comets, and the
 system's full description. Defaults to rendering `markdown_content` as
 actual HTML (via `mdconvert.markdown_to_html_with_headings`) so the
 description reads like a normal page instead of a wall of raw Markdown,
@@ -121,12 +121,39 @@ def _belts_table_html(belts, heading="Asteroid Belts"):
 """
 
 
-def _bodies_html(planets, belts, stars, binary_configuration):
-    """
-    Builds the "Planets & Moons"/"Asteroid Belts" section(s).
+def _comets_table_html(comets, heading="Comets"):
+    if not comets:
+        return ""
+    comet_rows = "".join(
+        "<tr>"
+        f'<td>{esc(row["name"])}</td>'
+        f'<td>{"Elliptical" if row["orbit_type"] == "elliptical" else "Parabolic"}</td>'
+        # Not esc()'d -- see the same note in `_stars_html`.
+        f'<td>{format_body_distance(row["perihelion_distance_km"], is_moon=False)}</td>'
+        f'<td>{row["eccentricity"]:.3f}</td>'
+        f'<td>{format_period(row["orbital_period_years"]) if row["orbital_period_years"] is not None else "single apparition"}</td>'
+        f'<td>{"Active" if row["is_active"] else "Dormant"}</td>'
+        f'<td>{esc(row["composition_summary"])}</td>'
+        "</tr>"
+        for row in comets
+    )
+    return f"""
+<section class="panel">
+<h2>{heading}</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Name</th><th>Orbit</th><th>Perihelion</th><th>Eccentricity</th><th>Period</th><th>Activity</th><th>Composition</th></tr></thead>
+  <tbody>{comet_rows}</tbody>
+</table></div>
+</section>
+"""
 
-    For a `'wide'` (S-type) binary, `planets`/`belts` belong to two
-    different, independent stars (disambiguated by each row's own
+
+def _bodies_html(planets, belts, comets, stars, binary_configuration):
+    """
+    Builds the "Planets & Moons"/"Asteroid Belts"/"Comets" section(s).
+
+    For a `'wide'` (S-type) binary, `planets`/`belts`/`comets` belong to
+    two different, independent stars (disambiguated by each row's own
     `star_id`, matched against `stars`' own `id` -- see
     `queryDb.system_detail`'s docstring) -- rendering them in one flat
     table the way a single star's or a `'close'` (P-type) pair's bodies
@@ -137,15 +164,17 @@ def _bodies_html(planets, belts, stars, binary_configuration):
     `stars` already comes in (primary first).
     """
     if binary_configuration != "wide":
-        return _planets_table_html(planets) + _belts_table_html(belts)
+        return _planets_table_html(planets) + _belts_table_html(belts) + _comets_table_html(comets)
 
     sections = []
     for star in stars:
         star_planets = [p for p in planets if p["star_id"] == star["id"]]
         star_belts = [b for b in belts if b["star_id"] == star["id"]]
+        star_comets = [c for c in comets if c["star_id"] == star["id"]]
         label = f'{esc(star["name"])} ({esc(star["role"])})'
         sections.append(_planets_table_html(star_planets, heading=f"Planets &amp; Moons — {label}"))
         sections.append(_belts_table_html(star_belts, heading=f"Asteroid Belts — {label}"))
+        sections.append(_comets_table_html(star_comets, heading=f"Comets — {label}"))
     return "".join(sections)
 
 
@@ -278,7 +307,9 @@ def handler():
     if system["stars"]:
         map_html = render_system_map_panel(system, system["stars"], system["planets"], system["belts"])
     stars_html = _stars_html(system["stars"])
-    bodies_html = _bodies_html(system["planets"], system["belts"], system["stars"], system.get("binary_configuration"))
+    bodies_html = _bodies_html(
+        system["planets"], system["belts"], system["comets"], system["stars"], system.get("binary_configuration")
+    )
     description_html = _description_html(
         db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"]
     )
