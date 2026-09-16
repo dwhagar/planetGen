@@ -35,6 +35,7 @@ from queryDb import (
     SEARCH_TAG_FACETS,
     count_sectors,
     count_systems,
+    galaxy_placed_phenomena,
     galaxy_placed_sectors,
     list_sectors,
     list_systems,
@@ -431,6 +432,18 @@ def galaxy_sectors():
     not by the addressable galaxy's own astronomical scale.
     """
     return jsonify({"items": galaxy_placed_sectors(get_db())})
+
+
+@bp.route("/galaxy/phenomena")
+def galaxy_phenomena():
+    """
+    Every galaxy-placed nebula/asteroid field (`nebulae`/`asteroid_fields`.
+    `center_x/y/z_pc` not NULL -- see `schema.sql`'s "v18" header note) --
+    the phenomenon counterpart to `/api/galaxy/sectors`, plotted as small
+    dots on the same `html/galaxy.py` Galaxy Map. Not paginated, for the
+    same reason `/api/galaxy/sectors` isn't.
+    """
+    return jsonify({"items": galaxy_placed_phenomena(get_db())})
 
 
 @bp.route("/search")

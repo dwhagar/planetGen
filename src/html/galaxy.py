@@ -19,6 +19,14 @@ standalone CLI -- most of what exists in a database today) have no
 position to plot here at all; they stay in `browse.py`'s own flat sector
 table unchanged, which now also links each *placed* sector's row into this
 page (see `browse.py`).
+
+Every galaxy-placed nebula/asteroid field (`phenomenonGen.py --sector-id`,
+schema.sql's "v18" header note) is also plotted here, as a small fixed-size
+dot -- unlike a sector, a phenomenon has no real "how much is here"
+quantity to size a dot by, and at this scale its own physical extent
+(which can itself span several sectors) would be a misleading dot size;
+that real extent is instead depicted where it belongs, as a translucent
+cloud on the Sector Map (`sector.py`) of any sector it reaches into.
 """
 
 import os
@@ -27,7 +35,7 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import get_galaxy_sectors
+from apiclient import get_galaxy_phenomena, get_galaxy_sectors
 from fmt import esc
 from galaxymap import QUADRANT_LABELS, render_galaxy_map_panel, ring_bounds_ly, sector_quadrant, sector_ring
 from page import query_params, run
@@ -103,8 +111,9 @@ def handler():
         quadrant = None
 
     sectors = get_galaxy_sectors(db_name)
+    phenomena = get_galaxy_phenomena(db_name)
 
-    map_html = render_galaxy_map_panel(db_name, sectors, quadrant=quadrant)
+    map_html = render_galaxy_map_panel(db_name, sectors, quadrant=quadrant, phenomena=phenomena)
 
     if quadrant:
         table_title = f"Sectors in Quadrant {quadrant}"
@@ -116,10 +125,12 @@ def handler():
         table_rows = _quadrant_summary_table(db_name, sectors)
 
     placed_count = len(sectors)
+    phenomenon_count = len(phenomena)
+    badge_bits = [f"{placed_count} placed sector{'s' if placed_count != 1 else ''}"]
+    if phenomenon_count:
+        badge_bits.append(f"{phenomenon_count} placed nebula/asteroid field{'s' if phenomenon_count != 1 else ''}")
     badges_html = "<p class=\"badges\">" + "".join(
-        f'<span class="badge">{bit}</span>' for bit in (
-            f"{placed_count} placed sector{'s' if placed_count != 1 else ''}",
-        )
+        f'<span class="badge">{bit}</span>' for bit in badge_bits
     ) + "</p>"
 
     title = f"Galaxy Map: Quadrant {quadrant}" if quadrant else "Galaxy Map"
