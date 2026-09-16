@@ -157,7 +157,7 @@ class Star:
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
-    float: Class-level defaults (schema v18), same "still readable after
+    float: Class-level defaults (schema v19), same "still readable after
     `from_dict`'s `object.__new__`+`fields_from_dict` path" reasoning as
     `a_crit_au` above. This star's own displacement (AU) from its nominal
     fixed point, caused by the combined gravitational pull of every planet

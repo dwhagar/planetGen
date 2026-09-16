@@ -400,7 +400,7 @@ def test_generated_bodies_have_finite_positive_min_update_interval(bodies):
 
 
 # ---------------------------------------------------------------------------
-# Barycentric "reflex offset" trajectories (schema v18): `utils.
+# Barycentric "reflex offset" trajectories (schema v19): `utils.
 # calculate_reflex_offset`, plus its wiring into generation via
 # `systemData.StarSystem.__init__` (a star's own offset from its planets)
 # and `planetPhysics.generate_moons` (a planet's own offset from its

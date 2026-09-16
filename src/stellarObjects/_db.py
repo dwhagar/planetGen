@@ -47,6 +47,7 @@ connection per call, per TODO.md's "add real connection pooling" note.
 
 import math
 import os
+import random
 from collections import namedtuple
 
 import pymysql
@@ -68,10 +69,10 @@ from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distan
 from .starData import Star
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
-from .utils import ly_to_milliparsecs, milliparsecs_to_ly
+from .utils import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 18
+SCHEMA_VERSION = 19
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1084,32 +1085,42 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None) -> int:
     return cur.lastrowid
 
 
-def insert_nebula(conn, nebula: Nebula, sector_id=None) -> int:
+def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     """
-    Inserts a `nebulae` row (see `schema.sql`'s "v16" header note).
+    Inserts a `nebulae` row (see `schema.sql`'s "v16"/"v18" header notes).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
         nebula (Nebula): The nebula to persist.
-        sector_id (int, optional): Reserved for a future sector-context
-            encounter. `None` (always, today -- `phenomenonGen.py` never
-            creates or attaches a sector).
+        sector_id (int, optional): The nearest already-generated sector to
+            `placement`'s own center -- a convenience "home" link, not this
+            phenomenon's real geometry (see `schema.sql`'s "v18" note).
+            `None` (the default) for a phenomenon never placed in the
+            galaxy at all -- `placement` must also be `None` in that case.
+        placement (dict, optional): `compute_phenomenon_placement`'s
+            return shape (`center_x_pc`/`center_y_pc`/`center_z_pc`/
+            `galactic_radius_pc`), or `None` to leave this nebula
+            unplaced (the v16/v17 default behavior).
 
     Returns:
         int: The new `nebulae.id`.
     """
+    placement = placement or {}
     cur = conn.execute(
         """
         INSERT INTO nebulae (
             sector_id, name, nebula_type, radius_ly, composition, formation_cause,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_phase_deg, galactic_min_update_interval_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, nebula.name, nebula.nebula_type, nebula.radius_ly, nebula.composition, nebula.formation_cause,
             nebula.galactic_orbital_speed_kms, nebula.galactic_orbital_period_gy,
             nebula.galactic_orbital_phase_deg, nebula.galactic_min_update_interval_years,
+            placement.get("center_x_pc"), placement.get("center_y_pc"),
+            placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
     return cur.lastrowid
@@ -1231,34 +1242,43 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None) ->
     return comet_id
 
 
-def insert_asteroid_field(conn, field: AsteroidField, sector_id=None) -> int:
+def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=None) -> int:
     """
     Inserts an `asteroid_fields` row (plus its `asteroid_field_composition`
-    child rows; see `schema.sql`'s "v17" header note) -- the standalone
-    counterpart to `insert_asteroid_belt`, following the identical
-    belt-plus-child-rows shape.
+    child rows; see `schema.sql`'s "v17"/"v18" header notes) -- the
+    standalone counterpart to `insert_asteroid_belt`, following the
+    identical belt-plus-child-rows shape.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
         field (AsteroidField): The asteroid field to persist.
-        sector_id (int, optional): Reserved for a future sector-context
-            encounter. `None` (always, today).
+        sector_id (int, optional): The nearest already-generated sector to
+            `placement`'s own center -- see `insert_nebula`'s identical
+            parameter for the full explanation. `None` for a field never
+            placed in the galaxy.
+        placement (dict, optional): `compute_phenomenon_placement`'s
+            return shape, or `None` to leave this field unplaced (the
+            v16/v17 default behavior).
 
     Returns:
         int: The new `asteroid_fields.id`.
     """
+    placement = placement or {}
     cur = conn.execute(
         """
         INSERT INTO asteroid_fields (
             sector_id, name, density, radius_ly, composition_summary,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_phase_deg, galactic_min_update_interval_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, field.name, field.density, field.radius_ly, field.get_composition_summary(),
             field.galactic_orbital_speed_kms, field.galactic_orbital_period_gy,
             field.galactic_orbital_phase_deg, field.galactic_min_update_interval_years,
+            placement.get("center_x_pc"), placement.get("center_y_pc"),
+            placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
     field_id = cur.lastrowid
@@ -1275,7 +1295,8 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None) -> int:
     return field_id
 
 
-def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: str, config=None) -> int:
+def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: str, config=None,
+                     sector_id=None) -> int:
     """
     Opens the database and persists a single generated exotic phenomenon
     (`phenomenonGen.py`) in one transaction -- the exotic-phenomenon
@@ -1300,6 +1321,11 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             neutron star).
         config (MySQLConfig, optional): Connection parameters. Defaults to
             `DEFAULT_MYSQL_CONFIG`.
+        sector_id (int, optional): Only consulted for `"nebula"`/
+            `"asteroid-field"` (`phenomenonGen.py --sector-id`) -- places
+            the phenomenon in the galaxy near this already-placed sector
+            via `compute_phenomenon_placement`. `None` (the default)
+            leaves it unplaced, exactly like every earlier schema version.
 
     Returns:
         int: The new row's id, in whichever table `phenomenon`/
@@ -1307,7 +1333,9 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
 
     Raises:
         ValueError: If `phenomenon_type` isn't one of the recognized
-                   choices (and `phenomenon` isn't a `StarSystem`).
+                   choices (and `phenomenon` isn't a `StarSystem`), or if
+                   `sector_id` is given but that sector has no galaxy
+                   placement of its own (see `compute_phenomenon_placement`).
     """
     conn = get_connection(config)
     try:
@@ -1321,16 +1349,17 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
                 return insert_black_hole(conn, phenomenon)
             if phenomenon_type == "neutron-star":
                 return insert_neutron_star(conn, phenomenon)
-            if phenomenon_type == "nebula":
-                return insert_nebula(conn, phenomenon)
+            if phenomenon_type in ("nebula", "asteroid-field"):
+                placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
+                if phenomenon_type == "nebula":
+                    return insert_nebula(conn, phenomenon, sector_id=sector_id, placement=placement)
+                return insert_asteroid_field(conn, phenomenon, sector_id=sector_id, placement=placement)
             if phenomenon_type == "supernova-remnant":
                 return insert_supernova_remnant(conn, phenomenon)
             if phenomenon_type == "rogue-planet":
                 return insert_rogue_planet(conn, phenomenon)
             if phenomenon_type == "comet":
                 return insert_interstellar_comet(conn, phenomenon)
-            if phenomenon_type == "asteroid-field":
-                return insert_asteroid_field(conn, phenomenon)
             raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
     finally:
         conn.close()
@@ -1579,8 +1608,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
         separation_km = eccentricity = periapsis_km = apoapsis_km = None
 
-    # v18: circumbinary (P-type) planets' combined pull on the whole pair
-    # -- only meaningful for a 'close' pair (see schema.sql's "v18" header
+    # v19: circumbinary (P-type) planets' combined pull on the whole pair
+    # -- only meaningful for a 'close' pair (see schema.sql's "v19" header
     # note); NULL for 'wide'/single, same "meaningful only when applicable"
     # convention `black_holes`' galactic columns already use.
     if binary_configuration == "close":
@@ -1812,6 +1841,52 @@ def get_sector_galaxy_position(conn, sector_id):
         vertices_pc[vrow["ring"]].append([vrow["x_pc"], vrow["y_pc"], vrow["z_pc"]])
     result["vertices_pc"] = vertices_pc
     return result
+
+
+def compute_phenomenon_placement(conn, sector_id):
+    """
+    Picks a galaxy-frame center for a nebula/asteroid field placed "at"
+    `sector_id` (`phenomenonGen.py --sector-id`) -- see `schema.sql`'s
+    "v18" header note for why these phenomena get their own galaxy-frame
+    sphere rather than a sector-relative offset the way `star_systems`
+    does.
+
+    The center is `sector_id`'s own stored galaxy position
+    (`get_sector_galaxy_position`) plus a uniform random jitter within that
+    sector's own cube half-extent on each axis (`+/- edge_pc / 2`) -- so the
+    phenomenon's center always falls inside (or very near) that sector's
+    own cube, regardless of the phenomenon's own `radius_ly` (which may be
+    far larger than the sector itself, and is free to spill into
+    neighboring sectors -- see `queryDb.phenomena_near_sector`, which finds
+    those by real distance, not by this row's `sector_id`).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        sector_id (int): The `sectors.id` to place this phenomenon at.
+
+    Returns:
+        dict: `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc`.
+
+    Raises:
+        ValueError: If `sector_id` doesn't exist, or exists but has never
+            been placed in the galaxy itself (`galaxyGen.py`) -- there is
+            no galaxy-frame position to jitter around in that case.
+    """
+    position = get_sector_galaxy_position(conn, sector_id)
+    if position is None:
+        raise ValueError(
+            f"sector {sector_id} has no galaxy placement of its own -- see galaxyGen.py"
+        )
+    edge_row = conn.execute("SELECT edge_mpc FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    edge_pc = mpc_to_pc(edge_row["edge_mpc"])
+
+    center_x = position["center_x_pc"] + random.uniform(-edge_pc / 2, edge_pc / 2)
+    center_y = position["center_y_pc"] + random.uniform(-edge_pc / 2, edge_pc / 2)
+    center_z = position["center_z_pc"] + random.uniform(-edge_pc / 2, edge_pc / 2)
+    return {
+        "center_x_pc": center_x, "center_y_pc": center_y, "center_z_pc": center_z,
+        "galactic_radius_pc": math.sqrt(center_x ** 2 + center_y ** 2 + center_z ** 2),
+    }
 
 
 def get_occupied_shell_slots(conn, shell_indices):
@@ -2188,9 +2263,9 @@ def _star_row_to_dict(row):
             row["wide_binary_a_crit_km"] / physical_constants.AU_TO_KM
             if row["wide_binary_a_crit_km"] is not None else None
         ),
-        # v18: NULL for a planet-less star (row column, not the Star's own
+        # v19: NULL for a planet-less star (row column, not the Star's own
         # 0.0 class-level default) -- normalize back to 0.0 the same way
-        # every other "0.0 in memory, NULL when not applicable" v18 column
+        # every other "0.0 in memory, NULL when not applicable" v19 column
         # does on its own read path.
         "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
         "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
@@ -2446,7 +2521,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "orbital_speed_kms": row["orbital_speed_kms"],
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
-        # v18: only the `planets` table has these columns (a planet's own
+        # v19: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
         # same 0.0 `Planet.reflex_offset_x` class-level default instead.
@@ -2539,8 +2614,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.binary_type = binary_configuration
     system.wide_binary = wide_binary
 
-    # v18: only meaningful (non-NULL) for a 'close' pair -- see
-    # schema.sql's "v18" header note and StarSystem.__init__'s own comment.
+    # v19: only meaningful (non-NULL) for a 'close' pair -- see
+    # schema.sql's "v19" header note and StarSystem.__init__'s own comment.
     system.binary_planetary_wobble_x = (
         row["binary_planetary_wobble_x_km"] / physical_constants.AU_TO_KM
         if row["binary_planetary_wobble_x_km"] is not None else 0.0
@@ -3148,9 +3223,53 @@ def _migrate_v16_to_v17(conn):
 
 def _migrate_v17_to_v18(conn):
     """
-    Adds v18's proper two-body (barycentric) trajectory columns to
-    `star_systems`, `stars`, and `planets` -- see `schema.sql`'s "v18"
-    header note. Real `ALTER TABLE` steps, the same as v17's.
+    Adds v18's galaxy-frame placement columns (`center_x/y/z_pc`,
+    `galactic_radius_pc`) to `nebulae`/`asteroid_fields` -- see
+    `schema.sql`'s "v18" header note. Real `ALTER TABLE` steps, like
+    `_migrate_v16_to_v17`: both tables already existed with a fixed shape.
+
+    No backfill: a pre-v18 row was always generated fully standalone (no
+    `--sector-id` option existed yet), so there is no real placement to
+    recover -- the new columns simply start NULL, the same "never placed"
+    state a v18-era standalone phenomenon has too.
+
+    Also adds the same null-together CHECK constraint (`chk_nebulae_placement`/
+    `chk_asteroid_fields_placement`) a freshly created v18 database already
+    gets from `schema.sql`'s `CREATE TABLE` bodies directly -- a migrated
+    database would otherwise silently lack it. Named explicitly in
+    `schema.sql` (rather than left anonymous, as MySQL allows) specifically
+    so this step can add the identical constraint by name; MySQL fully
+    supports `ADD CONSTRAINT ... CHECK` via `ALTER TABLE`, unlike the
+    SQLite-era multi-column `CHECK` gap `sectors`' own v4 columns still
+    have (see `docs/design/galaxy-coordinate-system.md` section 4).
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in ("nebulae", "asteroid_fields"):
+        conn.execute(
+            f"ALTER TABLE {table} "
+            "ADD COLUMN center_x_pc DOUBLE, "
+            "ADD COLUMN center_y_pc DOUBLE, "
+            "ADD COLUMN center_z_pc DOUBLE, "
+            "ADD COLUMN galactic_radius_pc DOUBLE, "
+            f"ADD KEY idx_{table}_galactic_radius_pc (galactic_radius_pc), "
+            f"ADD CONSTRAINT chk_{table}_placement CHECK ("
+            "(center_x_pc IS NULL) = (center_y_pc IS NULL) AND "
+            "(center_y_pc IS NULL) = (center_z_pc IS NULL) AND "
+            "(center_z_pc IS NULL) = (galactic_radius_pc IS NULL))"
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (18)")
+
+
+def _migrate_v18_to_v19(conn):
+    """
+    Adds v19's proper two-body (barycentric) trajectory columns to
+    `star_systems`, `stars`, and `planets` -- see `schema.sql`'s "v19"
+    header note. Real `ALTER TABLE` steps, the same as v17's/v18's.
 
     Unlike `_migrate_v16_to_v17` (whose objects were "long gone by
     migration time"), every value these new columns need is fully
@@ -3291,7 +3410,7 @@ def _migrate_v17_to_v18(conn):
         """
     )
 
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (18)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
 
 
 def migrate_database(config=None):
@@ -3313,12 +3432,13 @@ def migrate_database(config=None):
     `_migrate_v14_to_v15` (added for v15's S-type/wide-binary columns),
     `_migrate_v15_to_v16` (added for v16's exotic-phenomenon tables),
     `_migrate_v16_to_v17` (added for v17's galactic-orbital-motion columns
-    on those tables plus the new `asteroid_fields` phenomenon), and
-    `_migrate_v17_to_v18` (added for v18's proper two-body/barycentric
-    trajectory columns on `star_systems`/`stars`/`planets`) are the
-    migration steps so far; see `schema.sql`'s header comment for the
-    versioning convention, and `migrateDb.py` for the CLI wrapper around
-    this.
+    on those tables plus the new `asteroid_fields` phenomenon),
+    `_migrate_v17_to_v18` (added for v18's galaxy-frame placement columns
+    on `nebulae`/`asteroid_fields`), and `_migrate_v18_to_v19` (added for
+    v19's proper two-body/barycentric trajectory columns on
+    `star_systems`/`stars`/`planets`) are the migration steps so far; see
+    `schema.sql`'s header comment for the versioning convention, and
+    `migrateDb.py` for the CLI wrapper around this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -3372,6 +3492,10 @@ def migrate_database(config=None):
         if version < 18:
             _migrate_v17_to_v18(conn)
             version = 18
+
+        if version < 19:
+            _migrate_v18_to_v19(conn)
+            version = 19
 
         conn.commit()
         return version
@@ -3498,10 +3622,10 @@ def advance_orbital_phases(conn, elapsed_years):
     from), in the same transaction, so a caller can never advance phases
     without also recording that it did.
 
-    v18 additionally recomputes three "reflex offset"/"wobble" values --
+    v19 additionally recomputes three "reflex offset"/"wobble" values --
     a proper two-body (barycentric) treatment layered on top of the
     existing relative-position model, never changing what any existing
-    column means (see `schema.sql`'s "v18" header note and
+    column means (see `schema.sql`'s "v19" header note and
     `utils.calculate_reflex_offset`'s docstring for the underlying
     formula):
       - `stars.reflex_offset_x/y/z_km`, from each star's own hosted
@@ -3591,7 +3715,7 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["stars"] = cur.rowcount
 
-    # v18: each star's own reflex-offset "wobble" from the planets it
+    # v19: each star's own reflex-offset "wobble" from the planets it
     # hosts (planets.star_id) -- a correlated subquery summing every
     # hosted planet's individual pairwise pull, the same
     # utils.calculate_reflex_offset formula generation time uses (see its
@@ -3621,7 +3745,7 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["star_reflex_offsets"] = cur.rowcount
 
-    # v18: each planet's own reflex-offset "wobble" from the moons it
+    # v19: each planet's own reflex-offset "wobble" from the moons it
     # hosts -- identical shape/reasoning to the stars UPDATE above, one
     # level down (moons.planet_id).
     cur = conn.execute(
@@ -3646,7 +3770,7 @@ def advance_orbital_phases(conn, elapsed_years):
 
     # Mutual orbit: shared by both binary configurations (see this
     # function's own docstring on why this is now a separate UPDATE from
-    # the galactic-phase one below, guarded independently). v18: also
+    # the galactic-phase one below, guarded independently). v19: also
     # recomputes each star's own offset from the pair's barycenter
     # (binary_primary/secondary_position_*_km) from the freshly-advanced
     # binary_mutual_position_*_km above and the constant
@@ -3686,11 +3810,11 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["binary_mutual_orbits"] = cur.rowcount
 
-    # v18: circumbinary (P-type) planets' combined pull on the whole pair
+    # v19: circumbinary (P-type) planets' combined pull on the whole pair
     # -- same correlated-subquery shape as the stars/planets reflex-offset
     # UPDATEs above, grouped by star_system_id instead (circumbinary
     # planets have star_id IS NULL, so there's no stars row to attach this
-    # to -- see schema.sql's "v18" header note on why it's modeled as one
+    # to -- see schema.sql's "v19" header note on why it's modeled as one
     # shared wobble rather than split between primary/secondary). Also
     # recomputed unconditionally, no guard interval of its own.
     cur = conn.execute(

@@ -91,7 +91,7 @@ class WideBinaryPair:
     star (stored directly on each `Star` instance -- see
     `Star.a_crit_au`'s own docstring -- rather than duplicated here).
 
-    `primary_position_*_au`/`secondary_position_*_au` (schema v18) are each
+    `primary_position_*_au`/`secondary_position_*_au` (schema v19) are each
     star's own offset from the pair's barycenter -- the same proper
     two-body treatment `doubleStar.BinaryStarProxy` gets, alongside the
     pre-existing `position_x/y/z_au` (still the secondary's position

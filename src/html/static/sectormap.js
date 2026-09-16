@@ -59,10 +59,20 @@
     panel.textContent = "";
 
     var heading = document.createElement("h3");
-    heading.textContent = dot.dataset.name || "Unknown system";
+    heading.textContent = dot.dataset.name || "Unknown";
     panel.appendChild(heading);
 
     var dl = document.createElement("dl");
+    if (dot.dataset.kind === "phenomenon") {
+      // A nebula/asteroid-field cloud has no detail page of its own to
+      // link to (unlike a star system's `data-href`) -- just its own
+      // flavor fields from `lib/starmap.py`'s `_cloud_html`.
+      addField(dl, "Type", dot.dataset.phenomenonType);
+      addField(dl, "Radius", dot.dataset.radius);
+      addField(dl, "Distance", dot.dataset.distance);
+      panel.appendChild(dl);
+      return;
+    }
     addField(dl, "Star type", dot.dataset.type);
     addField(dl, "Temperature", dot.dataset.temp);
     addField(dl, "Octant", dot.dataset.quadrant);
@@ -100,11 +110,12 @@
     // pointerdown of its own (assistive tech, a programmatically
     // dispatched click), wrongly suppressing it.
     var suppressNextClick = false;
-    // Click/keyboard hit-testing only ever targets a star -- kept as its
-    // own narrower list (not every `.billboard`) so the compass's
-    // "Galactic Center" label near it can't be mistaken for a star dot
-    // in `dotAtPoint` below or pick up its own keydown handler.
-    var dots = Array.prototype.slice.call(scene.querySelectorAll(".star-dot"));
+    // Click/keyboard hit-testing only ever targets a star dot or a
+    // nebula/asteroid-field cloud -- kept as its own narrower list (not
+    // every `.billboard`) so the compass's "Galactic Center" label near
+    // it can't be mistaken for one in `dotAtPoint` below or pick up its
+    // own keydown handler.
+    var dots = Array.prototype.slice.call(scene.querySelectorAll(".star-dot, .phenomenon-cloud"));
     // Everything on the map that must keep facing the camera regardless
     // of `.starmap-scene`'s own rotation -- star dots and the compass's
     // text label alike (billboarding a *line*, like the compass arrow

@@ -133,7 +133,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `9`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `19`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -283,7 +283,33 @@ via the same shared `asteroidData.generate_asteroid_composition`/
 `format_composition_summary` helpers) but standalone, drifting in open
 space rather than orbiting a star.
 
-v18 added a proper two-body (barycentric) trajectory treatment for every
+v18 gave `nebulae`/`asteroid_fields` an actual galaxy placement — the
+first real use of `sector_id`, reserved-but-unused since v16/v17. A
+nebula/asteroid field is frequently far larger than a single sector's
+cube (an emission nebula can span up to 200 ly; the default sector edge
+is 11.5 ly), so unlike `star_systems.position_x/y/z_mpc` (relative to one
+owning sector's own center) these are placed directly in the same
+galaxy-frame Cartesian space `sectors.center_x/y/z_pc` already uses — a
+sphere (new `center_x/y/z_pc`/`galactic_radius_pc` columns, NULL together)
+that may overlap zero, one, or several sectors' cubes, not a single
+sector-relative offset. `sector_id` is now actually populated
+(`phenomenonGen.py --sector-id`) with the *nearest* already-generated
+sector to the phenomenon's own center — a convenience "home" link for
+browsing (`ON DELETE SET NULL` now, not `CASCADE`: deleting that sector
+shouldn't delete a phenomenon merely linked to it), not the authoritative
+geometry (`queryDb.phenomena_near_sector` finds every phenomenon whose
+sphere overlaps a given sector's cube by real distance, regardless of
+which sector it's linked to). `stellarObjects._db.compute_phenomenon_placement`
+picks the center: the given sector's own stored galaxy position plus a
+uniform random jitter within that sector's own cube half-extent. The
+null-together CHECK on each table is named explicitly
+(`chk_nebulae_placement`/`chk_asteroid_fields_placement`), unlike
+`sectors`' own identical v4 CHECK — MySQL auto-names an anonymous CHECK
+opaquely and refuses `DROP COLUMN` on a column it still references, so an
+explicit name is what lets `_migrate_v17_to_v18` add (and, for a test
+simulating an older database, drop) the exact same constraint by name.
+
+v19 added a proper two-body (barycentric) trajectory treatment for every
 orbital pair where the orbited body isn't overwhelmingly more massive than
 what orbits it: binary stars (a secondary is sampled at 0.1-0.8x the
 primary's mass), star↔planet, and planet↔moon (a moon can reach 1/10 its
@@ -306,7 +332,7 @@ orbit the merged proxy rather than either individual star — modeled as
 one shared wobble rather than split between primary/secondary, since that
 would need a real 3+-body solve). These are new columns on already-
 existing tables (`star_systems`, `stars`, `planets`), so
-`_migrate_v17_to_v18` needs real `ALTER TABLE` steps — and, unlike v17's
+`_migrate_v18_to_v19` needs real `ALTER TABLE` steps — and, unlike v17's
 own migration, every value is fully derivable from data already on
 existing rows, so it backfills real values rather than leaving them NULL.
 
@@ -332,16 +358,21 @@ brand-new tables are already created by `_ensure_schema`'s
 version; this step exists purely to keep the `schema_migrations`
 bookkeeping counter itself accurate), `_migrate_v16_to_v17` for v17's
 galactic-orbital-motion columns (real `ALTER TABLE` steps this time, since
-v16's tables already existed with a fixed shape), and `_migrate_v17_to_v18`
-for v18's binary/star/planet trajectory columns (also real `ALTER TABLE`
-steps, on `star_systems`/`stars`/`planets`). `migrate_database` applies
+v16's tables already existed with a fixed shape), `_migrate_v17_to_v18`
+for v18's galaxy-frame placement columns on `nebulae`/`asteroid_fields`
+(also real `ALTER TABLE` steps, left NULL on every pre-existing row --
+there's no way to recover a legacy phenomenon's intended galaxy placement
+after the fact, the same situation `sectors.center_x/y/z_pc` is in for a
+`_migrate_v3_to_v4`-migrated sector), and `_migrate_v18_to_v19` for v19's
+binary/star/planet trajectory columns (also real `ALTER TABLE` steps, on
+`star_systems`/`stars`/`planets`). `migrate_database` applies
 whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
 wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
 every deploy). A pre-existing SQLite database from before the MySQL port
 itself is brought in with the separate, one-time
 `src/migrateSqliteToMysql.py` script instead (see its module docstring)
 — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v18), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v19), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -639,11 +670,11 @@ One row per generated system (single-star or binary).
 | `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`utils.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
 | `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `utils.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
 | `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
-| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. **Unchanged in meaning by v18** — still the true separation, not a barycenter-reduced value. |
-| `binary_primary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. The primary star's own offset from the pair's barycenter — `-binary_secondary_mass_fraction * binary_mutual_position_*_km`. Reused unchanged for both binary configurations, like `binary_mutual_position_*_km` above. |
-| `binary_secondary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. The secondary star's own offset from the barycenter — always equal to `binary_primary_position_* + binary_mutual_position_*`, but stored explicitly rather than derived on read (same convention `binary_mutual_position_*_km` itself already set). |
-| `binary_secondary_mass_fraction` | DOUBLE | nullable | Added in v18. `secondary_mass / (primary_mass + secondary_mass)`, constant since masses don't change — stored so `_db.advance_orbital_phases` never needs to join back to `stars` for either mass. |
-| `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
+| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. **Unchanged in meaning by v19** — still the true separation, not a barycenter-reduced value. |
+| `binary_primary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v19. The primary star's own offset from the pair's barycenter — `-binary_secondary_mass_fraction * binary_mutual_position_*_km`. Reused unchanged for both binary configurations, like `binary_mutual_position_*_km` above. |
+| `binary_secondary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v19. The secondary star's own offset from the barycenter — always equal to `binary_primary_position_* + binary_mutual_position_*`, but stored explicitly rather than derived on read (same convention `binary_mutual_position_*_km` itself already set). |
+| `binary_secondary_mass_fraction` | DOUBLE | nullable | Added in v19. `secondary_mass / (primary_mass + secondary_mass)`, constant since masses don't change — stored so `_db.advance_orbital_phases` never needs to join back to `stars` for either mass. |
+| `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v19. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
@@ -714,7 +745,7 @@ anything.
 | `galactic_orbital_phase_deg` | DOUBLE | NOT NULL | Added in v13. This star's current angular position around its galactic orbit — the same role `planets.orbital_phase_deg` plays, advanced by `_db.advance_orbital_phases`. Both stars of a binary pair always carry the identical value (see "Schema history" above for why — `StarSystem.__init__` rolls it once and threads it to primary/secondary/proxy alike). |
 | `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`utils.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
 | `wide_binary_a_crit_km` | DOUBLE | nullable | Added in v15. This star's own Holman & Wiegert (1999) critical semi-major axis (`utils.holman_wiegert_critical_semimajor_axis`) — the maximum orbit distance that stays long-term stable given its companion's perturbation. NULL for a single star or either constituent of a `'close'` pair; populated for both stars of a `'wide'` pair. |
-| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. This star's own displacement from its nominal fixed point, from the combined pull of every planet orbiting it directly (`planets.star_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no planets. Class-blind: applies identically to an anchored `black_holes`/`neutron_stars` row. |
+| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v19. This star's own displacement from its nominal fixed point, from the combined pull of every planet orbiting it directly (`planets.star_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no planets. Class-blind: applies identically to an anchored `black_holes`/`neutron_stars` row. |
 
 ### `planets`
 
@@ -754,7 +785,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`utils.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
 | `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`utils.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
-| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v18. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
+| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v19. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
 
 ### `planet_evolutionary_paragraphs`
 
@@ -883,18 +914,20 @@ standalone (no owning `StarSystem` at all).
 ### `nebulae`
 
 Added in v16. Always standalone (nothing in this generator places a
-nebula within a `StarSystem`); `sector_id` is reserved for a future
-sector-context encounter, unused (always NULL) by `phenomenonGen.py` today.
+nebula within a `StarSystem`); `sector_id` was reserved for a future
+sector-context encounter through v17, unused (always NULL) by
+`phenomenonGen.py` until v18 gave it one.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- a convenience "home" link, not this nebula's real geometry (its sphere may overlap several sectors, or none). NULL iff `center_x/y/z_pc` are NULL. `ON DELETE SET NULL` (not `CASCADE`, unlike v16/v17): deleting that sector doesn't delete a nebula that merely happens to be near it. |
 | `name` | TEXT | NOT NULL | |
 | `nebula_type` | TEXT | NOT NULL, CHECK IN ('emission','reflection','planetary','dark') | |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 (`phenomenonGen.py --sector-id`): this nebula's own galaxy-frame center, in the same Cartesian space `sectors.center_x/y/z_pc` uses -- a sphere (this + `radius_ly`), not a sector-relative offset, since a nebula (up to 200 ly across) is frequently far larger than one sector (default edge 11.5 ly) and may overlap several. NULL together: never placed in the galaxy (still the default -- `--sector-id` is optional). See `queryDb.phenomena_near_sector`/`galaxy_placed_phenomena` for how this is read back, and `docs/design/galaxy-coordinate-system.md` for the coordinate system itself. |
 
 ### `supernova_remnants`
 
@@ -967,18 +1000,20 @@ above, mirroring `asteroid_belt_composition` minus a concentration level
 
 Added in v17, the seventh exotic phenomenon. Always standalone — a field
 drifting in open space, as opposed to `asteroid_belts`, which always
-orbits a star. `sector_id` is reserved for a future sector-context
-encounter, unused (always NULL) by `phenomenonGen.py` today.
+orbits a star. `sector_id` was reserved for a future sector-context
+encounter through v17, unused (always NULL) by `phenomenonGen.py` until
+v18 gave it one.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- see `nebulae`'s identical "v18" column note above. |
 | `name` | TEXT | NOT NULL | |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | Same three levels `asteroid_belts.density` uses. |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Always populated (an asteroid field is always standalone). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 -- see `nebulae`'s identical "v18" column note above (an asteroid field's `radius_ly` tops out much smaller, `program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY` = 0.001-1.0 ly, so it usually stays within a single sector, but the same galaxy-frame-sphere model is used for consistency). |
 
 ### `asteroid_field_composition`
 
@@ -1043,9 +1078,13 @@ moons.star_system_id ─────> star_systems.id   (redundant with moons.pl
 `black_holes`/`neutron_stars` (v16) also stand apart from the tree above
 when generated standalone (`star_id` NULL) — only when `star_id` is set do
 they hang off a `stars` row the same way `asteroid_belt_composition` hangs
-off `asteroid_belts`. `nebulae`/`supernova_remnants`/`rogue_planets`/
-`interstellar_comets`/`asteroid_fields` (v16/v17) stand apart entirely —
-always standalone, with only a reserved, currently-unused `sector_id` FK.
+off `asteroid_belts`. `supernova_remnants`/`rogue_planets`/
+`interstellar_comets` (v16/v17) stand apart entirely — always standalone,
+with only a reserved, currently-unused `sector_id` FK. `nebulae`/
+`asteroid_fields` (v16/v17) are the same shape but, as of v18, their
+`sector_id` is a real (if non-authoritative) link to the nearest
+already-generated sector, alongside their own galaxy-frame
+`center_x/y/z_pc`/`galactic_radius_pc` — see this file's "v18" note above.
 
 `galaxy_shape`/`galaxy_shell_band` (v8) stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the

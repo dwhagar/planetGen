@@ -919,7 +919,7 @@ def generate_moons(planet, moon_count=None):
         total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)
 
     if planet.moons:
-        # This planet's own reflex-offset "wobble" (schema v18) from the
+        # This planet's own reflex-offset "wobble" (schema v19) from the
         # combined pull of its own moons -- a proper two-body treatment
         # alongside each moon's own unchanged position_x/y/z (relative to
         # this planet); see Planet.reflex_offset_x's own docstring and

@@ -270,6 +270,56 @@ def _quadrant_label_elements(db_name, active_quadrant):
     return "".join(parts)
 
 
+_PHENOMENON_DOT_R = 3.2
+"""float: Fixed dot radius (px) for a galaxy-placed nebula/asteroid field
+-- unlike a sector's own dot (`_star_visual`, scaled by `system_count`),
+these carry no analogous "how much is here" quantity worth scaling by, and
+at galaxy scale a nebula's own real `radius_ly` (which can itself span
+several sectors) would be a wildly misleading dot size anyway -- see this
+module's own docstring on the Sector Map being the right place to depict
+one's actual physical extent instead."""
+
+_PHENOMENON_COLORS = {"nebula": "#c9a8e0", "asteroid_field": "#b89a6e"}
+_PHENOMENON_TYPE_LABELS = {"nebula": "Nebula", "asteroid_field": "Asteroid Field"}
+_DEFAULT_PHENOMENON_COLOR = "#9aa0ac"
+
+
+def _phenomenon_elements(phenomena, px_per_ly):
+    """
+    Plots every galaxy-placed nebula/asteroid field as a small, fixed-size
+    dot -- the galaxy-scale counterpart to `_star_elements`, but with no
+    click-through (a phenomenon has no detail page of its own, unlike a
+    sector) -- just a hover tooltip naming it, its type, and its real size.
+
+    Args:
+        phenomena (list[dict]): `queryDb.galaxy_placed_phenomena`'s return
+                                shape (`id`, `type`, `name`, `descriptor`,
+                                `radius_ly`, `x`/`y`/`z`, `galactic_radius_pc`).
+        px_per_ly (float): Pixels per light-year at the current scale.
+
+    Returns:
+        str: One `<g>` per phenomenon.
+    """
+    parts = []
+    for phenomenon in phenomena:
+        projected = _project(phenomenon, px_per_ly)
+        x, y = projected["svg_x"], projected["svg_y"]
+        color = _PHENOMENON_COLORS.get(phenomenon["type"], _DEFAULT_PHENOMENON_COLOR)
+        type_label = _PHENOMENON_TYPE_LABELS.get(phenomenon["type"], phenomenon["type"])
+        descriptor = (phenomenon["descriptor"] or "").capitalize()
+        tooltip = (
+            f'{esc(phenomenon["name"])} -- {esc(descriptor)} {esc(type_label)}, '
+            f'~{phenomenon["radius_ly"]:,.1f} ly across, ~{projected["radius_ly"]:,.0f} ly from core'
+        )
+        parts.append(
+            f'<g class="galaxymap-phenomenon"><title>{tooltip}</title>'
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{_PHENOMENON_DOT_R:.1f}" '
+            f'fill="{color}" fill-opacity="0.85" stroke="#00000055" stroke-width="0.6"/>'
+            "</g>"
+        )
+    return "".join(parts)
+
+
 def _star_elements(db_name, sectors, px_per_ly):
     parts = []
     for sector in sectors:
@@ -293,7 +343,7 @@ def _star_elements(db_name, sectors, px_per_ly):
     return "".join(parts)
 
 
-def render_galaxy_map_panel(db_name, sectors, quadrant=None):
+def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
     """
     Builds the "Galaxy Map" panel: a flat SVG plot of every galaxy-placed
     sector (a bright dot, sized/colored by `system_count`) inside four
@@ -309,6 +359,14 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None):
         quadrant (str or None): One of `QUADRANT_LABELS` to zoom the map
                                 into (a `viewBox` crop -- see this module's
                                 docstring), or `None` for the full galaxy.
+        phenomena (list[dict] or None): `queryDb.galaxy_placed_phenomena`'s
+                                return shape -- every galaxy-placed nebula/
+                                asteroid field, plotted as a small fixed-
+                                size dot (`_phenomenon_elements`); its own
+                                real physical size is instead depicted on
+                                the Sector Map (`html/lib/starmap.py`) of
+                                any sector its sphere reaches into. `None`/
+                                empty plots none.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -323,6 +381,7 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None):
         f"{_ring_elements(rings_to_show, px_per_ly)}"
         f"{_quadrant_axis_elements()}"
         f"{_quadrant_label_elements(db_name, quadrant)}"
+        f"{_phenomenon_elements(phenomena or [], px_per_ly)}"
         f"{_star_elements(db_name, sectors, px_per_ly)}"
     )
 
@@ -351,7 +410,7 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None):
 <section class="panel">
 <div class="panel-header">
   <h2>Galaxy Map -- {esc(scope_label)}</h2>
-  <span class="hint">Dot size/brightness &asymp; systems in that sector &middot; shading &asymp; illustrative expected density, not real data</span>
+  <span class="hint">Dot size/brightness &asymp; systems in that sector &middot; small purple/tan dots &asymp; nebulae/asteroid fields (hover for details) &middot; shading &asymp; illustrative expected density, not real data</span>
 </div>
 <div class="galaxymap-layout">
 <div class="galaxymap-viewport">

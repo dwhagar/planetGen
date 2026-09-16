@@ -60,7 +60,7 @@ identical way a lone star's is: unbound from any specific STAR doesn't
 mean unbound from the galaxy itself, so these still orbit the galactic
 center on the same timescale. See `schema.sql`'s "v17" header note.
 
-Schema v18 layers a proper two-body (barycentric) "reflex offset"/
+Schema v19 layers a proper two-body (barycentric) "reflex offset"/
 "wobble" on top of the above, for every relationship where the orbited
 body isn't overwhelmingly more massive than what orbits it: a
 planet-hosting star's own small displacement from its planets' combined
@@ -73,7 +73,7 @@ columns above change meaning -- these are new, additive columns
 `binary_planetary_wobble_*_km` on `star_systems`), recomputed fresh on
 every run from whatever the already-advanced children currently look
 like, with no independent update-guard interval of their own. See
-`schema.sql`'s "v18" header note and
+`schema.sql`'s "v19" header note and
 `stellarObjects.utils.calculate_reflex_offset`'s docstring for the
 formula.
 

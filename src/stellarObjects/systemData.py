@@ -287,7 +287,7 @@ class StarSystem:
         if self.binary_type == "wide":
             self.secondary_star.adjust_age_for_planets(self.secondary_planets)
 
-        # Each hosting star's own reflex-offset "wobble" (schema v18) --
+        # Each hosting star's own reflex-offset "wobble" (schema v19) --
         # see `Star.reflex_offset_x`'s own docstring and
         # `utils.calculate_reflex_offset`. Positions are now final (planet
         # placement/validation above is done), so this is computed once,
@@ -898,7 +898,7 @@ class StarSystem:
 
         system.system_flavor_text = data.get("system_flavor_text")
 
-        # Schema v18: absent on a pre-v18 save -- 0.0 (no wobble) is the
+        # Schema v19: absent on a pre-v19 save -- 0.0 (no wobble) is the
         # correct default there, same "was implicitly zero before this
         # field existed" reasoning as Star.reflex_offset_x's own docstring.
         system.binary_planetary_wobble_x = data.get("binary_planetary_wobble_x", 0.0)
@@ -1446,7 +1446,7 @@ class StarSystem:
                     moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
 
-        # v18: planet.reflex_offset_x/y/z (this planet's own wobble from
+        # v19: planet.reflex_offset_x/y/z (this planet's own wobble from
         # its moons -- see Planet.reflex_offset_x's docstring) depends on
         # planet.mass and every moon's own mass/position, any of which the
         # reconciliation above may just have changed (a reclassified
