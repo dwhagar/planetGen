@@ -467,6 +467,29 @@ def test_login_success_sets_cookie_and_reports_must_change_credentials(default_a
     assert body["must_change_credentials"] is True
 
 
+def test_login_sets_cookie_scoped_to_root_path_not_api(mysql_config, client):
+    """
+    Regression test: the session cookie's `Path` attribute must be `/`,
+    not `/api`. The documented Apache deployment (docs/apache-
+    deployment.md, examples/apache/planetgen.conf.example) serves the CGI
+    admin pages (admin.py, login.py, etc.) at the site root under the
+    same `DocumentRoot` the API is mounted under at `/api` -- per RFC 6265
+    path matching, a cookie scoped to `/api` is never attached by the
+    browser to a request for `/admin.py`, so a `Path=/api` cookie would
+    lock a user out of every admin page immediately after a successful
+    login. Flask's own test client can't reproduce that failure directly
+    (it only ever talks to `/api/...` routes here, never `/admin.py`), so
+    this asserts the cookie's scope directly instead.
+    """
+    adminAuth.bootstrap_control_schema(mysql_config)
+    response = client.post("/api/auth/login", json={
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+    })
+    assert response.status_code == 200
+    set_cookie_headers = response.headers.get_all("Set-Cookie")
+    assert any("path=/;" in h.lower() or h.lower().endswith("path=/") for h in set_cookie_headers), set_cookie_headers
+
+
 def test_me_requires_auth(client):
     response = client.get("/api/auth/me")
     assert response.status_code == 401

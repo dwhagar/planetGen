@@ -72,7 +72,7 @@ class BinaryStarProxy(Star):
     `primary`/`secondary` are handled separately in `to_dict`/`from_dict`
     (nested full `Star` dicts), not via this list.
 
-    `binary_primary_position_*`/`binary_secondary_position_*` (schema v19)
+    `binary_primary_position_*`/`binary_secondary_position_*` (schema v20)
     are each star's own offset from the pair's barycenter -- a proper
     two-body treatment alongside the pre-existing `binary_mutual_position_*`
     (still the secondary's position relative to the primary, unchanged --

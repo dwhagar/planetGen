@@ -54,11 +54,12 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import physical_constants
+from . import keplerMotion, physical_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField
 from .compactRemnant import BlackHole, NeutronStar
+from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
@@ -72,7 +73,7 @@ from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 19
+SCHEMA_VERSION = 20
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -995,6 +996,65 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
     return belt_id
 
 
+def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
+    """
+    Inserts a `comets` row (plus its `comet_composition` child rows).
+
+    Modeled directly on `insert_asteroid_belt` above -- a `Comet` has no
+    `orbital_index` (it isn't part of the planets/belts orbital-slot
+    ordering; see `systemData.StarSystem._generate_comets`'s docstring),
+    so this only needs `star_system_id`/`star_id`, not a position within
+    another list.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        comet (Comet): The comet to persist.
+        star_system_id (int): The owning `star_systems.id`.
+        star_id (int, optional): The specific owning `stars.id`, same
+            `planets.star_id` real semantics (see that column's own schema
+            comment) -- a real `stars.id` for a single star or a 'wide'
+            binary's comet, `None` only for a 'close' binary's (which
+            orbits the merged pair, not one individually-stored star row).
+
+    Returns:
+        int: The new `comets.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO comets (
+            star_system_id, star_id, name, orbit_type, period_class,
+            nucleus_diameter_km, composition_summary, perihelion_distance_km,
+            eccentricity, inclination_deg, arg_periapsis_deg, ascending_node_deg,
+            orbital_period_years, mean_anomaly_deg, parabolic_mean_anomaly,
+            min_update_interval_years, primary_mass_solar, is_active,
+            distance_km, position_x_km, position_y_km, position_z_km, orbital_speed_kms
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            star_system_id, star_id, comet.name, comet.orbit_type, comet.period_class,
+            comet.nucleus_diameter_km, comet.get_composition_summary(),
+            comet.perihelion_distance_au * physical_constants.AU_TO_KM,
+            comet.eccentricity, comet.inclination_deg, comet.arg_periapsis_deg, comet.ascending_node_deg,
+            comet.orbital_period_years, comet.mean_anomaly_deg, comet.parabolic_mean_anomaly,
+            comet.min_update_interval_years, comet.primary_mass_solar, int(comet.is_active),
+            comet.distance_au * physical_constants.AU_TO_KM,
+            comet.position_x_au * physical_constants.AU_TO_KM,
+            comet.position_y_au * physical_constants.AU_TO_KM,
+            comet.position_z_au * physical_constants.AU_TO_KM,
+            comet.orbital_speed_kms,
+        ),
+    )
+    comet_id = cur.lastrowid
+
+    for position, component in enumerate(comet.composition):
+        conn.execute(
+            "INSERT INTO comet_composition (comet_id, position, component) VALUES (?, ?, ?)",
+            (comet_id, position, component),
+        )
+
+    return comet_id
+
+
 def insert_black_hole(conn, black_hole: BlackHole, star_id=None) -> int:
     """
     Inserts a `black_holes` row (see `schema.sql`'s "v16"/"v17" header
@@ -1540,7 +1600,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
                         sector_id=None, position=None, location=None) -> int:
     """
     Inserts a full `StarSystem` -- the `star_systems` row, its `stars` row(s),
-    and every planet/moon/asteroid belt it contains -- into the database.
+    and every planet/moon/asteroid belt/comet it contains -- into the database.
 
     Both `wikitext_content` and `markdown_content` are rendered here, from
     this same already-generated `star_system` object, back-to-back
@@ -1608,8 +1668,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         mutual_orbit_fields = _NULL_MUTUAL_ORBIT_FIELDS
         separation_km = eccentricity = periapsis_km = apoapsis_km = None
 
-    # v19: circumbinary (P-type) planets' combined pull on the whole pair
-    # -- only meaningful for a 'close' pair (see schema.sql's "v19" header
+    # v20: circumbinary (P-type) planets' combined pull on the whole pair
+    # -- only meaningful for a 'close' pair (see schema.sql's "v20" header
     # note); NULL for 'wide'/single, same "meaningful only when applicable"
     # convention `black_holes`' galactic columns already use.
     if binary_configuration == "close":
@@ -1713,6 +1773,14 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id)
         else:
             insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
+
+    # Comets have their own list, own table, and no orbital_index -- see
+    # insert_comet's own docstring for why they don't share the
+    # planets/asteroid_belts orbital-slot loop above.
+    for comet in star_system.comets:
+        insert_comet(conn, comet, star_system_id, star_id=primary_star_id)
+    for comet in star_system.secondary_comets:
+        insert_comet(conn, comet, star_system_id, star_id=secondary_star_id)
 
     return star_system_id
 
@@ -2263,9 +2331,9 @@ def _star_row_to_dict(row):
             row["wide_binary_a_crit_km"] / physical_constants.AU_TO_KM
             if row["wide_binary_a_crit_km"] is not None else None
         ),
-        # v19: NULL for a planet-less star (row column, not the Star's own
+        # v20: NULL for a planet-less star (row column, not the Star's own
         # 0.0 class-level default) -- normalize back to 0.0 the same way
-        # every other "0.0 in memory, NULL when not applicable" v19 column
+        # every other "0.0 in memory, NULL when not applicable" v20 column
         # does on its own read path.
         "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
         "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
@@ -2521,7 +2589,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "orbital_speed_kms": row["orbital_speed_kms"],
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
-        # v19: only the `planets` table has these columns (a planet's own
+        # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
         # same 0.0 `Planet.reflex_offset_x` class-level default instead.
@@ -2549,11 +2617,39 @@ def _belt_row_to_dict(row, composition_pairs):
     }
 
 
+def _comet_row_to_dict(row, composition_rows):
+    """Maps a `comets` row (plus its `comet_composition` child rows) to
+    `Comet.from_dict`'s expected dict shape."""
+    return {
+        "name": row["name"],
+        "orbit_type": row["orbit_type"],
+        "period_class": row["period_class"],
+        "nucleus_diameter_km": row["nucleus_diameter_km"],
+        "perihelion_distance_au": row["perihelion_distance_km"] / physical_constants.AU_TO_KM,
+        "eccentricity": row["eccentricity"],
+        "inclination_deg": row["inclination_deg"],
+        "arg_periapsis_deg": row["arg_periapsis_deg"],
+        "ascending_node_deg": row["ascending_node_deg"],
+        "orbital_period_years": row["orbital_period_years"],
+        "mean_anomaly_deg": row["mean_anomaly_deg"],
+        "parabolic_mean_anomaly": row["parabolic_mean_anomaly"],
+        "min_update_interval_years": row["min_update_interval_years"],
+        "primary_mass_solar": row["primary_mass_solar"],
+        "is_active": bool(row["is_active"]),
+        "distance_au": row["distance_km"] / physical_constants.AU_TO_KM,
+        "position_x_au": row["position_x_km"] / physical_constants.AU_TO_KM,
+        "position_y_au": row["position_y_km"] / physical_constants.AU_TO_KM,
+        "position_z_au": row["position_z_km"] / physical_constants.AU_TO_KM,
+        "orbital_speed_kms": row["orbital_speed_kms"],
+        "composition": [r["component"] for r in composition_rows],
+    }
+
+
 def load_star_system(conn, star_system_id) -> StarSystem:
     """
-    Reconstructs a full `StarSystem` -- config, star(s), and every planet/
-    moon/asteroid belt it contains, in original orbital order -- from a
-    `star_systems` row and its related rows.
+    Reconstructs a full `StarSystem` -- config, star(s), every planet/
+    moon/asteroid belt it contains (in original orbital order), and every
+    comet it contains -- from a `star_systems` row and its related rows.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -2614,8 +2710,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.binary_type = binary_configuration
     system.wide_binary = wide_binary
 
-    # v19: only meaningful (non-NULL) for a 'close' pair -- see
-    # schema.sql's "v19" header note and StarSystem.__init__'s own comment.
+    # v20: only meaningful (non-NULL) for a 'close' pair -- see
+    # schema.sql's "v20" header note and StarSystem.__init__'s own comment.
     system.binary_planetary_wobble_x = (
         row["binary_planetary_wobble_x_km"] / physical_constants.AU_TO_KM
         if row["binary_planetary_wobble_x_km"] is not None else 0.0
@@ -2647,6 +2743,22 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     belt_rows = conn.execute(
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)
     ).fetchall()
+    comet_rows = conn.execute(
+        "SELECT * FROM comets WHERE star_system_id = ? ORDER BY id", (star_system_id,)
+    ).fetchall()
+
+    def _build_comet_list(comet_rows_subset):
+        # Comets have no orbital_index (see insert_comet's own docstring),
+        # so unlike _build_object_list there's no interleaved order to
+        # restore -- just reconstruct each one.
+        comets = []
+        for r in comet_rows_subset:
+            comp_rows = conn.execute(
+                "SELECT component FROM comet_composition WHERE comet_id = ? ORDER BY position",
+                (r["id"],),
+            ).fetchall()
+            comets.append(Comet.from_dict(_comet_row_to_dict(r, comp_rows), system_config))
+        return comets
 
     def _build_object_list(planet_rows_subset, belt_rows_subset, owning_star):
         # planets/belts owned by the same star share one orbital_index
@@ -2689,13 +2801,18 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             [r for r in belt_rows if r["star_id"] == secondary_db_id],
             secondary_star,
         )
+        system.comets = _build_comet_list([r for r in comet_rows if r["star_id"] == primary_db_id])
+        system.secondary_comets = _build_comet_list([r for r in comet_rows if r["star_id"] == secondary_db_id])
     else:
         system.planets = _build_object_list(planet_rows, belt_rows, star)
         system.secondary_planets = []
+        system.comets = _build_comet_list(comet_rows)
+        system.secondary_comets = []
 
     system.system_flavor_text = row["system_flavor_text"]
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
     system.hab_count, system.m_count = system.count_habitable()
+    system.comet_count = system.count_comets()
 
     return system
 
@@ -3267,8 +3384,30 @@ def _migrate_v17_to_v18(conn):
 
 def _migrate_v18_to_v19(conn):
     """
-    Adds v19's proper two-body (barycentric) trajectory columns to
-    `star_systems`, `stars`, and `planets` -- see `schema.sql`'s "v19"
+    Records schema v19 -- new tables `comets` and `comet_composition`
+    (`cometData.Comet` -- see `schema.sql`'s "v19" header note) for
+    star-bound comets.
+
+    Like `_migrate_v15_to_v16`, this needs no `ALTER TABLE`: both are
+    brand-new tables, and `_ensure_schema`'s `CREATE TABLE IF NOT EXISTS`
+    (run on every new connection) already creates them directly from the
+    current `schema.sql`, even against a database whose
+    `schema_migrations` bookkeeping still says v18 -- there is no
+    pre-existing table whose shape needs changing. This step exists
+    purely to keep that bookkeeping counter itself accurate.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
+
+
+def _migrate_v19_to_v20(conn):
+    """
+    Adds v20's proper two-body (barycentric) trajectory columns to
+    `star_systems`, `stars`, and `planets` -- see `schema.sql`'s "v20"
     header note. Real `ALTER TABLE` steps, the same as v17's/v18's.
 
     Unlike `_migrate_v16_to_v17` (whose objects were "long gone by
@@ -3410,7 +3549,7 @@ def _migrate_v18_to_v19(conn):
         """
     )
 
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (20)")
 
 
 def migrate_database(config=None):
@@ -3434,8 +3573,9 @@ def migrate_database(config=None):
     `_migrate_v16_to_v17` (added for v17's galactic-orbital-motion columns
     on those tables plus the new `asteroid_fields` phenomenon),
     `_migrate_v17_to_v18` (added for v18's galaxy-frame placement columns
-    on `nebulae`/`asteroid_fields`), and `_migrate_v18_to_v19` (added for
-    v19's proper two-body/barycentric trajectory columns on
+    on `nebulae`/`asteroid_fields`), `_migrate_v18_to_v19` (added for
+    v19's new `comets`/`comet_composition` tables), and `_migrate_v19_to_v20`
+    (added for v20's proper two-body/barycentric trajectory columns on
     `star_systems`/`stars`/`planets`) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
@@ -3496,6 +3636,10 @@ def migrate_database(config=None):
         if version < 19:
             _migrate_v18_to_v19(conn)
             version = 19
+
+        if version < 20:
+            _migrate_v19_to_v20(conn)
+            version = 20
 
         conn.commit()
         return version
@@ -3622,10 +3766,10 @@ def advance_orbital_phases(conn, elapsed_years):
     from), in the same transaction, so a caller can never advance phases
     without also recording that it did.
 
-    v19 additionally recomputes three "reflex offset"/"wobble" values --
+    v20 additionally recomputes three "reflex offset"/"wobble" values --
     a proper two-body (barycentric) treatment layered on top of the
     existing relative-position model, never changing what any existing
-    column means (see `schema.sql`'s "v19" header note and
+    column means (see `schema.sql`'s "v20" header note and
     `utils.calculate_reflex_offset`'s docstring for the underlying
     formula):
       - `stars.reflex_offset_x/y/z_km`, from each star's own hosted
@@ -3715,7 +3859,7 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["stars"] = cur.rowcount
 
-    # v19: each star's own reflex-offset "wobble" from the planets it
+    # v20: each star's own reflex-offset "wobble" from the planets it
     # hosts (planets.star_id) -- a correlated subquery summing every
     # hosted planet's individual pairwise pull, the same
     # utils.calculate_reflex_offset formula generation time uses (see its
@@ -3745,7 +3889,7 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["star_reflex_offsets"] = cur.rowcount
 
-    # v19: each planet's own reflex-offset "wobble" from the moons it
+    # v20: each planet's own reflex-offset "wobble" from the moons it
     # hosts -- identical shape/reasoning to the stars UPDATE above, one
     # level down (moons.planet_id).
     cur = conn.execute(
@@ -3770,7 +3914,7 @@ def advance_orbital_phases(conn, elapsed_years):
 
     # Mutual orbit: shared by both binary configurations (see this
     # function's own docstring on why this is now a separate UPDATE from
-    # the galactic-phase one below, guarded independently). v19: also
+    # the galactic-phase one below, guarded independently). v20: also
     # recomputes each star's own offset from the pair's barycenter
     # (binary_primary/secondary_position_*_km) from the freshly-advanced
     # binary_mutual_position_*_km above and the constant
@@ -3810,11 +3954,11 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     counts["binary_mutual_orbits"] = cur.rowcount
 
-    # v19: circumbinary (P-type) planets' combined pull on the whole pair
+    # v20: circumbinary (P-type) planets' combined pull on the whole pair
     # -- same correlated-subquery shape as the stars/planets reflex-offset
     # UPDATEs above, grouped by star_system_id instead (circumbinary
     # planets have star_id IS NULL, so there's no stars row to attach this
-    # to -- see schema.sql's "v19" header note on why it's modeled as one
+    # to -- see schema.sql's "v20" header note on why it's modeled as one
     # shared wobble rather than split between primary/secondary). Also
     # recomputed unconditionally, no guard interval of its own.
     cur = conn.execute(
@@ -3888,3 +4032,126 @@ def advance_orbital_phases(conn, elapsed_years):
     )
     conn.commit()
     return counts
+
+
+def advance_comet_orbits(conn, elapsed_years):
+    """
+    Advances every comet's own orbital anomaly (`mean_anomaly_deg` for an
+    elliptical comet, `parabolic_mean_anomaly` for a parabolic one) by
+    `elapsed_years`, and recomputes `distance_km`/`position_x/y/z_km`/
+    `orbital_speed_kms` from the new anomaly via
+    `keplerMotion.comet_orbital_state` -- the Kepler/Barker-equation
+    analog of `advance_orbital_phases`'s planet/moon handling, called
+    separately by `updateOrbits.py` alongside it.
+
+    Unlike `advance_orbital_phases` (a pure, set-based SQL `UPDATE` for
+    every table it touches -- `orbital_phase_deg` is a LINEAR function of
+    elapsed time for a circular orbit, so MySQL/MariaDB can compute the
+    resulting position directly), a comet's position is NOT a linear SQL
+    expression: turning an advanced anomaly into a distance/position
+    requires solving Kepler's equation (Newton-Raphson, elliptical) or
+    Barker's equation (a real-cube-root closed form, parabolic) -- neither
+    expressible in standard SQL. So this fetches every `comets` row and
+    does that computation in Python -- one Python loop instead of one
+    set-based statement, the necessary tradeoff for correctness here (in
+    practice a small table -- see `program_constants.SYSTEM_COMET_COUNT_RANGE`
+    -- so this isn't the scaling concern it would be for `planets`/`moons`).
+    The resulting rows are still written back in one batched `UPDATE` via
+    `executemany` (like `insert_sector`'s per-vertex rows), not one
+    `execute` per row -- the per-row work has to stay in Python, but the
+    round trips to the database don't.
+
+    An elliptical comet's `mean_anomaly_deg` advances the same
+    `MOD(current + (elapsed_years / period_years) * 360, 360)` way
+    `orbital_phase_deg` does, guarded by its own `min_update_interval_years`
+    the identical way (see `advance_orbital_phases`'s docstring) -- skipped
+    entirely, not just a no-op write, when `elapsed_years` is below it. A
+    parabolic comet's `parabolic_mean_anomaly` instead advances LINEARLY
+    (via `keplerMotion.parabolic_mean_anomaly`) and does NOT wrap (a
+    parabolic pass is a one-shot event, not periodic -- see
+    `cometData.Comet`'s own `parabolic_mean_anomaly` docstring), and has no
+    `min_update_interval_years` floor to guard against (same docstring) --
+    so every parabolic row is always updated, regardless of `elapsed_years`.
+
+    Args:
+        conn (Connection): An open, schema-initialized, read-write
+                           connection.
+        elapsed_years (float): How much simulated time has passed since
+                               the reference point `elapsed_years` was
+                               computed from (the same value passed to
+                               `advance_orbital_phases` -- both share one
+                               `orbit_simulation_state` clock, which only
+                               that function updates). Must be >= 0.
+
+    Returns:
+        int: The number of `comets` rows actually updated (a skipped,
+            below-guard elliptical row doesn't count).
+
+    Raises:
+        ValueError: If `elapsed_years` is negative.
+    """
+    if elapsed_years < 0:
+        raise ValueError(f"elapsed_years must be >= 0, got {elapsed_years}")
+
+    rows = conn.execute(
+        "SELECT id, orbit_type, perihelion_distance_km, eccentricity, inclination_deg, "
+        "arg_periapsis_deg, ascending_node_deg, orbital_period_years, mean_anomaly_deg, "
+        "parabolic_mean_anomaly, min_update_interval_years, primary_mass_solar FROM comets"
+    ).fetchall()
+
+    update_params = []
+    for row in rows:
+        perihelion_distance_au = row["perihelion_distance_km"] / physical_constants.AU_TO_KM
+
+        if row["orbit_type"] == "elliptical":
+            if elapsed_years < row["min_update_interval_years"]:
+                continue
+            new_mean_anomaly_deg = (
+                row["mean_anomaly_deg"] + (elapsed_years / row["orbital_period_years"]) * 360
+            ) % 360
+            mean_anomaly_rad = math.radians(new_mean_anomaly_deg)
+            new_parabolic_mean_anomaly = None
+            parabolic_mean_anomaly_value = None
+        else:
+            new_mean_anomaly_deg = None
+            mean_anomaly_rad = None
+            new_parabolic_mean_anomaly = row["parabolic_mean_anomaly"] + keplerMotion.parabolic_mean_anomaly(
+                elapsed_years, perihelion_distance_au, row["primary_mass_solar"]
+            )
+            parabolic_mean_anomaly_value = new_parabolic_mean_anomaly
+
+        state = keplerMotion.comet_orbital_state(
+            row["orbit_type"], perihelion_distance_au, row["eccentricity"],
+            row["inclination_deg"], row["arg_periapsis_deg"], row["ascending_node_deg"],
+            row["primary_mass_solar"],
+            mean_anomaly_rad=mean_anomaly_rad,
+            parabolic_mean_anomaly_value=parabolic_mean_anomaly_value,
+            orbital_period_years=row["orbital_period_years"],
+        )
+
+        update_params.append((
+            new_mean_anomaly_deg, new_parabolic_mean_anomaly,
+            state["distance_au"] * physical_constants.AU_TO_KM,
+            state["position_x_au"] * physical_constants.AU_TO_KM,
+            state["position_y_au"] * physical_constants.AU_TO_KM,
+            state["position_z_au"] * physical_constants.AU_TO_KM,
+            state["orbital_speed_kms"],
+            row["id"],
+        ))
+
+    # One batched round trip for every row that needs writing, not one
+    # `execute` per comet -- see this function's own docstring.
+    if update_params:
+        conn.executemany(
+            """
+            UPDATE comets
+            SET mean_anomaly_deg = ?, parabolic_mean_anomaly = ?,
+                distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?,
+                orbital_speed_kms = ?
+            WHERE id = ?
+            """,
+            update_params,
+        )
+
+    conn.commit()
+    return len(update_params)

@@ -25,6 +25,7 @@ import pytest
 
 from stellarObjects import _db
 from stellarObjects import physical_constants as pc
+from stellarObjects.cometData import Comet
 from stellarObjects.config import SystemConfig
 from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects.planetPhysics import calculate_orbital_period_years
@@ -83,14 +84,14 @@ def _drop_v18_phenomenon_columns(conn):
         )
 
 
-def _drop_v19_trajectory_columns(conn):
+def _drop_v20_trajectory_columns(conn):
     """
-    Drops the v19 proper-two-body/barycentric-trajectory columns from the
+    Drops the v20 proper-two-body/barycentric-trajectory columns from the
     three pre-existing tables they were added to (`stars`, `planets`,
     `star_systems`) -- the same "shared by every `test_migrate_vN_to_vN+1_*`
-    test below that simulates a database older than v19" reasoning
+    test below that simulates a database older than v20" reasoning
     `_drop_v17_phenomenon_columns` gives for its own six tables. See
-    `schema.sql`'s "v19" header note.
+    `schema.sql`'s "v20" header note.
     """
     for table in ("stars", "planets"):
         conn.execute(
@@ -133,6 +134,196 @@ def _make_system_with_moons_and_belt():
         if belts and any(p.moons for p in planets):
             return system, cfg
     pytest.fail("could not generate a system with both a moon and an asteroid belt")
+
+
+def _make_system_with_comets():
+    """Retries generation (bounded) until a system with at least one
+    elliptical AND at least one parabolic comet comes out -- COMETS=True
+    biases generation heavily toward having some, but not toward any
+    particular orbit_type mix (see program_constants.COMET_PARABOLIC_CHANCE)."""
+    for _ in range(30):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.COMETS = True
+        cfg.BINARY_SYSTEM = False
+        system = StarSystem(system_config=cfg)
+        orbit_types = {c.orbit_type for c in system.comets}
+        if {"elliptical", "parabolic"} <= orbit_types:
+            return system, cfg
+    pytest.fail("could not generate a system with both an elliptical and a parabolic comet")
+
+
+def test_insert_star_system_persists_comets_in_their_own_table(mysql_config):
+    system, cfg = _make_system_with_comets()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        db_comets = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
+        assert len(db_comets) == system.comet_count
+
+        star_row = conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)
+        ).fetchone()
+
+        db_comets_by_name = {row["name"]: row for row in db_comets}
+        for comet in system.comets:
+            row = db_comets_by_name[comet.name]
+            assert row["orbit_type"] == comet.orbit_type
+            # A single star DOES get a real stars.id (unlike a 'close'
+            # binary's merged proxy, which has none) -- see insert_comet's
+            # docstring and insert_star_system's own primary_star_id handling.
+            assert row["star_id"] == star_row["id"]
+            assert math.isclose(row["perihelion_distance_km"], comet.perihelion_distance_au * pc.AU_TO_KM, rel_tol=1e-9)
+            assert math.isclose(row["eccentricity"], comet.eccentricity, rel_tol=1e-9)
+            assert row["composition_summary"] == comet.get_composition_summary()
+
+            comp_rows = conn.execute(
+                "SELECT component FROM comet_composition WHERE comet_id = ? ORDER BY position", (row["id"],)
+            ).fetchall()
+            assert [r["component"] for r in comp_rows] == list(comet.composition)
+
+            if comet.orbit_type == "elliptical":
+                assert row["orbital_period_years"] is not None
+                assert row["mean_anomaly_deg"] is not None
+                assert row["parabolic_mean_anomaly"] is None
+            else:
+                assert row["orbital_period_years"] is None
+                assert row["mean_anomaly_deg"] is None
+                assert row["parabolic_mean_anomaly"] is not None
+    finally:
+        conn.close()
+
+
+def test_load_star_system_round_trips_comets_with_composition(mysql_config):
+    system, cfg = _make_system_with_comets()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert reloaded.comet_count == system.comet_count
+    original_by_name = {c.name: c for c in system.comets}
+    for comet in reloaded.comets:
+        original = original_by_name[comet.name]
+        assert comet.orbit_type == original.orbit_type
+        assert comet.period_class == original.period_class
+        assert math.isclose(comet.perihelion_distance_au, original.perihelion_distance_au, rel_tol=1e-9)
+        assert math.isclose(comet.eccentricity, original.eccentricity, rel_tol=1e-9)
+        assert math.isclose(comet.distance_au, original.distance_au, rel_tol=1e-9)
+        assert math.isclose(comet.orbital_speed_kms, original.orbital_speed_kms, rel_tol=1e-9)
+        assert comet.composition == original.composition
+        assert comet.system_config is reloaded.system_config
+    assert str(reloaded) == str(system)
+
+
+def _make_wide_binary_system_with_comets():
+    """Retries generation (bounded) until a 'wide' (S-type) binary comes
+    out with at least one comet on EACH star -- needed to exercise
+    insert_star_system's/load_star_system's star_id-based grouping for
+    comets (see insert_comet's and load_star_system's own docstrings),
+    which _make_system_with_comets' single-star fixture above can't."""
+    for _ in range(50):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.COMETS = True
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = True
+        system = StarSystem(system_config=cfg)
+        if system.binary_type == "wide" and system.comets and system.secondary_comets:
+            return system, cfg
+    pytest.fail("could not generate a wide binary with comets on both stars")
+
+
+def test_insert_and_load_star_system_round_trips_comets_for_a_wide_binary(mysql_config):
+    """
+    A 'wide' binary's two stars each get their own, independently-rolled
+    comet population (StarSystem._generate_comets), disambiguated in the
+    database by each row's own star_id (see insert_comet's docstring) --
+    unlike the single-star case test_insert_star_system_persists_comets_in_their_own_table
+    and test_load_star_system_round_trips_comets_with_composition cover
+    above, this is the only place that star_id-based split is actually
+    exercised through a real insert/load round trip, rather than just the
+    in-memory to_dict/from_dict path StarSystem's own serialization tests
+    (test_serialization.py) cover.
+    """
+    system, cfg = _make_wide_binary_system_with_comets()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        primary_row = conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'primary'", (system_id,)
+        ).fetchone()
+        secondary_row = conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'secondary'", (system_id,)
+        ).fetchone()
+
+        db_comets = conn.execute("SELECT name, star_id FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
+        primary_names = {row["name"] for row in db_comets if row["star_id"] == primary_row["id"]}
+        secondary_names = {row["name"] for row in db_comets if row["star_id"] == secondary_row["id"]}
+        assert primary_names == {c.name for c in system.comets}
+        assert secondary_names == {c.name for c in system.secondary_comets}
+        # Every row's star_id must land in exactly one of the two buckets
+        # above -- confirms there's no third value (e.g. a stray NULL,
+        # only ever correct for a 'close' binary's merged proxy) hiding.
+        assert primary_names | secondary_names == {row["name"] for row in db_comets}
+
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
+    assert {c.name for c in reloaded.secondary_comets} == {c.name for c in system.secondary_comets}
+    assert reloaded.comet_count == system.comet_count
+
+
+def _make_close_binary_system_with_comets():
+    """Retries generation (bounded) until a 'close' (P-type) binary comes
+    out with at least one comet -- a close pair's comets are bound to the
+    merged BinaryStarProxy (StarSystem._generate_comets), not either
+    individually-stored star row, so insert_comet stores star_id as NULL
+    for them (see that function's own docstring); untested by any other
+    comet fixture above, all of which use a real star_id."""
+    for _ in range(50):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.COMETS = True
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = False
+        system = StarSystem(system_config=cfg)
+        if system.binary_type == "close" and system.comets:
+            return system, cfg
+    pytest.fail("could not generate a close binary with comets")
+
+
+def test_insert_and_load_star_system_round_trips_comets_for_a_close_binary(mysql_config):
+    system, cfg = _make_close_binary_system_with_comets()
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        db_comets = conn.execute("SELECT name, star_id FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
+        assert len(db_comets) == system.comet_count
+        assert all(row["star_id"] is None for row in db_comets)
+
+        reloaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+
+    assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
+    assert reloaded.secondary_comets == []
+    assert reloaded.comet_count == system.comet_count
 
 
 def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql_config):
@@ -743,6 +934,120 @@ def test_advance_orbital_phases_rejects_negative_elapsed_years(mysql_config):
         conn.close()
 
 
+# ---------------------------------------------------------------------------
+# Comet orbital motion updates (stellarObjects._db.advance_comet_orbits) --
+# a separate Python-loop call from advance_orbital_phases above, since a
+# comet's position isn't a linear function of elapsed time the way a
+# circular planet/moon orbit's is -- see that function's own docstring.
+# ---------------------------------------------------------------------------
+
+def test_advance_comet_orbits_advances_elliptical_mean_anomaly_and_recomputes_position(mysql_config):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.COMETS = False
+    system = StarSystem(system_config=cfg)
+    comet = Comet(cfg, primary_mass_solar=system.star.mass / pc.SOLAR_MASS_TO_KG, orbit_type="elliptical")
+    comet.mean_anomaly_deg = 10.0
+    comet.update_orbital_state()
+    system.comets = [comet]
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
+        step_years = before["orbital_period_years"] * 0.05  # 18 degrees of mean anomaly
+
+        updated = _db.advance_comet_orbits(conn, step_years)
+        assert updated == 1
+
+        after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
+    finally:
+        conn.close()
+
+    assert math.isclose(after["mean_anomaly_deg"], 28.0, rel_tol=1e-9)  # 10 + 18
+    assert after["parabolic_mean_anomaly"] is None
+    # Moved further from perihelion (mean anomaly 10 -> 28, still well
+    # short of aphelion) -- distance must have increased.
+    assert after["distance_km"] > before["distance_km"]
+    # Position is a pure function of distance/orientation/anomaly, so it
+    # must have moved along with mean_anomaly_deg/distance_km.
+    assert (after["position_x_km"], after["position_y_km"], after["position_z_km"]) != (
+        before["position_x_km"], before["position_y_km"], before["position_z_km"]
+    )
+
+
+def test_advance_comet_orbits_advances_parabolic_mean_anomaly_without_wrapping(mysql_config):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.COMETS = False
+    system = StarSystem(system_config=cfg)
+    comet = Comet(cfg, primary_mass_solar=system.star.mass / pc.SOLAR_MASS_TO_KG, orbit_type="parabolic")
+    comet.parabolic_mean_anomaly = -1.0  # still approaching perihelion
+    comet.update_orbital_state()
+    system.comets = [comet]
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
+        assert before["mean_anomaly_deg"] is None
+        assert before["min_update_interval_years"] is None
+
+        # A large elapsed time -- since a parabolic anomaly doesn't wrap
+        # (unlike mean_anomaly_deg's MOD 360), this should NOT be clamped
+        # or wrapped, just added linearly.
+        updated = _db.advance_comet_orbits(conn, elapsed_years=50.0)
+        assert updated == 1
+
+        after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
+    finally:
+        conn.close()
+
+    assert after["mean_anomaly_deg"] is None
+    assert after["parabolic_mean_anomaly"] > before["parabolic_mean_anomaly"]
+    assert after["distance_km"] > before["distance_km"]
+
+
+def test_advance_comet_orbits_skips_elliptical_rows_below_min_update_interval(mysql_config):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.COMETS = False
+    system = StarSystem(system_config=cfg)
+    comet = Comet(cfg, primary_mass_solar=system.star.mass / pc.SOLAR_MASS_TO_KG, orbit_type="elliptical")
+    system.comets = [comet]
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+
+        before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
+        # Comfortably below this comet's own min_update_interval_years floor.
+        tiny_elapsed = before["min_update_interval_years"] / 2
+        updated = _db.advance_comet_orbits(conn, tiny_elapsed)
+        assert updated == 0
+
+        after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
+    finally:
+        conn.close()
+
+    assert after["mean_anomaly_deg"] == before["mean_anomaly_deg"]
+    assert after["distance_km"] == before["distance_km"]
+
+
+def test_advance_comet_orbits_rejects_negative_elapsed_years(mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        with pytest.raises(ValueError):
+            _db.advance_comet_orbits(conn, elapsed_years=-1.0)
+    finally:
+        conn.close()
+
+
 def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
     """
     `mysql_config` yields a fresh database, which `get_connection` already
@@ -791,8 +1096,8 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         )
         _drop_v17_phenomenon_columns(conn)
         _drop_v18_phenomenon_columns(conn)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -802,7 +1107,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -824,7 +1129,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
 def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
@@ -871,8 +1176,8 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
             )
         _drop_v17_phenomenon_columns(conn)
         _drop_v18_phenomenon_columns(conn)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -882,7 +1187,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -913,7 +1218,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
 def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
@@ -965,8 +1270,8 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         )
         _drop_v17_phenomenon_columns(conn)
         _drop_v18_phenomenon_columns(conn)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -976,7 +1281,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1048,8 +1353,8 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         )
         _drop_v17_phenomenon_columns(conn)
         _drop_v18_phenomenon_columns(conn)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -1059,7 +1364,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1084,7 +1389,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
 def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config):
@@ -1140,8 +1445,8 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         )
         _drop_v17_phenomenon_columns(conn)
         _drop_v18_phenomenon_columns(conn)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
         conn.commit()
 
@@ -1151,7 +1456,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1203,7 +1508,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
 def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_config):
@@ -1245,8 +1550,8 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         )
         _drop_v17_phenomenon_columns(conn)
         _drop_v18_phenomenon_columns(conn)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
         conn.commit()
 
@@ -1256,7 +1561,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1277,18 +1582,18 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
-def test_migrate_v18_to_v19_backfills_star_and_planet_reflex_offsets(mysql_config):
+def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_config):
     """
-    Simulates an existing v18 database (tearing v19's `stars`/`planets`/
+    Simulates an existing v19 database (tearing v20's `stars`/`planets`/
     `star_systems` trajectory columns back out) for a single-star system
     with both star-hosted planets and a moon-having planet, and confirms
     `migrate_database` backfills `stars.reflex_offset_*_km`/
     `planets.reflex_offset_*_km` with real derived values -- the exact
     same `utils.calculate_reflex_offset` formula generation time uses --
-    rather than leaving them `NULL`. See `_migrate_v18_to_v19`'s docstring.
+    rather than leaving them `NULL`. See `_migrate_v19_to_v20`'s docstring.
     """
     system = None
     for _ in range(30):
@@ -1309,18 +1614,18 @@ def test_migrate_v18_to_v19_backfills_star_and_planet_reflex_offsets(mysql_confi
     try:
         with conn:
             system_id = _db.insert_star_system(conn, system, system.system_config)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (19)")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (18)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20)")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
         version_before = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()["version"]
-        assert version_before == 18
+        assert version_before == 19
     finally:
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1369,10 +1674,10 @@ def test_migrate_v18_to_v19_backfills_star_and_planet_reflex_offsets(mysql_confi
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
-def test_migrate_v18_to_v19_backfills_binary_trajectory_columns(mysql_config):
+def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
     """
     Same simulated-old-database shape as the reflex-offset migration test
     above, for a 'close' (P-type) binary with circumbinary planets instead
@@ -1401,18 +1706,18 @@ def test_migrate_v18_to_v19_backfills_binary_trajectory_columns(mysql_config):
     try:
         with conn:
             system_id = _db.insert_star_system(conn, system, system.system_config)
-        _drop_v19_trajectory_columns(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (19)")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (18)")
+        _drop_v20_trajectory_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20)")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
         version_before = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()["version"]
-        assert version_before == 18
+        assert version_before == 19
     finally:
         conn.close()
 
     version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION == 19
+    assert version_after == _db.SCHEMA_VERSION == 20
 
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -1459,7 +1764,7 @@ def test_migrate_v18_to_v19_backfills_binary_trajectory_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == 19
+    assert _db.migrate_database(mysql_config) == 20
 
 
 def test_insert_system_config_round_trips_slots_child_rows(mysql_config):

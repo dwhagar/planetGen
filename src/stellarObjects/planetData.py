@@ -194,7 +194,7 @@ class Planet:
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
-    float: Class-level defaults (schema v19) so a `Planet` reconstructed
+    float: Class-level defaults (schema v20) so a `Planet` reconstructed
     via `from_dict`'s `object.__new__`+`fields_from_dict` path still reads
     back `0.0` for a system saved before this field existed, rather than
     raising `AttributeError` -- same reasoning as `Star.a_crit_au`'s own
@@ -248,7 +248,7 @@ class Planet:
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
         self.moons = []
-        # This planet's own reflex-offset "wobble" (schema v19) from its
+        # This planet's own reflex-offset "wobble" (schema v20) from its
         # moons' combined pull -- 0.0 by default (no moons yet), recomputed
         # by `planetPhysics.generate_moons` once `self.moons` is populated
         # below. Always 0.0 for a moon itself (moons never generate their

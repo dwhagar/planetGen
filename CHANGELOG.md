@@ -27,9 +27,9 @@
   all of these fresh on every run (a cheap derived value, no independent
   update-guard interval of its own), introducing a new correlated-
   subquery `UPDATE` technique to sum a parent's pull from multiple
-  children in one set-based statement. Persisted via schema v19 (new
+  children in one set-based statement. Persisted via schema v20 (new
   columns on the three already-existing `star_systems`/`stars`/`planets`
-  tables) and a `_migrate_v18_to_v19` migration step that backfills real
+  tables) and a `_migrate_v19_to_v20` migration step that backfills real
   values for every pre-existing row (unlike v17's migration, every value
   here is fully derivable from data already stored).
 

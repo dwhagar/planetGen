@@ -469,7 +469,25 @@
 --   sphere overlaps a given sector's cube by real distance, regardless of
 --   which sector it's linked to).
 --
--- v19: proper two-body (barycentric) trajectories for binary stars,
+-- v19: star-bound comets (`cometData.Comet` -- see
+--   docs/design/comet-orbital-realism.md), propagated via real two-body
+--   Kepler/Barker orbital mechanics (`keplerMotion.py`) rather than a
+--   fixed hyperbolic excess speed. New tables `comets` (plus child
+--   `comet_composition`, mirroring `interstellar_comet_composition`'s
+--   plain-component-list shape, not `asteroid_belt_composition`'s
+--   component+concentration one) and a `comet` branch on `sector_objects`
+--   below. Deliberately NOT part of `planets`/`asteroid_belts` (no
+--   `orbital_index`): a comet's `distance_km` is its current,
+--   continuously-varying position along an eccentric/parabolic orbit, not
+--   a fixed slot in the orbital-spacing sequence those tables share --
+--   see `systemData.StarSystem._generate_comets`'s docstring. `star_id`
+--   follows `planets.star_id`'s own real semantics (a real `stars.id` for
+--   a single star or a 'wide' binary's comet; NULL only for a 'close'
+--   binary's, which orbits the merged pair, not one stored star row).
+--   New tables, so (like v16/v17's new tables) no `ALTER TABLE` is needed
+--   in `_migrate_v18_to_v19`.
+--
+-- v20: proper two-body (barycentric) trajectories for binary stars,
 --   star<->planet, and planet<->moon -- previously each pair modeled only
 --   "the lighter body orbits a fixed primary," which is a poor
 --   approximation for a binary's secondary (sampled at 0.1-0.8x the
@@ -510,7 +528,7 @@
 --   3+-body problem, out of scope) -- NULL unless `binary_configuration =
 --   'close'`.
 --     These are new columns on already-existing tables (`star_systems`,
---   `stars`, `planets`), so `_migrate_v18_to_v19` needs real `ALTER TABLE`
+--   `stars`, `planets`), so `_migrate_v19_to_v20` needs real `ALTER TABLE`
 --   statements, the same as v17's/v18's column additions.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
@@ -820,7 +838,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_mutual_position_x_km   DOUBLE,
     binary_mutual_position_y_km   DOUBLE,
     binary_mutual_position_z_km   DOUBLE,
-    -- v19 (see header comment): each binary member's own offset from the
+    -- v20 (see header comment): each binary member's own offset from the
     -- pair's barycenter -- secondary_position = primary_position +
     -- binary_mutual_position above always holds, but both are stored
     -- explicitly rather than derived on read.
@@ -830,10 +848,10 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_secondary_position_x_km  DOUBLE,
     binary_secondary_position_y_km  DOUBLE,
     binary_secondary_position_z_km  DOUBLE,
-    -- v19: secondary_mass / (primary_mass + secondary_mass), constant --
+    -- v20: secondary_mass / (primary_mass + secondary_mass), constant --
     -- stored so advance_orbital_phases never needs to join back to `stars`.
     binary_secondary_mass_fraction  DOUBLE,
-    -- v19: additional pair-wide wobble from circumbinary (P-type) planets
+    -- v20: additional pair-wide wobble from circumbinary (P-type) planets
     -- (star_id IS NULL) -- NULL unless binary_configuration = 'close'.
     binary_planetary_wobble_x_km    DOUBLE,
     binary_planetary_wobble_y_km    DOUBLE,
@@ -898,7 +916,7 @@ CREATE TABLE IF NOT EXISTS stars (
     -- -- NULL except for a constituent of a 'wide' binary. See the header
     -- comment's "v15" note.
     wide_binary_a_crit_km               DOUBLE,
-    -- v19 (see header comment): this star's own reflex-offset "wobble"
+    -- v20 (see header comment): this star's own reflex-offset "wobble"
     -- from the combined pull of every planet orbiting it directly --
     -- NULL/0 with no planets. Class-blind: applies identically to an
     -- anchored black_holes/neutron_stars row.
@@ -981,7 +999,7 @@ CREATE TABLE IF NOT EXISTS planets (
     orbital_speed_kms           DOUBLE NOT NULL,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
-    -- v19 (see header comment): this planet's own reflex-offset "wobble"
+    -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
     reflex_offset_y_km       DOUBLE,
@@ -1170,6 +1188,86 @@ CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
     CONSTRAINT fk_asteroid_belt_composition_belt
         FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
     KEY idx_asteroid_belt_composition_belt_id (belt_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- comets -- v19, a comet gravitationally bound to a star
+-- (stellarObjects/cometData.py:Comet), propagated via real two-body
+-- Kepler/Barker orbital mechanics (stellarObjects/keplerMotion.py) --
+-- contrast interstellar_comets below, an unbound object on a fixed
+-- hyperbolic trajectory. Deliberately NOT part of the planets table (no
+-- orbital_index/shared orbital-slot ordering): a comet's distance_km is
+-- its current, continuously-varying position along its orbit, not a
+-- fixed slot the way a planet's/belt's own distance is (see
+-- systemData.StarSystem._generate_comets' docstring). star_system_id/
+-- star_id follow planets.star_id's own real semantics (see that column's
+-- comment above): a real stars.id for a single star or a 'wide' binary's
+-- comet (each orbits one specific constituent star); NULL only for a
+-- 'close' (P-type) binary's comet, which orbits the merged pair, not any
+-- one individually-stored star row.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS comets (
+    id                          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    star_system_id              BIGINT UNSIGNED NOT NULL,
+    star_id                     BIGINT UNSIGNED,
+    name                        VARCHAR(255) NOT NULL,
+    orbit_type                  VARCHAR(16) NOT NULL CHECK (orbit_type IN ('elliptical', 'parabolic')),
+    -- period_class: only set for orbit_type = 'elliptical' (flavor/
+    -- plausibility metadata only -- see program_constants.COMET_PERIOD_CLASSES).
+    period_class                VARCHAR(16) CHECK (period_class IN ('jupiter_family', 'halley_type', 'long_period')),
+    nucleus_diameter_km         DOUBLE NOT NULL,
+    -- Searchable composition summary, same role as interstellar_comets.composition_summary
+    -- below -- structured per-component detail lives in comet_composition.
+    composition_summary         TEXT NOT NULL,
+    perihelion_distance_km      DOUBLE NOT NULL,
+    eccentricity                DOUBLE NOT NULL,
+    inclination_deg             DOUBLE NOT NULL,
+    arg_periapsis_deg           DOUBLE NOT NULL,
+    ascending_node_deg          DOUBLE NOT NULL,
+    -- orbital_period_years/mean_anomaly_deg: only set for orbit_type = 'elliptical'.
+    orbital_period_years        DOUBLE,
+    mean_anomaly_deg            DOUBLE,
+    -- parabolic_mean_anomaly/min_update_interval_years: parabolic_mean_anomaly
+    -- only set for orbit_type = 'parabolic'; min_update_interval_years only
+    -- for 'elliptical' (a parabolic comet's anomaly doesn't wrap, so it has
+    -- no periodic floating-point-resolution floor to guard -- see Comet's
+    -- own min_update_interval_years docstring).
+    parabolic_mean_anomaly      DOUBLE,
+    min_update_interval_years   DOUBLE,
+    primary_mass_solar          DOUBLE NOT NULL,
+    is_active                   TINYINT(1) NOT NULL CHECK (is_active IN (0, 1)),
+    -- Current derived orbital state (Comet.update_orbital_state) --
+    -- recomputed by _db.advance_comet_orbits as mean_anomaly_deg/
+    -- parabolic_mean_anomaly advance over time, the Kepler/Barker-equation
+    -- analog of planets.position_x/y/z_km's own periodic recomputation.
+    distance_km                 DOUBLE NOT NULL,
+    position_x_km               DOUBLE NOT NULL,
+    position_y_km               DOUBLE NOT NULL,
+    position_z_km               DOUBLE NOT NULL,
+    orbital_speed_kms           DOUBLE NOT NULL,
+
+    CONSTRAINT fk_comets_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT fk_comets_star
+        FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
+    KEY idx_comets_star_system_id (star_system_id),
+    KEY idx_comets_star_id (star_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Structured per-component detail behind composition_summary above --
+-- a plain component list (no concentration gradient), mirroring
+-- interstellar_comet_composition's identical shape (Comet.composition and
+-- InterstellarComet.composition are both plain lists, not the
+-- (component, concentration) pairs asteroid_belt_composition uses).
+CREATE TABLE IF NOT EXISTS comet_composition (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    comet_id    BIGINT UNSIGNED NOT NULL,
+    position    INT NOT NULL,
+    component   VARCHAR(64) NOT NULL,
+
+    CONSTRAINT fk_comet_composition_comet
+        FOREIGN KEY (comet_id) REFERENCES comets(id) ON DELETE CASCADE,
+    KEY idx_comet_composition_comet_id (comet_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1432,8 +1530,8 @@ CREATE TABLE IF NOT EXISTS asteroid_field_composition (
 -- ---------------------------------------------------------------------
 -- sector_objects -- unified "every stellar object in a sector" search.
 --
--- Standard relational choice here: a VIEW that UNIONs the four typed
--- tables above, not a fifth physical table duplicating their rows. A
+-- Standard relational choice here: a VIEW that UNIONs the five typed
+-- tables above, not a sixth physical table duplicating their rows. A
 -- real table would need to be kept in sync on every insert/update/delete
 -- to the tables it mirrors (or drift out of sync); a view has no storage
 -- and no sync problem -- MySQL resolves it against current data on every
@@ -1490,4 +1588,17 @@ CREATE OR REPLACE VIEW sector_objects AS
         ab.density                      AS summary,
         ab.orbital_index                AS orbital_index
     FROM asteroid_belts ab
-    JOIN star_systems ss ON ss.id = ab.star_system_id;
+    JOIN star_systems ss ON ss.id = ab.star_system_id
+
+    UNION ALL
+
+    SELECT
+        'comet'                         AS object_type,
+        c.id                            AS object_id,
+        c.star_system_id                AS star_system_id,
+        ss.sector_id                    AS sector_id,
+        c.name                          AS name,
+        c.orbit_type                    AS summary,
+        NULL                            AS orbital_index
+    FROM comets c
+    JOIN star_systems ss ON ss.id = c.star_system_id;
