@@ -46,6 +46,107 @@ class TristateAction(argparse.Action):
         setattr(namespace, self.dest, option_string.startswith('+'))
 
 
+def add_system_arguments(parser):
+    """
+    Adds every option `process_args()`'s own parser accepts (besides
+    `--version`) to `parser` -- the tri-state `+name`/`-name` flags (see
+    `TRISTATE_OPTIONS`), `--system-file`, `--output`, the MySQL connection
+    args, `--markdown`, `--star-type`, `--num-orbits`, `--name`, `--age`,
+    and the flavor-text overrides. Factored out of `process_args()` so
+    `generate.py`'s unified `system` subcommand can build the exact same
+    option surface without duplicating it (see `validate_system_args` for
+    the matching validation half).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+                                          Must accept `+`/`-` prefix chars
+                                          (`prefix_chars='-+'`) for the
+                                          tri-state options.
+    """
+    for name, _attr, description in TRISTATE_OPTIONS:
+        parser.add_argument(f'-{name}', f'+{name}', dest=name, action=TristateAction,
+                            nargs=0, default=None,
+                            help=f"+{name} forces the system to have {description}; "
+                                 f"-{name} forces the system to not have {description}.")
+
+    # Load system options from a JSON file
+    parser.add_argument('--system-file', '-f', type=str,
+                        help="Load system generation options from a JSON file. Command-line options "
+                             "override the values it sets.")
+
+    # Output to a file
+    parser.add_argument('--output', '-o', type=str, help="Output to a file.")
+
+    # Database persistence
+    _db.add_mysql_connection_args(parser)
+
+    # Output in Markdown format
+    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
+
+    # Star Type
+    parser.add_argument('--star-type', type=str,
+                        help="Force the generation of a specific star type (e.g., G2V).")
+
+    # Number of Orbits
+    parser.add_argument('--num-orbits', type=int,
+                        help="Force an exact number of orbital slots (planets and asteroid belts "
+                             "combined) to be generated.")
+
+    # System Name
+    parser.add_argument('--name', type=str, help="Force the name of the star system.")
+
+    # System Age
+    parser.add_argument('--age', type=str, choices=['young', 'old'],
+                        help="Specify the age of the star system (young or old).")
+
+    # Override Flavor Chance System
+    parser.add_argument('--flavor-chance-system', type=float,
+                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
+
+    # Override Flavor Chance Planet
+    parser.add_argument('--flavor-chance-planet', type=float,
+                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
+
+    # Max Planet Flavor
+    parser.add_argument('--max-planet-flavor', action='store_true',
+                        help="Sets the maximum flavor text total for planets to 99.")
+
+
+def validate_system_args(args, parser):
+    """
+    Validates every option `add_system_arguments` added, calling
+    `parser.error` (which exits) on the first problem found. Factored out
+    of `process_args()` for the same reason `add_system_arguments` is --
+    shared with `generate.py`'s unified `system` subcommand.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
+    if args.planets is False and (args.moons or args.max_planets or args.habitable_world):
+        parser.error("-planets cannot be combined with +moons, +max_planets, or +habitable_world.")
+
+    if args.star_type and args.large_star:
+        parser.error("--star-type cannot be combined with +large_star.")
+
+    if args.intelligent_life is not None and args.habitable_world is False:
+        parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
+
+    if args.num_orbits is not None and args.num_orbits < 0:
+        parser.error("--num-orbits must be zero or a positive integer.")
+
+    if args.num_orbits is not None and args.planets is False:
+        parser.error("--num-orbits cannot be combined with -planets.")
+
+    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
+        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
+
+    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
+        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+
+
 def process_args():
     """
     Parses command-line arguments for customizing the star system generation.
@@ -120,78 +221,11 @@ def process_args():
 
     parser.add_argument('--version', action=VersionAction, banner=version_banner('systemGen.py'))
 
-    for name, _attr, description in TRISTATE_OPTIONS:
-        parser.add_argument(f'-{name}', f'+{name}', dest=name, action=TristateAction,
-                            nargs=0, default=None,
-                            help=f"+{name} forces the system to have {description}; "
-                                 f"-{name} forces the system to not have {description}.")
-
-    # Load system options from a JSON file
-    parser.add_argument('--system-file', '-f', type=str,
-                        help="Load system generation options from a JSON file. Command-line options "
-                             "override the values it sets.")
-
-    # Output to a file
-    parser.add_argument('--output', '-o', type=str, help="Output to a file.")
-
-    # Database persistence
-    _db.add_mysql_connection_args(parser)
-
-    # Output in Markdown format
-    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
-
-    # Star Type
-    parser.add_argument('--star-type', type=str,
-                        help="Force the generation of a specific star type (e.g., G2V).")
-
-    # Number of Orbits
-    parser.add_argument('--num-orbits', type=int,
-                        help="Force an exact number of orbital slots (planets and asteroid belts "
-                             "combined) to be generated.")
-
-    # System Name
-    parser.add_argument('--name', type=str,
-                        help="Force the name of the star system.")
-
-    # System Age
-    parser.add_argument('--age', type=str, choices=['young', 'old'],
-                        help="Specify the age of the star system (young or old).")
-
-    # Override Flavor Chance System
-    parser.add_argument('--flavor-chance-system', type=float,
-                        help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
-
-    # Override Flavor Chance Planet
-    parser.add_argument('--flavor-chance-planet', type=float,
-                        help="Override the default FLAVOR_CHANCE_PLANET constant.")
-
-    # Max Planet Flavor
-    parser.add_argument('--max-planet-flavor', action='store_true',
-                        help="Sets the maximum flavor text total for planets to 99.")
+    add_system_arguments(parser)
 
     args = parser.parse_args()
 
-    # Argument validation logic
-    if args.planets is False and (args.moons or args.max_planets or args.habitable_world):
-        parser.error("-planets cannot be combined with +moons, +max_planets, or +habitable_world.")
-
-    if args.star_type and args.large_star:
-        parser.error("--star-type cannot be combined with +large_star.")
-
-    if args.intelligent_life is not None and args.habitable_world is False:
-        parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
-
-    if args.num_orbits is not None and args.num_orbits < 0:
-        parser.error("--num-orbits must be zero or a positive integer.")
-
-    if args.num_orbits is not None and args.planets is False:
-        parser.error("--num-orbits cannot be combined with -planets.")
-
-    if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
-        parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
-
-    if args.flavor_chance_planet is not None and not (0.0 <= args.flavor_chance_planet <= 1.0):
-        parser.error("--flavor-chance-planet must be a float between 0.0 and 1.0.")
+    validate_system_args(args, parser)
 
     return args
 

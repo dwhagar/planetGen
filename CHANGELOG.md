@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.35.0] - 2026-09-17
+
+### Added
+- **Unified `generate.py` CLI.** One entry point for every generator in
+  this project, with a subcommand per generation scale: `generate.py
+  system|sector|galaxy|plan|phenomenon [options]`, replacing the need to
+  invoke `systemGen.py`/`sectorGen.py`/`galaxyGen.py`/`galaxyPlan.py`/
+  `phenomenonGen.py` directly for day-to-day generation. Each subcommand
+  accepts exactly the option surface its standalone script already
+  offered and saves to the same database -- `generate.py` adds no new
+  generation behavior of its own, it only dispatches into each module's
+  existing argument-building/validating functions and business logic.
+  Those five standalone scripts' own argument-parsing was split into
+  reusable `add_*_arguments(parser)`/`validate_*_args(args, parser)`
+  function pairs (`systemGen.add_system_arguments`/`validate_system_args`,
+  `sectorGen.add_sector_arguments`/`validate_sector_args`,
+  `galaxyGen.add_galaxy_arguments`/`validate_galaxy_args`,
+  `galaxyPlan.add_plan_arguments`/`validate_plan_args`,
+  `phenomenonGen.add_phenomenon_arguments`/`validate_phenomenon_args`) so
+  `generate.py`'s subparsers build the exact same option surface without
+  duplicating it, and each standalone script's own `process_args()` now
+  just calls straight into its module's pair -- every script remains
+  directly runnable and importable exactly as before (`sectorGen.py`
+  still calls into `systemGen.py`, `galaxyGen.py` still calls into
+  `sectorGen.py`), so this is a pure refactor with no behavior change to
+  any existing script's CLI.
+
 ## [5.34.0] - 2026-09-17
 
 ### Changed

@@ -104,6 +104,28 @@ def process_args():
 
     parser.add_argument('--version', action=VersionAction, banner=version_banner('phenomenonGen.py'))
 
+    add_phenomenon_arguments(parser)
+
+    args = parser.parse_args()
+
+    validate_phenomenon_args(args, parser)
+
+    return args
+
+
+def add_phenomenon_arguments(parser):
+    """
+    Adds every option `process_args()`'s own parser accepts (besides
+    `--version`) to `parser` -- `--type`, `--anchor-system`,
+    `--num-orbits`, `--sector-id`, `--output`, the MySQL connection args,
+    `--markdown`, and `--name`. Factored out of `process_args()` so
+    `generate.py`'s unified `phenomenon` subcommand can build the exact
+    same option surface without duplicating it (see
+    `validate_phenomenon_args` for the matching validation half).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
     parser.add_argument('--type', type=str, choices=list(program_constants.PHENOMENON_TYPE_CHOICES),
                          help="The kind of phenomenon to generate. Omit to pick uniformly at random.")
 
@@ -137,8 +159,20 @@ def process_args():
     # Name
     parser.add_argument('--name', type=str, help="Force the name of the generated phenomenon.")
 
-    args = parser.parse_args()
 
+def validate_phenomenon_args(args, parser):
+    """
+    Validates `add_phenomenon_arguments`'s own options, calling
+    `parser.error` (which exits) on the first problem found. Factored out
+    of `process_args()` for the same reason `add_phenomenon_arguments`
+    is -- shared with `generate.py`'s unified `phenomenon` subcommand.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
     if args.num_orbits is not None and not args.anchor_system:
         parser.error("--num-orbits requires --anchor-system.")
     if args.num_orbits is not None and args.num_orbits < 0:
@@ -148,8 +182,6 @@ def process_args():
     if args.sector_id is not None and args.anchor_system:
         parser.error("--sector-id cannot be combined with --anchor-system -- an anchored compact remnant "
                      "belongs to its own StarSystem, not directly to a sector.")
-
-    return args
 
 
 def generate_phenomenon(phenomenon_type, system_config, anchor_system, name=None):

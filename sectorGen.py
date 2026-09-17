@@ -231,7 +231,29 @@ def process_args():
     parser.add_argument('--version', action=VersionAction, banner=version_banner('sectorGen.py'))
 
     add_shared_generation_options(parser)
+    add_sector_arguments(parser)
 
+    args = parser.parse_args()
+
+    validate_shared_generation_args(args, parser)
+    validate_sector_args(args, parser)
+
+    return args
+
+
+def add_sector_arguments(parser):
+    """
+    Adds `sectorGen.py`'s own sector-specific options -- on top of
+    whatever `add_shared_generation_options` already added -- to
+    `parser`: `--name`/`-n` (sector name), `--num-sectors`, `--output`,
+    `--console`, and the MySQL connection args. Factored out of
+    `process_args()` so `generate.py`'s unified `sector` subcommand can
+    build the exact same option surface without duplicating it (see
+    `validate_sector_args` for the matching validation half).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
     parser.add_argument('--name', '-n', dest='sector_name', type=str,
                         help="Force the name of the sector, overriding the default random two-word name. "
                              "Cannot be combined with --num-sectors > 1.")
@@ -244,10 +266,23 @@ def process_args():
                              "default, only status messages are printed.")
     _db.add_mysql_connection_args(parser)
 
-    args = parser.parse_args()
 
-    validate_shared_generation_args(args, parser)
+def validate_sector_args(args, parser):
+    """
+    Validates `add_sector_arguments`'s own options (`--num-sectors`/
+    `--name` conflicts) and shapes `args` into the namespace
+    `systemGen.build_system_config()` expects, calling `parser.error`
+    (which exits) on the first problem found. Doesn't include
+    `add_shared_generation_options`'s own validation
+    (`validate_shared_generation_args`) -- callers run both, same as
+    `process_args()` does.
 
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
     if args.num_sectors < 1:
         parser.error("--num-sectors must be a positive integer.")
 
@@ -257,13 +292,12 @@ def process_args():
 
     # systemGen.build_system_config() expects a namespace shaped like its own
     # process_args() output, including these three -- deliberately not
-    # exposed as sector-level flags (see this function's docstring), so they
-    # get the same "not given" default systemGen.py's own parser would.
+    # exposed as sector-level flags (see add_sector_arguments's docstring),
+    # so they get the same "not given" default systemGen.py's own parser
+    # would.
     args.system_file = None
     args.num_orbits = None
     args.name = None
-
-    return args
 
 
 def generate_sector_name():

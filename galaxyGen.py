@@ -142,7 +142,30 @@ def process_args():
     parser.add_argument('--version', action=VersionAction, banner=version_banner('galaxyGen.py'))
 
     sectorGen.add_shared_generation_options(parser)
+    add_galaxy_arguments(parser)
 
+    args = parser.parse_args()
+
+    sectorGen.validate_shared_generation_args(args, parser)
+    validate_galaxy_args(args, parser)
+
+    return args
+
+
+def add_galaxy_arguments(parser):
+    """
+    Adds `galaxyGen.py`'s own mode/placement options -- on top of
+    whatever `sectorGen.add_shared_generation_options` already added --
+    to `parser`: the `--shell`/`--center-sector` mode-selection group,
+    `--limit`, `--yes`, `--radius-pc`, `--max-shell`, and the MySQL
+    connection args. Factored out of `process_args()` so `generate.py`'s
+    unified `galaxy` subcommand can build the exact same option surface
+    without duplicating it (see `validate_galaxy_args` for the matching
+    validation half).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
     mode_group = parser.add_mutually_exclusive_group(required=False)
     mode_group.add_argument('--shell', type=int, metavar='K',
                             help="Batch mode: generate every not-yet-generated sector slot in radial shell K "
@@ -170,10 +193,22 @@ def process_args():
                              f"({program_constants.GALAXY_RADIUS_PC:,.0f} pc).")
     _db.add_mysql_connection_args(parser)
 
-    args = parser.parse_args()
 
-    sectorGen.validate_shared_generation_args(args, parser)
+def validate_galaxy_args(args, parser):
+    """
+    Validates `add_galaxy_arguments`'s own options, calling `parser.error`
+    (which exits) on the first problem found, then shapes `args` into the
+    namespace `sectorGen.generate_sector()`/`build_sector_configs()`
+    expect. Doesn't include `add_shared_generation_options`'s own
+    validation (`validate_shared_generation_args`) -- callers run both,
+    same as `process_args()` does.
 
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
     random_start = args.shell is None and args.center_sector is None
 
     if args.shell is not None and args.shell < 0:
@@ -201,8 +236,8 @@ def process_args():
         parser.error("--max-shell must be >= 0.")
 
     # sectorGen.generate_sector()/build_sector_configs() expect a namespace
-    # shaped like sectorGen.process_args()'s own output -- see this
-    # function's docstring for why these are always None here.
+    # shaped like sectorGen.process_args()'s own output -- see
+    # process_args()'s docstring for why these are always None here.
     # `output` in particular is read directly by
     # systemGen.build_system_config (`output_path = args.output`) even
     # though this script has no per-system/per-sector output-file option
@@ -215,8 +250,6 @@ def process_args():
     args.num_orbits = None
     args.name = None
     args.output = None
-
-    return args
 
 
 def _edge_pc():

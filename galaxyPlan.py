@@ -110,6 +110,27 @@ def process_args():
 
     parser.add_argument('--version', action=VersionAction, banner=version_banner('galaxyPlan.py'))
 
+    add_plan_arguments(parser)
+
+    args = parser.parse_args()
+
+    validate_plan_args(args, parser)
+
+    return args
+
+
+def add_plan_arguments(parser):
+    """
+    Adds every option `process_args()`'s own parser accepts (besides
+    `--version`) to `parser` -- the galaxy shape parameter group plus the
+    scan/parallelism options and the MySQL connection args. Factored out
+    of `process_args()` so `generate.py`'s unified `plan` subcommand can
+    build the exact same option surface without duplicating it (see
+    `validate_plan_args` for the matching validation half).
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
     shape_group = parser.add_argument_group("galaxy shape (galaxyDensity.GalaxyShape)")
     shape_group.add_argument('--disk-scale-length-pc', type=float, default=2800.0,
                              help="Exponential disk radial scale length, parsecs. Default: 2800 "
@@ -146,8 +167,21 @@ def process_args():
                         help="Shells dispatched per parallel round. Defaults to 8x --workers.")
     _db.add_mysql_connection_args(parser)
 
-    args = parser.parse_args()
 
+def validate_plan_args(args, parser):
+    """
+    Validates `add_plan_arguments`'s own options, calling `parser.error`
+    (which exits) on the first problem found, then defaults `--workers`/
+    `--chunk-size` from `os.cpu_count()`. Factored out of `process_args()`
+    so `generate.py`'s unified `plan` subcommand can reuse the exact same
+    validation without duplicating it.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
     if args.arm_amplitude < 0 or args.arm_amplitude >= 1:
         parser.error("--arm-amplitude must be in [0, 1).")
     if args.empty_streak_to_stop < 1:
@@ -163,8 +197,6 @@ def process_args():
         args.workers = os.cpu_count() or 1
     if args.chunk_size is None:
         args.chunk_size = args.workers * 8
-
-    return args
 
 
 def build_skeleton(args):
