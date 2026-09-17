@@ -26,6 +26,7 @@ import pytest
 from stellarObjects import _db
 from stellarObjects import physical_constants as pc
 from stellarObjects.cometData import Comet
+from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects.planetPhysics import calculate_orbital_period_years
@@ -1820,3 +1821,83 @@ def test_insert_system_config_round_trips_slots_child_rows(mysql_config):
 
     assert reloaded.SLOTS == cfg.SLOTS
     assert reloaded.STAR_TYPE == cfg.STAR_TYPE
+
+
+def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
+    """
+    Simulates a database created under schema v20 (before black_holes/
+    neutron_stars gained sector_id/center_x/y/z_pc/galactic_radius_pc),
+    with a pre-existing standalone black hole and neutron star already in
+    it, then checks that migrate_database brings it up to v21: the new
+    columns exist, are NULL on the pre-existing rows (no backfill is
+    possible -- a pre-v21 row was always fully standalone, with no
+    placement to recover), and are fully usable for a phenomenon inserted
+    after the migration runs.
+    """
+    cfg = SystemConfig()
+    bh = BlackHole(cfg)
+    ns = NeutronStar(cfg)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            pre_existing_bh_id = _db.insert_black_hole(conn, bh)
+            pre_existing_ns_id = _db.insert_neutron_star(conn, ns)
+
+        _drop_v21_phenomenon_columns(conn)
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (21)")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (20)")
+        conn.commit()
+
+        version_before = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()["version"]
+        assert version_before == 20
+
+        bh_columns_before = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM black_holes").fetchall()}
+        assert "sector_id" not in bh_columns_before
+        assert "center_x_pc" not in bh_columns_before
+    finally:
+        conn.close()
+
+    version_after = _db.migrate_database(mysql_config)
+    assert version_after == _db.SCHEMA_VERSION == 21
+
+    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    try:
+        bh_columns_after = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM black_holes").fetchall()}
+        ns_columns_after = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM neutron_stars").fetchall()}
+        for columns in (bh_columns_after, ns_columns_after):
+            assert {"sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"} <= columns
+
+        # No backfill possible -- the pre-existing rows simply gain NULL columns.
+        pre_bh_row = conn.execute(
+            "SELECT sector_id, center_x_pc FROM black_holes WHERE id = ?", (pre_existing_bh_id,)
+        ).fetchone()
+        pre_ns_row = conn.execute(
+            "SELECT sector_id, center_x_pc FROM neutron_stars WHERE id = ?", (pre_existing_ns_id,)
+        ).fetchone()
+        assert pre_bh_row["sector_id"] is None and pre_bh_row["center_x_pc"] is None
+        assert pre_ns_row["sector_id"] is None and pre_ns_row["center_x_pc"] is None
+
+        # The migrated schema is fully usable going forward: a sector-linked,
+        # placed black hole round-trips through the new columns correctly.
+        sector = SpaceSector("Migration Test Sector", edge_ly=11.5)
+        galaxy_position = {
+            "center_x_pc": 5.0, "center_y_pc": -3.0, "center_z_pc": 1.0,
+            "galactic_radius_pc": math.sqrt(5.0 ** 2 + 3.0 ** 2 + 1.0 ** 2),
+            "vertices_pc": {"inner": [], "outer": []},
+        }
+        sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+
+        new_bh = BlackHole(SystemConfig())
+        placement = {
+            "center_x_pc": 5.5, "center_y_pc": -3.0, "center_z_pc": 1.0,
+            "galactic_radius_pc": math.sqrt(5.5 ** 2 + 3.0 ** 2 + 1.0 ** 2),
+        }
+        with conn:
+            new_bh_id = _db.insert_black_hole(conn, new_bh, sector_id=sector_id, placement=placement)
+        new_bh_row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (new_bh_id,)).fetchone()
+        assert new_bh_row["sector_id"] == sector_id
+        assert new_bh_row["center_x_pc"] == pytest.approx(5.5)
+        assert new_bh_row["galactic_radius_pc"] == pytest.approx(placement["galactic_radius_pc"])
+    finally:
+        conn.close()

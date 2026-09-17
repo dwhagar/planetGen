@@ -225,16 +225,20 @@ def distance_between(a, b):
     straight-line 3D distance is exact at this scale.
 
     Args:
-        a (SectorSystemEntry or tuple): The first entry, or a raw `(x, y, z)`
-                                        position.
-        b (SectorSystemEntry or tuple): The second entry, or a raw
-                                        `(x, y, z)` position.
+        a (SectorSystemEntry, SectorPhenomenonEntry, or tuple): The first
+            entry, or a raw `(x, y, z)` position.
+        b (SectorSystemEntry, SectorPhenomenonEntry, or tuple): The second
+            entry, or a raw `(x, y, z)` position.
 
     Returns:
         float: The distance in light-years.
     """
-    position_a = a.position if isinstance(a, SectorSystemEntry) else a
-    position_b = b.position if isinstance(b, SectorSystemEntry) else b
+    # Duck-typed on "has a .position" rather than isinstance-checking each
+    # concrete entry class by name, so this keeps working unchanged for any
+    # future entry type (SectorSystemEntry, SectorPhenomenonEntry, or
+    # otherwise) without needing to know about it here.
+    position_a = a.position if hasattr(a, "position") else a
+    position_b = b.position if hasattr(b, "position") else b
     return math.dist(position_a, position_b)
 
 

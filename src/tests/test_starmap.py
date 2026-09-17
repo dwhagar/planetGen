@@ -198,3 +198,44 @@ def test_render_map_panel_places_a_phenomenon_directly_in_the_galaxy_frame_unrot
         return tuple(float(g) for g in match.groups())
 
     assert _cloud_anchor_style(html_unplaced) == _cloud_anchor_style(html_placed)
+
+
+def test_phenomenon_cloud_radius_floors_at_minimum_for_a_point_like_object():
+    # black_hole/neutron_star always query radius_ly as a literal 0 (see
+    # queryDb._PHENOMENON_TABLES) -- must still floor at a visible minimum,
+    # not collapse to an invisible 0px marker.
+    from starmap import _MAX_CLOUD_RADIUS_PX
+    radius = _phenomenon_cloud_radius_px(0.0, half_edge=5000.0)
+    assert 0 < radius <= _MAX_CLOUD_RADIUS_PX
+
+
+def test_render_map_panel_draws_an_accreting_black_hole_point():
+    system = _make_system()
+    phenomenon = _phenomenon(type_="black_hole", descriptor="accreting", radius_ly=0)
+    html = render_map_panel("db", 1000.0, None, None, None, [system], phenomena=[phenomenon])
+    assert 'class="phenomenon-cloud black-hole-point billboard"' in html
+    assert 'data-phenomenon-type="Black Hole (Accreting)"' in html
+    assert 'data-radius="0.00 ly"' in html
+
+
+def test_render_map_panel_draws_a_quiescent_black_hole_point():
+    system = _make_system()
+    phenomenon = _phenomenon(type_="black_hole", descriptor="quiescent", radius_ly=0)
+    html = render_map_panel("db", 1000.0, None, None, None, [system], phenomena=[phenomenon])
+    assert 'class="phenomenon-cloud black-hole-point billboard"' in html
+    assert 'data-phenomenon-type="Black Hole (Quiescent)"' in html
+
+
+def test_render_map_panel_draws_a_neutron_star_point():
+    system = _make_system()
+    phenomenon = _phenomenon(type_="neutron_star", descriptor="millisecond", radius_ly=0)
+    html = render_map_panel("db", 1000.0, None, None, None, [system], phenomena=[phenomenon])
+    assert 'class="phenomenon-cloud neutron-star-point billboard"' in html
+    assert 'data-phenomenon-type="Neutron Star (Millisecond)"' in html
+
+
+def test_render_map_panel_neutron_star_with_no_descriptor_falls_back_to_plain_label():
+    system = _make_system()
+    phenomenon = _phenomenon(type_="neutron_star", descriptor=None, radius_ly=0)
+    html = render_map_panel("db", 1000.0, None, None, None, [system], phenomena=[phenomenon])
+    assert 'data-phenomenon-type="Neutron Star"' in html

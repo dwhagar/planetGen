@@ -279,17 +279,32 @@ several sectors) would be a wildly misleading dot size anyway -- see this
 module's own docstring on the Sector Map being the right place to depict
 one's actual physical extent instead."""
 
-_PHENOMENON_COLORS = {"nebula": "#c9a8e0", "asteroid_field": "#b89a6e"}
-_PHENOMENON_TYPE_LABELS = {"nebula": "Nebula", "asteroid_field": "Asteroid Field"}
+_PHENOMENON_COLORS = {
+    "nebula": "#c9a8e0", "asteroid_field": "#b89a6e",
+    # v21: black_holes/neutron_stars gained the same galaxy-frame placement
+    # nebulae/asteroid_fields already had -- see queryDb._PHENOMENON_TABLES
+    # and schema.sql's "v21" header note. Colors echo starmap.py's own
+    # Sector Map markers for the same two types.
+    "black_hole": "#1a1a1a", "neutron_star": "#cfe8ff",
+}
+_PHENOMENON_TYPE_LABELS = {
+    "nebula": "Nebula", "asteroid_field": "Asteroid Field",
+    "black_hole": "Black Hole", "neutron_star": "Neutron Star",
+}
 _DEFAULT_PHENOMENON_COLOR = "#9aa0ac"
 
 
 def _phenomenon_elements(phenomena, px_per_ly):
     """
-    Plots every galaxy-placed nebula/asteroid field as a small, fixed-size
-    dot -- the galaxy-scale counterpart to `_star_elements`, but with no
-    click-through (a phenomenon has no detail page of its own, unlike a
-    sector) -- just a hover tooltip naming it, its type, and its real size.
+    Plots every galaxy-placed nebula/asteroid field/black hole/neutron
+    star as a small, fixed-size dot -- the galaxy-scale counterpart to
+    `_star_elements`, but with no click-through (a phenomenon has no
+    detail page of its own, unlike a sector) -- just a hover tooltip
+    naming it, its type, and its real size (a black hole/neutron star's
+    own `radius_ly` is always 0 -- point-like at this scale, see
+    `queryDb._PHENOMENON_TABLES` -- so the tooltip omits the "ly across"
+    figure for those two rather than showing a misleading "~0.0 ly
+    across").
 
     Args:
         phenomena (list[dict]): `queryDb.galaxy_placed_phenomena`'s return
@@ -307,9 +322,10 @@ def _phenomenon_elements(phenomena, px_per_ly):
         color = _PHENOMENON_COLORS.get(phenomenon["type"], _DEFAULT_PHENOMENON_COLOR)
         type_label = _PHENOMENON_TYPE_LABELS.get(phenomenon["type"], phenomenon["type"])
         descriptor = (phenomenon["descriptor"] or "").capitalize()
+        size_bit = f'~{phenomenon["radius_ly"]:,.1f} ly across, ' if phenomenon["radius_ly"] else ""
         tooltip = (
             f'{esc(phenomenon["name"])} -- {esc(descriptor)} {esc(type_label)}, '
-            f'~{phenomenon["radius_ly"]:,.1f} ly across, ~{projected["radius_ly"]:,.0f} ly from core'
+            f'{size_bit}~{projected["radius_ly"]:,.0f} ly from core'
         )
         parts.append(
             f'<g class="galaxymap-phenomenon"><title>{tooltip}</title>'
@@ -361,11 +377,14 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
                                 docstring), or `None` for the full galaxy.
         phenomena (list[dict] or None): `queryDb.galaxy_placed_phenomena`'s
                                 return shape -- every galaxy-placed nebula/
-                                asteroid field, plotted as a small fixed-
-                                size dot (`_phenomenon_elements`); its own
-                                real physical size is instead depicted on
-                                the Sector Map (`html/lib/starmap.py`) of
-                                any sector its sphere reaches into. `None`/
+                                asteroid field/black hole/neutron star,
+                                plotted as a small fixed-size dot
+                                (`_phenomenon_elements`); a nebula/asteroid
+                                field's own real physical size is instead
+                                depicted on the Sector Map
+                                (`html/lib/starmap.py`) of any sector its
+                                sphere reaches into (a black hole/neutron
+                                star is point-like even there). `None`/
                                 empty plots none.
 
     Returns:
@@ -410,7 +429,7 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
 <section class="panel">
 <div class="panel-header">
   <h2>Galaxy Map -- {esc(scope_label)}</h2>
-  <span class="hint">Dot size/brightness &asymp; systems in that sector &middot; small purple/tan dots &asymp; nebulae/asteroid fields (hover for details) &middot; shading &asymp; illustrative expected density, not real data</span>
+  <span class="hint">Dot size/brightness &asymp; systems in that sector &middot; small purple/tan/dark/blue dots &asymp; nebulae/asteroid fields/black holes/neutron stars (hover for details) &middot; shading &asymp; illustrative expected density, not real data</span>
 </div>
 <div class="galaxymap-layout">
 <div class="galaxymap-viewport">

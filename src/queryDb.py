@@ -763,39 +763,55 @@ def sector_detail(conn, sector_id):
 
 
 _PHENOMENON_TABLES = (
-    ("nebulae", "nebula", "nebula_type"),
-    ("asteroid_fields", "asteroid_field", "density"),
+    ("nebulae", "nebula", "nebula_type", "radius_ly"),
+    ("asteroid_fields", "asteroid_field", "density", "radius_ly"),
+    # v21: black_holes/neutron_stars gained the same galaxy-frame placement
+    # shape (schema.sql's "v21" header note) -- included here the same way
+    # nebulae/asteroid_fields are, so a sector-generated compact remnant
+    # shows up on the Sector Map/Galaxy Map too. Neither table has a
+    # radius_ly column of its own (a compact remnant's real physical size
+    # -- an event horizon a few km across, a neutron star ~10-20 km -- is
+    # utterly negligible at sector/galaxy map scale), so it's queried as a
+    # literal 0: a point object for the sphere-vs-cube overlap check below,
+    # which is exactly correct (only shows up where its own center falls
+    # within a sector's bounding sphere, never "spills into" a neighboring
+    # sector's cube the way a nebula's real radius can).
+    ("black_holes", "black_hole",
+     "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)", "0"),
+    ("neutron_stars", "neutron_star", "pulsar_type", "0"),
 )
-"""tuple: `(table_name, type_label, descriptor_column)` for each
+"""tuple: `(table_name, type_label, descriptor_expr, radius_expr)` for each
 galaxy-placeable standalone phenomenon `phenomena_near_sector`/
-`galaxy_placed_phenomena` read from -- see `schema.sql`'s "v18" header
-note. `descriptor_column` is each table's own one-line flavor field (a
-nebula's `nebula_type`, a field's `density`), normalized to a common
-`descriptor` key so callers don't need to know which table a given `type`
-came from."""
+`galaxy_placed_phenomena` read from -- see `schema.sql`'s "v18"/"v21"
+header notes. `descriptor_expr` is a SQL expression for each table's own
+one-line flavor field (a nebula's `nebula_type`, a black hole's accretion
+state), normalized to a common `descriptor` key so callers don't need to
+know which table a given `type` came from; `radius_expr` is likewise a SQL
+expression (a plain column for nebulae/asteroid fields, a literal `0` for
+the two point-like compact-remnant types)."""
 
 
 def _placed_phenomenon_rows(conn):
     """
-    Reads every galaxy-placed nebula/asteroid-field row (non-NULL
-    `center_x_pc`) from both v18-placeable standalone-phenomenon tables,
-    normalized to one common shape -- shared by `phenomena_near_sector`
-    (which then filters by distance) and `galaxy_placed_phenomena` (which
-    doesn't need to).
+    Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
+    v18/v21-placeable standalone-phenomenon tables, normalized to one
+    common shape -- shared by `phenomena_near_sector` (which then filters
+    by distance) and `galaxy_placed_phenomena` (which doesn't need to).
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
 
     Returns:
-        list[dict]: `id`, `type` (`"nebula"` or `"asteroid_field"`),
-            `name`, `descriptor`, `radius_ly`, `x`/`y`/`z` (`center_x/y/z_pc`),
-            `galactic_radius_pc`.
+        list[dict]: `id`, `type` (`"nebula"`, `"asteroid_field"`,
+            `"black_hole"`, or `"neutron_star"`), `name`, `descriptor`,
+            `radius_ly` (0 for the two compact-remnant types), `x`/`y`/`z`
+            (`center_x/y/z_pc`), `galactic_radius_pc`.
     """
     rows = []
-    for table, type_label, descriptor_column in _PHENOMENON_TABLES:
+    for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
         query_rows = conn.execute(
             f"""
-            SELECT id, name, {descriptor_column} AS descriptor, radius_ly,
+            SELECT id, name, {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
             FROM {table}
             WHERE center_x_pc IS NOT NULL
@@ -813,9 +829,9 @@ def _placed_phenomenon_rows(conn):
 
 def galaxy_placed_phenomena(conn):
     """
-    Every galaxy-placed nebula/asteroid field -- the phenomenon
-    counterpart to `galaxy_placed_sectors`, plotted as small dots on the
-    same Galaxy Map (`html/lib/galaxymap.py`).
+    Every galaxy-placed nebula/asteroid field/black hole/neutron star --
+    the phenomenon counterpart to `galaxy_placed_sectors`, plotted as small
+    dots on the same Galaxy Map (`html/lib/galaxymap.py`).
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -828,9 +844,11 @@ def galaxy_placed_phenomena(conn):
 
 def phenomena_near_sector(conn, sector_id):
     """
-    Every galaxy-placed nebula/asteroid field whose sphere could plausibly
-    reach into `sector_id`'s own cube -- the data `html/lib/starmap.py`'s
-    Sector Map draws as translucent clouds.
+    Every galaxy-placed nebula/asteroid field/black hole/neutron star
+    whose sphere could plausibly reach into `sector_id`'s own cube -- the
+    data `html/lib/starmap.py`'s Sector Map draws (translucent clouds for
+    nebulae/asteroid fields, point markers for the two compact-remnant
+    types, whose own `radius_ly` is always 0 -- see `_PHENOMENON_TABLES`).
 
     An exact cube-vs-sphere overlap test isn't worth the complexity here,
     so this compares against each cube's own *bounding* sphere (radius =
@@ -848,7 +866,8 @@ def phenomena_near_sector(conn, sector_id):
 
     Returns:
         list[dict]: One entry per candidate phenomenon: `id`, `type`
-            (`"nebula"` or `"asteroid_field"`), `name`, `descriptor`,
+            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, or
+            `"neutron_star"`), `name`, `descriptor`,
             `radius_ly`, `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in

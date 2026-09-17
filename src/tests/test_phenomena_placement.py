@@ -249,3 +249,272 @@ def test_pc_ly_round_trip_used_by_placement_math():
     for value in (0.1, 1.0, 11.5, 500.0):
         assert pc_to_ly(ly_to_pc(value)) == pytest.approx(value)
         assert mpc_to_pc(value * 1000) == pytest.approx(value)
+
+
+# ---------------------------------------------------------------------------
+# v21: sector-level exotic phenomena persistence --
+# stellarObjects._db._galaxy_placement_from_sector_offset/insert_black_hole/
+# insert_neutron_star's new sector_id/placement params, insert_sector
+# persisting SpaceSector.phenomena for all seven phenomenon types, and
+# save_phenomenon now actually wiring sector_id through for
+# supernova-remnant/rogue-planet/comet (previously always NULL). See
+# schema.sql's "v21" header note.
+# ---------------------------------------------------------------------------
+
+from stellarObjects.compactRemnant import BlackHole, NeutronStar
+from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+from stellarObjects.supernovaRemnantData import SupernovaRemnant
+
+
+def test_galaxy_placement_from_sector_offset_converts_ly_offset_to_absolute_pc():
+    galaxy_position = {"center_x_pc": 10.0, "center_y_pc": -5.0, "center_z_pc": 2.0}
+    offset_ly = (1.0, 0.0, 0.0)
+
+    placement = _db._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
+
+    expected_offset_pc = ly_to_pc(1.0)
+    assert placement["center_x_pc"] == pytest.approx(10.0 + expected_offset_pc)
+    assert placement["center_y_pc"] == pytest.approx(-5.0)
+    assert placement["center_z_pc"] == pytest.approx(2.0)
+    assert placement["galactic_radius_pc"] == pytest.approx(
+        math.sqrt(placement["center_x_pc"] ** 2 + placement["center_y_pc"] ** 2 + placement["center_z_pc"] ** 2)
+    )
+
+
+def test_galaxy_placement_from_sector_offset_returns_none_for_an_unplaced_sector():
+    assert _db._galaxy_placement_from_sector_offset(None, (1.0, 2.0, 3.0)) is None
+
+
+def test_insert_black_hole_and_neutron_star_persist_sector_id_and_placement(mysql_config):
+    sector_id = _place_sector(mysql_config, "Compact Remnant Home Sector", (10.0, 20.0, 30.0))
+    placement = {
+        "center_x_pc": 10.5, "center_y_pc": 20.0, "center_z_pc": 30.0,
+        "galactic_radius_pc": math.sqrt(10.5 ** 2 + 20.0 ** 2 + 30.0 ** 2),
+    }
+
+    cfg = SystemConfig()
+    bh = BlackHole(cfg)
+    ns = NeutronStar(cfg)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            bh_id = _db.insert_black_hole(conn, bh, sector_id=sector_id, placement=placement)
+            ns_id = _db.insert_neutron_star(conn, ns, sector_id=sector_id, placement=placement)
+
+        bh_row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
+        ns_row = conn.execute("SELECT * FROM neutron_stars WHERE id = ?", (ns_id,)).fetchone()
+    finally:
+        conn.close()
+
+    for row in (bh_row, ns_row):
+        assert row["sector_id"] == sector_id
+        assert row["center_x_pc"] == pytest.approx(10.5)
+        assert row["galactic_radius_pc"] == pytest.approx(placement["galactic_radius_pc"])
+
+
+def test_insert_black_hole_without_sector_id_leaves_it_unplaced(mysql_config):
+    bh = BlackHole(SystemConfig())
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            bh_id = _db.insert_black_hole(conn, bh)
+        row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
+    finally:
+        conn.close()
+
+    assert row["sector_id"] is None
+    assert row["center_x_pc"] is None
+    assert row["galactic_radius_pc"] is None
+
+
+def test_save_phenomenon_now_wires_sector_id_for_supernova_remnant_rogue_planet_and_comet(mysql_config):
+    # Previously a gap: save_phenomenon accepted sector_id but never passed
+    # it through to insert_supernova_remnant/insert_rogue_planet/
+    # insert_interstellar_comet -- these tables' own sector_id column
+    # stayed permanently NULL. Now fixed; verify it actually persists.
+    sector_id = _place_sector(mysql_config, "Reserved Column Sector", (1.0, 1.0, 1.0))
+    cfg = SystemConfig()
+
+    remnant = SupernovaRemnant(cfg)
+    planet = RoguePlanet(cfg)
+    comet = InterstellarComet(cfg)
+
+    remnant_id = _db.save_phenomenon(remnant, cfg, "supernova-remnant", config=mysql_config, sector_id=sector_id)
+    planet_id = _db.save_phenomenon(planet, cfg, "rogue-planet", config=mysql_config, sector_id=sector_id)
+    comet_id = _db.save_phenomenon(comet, cfg, "comet", config=mysql_config, sector_id=sector_id)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        remnant_row = conn.execute(
+            "SELECT sector_id FROM supernova_remnants WHERE id = ?", (remnant_id,)
+        ).fetchone()
+        planet_row = conn.execute("SELECT sector_id FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
+        comet_row = conn.execute(
+            "SELECT sector_id FROM interstellar_comets WHERE id = ?", (comet_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+
+    assert remnant_row["sector_id"] == sector_id
+    assert planet_row["sector_id"] == sector_id
+    assert comet_row["sector_id"] == sector_id
+
+
+def test_save_phenomenon_computes_real_placement_for_a_sector_linked_black_hole(mysql_config):
+    # save_phenomenon's own compute_phenomenon_placement jitter path (for
+    # phenomenonGen.py's standalone --sector-id use), now also reachable
+    # for black-hole/neutron-star, not just nebula/asteroid-field.
+    sector_id = _place_sector(mysql_config, "BH Sector-ID Sector", (50.0, 0.0, 0.0), edge_ly=11.5)
+    edge_pc = ly_to_pc(11.5)
+
+    bh = BlackHole(SystemConfig())
+    bh_id = _db.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
+    finally:
+        conn.close()
+
+    assert row["sector_id"] == sector_id
+    assert abs(row["center_x_pc"] - 50.0) <= edge_pc / 2 + 1e-9
+
+
+def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mysql_config):
+    """
+    Full pipeline test: a SpaceSector with a star system and all seven
+    exotic phenomenon types, saved via save_sector -- confirms every type
+    lands in its own table, linked by sector_id, with black-hole/
+    neutron-star/nebula/asteroid-field additionally getting a real
+    galaxy-frame position converted from their own sector-relative offset
+    (not an independently re-randomized jitter).
+    """
+    from stellarObjects.asteroidFieldData import AsteroidField
+    from stellarObjects.nebulaData import Nebula
+    from stellarObjects.systemData import StarSystem
+
+    sector = SpaceSector("Full Pipeline Sector", edge_ly=40.0)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = False
+    system = StarSystem(system_config=cfg)
+    sector.add_system(system, system_config=cfg)
+
+    black_hole_entry = sector.add_phenomenon(BlackHole(SystemConfig()), "black-hole")
+    neutron_star_entry = sector.add_phenomenon(NeutronStar(SystemConfig()), "neutron-star")
+    nebula_entry = sector.add_phenomenon(Nebula(SystemConfig()), "nebula")
+    field_entry = sector.add_phenomenon(AsteroidField(SystemConfig()), "asteroid-field")
+    remnant_entry = sector.add_phenomenon(SupernovaRemnant(SystemConfig()), "supernova-remnant")
+    planet_entry = sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
+    comet_entry = sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet")
+
+    galaxy_position = {
+        "center_x_pc": 100.0, "center_y_pc": -40.0, "center_z_pc": 5.0,
+        "galactic_radius_pc": math.sqrt(100.0 ** 2 + 40.0 ** 2 + 5.0 ** 2),
+        "vertices_pc": {"inner": [], "outer": []},
+    }
+    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        bh_row = conn.execute("SELECT * FROM black_holes WHERE sector_id = ?", (sector_id,)).fetchone()
+        ns_row = conn.execute("SELECT * FROM neutron_stars WHERE sector_id = ?", (sector_id,)).fetchone()
+        nebula_row = conn.execute("SELECT * FROM nebulae WHERE sector_id = ?", (sector_id,)).fetchone()
+        field_row = conn.execute("SELECT * FROM asteroid_fields WHERE sector_id = ?", (sector_id,)).fetchone()
+        remnant_row = conn.execute(
+            "SELECT * FROM supernova_remnants WHERE sector_id = ?", (sector_id,)
+        ).fetchone()
+        planet_row = conn.execute("SELECT * FROM rogue_planets WHERE sector_id = ?", (sector_id,)).fetchone()
+        comet_row = conn.execute(
+            "SELECT * FROM interstellar_comets WHERE sector_id = ?", (sector_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+
+    assert bh_row["name"] == black_hole_entry.phenomenon.name
+    assert ns_row["name"] == neutron_star_entry.phenomenon.name
+    assert nebula_row["name"] == nebula_entry.phenomenon.name
+    assert field_row["name"] == field_entry.phenomenon.name
+    assert remnant_row["name"] == remnant_entry.phenomenon.name
+    assert planet_row["name"] == planet_entry.phenomenon.name
+    assert comet_row["name"] == comet_entry.phenomenon.name
+
+    # The four galaxy-placeable types get a real position converted from
+    # their own sector-relative offset (galaxy_position + offset, NOT an
+    # independent random jitter within the cube's half-extent, which is
+    # what compute_phenomenon_placement's own jitter would give instead).
+    for row, entry in (
+        (bh_row, black_hole_entry), (ns_row, neutron_star_entry),
+        (nebula_row, nebula_entry), (field_row, field_entry),
+    ):
+        expected = _db._galaxy_placement_from_sector_offset(galaxy_position, entry.position)
+        assert row["center_x_pc"] == pytest.approx(expected["center_x_pc"])
+        assert row["center_y_pc"] == pytest.approx(expected["center_y_pc"])
+        assert row["center_z_pc"] == pytest.approx(expected["center_z_pc"])
+        assert row["galactic_radius_pc"] == pytest.approx(expected["galactic_radius_pc"])
+
+
+def test_insert_sector_links_phenomena_without_placement_for_an_unplaced_sector(mysql_config):
+    # A sector generated via sectorGen.py's own standalone CLI (no galaxy
+    # position) still links its phenomena by sector_id -- they just have
+    # no galaxy-frame placement to compute.
+    sector = SpaceSector("Unplaced Pipeline Sector", edge_ly=40.0)
+    black_hole_entry = sector.add_phenomenon(BlackHole(SystemConfig()), "black-hole")
+
+    sector_id = _db.save_sector(sector, config=mysql_config)  # no galaxy_position
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        row = conn.execute("SELECT * FROM black_holes WHERE sector_id = ?", (sector_id,)).fetchone()
+    finally:
+        conn.close()
+
+    assert row is not None
+    assert row["name"] == black_hole_entry.phenomenon.name
+    assert row["center_x_pc"] is None
+
+
+def test_galaxy_placed_phenomena_includes_black_holes_and_neutron_stars(mysql_config):
+    sector_id = _place_sector(mysql_config, "Compact Remnant Galaxy Dot Sector", (7.0, 7.0, 7.0))
+
+    bh = BlackHole(SystemConfig())
+    bh.has_accretion_disk = True
+    ns = NeutronStar(SystemConfig())
+
+    bh_id = _db.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+    ns_id = _db.save_phenomenon(ns, SystemConfig(), "neutron-star", config=mysql_config, sector_id=sector_id)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        placed = queryDb.galaxy_placed_phenomena(conn)
+    finally:
+        conn.close()
+
+    by_id_and_type = {(p["id"], p["type"]): p for p in placed}
+    assert (bh_id, "black_hole") in by_id_and_type
+    assert (ns_id, "neutron_star") in by_id_and_type
+    assert by_id_and_type[(bh_id, "black_hole")]["descriptor"] == "accreting"
+    assert by_id_and_type[(bh_id, "black_hole")]["radius_ly"] == 0
+    assert by_id_and_type[(ns_id, "neutron_star")]["descriptor"] == ns.pulsar_type
+
+
+def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_config):
+    sector_id = _place_sector(mysql_config, "Compact Remnant Nearby Sector", (300.0, 0.0, 0.0))
+
+    bh = BlackHole(SystemConfig())
+    bh_id = _db.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        matches = queryDb.phenomena_near_sector(conn, sector_id)
+    finally:
+        conn.close()
+
+    match = next(m for m in matches if m["id"] == bh_id and m["type"] == "black_hole")
+    assert match["name"] == bh.name
+    assert match["radius_ly"] == 0
+    # A point object (radius_ly=0) still shows up when its own center
+    # falls within the sector's bounding sphere -- compute_phenomenon_placement's
+    # own jitter always keeps it within the cube's half-extent.
+    assert match["distance_ly"] >= 0

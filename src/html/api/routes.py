@@ -437,11 +437,12 @@ def galaxy_sectors():
 @bp.route("/galaxy/phenomena")
 def galaxy_phenomena():
     """
-    Every galaxy-placed nebula/asteroid field (`nebulae`/`asteroid_fields`.
-    `center_x/y/z_pc` not NULL -- see `schema.sql`'s "v18" header note) --
-    the phenomenon counterpart to `/api/galaxy/sectors`, plotted as small
-    dots on the same `html/galaxy.py` Galaxy Map. Not paginated, for the
-    same reason `/api/galaxy/sectors` isn't.
+    Every galaxy-placed nebula/asteroid field/black hole/neutron star
+    (`nebulae`/`asteroid_fields`/`black_holes`/`neutron_stars`.
+    `center_x/y/z_pc` not NULL -- see `schema.sql`'s "v18"/"v21" header
+    notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
+    as small dots on the same `html/galaxy.py` Galaxy Map. Not paginated,
+    for the same reason `/api/galaxy/sectors` isn't.
     """
     return jsonify({"items": galaxy_placed_phenomena(get_db())})
 
