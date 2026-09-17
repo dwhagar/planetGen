@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.35.0] - 2026-09-17
+
+### Changed
+- **Unified `systemGen.py`/`sectorGen.py`/`galaxyGen.py`/`galaxyPlan.py`/
+  `phenomenonGen.py` into a single `generate.py` script.** Those five
+  root-level scripts are removed; every generator in this project is now
+  reached through one program and one subcommand: `generate.py
+  system|sector|galaxy|plan|phenomenon [options]`. Each subcommand
+  accepts exactly the option surface its old standalone script offered
+  and saves to the same database -- this is a pure consolidation, not a
+  behavior change. The five scripts used to import each other
+  (`sectorGen.py` called into `systemGen.py`, `galaxyGen.py` called into
+  `sectorGen.py`, and so on); that logic now lives together in
+  `generate.py`'s own sections (system -> sector -> galaxy -> galaxy
+  skeleton -> exotic phenomena -> the unified CLI itself), calling each
+  other directly instead of through cross-module imports.
+  `setup.py`'s `py_modules`/console-script entry point were updated to
+  match (`planetgen=generate:main`, replacing the old `systemgen`/
+  `sectorgen` scripts), and `src/tests/test_examples.py`/
+  `test_sector_gen.py`/`test_galaxy_gen.py` (the tests that imported the
+  removed modules directly) now import `generate` instead.
+
 ## [5.34.0] - 2026-09-17
 
 ### Changed

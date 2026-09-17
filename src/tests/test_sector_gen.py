@@ -1,5 +1,6 @@
 """
-sectorGen.generate_sector_name regression tests.
+generate.generate_sector_name regression tests (generate.py's `sector`
+subcommand).
 
 Covers the two-word invariant: `generate_sector_name` joins two independent
 `generate_phoneme_salad_name` calls into one name, and that inner function
@@ -8,7 +9,7 @@ unchecked, that silently produced 3-4 word sector names instead of 2.
 
 Run with: pytest tests/test_sector_gen.py
 """
-from sectorGen import generate_sector_name
+from generate import generate_sector_name
 
 TRIALS = 500
 
@@ -30,7 +31,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import sectorGen
+import generate as sectorGen
 from stellarObjects import program_constants
 from stellarObjects.compactRemnant import BlackHole
 from stellarObjects.config import SystemConfig

@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.34.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.35.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -15,8 +15,8 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 *   **Life chemistry and evolutionary timelines**: Habitable planets are evaluated against the star's spectral class to determine which of several life chemistries (e.g. Chlorophyll a, Melanin, Retinal) are viable, each with its own evolutionary pace (fast/normal/slow). A speculative evolutionary timeline (abiogenesis through technological civilization) is generated for habitable worlds, influenced by `+intelligent_life` / `-intelligent_life`.
 *   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
 *   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
-*   **Sector generation**: `sectorGen.py` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below. Each system placed in a sector records a `location`: its sector's name plus distance (in light-years) to its 3 nearest neighboring systems.
-*   **Exotic stellar phenomena**: `phenomenonGen.py` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet, or standalone asteroid field on demand — kept separate from normal system generation odds (`systemGen.py`/`sectorGen.py` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below. Every standalone phenomenon still orbits the galactic center like a lone star does, advanced over time the same way by `updateOrbits.py`.
+*   **Sector generation**: `generate.py sector` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below. Each system placed in a sector records a `location`: its sector's name plus distance (in light-years) to its 3 nearest neighboring systems.
+*   **Exotic stellar phenomena**: `generate.py phenomenon` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet, or standalone asteroid field on demand — kept separate from normal system generation odds (`generate.py system`/`sector` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below. Every standalone phenomenon still orbits the galactic center like a lone star does, advanced over time the same way by `updateOrbits.py`.
 
 ## Setup
 
@@ -28,16 +28,28 @@ pip install .
 
 run from the root of the project. This installs `nltk` (the 'words' corpus it needs for name generation is then downloaded automatically, the first time it's needed, by whichever user first imports `stellarObjects`), plus `pymysql`/`DBUtils` for database persistence. (Do not run `python setup.py install` directly -- it's deprecated by setuptools itself and, on some systems, an old system-installed copy of a dependency setuptools vendors internally can shadow the working bundled one and crash the install; a normal `pip install` avoids this by building in an isolated environment. See [`CHANGELOG.md`](CHANGELOG.md) for the incident this was fixed after.)
 
-Every generation run saves to a MySQL database (see [`docs/database-schema.md`](docs/database-schema.md)) — you'll need a MySQL server (8.0.16+, for `CHECK` constraint support) reachable from wherever you run these scripts, with a database/user already created. Point the tools at it with the `$PLANETGEN_MYSQL_HOST`/`$PLANETGEN_MYSQL_PORT`/`$PLANETGEN_MYSQL_USER`/`$PLANETGEN_MYSQL_PASSWORD`/`$PLANETGEN_MYSQL_DATABASE` environment variables (or the equivalent `--mysql-*` flags each script accepts) — tables are created automatically on first connection.
+Every generation run saves to a MySQL database (see [`docs/database-schema.md`](docs/database-schema.md)) — you'll need a MySQL server (8.0.16+, for `CHECK` constraint support) reachable from wherever you run `generate.py`, with a database/user already created. Point it at your database with the `$PLANETGEN_MYSQL_HOST`/`$PLANETGEN_MYSQL_PORT`/`$PLANETGEN_MYSQL_USER`/`$PLANETGEN_MYSQL_PASSWORD`/`$PLANETGEN_MYSQL_DATABASE` environment variables (or the equivalent `--mysql-*` flags every subcommand accepts) — tables are created automatically on first connection.
 
 Deploying the web interface to a Linux/Apache server is a separate, more involved process — see [Web Interface](#web-interface) below.
 
 ## Usage
 
-To generate a new star system, run the `systemGen.py` script from the root of the project:
+`generate.py` is the single command-line entry point for every generator in this project — one script, with a subcommand per generation scale:
 
 ```bash
-python systemGen.py [options]
+python generate.py system [options]      # one star system
+python generate.py sector [options]      # one or more independent sectors
+python generate.py galaxy [options]      # many sectors placed as one galaxy
+python generate.py plan [options]        # the galaxy's density skeleton
+python generate.py phenomenon [options]  # one exotic stellar phenomenon
+```
+
+Run `python generate.py <command> --help` for that command's own full option list. Every subcommand saves what it generates to the database.
+
+To generate a new star system:
+
+```bash
+python generate.py system [options]
 ```
 
 To generate a whole sector of star systems at once, see [Sector Generation](#sector-generation) below.
@@ -46,7 +58,7 @@ To generate a whole sector of star systems at once, see [Sector Generation](#sec
 
 Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces that feature to be present, `-name` forces it to be absent, and leaving it off the command line leaves it up to chance.
 
-*   `--version`: Prints the program's version, repository URL, and license, then exits immediately (also available on `sectorGen.py`).
+*   `--version`: Prints the program's version, repository URL, and license, then exits immediately.
 *   `+habitable_world` / `-habitable_world`: Force / forbid the generation of a habitable world in the system.
 *   `+asteroid_belt` / `-asteroid_belt`: Force / forbid the generation of an asteroid belt in the system.
 *   `+large_star` / `-large_star`: Force / forbid the generation of a large star.
@@ -103,13 +115,13 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 
 ### Sector Generation
 
-`sectorGen.py` generates a whole sector of independently-random star systems in one pass, reusing `systemGen.py`'s own generation logic for each one:
+`generate.py sector` generates a whole sector of independently-random star systems in one pass, reusing `generate.py system`'s own generation logic for each one:
 
 ```bash
-python sectorGen.py [options]
+python generate.py sector [options]
 ```
 
-Most of `systemGen.py`'s options work here too, but apply *uniformly* to every system in the sector — `+asteroid_belt` guarantees a belt in every system, `--star-type G2V` makes every star in the sector a G2V, and so on. `--system-file`, `--num-orbits`, and systemGen.py's own per-system `--name` aren't offered here, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `systemGen.py --system-file` directly for that.
+Most of `system`'s options work here too, but apply *uniformly* to every system in the sector — `+asteroid_belt` guarantees a belt in every system, `--star-type G2V` makes every star in the sector a G2V, and so on. `--system-file`, `--num-orbits`, and `system`'s own per-system `--name` aren't offered here, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `generate.py system --system-file` directly for that.
 
 Sector-specific options:
 
@@ -122,30 +134,30 @@ The output opens with a sector-wide summary and an index of every system's name 
 
 ### Sector-Level Exotic Phenomena
 
-Every generated sector also seeds a realistically sparse population of `phenomenonGen.py`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems.
+Every generated sector also seeds a realistically sparse population of `generate.py phenomenon`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems.
 
 Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `stellarObjects/spaceSector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cube instead.
 
 ## Galaxy Generation
 
-`galaxyGen.py` generates and persists many sectors as one galaxy, placed
+`generate.py galaxy` generates and persists many sectors as one galaxy, placed
 in real galaxy-frame 3D space (see
 [`docs/design/galaxy-coordinate-system.md`](docs/design/galaxy-coordinate-system.md)):
 
 ```bash
-python galaxyGen.py --shell K [options]
-python galaxyGen.py --center-sector ID --radius-pc R [options]
-python galaxyGen.py [options]
+python generate.py galaxy --shell K [options]
+python generate.py galaxy --center-sector ID --radius-pc R [options]
+python generate.py galaxy [options]
 ```
 
-It reuses `sectorGen.py`'s own generation logic per sector, so a sector
-generated here and one generated by `sectorGen.py` directly are built by
+It reuses `generate.py sector`'s own generation logic per sector, so a sector
+generated here and one generated by `generate.py sector` directly are built by
 the same code path — the only difference is a real galaxy-frame position
 (and, in turn, the same sparse exotic-phenomena population every sector
 gets — see "Sector-Level Exotic Phenomena" above).
 
 Run with neither `--shell` nor `--center-sector` (i.e. no arguments at
-all), `galaxyGen.py` picks a uniformly random (by volume), not-yet-
+all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-
 occupied sector address somewhere within a real Milky-Way-scale galaxy,
 generates it, and then generates every not-yet-generated sector within
 100 ly of it too, in every direction — a whole small starmap around a
@@ -154,26 +166,26 @@ far out the random starting address can land (defaults to a real galaxy's
 own outer edge, ~15,000 pc), and `--radius-pc` overrides the default
 100 ly neighborhood radius.
 
-Most of the galaxy is never actually visited or generated; `galaxyPlan.py`
+Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
-row plus one row per shell) that `galaxyGen.py` consults to decide, per
+row plus one row per shell) that `generate.py galaxy` consults to decide, per
 address, whether anything exists there at all before generating it lazily
 on demand.
 
 ## Exotic Phenomena Generation
 
-`phenomenonGen.py` generates a single exotic stellar phenomenon on demand,
+`generate.py phenomenon` generates a single exotic stellar phenomenon on demand,
 independent of any one sector (see "Sector-Level Exotic Phenomena" above
 for the population every generated sector gets automatically):
 
 ```bash
-python phenomenonGen.py --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field} [options]
+python generate.py phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field} [options]
 ```
 
 Omitting `--type` picks uniformly at random among all seven. `--anchor-system`
 (black hole/neutron star only) builds a full star system around the
 compact remnant instead of describing it standalone — real pulsar planets
-exist (PSR B1257+12) — reusing all of `systemGen.py`'s own orbit-placement
+exist (PSR B1257+12) — reusing all of `generate.py system`'s own orbit-placement
 logic; since a compact remnant's near-zero luminosity naturally collapses
 the disk-physics planet-count estimate toward zero (matching the real
 rarity of confirmed planets around black holes/neutron stars), pass
@@ -185,7 +197,7 @@ leaving it unplaced; other types are linked only (no placement columns of
 their own) — see `docs/database-schema.md`'s "v18"/"v21" notes.
 `--markdown`, `--output`, and the
 `--mysql-*` connection options all work the same way they do on
-`systemGen.py`.
+`generate.py system`.
 
 ## Other Tools
 

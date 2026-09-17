@@ -41,11 +41,11 @@ setup(
     name='planetGen',
     version=read_version(),
     # stellarObjects/api/tests live under src/ (src layout) while the
-    # top-level entry scripts (systemGen.py/sectorGen.py, py_modules below)
-    # stay at the repo root -- a blanket `package_dir={'': 'src'}` would
-    # also redirect those py_modules lookups into src/, where they don't
-    # exist, so each discovered package gets its own explicit mapping
-    # instead of one root-wide override.
+    # top-level entry script (generate.py, py_modules below) stays at the
+    # repo root -- a blanket `package_dir={'': 'src'}` would also redirect
+    # that py_modules lookup into src/, where it doesn't exist, so each
+    # discovered package gets its own explicit mapping instead of one
+    # root-wide override.
     packages=find_packages(where='src'),
     package_dir={pkg: f'src/{pkg}' for pkg in find_packages(where='src')},
     package_data={
@@ -54,11 +54,10 @@ setup(
         # installed package is missing the file and crashes on first import.
         'stellarObjects': ['offensive_words.txt'],
     },
-    py_modules=['systemGen', 'sectorGen'],
+    py_modules=['generate'],
     entry_points={
         'console_scripts': [
-            'systemgen=systemGen:main',
-            'sectorgen=sectorGen:main',
+            'planetgen=generate:main',
         ],
     },
     install_requires=[
@@ -67,10 +66,10 @@ setup(
         # keep flowing without needing this file edited for each one.
         'nltk>=3.9.1',
         # MySQL persistence (stellarObjects/_db.py, TODO.md Phase 5) --
-        # every entry point that touches the database (sectorGen.py,
-        # systemGen.py, galaxyGen.py, queryDb.py, migrateDb.py, the
-        # html/ CGI browser) needs these, not just the Flask API, so
-        # they're core requirements rather than the 'api' extra below.
+        # every entry point that touches the database (generate.py,
+        # queryDb.py, migrateDb.py, the html/ CGI browser) needs these,
+        # not just the Flask API, so they're core requirements rather
+        # than the 'api' extra below.
         'pymysql>=1.1.1',
         'dbutils>=3.1.0',
     ],
