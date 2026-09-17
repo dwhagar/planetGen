@@ -28,10 +28,13 @@
 # Usage:
 #   sudo ./update.sh
 #
-# Refuses to run over uncommitted local changes (checks `git status`
-# first) rather than stashing or discarding them for you -- if you've
-# hand-edited something on this deployment, resolve that yourself first
-# (commit, stash, or discard it deliberately) and re-run.
+# Forces the checkout to match origin's branch tip even if there are
+# uncommitted local changes to tracked files (a `git reset --hard` after
+# fetching, rather than a `git pull`, which would otherwise refuse or
+# conflict) -- a deployment server is meant to always run exactly what's
+# on that branch, not whatever got hand-edited on it since. This never
+# runs `git clean`, so untracked files -- most importantly `config.json`,
+# which is gitignored precisely so it survives this -- are left alone.
 #
 # Linux only -- same scope as install.sh/examples/apache/set-permissions.sh.
 
@@ -56,10 +59,8 @@ echo "== 1/2: Pulling the latest changes =="
 
 dirty="$(git status --porcelain)"
 if [[ -n "$dirty" ]]; then
-    echo "error: uncommitted local changes in $SCRIPT_DIR -- refusing to pull over them:" >&2
+    echo "warning: uncommitted local changes in $SCRIPT_DIR -- these will be overwritten:" >&2
     echo "$dirty" >&2
-    echo "Commit, stash, or discard these yourself, then re-run $0." >&2
-    exit 1
 fi
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -70,11 +71,12 @@ fi
 
 before="$(git rev-parse HEAD)"
 git fetch origin "$branch"
-# --ff-only rather than a plain `pull`: a deployment server should never
-# end up with a surprise merge commit. If history has diverged, fail
-# loudly here rather than silently merging or, worse, needing a manual
-# conflict resolution on a live server.
-git pull --ff-only origin "$branch"
+# `reset --hard` rather than `pull`: forces every tracked file to match
+# origin's branch tip regardless of local commits or uncommitted edits,
+# instead of failing on diverged history or a dirty working tree. Only
+# touches tracked files -- unlike `git clean`, it never removes untracked
+# files, so config.json (gitignored) and anything else local survives.
+git reset --hard "origin/$branch"
 after="$(git rev-parse HEAD)"
 
 if [[ "$before" == "$after" ]]; then

@@ -55,23 +55,29 @@ in Python."""
 
 def _write_mysql_config(read_only, write_defaults):
     """
-    Builds the write-capable `MySQLConfig` from `PLANETGEN_MYSQL_WRITE_*`,
-    falling back field-by-field to `config.json`'s `mysql_write` section
-    (`write_defaults`) and then to `read_only`'s own values (the existing
-    `SELECT`-only `PLANETGEN_MYSQL_*` config) when a given field isn't set
-    anywhere -- so a single-account local/dev setup (one set of
-    credentials for everything) keeps working with no extra
-    configuration, while a production deployment is documented
-    (`docs/apache-deployment.md`) to point `PLANETGEN_MYSQL_WRITE_*` (or
-    `config.json`'s `mysql_write`) at a distinct account with `INSERT`/
-    `UPDATE`/`DELETE` (but not `CREATE`/`DROP`) grants on both the content
-    schemas and the control schema (`stellarObjects._db.control_mysql_config`),
-    instead of reusing the read-only one -- reusing it would simply fail
-    every write with a permissions error.
+    Builds the write-capable `MySQLConfig` from `PLANETGEN_MYSQL_WRITE_USER`/
+    `_PASSWORD`, falling back to `config.json`'s `mysql_write` section
+    (`write_defaults`) and then to `read_only`'s own credentials (the
+    existing `SELECT`-only `PLANETGEN_MYSQL_*` config) when unset -- so a
+    single-account local/dev setup (one set of credentials for everything)
+    keeps working with no extra configuration, while a production
+    deployment is documented (`docs/apache-deployment.md`) to point
+    `PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD` (or `config.json`'s
+    `mysql_write`) at a distinct account with `INSERT`/`UPDATE`/`DELETE`
+    (but not `CREATE`/`DROP`) grants on both the content schemas and the
+    control schema (`stellarObjects._db.control_mysql_config`), instead of
+    reusing the read-only one -- reusing it would simply fail every write
+    with a permissions error.
+
+    host/port/database always come from `read_only` -- the read-only and
+    write-capable accounts are two logins on the same server/schema, never
+    two different servers or databases, so only credentials vary between
+    them.
 
     Args:
-        read_only (MySQLConfig): The existing `PLANETGEN_MYSQL_*` config,
-            used as the final fallback for any field left unset.
+        read_only (MySQLConfig): The existing `PLANETGEN_MYSQL_*` config --
+            supplies host/port/database outright, and is the final
+            fallback for user/password when unset.
         write_defaults (dict): `config.json`'s `mysql_write` section --
             empty-string fields mean "inherit from `read_only`".
 
@@ -79,11 +85,11 @@ def _write_mysql_config(read_only, write_defaults):
         MySQLConfig: Ready to pass to `stellarObjects._db.open_write`.
     """
     return MySQLConfig(
-        host=os.environ.get("PLANETGEN_MYSQL_WRITE_HOST") or write_defaults["host"] or read_only.host,
-        port=int(os.environ.get("PLANETGEN_MYSQL_WRITE_PORT") or write_defaults["port"] or read_only.port),
+        host=read_only.host,
+        port=read_only.port,
         user=os.environ.get("PLANETGEN_MYSQL_WRITE_USER") or write_defaults["user"] or read_only.user,
         password=os.environ.get("PLANETGEN_MYSQL_WRITE_PASSWORD") or write_defaults["password"] or read_only.password,
-        database=os.environ.get("PLANETGEN_MYSQL_WRITE_DATABASE") or write_defaults["database"] or read_only.database,
+        database=read_only.database,
     )
 
 

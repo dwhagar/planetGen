@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 src/tests/physical_plausibility_cli.py -- physical-plausibility anomaly
 finder (CLI). Not a pytest test module itself (no `test_*` name, so pytest

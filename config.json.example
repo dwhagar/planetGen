@@ -12,11 +12,8 @@
     "database_prefix": "planetgen"
   },
   "mysql_write": {
-    "host": "",
-    "port": "",
     "user": "",
-    "password": "",
-    "database": ""
+    "password": ""
   },
   "control_database": "planetgen_control",
   "ratelimit": {

@@ -76,7 +76,7 @@ def test_default_config_matches_example_shape():
         "host", "port", "user", "password", "database", "database_prefix",
     }
     assert set(appconfig.DEFAULT_CONFIG["mysql_write"].keys()) == {
-        "host", "port", "user", "password", "database",
+        "user", "password",
     }
     assert set(appconfig.DEFAULT_CONFIG["ratelimit"].keys()) == {"default", "storage_uri"}
 

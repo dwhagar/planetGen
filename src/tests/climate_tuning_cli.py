@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 src/tests/climate_tuning_cli.py -- interactive per-class climate tuning tool.
 

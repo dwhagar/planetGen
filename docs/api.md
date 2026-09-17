@@ -433,13 +433,13 @@ point those at a database account with `SELECT`-only grants in production,
 same recommendation as `queryDb.py`'s (see that script's module docstring).
 
 Every write (sector/system create/update/delete) goes through a separate
-`PLANETGEN_MYSQL_WRITE_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE` config
-instead — falls back field-by-field to the read-only `PLANETGEN_MYSQL_*`
-values when unset, so a single local/dev account keeps working with no
-extra configuration, but production should point it at a distinct account
-with `INSERT`/`UPDATE`/`DELETE` (not `CREATE`/`DROP`) grants — see
-`html/api/config.py`'s `_write_mysql_config` and
-[`apache-deployment.md`](apache-deployment.md).
+`PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD` config instead, on the same
+host/port/database as the read-only account — falls back to the
+read-only `PLANETGEN_MYSQL_*` credentials when unset, so a single
+local/dev account keeps working with no extra configuration, but
+production should point it at a distinct account with `INSERT`/`UPDATE`/
+`DELETE` (not `CREATE`/`DROP`) grants — see `html/api/config.py`'s
+`_write_mysql_config` and [`apache-deployment.md`](apache-deployment.md).
 
 Admin logins/sessions/API keys/audit log live in a separate **control
 schema** (`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`),
