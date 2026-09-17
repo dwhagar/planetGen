@@ -574,6 +574,27 @@
 --   (`urllib.error.URLError`/`TimeoutError` from `html/lib/apiclient.py`)
 --   on `/api/search` once the database grew past a trivial size.
 --
+-- v23: wiki publishing wired up (docs/TODO.md's "Wiki publishing isn't
+--   wired up yet" item; see `src/wikiClient/`, `html/api/routes.py`'s
+--   `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki`, and
+--   `html/system.py`/`html/sector.py`/`html/admin.py`). `sectors` gains
+--   `wiki_url`, a single manually-set-or-uploaded link (a sector has no
+--   generated page content of its own the way a system does -- see
+--   `_sector_wiki_content` in `html/api/routes.py` -- so one plain URL is
+--   enough; there is no per-backend pair the way `star_systems` has,
+--   since nothing here ever needs to know which wiki software served it,
+--   only where to link). `star_systems.wikijs_url`/`mediawiki_url`
+--   (present in this file's `CREATE TABLE` since before v23, but never
+--   populated or migrated for an existing database -- see `_db.py`'s
+--   `_migrate_v22_to_v23`) are the per-system equivalent, one column per
+--   backend since a system's own pre-rendered `wikitext_content`/
+--   `markdown_content` can genuinely be uploaded to both a MediaWiki and
+--   a Wiki.js instance independently. Existence on a given wiki is never
+--   a separate stored flag -- it's exactly "this column is not NULL" --
+--   `html/system.py`'s description section swaps to a same-tab-opens-a-
+--   new-tab link whenever either is set, per the same convention
+--   `html/sector.py`'s link swap uses for `wiki_url`.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -654,6 +675,10 @@ CREATE TABLE IF NOT EXISTS sectors (
     -- CHECK below (see the header comment's "v4" note).
     shell_index         INT,
     shell_slot_index    INT,
+
+    -- v23: manually-set-or-uploaded wiki page link -- see this file's
+    -- header comment's "v23" note. NULL means no page yet.
+    wiki_url            VARCHAR(2048),
 
     CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -915,7 +940,10 @@ CREATE TABLE IF NOT EXISTS star_systems (
     markdown_content     LONGTEXT,
 
     -- One system = one wiki page (stars/planets/moons are sections within
-    -- it, per StarSystem.__str__), so exactly one URL per wiki target.
+    -- it, per StarSystem.__str__), so exactly one URL per wiki target --
+    -- NULL means never uploaded to that wiki (see this file's header
+    -- comment's "v23" note; `_migrate_v22_to_v23` adds these two columns
+    -- for a database created before v23).
     mediawiki_url        VARCHAR(2048),
     wikijs_url           VARCHAR(2048),
 

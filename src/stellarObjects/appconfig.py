@@ -79,35 +79,28 @@ DEFAULT_CONFIG = {
         "storage_uri": "memory://",
     },
     "admin_cookie_insecure": False,
+    "wiki": {
+        # Either, both, or neither backend may be configured at once -- a
+        # backend is "configured" (offered as an upload target) purely by
+        # having a non-empty base_url plus that backend's own required
+        # credential field(s), not by a separate on/off switch (see
+        # html/api/config.py's WIKI_CONFIG, which computes this). Both
+        # configured at once is exactly what lets a caller choose "the
+        # wiki of their choice" per upload (see wikiClient/client.py).
+        "wikijs": {
+            "base_url": "",
+            "api_token": "",
+        },
+        "mediawiki": {
+            "base_url": "",
+            "username": "",
+            "password": "",
+        },
+    },
 }
 """dict: Fallback values, matching `config.json.example`'s shape, used for
 any field/section missing from a deployment's real `config.json` (or when
 no such file exists yet at all)."""
-
-# TODO(wiki publishing): add a `"wiki"` section here (and to
-# config.json.example) once the "Upload to Wiki" feature is wired up --
-# see docs/TODO.md's "Wiki publishing isn't wired up yet" item and
-# src/wikiClient/ (the already-built, standalone WikiClient library --
-# one shared interface over a Wiki.js and a MediaWiki backend -- this
-# would configure). Something like:
-#     "wiki": {
-#         "enabled": False,
-#         "backend": "wikijs",  # or "mediawiki"
-#         "base_url": "",
-#         # wikijs backend:
-#         "api_token": "",
-#         # mediawiki backend:
-#         "username": "",
-#         "password": "",
-#     },
-# following this file's own documented precedence (an explicit function
-# argument, then a PLANETGEN_WIKI_* env var, then this config.json
-# section, then a built-in default) -- see html/api/config.py's own TODO
-# for where `PLANETGEN_WIKI_BACKEND`/`PLANETGEN_WIKI_BASE_URL`/etc. would
-# be read and layered on top of this section, the same way
-# `_write_mysql_config` already layers PLANETGEN_MYSQL_WRITE_* over
-# config.json's `mysql_write` section above.
-
 
 def _merge(base, overrides):
     """Recursively merges `overrides` onto `base` in place -- a section

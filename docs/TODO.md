@@ -78,19 +78,6 @@ open items need working detail.
   modify its stars/planets/moons/belts short of `DELETE` + `POST`
   (regenerate). Not clear this needs solving at all (vs. "just
   regenerate"), but flagged in case it does.
-- [ ] **Wiki publishing isn't wired up yet.** A standalone, fully-tested
-  `wikiClient` library (`src/wikiClient/`) gives one `WikiClient` object a
-  `create_page` that publishes to either a Wiki.js instance (over its
-  GraphQL API, `wikijs.WikiJsBackend`) or a MediaWiki instance (over its
-  Action API via a bot password, `mediawiki.MediaWikiBackend`) — both
-  create-only (see the package's own docstrings), and both tested (see
-  `src/tests/test_wikiclient_wikijs.py`/`test_wikiclient_mediawiki.py`,
-  plus each one's own opt-in `_integration.py` counterpart) — but nothing
-  in this project calls it yet. Wiring an "Upload to Wiki" button on
-  `html/system.py` into it — a new `config.json` `wiki` section (backend
-  choice + credentials), a `POST /api/systems/<id>/wiki` write route, an
-  `apiclient.py` wrapper, and the button/form itself — is left as `# TODO`
-  comments at each of those spots; see those comments for the specifics.
 
 ## Population and Politics
 
@@ -110,9 +97,13 @@ and git history.
   (`src/wikiClient/`), giving one `WikiClient` object a `create_page` that
   works the same way against either a Wiki.js instance (GraphQL,
   `wikijs.WikiJsBackend`) or a MediaWiki instance (Action API via a bot
-  password, `mediawiki.MediaWikiBackend`). Not yet wired into the app —
-  see "Open items" > "Wiki publishing isn't wired up yet" above —
-  CHANGELOG [5.34.0].
+  password, `mediawiki.MediaWikiBackend`) — CHANGELOG [5.34.0]. Wired into
+  the app in [5.36.0]: an "Upload to Wiki" form on `html/system.py`/
+  `html/sector.py`, `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki`,
+  `config.json`'s new `wiki` section, and `sectors.wiki_url`/
+  `star_systems.wikijs_url`/`mediawiki_url` recording the result — see
+  `docs/api.md`'s "Wiki publishing" section and `schema.sql`'s "v22"
+  header note.
 - **Galaxy random-start mode** (`galaxyGen.py` with neither `--shell` nor
   `--center-sector` picks a fresh random, unoccupied sector and generates
   a whole small starmap around it) **and science-based exotic phenomena

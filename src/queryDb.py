@@ -712,8 +712,11 @@ def sector_detail(conn, sector_id):
             `is_binary`, `binary_type`, `position_x_mpc`/`position_y_mpc`/
             `position_z_mpc`, and `stars` -- 1 entry (single) or 2
             (primary then secondary), each `role`/`star_type`/
-            `temperature_k`/`radius_km`/`luminosity_w`), and `phenomena`
-            (see `phenomena_near_sector`).
+            `temperature_k`/`radius_km`/`luminosity_w`), `phenomena`
+            (see `phenomena_near_sector`), and `wiki_url` (`sectors.wiki_url`
+            -- `None` if this sector has never been uploaded to, or
+            manually linked to, a wiki page; see `schema.sql`'s "v22"
+            header note).
 
     Raises:
         ValueError: If no such sector exists.
@@ -759,6 +762,7 @@ def sector_detail(conn, sector_id):
         "system_count": len(systems),
         "systems": systems,
         "phenomena": phenomena_near_sector(conn, sector_id),
+        "wiki_url": sector["wiki_url"],
     }
 
 
@@ -1067,7 +1071,10 @@ def system_detail(conn, system_id):
             `binary_mutual_position_x/y/z_km` (the secondary's position
             relative to the primary -- NULL for a single star; see
             `schema.sql`'s "v14"/"v15" notes), `markdown_content`,
-            `wikitext_content`, `stars` (id/role/name/
+            `wikitext_content`, `wikijs_url`/`mediawiki_url`
+            (`star_systems.wikijs_url`/`mediawiki_url` -- `None` for
+            whichever wiki (or both) this system hasn't been uploaded to
+            yet; see `schema.sql`'s "v22" header note), `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `planets`
@@ -1134,6 +1141,7 @@ def system_detail(conn, system_id):
         "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "markdown_content": system["markdown_content"], "wikitext_content": system["wikitext_content"],
+        "wikijs_url": system["wikijs_url"], "mediawiki_url": system["mediawiki_url"],
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": [dict(b) for b in belts],

@@ -20,5 +20,16 @@
     "default": "200 per day;50 per hour",
     "storage_uri": "memory://"
   },
-  "admin_cookie_insecure": false
+  "admin_cookie_insecure": false,
+  "wiki": {
+    "wikijs": {
+      "base_url": "",
+      "api_token": ""
+    },
+    "mediawiki": {
+      "base_url": "",
+      "username": "",
+      "password": ""
+    }
+  }
 }
