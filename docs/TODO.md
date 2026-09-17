@@ -101,11 +101,51 @@ Exploratory ideas, not yet scoped or designed:
 - [ ] Probably going to need a space fairing species database.
 - [ ] Need to think about under-developed / older civilizations and the differences and how to store and present that data based on society age.
 
-## Completed work log (through 2026-09-12)
+## Completed work log (through 2026-09-17)
 
 Pointer index only — full rationale/detail for each is in `CHANGELOG.md`
 and git history.
 
+- **Unified `wikijs`/MediaWiki publishing into one `wikiClient` library**
+  (`src/wikiClient/`), giving one `WikiClient` object a `create_page` that
+  works the same way against either a Wiki.js instance (GraphQL,
+  `wikijs.WikiJsBackend`) or a MediaWiki instance (Action API via a bot
+  password, `mediawiki.MediaWikiBackend`). Not yet wired into the app —
+  see "Open items" > "Wiki publishing isn't wired up yet" above —
+  CHANGELOG [5.34.0].
+- **Galaxy random-start mode** (`galaxyGen.py` with neither `--shell` nor
+  `--center-sector` picks a fresh random, unoccupied sector and generates
+  a whole small starmap around it) **and science-based exotic phenomena
+  as part of ordinary sector generation** — every sector now also seeds a
+  realistically sparse population of `phenomenonGen.py`'s seven phenomenon
+  types from cited real astrophysical rates, with Hill-sphere-safe
+  placement (`SpaceSector.add_phenomenon`) generalized to cover
+  black holes/neutron stars — schema v21 — CHANGELOG [5.33.0].
+- **Proper two-body (barycentric) trajectories for binary stars, planets,
+  and moons.** Each orbited body (a binary primary, a planet-hosting star,
+  a moon-hosting planet) now gets its own small "reflex offset"/wobble
+  from the combined pull of what orbits it, instead of being treated as a
+  perfectly fixed point — schema v20 — CHANGELOG [5.32.0].
+- **Galaxy-frame placement for nebulae/asteroid fields, and a System Map
+  rewrite to a true top-down position plot** — every body now draws at
+  its real orbital angle and a shared log-scaled distance from its anchor,
+  replacing the old fixed left-to-right schematic — schema v18 —
+  CHANGELOG [5.31.0].
+- **Standalone asteroid fields (the seventh exotic phenomenon), plus
+  galactic-orbital motion for every standalone phenomenon**, advanced
+  over real elapsed time the same way a lone star's already is — schema
+  v17 — CHANGELOG [5.30.0].
+- **Exotic stellar phenomena via a new, separate `phenomenonGen.py`
+  CLI** — black holes, neutron stars, nebulae, supernova remnants, rogue
+  planets, and interstellar comets, each grounded in real astrophysics;
+  a black hole/neutron star can optionally anchor a full `StarSystem`
+  (`--anchor-system`) — schema v16 — CHANGELOG [5.29.0].
+- **S-type (wide) binary star systems.** `+wide_binary`/`-wide_binary`
+  (random if omitted) selects a wide pair where each star keeps its own
+  identity and independently-generated planets, capped by Holman &
+  Wiegert's (1999) critical-semi-major-axis stability formula and a
+  Gladman (1993) mutual-Hill-radius cross-check (`wideBinary.
+  WideBinaryPair`) — schema v15 — CHANGELOG [5.27.0].
 - **`queryDb.py` gained `planets`/`moons` CLI subcommands**, filterable by
   exact class, radius range, sector, and/or system (`list_planets`/
   `list_moons`, reusing `_append_size_clause` the faceted-search result

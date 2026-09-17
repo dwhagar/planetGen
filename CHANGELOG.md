@@ -121,6 +121,23 @@
   tables) and a `_migrate_v19_to_v20` migration step that backfills real
   values for every pre-existing row (unlike v17's migration, every value
   here is fully derivable from data already stored).
+- **Standalone Wiki.js GraphQL client for page publishing.** New
+  `wikijs` package (`src/wikijs/`): `client.py`'s `WikiJsClient` creates
+  pages via Wiki.js's GraphQL API using Personal API Tokens, returning a
+  `WikiPage` dataclass (`id`/`path`/`title`/a constructed `url`);
+  `exceptions.py`'s hierarchy (`WikiJsError`/`WikiJsAuthError`/
+  `WikiJsPageExistsError`/`WikiJsRequestError`) distinguishes auth
+  failures (401/403, or a GraphQL-level auth error) from a duplicate-path
+  rejection (message-text matching, since Wiki.js has no stable error
+  code for it across versions) from any other failure. Stdlib-only
+  (`urllib.request`/`urllib.error`/`json`, no external dependency) and
+  create-only -- `create_page` never checks for an existing page first,
+  letting Wiki.js reject a duplicate naturally rather than racing a
+  check against it. Not yet wired into the app -- TODO comments mark
+  where `apiclient.py`/`routes.py`/`system.py`/`appconfig.py`/
+  `config.py` will eventually call it. (Superseded in `5.34.0` by the
+  unified `wikiClient` library, which folds this client in unchanged as
+  one of two backends.)
 
 ## [5.31.0] - 2026-09-12
 
@@ -168,6 +185,41 @@
   nudges apart any two markers real placement happened to put too close
   together -- real position first, decluttering only where legibility
   actually needs it.
+- **Star-bound elliptical/parabolic comets.** Adds the two comet orbit
+  types the existing `InterstellarComet` (always unbound/hyperbolic)
+  couldn't represent: a periodic elliptical comet and a single-apparition
+  parabolic one, both bound to their star. New `keplerMotion.py` solves
+  the two-body Kepler/Barker equation so an eccentric or parabolic orbit
+  moves with the correct non-uniform angular speed (Kepler's second law)
+  instead of a linear phase advance; new `cometData.Comet` generates
+  realistic orbital elements (Jupiter-family/Halley-type/long-period
+  subtypes) and scales coma/tail activity chance by perihelion distance
+  rather than a flat roll. Wired all the way through: `StarSystem` gets
+  an independent `comets`/`secondary_comets` list (kept separate from
+  planets/asteroid belts, since a comet's distance is a continuously
+  varying current position, not a fixed orbital-slot distance) and a new
+  `SystemConfig.COMETS` tri-state flag; `advance_comet_orbits`
+  (`updateOrbits.py`) advances each comet's orbital anomaly and
+  recomputes its position on every run; `queryDb.system_detail`/
+  `html/system.py` gain a parallel comets table. Persisted via schema v19
+  (`comets`/`comet_composition` tables, `_migrate_v18_to_v19`).
+- **Five project-wide bugs, found in a general bug-check pass:**
+  `StarSystem.validate_system`'s orbital-overlap correction
+  double-counted `last_planet.distance`, roughly doubling the corrected
+  distance for any overlap involving an asteroid belt; `utils.
+  years_to_time_string` built its total from a 365.25-day year but
+  decomposed it back with a plain 365-day divisor, leaking the
+  discrepancy into every displayed orbital period's "days"/"hours" (e.g.
+  1.0 year rendered as "1 year and 6 hours"); the admin session cookie
+  (`html/api/auth.py`) was scoped to `Path=/api`, so it was never sent
+  back to the CGI admin pages served from the deployment's own document
+  root, locking every admin page immediately after a successful login;
+  three latent bugs in `test_query_db_planets_moons.py` itself (a
+  nonexistent `StarSystem.name`, `Planet.radius_km` vs. the real
+  `radius`, a missing `body_type` guard before touching
+  `AsteroidBelt.moons`); and `advance_comet_orbits` now batches its
+  per-row updates into one `executemany` call instead of one `execute`
+  per row.
 
 ### Fixed
 - **CI: schema v18's null-together CHECK on `nebulae`/`asteroid_fields`
