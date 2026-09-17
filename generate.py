@@ -68,6 +68,9 @@ import sys
 import time
 
 import pymysql
+from rich.progress import (
+    BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn, TimeRemainingColumn,
+)
 
 # stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
 # import path so this keeps working without requiring `pip install .` first.
@@ -95,6 +98,37 @@ from stellarObjects.utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
+
+
+def _generation_progress():
+    """
+    Builds the shared `rich.progress.Progress` used by every long-running
+    generation loop below (`run_sector`'s own sector loop, `run_galaxy`'s
+    three modes, and `generate_sector`'s per-system loop). Callers use it
+    as a context manager (`with _generation_progress() as progress:`) and
+    thread the same `progress` instance down into `generate_sector` --
+    a single `Progress` can hold several simultaneous tasks, which is what
+    gives an outer "sectors" bar and an inner "systems in the current
+    sector" bar the look of one nested progress display, rather than two
+    separate `Progress` instances fighting over the terminal.
+
+    Every task shows both elapsed time and an estimated time remaining
+    (`TimeElapsedColumn`/`TimeRemainingColumn`) -- the remaining estimate
+    only becomes accurate once a task has advanced enough for rich's own
+    rate estimate to settle, same as any ETA.
+
+    Returns:
+        Progress: Not yet started.
+    """
+    return Progress(
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TextColumn("[dim]elapsed"),
+        TimeElapsedColumn(),
+        TextColumn("[dim]remaining"),
+        TimeRemainingColumn(),
+    )
 
 
 # ===========================================================================
@@ -756,7 +790,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
     return new_entries
 
 
-def generate_sector(args, galactic_center_dist_ly=None):
+def generate_sector(args, galactic_center_dist_ly=None, progress=None):
     """
     Builds a fully populated `SpaceSector` from parsed args, without
     rendering, printing, or saving anything -- the shared core `run_sector`
@@ -777,6 +811,17 @@ def generate_sector(args, galactic_center_dist_ly=None):
             constant -- the `sector` subcommand (no galaxy context) always
             calls this with the default, so it keeps producing "unplaced"
             sectors.
+        progress (rich.progress.Progress, optional): When given, an inner
+            "systems in this sector" task is added to it (total = however
+            many systems `build_sector_configs` resolved to) and advanced
+            once per `StarSystem` built -- the expensive step (planets/
+            moons/etc.), not the cheap `add_system` placement pass below.
+            The task is removed again once every system is built, so a
+            caller generating many sectors (`run_sector`/`run_galaxy`)
+            doesn't accumulate one stale, completed bar per sector.
+            `None` (the default) skips progress reporting entirely, for
+            callers with no `Progress` of their own (`ensure_sector_generated`,
+            tests).
 
     Returns:
         tuple: `(sector_name, SpaceSector)` -- `sector_name` is
@@ -800,10 +845,17 @@ def generate_sector(args, galactic_center_dist_ly=None):
         args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
 
     configs = build_sector_configs(args)
-    systems = [
-        StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
-        for cfg in configs
-    ]
+
+    task_id = progress.add_task(f"  Systems ({sector_name})", total=len(configs)) if progress is not None else None
+    try:
+        systems = []
+        for cfg in configs:
+            systems.append(StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly))
+            if progress is not None:
+                progress.update(task_id, advance=1)
+    finally:
+        if progress is not None:
+            progress.remove_task(task_id)
 
     for system, cfg in zip(systems, configs):
         sector.add_system(system, system_config=cfg)
@@ -891,34 +943,47 @@ def run_sector(args):
     printed, so a large `--num-sectors` run doesn't flood the console with
     rendered text nobody asked to see.
 
+    A `rich` progress display tracks the run throughout: an outer
+    "Sectors" bar (only shown when `--num-sectors` > 1) plus, nested under
+    it, `generate_sector`'s own inner "systems in this sector" bar --
+    both report elapsed and estimated-remaining time.
+
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "sector"`).
     """
     divider = "\n\n---\n\n" if args.markdown else "\n\n----\n\n"
 
-    for i in range(args.num_sectors):
-        sector_name, sector = generate_sector(args)
-        systems = [entry.star_system for entry in sector.entries]
+    with _generation_progress() as progress:
+        outer_task = (
+            progress.add_task("Sectors", total=args.num_sectors) if args.num_sectors > 1 else None
+        )
 
-        if args.output or args.console:
-            output_text = render_sector_text(sector_name, systems, sector.phenomena, args.markdown)
+        for i in range(args.num_sectors):
+            sector_name, sector = generate_sector(args, progress=progress)
+            systems = [entry.star_system for entry in sector.entries]
 
-            if args.output:
-                with open(args.output, 'w' if i == 0 else 'a') as f:
-                    if i > 0:
-                        f.write(divider)
-                    f.write(output_text)
+            if args.output or args.console:
+                output_text = render_sector_text(sector_name, systems, sector.phenomena, args.markdown)
 
-            if args.console:
-                print(output_text)
+                if args.output:
+                    with open(args.output, 'w' if i == 0 else 'a') as f:
+                        if i > 0:
+                            f.write(divider)
+                        f.write(output_text)
 
-        mysql_config = _db.mysql_config_from_args(args)
-        sector_id = _db.save_sector(sector, config=mysql_config)
-        phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
-        print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, "
-              f"{len(systems)} systems{phenomena_note}, "
-              f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+                if args.console:
+                    print(output_text)
+
+            mysql_config = _db.mysql_config_from_args(args)
+            sector_id = _db.save_sector(sector, config=mysql_config)
+            phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
+            print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, "
+                  f"{len(systems)} systems{phenomena_note}, "
+                  f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+
+            if outer_task is not None:
+                progress.update(outer_task, advance=1)
 
     if args.num_sectors > 1:
         print(f"Generated {args.num_sectors} sectors.")
@@ -1118,7 +1183,7 @@ def _edge_pc():
     return ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 
 
-def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc, edge_pc):
+def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc, edge_pc, progress=None):
     """
     Generates one sector via `generate_sector` at the given galaxy-frame
     position and shell address, and saves it -- the one per-sector unit
@@ -1135,6 +1200,11 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`) --
                          threaded in rather than recomputed, since both
                          callers already have it.
+        progress (rich.progress.Progress, optional): Passed straight
+            through to `generate_sector`'s own `progress` parameter --
+            `None` (the default) for callers with no `Progress` of their
+            own (`ensure_sector_generated`, tests), a real one for
+            `run_shell_batch`/`run_local_neighborhood`/`run_random_start`.
 
     Returns:
         tuple: `(sector_id, sector_name)` of the newly saved sector.
@@ -1143,7 +1213,17 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
     radius_pc = galactic_radius_pc(position_pc)
     galactic_center_dist_ly = pc_to_ly(radius_pc)
 
-    sector_name, sector = generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
+    # `progress=progress` is only passed when given, rather than always
+    # (even as `None`) -- a caller/test that's replaced `generate_sector`
+    # with its own narrower stand-in (matching only its pre-`progress`
+    # signature) shouldn't have to grow a `progress` parameter it never
+    # uses just because this function now accepts one.
+    if progress is not None:
+        sector_name, sector = generate_sector(
+            args, galactic_center_dist_ly=galactic_center_dist_ly, progress=progress,
+        )
+    else:
+        sector_name, sector = generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
 
     vertices_pc = prism_vertices(shell_index, shell_slot_index, edge_pc)
     galaxy_position = {
@@ -1307,7 +1387,7 @@ def ensure_sector_generated(shell_index, shell_slot_index, config=None):
     return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
 
 
-def run_shell_batch(args, edge_pc):
+def run_shell_batch(args, edge_pc, progress):
     """
     Batch mode: generates every not-yet-generated sector slot in shell
     `args.shell` (up to `args.limit`, if given).
@@ -1316,6 +1396,12 @@ def run_shell_batch(args, edge_pc):
         args (argparse.Namespace): Parsed arguments; `args.shell` must
             not be `None`.
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
+        progress (rich.progress.Progress): `run_galaxy`'s shared progress
+            display -- an outer "Sectors" task is added to it here (total
+            = however many not-yet-generated slots this batch will
+            actually generate) and advanced once per sector; threaded
+            through to `generate_and_save_sector_at`/`generate_sector` so
+            each sector's own inner "systems" task renders nested under it.
 
     Raises:
         SystemExit: If the shell's total slot count exceeds
@@ -1340,6 +1426,12 @@ def run_shell_batch(args, edge_pc):
         conn.close()
 
     batch_density = _BatchDensity(mysql_config)
+
+    to_generate = total_slots - len(occupied)
+    if args.limit is not None:
+        to_generate = min(to_generate, args.limit)
+    outer_task = progress.add_task(f"Sectors (shell {shell_index})", total=max(to_generate, 0))
+
     generated = 0
     for slot_index in range(total_slots):
         if args.limit is not None and generated >= args.limit:
@@ -1349,8 +1441,11 @@ def run_shell_batch(args, edge_pc):
 
         position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
         sector_args = batch_density.resolve(args, position_pc)
-        sector_id, sector_name = generate_and_save_sector_at(sector_args, shell_index, slot_index, position_pc, edge_pc)
+        sector_id, sector_name = generate_and_save_sector_at(
+            sector_args, shell_index, slot_index, position_pc, edge_pc, progress=progress,
+        )
         generated += 1
+        progress.update(outer_task, advance=1)
         designation = provisional_sector_designation(
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
         )
@@ -1363,7 +1458,7 @@ def run_shell_batch(args, edge_pc):
     )
 
 
-def run_local_neighborhood(args, edge_pc):
+def run_local_neighborhood(args, edge_pc, progress):
     """
     Local-neighborhood mode: generates every not-yet-generated sector slot
     within `args.radius_pc` parsecs of `args.center_sector`'s own stored
@@ -1373,6 +1468,13 @@ def run_local_neighborhood(args, edge_pc):
         args (argparse.Namespace): Parsed arguments;
             `args.center_sector`/`args.radius_pc` must not be `None`.
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
+        progress (rich.progress.Progress): `run_galaxy`'s shared progress
+            display -- see `run_shell_batch`'s own `progress` docstring;
+            same role here, an outer "Sectors" task over this mode's own
+            not-yet-generated candidate count. `run_random_start` also
+            calls this directly (after generating its own seed sector),
+            adding a second "Sectors" task to the same `Progress` rather
+            than a `run_shell_batch`-shaped one.
 
     Raises:
         SystemExit: If `args.center_sector` doesn't exist, or exists but
@@ -1411,14 +1513,24 @@ def run_local_neighborhood(args, edge_pc):
         conn.close()
 
     batch_density = _BatchDensity(mysql_config)
+
+    to_generate = sum(
+        1 for shell_index, slot_index, _x, _y, _z, _dist in candidates
+        if (shell_index, slot_index) not in occupied
+    )
+    outer_task = progress.add_task("Sectors (local neighborhood)", total=to_generate)
+
     generated = 0
     for shell_index, slot_index, x, y, z, distance_pc in candidates:
         if (shell_index, slot_index) in occupied:
             continue
 
         sector_args = batch_density.resolve(args, (x, y, z))
-        sector_id, sector_name = generate_and_save_sector_at(sector_args, shell_index, slot_index, (x, y, z), edge_pc)
+        sector_id, sector_name = generate_and_save_sector_at(
+            sector_args, shell_index, slot_index, (x, y, z), edge_pc, progress=progress,
+        )
         generated += 1
+        progress.update(outer_task, advance=1)
         designation = provisional_sector_designation(
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
         )
@@ -1466,7 +1578,7 @@ def _pick_random_shell_index(max_shell_index, edge_pc):
     return max(0, min(max_shell_index, shell_index))
 
 
-def run_random_start(args, edge_pc):
+def run_random_start(args, edge_pc, progress):
     """
     Random-start mode (no `--shell`/`--center-sector` given): picks a
     random, not-yet-occupied sector address somewhere within a real
@@ -1490,6 +1602,12 @@ def run_random_start(args, edge_pc):
         args (argparse.Namespace): Parsed arguments;
             `args.shell`/`args.center_sector` must both be `None`.
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
+        progress (rich.progress.Progress): `run_galaxy`'s shared progress
+            display -- the seed sector below gets its own single-sector
+            "Sectors" task (so its inner "systems" bar still renders
+            nested under something), then `run_local_neighborhood` adds
+            its own task to the same `Progress` for the surrounding
+            neighborhood.
 
     Raises:
         SystemExit: If no unoccupied address could be found within
@@ -1528,7 +1646,11 @@ def run_random_start(args, edge_pc):
     # first sector needs the same treatment since it's generated directly
     # here, before falling through.
     sector_args = _BatchDensity(mysql_config).resolve(args, position_pc)
-    sector_id, sector_name = generate_and_save_sector_at(sector_args, shell_index, slot_index, position_pc, edge_pc)
+    seed_task = progress.add_task("Sectors (random start)", total=1)
+    sector_id, sector_name = generate_and_save_sector_at(
+        sector_args, shell_index, slot_index, position_pc, edge_pc, progress=progress,
+    )
+    progress.update(seed_task, advance=1)
     designation = provisional_sector_designation(
         shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
     )
@@ -1539,12 +1661,19 @@ def run_random_start(args, edge_pc):
 
     args.center_sector = sector_id
     args.radius_pc = radius_pc
-    run_local_neighborhood(args, edge_pc)
+    run_local_neighborhood(args, edge_pc, progress)
 
 
 def run_galaxy(args):
     """
     Dispatches to shell-batch, local-neighborhood, or random-start mode.
+
+    Owns the one `rich.progress.Progress` display shared across whichever
+    mode runs -- each mode adds its own outer "Sectors" task to it (see
+    `run_shell_batch`/`run_local_neighborhood`/`run_random_start`'s own
+    `progress` docstrings), and every sector generated within threads the
+    same instance down to `generate_sector`'s inner "systems" task, so the
+    two render together as one nested progress display.
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
@@ -1552,12 +1681,13 @@ def run_galaxy(args):
     """
     edge_pc = _edge_pc()
 
-    if args.shell is not None:
-        run_shell_batch(args, edge_pc)
-    elif args.center_sector is not None:
-        run_local_neighborhood(args, edge_pc)
-    else:
-        run_random_start(args, edge_pc)
+    with _generation_progress() as progress:
+        if args.shell is not None:
+            run_shell_batch(args, edge_pc, progress)
+        elif args.center_sector is not None:
+            run_local_neighborhood(args, edge_pc, progress)
+        else:
+            run_random_start(args, edge_pc, progress)
 
 
 # ===========================================================================
