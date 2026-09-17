@@ -103,11 +103,11 @@ def mysql_config(_mysql_server_available):
 def wikijs_config():
     """
     Connection details for a real, disposable Wiki.js instance to test
-    `wikijs.WikiJsClient` against end-to-end -- unlike `mysql_config`
-    above, this project has no service of its own to provision one, so
-    this is opt-in only: set `PLANETGEN_TEST_WIKIJS_BASE_URL` and
-    `PLANETGEN_TEST_WIKIJS_TOKEN` (a Personal API Token from that
-    instance's Admin -> API Access) to run `test_wikijs_client_integration.py`
+    `wikiClient.wikijs.WikiJsBackend` against end-to-end -- unlike
+    `mysql_config` above, this project has no service of its own to
+    provision one, so this is opt-in only: set `PLANETGEN_TEST_WIKIJS_BASE_URL`
+    and `PLANETGEN_TEST_WIKIJS_TOKEN` (a Personal API Token from that
+    instance's Admin -> API Access) to run `test_wikiclient_wikijs_integration.py`
     against it; every test depending on this fixture is skipped, not
     failed, when either is unset or the instance isn't reachable -- same
     "opt-in real service, skip without it" treatment `_mysql_server_available`
@@ -121,13 +121,13 @@ def wikijs_config():
     if not base_url or not api_token:
         pytest.skip(
             "No Wiki.js test instance configured -- set PLANETGEN_TEST_WIKIJS_BASE_URL "
-            "and PLANETGEN_TEST_WIKIJS_TOKEN to run wikijs integration tests."
+            "and PLANETGEN_TEST_WIKIJS_TOKEN to run wikiClient wikijs integration tests."
         )
 
     try:
         # A plain GET against the instance's own root, not /graphql --
         # only checking that *something* answers at this host/port at all,
-        # kept separate from WikiJsClient itself so a real auth/GraphQL
+        # kept separate from WikiJsBackend itself so a real auth/GraphQL
         # failure (a wrong token, wrong Wiki.js version) surfaces as a
         # genuine test failure later rather than being swallowed here as
         # "not reachable". An HTTPError (any status) still means the host
@@ -140,3 +140,43 @@ def wikijs_config():
         pytest.skip(f"Wiki.js test instance at {base_url} not reachable: {exc}")
 
     yield base_url, api_token
+
+
+@pytest.fixture(scope="session")
+def mediawiki_config():
+    """
+    Connection details for a real, disposable MediaWiki instance to test
+    `wikiClient.mediawiki.MediaWikiBackend` against end-to-end -- the
+    MediaWiki counterpart of `wikijs_config` above, same opt-in treatment.
+    Set `PLANETGEN_TEST_MEDIAWIKI_BASE_URL`, `PLANETGEN_TEST_MEDIAWIKI_USERNAME`
+    (a `Special:BotPasswords` username, `"User@BotName"` form), and
+    `PLANETGEN_TEST_MEDIAWIKI_PASSWORD` to run
+    `test_wikiclient_mediawiki_integration.py` against it; every test
+    depending on this fixture is skipped, not failed, when any of the three
+    is unset or the instance isn't reachable.
+
+    Yields:
+        tuple[str, str, str]: `(base_url, username, password)`.
+    """
+    base_url = os.environ.get("PLANETGEN_TEST_MEDIAWIKI_BASE_URL")
+    username = os.environ.get("PLANETGEN_TEST_MEDIAWIKI_USERNAME")
+    password = os.environ.get("PLANETGEN_TEST_MEDIAWIKI_PASSWORD")
+    if not base_url or not username or not password:
+        pytest.skip(
+            "No MediaWiki test instance configured -- set PLANETGEN_TEST_MEDIAWIKI_BASE_URL, "
+            "PLANETGEN_TEST_MEDIAWIKI_USERNAME, and PLANETGEN_TEST_MEDIAWIKI_PASSWORD to run "
+            "wikiClient mediawiki integration tests."
+        )
+
+    try:
+        # Same "something answers at all" pre-check wikijs_config does,
+        # against the instance root rather than api.php -- a real
+        # login/edit failure should surface from MediaWikiBackend itself,
+        # not be swallowed here as "not reachable".
+        urllib.request.urlopen(base_url, timeout=5).close()
+    except urllib.error.HTTPError:
+        pass
+    except urllib.error.URLError as exc:
+        pytest.skip(f"MediaWiki test instance at {base_url} not reachable: {exc}")
+
+    yield base_url, username, password

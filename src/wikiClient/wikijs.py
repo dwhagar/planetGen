@@ -1,23 +1,21 @@
-# wikijs/client.py
+# wikiClient/wikijs.py
 
 """
-`WikiJsClient`: a small, standalone GraphQL client for publishing pages to
-a [Wiki.js](https://js.wiki/) instance.
+`WikiJsBackend`: a small GraphQL client for publishing pages to a
+[Wiki.js](https://js.wiki/) instance -- one of two `wikiClient` backends
+(see `mediawiki.py` for the other), dispatched to by `client.WikiClient`.
 
-Stdlib-only (`urllib.request`/`urllib.error`/`json`) -- this package has no
-dependency on the rest of this project (no `stellarObjects`/`html`
-imports, no `config.json`); `base_url` and `api_token` are passed straight
-to the constructor by whatever caller wires this up later. Authenticates
-with a Wiki.js Personal API Token (Admin -> API Access -> "New API Key"),
-sent as `Authorization: Bearer <token>` on every request -- Wiki.js's
-GraphQL API accepts this the same way it accepts a logged-in user's own
-session JWT, with no separate login call needed.
+Stdlib-only (`urllib.request`/`urllib.error`/`json`). Authenticates with a
+Wiki.js Personal API Token (Admin -> API Access -> "New API Key"), sent as
+`Authorization: Bearer <token>` on every request -- Wiki.js's GraphQL API
+accepts this the same way it accepts a logged-in user's own session JWT,
+with no separate login call needed.
 
 Create-only: `create_page` never checks whether a page already exists at
 the target path first: it always sends `pages.create` and lets Wiki.js's
-own duplicate-path rejection surface as `WikiJsPageExistsError`. This
+own duplicate-path rejection surface as `WikiClientPageExistsError`. This
 avoids a check-then-create race (a page created between an existence check
-and the create call), and matches this package's own scope: there is
+and the create call), and matches this backend's own scope: there is
 deliberately no `update_page`/`get_page`/`page_exists` here yet -- add
 those as a separate increment if upsert behavior is ever wanted.
 """
@@ -25,9 +23,9 @@ those as a separate increment if upsert behavior is ever wanted.
 import json
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
 
-from .exceptions import WikiJsAuthError, WikiJsPageExistsError, WikiJsRequestError
+from .base import WikiBackend, WikiPage
+from .exceptions import WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 _DEFAULT_TIMEOUT_SECONDS = 15
 
@@ -78,7 +76,7 @@ mutation (
 # matches on the message text; confirm this still matches the exact wording
 # of the target deployment's Wiki.js version, e.g. by triggering a real
 # duplicate create against a dev instance, since a wording change there
-# would otherwise silently fall through to WikiJsRequestError instead).
+# would otherwise silently fall through to WikiClientRequestError instead).
 _DUPLICATE_PATH_MESSAGE_MARKERS = ("already exists", "already in use", "duplicate")
 
 # Substrings indicating an authentication/authorization failure inside a
@@ -88,28 +86,7 @@ _DUPLICATE_PATH_MESSAGE_MARKERS = ("already exists", "already in use", "duplicat
 _AUTH_ERROR_MESSAGE_MARKERS = ("unauthorized", "access denied", "not authorized", "invalid authentication")
 
 
-@dataclass(frozen=True)
-class WikiPage:
-    """The result of a successful `create_page` call.
-
-    Attributes:
-        id (int): The new page's Wiki.js internal id.
-        path (str): The page's path, as Wiki.js stored it (normalized --
-            may differ slightly from the requested `path`, e.g. a leading
-            slash stripped).
-        title (str): The page's title, as stored.
-        url (str): `base_url` + `path` -- not returned by Wiki.js itself,
-            built here so a caller can link straight to the new page
-            without a second lookup.
-    """
-
-    id: int
-    path: str
-    title: str
-    url: str
-
-
-class WikiJsClient:
+class WikiJsBackend(WikiBackend):
     """A client for one Wiki.js instance's GraphQL API.
 
     Args:
@@ -147,7 +124,8 @@ class WikiJsClient:
                 instance (see the module docstring's "Create-only" note).
             title (str): The page's title.
             content (str): The page's body, in `editor`'s format (Markdown
-                by default).
+                by default) -- pass a caller's `markdown_content`, not
+                `wikitext_content` (see `mediawiki.py` for that one).
             description (str): Short summary shown in Wiki.js's page
                 listings/search results.
             editor (str): Wiki.js editor type -- `"markdown"` matches this
@@ -164,11 +142,11 @@ class WikiJsClient:
             WikiPage: The newly created page.
 
         Raises:
-            WikiJsPageExistsError: A page already exists at `path`.
-            WikiJsAuthError: `api_token` was rejected.
-            WikiJsRequestError: The instance couldn't be reached, returned
-                an unparseable response, or rejected the create for any
-                other reason.
+            WikiClientPageExistsError: A page already exists at `path`.
+            WikiClientAuthError: `api_token` was rejected.
+            WikiClientRequestError: The instance couldn't be reached,
+                returned an unparseable response, or rejected the create
+                for any other reason.
         """
         variables = {
             "content": content,
@@ -188,20 +166,20 @@ class WikiJsClient:
             response_result = result["responseResult"]
             succeeded = response_result["succeeded"]
         except (KeyError, TypeError) as exc:
-            raise WikiJsRequestError(f"Unexpected response shape from Wiki.js pages.create: {exc}")
+            raise WikiClientRequestError(f"Unexpected response shape from Wiki.js pages.create: {exc}")
 
         if not succeeded:
             message = response_result.get("message") or "Wiki.js rejected the page create request."
             lowered = message.lower()
             if any(marker in lowered for marker in _DUPLICATE_PATH_MESSAGE_MARKERS):
-                raise WikiJsPageExistsError(message)
-            raise WikiJsRequestError(message)
+                raise WikiClientPageExistsError(message)
+            raise WikiClientRequestError(message)
 
         page = result.get("page") or {}
         try:
             page_path = page["path"]
         except KeyError:
-            raise WikiJsRequestError("Wiki.js reported success but returned no page in its response.")
+            raise WikiClientRequestError("Wiki.js reported success but returned no page in its response.")
 
         return WikiPage(
             id=page["id"],
@@ -215,10 +193,10 @@ class WikiJsClient:
         Runs one GraphQL request and returns its `data` object.
 
         Raises:
-            WikiJsAuthError: An HTTP 401/403, or a top-level GraphQL
+            WikiClientAuthError: An HTTP 401/403, or a top-level GraphQL
                 `errors` entry naming an auth failure.
-            WikiJsRequestError: Any other non-2xx/unreachable/unparseable
-                response, or a non-auth top-level GraphQL error.
+            WikiClientRequestError: Any other non-2xx/unreachable/
+                unparseable response, or a non-auth top-level GraphQL error.
         """
         url = f"{self._base_url}/graphql"
         body = json.dumps({"query": query, "variables": variables}).encode("utf-8")
@@ -235,23 +213,23 @@ class WikiJsClient:
         except urllib.error.HTTPError as exc:
             detail = _read_error_detail(exc)
             if exc.code in (401, 403):
-                raise WikiJsAuthError(f"Wiki.js rejected the API token ({exc.code}): {detail}")
-            raise WikiJsRequestError(f"Wiki.js returned HTTP {exc.code}: {detail}")
+                raise WikiClientAuthError(f"Wiki.js rejected the API token ({exc.code}): {detail}")
+            raise WikiClientRequestError(f"Wiki.js returned HTTP {exc.code}: {detail}")
         except urllib.error.URLError as exc:
-            raise WikiJsRequestError(f"Could not reach Wiki.js at {self._base_url}: {exc.reason}")
+            raise WikiClientRequestError(f"Could not reach Wiki.js at {self._base_url}: {exc.reason}")
 
         try:
             parsed = json.loads(raw_body)
         except ValueError as exc:
-            raise WikiJsRequestError(f"Wiki.js returned an unparseable response: {exc}")
+            raise WikiClientRequestError(f"Wiki.js returned an unparseable response: {exc}")
 
         errors = parsed.get("errors")
         if errors:
             combined = "; ".join(error.get("message", str(error)) for error in errors)
             lowered = combined.lower()
             if any(marker in lowered for marker in _AUTH_ERROR_MESSAGE_MARKERS):
-                raise WikiJsAuthError(f"Wiki.js rejected the request: {combined}")
-            raise WikiJsRequestError(f"Wiki.js GraphQL error: {combined}")
+                raise WikiClientAuthError(f"Wiki.js rejected the request: {combined}")
+            raise WikiClientRequestError(f"Wiki.js GraphQL error: {combined}")
 
         return parsed.get("data") or {}
 

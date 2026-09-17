@@ -793,24 +793,30 @@ def delete_system(system_id):
     return jsonify({"status": "ok"})
 
 
-# TODO(wiki.js publishing): add a POST /api/systems/<id>/wiki route here,
+# TODO(wiki publishing): add a POST /api/systems/<id>/wiki route here,
 # `@limiter.limit(WRITE_RATE_LIMIT)` + `@require_admin(fresh=True)` like
 # every other write route above. It would:
-#   1. Return 501 if current_app.config["WIKI_BASE_URL"]/["WIKI_API_TOKEN"]
-#      aren't set (see config.py's own TODO).
+#   1. Return 501 if current_app.config["WIKI_BASE_URL"] (or the
+#      configured backend's own credential fields) aren't set (see
+#      config.py's own TODO).
 #   2. Look up the system via query_system_detail(get_db(), system_id) for
-#      its `name` and `markdown_content`.
+#      its `name` and, per current_app.config["WIKI_BACKEND"], either
+#      `markdown_content` (wikijs) or `wikitext_content` (mediawiki) --
+#      see wikiClient/client.py's own module docstring on why each
+#      backend wants a different one of the two pre-rendered copies.
 #   3. Build a page `path` by slugifying `name` (see system.py's own TODO
 #      for the "Upload to Wiki" button that would call this) and construct
-#      a wikijs.WikiJsClient(base_url, api_token).
-#   4. Call client.create_page(path=path, title=name,
-#      content=system["markdown_content"]), catching
-#      wikijs.WikiJsPageExistsError -> 409, wikijs.WikiJsAuthError/
-#      WikiJsRequestError -> 502 (mirroring how get_db() turns a database
-#      SystemExit into a 503 above).
+#      a wikiClient.WikiClient(backend=WIKI_BACKEND, base_url=..., ...)
+#      with that backend's own credential kwargs.
+#   4. Call client.create_page(path=path, title=name, content=<the
+#      matching content column from step 2>), catching
+#      wikiClient.WikiClientPageExistsError -> 409,
+#      wikiClient.WikiClientAuthError/WikiClientRequestError -> 502
+#      (mirroring how get_db() turns a database SystemExit into a 503
+#      above).
 #   5. On success, audit("system.wiki_upload", target=f"system:{system_id}",
-#      detail=f"path={path!r}") and return the new page's id/path/url
-#      (jsonify(page.__dict__) or similar), 201.
+#      detail=f"backend={WIKI_BACKEND!r} path={path!r}") and return the
+#      new page's id/path/url (jsonify(page.__dict__) or similar), 201.
 # This is a real database read but no database write, so unlike the other
 # write routes above it doesn't need _write_conn()/WRITE_MYSQL_CONFIG --
 # get_db()'s existing read-only connection is enough.

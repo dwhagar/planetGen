@@ -86,21 +86,27 @@ DEFAULT_CONFIG = {
 any field/section missing from a deployment's real `config.json` (or when
 no such file exists yet at all)."""
 
-# TODO(wiki.js publishing): add a `"wiki"` section here (and to
+# TODO(wiki publishing): add a `"wiki"` section here (and to
 # config.json.example) once the "Upload to Wiki" feature is wired up --
-# see docs/TODO.md's "Wiki.js publishing isn't wired up yet" item and
-# src/wikijs/ (the already-built, standalone GraphQL client this would
-# configure). Something like:
+# see docs/TODO.md's "Wiki publishing isn't wired up yet" item and
+# src/wikiClient/ (the already-built, standalone WikiClient library --
+# one shared interface over a Wiki.js and a MediaWiki backend -- this
+# would configure). Something like:
 #     "wiki": {
 #         "enabled": False,
+#         "backend": "wikijs",  # or "mediawiki"
 #         "base_url": "",
+#         # wikijs backend:
 #         "api_token": "",
+#         # mediawiki backend:
+#         "username": "",
+#         "password": "",
 #     },
 # following this file's own documented precedence (an explicit function
 # argument, then a PLANETGEN_WIKI_* env var, then this config.json
 # section, then a built-in default) -- see html/api/config.py's own TODO
-# for where `PLANETGEN_WIKI_BASE_URL`/`PLANETGEN_WIKI_API_TOKEN` would be
-# read and layered on top of this section, the same way
+# for where `PLANETGEN_WIKI_BACKEND`/`PLANETGEN_WIKI_BASE_URL`/etc. would
+# be read and layered on top of this section, the same way
 # `_write_mysql_config` already layers PLANETGEN_MYSQL_WRITE_* over
 # config.json's `mysql_write` section above.
 

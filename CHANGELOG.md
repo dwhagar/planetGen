@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.34.0] - 2026-09-17
+
+### Changed
+- **Unified `wikijs`/MediaWiki publishing into a single `wikiClient`
+  library.** `src/wikijs/` (the standalone Wiki.js GraphQL client) is
+  replaced by `src/wikiClient/`, which exposes one `WikiClient` object
+  (`backend="wikijs"` or `backend="mediawiki"`) whose `create_page` works
+  the same way regardless of target -- both backends are create-only and
+  share one exception hierarchy (`WikiClientAuthError`/
+  `WikiClientPageExistsError`/`WikiClientRequestError`). The former
+  `WikiJsClient` logic moves in unchanged as `wikijs.WikiJsBackend`; new
+  alongside it is `mediawiki.MediaWikiBackend`, a from-scratch, stdlib-only
+  MediaWiki Action API client (Bot Password login, CSRF token, `action=edit`
+  with `createonly=1`) -- this project previously had no MediaWiki API
+  client at all, only a wikitext *text format* option. Nothing in the app
+  calls either backend yet (still an open item, see `docs/TODO.md`); this
+  is purely the shared library those still-`# TODO` call sites
+  (`routes.py`, `config.py`, `appconfig.py`, `system.py`) will build on.
+  Tests renamed/moved to match (`test_wikiclient_wikijs(_integration).py`)
+  and a `test_wikiclient_mediawiki(_integration).py` pair added, plus
+  `test_wikiclient_client.py` for the new dispatch facade.
+
 ## [5.33.0] - 2026-09-17
 
 ### Added
