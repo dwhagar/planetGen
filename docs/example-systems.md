@@ -3,7 +3,7 @@
 Run any of these with:
 
 ```bash
-python systemGen.py --system-file examples/systems/<file>.json
+python generate.py system --system-file examples/systems/<file>.json
 ```
 
 See [`system-file-format.md`](system-file-format.md) for the full format

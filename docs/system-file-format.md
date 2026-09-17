@@ -1,10 +1,11 @@
 # System Specification Files
 
-[`../systemGen.py`](../systemGen.py) can load a full (or partial) star
-system specification from a JSON file with `--system-file` / `-f`:
+[`../generate.py`](../generate.py)'s `system` subcommand can load a full
+(or partial) star system specification from a JSON file with
+`--system-file` / `-f`:
 
 ```bash
-python systemGen.py --system-file examples/systems/solar_system.json
+python generate.py system --system-file examples/systems/solar_system.json
 ```
 
 Every key is optional. Anything you leave out is generated normally (randomly,
