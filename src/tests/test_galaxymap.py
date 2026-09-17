@@ -67,3 +67,40 @@ def test_render_galaxy_map_panel_handles_no_sectors_and_a_phenomenon():
 def test_phenomenon_dots_use_a_distinct_color_per_type():
     from galaxymap import _PHENOMENON_COLORS
     assert _PHENOMENON_COLORS["nebula"] != _PHENOMENON_COLORS["asteroid_field"]
+
+
+def test_render_galaxy_map_panel_draws_a_black_hole_dot():
+    html = render_galaxy_map_panel(
+        "db", [_sector()], phenomena=[_phenomenon(type_="black_hole", descriptor="accreting", radius_ly=0)]
+    )
+    assert 'class="galaxymap-phenomenon"' in html
+    assert "Accreting Black Hole" in html
+
+
+def test_render_galaxy_map_panel_draws_a_neutron_star_dot():
+    html = render_galaxy_map_panel(
+        "db", [_sector()], phenomena=[_phenomenon(type_="neutron_star", descriptor="young", radius_ly=0)]
+    )
+    assert 'class="galaxymap-phenomenon"' in html
+    assert "Young Neutron Star" in html
+
+
+def test_black_hole_and_neutron_star_dots_omit_the_misleading_zero_radius_across_line():
+    # A point-like object's real "size" (radius_ly=0) isn't worth showing
+    # -- the tooltip should read "~N ly from core" without a "~0.0 ly
+    # across" prefix a nebula/asteroid field's own tooltip does show.
+    nebula_html = render_galaxy_map_panel("db", [], phenomena=[_phenomenon(type_="nebula", radius_ly=8.0)])
+    bh_html = render_galaxy_map_panel(
+        "db", [], phenomena=[_phenomenon(type_="black_hole", descriptor="quiescent", radius_ly=0)]
+    )
+    assert "ly across" in nebula_html
+    assert "ly across" not in bh_html
+
+
+def test_all_four_phenomenon_types_have_distinct_colors_and_labels():
+    from galaxymap import _PHENOMENON_COLORS, _PHENOMENON_TYPE_LABELS
+    types = ("nebula", "asteroid_field", "black_hole", "neutron_star")
+    colors = {_PHENOMENON_COLORS[t] for t in types}
+    labels = {_PHENOMENON_TYPE_LABELS[t] for t in types}
+    assert len(colors) == 4
+    assert len(labels) == 4

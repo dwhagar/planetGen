@@ -660,6 +660,24 @@ _ASTEROID_FIELD_BACKGROUND = (
     "radial-gradient(circle, #b89a6ea0 0%, #b89a6e50 55%, transparent 78%)"
 )
 
+# Black holes/neutron stars are point-like (their own radius_ly is always
+# 0 -- see queryDb._PHENOMENON_TABLES, real event-horizon/neutron-star
+# sizes are utterly negligible at this scale), so unlike a nebula/asteroid
+# field's soft, blurred cloud, these render as small, sharp, glowing
+# markers instead -- a black hole's own accretion state (queryDb's
+# computed `descriptor`, "accreting"/"quiescent") picks between a warm
+# accretion-disk glow and a near-black quiescent core; a neutron star is
+# always a hot, bright blue-white point regardless of its own pulsar_type.
+_BLACK_HOLE_ACCRETING_BACKGROUND = (
+    "radial-gradient(circle, #000000f5 0%, #000000f5 34%, #ff9d4dc0 55%, #ff9d4d30 72%, transparent 86%)"
+)
+_BLACK_HOLE_QUIESCENT_BACKGROUND = (
+    "radial-gradient(circle, #000000f5 0%, #000000f5 55%, #4b2f6660 78%, transparent 90%)"
+)
+_NEUTRON_STAR_BACKGROUND = (
+    "radial-gradient(circle, #ffffff 0%, #cfe8ffe0 35%, #8fc7ff80 60%, transparent 82%)"
+)
+
 
 def _phenomenon_cloud_radius_px(radius_ly, half_edge):
     if ly_to_milliparsecs is None or not half_edge:
@@ -671,13 +689,16 @@ def _phenomenon_cloud_radius_px(radius_ly, half_edge):
 
 def _cloud_html(phenomenon, x_px, y_px, z_px, radius_px):
     """
-    Builds one nebula/asteroid-field cloud as a billboarded translucent
-    circle -- the same anchor-plus-inner-billboard split `_dot_html` uses
-    for a star (see that function's docstring for why: a flat disc must
-    billboard to avoid going edge-on as the scene rotates), just larger
-    and styled as a soft cloud/mottled field instead of a hard-edged star.
-    Unlike `_dot_html`, there's no `data-href` -- a phenomenon has no
-    detail page of its own to link to.
+    Builds one phenomenon marker as a billboarded translucent circle --
+    the same anchor-plus-inner-billboard split `_dot_html` uses for a star
+    (see that function's docstring for why: a flat disc must billboard to
+    avoid going edge-on as the scene rotates). A nebula/asteroid field
+    draws large and soft (a real cloud, `radius_ly` frequently far bigger
+    than the scene itself); a black hole/neutron star draws as a small,
+    sharp, glowing point instead (`radius_ly` is always 0 for these two --
+    see `queryDb._PHENOMENON_TABLES` -- real event-horizon/neutron-star
+    sizes are negligible at this scale). Unlike `_dot_html`, there's no
+    `data-href` -- a phenomenon has no detail page of its own to link to.
 
     Args:
         phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
@@ -691,20 +712,40 @@ def _cloud_html(phenomenon, x_px, y_px, z_px, radius_px):
     Returns:
         str: The cloud's anchor+billboard HTML.
     """
-    is_nebula = phenomenon["type"] == "nebula"
-    if is_nebula:
-        color = _NEBULA_TYPE_COLORS.get(phenomenon["descriptor"], _DEFAULT_NEBULA_COLOR)
-        core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(phenomenon["descriptor"], _DEFAULT_NEBULA_ALPHA)
+    phenomenon_type = phenomenon["type"]
+    descriptor = phenomenon["descriptor"] or ""
+
+    if phenomenon_type == "nebula":
+        color = _NEBULA_TYPE_COLORS.get(descriptor, _DEFAULT_NEBULA_COLOR)
+        core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(descriptor, _DEFAULT_NEBULA_ALPHA)
         background = (
             f"radial-gradient(circle, {color}{core_alpha:02x} 0%, "
             f"{color}{edge_alpha:02x} 55%, transparent 78%)"
         )
         css_class = "nebula-cloud"
-        type_label = f'{phenomenon["descriptor"].capitalize()} Nebula'
-    else:
+        type_label = f'{descriptor.capitalize()} Nebula'
+    elif phenomenon_type == "asteroid_field":
         background = _ASTEROID_FIELD_BACKGROUND
         css_class = "asteroid-cloud"
-        type_label = f'Asteroid Field ({(phenomenon["descriptor"] or "").capitalize()})'
+        type_label = f'Asteroid Field ({descriptor.capitalize()})'
+    elif phenomenon_type == "black_hole":
+        background = (
+            _BLACK_HOLE_ACCRETING_BACKGROUND if descriptor == "accreting"
+            else _BLACK_HOLE_QUIESCENT_BACKGROUND
+        )
+        css_class = "black-hole-point"
+        type_label = f'Black Hole ({descriptor.capitalize()})' if descriptor else "Black Hole"
+    elif phenomenon_type == "neutron_star":
+        background = _NEUTRON_STAR_BACKGROUND
+        css_class = "neutron-star-point"
+        type_label = f'Neutron Star ({descriptor.replace("-", " ").capitalize()})' if descriptor else "Neutron Star"
+    else:
+        # Defensive fallback for a future phenomenon type this function
+        # doesn't know about yet -- a plain neutral marker rather than a
+        # crash or a silently wrong "Asteroid Field" label.
+        background = f"radial-gradient(circle, {_DEFAULT_NEBULA_COLOR}90 0%, {_DEFAULT_NEBULA_COLOR}30 55%, transparent 78%)"
+        css_class = "nebula-cloud"
+        type_label = phenomenon_type.replace("_", " ").title()
 
     left = _SCENE_HALF_PX + x_px - radius_px
     top = _SCENE_HALF_PX + y_px - radius_px
@@ -773,13 +814,16 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
                               `temperature_k`, `radius_km`,
                               `luminosity_w`, `temp_display`.
         phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
-                              return shape -- every nebula/asteroid field
-                              whose sphere could plausibly reach into this
-                              sector's cube, drawn as a translucent cloud
-                              (`_cloud_html`) rather than a hard dot, since
-                              (unlike a star system) these have a real
-                              physical size worth actually depicting. Its
-                              `offset_x/y/z_ly` are already galaxy-frame
+                              return shape -- every nebula/asteroid field/
+                              black hole/neutron star whose sphere could
+                              plausibly reach into this sector's cube,
+                              drawn via `_cloud_html`: a soft translucent
+                              cloud for a nebula/asteroid field (these have
+                              a real physical size worth actually
+                              depicting), or a small sharp glowing point
+                              for a black hole/neutron star (always
+                              `radius_ly` 0 -- see `queryDb._PHENOMENON_TABLES`).
+                              Its `offset_x/y/z_ly` are already galaxy-frame
                               (computed directly from two galaxy-frame
                               centers -- see `schema.sql`'s "v18" note), so
                               -- unlike `systems`' sector-local `x`/`y`/`z`
@@ -896,7 +940,7 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields near this sector &middot; {shape_hint}</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields, glowing points &asymp; black holes/neutron stars, near this sector &middot; {shape_hint}</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">

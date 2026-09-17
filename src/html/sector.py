@@ -7,10 +7,11 @@ with quadrant and star-type info, linking to `system.py` for each -- plus
 an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
 plotted by position within the sector, outlined by the sector's real
 on-shell wedge shape when it has a galaxy placement (else a plain cube),
-plus a translucent cloud for every nebula/asteroid field whose real
-galaxy-frame sphere reaches into this sector's own cube (`queryDb.
-phenomena_near_sector`, via `GET /api/sectors/<id>`'s `phenomena` key --
-see `schema.sql`'s "v18" header note).
+plus a translucent cloud for every nebula/asteroid field (and a point
+marker for every black hole/neutron star) whose real galaxy-frame sphere
+reaches into this sector's own cube (`queryDb.phenomena_near_sector`, via
+`GET /api/sectors/<id>`'s `phenomena` key -- see `schema.sql`'s
+"v18"/"v21" header notes).
 """
 
 import os
@@ -101,7 +102,8 @@ def handler():
         f"{system_count} system{'s' if system_count != 1 else ''}",
     ]
     if phenomenon_count:
-        badge_bits.append(f"{phenomenon_count} nearby nebula/asteroid-field cloud{'s' if phenomenon_count != 1 else ''}")
+        phenomenon_word = "phenomenon" if phenomenon_count == 1 else "phenomena"
+        badge_bits.append(f"{phenomenon_count} nearby exotic {phenomenon_word}")
     if sector["placed"]:
         quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
         badge_bits.append(

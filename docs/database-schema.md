@@ -336,6 +336,24 @@ existing tables (`star_systems`, `stars`, `planets`), so
 own migration, every value is fully derivable from data already on
 existing rows, so it backfills real values rather than leaving them NULL.
 
+v21 gave every generated sector its own realistically sparse population of
+exotic phenomena (`sectorGen.generate_sector_phenomena`, sampled from
+`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`) instead of leaving
+all seven types reachable only through `phenomenonGen.py`'s separate,
+on-demand CLI. `nebulae`/`supernova_remnants`/`rogue_planets`/
+`interstellar_comets`/`asteroid_fields` needed no schema change at all —
+`insert_sector` simply started populating their pre-existing `sector_id`
+column (and, for the two galaxy-placeable types, `center_x/y/z_pc`) for
+real. `black_holes`/`neutron_stars` gained the same `sector_id`/
+`center_x/y/z_pc`/`galactic_radius_pc` shape `nebulae`/`asteroid_fields`
+got in v18, since a standalone compact remnant is a real, stellar-mass
+gravitating body and needed to be placeable too — but unlike every other
+phenomenon type, its own galaxy-frame position is usually the *exact* spot
+`SpaceSector.add_phenomenon`'s Hill-sphere-aware placement computed at
+generation time (never within a neighboring star system's or another
+compact remnant's own Hill sphere), converted from a sector-relative
+offset rather than independently re-randomized.
+
 The SQLite-specific machinery that once converted an existing database
 between these versions in place (gzip-compressed file backups, a
 `_migrate_vN_to_vN+1` function per version) was removed during the MySQL
@@ -366,16 +384,19 @@ after the fact, the same situation `sectors.center_x/y/z_pc` is in for a
 `_migrate_v3_to_v4`-migrated sector), `_migrate_v18_to_v19` for v19's
 new `comets`/`comet_composition` tables (needing no `ALTER TABLE` either,
 for the same "brand-new tables, bookkeeping-only step" reason as
-`_migrate_v15_to_v16`), and `_migrate_v19_to_v20` for v20's binary/star/
+`_migrate_v15_to_v16`), `_migrate_v19_to_v20` for v20's binary/star/
 planet trajectory columns (also real `ALTER TABLE` steps, on
-`star_systems`/`stars`/`planets`). `migrate_database` applies
-whatever steps are needed to reach `SCHEMA_VERSION`, one call `migrateDb.py`
-wraps as a CLI (also run automatically by `install.sh`/`update.sh` on
-every deploy). A pre-existing SQLite database from before the MySQL port
-itself is brought in with the separate, one-time
-`src/migrateSqliteToMysql.py` script instead (see its module docstring)
-— it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v20), so a database still on an older SQLite
+`star_systems`/`stars`/`planets`), and `_migrate_v20_to_v21` for v21's
+sector-placement columns on `black_holes`/`neutron_stars` (also real
+`ALTER TABLE` steps, left NULL on every pre-existing row — same
+"nothing to recover" situation v18's migration is in). `migrate_database`
+applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
+`migrateDb.py` wraps as a CLI (also run automatically by
+`install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
+from before the MySQL port itself is brought in with the separate,
+one-time `src/migrateSqliteToMysql.py` script instead (see its module
+docstring) — it only accepts a source already at the database's current
+`SCHEMA_VERSION` (today, v21), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin
@@ -941,6 +962,8 @@ standalone (no owning `StarSystem` at all).
 | `temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | Both 0 unless `has_accretion_disk`. |
 | `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. NULL when `star_id` is set (an anchored remnant's motion lives on its own `stars` row instead); populated only for a standalone black hole. See `stars`' identical columns below. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | Added in v21. The sector this standalone black hole was generated as part of (`sectorGen.generate_sector_phenomena`) or placed near (`phenomenonGen.py --sector-id`), the same convention `nebulae.sector_id` uses. Always NULL when `star_id` is set. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v21. This black hole's own galaxy-frame center, the same shape `nebulae`'s identical columns use (see below) -- but here it's usually the *exact* position `SpaceSector.add_phenomenon`'s Hill-sphere-aware in-sector placement computed at generation time (never within a neighboring star system's or another compact remnant's own Hill sphere), converted to galaxy-frame coordinates, rather than `compute_phenomenon_placement`'s independent random jitter (still used for `phenomenonGen.py`'s own standalone `--sector-id`, which has no specific in-sector position to convert). |
 
 **`neutron_stars`**
 
@@ -955,6 +978,8 @@ standalone (no owning `StarSystem` at all).
 | `surface_temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | `luminosity_w` is thermal blackbody emission (Stefan-Boltzmann), always nonzero. |
 | `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. Same nullable-when-anchored convention as `black_holes` above. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | Added in v21. Same convention as `black_holes.sector_id` above. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v21. Same convention as `black_holes`' identical columns above. |
 
 ### `nebulae`
 

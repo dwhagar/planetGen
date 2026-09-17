@@ -1,5 +1,72 @@
 # Changelog
 
+## [5.33.0] - 2026-09-17
+
+### Added
+- **Galaxy random-start mode.** `galaxyGen.py` run with neither `--shell`
+  nor `--center-sector` now picks a uniformly random (by volume, not by
+  shell index -- see new `_pick_random_shell_index`) not-yet-occupied
+  sector address within a real Milky-Way-scale galaxy (`--max-shell`,
+  defaulting to the shell nearest new `program_constants.GALAXY_RADIUS_PC`,
+  15,000 pc), generates it, then falls straight through to
+  local-neighborhood mode's own logic to generate every sector within
+  `--radius-pc` of it too (defaulting to new `program_constants.
+  RANDOM_START_NEIGHBORHOOD_RADIUS_LY`, 100 ly, in every direction) -- so
+  a bare `galaxyGen.py` with no arguments at all creates a whole small
+  starmap around a fresh, randomly chosen starting point in one run.
+- **Science-based exotic phenomena as part of ordinary sector
+  generation.** Every generated sector (`sectorGen.py` directly, or via
+  `galaxyGen.py`) now also seeds a realistically sparse population of
+  `phenomenonGen.py`'s own seven phenomenon types -- black holes, neutron
+  stars, nebulae, supernova remnants, rogue planets, interstellar comets,
+  standalone asteroid fields -- sampled independently per type via a
+  Poisson draw whose mean is a cited real (or, where flagged, a
+  deliberately conservative order-of-magnitude) astrophysical rate per
+  star system (new `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`:
+  Lamberts et al. 2018 for black holes, Sartore et al. 2010 for neutron
+  stars, Frew & Parker 2010 for nebulae, Diehl et al. 2006 for supernova
+  remnants, Sumi et al. 2011/Mroz et al. 2017 for rogue planets), scaled
+  by however many star systems the sector actually ended up with -- a
+  denser sector (`--density`) gets proportionally more, and most sectors,
+  realistically, get none at all, exactly as real space this size usually
+  is. New `sectorGen.generate_sector_phenomena`.
+- **Hill-sphere-safe placement generalized to exotic phenomena.** A
+  standalone black hole/neutron star is a real, stellar-mass gravitating
+  body, so `spaceSector.py`'s existing star-to-star Hill-sphere placement
+  logic (`hill_radius_ly`/`required_separation_ly`) now applies to it
+  too, via new `SpaceSector.add_phenomenon`/`SectorPhenomenonEntry`:
+  neither can ever land within a neighboring star system's or another
+  compact remnant's own Hill sphere -- and, since the same neighbor list
+  now includes already-placed phenomena, a star system placed afterward
+  can't land inside a black hole's/neutron star's Hill sphere either.
+  Every other phenomenon type has no comparable gravitational footprint
+  at this generator's own scale and is placed at a random point in the
+  sector's cube instead. Persisted via schema v21: `black_holes`/
+  `neutron_stars` gain the same `sector_id`/`center_x/y/z_pc`/
+  `galactic_radius_pc` galaxy-frame placement shape v18 gave `nebulae`/
+  `asteroid_fields` (`_migrate_v20_to_v21`), with the new position
+  converted directly from each phenomenon's own real in-sector offset
+  rather than independently re-randomized; the other five phenomenon
+  types' own `sector_id` column -- present since v16 but never actually
+  populated -- finally gets wired through `_db.save_phenomenon`. Surfaced
+  in the web interface everywhere nebulae/asteroid fields already were:
+  `queryDb.py`'s phenomena queries, the Sector Map (a small glowing point
+  instead of a translucent cloud, since a compact remnant's own physical
+  radius is negligible at this scale), and the Galaxy Map.
+
+### Fixed
+- **`SectorPhenomenonEntry.distance_to` crashed** with `TypeError:
+  'SectorPhenomenonEntry' object is not iterable`. `spaceSector.
+  distance_between` only recognized `SectorSystemEntry` via `isinstance`,
+  so calling `.distance_to()` on the new phenomenon-entry class (added
+  alongside the Hill-sphere generalization above) tried to iterate the
+  entry object itself instead of reading its `.position`. Generalized to
+  duck-type on "has a `.position`" instead, covering both entry classes
+  (and any future one) without an `isinstance` check needing to know
+  about each concretely. Caught by this release's own new test suite,
+  run against a real MariaDB server rather than skipped for lack of one
+  (9,265 tests, 0 failed, 0 skipped) -- not by any pre-existing test.
+
 ## [5.32.0] - 2026-09-16
 
 ### Added

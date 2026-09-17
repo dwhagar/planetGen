@@ -11,16 +11,44 @@ import sys
 # first, matching how html/'s CGI scripts fall back to a no-install layout.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
+import phenomenonGen
 import systemGen
-from stellarObjects import _db
+from stellarObjects import _db, program_constants
 from stellarObjects._version import VersionAction, version_banner
+from stellarObjects.asteroidFieldData import AsteroidField
+from stellarObjects.compactRemnant import BlackHole, NeutronStar
+from stellarObjects.config import SystemConfig
 from stellarObjects.names import SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES
+from stellarObjects.nebulaData import Nebula
+from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
+from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import generate_phoneme_salad_name
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
+
+_PHENOMENON_FACTORIES = {
+    "black-hole": lambda config, galactic_center_dist_ly: BlackHole(
+        config, galactic_center_dist_ly=galactic_center_dist_ly),
+    "neutron-star": lambda config, galactic_center_dist_ly: NeutronStar(
+        config, galactic_center_dist_ly=galactic_center_dist_ly),
+    "nebula": lambda config, galactic_center_dist_ly: Nebula(config),
+    "supernova-remnant": lambda config, galactic_center_dist_ly: SupernovaRemnant(config),
+    "rogue-planet": lambda config, galactic_center_dist_ly: RoguePlanet(config),
+    "comet": lambda config, galactic_center_dist_ly: InterstellarComet(config),
+    "asteroid-field": lambda config, galactic_center_dist_ly: AsteroidField(config),
+}
+"""dict: `program_constants.PHENOMENON_TYPE_CHOICES` entry -> a
+`(config, galactic_center_dist_ly)` factory building one fresh instance of
+that phenomenon type -- `generate_sector_phenomena`'s per-type dispatch.
+Only `"black-hole"`/`"neutron-star"` actually consult
+`galactic_center_dist_ly` (threaded into their own Hill-sphere/galactic-
+orbit calculations, exactly like every star in the sector already gets via
+`generate_sector`'s own `galactic_center_dist_ly` parameter); every other
+phenomenon type has no galaxy-frame-distance-dependent physics of its own,
+so it's accepted and ignored, keeping every factory the same shape."""
 
 
 def add_shared_generation_options(parser):
@@ -329,6 +357,72 @@ def build_sector_configs(args):
     return configs
 
 
+def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
+    """
+    Populates an already-built `sector` with a realistically sparse
+    population of exotic stellar phenomena (`phenomenonGen.py`'s own seven
+    generated types), sampled independently per type from
+    `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` -- each type's own
+    expected count per star system, scaled by however many star systems
+    this sector actually ended up with (see that constant's own docstring
+    for where each rate comes from). The Poisson draw
+    (`spaceSector._sample_poisson_count`) is the same mechanism
+    `--density`'s own system count already uses, so a denser sector gets
+    proportionally more phenomena too, and most sectors -- realistically --
+    get none at all.
+
+    Black holes and neutron stars are real, stellar-mass gravitating
+    bodies, so they're added via `SpaceSector.add_phenomenon`'s
+    Hill-sphere-aware placement (never within a neighboring star system's
+    or another compact remnant's own Hill sphere); every other phenomenon
+    type has no comparable gravitational footprint at this generator's
+    scale and is simply placed at a random point in the sector's cube --
+    see that method's own docstring.
+
+    Args:
+        sector (SpaceSector): An already-populated sector (every star
+            system already added via `add_system`, so their Hill spheres
+            are in place for a black hole's/neutron star's own placement
+            check) to add phenomena to, in place.
+        args (argparse.Namespace): Parsed arguments; only `args.markdown`
+            is consulted (threaded into each phenomenon's own
+            `SystemConfig`, matching every star system's own config).
+        galactic_center_dist_ly (float, optional): As in `generate_sector`
+            -- threaded into a standalone black hole's/neutron star's own
+            Hill-sphere/galactic-orbit calculation, exactly like every star
+            in the sector already gets.
+
+    Returns:
+        list: The newly created `SectorPhenomenonEntry` instances. May hold
+             fewer than the Poisson draw sampled for a massive type (a
+             black hole/neutron star) if the sector was too full/small to
+             fit it without violating another massive object's Hill sphere
+             -- that one draw is silently skipped (see `ValueError` below)
+             rather than crashing the whole sector's generation over a
+             single rare phenomenon that didn't fit.
+    """
+    system_count = len(sector.entries)
+    new_entries = []
+
+    for phenomenon_type, rate_per_system in program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM.items():
+        count = _sample_poisson_count(rate_per_system * system_count)
+        for _ in range(count):
+            phenomenon_config = SystemConfig()
+            phenomenon_config.MARKDOWN = args.markdown
+            phenomenon = _PHENOMENON_FACTORIES[phenomenon_type](phenomenon_config, galactic_center_dist_ly)
+            try:
+                new_entries.append(sector.add_phenomenon(phenomenon, phenomenon_type))
+            except ValueError:
+                # Only a massive type (black-hole/neutron-star) can raise
+                # here (see SpaceSector._random_position) -- no room left
+                # to place it without violating another massive object's
+                # Hill sphere. Skip just this one draw rather than this
+                # phenomenon type, or the whole sector.
+                continue
+
+    return new_entries
+
+
 def generate_sector(args, galactic_center_dist_ly=None):
     """
     Builds a fully populated `SpaceSector` from parsed args, without
@@ -358,7 +452,8 @@ def generate_sector(args, galactic_center_dist_ly=None):
               `args.sector_name` or a freshly generated one (see
               `generate_sector_name`); the `SpaceSector` already has every
               system added (`SpaceSector.add_system`'s Hill-sphere-based
-              random placement).
+              random placement), plus a realistically sparse population of
+              exotic phenomena (see `generate_sector_phenomena`).
     """
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name)
@@ -382,21 +477,28 @@ def generate_sector(args, galactic_center_dist_ly=None):
     for system, cfg in zip(systems, configs):
         sector.add_system(system, system_config=cfg)
 
+    generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+
     return sector_name, sector
 
 
-def render_sector_text(sector_name, systems, markdown):
+def render_sector_text(sector_name, systems, phenomena, markdown):
     """
-    Renders one generated sector's systems as a Markdown or wikitext blob:
-    a sector header, a short summary line, an index of every system's name
-    and star type, then each system's own full rendering, all divided per
-    `markdown`. Factored out of `main()` so it can be skipped entirely
-    when neither `--console` nor `--output` was given -- rendering a large
-    sector isn't free, and by default this script only reports status.
+    Renders one generated sector's systems (and any generated exotic
+    phenomena) as a Markdown or wikitext blob: a sector header, a short
+    summary line, an index of every system's name and star type (plus,
+    when present, every phenomenon's name and type), then each system's
+    and phenomenon's own full rendering, all divided per `markdown`.
+    Factored out of `main()` so it can be skipped entirely when neither
+    `--console` nor `--output` was given -- rendering a large sector isn't
+    free, and by default this script only reports status.
 
     Args:
         sector_name (str): The sector's name.
         systems (list): The sector's `StarSystem` instances.
+        phenomena (list): The sector's `SectorPhenomenonEntry` instances
+            (see `generate_sector_phenomena`) -- realistically empty for
+            most sectors.
         markdown (bool): `True` for Markdown, `False` for MediaWiki wikitext.
 
     Returns:
@@ -422,8 +524,17 @@ def render_sector_text(sector_name, systems, markdown):
         output_parts.append(f"{bullet} {system.star.name} ({system.star.type})\n")
     output_parts.append("\n")
 
+    if phenomena:
+        phenomenon_word = "phenomenon" if len(phenomena) == 1 else "phenomena"
+        output_parts.append(f"It also holds {len(phenomena)} notable stellar {phenomenon_word}:\n\n")
+        for entry in phenomena:
+            label = phenomenonGen.TYPE_LABELS[entry.phenomenon_type]
+            output_parts.append(f"{bullet} {entry.phenomenon.name} ({label})\n")
+        output_parts.append("\n")
+
     divider = "\n\n---\n\n" if markdown else "\n\n----\n\n"
-    output_parts.append(divider.join(str(system) for system in systems))
+    blobs = [str(system) for system in systems] + [str(entry.phenomenon) for entry in phenomena]
+    output_parts.append(divider.join(blobs))
 
     return "".join(output_parts)
 
@@ -461,7 +572,7 @@ def main():
         systems = [entry.star_system for entry in sector.entries]
 
         if args.output or args.console:
-            output_text = render_sector_text(sector_name, systems, args.markdown)
+            output_text = render_sector_text(sector_name, systems, sector.phenomena, args.markdown)
 
             if args.output:
                 with open(args.output, 'w' if i == 0 else 'a') as f:
@@ -474,8 +585,10 @@ def main():
 
         mysql_config = _db.mysql_config_from_args(args)
         sector_id = _db.save_sector(sector, config=mysql_config)
+        phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
         print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, "
-              f"{len(systems)} systems, {mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+              f"{len(systems)} systems{phenomena_note}, "
+              f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
     if args.num_sectors > 1:
         print(f"Generated {args.num_sectors} sectors.")

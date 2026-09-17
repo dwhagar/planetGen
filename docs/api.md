@@ -75,12 +75,15 @@ connectivity to that specific schema rather than the default one.
   it — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, and `stars`, each
   with `role`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
-  `phenomena` (every galaxy-placed nebula/asteroid field whose sphere
-  could plausibly reach into this sector's cube — `id`, `type`
-  (`"nebula"`/`"asteroid_field"`), `name`, `descriptor`, `radius_ly`,
-  `distance_ly`, `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
+  `phenomena` (every galaxy-placed nebula/asteroid field/black hole/
+  neutron star whose sphere could plausibly reach into this sector's
+  cube — `id`, `type`
+  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`), `name`,
+  `descriptor`, `radius_ly` (always 0 for a black hole/neutron star —
+  point-like at this scale), `distance_ly`,
+  `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
   relative to this sector's own — `queryDb.phenomena_near_sector`, empty
-  for an unplaced sector; see `schema.sql`'s "v18" header note)
+  for an unplaced sector; see `schema.sql`'s "v18"/"v21" header notes)
   (`queryDb.sector_detail`). Distinct from
   `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
@@ -118,15 +121,19 @@ connectivity to that specific schema rather than the default one.
   how much of the galaxy has actually been generated (see `TODO.md`'s
   Phase 4 lazy-generation design), not by the addressable galaxy's own
   scale.
-- `GET /api/galaxy/phenomena` — every galaxy-placed nebula/asteroid field
+- `GET /api/galaxy/phenomena` — every galaxy-placed nebula/asteroid
+  field/black hole/neutron star
   (non-`null` `center_x/y/z_pc`), each with `id`, `type`
-  (`"nebula"`/`"asteroid_field"`), `name`, `descriptor` (a nebula's
-  `nebula_type`, or a field's `density`), `radius_ly`, `x`/`y`/`z`
+  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`), `name`,
+  `descriptor` (a nebula's `nebula_type`, a field's `density`, a black
+  hole's accretion state, or a neutron star's `pulsar_type`), `radius_ly`
+  (always 0 for a black hole/neutron star), `x`/`y`/`z`
   (`center_x/y/z_pc`), and `galactic_radius_pc`
   (`queryDb.galaxy_placed_phenomena`) — the phenomenon counterpart to
   `/api/galaxy/sectors`, plotted as a small fixed-size dot on the same
-  Galaxy Map (its own real physical extent is instead shown as a
-  translucent cloud on the Sector Map of any sector it reaches into — see
+  Galaxy Map (a nebula/asteroid field's own real physical extent is
+  instead shown as a translucent cloud on the Sector Map of any sector it
+  reaches into — a black hole/neutron star stays point-like there too — see
   `/api/sectors/<id>`'s `phenomena` key above). Not paginated, for the
   same reason `/api/galaxy/sectors` isn't.
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —

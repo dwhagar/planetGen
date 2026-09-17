@@ -191,13 +191,31 @@ import math
 import secrets
 
 from . import physical_constants, program_constants
+from .asteroidFieldData import AsteroidField
+from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
+from .nebulaData import Nebula
+from .roguePlanetData import InterstellarComet, RoguePlanet
+from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 
 # A CSPRNG-backed generator (os.urandom under the hood), used for every
 # position placed in a sector instead of the deterministic, seedable `random`
 # module -- see "Position sampling" in the module docstring.
 _rng = secrets.SystemRandom()
+
+_PHENOMENON_CLASSES_BY_TYPE = {
+    "black-hole": BlackHole,
+    "neutron-star": NeutronStar,
+    "nebula": Nebula,
+    "supernova-remnant": SupernovaRemnant,
+    "rogue-planet": RoguePlanet,
+    "comet": InterstellarComet,
+    "asteroid-field": AsteroidField,
+}
+"""dict: `program_constants.PHENOMENON_TYPE_CHOICES` entry -> the class that
+generates it -- used by `SpaceSector.from_dict` to reconstruct
+`SectorPhenomenonEntry.phenomenon` from its serialized `phenomenon_type`."""
 
 
 def distance_between(a, b):
@@ -207,37 +225,47 @@ def distance_between(a, b):
     straight-line 3D distance is exact at this scale.
 
     Args:
-        a (SectorSystemEntry or tuple): The first entry, or a raw `(x, y, z)`
-                                        position.
-        b (SectorSystemEntry or tuple): The second entry, or a raw
-                                        `(x, y, z)` position.
+        a (SectorSystemEntry, SectorPhenomenonEntry, or tuple): The first
+            entry, or a raw `(x, y, z)` position.
+        b (SectorSystemEntry, SectorPhenomenonEntry, or tuple): The second
+            entry, or a raw `(x, y, z)` position.
 
     Returns:
         float: The distance in light-years.
     """
-    position_a = a.position if isinstance(a, SectorSystemEntry) else a
-    position_b = b.position if isinstance(b, SectorSystemEntry) else b
+    # Duck-typed on "has a .position" rather than isinstance-checking each
+    # concrete entry class by name, so this keeps working unchanged for any
+    # future entry type (SectorSystemEntry, SectorPhenomenonEntry, or
+    # otherwise) without needing to know about it here.
+    position_a = a.position if hasattr(a, "position") else a
+    position_b = b.position if hasattr(b, "position") else b
     return math.dist(position_a, position_b)
 
 
-def hill_radius_ly(star_system):
+def hill_radius_ly(obj):
     """
-    Returns a system's Hill-sphere radius relative to the galaxy, in
-    light-years -- see "Minimum separation (Hill spheres)" in the module
-    docstring.
+    Returns a gravitating object's Hill-sphere radius relative to the
+    galaxy, in light-years -- see "Minimum separation (Hill spheres)" in
+    the module docstring.
 
     Every generated `Star` (and `BinaryStarProxy`, for binary systems)
     already computes this at generation time as `system_perimeter`, in AU
-    (see `Star.calculate_system_perimeter`); this just reads it back
-    converted to light-years.
+    (see `Star.calculate_system_perimeter`). Accepts either a `StarSystem`
+    (reading `.star.system_perimeter`) or a bare `Star`-like object that
+    already computes its own `system_perimeter` directly -- a standalone
+    `BlackHole`/`NeutronStar` (`compactRemnant.CompactRemnant`) generated
+    as one of a sector's own exotic phenomena, which is exactly as real a
+    gravitating mass as any ordinary star and needs the identical
+    minimum-separation treatment (see `SpaceSector.add_phenomenon`).
 
     Args:
-        star_system (StarSystem): The system to measure.
+        obj (StarSystem or Star): The object to measure.
 
     Returns:
         float: The Hill-sphere radius in light-years.
     """
-    return star_system.star.system_perimeter * physical_constants.AU_TO_LY
+    star = getattr(obj, "star", obj)
+    return star.system_perimeter * physical_constants.AU_TO_LY
 
 
 def required_separation_ly(system_a, system_b):
@@ -529,6 +557,66 @@ class SectorSystemEntry:
         }
 
 
+class SectorPhenomenonEntry:
+    """
+    One exotic phenomenon's placement within a `SpaceSector` -- the
+    `phenomenonGen.py`-generated counterpart to `SectorSystemEntry`, for an
+    object that isn't a `StarSystem` (a `Nebula`, `SupernovaRemnant`,
+    `RoguePlanet`, `InterstellarComet`, `AsteroidField`, or a standalone
+    `BlackHole`/`NeutronStar`). See `SpaceSector.add_phenomenon`.
+
+    Attributes:
+        phenomenon: The generated phenomenon object.
+        phenomenon_type (str): One of
+            `program_constants.PHENOMENON_TYPE_CHOICES`.
+        position (tuple): `(x, y, z)` coordinates in light-years, relative
+                          to the sector's center.
+    """
+
+    def __init__(self, phenomenon, phenomenon_type, position):
+        self.phenomenon = phenomenon
+        self.phenomenon_type = phenomenon_type
+        self.position = tuple(position)
+
+    def distance_to(self, other):
+        """
+        Computes the Euclidean distance, in light-years, to another entry
+        (or a raw `(x, y, z)` position). See `distance_between`.
+
+        Args:
+            other (SectorPhenomenonEntry, SectorSystemEntry, or tuple): The
+                other entry, or a raw `(x, y, z)` position.
+
+        Returns:
+            float: The distance in light-years.
+        """
+        return distance_between(self, other)
+
+    def named_location(self):
+        """
+        Returns this entry's position formatted as a "named location"
+        string. See `format_named_location`.
+
+        Returns:
+            str: The formatted label.
+        """
+        return format_named_location(self.position)
+
+    def to_dict(self):
+        """
+        Returns a JSON-serializable dict of this entry.
+
+        Returns:
+            dict: With `phenomenon_type`, `position`, and `phenomenon`
+                 (this entry's own `phenomenon.to_dict()`) keys.
+        """
+        return {
+            "phenomenon_type": self.phenomenon_type,
+            "position": list(self.position),
+            "phenomenon": self.phenomenon.to_dict(),
+        }
+
+
 class SpaceSector:
     """
     A named collection of star systems laid out within a cubic region of
@@ -541,12 +629,15 @@ class SpaceSector:
                          `[-edge_ly / 2, edge_ly / 2]` on each axis when no
                          explicit position is given.
         entries (list): The `SectorSystemEntry` instances the sector contains.
+        phenomena (list): The `SectorPhenomenonEntry` instances the sector
+                          contains -- see `add_phenomenon`.
     """
 
     def __init__(self, name, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY):
         self.name = name
         self.edge_ly = edge_ly
         self.entries = []
+        self.phenomena = []
 
     def __len__(self):
         return len(self.entries)
@@ -570,14 +661,41 @@ class SpaceSector:
         """
         return self.volume_ly3 * physical_constants.LOCAL_STELLAR_DENSITY_LY3
 
-    def _random_position(self, star_system, min_separation_ly):
+    def _massive_neighbors(self):
+        """
+        Yields every already-placed object in the sector that has its own
+        Hill sphere -- every star system, plus any already-placed massive
+        phenomenon (a standalone `BlackHole`/`NeutronStar`, the only
+        `add_phenomenon`-generated types that expose `system_perimeter`;
+        see that method's docstring). `_random_position` checks a new
+        placement against all of these, not just `self.entries`, so a
+        black hole/neutron star can never end up inside a star system's
+        Hill sphere and vice versa, nor inside another compact remnant's.
+
+        Yields:
+            tuple: `(obj, position)` -- `obj` is whatever `hill_radius_ly`/
+                  `required_separation_ly` accept (a `StarSystem` or a bare
+                  `Star`-like object), `position` is its `(x, y, z)` in
+                  light-years.
+        """
+        for entry in self.entries:
+            yield entry.star_system, entry.position
+        for entry in self.phenomena:
+            if hasattr(entry.phenomenon, "system_perimeter"):
+                yield entry.phenomenon, entry.position
+
+    def _random_position(self, obj, min_separation_ly):
         """
         Chooses a random `(x, y, z)` point uniformly within the sector's
-        cubic volume, far enough from every system already placed.
+        cubic volume, far enough from every massive object already placed
+        (every star system, plus any already-placed massive phenomenon --
+        see `_massive_neighbors`).
 
         Args:
-            star_system (StarSystem): The system being placed, needed (when
-                `min_separation_ly` is None) to work out its Hill radius.
+            obj (StarSystem or Star): The object being placed, needed (when
+                `min_separation_ly` is None) to work out its Hill radius --
+                a `StarSystem`, or a bare `Star`-like object (a standalone
+                `BlackHole`/`NeutronStar`).
             min_separation_ly (float or None): The minimum allowed distance
                 to every existing entry. If None, the requirement is worked
                 out per-neighbor from Hill spheres (`required_separation_ly`)
@@ -595,16 +713,16 @@ class SpaceSector:
         for _ in range(program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS):
             candidate = tuple(_rng.uniform(-half_edge, half_edge) for _ in range(3))
             if all(
-                distance_between(candidate, entry.position) >= (
+                distance_between(candidate, position) >= (
                     min_separation_ly if min_separation_ly is not None
-                    else required_separation_ly(star_system, entry.star_system)
+                    else required_separation_ly(obj, neighbor)
                 )
-                for entry in self.entries
+                for neighbor, position in self._massive_neighbors()
             ):
                 return candidate
 
         raise ValueError(
-            f"Could not place a new system far enough from every existing system within a "
+            f"Could not place a new object far enough from every existing massive object within a "
             f"{self.edge_ly} ly sector after {program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} "
             f"attempts; the sector may be too full or too small."
         )
@@ -665,6 +783,60 @@ class SpaceSector:
         jitter_ly = min(jitter_ly, half_edge)
         position = tuple(_rng.uniform(-jitter_ly, jitter_ly) for _ in range(3))
         return self.add_system(star_system, position=position, system_config=system_config)
+
+    def add_phenomenon(self, phenomenon, phenomenon_type, position=None, min_separation_ly=None):
+        """
+        Adds an already-generated exotic phenomenon (`phenomenonGen.py`'s
+        seven types) to the sector -- the `add_system` counterpart for
+        anything that isn't a `StarSystem`. See `generate_sector_phenomena`
+        (`sectorGen.py`) for how a sector's own phenomena population is
+        actually decided and generated.
+
+        A standalone `BlackHole`/`NeutronStar` is a real, stellar-mass
+        gravitating body -- it exposes `system_perimeter` exactly like any
+        `Star` does (see `compactRemnant.CompactRemnant`) -- so it gets
+        placed the same Hill-sphere-aware way `add_system` places a star
+        system, via `_random_position`/`_massive_neighbors`: never within
+        another star system's or compact remnant's own Hill sphere, and no
+        star system placed afterward will land within *its* Hill sphere
+        either, since `_massive_neighbors` folds it into every subsequent
+        placement check too. Every other phenomenon type (`Nebula`,
+        `SupernovaRemnant`, `RoguePlanet`, `InterstellarComet`,
+        `AsteroidField`) has no comparable gravitational footprint at this
+        generator's own scale -- none of them model a Hill sphere at all --
+        so it's simply placed at a uniformly random point in the sector's
+        cube instead.
+
+        Args:
+            phenomenon: The generated phenomenon object (a `BlackHole`,
+                `NeutronStar`, `Nebula`, `SupernovaRemnant`, `RoguePlanet`,
+                `InterstellarComet`, or `AsteroidField`).
+            phenomenon_type (str): One of
+                `program_constants.PHENOMENON_TYPE_CHOICES`.
+            position (tuple, optional): An explicit `(x, y, z)` position in
+                light-years. If omitted, a position is chosen automatically
+                per the placement rule above.
+            min_separation_ly (float, optional): Only consulted for a
+                massive phenomenon (see above) with no explicit `position`
+                -- a flat minimum allowed distance to every existing massive
+                object, overriding the default Hill-sphere-based check (as
+                `add_system`'s own parameter of the same name does).
+
+        Returns:
+            SectorPhenomenonEntry: The newly created entry.
+        """
+        is_massive = hasattr(phenomenon, "system_perimeter")
+
+        if position is None:
+            if is_massive:
+                position = self._random_position(phenomenon, min_separation_ly)
+            else:
+                half_edge = self.edge_ly / 2
+                position = tuple(_rng.uniform(-half_edge, half_edge) for _ in range(3))
+
+        entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position)
+        self.phenomena.append(entry)
+        return entry
 
     def _fine_tune_position(self, position, candidate_system,
                             max_iterations=program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS):
@@ -862,13 +1034,16 @@ class SpaceSector:
         Returns a JSON-serializable dict of the whole sector.
 
         Returns:
-            dict: With `name`, `edge_ly`, and `systems` (a list of each
-                 entry's `to_dict()`) keys.
+            dict: With `name`, `edge_ly`, `systems` (a list of each system
+                 entry's `to_dict()`), and `phenomena` (a list of each
+                 phenomenon entry's `to_dict()`, see `SectorPhenomenonEntry`)
+                 keys.
         """
         return {
             "name": self.name,
             "edge_ly": self.edge_ly,
             "systems": [entry.to_dict() for entry in self.entries],
+            "phenomena": [entry.to_dict() for entry in self.phenomena],
         }
 
     def save(self, path):
@@ -914,6 +1089,14 @@ class SpaceSector:
                 star_system = StarSystem(system_config=config)
             sector.entries.append(SectorSystemEntry(
                 star_system, system_data["position"], system_config=config,
+            ))
+
+        for phenomenon_data in data.get("phenomena", []):
+            phenomenon_type = phenomenon_data["phenomenon_type"]
+            phenomenon_class = _PHENOMENON_CLASSES_BY_TYPE[phenomenon_type]
+            phenomenon = phenomenon_class.from_dict(phenomenon_data["phenomenon"], SystemConfig())
+            sector.phenomena.append(SectorPhenomenonEntry(
+                phenomenon, phenomenon_type, phenomenon_data["position"],
             ))
 
         return sector

@@ -437,3 +437,200 @@ def test_sectors_table_rejects_duplicate_shell_slot_address(mysql_config):
             _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Random-start mode (no --shell/--center-sector given) -- galaxyGen.py's
+# zero-argument default: pick a random, not-yet-occupied address, generate
+# it, then generate every sector within --radius-pc (default 100 ly) of it.
+# ---------------------------------------------------------------------------
+
+def test_pick_random_shell_index_stays_within_bounds():
+    # No DB needed -- a pure function. Run many draws to catch an
+    # off-by-one at either boundary, not just the common case.
+    for _ in range(500):
+        shell_index = galaxyGen._pick_random_shell_index(0, EDGE_PC)
+        assert shell_index == 0
+
+    max_shell_index = 10
+    seen = set()
+    # Volume weighting means shell 0's own share of the sphere is tiny --
+    # measured empirically at ~0.00086 for this max_shell_index -- so a
+    # small draw count can genuinely (if rarely) never land there by
+    # chance; that's expected behavior, not a bug. 100,000 draws pushes
+    # the chance of missing it below 1e-40, so this stays a reliable check
+    # of the RNG's own reachability (an off-by-one that made shell 0 or
+    # max_shell_index literally unreachable) rather than a coin flip.
+    for _ in range(100_000):
+        shell_index = galaxyGen._pick_random_shell_index(max_shell_index, EDGE_PC)
+        assert 0 <= shell_index <= max_shell_index
+        seen.add(shell_index)
+    assert seen == set(range(max_shell_index + 1))
+
+
+def test_pick_random_shell_index_is_volume_weighted_toward_outer_shells():
+    # A uniformly-by-volume pick within a sphere of max radius R has a
+    # median radius at R * 0.5^(1/3) (~0.7937 R) -- the closed-form median
+    # of the r^3-uniform CDF _pick_random_shell_index's own r = R*u^(1/3)
+    # sampling implements. With max_shell_index=4253 (this module's own
+    # real-galaxy default), the median shell index should land close to
+    # that same fraction of the range, and overwhelmingly more draws
+    # should fall in the outer half than the inner half -- the opposite of
+    # what a naive uniform-by-index pick would give.
+    max_shell_index = 4253
+    samples = sorted(galaxyGen._pick_random_shell_index(max_shell_index, EDGE_PC) for _ in range(3000))
+    median = samples[len(samples) // 2]
+    expected_median = max_shell_index * 0.5 ** (1 / 3)
+    assert median == pytest.approx(expected_median, rel=0.05)
+
+    outer_half_fraction = sum(1 for s in samples if s > max_shell_index / 2) / len(samples)
+    assert outer_half_fraction > 0.8
+
+
+def test_process_args_with_no_arguments_resolves_to_random_start_mode():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["galaxyGen.py"]
+        args = galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+    assert args.shell is None
+    assert args.center_sector is None
+    assert args.radius_pc is None
+    assert args.max_shell is None
+
+
+def test_process_args_radius_pc_rejected_with_shell():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["galaxyGen.py", "--shell", "0", "--radius-pc", "10"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+
+def test_process_args_max_shell_rejected_with_shell_or_center_sector():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["galaxyGen.py", "--shell", "0", "--max-shell", "10"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+
+        sys.argv = ["galaxyGen.py", "--center-sector", "1", "--radius-pc", "5", "--max-shell", "10"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+
+def test_process_args_max_shell_must_be_non_negative():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["galaxyGen.py", "--max-shell", "-1"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+
+def test_process_args_accepts_radius_pc_and_max_shell_alone():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["galaxyGen.py", "--radius-pc", "10", "--max-shell", "5"]
+        args = galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+    assert args.radius_pc == 10
+    assert args.max_shell == 5
+
+
+def test_random_start_mode_generates_a_seed_sector_and_its_neighborhood(mysql_config):
+    # --max-shell 0 pins the randomly chosen seed to one of shell 0's 3
+    # slots (deterministic scope, matching this file's other small-radius
+    # neighborhood tests) -- a small --radius-pc keeps generation fast.
+    radius_pc = 8.0
+    _run_cli(
+        ["--max-shell", "0", "--radius-pc", str(radius_pc), "--num-systems", "1"] + _mysql_argv(mysql_config)
+    )
+
+    sectors = _all_sectors(mysql_config)
+    assert len(sectors) >= 1
+    # The seed is the first row inserted (generate_and_save_sector_at runs
+    # before run_local_neighborhood's own loop) -- every other row's
+    # address must fall within radius_pc of its real galaxy-frame center.
+    seed = min(sectors, key=lambda row: row["id"])
+    assert seed["shell_index"] == 0
+
+    seed_center = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
+    expected_addresses = {
+        (shell_index, slot_index)
+        for shell_index, slot_index, _x, _y, _z, _dist in
+        enumerate_sectors_within_radius(seed_center, radius_pc, EDGE_PC)
+    }
+    actual_addresses = {(row["shell_index"], row["shell_slot_index"]) for row in sectors}
+    assert actual_addresses == expected_addresses
+    assert len(sectors) == len(actual_addresses)
+
+
+def test_random_start_mode_retries_until_an_unoccupied_address_is_found(mysql_config):
+    # Occupy 2 of shell 0's 3 slots directly -- with --max-shell 0, the
+    # random pick must keep retrying (not immediately fail) until it lands
+    # on the one remaining unoccupied slot.
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            for slot_index in (0, 1):
+                position_pc = sector_position_pc(0, slot_index, EDGE_PC)
+                galaxyGen.generate_and_save_sector_at(
+                    _fake_args_for_direct_generation(mysql_config), 0, slot_index, position_pc, EDGE_PC,
+                )
+    finally:
+        conn.close()
+    assert len(_all_sectors(mysql_config)) == 2
+
+    _run_cli(["--max-shell", "0", "--radius-pc", "0.001", "--num-systems", "1"] + _mysql_argv(mysql_config))
+
+    sectors = _all_sectors(mysql_config)
+    addresses = {(row["shell_index"], row["shell_slot_index"]) for row in sectors}
+    # The only address that could have been newly generated is slot 2 --
+    # the sole remaining unoccupied one in shell 0.
+    assert (0, 2) in addresses
+    assert len(sectors) == 3
+
+
+def test_random_start_mode_gives_up_after_max_attempts_when_fully_occupied(mysql_config, monkeypatch):
+    # Every shell-0 slot already occupied, and --max-shell 0 forces every
+    # draw into shell 0 -- random-start mode must eventually give up with
+    # a clear error rather than looping forever or crashing obscurely.
+    # A tiny attempts cap keeps this test fast.
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            for slot_index in range(shell_sector_count(0)):
+                position_pc = sector_position_pc(0, slot_index, EDGE_PC)
+                galaxyGen.generate_and_save_sector_at(
+                    _fake_args_for_direct_generation(mysql_config), 0, slot_index, position_pc, EDGE_PC,
+                )
+    finally:
+        conn.close()
+
+    monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
+
+    with pytest.raises(SystemExit):
+        _run_cli(["--max-shell", "0", "--radius-pc", "1.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+
+
+def _fake_args_for_direct_generation(mysql_config):
+    """A minimal args namespace shaped like galaxyGen.process_args()'s own
+    output, for directly calling generate_and_save_sector_at in a test
+    without going through the CLI -- mirrors galaxyGen._default_generation_args
+    but pointed at the fixture's own throwaway database, with num_systems
+    pinned to 1 (this file's own "keep it fast" convention -- see the
+    module docstring)."""
+    args = galaxyGen._default_generation_args(config=mysql_config)
+    args.density = None
+    args.num_systems = 1
+    return args

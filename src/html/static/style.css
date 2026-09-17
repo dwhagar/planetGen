@@ -693,6 +693,16 @@ tbody tr:last-child td {
   filter: blur(0.5px);
 }
 
+/* Black holes/neutron stars are point-like (see starmap.py's own
+   _cloud_html), so unlike the soft, blurred nebula/asteroid-field
+   clouds above, these stay crisp -- a small glow (box-shadow, not
+   blur) helps a marker this small still read clearly against the
+   scene's dark background. */
+.black-hole-point,
+.neutron-star-point {
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.25);
+}
+
 .starmap-side {
   display: flex;
   flex-direction: column;

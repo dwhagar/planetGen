@@ -667,3 +667,190 @@ def test_space_sector_module_does_not_import_system_gen():
             assert not any(alias.name.split(".")[0] == "systemGen" for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
             assert node.module is None or node.module.split(".")[0] != "systemGen"
+
+
+# ---------------------------------------------------------------------------
+# Exotic phenomena -- SectorPhenomenonEntry / SpaceSector.add_phenomenon
+# (generalized Hill-sphere placement for a standalone BlackHole/NeutronStar,
+# random placement for every other phenomenon type). See spaceSector.py's
+# own module docstring, "Minimum separation (Hill spheres)".
+# ---------------------------------------------------------------------------
+
+from stellarObjects.asteroidFieldData import AsteroidField
+from stellarObjects.compactRemnant import BlackHole, NeutronStar
+from stellarObjects.nebulaData import Nebula
+from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+from stellarObjects.spaceSector import SectorPhenomenonEntry
+from stellarObjects.supernovaRemnantData import SupernovaRemnant
+
+
+def make_black_hole():
+    return BlackHole(SystemConfig())
+
+
+def make_nebula():
+    return Nebula(SystemConfig())
+
+
+def test_hill_radius_ly_works_on_a_bare_compact_remnant_not_just_a_star_system():
+    black_hole = make_black_hole()
+    # A standalone BlackHole IS the Star-like object (no .star wrapper) --
+    # hill_radius_ly must read its own system_perimeter directly.
+    assert hill_radius_ly(black_hole) == pytest.approx(
+        black_hole.system_perimeter * physical_constants.AU_TO_LY
+    )
+    assert hill_radius_ly(black_hole) > 0
+
+
+def test_add_phenomenon_for_a_massive_type_respects_hill_sphere_against_star_systems():
+    sector = SpaceSector("Massive Phenomenon Sector", edge_ly=40.0)
+    entries = []
+    for _ in range(3):
+        system, _ = make_system(star_type="G2V")
+        entries.append(sector.add_system(system))
+
+    black_hole = make_black_hole()
+    phenomenon_entry = sector.add_phenomenon(black_hole, "black-hole")
+
+    for entry in entries:
+        required = required_separation_ly(black_hole, entry.star_system)
+        assert phenomenon_entry.distance_to(entry) >= required - 1e-9
+
+
+def test_add_phenomenon_for_a_non_massive_type_ignores_hill_sphere():
+    # A nebula has no system_perimeter -- add_phenomenon must place it
+    # randomly in the cube without any separation requirement, even right
+    # on top of an existing star system's own Hill sphere.
+    sector = SpaceSector("Non-Massive Phenomenon Sector", edge_ly=0.2)
+    system, _ = make_system(star_type="G2V")
+    sector.add_system(system, position=(0.0, 0.0, 0.0))
+
+    nebula = make_nebula()
+    entry = sector.add_phenomenon(nebula, "nebula")  # must not raise
+    half_edge = sector.edge_ly / 2
+    assert all(-half_edge <= coordinate <= half_edge for coordinate in entry.position)
+
+
+def test_add_phenomenon_massive_neighbors_include_already_placed_massive_phenomena():
+    # A second black hole must respect the first one's own Hill sphere too,
+    # not just star systems' -- _massive_neighbors folds phenomena in.
+    sector = SpaceSector("Two Black Holes Sector", edge_ly=60.0)
+    first = sector.add_phenomenon(make_black_hole(), "black-hole")
+    second_bh = make_black_hole()
+    second = sector.add_phenomenon(second_bh, "black-hole")
+
+    required = required_separation_ly(second_bh, first.phenomenon)
+    assert first.distance_to(second) >= required - 1e-9
+
+
+def test_add_phenomenon_massive_neighbors_exclude_non_massive_phenomena():
+    # A nebula must NOT count as a massive neighbor -- placing a black hole
+    # right where a nebula already sits is fine (no gravitational conflict).
+    sector = SpaceSector("Mixed Phenomena Sector", edge_ly=0.2)
+    nebula_entry = sector.add_phenomenon(make_nebula(), "nebula", position=(0.0, 0.0, 0.0))
+    black_hole = make_black_hole()
+    # Explicit position right on top of the nebula -- must succeed since
+    # add_phenomenon only rejects overlap with *massive* neighbors, and a
+    # nebula isn't one.
+    bh_entry = sector.add_phenomenon(black_hole, "black-hole", position=(0.0, 0.0, 0.0))
+    assert bh_entry.distance_to(nebula_entry) == pytest.approx(0.0)
+
+
+def test_star_system_added_after_a_massive_phenomenon_also_respects_its_hill_sphere():
+    # The Hill-sphere generalization cuts both ways: add_system's own
+    # random placement must also avoid landing inside an already-placed
+    # black hole's/neutron star's Hill sphere.
+    sector = SpaceSector("Phenomenon First Sector", edge_ly=40.0)
+    black_hole = make_black_hole()
+    bh_entry = sector.add_phenomenon(black_hole, "black-hole")
+
+    system, _ = make_system(star_type="G2V")
+    system_entry = sector.add_system(system)
+
+    required = required_separation_ly(black_hole, system)
+    assert bh_entry.distance_to(system_entry) >= required - 1e-9
+
+
+def test_add_phenomenon_raises_when_sector_too_full_for_a_massive_type():
+    sector = SpaceSector("Tiny Phenomenon Sector", edge_ly=0.1)
+    system, _ = make_system(star_type="O5V")  # a large Hill sphere
+    sector.add_system(system, position=(0.0, 0.0, 0.0))
+
+    with pytest.raises(ValueError):
+        sector.add_phenomenon(make_black_hole(), "black-hole")
+
+
+def test_add_phenomenon_explicit_position_bypasses_placement_entirely():
+    sector = SpaceSector("Explicit Position Sector", edge_ly=0.1)
+    system, _ = make_system(star_type="O5V")
+    sector.add_system(system, position=(0.0, 0.0, 0.0))
+
+    # An explicit position is honored even though it violates the Hill
+    # sphere -- the same contract add_system's own explicit-position path
+    # already has.
+    entry = sector.add_phenomenon(make_black_hole(), "black-hole", position=(0.0, 0.0, 0.0))
+    assert entry.position == (0.0, 0.0, 0.0)
+
+
+def test_sector_phenomenon_entry_distance_to_and_named_location():
+    nebula = make_nebula()
+    entry = SectorPhenomenonEntry(nebula, "nebula", (3.0, 4.0, 0.0))
+    assert entry.distance_to((0.0, 0.0, 0.0)) == pytest.approx(5.0)
+    assert "Octant" in entry.named_location()
+
+
+def test_sector_phenomenon_entry_to_dict_shape():
+    nebula = make_nebula()
+    entry = SectorPhenomenonEntry(nebula, "nebula", (1.0, 2.0, 3.0))
+    data = entry.to_dict()
+    assert data["phenomenon_type"] == "nebula"
+    assert data["position"] == [1.0, 2.0, 3.0]
+    assert data["phenomenon"]["name"] == nebula.name
+
+
+def test_to_dict_and_from_dict_round_trip_phenomena():
+    sector = SpaceSector("Phenomena Round Trip Sector", edge_ly=40.0)
+    system, _ = make_system(star_type="G2V")
+    sector.add_system(system)
+
+    black_hole_entry = sector.add_phenomenon(make_black_hole(), "black-hole")
+    nebula_entry = sector.add_phenomenon(make_nebula(), "nebula")
+    rogue_planet_entry = sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
+    comet_entry = sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet")
+    field_entry = sector.add_phenomenon(AsteroidField(SystemConfig()), "asteroid-field")
+    supernova_entry = sector.add_phenomenon(SupernovaRemnant(SystemConfig()), "supernova-remnant")
+    neutron_star_entry = sector.add_phenomenon(NeutronStar(SystemConfig()), "neutron-star")
+
+    original_entries = [
+        black_hole_entry, nebula_entry, rogue_planet_entry, comet_entry,
+        field_entry, supernova_entry, neutron_star_entry,
+    ]
+
+    data = sector.to_dict()
+    assert len(data["phenomena"]) == 7
+
+    rebuilt = SpaceSector.from_dict(data)
+    assert len(rebuilt.phenomena) == 7
+    assert len(rebuilt.entries) == 1  # the one star system round-trips too
+
+    rebuilt_by_type = {entry.phenomenon_type: entry for entry in rebuilt.phenomena}
+    for original in original_entries:
+        rebuilt_entry = rebuilt_by_type[original.phenomenon_type]
+        assert rebuilt_entry.position == original.position
+        assert rebuilt_entry.phenomenon.name == original.phenomenon.name
+
+
+def test_from_dict_with_no_phenomena_key_is_backward_compatible():
+    # A sector saved before phenomena existed (or one hand-authored without
+    # them) has no "phenomena" key at all -- from_dict must default to an
+    # empty list rather than raising.
+    sector = SpaceSector("No Phenomena Key Sector")
+    system, _ = make_system(star_type="G2V")
+    sector.add_system(system, position=(0.0, 0.0, 0.0))
+
+    data = sector.to_dict()
+    del data["phenomena"]
+
+    rebuilt = SpaceSector.from_dict(data)
+    assert rebuilt.phenomena == []
+    assert len(rebuilt.entries) == 1

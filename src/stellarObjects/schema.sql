@@ -401,8 +401,10 @@
 --     `nebulae`/`supernova_remnants`/`rogue_planets`/`interstellar_comets`
 --   -- always standalone (nothing in this generator places these within a
 --   `StarSystem`), with a nullable `sector_id` reserved for a future
---   sector-context encounter (unused by `phenomenonGen.py` today, which
---   never creates or attaches a sector). `supernova_remnants` additionally
+--   sector-context encounter (unused by `phenomenonGen.py` at the time,
+--   which never created or attached a sector -- see this file's "v21"
+--   header note for `sectorGen.py`'s own later per-sector generation,
+--   which does). `supernova_remnants` additionally
 --   references at most one of `black_holes`/`neutron_stars` (`compact_remnant_kind`
 --   discriminator, mirroring `StarSystem.binary_type`'s own "type string
 --   selects which nullable reference is populated" convention) for a
@@ -530,6 +532,28 @@
 --     These are new columns on already-existing tables (`star_systems`,
 --   `stars`, `planets`), so `_migrate_v19_to_v20` needs real `ALTER TABLE`
 --   statements, the same as v17's/v18's column additions.
+--
+-- v21: sector-level exotic phenomena (`sectorGen.generate_sector_phenomena`
+--   -- every generated sector now also seeds a realistically sparse
+--   population of phenomenonGen.py's own seven types, not just
+--   phenomenonGen.py's separate on-demand CLI). `black_holes`/
+--   `neutron_stars` gain the same nullable `sector_id`/`center_x/y/z_pc`/
+--   `galactic_radius_pc` galaxy-frame placement shape v18 already gave
+--   `nebulae`/`asteroid_fields` -- a standalone compact remnant is a real,
+--   stellar-mass gravitating body, so (unlike every other phenomenon type)
+--   its own in-sector position is the exact one
+--   `SpaceSector.add_phenomenon`'s Hill-sphere-aware placement computed at
+--   generation time (never within a neighboring star system's or another
+--   compact remnant's own Hill sphere), converted to an absolute
+--   galaxy-frame center via `_db._galaxy_placement_from_sector_offset`
+--   rather than `compute_phenomenon_placement`'s independent random
+--   jitter (which still applies as before for `phenomenonGen.py --type
+--   black-hole/neutron-star --sector-id`'s own standalone use, where no
+--   such specific in-sector position exists). `supernova_remnants`/
+--   `rogue_planets`/`interstellar_comets` needed no schema change at all
+--   -- their `sector_id` column already existed (v16, "reserved for a
+--   future sector-context encounter"); `_db.save_phenomenon` now actually
+--   populates it instead of leaving it perpetually NULL.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1280,6 +1304,14 @@ CREATE TABLE IF NOT EXISTS comet_composition (
 CREATE TABLE IF NOT EXISTS black_holes (
     id                        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     star_id                   BIGINT UNSIGNED,
+    -- v21: the sector a standalone black hole was generated as part of
+    -- (sectorGen.generate_sector_phenomena), plus its own galaxy-frame
+    -- center -- see this file's "v21" header note. Always NULL when
+    -- star_id is set (an anchored remnant belongs to its own StarSystem,
+    -- not directly to a sector). NULL together: never placed in the
+    -- galaxy (a phenomenonGen.py --type black-hole run with no
+    -- --sector-id, exactly like before v21).
+    sector_id                 BIGINT UNSIGNED,
     name                      VARCHAR(255) NOT NULL,
     mass_solar                DOUBLE NOT NULL,
     event_horizon_radius_km   DOUBLE NOT NULL,
@@ -1296,14 +1328,34 @@ CREATE TABLE IF NOT EXISTS black_holes (
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
 
+    -- v21: this black hole's own galaxy-frame center -- see nebulae's
+    -- identical "v18" column comment above (same shape, added here a
+    -- version later).
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
+    CONSTRAINT chk_black_holes_placement CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
     CONSTRAINT fk_black_holes_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
-    KEY idx_black_holes_star_id (star_id)
+    CONSTRAINT fk_black_holes_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
+    KEY idx_black_holes_star_id (star_id),
+    KEY idx_black_holes_sector_id (sector_id),
+    KEY idx_black_holes_galactic_radius_pc (galactic_radius_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS neutron_stars (
     id                        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     star_id                   BIGINT UNSIGNED,
+    -- v21: same sector-link/placement convention as black_holes above.
+    sector_id                 BIGINT UNSIGNED,
     name                      VARCHAR(255) NOT NULL,
     mass_solar                DOUBLE NOT NULL,
     radius_km                 DOUBLE NOT NULL,
@@ -1319,15 +1371,32 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
 
+    -- v21: same galaxy-frame center convention as black_holes above.
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
+    CONSTRAINT chk_neutron_stars_placement CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
     CONSTRAINT fk_neutron_stars_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
-    KEY idx_neutron_stars_star_id (star_id)
+    CONSTRAINT fk_neutron_stars_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
+    KEY idx_neutron_stars_star_id (star_id),
+    KEY idx_neutron_stars_sector_id (sector_id),
+    KEY idx_neutron_stars_galactic_radius_pc (galactic_radius_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- nebulae -- v16 exotic phenomenon, always standalone. `sector_id` is
--- reserved for a future sector-context encounter; unused (always NULL)
--- by phenomenonGen.py today.
+-- nebulae -- v16 exotic phenomenon, always standalone. `sector_id` links
+-- it to the nearest sector, populated by phenomenonGen.py --sector-id or
+-- (v21 on) sectorGen.py's own per-sector generation -- see this file's
+-- "v18"/"v21" header notes.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS nebulae (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -1474,9 +1543,9 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
 -- ---------------------------------------------------------------------
 -- asteroid_fields -- v17 exotic phenomenon (seventh phenomenon type),
 -- always standalone (a field drifting in open space, as opposed to
--- asteroid_belts, which always orbits a star). `sector_id` is reserved
--- for a future sector-context encounter; unused (always NULL) by
--- phenomenonGen.py today, the same convention `nebulae` uses.
+-- asteroid_belts, which always orbits a star). `sector_id` links it to
+-- the nearest sector, the same convention `nebulae` uses (see this file's
+-- "v18"/"v21" header notes).
 -- `asteroid_field_composition` mirrors `asteroid_belt_composition`
 -- exactly (same per-component/concentration shape -- both are generated
 -- via the same shared `asteroidData.generate_asteroid_composition`).
