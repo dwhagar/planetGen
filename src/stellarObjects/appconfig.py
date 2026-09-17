@@ -64,16 +64,14 @@ DEFAULT_CONFIG = {
         "database_prefix": "planetgen",
     },
     "mysql_write": {
-        # Empty string means "inherit the matching `mysql` value" -- same
-        # fallback behavior the old `PLANETGEN_MYSQL_WRITE_*` env vars
-        # already had against `PLANETGEN_MYSQL_*`. Only set the fields
-        # that actually need to differ for a distinct write-capable
-        # account (typically just user/password).
-        "host": "",
-        "port": "",
+        # host/port/database/database_prefix always come from the `mysql`
+        # section above -- the read-only and write-capable accounts share
+        # one server/schema, only their credentials differ. Empty string
+        # means "inherit the matching `mysql` value", same fallback
+        # behavior the old `PLANETGEN_MYSQL_WRITE_*` env vars already had
+        # against `PLANETGEN_MYSQL_*`.
         "user": "",
         "password": "",
-        "database": "",
     },
     "control_database": "planetgen_control",
     "ratelimit": {

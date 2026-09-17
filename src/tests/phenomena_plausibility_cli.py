@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 src/tests/phenomena_plausibility_cli.py -- exotic-phenomena plausibility
 anomaly finder (CLI). Not a pytest test module itself (no `test_*` name,

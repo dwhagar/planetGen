@@ -39,13 +39,15 @@ of repeating them across every vhost/service file):
   runs against, not this one; point the *deployed* Apache/`mod_wsgi`
   process's own `PLANETGEN_MYSQL_*` at the restricted read-only account
   separately (see the vhost example's comments).
-- **`PLANETGEN_MYSQL_WRITE_*`** — `INSERT`/`UPDATE`/`DELETE`/`SELECT` (not
-  `CREATE`/`DROP`) on both the content schemas and the control schema
-  (below), used only by the API's write endpoints (sector/system create/
-  update/delete, and everything under `/api/auth/`). Falls back to
-  `PLANETGEN_MYSQL_*`'s values when unset, so a single-account local/dev
-  setup needs no extra configuration -- give it a distinct, less-
-  privileged account in production.
+- **`PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD`** — `INSERT`/`UPDATE`/`DELETE`/
+  `SELECT` (not `CREATE`/`DROP`) on both the content schemas and the
+  control schema (below), used only by the API's write endpoints (sector/
+  system create/update/delete, and everything under `/api/auth/`). Always
+  the same host/port/database as `PLANETGEN_MYSQL_*` -- only the
+  credentials differ between the two accounts, never the server or
+  schema. Falls back to `PLANETGEN_MYSQL_*`'s own credentials when unset,
+  so a single-account local/dev setup needs no extra configuration -- give
+  it a distinct, less-privileged account in production.
 - The full-access account `migrateDb.py` runs as also needs to create and
   seed the **control schema** (`PLANETGEN_CONTROL_DATABASE`, default
   `planetgen_control`) -- `migrateDb.py` does this automatically,
