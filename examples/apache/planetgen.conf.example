@@ -91,13 +91,11 @@
     # process environment instead (e.g. /etc/apache2/envvars) for the API
     # to see it at all.
     #
-    # A separate, write-capable (INSERT/UPDATE/DELETE, not CREATE/DROP)
-    # account for the API's write endpoints (sector/system create/update/
-    # delete, and everything under /api/auth/) -- see
-    # docs/apache-deployment.md#mysql-accounts. Falls back to
-    # PLANETGEN_MYSQL_* above when unset.
-    # SetEnv PLANETGEN_MYSQL_WRITE_USER planetgen_write
-    # SetEnv PLANETGEN_MYSQL_WRITE_PASSWORD changeme
+    # No separate write-capable account -- the API's write endpoints
+    # (sector/system create/update/delete, and everything under
+    # /api/auth/) reuse PLANETGEN_MYSQL_* above, so it needs INSERT/
+    # UPDATE/DELETE grants too if those endpoints are reachable, not just
+    # SELECT. See docs/apache-deployment.md#mysql-accounts.
     #
     # The control schema (admin logins/sessions/API keys/audit log) --
     # defaults to "planetgen_control" if unset.

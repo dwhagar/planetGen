@@ -339,12 +339,11 @@ Every write route requires an authenticated admin (session cookie or
 `must_change_credentials` flag is clear — the seeded `admin`/`password`
 bootstrap admin can log in and call `/api/auth/change-credentials`, but
 nothing else, until it changes its own credentials (`403` otherwise). A
-missing/invalid credential is `401`. Every write route runs against a
-separate, less-privileged-than-`CREATE`-capable database account
-(`PLANETGEN_MYSQL_WRITE_*` — see `config.py` and
-[`apache-deployment.md`](apache-deployment.md)) than the `SELECT`-only one
-every read route above uses, and records one row in the control schema's
-`admin_audit_log` (who, what, when) after the write actually succeeds.
+missing/invalid credential is `401`. Every write route runs against the
+same `PLANETGEN_MYSQL_*` database account every read route above uses —
+see `config.py` and [`apache-deployment.md`](apache-deployment.md) — and
+records one row in the control schema's `admin_audit_log` (who, what,
+when) after the write actually succeeds.
 
 ### Sectors — request body
 
@@ -508,23 +507,17 @@ PLANETGEN_MYSQL_HOST=db.example.com PLANETGEN_MYSQL_DATABASE=planetgen_alpha pyt
 ```
 
 Every other `PLANETGEN_*` variable mentioned throughout this document
-(rate limits, the write-capable/control-schema overrides, the admin
-cookie's `Secure` flag) has a matching `config.json` field too — see
-[`config.md`](config.md) for the full list; env vars still take
-precedence over `config.json` when both are set.
+(rate limits, the control-schema name, the admin cookie's `Secure` flag)
+has a matching `config.json` field too — see [`config.md`](config.md) for
+the full list; env vars still take precedence over `config.json` when
+both are set.
 
-Every read goes through `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` —
-point those at a database account with `SELECT`-only grants in production,
-same recommendation as `queryDb.py`'s (see that script's module docstring).
-
-Every write (sector/system create/update/delete) goes through a separate
-`PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD` config instead, on the same
-host/port/database as the read-only account — falls back to the
-read-only `PLANETGEN_MYSQL_*` credentials when unset, so a single
-local/dev account keeps working with no extra configuration, but
-production should point it at a distinct account with `INSERT`/`UPDATE`/
-`DELETE` (not `CREATE`/`DROP`) grants — see `html/api/config.py`'s
-`_write_mysql_config` and [`apache-deployment.md`](apache-deployment.md).
+Every read *and* write (sector/system create/update/delete) goes through
+the same `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` account —
+`WRITE_MYSQL_CONFIG` simply reuses `MYSQL_CONFIG` (see
+`html/api/config.py`), there's no separate write-capable override. Point
+it at an account with `INSERT`/`UPDATE`/`DELETE`/`SELECT` grants in
+production — see [`apache-deployment.md`](apache-deployment.md#mysql-accounts).
 
 Admin logins/sessions/API keys/audit log live in a separate **control
 schema** (`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`),

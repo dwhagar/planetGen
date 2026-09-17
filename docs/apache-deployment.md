@@ -25,34 +25,28 @@ walkthrough.
 
 ## MySQL accounts
 
-Three distinct MySQL accounts are relevant to a production deployment
-(see [`api.md`](api.md)'s "Running locally"/"Not done yet" sections,
-[`database-schema.md`](database-schema.md#the-control-schema) for the
-full detail behind each, and [`config.md`](config.md) for setting any of
-the environment variables below once, in a shared `config.json`, instead
-of repeating them across every vhost/service file):
+One MySQL account (`PLANETGEN_MYSQL_*`, or `config.json`'s `mysql`
+section -- see [`config.md`](config.md) for setting it once in a shared
+`config.json` instead of repeating it across every vhost/service file) is
+used everywhere: the generation CLIs, `install.sh`/`migrateDb.py` (which
+need full `CREATE`/`ALTER`/DML grants -- that's the account schema DDL
+runs against), and the deployed Flask API's reads *and* writes alike
+(sector/system create/update/delete, and everything under `/api/auth/`,
+need at least `INSERT`/`UPDATE`/`DELETE`/`SELECT`). There's no separate
+write-capable account to configure -- `WRITE_MYSQL_CONFIG` simply reuses
+`MYSQL_CONFIG` (see `html/api/config.py`). If a deployment still wants the
+*deployed* Apache/`mod_wsgi` process on a different, less-privileged
+account than the one `install.sh`/`migrateDb.py` run as, point its own
+`PLANETGEN_MYSQL_*` at that account separately (see the vhost example's
+comments) -- but remember it now needs write grants too if the API's
+write endpoints are reachable, not just `SELECT`.
 
-- **`PLANETGEN_MYSQL_*`** — `SELECT`-only, used by every read endpoint
-  and the CGI browser. The account `install.sh`/`migrateDb.py` runs as
-  (via the shell's own environment when you invoke them) needs full
-  `CREATE`/`ALTER`/DML grants instead -- that's the account schema DDL
-  runs against, not this one; point the *deployed* Apache/`mod_wsgi`
-  process's own `PLANETGEN_MYSQL_*` at the restricted read-only account
-  separately (see the vhost example's comments).
-- **`PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD`** — `INSERT`/`UPDATE`/`DELETE`/
-  `SELECT` (not `CREATE`/`DROP`) on both the content schemas and the
-  control schema (below), used only by the API's write endpoints (sector/
-  system create/update/delete, and everything under `/api/auth/`). Always
-  the same host/port/database as `PLANETGEN_MYSQL_*` -- only the
-  credentials differ between the two accounts, never the server or
-  schema. Falls back to `PLANETGEN_MYSQL_*`'s own credentials when unset,
-  so a single-account local/dev setup needs no extra configuration -- give
-  it a distinct, less-privileged account in production.
-- The full-access account `migrateDb.py` runs as also needs to create and
-  seed the **control schema** (`PLANETGEN_CONTROL_DATABASE`, default
-  `planetgen_control`) -- `migrateDb.py` does this automatically,
-  alongside its usual content-schema migration, every time it's run (i.e.
-  every `install.sh`/`update.sh`).
+That same account also needs to create and seed the **control schema**
+(`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`, see
+[`database-schema.md`](database-schema.md#the-control-schema)) --
+`migrateDb.py` does this automatically, alongside its usual
+content-schema migration, every time it's run (i.e. every
+`install.sh`/`update.sh`).
 
 **The admin web UI (`login.py`/`admin.py`/`changecreds.py`) requires
 HTTPS** — its session cookie is `Secure` by default and simply won't be

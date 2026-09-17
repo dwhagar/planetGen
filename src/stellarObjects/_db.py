@@ -534,11 +534,11 @@ def open_write(config=None):
     """
     Opens a connection for a write-capable caller against an already-
     existing content database (`ensure_schema=False` -- same reasoning as
-    `queryDb.open_readonly`: a write-capable account (see
-    `docs/apache-deployment.md`'s `PLANETGEN_MYSQL_WRITE_*`) deliberately
-    has no `CREATE`/`ALTER` grant, so attempting `_ensure_schema`'s DDL
-    here would fail every connection instead of just skipping a step a
-    full-access account has already done once, via `migrateDb.py`).
+    `queryDb.open_readonly`: if the account passed in (see
+    `docs/apache-deployment.md`'s "MySQL accounts") lacks `CREATE`/`ALTER`
+    grants, attempting `_ensure_schema`'s DDL here would fail every
+    connection instead of just skipping a step a full-access account has
+    already done once, via `migrateDb.py`).
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -554,10 +554,10 @@ def control_mysql_config(base_config=None):
     """
     Builds a `MySQLConfig` pointed at the control schema (see
     `control_schema.sql`'s header comment), reusing `base_config`'s
-    host/port/user/password -- typically the same write-capable account
-    `open_write` uses (`docs/apache-deployment.md`'s `PLANETGEN_MYSQL_WRITE_*`),
-    since the control schema needs the same `SELECT`/`INSERT`/`UPDATE`/
-    `DELETE` grants, just on a different schema name.
+    host/port/user/password -- typically the same account `open_write`
+    uses (`docs/apache-deployment.md`'s "MySQL accounts"), since the
+    control schema needs the same `SELECT`/`INSERT`/`UPDATE`/`DELETE`
+    grants, just on a different schema name.
 
     Args:
         base_config (MySQLConfig, optional): Connection parameters to
@@ -585,8 +585,8 @@ def get_control_connection(config=None, ensure_schema=False):
             to `control_mysql_config()`.
         ensure_schema (bool): Whether to run `_ensure_control_schema`
             (DDL) on this connection -- `False` by default (the normal
-            runtime case: the Flask API's write-capable account has no
-            `CREATE` grant, same reasoning as `open_write` above).
+            runtime case: the Flask API's account may have no `CREATE`
+            grant, same reasoning as `open_write` above).
             `adminAuth.bootstrap_control_schema` passes `True`, using a
             full-access account (the same one `migrateDb.py` already
             uses), to create/update the control schema once per deploy.

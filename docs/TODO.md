@@ -229,9 +229,9 @@ and git history.
   (`stellarObjects/control_schema.sql`: `admin_users`/`admin_sessions`/
   `admin_api_keys`/`admin_audit_log`), seeded with a default `admin`/
   `password` login that's blocked from doing anything else until its
-  credentials are changed. Writes run against a separate,
-  less-privileged `PLANETGEN_MYSQL_WRITE_*` account, never the
-  `SELECT`-only one every read endpoint uses. New admin web pages
+  credentials are changed. Writes run against the same `PLANETGEN_MYSQL_*`
+  account every read endpoint uses -- no separate write-capable override.
+  New admin web pages
   (`html/login.py`/`changecreds.py`/`admin.py`) for logging in, the
   forced credential change, and API key management. See `docs/api.md`'s
   "Authentication"/"Write endpoints" sections,
