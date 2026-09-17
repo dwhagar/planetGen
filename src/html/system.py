@@ -283,7 +283,7 @@ def handler():
         f'<span class="badge">{bit}</span>' for bit in summary_bits
     ) + "</p>"
 
-    # TODO(wiki.js publishing): add an "Upload to Wiki" button/form here,
+    # TODO(wiki publishing): add an "Upload to Wiki" button/form here,
     # shown only when `auth_me(incoming_cookie_header())` resolves an
     # admin session (see admin.py for the identity-check pattern, and
     # api/routes.py's own TODO for what it would call). Something like:

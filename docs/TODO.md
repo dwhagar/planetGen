@@ -78,16 +78,19 @@ open items need working detail.
   modify its stars/planets/moons/belts short of `DELETE` + `POST`
   (regenerate). Not clear this needs solving at all (vs. "just
   regenerate"), but flagged in case it does.
-- [ ] **Wiki.js publishing isn't wired up yet.** A standalone,
-  fully-tested `wikijs.WikiJsClient` (`src/wikijs/`, see
-  `src/tests/test_wikijs_client.py`/`test_wikijs_client_integration.py`)
-  can create a Wiki.js page over its GraphQL API (create-only — see that
-  package's own docstring), but nothing in this project calls it yet.
-  Wiring an "Upload to Wiki" button on `html/system.py` into it — a new
-  `config.json` `wiki` section, a `POST /api/systems/<id>/wiki` write
-  route, an `apiclient.py` wrapper, and the button/form itself — is left
-  as `# TODO` comments at each of those spots; see those comments for the
-  specifics.
+- [ ] **Wiki publishing isn't wired up yet.** A standalone, fully-tested
+  `wikiClient` library (`src/wikiClient/`) gives one `WikiClient` object a
+  `create_page` that publishes to either a Wiki.js instance (over its
+  GraphQL API, `wikijs.WikiJsBackend`) or a MediaWiki instance (over its
+  Action API via a bot password, `mediawiki.MediaWikiBackend`) — both
+  create-only (see the package's own docstrings), and both tested (see
+  `src/tests/test_wikiclient_wikijs.py`/`test_wikiclient_mediawiki.py`,
+  plus each one's own opt-in `_integration.py` counterpart) — but nothing
+  in this project calls it yet. Wiring an "Upload to Wiki" button on
+  `html/system.py` into it — a new `config.json` `wiki` section (backend
+  choice + credentials), a `POST /api/systems/<id>/wiki` write route, an
+  `apiclient.py` wrapper, and the button/form itself — is left as `# TODO`
+  comments at each of those spots; see those comments for the specifics.
 
 ## Population and Politics
 

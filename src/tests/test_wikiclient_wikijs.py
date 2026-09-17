@@ -1,10 +1,11 @@
-# tests/test_wikijs_client.py
+# tests/test_wikiclient_wikijs.py
 
 """
-Unit tests for `wikijs.client.WikiJsClient` -- every request/response cycle
-is mocked at `urllib.request.urlopen`, so this file needs no live Wiki.js
-instance and no network access to run. See `test_wikijs_client_integration.py`
-for the optional live-instance counterpart.
+Unit tests for `wikiClient.wikijs.WikiJsBackend` -- every request/response
+cycle is mocked at `urllib.request.urlopen`, so this file needs no live
+Wiki.js instance and no network access to run. See
+`test_wikiclient_wikijs_integration.py` for the optional live-instance
+counterpart.
 """
 
 import json
@@ -13,7 +14,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from wikijs import WikiJsAuthError, WikiJsClient, WikiJsPageExistsError, WikiJsRequestError
+from wikiClient import WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
+from wikiClient.wikijs import WikiJsBackend
 
 BASE_URL = "https://wiki.example.com"
 API_TOKEN = "test-token-123"
@@ -50,7 +52,7 @@ def _create_result(succeeded=True, error_code=0, message="", page=None):
 
 @pytest.fixture
 def client():
-    return WikiJsClient(BASE_URL, API_TOKEN)
+    return WikiJsBackend(BASE_URL, API_TOKEN)
 
 
 def test_create_page_success_sends_expected_request(client):
@@ -102,14 +104,14 @@ def test_create_page_defaults_tags_to_empty_list(client):
 def test_create_page_duplicate_path_raises_page_exists_error(client):
     result = _create_result(succeeded=False, error_code=2001, message="A page already exists at this path.")
     with patch("urllib.request.urlopen", return_value=_fake_response(result)):
-        with pytest.raises(WikiJsPageExistsError):
+        with pytest.raises(WikiClientPageExistsError):
             client.create_page(path="systems/kepler-442", title="Kepler-442", content="...")
 
 
 def test_create_page_other_logical_failure_raises_request_error(client):
     result = _create_result(succeeded=False, error_code=9999, message="Something else went wrong.")
     with patch("urllib.request.urlopen", return_value=_fake_response(result)):
-        with pytest.raises(WikiJsRequestError, match="Something else went wrong."):
+        with pytest.raises(WikiClientRequestError, match="Something else went wrong."):
             client.create_page(path="p", title="t", content="c")
 
 
@@ -119,7 +121,7 @@ def test_create_page_http_401_raises_auth_error(client):
     )
     http_error.read = MagicMock(return_value=b'{"message": "invalid token"}')
     with patch("urllib.request.urlopen", side_effect=http_error):
-        with pytest.raises(WikiJsAuthError):
+        with pytest.raises(WikiClientAuthError):
             client.create_page(path="p", title="t", content="c")
 
 
@@ -129,7 +131,7 @@ def test_create_page_http_403_raises_auth_error(client):
     )
     http_error.read = MagicMock(return_value=b"")
     with patch("urllib.request.urlopen", side_effect=http_error):
-        with pytest.raises(WikiJsAuthError):
+        with pytest.raises(WikiClientAuthError):
             client.create_page(path="p", title="t", content="c")
 
 
@@ -139,13 +141,13 @@ def test_create_page_other_http_error_raises_request_error(client):
     )
     http_error.read = MagicMock(return_value=b"boom")
     with patch("urllib.request.urlopen", side_effect=http_error):
-        with pytest.raises(WikiJsRequestError):
+        with pytest.raises(WikiClientRequestError):
             client.create_page(path="p", title="t", content="c")
 
 
 def test_create_page_unreachable_host_raises_request_error(client):
     with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("nodename nor servname provided")):
-        with pytest.raises(WikiJsRequestError, match="Could not reach Wiki.js"):
+        with pytest.raises(WikiClientRequestError, match="Could not reach Wiki.js"):
             client.create_page(path="p", title="t", content="c")
 
 
@@ -155,25 +157,25 @@ def test_create_page_malformed_json_raises_request_error(client):
     response.__exit__ = MagicMock(return_value=False)
     response.read = MagicMock(return_value=b"not json")
     with patch("urllib.request.urlopen", return_value=response):
-        with pytest.raises(WikiJsRequestError, match="unparseable"):
+        with pytest.raises(WikiClientRequestError, match="unparseable"):
             client.create_page(path="p", title="t", content="c")
 
 
 def test_create_page_graphql_auth_error_raises_auth_error(client):
     body = {"errors": [{"message": "Access Denied"}]}
     with patch("urllib.request.urlopen", return_value=_fake_response(body)):
-        with pytest.raises(WikiJsAuthError):
+        with pytest.raises(WikiClientAuthError):
             client.create_page(path="p", title="t", content="c")
 
 
 def test_create_page_graphql_other_error_raises_request_error(client):
     body = {"errors": [{"message": "Cannot query field 'bogus' on type 'Query'."}]}
     with patch("urllib.request.urlopen", return_value=_fake_response(body)):
-        with pytest.raises(WikiJsRequestError):
+        with pytest.raises(WikiClientRequestError):
             client.create_page(path="p", title="t", content="c")
 
 
 def test_create_page_unexpected_shape_raises_request_error(client):
     with patch("urllib.request.urlopen", return_value=_fake_response({"data": {"pages": {}}})):
-        with pytest.raises(WikiJsRequestError, match="Unexpected response shape"):
+        with pytest.raises(WikiClientRequestError, match="Unexpected response shape"):
             client.create_page(path="p", title="t", content="c")
