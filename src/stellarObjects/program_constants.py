@@ -1734,6 +1734,115 @@ tuple: The valid `--type` values `phenomenonGen.py` accepts; omitting
 `--type` picks uniformly at random among these.
 """
 
+# --- Sector-Level Exotic Phenomena (sectorGen.py/galaxyGen.py) ---
+#
+# Every generated sector (and therefore every sector galaxyGen.py generates,
+# since it calls straight into sectorGen.generate_sector) now also seeds a
+# realistically sparse population of phenomenonGen.py's own seven exotic
+# phenomenon types, sampled independently per type via a Poisson draw
+# (spaceSector._sample_poisson_count) whose mean is this rate times however
+# many star systems the sector actually ended up with -- so a denser sector
+# (see --density) gets proportionally more, exactly like star-system count
+# itself scales with density.
+#
+# Each rate is expressed as an expected count PER STAR SYSTEM, derived by
+# dividing a real (or, where flagged, a deliberately conservative
+# order-of-magnitude) total galactic population estimate by ~2x10^11 total
+# stars in the Milky Way -- a commonly cited middle figure for the
+# oft-quoted "100-400 billion stars" range -- the same "ratio of two real
+# numbers" derivation spaceSector.py's own module docstring uses for local
+# stellar density itself. At this generator's sector scale (~1,521 ly^3, a
+# handful of star systems), most of these rates are small enough that a
+# typical sector shows none at all, which is realistic: real space this
+# size is usually devoid of black holes, neutron stars, and visible
+# nebulae, exactly as it is of Alpha-Centauri-close neighbors (see
+# spaceSector.py's own module docstring).
+PHENOMENON_RATE_PER_STAR_SYSTEM = {
+    # ~100 million stellar-mass black holes in the Milky Way is a commonly
+    # cited estimate (e.g. Lamberts et al. 2018, MNRAS 480:2704,
+    # extrapolating the galaxy's star-formation history through the
+    # stellar initial mass function's high-mass end).
+    "black-hole": 100e6 / 2e11,
+    # ~1 billion neutron stars is a commonly cited Milky Way estimate (e.g.
+    # Sartore et al. 2010, A&A 510:A23) -- roughly 10x more common than
+    # black holes, consistent with the initial mass function producing far
+    # more ~8-20 solar-mass (neutron-star) progenitors than >20-25
+    # solar-mass (black-hole) ones.
+    "neutron-star": 1e9 / 2e11,
+    # Frew & Parker (2010, PASA 27:129) estimate ~10,000-23,000 true
+    # planetary nebulae exist in the Galaxy at any time (a short
+    # ~10,000-25,000 year visible lifetime); NEBULA_TYPES below also covers
+    # emission/reflection/dark nebulae (giant molecular clouds and similar,
+    # of which several thousand more are cataloged), so the combined rate
+    # used here sits a bit above the planetary-nebula-only figure alone.
+    "nebula": 5e4 / 2e11,
+    # The Milky Way's supernova rate is ~2-3 per century (Diehl et al.
+    # 2006, Nature 439:45, from Galactic 26Al gamma-ray emission), and a
+    # remnant stays detectable for roughly ~100,000 years before dispersing
+    # into the interstellar medium -- rate * lifetime gives a standing
+    # population on the order of a couple thousand (well above Green's
+    # ~300-object observed catalog, most of the rest obscured by dust).
+    "supernova-remnant": 2000 / 2e11,
+    # Gravitational-microlensing surveys (Sumi et al. 2011, Nature 473:349;
+    # refined by Mroz et al. 2017, Nature 548:183) suggest free-floating,
+    # planetary-mass objects unbound to any star are plausibly comparable
+    # in number to stars themselves, though with wide uncertainty and later
+    # analyses trending the estimate down substantially -- a deliberately
+    # conservative order-of-magnitude figure is used here, the same
+    # precedent this package already sets for handling wide real
+    # uncertainty conservatively (e.g. SYSTEM_COMET_CHANCE below).
+    "rogue-planet": 0.1,
+    # No established observational population estimate exists for
+    # genuinely unbound interstellar comets at rest between stars (as
+    # opposed to the transient handful passing through the Solar System's
+    # own volume at any instant, e.g. 1I/'Oumuamua, 2I/Borisov -- a flux
+    # measurement, not the standing-population one this per-sector model
+    # needs). Set to the same order of magnitude as this package's own
+    # per-system SYSTEM_COMET_CHANCE below, scaled down since these are
+    # specifically unbound wanderers rather than a system's own reservoir.
+    "comet": 0.05,
+    # Likewise no established population estimate exists for standalone
+    # (non-star-orbiting) asteroid fields -- kept at the same
+    # narrative-flavor order of magnitude as "comet" above, for the same
+    # reason ASTEROID_FIELD_RADIUS_RANGE_LY above is a narrative choice
+    # rather than a derived one.
+    "asteroid-field": 0.05,
+}
+"""
+dict: `PHENOMENON_TYPE_CHOICES` entry -> expected count per star system, for
+`sectorGen.generate_sector_phenomena`'s per-sector Poisson sampling.
+"""
+
+# --- Galaxy Random-Start Generation (galaxyGen.py) ---
+
+GALAXY_RADIUS_PC = 15000.0
+"""
+float: The Milky Way's real approximate radius, in parsecs (commonly cited
+~15 kpc -- see docs/design/galaxy-coordinate-system.md section 2, whose own
+worked shell table uses this exact figure). Used by `galaxyGen.py`'s
+no-argument "random start" mode as the outer bound for picking a random
+shell address, so a bare `galaxyGen.py` run (no --shell/--center-sector)
+lands somewhere within a real Milky-Way-scale galaxy instead of an
+arbitrarily large or small one.
+"""
+
+RANDOM_START_NEIGHBORHOOD_RADIUS_LY = 100.0
+"""
+float: The neighborhood radius, in light-years, `galaxyGen.py`'s
+no-argument "random start" mode generates around its randomly chosen
+starting sector -- every not-yet-generated sector within this radius, in
+every direction, per this feature's own request.
+"""
+
+RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000
+"""
+int: Retry cap for picking a random, not-yet-occupied shell address before
+`galaxyGen.py`'s random-start mode gives up -- generous, since even a
+fairly well-populated galaxy leaves overwhelmingly more addresses empty
+than occupied (see docs/design/galaxy-coordinate-system.md section 9's
+storage-analysis addendum: ~320 billion addressable sector slots total).
+"""
+
 # --- Navigation Parameters ---
 
 WARP_FACTORS_FOR_NAV = (1, 3, 6, 9)

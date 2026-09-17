@@ -4,14 +4,16 @@ phenomenonGen.py
 
 Generates a single exotic stellar phenomenon -- a black hole, neutron
 star, nebula, supernova remnant, rogue planet, interstellar comet, or
-standalone asteroid field -- kept deliberately separate from
-`systemGen.py`'s normal system generation.
+standalone asteroid field -- on demand, independent of any one sector.
 
-Per this feature's design, these phenomena are NOT part of normal system
-generation odds: `StarSystem._generate_planets`'s per-slot rolls never
-produce one, and `systemGen.py`/`sectorGen.py` never reference this
-module. They are reachable only through this script's own, rarer,
-on-demand `--type` choice (uniformly random among all seven when omitted).
+`StarSystem._generate_planets`'s per-slot rolls never produce one of these
+seven types -- that odds table is unrelated to this script. Since v21,
+`sectorGen.generate_sector_phenomena` *does* seed every generated sector
+with its own realistically sparse population of the same seven types (see
+that function's docstring and `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`),
+reusing `generate_phenomenon` below -- but only this script exposes a
+single phenomenon on demand via its own `--type` choice (uniformly random
+among all seven when omitted).
 
 A black hole or neutron star may optionally anchor a full `StarSystem`
 (`--anchor-system`) -- e.g. a pulsar with a fallback-disk planet (real
@@ -20,12 +22,15 @@ orbit-placement/rendering logic via `compactRemnant.py`'s `Star` subclass
 design (see that module's docstring). The other five phenomena are always
 standalone; `--anchor-system` doesn't apply to them.
 
-A nebula or standalone asteroid field may optionally be placed in the
-galaxy (`--sector-id`), near an already galaxy-placed sector -- see
-`stellarObjects._db.compute_phenomenon_placement`/schema.sql's "v18"
-header note for why this is a galaxy-frame sphere rather than a
-sector-relative offset. Every other phenomenon type stays unplaced;
-`--sector-id` doesn't apply to them.
+Any phenomenon type except an anchored one (`--sector-id` cannot combine
+with `--anchor-system`) may optionally be linked to an already
+galaxy-placed sector (`--sector-id`). For a nebula, asteroid field, black
+hole, or neutron star, this also computes a real galaxy-frame position
+near that sector -- see `stellarObjects._db.compute_phenomenon_placement`/
+`schema.sql`'s "v18"/"v21" header notes for why this is a galaxy-frame
+sphere rather than a sector-relative offset. A supernova remnant, rogue
+planet, or comet has no placement columns of its own, so `--sector-id`
+only links it to that sector without computing a position.
 """
 
 import argparse
@@ -81,13 +86,15 @@ def process_args():
     """
     additional_info = [
         "Additional Information:",
-        "Generates a single exotic stellar phenomenon, kept separate from systemGen.py's normal system",
-        "generation. Omitting --type picks uniformly at random among all seven phenomena. --anchor-system",
-        "(black-hole/neutron-star only) builds a full star system around the compact remnant instead of",
-        "describing it standalone -- disk-physics-driven planet generation naturally tends toward zero",
-        "planets around a dark remnant, so pass --num-orbits (or edit the generated SystemConfig) to force",
-        "orbiting bodies if you want them. --sector-id (nebula/asteroid-field only) places the generated",
-        "phenomenon in the galaxy near an already galaxy-placed sector, instead of leaving it unplaced.",
+        "Generates a single exotic stellar phenomenon on demand; sectorGen.py also seeds every generated",
+        "sector with its own sparse population of these same seven types automatically (see",
+        "sectorGen.generate_sector_phenomena). Omitting --type picks uniformly at random among all seven.",
+        "--anchor-system (black-hole/neutron-star only) builds a full star system around the compact remnant",
+        "instead of describing it standalone -- disk-physics-driven planet generation naturally tends toward",
+        "zero planets around a dark remnant, so pass --num-orbits (or edit the generated SystemConfig) to",
+        "force orbiting bodies if you want them. --sector-id (any type except an anchored one) links the",
+        "generated phenomenon to an already galaxy-placed sector -- for nebula/asteroid-field/black-hole/",
+        "neutron-star, this also computes a real galaxy-frame position near it; other types are linked only.",
     ]
     additional_info = " ".join(additional_info)
 
@@ -110,10 +117,13 @@ def process_args():
                               "compact remnant (see this script's epilog).")
 
     parser.add_argument('--sector-id', type=int,
-                         help="Only valid with --type nebula or --type asteroid-field: place the generated "
-                              "phenomenon in the galaxy near this already-generated, already galaxy-placed "
-                              "sector (see stellarObjects._db.compute_phenomenon_placement). Omit to generate "
-                              "it unplaced, as before.")
+                         help="Valid with --type nebula, asteroid-field, black-hole, or neutron-star (not "
+                              "combined with --anchor-system): place the generated phenomenon in the galaxy "
+                              "near this already-generated, already galaxy-placed sector (see "
+                              "stellarObjects._db.compute_phenomenon_placement). Also links a "
+                              "supernova-remnant/rogue-planet/comet to that sector, without a computed "
+                              "galaxy position (those types have no placement columns of their own). Omit "
+                              "to generate it unplaced/unlinked, as before.")
 
     # Output to a file
     parser.add_argument('--output', '-o', type=str, help="Output to a file.")
@@ -135,8 +145,9 @@ def process_args():
         parser.error("--num-orbits must be zero or a positive integer.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
-    if args.sector_id is not None and args.type not in (None, "nebula", "asteroid-field"):
-        parser.error("--sector-id is only valid with --type nebula or --type asteroid-field.")
+    if args.sector_id is not None and args.anchor_system:
+        parser.error("--sector-id cannot be combined with --anchor-system -- an anchored compact remnant "
+                     "belongs to its own StarSystem, not directly to a sector.")
 
     return args
 
