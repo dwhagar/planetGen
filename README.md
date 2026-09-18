@@ -220,6 +220,13 @@ their own) — see `docs/database-schema.md`'s "v18"/"v21" notes.
   `install.sh`/`update.sh` on every deploy.
 - **`src/migrateSqliteToMysql.py`** — one-time import of a pre-MySQL-port
   SQLite database into MySQL.
+- **`src/resetDb.py`** — wipes every generated sector/system/galaxy row
+  (`TRUNCATE`, not `DROP`) so the database is empty and ready for a fresh
+  galaxy, leaving the schema itself and the separate control (admin) schema
+  untouched. Destructive and unrecoverable — prompts for the database name
+  to be typed back before doing anything (`--yes` skips this, for
+  scripted use only); `--dry-run` lists what would be wiped without
+  touching it.
 
 ## Web Interface
 
