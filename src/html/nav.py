@@ -11,21 +11,33 @@ around it.
 
 Reaching this page: `system.py` links here (`?from=<id>`) whenever that
 system has a `sector_id` -- the same first gate `nav_between` itself
-checks (see its docstring's availability rules). Without a `to=` yet,
-this renders a destination picker instead of a result:
+checks (see its docstring's availability rules); the sidenav's own "Nav"
+link reaches it with no `from=` at all instead. Without a `from=` yet,
+this renders a sector-then-system picker to choose one:
+
+    - Step 1 (`?from_sector=<id>` not yet given): a `<select>` of every
+      sector in the database (`GET /api/sectors`, capped at that route's
+      own max page size -- see `docs/api.md`'s "Pagination").
+    - Step 2 (`?from_sector=<id>` given): a `<select>` of every system
+      placed in that one sector (`GET /api/sectors/<id>`'s own `systems`
+      list) -- submitting sets `from=` and this function's normal
+      destination-picking flow takes over from there, same as arriving
+      via `system.py`'s link.
+
+Without a `to=` yet (origin already known), this renders a destination
+picker instead of a result:
 
     - A `<select>` of every other system in the origin's own sector --
       always offered when NAV is available at all, and always a small,
       bounded list (a sector "will typically hold only a handful of
       systems", see `spaceSector.py`'s module docstring), so a dropdown
       scales fine here in a way it wouldn't across an entire galaxy.
-    - When the origin's sector itself has a galaxy placement, an
-      additional plain numeric field for a cross-sector destination's
-      system id -- there is no bounded, dropdown-friendly way to offer
-      "any system in any galaxy-placed sector" (that set can be
-      arbitrarily large), so this asks for an id directly rather than
-      pretending a full picker would scale. `system.py`'s own page (and
-      search results) is where that id would normally come from.
+    - When the origin's sector itself has a galaxy placement, the same
+      two-step sector-then-system picker the origin itself uses above
+      (`?to_sector=<id>` then `to=<id>`) -- there is no bounded,
+      dropdown-friendly way to offer "any system in any galaxy-placed
+      sector" in one list (that set can be arbitrarily large), so this
+      narrows to one sector first, exactly like choosing the origin does.
 
 Once `to=` is present, `GET /api/nav` decides the rest: same-sector vs.
 cross-sector scope, or a 400 if the two systems turn out not to support
@@ -42,22 +54,150 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import ApiError, NotFoundError, get_nav, get_sector, get_system
+from apiclient import ApiError, NotFoundError, get_nav, get_sector, get_sectors, get_system
 from fmt import esc
 from navmap import render_nav_map_panel
 from page import query_params, run
 
+_SECTOR_PICKER_LIMIT = 500
+"""int: Caps how many sectors the picker's `<select>` offers -- matches
+`GET /api/sectors`'s own max page size (`docs/api.md`'s "Pagination"), so
+this never silently asks the API for more than it would ever return."""
 
-def _destination_form_html(db_name, from_id, sector_systems, cross_sector_available):
+
+def _picker_form_html(db_name, options_html, field_name, label, hidden, heading, back_href=None):
+    """
+    One `<select>` + submit form, shared by every step of the sector-then-
+    system picker (the origin picker, reached with no `from=` at all, and
+    the cross-sector destination picker) -- see the module docstring.
+
+    Args:
+        db_name (str): The current `?db=` value.
+        options_html (str): Pre-built `<option>` tags.
+        field_name (str): The `<select>`'s own `name` (`from_sector`,
+            `from`, `to_sector`, or `to`).
+        label (str): The `<select>`'s visible label.
+        hidden (dict): Extra `name: value` pairs carried forward as hidden
+            fields (e.g. an already-chosen `from_sector`/`from`).
+        heading (str): This panel's `<h2>` text.
+        back_href (str, optional): A "start over" link shown above the
+            form (omitted for the very first step, which has nothing to
+            go back to).
+
+    Returns:
+        str: A complete `<section class="panel">` block.
+    """
+    hidden_html = "".join(
+        f'<input type="hidden" name="{esc(str(name))}" value="{esc(str(value))}">'
+        for name, value in hidden.items()
+    )
+    back_html = f'<p class="hint"><a href="{esc(back_href)}">&larr; Start over</a></p>' if back_href else ""
+    return f"""
+{back_html}
+<section class="panel">
+<h2>{esc(heading)}</h2>
+<form method="get" action="nav.py" class="search-form">
+  <input type="hidden" name="db" value="{esc(db_name)}">
+  {hidden_html}
+  <div class="search-fields">
+    <label class="search-field">{esc(label)}
+      <select name="{esc(field_name)}">{options_html}</select>
+    </label>
+  </div>
+  <div class="search-actions">
+    <button type="submit" class="btn">Continue</button>
+  </div>
+</form>
+</section>
+"""
+
+
+def _sector_options_html(sectors):
+    return "".join(f'<option value="{row["id"]}">{esc(row["name"])}</option>' for row in sectors)
+
+
+def _system_options_html(systems):
+    return "".join(f'<option value="{row["id"]}">{esc(row["name"])}</option>' for row in systems)
+
+
+def _origin_picker_html(db_name, from_sector_raw):
+    """
+    The two-step "choose a starting sector, then a starting system"
+    picker shown when `nav.py` is reached with no `from=` at all (the
+    sidenav's own "Nav" link) -- see the module docstring.
+    """
+    if not from_sector_raw:
+        sectors = get_sectors(db_name, limit=_SECTOR_PICKER_LIMIT)["items"]
+        if not sectors:
+            return '<section class="panel"><p class="hint">No sectors have been generated in this database yet.</p></section>'
+        return _picker_form_html(
+            db_name, _sector_options_html(sectors), "from_sector", "Sector", {},
+            "Choose a starting sector",
+        )
+
+    try:
+        from_sector_id = int(from_sector_raw)
+    except ValueError:
+        raise NotFoundError(f"No such sector: {from_sector_raw!r}")
+    sector = get_sector(db_name, from_sector_id)
+    systems = sector["systems"]
+    if not systems:
+        return (
+            f'<p class="hint"><a href="nav.py?db={esc(db_name)}">&larr; Start over</a></p>'
+            '<section class="panel"><p class="hint">No systems are placed in this sector yet.</p></section>'
+        )
+    return _picker_form_html(
+        db_name, _system_options_html(systems), "from", "Starting system",
+        {"from_sector": from_sector_id}, f"Choose a starting system in {sector['name']}",
+        back_href=f"nav.py?db={esc(db_name)}",
+    )
+
+
+def _cross_sector_destination_html(db_name, from_id, origin_sector_id, to_sector_raw):
+    """
+    The cross-sector half of the destination picker: the same two-step
+    sector-then-system cascade `_origin_picker_html` uses, scoped to
+    `?to_sector=`/`to=` and excluding the origin's own sector (already
+    covered by the same-sector `<select>` alongside this one).
+    """
+    if not to_sector_raw:
+        sectors = [
+            row for row in get_sectors(db_name, limit=_SECTOR_PICKER_LIMIT)["items"]
+            if row["id"] != origin_sector_id
+        ]
+        if not sectors:
+            return '<p class="hint">No other galaxy-placed sectors exist in this database yet.</p>'
+        return _picker_form_html(
+            db_name, _sector_options_html(sectors), "to_sector", "Sector", {"from": from_id},
+            "Choose a destination sector",
+        )
+
+    try:
+        to_sector_id = int(to_sector_raw)
+    except ValueError:
+        raise NotFoundError(f"No such sector: {to_sector_raw!r}")
+    sector = get_sector(db_name, to_sector_id)
+    systems = sector["systems"]
+    back_href = f"nav.py?db={esc(db_name)}&from={from_id}"
+    if not systems:
+        return (
+            f'<p class="hint"><a href="{back_href}">&larr; Start over</a></p>'
+            '<p class="hint">No systems are placed in this sector yet.</p>'
+        )
+    return _picker_form_html(
+        db_name, _system_options_html(systems), "to", "Destination system",
+        {"from": from_id, "to_sector": to_sector_id}, f"Choose a destination system in {sector['name']}",
+        back_href=back_href,
+    )
+
+
+def _destination_form_html(db_name, from_id, origin_sector_id, sector_systems, cross_sector_available, to_sector_raw):
     """
     Builds the destination-picker form shown before a `to=` is chosen --
-    see the module docstring for why same-sector destinations get a
-    `<select>` but a cross-sector destination is a typed id instead.
+    see the module docstring for the same-sector `<select>` vs. the
+    cross-sector sector-then-system cascade.
     """
-    options = "".join(
-        f'<option value="{row["id"]}">{esc(row["name"])}</option>'
-        for row in sector_systems
-    )
+    options = _system_options_html(sector_systems)
     same_sector_html = ""
     if options:
         same_sector_html = f"""
@@ -77,22 +217,10 @@ def _destination_form_html(db_name, from_id, sector_systems, cross_sector_availa
     else:
         same_sector_html = '<p class="hint">No other systems are placed in this sector yet.</p>'
 
-    cross_sector_html = ""
-    if cross_sector_available:
-        cross_sector_html = f"""
-<form method="get" action="nav.py" class="search-form">
-  <input type="hidden" name="db" value="{esc(db_name)}">
-  <input type="hidden" name="from" value="{from_id}">
-  <div class="search-fields">
-    <label class="search-field">Destination system id (cross-sector)
-      <input type="number" name="to" min="1" step="1" placeholder="e.g. 42">
-    </label>
-  </div>
-  <div class="search-actions">
-    <button type="submit" class="btn">Plot course</button>
-  </div>
-</form>
-"""
+    cross_sector_html = (
+        _cross_sector_destination_html(db_name, from_id, origin_sector_id, to_sector_raw)
+        if cross_sector_available else ""
+    )
 
     return f"""
 <section class="panel">
@@ -212,12 +340,15 @@ def handler():
     raw_from_id = params.get("from", "")
     raw_to_id = params.get("to")
 
+    if not raw_from_id:
+        body = '<p class="breadcrumb">Nav</p>' + _origin_picker_html(db_name, params.get("from_sector", ""))
+        return "Nav", body
+
     origin = get_system(db_name, raw_from_id)
     from_id = origin["id"]
 
     back_html = (
-        f'<p class="breadcrumb"><a href="index.py">Databases</a>'
-        f' &rarr; <a href="system.py?db={esc(db_name)}&id={from_id}">{esc(origin["name"])}</a>'
+        f'<p class="breadcrumb"><a href="system.py?db={esc(db_name)}&id={from_id}">{esc(origin["name"])}</a>'
         f" &rarr; Nav</p>"
     )
 
@@ -233,7 +364,10 @@ def handler():
         sector_systems = [row for row in sector["systems"] if row["id"] != from_id]
         cross_sector_available = sector["placed"]
 
-        form_html = _destination_form_html(db_name, from_id, sector_systems, cross_sector_available)
+        form_html = _destination_form_html(
+            db_name, from_id, origin["sector_id"], sector_systems, cross_sector_available,
+            params.get("to_sector", ""),
+        )
         return f"Nav: {origin['name']}", back_html + form_html
 
     try:

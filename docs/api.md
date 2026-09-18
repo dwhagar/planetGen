@@ -136,6 +136,27 @@ connectivity to that specific schema rather than the default one.
   reaches into — a black hole/neutron star stays point-like there too — see
   `/api/sectors/<id>`'s `phenomena` key above). Not paginated, for the
   same reason `/api/galaxy/sectors` isn't.
+- `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
+  across every sector and regardless of galaxy placement (unlike
+  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
+  paginated the same way `/api/sectors`/`/api/systems` are (`items`,
+  `total`, `limit`, `offset`). Each item has `id`, `type`, `name`,
+  `descriptor`, `radius_ly` (same shape as `/api/galaxy/phenomena`'s own
+  items), plus `sector_id`/`sector_name` (both `null` if never linked to a
+  sector) and `placed` (bool, whether it has a galaxy position at all) —
+  `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
+  actually anchored to a normal star system (`star_id` set) — that one's
+  already shown on its own system's page, not a standalone phenomenon.
+  The data `../src/html/phenomena.py`'s listing page shows.
+- `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
+  column its own table has, e.g. a nebula's `composition`/
+  `formation_cause`, a black hole's `mass_solar`/`spin`/
+  `has_accretion_disk`), plus `type` and `sector_name` — `queryDb.
+  phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
+  `black_hole`/`neutron_star`; an unrecognized type or a nonexistent id is
+  a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
+  project's first per-phenomenon info page (previously a phenomenon had no
+  detail page of its own, only a hover tooltip on the Sector/Galaxy Map).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
   the faceted search behind `../src/html/search.py`: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body

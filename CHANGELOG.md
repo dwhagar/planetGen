@@ -1,5 +1,33 @@
 # Changelog
 
+## [5.36.0] - 2026-09-18
+
+### Added
+- **A sector-then-system picker on the Nav page, reachable with no
+  starting system already known.** Previously `nav.py` only ever worked
+  when arriving via a specific system's own "Navigate from here" button
+  (`?from=<id>` required); the sidenav's new "Nav" link now reaches it
+  with nothing chosen yet, and a two-step `<select>` picker (every sector,
+  then every system in the chosen one -- `GET /api/sectors` then
+  `GET /api/sectors/<id>`) sets `from=` the same way arriving via
+  `system.py` already did. The cross-sector half of the destination picker
+  (choosing `to=` once an origin is known) gets the identical two-step
+  sector-then-system cascade in place of its old plain numeric
+  destination-system-id field.
+- **A list and detail page for exotic phenomena** (nebula/asteroid
+  field/black hole/neutron star) -- this project's first per-phenomenon
+  pages; previously a phenomenon had no page of its own at all, only a
+  hover tooltip on the Sector Map/Galaxy Map. `phenomena.py` lists every
+  phenomenon across every sector, regardless of galaxy placement (`GET
+  /api/phenomena`, paginated); each row links to `phenomenon.py`'s full
+  detail view (`GET /api/phenomena/<type>/<id>`, each type's own real
+  columns -- a nebula's `composition`/`formation_cause`, a black hole's
+  `mass_solar`/`spin`/`has_accretion_disk`, etc. -- via new `queryDb.
+  list_phenomena`/`phenomenon_detail`). Both pages are linked from the
+  sidenav; the Sector Map's and Galaxy Map's own phenomenon markers
+  (`lib/starmap.py`/`lib/galaxymap.py`) now click through to the same
+  detail page instead of only showing a tooltip.
+
 ## [5.35.7] - 2026-09-18
 
 ### Fixed

@@ -308,6 +308,21 @@ def get_galaxy_phenomena(db):
     return _request("/galaxy/phenomena", {"db": db})["items"]
 
 
+def get_phenomena(db, limit=None, offset=None):
+    """Returns `GET /api/phenomena`'s full paginated envelope
+    (`items`/`total`/`limit`/`offset`) -- see `queryDb.list_phenomena`'s
+    docstring for the shape."""
+    _require_db(db)
+    return _request("/phenomena", {"db": db, "limit": limit, "offset": offset})
+
+
+def get_phenomenon(db, phenomenon_type, phenomenon_id):
+    """Returns `GET /api/phenomena/<type>/<id>`'s detail dict -- see
+    `queryDb.phenomenon_detail`'s docstring for the shape."""
+    _require_db(db)
+    return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
+
+
 def get_search(db, texts, tags, sizes=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
