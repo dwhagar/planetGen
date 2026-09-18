@@ -93,6 +93,42 @@ def _write_mysql_config(read_only, write_defaults):
     )
 
 
+def _wiki_config(wiki_defaults):
+    """
+    Builds the resolved wiki-publishing config from `PLANETGEN_WIKIJS_*`/
+    `PLANETGEN_MEDIAWIKI_*` environment variables, falling back to
+    `config.json`'s `wiki` section (`wiki_defaults`) -- same precedence
+    (explicit env var, then `config.json`, then `""` = "not set") every
+    other layered setting in this file already follows.
+
+    Neither backend has a separate on/off flag: a backend counts as
+    configured -- and so is offered as an "Upload to Wiki" target by
+    `routes.py`'s `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki`
+    -- purely by having a non-empty `base_url` plus every credential field
+    its own `wikiClient` backend requires (see `_configured` below); an
+    empty `base_url` alone already means "don't offer this one", so a
+    separate flag would only ever duplicate that check.
+
+    Returns:
+        dict: `{"wikijs": {"base_url", "api_token", "configured"},
+            "mediawiki": {"base_url", "username", "password", "configured"}}`.
+    """
+    wikijs = {
+        "base_url": os.environ.get("PLANETGEN_WIKIJS_BASE_URL") or wiki_defaults["wikijs"]["base_url"],
+        "api_token": os.environ.get("PLANETGEN_WIKIJS_API_TOKEN") or wiki_defaults["wikijs"]["api_token"],
+    }
+    wikijs["configured"] = bool(wikijs["base_url"] and wikijs["api_token"])
+
+    mediawiki = {
+        "base_url": os.environ.get("PLANETGEN_MEDIAWIKI_BASE_URL") or wiki_defaults["mediawiki"]["base_url"],
+        "username": os.environ.get("PLANETGEN_MEDIAWIKI_USERNAME") or wiki_defaults["mediawiki"]["username"],
+        "password": os.environ.get("PLANETGEN_MEDIAWIKI_PASSWORD") or wiki_defaults["mediawiki"]["password"],
+    }
+    mediawiki["configured"] = bool(mediawiki["base_url"] and mediawiki["username"] and mediawiki["password"])
+
+    return {"wikijs": wikijs, "mediawiki": mediawiki}
+
+
 def _session_cookie_secure(admin_cookie_insecure):
     """
     `PLANETGEN_ADMIN_COOKIE_INSECURE` (if set) wins outright; otherwise
@@ -124,19 +160,12 @@ class Config:
     RATELIMIT_STORAGE_URI = os.environ.get("PLANETGEN_RATELIMIT_STORAGE_URI", _config_file["ratelimit"]["storage_uri"])
     RATELIMIT_HEADERS_ENABLED = True
 
-    # TODO(wiki publishing): once config.json grows a `wiki` section (see
-    # stellarObjects/appconfig.py's own TODO on DEFAULT_CONFIG), add
-    # WIKI_BACKEND/WIKI_BASE_URL plus that backend's own credential
-    # fields here the same layered way _write_mysql_config resolves
-    # WRITE_MYSQL_CONFIG above (an explicit PLANETGEN_WIKI_* env var
-    # first, then _config_file["wiki"][...], then "" for "not
-    # configured"). The new POST /api/systems/<id>/wiki route (see
-    # routes.py's own TODO in the "Write endpoints" section) would read
-    # these to construct a wikiClient.WikiClient(backend=WIKI_BACKEND, ...)
-    # per request -- an empty WIKI_BASE_URL (or missing credentials for
-    # the configured backend) should make that route respond 501 "wiki
-    # publishing not configured" rather than trying (and failing) to
-    # reach an empty URL.
+    # See `_wiki_config` above -- read by `routes.py`'s
+    # `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki` to build
+    # a `wikiClient.WikiClient(backend=..., base_url=..., ...)` per
+    # request, and by `GET /api/wiki-config` so the CGI browser knows
+    # which backend(s) to offer without duplicating this resolution.
+    WIKI_CONFIG = _wiki_config(_config_file["wiki"])
 
     # The admin session cookie (auth.py) is Secure by default -- never
     # sent over plain HTTP -- matching this project's documented

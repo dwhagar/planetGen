@@ -73,7 +73,7 @@ from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 22
+SCHEMA_VERSION = 23
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -3752,6 +3752,59 @@ def _migrate_v21_to_v22(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (22)")
 
 
+def _has_column(conn, table, column):
+    """
+    Whether `table` already has a column named `column` in the connected
+    database -- used only by `_migrate_v22_to_v23` below, to make each of
+    its `ADD COLUMN` steps a genuine no-op (rather than a "Duplicate
+    column name" error) against a database that already has one of v23's
+    new columns despite `schema_migrations` still reporting an older
+    version -- notably `star_systems.wikijs_url`/`mediawiki_url`, which
+    shipped in `schema.sql`'s `CREATE TABLE` slightly ahead of the
+    migration step that back-fills them onto an existing database (see
+    that migration's own docstring), so a database created fresh in that
+    window already has them.
+    """
+    row = conn.execute(
+        "SELECT 1 FROM information_schema.columns"
+        " WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?",
+        (table, column),
+    ).fetchone()
+    return row is not None
+
+
+def _migrate_v22_to_v23(conn):
+    """
+    Adds v23's wiki-publishing link columns -- see `schema.sql`'s header
+    comment's "v23" note. `star_systems.wikijs_url`/`mediawiki_url` were
+    already present in `schema.sql`'s `CREATE TABLE` (so a brand-new
+    database already has them), but were never added to an existing
+    database by any earlier migration step -- this is the one that
+    actually does that. `sectors.wiki_url` is new outright. Every column
+    is added through `_has_column`'s guard (see that function's own
+    docstring) rather than a bare `ADD COLUMN`, since a database that
+    already has any of them (despite `schema_migrations` still reporting
+    a pre-v23 version) is exactly the case this whole migration exists to
+    handle correctly rather than erroring on.
+
+    No backfill for either table: nothing before v23 ever uploaded a page
+    or recorded a link, so every row's new column(s) simply start NULL.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if not _has_column(conn, "sectors", "wiki_url"):
+        conn.execute("ALTER TABLE sectors ADD COLUMN wiki_url VARCHAR(2048)")
+
+    for column in ("mediawiki_url", "wikijs_url"):
+        if not _has_column(conn, "star_systems", column):
+            conn.execute(f"ALTER TABLE star_systems ADD COLUMN {column} VARCHAR(2048)")
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (23)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -3777,9 +3830,11 @@ def migrate_database(config=None):
     v19's new `comets`/`comet_composition` tables), `_migrate_v19_to_v20`
     (added for v20's proper two-body/barycentric trajectory columns on
     `star_systems`/`stars`/`planets`), `_migrate_v20_to_v21` (added for
-    v21's sector-placement columns on `black_holes`/`neutron_stars`), and
-    `_migrate_v21_to_v22` (added for v22's search-facing indexes) are the
-    migration steps so far; see `schema.sql`'s header comment for the
+    v21's sector-placement columns on `black_holes`/`neutron_stars`),
+    `_migrate_v21_to_v22` (added for v22's search-facing indexes), and
+    `_migrate_v22_to_v23` (added for v23's wiki-publishing link columns on
+    `sectors`/`star_systems`) are the migration steps so far; see
+    `schema.sql`'s header comment for the
     versioning convention, and `migrateDb.py` for the CLI wrapper around
     this.
 
@@ -3851,6 +3906,10 @@ def migrate_database(config=None):
         if version < 22:
             _migrate_v21_to_v22(conn)
             version = 22
+
+        if version < 23:
+            _migrate_v22_to_v23(conn)
+            version = 23
 
         conn.commit()
         return version

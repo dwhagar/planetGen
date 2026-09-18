@@ -462,10 +462,18 @@ Markdown) — both produced from the *same* generated `StarSystem` object,
 rendered back-to-back at save time. They can't be independently
 regenerated later and still match, because generation mixes the unseedable
 `secrets` module with the seedable `random` module. Alongside them,
-`mediawiki_url`/`wikijs_url` record where that page is expected to live (or
-does live, once uploaded) on each wiki — one system is one wiki page;
+`mediawiki_url`/`wikijs_url` (v22 — see `schema.sql`'s header comment)
+record where that page lives on each wiki, once `POST
+/api/systems/<id>/wiki` (`src/wikiClient/`, `html/system.py`'s "Upload to
+Wiki" form) has actually uploaded it there — one system is one wiki page;
 individual stars/planets/moons are sections within that one page, not
-separate pages.
+separate pages. Existence on a given wiki is never a separate stored
+flag — it's exactly "the matching URL column is not NULL"; `html/system.py`
+swaps its rendered/source Description section for a link to that page
+(opening in a new tab) whenever either is set. `sectors.wiki_url` is the
+per-sector equivalent (see that table's own column doc above) — a single
+column, since a sector's page is generated fresh at upload time rather
+than persisted the way a system's is.
 
 ## Tables
 
@@ -492,6 +500,7 @@ One row per generated sector.
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `shell_index`, `shell_slot_index` | INTEGER | nullable | This sector's stable address within the shell/Fibonacci-sphere radial tiling scheme (`galaxyGen.py`) — `shell_index` is the radial shell, `shell_slot_index` its placement index within that shell's deterministic ordering. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
+| `wiki_url` | TEXT | nullable | Where this sector's summary page lives on a wiki (v22) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (`html/admin.py`'s manual-link admin section). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 `galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema

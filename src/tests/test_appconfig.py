@@ -71,6 +71,7 @@ def test_default_config_matches_example_shape():
         "control_database",
         "ratelimit",
         "admin_cookie_insecure",
+        "wiki",
     }
     assert set(appconfig.DEFAULT_CONFIG["mysql"].keys()) == {
         "host", "port", "user", "password", "database", "database_prefix",
@@ -79,6 +80,9 @@ def test_default_config_matches_example_shape():
         "user", "password",
     }
     assert set(appconfig.DEFAULT_CONFIG["ratelimit"].keys()) == {"default", "storage_uri"}
+    assert set(appconfig.DEFAULT_CONFIG["wiki"].keys()) == {"wikijs", "mediawiki"}
+    assert set(appconfig.DEFAULT_CONFIG["wiki"]["wikijs"].keys()) == {"base_url", "api_token"}
+    assert set(appconfig.DEFAULT_CONFIG["wiki"]["mediawiki"].keys()) == {"base_url", "username", "password"}
 
 
 def test_load_config_does_not_mutate_default_config(tmp_path, monkeypatch):
