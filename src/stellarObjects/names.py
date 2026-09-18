@@ -150,7 +150,7 @@ This value is used to determine if a generated name is long enough to be split
 into two parts for better readability.
 """
 
-with open(os.path.join(os.path.dirname(__file__), 'offensive_words.txt'), 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), 'offensive_words.txt'), 'r', encoding='utf-8') as f:
     NSFW_WORDS = {line.strip() for line in f}
 """
 A set of "Not Safe For Work" (NSFW) or offensive words, loaded from an external
