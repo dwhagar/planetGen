@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.35.1] - 2026-09-18
+
+### Fixed
+- **Planet/moon/star infobox fields showed literal `<sup>7</sup>` markup
+  instead of a superscript 7.** `tabledisplay.py`'s scientific-notation
+  formatters (`format_body_distance`/`format_star_mass`/`format_star_radius`/
+  `format_star_luminosity`) emit real HTML (`"5.3 × 10<sup>7</sup> km"`),
+  correct for `system.py`'s static table cells (inserted unescaped on
+  purpose) but wrong for `lib/systemmap.py`'s interactive System Map: it
+  carries the same strings through `data-*` attributes that
+  `static/systemmap.js` reads back with `.textContent` (deliberately never
+  `innerHTML`, so database-derived values can never execute as markup) --
+  which shows a `<sup>` tag as literal text instead of rendering it. Added
+  `tabledisplay.to_plain_text`, converting the one `<sup>N</sup>` pattern
+  into real Unicode superscript digits (`10⁷`), and applied it at every
+  `data-*`-building call site in `systemmap.py` (distance, mass, radius,
+  luminosity); `system.py`'s own raw-HTML table cells are untouched.
+
 ## [5.35.0] - 2026-09-17
 
 ### Changed

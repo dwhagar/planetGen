@@ -18,7 +18,44 @@ numbers instead of a live `Star`/`Planet` object's attributes.
 "{{Exp|coeff|exp}}" template form -- the wrong one for embedding directly
 into an HTML page, which was the whole bug: the interactive HTML viewer used
 to read the wikitext form straight out of the database.
+
+That HTML `<sup>` form is only safe to embed where it's actually parsed as
+markup (`system.py`'s static table cells, inserted unescaped -- see its own
+comment on why). `lib/systemmap.py`'s interactive map instead carries these
+same formatted strings through `data-*` attributes that `static/systemmap.js`
+reads back with `.textContent` (deliberately never `innerHTML`, to keep every
+database-derived value safely un-executable) -- `.textContent` shows tags
+literally rather than rendering them, so a raw "10<sup>7</sup>" landed on
+screen as the literal text "10<sup>7</sup>" instead of a superscript 7. Any
+caller feeding one of these formatters' output into a `data-*` attribute
+(never a static HTML page fragment) must run it through `to_plain_text`
+first.
 """
+
+import re
+
+_SUP_HTML_RE = re.compile(r'<sup>(-?\d+)</sup>')
+_SUPERSCRIPT_DIGITS = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
+
+
+def to_plain_text(formatted):
+    """
+    Converts one of this module's HTML-formatted strings (their one raw-HTML
+    pattern, `<sup>exponent</sup>`, from `to_scientific_notation`) into a
+    plain-text equivalent using real Unicode superscript digits -- for a
+    caller that will hand the result to something that displays it as text
+    rather than parsing it as markup (e.g. a `data-*` attribute read back via
+    `.textContent`, see this module's own docstring). A no-op for a string
+    that never had a `<sup>` in it.
+
+    Args:
+        formatted (str): This module's own formatter output.
+
+    Returns:
+        str: The same text with every `<sup>N</sup>` replaced by N's
+             Unicode-superscript digits.
+    """
+    return _SUP_HTML_RE.sub(lambda m: m.group(1).translate(_SUPERSCRIPT_DIGITS), formatted)
 
 try:
     from stellarObjects import physical_constants, program_constants
