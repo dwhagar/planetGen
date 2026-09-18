@@ -34,7 +34,15 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import ApiError, auth_me, get_sector, get_wiki_config, upload_sector_to_wiki
+from apiclient import (
+    ApiError,
+    NotFoundError,
+    auth_me,
+    generate_sector_neighborhood,
+    get_sector,
+    get_wiki_config,
+    upload_sector_to_wiki,
+)
 from fmt import esc, linkify_location
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, query_params, run
@@ -102,6 +110,37 @@ def handler():
     params = query_params()
     db_name = params.get("db", "")
     sector_id = params.get("id", "")
+
+    # Admin-only "generate more sectors around this one" action -- a
+    # failed identity check just falls back to the anonymous view rather
+    # than failing the whole (otherwise public, read-only) page; see
+    # admin.py for the same auth_me/must_change_credentials gate used
+    # elsewhere.
+    cookie_header = incoming_cookie_header()
+    try:
+        identity = auth_me(cookie_header)
+    except ApiError:
+        identity = None
+    is_admin = identity is not None and not identity["must_change_credentials"]
+
+    generation_result = None
+    generation_error = None
+    if is_admin and os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
+        fields = form_params()
+        if fields.get("action") == "generate_neighborhood":
+            try:
+                generation_result = generate_sector_neighborhood(cookie_header, int(sector_id))
+            except (ApiError, NotFoundError) as exc:
+                # NotFoundError specifically -- not just ApiError -- since
+                # apiclient._auth_request raises that instead for a 404
+                # (e.g. "this sector was never placed in a galaxy"); left
+                # uncaught, it would propagate past this page entirely
+                # and render as a full page.run()-level error page
+                # instead of this inline message on the sector's own
+                # (otherwise perfectly loadable) page.
+                generation_error = str(exc)
+            except ValueError:
+                generation_error = "Invalid sector id."
 
     sector = get_sector(db_name, sector_id)
     systems = sector["systems"]
@@ -215,10 +254,49 @@ def handler():
         wiki_config = get_wiki_config() if identity is not None else {"wikijs": False, "mediawiki": False}
         wiki_html = _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wiki_error)
 
+    admin_panel_html = ""
+    if is_admin:
+        message_html = ""
+        if generation_error:
+            message_html = f'<p class="error">{esc(generation_error)}</p>'
+        elif generation_result is not None:
+            message_html = (
+                f'<p class="hint">Generated {generation_result["generated"]} new sector(s) '
+                f'({generation_result["already_existed"]} already existed, '
+                f'{generation_result["candidates"]} candidate slot(s) within radius).</p>'
+            )
+
+        if sector["placed"]:
+            action_html = f"""
+<p class="hint">Fills in every not-yet-generated sector within a 100 ly sphere
+around this one (already-generated sectors are skipped). That sphere can hold
+thousands of candidate sectors, so this can take anywhere from a few minutes
+to a few hours to finish -- the page will not respond until it completes.</p>
+<form method="post" action="sector.py?db={esc(db_name)}&amp;id={esc(sector_id)}" class="table-form">
+  <input type="hidden" name="action" value="generate_neighborhood">
+  <button type="submit" class="btn">Generate more sectors around this one</button>
+</form>
+"""
+        else:
+            action_html = (
+                '<p class="hint">This sector has never been placed in a galaxy -- generating a '
+                "neighborhood around it requires a galaxy-placed sector (one generated via "
+                "'generate.py galaxy', not 'generate.py sector').</p>"
+            )
+
+        admin_panel_html = f"""
+<section class="panel">
+<h2>Admin</h2>
+{message_html}
+{action_html}
+</section>
+"""
+
     body = f"""
 <p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(sector['name'])}</p>
 {badges_html}
 {wiki_html}
+{admin_panel_html}
 {map_html}
 <section class="panel">
 <h2>Systems</h2>

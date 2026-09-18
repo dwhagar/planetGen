@@ -27,7 +27,17 @@ separate, write-capable database account -- see `docs/api.md`'s
 "Write endpoints" section and `stellarObjects/adminAuth.py`.
 """
 
+import os
+import sys
+
 from flask import Blueprint, current_app, g, jsonify, request
+
+# generate.py lives at the repo root, two levels above src/html/api/ (this
+# file) -- src/ itself is already on sys.path (see html/wsgi.py's own
+# docstring), but the repo root isn't, so it's added here specifically for
+# this import. Only `generate_sector_neighborhood_route` below needs it.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+import generate  # noqa: E402
 
 from queryDb import (
     NO_SECTOR,
@@ -718,6 +728,46 @@ def delete_sector(sector_id):
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
     audit("sector.delete", target=f"sector:{sector_id}")
     return jsonify({"status": "ok"})
+
+
+@bp.route("/sectors/<int:sector_id>/generate-neighborhood", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def generate_sector_neighborhood_route(sector_id):
+    """`POST /api/sectors/<id>/generate-neighborhood` -- generates every
+    not-yet-generated sector within `radius_ly` (optional JSON body
+    field; defaults to `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY`,
+    100 ly, the same "100 ly sphere" `generate.py galaxy`'s own
+    random-start mode uses) of this already galaxy-placed sector -- see
+    `generate.generate_sector_neighborhood`. **The default radius is
+    genuinely large** (~2,000-3,000 candidate sector slots, confirmed by
+    measurement -- see that function's own docstring), so this can run
+    for minutes to hours, not seconds. Runs synchronously like every
+    other write route regardless (there's no background job queue in
+    this project to hand it off to) -- `apiclient.py`'s own caller uses a
+    much longer timeout than its other calls for exactly this reason, but
+    a production deployment's own reverse-proxy/gateway timeout (Apache,
+    etc.) may still need raising for this one route to ever complete over
+    HTTP at all."""
+    body = request.get_json(silent=True) or {}
+    radius_ly = body.get("radius_ly")
+    if radius_ly is not None and (
+        not isinstance(radius_ly, (int, float)) or isinstance(radius_ly, bool) or radius_ly <= 0
+    ):
+        raise ApiError(f"'radius_ly' is invalid: {radius_ly!r}")
+
+    try:
+        result = generate.generate_sector_neighborhood(
+            sector_id, radius_ly=radius_ly, config=_resolve_requested_write_db_config(),
+        )
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=404)
+
+    audit(
+        "sector.generate_neighborhood", target=f"sector:{sector_id}",
+        detail=f"radius_ly={radius_ly!r} generated={result['generated']}",
+    )
+    return jsonify(result)
 
 
 SYSTEM_CONFIG_TRISTATE_FIELDS = {

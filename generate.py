@@ -87,14 +87,13 @@ from stellarObjects.galaxyGeometry import (
     sector_position_pc, shell_radius_pc, shell_sector_count,
 )
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1, find_shell_bands
-from stellarObjects.names import SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.sectorGeometry import prism_vertices
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
-from stellarObjects.utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly
+from stellarObjects.utils import generate_sector_name, ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -633,38 +632,6 @@ def validate_sector_args(args, parser):
     args.name = None
 
 
-def generate_sector_name():
-    """
-    Generates a random two-word sector name, each word independently drawn
-    from the same phoneme-salad name generator used for star/planet/moon
-    names -- using the sector-flavored `SECTOR_NAMES`/`SECTOR_PREFIXES`/
-    `SECTOR_SUFFIXES` base lists instead, so generated sectors draw on real
-    astronomical regions (galactic arms, superclusters, nebulae) and
-    science-fiction sector names rather than reusing star names verbatim.
-    No literal "Sector" suffix. Overridden entirely by `--name`/`-n`,
-    which hard-sets the whole name instead.
-
-    Returns:
-        str: A newly generated sector name, e.g. "Voranthis Kelmoor" --
-        always exactly two words.
-    """
-    # allow_split=False: generate_phoneme_salad_name can itself split a
-    # long result into two words (e.g. "Xyleth Anore"). Since this
-    # function already joins two independent calls into one name, leaving
-    # splitting on could silently produce 3-4 words instead of 2.
-    # syllable_fraction=0.5 trims each word's base syllables by about
-    # half before the prefix/suffix are attached -- many SECTOR_NAMES
-    # entries (e.g. "Sagittarius", "Metropolis") are long real place
-    # names, and two of them joined together made for unwieldy sector
-    # names. max_length=7 backstops that: prefixes, suffixes, and the
-    # occasional spliced-in universal phoneme are fixed-ish overhead that
-    # doesn't shrink with syllable_fraction, so a long base name could
-    # still slip through longer than intended without a hard cap too.
-    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
-    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
-    return f"{first_word} {second_word}"
-
-
 def build_sector_configs(args):
     """
     Builds one `SystemConfig` per system in the sector, sharing the same
@@ -960,11 +927,21 @@ def run_sector(args):
         )
 
         for i in range(args.num_sectors):
-            sector_name, sector = generate_sector(args, progress=progress)
+            _sector_name, sector = generate_sector(args, progress=progress)
             systems = [entry.star_system for entry in sector.entries]
 
+            # Saved *before* any rendering below -- stellarObjects._db's
+            # name-uniqueness machinery (v22) may rename this sector (or
+            # one of its systems) on save if it collides with something
+            # already in the database, mutating `sector`/`systems` in
+            # place; rendering afterward guarantees `--console`/`--output`
+            # text always shows the real, final names, never a stale
+            # pre-rename one.
+            mysql_config = _db.mysql_config_from_args(args)
+            sector_id = _db.save_sector(sector, config=mysql_config)
+
             if args.output or args.console:
-                output_text = render_sector_text(sector_name, systems, sector.phenomena, args.markdown)
+                output_text = render_sector_text(sector.name, systems, sector.phenomena, args.markdown)
 
                 if args.output:
                     with open(args.output, 'w' if i == 0 else 'a') as f:
@@ -975,10 +952,8 @@ def run_sector(args):
                 if args.console:
                     print(output_text)
 
-            mysql_config = _db.mysql_config_from_args(args)
-            sector_id = _db.save_sector(sector, config=mysql_config)
             phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
-            print(f"Saved sector '{sector_name}' to the database (sector_id={sector_id}, "
+            print(f"Saved sector '{sector.name}' to the database (sector_id={sector_id}, "
                   f"{len(systems)} systems{phenomena_note}, "
                   f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
@@ -1207,7 +1182,12 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
             `run_shell_batch`/`run_local_neighborhood`/`run_random_start`.
 
     Returns:
-        tuple: `(sector_id, sector_name)` of the newly saved sector.
+        tuple: `(sector_id, sector_name)` of the newly saved sector --
+            `sector_name` is read back from `sector.name` *after* saving
+            (see the `Returns` note below), not the pre-save name
+            `generate_sector` returned, since `stellarObjects._db`'s
+            name-uniqueness machinery (v22) may rename it on save if it
+            collides with something already in the database.
     """
     x, y, z = position_pc
     radius_pc = galactic_radius_pc(position_pc)
@@ -1219,11 +1199,11 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
     # signature) shouldn't have to grow a `progress` parameter it never
     # uses just because this function now accepts one.
     if progress is not None:
-        sector_name, sector = generate_sector(
+        _sector_name, sector = generate_sector(
             args, galactic_center_dist_ly=galactic_center_dist_ly, progress=progress,
         )
     else:
-        sector_name, sector = generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
+        _sector_name, sector = generate_sector(args, galactic_center_dist_ly=galactic_center_dist_ly)
 
     vertices_pc = prism_vertices(shell_index, shell_slot_index, edge_pc)
     galaxy_position = {
@@ -1233,7 +1213,9 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
         "vertices_pc": vertices_pc,
     }
     sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args), galaxy_position=galaxy_position)
-    return sector_id, sector_name
+    # sector.name, not the discarded _sector_name above -- save_sector may
+    # have just renamed it (a collision with an already-saved sector).
+    return sector_id, sector.name
 
 
 def _default_generation_args(config=None):
@@ -1544,6 +1526,98 @@ def run_local_neighborhood(args, edge_pc, progress):
         f"Generated {generated} new sector(s) within {args.radius_pc} pc of sector_id={args.center_sector} "
         f"({len(candidates)} candidate slot(s) found, {already_existed} already existed)."
     )
+
+
+def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None):
+    """
+    Non-CLI counterpart to `run_local_neighborhood`'s core logic -- for a
+    caller with no `argparse.Namespace`/`rich.progress.Progress` of its
+    own (the admin web UI's "generate more sectors around this one"
+    action, `html/api/routes.py`'s `generate_sector_neighborhood_route`),
+    rather than the `galaxy` subcommand's `--center-sector` mode. Same
+    underlying work (`_db.get_sector_galaxy_position`,
+    `enumerate_sectors_within_radius`, `_db.get_occupied_shell_slots`,
+    `generate_and_save_sector_at`), a plain result dict instead of prints,
+    and a catchable `ValueError` instead of `SystemExit` for an invalid/
+    unplaced sector -- there's no CLI here for `SystemExit` to exit out of.
+
+    The default 100 ly radius is genuinely large relative to one sector's
+    edge (`program_constants.DEFAULT_SECTOR_EDGE_LY`, 11.5 ly) -- its
+    sphere holds on the order of **2,000-3,000 candidate sector slots**
+    (confirmed by measurement, not just geometry: `(4/3)*pi*100**3 /
+    11.5**3 ≈ 2750`), same as `galaxy`'s own random-start mode already
+    generates today from the CLI. Called with no `radius_ly` override,
+    this can take minutes to hours depending on the server and how many
+    of those slots are already occupied -- every caller (the CLI, and
+    especially `generate_sector_neighborhood_route`'s web-triggered,
+    synchronous-request version of this) needs to account for that, not
+    assume "generate a neighborhood" is a quick call.
+
+    Args:
+        center_sector_id (int): The already galaxy-placed sector to
+            generate a neighborhood around.
+        radius_ly (float, optional): Defaults to
+            `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY`
+            (100 ly) -- the same default radius `galaxy`'s own
+            random-start mode uses.
+        config (MySQLConfig, optional): Connection parameters. Defaults
+                                        to `DEFAULT_MYSQL_CONFIG`.
+
+    Returns:
+        dict: `generated` (int -- newly created sectors), `already_existed`
+            (int -- candidate slots that already had a sector),
+            `candidates` (int -- total slots within the radius).
+
+    Raises:
+        ValueError: If `center_sector_id` doesn't exist, or exists but has
+                   never been placed in a galaxy (its galaxy-position
+                   columns are NULL -- e.g. a sector generated via the
+                   `sector` subcommand rather than `galaxy`).
+    """
+    edge_pc = _edge_pc()
+    radius_pc = (
+        ly_to_pc(radius_ly) if radius_ly is not None
+        else ly_to_pc(program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY)
+    )
+    config = config or _db.DEFAULT_MYSQL_CONFIG
+
+    conn = _db.get_connection(config)
+    try:
+        center_position = _db.get_sector_galaxy_position(conn, center_sector_id)
+    finally:
+        conn.close()
+
+    if center_position is None:
+        raise ValueError(
+            f"sector_id={center_sector_id} has never been placed in a galaxy (its galaxy-position "
+            f"columns are NULL) -- generating a neighborhood requires an already galaxy-placed sector "
+            f"(one generated via 'generate.py galaxy', not 'generate.py sector')."
+        )
+
+    center = (center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"])
+    candidates = list(enumerate_sectors_within_radius(center, radius_pc, edge_pc))
+
+    candidate_shells = sorted({shell_index for shell_index, _slot, _x, _y, _z, _dist in candidates})
+    conn = _db.get_connection(config)
+    try:
+        occupied = _db.get_occupied_shell_slots(conn, candidate_shells)
+    finally:
+        conn.close()
+
+    args = _default_generation_args(config=config)
+
+    generated = 0
+    for shell_index, slot_index, x, y, z, _distance_pc in candidates:
+        if (shell_index, slot_index) in occupied:
+            continue
+        generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z), edge_pc)
+        generated += 1
+
+    return {
+        "generated": generated,
+        "already_existed": len(candidates) - generated,
+        "candidates": len(candidates),
+    }
 
 
 def _pick_random_shell_index(max_shell_index, edge_pc):
