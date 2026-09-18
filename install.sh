@@ -104,8 +104,21 @@ echo "== 1/6: Installing the Python package =="
 # whether the version string changed, skipping would silently leave the
 # previous run's installed copy in place, shadowing the freshly pulled
 # source the same way this whole section is otherwise about avoiding.
+#
+# The `api` extra (Flask/Flask-Limiter, see setup.py's `extras_require`)
+# is included here, not left to a separate manual `pip install .[api]`
+# some other doc might mention: every page under src/html/ is a thin
+# HTTP client over GET /api/... now (see html/lib/apiclient.py's own
+# docstring), so the web interface this script exists to deploy simply
+# doesn't work without it -- confirmed in production as
+# "ModuleNotFoundError: No module named 'flask'" from mod_wsgi once the
+# vhost's own handler-conflict and sys.path bugs (see wsgi.py) were fixed
+# and this became the next thing standing between a fresh install and a
+# working /api/search. A CLI-only use of this package (just `sectorgen`/
+# `systemgen`, no web interface ever deployed) wouldn't need it, but
+# nothing reaches this script without wanting the web interface.
 "$PYTHON" -m pip install --upgrade pip
-"$PYTHON" -m pip install --upgrade --force-reinstall "$SCRIPT_DIR"
+"$PYTHON" -m pip install --upgrade --force-reinstall "${SCRIPT_DIR}[api]"
 
 echo
 echo "== 2/6: Migrating the configured MySQL database to the current schema =="
