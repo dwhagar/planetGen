@@ -143,7 +143,14 @@
     # CGI browser's own requests. html/api/ itself holds only importable
     # Python source (never requested directly), so it gets the same
     # deny-all belt-and-suspenders treatment as html/lib/ above.
-    WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
+    # WSGIDaemonProcess must come before WSGIScriptAlias: mod_wsgi
+    # validates that a WSGIScriptAlias's process-group=... already names a
+    # declared daemon process at the point it parses that line, not by the
+    # end of the file -- declaring the group after (or via a directive
+    # later in the file) fails apache2ctl configtest with "WSGI process
+    # group not yet configured", even though the block reads fine top to
+    # bottom otherwise.
+    #
     # Keep `processes=1` unless PLANETGEN_RATELIMIT_STORAGE_URI (see
     # html/api/config.py) is also set to a shared backend (e.g.
     # redis://...): Flask-Limiter's default in-memory storage only counts
@@ -151,6 +158,7 @@
     # warning at startup if that assumption stops holding. `threads=5`
     # alone shares this one process's memory, so it stays accurate.
     WSGIDaemonProcess planetgen-api processes=1 threads=5
+    WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
     <Directory /var/lib/planetGen/src/html/api>
         Require all denied
     </Directory>
