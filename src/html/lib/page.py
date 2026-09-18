@@ -183,12 +183,13 @@ def _sidenav_html():
     items = []
     try:
         has_databases = bool(list_databases())
-    except ApiError:
-        # The API itself is unreachable -- the page's own handler is
-        # about to hit (or already hit) the same failure and render a
-        # clear error page for it; this only decides whether the shared
-        # nav chrome around that error page also tries (and fails) to
-        # show a "Databases" link, so it fails quiet here instead of
+    except (ApiError, NotFoundError):
+        # The API itself is unreachable (or a misrouted/misconfigured
+        # backend 404s instead of returning JSON) -- the page's own
+        # handler is about to hit (or already hit) the same failure and
+        # render a clear error page for it; this only decides whether the
+        # shared nav chrome around that error page also tries (and fails)
+        # to show a "Databases" link, so it fails quiet here instead of
         # taking the whole page shell down with it.
         has_databases = False
     if has_databases:
@@ -211,7 +212,7 @@ def _sidenav_html():
     admin = None
     try:
         admin = auth_me(incoming_cookie_header())
-    except ApiError:
+    except (ApiError, NotFoundError):
         admin = None
     if admin is None:
         items.append(("login.py", "Login"))
