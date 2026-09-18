@@ -124,11 +124,11 @@ def redirect(url, set_cookie_headers=None):
     be called instead of (never alongside) `send_headers`/`render`, and
     before any other output, same as `send_headers`'s own requirement.
 
-    Used by `index.py` to skip straight to `browse.py?db=...` when exactly
-    one database exists, instead of rendering the picker table for a
-    choice of one; also by `login.py`/`changecreds.py` to redirect after a
-    successful POST, carrying the API's `Set-Cookie` response along (see
-    `send_headers`'s own parameter of the same name).
+    Used by `index.py` to jump straight to `browse.py?db=...` for this
+    deployment's database instead of rendering a picker table; also by
+    `login.py`/`changecreds.py` to redirect after a successful POST,
+    carrying the API's `Set-Cookie` response along (see `send_headers`'s
+    own parameter of the same name).
 
     Args:
         url (str): The target URL, e.g. `"browse.py?db=planetgen.db"`.
@@ -151,49 +151,36 @@ def redirect(url, set_cookie_headers=None):
 def _sidenav_html():
     """
     Builds the site-wide vertical nav bar shown on the left of every page:
-    a fixed set of "functions" rather than a breadcrumb -- Databases, then
-    Search, Galaxy, Sectors, and Systems for the current `?db=` when one is
+    a fixed set of "functions" rather than a breadcrumb -- Search, Galaxy,
+    Sectors, Systems, Nav, and Phenomena for the current `?db=` when one is
     present in the request's own query string. Sectors/Systems jump
     straight to the matching anchor on `browse.py` (`id="sectors"`/
     `id="standalone-systems"`) rather than duplicating that page's own
     listing here; Galaxy goes to `galaxy.py`, the galaxy-scale map of every
     sector that actually has a galaxy position (see that page's own
     docstring) -- a different view than `browse.py`'s flat sector list.
+    Nav goes to `nav.py` with no `from=` -- that page's own sector-then-
+    system picker is what lets NAV be reached from here rather than only
+    ever via a specific system's own "Navigate from here" link. Phenomena
+    goes to `phenomena.py`, the flat list of every exotic phenomenon (see
+    that page's own docstring).
 
-    The Databases item always links to `index.py?all=1` (never bare
-    `index.py`) whenever at least one `.db` file exists -- `index.py` on its
-    own redirects straight past the picker when there's exactly one
-    database (see its own module docstring), which would otherwise make
-    this link a silent no-op/bounce-back on the single-database deployments
-    this project actually runs in production, leaving no way back to the
-    database-info page at all. `all=1` tells `index.py` to render the
-    picker table regardless of database count.
+    No "Databases" item -- `index.py` no longer renders a picker table to
+    link to at all (it redirects straight to `browse.py` for this
+    deployment's one database, see its own module docstring), so there was
+    no longer a destination for one.
 
     `query_params()` (not a caller-supplied argument) is what lets this be
     computed uniformly from `render()` for every page -- `system.py` and
     `sector.py` otherwise have no way to reach `search.py`/`browse.py`
     without first going back through `browse.py` itself. `index.py` is the
-    only script with no `db` in its query string, so it gets just the
-    Databases item (or nothing, when no database exists at all).
+    only script with no `db` in its query string, so it gets none of these
+    (just Login/Admin below).
 
     Returns:
         str: The `<nav class="sidenav">` element's inner HTML.
     """
-    from apiclient import list_databases
     items = []
-    try:
-        has_databases = bool(list_databases())
-    except (ApiError, NotFoundError):
-        # The API itself is unreachable (or a misrouted/misconfigured
-        # backend 404s instead of returning JSON) -- the page's own
-        # handler is about to hit (or already hit) the same failure and
-        # render a clear error page for it; this only decides whether the
-        # shared nav chrome around that error page also tries (and fails)
-        # to show a "Databases" link, so it fails quiet here instead of
-        # taking the whole page shell down with it.
-        has_databases = False
-    if has_databases:
-        items.append(("index.py?all=1", "Databases"))
     db_name = query_params().get("db")
     if db_name:
         db = esc(db_name)
@@ -202,6 +189,8 @@ def _sidenav_html():
             (f"galaxy.py?db={db}", "Galaxy"),
             (f"browse.py?db={db}#sectors", "Sectors"),
             (f"browse.py?db={db}#standalone-systems", "Systems"),
+            (f"nav.py?db={db}", "Nav"),
+            (f"phenomena.py?db={db}", "Phenomena"),
         ])
 
     # Admin/Login: one extra GET /api/auth/me per page render (same
@@ -241,12 +230,13 @@ def render(title, body_html, status="200 OK", set_cookie_headers=None):
         set_cookie_headers (list[str], optional): See `send_headers`.
     """
     safe_title = esc(title)
+    site_name = esc(load_config()["site_name"])
     send_headers(status, set_cookie_headers=set_cookie_headers)
     sys.stdout.write(f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>{safe_title} - planetGen</title>
+<title>{safe_title} - {site_name}</title>
 <link rel="stylesheet" href="static/style.css">
 </head>
 <body>

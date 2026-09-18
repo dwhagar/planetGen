@@ -2,9 +2,19 @@
 # html/index.py
 
 """
-Landing page: lists every MySQL schema on the configured server whose
-name matches this deployment's prefix (`GET /api/databases`) and links to
-`browse.py` for each one.
+Landing page: redirects straight into the deployment's database
+(`browse.py`) instead of showing a "pick a database" table first.
+
+This project deploys as one branded starmap per vhost now (see
+`config.json`'s `site_name`/`api_base_url`, `docs/config.md`) -- a picker
+whose only real job was choosing among a list that's realistically always
+length 1 just added an extra click/page load in front of every single
+visit, with no upside for the common case it actually runs in production.
+`GET /api/databases` still lists every schema matching this deployment's
+prefix (see that endpoint's own docs) for a deployment that genuinely keeps
+more than one; each one remains reachable directly at
+`browse.py?db=<name>`, just no longer from a shared landing page -- this
+only ever jumps to the first one returned (name-sorted).
 """
 
 import os
@@ -12,70 +22,28 @@ import sys
 from urllib.parse import quote
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+# stellarObjects/ lives at src/stellarObjects/ (src layout); this file is at
+# src/html/, one level down from src/ -- same pattern lib/page.py already
+# uses for its own load_config import, so this page's own "no databases"
+# title reflects config.json's site_name too, not a hardcoded "planetGen".
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from apiclient import ApiError, NotFoundError, list_databases
-from fmt import esc
-from page import query_params, redirect, run
+from page import redirect, run
+from stellarObjects.appconfig import load_config
 
 
 def handler():
-    databases = list_databases()
-
-    if not databases:
-        body = """
+    body = """
 <section class="panel">
 <p>No databases found. Generate one first with
 <code>sectorGen.py</code> or <code>systemGen.py</code>
 (see the project README).</p>
 </section>
 """
-        return "planetGen Databases", body
-
-    rows = []
-    for entry in databases:
-        # sector_count/system_count come back None (not 0) for a schema
-        # matching the configured prefix but missing this project's own
-        # tables -- see GET /api/databases's own comment for why that's
-        # reported rather than 500ing the whole listing.
-        sector_count = entry["sector_count"] if entry["sector_count"] is not None else "?"
-        system_count = entry["system_count"] if entry["system_count"] is not None else "?"
-        rows.append(
-            "<tr>"
-            f'<td><a href="browse.py?db={esc(entry["name"])}">{esc(entry["name"])}</a></td>'
-            f'<td>{sector_count}</td>'
-            f'<td>{system_count}</td>'
-            f'<td>{entry["size_bytes"]:,} bytes</td>'
-            f'<td>{esc(entry["modified_at"])}</td>'
-            "</tr>"
-        )
-
-    count_badge = f"{len(databases)} database{'s' if len(databases) != 1 else ''} found"
-    body = f"""
-<p class="badges"><span class="badge">{count_badge}</span></p>
-<section class="panel">
-<h2>Databases</h2>
-<div class="table-scroll"><table>
-  <thead>
-    <tr><th>Database</th><th>Sectors</th><th>Systems</th><th>Size</th><th>Last modified</th></tr>
-  </thead>
-  <tbody>
-    {''.join(rows)}
-  </tbody>
-</table></div>
-</section>
-"""
-    return "planetGen Databases", body
+    return f"{load_config()['site_name']} Databases", body
 
 
-# A choice of exactly one database isn't a choice -- skip the picker table
-# entirely and go straight to it, same as picking its only row would.
-# Zero (nothing to redirect to) and 2+ (an actual choice) both fall through
-# to the normal `run(handler)` picker below, unchanged. `?all=1` (used by
-# the sidenav's Databases link -- see `lib/page.py`'s `_sidenav_html`)
-# forces the picker table even for a single database, since that's the
-# only way back to the database-info page (size, sector/system counts,
-# last-modified) on the single-database deployments this redirect would
-# otherwise strand every other page behind.
 try:
     _databases = list_databases()
 except (ApiError, NotFoundError):
@@ -86,7 +54,7 @@ except (ApiError, NotFoundError):
     # otherwise crash before run() ever gets a chance to catch anything).
     _databases = None
 
-if _databases is not None and len(_databases) == 1 and not query_params().get("all"):
+if _databases:
     redirect(f"browse.py?db={quote(_databases[0]['name'])}")
 else:
     run(handler)

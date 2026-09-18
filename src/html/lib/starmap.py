@@ -97,6 +97,57 @@ except ImportError:
 _SCENE_SIZE_PX = 320
 _SCENE_HALF_PX = _SCENE_SIZE_PX / 2
 
+# A plain axis-aligned `.cube-face` fallback cube's own corners, at
+# distance `_SCENE_HALF_PX` out along all three axes at once -- used by
+# `_default_zoom` as the fallback shape's extent when there's no wedge
+# wireframe to measure instead.
+_CUBE_CORNER_RADIUS_PX = _SCENE_HALF_PX * math.sqrt(3)
+
+# Never start a sector further zoomed out than this, however large its
+# wedge/cube/plotted content gets (an extreme far-out placement could
+# otherwise compute an unusably tiny initial view) -- `sectormap.js`'s own
+# zoom-out control/scroll remains available past this floor regardless.
+_MIN_DEFAULT_ZOOM = 0.2
+
+
+def _default_zoom(extent_radii_px):
+    """
+    Picks the zoom level the sector map should *open* at, so its real
+    content -- the wedge/cube outline, every plotted star/cloud -- actually
+    fits in the fixed-size scene on first paint, instead of always starting
+    at a flat `zoom = 1` regardless of how much bigger the real shape is.
+
+    A galaxy-placed sector's wedge wireframe is deliberately allowed to
+    extend well past the scene (see `_wedge_edges_px`'s docstring -- the
+    wedge's angular patch doesn't coincide with a cube's flat sides), and
+    even the plain-cube fallback's own corners sit `_SCENE_HALF_PX *
+    sqrt(3)` out -- both already past the scene's own half-width at
+    `zoom = 1`. Without this, opening such a sector showed a handful of
+    giant wireframe edges crossing the visible crop -- not a wedge shape at
+    all -- with any star near the outline's own edge invisible outside the
+    fixed, non-panning viewport; confirmed by rendering this module's real
+    output in a browser and comparing `zoom = 1` against manually zooming
+    all the way out, which showed the exact same content correctly.
+
+    Args:
+        extent_radii_px (list[float]): Distance from the scene's own
+                                       center, for every point that matters
+                                       (wedge/cube vertices, star/cloud
+                                       positions) -- the empty-scene case
+                                       (no systems, no clouds, cube
+                                       fallback) still always has at least
+                                       `_CUBE_CORNER_RADIUS_PX` in this list.
+
+    Returns:
+        float: A zoom factor in `(0, 1]` -- `1.0` when everything already
+              fits at the scene's native size, smaller the more the real
+              content overflows it, floored at `_MIN_DEFAULT_ZOOM`.
+    """
+    max_radius = max(extent_radii_px, default=_SCENE_HALF_PX)
+    if max_radius <= _SCENE_HALF_PX:
+        return 1.0
+    return max(_MIN_DEFAULT_ZOOM, _SCENE_HALF_PX / max_radius)
+
 _SUN_RADIUS_KM = SOLAR_RADIUS_M / 1000.0
 _MIN_DOT_R = 3.0
 _MAX_DOT_R = 14.0
@@ -687,7 +738,7 @@ def _phenomenon_cloud_radius_px(radius_ly, half_edge):
     return max(4.0, min(_MAX_CLOUD_RADIUS_PX, radius_px))
 
 
-def _cloud_html(phenomenon, x_px, y_px, z_px, radius_px):
+def _cloud_html(db_name, phenomenon, x_px, y_px, z_px, radius_px):
     """
     Builds one phenomenon marker as a billboarded translucent circle --
     the same anchor-plus-inner-billboard split `_dot_html` uses for a star
@@ -697,10 +748,14 @@ def _cloud_html(phenomenon, x_px, y_px, z_px, radius_px):
     than the scene itself); a black hole/neutron star draws as a small,
     sharp, glowing point instead (`radius_ly` is always 0 for these two --
     see `queryDb._PHENOMENON_TABLES` -- real event-horizon/neutron-star
-    sizes are negligible at this scale). Unlike `_dot_html`, there's no
-    `data-href` -- a phenomenon has no detail page of its own to link to.
+    sizes are negligible at this scale). Carries a `data-href` to
+    `phenomenon.py` (this project's detail page for a standalone
+    phenomenon -- `static/sectormap.js`'s info panel adds the "View
+    phenomenon" link the same way `_dot_html`'s `data-href` already does
+    for a star system).
 
     Args:
+        db_name (str): The current `?db=` value, for `data-href`.
         phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
                            (`id`, `type`, `name`, `descriptor`, `radius_ly`,
                            `distance_ly`).
@@ -760,6 +815,7 @@ def _cloud_html(phenomenon, x_px, y_px, z_px, radius_px):
         f'data-phenomenon-type="{esc(type_label)}" '
         f'data-radius="{phenomenon["radius_ly"]:,.2f} ly" '
         f'data-distance="{phenomenon["distance_ly"]:,.1f} ly from sector center" '
+        f'data-href="phenomenon.py?db={esc(db_name)}&amp;type={esc(phenomenon["type"])}&amp;id={phenomenon["id"]}" '
         f'aria-label="{esc(phenomenon["name"])}" title="{esc(phenomenon["name"])}"></div>'
         "</div>"
     )
@@ -837,6 +893,17 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
     half_edge = (edge_mpc / 2) if edge_mpc else 1.0
 
     dots = []
+    # Every plotted point's distance from the scene's own center -- a
+    # wedge-shaped sector's wireframe (see `_wedge_edges_px`'s own
+    # docstring) is deliberately allowed to extend well past the fixed
+    # `_SCENE_SIZE_PX` scene, and even a plain `.cube-face` fallback's own
+    # corners sit `_SCENE_HALF_PX * sqrt(3)` out -- both already past the
+    # scene's own half-width. Collected here so `_default_zoom` below can
+    # start the view already zoomed out enough to show all of it, instead
+    # of opening on a confusing near-empty crop of a few giant crossing
+    # lines that only zooming out by hand (`sectormap.js`'s zoom-out
+    # button/scroll) reveals -- see this module's `_default_zoom`.
+    extent_radii_px = []
     for system in systems:
         # +y is "up" on screen; CSS's own y axis increases downward, so
         # the sign flips here once, at the one place normalized position
@@ -855,6 +922,7 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
         x_px = nx * _SCENE_HALF_PX
         y_px = -ny * _SCENE_HALF_PX
         z_px = nz * _SCENE_HALF_PX
+        extent_radii_px.append(math.sqrt(x_px * x_px + y_px * y_px + z_px * z_px))
 
         stars = system["stars"]
         is_binary = len(stars) > 1
@@ -889,17 +957,28 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
         z_px = nz * _SCENE_HALF_PX
         radius_px = _phenomenon_cloud_radius_px(phenomenon["radius_ly"], half_edge)
         if radius_px:
-            clouds.append(_cloud_html(phenomenon, x_px, y_px, z_px, radius_px))
+            clouds.append(_cloud_html(db_name, phenomenon, x_px, y_px, z_px, radius_px))
+            # The cloud's own edge, not just its center -- a large nebula
+            # can dwarf the scene (see `_MAX_CLOUD_RADIUS_PX`), and its
+            # center alone would understate how far out it actually reaches.
+            extent_radii_px.append(
+                math.sqrt(x_px * x_px + y_px * y_px + z_px * z_px) + radius_px
+            )
 
     wedge_vertices = _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge)
     if wedge_vertices is not None:
         outline_html = _wedge_wireframe_html(wedge_vertices)
         shape_hint = "outline &asymp; sector's real position/orientation on its shell"
+        extent_radii_px.extend(
+            math.sqrt(vx * vx + vy * vy + vz * vz) for vx, vy, vz in wedge_vertices
+        )
     else:
         outline_html = _cube_faces_html()
         shape_hint = "cube edge &asymp; sector size (not placed in a galaxy)"
+        extent_radii_px.append(_CUBE_CORNER_RADIUS_PX)
 
     compass_html = _compass_html(center_pc)
+    default_zoom = _default_zoom(extent_radii_px)
 
     # No role/aria-label here -- `role="img"` on an ancestor would flatten
     # every descendant (each star dot's own `role="button"`/`tabindex`)
@@ -944,7 +1023,7 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">
-<div class="starmap-zoom" id="starmap-zoom">
+<div class="starmap-zoom" id="starmap-zoom" data-default-zoom="{default_zoom:.4f}">
 <div class="starmap-stage" id="starmap-stage" tabindex="0" role="application"
      aria-label="Interactive 3D sector map. Drag or use arrow keys to rotate, scroll or the zoom buttons to zoom.">
 {scene}

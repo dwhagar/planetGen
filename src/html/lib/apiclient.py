@@ -49,7 +49,17 @@ for local testing), or `config.json`'s `api_base_url` (see
 e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own dev
 server running alongside a locally-invoked CGI script."""
 
-_TIMEOUT_SECONDS = 15
+_TIMEOUT_SECONDS = 30
+"""int: Was 15 -- confirmed too tight for GET /api/search specifically
+(TimeoutError in production): that one endpoint always runs its full
+facet+autocomplete query set up front regardless of whether any filter is
+active (queryDb.search), which used to mean an unindexed full-table
+scan/sort per query (see schema.sql's "v22" header note, which adds the
+missing indexes -- the real fix). This wider margin is deliberately kept
+as a second line of defense on top of that, not a replacement for it: even
+an indexed query set can occasionally run long on a large, busy database,
+and every other page here issues far fewer/cheaper queries per request, so
+raising this shared constant costs them nothing in the common case."""
 
 
 class NotFoundError(Exception):
@@ -296,6 +306,21 @@ def get_galaxy_phenomena(db):
     galaxy_placed_phenomena`'s docstring for the shape."""
     _require_db(db)
     return _request("/galaxy/phenomena", {"db": db})["items"]
+
+
+def get_phenomena(db, limit=None, offset=None):
+    """Returns `GET /api/phenomena`'s full paginated envelope
+    (`items`/`total`/`limit`/`offset`) -- see `queryDb.list_phenomena`'s
+    docstring for the shape."""
+    _require_db(db)
+    return _request("/phenomena", {"db": db, "limit": limit, "offset": offset})
+
+
+def get_phenomenon(db, phenomenon_type, phenomenon_id):
+    """Returns `GET /api/phenomena/<type>/<id>`'s detail dict -- see
+    `queryDb.phenomenon_detail`'s docstring for the shape."""
+    _require_db(db)
+    return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
 def get_search(db, texts, tags, sizes=None):

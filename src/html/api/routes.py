@@ -33,14 +33,17 @@ from queryDb import (
     NO_SECTOR,
     NavUnavailable,
     SEARCH_TAG_FACETS,
+    count_phenomena,
     count_sectors,
     count_systems,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    list_phenomena,
     list_sectors,
     list_systems,
     nav_between,
     open_readonly,
+    phenomenon_detail as query_phenomenon_detail,
     search as run_search,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
@@ -445,6 +448,40 @@ def galaxy_phenomena():
     for the same reason `/api/galaxy/sectors` isn't.
     """
     return jsonify({"items": galaxy_placed_phenomena(get_db())})
+
+
+@bp.route("/phenomena")
+def phenomena():
+    """
+    Every exotic phenomenon (nebula/asteroid field/black hole/neutron
+    star), across every sector and regardless of galaxy placement -- the
+    flat, paginated counterpart to `/api/galaxy/phenomena` (which only
+    returns the galaxy-placed subset, for the Galaxy Map). `html/
+    phenomena.py`'s own listing page.
+    """
+    limit, offset = _paginate(request.args)
+    db = get_db()
+    return jsonify({
+        "items": list_phenomena(db, limit=limit, offset=offset),
+        "total": count_phenomena(db),
+        "limit": limit,
+        "offset": offset,
+    })
+
+
+@bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>")
+def phenomenon(phenomenon_type, phenomenon_id):
+    """
+    One phenomenon's full detail -- `html/phenomenon.py`'s info page.
+    `phenomenon_type` is one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys
+    (`nebula`/`asteroid_field`/`black_hole`/`neutron_star`); anything else,
+    or an id that doesn't exist under it, is a 404.
+    """
+    try:
+        detail = query_phenomenon_detail(get_db(), phenomenon_type, phenomenon_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify(detail)
 
 
 @bp.route("/search")

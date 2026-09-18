@@ -60,6 +60,7 @@ from fmt import esc
 from starmap import _star_color, _SUN_RADIUS_KM
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+    to_plain_text,
 )
 
 try:
@@ -510,7 +511,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "classdesc": _class_description(planet["planet_class"]),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
-        "distance": format_body_distance(planet["distance_km"], planet.get("_is_moon", False)),
+        "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
         "period": format_period(planet["period_years"]),
         "gravity": f'{round(planet["gravity_g"], 3) if planet["gravity_g"] is not None else ""} g',
         "life": planet.get("life_chemical"),
@@ -675,8 +676,9 @@ def _render_system_scene(system, stars, planets, belts):
             "name": f'{system["name"]}{marker["suffix"]}',
             "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
             "type": star["star_type"], "temp": f'{int(star["temperature_k"])} K',
-            "mass": format_star_mass(star["mass_kg"]), "radius": format_star_radius(star["radius_km"]),
-            "lum": format_star_luminosity(star["luminosity_w"]),
+            "mass": to_plain_text(format_star_mass(star["mass_kg"])),
+            "radius": to_plain_text(format_star_radius(star["radius_km"])),
+            "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
         }))
 
     sides = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers])

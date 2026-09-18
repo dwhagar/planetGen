@@ -164,6 +164,21 @@ def _rings_to_show(sectors):
     return max(_MIN_RINGS_SHOWN, sector_ring(max_shell) + 2)
 
 
+_MAX_RINGS_DRAWN = 10
+"""int: Never actually draw more than this many ring guide-circles/labels,
+however many fixed-shell-width Rings a far-out placed sector's own real
+distance implies (`_rings_to_show`, used unchanged to pick the map's scale
+so that sector still fits) -- a sector placed deep in the galaxy can imply
+hundreds of Rings (confirmed directly: shell_index ~1400 implied 157), which
+only clutters the map into a dense, unreadable smear of overlapping guide
+circles and labels instead of giving useful distance context. Past this
+cap, `_ring_elements` switches from one guide per literal Ring to
+`_MAX_RINGS_DRAWN` evenly-spaced distance markers covering the same span
+instead -- still real, accurate distance labels, just no longer tied 1:1 to
+`RING_SHELL_WIDTH`'s own fixed shell count once there'd be too many to
+read."""
+
+
 def _star_visual(system_count):
     """
     Maps a sector's `system_count` to `(radius_px, halo_opacity,
@@ -224,9 +239,20 @@ def _cloud_defs():
 
 
 def _ring_elements(rings_to_show, px_per_ly):
+    if rings_to_show <= _MAX_RINGS_DRAWN:
+        # The common case (browsing near the core): few enough real Rings
+        # to show each one exactly, at its own fixed-shell-width boundary.
+        outer_lys = [ring_bounds_ly(ring_index)[1] for ring_index in range(rings_to_show)]
+    else:
+        # Too many real Rings to draw individually -- fall back to
+        # `_MAX_RINGS_DRAWN` evenly-spaced distance markers spanning the
+        # same 0..outer_ly range instead (see `_MAX_RINGS_DRAWN`'s own
+        # docstring), rather than one per literal Ring.
+        _inner_ly, full_outer_ly = ring_bounds_ly(rings_to_show - 1)
+        outer_lys = [full_outer_ly * (i + 1) / _MAX_RINGS_DRAWN for i in range(_MAX_RINGS_DRAWN)]
+
     parts = []
-    for ring_index in range(rings_to_show):
-        _inner_ly, outer_ly = ring_bounds_ly(ring_index)
+    for outer_ly in outer_lys:
         radius_px = outer_ly * px_per_ly
         parts.append(
             f'<circle class="galaxymap-ring" cx="{_CENTER:.1f}" cy="{_CENTER:.1f}" r="{radius_px:.1f}"/>'
@@ -294,26 +320,28 @@ _PHENOMENON_TYPE_LABELS = {
 _DEFAULT_PHENOMENON_COLOR = "#9aa0ac"
 
 
-def _phenomenon_elements(phenomena, px_per_ly):
+def _phenomenon_elements(db_name, phenomena, px_per_ly):
     """
     Plots every galaxy-placed nebula/asteroid field/black hole/neutron
     star as a small, fixed-size dot -- the galaxy-scale counterpart to
-    `_star_elements`, but with no click-through (a phenomenon has no
-    detail page of its own, unlike a sector) -- just a hover tooltip
-    naming it, its type, and its real size (a black hole/neutron star's
-    own `radius_ly` is always 0 -- point-like at this scale, see
-    `queryDb._PHENOMENON_TABLES` -- so the tooltip omits the "ly across"
-    figure for those two rather than showing a misleading "~0.0 ly
-    across").
+    `_star_elements`, linking to `phenomenon.py` (this project's detail
+    page for a standalone phenomenon) the same way a sector's own dot
+    links to `sector.py` -- plus a hover tooltip naming it, its type, and
+    its real size (a black hole/neutron star's own `radius_ly` is always
+    0 -- point-like at this scale, see `queryDb._PHENOMENON_TABLES` -- so
+    the tooltip omits the "ly across" figure for those two rather than
+    showing a misleading "~0.0 ly across").
 
     Args:
+        db_name (str): The current `?db=` value, used to build each dot's
+                       `href`.
         phenomena (list[dict]): `queryDb.galaxy_placed_phenomena`'s return
                                 shape (`id`, `type`, `name`, `descriptor`,
                                 `radius_ly`, `x`/`y`/`z`, `galactic_radius_pc`).
         px_per_ly (float): Pixels per light-year at the current scale.
 
     Returns:
-        str: One `<g>` per phenomenon.
+        str: One `<a>` per phenomenon.
     """
     parts = []
     for phenomenon in phenomena:
@@ -327,11 +355,12 @@ def _phenomenon_elements(phenomena, px_per_ly):
             f'{esc(phenomenon["name"])} -- {esc(descriptor)} {esc(type_label)}, '
             f'{size_bit}~{projected["radius_ly"]:,.0f} ly from core'
         )
+        href = f'phenomenon.py?db={esc(db_name)}&amp;type={esc(phenomenon["type"])}&amp;id={phenomenon["id"]}'
         parts.append(
-            f'<g class="galaxymap-phenomenon"><title>{tooltip}</title>'
+            f'<a class="galaxymap-phenomenon" href="{href}"><title>{tooltip}</title>'
             f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{_PHENOMENON_DOT_R:.1f}" '
             f'fill="{color}" fill-opacity="0.85" stroke="#00000055" stroke-width="0.6"/>'
-            "</g>"
+            "</a>"
         )
     return "".join(parts)
 
@@ -400,7 +429,7 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
         f"{_ring_elements(rings_to_show, px_per_ly)}"
         f"{_quadrant_axis_elements()}"
         f"{_quadrant_label_elements(db_name, quadrant)}"
-        f"{_phenomenon_elements(phenomena or [], px_per_ly)}"
+        f"{_phenomenon_elements(db_name, phenomena or [], px_per_ly)}"
         f"{_star_elements(db_name, sectors, px_per_ly)}"
     )
 

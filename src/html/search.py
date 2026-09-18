@@ -508,8 +508,7 @@ def handler():
         results_html = '<p class="hint">Select a tag below, or enter a name above and press Search, to see matching results.</p>'
 
     breadcrumb = (
-        '<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; '
-        f'<a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; Search</p>'
+        f'<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; Search</p>'
     )
 
     body = f"""

@@ -827,6 +827,147 @@ def _placed_phenomenon_rows(conn):
     return rows
 
 
+def list_phenomena(conn, limit=None, offset=None):
+    """
+    Returns every exotic phenomenon (nebula/asteroid field/black hole/
+    neutron star -- the four in `_PHENOMENON_TABLES`), across every sector
+    and regardless of galaxy placement -- `GET /api/phenomena`'s own flat
+    listing (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which
+    only returns the galaxy-placed subset, for the Galaxy Map) or
+    `phenomena_near_sector` (one sector's own neighborhood).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        limit (int, optional): Caps the number of rows returned.
+        offset (int, optional): Skips this many rows first. Ignored unless
+            `limit` is also given.
+
+    Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
+    shape is a normal star system's own compact-remnant star (already
+    shown on that system's own `system.py` page), not a standalone exotic
+    phenomenon; `nebulae`/`asteroid_fields` have no `star_id` at all
+    (always standalone, see their own table comments) and need no such
+    filter.
+
+    Returns:
+        list[dict]: One row per phenomenon, ordered by name: `id`, `type`
+            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, or
+            `"neutron_star"`), `name`, `descriptor`, `radius_ly`,
+            `sector_id`/`sector_name` (both `None` if this phenomenon has
+            never been linked to a sector -- see `schema.sql`'s "v18"
+            header note), and `placed` (bool -- whether it has a galaxy
+            position at all, `center_x_pc IS NOT NULL`).
+    """
+    union_parts = [
+        f"""
+        SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
+               {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
+               t.sector_id AS sector_id, sec.name AS sector_name,
+               t.center_x_pc AS center_x_pc
+        FROM {table} t
+        LEFT JOIN sectors sec ON sec.id = t.sector_id
+        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
+        """
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
+    ]
+    query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
+    params = []
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset or 0])
+
+    rows = conn.execute(query, params).fetchall()
+    return [
+        {
+            "id": row["id"], "type": row["type"], "name": row["name"],
+            "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
+            "sector_id": row["sector_id"], "sector_name": row["sector_name"],
+            "placed": row["center_x_pc"] is not None,
+        }
+        for row in rows
+    ]
+
+
+def count_phenomena(conn):
+    """
+    Returns the total number of exotic phenomena across every type in
+    `_PHENOMENON_TABLES`, ignoring any pagination -- the denominator
+    `list_phenomena(conn, limit=...)` callers (the API's
+    `/api/phenomena`) need to report how many pages exist.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        int: Total phenomenon count.
+    """
+    return sum(
+        conn.execute(
+            f"SELECT COUNT(*) AS n FROM {table}"
+            + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
+        ).fetchone()["n"]
+        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES
+    )
+
+
+_PHENOMENON_TYPE_TO_TABLE = {type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES}
+"""dict: `type` value (as returned by `list_phenomena`/`galaxy_placed_phenomena`)
+-> its backing table name, e.g. `"nebula"` -> `"nebulae"` -- the reverse of
+`_PHENOMENON_TABLES`'s own `(table, type_label, ...)` order, used by
+`phenomenon_detail` to find the one table a `(type, id)` pair actually
+means without hand-listing the mapping a second time."""
+
+
+def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
+    """
+    Returns one phenomenon's full row -- every column its own table has,
+    plus its sector's name (see `list_phenomena`'s identical `sector_id`/
+    `sector_name` convention) -- for `GET /api/phenomena/<type>/<id>`
+    (`html/phenomenon.py`'s detail page). Unlike `list_phenomena`'s
+    normalized `descriptor`/`radius_ly` (a common shape across all four
+    types, for a flat list), this returns the row as-is: each type has its
+    own genuinely different set of fields (a nebula's `nebula_type`/
+    `composition`/`formation_cause` vs. a black hole's
+    `has_accretion_disk`/`hawking_temperature_k`/...), and a detail page
+    showing just one phenomenon has no need to normalize them into a
+    shared shape the way a mixed-type list does.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
+            (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
+            `"neutron_star"`).
+        phenomenon_id (int): The row's own `id` in its backing table.
+
+    Returns:
+        dict: Every column of the phenomenon's own row, plus `type` and
+            `sector_name` (`None` if it has no `sector_id`).
+
+    Raises:
+        ValueError: If `phenomenon_type` isn't a recognized type, or no
+            such row exists.
+    """
+    table = _PHENOMENON_TYPE_TO_TABLE.get(phenomenon_type)
+    if table is None:
+        raise ValueError(f"no such phenomenon type: {phenomenon_type!r}")
+
+    row = conn.execute(
+        f"""
+        SELECT t.*, sec.name AS sector_name
+        FROM {table} t
+        LEFT JOIN sectors sec ON sec.id = t.sector_id
+        WHERE t.id = ?
+        """,
+        (phenomenon_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"no {table} row with id {phenomenon_id}")
+
+    detail = dict(row)
+    detail["type"] = phenomenon_type
+    return detail
+
+
 def galaxy_placed_phenomena(conn):
     """
     Every galaxy-placed nebula/asteroid field/black hole/neutron star --

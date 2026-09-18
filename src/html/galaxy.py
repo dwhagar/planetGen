@@ -135,7 +135,7 @@ def handler():
 
     title = f"Galaxy Map: Quadrant {quadrant}" if quadrant else "Galaxy Map"
     body = f"""
-<p class="breadcrumb"><a href="index.py">Databases</a> &rarr; <a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(title)}</p>
+<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(title)}</p>
 {badges_html}
 {map_html}
 <section class="panel">

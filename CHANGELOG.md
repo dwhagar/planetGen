@@ -1,5 +1,159 @@
 # Changelog
 
+## [5.36.0] - 2026-09-18
+
+### Added
+- **A sector-then-system picker on the Nav page, reachable with no
+  starting system already known.** Previously `nav.py` only ever worked
+  when arriving via a specific system's own "Navigate from here" button
+  (`?from=<id>` required); the sidenav's new "Nav" link now reaches it
+  with nothing chosen yet, and a two-step `<select>` picker (every sector,
+  then every system in the chosen one -- `GET /api/sectors` then
+  `GET /api/sectors/<id>`) sets `from=` the same way arriving via
+  `system.py` already did. The cross-sector half of the destination picker
+  (choosing `to=` once an origin is known) gets the identical two-step
+  sector-then-system cascade in place of its old plain numeric
+  destination-system-id field.
+- **A list and detail page for exotic phenomena** (nebula/asteroid
+  field/black hole/neutron star) -- this project's first per-phenomenon
+  pages; previously a phenomenon had no page of its own at all, only a
+  hover tooltip on the Sector Map/Galaxy Map. `phenomena.py` lists every
+  phenomenon across every sector, regardless of galaxy placement (`GET
+  /api/phenomena`, paginated); each row links to `phenomenon.py`'s full
+  detail view (`GET /api/phenomena/<type>/<id>`, each type's own real
+  columns -- a nebula's `composition`/`formation_cause`, a black hole's
+  `mass_solar`/`spin`/`has_accretion_disk`, etc. -- via new `queryDb.
+  list_phenomena`/`phenomenon_detail`). Both pages are linked from the
+  sidenav; the Sector Map's and Galaxy Map's own phenomenon markers
+  (`lib/starmap.py`/`lib/galaxymap.py`) now click through to the same
+  detail page instead of only showing a tooltip.
+
+## [5.35.7] - 2026-09-18
+
+### Fixed
+- **The Search page timed out** (`TimeoutError`/`urllib.error.URLError`
+  surfaced through `html/lib/apiclient.py`, rendered as an unexpected
+  error page) once the database grew past a trivial size. `GET
+  /api/search` always runs its full facet-count and autocomplete query set
+  up front, on every visit, regardless of whether any filter is active
+  (`queryDb.search`) -- ten `GROUP BY`/`SELECT DISTINCT ... ORDER BY`
+  queries, none of them backed by an index on the column they group,
+  filter, or sort by (`stars.yerkes_class`, `planets`/
+  `moons`.`planet_class`/`body_type`/`life_chemical`,
+  `asteroid_belts.density`, and every table's own `name`), so each one was
+  a genuine full-table scan/sort. New schema v22
+  (`_migrate_v21_to_v22`/`schema.sql`) adds the missing indexes; a name
+  *term* search (`LIKE '%text%'`, a leading wildcard) isn't sped up by any
+  of them -- that would need a FULLTEXT index, out of this fix's scope --
+  but the facet counts and autocomplete lists that run unconditionally on
+  every visit are. `apiclient.py`'s own request timeout also widened
+  15s -> 30s as a second line of defense, not a replacement for the real
+  fix.
+
+## [5.35.6] - 2026-09-18
+
+### Fixed
+- **Every galaxy-generated sector's system count was flatly stuck at 10**,
+  regardless of where it actually sits in the spiral galaxy -- a bulge
+  sector and a sparse outer-disk sector generated the same way.
+  `ensure_sector_generated` (the visit-triggered lazy-generation path)
+  already correctly drove system count from the galaxy skeleton's real
+  position-based `relative_density`, but `generate.py galaxy`'s own
+  batch/local-neighborhood/random-start generation -- how every sector in
+  a real deployment actually gets made -- never consulted it at all: every
+  sector in a run shared one flat CLI value, defaulting to `num_systems =
+  10` when neither `--density` nor `--num-systems` was given.
+  `validate_shared_generation_args` now leaves both unset for `galaxy`
+  mode specifically in that case (`sector` mode, which has no galaxy
+  position to compute a density from, is unaffected); a new `_BatchDensity`
+  helper resolves each sector's own `relative_density` from the stored
+  skeleton (fetched once, reused for the whole run) and feeds it through
+  exactly the way `ensure_sector_generated` already does, in
+  `run_shell_batch`/`run_local_neighborhood`/`run_random_start` alike. An
+  explicit `--density`/`--num-systems` still applies uniformly for the
+  whole run, unchanged.
+- Audited the actual system-placement code path (`SpaceSector.add_system`/
+  `_random_position`, via `generate_sector`'s `for system, cfg in
+  zip(...): sector.add_system(...)` loop) for whether it could silently
+  place fewer systems than the (now real, skeleton-driven) requested
+  count -- it can't: a sector too crowded to fit the next system's minimum
+  Hill-sphere separation raises `ValueError` after
+  `SECTOR_MAX_PLACEMENT_ATTEMPTS` tries rather than skipping it, so an
+  under-delivered density would already be a loud failure, not a silent
+  one. No code change needed for this part; noted here since it was the
+  other half of what was reported.
+
+## [5.35.5] - 2026-09-18
+
+### Fixed
+- **A galaxy-placed sector's Sector Map opened looking almost empty/broken**
+  -- a couple of giant wireframe edges crossing the visible crop instead of
+  a wedge shape, with any star near the outline's own edge invisible
+  outside the fixed, non-panning viewport. The wedge wireframe (`lib/
+  starmap.py`'s `_wedge_edges_px`) is deliberately allowed to extend well
+  past the fixed 320px scene (the wedge's angular patch doesn't coincide
+  with a cube's flat sides), but the map always *started* at `zoom = 1`
+  regardless -- confirmed by rendering the real output in a browser and
+  comparing that default against manually zooming all the way out, which
+  showed the exact same content correctly. `render_map_panel` now computes
+  a `_default_zoom` from the actual extent of everything being drawn
+  (wedge/cube vertices, every star/cloud) and starts (and "Reset view"
+  returns to) that fitted zoom instead of a flat default; `sectormap.js`'s
+  own `MIN_ZOOM` floor widened to match.
+- **The Galaxy Map rendered as a dense, unreadable smear of overlapping
+  ring labels for any sector placed far from the core**, with its own dot
+  sitting right at the visible circle's edge -- reproduced directly with a
+  sector at `shell_index` ~1400, which implied 157 fixed-shell-width Rings,
+  each drawn as its own guide circle + label, all crammed into the same
+  480px panel. `lib/galaxymap.py`'s `_rings_to_show` (which picks the
+  map's *scale*, so a far sector still fits) is now decoupled from how
+  many ring guides `_ring_elements` actually *draws*: past
+  `_MAX_RINGS_DRAWN` (10), it switches from one guide per literal
+  fixed-shell-width Ring to 10 evenly-spaced distance markers spanning the
+  same range -- still real, accurate distance labels, just no longer
+  cluttering the map once there would be too many to read. The common
+  near-core case (few real Rings) is unaffected -- confirmed with a
+  regression render.
+
+## [5.35.3] - 2026-09-18
+
+### Fixed
+- **Site `<title>`/browser-tab text always said "planetGen"**, ignoring
+  `config.json`'s own `site_name` (e.g. "Molten Aether Starmap") that
+  every other page-title path already honored. `lib/page.py`'s `render()`
+  hardcoded the literal string instead of calling `load_config()` the way
+  `api_base_url`/`base_url` already do; `index.py`'s own "no databases"
+  title had the identical hardcoded string. Both now read `site_name` from
+  config.
+- **The "pick a database" landing page is gone.** This project deploys as
+  one branded starmap per vhost now (`config.json`'s `site_name`/
+  `api_base_url`), so a picker whose choice is realistically always length
+  1 just added an extra click/page load in front of every visit.
+  `index.py` now redirects straight to `browse.py` for the first database
+  `GET /api/databases` returns, regardless of how many exist; every other
+  page's breadcrumb (`browse.py`/`galaxy.py`/`sector.py`/`search.py`/
+  `system.py`) drops its now-pointless leading "Databases" link, and the
+  sidenav's own "Databases" item is removed (there is no longer a picker
+  page for it to reach).
+
+## [5.35.1] - 2026-09-18
+
+### Fixed
+- **Planet/moon/star infobox fields showed literal `<sup>7</sup>` markup
+  instead of a superscript 7.** `tabledisplay.py`'s scientific-notation
+  formatters (`format_body_distance`/`format_star_mass`/`format_star_radius`/
+  `format_star_luminosity`) emit real HTML (`"5.3 × 10<sup>7</sup> km"`),
+  correct for `system.py`'s static table cells (inserted unescaped on
+  purpose) but wrong for `lib/systemmap.py`'s interactive System Map: it
+  carries the same strings through `data-*` attributes that
+  `static/systemmap.js` reads back with `.textContent` (deliberately never
+  `innerHTML`, so database-derived values can never execute as markup) --
+  which shows a `<sup>` tag as literal text instead of rendering it. Added
+  `tabledisplay.to_plain_text`, converting the one `<sup>N</sup>` pattern
+  into real Unicode superscript digits (`10⁷`), and applied it at every
+  `data-*`-building call site in `systemmap.py` (distance, mass, radius,
+  luminosity); `system.py`'s own raw-HTML table cells are untouched.
+
 ## [5.35.0] - 2026-09-17
 
 ### Changed

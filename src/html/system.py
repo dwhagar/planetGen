@@ -266,7 +266,7 @@ def handler():
 
     system = get_system(db_name, system_id)
 
-    back_html = '<p class="breadcrumb"><a href="index.py">Databases</a>'
+    back_html = f'<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a>'
     if system["sector_id"] is not None:
         back_html += f' &rarr; <a href="sector.py?db={esc(db_name)}&id={system["sector_id"]}">Sector</a>'
     back_html += f" &rarr; {esc(system['name'])}</p>"
