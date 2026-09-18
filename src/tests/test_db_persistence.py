@@ -670,9 +670,17 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
     finally:
         conn.close()
 
-    reloaded_planets_by_name = {p.name: p for p in reloaded.planets if p.body_type != "a"}
-    for planet in planets:
-        reloaded_planet = reloaded_planets_by_name[planet.name]
+    # Matched positionally, not by name: `insert_moon`/`insert_planet` persist
+    # each body's list position via `orbital_index`, and `load_star_system`
+    # loads both planets and moons `ORDER BY orbital_index`, so `reloaded`
+    # preserves the original ordering exactly. Name-keyed dicts would break
+    # here -- moon (and planet) names come from `generate_phoneme_salad_name`,
+    # which picks names independently per body with no check against its own
+    # siblings, so two moons on the same planet can occasionally collide on
+    # the same generated name and silently overwrite each other in a dict.
+    reloaded_planets = [p for p in reloaded.planets if p.body_type != "a"]
+    assert len(reloaded_planets) == len(planets)
+    for planet, reloaded_planet in zip(planets, reloaded_planets):
         assert reloaded_planet.orbital_inclination_deg == pytest.approx(planet.orbital_inclination_deg)
         assert reloaded_planet.orbital_ascending_node_deg == pytest.approx(planet.orbital_ascending_node_deg)
         assert reloaded_planet.orbital_phase_deg == pytest.approx(planet.orbital_phase_deg)
@@ -683,9 +691,8 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
         assert reloaded_planet.min_update_interval_years == pytest.approx(planet.min_update_interval_years)
         assert reloaded_planet.rotation_period_hours == pytest.approx(planet.rotation_period_hours)
 
-        reloaded_moons_by_name = {m.name: m for m in reloaded_planet.moons}
-        for moon in planet.moons:
-            reloaded_moon = reloaded_moons_by_name[moon.name]
+        assert len(reloaded_planet.moons) == len(planet.moons)
+        for moon, reloaded_moon in zip(planet.moons, reloaded_planet.moons):
             assert reloaded_moon.orbital_inclination_deg == pytest.approx(moon.orbital_inclination_deg)
             assert reloaded_moon.orbital_ascending_node_deg == pytest.approx(moon.orbital_ascending_node_deg)
             assert reloaded_moon.orbital_phase_deg == pytest.approx(moon.orbital_phase_deg)
