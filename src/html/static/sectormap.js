@@ -28,7 +28,12 @@
   var DEFAULT_ROTATE_Y = -32;
   var ROTATE_SENSITIVITY = 0.4; // degrees per pixel of drag
   var KEY_ROTATE_STEP = 6; // degrees per arrow-key press
-  var MIN_ZOOM = 0.5;
+  // Floor matches lib/starmap.py's own _MIN_DEFAULT_ZOOM -- the computed
+  // default (see `#starmap-zoom`'s `data-default-zoom` below) never goes
+  // below it, so this control's own range must reach at least that far or
+  // clamping here would silently zoom a wide sector back in past the level
+  // that was just computed to fit it.
+  var MIN_ZOOM = 0.2;
   var MAX_ZOOM = 2.5;
   var ZOOM_STEP = 0.15;
   var WHEEL_ZOOM_STEP = 0.08;
@@ -64,13 +69,19 @@
 
     var dl = document.createElement("dl");
     if (dot.dataset.kind === "phenomenon") {
-      // A nebula/asteroid-field cloud has no detail page of its own to
-      // link to (unlike a star system's `data-href`) -- just its own
-      // flavor fields from `lib/starmap.py`'s `_cloud_html`.
+      // A nebula/asteroid-field/black hole/neutron star links to its own
+      // detail page (`phenomenon.py`) via `data-href`, same as a star
+      // system below -- see `lib/starmap.py`'s `_cloud_html`.
       addField(dl, "Type", dot.dataset.phenomenonType);
       addField(dl, "Radius", dot.dataset.radius);
       addField(dl, "Distance", dot.dataset.distance);
       panel.appendChild(dl);
+
+      var phenomenonLink = document.createElement("a");
+      phenomenonLink.href = dot.dataset.href;
+      phenomenonLink.className = "btn";
+      phenomenonLink.textContent = "View phenomenon →";
+      panel.appendChild(phenomenonLink);
       return;
     }
     addField(dl, "Star type", dot.dataset.type);
@@ -94,9 +105,25 @@
       return;
     }
 
+    // How much of the scene's real content (wedge/cube outline, every
+    // plotted star/cloud) actually overflows the fixed-size scene --
+    // computed server-side (lib/starmap.py's `_default_zoom`) from the
+    // exact geometry being drawn, not guessable here. Without starting
+    // zoomed out to it, a galaxy-placed sector's wedge wireframe (which
+    // this same server-side math shows can extend well past the scene)
+    // opened showing only a couple of giant crossing lines instead of the
+    // shape, with any star near its own edge invisible outside the
+    // viewport's `overflow: hidden` crop -- manually zooming all the way
+    // out was the only way to see the sector at all. Falls back to 1
+    // (today's old fixed default) if the attribute is missing/unparseable.
+    var defaultZoom = parseFloat(zoomWrap.dataset.defaultZoom);
+    if (!isFinite(defaultZoom) || defaultZoom <= 0) {
+      defaultZoom = 1;
+    }
+
     var rotateX = DEFAULT_ROTATE_X;
     var rotateY = DEFAULT_ROTATE_Y;
-    var zoom = 1;
+    var zoom = defaultZoom;
     var dragging = false;
     var dragDistance = 0;
     var lastClientX = 0;
@@ -196,7 +223,7 @@
     function resetView() {
       rotateX = DEFAULT_ROTATE_X;
       rotateY = DEFAULT_ROTATE_Y;
-      zoom = 1;
+      zoom = defaultZoom;
       apply();
     }
 

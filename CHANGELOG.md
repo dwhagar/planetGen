@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.35.5] - 2026-09-18
+
+### Fixed
+- **A galaxy-placed sector's Sector Map opened looking almost empty/broken**
+  -- a couple of giant wireframe edges crossing the visible crop instead of
+  a wedge shape, with any star near the outline's own edge invisible
+  outside the fixed, non-panning viewport. The wedge wireframe (`lib/
+  starmap.py`'s `_wedge_edges_px`) is deliberately allowed to extend well
+  past the fixed 320px scene (the wedge's angular patch doesn't coincide
+  with a cube's flat sides), but the map always *started* at `zoom = 1`
+  regardless -- confirmed by rendering the real output in a browser and
+  comparing that default against manually zooming all the way out, which
+  showed the exact same content correctly. `render_map_panel` now computes
+  a `_default_zoom` from the actual extent of everything being drawn
+  (wedge/cube vertices, every star/cloud) and starts (and "Reset view"
+  returns to) that fitted zoom instead of a flat default; `sectormap.js`'s
+  own `MIN_ZOOM` floor widened to match.
+- **The Galaxy Map rendered as a dense, unreadable smear of overlapping
+  ring labels for any sector placed far from the core**, with its own dot
+  sitting right at the visible circle's edge -- reproduced directly with a
+  sector at `shell_index` ~1400, which implied 157 fixed-shell-width Rings,
+  each drawn as its own guide circle + label, all crammed into the same
+  480px panel. `lib/galaxymap.py`'s `_rings_to_show` (which picks the
+  map's *scale*, so a far sector still fits) is now decoupled from how
+  many ring guides `_ring_elements` actually *draws*: past
+  `_MAX_RINGS_DRAWN` (10), it switches from one guide per literal
+  fixed-shell-width Ring to 10 evenly-spaced distance markers spanning the
+  same range -- still real, accurate distance labels, just no longer
+  cluttering the map once there would be too many to read. The common
+  near-core case (few real Rings) is unaffected -- confirmed with a
+  regression render.
+
 ## [5.35.3] - 2026-09-18
 
 ### Fixed
