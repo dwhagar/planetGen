@@ -555,6 +555,25 @@
 --   future sector-context encounter"); `_db.save_phenomenon` now actually
 --   populates it instead of leaving it perpetually NULL.
 --
+-- v22: search-facing indexes on `sectors`/`star_systems`/`stars`/`planets`/
+--   `moons`.`name` (the `GET /api/search` autocomplete lists' own `SELECT
+--   DISTINCT name ... ORDER BY name LIMIT n` -- an index lets this walk the
+--   index in name order and stop at the limit instead of sorting the whole
+--   table) and on `stars.yerkes_class`/`planets.planet_class`/
+--   `planets.body_type`/`planets.life_chemical`/`moons.planet_class`/
+--   `moons.body_type`/`moons.life_chemical`/`asteroid_belts.density` (the
+--   search page's own facet counts -- `GROUP BY` on one of these -- and
+--   result-panel `IN (...)` filters). None of these speed up a name *term*
+--   search itself (`name LIKE '%text%'` -- a leading wildcard, which no
+--   plain B-tree index can accelerate under any engine; that would need a
+--   FULLTEXT index instead, a bigger change than this migration's own
+--   scope), but every one of them was a genuine full-table scan/sort on
+--   every single search-page visit regardless of whether any filter was
+--   even active (`search()`'s facet+autocomplete computation always runs
+--   up front) -- confirmed in production as the API timing out
+--   (`urllib.error.URLError`/`TimeoutError` from `html/lib/apiclient.py`)
+--   on `/api/search` once the database grew past a trivial size.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -652,7 +671,8 @@ CREATE TABLE IF NOT EXISTS sectors (
     UNIQUE (shell_index, shell_slot_index),
 
     KEY idx_sectors_galactic_radius_pc (galactic_radius_pc),
-    KEY idx_sectors_shell_index (shell_index)
+    KEY idx_sectors_shell_index (shell_index),
+    KEY idx_sectors_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- This sector's own exact prism vertices (v7 -- see the header comment's
@@ -906,7 +926,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     CONSTRAINT fk_star_systems_config
         FOREIGN KEY (system_config_id) REFERENCES system_configs(id),
     KEY idx_star_systems_sector_id (sector_id),
-    KEY idx_star_systems_system_config_id (system_config_id)
+    KEY idx_star_systems_system_config_id (system_config_id),
+    KEY idx_star_systems_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -950,7 +971,9 @@ CREATE TABLE IF NOT EXISTS stars (
 
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
-    KEY idx_stars_star_system_id (star_system_id)
+    KEY idx_stars_star_system_id (star_system_id),
+    KEY idx_stars_name (name),
+    KEY idx_stars_yerkes_class (yerkes_class)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1034,7 +1057,11 @@ CREATE TABLE IF NOT EXISTS planets (
     CONSTRAINT fk_planets_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
     KEY idx_planets_star_system_id (star_system_id),
-    KEY idx_planets_star_id (star_id)
+    KEY idx_planets_star_id (star_id),
+    KEY idx_planets_name (name),
+    KEY idx_planets_planet_class (planet_class),
+    KEY idx_planets_body_type (body_type),
+    KEY idx_planets_life_chemical (life_chemical)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Child table for the variable-length evolutionary narrative list
@@ -1136,7 +1163,11 @@ CREATE TABLE IF NOT EXISTS moons (
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
     KEY idx_moons_planet_id (planet_id),
     KEY idx_moons_star_system_id (star_system_id),
-    KEY idx_moons_star_id (star_id)
+    KEY idx_moons_star_id (star_id),
+    KEY idx_moons_name (name),
+    KEY idx_moons_planet_class (planet_class),
+    KEY idx_moons_body_type (body_type),
+    KEY idx_moons_life_chemical (life_chemical)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Moon counterpart of planet_evolutionary_paragraphs.
@@ -1197,7 +1228,8 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     CONSTRAINT fk_asteroid_belts_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
     KEY idx_asteroid_belts_star_system_id (star_system_id),
-    KEY idx_asteroid_belts_star_id (star_id)
+    KEY idx_asteroid_belts_star_id (star_id),
+    KEY idx_asteroid_belts_density (density)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Structured per-component detail behind composition_summary above --

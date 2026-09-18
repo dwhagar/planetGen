@@ -49,7 +49,17 @@ for local testing), or `config.json`'s `api_base_url` (see
 e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own dev
 server running alongside a locally-invoked CGI script."""
 
-_TIMEOUT_SECONDS = 15
+_TIMEOUT_SECONDS = 30
+"""int: Was 15 -- confirmed too tight for GET /api/search specifically
+(TimeoutError in production): that one endpoint always runs its full
+facet+autocomplete query set up front regardless of whether any filter is
+active (queryDb.search), which used to mean an unindexed full-table
+scan/sort per query (see schema.sql's "v22" header note, which adds the
+missing indexes -- the real fix). This wider margin is deliberately kept
+as a second line of defense on top of that, not a replacement for it: even
+an indexed query set can occasionally run long on a large, busy database,
+and every other page here issues far fewer/cheaper queries per request, so
+raising this shared constant costs them nothing in the common case."""
 
 
 class NotFoundError(Exception):

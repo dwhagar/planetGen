@@ -386,17 +386,21 @@ new `comets`/`comet_composition` tables (needing no `ALTER TABLE` either,
 for the same "brand-new tables, bookkeeping-only step" reason as
 `_migrate_v15_to_v16`), `_migrate_v19_to_v20` for v20's binary/star/
 planet trajectory columns (also real `ALTER TABLE` steps, on
-`star_systems`/`stars`/`planets`), and `_migrate_v20_to_v21` for v21's
+`star_systems`/`stars`/`planets`), `_migrate_v20_to_v21` for v21's
 sector-placement columns on `black_holes`/`neutron_stars` (also real
 `ALTER TABLE` steps, left NULL on every pre-existing row — same
-"nothing to recover" situation v18's migration is in). `migrate_database`
+"nothing to recover" situation v18's migration is in), and
+`_migrate_v21_to_v22` for v22's search-facing indexes on `sectors`/
+`star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
+columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
+steps only — no new columns, nothing to backfill). `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v21), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v22), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **This versioning is independent of the control schema's own.** Admin

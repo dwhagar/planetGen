@@ -73,7 +73,7 @@ from .systemData import StarSystem
 from .utils import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 21
+SCHEMA_VERSION = 22
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -3711,6 +3711,47 @@ def _migrate_v20_to_v21(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (21)")
 
 
+def _migrate_v21_to_v22(conn):
+    """
+    Adds v22's search-facing indexes -- see `schema.sql`'s "v22" header
+    note for the full reasoning (every one of these was a genuine
+    full-table scan/sort on every single `GET /api/search` visit,
+    confirmed in production as the API timing out once the database grew
+    past a trivial size). Real `ALTER TABLE ... ADD KEY` steps, the same
+    shape every earlier migration here already uses for a plain index
+    addition.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("ALTER TABLE sectors ADD KEY idx_sectors_name (name)")
+    conn.execute("ALTER TABLE star_systems ADD KEY idx_star_systems_name (name)")
+    conn.execute(
+        "ALTER TABLE stars "
+        "ADD KEY idx_stars_name (name), "
+        "ADD KEY idx_stars_yerkes_class (yerkes_class)"
+    )
+    conn.execute(
+        "ALTER TABLE planets "
+        "ADD KEY idx_planets_name (name), "
+        "ADD KEY idx_planets_planet_class (planet_class), "
+        "ADD KEY idx_planets_body_type (body_type), "
+        "ADD KEY idx_planets_life_chemical (life_chemical)"
+    )
+    conn.execute(
+        "ALTER TABLE moons "
+        "ADD KEY idx_moons_name (name), "
+        "ADD KEY idx_moons_planet_class (planet_class), "
+        "ADD KEY idx_moons_body_type (body_type), "
+        "ADD KEY idx_moons_life_chemical (life_chemical)"
+    )
+    conn.execute("ALTER TABLE asteroid_belts ADD KEY idx_asteroid_belts_density (density)")
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (22)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -3735,9 +3776,10 @@ def migrate_database(config=None):
     on `nebulae`/`asteroid_fields`), `_migrate_v18_to_v19` (added for
     v19's new `comets`/`comet_composition` tables), `_migrate_v19_to_v20`
     (added for v20's proper two-body/barycentric trajectory columns on
-    `star_systems`/`stars`/`planets`), and `_migrate_v20_to_v21` (added for
-    v21's sector-placement columns on `black_holes`/`neutron_stars`) are
-    the migration steps so far; see `schema.sql`'s header comment for the
+    `star_systems`/`stars`/`planets`), `_migrate_v20_to_v21` (added for
+    v21's sector-placement columns on `black_holes`/`neutron_stars`), and
+    `_migrate_v21_to_v22` (added for v22's search-facing indexes) are the
+    migration steps so far; see `schema.sql`'s header comment for the
     versioning convention, and `migrateDb.py` for the CLI wrapper around
     this.
 
@@ -3805,6 +3847,10 @@ def migrate_database(config=None):
         if version < 21:
             _migrate_v20_to_v21(conn)
             version = 21
+
+        if version < 22:
+            _migrate_v21_to_v22(conn)
+            version = 22
 
         conn.commit()
         return version

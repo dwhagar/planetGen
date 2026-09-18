@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.35.7] - 2026-09-18
+
+### Fixed
+- **The Search page timed out** (`TimeoutError`/`urllib.error.URLError`
+  surfaced through `html/lib/apiclient.py`, rendered as an unexpected
+  error page) once the database grew past a trivial size. `GET
+  /api/search` always runs its full facet-count and autocomplete query set
+  up front, on every visit, regardless of whether any filter is active
+  (`queryDb.search`) -- ten `GROUP BY`/`SELECT DISTINCT ... ORDER BY`
+  queries, none of them backed by an index on the column they group,
+  filter, or sort by (`stars.yerkes_class`, `planets`/
+  `moons`.`planet_class`/`body_type`/`life_chemical`,
+  `asteroid_belts.density`, and every table's own `name`), so each one was
+  a genuine full-table scan/sort. New schema v22
+  (`_migrate_v21_to_v22`/`schema.sql`) adds the missing indexes; a name
+  *term* search (`LIKE '%text%'`, a leading wildcard) isn't sped up by any
+  of them -- that would need a FULLTEXT index, out of this fix's scope --
+  but the facet counts and autocomplete lists that run unconditionally on
+  every visit are. `apiclient.py`'s own request timeout also widened
+  15s -> 30s as a second line of defense, not a replacement for the real
+  fix.
+
 ## [5.35.6] - 2026-09-18
 
 ### Fixed
