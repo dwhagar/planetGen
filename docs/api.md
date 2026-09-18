@@ -83,8 +83,9 @@ connectivity to that specific schema rather than the default one.
   point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
   relative to this sector's own — `queryDb.phenomena_near_sector`, empty
-  for an unplaced sector; see `schema.sql`'s "v18"/"v21" header notes)
-  (`queryDb.sector_detail`). Distinct from
+  for an unplaced sector; see `schema.sql`'s "v18"/"v21" header notes),
+  and `wiki_url` (`null` until this sector has a wiki page — see "Wiki
+  publishing" below) (`queryDb.sector_detail`). Distinct from
   `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
   ids-and-display-fields shape `../src/html/sector.py`'s systems table
@@ -102,7 +103,9 @@ connectivity to that specific schema rather than the default one.
   `binary_mutual_position_x/y/z_km` (the secondary's position relative to
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
-  `markdown_content`, `wikitext_content`, `stars`, `planets` (each with
+  `markdown_content`, `wikitext_content`, `wikijs_url`/`mediawiki_url`
+  (each `null` until this system has been uploaded to that wiki — see
+  "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`), `belts`, and `sector_siblings` (`{id, name}`
   for every other system in the same sector, for linkifying `location`'s
   "nearest: ..." names) (`queryDb.system_detail`) — same "flat display
@@ -176,15 +179,26 @@ connectivity to that specific schema rather than the default one.
   `queryDb.search`'s docstring for the exact inclusion rule; a size range
   alone is reason enough, same as a tag or name term). `stars`/`planets`/
   `moons` result rows each include their own `radius_km`.
+- `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
+  each wiki backend has a `base_url` plus credentials configured
+  deployment-wide (`config.json`'s `wiki` section, or the matching
+  `PLANETGEN_WIKIJS_*`/`PLANETGEN_MEDIAWIKI_*` env vars — see
+  `docs/config.md`) and so is offered as an upload target at all. Never
+  exposes any of those credentials, only the two booleans.
 
 ### Write (admin auth required — see "Authentication" and "Write endpoints")
 
 - `POST /api/sectors` — create a sector.
-- `PATCH /api/sectors/<id>` — modify a sector.
+- `PATCH /api/sectors/<id>` — modify a sector (including manually
+  setting/clearing its `wiki_url`).
 - `DELETE /api/sectors/<id>` — remove a sector.
+- `POST /api/sectors/<id>/wiki` — publish a sector-summary page to a
+  wiki (see "Wiki publishing" below).
 - `POST /api/systems` — generate and create a standalone system.
 - `PATCH /api/systems/<id>` — rename a system.
 - `DELETE /api/systems/<id>` — remove a system.
+- `POST /api/systems/<id>/wiki` — publish a system's already-generated
+  page to a wiki (see "Wiki publishing" below).
 
 ### Authentication
 
@@ -334,8 +348,7 @@ every read route above uses, and records one row in the control schema's
 
 ### Sectors — request body
 
-`POST /api/sectors` (all fields required) and `PATCH /api/sectors/<id>`
-(any non-empty subset) both take:
+`POST /api/sectors` (all fields required) takes:
 
 ```json
 {
@@ -344,10 +357,27 @@ every read route above uses, and records one row in the control schema's
 }
 ```
 
+`PATCH /api/sectors/<id>` (any non-empty subset) additionally accepts
+`wiki_url`:
+
+```json
+{
+  "name": "Voranthis Kelmoor",
+  "edge_ly": 11.5,
+  "wiki_url": "https://wiki.example.com/Voranthis_Kelmoor"
+}
+```
+
 - `name`: non-empty string.
 - `edge_ly`: number, greater than 0 — the sector's cube edge, in
   light-years (matches `sectors.edge_mpc` after unit conversion; see
   `database-schema.md`).
+- `wiki_url` (`PATCH` only): non-empty string, or `null` to clear it back
+  to "no page yet" — the manual "set the wiki link directly" admin
+  affordance (`../src/html/admin.py`); the same column `POST
+  /api/sectors/<id>/wiki` (below) writes automatically on a successful
+  upload. Rejected as an unrecognized field on `POST` — a brand-new
+  sector has never been uploaded anywhere.
 
 An unrecognized field, a missing required field (`POST` only), a wrong
 type, or a value failing the constraints above is a `400`.
@@ -400,6 +430,40 @@ impossible `num_orbits`/class combination) is reported as a `400`, not a
 `500` — the request body was the problem, not the server.
 
 `PATCH /api/systems/<id>` accepts only `{"name": str}` — a rename.
+
+### Wiki publishing — request body
+
+`POST /api/systems/<id>/wiki` and `POST /api/sectors/<id>/wiki` share the
+same request shape:
+
+```json
+{
+  "backend": "wikijs",
+  "path": "systems/voranthis-prime"
+}
+```
+
+- `backend`: `"wikijs"` or `"mediawiki"` — required. `501` if that
+  backend has no `base_url`/credentials configured deployment-wide (see
+  `GET /api/wiki-config` and `docs/config.md`'s `wiki.*` fields).
+- `path`: the target page's path/slug. **Required for `"wikijs"`**,
+  which addresses a page separately from its title (`src/wikiClient/wikijs.py`);
+  accepted but ignored for `"mediawiki"`, whose title — the system's or
+  sector's own name — is its address instead (`src/wikiClient/mediawiki.py`).
+
+A system publishes its already-generated page (`markdown_content` to
+`wikijs`, `wikitext_content` to `mediawiki` — the same two columns `GET
+/api/systems/<id>` returns). A sector has no persisted page of its own;
+one is built fresh at upload time from its own current detail (name,
+edge, and a table of its systems — `routes.py`'s `_sector_wiki_content`).
+
+On success (`201`), both return the new page's
+`{"id", "path", "title", "url"}` and record `url` on the matching column
+(`star_systems.wikijs_url`/`mediawiki_url`, or `sectors.wiki_url`) — see
+`database-schema.md`'s "Rendered wiki text and URLs". `409` if a page
+already exists at that path/title (every `wikiClient` backend is
+create-only); `502` if the wiki instance rejected the credentials or
+couldn't be reached.
 Editing a system's generated content (stars/planets/moons/belts) isn't
 supported via this API; regenerate via `DELETE` + `POST` instead.
 

@@ -10,6 +10,14 @@ with a table-of-contents linking to each heading (a collapsed pulldown on
 narrow windows, a fixed sidebar on wide ones); `?view=source`
 switches to the original raw-text view (wikitext or Markdown, toggled via
 `&format=`), which is what you want when copy-pasting into a wiki.
+
+Once this system has been uploaded to a wiki (`star_systems.wikijs_url`/
+`mediawiki_url` -- see `schema.sql`'s "v22" header note), the Description
+section is replaced entirely by a link to that page (opening in a new
+tab) rather than the rendered/source view above -- the wiki page is then
+the canonical copy. An admin session (`auth_me`) additionally gets an
+"Upload to Wiki" form offering whichever backend(s) are both configured
+deployment-wide (`GET /api/wiki-config`) and not yet uploaded to.
 """
 
 import os
@@ -17,10 +25,10 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from apiclient import get_system
+from apiclient import ApiError, auth_me, get_system, get_wiki_config, upload_system_to_wiki
 from fmt import esc, linkify_location
 from mdconvert import markdown_to_html_with_headings
-from page import query_params, run
+from page import form_params, incoming_cookie_header, query_params, run
 from systemmap import render_system_map_panel
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -209,10 +217,31 @@ def _toc_html(headings):
 """
 
 
-def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_content):
-    """Builds the description section: rendered HTML by default, or the
-    raw wikitext/Markdown source (for copy-pasting into a wiki) when
-    `view=source`."""
+def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_content, wikijs_url, mediawiki_url):
+    """
+    Builds the description section: rendered HTML by default, or the raw
+    wikitext/Markdown source (for copy-pasting into a wiki) when
+    `view=source` -- unless this system has already been uploaded to a
+    wiki (`wikijs_url`/`mediawiki_url` non-`None`), in which case the
+    whole section becomes a link to the wiki page(s) instead (opening in
+    a new tab), regardless of `view`/`fmt` -- the wiki page is the
+    canonical copy at that point, not the locally rendered/source view.
+    """
+    if wikijs_url or mediawiki_url:
+        links = []
+        if wikijs_url:
+            links.append(f'<a href="{esc(wikijs_url)}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>')
+        if mediawiki_url:
+            links.append(
+                f'<a href="{esc(mediawiki_url)}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>'
+            )
+        return f"""
+<section class="panel">
+<h2>Description</h2>
+<p>This system's description is published on the wiki: {" &middot; ".join(links)}</p>
+</section>
+"""
+
     base_url = f"system.py?db={esc(db_name)}&id={system_id}"
 
     if view == "source":
@@ -253,6 +282,53 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
 """
 
 
+def _wiki_upload_section_html(db_name, system_id, system, wiki_config, wiki_message, wiki_error):
+    """
+    Builds the "Upload to Wiki" form -- one radio option per backend that
+    is both configured deployment-wide (`wiki_config`, `GET
+    /api/wiki-config`) and not yet uploaded to for this system (this
+    system's own `wikijs_url`/`mediawiki_url`). Returns just the
+    message/error (no form at all) once every configured backend has
+    already been uploaded to, or none are configured -- the caller only
+    reaches this for an authenticated admin session in the first place
+    (see the module-level POST handling below `handler`).
+    """
+    message_html = f'<p class="hint">{esc(wiki_message)}</p>' if wiki_message else ""
+    error_html = f'<p class="error">{esc(wiki_error)}</p>' if wiki_error else ""
+
+    options = []
+    if wiki_config.get("wikijs") and not system["wikijs_url"]:
+        options.append(("wikijs", "Wiki.js"))
+    if wiki_config.get("mediawiki") and not system["mediawiki_url"]:
+        options.append(("mediawiki", "MediaWiki"))
+    if not options:
+        return f"{message_html}{error_html}"
+
+    radios = " ".join(
+        f'<label><input type="radio" name="backend" value="{value}"{" checked" if i == 0 else ""}> {label}</label>'
+        for i, (value, label) in enumerate(options)
+    )
+    base_url = f"system.py?db={esc(db_name)}&id={system_id}"
+    return f"""
+{message_html}{error_html}
+<section class="panel">
+<h2>Upload to Wiki</h2>
+<form method="post" action="{base_url}" class="search-form">
+  <input type="hidden" name="action" value="upload_wiki">
+  <div class="search-fields">
+    <div class="search-field">{radios}</div>
+    <label class="search-field">Path (Wiki.js only -- MediaWiki uses this system's name)
+      <input type="text" name="path" placeholder="e.g. systems/{esc(system['name'])}">
+    </label>
+  </div>
+  <div class="search-actions">
+    <button type="submit" class="btn">Upload</button>
+  </div>
+</form>
+</section>
+"""
+
+
 def handler():
     params = query_params()
     db_name = params.get("db", "")
@@ -283,22 +359,11 @@ def handler():
         f'<span class="badge">{bit}</span>' for bit in summary_bits
     ) + "</p>"
 
-    # TODO(wiki publishing): add an "Upload to Wiki" button/form here,
-    # shown only when `auth_me(incoming_cookie_header())` resolves an
-    # admin session (see admin.py for the identity-check pattern, and
-    # api/routes.py's own TODO for what it would call). Something like:
-    #     <form method="post" action="system.py?db=...&id=..." class="table-form">
-    #       <input type="hidden" name="action" value="upload_wiki">
-    #       <button type="submit" class="btn">Upload to Wiki</button>
-    #     </form>
-    # This page is GET-only today -- `handler()` would need a POST branch
-    # (mirroring admin.py's `form_params()`/`action`-dispatch, imported
-    # from `page.py`) that calls the new
-    # `apiclient.upload_system_to_wiki(incoming_cookie_header(), db_name,
-    # system_id)`, then renders either a success message linking to
-    # `page["url"]` or an inline error -- an `ApiError` with
-    # `status_code == 409` specifically should read as "already uploaded"
-    # rather than a generic failure (see apiclient.py's own TODO).
+    wiki_upload_html = ""
+    if identity is not None:
+        wiki_config = get_wiki_config()
+        wiki_upload_html = _wiki_upload_section_html(db_name, system_id, system, wiki_config, wiki_message, wiki_error)
+
     nav_html = ""
     if system["sector_id"] is not None:
         # NAV needs a sector to measure a position from at all -- see
@@ -327,7 +392,8 @@ def handler():
         system["planets"], system["belts"], system["comets"], system["stars"], system.get("binary_configuration")
     )
     description_html = _description_html(
-        db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"]
+        db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"],
+        system["wikijs_url"], system["mediawiki_url"],
     )
 
     body = f"""
@@ -336,6 +402,7 @@ def handler():
 {nav_html}
 {location_html}
 {map_html}
+{wiki_upload_html}
 {description_html}
 {stars_html}
 {bodies_html}
@@ -343,5 +410,31 @@ def handler():
 """
     return f"System: {system['name']}", body
 
+
+cookie_header = incoming_cookie_header()
+try:
+    identity = auth_me(cookie_header)
+except ApiError:
+    # Fails quiet, same as _sidenav_html's own admin-session check --
+    # this only decides whether the "Upload to Wiki" section renders at
+    # all; handler()'s own read of the system itself will hit (and report)
+    # the same API-unreachable failure a moment later.
+    identity = None
+
+wiki_message = None
+wiki_error = None
+if identity is not None and os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
+    fields = form_params()
+    if fields.get("action") == "upload_wiki":
+        params = query_params()
+        db_name = params.get("db", "")
+        system_id = params.get("id", "")
+        backend = fields.get("backend", "")
+        path = fields.get("path", "").strip() or None
+        try:
+            page = upload_system_to_wiki(cookie_header, db_name, system_id, backend, path)
+            wiki_message = f"Uploaded to the wiki: {page['url']}"
+        except ApiError as exc:
+            wiki_error = "A page already exists at that location." if exc.status_code == 409 else str(exc)
 
 run(handler)

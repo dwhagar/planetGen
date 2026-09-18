@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.37.0] - 2026-09-18
+## [5.38.0] - 2026-09-18
 
 ### Fixed
 - **A binary system's stored `markdown_content` mixed wikitext template
@@ -74,6 +74,33 @@
   clouds/points are drawn from) in its own table below the systems one,
   each row linking to that phenomenon's `phenomenon.py` detail page --
   previously only visible on the map itself, with no plain listing.
+
+## [5.37.0] - 2026-09-18
+
+### Added
+- **Wiki publishing is wired up.** The standalone `wikiClient` library
+  (`src/wikiClient/`, unified in [5.34.0]) is now actually called: an
+  "Upload to Wiki" form on both `html/system.py` and `html/sector.py`
+  (admin sessions only) publishes to whichever of Wiki.js/MediaWiki is
+  configured deployment-wide, backed by new `POST /api/systems/<id>/wiki`/
+  `POST /api/sectors/<id>/wiki` write routes. A system publishes its
+  already-generated `markdown_content`/`wikitext_content`; a sector (which
+  has no persisted page of its own) gets one built fresh at upload time
+  from its own current detail. `config.json` gains a `wiki` section
+  (`wikijs.base_url`/`.api_token`, `mediawiki.base_url`/`.username`/
+  `.password`, each independently optional -- either, both, or neither
+  backend may be configured at once, letting an upload choose "the wiki
+  of their choice" when both are), read by the new `GET /api/wiki-config`
+  endpoint the two forms use to know which backend(s) to offer.
+  `star_systems.wikijs_url`/`mediawiki_url` (present in the schema since
+  [5.34.0] but never populated) and a new `sectors.wiki_url` column
+  (schema v23, `stellarObjects._db._migrate_v22_to_v23`) record where each
+  page ends up; once set, `html/system.py`'s Description section is
+  replaced by a link to the wiki page (opening in a new tab) instead of
+  the locally rendered/source view, and `html/sector.py` shows the same
+  kind of link. `html/admin.py` also gains a small form to manually set or
+  clear a sector's `wiki_url` directly (`PATCH /api/sectors/<id>`), for a
+  sector with a hand-written page from outside this app.
 
 ## [5.36.0] - 2026-09-18
 

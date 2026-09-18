@@ -15,6 +15,17 @@ reaches into this sector's own cube (`queryDb.phenomena_near_sector`, via
 table below the systems one (mirroring `phenomena.py`'s flat listing,
 scoped to just this sector's own neighborhood), each row linking to
 `phenomenon.py` -- omitted entirely when nothing nearby qualifies.
+
+Once this sector has a wiki page (`sectors.wiki_url` -- either uploaded
+from here or set directly via `html/admin.py`'s manual-link admin
+section, see `schema.sql`'s "v22" header note), a link to it is shown
+(opening in a new tab). An admin session additionally gets an
+"Upload to Wiki" form (shown only while `wiki_url` is unset) offering
+whichever backend(s) are configured deployment-wide (`GET
+/api/wiki-config`) -- unlike a system, a sector has no persisted
+generated page of its own, so the page content is built fresh from this
+sector's own detail at upload time (see `routes.py`'s
+`_sector_wiki_content`).
 """
 
 import os
@@ -23,10 +34,10 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import get_sector
+from apiclient import ApiError, auth_me, get_sector, get_wiki_config, upload_sector_to_wiki
 from fmt import esc, linkify_location
 from galaxymap import sector_quadrant
-from page import query_params, run
+from page import form_params, incoming_cookie_header, query_params, run
 from starmap import render_map_panel
 
 _PHENOMENON_TYPE_LABELS = {
@@ -35,6 +46,56 @@ _PHENOMENON_TYPE_LABELS = {
 }
 """dict: Same display labels `phenomena.py`'s own flat listing uses, for
 `queryDb.phenomena_near_sector`'s `type` values."""
+
+
+def _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wiki_error):
+    """
+    Builds the sector's wiki section: a link to `sector["wiki_url"]`
+    (opening in a new tab) once it's set -- from an upload here or a
+    manual admin edit alike, this page doesn't distinguish which -- or,
+    while unset, an "Upload to Wiki" form offering whichever backend(s)
+    `wiki_config` reports configured. Returns just the message/error (no
+    link, no form) if `wiki_url` is unset and no backend is configured.
+    """
+    message_html = f'<p class="hint">{esc(wiki_message)}</p>' if wiki_message else ""
+    error_html = f'<p class="error">{esc(wiki_error)}</p>' if wiki_error else ""
+
+    if sector["wiki_url"]:
+        return f"""
+{message_html}{error_html}
+<p class="wiki-link"><a href="{esc(sector['wiki_url'])}" target="_blank" rel="noopener noreferrer">View on Wiki</a></p>
+"""
+
+    options = [name for name, configured in (("wikijs", wiki_config.get("wikijs")),
+                                              ("mediawiki", wiki_config.get("mediawiki"))) if configured]
+    if not options:
+        return f"{message_html}{error_html}"
+
+    labels = {"wikijs": "Wiki.js", "mediawiki": "MediaWiki"}
+    radios = " ".join(
+        f'<label><input type="radio" name="backend" value="{value}"{" checked" if i == 0 else ""}> '
+        f'{labels[value]}</label>'
+        for i, value in enumerate(options)
+    )
+    base_url = f"sector.py?db={esc(db_name)}&id={sector_id}"
+    return f"""
+{message_html}{error_html}
+<section class="panel">
+<h2>Upload to Wiki</h2>
+<form method="post" action="{base_url}" class="search-form">
+  <input type="hidden" name="action" value="upload_wiki">
+  <div class="search-fields">
+    <div class="search-field">{radios}</div>
+    <label class="search-field">Path (Wiki.js only -- MediaWiki uses this sector's name)
+      <input type="text" name="path" placeholder="e.g. sectors/{esc(sector['name'])}">
+    </label>
+  </div>
+  <div class="search-actions">
+    <button type="submit" class="btn">Upload</button>
+  </div>
+</form>
+</section>
+"""
 
 
 def handler():
@@ -149,9 +210,15 @@ def handler():
 </section>
 """
 
+    wiki_html = ""
+    if identity is not None or sector["wiki_url"]:
+        wiki_config = get_wiki_config() if identity is not None else {"wikijs": False, "mediawiki": False}
+        wiki_html = _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wiki_error)
+
     body = f"""
 <p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(sector['name'])}</p>
 {badges_html}
+{wiki_html}
 {map_html}
 <section class="panel">
 <h2>Systems</h2>
@@ -165,5 +232,28 @@ def handler():
 """
     return f"Sector: {sector['name']}", body
 
+
+cookie_header = incoming_cookie_header()
+try:
+    identity = auth_me(cookie_header)
+except ApiError:
+    # Fails quiet, same as html/system.py's own admin-session check.
+    identity = None
+
+wiki_message = None
+wiki_error = None
+if identity is not None and os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
+    fields = form_params()
+    if fields.get("action") == "upload_wiki":
+        params = query_params()
+        db_name = params.get("db", "")
+        sector_id = params.get("id", "")
+        backend = fields.get("backend", "")
+        path = fields.get("path", "").strip() or None
+        try:
+            page = upload_sector_to_wiki(cookie_header, db_name, sector_id, backend, path)
+            wiki_message = f"Uploaded to the wiki: {page['url']}"
+        except ApiError as exc:
+            wiki_error = "A page already exists at that location." if exc.status_code == 409 else str(exc)
 
 run(handler)
