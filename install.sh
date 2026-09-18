@@ -114,7 +114,15 @@ echo "== 2/6: Migrating the configured MySQL database to the current schema =="
 echo
 echo "== 3/6: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
 mkdir -p "$NLTK_DATA_DIR"
-"$PYTHON" -m nltk.downloader -d "$NLTK_DATA_DIR" words
+# A plain `nltk.download()` call, not `python -m nltk.downloader`: nltk's
+# own `__init__.py` already imports `nltk.downloader` internally (for the
+# `nltk.download()` shorthand this uses), so running it again as `-m`
+# finds it already in sys.modules and prints a spurious
+# "found in sys.modules ... this may result in unpredictable behaviour"
+# RuntimeWarning on every run -- same download, same target directory,
+# no warning. `stellarObjects/names.py`'s own lazy corpus check already
+# calls `nltk.download()` this same way.
+"$PYTHON" -c "import nltk; nltk.download('words', download_dir='$NLTK_DATA_DIR')"
 chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
