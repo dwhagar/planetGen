@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.35.3] - 2026-09-18
+
+### Fixed
+- **Site `<title>`/browser-tab text always said "planetGen"**, ignoring
+  `config.json`'s own `site_name` (e.g. "Molten Aether Starmap") that
+  every other page-title path already honored. `lib/page.py`'s `render()`
+  hardcoded the literal string instead of calling `load_config()` the way
+  `api_base_url`/`base_url` already do; `index.py`'s own "no databases"
+  title had the identical hardcoded string. Both now read `site_name` from
+  config.
+- **The "pick a database" landing page is gone.** This project deploys as
+  one branded starmap per vhost now (`config.json`'s `site_name`/
+  `api_base_url`), so a picker whose choice is realistically always length
+  1 just added an extra click/page load in front of every visit.
+  `index.py` now redirects straight to `browse.py` for the first database
+  `GET /api/databases` returns, regardless of how many exist; every other
+  page's breadcrumb (`browse.py`/`galaxy.py`/`sector.py`/`search.py`/
+  `system.py`) drops its now-pointless leading "Databases" link, and the
+  sidenav's own "Databases" item is removed (there is no longer a picker
+  page for it to reach).
+
 ## [5.35.1] - 2026-09-18
 
 ### Fixed
