@@ -1053,7 +1053,7 @@ class SpaceSector:
         Args:
             path (str): The file path to write to.
         """
-        with open(path, 'w') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
@@ -1112,5 +1112,5 @@ class SpaceSector:
         Returns:
             SpaceSector: The reconstructed sector.
         """
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             return cls.from_dict(json.load(f))
