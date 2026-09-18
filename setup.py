@@ -72,6 +72,16 @@ setup(
         # than the 'api' extra below.
         'pymysql>=1.1.1',
         'dbutils>=3.1.0',
+        # Admin password hashing (stellarObjects/adminAuth.py's lazy
+        # `werkzeug.security` import) -- migrateDb.py calls
+        # bootstrap_control_schema() unconditionally (install.sh/update.sh
+        # both always run it), so this needs to be installed regardless of
+        # whether the 'api' extra (the Flask API itself) is, same
+        # reasoning as pymysql/dbutils above. Floor matches the 'api'
+        # extra's own flask>=3.0.3 (which already pulls in werkzeug>=3.0.0
+        # transitively), so installing both extras together never
+        # downgrades it.
+        'werkzeug>=3.0.0',
     ],
     extras_require={
         'test': ['pytest>=7.4.0'],
