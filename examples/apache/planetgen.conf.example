@@ -110,14 +110,27 @@
         Require all granted
     </Directory>
 
-    # html/wsgi.py isn't a CGI script -- it's mounted at /api below via
-    # WSGIScriptAlias, which takes priority for that URL prefix, but a
-    # direct request for /wsgi.py would still fall through to the
-    # <Directory html> CGI handler above and try (and fail) to execute it
-    # as one. Deny that path directly rather than relying on the alias
-    # always winning.
+    # html/wsgi.py isn't a CGI script -- it's imported by mod_wsgi, never
+    # executed as one -- but <Directory html> above's `AddHandler
+    # cgi-script .py` still applies to it too, since it's a .py file
+    # directly inside that same directory. In production this handler
+    # conflict won, not WSGIScriptAlias below: every /api/* request (and
+    # a direct /wsgi.py request) got routed through mod_cgid instead of
+    # mod_wsgi, which tried to exec() wsgi.py as a script and failed with
+    # "AH01215: (8)Exec format error: exec of '.../wsgi.py' failed" (it
+    # has no #! shebang line, since it's not meant to run standalone under
+    # CGI). SetHandler forces the handler unconditionally, unlike
+    # AddHandler, which only sets it when one hasn't already been chosen
+    # -- overriding the CGI handler here regardless of processing order.
+    #
+    # A previous version of this block instead did `Require all denied`
+    # here, meant to block a direct (non-aliased) request for /wsgi.py
+    # from falling through to the CGI handler -- but <Files> matches the
+    # final resolved filename regardless of whether the URL got there via
+    # WSGIScriptAlias or a plain path, so that denied every /api/*
+    # request too, not just direct ones.
     <Files "wsgi.py">
-        Require all denied
+        SetHandler wsgi-script
     </Files>
 
     # html/lib/ holds shared Python modules imported by the CGI scripts,
@@ -136,9 +149,10 @@
     </Directory>
 
     # Mounts the Flask API (docs/api.md) at /api, handled by mod_wsgi via
-    # html/wsgi.py rather than the CGI handler above -- WSGIScriptAlias
-    # takes priority over the <Directory html> CGI config for this URL
-    # prefix. Runs in its own daemon process (WSGIDaemonProcess), not
+    # html/wsgi.py rather than the CGI handler above -- relies on the
+    # `<Files "wsgi.py"> SetHandler wsgi-script` override above to win out
+    # over <Directory html>'s CGI handler (see that block's own comment).
+    # Runs in its own daemon process (WSGIDaemonProcess), not
     # Apache's embedded/shared-process mode, for real isolation from the
     # CGI browser's own requests. html/api/ itself holds only importable
     # Python source (never requested directly), so it gets the same
