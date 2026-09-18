@@ -187,4 +187,39 @@ else
     echo "Done. (/etc/apache2/sites-available/planetgen.conf already exists --"
     echo "not touching it; reload Apache yourself if this update needs it:"
     echo "  sudo systemctl reload apache2)"
+
+    # A site file created before examples/apache/planetgen.conf.example
+    # grew the `<Files "wsgi.py"> SetHandler wsgi-script </Files>`
+    # override (see that file's own comment, and docs/TODO.md's
+    # "Deployment bugs found in production") never picks up that fix on
+    # its own -- install.sh/update.sh deliberately never overwrite an
+    # existing site file (ServerName/TLS/logging are the admin's own
+    # edits), so a checkout that fixed this in-repo can still be serving
+    # every /api/* request (search.py's own API calls included) through
+    # mod_cgi(d) trying to exec() wsgi.py instead of mod_wsgi, forever,
+    # until someone notices and manually re-diffs the two files. Only
+    # warn when the site file actually mounts the API at all
+    # (`WSGIScriptAlias`) -- a CGI-browser-only deployment has neither
+    # directive and isn't missing anything.
+    if grep -q 'WSGIScriptAlias' /etc/apache2/sites-available/planetgen.conf 2>/dev/null \
+        && ! grep -q 'SetHandler wsgi-script' /etc/apache2/sites-available/planetgen.conf 2>/dev/null; then
+        cat <<'EOF'
+
+------------------------------------------------------------------------
+WARNING: /etc/apache2/sites-available/planetgen.conf mounts the API
+(WSGIScriptAlias) but has no `<Files "wsgi.py"> SetHandler wsgi-script
+</Files>` block. Without it, <Directory>'s `AddHandler cgi-script .py`
+wins over WSGIScriptAlias for every /api/* request (and a direct
+/wsgi.py one): Apache tries to exec() wsgi.py as a CGI script instead of
+loading it via mod_wsgi, which fails with "AH01215: (8)Exec format
+error" and returns Apache's own generic 500 page for every API call --
+including every html/ page (search.py in particular) that calls the API
+on your behalf. Diff your site file against
+examples/apache/planetgen.conf.example and add the missing <Files>
+block, then:
+
+    sudo apache2ctl configtest && sudo systemctl reload apache2
+------------------------------------------------------------------------
+EOF
+    fi
 fi
