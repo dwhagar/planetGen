@@ -17,9 +17,9 @@ covered a handful of unused placeholder fields for the web interface.
 `config.json` instead holds every setting a deployment would otherwise
 have to repeat across Apache `SetEnv` lines, systemd `EnvironmentFile`s,
 and `--mysql-*` CLI flags -- MySQL connection details (including the
-write-capable and control-schema overrides), the API's rate limits, the
-admin cookie's `Secure` flag, the CGI browser's debug-page toggle, and the
-site's own display name/base URL/API endpoint.
+control-schema name), the API's rate limits, the admin cookie's `Secure`
+flag, the CGI browser's debug-page toggle, and the site's own display
+name/base URL/API endpoint.
 
 Precedence, everywhere a setting has more than one source, is: an
 explicit function/CLI argument, then the matching `PLANETGEN_*`
@@ -63,16 +63,6 @@ DEFAULT_CONFIG = {
         "database": "planetgen",
         "database_prefix": "planetgen",
     },
-    "mysql_write": {
-        # host/port/database/database_prefix always come from the `mysql`
-        # section above -- the read-only and write-capable accounts share
-        # one server/schema, only their credentials differ. Empty string
-        # means "inherit the matching `mysql` value", same fallback
-        # behavior the old `PLANETGEN_MYSQL_WRITE_*` env vars already had
-        # against `PLANETGEN_MYSQL_*`.
-        "user": "",
-        "password": "",
-    },
     "control_database": "planetgen_control",
     "ratelimit": {
         "default": "200 per day;50 per hour",
@@ -104,9 +94,9 @@ no such file exists yet at all)."""
 
 def _merge(base, overrides):
     """Recursively merges `overrides` onto `base` in place -- a section
-    (`mysql`, `mysql_write`, `ratelimit`) present in `config.json` only
-    needs to name the fields it wants to change; anything it omits keeps
-    its `DEFAULT_CONFIG` value rather than disappearing."""
+    (`mysql`, `ratelimit`) present in `config.json` only needs to name the
+    fields it wants to change; anything it omits keeps its
+    `DEFAULT_CONFIG` value rather than disappearing."""
     for key, value in overrides.items():
         if isinstance(value, dict) and isinstance(base.get(key), dict):
             _merge(base[key], value)

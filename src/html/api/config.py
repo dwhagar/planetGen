@@ -12,17 +12,13 @@ at a specific database without editing code, set via the vhost's `SetEnv`
 directives, the `gunicorn` service's environment file, or a single shared
 `config.json`.
 
-Every read in `routes.py` goes through this same connection today, and
-this project's docs recommend a `SELECT`-only database account for it
-(see `queryDb.py`'s module docstring) -- true for every route currently
-implemented, including the write stub endpoints (`POST`/`PATCH`/`DELETE`
-on `/sectors`/`/systems`), which validate their request body but don't
-touch the database yet (see `routes.py`). **Once those stubs are filled
-in with real inserts/updates/deletes, `MYSQL_CONFIG` will need a
-write-capable account instead** -- also revisit authentication/
-authorization at that point: nothing in this module or `routes.py` checks
-who's calling, which is fine for a read-only API but not once a request
-can mutate data.
+Every read and write in `routes.py` goes through this same connection --
+`WRITE_MYSQL_CONFIG`/`CONTROL_MYSQL_CONFIG` both simply reuse
+`MYSQL_CONFIG`, there's no separate write-capable account to configure.
+Give this one account whatever grants the most demanding caller needs
+(`INSERT`/`UPDATE`/`DELETE` on the content schemas and the control schema,
+at minimum, once any write endpoint is reachable) -- see
+`docs/apache-deployment.md`'s "MySQL accounts" section.
 
 `RATELIMIT_DEFAULT`/`RATELIMIT_STORAGE_URI` configure Flask-Limiter (see
 `limiter.py`) -- applied to every route by default; `routes.py`'s write
@@ -51,46 +47,6 @@ semicolon-separated *string*, not a list -- Flask-Limiter's own
 silently mis-parses (raising `ValueError` on every request, confirmed by
 testing) if handed a list of strings instead, however natural that looks
 in Python."""
-
-
-def _write_mysql_config(read_only, write_defaults):
-    """
-    Builds the write-capable `MySQLConfig` from `PLANETGEN_MYSQL_WRITE_USER`/
-    `_PASSWORD`, falling back to `config.json`'s `mysql_write` section
-    (`write_defaults`) and then to `read_only`'s own credentials (the
-    existing `SELECT`-only `PLANETGEN_MYSQL_*` config) when unset -- so a
-    single-account local/dev setup (one set of credentials for everything)
-    keeps working with no extra configuration, while a production
-    deployment is documented (`docs/apache-deployment.md`) to point
-    `PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD` (or `config.json`'s
-    `mysql_write`) at a distinct account with `INSERT`/`UPDATE`/`DELETE`
-    (but not `CREATE`/`DROP`) grants on both the content schemas and the
-    control schema (`stellarObjects._db.control_mysql_config`), instead of
-    reusing the read-only one -- reusing it would simply fail every write
-    with a permissions error.
-
-    host/port/database always come from `read_only` -- the read-only and
-    write-capable accounts are two logins on the same server/schema, never
-    two different servers or databases, so only credentials vary between
-    them.
-
-    Args:
-        read_only (MySQLConfig): The existing `PLANETGEN_MYSQL_*` config --
-            supplies host/port/database outright, and is the final
-            fallback for user/password when unset.
-        write_defaults (dict): `config.json`'s `mysql_write` section --
-            empty-string fields mean "inherit from `read_only`".
-
-    Returns:
-        MySQLConfig: Ready to pass to `stellarObjects._db.open_write`.
-    """
-    return MySQLConfig(
-        host=read_only.host,
-        port=read_only.port,
-        user=os.environ.get("PLANETGEN_MYSQL_WRITE_USER") or write_defaults["user"] or read_only.user,
-        password=os.environ.get("PLANETGEN_MYSQL_WRITE_PASSWORD") or write_defaults["password"] or read_only.password,
-        database=read_only.database,
-    )
 
 
 def _wiki_config(wiki_defaults):
@@ -147,13 +103,13 @@ _config_file = load_config()
 class Config:
     MYSQL_CONFIG = MySQLConfig()
 
-    # Write-capable config for the (now real, no longer stub) sector/
-    # system write endpoints -- see `_write_mysql_config` above and
-    # `routes.py`'s write handlers. `CONTROL_MYSQL_CONFIG` reuses this
-    # same account's host/user/password against the separate control
-    # schema (`control_schema.sql`'s header comment) that holds admin
-    # logins/sessions/API keys/audit log -- see `auth.py`.
-    WRITE_MYSQL_CONFIG = _write_mysql_config(MYSQL_CONFIG, _config_file["mysql_write"])
+    # No separate write-capable account -- the sector/system write
+    # endpoints (`routes.py`'s write handlers) use this same
+    # `MYSQL_CONFIG`. `CONTROL_MYSQL_CONFIG` reuses its host/user/password
+    # against the separate control schema (`control_schema.sql`'s header
+    # comment) that holds admin logins/sessions/API keys/audit log -- see
+    # `auth.py`.
+    WRITE_MYSQL_CONFIG = MYSQL_CONFIG
     CONTROL_MYSQL_CONFIG = control_mysql_config(WRITE_MYSQL_CONFIG)
 
     RATELIMIT_DEFAULT = os.environ.get("PLANETGEN_RATELIMIT_DEFAULT", _config_file["ratelimit"]["default"])

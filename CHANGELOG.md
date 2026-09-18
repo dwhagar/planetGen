@@ -1,5 +1,42 @@
 # Changelog
 
+## [5.39.0] - 2026-09-18
+
+### Added
+- **Galaxy-wide name uniqueness.** `stellarObjects/nameUniqueness.py`
+  tracks every sector/system/planet-or-moon base name ever generated
+  (`sector_name_registry`/`system_name_registry`/`body_name_registry`,
+  schema v24) and decorates a colliding name instead of letting two rows
+  anywhere in the database share a display name -- Greek/Roman letters
+  for a sector or system colliding with its own kind, a diminutive prefix
+  for a system colliding with its sector, and a companion suffix for a
+  planet/moon colliding with anything. `_db.py`'s `insert_sector`/
+  `insert_star_system`/`insert_planet`/`insert_moon` all consult and
+  update these registries now. `src/dedupeNames.py` is a new one-off
+  script to decorate any duplicate names an existing database already
+  has from before this feature existed.
+- **A "generate more sectors around this one" admin action** on
+  `html/sector.py`, for any already galaxy-placed sector -- fills in
+  every not-yet-generated sector within a 100 ly sphere around it
+  (`POST /api/sectors/<id>/generate-neighborhood`), the same
+  local-neighborhood logic `generate.py galaxy --center-sector` already
+  used from the CLI, now reachable from the web interface.
+- **Live progress bars for `generate.py sector`/`galaxy`.** Both now show
+  nested `rich.progress` bars (elapsed and estimated-remaining time) --
+  an outer "Sectors" task for galaxy's shell-batch/local-neighborhood/
+  random-start modes (and sector's own `--num-sectors` loop), and an
+  inner "systems in this sector" task nested under it.
+
+### Changed
+- **Removed the separate write-capable MySQL config.** `config.json`'s
+  `mysql_write` section (and the `PLANETGEN_MYSQL_WRITE_USER`/
+  `_PASSWORD` env vars layered over it) is gone -- the Flask API's
+  `WRITE_MYSQL_CONFIG` now simply reuses `MYSQL_CONFIG`, so there's a
+  single account (`config.json`'s `mysql` section /
+  `PLANETGEN_MYSQL_*`) for the generation CLIs, `install.sh`/
+  `migrateDb.py`, and the API's reads and writes alike -- give that one
+  account whatever grants the most demanding caller needs.
+
 ## [5.38.0] - 2026-09-18
 
 ### Fixed

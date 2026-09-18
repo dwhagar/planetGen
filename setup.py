@@ -82,6 +82,10 @@ setup(
         # transitively), so installing both extras together never
         # downgrades it.
         'werkzeug>=3.0.0',
+        # Progress bars for generate.py's sector/galaxy generation loops
+        # (TimeElapsedColumn/TimeRemainingColumn, and multiple simultaneous
+        # tasks in one Progress for the nested sector/system bars).
+        'rich>=13.7.0',
     ],
     extras_require={
         'test': ['pytest>=7.4.0'],

@@ -70,10 +70,9 @@ now, `config.json`).
 | `base_url` | The base URL this deployment is served from, e.g. `"http://localhost/"` or `"https://planetgen.example.com/"`. Not yet read by any page -- reserved for future absolute-URL generation (e.g. constructing shareable links) that can't be derived from a CGI request alone. |
 | `api_base_url` | Base URL of the Flask API's `/api` mount point that the `html/` CGI browser talks to (see `../src/html/lib/apiclient.py`). Defaults to `http://127.0.0.1/api`; override when the API is deployed at a different host/port. Equivalent to `PLANETGEN_API_BASE_URL`. |
 | `debug` | When true, an unhandled exception in the `html/` CGI browser renders its traceback on the page instead of a generic 500 (see `../src/html/lib/page.py`). Never enable this in production -- it leaks file paths and query text. Equivalent to `PLANETGEN_DEBUG`. |
-| `mysql.host`/`mysql.port`/`mysql.user`/`mysql.password`/`mysql.database` | The default (read-only-capable) MySQL connection -- used by every entry point that doesn't need a different account (see `stellarObjects._db.MySQLConfig`). Equivalent to `PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE`. |
+| `mysql.host`/`mysql.port`/`mysql.user`/`mysql.password`/`mysql.database` | The one MySQL connection every entry point uses -- the generation CLIs, `install.sh`/`migrateDb.py`, and the Flask API's reads and writes alike (see `stellarObjects._db.MySQLConfig`). There's no separate write-capable override: give this account whatever grants the most demanding caller needs. Equivalent to `PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE`. |
 | `mysql.database_prefix` | The schema-name prefix `list_databases`/`resolve_database` filter by, for a deployment with more than one game database on one server (e.g. `planetgen`, `planetgen_alpha`, ...). Equivalent to `PLANETGEN_MYSQL_DATABASE_PREFIX`. |
-| `mysql_write.user`/`.password` | Credential overrides for the write-capable account the Flask API's write endpoints (and `/api/auth/`) use -- host/port/database always come from `mysql` above (the read-only and write-capable accounts are two logins on the same server/schema, never two different ones). An empty string (the default) for either field means "inherit the matching `mysql` value", so a single-account local/dev setup needs no extra configuration. Equivalent to `PLANETGEN_MYSQL_WRITE_USER`/`_PASSWORD`. See [`apache-deployment.md`](apache-deployment.md#mysql-accounts). |
-| `control_database` | Name of the separate MySQL schema holding admin identities/sessions/API keys/audit log (see `../src/stellarObjects/control_schema.sql`), reached via the write-capable account above. Equivalent to `PLANETGEN_CONTROL_DATABASE`. |
+| `control_database` | Name of the separate MySQL schema holding admin identities/sessions/API keys/audit log (see `../src/stellarObjects/control_schema.sql`), reached via the account above. Equivalent to `PLANETGEN_CONTROL_DATABASE`. |
 | `ratelimit.default`/`ratelimit.storage_uri` | Flask-Limiter's default rate limit and storage backend for the API (see `../src/html/api/config.py`). `storage_uri` needs a shared backend (e.g. `redis://...`) once a deployment runs more than one worker process. Equivalent to `PLANETGEN_RATELIMIT_DEFAULT`/`PLANETGEN_RATELIMIT_STORAGE_URI`. |
 | `admin_cookie_insecure` | When true, the admin session cookie is sent over plain HTTP. Only for local development without TLS in front of the app (e.g. `python src/html/wsgi.py`) -- a production deployment must never set this. Equivalent to `PLANETGEN_ADMIN_COOKIE_INSECURE=1`. |
 | `wiki.wikijs.base_url`/`.api_token` | The target Wiki.js instance's root URL and a Personal API Token (Admin -> API Access) -- see `../src/wikiClient/wikijs.py`. Leaving `base_url` empty (the default) means Wiki.js isn't offered as an "Upload to Wiki" target at all. Equivalent to `PLANETGEN_WIKIJS_BASE_URL`/`PLANETGEN_WIKIJS_API_TOKEN`. |
@@ -101,8 +100,8 @@ cp config.json.example config.json
 ```
 
 Then fill in `mysql.host`/`mysql.user`/`mysql.password`/`mysql.database`
-(and `mysql_write.*`/`control_database` if this deployment uses a
-separate write-capable account -- see
+(and `control_database`, if this deployment names its control schema
+something other than the default -- see
 [`apache-deployment.md`](apache-deployment.md#mysql-accounts)) for this
 deployment's actual database server. `site_name`/`base_url` are cosmetic
 and safe to leave as-is.

@@ -63,6 +63,11 @@ from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
+from .names import (
+    MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES, PLANET_PREFIXES,
+    PLANET_SUFFIXES, STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES,
+)
+from .nameUniqueness import resolve_companion, resolve_diminutive, resolve_greek_roman_collision
 from .nebulaData import Nebula
 from .planetData import Planet
 from .roguePlanetData import InterstellarComet, RoguePlanet
@@ -70,10 +75,13 @@ from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distan
 from .starData import Star
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
-from .utils import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc
+from .utils import (
+    generate_phoneme_salad_name, generate_sector_name, ly_to_milliparsecs, ly_to_pc,
+    milliparsecs_to_ly, mpc_to_pc,
+)
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 23
+SCHEMA_VERSION = 24
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -534,11 +542,11 @@ def open_write(config=None):
     """
     Opens a connection for a write-capable caller against an already-
     existing content database (`ensure_schema=False` -- same reasoning as
-    `queryDb.open_readonly`: a write-capable account (see
-    `docs/apache-deployment.md`'s `PLANETGEN_MYSQL_WRITE_*`) deliberately
-    has no `CREATE`/`ALTER` grant, so attempting `_ensure_schema`'s DDL
-    here would fail every connection instead of just skipping a step a
-    full-access account has already done once, via `migrateDb.py`).
+    `queryDb.open_readonly`: if the account passed in (see
+    `docs/apache-deployment.md`'s "MySQL accounts") lacks `CREATE`/`ALTER`
+    grants, attempting `_ensure_schema`'s DDL here would fail every
+    connection instead of just skipping a step a full-access account has
+    already done once, via `migrateDb.py`).
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -554,10 +562,10 @@ def control_mysql_config(base_config=None):
     """
     Builds a `MySQLConfig` pointed at the control schema (see
     `control_schema.sql`'s header comment), reusing `base_config`'s
-    host/port/user/password -- typically the same write-capable account
-    `open_write` uses (`docs/apache-deployment.md`'s `PLANETGEN_MYSQL_WRITE_*`),
-    since the control schema needs the same `SELECT`/`INSERT`/`UPDATE`/
-    `DELETE` grants, just on a different schema name.
+    host/port/user/password -- typically the same account `open_write`
+    uses (`docs/apache-deployment.md`'s "MySQL accounts"), since the
+    control schema needs the same `SELECT`/`INSERT`/`UPDATE`/`DELETE`
+    grants, just on a different schema name.
 
     Args:
         base_config (MySQLConfig, optional): Connection parameters to
@@ -585,8 +593,8 @@ def get_control_connection(config=None, ensure_schema=False):
             to `control_mysql_config()`.
         ensure_schema (bool): Whether to run `_ensure_control_schema`
             (DDL) on this connection -- `False` by default (the normal
-            runtime case: the Flask API's write-capable account has no
-            `CREATE` grant, same reasoning as `open_write` above).
+            runtime case: the Flask API's account may have no `CREATE`
+            grant, same reasoning as `open_write` above).
             `adminAuth.bootstrap_control_schema` passes `True`, using a
             full-access account (the same one `migrateDb.py` already
             uses), to create/update the control schema once per deploy.
@@ -708,6 +716,346 @@ def insert_system_config(conn, config: SystemConfig) -> int:
     return config_id
 
 
+# ---------------------------------------------------------------------------
+# Name-uniqueness reservation (stellarObjects/nameUniqueness.py, v24) --
+# one reserve/confirm pair per naming level (sector, system, planet+moon
+# combined), called from insert_sector/insert_star_system/insert_planet/
+# insert_moon below. "Reserve" runs *before* that level's own INSERT (it
+# doesn't know the new row's id yet, but may need to rename an existing
+# row via a plain UPDATE); "confirm" runs *after*, now that the id is
+# known, to upsert that level's registry row. See nameUniqueness.py's own
+# module docstring for the full sector > system > planet/moon hierarchy
+# and why cross-level collisions only ever decorate the lower level.
+# ---------------------------------------------------------------------------
+
+def _rename_existing_system_for_diminutive(conn, base_name):
+    """
+    Called while reserving a *sector* name that collides with an existing
+    system's base name -- decorates that system (never the sector) with
+    the next diminutive prefix, applied on top of whatever its current
+    name already is (it may already carry its own Greek/Roman decoration
+    from an unrelated system-vs-system collision).
+
+    Args:
+        conn (Connection): Part of the same transaction as the caller's
+            own sector INSERT.
+        base_name (str): The sector's own (undecorated) candidate name.
+
+    Returns:
+        bool: `True` if resolved (including "no colliding system exists
+            at all", a no-op). `False` if `names.DIMINUTIVE_PREFIXES` is
+            exhausted for this base name -- the caller must draw an
+            entirely fresh sector name instead.
+    """
+    row = conn.execute(
+        "SELECT first_star_system_id, diminutive_index FROM system_name_registry WHERE base_name = ? FOR UPDATE",
+        (base_name,),
+    ).fetchone()
+    if row is None:
+        return True
+
+    prefix, next_index = resolve_diminutive(row["diminutive_index"])
+    if prefix is None:
+        return False
+
+    current = conn.execute(
+        "SELECT name FROM star_systems WHERE id = ?", (row["first_star_system_id"],),
+    ).fetchone()
+    if current is not None:
+        conn.execute(
+            "UPDATE star_systems SET name = ? WHERE id = ?",
+            (f"{prefix} {current['name']}", row["first_star_system_id"]),
+        )
+    # else: that system row was since deleted -- nothing left to rename,
+    # but diminutive_index still advances below so a later collision on
+    # this base name doesn't reuse the same prefix.
+    conn.execute(
+        "UPDATE system_name_registry SET diminutive_index = ? WHERE base_name = ?",
+        (next_index, base_name),
+    )
+    return True
+
+
+def _rename_existing_body_for_companion(conn, base_name):
+    """
+    Called while reserving a *sector* or *system* name that collides with
+    an existing planet's/moon's base name -- decorates that planet/moon
+    (never the sector/system) with the next companion suffix, appended to
+    whatever its current name already is.
+
+    Args:
+        conn (Connection): Part of the same transaction as the caller's
+            own sector/system INSERT.
+        base_name (str): The sector's/system's own (undecorated)
+            candidate name.
+
+    Returns:
+        bool: `True` if resolved (including "no colliding planet/moon
+            exists", a no-op). `False` if `names.COMPANION_SUFFIXES` is
+            exhausted for this base name -- the caller must draw an
+            entirely fresh name instead.
+    """
+    row = conn.execute(
+        "SELECT first_body_kind, first_body_id, suffix_index FROM body_name_registry WHERE base_name = ? FOR UPDATE",
+        (base_name,),
+    ).fetchone()
+    if row is None:
+        return True
+
+    suffix, next_index = resolve_companion(row["suffix_index"])
+    if suffix is None:
+        return False
+
+    table = "planets" if row["first_body_kind"] == "planet" else "moons"
+    current = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (row["first_body_id"],)).fetchone()
+    if current is not None:
+        conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (f"{current['name']} {suffix}", row["first_body_id"]))
+    conn.execute(
+        "UPDATE body_name_registry SET suffix_index = ? WHERE base_name = ?",
+        (next_index, base_name),
+    )
+    return True
+
+
+def reserve_sector_name(conn, candidate_name):
+    """
+    Phase 1 of sector name-uniqueness reservation -- resolves a
+    sector-vs-sector collision (`nameUniqueness.resolve_greek_roman_collision`),
+    then a cross-level collision against an existing system's or
+    planet's/moon's base name (renaming *that* row instead of this
+    sector's own name -- see `_rename_existing_system_for_diminutive`/
+    `_rename_existing_body_for_companion`). Draws an entirely fresh
+    candidate (`stellarObjects.utils.generate_sector_name`) and starts
+    over whenever any of those mechanisms is exhausted.
+
+    Args:
+        conn (Connection): Part of the same transaction as the caller's
+            own sector INSERT.
+        candidate_name (str): The freshly generated name to reserve.
+
+    Returns:
+        tuple: `(final_name, base_name)` -- `final_name` is what the new
+            `sectors` row's `name` column should hold; `base_name` is
+            what `confirm_sector_name` should key its registry write on.
+    """
+    while True:
+        base = candidate_name
+        row = conn.execute(
+            "SELECT occurrence_count FROM sector_name_registry WHERE base_name = ? FOR UPDATE",
+            (base,),
+        ).fetchone()
+        existing_count = row["occurrence_count"] if row else 0
+
+        new_name, rename = resolve_greek_roman_collision(base, existing_count)
+        if new_name is None:
+            candidate_name = generate_sector_name()
+            continue
+        if rename is not None:
+            old_name, renamed_to = rename
+            conn.execute("UPDATE sectors SET name = ? WHERE name = ?", (renamed_to, old_name))
+
+        if not _rename_existing_system_for_diminutive(conn, base):
+            candidate_name = generate_sector_name()
+            continue
+        if not _rename_existing_body_for_companion(conn, base):
+            candidate_name = generate_sector_name()
+            continue
+
+        return new_name, base
+
+
+def confirm_sector_name(conn, base_name, sector_id):
+    """Phase 2 of sector name-uniqueness reservation -- upserts
+    `sector_name_registry` now that the new sector's id is known."""
+    row = conn.execute("SELECT id FROM sector_name_registry WHERE base_name = ?", (base_name,)).fetchone()
+    if row is None:
+        conn.execute(
+            "INSERT INTO sector_name_registry (base_name, occurrence_count, first_sector_id) VALUES (?, 1, ?)",
+            (base_name, sector_id),
+        )
+    else:
+        conn.execute(
+            "UPDATE sector_name_registry SET occurrence_count = occurrence_count + 1 WHERE base_name = ?",
+            (base_name,),
+        )
+
+
+def _regenerate_star_name():
+    """A fresh star-name candidate, for `reserve_system_name`'s
+    exhaustion fallback -- same generator `starData.Star` itself uses."""
+    return generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+
+
+def reserve_system_name(conn, candidate_name):
+    """
+    Phase 1 of system name-uniqueness reservation -- resolves a
+    system-vs-system collision (`resolve_greek_roman_collision`), then a
+    cross-level collision against an existing sector's base name (a
+    diminutive prefix on *this* system, per `resolve_diminutive` --
+    never the sector), then a cross-level collision against an existing
+    planet's/moon's base name (`_rename_existing_body_for_companion`,
+    renaming that lower-level row instead). Draws an entirely fresh
+    candidate (`_regenerate_star_name`) and starts over whenever any of
+    those mechanisms is exhausted.
+
+    Args:
+        conn (Connection): Part of the same transaction as the caller's
+            own system INSERT.
+        candidate_name (str): The freshly generated name to reserve
+            (`star_system.star.name` at the call site).
+
+    Returns:
+        tuple: `(final_name, base_name, diminutive_index)` -- `final_name`
+            is what `star_system.star.name` (and so `star_systems.name`)
+            should become; `base_name`/`diminutive_index` are what
+            `confirm_system_name` should write to the registry.
+    """
+    while True:
+        base = candidate_name
+        row = conn.execute(
+            "SELECT occurrence_count, diminutive_index, first_star_system_id "
+            "FROM system_name_registry WHERE base_name = ? FOR UPDATE",
+            (base,),
+        ).fetchone()
+        existing_count = row["occurrence_count"] if row else 0
+        diminutive_index = row["diminutive_index"] if row else None
+
+        new_name, rename = resolve_greek_roman_collision(base, existing_count)
+        if new_name is None:
+            candidate_name = _regenerate_star_name()
+            continue
+        if rename is not None:
+            # Matched by id (row["first_star_system_id"]), not by the
+            # rename tuple's assumed old-name string -- that row may
+            # already carry its own diminutive decoration (an earlier
+            # system-vs-sector collision on this same base name), so its
+            # *actual* current name may not equal what resolve_greek_roman_collision
+            # assumed. The Greek/Roman decoration below fully replaces
+            # whatever's there; a stacked diminutive is lost, but
+            # uniqueness still holds either way (the Greek-decorated name
+            # is still distinct from the sector's own bare one).
+            _old_name, renamed_to = rename
+            conn.execute(
+                "UPDATE star_systems SET name = ? WHERE id = ?",
+                (renamed_to, row["first_star_system_id"]),
+            )
+
+        sector_hit = conn.execute(
+            "SELECT 1 FROM sector_name_registry WHERE base_name = ?", (base,),
+        ).fetchone() is not None
+        if sector_hit:
+            prefix, diminutive_index = resolve_diminutive(diminutive_index)
+            if prefix is None:
+                candidate_name = _regenerate_star_name()
+                continue
+            new_name = f"{prefix} {new_name}"
+
+        if not _rename_existing_body_for_companion(conn, base):
+            candidate_name = _regenerate_star_name()
+            continue
+
+        return new_name, base, diminutive_index
+
+
+def confirm_system_name(conn, base_name, star_system_id, diminutive_index):
+    """Phase 2 of system name-uniqueness reservation -- upserts
+    `system_name_registry` now that the new system's id is known."""
+    row = conn.execute("SELECT id FROM system_name_registry WHERE base_name = ?", (base_name,)).fetchone()
+    if row is None:
+        conn.execute(
+            "INSERT INTO system_name_registry (base_name, occurrence_count, first_star_system_id, diminutive_index) "
+            "VALUES (?, 1, ?, ?)",
+            (base_name, star_system_id, diminutive_index),
+        )
+    else:
+        conn.execute(
+            "UPDATE system_name_registry SET occurrence_count = occurrence_count + 1, diminutive_index = ? "
+            "WHERE base_name = ?",
+            (diminutive_index, base_name),
+        )
+
+
+def _regenerate_body_name(body_kind):
+    """A fresh planet-/moon-name candidate, for `reserve_body_name`'s
+    exhaustion fallback -- same generators `planetData.Planet` itself
+    uses for each kind."""
+    if body_kind == "moon":
+        return generate_phoneme_salad_name(MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES)
+    return generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)
+
+
+def reserve_body_name(conn, candidate_name, body_kind):
+    """
+    Phase 1 of planet/moon name-uniqueness reservation -- planets and
+    moons share one combined namespace (`body_name_registry`) and one
+    resolution rule regardless of what they collide with (another planet,
+    a moon, a system, or a sector): only the planet/moon being inserted
+    is ever decorated, via the next companion suffix
+    (`nameUniqueness.resolve_companion`) -- nothing existing is ever
+    renamed. Draws an entirely fresh candidate (`_regenerate_body_name`)
+    and starts over once `names.COMPANION_SUFFIXES` is exhausted.
+
+    Args:
+        conn (Connection): Part of the same transaction as the caller's
+            own planet/moon INSERT.
+        candidate_name (str): The freshly generated name to reserve.
+        body_kind (str): `'planet'` or `'moon'` -- which generator to
+            draw a fresh candidate from on exhaustion.
+
+    Returns:
+        tuple: `(final_name, base_name, suffix_index)` -- `final_name` is
+            what the new row's `name` column should hold;
+            `base_name`/`suffix_index` are what `confirm_body_name`
+            should write to the registry (`suffix_index` is `None` when
+            no collision occurred at all).
+    """
+    while True:
+        base = candidate_name
+        body_row = conn.execute(
+            "SELECT occurrence_count, suffix_index FROM body_name_registry WHERE base_name = ? FOR UPDATE",
+            (base,),
+        ).fetchone()
+        existing_count = body_row["occurrence_count"] if body_row else 0
+        prior_suffix_index = body_row["suffix_index"] if body_row else None
+
+        collides = existing_count > 0
+        if not collides:
+            collides = conn.execute(
+                "SELECT 1 FROM sector_name_registry WHERE base_name = ?", (base,),
+            ).fetchone() is not None
+        if not collides:
+            collides = conn.execute(
+                "SELECT 1 FROM system_name_registry WHERE base_name = ?", (base,),
+            ).fetchone() is not None
+
+        if not collides:
+            return base, base, None
+
+        suffix, suffix_index = resolve_companion(prior_suffix_index)
+        if suffix is None:
+            candidate_name = _regenerate_body_name(body_kind)
+            continue
+
+        return f"{base} {suffix}", base, suffix_index
+
+
+def confirm_body_name(conn, base_name, body_id, body_kind, suffix_index):
+    """Phase 2 of planet/moon name-uniqueness reservation -- upserts
+    `body_name_registry` now that the new row's id is known."""
+    row = conn.execute("SELECT id FROM body_name_registry WHERE base_name = ?", (base_name,)).fetchone()
+    if row is None:
+        conn.execute(
+            "INSERT INTO body_name_registry (base_name, occurrence_count, first_body_kind, first_body_id, suffix_index) "
+            "VALUES (?, 1, ?, ?, ?)",
+            (base_name, body_kind, body_id, suffix_index),
+        )
+    else:
+        conn.execute(
+            "UPDATE body_name_registry SET occurrence_count = occurrence_count + 1, suffix_index = ? WHERE base_name = ?",
+            (suffix_index, base_name),
+        )
+
+
 def insert_star(conn, star, star_system_id, role) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
@@ -803,6 +1151,11 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     Returns:
         int: The new `planets.id`.
     """
+    # Name-uniqueness (v24, nameUniqueness.py) -- planets and moons share
+    # one combined namespace; see `reserve_body_name`'s own docstring.
+    final_name, name_base, suffix_index = reserve_body_name(conn, planet.name, "planet")
+    planet.name = final_name
+
     min_orbit_distance_km = (
         planet.min_orbit_distance * physical_constants.AU_TO_KM
         if planet.min_orbit_distance is not None else None
@@ -852,6 +1205,7 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
         ),
     )
     planet_id = cur.lastrowid
+    confirm_body_name(conn, name_base, planet_id, "planet", suffix_index)
 
     _insert_paragraphs(conn, "planet_evolutionary_paragraphs", "planet_id", planet_id, planet.evolutionary_data)
     _insert_reflection_spectrum(
@@ -887,6 +1241,11 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     Returns:
         int: The new `moons.id`.
     """
+    # Name-uniqueness (v24, nameUniqueness.py) -- planets and moons share
+    # one combined namespace; see `reserve_body_name`'s own docstring.
+    final_name, name_base, suffix_index = reserve_body_name(conn, moon.name, "moon")
+    moon.name = final_name
+
     min_orbit_distance_km = (
         moon.min_orbit_distance * physical_constants.AU_TO_KM
         if moon.min_orbit_distance is not None else None
@@ -932,6 +1291,7 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
         ),
     )
     moon_id = cur.lastrowid
+    confirm_body_name(conn, name_base, moon_id, "moon", suffix_index)
 
     _insert_paragraphs(conn, "moon_evolutionary_paragraphs", "moon_id", moon_id, moon.evolutionary_data)
     _insert_reflection_spectrum(
@@ -1651,6 +2011,13 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     `schema.sql`'s header comment for why they can't be independently
     regenerated later and still match.
 
+    `star_system.star.name` is reserved via `reserve_system_name` (v24,
+    `nameUniqueness.py`) *before* that rendering, mutating it in place if
+    a collision requires a decorated name -- so the stored rendered
+    content always matches the stored name, and every other system/
+    sector/planet/moon anywhere in the database stays distinct from this
+    one. See that function's own docstring for the full mechanism.
+
     Args:
         conn (Connection): An open, schema-initialized connection.
         star_system (StarSystem): The generated system to persist.
@@ -1734,6 +2101,13 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         quadrant = None
         location = None
 
+    # Name-uniqueness (v24, nameUniqueness.py) -- reserved *before* the
+    # rendering below, and mutated onto star_system.star.name in place,
+    # so a renamed system's stored wikitext_content/markdown_content
+    # actually matches its stored name.
+    final_name, name_base, diminutive_index = reserve_system_name(conn, star_system.star.name)
+    star_system.star.name = final_name
+
     # Render both formats from this same generated object -- rendering is
     # idempotent (Phase 0), so toggling MARKDOWN here has no other effect
     # on the object and doesn't re-roll anything.
@@ -1780,6 +2154,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         ),
     )
     star_system_id = cur.lastrowid
+    confirm_system_name(conn, name_base, star_system_id, diminutive_index)
 
     if proxy_like:
         insert_star(conn, star_system.primary_star, star_system_id, "primary")
@@ -1870,6 +2245,14 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     Returns:
         int: The new `sectors.id`.
     """
+    # Name-uniqueness (v24, nameUniqueness.py) -- reserved before either
+    # INSERT branch below, mutating sector.name in place, so every print/
+    # rendering call site that reads it afterward (including this same
+    # sector's own systems, added below) sees the final, collision-free
+    # name. See `reserve_sector_name`'s own docstring for the mechanism.
+    final_name, name_base = reserve_sector_name(conn, sector.name)
+    sector.name = final_name
+
     if galaxy_position is not None:
         cur = conn.execute(
             """
@@ -1901,6 +2284,8 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
             (sector.name, ly_to_milliparsecs(sector.edge_ly)),
         )
         sector_id = cur.lastrowid
+
+    confirm_sector_name(conn, name_base, sector_id)
 
     for entry in sector.entries:
         insert_star_system(
@@ -3805,6 +4190,74 @@ def _migrate_v22_to_v23(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (23)")
 
 
+def _migrate_v23_to_v24(conn):
+    """
+    Adds v24's three name-uniqueness registry tables (`sector_name_registry`/
+    `system_name_registry`/`body_name_registry`) -- see `schema.sql`'s
+    "v24" header note and `stellarObjects/nameUniqueness.py`. Real `CREATE
+    TABLE` steps (not `ALTER TABLE` -- these are new tables, not new
+    columns on an existing one), copied verbatim from `schema.sql` so a
+    migrated database ends up with exactly the same shape a fresh one
+    gets from `_ensure_schema`.
+
+    No backfill: an existing database may already hold duplicate names
+    from before this feature existed, and this migration doesn't scan for
+    or fix them -- run `src/dedupeNames.py` once, separately, for that
+    (safe to run on a database this migration has already brought
+    current, and idempotent on repeat runs).
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sector_name_registry (
+            id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            base_name         VARCHAR(255) NOT NULL,
+            occurrence_count  INT NOT NULL,
+            first_sector_id   BIGINT UNSIGNED NOT NULL,
+
+            UNIQUE (base_name),
+            CONSTRAINT fk_sector_name_registry_first_sector
+                FOREIGN KEY (first_sector_id) REFERENCES sectors(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS system_name_registry (
+            id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            base_name              VARCHAR(255) NOT NULL,
+            occurrence_count       INT NOT NULL,
+            first_star_system_id   BIGINT UNSIGNED NOT NULL,
+            diminutive_index       INT,
+
+            UNIQUE (base_name),
+            CONSTRAINT fk_system_name_registry_first_star_system
+                FOREIGN KEY (first_star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS body_name_registry (
+            id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            base_name         VARCHAR(255) NOT NULL,
+            occurrence_count  INT NOT NULL,
+            first_body_kind   VARCHAR(8) NOT NULL CHECK (first_body_kind IN ('planet', 'moon')),
+            first_body_id     BIGINT UNSIGNED NOT NULL,
+            suffix_index      INT,
+
+            UNIQUE (base_name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """
+    )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (24)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -3831,12 +4284,12 @@ def migrate_database(config=None):
     (added for v20's proper two-body/barycentric trajectory columns on
     `star_systems`/`stars`/`planets`), `_migrate_v20_to_v21` (added for
     v21's sector-placement columns on `black_holes`/`neutron_stars`),
-    `_migrate_v21_to_v22` (added for v22's search-facing indexes), and
+    `_migrate_v21_to_v22` (added for v22's search-facing indexes),
     `_migrate_v22_to_v23` (added for v23's wiki-publishing link columns on
-    `sectors`/`star_systems`) are the migration steps so far; see
-    `schema.sql`'s header comment for the
-    versioning convention, and `migrateDb.py` for the CLI wrapper around
-    this.
+    `sectors`/`star_systems`), and `_migrate_v23_to_v24` (added for v24's
+    name-uniqueness registry tables) are the migration steps so far; see
+    `schema.sql`'s header comment for the versioning convention, and
+    `migrateDb.py` for the CLI wrapper around this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -3910,6 +4363,10 @@ def migrate_database(config=None):
         if version < 23:
             _migrate_v22_to_v23(conn)
             version = 23
+
+        if version < 24:
+            _migrate_v23_to_v24(conn)
+            version = 24
 
         conn.commit()
         return version

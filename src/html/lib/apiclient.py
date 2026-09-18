@@ -128,7 +128,7 @@ def _request(path, params=None):
         raise ApiError(f"planetGen API returned an unparseable response: {exc}")
 
 
-def _auth_request(method, path, json_body=None, cookie_header=None):
+def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIMEOUT_SECONDS):
     """
     Runs one JSON request against the API supporting any HTTP method and
     an optional request body/`Cookie` header -- the primitive every
@@ -146,6 +146,12 @@ def _auth_request(method, path, json_body=None, cookie_header=None):
             `HTTP_COOKIE` environment variable verbatim (see
             `page.incoming_cookie_header`); this module never parses or
             constructs cookie values itself, only relays them.
+        timeout (float): Seconds to wait for a response. Defaults to
+            `_TIMEOUT_SECONDS`, the same as every other request this
+            module makes; a caller whose endpoint can legitimately run
+            long (e.g. `generate_sector_neighborhood`'s own batch sector
+            generation) passes a larger value explicitly instead of this
+            module silently timing out a request that was still working.
 
     Returns:
         tuple[dict or None, list[str]]: The parsed JSON body (`None` for
@@ -170,7 +176,7 @@ def _auth_request(method, path, json_body=None, cookie_header=None):
 
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             raw_body = response.read().decode("utf-8")
             set_cookie_headers = response.headers.get_all("Set-Cookie") or []
     except urllib.error.HTTPError as exc:
@@ -528,3 +534,43 @@ def admin_set_sector_wiki_url(cookie_header, db, sector_id, wiki_url):
     url_path = f"/sectors/{sector_id}?{_build_query({'db': db})}"
     body = {"wiki_url": wiki_url or None}
     _auth_request("PATCH", url_path, json_body=body, cookie_header=cookie_header)
+
+
+_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS = 1800
+"""float: `generate_sector_neighborhood` below can legitimately run for a
+very long time -- its default 100 ly radius holds on the order of
+2,000-3,000 candidate sector slots (confirmed by measurement, see that
+route's own docstring), each generated one at a time, synchronously (see
+`routes.py`'s own note on this route having no background job queue to
+hand off to) -- unlike every other quick CRUD call this module makes,
+where `_TIMEOUT_SECONDS` alone would make a real, still-working request
+look like a failure. Even this generous a timeout may not be enough for a
+genuinely dense/large region -- there's no fully solving that without a
+real job queue, which this project doesn't have; a caller triggering this
+against an unfamiliar/large radius should pass a smaller `radius_ly`
+first."""
+
+
+def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None):
+    """
+    `POST /api/sectors/<id>/generate-neighborhood` -- generates every
+    not-yet-generated sector within `radius_ly` (`None` for the API's own
+    default, 100 ly) of this already galaxy-placed sector. The admin-only
+    "generate more sectors around this one" action on `sector.py`. Uses
+    `_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS` rather than this module's
+    usual, much shorter timeout -- see that constant's own docstring.
+
+    Returns:
+        dict: `generated`/`already_existed`/`candidates` -- see
+            `generate.generate_sector_neighborhood`'s own docstring.
+
+    Raises:
+        ApiError: `status_code == 404` if the sector doesn't exist or was
+            never placed in a galaxy.
+    """
+    body, _set_cookie_headers = _auth_request(
+        "POST", f"/sectors/{sector_id}/generate-neighborhood", cookie_header=cookie_header,
+        json_body={"radius_ly": radius_ly} if radius_ly is not None else {},
+        timeout=_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS,
+    )
+    return body

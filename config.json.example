@@ -11,10 +11,6 @@
     "database": "planetgen",
     "database_prefix": "planetgen"
   },
-  "mysql_write": {
-    "user": "",
-    "password": ""
-  },
   "control_database": "planetgen_control",
   "ratelimit": {
     "default": "200 per day;50 per hour",

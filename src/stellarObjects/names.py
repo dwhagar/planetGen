@@ -343,3 +343,78 @@ through that one shared function -- widening the cultural "naming budget"
 generated names draw from beyond whatever happens to appear in that
 type's own base `_NAMES` list.
 """
+
+# --- Name-Uniqueness Decoration Constants ---
+#
+# Used by `stellarObjects/nameUniqueness.py` to keep every sector, system,
+# planet, and moon name in a database distinct -- see that module's own
+# docstring for the full sector > system > planet/moon hierarchy these
+# feed into. Kept here, alongside every other naming word list, rather
+# than in `nameUniqueness.py` itself, so all of this project's naming
+# vocabulary lives in one place.
+
+GREEK_LETTERS = [
+    "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta",
+    "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron", "Pi", "Rho",
+    "Sigma", "Tau", "Upsilon", "Phi", "Chi", "Psi", "Omega",
+]
+"""
+The 24-letter Greek alphabet, in order -- `nameUniqueness.resolve_greek_roman_collision`'s
+first-tier decoration for two sectors (or two systems) that generated the
+same base name: the existing one becomes "Alpha <name>", the next
+collision "Beta <name>", and so on through "Omega <name>".
+"""
+
+ROMAN_NUMERAL_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 100]
+"""
+The fixed sequence of roman-numeral values `resolve_greek_roman_collision`
+draws from once all 24 `GREEK_LETTERS` for a base name are taken -- not
+every integer, just this project's own deliberately coarse set (I-X, then
+L, then C) so an already-astronomically-unlikely run of collisions never
+needs to count arbitrarily high one numeral at a time.
+"""
+
+ROMAN_NUMERALS_BY_VALUE = {
+    1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII",
+    8: "VIII", 9: "IX", 10: "X", 50: "L", 100: "C",
+}
+"""`ROMAN_NUMERAL_VALUES` entry -> its roman numeral text, e.g. `10: "X"`."""
+
+DIMINUTIVE_PREFIXES = [
+    "Little", "Petit", "Piccolo", "Klein", "Pequeno", "Pieni", "Liten",
+    "Maly", "Malutki", "Chiisai", "Kuchuk", "Mikro", "Beag", "Bach",
+    "Wee", "Maza",
+]
+"""
+"Small"/"little" words drawn from real-world languages (English, French,
+Italian, German, Portuguese, Finnish, Swedish, Polish, Polish again
+[diminutive form], Japanese, Turkish, Greek, Irish, Welsh, Scots, and
+Zulu/Xhosa) -- transliterated to plain ASCII, no diacritics, same
+convention `UNIVERSAL_PHONEMES` above already follows.
+
+`nameUniqueness.resolve_diminutive` uses these, in order, as a prefix on
+a *system's* name when it collides with an existing sector's (or a
+sector's with an existing system's -- see that module's docstring for why
+the system side always carries the decoration, never the sector): "Little
+<name>", then, if that base name collides a second time, "Petit <name>",
+and so on.
+"""
+
+COMPANION_SUFFIXES = [
+    "Kin", "Ami", "Amico", "Amigo", "Freund", "Tomo", "Rafiki", "Mitra",
+    "Cara", "Ohana", "Dost", "Chingu", "Drug", "Familia", "Kamerad", "Sozi",
+]
+"""
+"Friend"/"family"/"companion" words drawn from real-world languages
+(English, French, Italian, Spanish, German, Japanese, Swahili, Hindi/
+Sanskrit, Irish, Hawaiian, Turkish, Korean, Russian, Spanish/Italian
+again, German again, and Georgian) -- same transliteration convention as
+`DIMINUTIVE_PREFIXES` above.
+
+`nameUniqueness.resolve_companion` uses these, in order, as a *suffix* on
+a planet's or moon's own name whenever it collides with anything else
+that must stay unique against it -- another planet, a moon, a system, or
+a sector (planets/moons are the lowest level in the naming hierarchy, so
+they're always the side that gets decorated): "<name> Kin", then "<name>
+Ami" on a second hit for the same base name, and so on.
+"""

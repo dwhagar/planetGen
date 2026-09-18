@@ -55,7 +55,6 @@ def test_load_config_reads_existing_file(tmp_path, monkeypatch):
     assert result["mysql"]["user"] == appconfig.DEFAULT_CONFIG["mysql"]["user"]
     # Untouched top-level fields keep their defaults too.
     assert result["debug"] == appconfig.DEFAULT_CONFIG["debug"]
-    assert result["mysql_write"] == appconfig.DEFAULT_CONFIG["mysql_write"]
 
 
 def test_default_config_matches_example_shape():
@@ -67,7 +66,6 @@ def test_default_config_matches_example_shape():
         "api_base_url",
         "debug",
         "mysql",
-        "mysql_write",
         "control_database",
         "ratelimit",
         "admin_cookie_insecure",
@@ -75,9 +73,6 @@ def test_default_config_matches_example_shape():
     }
     assert set(appconfig.DEFAULT_CONFIG["mysql"].keys()) == {
         "host", "port", "user", "password", "database", "database_prefix",
-    }
-    assert set(appconfig.DEFAULT_CONFIG["mysql_write"].keys()) == {
-        "user", "password",
     }
     assert set(appconfig.DEFAULT_CONFIG["ratelimit"].keys()) == {"default", "storage_uri"}
     assert set(appconfig.DEFAULT_CONFIG["wiki"].keys()) == {"wikijs", "mediawiki"}

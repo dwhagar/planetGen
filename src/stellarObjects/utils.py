@@ -15,7 +15,10 @@ import random
 import secrets
 
 from .config import SystemConfig
-from .names import BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN
+from .names import (
+    BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, SECTOR_NAMES, SECTOR_PREFIXES,
+    SECTOR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
+)
 from . import physical_constants, program_constants
 
 def reseed_rng():
@@ -1262,6 +1265,45 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                 parts = name.split("'")
                 name = "'".join([part[0].upper() + part[1:] if part else part for part in parts])
             return name
+
+
+def generate_sector_name():
+    """
+    Generates a random two-word sector name, each word independently drawn
+    from the same phoneme-salad name generator used for star/planet/moon
+    names -- using the sector-flavored `SECTOR_NAMES`/`SECTOR_PREFIXES`/
+    `SECTOR_SUFFIXES` base lists instead, so generated sectors draw on real
+    astronomical regions (galactic arms, superclusters, nebulae) and
+    science-fiction sector names rather than reusing star names verbatim.
+    No literal "Sector" suffix. `generate.py`'s `sector`/`galaxy` subcommands
+    override this entirely via `--name`/`-n`, which hard-sets the whole
+    name instead; `stellarObjects._db.py`'s name-uniqueness machinery
+    (`nameUniqueness.py`) also calls this directly, to draw an entirely
+    fresh sector name on the rare occasion a collision exhausts every
+    decoration this project has for one -- both reasons this lives here,
+    in `stellarObjects`, rather than in `generate.py` itself, which
+    `_db.py` can't import (it would be a backwards/circular dependency --
+    `generate.py` already imports `stellarObjects._db`).
+
+    Returns:
+        str: A newly generated sector name, e.g. "Voranthis Kelmoor" --
+        always exactly two words.
+    """
+    # allow_split=False: generate_phoneme_salad_name can itself split a
+    # long result into two words (e.g. "Xyleth Anore"). Since this
+    # function already joins two independent calls into one name, leaving
+    # splitting on could silently produce 3-4 words instead of 2.
+    # syllable_fraction=0.5 trims each word's base syllables by about
+    # half before the prefix/suffix are attached -- many SECTOR_NAMES
+    # entries (e.g. "Sagittarius", "Metropolis") are long real place
+    # names, and two of them joined together made for unwieldy sector
+    # names. max_length=7 backstops that: prefixes, suffixes, and the
+    # occasional spliced-in universal phoneme are fixed-ish overhead that
+    # doesn't shrink with syllable_fraction, so a long base name could
+    # still slip through longer than intended without a hard cap too.
+    first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
+    second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
+    return f"{first_word} {second_word}"
 
 
 def to_paragraph(sentences):
