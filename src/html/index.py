@@ -13,7 +13,7 @@ from urllib.parse import quote
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from apiclient import ApiError, list_databases
+from apiclient import ApiError, NotFoundError, list_databases
 from fmt import esc
 from page import query_params, redirect, run
 
@@ -78,11 +78,12 @@ def handler():
 # otherwise strand every other page behind.
 try:
     _databases = list_databases()
-except ApiError:
-    # The planetGen API is unreachable -- fall through to run(handler),
-    # whose own ApiError handling renders a clear 502 page instead of a
-    # raw traceback (this probe would otherwise crash before run() ever
-    # gets a chance to catch anything).
+except (ApiError, NotFoundError):
+    # The planetGen API is unreachable, or a misrouted/misconfigured
+    # backend 404s instead of returning JSON -- fall through to
+    # run(handler), whose own ApiError/NotFoundError handling renders a
+    # clear error page instead of a raw traceback (this probe would
+    # otherwise crash before run() ever gets a chance to catch anything).
     _databases = None
 
 if _databases is not None and len(_databases) == 1 and not query_params().get("all"):
