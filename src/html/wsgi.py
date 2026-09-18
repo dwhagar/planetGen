@@ -35,7 +35,46 @@ sys.path.insert(0, _HTML_DIR)
 
 from api.app import create_app
 
+
+def _restore_mount_prefix(wsgi_app):
+    """
+    Undoes what `WSGIScriptAlias /api ...` does to each request before it
+    reaches Flask.
+
+    mod_wsgi mounts this app the same way Apache's `ScriptAlias` mounts a
+    CGI script: a request for `/api/health` arrives here with
+    `SCRIPT_NAME="/api"` and `PATH_INFO="/health"`, the `/api` already
+    stripped off. But every route in `api/routes.py`/`api/auth.py` is
+    itself registered under a blueprint `url_prefix` of `/api`(`/auth`) --
+    chosen so the *documented* URLs (`docs/api.md`) and a direct
+    `python wsgi.py` dev-server run (where Flask's own server puts the
+    whole path in `PATH_INFO` and leaves `SCRIPT_NAME` empty) both match
+    without a mount in front. Under the real mod_wsgi mount, Werkzeug's
+    routing matches a rule's full path against `PATH_INFO` alone --
+    `SCRIPT_NAME` isn't reattached first -- so `/api/health`'s rule never
+    matches the already-stripped `/health`, and every `/api/*` request
+    404s from Flask's own handler (confirmed in production: `curl
+    https://.../api/health` -> 404 `{"error": "not found"}`, the JSON
+    shape and headers from `api/app.py`'s own error handler, not Apache's
+    default 404 page).
+
+    Reattaching `SCRIPT_NAME` onto `PATH_INFO` and clearing `SCRIPT_NAME`
+    restores the full path mod_wsgi took apart, so the blueprint's
+    `/api`-prefixed rules match again. A no-op wherever `SCRIPT_NAME` is
+    already empty (the dev server, `python -m pytest`'s `test_client()`),
+    so this only changes behavior under the real Apache mount.
+    """
+
+    def middleware(environ, start_response):
+        environ["PATH_INFO"] = environ.get("SCRIPT_NAME", "") + environ.get("PATH_INFO", "")
+        environ["SCRIPT_NAME"] = ""
+        return wsgi_app(environ, start_response)
+
+    return middleware
+
+
 application = create_app()
+application.wsgi_app = _restore_mount_prefix(application.wsgi_app)
 
 if __name__ == "__main__":
     application.run(debug=True)
