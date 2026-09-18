@@ -103,9 +103,19 @@
     }
     var scenes = Array.prototype.slice.call(root.querySelectorAll(".sysmap-svg"));
 
-    function sceneFocusName(sceneEl) {
+    // A drilled-into scene's own crumb label depends on what was drilled
+    // into: a planet's own moons (`kind === "planet"`, from a scene
+    // reached off a planet-with-moons marker) vs. a wide binary's
+    // companion star and its own planets (`kind === "star"`, from
+    // `lib/systemmap.py`'s `_render_wide_binary_scenes`) -- both scenes
+    // share the same "self" marker convention, just with a different noun.
+    function sceneFocusLabel(sceneEl) {
       var self = sceneEl.querySelector('[data-self="true"]');
-      return self ? self.dataset.name : "";
+      if (!self) {
+        return "";
+      }
+      var noun = self.dataset.kind === "star" ? "Planets of " : "Moons of ";
+      return noun + self.dataset.name;
     }
 
     function showScene(sceneId) {
@@ -131,11 +141,11 @@
           showScene("system");
         });
         crumb.appendChild(backBtn);
-        var name = sceneFocusName(active);
-        if (name) {
+        var label = sceneFocusLabel(active);
+        if (label) {
           var current = document.createElement("span");
           current.className = "sysmap-crumb-current hint";
-          current.textContent = "Moons of " + name;
+          current.textContent = label;
           crumb.appendChild(current);
         }
       }

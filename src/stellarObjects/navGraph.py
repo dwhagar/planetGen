@@ -57,9 +57,118 @@ def _distance(a, b):
     return math.dist(a, b)
 
 
+class _KDNode:
+    """One node of the 3D k-d tree `_build_kdtree`/`_knn_query` use --
+    plain data, no behavior of its own."""
+
+    __slots__ = ("system_id", "point", "axis", "left", "right")
+
+    def __init__(self, system_id, point, axis, left, right):
+        self.system_id = system_id
+        self.point = point
+        self.axis = axis
+        self.left = left
+        self.right = right
+
+
+def _build_kdtree(items, depth=0):
+    """
+    Builds a balanced 3D k-d tree over `items` (`[(id, (x, y, z)), ...]`)
+    -- splitting on the widest-spread-first convention isn't needed here
+    (a plain depth-cycled x/y/z split already keeps the tree balanced
+    enough for this module's purposes, and is simpler), so each level
+    alternates axis `depth % 3` and splits its slice at the median along
+    that axis.
+
+    Args:
+        items (list[tuple]): `(id, (x, y, z))` pairs to build the tree
+                             from.
+        depth (int): The current recursion depth -- picks the split axis.
+
+    Returns:
+        _KDNode or None: The subtree's root, or `None` for an empty slice.
+    """
+    if not items:
+        return None
+    axis = depth % 3
+    items = sorted(items, key=lambda item: item[1][axis])
+    mid = len(items) // 2
+    system_id, point = items[mid]
+    return _KDNode(
+        system_id, point, axis,
+        _build_kdtree(items[:mid], depth + 1),
+        _build_kdtree(items[mid + 1:], depth + 1),
+    )
+
+
+def _knn_query(root, origin, k, exclude_id):
+    """
+    Finds `origin`'s `k` true nearest neighbors in the k-d tree rooted at
+    `root` (excluding `exclude_id`, the point being queried from) -- the
+    standard k-d tree k-nearest-neighbor search: a bounded max-heap of the
+    best `k` candidates found so far, pruning a subtree entirely whenever
+    its splitting plane is already farther away than the current worst
+    kept candidate (so a subtree that provably can't contain anything
+    closer is never even visited, the whole reason this is faster than
+    checking every point).
+
+    Args:
+        root (_KDNode or None): The tree to search.
+        origin (tuple): The `(x, y, z)` point to find neighbors of.
+        k (int): How many nearest neighbors to find.
+        exclude_id: A point id to never return (the query point's own id,
+                   already present in the tree it's being searched
+                   against).
+
+    Returns:
+        list[tuple]: Up to `k` `(distance, id)` pairs, sorted nearest
+                    first.
+    """
+    heap = []  # max-heap of (-distance, id), capped at size k
+
+    def visit(node):
+        if node is None:
+            return
+        if node.system_id != exclude_id:
+            distance = _distance(origin, node.point)
+            if len(heap) < k:
+                heapq.heappush(heap, (-distance, node.system_id))
+            elif distance < -heap[0][0]:
+                heapq.heapreplace(heap, (-distance, node.system_id))
+
+        axis_delta = origin[node.axis] - node.point[node.axis]
+        near, far = (node.left, node.right) if axis_delta < 0 else (node.right, node.left)
+        visit(near)
+        # The far subtree can only hold something closer than our current
+        # worst kept candidate if the splitting plane itself is nearer
+        # than that -- otherwise every point on the far side is
+        # guaranteed at least `abs(axis_delta)` away and skipping it
+        # entirely is exact, not an approximation.
+        if len(heap) < k or abs(axis_delta) < -heap[0][0]:
+            visit(far)
+
+    visit(root)
+    return sorted((-neg_distance, system_id) for neg_distance, system_id in heap)
+
+
 def build_knn_adjacency(positions, k):
     """
     Builds a symmetric k-nearest-neighbor adjacency graph over `positions`.
+
+    Runs in O(n log n) via an in-memory 3D k-d tree (`_build_kdtree`/
+    `_knn_query`) rather than the naive O(n^2) "sort every other point's
+    distance, for every point" approach this replaced -- indistinguishable
+    for a single sector's own handful of systems, but this same function
+    also backs a *galaxy*-scope NAV route (`queryDb.nav_between`,
+    `_galaxy_frame_positions`), over every system in every galaxy-placed
+    sector generated so far. That set only ever grows as more of the
+    galaxy gets visited/generated, and the O(n^2) version's own runtime
+    grows with it on every single NAV request -- confirmed as the actual
+    cause of `/api/nav` timing out in production once the generated
+    galaxy grew large enough, not a too-short client timeout (already
+    raised once for a different endpoint; see `apiclient._TIMEOUT_SECONDS`).
+    Both versions compute the same true k nearest neighbors for each
+    point -- this is an exact algorithmic speedup, not an approximation.
 
     Args:
         positions (dict): `{id: (x, y, z)}` for every system to include in
@@ -76,18 +185,14 @@ def build_knn_adjacency(positions, k):
     """
     ids = list(positions.keys())
     graph = {system_id: {} for system_id in ids}
+    if len(ids) < 2 or k < 1:
+        return graph
+
+    root = _build_kdtree([(system_id, positions[system_id]) for system_id in ids])
 
     for system_id in ids:
         origin = positions[system_id]
-        distances = sorted(
-            (
-                (_distance(origin, positions[other_id]), other_id)
-                for other_id in ids
-                if other_id != system_id
-            ),
-            key=lambda pair: pair[0],
-        )
-        for distance, neighbor_id in distances[:k]:
+        for distance, neighbor_id in _knn_query(root, origin, k, exclude_id=system_id):
             graph[system_id][neighbor_id] = distance
             graph[neighbor_id][system_id] = distance
 

@@ -893,16 +893,25 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
     half_edge = (edge_mpc / 2) if edge_mpc else 1.0
 
     dots = []
-    # Every plotted point's distance from the scene's own center -- a
-    # wedge-shaped sector's wireframe (see `_wedge_edges_px`'s own
-    # docstring) is deliberately allowed to extend well past the fixed
-    # `_SCENE_SIZE_PX` scene, and even a plain `.cube-face` fallback's own
-    # corners sit `_SCENE_HALF_PX * sqrt(3)` out -- both already past the
-    # scene's own half-width. Collected here so `_default_zoom` below can
-    # start the view already zoomed out enough to show all of it, instead
-    # of opening on a confusing near-empty crop of a few giant crossing
-    # lines that only zooming out by hand (`sectormap.js`'s zoom-out
-    # button/scroll) reveals -- see this module's `_default_zoom`.
+    # Every plotted star/cloud's distance from the scene's own center --
+    # kept separate from `shape_extent_radii_px` below (the wedge/cube
+    # outline's own vertices) rather than one combined list, so
+    # `_default_zoom` can fit *this*, real content on its own whenever
+    # there is any. A galaxy-placed sector far out on its shell can have a
+    # wedge wireframe many times wider than the scene (deliberately
+    # allowed to extend well past it -- see `_wedge_edges_px`'s own
+    # docstring), and a combined extent list used to let that single huge
+    # shape force the *whole* default zoom down to its own floor
+    # (`_MIN_DEFAULT_ZOOM`) even when every actual star sat well within
+    # the scene on its own -- confirmed by rendering a realistic far-out
+    # sector and finding its star dots shrunk to a sub-pixel smear at the
+    # resulting zoom=0.2, next to nothing else visibly different
+    # from an empty sector. The wedge/cube shape only ever decides the
+    # default zoom when there's no real content to fit instead (see
+    # `default_zoom` below) -- it's still drawn in full regardless, just
+    # like before, simply not always fully visible without zooming out by
+    # hand, same as any other far-out sector's did even before this file's
+    # very first zoom-fitting.
     extent_radii_px = []
     for system in systems:
         # +y is "up" on screen; CSS's own y axis increases downward, so
@@ -926,14 +935,18 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 
         stars = system["stars"]
         is_binary = len(stars) > 1
-        primary_suffix = " -- Primary" if is_binary else ""
+        # "A"/"B", not "Primary"/"Secondary" -- matches how the generator
+        # already names the stars themselves (the secondary's own stored
+        # name is "<system name> B"; see systemData.StarSystem.__init__),
+        # and reads as a real star name rather than an internal role label.
+        primary_suffix = " A" if is_binary else ""
         dots.append(_dot_html(db_name, system, stars[0], x_px, y_px, z_px, primary_suffix))
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
             offset = primary_r * _BINARY_OFFSET_FRACTION
             dots.append(_dot_html(
-                db_name, system, stars[1], x_px + offset, y_px + offset, z_px, " -- Secondary",
+                db_name, system, stars[1], x_px + offset, y_px + offset, z_px, " B",
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
 
@@ -969,16 +982,24 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
     if wedge_vertices is not None:
         outline_html = _wedge_wireframe_html(wedge_vertices)
         shape_hint = "outline &asymp; sector's real position/orientation on its shell"
-        extent_radii_px.extend(
+        shape_extent_radii_px = [
             math.sqrt(vx * vx + vy * vy + vz * vz) for vx, vy, vz in wedge_vertices
-        )
+        ]
     else:
         outline_html = _cube_faces_html()
         shape_hint = "cube edge &asymp; sector size (not placed in a galaxy)"
-        extent_radii_px.append(_CUBE_CORNER_RADIUS_PX)
+        shape_extent_radii_px = [_CUBE_CORNER_RADIUS_PX]
 
     compass_html = _compass_html(center_pc)
-    default_zoom = _default_zoom(extent_radii_px)
+    # Fit the real content (star systems/clouds) whenever there is any --
+    # see `extent_radii_px`'s own comment above for why the wedge/cube
+    # outline's own, potentially much larger extent must NOT also be
+    # allowed to drag that zoom down with it. Only an entirely empty
+    # sector (nothing plotted at all) falls back to fitting the outline
+    # shape instead, so it still opens showing its own outline rather than
+    # a couple of giant crossing lines -- the original problem this
+    # function was written to fix.
+    default_zoom = _default_zoom(extent_radii_px or shape_extent_radii_px)
 
     # No role/aria-label here -- `role="img"` on an ancestor would flatten
     # every descendant (each star dot's own `role="button"`/`tabindex`)

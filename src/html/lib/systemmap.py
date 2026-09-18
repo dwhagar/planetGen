@@ -373,7 +373,21 @@ def _rects_overlap(a, b):
     return ax1 < bx2 and ax2 > bx1 and ay1 < by2 and ay2 > by1
 
 
-def _label_sides_2d(entries):
+def _star_label_rect(cx, cy, r_px, name):
+    """The bounding box `_star_marker_svg` always draws a star's own name
+    label in -- unconditionally below the marker, never collision-checked
+    the way a planet/moon's own label is (`_label_sides_2d`) since a scene
+    only ever has one or two of these. Exposed so a *planet's* label can
+    still be kept out of it via `_label_sides_2d`'s `seed_rects` (see
+    `_render_wide_binary_scenes`'s companion marker, which sits close
+    enough to some of the primary's own far-out planets to otherwise
+    collide with one)."""
+    half_w = _label_half_width_px(name)
+    top = cy + r_px + _LABEL_GAP_PX
+    return (cx - half_w, top, cx + half_w, top + _LABEL_HALF_HEIGHT_PX * 2)
+
+
+def _label_sides_2d(entries, seed_rects=None):
     """
     Given `[(cx, cy, marker_r, name), ...]`, returns one `"below"`/
     `"above"`/`None` per entry: which band that body's name label should
@@ -391,11 +405,15 @@ def _label_sides_2d(entries):
         entries (list[tuple]): `(cx, cy, marker_r, name)`, in the order
             markers should be given placement priority (earlier entries
             never yield to a later one).
+        seed_rects (list[tuple], optional): Extra already-occupied label
+            rects (e.g. `_star_label_rect`'s) no candidate here may
+            collide with, even though they belong to no entry in this
+            call.
 
     Returns:
         list[str or None]: One entry per input, in the same order.
     """
-    accepted_rects = []
+    accepted_rects = list(seed_rects or [])
     sides = []
     for cx, cy, marker_r, name in entries:
         half_w = _label_half_width_px(name)
@@ -587,9 +605,211 @@ def _binary_star_positions_km(system, stars):
     }
 
 
+def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacle=None):
+    """
+    Builds one star-centered scene: the given `star` fixed at this scene's
+    own origin with its own `planets`/`belts` arranged around it on their
+    own dedicated log scale (`_radial_scale_bounds`, computed from nothing
+    but this star's own bodies) -- shared by the "system" scene a
+    single-star or 'wide' (S-type) binary's primary gets
+    (`_render_system_scene`) and the secondary's own drilled-into scene
+    (`_render_wide_secondary_scene`), so each star's planetary system
+    always gets this diagram's full radial pixel budget to itself, never
+    sharing it with a companion star's own (potentially vastly larger,
+    tens-to-thousands-of-AU) orbital separation the way one shared scale
+    across the whole pair used to force.
+
+    Args:
+        scene_id (str): This `<svg>`'s own `data-scene` value.
+        aria_label (str): This `<svg>`'s own `aria-label`.
+        hidden (bool): Whether this scene starts hidden (`sysmap-hidden`) --
+            `False` only for the one scene `static/systemmap.js` shows by
+            default (`data-scene="system"`).
+        star (dict): The star anchoring this scene.
+        planets (list[dict]): Only this star's own planets.
+        belts (list[dict]): Only this star's own asteroid belts.
+        star_attrs (dict): `_data_attrs`-ready attributes for the star's
+            own marker (name/role/kind/etc, plus `scene`/`self` when this
+            star should itself be clickable into a deeper scene, or is the
+            scene's own "you are here" body -- see `_data_attrs`).
+        extra_svg (str): Extra raw SVG appended after every body in this
+            scene (e.g. a wide pair's companion-star marker, in the
+            primary's own "system" scene only).
+        extra_obstacle (dict, optional): `{"cx", "cy", "r", "label_rect"}`
+            for a marker drawn separately (via `extra_svg`) that this
+            scene's own planets/belts must still be kept clear of -- the
+            companion-star marker `extra_svg` draws isn't one of this
+            scene's own relaxed `markers`, so without this it would be
+            invisible to `_relax_markers`/`_label_sides_2d` and a
+            far-enough-out planet could still be placed right on top of
+            it (or its label) instead of being pushed aside like any two
+            of this scene's own bodies already are from each other.
+            `label_rect` (a `_star_label_rect`) is optional within this
+            dict -- omitted when the obstacle has no label of its own to
+            avoid.
+
+    Returns:
+        str: A complete `<svg class="sysmap-svg">` scene.
+    """
+    local_r_list = []
+    for planet in planets:
+        lx, ly = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
+        local_r_list.append(math.hypot(lx, ly) or planet.get("distance_km") or 0.0)
+    for belt in belts:
+        local_r_list.append(belt["distance_km"])
+    lo, hi = _radial_scale_bounds(local_r_list)
+
+    star_r = _star_radius_px(star["radius_km"])
+    orbit_paths = []
+    markers = [{"type": "star", "cx": _CENTER_PX, "cy": _CENTER_PX, "r": star_r, "fixed": True}]
+    if extra_obstacle is not None:
+        markers.append({
+            "type": "obstacle", "cx": extra_obstacle["cx"], "cy": extra_obstacle["cy"],
+            "r": extra_obstacle["r"], "fixed": True,
+        })
+    for planet in planets:
+        lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
+        r_px = _radial_px(math.hypot(lx_km, ly_km), lo, hi)
+        cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, lx_km, ly_km)
+        orbit_paths.append(f'<circle class="sysmap-orbit" cx="{_CENTER_PX:.1f}" cy="{_CENTER_PX:.1f}" r="{r_px:.1f}"></circle>')
+        markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
+    for belt in belts:
+        r_px = _radial_px(belt["distance_km"], lo, hi)
+        band_px = _belt_band_px(belt, r_px)
+        orbit_paths.append(_belt_ring_svg(_CENTER_PX, _CENTER_PX, r_px, band_px, belt))
+
+    _relax_markers(markers, _MARKER_GAP_PX)
+    planet_markers = [m for m in markers if m["type"] == "planet"]
+
+    star_svg = _star_marker_svg(_CENTER_PX, _CENTER_PX, star_r, star, star_attrs)
+
+    seed_rects = [extra_obstacle["label_rect"]] if extra_obstacle and extra_obstacle.get("label_rect") else None
+    sides = _label_sides_2d(
+        [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects,
+    )
+    body_svgs = []
+    for marker, side in zip(planet_markers, sides):
+        row = marker["row"]
+        scene_target = f'planet-{row["id"]}' if row.get("moons") else None
+        attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
+        body_svgs.append(_body_marker_svg(
+            marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
+            "sysmap-planet", attrs, label_above=(side == "above"), show_label=(side is not None),
+            has_life=bool(row.get("life_chemical")),
+        ))
+
+    hidden_class = " sysmap-hidden" if hidden else ""
+    return (
+        f'<svg class="sysmap-svg{hidden_class}" data-scene="{esc(scene_id)}" '
+        f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}" role="group" '
+        f'aria-label="{esc(aria_label)}">'
+        f'{"".join(orbit_paths)}{star_svg}{"".join(body_svgs)}{extra_svg}'
+        "</svg>"
+    )
+
+
+def _wide_binary_star_attrs(system, star, suffix, is_primary, scene_target=None):
+    """Shared `star_attrs` dict for `_star_scene_svg`'s own star marker, in
+    either of a wide (S-type) pair's two scenes -- "A"/"B" (see
+    `starmap.py`'s identical convention), not "Primary"/"Secondary", is
+    what actually gets shown as this star's own name."""
+    attrs = {
+        "kind": "star", "name": f'{system["name"]}{suffix}',
+        "role": "Primary" if is_primary else "Secondary",
+        "type": star["star_type"], "temp": f'{int(star["temperature_k"])} K',
+        "mass": to_plain_text(format_star_mass(star["mass_kg"])),
+        "radius": to_plain_text(format_star_radius(star["radius_km"])),
+        "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
+    }
+    if scene_target is not None:
+        attrs["scene"] = scene_target
+    return attrs
+
+
+def _render_wide_binary_scenes(system, stars, planets, belts):
+    """
+    Builds a wide (S-type) binary's two scenes: the primary's own "system"
+    scene (default-visible) and the secondary's own scene, reached by
+    clicking its small companion marker in the primary's scene -- mirroring
+    `_render_moon_scene`'s "drill into it" pattern one level up (a star,
+    not a planet), per the module docstring's note on why a wide pair's
+    true star-to-star separation (tens to thousands of AU -- see
+    `wideBinary.py`'s own module docstring) can't share one radial pixel
+    budget with either star's own, much smaller planetary system: sharing
+    one budget either crushed both stars' planets down near the frame's
+    center to make room for the real separation, or -- since the two
+    stars' own drawn positions themselves then sat close to the frame's
+    outer edge -- pushed their planets (and label text) straight off the
+    visible canvas. Each star's own planets get this diagram's full
+    radial budget in its own scene instead; only the companion *marker*
+    (no planets of its own drawn in this scene) uses a fixed, merely
+    representative distance along the real direction to it.
+
+    Args:
+        system (dict): As `render_system_map_panel` receives it.
+        stars (list[dict]): Exactly 2 entries, primary then secondary.
+        planets (list[dict]): Every planet in the system (both stars'
+            own -- distinguished by `star_id`).
+        belts (list[dict]): Ditto, for asteroid belts.
+
+    Returns:
+        list[str]: `[primary_scene_svg, secondary_scene_svg]`.
+    """
+    primary, secondary = stars[0], stars[1]
+    primary_planets = [p for p in planets if p.get("star_id") == primary["id"]]
+    primary_belts = [b for b in belts if b.get("star_id") == primary["id"]]
+    secondary_planets = [p for p in planets if p.get("star_id") == secondary["id"]]
+    secondary_belts = [b for b in belts if b.get("star_id") == secondary["id"]]
+
+    secondary_scene_id = f'star-{secondary["id"]}'
+
+    # The companion marker's real direction (from `binary_mutual_position_
+    # x/y_km`, "the secondary's position relative to the primary" -- see
+    # `queryDb.system_detail`'s docstring), but a fixed, merely
+    # representative distance -- this scene's own outer edge -- rather
+    # than the real separation itself, which is routinely 10-1000x any
+    # planet's own distance from its star (see `wideBinary.py`'s sampled
+    # range) and would otherwise place the marker far outside this
+    # diagram's fixed frame.
+    bx = system.get("binary_mutual_position_x_km") or 0.0
+    by = system.get("binary_mutual_position_y_km") or 0.0
+    companion_r = _star_radius_px(secondary["radius_km"])
+    companion_radius_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
+    companion_cx, companion_cy = _polar_to_px(_CENTER_PX, _CENTER_PX, companion_radius_px, bx, by)
+    companion_attrs = _wide_binary_star_attrs(system, secondary, " B", is_primary=False, scene_target=secondary_scene_id)
+    companion_marker_svg = _star_marker_svg(companion_cx, companion_cy, companion_r, secondary, companion_attrs)
+    companion_obstacle = {
+        "cx": companion_cx, "cy": companion_cy,
+        # Inflated past the marker's own drawn radius to also cover its
+        # label's footprint (always directly below it -- see
+        # `_star_marker_svg`) -- `_relax_markers` only ever repels by
+        # circle, so without this a planet's own circle could clear the
+        # companion's circle only to still land its *label* on top of
+        # "Esarer B"'s own name underneath it.
+        "r": companion_r + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2,
+        "label_rect": _star_label_rect(companion_cx, companion_cy, companion_r, companion_attrs["name"]),
+    }
+
+    primary_scene = _star_scene_svg(
+        "system", f'System map for {system["name"]}', False,
+        primary, primary_planets, primary_belts,
+        _wide_binary_star_attrs(system, primary, " A", is_primary=True),
+        extra_svg=companion_marker_svg, extra_obstacle=companion_obstacle,
+    )
+    secondary_attrs = _wide_binary_star_attrs(system, secondary, " B", is_primary=False)
+    secondary_attrs["self"] = "true"
+    secondary_scene = _star_scene_svg(
+        secondary_scene_id, f'Planets of {system["name"]} B', True,
+        secondary, secondary_planets, secondary_belts, secondary_attrs,
+    )
+    return [primary_scene, secondary_scene]
+
+
 def _render_system_scene(system, stars, planets, belts):
     """Builds the "whole system" scene -- see the module docstring for the
-    barycenter/anchor model this uses for a binary pair."""
+    barycenter/anchor model this uses for a close binary pair (a wide
+    pair instead gets two separate scenes -- see
+    `_render_wide_binary_scenes`)."""
     is_binary = len(stars) > 1
     # A 'close' (P-type) pair's planets orbit the merged effective proxy,
     # which sits at the shared barycenter -- `planets.star_id`/
@@ -625,9 +845,16 @@ def _render_system_scene(system, stars, planets, belts):
         sx, sy = star_pos_km[star["id"]]
         r_px = _radial_px(math.hypot(sx, sy), lo, hi)
         cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, sx, sy)
+        is_primary = index == 0
         star_markers.append({
             "type": "star", "cx": cx, "cy": cy, "r": _star_radius_px(star["radius_km"]),
-            "star": star, "suffix": (" -- Primary" if index == 0 else " -- Secondary") if is_binary else "",
+            "star": star, "is_primary": is_primary,
+            # "A"/"B", not "Primary"/"Secondary" -- matches how the
+            # generator already names the stars themselves (the
+            # secondary's own stored name is "<system name> B"; see
+            # systemData.StarSystem.__init__), and reads as a real star
+            # name rather than an internal role label.
+            "suffix": (" A" if is_primary else " B") if is_binary else "",
         })
     _relax_markers(star_markers, _MARKER_GAP_PX)
     for marker in star_markers:
@@ -670,7 +897,7 @@ def _render_system_scene(system, stars, planets, belts):
             planet_markers.append(marker)
             continue
         star = marker["star"]
-        is_primary = not marker["suffix"] or marker["suffix"].endswith("Primary")
+        is_primary = marker["is_primary"]
         star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star, {
             "kind": "star",
             "name": f'{system["name"]}{marker["suffix"]}',
@@ -797,7 +1024,11 @@ def render_system_map_panel(system, stars, planets, belts):
     Returns:
         str: A complete `<section class="panel">` block.
     """
-    scenes = [_render_system_scene(system, stars, planets, belts)]
+    is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
+    if is_wide_binary:
+        scenes = _render_wide_binary_scenes(system, stars, planets, belts)
+    else:
+        scenes = [_render_system_scene(system, stars, planets, belts)]
     scenes.extend(
         _render_moon_scene(planet) for planet in planets if planet.get("moons")
     )

@@ -11,7 +11,10 @@ plus a translucent cloud for every nebula/asteroid field (and a point
 marker for every black hole/neutron star) whose real galaxy-frame sphere
 reaches into this sector's own cube (`queryDb.phenomena_near_sector`, via
 `GET /api/sectors/<id>`'s `phenomena` key -- see `schema.sql`'s
-"v18"/"v21" header notes).
+"v18"/"v21" header notes). That same phenomena list also gets its own
+table below the systems one (mirroring `phenomena.py`'s flat listing,
+scoped to just this sector's own neighborhood), each row linking to
+`phenomenon.py` -- omitted entirely when nothing nearby qualifies.
 
 Once this sector has a wiki page (`sectors.wiki_url` -- either uploaded
 from here or set directly via `html/admin.py`'s manual-link admin
@@ -36,6 +39,13 @@ from fmt import esc, linkify_location
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, query_params, run
 from starmap import render_map_panel
+
+_PHENOMENON_TYPE_LABELS = {
+    "nebula": "Nebula", "asteroid_field": "Asteroid Field",
+    "black_hole": "Black Hole", "neutron_star": "Neutron Star",
+}
+"""dict: Same display labels `phenomena.py`'s own flat listing uses, for
+`queryDb.phenomena_near_sector`'s `type` values."""
 
 
 def _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wiki_error):
@@ -144,6 +154,20 @@ def handler():
             })
     rows_html = "".join(rows) or '<tr><td colspan="5"><em>None</em></td></tr>'
 
+    def _phenomenon_row_html(row):
+        radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
+        return (
+            "<tr>"
+            f'<td><a href="phenomenon.py?db={esc(db_name)}&amp;type={esc(row["type"])}&amp;id={row["id"]}">{esc(row["name"])}</a></td>'
+            f'<td>{esc(_PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]))}</td>'
+            f'<td>{esc((row["descriptor"] or "").replace("_", " ").capitalize())}</td>'
+            f'<td>{radius_text}</td>'
+            f'<td>{row["distance_ly"]:,.1f} ly</td>'
+            "</tr>"
+        )
+
+    phenomena_rows_html = "".join(_phenomenon_row_html(row) for row in (sector.get("phenomena") or []))
+
     center_pc = (
         (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
         if sector["placed"]
@@ -174,6 +198,18 @@ def handler():
         f'<span class="badge">{bit}</span>' for bit in badge_bits
     ) + "</p>"
 
+    phenomena_section_html = ""
+    if phenomenon_count:
+        phenomena_section_html = f"""
+<section class="panel">
+<h2>Nearby Exotic Phenomena</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Name</th><th>Type</th><th>Descriptor</th><th>Radius</th><th>Distance</th></tr></thead>
+  <tbody>{phenomena_rows_html}</tbody>
+</table></div>
+</section>
+"""
+
     wiki_html = ""
     if identity is not None or sector["wiki_url"]:
         wiki_config = get_wiki_config() if identity is not None else {"wikijs": False, "mediawiki": False}
@@ -191,6 +227,7 @@ def handler():
   <tbody>{rows_html}</tbody>
 </table></div>
 </section>
+{phenomena_section_html}
 <script src="static/sectormap.js" defer></script>
 """
     return f"Sector: {sector['name']}", body

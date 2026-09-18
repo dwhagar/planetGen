@@ -109,7 +109,14 @@ class BinaryStarProxy(Star):
         """
         # Initialize the base Star class with _skip_property_init=True
         # The name will be overridden, and other properties will be handled by getters.
-        super().__init__(system_config, name=f"{primary_star.name} Binary System", _skip_property_init=True)
+        # The proxy stands in for the whole system (its own `.name` is what
+        # `_db.py.insert_star_system` stores as `star_systems.name`), so it
+        # takes the primary's own bare name -- exactly what a 'wide' (S-type)
+        # pair's own system name already is (`StarSystem.star` there stays
+        # the primary `Star` itself, never renamed) -- rather than a
+        # generated-looking "<name> Binary System" suffix no other system
+        # kind gets.
+        super().__init__(system_config, name=primary_star.name, _skip_property_init=True)
 
         if secondary_star.mass > primary_star.mass:
             temp_star = secondary_star
@@ -138,8 +145,9 @@ class BinaryStarProxy(Star):
                                      (self._secondary.radius / physical_constants.AU_TO_KM)
 
         # Override base Star properties with effective values
-        # Changed this line to only use the primary star's name for the system name
-        self.name = f"{primary_star.name} Binary System"
+        # Use only the primary star's own bare name for the system name --
+        # see the matching super().__init__ call above.
+        self.name = primary_star.name
         self.type = f"Binary ({primary_star.type.split(' ')[0]}/{secondary_star.type.split(' ')[0]})" # Simplified type
         self.temperature = (primary_star.temperature + secondary_star.temperature) / 2 # Simple average
         self.radius = max(primary_star.radius, secondary_star.radius) # Use the larger radius for approximation
