@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.35.6] - 2026-09-18
+
+### Fixed
+- **Every galaxy-generated sector's system count was flatly stuck at 10**,
+  regardless of where it actually sits in the spiral galaxy -- a bulge
+  sector and a sparse outer-disk sector generated the same way.
+  `ensure_sector_generated` (the visit-triggered lazy-generation path)
+  already correctly drove system count from the galaxy skeleton's real
+  position-based `relative_density`, but `generate.py galaxy`'s own
+  batch/local-neighborhood/random-start generation -- how every sector in
+  a real deployment actually gets made -- never consulted it at all: every
+  sector in a run shared one flat CLI value, defaulting to `num_systems =
+  10` when neither `--density` nor `--num-systems` was given.
+  `validate_shared_generation_args` now leaves both unset for `galaxy`
+  mode specifically in that case (`sector` mode, which has no galaxy
+  position to compute a density from, is unaffected); a new `_BatchDensity`
+  helper resolves each sector's own `relative_density` from the stored
+  skeleton (fetched once, reused for the whole run) and feeds it through
+  exactly the way `ensure_sector_generated` already does, in
+  `run_shell_batch`/`run_local_neighborhood`/`run_random_start` alike. An
+  explicit `--density`/`--num-systems` still applies uniformly for the
+  whole run, unchanged.
+- Audited the actual system-placement code path (`SpaceSector.add_system`/
+  `_random_position`, via `generate_sector`'s `for system, cfg in
+  zip(...): sector.add_system(...)` loop) for whether it could silently
+  place fewer systems than the (now real, skeleton-driven) requested
+  count -- it can't: a sector too crowded to fit the next system's minimum
+  Hill-sphere separation raises `ValueError` after
+  `SECTOR_MAX_PLACEMENT_ATTEMPTS` tries rather than skipping it, so an
+  under-delivered density would already be a loud failure, not a silent
+  one. No code change needed for this part; noted here since it was the
+  other half of what was reported.
+
 ## [5.35.5] - 2026-09-18
 
 ### Fixed

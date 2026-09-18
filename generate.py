@@ -499,7 +499,21 @@ def validate_shared_generation_args(args, parser):
         parser.error("--density must be a positive number.")
 
     if args.density is None and args.num_systems is None:
-        args.num_systems = 10
+        # `galaxy` mode leaves both None rather than defaulting to a flat
+        # count here -- run_shell_batch/run_local_neighborhood compute each
+        # sector's own --density from the galaxy skeleton's real
+        # position-based relative_density instead (see their own
+        # docstrings and `_resolve_batch_density`), the same mechanism
+        # `ensure_sector_generated` already uses for a single lazily-
+        # generated sector, applied uniformly across a whole batch run.
+        # `getattr` (not `args.command` directly): `_default_generation_args`
+        # calls this same validator against a bare, subcommand-less
+        # namespace with no `command` attribute at all -- falling through
+        # to the flat default there is harmless, since
+        # `ensure_sector_generated` immediately overwrites both fields
+        # right after with its own already-computed density anyway.
+        if getattr(args, 'command', None) != 'galaxy':
+            args.num_systems = 10
 
     if args.num_systems is not None:
         if args.num_systems < 1:
@@ -1019,6 +1033,77 @@ def validate_galaxy_args(args, parser):
     args.output = None
 
 
+class _BatchDensity:
+    """
+    Resolves each sector's own `--density` from the galaxy skeleton's real
+    position-based `relative_density`, for `galaxy` mode's batch/local-
+    neighborhood/random-start generation -- the same mechanism
+    `ensure_sector_generated` already uses to pick a single lazily-
+    generated sector's density (see its own docstring), applied here
+    across a whole run instead of every sector in a batch quietly sharing
+    one flat CLI value/default regardless of where it actually sits in the
+    spiral structure `generate.py plan` computed.
+
+    A no-op (`resolve` returns `args` unchanged) whenever the operator
+    explicitly passed `--density`/`--num-systems` -- an explicit flag is
+    still an intentional, uniform override for the whole run, not
+    something this should second-guess. Only takes over for the "neither
+    given" case `validate_shared_generation_args` now leaves both `None`
+    for in `galaxy` mode specifically (see that function's own comment) --
+    `sector` mode (no galaxy position to compute a density from at all)
+    still gets its flat default of 10 there, unaffected.
+
+    Fetches the stored skeleton (`generate.py plan`'s own output) once, on
+    first use, and reuses it for the rest of the run -- a shell/local-
+    neighborhood/random-start batch can mean thousands of sectors, and the
+    skeleton itself never changes mid-run.
+    """
+
+    def __init__(self, config):
+        self._config = config
+        self._skeleton = None
+
+    def _get_skeleton(self):
+        if self._skeleton is None:
+            conn = _db.get_connection(self._config)
+            try:
+                self._skeleton = _db.get_galaxy_shape(conn)
+            finally:
+                conn.close()
+            if self._skeleton is None:
+                raise RuntimeError(
+                    "Neither --density nor --num-systems was given, and the galaxy's skeleton has "
+                    "never been built (no galaxy_shape row) -- run 'generate.py plan' first, or pass "
+                    "--density/--num-systems explicitly to skip per-sector skeleton density."
+                )
+        return self._skeleton
+
+    def resolve(self, args, position_pc):
+        """
+        Args:
+            args (argparse.Namespace): The `galaxy` subcommand's own parsed
+                (and validated) arguments.
+            position_pc (tuple): This one sector's `(x, y, z)` galaxy-frame
+                position, in parsecs.
+
+        Returns:
+            argparse.Namespace: `args` itself when a density/count was
+                given explicitly; otherwise a fresh copy (never mutates the
+                shared `args`, the same reasoning `generate_sector`'s own
+                `--density` handling already follows) with `.density` set
+                to this sector's own `relative_density` and `.num_systems`
+                cleared back to `None`, matching `ensure_sector_generated`'s
+                own convention exactly.
+        """
+        if args.density is not None or args.num_systems is not None:
+            return args
+        skeleton = self._get_skeleton()
+        resolved = copy.copy(args)
+        resolved.density = relative_density(position_pc, skeleton.shape)
+        resolved.num_systems = None
+        return resolved
+
+
 def _edge_pc():
     """
     The (uniform, per this design's scope) sector edge length used for
@@ -1247,12 +1332,14 @@ def run_shell_batch(args, edge_pc):
             f"slots, or --yes to confirm generating all {total_slots}."
         )
 
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    mysql_config = _db.mysql_config_from_args(args)
+    conn = _db.get_connection(mysql_config)
     try:
         occupied = _db.get_occupied_shell_slots(conn, [shell_index])
     finally:
         conn.close()
 
+    batch_density = _BatchDensity(mysql_config)
     generated = 0
     for slot_index in range(total_slots):
         if args.limit is not None and generated >= args.limit:
@@ -1261,7 +1348,8 @@ def run_shell_batch(args, edge_pc):
             continue
 
         position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
-        sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, position_pc, edge_pc)
+        sector_args = batch_density.resolve(args, position_pc)
+        sector_id, sector_name = generate_and_save_sector_at(sector_args, shell_index, slot_index, position_pc, edge_pc)
         generated += 1
         designation = provisional_sector_designation(
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
@@ -1315,18 +1403,21 @@ def run_local_neighborhood(args, edge_pc):
     candidates = list(enumerate_sectors_within_radius(center, args.radius_pc, edge_pc))
 
     candidate_shells = sorted({shell_index for shell_index, _slot, _x, _y, _z, _dist in candidates})
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    mysql_config = _db.mysql_config_from_args(args)
+    conn = _db.get_connection(mysql_config)
     try:
         occupied = _db.get_occupied_shell_slots(conn, candidate_shells)
     finally:
         conn.close()
 
+    batch_density = _BatchDensity(mysql_config)
     generated = 0
     for shell_index, slot_index, x, y, z, distance_pc in candidates:
         if (shell_index, slot_index) in occupied:
             continue
 
-        sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z), edge_pc)
+        sector_args = batch_density.resolve(args, (x, y, z))
+        sector_id, sector_name = generate_and_save_sector_at(sector_args, shell_index, slot_index, (x, y, z), edge_pc)
         generated += 1
         designation = provisional_sector_designation(
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
@@ -1432,7 +1523,12 @@ def run_random_start(args, edge_pc):
         conn.close()
 
     position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
-    sector_id, sector_name = generate_and_save_sector_at(args, shell_index, slot_index, position_pc, edge_pc)
+    # `run_local_neighborhood` below resolves its own per-sector density
+    # for the rest of this run (it builds its own `_BatchDensity`); this
+    # first sector needs the same treatment since it's generated directly
+    # here, before falling through.
+    sector_args = _BatchDensity(mysql_config).resolve(args, position_pc)
+    sector_id, sector_name = generate_and_save_sector_at(sector_args, shell_index, slot_index, position_pc, edge_pc)
     designation = provisional_sector_designation(
         shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
     )

@@ -380,6 +380,60 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     assert captured["num_systems"] is None
 
 
+def test_shell_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, monkeypatch):
+    """
+    'generate.py galaxy --shell N' with neither --density nor --num-systems
+    should drive each sector's own system count from the galaxy skeleton's
+    real position-based relative_density (_BatchDensity), the same way
+    ensure_sector_generated already does for a single lazily-generated
+    sector -- not silently fall back to a flat count shared by the whole
+    shell (validate_shared_generation_args's old behavior for every
+    subcommand, still correct for the position-less 'sector' subcommand,
+    which keeps defaulting to 10 -- galaxy mode alone leaves both None so
+    this per-sector path can take over).
+    """
+    n_0 = shell_sector_count(0)
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    captured = []
+
+    def _fake_generate_sector(args, galactic_center_dist_ly=None):
+        captured.append((args.density, args.num_systems))
+        from stellarObjects.spaceSector import SpaceSector
+        return "Fake Sector", SpaceSector(name="Fake Sector")
+
+    monkeypatch.setattr(sectorGen, "generate_sector", _fake_generate_sector)
+
+    _run_cli(["--shell", "0"] + _mysql_argv(mysql_config))
+
+    assert len(captured) == n_0
+    for slot_index, (density, num_systems) in enumerate(captured):
+        expected_density = relative_density(sector_position_pc(0, slot_index, EDGE_PC), _SKELETON_SHAPE)
+        assert density == pytest.approx(expected_density)
+        assert num_systems is None
+
+
+def test_shell_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_config, monkeypatch):
+    """An explicit --num-systems is still a uniform, intentional override
+    for the whole batch -- _BatchDensity must not second-guess it."""
+    n_0 = shell_sector_count(0)
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    captured = []
+
+    def _fake_generate_sector(args, galactic_center_dist_ly=None):
+        captured.append((args.density, args.num_systems))
+        from stellarObjects.spaceSector import SpaceSector
+        return "Fake Sector", SpaceSector(name="Fake Sector")
+
+    monkeypatch.setattr(sectorGen, "generate_sector", _fake_generate_sector)
+
+    _run_cli(["--shell", "0", "--num-systems", "4"] + _mysql_argv(mysql_config))
+
+    assert len(captured) == n_0
+    assert all(density is None and num_systems == 4 for density, num_systems in captured)
+
+
 def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_config, monkeypatch):
     """
     Simulates the race `sectors`'s `UNIQUE (shell_index, shell_slot_index)`
