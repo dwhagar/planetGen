@@ -117,8 +117,27 @@ echo "== 1/6: Installing the Python package =="
 # working /api/search. A CLI-only use of this package (just `sectorgen`/
 # `systemgen`, no web interface ever deployed) wouldn't need it, but
 # nothing reaches this script without wanting the web interface.
+#
+# --ignore-installed: pulling in Flask this way surfaced a second,
+# unrelated production failure -- Flask 3.x needs blinker>=1.9.0, but
+# Ubuntu 22.04 ships blinker 1.4 pre-installed the old `distutils`
+# way (no `RECORD` file, so pip can't tell which files are its to
+# remove). `--force-reinstall`/`--upgrade` both still need to *upgrade*
+# it, which means uninstalling that old copy first, which fails with
+# "Cannot uninstall blinker 1.4 ... distutils installed project" and
+# aborts the whole install before it ever reaches flask/flask-limiter/
+# planetGen itself (see pip's own install order in its output -- it
+# aborts alphabetically-ish partway through, well before the packages
+# that actually matter here). `--ignore-installed` sidesteps the
+# uninstall step entirely: pip just installs its own copy into
+# /usr/local's site-packages, which already comes before apt's
+# /usr/lib/python3/dist-packages on sys.path, so the newer pip-managed
+# copy shadows the old system one without ever touching it -- the
+# standard workaround for this well-known Debian/Ubuntu packaging class
+# of error, not specific to blinker (a future dependency bump could hit
+# the same wall with some other apt-provided package).
 "$PYTHON" -m pip install --upgrade pip
-"$PYTHON" -m pip install --upgrade --force-reinstall "${SCRIPT_DIR}[api]"
+"$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed "${SCRIPT_DIR}[api]"
 
 echo
 echo "== 2/6: Migrating the configured MySQL database to the current schema =="
