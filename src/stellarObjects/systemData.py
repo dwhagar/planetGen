@@ -18,7 +18,6 @@ number of celestial objects, and generating a detailed string representation of
 the system.
 """
 
-import copy
 import math
 import random
 
@@ -212,10 +211,26 @@ class StarSystem:
         self.stars = [self.primary_star] # Keep track of individual stars
 
         if compact_remnant is None and self._should_generate_binary():
-            # Create a copy of the system_config for the secondary star
-            secondary_star_config = copy.deepcopy(self.system_config)
-            # Ensure LARGE_STAR is not forced for the secondary star
-            secondary_star_config.LARGE_STAR = False
+            # The secondary star must not be biased toward a large star the
+            # same way the primary can be, so LARGE_STAR is forced off for
+            # its own generation call -- but only transiently, on the same
+            # shared `system_config` object (restored right after), rather
+            # than handing it its own `copy.deepcopy`d config. A deep copy
+            # used to fork every field (not just LARGE_STAR) into its own
+            # independent object, including MARKDOWN -- invisible at
+            # generation time (both copies start out equal), but
+            # `_db.py.insert_star_system` re-renders the whole system in
+            # *both* formats after the fact by toggling `system_config.
+            # MARKDOWN` and calling `str(star_system)` again, which only
+            # ever reaches this shared object, not a secondary star's own
+            # disconnected copy. The secondary's own data table (and its
+            # `===`/`###` header) was therefore stuck rendering in
+            # whichever format was current at generation time regardless of
+            # which one was actually being requested, mixing wikitext
+            # template blocks into an otherwise-markdown binary system's
+            # stored `markdown_content` (and vice versa).
+            original_large_star = self.system_config.LARGE_STAR
+            self.system_config.LARGE_STAR = False
 
             # Logic to generate a secondary star (e.g., random mass relative to primary)
             # This is new generation logic, but contained.
@@ -223,10 +238,11 @@ class StarSystem:
             secondary_mass_factor = random.uniform(0.1, 0.8)
             secondary_mass = self.primary_star.mass * secondary_mass_factor
             # Create secondary star, potentially with a different name or type if desired
-            self.secondary_star = Star(secondary_star_config, name=f"{self.primary_star.name} B",
+            self.secondary_star = Star(self.system_config, name=f"{self.primary_star.name} B",
                                         mass_override=secondary_mass,
                                         galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg)
+            self.system_config.LARGE_STAR = original_large_star
             self.stars.append(self.secondary_star)
 
             # WIDE_BINARY picks which of the two real binary configurations

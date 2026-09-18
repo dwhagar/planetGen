@@ -1,5 +1,80 @@
 # Changelog
 
+## [5.37.0] - 2026-09-18
+
+### Fixed
+- **A binary system's stored `markdown_content` mixed wikitext template
+  blocks into it (and vice versa for `wikitext_content`)** -- only ever
+  for the secondary star's own "Star Data" table/age sentence, and only
+  for a binary system (`+binary_system`), never a single star.
+  `StarSystem.__init__` gave the secondary star its own `copy.deepcopy`d
+  `SystemConfig` (to force `LARGE_STAR` off on it without affecting the
+  primary), which also forked `MARKDOWN` into its own disconnected copy.
+  `_db.py.insert_star_system` renders *both* formats from one generated
+  system by toggling `system_config.MARKDOWN` and calling `str(star_system)`
+  again -- a toggle that only ever reached the primary/shared config, never
+  the secondary's own deep copy, leaving its data table stuck rendering in
+  whichever format was current at generation time regardless of which one
+  was actually being requested afterward. The secondary star now shares
+  the system's own `SystemConfig` object throughout (`LARGE_STAR` is still
+  forced off for it, just transiently, restored right after).
+- **A binary system's own name/title had "Binary System" literally baked
+  into it** (e.g. "Sol Binary System" instead of "Sol") for a 'close'
+  (P-type) pair -- `doubleStar.BinaryStarProxy.name` (the proxy's `.name`
+  stands in for the whole system's own identity, stored as
+  `star_systems.name`) now takes the primary star's own bare name, the
+  same convention a 'wide' (S-type) pair's system name already used.
+- **The Sector Map and System Map labeled a binary's two stars "Primary"/
+  "Secondary"** instead of a real name -- both now read "&lt;name&gt; A"/
+  "&lt;name&gt; B", matching the generator's own existing convention for
+  the secondary star's *stored* name (`"<primary name> B"`).
+- **A wide (S-type) binary's own System Map diagram never showed the
+  secondary star's planets at all, and text/markers routinely rendered
+  cut off or overlapping** -- both stars' planets, and the pair's own
+  real separation (routinely tens to thousands of AU, per
+  `wideBinary.py`), used to share one log-scaled radial pixel budget.
+  Since a wide pair's real separation is so much larger than either
+  star's own planetary system, that shared scale either crushed both
+  stars' planets down near the frame's center to make room for the real
+  separation, or pushed the stars themselves (and their planets' label
+  text) toward the frame's outer edge and straight off the visible
+  canvas. `lib/systemmap.py` now gives the primary its own full-budget
+  "system" scene (its own planets only) with a companion marker for the
+  secondary that swaps to the secondary's *own* full-budget scene when
+  clicked -- the same "drill into it" pattern a planet with moons already
+  used, one level up.
+- **The Sector Map's default zoom could shrink every star dot into an
+  illegible, barely-visible smear** for a galaxy-placed sector -- a
+  sector's on-shell wedge wireframe is deliberately allowed to draw well
+  past the fixed-size scene (so it can be dragged/zoomed into fully), but
+  the *default* zoom used to fit that wedge's own extent alongside every
+  star/cloud's, in one combined list. A wedge can be many times wider
+  than the scene regardless of how tightly clustered the sector's own
+  stars actually are, so a single oversized wedge could drag the whole
+  default zoom down to its own floor, shrinking every star dot along with
+  it -- confirmed by rendering a realistic sector this way and finding
+  its dots reduced to a handful of barely-visible pixels, easily read as
+  "almost nothing rendered". The default zoom now fits the real content
+  (every star/cloud) on its own whenever there is any, falling back to
+  fitting the wedge/cube outline only for a genuinely empty sector (the
+  original problem that outline-fitting behavior was written to fix).
+- **`GET /api/nav`'s cross-sector ("galaxy" scope) route could time out**
+  once the generated galaxy grew large. `navGraph.build_knn_adjacency`
+  built its routing graph with an O(n&sup2;) "compare every point to every
+  other point" pass -- unnoticeable for one sector's own handful of
+  systems, but this same function also runs over *every* system in *every*
+  galaxy-placed sector generated so far for a cross-sector route, a set
+  that only ever grows as more of the galaxy gets visited/generated. Now
+  builds an in-memory 3D k-d tree and queries each point's true k nearest
+  neighbors through it instead (O(n log n)) -- the exact same resulting
+  graph, computed roughly 10x+ faster already at a couple thousand
+  systems, comfortably under a second even at 50,000.
+- The Sector page now also lists every nearby exotic phenomenon
+  (`queryDb.phenomena_near_sector`, the same set the Sector Map's own
+  clouds/points are drawn from) in its own table below the systems one,
+  each row linking to that phenomenon's `phenomenon.py` detail page --
+  previously only visible on the map itself, with no plain listing.
+
 ## [5.36.0] - 2026-09-18
 
 ### Added
