@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.46.3] - 2026-09-19
+
+### Fixed
+- **`generate.py sector --debug` gave no way to see where a sector's generation
+  time actually went.** Added `stellarObjects.log.timed_phase`, a debug-only
+  context manager that logs `"<label>: <elapsed>ms"` (timestamped, like every
+  other `--debug` line) around `generate_sector`'s and `StarSystem.__init__`'s
+  major phases -- config building, each system's own generation and placement,
+  phenomena generation, and the star/planet/comet/life-data passes inside each
+  system -- so a `--debug` run's own output doubles as a per-phase profile with
+  no separate profiling flag needed. Also added an opt-in benchmark
+  (`PLANETGEN_RUN_PERF_BENCHMARK=1 pytest src/tests/test_sector_generation_perf.py`)
+  that captures and aggregates those phase records across several generated
+  sectors, cross-checked with a `cProfile` run -- this is what surfaced the
+  sector-capacity crash fixed in the next release.
+
 ## [5.46.2] - 2026-09-19
 
 ### Fixed
