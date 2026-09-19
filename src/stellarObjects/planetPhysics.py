@@ -21,7 +21,7 @@ import random
 import re
 import secrets
 
-from . import physical_constants, program_constants
+from . import log, physical_constants, program_constants
 from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
                     orbital_position_au, reseed_rng, sample_bounded_bell)
@@ -119,7 +119,11 @@ def _choose_weighted_planet_class(valid_classes):
     valid_classes = set(valid_classes)
     eligible = [c for c in program_constants.PLANET_CLASS_PROBABILITIES if c in valid_classes]
     weights = [program_constants.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
-    return random.choices(eligible, weights=weights, k=1)[0]
+    chosen = random.choices(eligible, weights=weights, k=1)[0]
+    log.choice("Planet class", chosen,
+               f"weighted draw among {len(eligible)} eligible classes {eligible} "
+               f"(weights {weights}) out of {len(program_constants.PLANET_CLASS_PROBABILITIES)} total")
+    return chosen
 
 
 def _validate_no_habitable_world(planet, zone):

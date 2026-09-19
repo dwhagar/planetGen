@@ -23,7 +23,7 @@ import random
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import physical_constants, program_constants
+from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
@@ -102,6 +102,9 @@ class RoguePlanet:
         self.mass_kg = mass_jupiter * physical_constants.JUPITER_MASS_TO_KG
 
         if mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
+            log.choice("Rogue planet type", "gas giant",
+                       f"mass {mass_jupiter:.4g} Mjup >= ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
+                       f"({program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
             self.planet_type = 'g'
             # Real gas giants show a near-flat mass-radius relation from
             # roughly Saturn's mass up through the deuterium-burning limit
@@ -112,6 +115,9 @@ class RoguePlanet:
             self.radius_km = physical_constants.JUPITER_RADIUS_KM * random.uniform(0.8, 1.15)
             self.composition = "hydrogen and helium, similar in bulk composition to Jupiter or Saturn"
         else:
+            log.choice("Rogue planet type", "terrestrial",
+                       f"mass {mass_jupiter:.4g} Mjup < ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
+                       f"({program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
             self.planet_type = 't'
             density_range_gcm3 = physical_constants.PLANET_DENSITY["t"]
             density_kg_m3 = random.uniform(*density_range_gcm3) * 1000
@@ -248,6 +254,9 @@ class InterstellarComet:
         self.nucleus_diameter_km = random.uniform(*program_constants.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
         self.velocity_kms = random.uniform(*program_constants.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
         self.is_active = random.random() < program_constants.INTERSTELLAR_COMET_ACTIVE_CHANCE
+        log.choice("Interstellar comet activity", self.is_active,
+                   f"roll against INTERSTELLAR_COMET_ACTIVE_CHANCE "
+                   f"({program_constants.INTERSTELLAR_COMET_ACTIVE_CHANCE})")
 
         num_components = min(3, len(program_constants.COMET_COMPOSITION))
         self.composition = random.sample(program_constants.COMET_COMPOSITION, k=num_components)

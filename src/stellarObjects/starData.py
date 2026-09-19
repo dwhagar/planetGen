@@ -23,7 +23,7 @@ import re
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import physical_constants, program_constants
+from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
@@ -1018,9 +1018,14 @@ class Star:
             # 1. Generate Spectral Class based on galactic population.
             if self.system_config.LARGE_STAR:
                 spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_LARGE_STAR
+                table_name = "SPECTRAL_PROBABILITIES_LARGE_STAR"
             else:
                 spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_NORMAL
+                table_name = "SPECTRAL_PROBABILITIES_NORMAL"
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
+            log.choice("Spectral class", spectral_class,
+                       f"weighted draw from {table_name} (system_config.LARGE_STAR="
+                       f"{self.system_config.LARGE_STAR})")
 
             # 2. Generate Luminosity from the spectral class's typical range.
             min_luminosity, max_luminosity = physical_constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
@@ -1045,6 +1050,9 @@ class Star:
                 self.yerkes_class, yerkes_type = "V", "Main Sequence"
             else:
                 self.yerkes_class, yerkes_type = "VII", "White Dwarf"
+
+            log.choice("Yerkes luminosity class", self.yerkes_class,
+                       f"luminosity {luminosity:.4g} Lsun falls into the {yerkes_type} threshold band")
 
             # 4. Calculate Temperature and Subclass.
             min_temp, max_temp = physical_constants.TEMP_RANGES[spectral_class]

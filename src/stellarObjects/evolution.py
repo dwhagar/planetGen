@@ -16,7 +16,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 
 import random
 
-from . import program_constants
+from . import log, program_constants
 from .utils import format_age_string, get_star_evolutionary_profile, to_paragraph
 # Removed: from . import config # Import the config module
 
@@ -66,10 +66,21 @@ def get_evolutionary_timeline(star):
             s for s in scale_speed_order
             if program_constants.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
         ]
-        evolutionary_scale = random.choice(reachable_scales) if reachable_scales else scale_speed_order[0]
+        if reachable_scales:
+            evolutionary_scale = random.choice(reachable_scales)
+            log.choice("Evolutionary scale", evolutionary_scale,
+                       f"forced intelligent life: uniform draw among reachable scales {reachable_scales} "
+                       f"(fit within star age {star.age:.4g})")
+        else:
+            evolutionary_scale = scale_speed_order[0]
+            log.choice("Evolutionary scale", evolutionary_scale,
+                       f"forced intelligent life: no scale in {scale_speed_order} was reachable by star "
+                       f"age {star.age:.4g}, falling back to the fastest supported one")
     else:
         # If there are multiple supported scales, pick one randomly
         evolutionary_scale = random.choice(supported_scales)
+        log.choice("Evolutionary scale", evolutionary_scale,
+                   f"uniform draw among supported scales {supported_scales}")
 
     timeline = program_constants.EVOLUTIONARY_TIMELINES[evolutionary_scale]
 

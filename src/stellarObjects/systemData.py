@@ -25,7 +25,7 @@ from .asteroidData import AsteroidBelt
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
-from . import physical_constants, planetLife, planetPhysics, program_constants
+from . import log, physical_constants, planetLife, planetPhysics, program_constants
 from .planetData import Planet
 from .starData import Star
 from .utils import (
@@ -252,7 +252,11 @@ class StarSystem:
             is_wide = self.system_config.WIDE_BINARY
             if is_wide is None:
                 is_wide = random.random() < program_constants.WIDE_BINARY_DEFAULT_CHANCE
+                reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({program_constants.WIDE_BINARY_DEFAULT_CHANCE})"
+            else:
+                reason = "forced by +wide_binary/-wide_binary"
             self.binary_type = "wide" if is_wide else "close"
+            log.choice("Binary type", self.binary_type, reason)
 
             if self.binary_type == "close":
                 self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
@@ -357,6 +361,12 @@ class StarSystem:
         if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
             self.system_flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
             self.system_config.system_flavor_count += 1
+            log.choice("System flavor text", self.system_flavor_text,
+                       f"roll passed FLAVOR_CHANCE_SYSTEM ({program_constants.FLAVOR_CHANCE_SYSTEM}) and "
+                       f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
+                       f"MAX_FLAVOR_TOTAL ({program_constants.MAX_FLAVOR_TOTAL})")
+        else:
+            log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 
         # All planets and moons are generated without life data (see planetPhysics's
         # module docstring). Apply it now, in one pass over the finished system, so
@@ -530,6 +540,9 @@ class StarSystem:
 
         if system_objects > 0:
             belt_index = random.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
+            if belt_index != -1:
+                log.choice("Guaranteed asteroid belt slot", belt_index,
+                           f"random slot in [0, {system_objects - 1}] (ASTEROID_BELT is forced True)")
             found_hab = False
             found_belt = False
             i = -1
@@ -647,6 +660,13 @@ class StarSystem:
                 if self.system_config.ASTEROID_BELT is not False and (
                     force_belt or (not last_asteroid and not hz and (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index))
                 ):
+                    if force_belt:
+                        belt_reason = "forced (last-resort fallback: ASTEROID_BELT required but not yet placed)"
+                    elif i == belt_index:
+                        belt_reason = "matched the pre-selected guaranteed belt slot"
+                    else:
+                        belt_reason = f"random roll passed ASTEROID_BELT_PROBABILITY ({program_constants.ASTEROID_BELT_PROBABILITY})"
+                    log.choice("Orbital slot object", "asteroid belt", f"slot {i}: {belt_reason}")
                     min_distance = estimated_distance
                     max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config

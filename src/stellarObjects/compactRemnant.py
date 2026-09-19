@@ -42,7 +42,7 @@ import math
 import random
 
 from .config import SystemConfig
-from . import physical_constants, program_constants
+from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (calculate_habitable_zone, format_age_string, format_galactic_orbit,
@@ -192,8 +192,14 @@ class BlackHole(CompactRemnant):
 
         if random.random() < program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
             self.mass_solar = random.uniform(*program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
+            log.choice("Black hole mass regime", "intermediate-mass",
+                       f"roll passed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
+                       f"({program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
         else:
             self.mass_solar = random.uniform(*program_constants.BLACK_HOLE_MASS_RANGE_SOLAR)
+            log.choice("Black hole mass regime", "stellar-mass",
+                       f"roll failed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
+                       f"({program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
         self.mass = self.mass_solar * physical_constants.SOLAR_MASS_TO_KG
 
         # Schwarzschild radius: r_s = 2GM/c^2 (the non-rotating event
@@ -208,6 +214,9 @@ class BlackHole(CompactRemnant):
 
         self.spin = random.uniform(*program_constants.BLACK_HOLE_SPIN_RANGE)
         self.has_accretion_disk = random.random() < program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE
+        log.choice("Accretion disk", self.has_accretion_disk,
+                   f"roll against BLACK_HOLE_ACCRETION_DISK_CHANCE "
+                   f"({program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE})")
 
         if self.has_accretion_disk:
             # Eddington luminosity, L_edd = 1.26e31 * (M/Msun) W (standard
@@ -346,6 +355,10 @@ class NeutronStar(CompactRemnant):
             self.pulsar_type = "non-pulsing"
             self.spin_period_ms = random.uniform(*program_constants.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
             self.magnetic_field_gauss = random.uniform(*program_constants.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
+        log.choice("Pulsar type", self.pulsar_type,
+                   f"is_pulsar={is_pulsar} (NEUTRON_STAR_PULSAR_CHANCE="
+                   f"{program_constants.NEUTRON_STAR_PULSAR_CHANCE}, PULSAR_MILLISECOND_CHANCE="
+                   f"{program_constants.PULSAR_MILLISECOND_CHANCE})")
 
         # Blackbody thermal luminosity from the surface (Stefan-Boltzmann
         # law), the same physical relationship Star.generate_star's white-
