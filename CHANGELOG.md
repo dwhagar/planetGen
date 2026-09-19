@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.46.1] - 2026-09-19
+
+### Changed
+- **Restored the progress bar for `generate.py galaxy` (`--shell`/
+  `--center-sector`/random-start), but not for `generate.py sector`.** A
+  prior release removed the progress bar from both commands entirely
+  while chasing a flicker/scrolling bug; the bar itself (routed through
+  `progress.console.print` so it stays pinned at the bottom with no
+  flicker -- see `_generation_progress`'s own docstring) was fine and is
+  genuinely useful for a `galaxy` run, which can mean thousands of
+  sectors. `run_sector`'s own `--num-sectors` loop stays bar-free, since
+  that run is normally short enough that a bar added more noise than it
+  was worth.
+
 ## [5.46.0] - 2026-09-19
 
 ### Changed
