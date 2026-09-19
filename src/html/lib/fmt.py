@@ -10,6 +10,7 @@ never a database row or connection.
 """
 
 import html
+import json
 import re
 
 try:
@@ -40,6 +41,81 @@ def esc(value):
     return html.escape(str(value), quote=True)
 
 
+def post_link(action, params, label, css_class="", attrs=""):
+    """
+    Builds a same-effect replacement for `<a href="{action}?{a query
+    string built from params}">{label}</a>` that carries `params` as
+    hidden POST fields instead -- so following it never puts them in the
+    browser's own address bar the way a plain link's target URL always
+    does. The submit button is styled (`static/style.css`'s `.link-btn`,
+    plus whatever `css_class` adds -- `.badge`/`.tag`/`.sidenav-item`/
+    etc. all already style a plain class, not specifically an `<a>`, so
+    they apply here unchanged) to be visually indistinguishable from the
+    `<a>` it replaces. The wrapping `<form>` reuses `.table-form`'s own
+    `display: inline` so it flows inline exactly like a link would, inside
+    a table cell, breadcrumb, or badge.
+
+    A page reads a followed link's `params` back via `page.nav_params()`/
+    `page.nav_multi_params()`, not `page.query_params()` -- see those
+    functions.
+
+    Args:
+        action (str): The bare target script, e.g. `"system.py"` -- never
+                      a query string; that's what `params` replaces.
+        params (dict or list[tuple]): `name: value` hidden fields -- every
+                       value is escaped here, so callers pass raw values.
+                       A `dict` covers every single-valued case (most
+                       callers); `search.py`'s own repeated tag-facet
+                       fields (several values under the same name, e.g.
+                       two `type` filters at once) need a list of `(name,
+                       value)` pairs instead, since a `dict` can't hold
+                       more than one value per key.
+        label (str): Pre-built label HTML (already escaped by the caller,
+                     same convention as every other f-string in `html/` --
+                     this may legitimately contain markup, e.g. a
+                     `<span class="tag-count">`).
+        css_class (str): Extra class(es) on the submit button, alongside
+                         the shared `link-btn` reset.
+        attrs (str): Extra raw HTML attributes on the submit button (e.g.
+                     a `title="..."` tooltip).
+
+    Returns:
+        str: A complete `<form>` element.
+    """
+    items = params.items() if isinstance(params, dict) else params
+    hidden = "".join(
+        f'<input type="hidden" name="{esc(str(k))}" value="{esc(str(v))}">'
+        for k, v in items
+    )
+    klass = esc(f"link-btn {css_class}".strip())
+    extra = f" {attrs}" if attrs else ""
+    return (
+        f'<form method="post" action="{esc(action)}" class="table-form">{hidden}'
+        f'<button type="submit" class="{klass}"{extra}>{label}</button></form>'
+    )
+
+
+def data_nav_params(params):
+    """
+    HTML-attribute-escaped JSON for a `data-nav-params` attribute --
+    `static/navform.js`'s delegated click handler reads this (alongside a
+    `data-nav-target`) off any element that still has to navigate via a
+    real `<a>`/clickable marker rather than `page.post_link`'s own
+    `<form>` (a `<form>` can't nest inside an SVG shape the way a Galaxy
+    Map/Sector Map/NAV Map marker does -- see `lib/galaxymap.py`/
+    `lib/starmap.py`/`lib/navmap.py`), and POSTs it instead of putting it
+    in the address bar the way following a plain `href` would.
+
+    Args:
+        params (dict): `name: value` hidden fields to post on click.
+
+    Returns:
+        str: Escaped JSON, safe to interpolate directly into a
+            double-quoted HTML attribute.
+    """
+    return esc(json.dumps(params, separators=(",", ":")))
+
+
 _LOCATION_NEIGHBOR_MARKER = " -- nearest: "
 _LOCATION_NEIGHBOR_RE = re.compile(r'^(.*) (\([\d.]+ ly\))$')
 
@@ -61,7 +137,8 @@ def linkify_location(db_name, location, name_to_id):
     plain escaped text rather than guessed at.
 
     Args:
-        db_name (str): The current `?db=` value, for building system.py URLs.
+        db_name (str): The current `?db=` value, for linking to each
+                       neighbor's own `system.py` page.
         location (str): The raw `star_systems.location` value.
         name_to_id (dict[str, int]): Every `star_systems.name` -> `id` in
                                      the same sector, for resolving each
@@ -83,9 +160,8 @@ def linkify_location(db_name, location, name_to_id):
         system_id = name_to_id.get(name) if name is not None else None
         if match and system_id is not None:
             distance = match.group(2)
-            linked_entries.append(
-                f'<a href="system.py?db={esc(db_name)}&id={system_id}">{esc(name)}</a> {esc(distance)}'
-            )
+            link = post_link("system.py", {"db": db_name, "id": system_id}, esc(name))
+            linked_entries.append(f'{link} {esc(distance)}')
         else:
             linked_entries.append(esc(entry))
 

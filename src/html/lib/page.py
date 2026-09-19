@@ -7,6 +7,19 @@ No templating engine -- these are plain scripts meant to run with nothing
 beyond the standard library, so pages are built as f-strings against one
 shared shell (`render`) and a common stylesheet (`static/style.css`,
 served directly by Apache, not through CGI).
+
+Every page-to-page link in `html/` posts its parameters as hidden form
+fields (`fmt.post_link`) rather than putting them in a plain `<a href=
+"page.py?db=...&id=...">`'s query string, so a database name, a sector/
+system/phenomenon id, or a search term never ends up in the browser's own
+address bar, browser history, or an outgoing `Referer` header. `nav_params`/
+`nav_multi_params` below are what a page reads one of these back with.
+This is a deliberate trade-off: it makes every page here un-bookmarkable
+and un-shareable by URL, and the browser's own back/forward navigation
+re-submits the last POST (the usual browser confirmation) rather than
+just re-rendering a remembered URL. The one exception is a Galaxy Map/
+Sector Map/NAV Map marker plotted inside an `<svg>`, where a `<form>`
+can't nest -- see `fmt.data_nav_params` and `static/navform.js`.
 """
 
 import os
@@ -15,7 +28,7 @@ import traceback
 from urllib.parse import parse_qs
 
 from apiclient import ApiError, NotFoundError, auth_me
-from fmt import esc
+from fmt import esc, post_link  # noqa: F401 -- post_link re-exported for `from page import post_link` callers
 
 # stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
 # at src/html/lib/ -- add src/ to sys.path the same way apiclient.py
@@ -38,28 +51,85 @@ def query_params():
     return {key: values[0] for key, values in raw.items()}
 
 
+_raw_body_cache = None
+
+
+def _raw_post_body():
+    """
+    Reads and caches stdin's `CONTENT_LENGTH` bytes (per the CGI spec) --
+    shared by `form_params`/`form_multi_params` so a page that reads the
+    POST body more than once (e.g. `sector.py`'s own module-level wiki-
+    upload check and its `handler()`'s admin-action check, both gated on
+    "is this a POST") gets the same parsed body back each time instead of
+    a second, already-exhausted read silently returning nothing. Safe as a
+    process-global cache since a CGI process handles exactly one request
+    before exiting.
+    """
+    global _raw_body_cache
+    if _raw_body_cache is None:
+        try:
+            length = int(os.environ.get("CONTENT_LENGTH", "0") or "0")
+        except ValueError:
+            length = 0
+        _raw_body_cache = sys.stdin.buffer.read(length).decode("utf-8", errors="replace") if length > 0 else ""
+    return _raw_body_cache
+
+
 def form_params():
     """
-    Parses an `application/x-www-form-urlencoded` POST body from stdin
-    (`CONTENT_LENGTH` bytes, per the CGI spec) -- the admin pages'
-    (`login.py`/`changecreds.py`/`admin.py`) login/credential/API-key
-    forms, the first POST handling anywhere in `html/` (every other page
-    here is GET-only). Reads at most `CONTENT_LENGTH` bytes, never the
-    whole of stdin, so a misbehaving/absent header can't make this block
-    waiting for input that never arrives.
+    Parses an `application/x-www-form-urlencoded` POST body (see
+    `_raw_post_body`) -- every admin action form (`login.py`/
+    `changecreds.py`/`admin.py`/wiki uploads) and, now, every plain
+    navigational link in `html/` too (see `post_link`), since its
+    parameters travel as hidden POST fields instead of a query string.
 
     Returns:
         dict[str, str]: One value per field (the first, if a field
                         repeats) -- same single-valued convention as
                         `query_params`.
     """
-    try:
-        length = int(os.environ.get("CONTENT_LENGTH", "0") or "0")
-    except ValueError:
-        length = 0
-    raw = sys.stdin.buffer.read(length).decode("utf-8", errors="replace") if length > 0 else ""
-    parsed = parse_qs(raw)
+    parsed = parse_qs(_raw_post_body())
     return {key: values[0] for key, values in parsed.items()}
+
+
+def form_multi_params():
+    """
+    Same as `form_params`, but keeps every value for a repeated field name
+    (`search.py`'s tag-facet checkboxes-as-hidden-fields) instead of just
+    the first.
+
+    Returns:
+        dict[str, list[str]]: Same shape `urllib.parse.parse_qs` returns.
+    """
+    return parse_qs(_raw_post_body())
+
+
+def nav_params():
+    """
+    This request's own navigation parameters (`db`, `id`, and the like) --
+    the POST body (`form_params`) for a POST request, which is what every
+    navigational link in `html/` now submits (`post_link`) instead of a
+    plain `<a href>`, so its parameters never appear in the browser's own
+    address bar; falls back to the GET query string (`query_params`) for a
+    request with nothing posted at all (e.g. a page rendered directly by
+    another page's handler, like `index.py`'s direct call into
+    `browse.handler`, with no request of its own to read from).
+
+    Returns:
+        dict[str, str]: Same single-valued shape as `query_params`/
+                        `form_params`.
+    """
+    if os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
+        return form_params()
+    return query_params()
+
+
+def nav_multi_params():
+    """Multi-valued counterpart to `nav_params`, for a page with repeated
+    field names (`search.py`'s tag facets) -- see `form_multi_params`."""
+    if os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
+        return form_multi_params()
+    return parse_qs(os.environ.get("QUERY_STRING", ""))
 
 
 def incoming_cookie_header():
@@ -124,17 +194,24 @@ def redirect(url, set_cookie_headers=None):
     be called instead of (never alongside) `send_headers`/`render`, and
     before any other output, same as `send_headers`'s own requirement.
 
-    Used by `index.py` to jump straight to `browse.py?db=...` for this
-    deployment's database instead of rendering a picker table; also by
-    `login.py`/`changecreds.py` to redirect after a successful POST,
-    carrying the API's `Set-Cookie` response along (see `send_headers`'s
-    own parameter of the same name).
+    Used by `login.py`/`changecreds.py` to redirect after a successful
+    POST, carrying the API's `Set-Cookie` response along (see
+    `send_headers`'s own parameter of the same name), and by `admin.py`
+    to bounce an unauthenticated/stale-credentials visitor to `login.py`/
+    `changecreds.py`. Every one of these targets is a bare page name with
+    no params of its own to carry -- a redirect's `Location` URL is
+    necessarily visible in the browser's own address bar, same as any
+    other URL, which is exactly why `index.py` calls `browse.handler`
+    in-process instead of redirecting to `browse.py?db=...` (see that
+    page's own module docstring) and why every other page-to-page link in
+    `html/` posts its params instead of putting them in a URL at all (see
+    `post_link`).
 
     Args:
-        url (str): The target URL, e.g. `"browse.py?db=planetgen.db"`.
-                   Callers are responsible for URL-encoding any dynamic
-                   piece of it themselves (see `urllib.parse.quote`) --
-                   this just writes the header block, the same division of
+        url (str): The target URL, e.g. `"login.py"`. Callers are
+                   responsible for URL-encoding any dynamic piece of it
+                   themselves (see `urllib.parse.quote`) -- this just
+                   writes the header block, the same division of
                    responsibility `send_headers` already has for the
                    `Content-Type` header.
         set_cookie_headers (list[str], optional): See `send_headers`.
@@ -152,8 +229,9 @@ def _sidenav_html():
     """
     Builds the site-wide vertical nav bar shown on the left of every page:
     a fixed set of "functions" rather than a breadcrumb -- Search, Galaxy,
-    Sectors, Systems, Nav, and Phenomena for the current `?db=` when one is
-    present in the request's own query string. Sectors/Systems jump
+    Sectors, Systems, Nav, and Phenomena for the current `db` when one is
+    present in the request (`nav_params`, a hidden POST field for most
+    requests now -- see that function). Sectors/Systems jump
     straight to the matching anchor on `browse.py` (`id="sectors"`/
     `id="standalone-systems"`) rather than duplicating that page's own
     listing here; Galaxy goes to `galaxy.py`, the galaxy-scale map of every
@@ -166,31 +244,37 @@ def _sidenav_html():
     that page's own docstring).
 
     No "Databases" item -- `index.py` no longer renders a picker table to
-    link to at all (it redirects straight to `browse.py` for this
-    deployment's one database, see its own module docstring), so there was
-    no longer a destination for one.
+    link to at all (it renders `browse.py`'s own content directly, in
+    place, for this deployment's one database -- see its own module
+    docstring), so there was no longer a destination for one.
 
-    `query_params()` (not a caller-supplied argument) is what lets this be
+    `nav_params()` (not a caller-supplied argument) is what lets this be
     computed uniformly from `render()` for every page -- `system.py` and
     `sector.py` otherwise have no way to reach `search.py`/`browse.py`
     without first going back through `browse.py` itself. `index.py` is the
-    only script with no `db` in its query string, so it gets none of these
-    (just Login/Admin below).
+    only script with no `db` of its own, so it gets none of these (just
+    Login/Admin below).
+
+    Each item posts to its target instead of linking to it (see
+    `post_link`), so `db` never shows up in the address bar just from
+    using the sidenav. A URL fragment (`#sectors`/`#standalone-systems`)
+    is never sent to the server either way, so `Sectors`/`Systems` can
+    still target one directly on `post_link`'s own `action` -- the browser
+    scrolls to it after the POST navigates there, same as a plain link.
 
     Returns:
         str: The `<nav class="sidenav">` element's inner HTML.
     """
     items = []
-    db_name = query_params().get("db")
+    db_name = nav_params().get("db")
     if db_name:
-        db = esc(db_name)
         items.extend([
-            (f"search.py?db={db}", "Search"),
-            (f"galaxy.py?db={db}", "Galaxy"),
-            (f"browse.py?db={db}#sectors", "Sectors"),
-            (f"browse.py?db={db}#standalone-systems", "Systems"),
-            (f"nav.py?db={db}", "Nav"),
-            (f"phenomena.py?db={db}", "Phenomena"),
+            ("search.py", {"db": db_name}, "Search"),
+            ("galaxy.py", {"db": db_name}, "Galaxy"),
+            ("browse.py#sectors", {"db": db_name}, "Sectors"),
+            ("browse.py#standalone-systems", {"db": db_name}, "Systems"),
+            ("nav.py", {"db": db_name}, "Nav"),
+            ("phenomena.py", {"db": db_name}, "Phenomena"),
         ])
 
     # Admin/Login: one extra GET /api/auth/me per page render (same
@@ -204,12 +288,15 @@ def _sidenav_html():
     except (ApiError, NotFoundError):
         admin = None
     if admin is None:
-        items.append(("login.py", "Login"))
+        items.append(("login.py", {}, "Login"))
     else:
-        items.append(("admin.py", "Admin"))
-        items.append(("logout.py", "Logout"))
+        items.append(("admin.py", {}, "Admin"))
+        items.append(("logout.py", {}, "Logout"))
 
-    return "".join(f'<a href="{href}" class="sidenav-item">{label}</a>' for href, label in items)
+    return "".join(
+        post_link(action, params, label, css_class="sidenav-item")
+        for action, params, label in items
+    )
 
 
 def render(title, body_html, status="200 OK", set_cookie_headers=None):
@@ -238,6 +325,7 @@ def render(title, body_html, status="200 OK", set_cookie_headers=None):
 <meta charset="utf-8">
 <title>{safe_title} - {site_name}</title>
 <link rel="stylesheet" href="static/style.css">
+<script src="static/navform.js" defer></script>
 </head>
 <body>
 <nav class="sidenav" aria-label="Main">{_sidenav_html()}</nav>

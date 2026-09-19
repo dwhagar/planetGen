@@ -23,8 +23,8 @@ _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from apiclient import get_phenomenon
-from fmt import esc
-from page import query_params, run
+from fmt import esc, post_link
+from page import nav_params, run
 
 try:
     from stellarObjects.utils import pc_to_ly
@@ -120,7 +120,7 @@ def _fields_html(phenomenon_type, detail):
 
 
 def handler():
-    params = query_params()
+    params = nav_params()
     db_name = params.get("db", "")
     phenomenon_type = params.get("type", "")
     phenomenon_id = params.get("id", "")
@@ -128,16 +128,16 @@ def handler():
     detail = get_phenomenon(db_name, phenomenon_type, phenomenon_id)
 
     type_label = _TYPE_LABELS.get(phenomenon_type, phenomenon_type)
-    breadcrumb = f'<p class="breadcrumb"><a href="phenomena.py?db={esc(db_name)}">Phenomena</a> &rarr; {esc(detail["name"])}</p>'
+    phenomena_link = post_link("phenomena.py", {"db": db_name}, "Phenomena")
+    breadcrumb = f'<p class="breadcrumb">{phenomena_link} &rarr; {esc(detail["name"])}</p>'
 
     badge_bits = [type_label]
     distance_text = _pc_to_ly_text(detail.get("galactic_radius_pc"))
     if distance_text:
         badge_bits.append(f"{distance_text} from Galactic Center")
     if detail.get("sector_id") is not None:
-        badge_bits.append(
-            f'Sector: <a href="sector.py?db={esc(db_name)}&id={detail["sector_id"]}">{esc(detail["sector_name"])}</a>'
-        )
+        sector_link = post_link("sector.py", {"db": db_name, "id": detail["sector_id"]}, esc(detail["sector_name"]))
+        badge_bits.append(f"Sector: {sector_link}")
     badges_html = "<p class=\"badges\">" + "".join(f'<span class="badge">{bit}</span>' for bit in badge_bits) + "</p>"
 
     fields_html = _fields_html(phenomenon_type, detail)

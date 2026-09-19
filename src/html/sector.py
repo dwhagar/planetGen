@@ -43,9 +43,9 @@ from apiclient import (
     get_wiki_config,
     upload_sector_to_wiki,
 )
-from fmt import esc, linkify_location
+from fmt import esc, linkify_location, post_link
 from galaxymap import sector_quadrant
-from page import form_params, incoming_cookie_header, query_params, run
+from page import form_params, incoming_cookie_header, nav_params, run
 from starmap import render_map_panel
 
 _PHENOMENON_TYPE_LABELS = {
@@ -85,13 +85,14 @@ def _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wi
         f'{labels[value]}</label>'
         for i, value in enumerate(options)
     )
-    base_url = f"sector.py?db={esc(db_name)}&id={sector_id}"
     return f"""
 {message_html}{error_html}
 <section class="panel">
 <h2>Upload to Wiki</h2>
-<form method="post" action="{base_url}" class="search-form">
+<form method="post" action="sector.py" class="search-form">
   <input type="hidden" name="action" value="upload_wiki">
+  <input type="hidden" name="db" value="{esc(db_name)}">
+  <input type="hidden" name="id" value="{esc(sector_id)}">
   <div class="search-fields">
     <div class="search-field">{radios}</div>
     <label class="search-field">Path (Wiki.js only -- MediaWiki uses this sector's name)
@@ -107,7 +108,7 @@ def _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wi
 
 
 def handler():
-    params = query_params()
+    params = nav_params()
     db_name = params.get("db", "")
     sector_id = params.get("id", "")
 
@@ -160,7 +161,7 @@ def handler():
             star_type = " / ".join(star["star_type"] for star in row["stars"]) if row["stars"] else ""
         rows.append(
             "<tr>"
-            f'<td><a href="system.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
+            f'<td>{post_link("system.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
             f'<td>{esc(row["quadrant"])}</td>'
             f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
             f'<td>{esc(star_type or "")}</td>'
@@ -195,9 +196,12 @@ def handler():
 
     def _phenomenon_row_html(row):
         radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
+        phenomenon_link = post_link(
+            "phenomenon.py", {"db": db_name, "type": row["type"], "id": row["id"]}, esc(row["name"])
+        )
         return (
             "<tr>"
-            f'<td><a href="phenomenon.py?db={esc(db_name)}&amp;type={esc(row["type"])}&amp;id={row["id"]}">{esc(row["name"])}</a></td>'
+            f'<td>{phenomenon_link}</td>'
             f'<td>{esc(_PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]))}</td>'
             f'<td>{esc((row["descriptor"] or "").replace("_", " ").capitalize())}</td>'
             f'<td>{radius_text}</td>'
@@ -231,7 +235,7 @@ def handler():
     if sector["placed"]:
         quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
         badge_bits.append(
-            f'<a href="galaxy.py?db={esc(db_name)}&amp;quadrant={quadrant}">View on Galaxy Map (Quadrant {quadrant})</a>'
+            post_link("galaxy.py", {"db": db_name, "quadrant": quadrant}, f"View on Galaxy Map (Quadrant {quadrant})")
         )
     badges_html = "<p class=\"badges\">" + "".join(
         f'<span class="badge">{bit}</span>' for bit in badge_bits
@@ -272,8 +276,10 @@ def handler():
 around this one (already-generated sectors are skipped). That sphere can hold
 thousands of candidate sectors, so this can take anywhere from a few minutes
 to a few hours to finish -- the page will not respond until it completes.</p>
-<form method="post" action="sector.py?db={esc(db_name)}&amp;id={esc(sector_id)}" class="table-form">
+<form method="post" action="sector.py" class="table-form">
   <input type="hidden" name="action" value="generate_neighborhood">
+  <input type="hidden" name="db" value="{esc(db_name)}">
+  <input type="hidden" name="id" value="{esc(sector_id)}">
   <button type="submit" class="btn">Generate more sectors around this one</button>
 </form>
 """
@@ -293,7 +299,7 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 """
 
     body = f"""
-<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(sector['name'])}</p>
+<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(sector['name'])}</p>
 {badges_html}
 {wiki_html}
 {admin_panel_html}
@@ -323,9 +329,8 @@ wiki_error = None
 if identity is not None and os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
     fields = form_params()
     if fields.get("action") == "upload_wiki":
-        params = query_params()
-        db_name = params.get("db", "")
-        sector_id = params.get("id", "")
+        db_name = fields.get("db", "")
+        sector_id = fields.get("id", "")
         backend = fields.get("backend", "")
         path = fields.get("path", "").strip() or None
         try:

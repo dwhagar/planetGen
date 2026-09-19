@@ -226,15 +226,15 @@ def _require_db(db):
     """
     Every wrapper below except `list_databases` (which lists across the
     whole server, not one chosen schema) takes a `db` -- typically a
-    page's own `?db=` query parameter, forwarded straight through.
+    page's own `db` (from `nav_params()`), forwarded straight through.
     Omitting it wouldn't error (the API falls back to its own configured
     default database, see `api/routes.py`'s `get_db`), but every one of
-    these pages embeds `db` into the links it renders (`sector.py?db=...`,
-    `system.py?db=...`, ...), so a missing `db` here would quietly build a
-    page entirely out of a different database than the one every link on
-    it claims to be showing. Raised eagerly instead, matching the old
-    direct-database `dbutil.resolve_db_name`'s own "No database
-    specified." check.
+    these pages carries `db` in every link it renders (`page.post_link`'s
+    hidden `db` field, e.g. on a `sector.py`/`system.py` link), so a
+    missing `db` here would quietly build a page entirely out of a
+    different database than the one every link on it claims to be
+    showing. Raised eagerly instead, matching the old direct-database
+    `dbutil.resolve_db_name`'s own "No database specified." check.
 
     Raises:
         NotFoundError: If `db` is empty/`None`.

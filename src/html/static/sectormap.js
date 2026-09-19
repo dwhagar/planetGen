@@ -70,16 +70,22 @@
     var dl = document.createElement("dl");
     if (dot.dataset.kind === "phenomenon") {
       // A nebula/asteroid-field/black hole/neutron star links to its own
-      // detail page (`phenomenon.py`) via `data-href`, same as a star
-      // system below -- see `lib/starmap.py`'s `_cloud_html`.
+      // detail page (`phenomenon.py`) via `data-nav-target`/
+      // `data-nav-params`, same as a star system below -- see
+      // `lib/starmap.py`'s `_cloud_html` and `static/navform.js` (whose
+      // document-level click handler is what actually follows this link,
+      // by posting a throwaway hidden form instead of navigating via a
+      // plain `href`, so nothing ends up in the browser's address bar).
       addField(dl, "Type", dot.dataset.phenomenonType);
       addField(dl, "Radius", dot.dataset.radius);
       addField(dl, "Distance", dot.dataset.distance);
       panel.appendChild(dl);
 
       var phenomenonLink = document.createElement("a");
-      phenomenonLink.href = dot.dataset.href;
+      phenomenonLink.href = "#";
       phenomenonLink.className = "btn";
+      phenomenonLink.dataset.navTarget = dot.dataset.navTarget;
+      phenomenonLink.dataset.navParams = dot.dataset.navParams;
       phenomenonLink.textContent = "View phenomenon →";
       panel.appendChild(phenomenonLink);
       return;
@@ -91,8 +97,10 @@
     panel.appendChild(dl);
 
     var link = document.createElement("a");
-    link.href = dot.dataset.href;
+    link.href = "#";
     link.className = "btn";
+    link.dataset.navTarget = dot.dataset.navTarget;
+    link.dataset.navParams = dot.dataset.navParams;
     link.textContent = "View system →";
     panel.appendChild(link);
   }

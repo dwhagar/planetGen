@@ -31,7 +31,7 @@ angles away from what they actually are).
 
 import math
 
-from fmt import esc
+from fmt import data_nav_params, esc
 
 _SVG_SIZE = 360.0
 _CENTER = _SVG_SIZE / 2
@@ -140,9 +140,10 @@ def _scale_bar_html(px_per_ly):
 
 
 def _point_html(db_name, waypoint, svg_x, svg_y, css_class, radius):
-    href = f'system.py?db={esc(db_name)}&amp;id={waypoint["id"]}'
+    nav_params = data_nav_params({"db": db_name, "id": waypoint["id"]})
     return (
-        f'<a class="navmap-point {css_class}" href="{href}"><title>{esc(waypoint["name"])}</title>'
+        f'<a class="navmap-point {css_class}" href="#" data-nav-target="system.py" '
+        f'data-nav-params="{nav_params}"><title>{esc(waypoint["name"])}</title>'
         f'<circle cx="{svg_x:.1f}" cy="{svg_y:.1f}" r="{radius:.1f}"/>'
         f'<text x="{svg_x:.1f}" y="{svg_y - radius - 5:.1f}" text-anchor="middle">'
         f'{esc(waypoint["name"])}</text></a>'

@@ -77,8 +77,9 @@ def test_render_nav_map_panel_with_route_draws_route_line_and_hops():
     assert "navmap-route-line" in html
     assert "navmap-hop" in html
     assert "Waystation" in html
-    assert 'href="system.py?db=test.db&amp;id=1"' in html
-    assert 'href="system.py?db=test.db&amp;id=3"' in html
+    assert 'data-nav-target="system.py"' in html
+    assert 'data-nav-params="{&quot;db&quot;:&quot;test.db&quot;,&quot;id&quot;:1}"' in html
+    assert 'data-nav-params="{&quot;db&quot;:&quot;test.db&quot;,&quot;id&quot;:3}"' in html
 
 
 def test_render_nav_map_panel_escapes_names():
