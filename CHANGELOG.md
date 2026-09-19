@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.41.0] - 2026-09-19
+
+### Fixed
+- **`generate.py galaxy` (`--shell`, `--center-sector`, and the default
+  random-start mode) generated and saved a real, empty (0 systems, 0
+  phenomena) sector row for every not-yet-occupied slot it visited, once
+  `generate.py plan`'s skeleton existed to drive per-sector density.**
+  Only the lazy, visit-triggered `ensure_sector_generated` was actually
+  gating generation on `galaxy_shell_band`'s stored candidate bands and
+  the exact `predicted_star_count >= 1.0` threshold; the three batch/
+  neighborhood modes in `run_shell_batch`/`run_local_neighborhood`/
+  `run_random_start` never consulted either, so every slot below that
+  threshold -- most of a realistic galaxy's volume, off the spiral arms/
+  disk plane -- still got a sector saved, almost always with 0 systems
+  once its (correctly tiny) relative density was fed through the Poisson
+  draw. A galaxy shell/neighborhood run could come back "full of empty
+  sectors" as a result, especially the default random-start mode, whose
+  volume-weighted starting-shell pick favors the sparse outer galaxy.
+  `_BatchDensity.resolve` (`generate.py`) now applies the same
+  band-then-exact-density gate `ensure_sector_generated` already used,
+  returning `None` for a non-qualifying slot so every caller skips it
+  instead of generating and saving it; the admin web UI's "generate more
+  sectors around this one" action (`generate_sector_neighborhood`) picked
+  up the same skeleton-driven density and gating, having previously used
+  a flat `--num-systems 10` for every sector regardless of position at
+  all.
+- Every sector-generating command (`sector`, and `galaxy`'s `--shell`/
+  `--center-sector`/random-start modes) now prints, right after saving a
+  sector, how many star systems of each spectral class and phenomena of
+  each type it actually holds, plus that sector's actual vs. expected
+  star density (`1.0` = real local stellar density) -- enough to
+  sanity-check a generation run from its own console output, without a
+  separate database query.
+
 ## [5.40.0] - 2026-09-19
 
 ### Changed

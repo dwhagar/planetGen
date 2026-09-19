@@ -66,6 +66,7 @@ import random
 import secrets
 import sys
 import time
+from collections import Counter
 
 import pymysql
 from rich.progress import (
@@ -889,6 +890,65 @@ def render_sector_text(sector_name, systems, phenomena, markdown):
     return "".join(output_parts)
 
 
+def sector_generation_summary_lines(sector, args_used):
+    """
+    Builds the per-sector status lines every sector-generating command
+    (`sector`, `galaxy`'s three modes) prints right after a sector is
+    saved: how many star systems of each spectral class and phenomena of
+    each type were actually generated, plus how the sector's actual star
+    count compares to what its own local density predicted -- so a run's
+    output is enough on its own to sanity-check what came out of it,
+    without a separate database query.
+
+    Args:
+        sector (SpaceSector): The freshly generated (and, by the time a
+            caller has this, already saved -- so `sector.name` is final)
+            sector.
+        args_used (argparse.Namespace): The args actually passed to
+            `generate_sector` to build this particular sector --
+            `.density`/`.num_systems` reflect whichever one drove it
+            (for `galaxy` mode, this is `_BatchDensity.resolve`'s own
+            per-sector result, not necessarily the top-level parsed args).
+
+    Returns:
+        str: Two or three newline-joined, already-indented lines: systems
+            by spectral class, phenomena by type (omitted when the sector
+            has none), and actual vs. expected star density (`1.0` =
+            real local stellar density, matching `--density`'s own
+            convention).
+    """
+    system_types = Counter((entry.star_system.star.type or "?")[0] for entry in sector.entries)
+    phenomenon_types = Counter(entry.phenomenon_type for entry in sector.phenomena)
+
+    e_value = sector.expected_system_count()
+    if args_used.density is not None:
+        expected_density = args_used.density
+    elif e_value > 0:
+        expected_density = (args_used.num_systems or 0) / e_value
+    else:
+        expected_density = 0.0
+    actual_density = (len(sector.entries) / e_value) if e_value > 0 else 0.0
+
+    lines = []
+    if system_types:
+        types_str = ", ".join(f"{count} {cls}-type" for cls, count in sorted(system_types.items()))
+    else:
+        types_str = "none"
+    lines.append(f"    Systems: {types_str}")
+
+    if phenomenon_types:
+        phenomena_str = ", ".join(
+            f"{count} {TYPE_LABELS[ptype]}" for ptype, count in sorted(phenomenon_types.items())
+        )
+        lines.append(f"    Phenomena: {phenomena_str}")
+
+    lines.append(
+        f"    Star density: actual {actual_density:.2f}x local, expected {expected_density:.2f}x local"
+    )
+
+    return "\n".join(lines)
+
+
 def run_sector(args):
     """
     Generates `args.num_sectors` sectors (1 by default), each one a
@@ -956,6 +1016,7 @@ def run_sector(args):
             print(f"Saved sector '{sector.name}' to the database (sector_id={sector_id}, "
                   f"{len(systems)} systems{phenomena_note}, "
                   f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+            print(sector_generation_summary_lines(sector, args))
 
             if outer_task is not None:
                 progress.update(outer_task, advance=1)
@@ -1093,15 +1154,33 @@ class _BatchDensity:
     `sector` mode (no galaxy position to compute a density from at all)
     still gets its flat default of 10 there, unaffected.
 
+    In that "neither given" case, `resolve` also applies the same
+    qualification gate `ensure_sector_generated` already applies to a
+    single lazily-generated sector (`galaxy_shell_band`'s stored candidate
+    bands, then the exact `predicted_star_count`) -- returning `None`
+    rather than a resolved namespace for a slot that doesn't qualify. Prior
+    to this, `run_shell_batch`/`run_local_neighborhood`/`run_random_start`
+    generated and saved a real (all-but-certainly-empty, 0-system,
+    0-phenomena) sector row for *every* not-yet-occupied slot regardless of
+    how far below the 1-star-per-sector threshold its own position's
+    density fell -- most of a realistic galaxy's volume, off the spiral
+    arms/disk plane -- so a batch or neighborhood run could come back
+    "full of empty sectors" even though the single-sector lazy path
+    (`ensure_sector_generated`) never has that problem. Skipping here
+    instead keeps that same guarantee for every generation path.
+
     Fetches the stored skeleton (`generate.py plan`'s own output) once, on
     first use, and reuses it for the rest of the run -- a shell/local-
     neighborhood/random-start batch can mean thousands of sectors, and the
-    skeleton itself never changes mid-run.
+    skeleton itself never changes mid-run. Stored candidate bands are
+    likewise fetched once per shell and cached (`_bands_cache`), since a
+    shell's own band never changes mid-run either.
     """
 
     def __init__(self, config):
         self._config = config
         self._skeleton = None
+        self._bands_cache = {}
 
     def _get_skeleton(self):
         if self._skeleton is None:
@@ -1118,17 +1197,35 @@ class _BatchDensity:
                 )
         return self._skeleton
 
-    def resolve(self, args, position_pc):
+    def _get_bands(self, shell_index):
+        if shell_index not in self._bands_cache:
+            conn = _db.get_connection(self._config)
+            try:
+                self._bands_cache[shell_index] = _db.get_galaxy_shell_bands(conn, shell_index)
+            finally:
+                conn.close()
+        return self._bands_cache[shell_index]
+
+    def resolve(self, args, shell_index, slot_index, position_pc):
         """
         Args:
             args (argparse.Namespace): The `galaxy` subcommand's own parsed
                 (and validated) arguments.
+            shell_index (int): This sector's shell index.
+            slot_index (int): This sector's slot index within that shell --
+                needed (alongside `position_pc`) to check the stored
+                candidate bands.
             position_pc (tuple): This one sector's `(x, y, z)` galaxy-frame
                 position, in parsecs.
 
         Returns:
-            argparse.Namespace: `args` itself when a density/count was
-                given explicitly; otherwise a fresh copy (never mutates the
+            argparse.Namespace or None: `args` itself when a density/count
+                was given explicitly (no gating applied -- see this class's
+                own docstring). Otherwise, `None` if this position doesn't
+                qualify (outside every stored candidate band, or its own
+                exact `predicted_star_count < 1.0`) -- the caller should
+                skip this slot entirely rather than generate and save a
+                sector for it. Otherwise a fresh copy (never mutates the
                 shared `args`, the same reasoning `generate_sector`'s own
                 `--density` handling already follows) with `.density` set
                 to this sector's own `relative_density` and `.num_systems`
@@ -1138,6 +1235,15 @@ class _BatchDensity:
         if args.density is not None or args.num_systems is not None:
             return args
         skeleton = self._get_skeleton()
+
+        bands = self._get_bands(shell_index)
+        if not any(lo <= slot_index <= hi for lo, hi in bands):
+            return None
+
+        star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
+        if star_count < 1.0:
+            return None
+
         resolved = copy.copy(args)
         resolved.density = relative_density(position_pc, skeleton.shape)
         resolved.num_systems = None
@@ -1182,12 +1288,15 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
             `run_shell_batch`/`run_local_neighborhood`/`run_random_start`.
 
     Returns:
-        tuple: `(sector_id, sector_name)` of the newly saved sector --
-            `sector_name` is read back from `sector.name` *after* saving
+        tuple: `(sector_id, sector_name, sector)` of the newly saved sector
+            -- `sector_name` is read back from `sector.name` *after* saving
             (see the `Returns` note below), not the pre-save name
             `generate_sector` returned, since `stellarObjects._db`'s
             name-uniqueness machinery (v22) may rename it on save if it
-            collides with something already in the database.
+            collides with something already in the database. `sector` (the
+            full `SpaceSector`) is returned too so a caller can report its
+            own per-type system/phenomenon breakdown without a separate
+            query.
     """
     x, y, z = position_pc
     radius_pc = galactic_radius_pc(position_pc)
@@ -1215,7 +1324,7 @@ def generate_and_save_sector_at(args, shell_index, shell_slot_index, position_pc
     sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args), galaxy_position=galaxy_position)
     # sector.name, not the discarded _sector_name above -- save_sector may
     # have just renamed it (a collision with an already-saved sector).
-    return sector_id, sector.name
+    return sector_id, sector.name, sector
 
 
 def _default_generation_args(config=None):
@@ -1353,7 +1462,7 @@ def ensure_sector_generated(shell_index, shell_slot_index, config=None):
     args.num_systems = None
 
     try:
-        sector_id, sector_name = generate_and_save_sector_at(
+        sector_id, sector_name, _sector = generate_and_save_sector_at(
             args, shell_index, shell_slot_index, position_pc, skeleton.edge_pc,
         )
     except pymysql.err.IntegrityError:
@@ -1372,7 +1481,11 @@ def ensure_sector_generated(shell_index, shell_slot_index, config=None):
 def run_shell_batch(args, edge_pc, progress):
     """
     Batch mode: generates every not-yet-generated sector slot in shell
-    `args.shell` (up to `args.limit`, if given).
+    `args.shell` (up to `args.limit`, if given) that qualifies -- when
+    neither `--density` nor `--num-systems` was given, a slot whose own
+    position falls below the 1-star-per-sector threshold is skipped
+    entirely (see `_BatchDensity.resolve`) rather than saved as an
+    all-but-certainly-empty sector.
 
     Args:
         args (argparse.Namespace): Parsed arguments; `args.shell` must
@@ -1410,11 +1523,19 @@ def run_shell_batch(args, edge_pc, progress):
     batch_density = _BatchDensity(mysql_config)
 
     to_generate = total_slots - len(occupied)
-    if args.limit is not None:
+    if args.limit is not None and (args.density is not None or args.num_systems is not None):
+        # Only a safe cap when every not-yet-occupied slot is guaranteed to
+        # actually generate (an explicit --density/--num-systems bypasses
+        # _BatchDensity's own qualification gate entirely) -- otherwise an
+        # unknown number of slots this scan reaches may be skipped for
+        # falling below the star-count threshold before --limit many
+        # sectors are actually generated, so the total can't be capped to
+        # --limit in advance without the bar overrunning it.
         to_generate = min(to_generate, args.limit)
     outer_task = progress.add_task(f"Sectors (shell {shell_index})", total=max(to_generate, 0))
 
     generated = 0
+    skipped = 0
     for slot_index in range(total_slots):
         if args.limit is not None and generated >= args.limit:
             break
@@ -1422,8 +1543,17 @@ def run_shell_batch(args, edge_pc, progress):
             continue
 
         position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
-        sector_args = batch_density.resolve(args, position_pc)
-        sector_id, sector_name = generate_and_save_sector_at(
+        sector_args = batch_density.resolve(args, shell_index, slot_index, position_pc)
+        if sector_args is None:
+            # Below the 1-star-per-sector threshold (or outside every
+            # stored candidate band) -- skip it entirely rather than save
+            # an all-but-certainly-empty sector, matching
+            # ensure_sector_generated's own gating (see _BatchDensity).
+            skipped += 1
+            progress.update(outer_task, advance=1)
+            continue
+
+        sector_id, sector_name, sector = generate_and_save_sector_at(
             sector_args, shell_index, slot_index, position_pc, edge_pc, progress=progress,
         )
         generated += 1
@@ -1432,19 +1562,22 @@ def run_shell_batch(args, edge_pc, progress):
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
         )
         print(f"Saved sector '{sector_name}' [{designation}] at shell {shell_index} slot {slot_index} (sector_id={sector_id}).")
+        print(sector_generation_summary_lines(sector, sector_args))
 
     already_existed = len(occupied)
+    skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     print(
         f"Generated {generated} new sector(s) in shell {shell_index} "
-        f"({total_slots} total slots, {already_existed} already existed)."
+        f"({total_slots} total slots, {already_existed} already existed{skip_note})."
     )
 
 
 def run_local_neighborhood(args, edge_pc, progress):
     """
-    Local-neighborhood mode: generates every not-yet-generated sector slot
-    within `args.radius_pc` parsecs of `args.center_sector`'s own stored
-    galaxy-frame center.
+    Local-neighborhood mode: generates every not-yet-generated, qualifying
+    sector slot within `args.radius_pc` parsecs of `args.center_sector`'s
+    own stored galaxy-frame center -- see `run_shell_batch`'s own
+    docstring for what "qualifying" means and when it applies.
 
     Args:
         args (argparse.Namespace): Parsed arguments;
@@ -1503,12 +1636,24 @@ def run_local_neighborhood(args, edge_pc, progress):
     outer_task = progress.add_task("Sectors (local neighborhood)", total=to_generate)
 
     generated = 0
+    skipped = 0
+    already_existed = 0
     for shell_index, slot_index, x, y, z, distance_pc in candidates:
         if (shell_index, slot_index) in occupied:
+            already_existed += 1
             continue
 
-        sector_args = batch_density.resolve(args, (x, y, z))
-        sector_id, sector_name = generate_and_save_sector_at(
+        sector_args = batch_density.resolve(args, shell_index, slot_index, (x, y, z))
+        if sector_args is None:
+            # Below the 1-star-per-sector threshold (or outside every
+            # stored candidate band) -- skip it entirely rather than save
+            # an all-but-certainly-empty sector, matching
+            # ensure_sector_generated's own gating (see _BatchDensity).
+            skipped += 1
+            progress.update(outer_task, advance=1)
+            continue
+
+        sector_id, sector_name, sector = generate_and_save_sector_at(
             sector_args, shell_index, slot_index, (x, y, z), edge_pc, progress=progress,
         )
         generated += 1
@@ -1520,11 +1665,12 @@ def run_local_neighborhood(args, edge_pc, progress):
             f"Saved sector '{sector_name}' [{designation}] at shell {shell_index} slot {slot_index}, "
             f"{distance_pc:.2f} pc from sector_id={args.center_sector} (sector_id={sector_id})."
         )
+        print(sector_generation_summary_lines(sector, sector_args))
 
-    already_existed = len(candidates) - generated
+    skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     print(
         f"Generated {generated} new sector(s) within {args.radius_pc} pc of sector_id={args.center_sector} "
-        f"({len(candidates)} candidate slot(s) found, {already_existed} already existed)."
+        f"({len(candidates)} candidate slot(s) found, {already_existed} already existed{skip_note})."
     )
 
 
@@ -1565,14 +1711,18 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None):
 
     Returns:
         dict: `generated` (int -- newly created sectors), `already_existed`
-            (int -- candidate slots that already had a sector),
-            `candidates` (int -- total slots within the radius).
+            (int -- candidate slots that already had a sector), `skipped`
+            (int -- candidate slots below the 1-star-per-sector threshold,
+            per `_BatchDensity`'s own gating), `candidates` (int -- total
+            slots within the radius).
 
     Raises:
         ValueError: If `center_sector_id` doesn't exist, or exists but has
                    never been placed in a galaxy (its galaxy-position
                    columns are NULL -- e.g. a sector generated via the
                    `sector` subcommand rather than `galaxy`).
+        RuntimeError: If the galaxy's skeleton has never been built --
+                     see `_BatchDensity`/run `generate.py plan` first.
     """
     edge_pc = _edge_pc()
     radius_pc = (
@@ -1605,17 +1755,34 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None):
         conn.close()
 
     args = _default_generation_args(config=config)
+    # Drives each sector's own system count from the galaxy skeleton's real
+    # position-based relative_density (_BatchDensity), the same way
+    # run_local_neighborhood/ensure_sector_generated already do -- without
+    # this, `_default_generation_args`'s own flat num_systems=10 default
+    # would apply uniformly regardless of local density.
+    args.density = None
+    args.num_systems = None
+
+    batch_density = _BatchDensity(config)
 
     generated = 0
+    skipped = 0
+    already_existed = 0
     for shell_index, slot_index, x, y, z, _distance_pc in candidates:
         if (shell_index, slot_index) in occupied:
+            already_existed += 1
             continue
-        generate_and_save_sector_at(args, shell_index, slot_index, (x, y, z), edge_pc)
+        sector_args = batch_density.resolve(args, shell_index, slot_index, (x, y, z))
+        if sector_args is None:
+            skipped += 1
+            continue
+        generate_and_save_sector_at(sector_args, shell_index, slot_index, (x, y, z), edge_pc)
         generated += 1
 
     return {
         "generated": generated,
-        "already_existed": len(candidates) - generated,
+        "already_existed": already_existed,
+        "skipped": skipped,
         "candidates": len(candidates),
     }
 
@@ -1670,7 +1837,12 @@ def run_random_start(args, edge_pc, progress):
     `program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS`, whenever the
     drawn address already has a sector (overwhelmingly unlikely for any
     galaxy that isn't already almost entirely generated; see that
-    constant's own docstring).
+    constant's own docstring), or (when neither `--density` nor
+    `--num-systems` was given) doesn't itself qualify per `_BatchDensity`'s
+    own gating -- likely for any given draw, since most of a real galaxy's
+    volume sits off the spiral arms/disk plane, but rare enough in
+    aggregate across the whole sphere that a retry almost always lands on
+    a qualifying address well within the attempt budget.
 
     Args:
         args (argparse.Namespace): Parsed arguments;
@@ -1698,30 +1870,39 @@ def run_random_start(args, edge_pc, progress):
     )
 
     mysql_config = _db.mysql_config_from_args(args)
+    # `run_local_neighborhood` below builds its own separate `_BatchDensity`
+    # for the surrounding neighborhood; this one is just for picking (and
+    # generating) the seed sector itself.
+    batch_density = _BatchDensity(mysql_config)
     conn = _db.get_connection(mysql_config)
     try:
+        sector_args = None
         for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
             shell_index = _pick_random_shell_index(max_shell_index, edge_pc)
             slot_index = random.randrange(shell_sector_count(shell_index))
-            if _db.get_sector_id_at(conn, shell_index, slot_index) is None:
+            if _db.get_sector_id_at(conn, shell_index, slot_index) is not None:
+                continue
+            position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
+            # Same qualification gate `run_shell_batch`/`run_local_neighborhood`
+            # apply -- an unoccupied address whose own position doesn't
+            # clear the 1-star-per-sector threshold is retried exactly like
+            # an already-occupied one, rather than generated as an
+            # all-but-certainly-empty seed sector.
+            sector_args = batch_density.resolve(args, shell_index, slot_index, position_pc)
+            if sector_args is not None:
                 break
         else:
             raise SystemExit(
-                f"Could not find an unoccupied sector address within {max_shell_index} shells after "
-                f"{program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts -- this galaxy may "
-                f"already be almost entirely generated within that range; try a larger --max-shell."
+                f"Could not find an unoccupied, qualifying sector address within {max_shell_index} "
+                f"shells after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts -- this "
+                f"galaxy may already be almost entirely generated within that range, or that range may "
+                f"hold too little real stellar density; try a larger --max-shell."
             )
     finally:
         conn.close()
 
-    position_pc = sector_position_pc(shell_index, slot_index, edge_pc)
-    # `run_local_neighborhood` below resolves its own per-sector density
-    # for the rest of this run (it builds its own `_BatchDensity`); this
-    # first sector needs the same treatment since it's generated directly
-    # here, before falling through.
-    sector_args = _BatchDensity(mysql_config).resolve(args, position_pc)
     seed_task = progress.add_task("Sectors (random start)", total=1)
-    sector_id, sector_name = generate_and_save_sector_at(
+    sector_id, sector_name, sector = generate_and_save_sector_at(
         sector_args, shell_index, slot_index, position_pc, edge_pc, progress=progress,
     )
     progress.update(seed_task, advance=1)
@@ -1732,6 +1913,7 @@ def run_random_start(args, edge_pc, progress):
         f"Saved random starting sector '{sector_name}' [{designation}] at shell {shell_index} slot "
         f"{slot_index} (sector_id={sector_id})."
     )
+    print(sector_generation_summary_lines(sector, sector_args))
 
     args.center_sector = sector_id
     args.radius_pc = radius_pc
