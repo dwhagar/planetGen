@@ -39,7 +39,7 @@ import math
 import random
 
 from .config import SystemConfig
-from . import keplerMotion, physical_constants, program_constants
+from . import keplerMotion, log, physical_constants, program_constants
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .planetPhysics import calculate_orbital_period_years
 from .roguePlanetData import format_comet_composition_summary
@@ -164,9 +164,15 @@ class Comet:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.primary_mass_solar = primary_mass_solar
 
-        self.orbit_type = orbit_type if orbit_type else (
-            "parabolic" if random.random() < program_constants.COMET_PARABOLIC_CHANCE else "elliptical"
-        )
+        if orbit_type:
+            self.orbit_type = orbit_type
+            log.debug(f"Comet orbit type: {orbit_type!r} (forced)")
+        else:
+            self.orbit_type = (
+                "parabolic" if random.random() < program_constants.COMET_PARABOLIC_CHANCE else "elliptical"
+            )
+            log.choice("Comet orbit type", self.orbit_type,
+                       f"roll against COMET_PARABOLIC_CHANCE ({program_constants.COMET_PARABOLIC_CHANCE})")
 
         self.nucleus_diameter_km = random.uniform(*program_constants.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
         num_components = min(3, len(program_constants.COMET_COMPOSITION))
@@ -180,6 +186,8 @@ class Comet:
             class_names = list(program_constants.COMET_PERIOD_CLASSES.keys())
             weights = [program_constants.COMET_PERIOD_CLASSES[c]["weight"] for c in class_names]
             self.period_class = random.choices(class_names, weights=weights, k=1)[0]
+            log.choice("Comet period class", self.period_class,
+                       f"weighted draw among {class_names} (weights {weights})")
             class_data = program_constants.COMET_PERIOD_CLASSES[self.period_class]
 
             self.eccentricity = random.uniform(*class_data["eccentricity_range"])
@@ -209,7 +217,11 @@ class Comet:
             self.min_update_interval_years = None
 
         self.update_orbital_state()
-        self.is_active = random.random() < _activity_chance(self.perihelion_distance_au)
+        activity_chance = _activity_chance(self.perihelion_distance_au)
+        self.is_active = random.random() < activity_chance
+        log.choice("Comet activity", self.is_active,
+                   f"roll against activity chance {activity_chance:.4g} at perihelion "
+                   f"{self.perihelion_distance_au:.4g} AU")
 
     def update_orbital_state(self):
         """

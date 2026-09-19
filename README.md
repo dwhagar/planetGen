@@ -70,14 +70,15 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `+planets` / `-planets`: Ensure the system has at least one planet or asteroid belt, or none at all (star only).
 *   `--system-file`, `-f <path>`: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.
 *   `--num-orbits <int>`: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.
-*   `--output`, `-o <file_path>`: Specifies a file path to write the output to.
-*   `--markdown`, `-m`: Formats the output in Markdown instead of the default wikitext.
+*   `--markdown`, `-m`: Formats the stored write-up in Markdown instead of the default wikitext.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
 *   `--name <name>`: Specifies a name for the star system, overriding the default random generation.
 *   `--age <young|old>`: Specifies the age of the star system (young or old).
 *   `--flavor-chance-system <float>`: Overrides the default system-level flavor text chance (0.0 to 1.0).
 *   `--flavor-chance-planet <float>`: Overrides the default planet-level flavor text chance (0.0 to 1.0).
 *   `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.
+*   `--debug [file]`: Logs every choice the generator makes, and why, with timestamps, to the console. If `file` is given, also mirrors that output to `file`. Available on every subcommand.
+*   `--quiet` / `--silent`: Suppresses all output except errors. Available on every subcommand. Combined with `--debug`, a filename is required (there would otherwise be nowhere for debug output to go).
 
 **Note on Incompatible Options:**
 
@@ -130,7 +131,7 @@ Sector-specific options:
 *   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one the way a uniform `+habitable_world` would. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`, and cannot be combined with a uniform `-habitable_world`.
 *   `--mysql-host <host>`, `--mysql-port <port>`, `--mysql-user <user>`, `--mysql-password <password>`, `--mysql-database <database>`: Where the generated sector is saved. Each defaults to the matching `$PLANETGEN_MYSQL_*` environment variable, or a built-in default (`127.0.0.1:3306`, user/database `planetgen`) -- see [`docs/database-schema.md`](docs/database-schema.md).
 
-The output opens with a sector-wide summary and an index of every system's name and star type, followed by each system's full write-up in turn (then, when present, an index and write-up of every exotic phenomenon the sector generated — see "Sector-Level Exotic Phenomena" below). Every run also saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus any exotic phenomena and a rendered copy of the wiki page in both wikitext and Markdown — to the MySQL database described in [`docs/database-schema.md`](docs/database-schema.md), regardless of whether `--output` was given.
+Each run saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus any exotic phenomena and a rendered copy of the wiki page in both wikitext and Markdown — to the MySQL database described in [`docs/database-schema.md`](docs/database-schema.md), printing only a short status line and summary per saved sector to the console (see "Logging" below for `--debug` if you want to see more).
 
 ### Sector-Level Exotic Phenomena
 
@@ -202,7 +203,7 @@ sector — for nebula/asteroid-field/black-hole/neutron-star, it also
 computes a real galaxy-frame position near that sector, instead of
 leaving it unplaced; other types are linked only (no placement columns of
 their own) — see `docs/database-schema.md`'s "v18"/"v21" notes.
-`--markdown`, `--output`, and the
+`--markdown`, `--debug`/`--quiet`/`--silent`, and the
 `--mysql-*` connection options all work the same way they do on
 `generate.py system`.
 
@@ -274,7 +275,7 @@ deploy or test it locally.
 
 ### Additional Information
 
-This tool is designed as a personal tool for the Molten Aether FFRP game. The output is designed to be simply cut and paste from the program output into the wiki. See https://wiki.moltenaether.com for wiki and game information.
+This tool is designed as a personal tool for the Molten Aether FFRP game. Everything it generates is saved to the database in both wikitext and Markdown, designed to be simply cut and paste from the web interface into the wiki. See https://wiki.moltenaether.com for wiki and game information.
 
 Using commands to force a habitable world and an asteroid belt will automatically force a large star to ensure there is room for both objects. The most common stars are small dwarf stars which make a smaller star system. Forcing a large star as well as the maximum number of planets will cause the generated system to be very large with an extremely high number of planets. Do not assume that just because it is generated here, it is accurate or possible, such large systems may require editing as some worlds may end up saying they are several thousand AU's from the central star.
 

@@ -77,7 +77,7 @@ from rich.progress import (
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, program_constants
+from stellarObjects import _db, log, program_constants
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
@@ -124,19 +124,24 @@ def _generation_progress():
 
     Callers use this as a context manager (`with _generation_progress() as
     progress:`); `rich.progress.Progress` is a `Live` display under the
-    hood, so **every status line printed while it's active must go through
-    `progress.console.print(...)`, never the builtin `print`** -- printing
-    directly to stdout fights with the `Live` region's own redraws (each
-    plain `print` call forces the bar to erase itself, scroll up with the
-    new text, and get redrawn at the bottom again), which is exactly what
-    caused the flicker/scrolling a real terminal used to show once before.
-    Routed through `progress.console` instead, rich prints each line safely
-    *above* the live region and leaves the bar itself pinned at the bottom,
-    redrawn in place with no flicker. This only matters when stdout is a
-    real interactive terminal in the first place -- `Console` auto-detects
-    that (`Console.is_terminal`) and falls back to plain, periodic
-    line-by-line bar output otherwise (piped to a file, a CI log, etc.), so
-    no separate handling is needed for that case.
+    hood, so **every status line logged while it's active must go through
+    `progress.console`, never a raw stdout write** -- printing directly to
+    stdout fights with the `Live` region's own redraws (each plain `print`
+    call forces the bar to erase itself, scroll up with the new text, and
+    get redrawn at the bottom again), which is exactly what caused the
+    flicker/scrolling a real terminal used to show once before. `run_galaxy`
+    calls `log.set_console(progress.console)` right after opening this
+    context manager (and `log.reset_console()` once it's closed), so every
+    `log.normal(...)`/`log.debug(...)` call made anywhere during a galaxy
+    run -- including deep inside `stellarObjects` modules -- is
+    automatically routed through `progress.console.print(...)` instead of a
+    raw stdout write for as long as the bar is live. Routed that way, rich
+    prints each line safely *above* the live region and leaves the bar
+    itself pinned at the bottom, redrawn in place with no flicker. This only
+    matters when stdout is a real interactive terminal in the first place --
+    `Console` auto-detects that (`Console.is_terminal`) and falls back to
+    plain, periodic line-by-line bar output otherwise (piped to a file, a CI
+    log, etc.), so no separate handling is needed for that case.
 
     Returns:
         Progress: Not yet started.
@@ -183,14 +188,54 @@ class TristateAction(argparse.Action):
         setattr(namespace, self.dest, option_string.startswith('+'))
 
 
+def add_logging_arguments(parser):
+    """
+    Adds the logging options every subcommand shares to `parser`:
+    `--debug` and `--quiet`/`--silent`.
+
+    `--debug` alone enables debug-severity output to the console; giving it
+    a filename (`--debug FILE`) additionally mirrors that same output to
+    `FILE`. `--quiet`/`--silent` (two spellings of the same flag) restrict
+    output to errors only. `validate_logging_args` enforces the one
+    combination that doesn't make sense: `--quiet`/`--silent` together with
+    a filename-less `--debug`, which would have nowhere to send debug
+    output once the console is silenced.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--debug', nargs='?', const='', default=None, metavar='FILE',
+                        help="Log every choice the generator makes, and why, with timestamps, to the "
+                             "console. If FILE is given, also mirror that output to FILE.")
+    parser.add_argument('--quiet', '--silent', dest='quiet', action='store_true',
+                        help="Suppress all output except errors.")
+
+
+def validate_logging_args(args, parser):
+    """
+    Validates the logging options `add_logging_arguments` added, calling
+    `parser.error` (which exits) if `--quiet`/`--silent` is combined with a
+    filename-less `--debug`.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments.
+        parser (argparse.ArgumentParser): The parser to raise errors
+                                          through (so the caller's own
+                                          `--help`/usage text is shown).
+    """
+    if args.quiet and args.debug is not None and not args.debug:
+        parser.error("--debug requires a FILE argument when combined with --quiet/--silent "
+                     "(there's nowhere else for debug output to go).")
+
+
 def add_system_arguments(parser):
     """
     Adds every option the `system` subcommand accepts (besides
     `--version`, which only the top-level parser offers) to `parser` --
     the tri-state `+name`/`-name` flags (see `TRISTATE_OPTIONS`),
-    `--system-file`, `--output`, the MySQL connection args, `--markdown`,
-    `--star-type`, `--num-orbits`, `--name`, `--age`, and the flavor-text
-    overrides.
+    `--system-file`, the MySQL connection args, `--markdown`,
+    `--star-type`, `--num-orbits`, `--name`, `--age`, the flavor-text
+    overrides, and the logging options (see `add_logging_arguments`).
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -209,14 +254,14 @@ def add_system_arguments(parser):
                         help="Load system generation options from a JSON file. Command-line options "
                              "override the values it sets.")
 
-    # Output to a file
-    parser.add_argument('--output', '-o', type=str, help="Output to a file.")
-
     # Database persistence
     _db.add_mysql_connection_args(parser)
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
+
+    # Logging (--debug, --quiet/--silent)
+    add_logging_arguments(parser)
 
     # Star Type
     parser.add_argument('--star-type', type=str,
@@ -372,9 +417,7 @@ def build_system_config(args):
             `build_sector_configs` builds for each system in a sector).
 
     Returns:
-        tuple: (SystemConfig, output_path) -- output_path is `args.output`,
-              or the `--system-file`'s own `"output"` key if `args.output`
-              wasn't given.
+        SystemConfig: The resolved configuration.
 
     Raises:
         SystemExit: If a habitable world and an asteroid belt are both
@@ -383,13 +426,10 @@ def build_system_config(args):
                    no room to be satisfied.
     """
     system_config = SystemConfig()
-    output_path = args.output
 
     if args.system_file:
         file_data = load_system_file(args.system_file)
         apply_system_file(system_config, file_data)
-        if output_path is None and file_data.get("output"):
-            output_path = file_data["output"]
 
     # Command-line tri-state options override anything set by --system-file.
     for name, attr, _description in TRISTATE_OPTIONS:
@@ -425,11 +465,12 @@ def build_system_config(args):
 
     if system_config.HABITABLE_WORLD is True and system_config.ASTEROID_BELT is True:
         if system_config.LARGE_STAR is False:
-            raise SystemExit("Error: forcing both a habitable world and an asteroid belt requires a large "
-                              "star; -large_star cannot be combined with +habitable_world and +asteroid_belt.")
+            log.error("Error: forcing both a habitable world and an asteroid belt requires a large "
+                      "star; -large_star cannot be combined with +habitable_world and +asteroid_belt.")
+            raise SystemExit(1)
         system_config.LARGE_STAR = True
 
-    return system_config, output_path
+    return system_config
 
 
 def run_system(args):
@@ -440,19 +481,13 @@ def run_system(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "system"`).
     """
-    system_config, output_path = build_system_config(args)
+    system_config = build_system_config(args)
     system = StarSystem(system_config=system_config)
-
-    if output_path:
-        with open(output_path, 'w') as f:
-            f.write(str(system))
-    else:
-        print(system)
 
     mysql_config = _db.mysql_config_from_args(args)
     star_system_id = _db.save_system(system, system_config, config=mysql_config)
-    print(f"Saved system '{system.star.name}' to the database (star_system_id={star_system_id}, "
-          f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+    log.normal(f"Saved system '{system.star.name}' to the database (star_system_id={star_system_id}, "
+               f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
 
 # ===========================================================================
@@ -489,11 +524,12 @@ def add_shared_generation_options(parser):
     `parser`. Factored out so the two subcommands' option surfaces can
     never silently drift apart on what a given flag means.
 
+    Also adds the logging options (see `add_logging_arguments`), shared
+    identically by every subcommand.
+
     Deliberately excludes `--name`/`-n` (sector naming is the `sector`
     subcommand's own per-invocation concept; `galaxy` names each
-    generated sector itself, once per shell slot / neighborhood address)
-    and `--output`/`--console` (their own I/O conventions differ enough
-    that sharing them would obscure more than it saves).
+    generated sector itself, once per shell slot / neighborhood address).
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -532,6 +568,8 @@ def add_shared_generation_options(parser):
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
+
+    add_logging_arguments(parser)
 
 
 def validate_shared_generation_args(args, parser):
@@ -603,8 +641,8 @@ def add_sector_arguments(parser):
     """
     Adds the `sector` subcommand's own sector-specific options -- on top
     of whatever `add_shared_generation_options` already added -- to
-    `parser`: `--name`/`-n` (sector name), `--num-sectors`, `--output`,
-    `--console`, and the MySQL connection args.
+    `parser`: `--name`/`-n` (sector name), `--num-sectors`, and the MySQL
+    connection args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -615,10 +653,6 @@ def add_sector_arguments(parser):
     parser.add_argument('--num-sectors', type=int, default=1,
                         help="Generate this many independent sectors, each with no galactic positioning, "
                              "saving all of them into the same database. Defaults to 1.")
-    parser.add_argument('--output', '-o', type=str, help="Output to a file.")
-    parser.add_argument('--console', action='store_true',
-                        help="Also print each sector's rendered Markdown/wikitext to the console. By "
-                             "default, only status messages are printed.")
     _db.add_mysql_connection_args(parser)
 
 
@@ -681,15 +715,16 @@ def build_sector_configs(args):
             `--density`-driven count, which isn't resolved until generation
             time.
     """
-    configs = [build_system_config(args)[0] for _ in range(args.num_systems)]
+    configs = [build_system_config(args) for _ in range(args.num_systems)]
 
     if args.min_habitable > len(configs):
-        raise SystemExit(
+        log.error(
             f"Error: --min-habitable ({args.min_habitable}) exceeds this sector's generated system "
             f"count ({len(configs)}); with --density, the count is randomly sampled per sector and can "
             f"land below --min-habitable. Try a smaller --min-habitable, a higher --density, or "
             f"--num-systems for an exact count instead."
         )
+        raise SystemExit(1)
 
     if args.min_habitable > 0:
         already_habitable = [i for i, cfg in enumerate(configs) if cfg.HABITABLE_WORLD is True]
@@ -703,11 +738,12 @@ def build_sector_configs(args):
                 # this override existed.
                 if configs[i].ASTEROID_BELT is True:
                     if configs[i].LARGE_STAR is False:
-                        raise SystemExit(
+                        log.error(
                             "Error: --min-habitable requires forcing a habitable world onto a system that also "
                             "has +asteroid_belt forced sector-wide; that combination needs a large star, but "
                             "-large_star was also forced sector-wide."
                         )
+                        raise SystemExit(1)
                     configs[i].LARGE_STAR = True
 
     return configs
@@ -849,68 +885,11 @@ def generate_sector(args, galactic_center_dist_ly=None):
         # empty. Only applies when the count came from --density (an
         # explicit --num-systems, including 0, is a deliberate request
         # this never overrides).
-        fallback_config, _output_path = build_system_config(args)
+        fallback_config = build_system_config(args)
         fallback_system = StarSystem(system_config=fallback_config, galactic_center_dist_ly=galactic_center_dist_ly)
         sector.add_system(fallback_system, system_config=fallback_config)
 
     return sector_name, sector
-
-
-def render_sector_text(sector_name, systems, phenomena, markdown):
-    """
-    Renders one generated sector's systems (and any generated exotic
-    phenomena) as a Markdown or wikitext blob: a sector header, a short
-    summary line, an index of every system's name and star type (plus,
-    when present, every phenomenon's name and type), then each system's
-    and phenomenon's own full rendering, all divided per `markdown`.
-    Factored out of `run_sector` so it can be skipped entirely when
-    neither `--console` nor `--output` was given -- rendering a large
-    sector isn't free, and by default only status is reported.
-
-    Args:
-        sector_name (str): The sector's name.
-        systems (list): The sector's `StarSystem` instances.
-        phenomena (list): The sector's `SectorPhenomenonEntry` instances
-            (see `generate_sector_phenomena`) -- realistically empty for
-            most sectors.
-        markdown (bool): `True` for Markdown, `False` for MediaWiki wikitext.
-
-    Returns:
-        str: The fully rendered sector text.
-    """
-    habitable_count = sum(1 for s in systems if s.hab_count > 0)
-
-    output_parts = []
-    if markdown:
-        output_parts.append(f"# {sector_name}\n\n")
-    else:
-        output_parts.append(f"= {sector_name} =\n\n")
-
-    system_word = "system" if len(systems) == 1 else "systems"
-    habitable_verb = "harbors" if habitable_count == 1 else "harbor"
-    output_parts.append(
-        f"This sector contains {len(systems)} star {system_word}, "
-        f"{habitable_count} of which {habitable_verb} a potentially habitable world.\n\n"
-    )
-
-    bullet = "-" if markdown else "*"
-    for system in systems:
-        output_parts.append(f"{bullet} {system.star.name} ({system.star.type})\n")
-    output_parts.append("\n")
-
-    if phenomena:
-        phenomenon_word = "phenomenon" if len(phenomena) == 1 else "phenomena"
-        output_parts.append(f"It also holds {len(phenomena)} notable stellar {phenomenon_word}:\n\n")
-        for entry in phenomena:
-            label = TYPE_LABELS[entry.phenomenon_type]
-            output_parts.append(f"{bullet} {entry.phenomenon.name} ({label})\n")
-        output_parts.append("\n")
-
-    divider = "\n\n---\n\n" if markdown else "\n\n----\n\n"
-    blobs = [str(system) for system in systems] + [str(entry.phenomenon) for entry in phenomena]
-    output_parts.append(divider.join(blobs))
-
-    return "".join(output_parts)
 
 
 def sector_generation_summary_lines(sector, args_used):
@@ -984,57 +963,31 @@ def run_sector(args):
     context (see the `galaxy` subcommand for that), so every sector it
     produces is "unplaced", regardless of `--num-sectors`.
 
-    Each sector is rendered under a single sector header with a short
-    summary and an index of every system's name and star type. That
-    rendering is written to `--output` (if given, all sectors appended to
-    the same file, divided the same way systems within a sector are) and/or
-    printed to the console (only if `--console` was given) -- by default,
-    with neither flag, only a short status line per saved sector is
-    printed, so a large `--num-sectors` run doesn't flood the console with
-    rendered text nobody asked to see.
+    Each sector is saved to the database; only a short status line and
+    summary per saved sector is printed, so a large `--num-sectors` run
+    doesn't flood the console with rendered text nobody asked to see.
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "sector"`).
     """
-    divider = "\n\n---\n\n" if args.markdown else "\n\n----\n\n"
-
-    for i in range(args.num_sectors):
+    for _i in range(args.num_sectors):
         _sector_name, sector = generate_sector(args)
         systems = [entry.star_system for entry in sector.entries]
 
-        # Saved *before* any rendering below -- stellarObjects._db's
-        # name-uniqueness machinery (v22) may rename this sector (or
-        # one of its systems) on save if it collides with something
-        # already in the database, mutating `sector`/`systems` in
-        # place; rendering afterward guarantees `--console`/`--output`
-        # text always shows the real, final names, never a stale
-        # pre-rename one.
         mysql_config = _db.mysql_config_from_args(args)
         sector_id = _db.save_sector(sector, config=mysql_config)
 
-        if args.output or args.console:
-            output_text = render_sector_text(sector.name, systems, sector.phenomena, args.markdown)
-
-            if args.output:
-                with open(args.output, 'w' if i == 0 else 'a') as f:
-                    if i > 0:
-                        f.write(divider)
-                    f.write(output_text)
-
-            if args.console:
-                print(output_text)
-
         phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
-        print(
+        log.normal(
             f"Saved sector '{sector.name}' to the database (sector_id={sector_id}, "
             f"{len(systems)} systems{phenomena_note}, "
             f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
         )
-        print(sector_generation_summary_lines(sector, args))
+        log.normal(sector_generation_summary_lines(sector, args))
 
     if args.num_sectors > 1:
-        print(f"Generated {args.num_sectors} sectors.")
+        log.normal(f"Generated {args.num_sectors} sectors.")
 
 
 # ===========================================================================
@@ -1154,18 +1107,11 @@ def validate_galaxy_args(args, parser):
 
     # generate_sector()/build_sector_configs() expect a namespace shaped
     # like the `sector` subcommand's own output -- see this function's
-    # docstring for why these are always None here. `output` in
-    # particular is read directly by build_system_config
-    # (`output_path = args.output`) even though the `galaxy` subcommand
-    # has no per-system/per-sector output-file option of its own (every
-    # generated sector is only ever saved to the database, never rendered
-    # to a file/stdout the way `sector` does) -- it must exist on the
-    # namespace even though its value is never used afterward.
+    # docstring for why these are always None here.
     args.sector_name = None
     args.system_file = None
     args.num_orbits = None
     args.name = None
-    args.output = None
 
 
 class _BatchDensity:
@@ -1388,7 +1334,6 @@ def _default_generation_args(config=None):
     args.system_file = None
     args.num_orbits = None
     args.name = None
-    args.output = None
 
     config = config or _db.MySQLConfig()
     args.mysql_host = config.host
@@ -1514,9 +1459,10 @@ def run_shell_batch(args, edge_pc, progress):
             display -- an outer "Sectors" task is added to it here (total
             = however many not-yet-generated slots this batch will
             actually generate) and advanced once per sector. Every status
-            line below is printed via `progress.console.print` rather than
-            the builtin `print` -- see `_generation_progress`'s own
-            docstring for why that matters while a `Progress` is live.
+            line below is logged via `log.normal`/`log.debug`, which routes
+            through `progress.console` rather than a raw stdout write --
+            see `_generation_progress`'s own docstring for why that matters
+            while a `Progress` is live.
 
     Raises:
         SystemExit: If the shell's total slot count exceeds
@@ -1527,11 +1473,12 @@ def run_shell_batch(args, edge_pc, progress):
     total_slots = shell_sector_count(shell_index)
 
     if total_slots > LARGE_SHELL_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        raise SystemExit(
+        log.error(
             f"Shell {shell_index} holds {total_slots} sector slots -- generating a whole shell this "
             f"large is likely impractical. Pass --limit N to generate only the first N not-yet-generated "
             f"slots, or --yes to confirm generating all {total_slots}."
         )
+        raise SystemExit(1)
 
     mysql_config = _db.mysql_config_from_args(args)
     conn = _db.get_connection(mysql_config)
@@ -1569,10 +1516,13 @@ def run_shell_batch(args, edge_pc, progress):
             # stored candidate band) -- skip it entirely rather than save
             # an all-but-certainly-empty sector, matching
             # ensure_sector_generated's own gating (see _BatchDensity).
+            log.debug(f"Shell {shell_index} slot {slot_index}: skipped (below the 1-star-per-sector "
+                      f"threshold, or outside every stored candidate band)")
             skipped += 1
             progress.update(outer_task, advance=1)
             continue
 
+        log.debug(f"Shell {shell_index} slot {slot_index}: generating (density={sector_args.density})")
         sector_id, sector_name, sector = generate_and_save_sector_at(
             sector_args, shell_index, slot_index, position_pc, edge_pc,
         )
@@ -1581,15 +1531,15 @@ def run_shell_batch(args, edge_pc, progress):
         designation = provisional_sector_designation(
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
         )
-        progress.console.print(
+        log.normal(
             f"Saved sector '{sector_name}' [{designation}] at shell {shell_index} slot {slot_index} "
             f"(sector_id={sector_id})."
         )
-        progress.console.print(sector_generation_summary_lines(sector, sector_args))
+        log.normal(sector_generation_summary_lines(sector, sector_args))
 
     already_existed = len(occupied)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
-    progress.console.print(
+    log.normal(
         f"Generated {generated} new sector(s) in shell {shell_index} "
         f"({total_slots} total slots, {already_existed} already existed{skip_note})."
     )
@@ -1625,17 +1575,19 @@ def run_local_neighborhood(args, edge_pc, progress):
         try:
             center_position = _db.get_sector_galaxy_position(conn, args.center_sector)
         except ValueError as exc:
-            raise SystemExit(str(exc)) from exc
+            log.error(str(exc))
+            raise SystemExit(1) from exc
     finally:
         conn.close()
 
     if center_position is None:
-        raise SystemExit(
+        log.error(
             f"sector_id={args.center_sector} has never been placed in a galaxy (its galaxy-position "
             f"columns are NULL) -- --center-sector requires an already galaxy-placed sector (one "
             f"generated via 'generate.py galaxy' itself, not 'generate.py sector'). Use --shell to "
             f"generate placed sectors from scratch instead."
         )
+        raise SystemExit(1)
 
     center = (
         center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"],
@@ -1672,10 +1624,13 @@ def run_local_neighborhood(args, edge_pc, progress):
             # stored candidate band) -- skip it entirely rather than save
             # an all-but-certainly-empty sector, matching
             # ensure_sector_generated's own gating (see _BatchDensity).
+            log.debug(f"Shell {shell_index} slot {slot_index}: skipped (below the 1-star-per-sector "
+                      f"threshold, or outside every stored candidate band)")
             skipped += 1
             progress.update(outer_task, advance=1)
             continue
 
+        log.debug(f"Shell {shell_index} slot {slot_index}: generating (density={sector_args.density})")
         sector_id, sector_name, sector = generate_and_save_sector_at(
             sector_args, shell_index, slot_index, (x, y, z), edge_pc,
         )
@@ -1684,14 +1639,14 @@ def run_local_neighborhood(args, edge_pc, progress):
         designation = provisional_sector_designation(
             shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
         )
-        progress.console.print(
+        log.normal(
             f"Saved sector '{sector_name}' [{designation}] at shell {shell_index} slot {slot_index}, "
             f"{distance_pc:.2f} pc from sector_id={args.center_sector} (sector_id={sector_id})."
         )
-        progress.console.print(sector_generation_summary_lines(sector, sector_args))
+        log.normal(sector_generation_summary_lines(sector, sector_args))
 
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
-    progress.console.print(
+    log.normal(
         f"Generated {generated} new sector(s) within {args.radius_pc} pc of sector_id={args.center_sector} "
         f"({len(candidates)} candidate slot(s) found, {already_existed} already existed{skip_note})."
     )
@@ -1932,12 +1887,13 @@ def run_random_start(args, edge_pc, progress):
                 f"draws land in the galaxy's own sparser outskirts, far short of it)"
                 if args.min_start_density is not None else ""
             )
-            raise SystemExit(
+            log.error(
                 f"Could not find an unoccupied, qualifying sector address within {max_shell_index} "
                 f"shells after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
                 f"-- this galaxy may already be almost entirely generated within that range, or that range "
                 f"may hold too little real stellar density; try a larger --max-shell."
             )
+            raise SystemExit(1)
     finally:
         conn.close()
 
@@ -1947,11 +1903,11 @@ def run_random_start(args, edge_pc, progress):
     designation = provisional_sector_designation(
         shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
     )
-    progress.console.print(
+    log.normal(
         f"Saved random starting sector '{sector_name}' [{designation}] at shell {shell_index} slot "
         f"{slot_index} (sector_id={sector_id})."
     )
-    progress.console.print(sector_generation_summary_lines(sector, sector_args))
+    log.normal(sector_generation_summary_lines(sector, sector_args))
 
     args.center_sector = sector_id
     args.radius_pc = radius_pc
@@ -1974,12 +1930,16 @@ def run_galaxy(args):
     edge_pc = _edge_pc()
 
     with _generation_progress() as progress:
-        if args.shell is not None:
-            run_shell_batch(args, edge_pc, progress)
-        elif args.center_sector is not None:
-            run_local_neighborhood(args, edge_pc, progress)
-        else:
-            run_random_start(args, edge_pc, progress)
+        log.set_console(progress.console)
+        try:
+            if args.shell is not None:
+                run_shell_batch(args, edge_pc, progress)
+            elif args.center_sector is not None:
+                run_local_neighborhood(args, edge_pc, progress)
+            else:
+                run_random_start(args, edge_pc, progress)
+        finally:
+            log.reset_console()
 
 
 # ===========================================================================
@@ -2064,6 +2024,7 @@ def add_plan_arguments(parser):
     parser.add_argument('--chunk-size', type=int, default=None,
                         help="Shells dispatched per parallel round. Defaults to 8x --workers.")
     _db.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
 
 
 def validate_plan_args(args, parser):
@@ -2141,7 +2102,7 @@ def build_skeleton(args):
         calibration_radius_pc=args.calibration_radius_pc,
     )
 
-    print(
+    log.normal(
         f"Building skeleton: disk_scale_length_pc={shape.disk_scale_length_pc} "
         f"disk_scale_height_pc={shape.disk_scale_height_pc} "
         f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc} "
@@ -2215,13 +2176,13 @@ def run_plan(args):
             "plan"`).
     """
     summary = build_skeleton(args)
-    print(
+    log.normal(
         f"Skeleton built in {summary['elapsed_s']:.2f}s: scanned {summary['shells_scanned']} shells, "
         f"outer edge = shell {summary['outer_shell_index']}, {summary['total_bands']} band(s) stored, "
         f"~{summary['total_candidate_slots']:,} candidate sector slots."
     )
     if not summary["edge_confirmed"]:
-        print(
+        log.normal(
             f"WARNING: reached --max-shell ({args.max_shell}) without a run of "
             f"{args.empty_streak_to_stop} consecutive empty shells -- the galaxy's true edge was not "
             f"confirmed. Re-run with a larger --max-shell if these shape parameters really do produce "
@@ -2251,8 +2212,8 @@ def add_phenomenon_arguments(parser):
     """
     Adds every option the `phenomenon` subcommand accepts (besides
     `--version`) to `parser` -- `--type`, `--anchor-system`,
-    `--num-orbits`, `--sector-id`, `--output`, the MySQL connection args,
-    `--markdown`, and `--name`.
+    `--num-orbits`, `--sector-id`, the MySQL connection args, `--markdown`,
+    `--name`, and the logging options (see `add_logging_arguments`).
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -2278,9 +2239,6 @@ def add_phenomenon_arguments(parser):
                               "galaxy position (those types have no placement columns of their own). Omit "
                               "to generate it unplaced/unlinked, as before.")
 
-    # Output to a file
-    parser.add_argument('--output', '-o', type=str, help="Output to a file.")
-
     # Database persistence
     _db.add_mysql_connection_args(parser)
 
@@ -2289,6 +2247,9 @@ def add_phenomenon_arguments(parser):
 
     # Name
     parser.add_argument('--name', type=str, help="Force the name of the generated phenomenon.")
+
+    # Logging (--debug, --quiet/--silent)
+    add_logging_arguments(parser)
 
 
 def validate_phenomenon_args(args, parser):
@@ -2373,17 +2334,11 @@ def run_phenomenon(args):
 
     phenomenon = generate_phenomenon(phenomenon_type, system_config, args.anchor_system, name=args.name)
 
-    if args.output:
-        with open(args.output, 'w') as f:
-            f.write(str(phenomenon))
-    else:
-        print(phenomenon)
-
     mysql_config = _db.mysql_config_from_args(args)
     phenomenon_id = _db.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config,
                                          sector_id=args.sector_id)
-    print(f"Saved {TYPE_LABELS[phenomenon_type]} to the database (id={phenomenon_id}, "
-          f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+    log.normal(f"Saved {TYPE_LABELS[phenomenon_type]} to the database (id={phenomenon_id}, "
+               f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
 
 # ===========================================================================
@@ -2467,6 +2422,8 @@ def process_args():
     args = parser.parse_args()
     command_parser = command_parsers[args.command]
 
+    validate_logging_args(args, command_parser)
+
     if args.command == 'system':
         validate_system_args(args, command_parser)
     elif args.command == 'sector':
@@ -2495,13 +2452,26 @@ _COMMAND_HANDLERS = {
 def main():
     """
     The main entry point for the unified generation CLI. Parses and
-    validates command-line arguments, seeds the random number generator
+    validates command-line arguments, configures logging severity from
+    `--debug`/`--quiet`/`--silent`, seeds the random number generator
     cryptographically, then dispatches to the chosen subcommand's own
     `run_*` function.
     """
-    random.seed(secrets.randbits(128))
-
     args = process_args()
+
+    if args.quiet:
+        level = log.SILENT
+    elif args.debug is not None:
+        level = log.DEBUG
+    else:
+        level = log.NORMAL
+    log.configure(level, debug_file=(args.debug or None))
+
+    seed = secrets.randbits(128)
+    random.seed(seed)
+    log.debug(f"Seeded the random number generator with {seed} (cryptographically random; no --seed "
+              f"option exists to reproduce this run).")
+
     _COMMAND_HANDLERS[args.command](args)
 
 

@@ -24,7 +24,7 @@ import random
 from .asteroidData import format_composition_summary, generate_asteroid_composition
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import program_constants
+from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name, reseed_rng
 
@@ -79,6 +79,7 @@ class AsteroidField:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.density = random.choice(["dense", "sparse", "typical"])
+        log.choice("Asteroid field density", self.density, "uniform draw among dense/sparse/typical")
         self.composition = generate_asteroid_composition()
         self.radius_ly = random.uniform(*program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY)
 

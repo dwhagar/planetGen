@@ -20,7 +20,7 @@ this module's logic.
 import random
 
 from .config import SystemConfig
-from . import physical_constants, program_constants
+from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import reseed_rng
 
@@ -136,6 +136,7 @@ class AsteroidBelt:
         self.upper_limit = upper_limit
         self.body_type = 'a'
         self.density = random.choice(["dense", "sparse", "typical"])
+        log.choice("Asteroid belt density", self.density, "uniform draw among dense/sparse/typical")
         self.composition = generate_asteroid_composition()
 
     def to_dict(self):

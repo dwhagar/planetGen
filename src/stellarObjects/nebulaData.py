@@ -17,7 +17,7 @@ import random
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import program_constants
+from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
@@ -77,6 +77,8 @@ class Nebula:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.nebula_type = random.choice(list(program_constants.NEBULA_TYPES.keys()))
+        log.choice("Nebula type", self.nebula_type,
+                   f"uniform draw among {list(program_constants.NEBULA_TYPES.keys())}")
         type_data = program_constants.NEBULA_TYPES[self.nebula_type]
         self.radius_ly = random.uniform(*type_data["radius_range_ly"])
         self.composition = type_data["composition"]

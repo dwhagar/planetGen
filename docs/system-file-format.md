@@ -38,7 +38,6 @@ resembling our own solar system.
 | `flavor_chance_system` | float `0.0`-`1.0` | Overrides the odds of a system-level "sensor readings" flavor line appearing. |
 | `flavor_chance_planet` | float `0.0`-`1.0` | Overrides the odds of a planet-level flavor line appearing. |
 | `max_planet_flavor` | `true` or omitted | Raises the total flavor-text budget for the run to 99 and sets `flavor_chance_planet` to 1. |
-| `output` | string or `null` | A file path to write the result to. Only used if `--output`/`-o` isn't also given on the command line. |
 
 ## Tri-state options
 

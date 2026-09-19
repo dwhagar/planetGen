@@ -22,7 +22,7 @@ import random
 import secrets
 
 from .evolution import get_evolutionary_timeline
-from . import program_constants
+from . import log, program_constants
 from .utils import get_star_evolutionary_profile, get_star_spectral_class, reseed_rng
 
 
@@ -179,11 +179,15 @@ def apply_life_data(planet):
             weights=list(viable_chems.values()),
             k=1
         )[0]
+        log.choice("Life chemistry", planet.life_chemical,
+                   f"weighted draw among {len(viable_chems)} viable chemicals for spectral class "
+                   f"{spectral_class!r}: {viable_chems}")
         life_chem_data = program_constants.LIFE_CHEMICALS.get(planet.life_chemical, {})
         planet.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
         planet.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
     else:
         planet.life_chemical = None
+        log.debug(f"Life chemistry: none viable for spectral class {spectral_class!r}")
 
     # Determine the evolutionary speed based on the star and chosen chemical
     planet.evolutionary_speed = get_evolutionary_speed(planet, spectral_class)
@@ -216,6 +220,7 @@ def decide_flavor_text(planet):
     """
     if not (random.random() < program_constants.FLAVOR_CHANCE_PLANET
             and planet.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL):
+        log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
         return
 
     selected_flavor = None
@@ -245,12 +250,18 @@ def decide_flavor_text(planet):
 
     if is_habitable and has_multicellular_life:
         selected_flavor = secrets.choice(available_habitable_flavor)
+        flavor_category = "habitable (multicellular/technological life present)"
     elif planet.body_type == "t" and planet.planet_class != "A":
         selected_flavor = secrets.choice(available_planet_flavor)
+        flavor_category = "planet (terrestrial body, not class A)"
     elif planet.body_type == "g" or planet.planet_class == "A":
         selected_flavor = secrets.choice(available_orbital_flavor)
+        flavor_category = "orbital (gas giant or class A body)"
+    else:
+        flavor_category = None
 
     if selected_flavor:
+        log.choice("Planet flavor text", selected_flavor, f"category: {flavor_category}")
         planet.flavor_text = selected_flavor
         system_config.system_flavor_count += 1
         planet.flavor_text_count += 1

@@ -21,7 +21,7 @@ import random
 from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import program_constants
+from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
@@ -76,6 +76,8 @@ class SupernovaRemnant:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.morphology = random.choice(program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES)
+        log.choice("Supernova remnant morphology", self.morphology,
+                   f"uniform draw among {program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES}")
         self.age_years = random.uniform(*program_constants.SUPERNOVA_REMNANT_AGE_RANGE_YEARS)
         self.radius_ly = (
             program_constants.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
@@ -84,6 +86,9 @@ class SupernovaRemnant:
 
         is_type_ia = random.random() < program_constants.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
         self.progenitor_type = "Type Ia" if is_type_ia else "core-collapse"
+        log.choice("Supernova progenitor type", self.progenitor_type,
+                   f"roll against SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE "
+                   f"({program_constants.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE})")
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
@@ -93,8 +98,17 @@ class SupernovaRemnant:
         if not is_type_ia and random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
             if random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE:
                 self.compact_remnant = BlackHole(system_config, name=f"{self.name} Core")
+                log.choice("Core-collapse compact remnant", "black hole",
+                           f"roll passed SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE "
+                           f"({program_constants.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE})")
             else:
                 self.compact_remnant = NeutronStar(system_config, name=f"{self.name} Core")
+                log.choice("Core-collapse compact remnant", "neutron star",
+                           f"roll failed SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE "
+                           f"({program_constants.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE})")
+        elif not is_type_ia:
+            log.debug("Core-collapse compact remnant: none visible/detectable "
+                       "(roll failed SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE)")
 
     def to_dict(self):
         """
