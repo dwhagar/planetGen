@@ -1,5 +1,96 @@
 # Changelog
 
+## [5.44.0] - 2026-09-19
+
+### Changed
+- **Removed the per-sector "systems in this sector" progress bar** that
+  `generate.py sector`/`galaxy` nested under the outer "Sectors" bar --
+  most sectors, especially since the density-gating fix above, hold
+  anywhere from zero to a handful of systems, and system generation
+  itself is fast, so a bar that flashed on and off again within a single
+  frame for nearly every sector added visual noise without conveying
+  anything a viewer could actually track. `generate_sector`/
+  `generate_and_save_sector_at` no longer take a `progress` parameter at
+  all.
+- **Fixed the remaining "Sectors" bar fighting with the status text
+  printed alongside it, which is what actually caused the flicker/
+  scrolling** -- `run_sector`/`run_shell_batch`/`run_local_neighborhood`/
+  `run_random_start` now print every "Saved sector ..." status line (and
+  the per-sector system/phenomena/density summary) via
+  `progress.console.print(...)` instead of the builtin `print`, the
+  correct way to write to the console alongside a live `rich.progress.
+  Progress` display. Printing directly to stdout while `Progress`'s own
+  `Live` region is active fights with its redraws -- each raw `print`
+  forced the bar to erase itself, scroll up with the new text, and get
+  redrawn at the bottom again, which is what showed up as flicker/
+  scrolling on a real terminal. Routed through the shared console
+  instead, rich prints each status line safely above the live region and
+  leaves the bar itself pinned at the bottom, redrawn in place with no
+  flicker -- verified against a real pseudo-terminal (`script`), and
+  unchanged (a single plain line at the end, no ANSI live redraw) when
+  stdout isn't a real terminal at all (piped to a file, a CI log, etc.),
+  which `rich.Console` already detects and handles on its own.
+
+## [5.43.1] - 2026-09-19
+
+### Added
+- **`test_galaxy_gen.py` now has two end-to-end tests that run against a
+  *real* `generate.py plan` skeleton** (the actual `find_shell_bands`
+  scan, not the file's existing `_seed_skeleton` shortcut) rather than an
+  explicit `--num-systems`/`--density` that bypasses `_BatchDensity`'s own
+  density/gating logic entirely -- every density-related test before this
+  did one or the other, so none of them actually exercised the "run
+  `plan`, then `galaxy` with neither flag given" workflow the previous
+  release's empty-sectors regression slipped through.
+  `test_random_start_neighborhood_matches_the_real_skeleton_plan` runs
+  `galaxy`'s own default random-start mode -- pick a location, generate
+  the nearest sectors out to `--radius-pc` (trimmed to 25 ly here, from
+  the real default of 100 ly, to keep the test fast; `-planets` forced so
+  each system skips its own planet/moon tree, since system *count* is
+  what's under test) -- then independently recomputes, against the real
+  stored skeleton, whether every candidate slot in that neighborhood
+  should have been saved, and checks the aggregate system count generated
+  is within a statistical band of what the plan's own density predicted.
+  `test_shell_batch_generates_nothing_beyond_the_real_skeletons_outer_edge`
+  is its deterministic companion: a shell chosen well past the real
+  skeleton's own discovered edge must generate exactly zero sectors.
+  Both fail against the pre-fix code (confirmed by hand, reverting
+  `generate.py` locally and re-running).
+
+## [5.43.0] - 2026-09-19
+
+### Fixed
+- **`generate.py galaxy` (`--shell`, `--center-sector`, and the default
+  random-start mode) generated and saved a real, empty (0 systems, 0
+  phenomena) sector row for every not-yet-occupied slot it visited, once
+  `generate.py plan`'s skeleton existed to drive per-sector density.**
+  Only the lazy, visit-triggered `ensure_sector_generated` was actually
+  gating generation on `galaxy_shell_band`'s stored candidate bands and
+  the exact `predicted_star_count >= 1.0` threshold; the three batch/
+  neighborhood modes in `run_shell_batch`/`run_local_neighborhood`/
+  `run_random_start` never consulted either, so every slot below that
+  threshold -- most of a realistic galaxy's volume, off the spiral arms/
+  disk plane -- still got a sector saved, almost always with 0 systems
+  once its (correctly tiny) relative density was fed through the Poisson
+  draw. A galaxy shell/neighborhood run could come back "full of empty
+  sectors" as a result, especially the default random-start mode, whose
+  volume-weighted starting-shell pick favors the sparse outer galaxy.
+  `_BatchDensity.resolve` (`generate.py`) now applies the same
+  band-then-exact-density gate `ensure_sector_generated` already used,
+  returning `None` for a non-qualifying slot so every caller skips it
+  instead of generating and saving it; the admin web UI's "generate more
+  sectors around this one" action (`generate_sector_neighborhood`) picked
+  up the same skeleton-driven density and gating, having previously used
+  a flat `--num-systems 10` for every sector regardless of position at
+  all.
+- Every sector-generating command (`sector`, and `galaxy`'s `--shell`/
+  `--center-sector`/random-start modes) now prints, right after saving a
+  sector, how many star systems of each spectral class and phenomena of
+  each type it actually holds, plus that sector's actual vs. expected
+  star density (`1.0` = real local stellar density) -- enough to
+  sanity-check a generation run from its own console output, without a
+  separate database query.
+
 ## [5.42.0] - 2026-09-19
 
 ### Added

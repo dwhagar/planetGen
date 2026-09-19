@@ -762,6 +762,11 @@ def generate_sector_neighborhood_route(sector_id):
         )
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
+    except RuntimeError as exc:
+        # The galaxy's density skeleton (`generate.py plan`) has never
+        # been built -- generate_sector_neighborhood needs it to gate each
+        # candidate slot's own generation on local stellar density.
+        raise ApiError(str(exc), status_code=409)
 
     audit(
         "sector.generate_neighborhood", target=f"sector:{sector_id}",
