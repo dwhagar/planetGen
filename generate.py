@@ -1875,9 +1875,12 @@ def run_random_start(args, edge_pc, progress):
             `args.shell`/`args.center_sector` must both be `None`.
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
         progress (rich.progress.Progress): `run_galaxy`'s shared progress
-            display -- the seed sector below gets its own single-sector
-            "Sectors" task, then `run_local_neighborhood` adds its own
-            task to the same `Progress` for the surrounding neighborhood.
+            display, threaded straight through to `run_local_neighborhood`
+            for the surrounding neighborhood's own "Sectors (local
+            neighborhood)" task -- the seed sector generated below gets no
+            task of its own (a single-sector 0-to-1 bar is done before it
+            can even render a meaningful rate/ETA, so it only ever added
+            noise, not a genuine progress display).
 
     Raises:
         SystemExit: If no unoccupied, qualifying address meeting
@@ -1938,11 +1941,9 @@ def run_random_start(args, edge_pc, progress):
     finally:
         conn.close()
 
-    seed_task = progress.add_task("Sectors (random start)", total=1)
     sector_id, sector_name, sector = generate_and_save_sector_at(
         sector_args, shell_index, slot_index, position_pc, edge_pc,
     )
-    progress.update(seed_task, advance=1)
     designation = provisional_sector_designation(
         shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
     )
