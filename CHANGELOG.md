@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.41.1] - 2026-09-19
+
+### Added
+- **`test_galaxy_gen.py` now has two end-to-end tests that run against a
+  *real* `generate.py plan` skeleton** (the actual `find_shell_bands`
+  scan, not the file's existing `_seed_skeleton` shortcut) rather than an
+  explicit `--num-systems`/`--density` that bypasses `_BatchDensity`'s own
+  density/gating logic entirely -- every density-related test before this
+  did one or the other, so none of them actually exercised the "run
+  `plan`, then `galaxy` with neither flag given" workflow the previous
+  release's empty-sectors regression slipped through.
+  `test_random_start_neighborhood_matches_the_real_skeleton_plan` runs
+  `galaxy`'s own default random-start mode -- pick a location, generate
+  the nearest sectors out to `--radius-pc` (trimmed to 25 ly here, from
+  the real default of 100 ly, to keep the test fast; `-planets` forced so
+  each system skips its own planet/moon tree, since system *count* is
+  what's under test) -- then independently recomputes, against the real
+  stored skeleton, whether every candidate slot in that neighborhood
+  should have been saved, and checks the aggregate system count generated
+  is within a statistical band of what the plan's own density predicted.
+  `test_shell_batch_generates_nothing_beyond_the_real_skeletons_outer_edge`
+  is its deterministic companion: a shell chosen well past the real
+  skeleton's own discovered edge must generate exactly zero sectors.
+  Both fail against the pre-fix code (confirmed by hand, reverting
+  `generate.py` locally and re-running).
+
 ## [5.41.0] - 2026-09-19
 
 ### Fixed

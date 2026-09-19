@@ -27,6 +27,7 @@ Every test here takes the `mysql_config` fixture -- they're skipped, not
 failed, when no MySQL test server is configured/reachable.
 """
 
+import argparse
 import math
 import sys
 
@@ -36,7 +37,7 @@ import pytest
 import generate as galaxyGen
 import generate as sectorGen
 from stellarObjects import _db, program_constants
-from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density
+from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
 from stellarObjects.galaxyGeometry import (
     enumerate_sectors_within_radius, sector_position_pc, shell_sector_count,
 )
@@ -690,3 +691,186 @@ def _fake_args_for_direct_generation(mysql_config):
     args.density = None
     args.num_systems = 1
     return args
+
+
+# ---------------------------------------------------------------------------
+# End-to-end against a *real* 'generate.py plan' skeleton -- every test
+# above either hand-seeds a skeleton via _seed_skeleton (bypassing
+# find_shell_bands's own scan entirely) or passes an explicit
+# --num-systems/--density that makes _BatchDensity.resolve a no-op (see
+# its own docstring), so none of them exercise the actual "plan, then
+# galaxy with neither flag given" workflow an operator runs -- exactly the
+# combination that shipped a regression where --shell/--center-sector/
+# random-start mode saved a real (0-system, 0-phenomenon) sector for every
+# not-yet-occupied slot regardless of how far below the qualification
+# threshold its own position's density fell, instead of skipping it the
+# way ensure_sector_generated always did. These tests close that gap: a
+# real skeleton, real CLI generation, no bypass.
+# ---------------------------------------------------------------------------
+
+_PLAN_SHAPE_ARGV = [
+    "--disk-scale-length-pc", "40", "--disk-scale-height-pc", "12",
+    "--bulge-scale-radius-pc", "10", "--bulge-amplitude", "2.0",
+    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-amplitude", "0.4",
+]
+"""list: The same shape `_SKELETON_SHAPE` above is built from, expressed as
+`generate.py plan` CLI args instead -- a small, fast-to-scan toy galaxy
+(its real, found outer edge lands a few dozen shells out, not the ~4,100 a
+real Milky-Way-scale build reaches) that still has genuine bulge/disk/arm
+structure, not a degenerate single-shell case."""
+
+
+def _build_real_skeleton(mysql_config, extra_argv=()):
+    """
+    Runs `generate.py plan`'s own `build_skeleton()` -- the real scan
+    (`galaxySkeleton.find_shell_bands`), not the hand-seeded
+    `_seed_skeleton` shortcut above -- against the fixture's throwaway
+    database, and returns its summary dict (`outer_shell_index`, etc.).
+    Calls `build_skeleton` directly rather than going through `main()`/
+    `sys.argv` purely to get that return value back without parsing
+    stdout; it still does the same real persisting
+    (`_db.replace_galaxy_shell_bands`/`_db.save_galaxy_shape`) `run_plan`
+    itself does.
+    """
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    galaxyGen.add_plan_arguments(parser)
+    args = parser.parse_args(_PLAN_SHAPE_ARGV + list(extra_argv) + _mysql_argv(mysql_config))
+    galaxyGen.validate_plan_args(args, parser)
+    return galaxyGen.build_skeleton(args)
+
+
+def _sector_system_counts(mysql_config, sector_ids):
+    """`{sector_id: system_count}` for every id in `sector_ids` (0 for one
+    with no systems at all)."""
+    if not sector_ids:
+        return {}
+    conn = _db.get_connection(mysql_config)
+    try:
+        placeholders = ", ".join(["?"] * len(sector_ids))
+        rows = conn.execute(
+            f"SELECT sector_id, COUNT(*) AS cnt FROM star_systems "
+            f"WHERE sector_id IN ({placeholders}) GROUP BY sector_id",
+            tuple(sector_ids),
+        ).fetchall()
+    finally:
+        conn.close()
+    counts = {sector_id: 0 for sector_id in sector_ids}
+    for row in rows:
+        counts[row["sector_id"]] = row["cnt"]
+    return counts
+
+
+def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config):
+    """
+    The standard workflow this project's own docs describe -- 'plan' once,
+    then 'galaxy' with no flags: pick a random location, generate every
+    not-yet-generated sector out to `--radius-pc` (the real default is
+    `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY`, 100 ly;
+    trimmed to 25 ly here so this test runs in a reasonable time) -- run
+    for real, against a real skeleton, with neither `--density` nor
+    `--num-systems` given so every sector's own system count is driven
+    end-to-end by its real galaxy-frame position. `-planets` is forced so
+    each system skips its own planet/moon tree -- system *count* per
+    sector (what this test actually checks) doesn't depend on that, and
+    skipping it keeps this test's runtime independent of how dense a
+    shell the random draw happens to land in.
+
+    Confirms two things no test above does:
+    1. Every candidate slot the run actually saved, and every one it
+       didn't, agrees with an independent recomputation -- done here,
+       against the real stored skeleton -- of whether that exact position
+       qualifies (`predicted_star_count >= 1.0` within a stored candidate
+       band). This is the exact regression: a batch/neighborhood run
+       saving a sector regardless of qualification.
+    2. The aggregate system count actually generated across the
+       neighborhood is in the right statistical ballpark of what the
+       plan's own density predicted at those same positions -- not a flat,
+       position-independent count (`_default_generation_args`'s own
+       num_systems=10 default, in particular, would badly fail this).
+    """
+    radius_pc = ly_to_pc(25.0)
+    summary = _build_real_skeleton(mysql_config)
+    assert summary["outer_shell_index"] > 0, "the toy shape's own skeleton should find real content"
+
+    _run_cli([
+        "--max-shell", "55", "--radius-pc", str(radius_pc), "-planets",
+    ] + _mysql_argv(mysql_config))
+
+    sectors = _all_sectors(mysql_config)
+    assert sectors, "random-start mode should have generated at least the seed sector"
+    seed = min(sectors, key=lambda row: row["id"])
+    center = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
+
+    candidates = list(enumerate_sectors_within_radius(center, radius_pc, EDGE_PC))
+    assert len(candidates) > 1, "the 25 ly neighborhood should reach beyond just the seed sector itself"
+
+    by_address = {(row["shell_index"], row["shell_slot_index"]): row for row in sectors}
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+        bands_cache = {}
+
+        def really_qualifies(shell_index, slot_index, position_pc):
+            if shell_index not in bands_cache:
+                bands_cache[shell_index] = _db.get_galaxy_shell_bands(conn, shell_index)
+            bands = bands_cache[shell_index]
+            if not any(lo <= slot_index <= hi for lo, hi in bands):
+                return False
+            return predicted_star_count(
+                position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1,
+            ) >= 1.0
+
+        expected_total = 0.0
+        generated_sector_ids = []
+        for shell_index, slot_index, x, y, z, _dist in candidates:
+            address = (shell_index, slot_index)
+            saved = address in by_address
+            qualifies = really_qualifies(shell_index, slot_index, (x, y, z))
+            assert saved == qualifies, (
+                f"address {address} was {'saved' if saved else 'skipped'} by 'generate.py galaxy', but "
+                f"an independent recomputation against the real stored skeleton says it "
+                f"{'qualifies' if qualifies else 'does not qualify'} -- generation has drifted from the "
+                f"plan it's supposed to follow."
+            )
+            if qualifies:
+                generated_sector_ids.append(by_address[address]["id"])
+                expected_total += predicted_star_count(
+                    (x, y, z), skeleton.shape, skeleton.expected_system_count_at_density_1,
+                )
+    finally:
+        conn.close()
+
+    counts = _sector_system_counts(mysql_config, generated_sector_ids)
+    actual_total = sum(counts.values())
+
+    if expected_total >= 5.0:
+        # The sum of independent Poisson draws is itself ~Poisson(expected_total)
+        # -- a generous 3x-either-way band comfortably absorbs real
+        # sampling noise while still catching a real "density isn't
+        # driving this any more" regression (a flat count, or the wrong
+        # multiplier, would miss by far more than 3x here).
+        assert expected_total / 3.0 <= actual_total <= expected_total * 3.0, (
+            f"generated {actual_total} systems across this neighborhood, but the real skeleton "
+            f"predicted {expected_total:.1f} -- generation doesn't look density-driven any more."
+        )
+
+
+def test_shell_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysql_config):
+    """
+    Deterministic companion to the neighborhood test above (that one's
+    outcome depends on where the random draw lands; this one doesn't): a
+    shell chosen well beyond the real skeleton's own discovered outer edge
+    must generate exactly zero sectors, every slot skipped -- confirming
+    `generate.py galaxy --shell` actually prunes on the real plan rather
+    than (as the empty-sectors regression did) saving a sector for every
+    slot regardless of position.
+    """
+    summary = _build_real_skeleton(mysql_config)
+    beyond_edge_shell = summary["outer_shell_index"] + 10
+
+    _run_cli([
+        "--shell", str(beyond_edge_shell), "--limit", "25", "-planets",
+    ] + _mysql_argv(mysql_config))
+
+    assert _all_sectors(mysql_config) == []
