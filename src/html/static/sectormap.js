@@ -77,12 +77,7 @@ function showObjectInfo(entry) {
     addField(dl, "Radius", entry.radiusText);
     addField(dl, "Distance", entry.distanceText);
     panel.appendChild(dl);
-
-    var phenomenonLink = document.createElement("a");
-    phenomenonLink.href = entry.href;
-    phenomenonLink.className = "btn";
-    phenomenonLink.textContent = "View phenomenon →";
-    panel.appendChild(phenomenonLink);
+    panel.appendChild(navLink(entry, "View phenomenon →"));
     return;
   }
   addField(dl, "Star type", entry.starType);
@@ -90,12 +85,27 @@ function showObjectInfo(entry) {
   addField(dl, "Octant", entry.quadrant);
   addField(dl, "Location", entry.location);
   panel.appendChild(dl);
+  panel.appendChild(navLink(entry, "View system →"));
+}
 
+// A real, focusable `<a>` carrying `data-nav-target`/`data-nav-params`
+// instead of an `href` query string -- `static/navform.js`'s document-
+// level click handler (loaded on every page, see `lib/page.py`'s
+// `render`) is what actually follows it, by posting a throwaway hidden
+// form, the same convention every other in-app link now uses
+// (`lib/fmt.py`'s `post_link` builds the non-JS-required `<form>` version
+// of the same idea; a `<form>` can't be dynamically inserted into this
+// panel's own DOM update flow as conveniently as a plain `<a>` can, so
+// this stays in the `data-nav-target` camp like the map's own SVG-era
+// markers already had to for the same "can't nest a form" reason).
+function navLink(entry, label) {
   var link = document.createElement("a");
-  link.href = entry.href;
+  link.href = "#";
   link.className = "btn";
-  link.textContent = "View system →";
-  panel.appendChild(link);
+  link.dataset.navTarget = entry.navTarget;
+  link.dataset.navParams = JSON.stringify(entry.navParams || {});
+  link.textContent = label;
+  return link;
 }
 
 // --- Sprite textures ---------------------------------------------------

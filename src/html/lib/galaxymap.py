@@ -23,12 +23,19 @@ own module docstring).
 Rendered as one flat 2D SVG rather than `starmap.py`'s rotatable 3D CSS
 cube -- a Quadrant is inherently a flat, azimuthal split (blind to height),
 so there's no "rotate to inspect" need the way a sector's cubic interior
-has. Drill-down is plain server-side navigation (a different `?quadrant=`
-query string), not client-side JS: `render_galaxy_map_panel` always draws
-every placed sector into the same fixed coordinate space, and a Quadrant
-view simply crops the same drawing to one quarter of it via the outer
-`<svg>`'s own `viewBox` (SVG clips to its viewBox by default) -- so no new
-static/*.js file is needed for this map at all.
+has. Drill-down is plain server-side navigation (a different `quadrant`
+parameter), still no map-specific client-side JS of its own:
+`render_galaxy_map_panel` always draws every placed sector into the same
+fixed coordinate space, and a Quadrant view simply crops the same drawing
+to one quarter of it via the outer `<svg>`'s own `viewBox` (SVG clips to
+its viewBox by default). Each marker still needs `static/navform.js`
+(loaded on every page, see `lib/page.py`'s `render`) to actually navigate,
+though -- a `<form>` can't nest inside an SVG shape the way `page.
+post_link` uses one everywhere else in `html/`, so a marker stays a real
+`<a>` carrying `data-nav-target`/`data-nav-params` instead (`fmt.
+data_nav_params`), intercepted by that shared script's click handler
+rather than putting `sector.py?...`/`phenomenon.py?...` in the browser's
+own address bar the way following its `href` directly would.
 
 Density is two genuinely different things here, deliberately drawn two
 different ways:
@@ -48,7 +55,7 @@ different ways:
 
 import math
 
-from fmt import esc
+from fmt import data_nav_params, esc, post_link
 
 try:
     from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
@@ -288,9 +295,10 @@ def _quadrant_label_elements(db_name, active_quadrant):
         angle = math.radians(angle_deg)
         x = _CENTER + label_radius * math.cos(angle)
         y = _CENTER - label_radius * math.sin(angle)
-        href = f"galaxy.py?db={esc(db_name)}&amp;quadrant={label}"
+        nav_params = data_nav_params({"db": db_name, "quadrant": label})
         parts.append(
-            f'<a href="{href}"><text class="galaxymap-quadrant-label" x="{x:.1f}" y="{y:.1f}" '
+            f'<a href="#" data-nav-target="galaxy.py" data-nav-params="{nav_params}">'
+            f'<text class="galaxymap-quadrant-label" x="{x:.1f}" y="{y:.1f}" '
             f'text-anchor="middle" dominant-baseline="middle">{label}</text></a>'
         )
     return "".join(parts)
@@ -355,9 +363,10 @@ def _phenomenon_elements(db_name, phenomena, px_per_ly):
             f'{esc(phenomenon["name"])} -- {esc(descriptor)} {esc(type_label)}, '
             f'{size_bit}~{projected["radius_ly"]:,.0f} ly from core'
         )
-        href = f'phenomenon.py?db={esc(db_name)}&amp;type={esc(phenomenon["type"])}&amp;id={phenomenon["id"]}'
+        nav_params = data_nav_params({"db": db_name, "type": phenomenon["type"], "id": phenomenon["id"]})
         parts.append(
-            f'<a class="galaxymap-phenomenon" href="{href}"><title>{tooltip}</title>'
+            f'<a class="galaxymap-phenomenon" href="#" data-nav-target="phenomenon.py" '
+            f'data-nav-params="{nav_params}"><title>{tooltip}</title>'
             f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{_PHENOMENON_DOT_R:.1f}" '
             f'fill="{color}" fill-opacity="0.85" stroke="#00000055" stroke-width="0.6"/>'
             "</a>"
@@ -370,7 +379,7 @@ def _star_elements(db_name, sectors, px_per_ly):
     for sector in sectors:
         projected = _project(sector, px_per_ly)
         radius_px, halo_opacity, core_opacity = _star_visual(sector["system_count"])
-        href = f'sector.py?db={esc(db_name)}&amp;id={sector["id"]}'
+        nav_params = data_nav_params({"db": db_name, "id": sector["id"]})
         tooltip = (
             f'{esc(sector["name"])} -- {sector["system_count"] or 0} system'
             f'{"s" if sector["system_count"] != 1 else ""}, '
@@ -378,7 +387,8 @@ def _star_elements(db_name, sectors, px_per_ly):
         )
         x, y = projected["svg_x"], projected["svg_y"]
         parts.append(
-            f'<a class="galaxymap-star" href="{href}"><title>{tooltip}</title>'
+            f'<a class="galaxymap-star" href="#" data-nav-target="sector.py" '
+            f'data-nav-params="{nav_params}"><title>{tooltip}</title>'
             f'<circle class="galaxymap-star-halo" cx="{x:.1f}" cy="{y:.1f}" r="{radius_px * 2.2:.1f}" '
             f'fill="{_STAR_HALO_FILL}" opacity="{halo_opacity:.2f}"/>'
             f'<circle class="galaxymap-star-core" cx="{x:.1f}" cy="{y:.1f}" r="{radius_px:.1f}" '
@@ -437,7 +447,7 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
         vx, vy = _QUADRANT_VIEWBOX_ORIGIN[quadrant]
         view_box = f"{vx:.1f} {vy:.1f} {_CENTER:.1f} {_CENTER:.1f}"
         scope_label = f"Quadrant {quadrant}"
-        nav_html = f'<p class="hint"><a href="galaxy.py?db={esc(db_name)}">&larr; Full galaxy view</a></p>'
+        nav_html = f'<p class="hint">{post_link("galaxy.py", {"db": db_name}, "&larr; Full galaxy view")}</p>'
     else:
         view_box = f"0 0 {_SVG_SIZE} {_SVG_SIZE}"
         scope_label = "Full galaxy"

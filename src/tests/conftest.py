@@ -32,6 +32,7 @@ import uuid
 import pymysql
 import pytest
 
+from stellarObjects import _db
 from stellarObjects._db import MySQLConfig
 
 
@@ -72,6 +73,14 @@ def mysql_config(_mysql_server_available):
     Creates a uniquely-named, empty MySQL database for the duration of
     one test, and drops it afterward regardless of the test's outcome.
 
+    Every test gets its own database name, so `stellarObjects._db`'s
+    module-level pool cache (keyed by connection params, database
+    included) would otherwise grow by one `PooledDB` -- and its
+    `mincached` real connections -- per test for the life of the process.
+    Closing that pool here, once this test's database is being dropped for
+    good, keeps a long test run from exhausting the server's
+    `max_connections`.
+
     Yields:
         MySQLConfig: Points at the fresh, empty database -- pass straight
             to `get_connection`/`save_sector`/`save_system`/etc.
@@ -87,9 +96,11 @@ def mysql_config(_mysql_server_available):
     finally:
         admin_conn.close()
 
+    config = MySQLConfig(database=db_name, **kwargs)
     try:
-        yield MySQLConfig(database=db_name, **kwargs)
+        yield config
     finally:
+        _db.close_pool(config)
         admin_conn = pymysql.connect(**kwargs)
         try:
             with admin_conn.cursor() as cur:

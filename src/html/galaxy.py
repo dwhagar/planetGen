@@ -36,9 +36,9 @@ _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from apiclient import get_galaxy_phenomena, get_galaxy_sectors
-from fmt import esc
+from fmt import esc, post_link
 from galaxymap import QUADRANT_LABELS, render_galaxy_map_panel, ring_bounds_ly, sector_quadrant, sector_ring
-from page import query_params, run
+from page import nav_params, run
 
 try:
     from stellarObjects.utils import pc_to_ly
@@ -75,7 +75,7 @@ def _quadrant_summary_table(db_name, sectors):
             span = "&ndash;"
         rows.append(
             "<tr>"
-            f'<td><a href="galaxy.py?db={esc(db_name)}&quadrant={label}">Quadrant {label}</a></td>'
+            f'<td>{post_link("galaxy.py", {"db": db_name, "quadrant": label}, f"Quadrant {label}")}</td>'
             f"<td>{len(members)}</td>"
             f"<td>{system_total}</td>"
             f"<td>{span}</td>"
@@ -94,7 +94,7 @@ def _quadrant_sector_table(db_name, sectors, quadrant):
         distance_ly = _display_ly(sector["galactic_radius_pc"])
         rows.append(
             "<tr>"
-            f'<td><a href="sector.py?db={esc(db_name)}&id={sector["id"]}">{esc(sector["name"])}</a></td>'
+            f'<td>{post_link("sector.py", {"db": db_name, "id": sector["id"]}, esc(sector["name"]))}</td>'
             f"<td>Ring {ring}</td>"
             f"<td>{distance_ly:,.1f} ly</td>"
             f'<td>{sector["system_count"] or 0}</td>'
@@ -104,7 +104,7 @@ def _quadrant_sector_table(db_name, sectors, quadrant):
 
 
 def handler():
-    params = query_params()
+    params = nav_params()
     db_name = params.get("db", "")
     quadrant = (params.get("quadrant") or "").upper() or None
     if quadrant not in QUADRANT_LABELS:
@@ -135,7 +135,7 @@ def handler():
 
     title = f"Galaxy Map: Quadrant {quadrant}" if quadrant else "Galaxy Map"
     body = f"""
-<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; {esc(title)}</p>
+<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(title)}</p>
 {badges_html}
 {map_html}
 <section class="panel">

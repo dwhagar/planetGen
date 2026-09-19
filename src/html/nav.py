@@ -9,22 +9,25 @@ calls) rather than re-implementing the availability rules or the
 course/route math -- this page is purely a form + rendering shell
 around it.
 
-Reaching this page: `system.py` links here (`?from=<id>`) whenever that
-system has a `sector_id` -- the same first gate `nav_between` itself
-checks (see its docstring's availability rules); the sidenav's own "Nav"
-link reaches it with no `from=` at all instead. Without a `from=` yet,
-this renders a sector-then-system picker to choose one:
+Reaching this page: `system.py` links here (posting a `from` id -- see
+`lib/page.py`'s `nav_params`/`lib/fmt.py`'s `post_link`, used for every
+navigational link in `html/` now, this page's own picker forms included)
+whenever that system has a `sector_id` -- the same first gate
+`nav_between` itself checks (see its docstring's availability rules); the
+sidenav's own "Nav" link reaches it with no `from` at all instead.
+Without a `from` yet, this renders a sector-then-system picker to choose
+one:
 
-    - Step 1 (`?from_sector=<id>` not yet given): a `<select>` of every
-      sector in the database (`GET /api/sectors`, capped at that route's
-      own max page size -- see `docs/api.md`'s "Pagination").
-    - Step 2 (`?from_sector=<id>` given): a `<select>` of every system
-      placed in that one sector (`GET /api/sectors/<id>`'s own `systems`
-      list) -- submitting sets `from=` and this function's normal
-      destination-picking flow takes over from there, same as arriving
-      via `system.py`'s link.
+    - Step 1 (`from_sector` not yet given): a `<select>` of every sector
+      in the database (`GET /api/sectors`, capped at that route's own max
+      page size -- see `docs/api.md`'s "Pagination").
+    - Step 2 (`from_sector` given): a `<select>` of every system placed
+      in that one sector (`GET /api/sectors/<id>`'s own `systems` list)
+      -- submitting sets `from` and this function's normal destination-
+      picking flow takes over from there, same as arriving via
+      `system.py`'s link.
 
-Without a `to=` yet (origin already known), this renders a destination
+Without a `to` yet (origin already known), this renders a destination
 picker instead of a result:
 
     - A `<select>` of every other system in the origin's own sector --
@@ -34,17 +37,17 @@ picker instead of a result:
       scales fine here in a way it wouldn't across an entire galaxy.
     - When the origin's sector itself has a galaxy placement, the same
       two-step sector-then-system picker the origin itself uses above
-      (`?to_sector=<id>` then `to=<id>`) -- there is no bounded,
-      dropdown-friendly way to offer "any system in any galaxy-placed
-      sector" in one list (that set can be arbitrarily large), so this
-      narrows to one sector first, exactly like choosing the origin does.
+      (`to_sector` then `to`) -- there is no bounded, dropdown-friendly
+      way to offer "any system in any galaxy-placed sector" in one list
+      (that set can be arbitrarily large), so this narrows to one sector
+      first, exactly like choosing the origin does.
 
-Once `to=` is present, `GET /api/nav` decides the rest: same-sector vs.
+Once `to` is present, `GET /api/nav` decides the rest: same-sector vs.
 cross-sector scope, or a 400 if the two systems turn out not to support
 NAV together (rendered here as an inline message on this same page, a
 200 response -- the visitor picked a real, existing system that just
-doesn't have a valid route, not a broken URL -- while a `to=` that isn't
-a real system id at all is the one case treated as a 404, matching every
+doesn't have a valid route, not a broken URL -- while a `to` that isn't a
+real system id at all is the one case treated as a 404, matching every
 other page's convention for a bad id).
 """
 
@@ -55,9 +58,9 @@ _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from apiclient import ApiError, NotFoundError, get_nav, get_sector, get_sectors, get_system
-from fmt import esc
+from fmt import esc, post_link
 from navmap import render_nav_map_panel
-from page import query_params, run
+from page import nav_params, run
 
 _SECTOR_PICKER_LIMIT = 500
 """int: Caps how many sectors the picker's `<select>` offers -- matches
@@ -65,7 +68,7 @@ _SECTOR_PICKER_LIMIT = 500
 this never silently asks the API for more than it would ever return."""
 
 
-def _picker_form_html(db_name, options_html, field_name, label, hidden, heading, back_href=None):
+def _picker_form_html(db_name, options_html, field_name, label, hidden, heading, back_params=None):
     """
     One `<select>` + submit form, shared by every step of the sector-then-
     system picker (the origin picker, reached with no `from=` at all, and
@@ -80,9 +83,9 @@ def _picker_form_html(db_name, options_html, field_name, label, hidden, heading,
         hidden (dict): Extra `name: value` pairs carried forward as hidden
             fields (e.g. an already-chosen `from_sector`/`from`).
         heading (str): This panel's `<h2>` text.
-        back_href (str, optional): A "start over" link shown above the
-            form (omitted for the very first step, which has nothing to
-            go back to).
+        back_params (dict, optional): Params for a "start over" link shown
+            above the form (omitted for the very first step, which has
+            nothing to go back to).
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -91,12 +94,14 @@ def _picker_form_html(db_name, options_html, field_name, label, hidden, heading,
         f'<input type="hidden" name="{esc(str(name))}" value="{esc(str(value))}">'
         for name, value in hidden.items()
     )
-    back_html = f'<p class="hint"><a href="{esc(back_href)}">&larr; Start over</a></p>' if back_href else ""
+    back_html = (
+        f'<p class="hint">{post_link("nav.py", back_params, "&larr; Start over")}</p>' if back_params else ""
+    )
     return f"""
 {back_html}
 <section class="panel">
 <h2>{esc(heading)}</h2>
-<form method="get" action="nav.py" class="search-form">
+<form method="post" action="nav.py" class="search-form">
   <input type="hidden" name="db" value="{esc(db_name)}">
   {hidden_html}
   <div class="search-fields">
@@ -142,14 +147,15 @@ def _origin_picker_html(db_name, from_sector_raw):
     sector = get_sector(db_name, from_sector_id)
     systems = sector["systems"]
     if not systems:
+        start_over = post_link("nav.py", {"db": db_name}, "&larr; Start over")
         return (
-            f'<p class="hint"><a href="nav.py?db={esc(db_name)}">&larr; Start over</a></p>'
+            f'<p class="hint">{start_over}</p>'
             '<section class="panel"><p class="hint">No systems are placed in this sector yet.</p></section>'
         )
     return _picker_form_html(
         db_name, _system_options_html(systems), "from", "Starting system",
         {"from_sector": from_sector_id}, f"Choose a starting system in {sector['name']}",
-        back_href=f"nav.py?db={esc(db_name)}",
+        back_params={"db": db_name},
     )
 
 
@@ -178,16 +184,17 @@ def _cross_sector_destination_html(db_name, from_id, origin_sector_id, to_sector
         raise NotFoundError(f"No such sector: {to_sector_raw!r}")
     sector = get_sector(db_name, to_sector_id)
     systems = sector["systems"]
-    back_href = f"nav.py?db={esc(db_name)}&from={from_id}"
+    back_params = {"db": db_name, "from": from_id}
     if not systems:
+        start_over = post_link("nav.py", back_params, "&larr; Start over")
         return (
-            f'<p class="hint"><a href="{back_href}">&larr; Start over</a></p>'
+            f'<p class="hint">{start_over}</p>'
             '<p class="hint">No systems are placed in this sector yet.</p>'
         )
     return _picker_form_html(
         db_name, _system_options_html(systems), "to", "Destination system",
         {"from": from_id, "to_sector": to_sector_id}, f"Choose a destination system in {sector['name']}",
-        back_href=back_href,
+        back_params=back_params,
     )
 
 
@@ -201,7 +208,7 @@ def _destination_form_html(db_name, from_id, origin_sector_id, sector_systems, c
     same_sector_html = ""
     if options:
         same_sector_html = f"""
-<form method="get" action="nav.py" class="search-form">
+<form method="post" action="nav.py" class="search-form">
   <input type="hidden" name="db" value="{esc(db_name)}">
   <input type="hidden" name="from" value="{from_id}">
   <div class="search-fields">
@@ -303,7 +310,7 @@ def _route_panel_html(db_name, route, names):
 
     path = route["path"]
     hops = "".join(
-        f'<li><a href="system.py?db={esc(db_name)}&id={system_id}">{esc(names.get(system_id, system_id))}</a></li>'
+        f'<li>{post_link("system.py", {"db": db_name, "id": system_id}, esc(names.get(system_id, system_id)))}</li>'
         for system_id in path
     )
     return f"""
@@ -335,7 +342,7 @@ def _nav_map_waypoints(from_id, to_id, origin_name, destination_name, origin_pos
 
 
 def handler():
-    params = query_params()
+    params = nav_params()
     db_name = params.get("db", "")
     raw_from_id = params.get("from", "")
     raw_to_id = params.get("to")
@@ -347,10 +354,8 @@ def handler():
     origin = get_system(db_name, raw_from_id)
     from_id = origin["id"]
 
-    back_html = (
-        f'<p class="breadcrumb"><a href="system.py?db={esc(db_name)}&id={from_id}">{esc(origin["name"])}</a>'
-        f" &rarr; Nav</p>"
-    )
+    origin_link = post_link("system.py", {"db": db_name, "id": from_id}, esc(origin["name"]))
+    back_html = f'<p class="breadcrumb">{origin_link} &rarr; Nav</p>'
 
     if origin["sector_id"] is None:
         body = back_html + (
@@ -387,10 +392,8 @@ def handler():
         return f"Nav: {origin['name']}", body
 
     destination = get_system(db_name, to_id)
-    title_html = (
-        f'<p class="badges"><span class="badge">To: '
-        f'<a href="system.py?db={esc(db_name)}&id={to_id}">{esc(destination["name"])}</a></span></p>'
-    )
+    destination_link = post_link("system.py", {"db": db_name, "id": to_id}, esc(destination["name"]))
+    title_html = f'<p class="badges"><span class="badge">To: {destination_link}</span></p>'
 
     course_html = _course_panel_html(result["direct"], result["warp_times"], result["scope"])
 

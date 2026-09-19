@@ -49,7 +49,7 @@ import colorsys
 import json
 import math
 
-from fmt import esc
+from fmt import esc, post_link
 
 try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -569,7 +569,15 @@ def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None
         "temp": star["temp_display"],
         "quadrant": system["quadrant"],
         "location": system["location"],
-        "href": f'system.py?db={db_name}&id={system["id"]}',
+        # Read by `sectormap.js`'s info panel and passed straight to
+        # `window.planetgenSubmitNav` (`static/navform.js`) -- a plain
+        # object, not `fmt.data_nav_params`'s escaped-JSON-*string* form,
+        # since this is embedded directly into `_json_script`'s own JSON
+        # rather than an HTML attribute (see that convention's other use,
+        # `lib/galaxymap.py`/`lib/navmap.py`'s `<svg>` markers, which --
+        # unlike this scene -- really is HTML `data-nav-params`).
+        "navTarget": "system.py",
+        "navParams": {"db": db_name, "id": system["id"]},
     }
 
 
@@ -626,10 +634,16 @@ def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
     kind carries no color data at all -- `sectormap.js`'s own fixed
     recipes (mirroring this module's old `_ASTEROID_FIELD_BACKGROUND`/
     `_BLACK_HOLE_*_BACKGROUND`/`_NEUTRON_STAR_BACKGROUND` constants, now
-    retired from here) draw those from `kind` alone.
+    retired from here) draw those from `kind` alone. Carries `navTarget`/
+    `navParams` to `phenomenon.py` (this project's detail page for a
+    standalone phenomenon), the same plain-object convention `_star_data`
+    uses for a star system -- `sectormap.js`'s info panel passes either
+    straight to `window.planetgenSubmitNav` (`static/navform.js`) so
+    following it never puts `phenomenon.py?...` in the browser's own
+    address bar.
 
     Args:
-        db_name (str): The current `?db=` value, for `href`.
+        db_name (str): The current `?db=` value, for `navParams`.
         phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
                            (`id`, `type`, `name`, `descriptor`, `radius_ly`,
                            `distance_ly`).
@@ -647,7 +661,8 @@ def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
         "name": phenomenon["name"],
         "radiusText": f'{phenomenon["radius_ly"]:,.2f} ly',
         "distanceText": f'{phenomenon["distance_ly"]:,.1f} ly from sector center',
-        "href": f'phenomenon.py?db={db_name}&type={phenomenon["type"]}&id={phenomenon["id"]}',
+        "navTarget": "phenomenon.py",
+        "navParams": {"db": db_name, "type": phenomenon["type"], "id": phenomenon["id"]},
     }
 
     if phenomenon_type == "nebula":
@@ -705,18 +720,20 @@ def _noscript_list_html(db_name, systems, phenomena):
     reachable rather than the panel being entirely blank without
     JavaScript. Not a substitute for the map itself (no position/size/
     color -- just names and links), same spirit as any other progressive-
-    enhancement fallback list.
+    enhancement fallback list. Built from `fmt.post_link` -- a real
+    `<form>` submit button, not a plain `<a href>` -- same as every other
+    in-app link now, so `db`/an id doesn't show up in the address bar even
+    here, and it needs no JavaScript of its own to work either.
     """
     items = []
     for system in systems:
-        items.append(
-            f'<li><a href="system.py?db={esc(db_name)}&id={system["id"]}">{esc(system["name"])}</a></li>'
-        )
+        items.append(f'<li>{post_link("system.py", {"db": db_name, "id": system["id"]}, esc(system["name"]))}</li>')
     for phenomenon in (phenomena or []):
-        items.append(
-            f'<li><a href="phenomenon.py?db={esc(db_name)}&type={esc(phenomenon["type"])}&id={phenomenon["id"]}">'
-            f'{esc(phenomenon["name"])}</a></li>'
+        link = post_link(
+            "phenomenon.py", {"db": db_name, "type": phenomenon["type"], "id": phenomenon["id"]},
+            esc(phenomenon["name"]),
         )
+        items.append(f'<li>{link}</li>')
     if not items:
         return ""
     return f'<noscript><ul class="starmap-noscript-list">{"".join(items)}</ul></noscript>'
@@ -745,8 +762,10 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 
     Args:
         db_name (str): The current `?db=` value, used to build each
-                       entry's `href` (`system.py?db=...&id=...` /
-                       `phenomenon.py?db=...&type=...&id=...`).
+                       entry's `navParams` (`static/navform.js` posts
+                       these to `system.py`/`phenomenon.py` on click, same
+                       as every other in-app navigation -- see that
+                       file's own docstring).
         edge_mpc (float): The sector's cube edge (`sectors.edge_mpc`) --
                           every system's `position_*_mpc` is relative to
                           the sector's cubic center (see schema.sql's

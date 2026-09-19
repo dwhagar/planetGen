@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.41.0] - 2026-09-19
+## [5.42.0] - 2026-09-19
 
 ### Added
 - **A 3D body-preview sphere on the System Map.** Clicking a planet or
@@ -16,7 +16,7 @@
   is unchanged -- this is an appearance preview alongside it, not a
   replacement.
 
-## [5.40.0] - 2026-09-19
+## [5.41.0] - 2026-09-19
 
 ### Changed
 - **The Sector Map is now a real WebGL scene instead of a CSS 3D
@@ -37,6 +37,76 @@
   vendored at `html/static/vendor/` (bundled and minified from the `three`
   npm package, not loaded from a CDN) so `html/lib/page.py`'s existing
   `Content-Security-Policy: default-src 'self'` needs no exception for it.
+- **Every star/phenomenon marker on the Sector Map now navigates via
+  `data-nav-target`/`data-nav-params` (`static/navform.js`) instead of a
+  plain `href`**, catching the WebGL rewrite above up to the
+  no-address-bar-params convention `5.40.0` (below) introduced for the
+  rest of `html/` after this branch had already diverged from it.
+
+## [5.40.0] - 2026-09-19
+
+### Changed
+- **Every navigational link in `html/` now posts its parameters as
+  hidden form fields instead of putting them in a `<a href="page.py?
+  db=...&id=...">`'s query string** -- `db`, a sector/system/phenomenon
+  id, a search filter, a wiki-upload/admin-action field, and the like no
+  longer show up in the browser's own address bar. `lib/fmt.py`'s new
+  `post_link` builds a same-effect, no-JS-required `<form method="post">`
+  submit button, styled (`static/style.css`'s `.link-btn`) to be visually
+  indistinguishable from the plain link it replaces; `lib/page.py`'s new
+  `nav_params`/`nav_multi_params` are what a page reads a followed link's
+  params back with (a POST body when present, else the GET query string,
+  so a bare `QUERY_STRING`-only smoke test still works). The one
+  exception is a Galaxy Map/Sector Map/NAV Map marker plotted inside an
+  `<svg>` (a `<form>` can't nest inside one) -- those still navigate via
+  a real, focusable `<a>`, now carrying `data-nav-target`/
+  `data-nav-params` (`fmt.data_nav_params`) instead of an `href` query
+  string, intercepted by the new `static/navform.js` (loaded on every
+  page) to post the same hidden form a click on any other link would.
+  Every such marker still has a plain, no-JS-required row in a table
+  below its own map, so a marker click is never the only way to reach
+  something. `index.py` no longer redirects to `browse.py?db=...` for
+  this deployment's one database (a redirect's `Location` URL would
+  itself show `db` in the address bar) -- it calls `browse.handler`
+  in-process instead and renders the result directly, guarded by
+  `browse.py`'s own `if __name__ == "__main__":` so `browse.py` reached
+  directly is unaffected. This makes every page un-bookmarkable/
+  un-shareable by URL and, for a map marker specifically,
+  JavaScript-dependent -- a deliberate trade-off (see `lib/page.py`'s
+  module docstring) for keeping database names, record ids, and search
+  terms out of browser history, address bars, and referrer headers.
+
+## [5.39.1] - 2026-09-19
+
+### Fixed
+- **CI was red on every run.** `test_db_persistence.py` still asserted
+  `_db.SCHEMA_VERSION == 22` (and `migrate_database(...) == 22`) in
+  sixteen places, left over from before the v23 wiki-publishing and v24
+  name-uniqueness migrations bumped `SCHEMA_VERSION` to 24; each
+  assertion now just compares against `_db.SCHEMA_VERSION` instead of a
+  stale literal. Fixing that surfaced a second, previously-masked bug in
+  the same file: eight of those tests reset `schema_migrations` to an
+  older version to replay later migrations, but never dropped the v22
+  search-index migration's indexes first, so replaying it against a
+  freshly-bootstrapped (already-v24) test database hit a "Duplicate key
+  name" error -- a new `_drop_v22_search_indexes` helper (alongside the
+  existing `_drop_v20_trajectory_columns`/`_drop_v21_phenomenon_columns`)
+  fixes that.
+- **Two `test_galaxy_gen.py` shell-batch tests raised `TypeError`.** Their
+  `_fake_generate_sector` test doubles didn't accept the `progress`
+  keyword the nested-progress-bar feature added to the real
+  `generate_sector`, so `monkeypatch`ing it in broke as soon as
+  `generate.py galaxy --shell` started passing one.
+- **A MySQL connection-pool leak was exhausting the test server's
+  `max_connections` partway through a full test run.** `_db.py` caches one
+  `PooledDB` per distinct connection config in a module-level dict that's
+  never evicted -- fine for the handful of long-lived databases a real
+  deployment ever points at, but the test suite's own `mysql_config`
+  fixture hands every single test a uniquely-named throwaway database, so
+  each test left one more pool (and its `mincached` real connection)
+  behind for the rest of the process's life. A new `_db.close_pool()`,
+  called from that fixture's teardown once its database is dropped for
+  good, closes and discards the pool immediately instead.
 
 ## [5.39.0] - 2026-09-18
 

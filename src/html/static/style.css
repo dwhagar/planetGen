@@ -110,6 +110,35 @@ textarea:focus-visible {
   border-radius: 3px;
 }
 
+/* A submit button standing in for a plain `<a>` link -- see
+   html/lib/page.py's `post_link`, which carries a link's params as
+   hidden POST fields instead of a query string. Reset first so it's
+   visually indistinguishable from the link it replaces; a caller's own
+   extra class (.badge/.tag/.sidenav-item/.filter-chip/...) is defined
+   further down and wins any tie, same as it would styling a plain <a>. */
+.link-btn {
+  font: inherit;
+  color: var(--link);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.sidenav .table-form {
+  display: block;
+}
+
+.link-btn.sidenav-item {
+  width: 100%;
+}
+
 header {
   display: flex;
   flex-wrap: wrap;
@@ -921,13 +950,15 @@ a:focus-visible .navmap-point circle {
   color: var(--text);
 }
 
-.filter-chip a {
+.filter-chip a,
+.filter-chip .link-btn {
   color: var(--text-muted);
   font-weight: 700;
   line-height: 1;
 }
 
-.filter-chip a:hover {
+.filter-chip a:hover,
+.filter-chip .link-btn:hover {
   color: var(--error);
   text-decoration: none;
 }
