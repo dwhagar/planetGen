@@ -1095,6 +1095,28 @@ code {
   font-size: 0.85rem;
 }
 
+/* Body-appearance preview (static/systemmap.js) -- a small rotating 3D
+   sphere for whichever planet/moon is currently selected, hidden (via the
+   `hidden` attribute, toggled from JS) for a star/belt selection or before
+   anything's been clicked yet. Square like `.starmap-viewport`, but much
+   smaller -- this is a supporting preview next to the info panel, not the
+   map itself. */
+.sysmap-preview {
+  width: 100%;
+  max-width: 10rem;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.sysmap-preview canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 @media (max-width: 40rem) {
   body {
     padding-left: 1rem;

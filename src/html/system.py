@@ -406,7 +406,7 @@ def handler():
 {description_html}
 {stars_html}
 {bodies_html}
-<script src="static/systemmap.js" defer></script>
+<script type="module" src="static/systemmap.js"></script>
 """
     return f"System: {system['name']}", body
 

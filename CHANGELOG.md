@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.41.0] - 2026-09-19
+
+### Added
+- **A 3D body-preview sphere on the System Map.** Clicking a planet or
+  moon in `system.py`'s System Map now also redraws `#sysmap-preview`: a
+  small rotating three.js sphere (reusing the same vendored build the
+  Sector Map uses) shaded by the body's own class color, banded with a
+  tilted ring for a gas giant, and wrapped in a fresnel-glow atmosphere
+  shell -- tinted by surface temperature -- whenever the body actually has
+  one. The info panel also gains "Atmosphere," "Surface composition," and
+  "Surface temperature" fields (`planets`/`moons.atmosphere`/
+  `composition`/`surface_temperature_k`, already generated and stored,
+  just not previously surfaced here). The true-position SVG diagram itself
+  is unchanged -- this is an appearance preview alongside it, not a
+  replacement.
+
 ## [5.40.0] - 2026-09-19
 
 ### Changed
