@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.44.1] - 2026-09-19
+
+### Changed
+- **Removed the "Sectors"/"Sectors (shell N)"/"Sectors (local
+  neighborhood)"/"Sectors (random start)" progress bar entirely** from
+  `generate.py sector`/`galaxy` -- the previous release only removed the
+  nested per-sector bar and tried to fix the outer one's flicker by
+  routing prints through it, but the outer bar itself was still visible
+  and still wasn't what was wanted. `run_sector`/`run_shell_batch`/
+  `run_local_neighborhood`/`run_random_start`/`run_galaxy` no longer take
+  or build a `rich.progress.Progress` at all -- every status line is a
+  plain `print` again, and `generate.py` no longer imports `rich.progress`.
+
 ## [5.44.0] - 2026-09-19
 
 ### Changed
