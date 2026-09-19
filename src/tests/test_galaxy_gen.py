@@ -768,22 +768,25 @@ def test_random_start_mode_respects_min_start_density(mysql_config):
     assert relative_density(seed_position, _SKELETON_SHAPE) >= threshold
 
 
-def test_random_start_mode_gives_up_when_min_start_density_unattainable(mysql_config, monkeypatch):
+def test_random_start_mode_gives_up_when_min_start_density_unattainable(mysql_config, monkeypatch, capsys):
     """A --min-start-density no address in range can ever satisfy must
-    still give up cleanly (not loop forever), same as the
-    fully-occupied case above, with a message that calls out the density
-    constraint specifically."""
+    still give up cleanly (not loop forever), with a message that calls
+    out the density constraint specifically. That message goes through
+    `log.error` (logged to the console, same as the fully-occupied case
+    above) rather than `SystemExit`'s own args, so it's asserted against
+    captured stdout instead of `pytest.raises(..., match=...)`."""
     n_0 = shell_sector_count(0)
     _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
 
     monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
 
-    with pytest.raises(SystemExit, match="min-start-density"):
+    with pytest.raises(SystemExit):
         _run_cli(
             ["--max-shell", "0", "--radius-pc", "0.001", "--min-start-density", "1000000"]
             + _mysql_argv(mysql_config)
         )
 
+    assert "min-start-density" in capsys.readouterr().out
     assert _all_sectors(mysql_config) == []
 
 
