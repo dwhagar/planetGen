@@ -22,8 +22,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from apiclient import get_phenomena
-from fmt import esc
-from page import query_params, run
+from fmt import esc, post_link
+from page import nav_params, run
 
 _MAX_ROWS = 500
 """int: Same "cap, don't paginate" convention `browse.py` already uses --
@@ -42,7 +42,7 @@ def _truncated_note(total, shown):
 
 
 def handler():
-    params = query_params()
+    params = nav_params()
     db_name = params.get("db", "")
 
     page = get_phenomena(db_name, limit=_MAX_ROWS)
@@ -51,12 +51,16 @@ def handler():
     def _row_html(row):
         radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
         if row["sector_id"] is not None:
-            sector_cell = f'<td><a href="sector.py?db={esc(db_name)}&id={row["sector_id"]}">{esc(row["sector_name"])}</a></td>'
+            sector_link = post_link("sector.py", {"db": db_name, "id": row["sector_id"]}, esc(row["sector_name"]))
+            sector_cell = f"<td>{sector_link}</td>"
         else:
             sector_cell = "<td><em>None</em></td>"
+        phenomenon_link = post_link(
+            "phenomenon.py", {"db": db_name, "type": row["type"], "id": row["id"]}, esc(row["name"])
+        )
         return (
             "<tr>"
-            f'<td><a href="phenomenon.py?db={esc(db_name)}&type={esc(row["type"])}&id={row["id"]}">{esc(row["name"])}</a></td>'
+            f'<td>{phenomenon_link}</td>'
             f'<td>{esc(_TYPE_LABELS.get(row["type"], row["type"]))}</td>'
             f'<td>{esc((row["descriptor"] or "").replace("_", " ").capitalize())}</td>'
             f'<td>{radius_text}</td>'
@@ -69,7 +73,7 @@ def handler():
 
     count_badge = f"{total} phenomen{'a' if total != 1 else 'on'} found"
     body = f"""
-<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; Phenomena</p>
+<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; Phenomena</p>
 <p class="badges"><span class="badge">{count_badge}</span></p>
 <section class="panel">
 <h2>Phenomena</h2>

@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.40.0] - 2026-09-19
+
+### Changed
+- **Every navigational link in `html/` now posts its parameters as
+  hidden form fields instead of putting them in a `<a href="page.py?
+  db=...&id=...">`'s query string** -- `db`, a sector/system/phenomenon
+  id, a search filter, a wiki-upload/admin-action field, and the like no
+  longer show up in the browser's own address bar. `lib/fmt.py`'s new
+  `post_link` builds a same-effect, no-JS-required `<form method="post">`
+  submit button, styled (`static/style.css`'s `.link-btn`) to be visually
+  indistinguishable from the plain link it replaces; `lib/page.py`'s new
+  `nav_params`/`nav_multi_params` are what a page reads a followed link's
+  params back with (a POST body when present, else the GET query string,
+  so a bare `QUERY_STRING`-only smoke test still works). The one
+  exception is a Galaxy Map/Sector Map/NAV Map marker plotted inside an
+  `<svg>` (a `<form>` can't nest inside one) -- those still navigate via
+  a real, focusable `<a>`, now carrying `data-nav-target`/
+  `data-nav-params` (`fmt.data_nav_params`) instead of an `href` query
+  string, intercepted by the new `static/navform.js` (loaded on every
+  page) to post the same hidden form a click on any other link would.
+  Every such marker still has a plain, no-JS-required row in a table
+  below its own map, so a marker click is never the only way to reach
+  something. `index.py` no longer redirects to `browse.py?db=...` for
+  this deployment's one database (a redirect's `Location` URL would
+  itself show `db` in the address bar) -- it calls `browse.handler`
+  in-process instead and renders the result directly, guarded by
+  `browse.py`'s own `if __name__ == "__main__":` so `browse.py` reached
+  directly is unaffected. This makes every page un-bookmarkable/
+  un-shareable by URL and, for a map marker specifically,
+  JavaScript-dependent -- a deliberate trade-off (see `lib/page.py`'s
+  module docstring) for keeping database names, record ids, and search
+  terms out of browser history, address bars, and referrer headers.
+
 ## [5.39.1] - 2026-09-19
 
 ### Fixed

@@ -4,8 +4,10 @@
 """
 Cross-database search.
 
-Two complementary ways in, per one chosen database (`?db=`, same
-convention as every other page here):
+Two complementary ways in, per one chosen database (`db`, same convention
+as every other page here, now carried as a hidden POST field rather than
+`?db=` -- see `lib/page.py`'s `nav_params`/`nav_multi_params` and
+`lib/fmt.py`'s `post_link`):
 
   1. Click-to-filter attribute tags -- object type, star spectral/
      luminosity class, planet class/body type/life chemistry, and the
@@ -16,9 +18,11 @@ convention as every other page here):
      see `schema.sql`'s "v2" header note) with their own separate facets,
      so a "Class D" tag only ever means one or the other, never both at
      once the way a shared `is_moon`-flagged table would. Clicking a tag
-     toggles it on/off via a plain link that rewrites the query string,
-     so this works with JavaScript disabled, same as every other page in
-     `html/`.
+     toggles it on/off by posting this same page's every other currently
+     active filter back, with just that one value flipped (`post_link`,
+     not a plain `<a href>` whose query string would put every filter's
+     value in the browser's own address bar) -- still no JavaScript
+     needed, same as every other page in `html/`.
   2. A name search, one field per nameable entity (sector, star system,
      star, planet, moon), each with its own HTML5 `<datalist>` for
      autocomplete -- no JavaScript, just the browser's native
@@ -43,15 +47,14 @@ This page is a thin renderer over `GET /api/search` -- every query
 
 import os
 import sys
-from urllib.parse import parse_qs, urlencode
 
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from apiclient import get_search
-from fmt import esc
+from fmt import esc, post_link
 
-from page import run
+from page import nav_multi_params, run
 
 # Mirrors queryDb.SEARCH_TAG_FACETS -- duplicated, not imported, since
 # this page only ever talks to the database through the API (see the
@@ -65,11 +68,11 @@ TAG_FACETS = (
     "density",
 )
 
-# Min/max size (radius_km) query-string field names, one pair per entity
-# with a size of its own -- threaded through `_build_url`/`handler()`
-# exactly like the plain text fields (`sector_q` etc.) below: opaque
-# strings preserved verbatim across a tag toggle, parsed to a float only
-# at the `get_search()` call site (see `_size_range_from_texts`).
+# Min/max size (radius_km) field names, one pair per entity with a size
+# of its own -- threaded through `_build_params`/`handler()` exactly like
+# the plain text fields (`sector_q` etc.) below: opaque strings preserved
+# verbatim across a tag toggle, parsed to a float only at the
+# `get_search()` call site (see `_size_range_from_texts`).
 SIZE_ENTITIES = ("star", "planet", "moon")
 SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bound in ("min", "max"))
 
@@ -87,7 +90,7 @@ def _truncated_note(result_limit, truncated):
 def _sector_link(db_name, sector_id):
     if sector_id is None:
         return "Standalone"
-    return f'<a href="sector.py?db={esc(db_name)}&id={sector_id}">View</a>'
+    return post_link("sector.py", {"db": db_name, "id": sector_id}, "View")
 
 
 def _datalist_html(list_id, names):
@@ -96,12 +99,14 @@ def _datalist_html(list_id, names):
 
 
 # ---------------------------------------------------------------------
-# Query-string state and link building -- every tag button and "remove
-# filter" chip is a plain <a> that re-renders this same page with one
-# value toggled, preserving every other currently active filter.
+# Navigation state and link building -- every tag button and "remove
+# filter" chip is a `page.post_link` form that re-renders this same page
+# (posted, not linked -- see that function -- so a filter's current state
+# never ends up in the browser's own address bar) with one value toggled,
+# preserving every other currently active filter.
 # ---------------------------------------------------------------------
 
-def _build_url(db_name, texts, tags):
+def _build_params(db_name, texts, tags):
     params = [("db", db_name)]
     for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q") + SIZE_FIELDS:
         value = texts.get(key)
@@ -110,32 +115,30 @@ def _build_url(db_name, texts, tags):
     for facet in TAG_FACETS:
         for value in sorted(tags.get(facet, ())):
             params.append((facet, value))
-    # Query-string "&" separators are ours (not user data), but still
-    # need entity-escaping to be strictly valid inside an href attribute.
-    return "search.py?" + urlencode(params).replace("&", "&amp;")
+    return params
 
 
-def _toggle_url(state, facet, value):
+def _toggle_params(state, facet, value):
     new_tags = {key: set(values) for key, values in state["tags"].items()}
     values = new_tags.setdefault(facet, set())
     if value in values:
         values.discard(value)
     else:
         values.add(value)
-    return _build_url(state["db"], state["texts"], new_tags)
+    return _build_params(state["db"], state["texts"], new_tags)
 
 
-def _remove_text_url(state, key):
+def _remove_text_params(state, key):
     new_texts = dict(state["texts"])
     new_texts[key] = ""
-    return _build_url(state["db"], new_texts, state["tags"])
+    return _build_params(state["db"], new_texts, state["tags"])
 
 
-def _remove_size_url(state, entity):
+def _remove_size_params(state, entity):
     new_texts = dict(state["texts"])
     new_texts[f"{entity}_min_radius_km"] = ""
     new_texts[f"{entity}_max_radius_km"] = ""
-    return _build_url(state["db"], new_texts, state["tags"])
+    return _build_params(state["db"], new_texts, state["tags"])
 
 
 def _size_range_from_texts(texts, entity):
@@ -173,10 +176,11 @@ def _tag_group_html(title, facet, options, selected, state):
     for option in options:
         value, label, count, tip = option["value"], option["label"], option["count"], option["tooltip"]
         css_class = "tag active" if value in selected else "tag"
-        title_attr = f' title="{esc(tip)}"' if tip else ""
+        title_attr = f'title="{esc(tip)}"' if tip else ""
+        button_label = f'{esc(label)} <span class="tag-count">{count}</span>'
         buttons.append(
-            f'<a class="{css_class}" href="{_toggle_url(state, facet, value)}"{title_attr}>'
-            f'{esc(label)} <span class="tag-count">{count}</span></a>'
+            post_link("search.py", _toggle_params(state, facet, value), button_label, css_class=css_class,
+                      attrs=title_attr)
         )
     return f"""
 <div class="tag-group">
@@ -195,7 +199,7 @@ def _active_filters_html(state, facet_labels):
     for key, label in text_labels.items():
         value = state["texts"].get(key)
         if value:
-            chips.append((f'{esc(label)}: &ldquo;{esc(value)}&rdquo;', _remove_text_url(state, key)))
+            chips.append((f'{esc(label)}: &ldquo;{esc(value)}&rdquo;', _remove_text_params(state, key)))
     size_labels = {"star": "Star size", "planet": "Planet size", "moon": "Moon size"}
     for entity, label in size_labels.items():
         size_range = _size_range_from_texts(state["texts"], entity)
@@ -207,16 +211,17 @@ def _active_filters_html(state, facet_labels):
                 range_text = f"&ge; {min_km:,.0f} km"
             else:
                 range_text = f"&le; {max_km:,.0f} km"
-            chips.append((f'{esc(label)}: {range_text}', _remove_size_url(state, entity)))
+            chips.append((f'{esc(label)}: {range_text}', _remove_size_params(state, entity)))
     for facet in TAG_FACETS:
         for value in sorted(state["tags"].get(facet, ())):
             label = facet_labels.get(f"{facet}:{value}", value)
-            chips.append((esc(label), _toggle_url(state, facet, value)))
+            chips.append((esc(label), _toggle_params(state, facet, value)))
     if not chips:
         return ""
+    remove_attr = 'aria-label="Remove filter"'
     items = "".join(
-        f'<span class="filter-chip">{text}<a href="{url}" aria-label="Remove filter">&times;</a></span>'
-        for text, url in chips
+        f'<span class="filter-chip">{text}{post_link("search.py", params, "&times;", attrs=remove_attr)}</span>'
+        for text, params in chips
     )
     return f'<div class="active-filters">{items}</div>'
 
@@ -230,7 +235,7 @@ def _sectors_panel(db_name, result):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
-        f'<td><a href="sector.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
+        f'<td>{post_link("sector.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
         f'<td>{row["edge_mpc"]:,.2f} mpc</td>'
         "</tr>"
         for row in rows
@@ -251,7 +256,7 @@ def _systems_panel(db_name, result):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
-        f'<td><a href="system.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
+        f'<td>{post_link("system.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
         f'<td>{esc(row["star_summary"])}</td>'
@@ -282,7 +287,7 @@ def _stars_panel(db_name, result):
         f'<td>{esc(row["role"])}</td>'
         f'<td>{esc(row["star_type"])}</td>'
         f'<td>{_radius_km(row)}</td>'
-        f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
+        f'<td>{post_link("system.py", {"db": db_name, "id": row["star_system_id"]}, esc(row["system_name"]))}</td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
@@ -308,7 +313,7 @@ def _planets_panel(db_name, result):
         f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
         f'<td>{_radius_km(row)}</td>'
         f'<td>{esc(row["life_chemical"]) or "&mdash;"}</td>'
-        f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
+        f'<td>{post_link("system.py", {"db": db_name, "id": row["star_system_id"]}, esc(row["system_name"]))}</td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
@@ -335,7 +340,7 @@ def _moons_panel(db_name, result):
         f'<td>{_radius_km(row)}</td>'
         f'<td>{esc(row["life_chemical"]) or "&mdash;"}</td>'
         f'<td>{esc(row["planet_name"])}</td>'
-        f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
+        f'<td>{post_link("system.py", {"db": db_name, "id": row["star_system_id"]}, esc(row["system_name"]))}</td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
@@ -358,7 +363,7 @@ def _belts_panel(db_name, result):
         "<tr>"
         f'<td>{esc(row["density"]).capitalize()}</td>'
         f'<td>{esc(row["composition_summary"])}</td>'
-        f'<td><a href="system.py?db={esc(db_name)}&id={row["star_system_id"]}">{esc(row["system_name"])}</a></td>'
+        f'<td>{post_link("system.py", {"db": db_name, "id": row["star_system_id"]}, esc(row["system_name"]))}</td>'
         f'<td>{_sector_link(db_name, row["sector_id"])}</td>'
         "</tr>"
         for row in rows
@@ -395,7 +400,7 @@ def _render_results(db_name, results):
 
 
 def handler():
-    raw = parse_qs(os.environ.get("QUERY_STRING", ""))
+    raw = nav_multi_params()
 
     def _first(key):
         values = raw.get(key)
@@ -468,7 +473,7 @@ def handler():
     ])
 
     form_html = f"""
-<form method="get" action="search.py" class="search-form">
+<form method="post" action="search.py" class="search-form" id="search-filters-form">
   <input type="hidden" name="db" value="{esc(db_name)}">
   {hidden_tag_inputs}
   <div class="search-fields">
@@ -492,11 +497,11 @@ def handler():
     {size_fields_html}
   </div>
   {datalists}
-  <div class="search-actions">
-    <button type="submit" class="btn">Search</button>
-    <a href="search.py?db={esc(db_name)}">Clear all filters</a>
-  </div>
 </form>
+<div class="search-actions">
+  <button type="submit" form="search-filters-form" class="btn">Search</button>
+  {post_link("search.py", {"db": db_name}, "Clear all filters")}
+</div>
 """
 
     active_filters_html = _active_filters_html(state, data["facet_labels"])
@@ -507,9 +512,7 @@ def handler():
     else:
         results_html = '<p class="hint">Select a tag below, or enter a name above and press Search, to see matching results.</p>'
 
-    breadcrumb = (
-        f'<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a> &rarr; Search</p>'
-    )
+    breadcrumb = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; Search</p>'
 
     body = f"""
 {breadcrumb}

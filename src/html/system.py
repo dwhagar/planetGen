@@ -26,9 +26,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from apiclient import ApiError, auth_me, get_system, get_wiki_config, upload_system_to_wiki
-from fmt import esc, linkify_location
+from fmt import esc, linkify_location, post_link
 from mdconvert import markdown_to_html_with_headings
-from page import form_params, incoming_cookie_header, query_params, run
+from page import form_params, incoming_cookie_header, nav_params, run
 from systemmap import render_system_map_panel
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -242,20 +242,24 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
 </section>
 """
 
-    base_url = f"system.py?db={esc(db_name)}&id={system_id}"
+    base_params = {"db": db_name, "id": system_id}
 
     if view == "source":
         content = wikitext_content if fmt == "wikitext" else markdown_content
         other_fmt = "markdown" if fmt == "wikitext" else "wikitext"
         rows = min((content or "").count("\n") + 3, 40)
+        rendered_link = post_link("system.py", base_params, "Rendered")
+        other_fmt_link = post_link(
+            "system.py", {**base_params, "view": "source", "format": other_fmt}, f"{other_fmt.capitalize()} source"
+        )
         return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>Description</h2>
   <div class="view-toggle">
-    <a href="{base_url}">Rendered</a>
+    {rendered_link}
     <span class="view-toggle-current">{esc(fmt.capitalize())} source</span>
-    <a href="{base_url}&view=source&format={other_fmt}">{esc(other_fmt.capitalize())} source</a>
+    {other_fmt_link}
   </div>
 </div>
 <textarea readonly rows="{rows}" class="content-box" aria-label="{esc(fmt)} source">{esc(content)}</textarea>
@@ -264,14 +268,16 @@ def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_
 
     rendered, headings = markdown_to_html_with_headings(markdown_content)
     toc_html = _toc_html(headings)
+    wikitext_link = post_link("system.py", {**base_params, "view": "source"}, "Wikitext source")
+    markdown_link = post_link("system.py", {**base_params, "view": "source", "format": "markdown"}, "Markdown source")
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>Description</h2>
   <div class="view-toggle">
     <span class="view-toggle-current">Rendered</span>
-    <a href="{base_url}&view=source">Wikitext source</a>
-    <a href="{base_url}&view=source&format=markdown">Markdown source</a>
+    {wikitext_link}
+    {markdown_link}
   </div>
 </div>
 {toc_html}
@@ -308,13 +314,14 @@ def _wiki_upload_section_html(db_name, system_id, system, wiki_config, wiki_mess
         f'<label><input type="radio" name="backend" value="{value}"{" checked" if i == 0 else ""}> {label}</label>'
         for i, (value, label) in enumerate(options)
     )
-    base_url = f"system.py?db={esc(db_name)}&id={system_id}"
     return f"""
 {message_html}{error_html}
 <section class="panel">
 <h2>Upload to Wiki</h2>
-<form method="post" action="{base_url}" class="search-form">
+<form method="post" action="system.py" class="search-form">
   <input type="hidden" name="action" value="upload_wiki">
+  <input type="hidden" name="db" value="{esc(db_name)}">
+  <input type="hidden" name="id" value="{esc(system_id)}">
   <div class="search-fields">
     <div class="search-field">{radios}</div>
     <label class="search-field">Path (Wiki.js only -- MediaWiki uses this system's name)
@@ -330,7 +337,7 @@ def _wiki_upload_section_html(db_name, system_id, system, wiki_config, wiki_mess
 
 
 def handler():
-    params = query_params()
+    params = nav_params()
     db_name = params.get("db", "")
     system_id = params.get("id", "")
     view = params.get("view", "rendered")
@@ -342,9 +349,10 @@ def handler():
 
     system = get_system(db_name, system_id)
 
-    back_html = f'<p class="breadcrumb"><a href="browse.py?db={esc(db_name)}">{esc(db_name)}</a>'
+    back_html = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))}'
     if system["sector_id"] is not None:
-        back_html += f' &rarr; <a href="sector.py?db={esc(db_name)}&id={system["sector_id"]}">Sector</a>'
+        sector_link = post_link("sector.py", {"db": db_name, "id": system["sector_id"]}, "Sector")
+        back_html += f" &rarr; {sector_link}"
     back_html += f" &rarr; {esc(system['name'])}</p>"
 
     summary_bits = []
@@ -372,9 +380,7 @@ def handler():
         # non-galaxy-placed sector still gets the link: same-sector NAV
         # is always available once that much is true, nav.py itself
         # works out whether cross-sector NAV also applies.
-        nav_html = (
-            f'<p><a class="btn" href="nav.py?db={esc(db_name)}&from={system_id}">Navigate from here</a></p>'
-        )
+        nav_html = f'<p>{post_link("nav.py", {"db": db_name, "from": system_id}, "Navigate from here", css_class="btn")}</p>'
 
     location_html = ""
     if system["location"]:
@@ -426,9 +432,8 @@ wiki_error = None
 if identity is not None and os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
     fields = form_params()
     if fields.get("action") == "upload_wiki":
-        params = query_params()
-        db_name = params.get("db", "")
-        system_id = params.get("id", "")
+        db_name = fields.get("db", "")
+        system_id = fields.get("id", "")
         backend = fields.get("backend", "")
         path = fields.get("path", "").strip() or None
         try:

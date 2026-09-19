@@ -52,7 +52,7 @@ the panel's own link is what navigates away.
 import colorsys
 import math
 
-from fmt import esc
+from fmt import data_nav_params, esc
 
 try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -659,7 +659,7 @@ def _dot_html(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None)
         f'data-temp="{esc(star["temp_display"])}" '
         f'data-quadrant="{esc(system["quadrant"])}" '
         f'data-location="{esc(system["location"])}" '
-        f'data-href="system.py?db={esc(db_name)}&amp;id={system["id"]}" '
+        f'data-nav-target="system.py" data-nav-params="{data_nav_params({"db": db_name, "id": system["id"]})}" '
         f'aria-label="{esc(name)}" title="{esc(name)}"></div>'
         '</div>'
     )
@@ -748,14 +748,16 @@ def _cloud_html(db_name, phenomenon, x_px, y_px, z_px, radius_px):
     than the scene itself); a black hole/neutron star draws as a small,
     sharp, glowing point instead (`radius_ly` is always 0 for these two --
     see `queryDb._PHENOMENON_TABLES` -- real event-horizon/neutron-star
-    sizes are negligible at this scale). Carries a `data-href` to
-    `phenomenon.py` (this project's detail page for a standalone
-    phenomenon -- `static/sectormap.js`'s info panel adds the "View
-    phenomenon" link the same way `_dot_html`'s `data-href` already does
-    for a star system).
+    sizes are negligible at this scale). Carries `data-nav-target`/
+    `data-nav-params` to `phenomenon.py` (this project's detail page for a
+    standalone phenomenon -- `static/sectormap.js`'s info panel adds the
+    "View phenomenon" link the same way `_dot_html`'s own
+    `data-nav-target`/`data-nav-params` already does for a star system;
+    see `static/navform.js` for how these navigate without ever putting
+    `phenomenon.py?...` in the browser's own address bar).
 
     Args:
-        db_name (str): The current `?db=` value, for `data-href`.
+        db_name (str): The current `?db=` value, for `data-nav-params`.
         phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
                            (`id`, `type`, `name`, `descriptor`, `radius_ly`,
                            `distance_ly`).
@@ -815,7 +817,8 @@ def _cloud_html(db_name, phenomenon, x_px, y_px, z_px, radius_px):
         f'data-phenomenon-type="{esc(type_label)}" '
         f'data-radius="{phenomenon["radius_ly"]:,.2f} ly" '
         f'data-distance="{phenomenon["distance_ly"]:,.1f} ly from sector center" '
-        f'data-href="phenomenon.py?db={esc(db_name)}&amp;type={esc(phenomenon["type"])}&amp;id={phenomenon["id"]}" '
+        'data-nav-target="phenomenon.py" '
+        f'data-nav-params="{data_nav_params({"db": db_name, "type": phenomenon["type"], "id": phenomenon["id"]})}" '
         f'aria-label="{esc(phenomenon["name"])}" title="{esc(phenomenon["name"])}"></div>'
         "</div>"
     )
@@ -841,7 +844,8 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 
     Args:
         db_name (str): The current `?db=` value, used to build each dot's
-                       `data-href` (`system.py?db=...&id=...`).
+                       `data-nav-params` (posted to `system.py` on click,
+                       see `static/navform.js`).
         edge_mpc (float): The sector's cube edge (`sectors.edge_mpc`) --
                           every system's `position_*_mpc` is relative to
                           the sector's cubic center (see schema.sql's

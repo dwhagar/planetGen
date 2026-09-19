@@ -20,9 +20,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from apiclient import get_sectors, get_systems
-from fmt import esc, format_density
+from fmt import esc, format_density, post_link
 from galaxymap import sector_quadrant
-from page import query_params, run
+from page import nav_params, run
 
 _MAX_ROWS = 500
 
@@ -35,7 +35,7 @@ def _galaxy_position_cell(db_name, sector):
     if not sector["placed"]:
         return '<span class="hint">Unplaced</span>'
     quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
-    return f'<a href="galaxy.py?db={esc(db_name)}&quadrant={quadrant}">Quadrant {quadrant}</a>'
+    return post_link("galaxy.py", {"db": db_name, "quadrant": quadrant}, f"Quadrant {quadrant}")
 
 
 def _truncated_note(total, shown):
@@ -44,9 +44,9 @@ def _truncated_note(total, shown):
     return f'<p class="hint">Showing the first {shown} of {total} -- try Search for a more targeted view.</p>'
 
 
-def handler():
-    params = query_params()
-    db_name = params.get("db", "")
+def handler(db_name=None):
+    if db_name is None:
+        db_name = nav_params().get("db", "")
 
     sectors_page = get_sectors(db_name, limit=_MAX_ROWS)
     sectors, sectors_total = sectors_page["items"], sectors_page["total"]
@@ -56,7 +56,7 @@ def handler():
 
     sector_rows = "".join(
         "<tr>"
-        f'<td><a href="sector.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
+        f'<td>{post_link("sector.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
         f'<td>{row["system_count"]}</td>'
         f'<td>{format_density(row["edge_ly"], row["system_count"])}</td>'
         f'<td>{_galaxy_position_cell(db_name, row)}</td>'
@@ -66,7 +66,7 @@ def handler():
 
     standalone_rows = "".join(
         "<tr>"
-        f'<td><a href="system.py?db={esc(db_name)}&id={row["id"]}">{esc(row["name"])}</a></td>'
+        f'<td>{post_link("system.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
         f'<td>{_esc_bool(row["is_binary"])}</td>'
         f'<td>{esc(row["star_summary"])}</td>'
         "</tr>"
@@ -81,12 +81,12 @@ def handler():
     ) + "</p>"
 
     body = f"""
-<p class="breadcrumb">{esc(db_name)} &middot; <a href="search.py?db={esc(db_name)}">Search</a></p>
+<p class="breadcrumb">{esc(db_name)} &middot; {post_link("search.py", {"db": db_name}, "Search")}</p>
 {badges_html}
 <section class="panel" id="sectors">
 <div class="panel-header">
   <h2>Sectors</h2>
-  <a href="galaxy.py?db={esc(db_name)}">Galaxy Map &rarr;</a>
+  {post_link("galaxy.py", {"db": db_name}, "Galaxy Map &rarr;")}
 </div>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Systems</th><th>Density</th><th>Galaxy Position</th></tr></thead>
@@ -111,4 +111,5 @@ def _esc_bool(value):
     return "Yes" if value else "No"
 
 
-run(handler)
+if __name__ == "__main__":
+    run(handler)
