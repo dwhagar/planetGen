@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.46.2] - 2026-09-19
+
+### Fixed
+- **`generate.py galaxy`'s random-start mode no longer shows a bogus
+  single-sector progress bar.** The previous release ([5.46.1]) restored
+  the "Sectors" progress bar for `galaxy`'s three modes, but random-start
+  mode's own seed sector was wrapped in its own `"Sectors (random start)"`
+  task with `total=1` -- a bar that goes straight from 0 to 100% in one
+  `advance` call before it can render a meaningful rate or ETA, so in
+  practice it was just a single completed bar sitting on screen, not a
+  genuine progress display. That was a mistake in how [5.46.1] restored
+  the bar: the whole point of the restore was the *galaxy*-level bar
+  (sectors being filled across a shell/neighborhood/random-start's
+  surrounding radius), not a bar for generating one sector. Random-start
+  mode now generates its seed sector with no progress task of its own and
+  falls straight through to `run_local_neighborhood`, whose own
+  `"Sectors (local neighborhood)"` task (covering every sector generated
+  around that seed) is the only bar shown -- matching `--shell`/
+  `--center-sector` mode, which never had this problem.
+
 ## [5.46.1] - 2026-09-19
 
 ### Changed
