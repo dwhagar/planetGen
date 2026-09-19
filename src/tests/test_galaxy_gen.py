@@ -981,3 +981,49 @@ def test_shell_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysq
     ] + _mysql_argv(mysql_config))
 
     assert _all_sectors(mysql_config) == []
+
+
+# ---------------------------------------------------------------------------
+# Guaranteed non-empty: a qualifying sector's own system count and each
+# phenomenon type's own count are independent Poisson draws, so all of them
+# landing on zero simultaneously is a real, expected outcome at low means
+# (e.g. ~13% at mean 2, and only gets more likely approaching the mean-~1
+# qualification threshold itself) -- generate_sector forces exactly one
+# system onto an otherwise-completely-empty, --density-driven sector rather
+# than leave it with nothing in it at all. No database needed -- these call
+# generate_sector directly, not through the CLI/mysql_config fixture.
+# ---------------------------------------------------------------------------
+
+def test_generate_sector_is_never_left_with_nothing_in_it():
+    """
+    Runs generate_sector directly, many times, at a mean of exactly ~1
+    system/sector (right at the qualification threshold, where an empty
+    Poisson draw is common -- P(0) = 1/e = 36.8%) -- across 200 draws, an
+    unpatched version would produce a genuinely empty sector far more
+    often than this test could plausibly miss by chance alone.
+    """
+    from stellarObjects.spaceSector import SpaceSector
+
+    e_value = SpaceSector(name="calibration").expected_system_count()
+    args = galaxyGen._default_generation_args()
+    args.density = 1.0 / e_value
+    args.num_systems = None
+
+    for _ in range(200):
+        _sector_name, sector = galaxyGen.generate_sector(args)
+        assert sector.entries or sector.phenomena, (
+            "generate_sector produced a sector with nothing in it at all"
+        )
+
+
+def test_generate_sector_does_not_force_content_onto_an_explicit_zero():
+    """The guaranteed-non-empty fallback only overrides a --density-driven
+    zero -- an explicit --num-systems 0 is a deliberate request it must
+    never second-guess."""
+    args = galaxyGen._default_generation_args()
+    args.density = None
+    args.num_systems = 0
+
+    _sector_name, sector = galaxyGen.generate_sector(args)
+    assert sector.entries == []
+    assert sector.phenomena == []

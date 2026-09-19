@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.46.0] - 2026-09-19
+
+### Changed
+- **A qualifying sector can no longer come out completely empty.** A
+  sector's own system count and each exotic-phenomenon type's own count
+  are independent Poisson draws, so all of them landing on zero at once
+  is a real, expected outcome -- more likely the closer local density
+  sits to the 1-star-per-sector qualification threshold (e.g. ~13% at a
+  mean of 2 systems, ~37% right at the threshold itself, mean 1) -- but a
+  sector with nothing in it at all isn't useful to anyone visiting it.
+  `generate_sector` now force-adds exactly one system when a
+  `--density`-driven sector's own draws (system count, every phenomenon
+  type) all came back empty. Only applies when the count came from
+  `--density` (explicit or `_BatchDensity`-resolved, as in `galaxy`
+  mode); an explicit `--num-systems 0` (including on the plain `sector`
+  subcommand) is a deliberate request this never second-guesses.
+
 ## [5.45.1] - 2026-09-19
 
 ### Changed

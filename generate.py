@@ -752,7 +752,12 @@ def generate_sector(args, galactic_center_dist_ly=None):
               `generate_sector_name`); the `SpaceSector` already has every
               system added (`SpaceSector.add_system`'s Hill-sphere-based
               random placement), plus a realistically sparse population of
-              exotic phenomena (see `generate_sector_phenomena`).
+              exotic phenomena (see `generate_sector_phenomena`). When
+              `args.density` drove the system count (see below) and both
+              that Poisson draw and `generate_sector_phenomena`'s own
+              independent draws came back completely empty, one system is
+              force-added anyway -- see the "guaranteed non-empty" note
+              below.
     """
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name)
@@ -763,7 +768,8 @@ def generate_sector(args, galactic_center_dist_ly=None):
     # the `galaxy` subcommand vary independently instead of sharing one
     # fixed count. A copy avoids mutating the caller's shared `args`
     # namespace, since this function runs once per sector.
-    if args.density is not None:
+    density_driven = args.density is not None
+    if density_driven:
         args = copy.copy(args)
         args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
 
@@ -777,6 +783,20 @@ def generate_sector(args, galactic_center_dist_ly=None):
         sector.add_system(system, system_config=cfg)
 
     generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+
+    if density_driven and not sector.entries and not sector.phenomena:
+        # Guaranteed non-empty: a qualifying sector's own Poisson draws
+        # (system count here, each phenomenon type in generate_sector_phenomena)
+        # are independent, so all of them landing on zero simultaneously is
+        # a real, expected outcome at low means (e.g. ~13% at mean 2) --
+        # but a sector with literally nothing in it isn't useful to anyone
+        # visiting it, so force exactly one system rather than leave it
+        # empty. Only applies when the count came from --density (an
+        # explicit --num-systems, including 0, is a deliberate request
+        # this never overrides).
+        fallback_config, _output_path = build_system_config(args)
+        fallback_system = StarSystem(system_config=fallback_config, galactic_center_dist_ly=galactic_center_dist_ly)
+        sector.add_system(fallback_system, system_config=fallback_config)
 
     return sector_name, sector
 
