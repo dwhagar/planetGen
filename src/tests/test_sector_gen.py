@@ -164,3 +164,94 @@ def test_generate_sector_phenomena_honors_markdown_flag(monkeypatch):
     assert entries
     assert all(e.phenomenon_type == "nebula" for e in entries)
     assert all(e.phenomenon.system_config.MARKDOWN is True for e in entries)
+
+
+# ---------------------------------------------------------------------------
+# generate_sector -- capacity handling (see generate_sector's own
+# "Capacity" docstring note). A sector's cube can only physically hold so
+# many systems before every point left is within some existing system's
+# own Hill sphere; SpaceSector.add_system raises ValueError once placement
+# fails. generate_sector must stop and return what fit instead of letting
+# that exception propagate and discard every system already generated.
+# ---------------------------------------------------------------------------
+
+def _real_sector_args(num_systems, name, extra_argv=()):
+    """A real `sector` subcommand namespace, built via generate.py's own
+    parser/validators -- generate_sector reads far more of `args` (via
+    build_sector_configs/build_system_config) than a hand-built
+    SimpleNamespace could safely stand in for."""
+    parser, command_parsers = sectorGen.build_parser()
+    args = parser.parse_args(["sector", "--num-systems", str(num_systems), "--name", name, *extra_argv])
+    command_parser = command_parsers["sector"]
+    sectorGen.validate_shared_generation_args(args, command_parser)
+    sectorGen.validate_sector_args(args, command_parser)
+    return args
+
+
+def test_generate_sector_stops_gracefully_once_a_system_cannot_be_placed(monkeypatch):
+    # Mirrors test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed
+    # above, one level up: a placement failure partway through the system
+    # loop must not discard the systems already placed (each one an
+    # expensive full StarSystem generation) or crash the whole sector.
+    original_add_system = SpaceSector.add_system
+    call_count = {"n": 0}
+
+    def flaky_add_system(self, *args, **kwargs):
+        call_count["n"] += 1
+        if call_count["n"] > 3:
+            raise ValueError("no room -- simulated placement failure")
+        return original_add_system(self, *args, **kwargs)
+
+    monkeypatch.setattr(SpaceSector, "add_system", flaky_add_system)
+
+    args = _real_sector_args(10, "CapacityTestSector", extra_argv=["-planets"])
+    _sector_name, sector = sectorGen.generate_sector(args)
+
+    assert len(sector.entries) == 3  # stopped right after the 3 successful placements
+    assert call_count["n"] == 4  # the 4th (failing) attempt, then no more
+
+
+def test_generate_sector_does_not_generate_systems_past_the_first_placement_failure(monkeypatch):
+    # The whole point of stopping early (rather than catching the
+    # ValueError but still looping through every remaining config) is to
+    # avoid paying for a full StarSystem generation -- the expensive part
+    # -- on a config that's never going to fit anyway.
+    original_add_system = SpaceSector.add_system
+    call_count = {"n": 0}
+
+    def flaky_add_system(self, *args, **kwargs):
+        call_count["n"] += 1
+        if call_count["n"] > 2:
+            raise ValueError("no room -- simulated placement failure")
+        return original_add_system(self, *args, **kwargs)
+
+    monkeypatch.setattr(SpaceSector, "add_system", flaky_add_system)
+
+    generated_count = {"n": 0}
+    original_star_system_init = StarSystem.__init__
+
+    def counting_init(self, *args, **kwargs):
+        generated_count["n"] += 1
+        return original_star_system_init(self, *args, **kwargs)
+
+    monkeypatch.setattr(StarSystem, "__init__", counting_init)
+
+    args = _real_sector_args(10, "NoWastedGenerationSector", extra_argv=["-planets"])
+    sectorGen.generate_sector(args)
+
+    # 2 successful placements + the 1 that triggered the failure -- not
+    # all 10 requested configs.
+    assert generated_count["n"] == 3
+
+
+def test_generate_sector_real_capacity_overflow_returns_a_partial_sector():
+    # End-to-end (no monkeypatching): a sector this size physically cannot
+    # hold 60 systems at real Hill-sphere spacing (see this project's own
+    # local-stellar-density constants), which used to raise ValueError and
+    # discard the whole sector. -planets keeps this fast (skips
+    # planet/moon generation) without touching the real placement logic
+    # this test actually cares about.
+    args = _real_sector_args(60, "RealCapacityOverflowSector", extra_argv=["-planets"])
+    _sector_name, sector = sectorGen.generate_sector(args)
+
+    assert 0 < len(sector.entries) < 60

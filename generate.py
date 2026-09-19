@@ -840,15 +840,37 @@ def generate_sector(args, galactic_center_dist_ly=None):
     Returns:
         tuple: `(sector_name, SpaceSector)` -- `sector_name` is
               `args.sector_name` or a freshly generated one (see
-              `generate_sector_name`); the `SpaceSector` already has every
-              system added (`SpaceSector.add_system`'s Hill-sphere-based
-              random placement), plus a realistically sparse population of
-              exotic phenomena (see `generate_sector_phenomena`). When
-              `args.density` drove the system count (see below) and both
-              that Poisson draw and `generate_sector_phenomena`'s own
-              independent draws came back completely empty, one system is
-              force-added anyway -- see the "guaranteed non-empty" note
-              below.
+              `generate_sector_name`); the `SpaceSector` has every system
+              that fit added (`SpaceSector.add_system`'s Hill-sphere-based
+              random placement -- see the "Capacity" note below for what
+              happens when not all of them do), plus a realistically
+              sparse population of exotic phenomena (see
+              `generate_sector_phenomena`). When `args.density` drove the
+              system count (see below) and both that Poisson draw and
+              `generate_sector_phenomena`'s own independent draws came
+              back completely empty, one system is force-added anyway --
+              see the "guaranteed non-empty" note below.
+
+    Capacity
+    --------
+    A sector's cube can only physically hold so many systems before every
+    point left is within some existing system's Hill sphere -- real space
+    is finite, and `SpaceSector.add_system`'s random placement
+    (`_random_position`) raises `ValueError` once it can't find room for
+    one more within `program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS`
+    tries. `--num-systems`/`--density` (and, compounding, `--min-habitable`
+    forcing extra large stars with their own larger Hill spheres) can ask
+    for more systems than a `program_constants.DEFAULT_SECTOR_EDGE_LY`
+    cube can hold at realistic stellar spacing. Rather than let that
+    `ValueError` propagate (previously discarding every system already
+    generated for this sector, including the expensive planet/moon
+    generation behind each one) or keep burning full `StarSystem`
+    generations on placements that are no longer going to fit, this loop
+    stops as soon as one system can't be placed and returns the sector as
+    it stands -- with fewer systems than requested, not zero. See
+    `sector_generation_summary_lines`'s "actual vs. expected" density
+    line, which already accounts for this (it was previously only ever
+    exercised by `--density`'s own Poisson undersampling).
     """
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name)
@@ -864,16 +886,34 @@ def generate_sector(args, galactic_center_dist_ly=None):
         args = copy.copy(args)
         args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
 
-    configs = build_sector_configs(args)
+    with log.timed_phase("build_sector_configs"):
+        configs = build_sector_configs(args)
 
-    systems = [
-        StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly) for cfg in configs
-    ]
+    for i, cfg in enumerate(configs):
+        with log.timed_phase(f"generate system {i + 1}/{len(configs)}"):
+            system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
 
-    for system, cfg in zip(systems, configs):
-        sector.add_system(system, system_config=cfg)
+        try:
+            with log.timed_phase(f"place system {i + 1}/{len(configs)}"):
+                sector.add_system(system, system_config=cfg)
+        except ValueError:
+            # No room left for another system's Hill sphere in this
+            # sector's cube -- see this function's own "Capacity"
+            # docstring note. Every following config would almost
+            # certainly fail the same way (this sector only gets fuller
+            # from here), so stop generating and placing altogether
+            # rather than pay for `len(configs) - i - 1` more full
+            # StarSystem generations just to discard them too.
+            log.normal(
+                f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
+                f"{len(configs)} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
+                f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
+                f"rather than the full requested count."
+            )
+            break
 
-    generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+    with log.timed_phase("generate_sector_phenomena"):
+        generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
 
     if density_driven and not sector.entries and not sector.phenomena:
         # Guaranteed non-empty: a qualifying sector's own Poisson draws

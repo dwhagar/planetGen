@@ -30,6 +30,8 @@ fights the bar's own redraw.
 
 import logging
 import sys
+import time
+from contextlib import contextmanager
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -129,6 +131,32 @@ def error(message, *args, **kwargs):
 def choice(description, chosen, reason):
     """Debug-only convenience for narrating a randomized/algorithmic decision: what was chosen and why."""
     debug(f"{description}: chose {chosen!r} ({reason})")
+
+
+@contextmanager
+def timed_phase(label):
+    """
+    Debug-only convenience for timing one named phase of generation:
+    logs `"{label}: {elapsed}ms"` at DEBUG severity when the `with` block
+    exits, so `--debug`'s own timestamped output doubles as a per-phase
+    profile with no separate instrumentation needed -- a benchmark can
+    either read the timestamps directly or just parse the elapsed value
+    already printed in the message.
+
+    Formats the elapsed time whether or not DEBUG is enabled (matching
+    every other call in this module, which never checks the level
+    itself) -- a `time.perf_counter()` delta and an f-string are cheap
+    enough that gating on `isEnabledFor` isn't worth the extra branch.
+
+    Args:
+        label (str): A short description of the phase being timed.
+    """
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        debug(f"{label}: {elapsed_ms:.3f}ms")
 
 
 # Sensible default so anything that imports stellarObjects modules directly
