@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.39.1] - 2026-09-19
+
+### Fixed
+- **CI was red on every run.** `test_db_persistence.py` still asserted
+  `_db.SCHEMA_VERSION == 22` (and `migrate_database(...) == 22`) in
+  sixteen places, left over from before the v23 wiki-publishing and v24
+  name-uniqueness migrations bumped `SCHEMA_VERSION` to 24; each
+  assertion now just compares against `_db.SCHEMA_VERSION` instead of a
+  stale literal. Fixing that surfaced a second, previously-masked bug in
+  the same file: eight of those tests reset `schema_migrations` to an
+  older version to replay later migrations, but never dropped the v22
+  search-index migration's indexes first, so replaying it against a
+  freshly-bootstrapped (already-v24) test database hit a "Duplicate key
+  name" error -- a new `_drop_v22_search_indexes` helper (alongside the
+  existing `_drop_v20_trajectory_columns`/`_drop_v21_phenomenon_columns`)
+  fixes that.
+- **Two `test_galaxy_gen.py` shell-batch tests raised `TypeError`.** Their
+  `_fake_generate_sector` test doubles didn't accept the `progress`
+  keyword the nested-progress-bar feature added to the real
+  `generate_sector`, so `monkeypatch`ing it in broke as soon as
+  `generate.py galaxy --shell` started passing one.
+- **A MySQL connection-pool leak was exhausting the test server's
+  `max_connections` partway through a full test run.** `_db.py` caches one
+  `PooledDB` per distinct connection config in a module-level dict that's
+  never evicted -- fine for the handful of long-lived databases a real
+  deployment ever points at, but the test suite's own `mysql_config`
+  fixture hands every single test a uniquely-named throwaway database, so
+  each test left one more pool (and its `mincached` real connection)
+  behind for the rest of the process's life. A new `_db.close_pool()`,
+  called from that fixture's teardown once its database is dropped for
+  good, closes and discards the pool immediately instead.
+
 ## [5.39.0] - 2026-09-18
 
 ### Added

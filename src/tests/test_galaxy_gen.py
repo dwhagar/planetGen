@@ -397,7 +397,7 @@ def test_shell_batch_uses_skeleton_density_when_neither_flag_given(mysql_config,
 
     captured = []
 
-    def _fake_generate_sector(args, galactic_center_dist_ly=None):
+    def _fake_generate_sector(args, galactic_center_dist_ly=None, progress=None):
         captured.append((args.density, args.num_systems))
         from stellarObjects.spaceSector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")
@@ -421,7 +421,7 @@ def test_shell_batch_explicit_num_systems_still_overrides_skeleton_density(mysql
 
     captured = []
 
-    def _fake_generate_sector(args, galactic_center_dist_ly=None):
+    def _fake_generate_sector(args, galactic_center_dist_ly=None, progress=None):
         captured.append((args.density, args.num_systems))
         from stellarObjects.spaceSector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")

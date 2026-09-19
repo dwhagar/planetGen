@@ -244,6 +244,24 @@ def _get_pool(config):
     return _pools[key]
 
 
+def close_pool(config):
+    """
+    Closes and discards the cached `PooledDB` for `config`, if one exists.
+
+    `_get_pool` never evicts an entry from `_pools` on its own -- fine for
+    the handful of long-lived databases a real deployment or WSGI worker
+    ever points at, but a caller that opens many short-lived, uniquely
+    named databases in one process (this project's own `mysql_config` test
+    fixture, one throwaway schema per test) would otherwise leave every
+    prior pool's `mincached` connections open for the rest of the
+    process's life, eventually exhausting the server's `max_connections`.
+    Call this once such a database is being dropped for good.
+    """
+    pool = _pools.pop(config._key(), None)
+    if pool is not None:
+        pool.close()
+
+
 class _Cursor:
     """
     Thin proxy around a real `pymysql` cursor that normalizes
