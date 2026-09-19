@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.44.0] - 2026-09-19
+
+### Changed
+- **Removed the per-sector "systems in this sector" progress bar** that
+  `generate.py sector`/`galaxy` nested under the outer "Sectors" bar --
+  most sectors, especially since the density-gating fix above, hold
+  anywhere from zero to a handful of systems, and system generation
+  itself is fast, so a bar that flashed on and off again within a single
+  frame for nearly every sector added visual noise without conveying
+  anything a viewer could actually track. `generate_sector`/
+  `generate_and_save_sector_at` no longer take a `progress` parameter at
+  all.
+- **Fixed the remaining "Sectors" bar fighting with the status text
+  printed alongside it, which is what actually caused the flicker/
+  scrolling** -- `run_sector`/`run_shell_batch`/`run_local_neighborhood`/
+  `run_random_start` now print every "Saved sector ..." status line (and
+  the per-sector system/phenomena/density summary) via
+  `progress.console.print(...)` instead of the builtin `print`, the
+  correct way to write to the console alongside a live `rich.progress.
+  Progress` display. Printing directly to stdout while `Progress`'s own
+  `Live` region is active fights with its redraws -- each raw `print`
+  forced the bar to erase itself, scroll up with the new text, and get
+  redrawn at the bottom again, which is what showed up as flicker/
+  scrolling on a real terminal. Routed through the shared console
+  instead, rich prints each status line safely above the live region and
+  leaves the bar itself pinned at the bottom, redrawn in place with no
+  flicker -- verified against a real pseudo-terminal (`script`), and
+  unchanged (a single plain line at the end, no ANSI live redraw) when
+  stdout isn't a real terminal at all (piped to a file, a CI log, etc.),
+  which `rich.Console` already detects and handles on its own.
+
 ## [5.43.1] - 2026-09-19
 
 ### Added
