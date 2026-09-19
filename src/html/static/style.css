@@ -421,8 +421,8 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
-/* Sector map: interactive 3D cube + star dots (html/lib/starmap.py,
-   html/static/sectormap.js) */
+/* Sector map: interactive 3D WebGL scene (html/lib/starmap.py builds the
+   scene data, html/static/sectormap.js renders it with three.js) */
 .starmap-layout {
   display: flex;
   flex-wrap: wrap;
@@ -430,14 +430,10 @@ tbody tr:last-child td {
   gap: 1.5rem;
 }
 
-/* Fixed-size, clipped "window" the interactive map lives in -- roughly
-   the footprint the old static isometric SVG occupied. Without this,
-   `.starmap-zoom`'s `scale()` (zooming in) and `.starmap-scene`'s
-   rotation (a wide/tall cube diagonal at some angles) both let the map
-   grow past its panel and draw over surrounding page content instead of
-   staying confined to one spot. `overflow: hidden` here clips that --
-   the 3D content inside still renders/rotates/occludes exactly the same,
-   this only bounds where it's visible from the *outside*. */
+/* Clipped, responsive "window" the interactive map lives in -- the canvas
+   inside (`.starmap-canvas`) fills it exactly (see sectormap.js's own
+   resize handling, which keeps the renderer's drawing buffer and the
+   camera's aspect ratio in sync with this box's actual size). */
 .starmap-viewport {
   position: relative;
   overflow: hidden;
@@ -446,134 +442,63 @@ tbody tr:last-child td {
   aspect-ratio: 1 / 1;
   border-radius: var(--radius);
   background: var(--bg-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* Zoom lives on its own wrapper *outside* `.starmap-stage` rather than
-   between it and `.starmap-scene` (which holds the rotation transform),
-   so `scale()` just magnifies the whole already-rendered 3D scene as a
-   flat unit -- exactly what "zoom" should do -- instead of getting mixed
-   into the rotation math itself. */
-.starmap-zoom {
-  display: inline-block;
-}
-
-.starmap-stage {
-  display: inline-block;
-  /* Deliberately no `perspective` here -- a vanishing-point projection
-     turns billboarding each star dot to face the camera into a genuine
-     per-object, camera-relative rotation problem (confirmed the hard
-     way: a plain counter-rotation only cancelled `.starmap-scene`'s
-     rotation correctly at the one angle it was tested at, and broke
-     differently at another). Without `perspective`, this is a pure
-     orthographic 3D scene instead -- `preserve-3d`'s automatic
-     depth-based occlusion works exactly the same either way (it compares
-     z-depth among siblings, independent of whether a perspective
-     projection is also applied), and a schematic sector map has no real
-     need for vanishing-point foreshortening anyway. */
+.starmap-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
   cursor: grab;
-  /* This element owns drag-to-rotate itself (see sectormap.js) --
+  /* sectormap.js owns drag-to-rotate itself via pointer events --
      without this, touch browsers intercept a vertical drag as page
-     scroll before our own pointer handlers see it. */
+     scroll before its own handlers see it. */
   touch-action: none;
-  border-radius: var(--radius);
 }
 
-.starmap-stage:active {
+.starmap-canvas:active {
   cursor: grabbing;
 }
 
-.starmap-stage:focus-visible {
+.starmap-canvas:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
 
-.starmap-scene {
-  position: relative;
-  transform-style: preserve-3d;
-}
-
-.cube-face {
+/* Visually hidden but still focusable/readable -- the keyboard/screen-
+   reader fallback list sectormap.js builds (one button per star/cloud, a
+   canvas having no focusable children of its own the way individual
+   `<div role="button">` dots once were). Standard "clip, don't display:
+   none" recipe so it stays in the accessibility tree and tab order. */
+.sr-only {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 1px solid var(--border);
-  box-sizing: border-box;
-  /* Purely decorative -- a transparent-background div is still a full
-     hit-testable rectangle, and a face's flat 2D box can sit in front of
-     a dot that's actually nearer the viewer in true 3D (CSS hit-testing
-     for preserve-3d siblings isn't reliably depth-aware the way painting
-     is), which would otherwise swallow clicks meant for the dot behind
-     it. Dragging still works: `.starmap-stage` (an ancestor) is what
-     `sectormap.js` listens on, not the faces themselves. */
-  pointer-events: none;
-}
-
-/* Wedge wireframe (galaxy-placed sectors) -- 12 of these, one per edge,
-   each pre-sized/positioned/rotated inline by `_line_html` in
-   lib/starmap.py to span exactly between two of the wedge's 8 vertices.
-   Unlike `.cube-face`, most of the real shape's faces are curved (see
-   `sector_wedge_vertices_pc`), so only the edges -- always straight,
-   regardless -- are drawn; there is no flat face here to fill. */
-.wedge-edge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 1.5px;
-  background: var(--border);
-  transform-origin: 0 50%;
-  pointer-events: none;
-}
-
-/* Compass arrow -- points from the sector's local origin toward the
-   galactic center (`_compass_html`); styled distinctly from a wedge/cube
-   edge (accent color, thicker) since it's a direction indicator, not a
-   boundary. Same `_line_html` positioning as `.wedge-edge` otherwise. */
-.compass-arrow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 2px;
-  background: var(--accent);
-  transform-origin: 0 50%;
-  pointer-events: none;
-}
-
-.compass-label-anchor {
-  /* Same anchor/billboard split as `.star-dot-anchor` below: this outer
-     anchor carries the unrotated (x, y, z) position (left/top for x/y,
-     transform:translateZ() for z, both inline from lib/starmap.py), and
-     the inner `.compass-label` is what sectormap.js counter-rotates every
-     frame so the text stays readable instead of going edge-on. */
-  position: absolute;
-  transform-style: preserve-3d;
-  pointer-events: none;
-}
-
-.compass-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--accent);
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-  text-align: center;
+  border: 0;
 }
 
-/* Scale-bar legend -- a plain flat 2D overlay (outside `.starmap-zoom`,
-   so it is never itself affected by that wrapper's `scale()`) showing
-   the sector's real physical scale at the *current* zoom level.
-   sectormap.js recomputes `.starmap-scale-bar`'s width and
-   `.starmap-scale-label`'s text on every zoom change from the exact
-   ly-per-pixel ratio this element's own `data-ly-per-px` carries (see
-   `_ly_per_px_at_zoom_1` in lib/starmap.py) -- never a fixed guess. */
+/* `<noscript>` fallback (lib/starmap.py's `_noscript_list_html`) -- a
+   browser that can't run sectormap.js still gets a plain link list
+   instead of a blank panel; shown in normal flow (not `.sr-only`) since
+   there's no WebGL scene to prefer over it in that case. */
+.starmap-noscript-list {
+  position: relative;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+/* Scale-bar legend -- a plain flat 2D overlay showing the sector's real
+   physical scale at the *current* zoom level. sectormap.js recomputes
+   `.starmap-scale-bar`'s width and `.starmap-scale-label`'s text on every
+   camera move from the exact ly-per-world-unit ratio embedded in
+   `#starmap-data` (see `_ly_per_px_at_zoom_1` in lib/starmap.py) and the
+   canvas's own live size -- never a fixed guess. */
 .starmap-scale {
   position: absolute;
   left: 0.75rem;
@@ -620,87 +545,6 @@ tbody tr:last-child td {
   font-size: 0.7rem;
   color: var(--text-muted);
   white-space: nowrap;
-}
-
-.star-dot-anchor {
-  /* Positions one star (left/top for x/y, translateZ() for z, both set
-     inline per-dot by lib/starmap.py) -- carries no rotation of its own,
-     so it stays wherever `.starmap-scene`'s rotation puts it. Billboard
-     counter-rotation lives on the *inner* `.star-dot` instead (updated
-     live by sectormap.js), which is what keeps the visible circle facing
-     the camera regardless of scene rotation, instead of going edge-on. */
-  position: absolute;
-  /* Required for that counter-rotation to actually work: the default
-     `flat` here would flatten `.star-dot`'s own rotation into this
-     anchor's 2D plane *before* `.starmap-scene`'s rotation is applied --
-     harmless-looking for a circle (rotating a circle within its own flat
-     plane is invisible) but it means the counter-rotation never reaches
-     the real 3D composition at all, so the dot still goes edge-on
-     exactly as if there were no billboarding code running. Confirmed by
-     testing: adding this turned an otherwise-correct counter-rotation
-     formula from "still edge-on at almost every angle" to "circular at
-     every angle tested". */
-  transform-style: preserve-3d;
-}
-
-.star-dot {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border-style: solid;
-  border-width: 1.2px;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
-.star-dot:hover,
-.star-dot:focus-visible {
-  border-color: var(--accent);
-  border-width: 2px;
-  outline: none;
-}
-
-/* A nebula/asteroid-field cloud (lib/starmap.py's `_cloud_html`) shares
-   `.star-dot-anchor`'s exact positioning trick -- same billboard-anchor
-   split, just a much larger, softer, translucent circle instead of a
-   small hard-edged star. */
-.cloud-anchor {
-  position: absolute;
-  transform-style: preserve-3d;
-}
-
-.phenomenon-cloud {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  /* Its own `background` (a radial-gradient recipe) is set inline per
-     cloud by `_cloud_html` -- type/composition determines the fill, not
-     this stylesheet. */
-}
-
-.phenomenon-cloud:hover,
-.phenomenon-cloud:focus-visible {
-  outline: 2px dashed var(--accent);
-  outline-offset: 2px;
-}
-
-.nebula-cloud {
-  filter: blur(2px);
-}
-
-.asteroid-cloud {
-  filter: blur(0.5px);
-}
-
-/* Black holes/neutron stars are point-like (see starmap.py's own
-   _cloud_html), so unlike the soft, blurred nebula/asteroid-field
-   clouds above, these stay crisp -- a small glow (box-shadow, not
-   blur) helps a marker this small still read clearly against the
-   scene's dark background. */
-.black-hole-point,
-.neutron-star-point {
-  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.25);
 }
 
 .starmap-side {

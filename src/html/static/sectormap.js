@@ -1,370 +1,624 @@
 // html/static/sectormap.js
 //
-// Drag-to-rotate, scroll/button-to-zoom, and click/keyboard-for-info
-// behavior for the 3D sector map built by `lib/starmap.py`. The actual
-// rotation math is just two numbers (rotateX/rotateY degrees) fed to
-// `#starmap-scene`'s CSS transform -- the browser's own `preserve-3d`
-// compositor does the real 3D projection and occlusion, this file only
-// tracks drag distance and turns it into degrees. Clicking a dot
-// populates the info side panel from its `data-*` attributes instead of
-// navigating straight to `system.py`, so a click shows details first and
-// the panel's own link is what navigates away. Built with plain DOM
-// calls (never innerHTML/textContent-with-markup) since every data-*
-// value is still database content (a system name can contain arbitrary
-// characters via `--name`) -- consistent with the rest of `html/`'s
-// dependency-free, no-build-step approach.
+// Renders the 3D sector map built by `lib/starmap.py` as a real WebGL
+// scene (three.js, vendored at `static/vendor/three.module.min.js` -- see
+// that directory's `THIRD_PARTY_NOTICES.txt` for why it's vendored rather
+// than loaded from a CDN) instead of the CSS `transform-style:
+// preserve-3d` scene this file used to drive directly. `#starmap-data`
+// (a `<script type="application/json">` block `starmap.py` writes) is the
+// only thing read from the page -- every position/size/color/label for
+// every star and phenomenon cloud, plus the outline and compass arrow, is
+// data `starmap.py` already computed; this file only ever turns that data
+// into sprites/lines and wires up drag-to-rotate, scroll/button-to-zoom,
+// and click/keyboard-for-info, the same interaction set the old CSS
+// version had (a real perspective camera now does the projection/
+// occlusion a browser's `preserve-3d` compositor used to, and a sprite
+// always faces the camera by construction, so there's no more manual
+// per-frame billboard counter-rotation to do).
 //
-// Also keeps the "Galactic Center" compass label facing the camera
-// (like a star dot, but selected via the broader `.billboard` class so
-// the compass arrow's own straight line -- which must NOT billboard, its
-// whole point is showing a real 3D direction -- is left alone), and
-// keeps the scale-bar legend (`#starmap-scale-bar`/`#starmap-scale-label`)
-// showing the sector's true physical scale at the current zoom level.
+// Built with plain DOM calls (never innerHTML/textContent-with-markup)
+// when filling the info panel, same discipline the old version had --
+// every star/system/phenomenon name is still database content (a system
+// name can contain arbitrary characters via `--name`).
 
-(function () {
-  "use strict";
+import * as THREE from "./vendor/three.module.min.js";
 
-  var DEFAULT_ROTATE_X = -18;
-  var DEFAULT_ROTATE_Y = -32;
-  var ROTATE_SENSITIVITY = 0.4; // degrees per pixel of drag
-  var KEY_ROTATE_STEP = 6; // degrees per arrow-key press
-  // Floor matches lib/starmap.py's own _MIN_DEFAULT_ZOOM -- the computed
-  // default (see `#starmap-zoom`'s `data-default-zoom` below) never goes
-  // below it, so this control's own range must reach at least that far or
-  // clamping here would silently zoom a wide sector back in past the level
-  // that was just computed to fit it.
+var canvas = document.getElementById("starmap-canvas");
+var dataEl = document.getElementById("starmap-data");
+
+function readSceneData() {
+  if (!dataEl) {
+    return null;
+  }
+  try {
+    return JSON.parse(dataEl.textContent);
+  } catch (err) {
+    return null;
+  }
+}
+
+var sceneData = readSceneData();
+
+function cssVar(name, fallback) {
+  var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+function addField(dl, label, value) {
+  if (!value) {
+    return;
+  }
+  var dt = document.createElement("dt");
+  dt.textContent = label;
+  var dd = document.createElement("dd");
+  dd.textContent = value;
+  dl.appendChild(dt);
+  dl.appendChild(dd);
+}
+
+// A cloud entry carries `kind` (its phenomenon-texture recipe, see
+// `CLOUD_KIND_RECIPES` below); a star entry never does -- that alone is
+// enough to tell the two apart, unlike the old version's explicit
+// `data-kind="phenomenon"` marker.
+function showObjectInfo(entry) {
+  var panel = document.getElementById("starmap-info");
+  if (!panel || !entry) {
+    return;
+  }
+  panel.textContent = "";
+
+  var heading = document.createElement("h3");
+  heading.textContent = entry.name || "Unknown";
+  panel.appendChild(heading);
+
+  var dl = document.createElement("dl");
+  if (entry.kind) {
+    addField(dl, "Type", entry.typeLabel);
+    addField(dl, "Radius", entry.radiusText);
+    addField(dl, "Distance", entry.distanceText);
+    panel.appendChild(dl);
+
+    var phenomenonLink = document.createElement("a");
+    phenomenonLink.href = entry.href;
+    phenomenonLink.className = "btn";
+    phenomenonLink.textContent = "View phenomenon →";
+    panel.appendChild(phenomenonLink);
+    return;
+  }
+  addField(dl, "Star type", entry.starType);
+  addField(dl, "Temperature", entry.temp);
+  addField(dl, "Octant", entry.quadrant);
+  addField(dl, "Location", entry.location);
+  panel.appendChild(dl);
+
+  var link = document.createElement("a");
+  link.href = entry.href;
+  link.className = "btn";
+  link.textContent = "View system →";
+  panel.appendChild(link);
+}
+
+// --- Sprite textures ---------------------------------------------------
+//
+// Every marker is a canvas-drawn circle turned into a `THREE.Sprite`: a
+// sprite always faces the camera (a real billboard, not the old CSS
+// version's per-frame counter-rotation trick), and a scene this size
+// (a sector holds "only a handful of systems" -- see spaceSector.py) is
+// nowhere near enough markers for a fresh canvas+texture per instance to
+// matter -- there's no shared texture atlas/instancing here because
+// there's no need for one at this scale.
+
+function makeStarTexture(fillColor, strokeColor) {
+  var size = 64;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+  var r = size / 2;
+  ctx.beginPath();
+  ctx.arc(r, r, r - 3, 0, Math.PI * 2);
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = strokeColor;
+  ctx.stroke();
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function makeRingTexture(color) {
+  var size = 64;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+  var r = size / 2;
+  ctx.beginPath();
+  ctx.arc(r, r, r - 4, 0, Math.PI * 2);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function makeSimpleRadialTexture(size, stops) {
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+  var r = size / 2;
+  var gradient = ctx.createRadialGradient(r, r, 0, r, r, r);
+  stops.forEach(function (stop) {
+    gradient.addColorStop(stop[0], stop[1]);
+  });
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function makeNebulaTexture(coreColor, edgeColor) {
+  return makeSimpleRadialTexture(128, [
+    [0, coreColor],
+    [0.55, edgeColor],
+    [0.78, "rgba(0,0,0,0)"],
+  ]);
+}
+
+// Reproduces lib/starmap.py's old (now retired) `_ASTEROID_FIELD_BACKGROUND`
+// -- a soft tan base disc under three dark "clump" splotches -- as three
+// canvas radial-gradient fills instead of four stacked CSS ones. Not
+// pixel-identical (CSS's own unsized `radial-gradient(circle at X% Y%, ...)`
+// scales each clump to that *element's* own farthest-corner distance from
+// its center, not a fixed fraction of the sprite's radius the way this
+// does), just the same "mottled rocky scatter" read at a glance.
+function makeAsteroidTexture() {
+  var size = 128;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+
+  function radialDisc(cx, cy, radius, color) {
+    var gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(0.85, color);
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  var base = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  base.addColorStop(0, "#b89a6ea0");
+  base.addColorStop(0.55, "#b89a6e50");
+  base.addColorStop(0.78, "rgba(0,0,0,0)");
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, size, size);
+
+  // Drawn back-to-front relative to the CSS recipe's own stacking order
+  // (its first-listed layer is topmost) -- painted last here instead.
+  radialDisc(size * 0.68, size * 0.58, size * 0.14, "#00000060");
+  radialDisc(size * 0.42, size * 0.78, size * 0.1, "#00000055");
+  radialDisc(size * 0.3, size * 0.32, size * 0.12, "#00000070");
+
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// Every cloud kind besides "nebula" is a fixed recipe (never a function of
+// per-instance data beyond which kind/descriptor it is) -- lib/starmap.py
+// only ever sends `kind`, these draw what it used to mean by
+// `_BLACK_HOLE_ACCRETING_BACKGROUND`/`_BLACK_HOLE_QUIESCENT_BACKGROUND`/
+// `_NEUTRON_STAR_BACKGROUND` (also now retired from there).
+var CLOUD_KIND_RECIPES = {
+  asteroidField: makeAsteroidTexture,
+  blackHoleAccreting: function () {
+    return makeSimpleRadialTexture(96, [
+      [0, "#000000f5"], [0.34, "#000000f5"], [0.55, "#ff9d4dc0"], [0.72, "#ff9d4d30"], [0.86, "rgba(0,0,0,0)"],
+    ]);
+  },
+  blackHoleQuiescent: function () {
+    return makeSimpleRadialTexture(96, [
+      [0, "#000000f5"], [0.55, "#000000f5"], [0.78, "#4b2f6660"], [0.9, "rgba(0,0,0,0)"],
+    ]);
+  },
+  neutronStar: function () {
+    return makeSimpleRadialTexture(96, [
+      [0, "#ffffff"], [0.35, "#cfe8ffe0"], [0.6, "#8fc7ff80"], [0.82, "rgba(0,0,0,0)"],
+    ]);
+  },
+};
+
+function textureForCloud(cloud) {
+  if (cloud.kind === "nebula") {
+    return makeNebulaTexture(cloud.coreColor, cloud.edgeColor);
+  }
+  var recipe = CLOUD_KIND_RECIPES[cloud.kind];
+  return recipe ? recipe() : makeNebulaTexture("#c9a8e090", "#c9a8e030");
+}
+
+function makeTextSprite(text, color) {
+  var measuring = document.createElement("canvas").getContext("2d");
+  var font = "600 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+  measuring.font = font;
+  var textWidth = measuring.measureText(text).width;
+
+  var paddingX = 14;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = Math.ceil(textWidth) + paddingX * 2;
+  canvasEl.height = 40;
+  var ctx = canvasEl.getContext("2d");
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.fillText(text, paddingX, canvasEl.height / 2);
+
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+  var worldHeight = 22;
+  sprite.scale.set(worldHeight * (canvasEl.width / canvasEl.height), worldHeight, 1);
+  return sprite;
+}
+
+// --- Scene setup ---------------------------------------------------------
+
+function initStarmap(canvasEl, data) {
+  var viewport = canvasEl.closest(".starmap-viewport");
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true, logarithmicDepthBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  if (THREE.SRGBColorSpace) {
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+  }
+
+  var scene = new THREE.Scene();
+
+  var FOV_DEG = 45;
+  var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 1, 5e6);
+
+  // The world-unit distance at which a sphere of radius `sceneHalfPx`
+  // (lib/starmap.py's own scale reference -- every position/radius in
+  // `data` is expressed in these units) exactly fills the frame
+  // vertically -- this is what "zoom = 1" means for a real camera, the
+  // direct replacement for the old CSS version's `scale(1)`.
+  var sceneHalfPx = data.sceneHalfPx || 160;
+  var referenceDistance = sceneHalfPx / Math.tan(THREE.MathUtils.degToRad(FOV_DEG / 2));
+
   var MIN_ZOOM = 0.2;
   var MAX_ZOOM = 2.5;
   var ZOOM_STEP = 0.15;
   var WHEEL_ZOOM_STEP = 0.08;
-  // Below this much total pointer movement, a pointerdown->pointerup on a
-  // dot still counts as a click (not a drag) -- without this, the native
-  // click event fires for a small in-place jitter too, which is fine, but
-  // fires just as readily after the user actually dragged the scene
-  // around and happened to release over a dot, which is not fine.
+  var KEY_ROTATE_STEP = THREE.MathUtils.degToRad(6);
+  var ROTATE_SENSITIVITY = THREE.MathUtils.degToRad(0.4); // radians per pixel of drag
   var DRAG_CLICK_THRESHOLD_PX = 4;
+  var MIN_POLAR = THREE.MathUtils.degToRad(2);
+  var MAX_POLAR = THREE.MathUtils.degToRad(178);
 
-  function addField(dl, label, value) {
-    if (!value) {
-      return;
-    }
-    var dt = document.createElement("dt");
-    dt.textContent = label;
-    var dd = document.createElement("dd");
-    dd.textContent = value;
-    dl.appendChild(dt);
-    dl.appendChild(dd);
+  var defaultZoom = data.defaultZoom > 0 && data.defaultZoom <= 1 ? data.defaultZoom : 1;
+  var defaultAzimuth = THREE.MathUtils.degToRad(-32);
+  var defaultPolar = THREE.MathUtils.degToRad(90 - 18);
+
+  var spherical = new THREE.Spherical(referenceDistance / defaultZoom, defaultPolar, defaultAzimuth);
+
+  function applyCamera() {
+    camera.position.setFromSpherical(spherical);
+    camera.lookAt(0, 0, 0);
+  }
+  applyCamera();
+
+  function currentZoom() {
+    return referenceDistance / spherical.radius;
   }
 
-  function showSystemInfo(dot) {
-    var panel = document.getElementById("starmap-info");
-    if (!panel) {
-      return;
-    }
-    panel.textContent = "";
-
-    var heading = document.createElement("h3");
-    heading.textContent = dot.dataset.name || "Unknown";
-    panel.appendChild(heading);
-
-    var dl = document.createElement("dl");
-    if (dot.dataset.kind === "phenomenon") {
-      // A nebula/asteroid-field/black hole/neutron star links to its own
-      // detail page (`phenomenon.py`) via `data-href`, same as a star
-      // system below -- see `lib/starmap.py`'s `_cloud_html`.
-      addField(dl, "Type", dot.dataset.phenomenonType);
-      addField(dl, "Radius", dot.dataset.radius);
-      addField(dl, "Distance", dot.dataset.distance);
-      panel.appendChild(dl);
-
-      var phenomenonLink = document.createElement("a");
-      phenomenonLink.href = dot.dataset.href;
-      phenomenonLink.className = "btn";
-      phenomenonLink.textContent = "View phenomenon →";
-      panel.appendChild(phenomenonLink);
-      return;
-    }
-    addField(dl, "Star type", dot.dataset.type);
-    addField(dl, "Temperature", dot.dataset.temp);
-    addField(dl, "Octant", dot.dataset.quadrant);
-    addField(dl, "Location", dot.dataset.location);
-    panel.appendChild(dl);
-
-    var link = document.createElement("a");
-    link.href = dot.dataset.href;
-    link.className = "btn";
-    link.textContent = "View system →";
-    panel.appendChild(link);
+  function setZoom(zoom) {
+    spherical.radius = referenceDistance / Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+    applyCamera();
+    updateScaleBar();
   }
 
-  function initStarmap(stage) {
-    var scene = document.getElementById("starmap-scene");
-    var zoomWrap = document.getElementById("starmap-zoom");
-    var controls = document.getElementById("starmap-controls");
-    if (!scene || !zoomWrap) {
+  function resetView() {
+    spherical.set(referenceDistance / defaultZoom, defaultPolar, defaultAzimuth);
+    applyCamera();
+    updateScaleBar();
+  }
+
+  var borderColor = cssVar("--border", "#dde1eb");
+  var accentColor = cssVar("--accent", "#4f5fe8");
+
+  var outlineGeometry = new THREE.BufferGeometry();
+  var outlinePositions = [];
+  (data.outline ? data.outline.edges : []).forEach(function (edge) {
+    outlinePositions.push(edge[0][0], edge[0][1], edge[0][2], edge[1][0], edge[1][1], edge[1][2]);
+  });
+  outlineGeometry.setAttribute("position", new THREE.Float32BufferAttribute(outlinePositions, 3));
+  scene.add(new THREE.LineSegments(outlineGeometry, new THREE.LineBasicMaterial({ color: new THREE.Color(borderColor) })));
+
+  if (data.compass) {
+    var tip = data.compass.tip;
+    var arrowGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(tip[0], tip[1], tip[2]),
+    ]);
+    scene.add(new THREE.Line(arrowGeometry, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor) })));
+
+    var label = makeTextSprite(data.compass.label + " →", accentColor);
+    label.position.set(tip[0], tip[1], tip[2]);
+    scene.add(label);
+  }
+
+  // Every clickable/focusable marker -- raycasting and the accessible
+  // fallback button list both only ever need to search this, not the
+  // outline/compass (which carry no `data-*`-equivalent info of their own).
+  var interactiveGroup = new THREE.Group();
+  scene.add(interactiveGroup);
+  var entryByObject = new Map();
+
+  (data.stars || []).forEach(function (star) {
+    var texture = makeStarTexture(star.fill, star.stroke);
+    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+    sprite.position.set(star.x, star.y, star.z);
+    sprite.scale.set(star.r * 2, star.r * 2, 1);
+    interactiveGroup.add(sprite);
+    entryByObject.set(sprite, star);
+  });
+
+  (data.clouds || []).forEach(function (cloud) {
+    var texture = textureForCloud(cloud);
+    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+    sprite.position.set(cloud.x, cloud.y, cloud.z);
+    sprite.scale.set(cloud.r * 2, cloud.r * 2, 1);
+    interactiveGroup.add(sprite);
+    entryByObject.set(sprite, cloud);
+  });
+
+  var highlightSprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: makeRingTexture(accentColor), transparent: true, depthWrite: false })
+  );
+  highlightSprite.visible = false;
+  scene.add(highlightSprite);
+
+  function highlightEntry(entry) {
+    highlightSprite.position.set(entry.x, entry.y, entry.z);
+    var r = entry.r || 8;
+    highlightSprite.scale.set(r * 2.6, r * 2.6, 1);
+    highlightSprite.visible = true;
+  }
+
+  function selectEntry(entry) {
+    if (!entry) {
       return;
     }
+    showObjectInfo(entry);
+    highlightEntry(entry);
+  }
 
-    // How much of the scene's real content (wedge/cube outline, every
-    // plotted star/cloud) actually overflows the fixed-size scene --
-    // computed server-side (lib/starmap.py's `_default_zoom`) from the
-    // exact geometry being drawn, not guessable here. Without starting
-    // zoomed out to it, a galaxy-placed sector's wedge wireframe (which
-    // this same server-side math shows can extend well past the scene)
-    // opened showing only a couple of giant crossing lines instead of the
-    // shape, with any star near its own edge invisible outside the
-    // viewport's `overflow: hidden` crop -- manually zooming all the way
-    // out was the only way to see the sector at all. Falls back to 1
-    // (today's old fixed default) if the attribute is missing/unparseable.
-    var defaultZoom = parseFloat(zoomWrap.dataset.defaultZoom);
-    if (!isFinite(defaultZoom) || defaultZoom <= 0) {
-      defaultZoom = 1;
-    }
-
-    var rotateX = DEFAULT_ROTATE_X;
-    var rotateY = DEFAULT_ROTATE_Y;
-    var zoom = defaultZoom;
-    var dragging = false;
-    var dragDistance = 0;
-    var lastClientX = 0;
-    var lastClientY = 0;
-    // Set true only for the single click event immediately following an
-    // over-threshold drag release, then cleared either by that click
-    // handler or (if no click follows) a same-tick timeout -- so it can
-    // never wedge a *later*, unrelated click closed. Checking
-    // `dragDistance` directly in the click handler instead would leave a
-    // stale nonzero value in place for any click that arrives without a
-    // pointerdown of its own (assistive tech, a programmatically
-    // dispatched click), wrongly suppressing it.
-    var suppressNextClick = false;
-    // Click/keyboard hit-testing only ever targets a star dot or a
-    // nebula/asteroid-field cloud -- kept as its own narrower list (not
-    // every `.billboard`) so the compass's "Galactic Center" label near
-    // it can't be mistaken for one in `dotAtPoint` below or pick up its
-    // own keydown handler.
-    var dots = Array.prototype.slice.call(scene.querySelectorAll(".star-dot, .phenomenon-cloud"));
-    // Everything on the map that must keep facing the camera regardless
-    // of `.starmap-scene`'s own rotation -- star dots and the compass's
-    // text label alike (billboarding a *line*, like the compass arrow
-    // itself or a wedge edge, would be wrong: a line's whole visual
-    // point is showing its real 3D direction, not facing the viewer).
-    var billboards = Array.prototype.slice.call(scene.querySelectorAll(".billboard"));
-
-    var scaleEl = document.getElementById("starmap-scale");
-    var scaleBarEl = document.getElementById("starmap-scale-bar");
-    var scaleLabelEl = document.getElementById("starmap-scale-label");
-    // Exact ly-per-pixel ratio at zoom=1, computed server-side
-    // (`lib/starmap.py`'s `_ly_per_px_at_zoom_1`) from the sector's own
-    // real `edge_mpc` -- dividing by the live `zoom` factor below keeps
-    // the bar's label true to the actual current scale as the user zooms,
-    // rather than a value that was only ever right at the default zoom.
-    var lyPerPxAtZoom1 = scaleEl ? parseFloat(scaleEl.dataset.lyPerPx) : 0;
-    var SCALE_BAR_TARGET_PX = 70;
-
-    // Snaps an arbitrary positive value to the nearest "nice" 1/2/5 * 10^n
-    // -- the standard map-scale-bar convention, so the label reads "5 ly"
-    // or "20 ly" rather than an ugly "6.283 ly".
-    function niceScaleValue(raw) {
-      if (!isFinite(raw) || raw <= 0) {
-        return 0;
-      }
-      var magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
-      var mantissa = raw / magnitude;
-      var niceMantissa;
-      if (mantissa < 1.5) niceMantissa = 1;
-      else if (mantissa < 3.5) niceMantissa = 2;
-      else if (mantissa < 7.5) niceMantissa = 5;
-      else niceMantissa = 10;
-      return niceMantissa * magnitude;
-    }
-
-    function formatLy(value) {
-      if (value >= 100) return Math.round(value) + " ly";
-      if (value >= 1) return Math.round(value * 10) / 10 + " ly";
-      return Math.round(value * 1000) / 1000 + " ly";
-    }
-
-    function updateScaleBar() {
-      if (!scaleEl || !scaleBarEl || !scaleLabelEl || !lyPerPxAtZoom1) {
-        return;
-      }
-      var lyPerPx = lyPerPxAtZoom1 / zoom;
-      var niceLy = niceScaleValue(SCALE_BAR_TARGET_PX * lyPerPx);
-      if (!niceLy) {
-        return;
-      }
-      scaleBarEl.style.width = (niceLy / lyPerPx).toFixed(1) + "px";
-      scaleLabelEl.textContent = formatLy(niceLy);
-    }
-
-    function apply() {
-      scene.style.transform = "rotateX(" + rotateX + "deg) rotateY(" + rotateY + "deg)";
-      zoomWrap.style.transform = "scale(" + zoom.toFixed(2) + ")";
-      // Billboarding: counter-rotate each dot by the algebraic inverse of
-      // the scene's own rotation (reverse function order, negated angles)
-      // so it keeps facing the camera instead of going edge-on as the
-      // scene turns -- see the docstring on lib/starmap.py's `_dot_html`.
-      // Only correct because `.starmap-stage` has no `perspective`: with
-      // one, this composition stops being pure rotation and a plain
-      // inverse no longer cancels it (confirmed the hard way -- it only
-      // matched at the one rotation angle it happened to be tested at).
-      var counterRotate = "rotateY(" + -rotateY + "deg) rotateX(" + -rotateX + "deg)";
-      billboards.forEach(function (billboard) {
-        billboard.style.transform = counterRotate;
+  // --- Accessible fallback list -----------------------------------------
+  //
+  // A canvas has no focusable children of its own the way the old CSS
+  // version's real per-star `<div role="button">`s were, so this is what
+  // keeps every star/cloud reachable by keyboard/screen reader without
+  // needing 3D hit-testing or focus management inside the canvas itself
+  // -- a visually hidden button per entry, in the same list order the
+  // scene data arrived in.
+  if (viewport) {
+    var list = document.createElement("ul");
+    list.className = "starmap-sr-list sr-only";
+    (data.stars || []).concat(data.clouds || []).forEach(function (entry) {
+      var item = document.createElement("li");
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = entry.name || "Unknown";
+      button.addEventListener("click", function () {
+        selectEntry(entry);
       });
-      updateScaleBar();
-    }
-
-    function setZoom(value) {
-      zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value));
-      apply();
-    }
-
-    function resetView() {
-      rotateX = DEFAULT_ROTATE_X;
-      rotateY = DEFAULT_ROTATE_Y;
-      zoom = defaultZoom;
-      apply();
-    }
-
-    apply();
-
-    stage.addEventListener("pointerdown", function (event) {
-      dragging = true;
-      dragDistance = 0;
-      lastClientX = event.clientX;
-      lastClientY = event.clientY;
-      try {
-        stage.setPointerCapture(event.pointerId);
-      } catch (err) {
-        // Pointer capture isn't essential -- dragging still works via
-        // ordinary pointermove bubbling if the browser refuses it (e.g.
-        // a pointerId that's already gone).
-      }
+      item.appendChild(button);
+      list.appendChild(item);
     });
+    viewport.appendChild(list);
+  }
 
-    stage.addEventListener("pointermove", function (event) {
-      if (!dragging) {
-        return;
-      }
-      var deltaX = event.clientX - lastClientX;
-      var deltaY = event.clientY - lastClientY;
-      dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-      lastClientX = event.clientX;
-      lastClientY = event.clientY;
+  // --- Pointer/keyboard interaction --------------------------------------
 
-      rotateY += deltaX * ROTATE_SENSITIVITY;
-      rotateX = Math.max(-89, Math.min(89, rotateX - deltaY * ROTATE_SENSITIVITY));
-      apply();
-    });
+  var dragging = false;
+  var dragDistance = 0;
+  var lastClientX = 0;
+  var lastClientY = 0;
+  var suppressNextClick = false;
 
-    function endDrag(event) {
-      dragging = false;
-      if (dragDistance > DRAG_CLICK_THRESHOLD_PX) {
-        suppressNextClick = true;
-        // Safety net: a pointerup isn't always followed by a click (e.g.
-        // pointercancel) -- don't leave this suppressing some unrelated
-        // later click if one never arrives to consume and clear it.
-        setTimeout(function () {
-          suppressNextClick = false;
-        }, 0);
-      }
-      dragDistance = 0;
-      try {
-        stage.releasePointerCapture(event.pointerId);
-      } catch (err) {
-        // Already released/invalid -- nothing to clean up.
-      }
+  canvasEl.addEventListener("pointerdown", function (event) {
+    dragging = true;
+    dragDistance = 0;
+    lastClientX = event.clientX;
+    lastClientY = event.clientY;
+    try {
+      canvasEl.setPointerCapture(event.pointerId);
+    } catch (err) {
+      // Pointer capture isn't essential -- dragging still works via
+      // ordinary pointermove bubbling if the browser refuses it.
     }
-    stage.addEventListener("pointerup", endDrag);
-    stage.addEventListener("pointercancel", endDrag);
+  });
 
-    stage.addEventListener(
-      "wheel",
-      function (event) {
-        event.preventDefault();
-        setZoom(zoom + (event.deltaY < 0 ? WHEEL_ZOOM_STEP : -WHEEL_ZOOM_STEP));
-      },
-      { passive: false }
-    );
-
-    stage.addEventListener("keydown", function (event) {
-      var key = event.key;
-      if (key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowUp" || key === "ArrowDown") {
-        event.preventDefault();
-        if (key === "ArrowLeft") rotateY -= KEY_ROTATE_STEP;
-        if (key === "ArrowRight") rotateY += KEY_ROTATE_STEP;
-        if (key === "ArrowUp") rotateX = Math.max(-89, rotateX - KEY_ROTATE_STEP);
-        if (key === "ArrowDown") rotateX = Math.min(89, rotateX + KEY_ROTATE_STEP);
-        apply();
-      }
-    });
-
-    // Which dot (if any) sits under a given viewport point, found by
-    // geometry (`getBoundingClientRect`) rather than the DOM's own hit-
-    // testing (`elementFromPoint`/native click dispatch) -- both of those
-    // turn out to disagree with each other for an element nested this
-    // deep inside a rotated `preserve-3d` hierarchy (confirmed directly:
-    // `elementFromPoint` and `elementsFromPoint()[0]` returned different
-    // elements for the identical coordinate), so a real click can silently
-    // miss a dot that's plainly sitting right there on screen. A dot's
-    // `getBoundingClientRect()` remains reliable regardless (it reflects
-    // actual rendered position, not hit-test routing), so clicks are
-    // resolved against that instead. Ties (overlapping binary dots)
-    // go to whichever center is nearest the click.
-    function dotAtPoint(clientX, clientY) {
-      var best = null;
-      var bestDistance = Infinity;
-      dots.forEach(function (dot) {
-        var rect = dot.getBoundingClientRect();
-        if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
-          return;
-        }
-        var centerX = rect.left + rect.width / 2;
-        var centerY = rect.top + rect.height / 2;
-        var distance = Math.hypot(clientX - centerX, clientY - centerY);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = dot;
-        }
-      });
-      return best;
+  canvasEl.addEventListener("pointermove", function (event) {
+    if (!dragging) {
+      return;
     }
+    var deltaX = event.clientX - lastClientX;
+    var deltaY = event.clientY - lastClientY;
+    dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
+    lastClientX = event.clientX;
+    lastClientY = event.clientY;
 
-    stage.addEventListener("click", function (event) {
-      if (suppressNextClick) {
+    spherical.theta -= deltaX * ROTATE_SENSITIVITY;
+    spherical.phi = Math.max(MIN_POLAR, Math.min(MAX_POLAR, spherical.phi - deltaY * ROTATE_SENSITIVITY));
+    applyCamera();
+    updateScaleBar();
+  });
+
+  function endDrag(event) {
+    dragging = false;
+    if (dragDistance > DRAG_CLICK_THRESHOLD_PX) {
+      suppressNextClick = true;
+      // Safety net: a pointerup isn't always followed by a click (e.g.
+      // pointercancel) -- don't leave this suppressing some unrelated
+      // later click if one never arrives to consume and clear it.
+      setTimeout(function () {
         suppressNextClick = false;
-        return;
-      }
-      var dot = dotAtPoint(event.clientX, event.clientY);
-      if (dot) {
-        showSystemInfo(dot);
-      }
-    });
-
-    dots.forEach(function (dot) {
-      dot.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          showSystemInfo(dot);
-        }
-      });
-    });
-
-    if (controls) {
-      controls.querySelectorAll("[data-action]").forEach(function (button) {
-        button.addEventListener("click", function () {
-          var action = button.dataset.action;
-          if (action === "zoom-in") setZoom(zoom + ZOOM_STEP);
-          else if (action === "zoom-out") setZoom(zoom - ZOOM_STEP);
-          else if (action === "reset") resetView();
-        });
-      });
+      }, 0);
+    }
+    dragDistance = 0;
+    try {
+      canvasEl.releasePointerCapture(event.pointerId);
+    } catch (err) {
+      // Already released/invalid -- nothing to clean up.
     }
   }
+  canvasEl.addEventListener("pointerup", endDrag);
+  canvasEl.addEventListener("pointercancel", endDrag);
 
-  var stageEl = document.getElementById("starmap-stage");
-  if (stageEl) {
-    initStarmap(stageEl);
+  canvasEl.addEventListener(
+    "wheel",
+    function (event) {
+      event.preventDefault();
+      setZoom(currentZoom() + (event.deltaY < 0 ? WHEEL_ZOOM_STEP : -WHEEL_ZOOM_STEP));
+    },
+    { passive: false }
+  );
+
+  canvasEl.addEventListener("keydown", function (event) {
+    var key = event.key;
+    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowUp" && key !== "ArrowDown") {
+      return;
+    }
+    event.preventDefault();
+    if (key === "ArrowLeft") spherical.theta += KEY_ROTATE_STEP;
+    if (key === "ArrowRight") spherical.theta -= KEY_ROTATE_STEP;
+    if (key === "ArrowUp") spherical.phi = Math.max(MIN_POLAR, spherical.phi - KEY_ROTATE_STEP);
+    if (key === "ArrowDown") spherical.phi = Math.min(MAX_POLAR, spherical.phi + KEY_ROTATE_STEP);
+    applyCamera();
+    updateScaleBar();
+  });
+
+  var raycaster = new THREE.Raycaster();
+
+  function entryAtClientPoint(clientX, clientY) {
+    var rect = canvasEl.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      return null;
+    }
+    var ndc = new THREE.Vector2(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1
+    );
+    raycaster.setFromCamera(ndc, camera);
+    var hits = raycaster.intersectObjects(interactiveGroup.children, false);
+    return hits.length ? entryByObject.get(hits[0].object) || null : null;
   }
-})();
+
+  canvasEl.addEventListener("click", function (event) {
+    if (suppressNextClick) {
+      suppressNextClick = false;
+      return;
+    }
+    selectEntry(entryAtClientPoint(event.clientX, event.clientY));
+  });
+
+  var controlsEl = document.getElementById("starmap-controls");
+  if (controlsEl) {
+    controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var action = button.dataset.action;
+        if (action === "zoom-in") setZoom(currentZoom() + ZOOM_STEP);
+        else if (action === "zoom-out") setZoom(currentZoom() - ZOOM_STEP);
+        else if (action === "reset") resetView();
+      });
+    });
+  }
+
+  // --- Scale bar -----------------------------------------------------------
+
+  var scaleEl = document.getElementById("starmap-scale");
+  var scaleBarEl = document.getElementById("starmap-scale-bar");
+  var scaleLabelEl = document.getElementById("starmap-scale-label");
+  var lyPerWorldUnit = data.lyPerPxAtZoom1 || 0;
+  var SCALE_BAR_TARGET_PX = 70;
+
+  // Snaps an arbitrary positive value to the nearest "nice" 1/2/5 * 10^n
+  // -- the standard map-scale-bar convention, so the label reads "5 ly"
+  // or "20 ly" rather than an ugly "6.283 ly".
+  function niceScaleValue(raw) {
+    if (!isFinite(raw) || raw <= 0) {
+      return 0;
+    }
+    var magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+    var mantissa = raw / magnitude;
+    var niceMantissa;
+    if (mantissa < 1.5) niceMantissa = 1;
+    else if (mantissa < 3.5) niceMantissa = 2;
+    else if (mantissa < 7.5) niceMantissa = 5;
+    else niceMantissa = 10;
+    return niceMantissa * magnitude;
+  }
+
+  function formatLy(value) {
+    if (value >= 100) return Math.round(value) + " ly";
+    if (value >= 1) return Math.round(value * 10) / 10 + " ly";
+    return Math.round(value * 1000) / 1000 + " ly";
+  }
+
+  // Unlike the old CSS version (a fixed 320px scene scaled by a flat CSS
+  // `zoom` factor, so ly-per-pixel was that one ratio divided by `zoom`),
+  // a real perspective camera's screen-pixels-per-world-unit depends on
+  // both camera distance *and* the canvas's own live rendered size (this
+  // panel is a responsive `min(100%, 22rem)` box, not a fixed 320px one)
+  // -- so this recomputes it from first principles every time instead.
+  function worldUnitsPerScreenPixel() {
+    var fovRad = THREE.MathUtils.degToRad(camera.fov);
+    var heightPx = canvasEl.clientHeight || 1;
+    return (2 * spherical.radius * Math.tan(fovRad / 2)) / heightPx;
+  }
+
+  function updateScaleBar() {
+    if (!scaleEl || !scaleBarEl || !scaleLabelEl || !lyPerWorldUnit) {
+      return;
+    }
+    var lyPerScreenPx = worldUnitsPerScreenPixel() * lyPerWorldUnit;
+    var niceLy = niceScaleValue(SCALE_BAR_TARGET_PX * lyPerScreenPx);
+    if (!niceLy) {
+      return;
+    }
+    scaleBarEl.style.width = (niceLy / lyPerScreenPx).toFixed(1) + "px";
+    scaleLabelEl.textContent = formatLy(niceLy);
+  }
+
+  // --- Resize/render loop ----------------------------------------------
+
+  function resize() {
+    var width = canvasEl.clientWidth || 1;
+    var height = canvasEl.clientHeight || 1;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    updateScaleBar();
+  }
+
+  if (typeof ResizeObserver !== "undefined" && viewport) {
+    new ResizeObserver(resize).observe(viewport);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  (function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  })();
+}
+
+if (canvas && sceneData) {
+  initStarmap(canvas, sceneData);
+}

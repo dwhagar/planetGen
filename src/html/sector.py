@@ -306,7 +306,7 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 </table></div>
 </section>
 {phenomena_section_html}
-<script src="static/sectormap.js" defer></script>
+<script type="module" src="static/sectormap.js"></script>
 """
     return f"Sector: {sector['name']}", body
 
