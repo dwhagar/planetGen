@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.46.4] - 2026-09-19
+
+### Fixed
+- **`generate.py sector`/`galaxy` crashed and discarded an entire sector's
+  worth of already-generated systems once the sector ran out of physical
+  room.** `SpaceSector.add_system`'s Hill-sphere-based random placement
+  raises `ValueError` once a sector's cube has no space left for another
+  system without overlapping an existing one's Hill sphere -- a real,
+  physically expected outcome once `--num-systems`/`--density` (compounded
+  by `--min-habitable` forcing extra large, larger-Hill-sphere stars) asks
+  for more systems than a sector can hold at realistic stellar spacing
+  (reproduced with `--num-systems 60` in a default 11.5 ly sector, which
+  only fits ~35-44). `generate_sector` let that exception propagate,
+  aborting the whole run and throwing away every system already
+  generated -- including the expensive planet/moon generation behind each
+  one. It now stops as soon as one system can't be placed, logs how many
+  of the requested systems it actually placed, and returns the sector with
+  whatever fit instead of crashing or generating further systems that were
+  never going to fit either.
+
 ## [5.46.3] - 2026-09-19
 
 ### Fixed
