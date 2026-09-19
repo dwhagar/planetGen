@@ -1,0 +1,24 @@
+three.js r186 (three@0.186.0 on npm, https://github.com/mrdoob/three.js)
+MIT License -- full text in three-LICENSE.txt (copied unmodified from the
+npm package's own LICENSE file).
+
+three.module.min.js is three's build/three.module.js and build/three.core.js
+bundled into one file and minified. Vendored here -- rather than loaded from
+a CDN, the usual approach for a no-build-step project -- because
+html/lib/page.py's shared page shell sends
+`Content-Security-Policy: default-src 'self'` and only ever serves same-
+origin `static/*.js`; a CDN script would need a script-src exception to that
+policy. sectormap.js imports this file directly by relative path (no
+import map, so none of that CSP is touched).
+
+Rebuild from a fresh `three` npm release (bumping the version below) with:
+
+  npm pack three                              # downloads three-<version>.tgz
+  tar xzf three-<version>.tgz package/build/three.module.js \
+                                 package/build/three.core.js \
+                                 package/LICENSE
+  npx esbuild --bundle --minify --format=esm \
+      package/build/three.module.js --outfile=three.module.min.js
+
+then copy the resulting three.module.min.js and package/LICENSE (as
+three-LICENSE.txt) here.
