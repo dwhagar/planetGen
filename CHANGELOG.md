@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.45.0] - 2026-09-19
+
+### Added
+- **`generate.py galaxy`'s random-start mode (no `--shell`/`--center-sector`)
+  gained `--min-start-density`** -- requires the randomly chosen starting
+  sector's own real `relative_density` (the same "expected" figure printed
+  alongside each saved sector) to be at least the given value before
+  accepting it, retried the same way an already-occupied or otherwise
+  non-qualifying address already was. Lets an operator skip past the
+  galaxy's own vast, sparse outskirts (a plain random start lands there
+  most of the time, since a volume-weighted draw favors them) and start
+  somewhere with real content to look at -- e.g. `--min-start-density 1.0`
+  for at least as dense as the galaxy's own real local density. Only
+  applies to random-start mode, and can't be combined with
+  `--density`/`--num-systems` (those override every position's density
+  uniformly, leaving nothing per-position to compare against).
+
 ## [5.44.1] - 2026-09-19
 
 ### Changed

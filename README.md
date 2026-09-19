@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.44.1 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 5.45.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -163,8 +163,15 @@ generates it, and then generates every not-yet-generated sector within
 100 ly of it too, in every direction — a whole small starmap around a
 fresh, randomly chosen starting point in one run. `--max-shell` bounds how
 far out the random starting address can land (defaults to a real galaxy's
-own outer edge, ~15,000 pc), and `--radius-pc` overrides the default
-100 ly neighborhood radius.
+own outer edge, ~15,000 pc), `--radius-pc` overrides the default 100 ly
+neighborhood radius, and `--min-start-density` requires the randomly
+chosen starting sector's own real density to be at least that many times
+local (e.g. `--min-start-density 1.0` for at least as dense as the
+galaxy's own real local density) before accepting it, retrying otherwise
+— useful for skipping past the galaxy's own vast, sparse outskirts to
+start somewhere with more to look at. A high threshold combined with a
+large `--max-shell` can take many retries to satisfy, since a
+volume-weighted random draw favors the sparser outskirts to begin with.
 
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape

@@ -981,8 +981,8 @@ def add_galaxy_arguments(parser):
     Adds the `galaxy` subcommand's own mode/placement options -- on top
     of whatever `add_shared_generation_options` already added -- to
     `parser`: the `--shell`/`--center-sector` mode-selection group,
-    `--limit`, `--yes`, `--radius-pc`, `--max-shell`, and the MySQL
-    connection args.
+    `--limit`, `--yes`, `--radius-pc`, `--max-shell`, `--min-start-density`,
+    and the MySQL connection args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -1012,6 +1012,18 @@ def add_galaxy_arguments(parser):
                              f"shell index the randomly chosen starting sector may land in. Defaults to "
                              f"the shell nearest a real Milky-Way-scale galaxy radius "
                              f"({program_constants.GALAXY_RADIUS_PC:,.0f} pc).")
+    parser.add_argument('--min-start-density', type=float,
+                        help="With neither --shell nor --center-sector (random-start mode): require the "
+                             "randomly chosen starting sector's own real relative_density (the same "
+                             "'expected' figure printed alongside each saved sector) to be at least this "
+                             "value before accepting it -- e.g. 1.0 for at least as dense as the galaxy's "
+                             "own real local density, 2.0 for twice that. Retried the same way an "
+                             "already-occupied or otherwise-non-qualifying address is (see "
+                             "RANDOM_START_MAX_PLACEMENT_ATTEMPTS); a high threshold combined with a large "
+                             "--max-shell can take many more attempts to satisfy, since a volume-weighted "
+                             "random draw favors the galaxy's own sparser outskirts. Cannot be combined "
+                             "with --density/--num-systems (those override every position's density "
+                             "uniformly, leaving no per-position value to compare against).")
     _db.add_mysql_connection_args(parser)
 
 
@@ -1054,6 +1066,16 @@ def validate_galaxy_args(args, parser):
                      "--center-sector).")
     if args.max_shell is not None and args.max_shell < 0:
         parser.error("--max-shell must be >= 0.")
+
+    if args.min_start_density is not None and not random_start:
+        parser.error("--min-start-density only applies to random-start mode (neither --shell nor "
+                     "--center-sector).")
+    if args.min_start_density is not None and args.min_start_density <= 0:
+        parser.error("--min-start-density must be a positive number.")
+    if args.min_start_density is not None and (args.density is not None or args.num_systems is not None):
+        parser.error("--min-start-density cannot be combined with --density/--num-systems -- those "
+                     "override every position's density uniformly, leaving no per-position value for "
+                     "--min-start-density to compare against.")
 
     # generate_sector()/build_sector_configs() expect a namespace shaped
     # like the `sector` subcommand's own output -- see this function's
@@ -1732,7 +1754,10 @@ def run_random_start(args, edge_pc):
     own gating -- likely for any given draw, since most of a real galaxy's
     volume sits off the spiral arms/disk plane, but rare enough in
     aggregate across the whole sphere that a retry almost always lands on
-    a qualifying address well within the attempt budget.
+    a qualifying address well within the attempt budget. `--min-start-density`
+    tightens that same retry loop further: a qualifying address whose own
+    `relative_density` still falls short of it is retried exactly like a
+    non-qualifying one.
 
     Args:
         args (argparse.Namespace): Parsed arguments;
@@ -1740,8 +1765,9 @@ def run_random_start(args, edge_pc):
         edge_pc (float): The sector edge length, in parsecs (`_edge_pc`).
 
     Raises:
-        SystemExit: If no unoccupied address could be found within
-                   `program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS`
+        SystemExit: If no unoccupied, qualifying address meeting
+                   `args.min_start_density` (if given) could be found
+                   within `program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS`
                    attempts.
     """
     max_shell_index = (
@@ -1773,14 +1799,26 @@ def run_random_start(args, edge_pc):
             # an already-occupied one, rather than generated as an
             # all-but-certainly-empty seed sector.
             sector_args = batch_density.resolve(args, shell_index, slot_index, position_pc)
-            if sector_args is not None:
-                break
+            if sector_args is None:
+                continue
+            if args.min_start_density is not None and sector_args.density < args.min_start_density:
+                # Qualifies (>= 1 predicted star), but not dense enough to
+                # satisfy the operator's own --min-start-density -- retried
+                # the same way as any other rejected draw.
+                continue
+            break
         else:
+            density_note = (
+                f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-shell "
+                f"-- a high density threshold combined with a large --max-shell means most volume-weighted "
+                f"draws land in the galaxy's own sparser outskirts, far short of it)"
+                if args.min_start_density is not None else ""
+            )
             raise SystemExit(
                 f"Could not find an unoccupied, qualifying sector address within {max_shell_index} "
-                f"shells after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts -- this "
-                f"galaxy may already be almost entirely generated within that range, or that range may "
-                f"hold too little real stellar density; try a larger --max-shell."
+                f"shells after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
+                f"-- this galaxy may already be almost entirely generated within that range, or that range "
+                f"may hold too little real stellar density; try a larger --max-shell."
             )
     finally:
         conn.close()
