@@ -604,6 +604,62 @@ def test_process_args_accepts_radius_pc_and_max_shell_alone():
     assert args.max_shell == 5
 
 
+def test_process_args_min_start_density_rejected_with_shell_or_center_sector():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["generate.py", "galaxy", "--shell", "0", "--min-start-density", "1.5"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+
+        sys.argv = [
+            "generate.py", "galaxy", "--center-sector", "1", "--radius-pc", "5",
+            "--min-start-density", "1.5",
+        ]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+
+def test_process_args_min_start_density_must_be_positive():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["generate.py", "galaxy", "--min-start-density", "0"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+
+        sys.argv = ["generate.py", "galaxy", "--min-start-density", "-1"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+
+def test_process_args_min_start_density_rejected_with_density_or_num_systems():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["generate.py", "galaxy", "--min-start-density", "1.5", "--num-systems", "5"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+
+        sys.argv = ["generate.py", "galaxy", "--min-start-density", "1.5", "--density", "2.0"]
+        with pytest.raises(SystemExit):
+            galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+
+def test_process_args_accepts_min_start_density_alone():
+    old_argv = sys.argv
+    try:
+        sys.argv = ["generate.py", "galaxy", "--min-start-density", "1.5"]
+        args = galaxyGen.process_args()
+    finally:
+        sys.argv = old_argv
+
+    assert args.min_start_density == 1.5
+
+
 def test_random_start_mode_generates_a_seed_sector_and_its_neighborhood(mysql_config):
     # --max-shell 0 pins the randomly chosen seed to one of shell 0's 3
     # slots (deterministic scope, matching this file's other small-radius
@@ -678,6 +734,57 @@ def test_random_start_mode_gives_up_after_max_attempts_when_fully_occupied(mysql
 
     with pytest.raises(SystemExit):
         _run_cli(["--max-shell", "0", "--radius-pc", "1.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+
+
+def test_random_start_mode_respects_min_start_density(mysql_config):
+    """
+    --min-start-density must reject an otherwise-qualifying seed address
+    whose own real relative_density falls short of it, retrying until one
+    that clears it is found -- shell 0's own 3 slots split cleanly under
+    _SKELETON_SHAPE (~83.6 for slots 0/1, ~63.1 for slot 2; verified
+    directly, not assumed), so a threshold of 75.0 must always land the
+    seed on slot 0 or 1, never slot 2.
+    """
+    n_0 = shell_sector_count(0)
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    slot_2_density = relative_density(sector_position_pc(0, 2, EDGE_PC), _SKELETON_SHAPE)
+    slot_01_density = relative_density(sector_position_pc(0, 0, EDGE_PC), _SKELETON_SHAPE)
+    threshold = 75.0
+    assert slot_2_density < threshold < slot_01_density, (
+        "test setup needs shell 0's slots to straddle the threshold"
+    )
+
+    _run_cli(
+        ["--max-shell", "0", "--radius-pc", "0.001", "--min-start-density", str(threshold)]
+        + _mysql_argv(mysql_config)
+    )
+
+    sectors = _all_sectors(mysql_config)
+    seed = min(sectors, key=lambda row: row["id"])
+    assert seed["shell_index"] == 0
+    assert seed["shell_slot_index"] in (0, 1)
+    seed_position = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
+    assert relative_density(seed_position, _SKELETON_SHAPE) >= threshold
+
+
+def test_random_start_mode_gives_up_when_min_start_density_unattainable(mysql_config, monkeypatch):
+    """A --min-start-density no address in range can ever satisfy must
+    still give up cleanly (not loop forever), same as the
+    fully-occupied case above, with a message that calls out the density
+    constraint specifically."""
+    n_0 = shell_sector_count(0)
+    _seed_skeleton(mysql_config, bands=[(0, 0, 0, n_0 - 1)])
+
+    monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
+
+    with pytest.raises(SystemExit, match="min-start-density"):
+        _run_cli(
+            ["--max-shell", "0", "--radius-pc", "0.001", "--min-start-density", "1000000"]
+            + _mysql_argv(mysql_config)
+        )
+
+    assert _all_sectors(mysql_config) == []
 
 
 def _fake_args_for_direct_generation(mysql_config):
@@ -874,3 +981,49 @@ def test_shell_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysq
     ] + _mysql_argv(mysql_config))
 
     assert _all_sectors(mysql_config) == []
+
+
+# ---------------------------------------------------------------------------
+# Guaranteed non-empty: a qualifying sector's own system count and each
+# phenomenon type's own count are independent Poisson draws, so all of them
+# landing on zero simultaneously is a real, expected outcome at low means
+# (e.g. ~13% at mean 2, and only gets more likely approaching the mean-~1
+# qualification threshold itself) -- generate_sector forces exactly one
+# system onto an otherwise-completely-empty, --density-driven sector rather
+# than leave it with nothing in it at all. No database needed -- these call
+# generate_sector directly, not through the CLI/mysql_config fixture.
+# ---------------------------------------------------------------------------
+
+def test_generate_sector_is_never_left_with_nothing_in_it():
+    """
+    Runs generate_sector directly, many times, at a mean of exactly ~1
+    system/sector (right at the qualification threshold, where an empty
+    Poisson draw is common -- P(0) = 1/e = 36.8%) -- across 200 draws, an
+    unpatched version would produce a genuinely empty sector far more
+    often than this test could plausibly miss by chance alone.
+    """
+    from stellarObjects.spaceSector import SpaceSector
+
+    e_value = SpaceSector(name="calibration").expected_system_count()
+    args = galaxyGen._default_generation_args()
+    args.density = 1.0 / e_value
+    args.num_systems = None
+
+    for _ in range(200):
+        _sector_name, sector = galaxyGen.generate_sector(args)
+        assert sector.entries or sector.phenomena, (
+            "generate_sector produced a sector with nothing in it at all"
+        )
+
+
+def test_generate_sector_does_not_force_content_onto_an_explicit_zero():
+    """The guaranteed-non-empty fallback only overrides a --density-driven
+    zero -- an explicit --num-systems 0 is a deliberate request it must
+    never second-guess."""
+    args = galaxyGen._default_generation_args()
+    args.density = None
+    args.num_systems = 0
+
+    _sector_name, sector = galaxyGen.generate_sector(args)
+    assert sector.entries == []
+    assert sector.phenomena == []

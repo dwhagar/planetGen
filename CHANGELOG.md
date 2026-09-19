@@ -1,5 +1,83 @@
 # Changelog
 
+## [5.46.0] - 2026-09-19
+
+### Changed
+- **A qualifying sector can no longer come out completely empty.** A
+  sector's own system count and each exotic-phenomenon type's own count
+  are independent Poisson draws, so all of them landing on zero at once
+  is a real, expected outcome -- more likely the closer local density
+  sits to the 1-star-per-sector qualification threshold (e.g. ~13% at a
+  mean of 2 systems, ~37% right at the threshold itself, mean 1) -- but a
+  sector with nothing in it at all isn't useful to anyone visiting it.
+  `generate_sector` now force-adds exactly one system when a
+  `--density`-driven sector's own draws (system count, every phenomenon
+  type) all came back empty. Only applies when the count came from
+  `--density` (explicit or `_BatchDensity`-resolved, as in `galaxy`
+  mode); an explicit `--num-systems 0` (including on the plain `sector`
+  subcommand) is a deliberate request this never second-guesses.
+
+## [5.45.1] - 2026-09-19
+
+### Changed
+- **Cut database round trips for name-uniqueness bookkeeping** -- profiling
+  a real save (`SHOW GLOBAL STATUS` query counters before/after) found
+  `reserve_body_name`/`confirm_body_name` (run once per planet and once
+  per moon -- hundreds of times in a single sector) issuing 4 separate
+  SELECT/INSERT/UPDATE round trips each, the large majority of a saved
+  sector's total query count. `reserve_body_name` now combines its two
+  stateless cross-level collision checks (`sector_name_registry`,
+  `system_name_registry`) into one query via `UNION ALL` instead of two
+  sequential ones (its `body_name_registry` lookup keeps its own
+  unchanged `FOR UPDATE` lock, still queried separately). `confirm_body_name`/
+  `confirm_system_name`/`confirm_sector_name` now upsert
+  (`INSERT ... ON DUPLICATE KEY UPDATE`, relying on each registry
+  table's own `base_name UNIQUE` constraint) instead of a SELECT to
+  decide between an INSERT and an UPDATE. Measured ~30-35% fewer total
+  queries per planet/moon across repeated benchmark runs (same
+  generation code, a throwaway database, and `SHOW GLOBAL STATUS`
+  counters compared before/after this change) -- since DB writes
+  dominate real generation time (a separate finding: ~70 systems/sec of
+  pure in-memory generation vs. ~11-16 systems/sec once real database
+  writes are included), this directly speeds up `sector`/`galaxy`
+  generation. Every existing name-uniqueness test (collision handling,
+  occurrence-count tracking, suffix/diminutive progression) still passes
+  unchanged -- the upsert's `ON DUPLICATE KEY UPDATE` branch updates the
+  exact same columns (`occurrence_count`, `suffix_index`/
+  `diminutive_index`) the old SELECT-then-UPDATE branch did, and never
+  touches `first_body_id`/`first_star_system_id`/`first_sector_id`,
+  matching the old code exactly.
+
+## [5.45.0] - 2026-09-19
+
+### Added
+- **`generate.py galaxy`'s random-start mode (no `--shell`/`--center-sector`)
+  gained `--min-start-density`** -- requires the randomly chosen starting
+  sector's own real `relative_density` (the same "expected" figure printed
+  alongside each saved sector) to be at least the given value before
+  accepting it, retried the same way an already-occupied or otherwise
+  non-qualifying address already was. Lets an operator skip past the
+  galaxy's own vast, sparse outskirts (a plain random start lands there
+  most of the time, since a volume-weighted draw favors them) and start
+  somewhere with real content to look at -- e.g. `--min-start-density 1.0`
+  for at least as dense as the galaxy's own real local density. Only
+  applies to random-start mode, and can't be combined with
+  `--density`/`--num-systems` (those override every position's density
+  uniformly, leaving nothing per-position to compare against).
+
+## [5.44.1] - 2026-09-19
+
+### Changed
+- **Removed the "Sectors"/"Sectors (shell N)"/"Sectors (local
+  neighborhood)"/"Sectors (random start)" progress bar entirely** from
+  `generate.py sector`/`galaxy` -- the previous release only removed the
+  nested per-sector bar and tried to fix the outer one's flicker by
+  routing prints through it, but the outer bar itself was still visible
+  and still wasn't what was wanted. `run_sector`/`run_shell_batch`/
+  `run_local_neighborhood`/`run_random_start`/`run_galaxy` no longer take
+  or build a `rich.progress.Progress` at all -- every status line is a
+  plain `print` again, and `generate.py` no longer imports `rich.progress`.
+
 ## [5.44.0] - 2026-09-19
 
 ### Changed

@@ -884,18 +884,18 @@ def reserve_sector_name(conn, candidate_name):
 
 def confirm_sector_name(conn, base_name, sector_id):
     """Phase 2 of sector name-uniqueness reservation -- upserts
-    `sector_name_registry` now that the new sector's id is known."""
-    row = conn.execute("SELECT id FROM sector_name_registry WHERE base_name = ?", (base_name,)).fetchone()
-    if row is None:
-        conn.execute(
-            "INSERT INTO sector_name_registry (base_name, occurrence_count, first_sector_id) VALUES (?, 1, ?)",
-            (base_name, sector_id),
-        )
-    else:
-        conn.execute(
-            "UPDATE sector_name_registry SET occurrence_count = occurrence_count + 1 WHERE base_name = ?",
-            (base_name,),
-        )
+    `sector_name_registry` now that the new sector's id is known. One
+    round trip (`INSERT ... ON DUPLICATE KEY UPDATE`, relying on
+    `base_name`'s own `UNIQUE` constraint) instead of a SELECT to decide
+    between an INSERT and an UPDATE -- see `confirm_body_name`'s own
+    identical reasoning. `first_sector_id` is only ever set by the initial
+    INSERT, matching the original SELECT-then-branch's own UPDATE branch,
+    which never touched it either."""
+    conn.execute(
+        "INSERT INTO sector_name_registry (base_name, occurrence_count, first_sector_id) VALUES (?, 1, ?) "
+        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1",
+        (base_name, sector_id),
+    )
 
 
 def _regenerate_star_name():
@@ -977,20 +977,19 @@ def reserve_system_name(conn, candidate_name):
 
 def confirm_system_name(conn, base_name, star_system_id, diminutive_index):
     """Phase 2 of system name-uniqueness reservation -- upserts
-    `system_name_registry` now that the new system's id is known."""
-    row = conn.execute("SELECT id FROM system_name_registry WHERE base_name = ?", (base_name,)).fetchone()
-    if row is None:
-        conn.execute(
-            "INSERT INTO system_name_registry (base_name, occurrence_count, first_star_system_id, diminutive_index) "
-            "VALUES (?, 1, ?, ?)",
-            (base_name, star_system_id, diminutive_index),
-        )
-    else:
-        conn.execute(
-            "UPDATE system_name_registry SET occurrence_count = occurrence_count + 1, diminutive_index = ? "
-            "WHERE base_name = ?",
-            (diminutive_index, base_name),
-        )
+    `system_name_registry` now that the new system's id is known. One
+    round trip (`INSERT ... ON DUPLICATE KEY UPDATE`, relying on
+    `base_name`'s own `UNIQUE` constraint) instead of a SELECT to decide
+    between an INSERT and an UPDATE -- see `confirm_body_name`'s own
+    identical reasoning. `first_star_system_id` is only ever set by the
+    initial INSERT, matching the original SELECT-then-branch's own UPDATE
+    branch, which never touched it either."""
+    conn.execute(
+        "INSERT INTO system_name_registry (base_name, occurrence_count, first_star_system_id, diminutive_index) "
+        "VALUES (?, 1, ?, ?) "
+        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1, diminutive_index = VALUES(diminutive_index)",
+        (base_name, star_system_id, diminutive_index),
+    )
 
 
 def _regenerate_body_name(body_kind):
@@ -1038,12 +1037,19 @@ def reserve_body_name(conn, candidate_name, body_kind):
 
         collides = existing_count > 0
         if not collides:
+            # One round trip instead of two -- this call runs once per
+            # planet/moon (hundreds of times per sector), and the common
+            # case is "no collision anywhere," so combining these two
+            # cheap existence checks (neither needs body_name_registry's
+            # own FOR UPDATE lock above, which already serializes this
+            # exact base_name against concurrent reservations) is a
+            # meaningful, safe cut to this function's own dominant cost.
             collides = conn.execute(
-                "SELECT 1 FROM sector_name_registry WHERE base_name = ?", (base,),
-            ).fetchone() is not None
-        if not collides:
-            collides = conn.execute(
-                "SELECT 1 FROM system_name_registry WHERE base_name = ?", (base,),
+                "SELECT 1 FROM sector_name_registry WHERE base_name = ? "
+                "UNION ALL "
+                "SELECT 1 FROM system_name_registry WHERE base_name = ? "
+                "LIMIT 1",
+                (base, base),
             ).fetchone() is not None
 
         if not collides:
@@ -1059,19 +1065,20 @@ def reserve_body_name(conn, candidate_name, body_kind):
 
 def confirm_body_name(conn, base_name, body_id, body_kind, suffix_index):
     """Phase 2 of planet/moon name-uniqueness reservation -- upserts
-    `body_name_registry` now that the new row's id is known."""
-    row = conn.execute("SELECT id FROM body_name_registry WHERE base_name = ?", (base_name,)).fetchone()
-    if row is None:
-        conn.execute(
-            "INSERT INTO body_name_registry (base_name, occurrence_count, first_body_kind, first_body_id, suffix_index) "
-            "VALUES (?, 1, ?, ?, ?)",
-            (base_name, body_kind, body_id, suffix_index),
-        )
-    else:
-        conn.execute(
-            "UPDATE body_name_registry SET occurrence_count = occurrence_count + 1, suffix_index = ? WHERE base_name = ?",
-            (suffix_index, base_name),
-        )
+    `body_name_registry` now that the new row's id is known. One round
+    trip (`INSERT ... ON DUPLICATE KEY UPDATE`, relying on `base_name`'s
+    own `UNIQUE` constraint) instead of a SELECT to decide between an
+    INSERT and an UPDATE -- same reasoning as `reserve_body_name`'s own
+    query-count cut just above: this runs once per planet/moon.
+    `first_body_kind`/`first_body_id` are only ever set by the initial
+    INSERT, matching the original SELECT-then-branch's own UPDATE branch,
+    which never touched them either."""
+    conn.execute(
+        "INSERT INTO body_name_registry (base_name, occurrence_count, first_body_kind, first_body_id, suffix_index) "
+        "VALUES (?, 1, ?, ?, ?) "
+        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1, suffix_index = VALUES(suffix_index)",
+        (base_name, body_kind, body_id, suffix_index),
+    )
 
 
 def insert_star(conn, star, star_system_id, role) -> int:
