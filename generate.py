@@ -864,16 +864,20 @@ def generate_sector(args, galactic_center_dist_ly=None):
         args = copy.copy(args)
         args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
 
-    configs = build_sector_configs(args)
+    with log.timed_phase("build_sector_configs"):
+        configs = build_sector_configs(args)
 
-    systems = [
-        StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly) for cfg in configs
-    ]
+    systems = []
+    for i, cfg in enumerate(configs):
+        with log.timed_phase(f"generate system {i + 1}/{len(configs)}"):
+            systems.append(StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly))
 
-    for system, cfg in zip(systems, configs):
-        sector.add_system(system, system_config=cfg)
+    with log.timed_phase("place systems in sector"):
+        for system, cfg in zip(systems, configs):
+            sector.add_system(system, system_config=cfg)
 
-    generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+    with log.timed_phase("generate_sector_phenomena"):
+        generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
 
     if density_driven and not sector.entries and not sector.phenomena:
         # Guaranteed non-empty: a qualifying sector's own Poisson draws

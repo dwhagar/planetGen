@@ -200,9 +200,10 @@ class StarSystem:
         if compact_remnant is not None:
             self.star = compact_remnant
         else:
-            self.star = Star(self.system_config, name=self.system_config.NAME,
-                              galactic_center_dist_ly=galactic_center_dist_ly,
-                              galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
+            with log.timed_phase("primary star generation"):
+                self.star = Star(self.system_config, name=self.system_config.NAME,
+                                  galactic_center_dist_ly=galactic_center_dist_ly,
+                                  galactic_orbital_phase_deg=galactic_orbital_phase_deg) # Pass system_config and use its NAME
         self.primary_star = self.star # For single star systems, the primary is the star
         self.planets = []
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
@@ -238,10 +239,11 @@ class StarSystem:
             secondary_mass_factor = random.uniform(0.1, 0.8)
             secondary_mass = self.primary_star.mass * secondary_mass_factor
             # Create secondary star, potentially with a different name or type if desired
-            self.secondary_star = Star(self.system_config, name=f"{self.primary_star.name} B",
-                                        mass_override=secondary_mass,
-                                        galactic_center_dist_ly=galactic_center_dist_ly,
-                                        galactic_orbital_phase_deg=galactic_orbital_phase_deg)
+            with log.timed_phase("secondary star generation"):
+                self.secondary_star = Star(self.system_config, name=f"{self.primary_star.name} B",
+                                            mass_override=secondary_mass,
+                                            galactic_center_dist_ly=galactic_center_dist_ly,
+                                            galactic_orbital_phase_deg=galactic_orbital_phase_deg)
             self.system_config.LARGE_STAR = original_large_star
             self.stars.append(self.secondary_star)
 
@@ -289,34 +291,35 @@ class StarSystem:
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
         for _attempt in range(program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS):
-            primary_ceiling_au = self._orbit_ceiling_au(self.star)
-            self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
-            self.validate_system(self.planets)
-            # validate_system only ever pushes a body's distance further
-            # OUTWARD to resolve a spacing collision with its inner
-            # neighbor, never closer -- for the galactic-Hill-sphere
-            # ceiling this correction is negligible next to a light-year-
-            # scale boundary, but a much tighter S-type a_crit ceiling
-            # makes it a real possibility, so re-trim afterward using each
-            # body's own final position.
-            self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+            with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
+                primary_ceiling_au = self._orbit_ceiling_au(self.star)
+                self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
+                self.validate_system(self.planets)
+                # validate_system only ever pushes a body's distance further
+                # OUTWARD to resolve a spacing collision with its inner
+                # neighbor, never closer -- for the galactic-Hill-sphere
+                # ceiling this correction is negligible next to a light-year-
+                # scale boundary, but a much tighter S-type a_crit ceiling
+                # makes it a real possibility, so re-trim afterward using each
+                # body's own final position.
+                self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
 
-            self.secondary_planets = []
-            if self.binary_type == "wide":
-                secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
-                self.secondary_planets = self._generate_planets(
-                    self.secondary_star, self.secondary_star.habitable_zone,
-                    secondary_ceiling_au, apply_guarantees=False,
-                )
-                self.validate_system(self.secondary_planets)
-                self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                # Runs last, once both lists reflect their own truly final
-                # (post-validate_system, post-trim) positions -- see this
-                # method's own docstring.
-                self._validate_cross_star_clearance()
+                self.secondary_planets = []
+                if self.binary_type == "wide":
+                    secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
+                    self.secondary_planets = self._generate_planets(
+                        self.secondary_star, self.secondary_star.habitable_zone,
+                        secondary_ceiling_au, apply_guarantees=False,
+                    )
+                    self.validate_system(self.secondary_planets)
+                    self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                    # Runs last, once both lists reflect their own truly final
+                    # (post-validate_system, post-trim) positions -- see this
+                    # method's own docstring.
+                    self._validate_cross_star_clearance()
 
-            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
-            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+                habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
+                belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             if habitable_satisfied and belt_satisfied:
                 break
 
@@ -328,8 +331,9 @@ class StarSystem:
         # see _generate_comets' own docstring for why -- so they're rolled
         # once here, after that loop has settled on a final planet/belt
         # layout, rather than inside it.
-        self.comets = self._generate_comets(self.star)
-        self.secondary_comets = self._generate_comets(self.secondary_star) if self.binary_type == "wide" else []
+        with log.timed_phase("comet generation"):
+            self.comets = self._generate_comets(self.star)
+            self.secondary_comets = self._generate_comets(self.secondary_star) if self.binary_type == "wide" else []
 
         # Each hosting star's own reflex-offset "wobble" (schema v20) --
         # see `Star.reflex_offset_x`'s own docstring and
@@ -374,14 +378,15 @@ class StarSystem:
         # age rather than its provisional pre-adjustment one. Flavor text is decided
         # in the same pass (after life data, since it reads evolutionary_data) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
-        for obj in self.planets + self.secondary_planets:
-            if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
-                continue
-            planetLife.apply_life_data(obj)
-            planetLife.decide_flavor_text(obj)
-            for moon in obj.moons:
-                planetLife.apply_life_data(moon)
-                planetLife.decide_flavor_text(moon)
+        with log.timed_phase("life data pass"):
+            for obj in self.planets + self.secondary_planets:
+                if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
+                    continue
+                planetLife.apply_life_data(obj)
+                planetLife.decide_flavor_text(obj)
+                for moon in obj.moons:
+                    planetLife.apply_life_data(moon)
+                    planetLife.decide_flavor_text(moon)
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
