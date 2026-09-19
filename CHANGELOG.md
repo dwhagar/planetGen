@@ -1,5 +1,48 @@
 # Changelog
 
+## [5.42.0] - 2026-09-19
+
+### Added
+- **A 3D body-preview sphere on the System Map.** Clicking a planet or
+  moon in `system.py`'s System Map now also redraws `#sysmap-preview`: a
+  small rotating three.js sphere (reusing the same vendored build the
+  Sector Map uses) shaded by the body's own class color, banded with a
+  tilted ring for a gas giant, and wrapped in a fresnel-glow atmosphere
+  shell -- tinted by surface temperature -- whenever the body actually has
+  one. The info panel also gains "Atmosphere," "Surface composition," and
+  "Surface temperature" fields (`planets`/`moons.atmosphere`/
+  `composition`/`surface_temperature_k`, already generated and stored,
+  just not previously surfaced here). The true-position SVG diagram itself
+  is unchanged -- this is an appearance preview alongside it, not a
+  replacement.
+
+## [5.41.0] - 2026-09-19
+
+### Changed
+- **The Sector Map is now a real WebGL scene instead of a CSS 3D
+  illusion.** `html/lib/starmap.py` no longer builds one `<div>` per star/
+  outline edge/compass arrow positioned via CSS `transform-style:
+  preserve-3d` -- it now serializes the same position/size/color/label
+  data it always computed into a `<script type="application/json">`
+  block, and a rewritten `html/static/sectormap.js` renders it with
+  three.js (a real perspective camera, GPU-billboarded sprites for stars/
+  nebulae/asteroid fields/black holes/neutron stars, and a wireframe
+  outline for the sector's wedge or fallback cube) -- proper perspective/
+  occlusion, a scale bar that now accounts for the panel's own responsive
+  size instead of assuming a fixed 320px scene, and a `<noscript>` link
+  list plus a hidden screen-reader-accessible button list (a canvas has
+  no focusable children of its own the way the old per-star `<div
+  role="button">`s were) so the sector's systems/phenomena stay reachable
+  without JavaScript or with a keyboard/screen reader alike. three.js is
+  vendored at `html/static/vendor/` (bundled and minified from the `three`
+  npm package, not loaded from a CDN) so `html/lib/page.py`'s existing
+  `Content-Security-Policy: default-src 'self'` needs no exception for it.
+- **Every star/phenomenon marker on the Sector Map now navigates via
+  `data-nav-target`/`data-nav-params` (`static/navform.js`) instead of a
+  plain `href`**, catching the WebGL rewrite above up to the
+  no-address-bar-params convention `5.40.0` (below) introduced for the
+  rest of `html/` after this branch had already diverged from it.
+
 ## [5.40.0] - 2026-09-19
 
 ### Changed

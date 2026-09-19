@@ -37,7 +37,8 @@ def _star(id_, mass_kg=1.989e30, radius_km=696_000, star_type="G2V", temperature
 
 
 def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet_class="G", body_type="t",
-            moons=None, life_chemical=None, zone="e", period_years=1.0, gravity_g=1.0):
+            moons=None, life_chemical=None, zone="e", period_years=1.0, gravity_g=1.0,
+            atmosphere=None, composition=None, surface_temperature_k=None):
     return {
         "id": id_, "star_id": star_id, "name": f"Planet {id_}",
         "position_x_km": x_km, "position_y_km": y_km, "position_z_km": 0.0,
@@ -45,6 +46,7 @@ def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet
         "radius_km": radius_km, "planet_class": planet_class, "body_type": body_type,
         "zone": zone, "period_years": period_years, "gravity_g": gravity_g,
         "life_chemical": life_chemical, "moons": moons or [],
+        "atmosphere": atmosphere, "composition": composition, "surface_temperature_k": surface_temperature_k,
     }
 
 
@@ -295,3 +297,54 @@ def test_many_clustered_planets_do_not_crash_and_still_place_every_body():
     system = {"name": "Cluster Test", "binary_configuration": None}
     html = sm.render_system_map_panel(system, [star], planets, [])
     assert html.count('class="sysmap-body sysmap-planet"') == 15
+
+
+# --- body preview data (sysmap-preview / static/systemmap.js's own input) --
+
+def test_planet_attrs_carries_a_resolved_class_color():
+    planet = _planet(1, 10, AU_KM, 0.0, planet_class="J")
+    attrs = sm._planet_attrs(planet)
+    assert attrs["color"] == sm._class_color("J")
+    assert attrs["color"].startswith("#")
+
+
+def test_planet_attrs_flags_a_real_atmosphere_but_not_a_missing_one():
+    with_atmosphere = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, atmosphere="Nitrogen-Oxygen"))
+    assert with_atmosphere["hasatmosphere"] == "true"
+    assert with_atmosphere["atmosphere"] == "Nitrogen-Oxygen"
+
+    literal_none = sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, atmosphere="None"))
+    assert literal_none["hasatmosphere"] is None
+    assert literal_none["atmosphere"] == "None (airless)"
+
+    unset = sm._planet_attrs(_planet(3, 10, AU_KM, 0.0, atmosphere=None))
+    assert unset["hasatmosphere"] is None
+    assert unset["atmosphere"] == "None (airless)"
+
+
+def test_planet_attrs_formats_surface_temperature():
+    attrs = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, surface_temperature_k=287.6))
+    assert attrs["surfacetemp"] == "288 K"
+    assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, surface_temperature_k=None))["surfacetemp"] is None
+
+
+def test_render_system_map_panel_includes_the_preview_container_only_with_planets():
+    system = {"name": "Preview Test", "binary_configuration": None}
+    with_planet = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
+    assert 'id="sysmap-preview"' in with_planet
+    assert 'id="sysmap-preview-canvas"' in with_planet
+
+    without_planets = sm.render_system_map_panel(system, [_star(10)], [], [])
+    assert 'id="sysmap-preview"' not in without_planets
+
+
+def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():
+    planet = _planet(1, 10, AU_KM, 0.0, planet_class="J", body_type="g", atmosphere="Hydrogen-Helium",
+                      surface_temperature_k=165.0, composition="hydrogen and helium")
+    system = {"name": "Preview Data Test", "binary_configuration": None}
+    html = sm.render_system_map_panel(system, [_star(10)], [planet], [])
+    assert f'data-color="{sm._class_color("J")}"' in html
+    assert 'data-hasatmosphere="true"' in html
+    assert 'data-atmosphere="Hydrogen-Helium"' in html
+    assert 'data-surfacetemp="165 K"' in html
+    assert 'data-composition="hydrogen and helium"' in html

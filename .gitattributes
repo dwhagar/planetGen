@@ -3,5 +3,31 @@
 # a Windows-side commit with core.autocrlf=true previously reintroduced
 # CRLF line endings into these files, breaking them on the Linux/Apache
 # deployment target until manually fixed with `sed -i 's/\r$//'`.
-html/**/*.py text eol=lf
-examples/apache/*.sh text eol=lf
+#
+# `src/html/**/*.py` (not the old, silently-broken `html/**/*.py`): a
+# gitattributes pattern containing a slash anchors to the *repository
+# root*, and every CGI script this is meant to protect actually lives
+# under `src/html/` (the "src layout" -- see setup.py's own comment on
+# it), not a top-level `html/`. Confirmed the old pattern matched nothing
+# at all (`git check-attr eol -- src/html/sector.py` came back
+# "unspecified") -- this rule has been silently inert since whenever the
+# src-layout move happened, the exact CRLF-corruption class it exists to
+# prevent left unprotected the whole time.
+#
+# `*.sh` (not just `examples/apache/*.sh`): install.sh/update.sh at the
+# repo root are just as "deployed" and depended-on-being-executable as
+# examples/apache/set-permissions.sh, and were likewise left out by the
+# old, narrower pattern -- one repo-wide rule instead, mirroring how
+# install.sh's own step 4 already treats "every *.sh in the repo" alike
+# (`find "$SCRIPT_DIR" -name '*.sh'`) rather than a hardcoded list.
+src/html/**/*.py text eol=lf
+*.sh text eol=lf
+
+# Vendored third-party build output (src/html/static/vendor/, see that
+# directory's THIRD_PARTY_NOTICES.txt) -- `binary` (implies `-text
+# -diff -merge`) keeps it byte-for-byte identical to what was actually
+# built/committed regardless of the checking-out OS/git config, the same
+# CRLF-corruption class the rules above guard against for deployed
+# scripts. A minified bundle also has no meaningful line-based diff to
+# preserve in the first place.
+src/html/static/vendor/* binary

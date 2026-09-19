@@ -50,6 +50,17 @@ origin with its own moons arranged around it (mirroring a real "zoom into
 this planet's moon system" diagram); clicking any other object or a belt
 instead fills the info side panel from its `data-*` attributes, exactly
 like `starmap.py`/`sectormap.js`'s own click-for-info pattern.
+
+Clicking a planet/moon specifically also redraws `sysmap-preview` -- the
+one genuinely 3D element on this page: a small rotating shaded sphere
+(three.js, same vendored build `sectormap.js` uses), colored by the
+body's own class (`_class_color`, handed over pre-resolved as `data-color`
+so this module stays the one place that mapping lives), banded with a
+tilted ring for a gas giant (`data-bodytype`), and wrapped in a soft
+fresnel-glow atmosphere shell, tinted by `data-surfacetemp`, when
+`data-hasatmosphere` is set. This previews *appearance* only (no real
+position data goes into it) -- the true-position diagram above remains
+this map's actual subject.
 """
 
 import colorsys
@@ -520,19 +531,42 @@ def _star_marker_svg(cx, cy, r_px, star, attrs):
     )
 
 
+def _atmosphere_text(planet):
+    atmosphere = planet.get("atmosphere")
+    return atmosphere if atmosphere and atmosphere != "None" else "None (airless)"
+
+
 def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
+    atmosphere = planet.get("atmosphere")
+    has_atmosphere = bool(atmosphere) and atmosphere != "None"
+    surface_temp_k = planet.get("surface_temperature_k")
     attrs = {
         "kind": kind,
         "id": planet["id"],
         "name": planet["name"],
         "class": (planet["planet_class"] or "").upper(),
         "classdesc": _class_description(planet["planet_class"]),
+        # The same class->color lookup the marker's own fill uses
+        # (`_class_color`) -- handed to the client as a resolved hex string
+        # (like `starmap.py`'s star colors) rather than duplicating
+        # `_CLASS_COLORS` in JS, so this module stays the one place a
+        # planet class's color is decided. Drives `sysmap-preview`'s 3D
+        # body-preview sphere in `static/systemmap.js`.
+        "color": _class_color(planet["planet_class"]),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
         "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
         "period": format_period(planet["period_years"]),
         "gravity": f'{round(planet["gravity_g"], 3) if planet["gravity_g"] is not None else ""} g',
         "life": planet.get("life_chemical"),
+        "atmosphere": _atmosphere_text(planet),
+        "composition": planet.get("composition"),
+        "surfacetemp": f"{round(surface_temp_k)} K" if surface_temp_k is not None else None,
+        # Presence alone (not the description text) is what the 3D preview
+        # needs to decide whether to draw an atmosphere glow shell at all --
+        # `_data_attrs` omits a `None` value entirely, so this attribute's
+        # mere presence in the DOM is the boolean.
+        "hasatmosphere": "true" if has_atmosphere else None,
     }
     if parent_name is not None:
         attrs["parent"] = parent_name
@@ -1041,6 +1075,21 @@ def render_system_map_panel(system, stars, planets, belts):
     else:
         info_panel = '<aside class="starmap-info" id="sysmap-info"><p class="hint">Nothing to show yet.</p></aside>'
 
+    # A rotating shaded-sphere preview of whichever planet/moon is
+    # currently selected -- `static/systemmap.js` shows/hides and redraws
+    # this from the clicked marker's own `data-color`/`data-bodytype`/
+    # `data-hasatmosphere` (a real planet/moon has none of those to show
+    # itself, so this stays out of the DOM entirely for a system with no
+    # planets or moons at all). A `<canvas>`, not an `<svg>`, since this is
+    # the one part of the System Map that's genuinely 3D -- see this
+    # module's own docstring for why the rest deliberately isn't.
+    preview_html = (
+        '<div class="sysmap-preview" id="sysmap-preview" hidden>'
+        '<canvas id="sysmap-preview-canvas" aria-hidden="true"></canvas>'
+        "</div>"
+        if planets else ""
+    )
+
     return f"""
 <section class="panel">
 <div class="panel-header">
@@ -1053,6 +1102,7 @@ def render_system_map_panel(system, stars, planets, belts):
 </div>
 <div class="starmap-side">
 <div class="sysmap-crumb" id="sysmap-crumb"></div>
+{preview_html}
 {info_panel}
 </div>
 </div>
