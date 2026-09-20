@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.46.5] - 2026-09-20
+
+### Fixed
+- **`src/html/search.py` and `GET /api/search` crashed with a 500 error on any
+  text search.** In `queryDb.py`, the SQL LIKE clauses across all five text search
+  helpers (`_search_result_sectors`, `_search_result_systems`,
+  `_search_result_stars`, `_search_result_planets`, `_search_result_moons`) used
+  Python string literals `"ESCAPE '\\'"`. In Python string literals, `"\\"`
+  resolves to a single backslash (`\`), passing `ESCAPE '\'` to MySQL. In
+  MySQL/MariaDB, `\` is an escape character in string literals, so `\'` was
+  parsed as an escaped single quote that left the string literal unclosed,
+  causing MySQL syntax error 1064 and triggering a 500 Internal Server Error in
+  the Flask API client (`planetGen API error (500): internal server error`).
+  Updated all five queries to `"ESCAPE '\\\\'"` so MySQL receives `ESCAPE '\\'`
+  and correctly evaluates the escape character as a single literal backslash.
+
 ## [5.46.4] - 2026-09-19
 
 ### Fixed

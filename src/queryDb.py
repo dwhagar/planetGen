@@ -1226,7 +1226,7 @@ _SEARCH_BODY_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
 
 def _search_like_pattern(term):
     """Escapes `%`/`_`/`\\` in a user-supplied substring so it's safe to
-    use as a SQL LIKE pattern (paired with `ESCAPE '\\'` in the query)."""
+    use as a SQL LIKE pattern (paired with `ESCAPE '\\\\'` in the query)."""
     escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     return f"%{escaped}%"
 
@@ -1380,7 +1380,7 @@ def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
 
 def _search_result_sectors(conn, term):
     rows = conn.execute(
-        "SELECT id, name, edge_mpc FROM sectors WHERE name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?",
+        "SELECT id, name, edge_mpc FROM sectors WHERE name LIKE ? ESCAPE '\\\\' ORDER BY name LIMIT ?",
         (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
     ).fetchall()
     truncated = len(rows) > SEARCH_RESULT_LIMIT
@@ -1398,7 +1398,7 @@ def _search_result_systems(conn, term):
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
                    AS secondary_star_type
         FROM star_systems ss
-        WHERE ss.name LIKE ? ESCAPE '\\'
+        WHERE ss.name LIKE ? ESCAPE '\\\\'
         ORDER BY ss.name
         LIMIT ?
         """,
@@ -1428,7 +1428,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=
         params.extend(sorted(luminosity_tags))
     _append_size_clause(clauses, params, "s.radius_km", size_range)
     if term:
-        clauses.append("s.name LIKE ? ESCAPE '\\'")
+        clauses.append("s.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     params.append(SEARCH_RESULT_LIMIT + 1)
@@ -1460,7 +1460,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_ra
         params.extend(sorted(life_tags))
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
-        clauses.append("p.name LIKE ? ESCAPE '\\'")
+        clauses.append("p.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     params.append(SEARCH_RESULT_LIMIT + 1)
@@ -1493,7 +1493,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_rang
         params.extend(sorted(life_tags))
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
-        clauses.append("m.name LIKE ? ESCAPE '\\'")
+        clauses.append("m.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     params.append(SEARCH_RESULT_LIMIT + 1)
