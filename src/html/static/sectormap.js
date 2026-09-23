@@ -7,8 +7,8 @@
 // preserve-3d` scene this file used to drive directly. `#starmap-data`
 // (a `<script type="application/json">` block `starmap.py` writes) is the
 // only thing read from the page -- every position/size/color/label for
-// every star and phenomenon cloud, plus the outline and compass arrow, is
-// data `starmap.py` already computed; this file only ever turns that data
+// every star and phenomenon cloud, plus the compass arrow, is data
+// `starmap.py` already computed; this file only ever turns that data
 // into sprites/lines and wires up drag-to-rotate, scroll/button-to-zoom,
 // and click/keyboard-for-info, the same interaction set the old CSS
 // version had (a real perspective camera now does the projection/
@@ -338,16 +338,7 @@ function initStarmap(canvasEl, data) {
     updateScaleBar();
   }
 
-  var borderColor = cssVar("--border", "#dde1eb");
   var accentColor = cssVar("--accent", "#4f5fe8");
-
-  var outlineGeometry = new THREE.BufferGeometry();
-  var outlinePositions = [];
-  (data.outline ? data.outline.edges : []).forEach(function (edge) {
-    outlinePositions.push(edge[0][0], edge[0][1], edge[0][2], edge[1][0], edge[1][1], edge[1][2]);
-  });
-  outlineGeometry.setAttribute("position", new THREE.Float32BufferAttribute(outlinePositions, 3));
-  scene.add(new THREE.LineSegments(outlineGeometry, new THREE.LineBasicMaterial({ color: new THREE.Color(borderColor) })));
 
   if (data.compass) {
     var tip = data.compass.tip;
@@ -364,7 +355,7 @@ function initStarmap(canvasEl, data) {
 
   // Every clickable/focusable marker -- raycasting and the accessible
   // fallback button list both only ever need to search this, not the
-  // outline/compass (which carry no `data-*`-equivalent info of their own).
+  // compass (which carries no `data-*`-equivalent info of its own).
   var interactiveGroup = new THREE.Group();
   scene.add(interactiveGroup);
   var entryByObject = new Map();

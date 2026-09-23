@@ -26,18 +26,16 @@ how the client interprets a position: it's still "this many units from the
 scene's own center," just handed to a real perspective camera instead of a
 flat CSS transform now.
 
-The scene's own outline is one of two shapes depending on whether the
-sector has a galaxy placement: a sector with `shell_index`/
-`shell_slot_index` set gets a 12-edge wireframe of its real, approximate
-on-shell wedge (see `sector_wedge_vertices_pc` -- bounded by the shell's
-own radial thickness and roughly how much angular "real estate" this
-slot's Fibonacci placement owns among its neighbors, so the shape reflects
-where the sector actually sits and points on its shell, not a generic
-box); one without a placement falls back to a plain axis-aligned cube of
-edge `edge_mpc`, drawn the same wireframe way (the old CSS version instead
-drew 6 filled, bordered `.cube-face` divs -- a wireframe cube reads just as
-clearly and lets both cases share one edges-list data shape and one
-rendering code path).
+`_outline_data` still computes the scene's own bounding shape -- one of
+two, depending on whether the sector has a galaxy placement: a sector with
+`shell_index`/`shell_slot_index` set gets its real, approximate on-shell
+wedge (see `sector_wedge_vertices_pc` -- bounded by the shell's own radial
+thickness and roughly how much angular "real estate" this slot's
+Fibonacci placement owns among its neighbors); one without a placement
+falls back to a plain axis-aligned cube of edge `edge_mpc`. `sectormap.js`
+no longer draws this shape as a wireframe (dropped as visual clutter), but
+its extent still drives `_default_zoom`'s fallback framing for a sector
+with nothing else plotted in it (see that function's own docstring).
 
 Clicking a star/cloud (or activating one of the `<noscript>`/accessible-
 fallback list's own buttons) doesn't navigate straight to `system.py`/
@@ -751,14 +749,14 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
     star -- and an info side panel the same script fills in when something
     is clicked.
 
-    The scene's own outline is the sector's approximate on-shell wedge
-    (see `_outline_data`/`sector_wedge_vertices_pc`) when this sector has a
-    galaxy placement (`shell_index`/`shell_slot_index` both set) and the
-    geometry helpers are importable -- a 12-edge wireframe reflecting
-    where the sector actually sits on its shell, not a generic cube. Any
-    sector without a placement (standalone `sectorGen.py` tooling, or one
-    migrated from a pre-v4 database) falls back to the plain axis-aligned
-    cube instead, same as before this shape existed.
+    The scene's own bounding shape -- the sector's approximate on-shell
+    wedge (see `_outline_data`/`sector_wedge_vertices_pc`) when this sector
+    has a galaxy placement (`shell_index`/`shell_slot_index` both set) and
+    the geometry helpers are importable, or the plain axis-aligned cube
+    otherwise -- is no longer drawn as a wireframe (`sectormap.js` dropped
+    it as visual clutter); it's still computed here purely to drive
+    `_default_zoom`'s fallback framing for a sector with nothing else
+    plotted in it.
 
     Args:
         db_name (str): The current `?db=` value, used to build each
@@ -886,20 +884,15 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
             )
 
     outline, shape_extent_radii_px = _outline_data(shell_index, shell_slot_index, edge_mpc, half_edge)
-    shape_hint = (
-        "outline &asymp; sector's real position/orientation on its shell"
-        if outline["kind"] == "wedge"
-        else "cube edge &asymp; sector size (not placed in a galaxy)"
-    )
 
     compass = _compass_data(center_pc)
     # Fit the real content (star systems/clouds) whenever there is any --
-    # see `extent_radii_px`'s own comment above for why the outline's own,
-    # potentially much larger extent must NOT also be allowed to drag that
-    # zoom down with it. Only an entirely empty sector (nothing plotted at
-    # all) falls back to fitting the outline shape instead, so it still
-    # opens showing its own outline rather than a couple of giant crossing
-    # lines.
+    # see `extent_radii_px`'s own comment above for why the sector shape's
+    # own, potentially much larger extent must NOT also be allowed to drag
+    # that zoom down with it. Only an entirely empty sector (nothing
+    # plotted at all) falls back to fitting that shape's own extent
+    # instead, so the camera still opens at a sensible distance rather than
+    # zoomed to fit nothing at all.
     default_zoom = _default_zoom(extent_radii_px or shape_extent_radii_px)
 
     ly_per_px = _ly_per_px_at_zoom_1(half_edge)
@@ -937,7 +930,7 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields, glowing points &asymp; black holes/neutron stars, near this sector &middot; {shape_hint}</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields, glowing points &asymp; black holes/neutron stars, near this sector</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">
