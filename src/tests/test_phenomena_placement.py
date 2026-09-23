@@ -25,6 +25,7 @@ from stellarObjects import _db
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
+from stellarObjects.sectorGeometry import cube_orientation
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.utils import ly_to_pc, mpc_to_pc, pc_to_ly
 
@@ -267,18 +268,63 @@ from stellarObjects.supernovaRemnantData import SupernovaRemnant
 
 
 def test_galaxy_placement_from_sector_offset_converts_ly_offset_to_absolute_pc():
-    galaxy_position = {"center_x_pc": 10.0, "center_y_pc": -5.0, "center_z_pc": 2.0}
+    # A sector sitting directly on the galactic north axis is
+    # cube_orientation's own identity-rotation special case (local_x =
+    # (1,0,0), local_y = (0,1,0), local_z = (0,0,1) -- see that function's
+    # own near-pole-degeneracy handling), so a local offset along the
+    # sector's own +X axis lands exactly along the galaxy's own +X too --
+    # a hand-computable case that isolates the plain unit conversion
+    # (ly -> pc) and addition from the rotation itself (see the next test
+    # for a position where that rotation is NOT the identity).
+    galaxy_position = {"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 10.0}
     offset_ly = (1.0, 0.0, 0.0)
 
     placement = _db._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
 
     expected_offset_pc = ly_to_pc(1.0)
-    assert placement["center_x_pc"] == pytest.approx(10.0 + expected_offset_pc)
-    assert placement["center_y_pc"] == pytest.approx(-5.0)
-    assert placement["center_z_pc"] == pytest.approx(2.0)
+    assert placement["center_x_pc"] == pytest.approx(expected_offset_pc)
+    assert placement["center_y_pc"] == pytest.approx(0.0)
+    assert placement["center_z_pc"] == pytest.approx(10.0)
     assert placement["galactic_radius_pc"] == pytest.approx(
         math.sqrt(placement["center_x_pc"] ** 2 + placement["center_y_pc"] ** 2 + placement["center_z_pc"] ** 2)
     )
+
+
+def test_galaxy_placement_from_sector_offset_rotates_the_offset_by_the_sectors_own_cube_orientation():
+    # A sector NOT on the galactic axis (this file's own _place_sector
+    # fixture uses positions like this) has a genuinely non-identity
+    # cube_orientation -- confirms the local offset is rotated into the
+    # galaxy frame along THAT sector's own real local axes (the identical
+    # transform html/lib/starmap.py's `_rotate_to_galaxy_frame` applies to
+    # a star system's position at render time), not added straight onto
+    # the galaxy's own global X/Y/Z the way an earlier, buggy version of
+    # this function did -- that silently placed roughly 1 in 5 generated
+    # phenomena (black holes, neutron stars, nebulae, asteroid fields)
+    # outside their own sector's real cube, caught by
+    # test_galaxy_gen.py's own multi-shell bounds regression test.
+    galaxy_position = {"center_x_pc": 10.0, "center_y_pc": -5.0, "center_z_pc": 2.0}
+    offset_ly = (1.0, -2.0, 0.5)
+
+    placement = _db._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
+
+    center_pc = (10.0, -5.0, 2.0)
+    local_x, local_y, local_z = cube_orientation(center_pc)
+    offset_pc = tuple(ly_to_pc(c) for c in offset_ly)
+    expected = tuple(
+        center_pc[i] + offset_pc[0] * local_x[i] + offset_pc[1] * local_y[i] + offset_pc[2] * local_z[i]
+        for i in range(3)
+    )
+
+    assert placement["center_x_pc"] == pytest.approx(expected[0])
+    assert placement["center_y_pc"] == pytest.approx(expected[1])
+    assert placement["center_z_pc"] == pytest.approx(expected[2])
+    assert placement["galactic_radius_pc"] == pytest.approx(math.sqrt(sum(c * c for c in expected)))
+
+    # Confirms this really is a rotation, not an unrotated addition that
+    # happens to match by coincidence for this position -- the two must
+    # disagree here.
+    unrotated_x = center_pc[0] + offset_pc[0]
+    assert placement["center_x_pc"] != pytest.approx(unrotated_x)
 
 
 def test_galaxy_placement_from_sector_offset_returns_none_for_an_unplaced_sector():
