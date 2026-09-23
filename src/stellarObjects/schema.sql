@@ -607,6 +607,22 @@
 --   two rows anywhere in this database ever end up sharing a display
 --   name. See each table's own comment below for the exact shape.
 --
+-- v25: a spatial index on `sectors.center_x_pc`/`center_y_pc`/
+--   `center_z_pc` -- `queryDb.galaxy_sectors_in_view` (the interactive 3D
+--   Galaxy Map's live-viewport `GET /api/galaxy/view`, called repeatedly
+--   as its camera moves, plus once server-side on every `galaxy.py`
+--   page load for the zoomed-all-the-way-out starting view) runs a
+--   bounding-box `WHERE center_x_pc BETWEEN ... AND center_y_pc BETWEEN
+--   ... AND center_z_pc BETWEEN ...` on every call; without an index
+--   covering these columns that's a genuine full-table scan every time,
+--   the exact same failure mode v22's note above already confirmed in
+--   production for `/api/search` before that migration -- confirmed
+--   again here (`TimeoutError`/"Truncated or oversized response headers"
+--   from the WSGI daemon) once this feature shipped against a
+--   non-trivial `sectors` table. A composite `(center_x_pc, center_y_pc,
+--   center_z_pc)` index lets MySQL range-scan on the first column instead
+--   of examining every row, same reasoning as v22's indexes.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -709,7 +725,11 @@ CREATE TABLE IF NOT EXISTS sectors (
 
     KEY idx_sectors_galactic_radius_pc (galactic_radius_pc),
     KEY idx_sectors_shell_index (shell_index),
-    KEY idx_sectors_name (name)
+    KEY idx_sectors_name (name),
+    -- v25: lets `queryDb.galaxy_sectors_in_view`'s bounding-box query
+    -- range-scan on center_x_pc instead of a full table scan -- see the
+    -- header comment's "v25" note.
+    KEY idx_sectors_center (center_x_pc, center_y_pc, center_z_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- This sector's own exact prism vertices (v7 -- see the header comment's

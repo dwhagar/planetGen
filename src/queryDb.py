@@ -1406,13 +1406,17 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
     (the whole galaxy, once, for the flat overview map's own quadrant/ring
     tables).
 
-    `sectors.center_x/y/z_pc` aren't individually indexed (only
-    `galactic_radius_pc`/`shell_index` are -- see schema.sql's `sectors`
-    table), so the bounding-box `WHERE` clause below doesn't use an index
-    either; it still narrows the row-fetch volume before the exact
-    Euclidean-distance filter and closest-`limit` truncation, both done in
-    Python, the same division of labor `phenomena_near_sector` already
-    uses for its own bounding-sphere prefilter.
+    `sectors.center_x/y/z_pc` are covered by a composite index
+    (`idx_sectors_center` -- schema v25; see `schema.sql`'s "v25" header
+    note) MySQL can range-scan on the leading `center_x_pc` column for the
+    bounding-box `WHERE` clause below, rather than a full table scan --
+    this was a genuine, confirmed-in-production full-table-scan-per-call
+    before that index existed, the same failure mode v22's own note
+    documents for the pre-v22 `/api/search`. The exact Euclidean-distance
+    filter and closest-`limit` truncation are still done in Python once
+    that's narrowed the row-fetch volume, the same division of labor
+    `phenomena_near_sector` already uses for its own bounding-sphere
+    prefilter.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.

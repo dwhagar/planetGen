@@ -82,7 +82,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 24
+SCHEMA_VERSION = 25
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -4207,6 +4207,25 @@ def _has_column(conn, table, column):
     return row is not None
 
 
+def _has_index(conn, table, index_name):
+    """
+    Whether `table` already has an index named `index_name` -- `_has_column`'s
+    own reasoning, applied to an index instead of a column, used by
+    `_migrate_v24_to_v25` so its `ADD KEY` is a genuine no-op (rather than
+    a "Duplicate key name" error) against a database that already has v25's
+    index despite `schema_migrations` still reporting an older version --
+    notably a database `_ensure_schema` created fresh straight from
+    `schema.sql` (which has carried this index in its `CREATE TABLE` since
+    before this migration step existed).
+    """
+    row = conn.execute(
+        "SELECT 1 FROM information_schema.statistics"
+        " WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?",
+        (table, index_name),
+    ).fetchone()
+    return row is not None
+
+
 def _migrate_v22_to_v23(conn):
     """
     Adds v23's wiki-publishing link columns -- see `schema.sql`'s header
@@ -4307,6 +4326,33 @@ def _migrate_v23_to_v24(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (24)")
 
 
+def _migrate_v24_to_v25(conn):
+    """
+    Adds v25's spatial index on `sectors.center_x_pc`/`center_y_pc`/
+    `center_z_pc` -- see `schema.sql`'s "v25" header note (the interactive
+    3D Galaxy Map's live-viewport query, `queryDb.galaxy_sectors_in_view`,
+    was doing a genuine full-table scan on every call without it --
+    confirmed in production, the same failure mode v22's note documents
+    for the pre-v22 `/api/search`). Guarded through `_has_index` (`_has_
+    column`'s own reasoning, for an index) rather than a bare `ADD KEY`,
+    since `schema.sql`'s `CREATE TABLE` has carried this index from the
+    start of this migration's own existence -- a database `_ensure_schema`
+    creates fresh already has it despite `schema_migrations` reporting an
+    older version.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if not _has_index(conn, "sectors", "idx_sectors_center"):
+        conn.execute(
+            "ALTER TABLE sectors ADD KEY idx_sectors_center (center_x_pc, center_y_pc, center_z_pc)"
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (25)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -4335,8 +4381,9 @@ def migrate_database(config=None):
     v21's sector-placement columns on `black_holes`/`neutron_stars`),
     `_migrate_v21_to_v22` (added for v22's search-facing indexes),
     `_migrate_v22_to_v23` (added for v23's wiki-publishing link columns on
-    `sectors`/`star_systems`), and `_migrate_v23_to_v24` (added for v24's
-    name-uniqueness registry tables) are the migration steps so far; see
+    `sectors`/`star_systems`), `_migrate_v23_to_v24` (added for v24's
+    name-uniqueness registry tables), and `_migrate_v24_to_v25` (added for
+    v25's spatial index on `sectors`) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4416,6 +4463,10 @@ def migrate_database(config=None):
         if version < 24:
             _migrate_v23_to_v24(conn)
             version = 24
+
+        if version < 25:
+            _migrate_v24_to_v25(conn)
+            version = 25
 
         conn.commit()
         return version
