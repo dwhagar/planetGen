@@ -88,7 +88,10 @@ setup(
         'rich>=13.7.0',
     ],
     extras_require={
-        'test': ['pytest>=7.4.0'],
+        # matplotlib/numpy are for tests/galaxy_shape_visualizer_cli.py
+        # alone (renders the density model as an actual image) -- no
+        # other test or application code touches either.
+        'test': ['pytest>=7.4.0', 'matplotlib>=3.8.0', 'numpy>=1.26.0'],
         'api': ['flask>=3.0.3', 'flask-limiter>=3.7.0'],
     },
     author='David Hagar',

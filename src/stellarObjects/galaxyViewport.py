@@ -193,6 +193,77 @@ def _sample_point_in_sphere(rng, center_pc, radius_pc):
     )
 
 
+BULGE_SAMPLE_FRACTION = 0.18
+"""float: Fraction of `density_sample_points`' draws taken from the bulge
+proposal (`_sample_bulge_point_pc`) rather than the disk proposal
+(`_sample_disk_point_pc`) -- a fixed mixture weight, not derived from the
+shape's own `bulge_amplitude` (which would need integrating both terms'
+real mass over volume, more precision than a purely illustrative cloud
+needs). Chosen so a real Milky-Way-scale shape's bright core still reads
+as a visible, denser clump without swamping the disk's own point budget."""
+
+MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR = 40
+"""int: `density_sample_points` draws at most `count *
+MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR` mixture-proposal candidates before
+falling back to `_sample_point_in_sphere` for whatever's still missing --
+see that function's own docstring for why a view far from where the
+mixture proposal actually places mass (rare, e.g. deep in the halo) needs
+a bounded fallback rather than an unbounded/empty result."""
+
+
+def _sample_disk_point_pc(rng, shape):
+    """
+    One point drawn from an exponential-radial / Laplace-vertical
+    proposal shaped like this galaxy's own disk envelope
+    (`disk_scale_length_pc`/`disk_scale_height_pc`) -- deliberately blind
+    to spiral-arm structure in *placement* (arm contrast still comes
+    through each accepted point's own real `relative_density`-driven
+    color in `density_sample_points`, exactly the way the flat map's own
+    `_DENSITY_ARM_CONTRAST` layered arm shading on top of a smooth radial
+    glow rather than trying to bias tile placement by arm). Standard
+    inverse-CDF sampling for both the exponential radial and Laplace
+    vertical distributions.
+
+    Args:
+        rng (random.Random): This call's own seeded generator.
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+
+    Returns:
+        tuple: `(x, y, z)`, galaxy-frame parsecs, centered on the
+              *galactic origin* (not any view center -- the real mass
+              this proposal approximates is fixed there regardless of
+              where a viewer's camera happens to be looking).
+    """
+    r_cyl = -shape.disk_scale_length_pc * math.log(max(1e-12, 1.0 - rng.random()))
+    theta = rng.uniform(0.0, 2.0 * math.pi)
+    v = rng.random() - 0.5
+    z = -shape.disk_scale_height_pc * math.copysign(1.0, v) * math.log(max(1e-12, 1.0 - 2.0 * abs(v)))
+    return (r_cyl * math.cos(theta), r_cyl * math.sin(theta), z)
+
+
+def _sample_bulge_point_pc(rng, shape):
+    """
+    One point drawn from an isotropic exponential-radius proposal shaped
+    like this galaxy's own bulge envelope (`bulge_scale_radius_pc`) --
+    an approximation (a true 3D exponential-density-profile draw needs an
+    `r^2` Jacobian correction this skips), acceptable for a purely
+    illustrative point cloud rather than a physically exact sampler.
+
+    Args:
+        rng (random.Random): This call's own seeded generator.
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+
+    Returns:
+        tuple: `(x, y, z)`, galaxy-frame parsecs, centered on the
+              galactic origin.
+    """
+    r = -shape.bulge_scale_radius_pc * math.log(max(1e-12, 1.0 - rng.random()))
+    theta = rng.uniform(0.0, 2.0 * math.pi)
+    cos_phi = rng.uniform(-1.0, 1.0)
+    sin_phi = math.sqrt(max(0.0, 1.0 - cos_phi * cos_phi))
+    return (r * sin_phi * math.cos(theta), r * sin_phi * math.sin(theta), r * cos_phi)
+
+
 def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUNT):
     """
     A coarse, illustrative point cloud of this galaxy's real predicted
@@ -200,6 +271,21 @@ def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUN
     view too wide to enumerate individual planned-slot addresses
     (`planned_slots_in_view`'s own `PLANNED_RADIUS_CAP_PC`), see the
     module docstring's tier breakdown.
+
+    Points are drawn by **importance sampling** from a bulge+disk mixture
+    proposal shaped like the galaxy's own real mass distribution
+    (`_sample_bulge_point_pc`/`_sample_disk_point_pc`, mixed by
+    `BULGE_SAMPLE_FRACTION`), each candidate kept only if it lands within
+    `radius_pc` of `center_pc` -- not a uniform draw over the query
+    volume. A view spanning thousands of parsecs is overwhelmingly empty
+    halo by volume, so a uniform draw would waste nearly its whole budget
+    out there and read as a sparse, shapeless scatter rather than a
+    galaxy; sampling from where the real mass actually concentrates (a
+    thin disk plus a bright core) is what makes the resulting cloud read
+    as a recognizable bulge+disk shape at a glance, with each point's own
+    real `relative_density` (which *does* include the spiral-arm term)
+    still driving its brightness/color, so arm structure still shows
+    through as contrast within that shape.
 
     Deterministically seeded from `(center_pc, radius_pc)` (rounded to
     avoid reseeding on floating-point noise) rather than a fresh random
@@ -220,16 +306,40 @@ def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUN
     Returns:
         list[dict]: Each with `x`/`y`/`z` (parsecs) and `relative_density`
             (`galaxyDensity.relative_density` at that point) -- empty if
-            `shape` is `None` or `radius_pc <= 0`.
+            `shape` is `None` or `radius_pc <= 0`. Always exactly `count`
+            long otherwise (the bounded uniform-sphere fallback below
+            tops up whatever the mixture proposal couldn't fill within
+            its own attempt budget).
     """
     if shape is None or radius_pc <= 0:
         return []
 
     seed = (round(center_pc[0], 1), round(center_pc[1], 1), round(center_pc[2], 1), round(radius_pc, 1))
     rng = random.Random(str(seed))
+    radius_sq = radius_pc * radius_pc
 
     points = []
-    for _ in range(count):
+    attempts = 0
+    max_attempts = count * MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR
+    while len(points) < count and attempts < max_attempts:
+        attempts += 1
+        if rng.random() < BULGE_SAMPLE_FRACTION:
+            x, y, z = _sample_bulge_point_pc(rng, shape)
+        else:
+            x, y, z = _sample_disk_point_pc(rng, shape)
+        dx, dy, dz = x - center_pc[0], y - center_pc[1], z - center_pc[2]
+        if dx * dx + dy * dy + dz * dz > radius_sq:
+            continue
+        points.append({"x": x, "y": y, "z": z, "relative_density": relative_density((x, y, z), shape)})
+
+    # Bounded fallback -- a view far from where the mixture proposal above
+    # actually places mass (rare: e.g. a camera panned deep into the
+    # halo) can exhaust max_attempts short of `count` accepted points;
+    # top up with the old uniform-in-view-sphere draw so the cloud never
+    # silently thins out, even though those extra points are less likely
+    # to land somewhere bright.
+    while len(points) < count:
         x, y, z = _sample_point_in_sphere(rng, center_pc, radius_pc)
         points.append({"x": x, "y": y, "z": z, "relative_density": relative_density((x, y, z), shape)})
+
     return points

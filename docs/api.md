@@ -150,7 +150,7 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/view?cx=<pc>&cy=<pc>&cz=<pc>&radius_pc=<pc>` —
   `{"placed": [...], "planned": [...], "density": [...], "edge_pc": ...,
   "has_shape": ...}` (`queryDb.galaxy_view`), the interactive 3D Galaxy
-  Map's (`../src/html/galaxy3d.py`) own live-viewport query, scoped to a
+  Map's (`../src/html/galaxy.py`) own live-viewport query, scoped to a
   moving camera rather than the whole galaxy in one shot the way
   `/api/galaxy/sectors` is: `placed` is that same per-sector shape (plus
   `shell_slot_index`, `designation`, `distance_pc`) but only within

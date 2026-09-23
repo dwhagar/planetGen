@@ -7,7 +7,7 @@ Interactive 3D Galaxy Map live-viewport JSON endpoint.
 Every other script under `html/` is a page: server-rendered once, its own
 data baked in at render time, never fetched again by the browser's own
 script. This one is the single exception -- `static/galaxymap3d.js`
-(loaded by `galaxy3d.py`) calls this directly via `fetch()`, debounced,
+(loaded by `galaxy.py`) calls this directly via `fetch()`, debounced,
 every time its 3D camera moves, since the whole galaxy's own placed/
 planned/density content can never be baked into one page load the way a
 sector's handful of systems can (`lib/starmap.py`'s own one-shot JSON

@@ -2,38 +2,40 @@
 # html/galaxy.py
 
 """
-Galaxy Map page: every sector actually placed in the galaxy (a non-NULL
-`sectors.center_x/y/z_pc` -- see `docs/design/galaxy-coordinate-system.md`
-and `galaxyGen.py`) plotted by its real position, grouped into four
-azimuthal Quadrants (I-IV) and concentric Rings (fixed-width `shell_index`
-bands) -- see `lib/galaxymap.py` for the map geometry/rendering this page
-just supplies data and drill-down tables around.
+Galaxy Map page: a real perspective-camera WebGL scene
+(`lib/galaxymap3d.py` + `static/galaxymap3d.js`, three.js) a visitor can
+rotate, dolly, and click through -- replaced the previous flat, face-on
+SVG projection (`lib/galaxymap.py`'s own former `render_galaxy_map_panel`,
+now removed) entirely, rather than living alongside it as a separate
+page: a flat SVG's fixed-radius markers necessarily grow relative to the
+view as you zoom in (there's no camera to shrink them the way a real
+perspective projection does for free), which read as "the star icon gets
+bigger and bigger, hiding sectors" and made scroll/+/-/click zoom feel
+broken well before it actually was.
 
-`?quadrant=I|II|III|IV` zooms the map into that Quadrant and swaps the
-page's own table from a per-Quadrant summary (the full-galaxy default,
-since a flat list of every placed sector at once doesn't scale) to a full
-sector list for that one Quadrant, sorted by distance from the core.
+This page itself only fetches what the map's *first* paint needs
+(`get_galaxy_shape`, then one `get_galaxy_view` call for the zoomed-all-
+the-way-out starting view) -- every later view, as the visitor's camera
+moves, is fetched directly by the page's own client-side JS from
+`galaxy_view.py`, never through this handler again.
+
+Below the map, this page still keeps its own two data tables --
+independent of how the map is drawn, and still useful as a plain-text
+overview: every sector actually placed in the galaxy (`GET
+/api/galaxy/sectors`), grouped into four azimuthal Quadrants (I-IV) and
+concentric Rings (fixed-width `shell_index` bands, `lib/galaxymap.py`).
+`?quadrant=I|II|III|IV` swaps the page's own table from a per-Quadrant
+summary (the full-galaxy default, since a flat list of every placed
+sector at once doesn't scale) to a full sector list for that one
+Quadrant, sorted by distance from the core -- it no longer crops the map
+itself (the 3D map has its own free-flying camera, not a Quadrant-cropped
+viewBox).
 
 Sectors never placed in the galaxy (made via `sectorGen.py`'s own
 standalone CLI -- most of what exists in a database today) have no
 position to plot here at all; they stay in `browse.py`'s own flat sector
-table unchanged, which now also links each *placed* sector's row into this
-page (see `browse.py`).
-
-Every galaxy-placed nebula/asteroid field (`phenomenonGen.py --sector-id`,
-schema.sql's "v18" header note) is also plotted here, as a small fixed-size
-dot -- unlike a sector, a phenomenon has no real "how much is here"
-quantity to size a dot by, and at this scale its own physical extent
-(which can itself span several sectors) would be a misleading dot size;
-that real extent is instead depicted where it belongs, as a translucent
-cloud on the Sector Map (`sector.py`) of any sector it reaches into.
-
-Also fetches the galaxy's own stored density-skeleton shape
-(`get_galaxy_shape`, `GET /api/galaxy/shape` -- `generate.py plan`'s
-output, `None` if that's never been run) and hands it to
-`render_galaxy_map_panel` so un-generated space is shaded by the galaxy's
-real predicted spiral/disk/bulge density instead of a generic
-illustrative gradient.
+table unchanged, which now also links each *placed* sector's row into
+this page (see `browse.py`).
 """
 
 import os
@@ -42,17 +44,22 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import get_galaxy_phenomena, get_galaxy_sectors, get_galaxy_shape
+from apiclient import get_galaxy_sectors, get_galaxy_shape, get_galaxy_view
 from fmt import esc, post_link
-from galaxymap import QUADRANT_LABELS, render_galaxy_map_panel, ring_bounds_ly, sector_quadrant, sector_ring
+from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
+from galaxymap3d import render_galaxy_map3d_panel, view_radius_bounds
 from page import nav_params, run
 
 try:
-    from stellarObjects.utils import pc_to_ly
+    from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
+    from stellarObjects.utils import ly_to_pc, pc_to_ly
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
-    # fall back to showing the raw stored parsec unit rather than failing.
+    # duplicated fallback, matching every other page's identical pattern.
+    DEFAULT_SECTOR_EDGE_LY = 11.5
     pc_to_ly = None
+    def ly_to_pc(ly):
+        return ly / 3.2616
 
 
 def _display_ly(galactic_radius_pc):
@@ -118,12 +125,12 @@ def handler():
         quadrant = None
 
     sectors = get_galaxy_sectors(db_name)
-    phenomena = get_galaxy_phenomena(db_name)
     galaxy_shape = get_galaxy_shape(db_name)
+    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
+    initial_view = get_galaxy_view(db_name, 0.0, 0.0, 0.0, max_radius)
 
-    map_html = render_galaxy_map_panel(
-        db_name, sectors, quadrant=quadrant, phenomena=phenomena, galaxy_shape=galaxy_shape,
-    )
+    map_html = render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view)
 
     if quadrant:
         table_title = f"Sectors in Quadrant {quadrant}"
@@ -135,19 +142,15 @@ def handler():
         table_rows = _quadrant_summary_table(db_name, sectors)
 
     placed_count = len(sectors)
-    phenomenon_count = len(phenomena)
-    badge_bits = [f"{placed_count} placed sector{'s' if placed_count != 1 else ''}"]
-    if phenomenon_count:
-        badge_bits.append(f"{phenomenon_count} placed nebula/asteroid field{'s' if phenomenon_count != 1 else ''}")
-    badges_html = "<p class=\"badges\">" + "".join(
-        f'<span class="badge">{bit}</span>' for bit in badge_bits
-    ) + "</p>"
-    explore_3d_html = f'<p class="hint">{post_link("galaxy3d.py", {"db": db_name}, "Explore in 3D →")}</p>'
+    badges_html = (
+        f'<p class="badges"><span class="badge">{placed_count} placed sector'
+        f'{"s" if placed_count != 1 else ""}</span></p>'
+    )
 
     title = f"Galaxy Map: Quadrant {quadrant}" if quadrant else "Galaxy Map"
     breadcrumb_html = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(title)}</p>'
     body = f"""
-<div class="page-subhead">{breadcrumb_html}{badges_html}{explore_3d_html}</div>
+<div class="page-subhead">{breadcrumb_html}{badges_html}</div>
 {map_html}
 <section class="panel">
 <h2>{esc(table_title)}</h2>
@@ -156,6 +159,7 @@ def handler():
   <tbody>{table_rows}</tbody>
 </table></div>
 </section>
+<script type="module" src="static/galaxymap3d.js"></script>
 """
     return title, body
 
