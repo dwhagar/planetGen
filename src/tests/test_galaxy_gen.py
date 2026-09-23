@@ -1030,3 +1030,82 @@ def test_generate_sector_does_not_force_content_onto_an_explicit_zero():
     _sector_name, sector = galaxyGen.generate_sector(args)
     assert sector.entries == []
     assert sector.phenomena == []
+
+
+# ---------------------------------------------------------------------------
+# Sector-view bounds: every star system generated across a real, multi-shell
+# test galaxy must land within its own sector's declared cube
+# (`sectors.edge_mpc`, `[-edge_mpc/2, +edge_mpc/2]` on each axis) --
+# `SpaceSector.add_system`'s `_random_position` is supposed to guarantee
+# this at the single-sector level (already checked in isolation, on a
+# single hand-built `SpaceSector`, by `test_space_sector.py`'s
+# `test_random_placement_stays_within_cube`/
+# `test_grow_from_seed_places_new_systems_within_sector_bounds`), but that
+# was never exercised end-to-end against a real multi-shell galaxy run
+# through `generate.py galaxy --shell` (density-driven system counts, real
+# galaxy-frame positions feeding each star's Hill-sphere calculation) or
+# checked against what's actually persisted and read back -- the same
+# `position_x/y/z_mpc`/`edge_mpc` pair the Sector Map
+# (`html/lib/starmap.py`'s `render_map_panel`) normalizes every star's dot
+# position by when it draws the "Sector Map" panel referenced in this
+# codebase's own `sector.py`/`starmap.py` docstrings.
+# ---------------------------------------------------------------------------
+
+def _star_positions_with_sector_bounds(mysql_config):
+    """Every placed star system's sector-local `(x, y, z)_mpc` position,
+    joined against its own sector's `edge_mpc`/shell address -- a star's
+    bounds are only meaningful relative to its own sector's size, not some
+    galaxy-wide constant."""
+    conn = _db.get_connection(mysql_config)
+    try:
+        return conn.execute(
+            "SELECT s.id AS sector_id, s.shell_index, s.shell_slot_index, s.edge_mpc, "
+            "ss.id AS system_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc "
+            "FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id "
+            "WHERE ss.position_x_mpc IS NOT NULL"
+        ).fetchall()
+    finally:
+        conn.close()
+
+
+def test_stars_fit_within_their_sectors_bounds_across_shells_0_through_4(mysql_config):
+    """
+    Generates a small test galaxy spanning shells ("rings") 0 through 4 --
+    518 sectors total (3 + 28 + 79 + 154 + 254, see `shell_sector_count`)
+    -- through the real `generate.py galaxy --shell` pipeline, one real
+    generation run per shell, each sector getting its own real
+    `sector_position_pc` galaxy-frame center. Confirms every star system
+    actually placed lands within its own sector's cube on every axis --
+    the "does this star fit inside the box the Sector Map draws around it"
+    invariant, checked against real, persisted, multi-shell data rather
+    than a single sector built by hand.
+
+    `-planets` keeps each system's own generation cheap (system
+    *position*, not planet/moon content, is what this test cares about),
+    so the whole 518-sector galaxy generates in well under a minute.
+    """
+    for shell_index in range(5):
+        _run_cli(
+            ["--shell", str(shell_index), "--num-systems", "3", "-planets"] + _mysql_argv(mysql_config)
+        )
+
+    sectors = _all_sectors(mysql_config)
+    expected_sector_count = sum(shell_sector_count(k) for k in range(5))
+    assert len(sectors) == expected_sector_count
+
+    rows = _star_positions_with_sector_bounds(mysql_config)
+    assert rows, "expected at least some star systems across shells 0-4"
+
+    out_of_bounds = []
+    for row in rows:
+        half_edge = row["edge_mpc"] / 2.0
+        for axis, value in (
+            ("x", row["position_x_mpc"]), ("y", row["position_y_mpc"]), ("z", row["position_z_mpc"]),
+        ):
+            if not (-half_edge <= value <= half_edge):
+                out_of_bounds.append(
+                    f"system {row['system_id']} in sector {row['sector_id']} "
+                    f"(shell {row['shell_index']}, slot {row['shell_slot_index']}): "
+                    f"{axis}={value} mpc outside +/-{half_edge} mpc"
+                )
+    assert not out_of_bounds, "\n".join(out_of_bounds)
