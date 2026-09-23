@@ -251,12 +251,44 @@ def health():
     error propagate to a generic 500) so a monitor can tell "the API is
     running but its database is unreachable" apart from "the API itself is
     down".
+
+    Also reports `schema_version`/`schema_current`: this API's read-only
+    connection (`open_readonly`'s `ensure_schema=False`) never applies
+    schema DDL itself, and even a read-write connection's `_ensure_schema`
+    only runs `CREATE TABLE IF NOT EXISTS` -- a no-op against a table that
+    already exists, so it never retroactively adds a migration's `ALTER
+    TABLE` (e.g. schema v25's `idx_sectors_center`) to an existing
+    database. Only `migrateDb.py` (run directly, or via `update.sh`/
+    `install.sh`) actually advances an existing database's schema.
+    Restarting this process alone -- a natural thing to try after pulling
+    in a schema-fixing code change -- does *not* apply a pending
+    migration, and previously wasn't surfaced anywhere: a stale schema
+    silently kept e.g. the pre-v25 full-table-scan behind `GET
+    /api/galaxy/view` that took the whole site down (`docs/apache-
+    deployment.md`'s single `planetgen-api` process/thread pool serializes
+    all API traffic, so one slow endpoint stalls every page). Surfaced
+    here instead of only in `migrateDb.py`'s own output, so a live
+    deployment that's fallen behind is visible without having to
+    separately remember to go check.
     """
     try:
         get_db().execute("SELECT 1")
+        schema_row = get_db().execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
     except Exception as exc:
         return jsonify({"status": "error", "detail": str(exc)}), 503
-    return jsonify({"status": "ok"})
+
+    schema_version = schema_row["version"] if schema_row else None
+    body = {
+        "status": "ok",
+        "schema_version": schema_version,
+        "schema_current": schema_version == _db.SCHEMA_VERSION,
+    }
+    if schema_version != _db.SCHEMA_VERSION:
+        body["detail"] = (
+            f"Database schema is at v{schema_version}, code expects v{_db.SCHEMA_VERSION} -- "
+            f"run migrateDb.py (or update.sh/install.sh) against this database."
+        )
+    return jsonify(body)
 
 
 @bp.route("/databases")

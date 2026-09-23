@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.46.17] - 2026-09-23
+
+### Fixed
+- **[5.46.16]'s own changelog entry claimed a plain app restart applies a
+  pending schema migration (e.g. that fix's own `idx_sectors_center`)
+  "automatically" -- it doesn't.** `GET /api/health` now reports
+  `schema_version`/`schema_current` (and a `detail` message naming the
+  fix) by comparing the database's own `schema_migrations` table against
+  the code's `SCHEMA_VERSION`, so a deployment that pulled in a
+  schema-fixing code change but never actually ran `migrateDb.py` (or
+  `update.sh`/`install.sh`) against its database is visible at `/api/health`
+  instead of continuing to silently run the old, unmigrated schema -- the
+  likely explanation if the same full-table-scan timeouts (and the site
+  going down under load) kept happening after [5.46.16]'s code shipped
+  but its database was never separately migrated.
+
 ## [5.46.16] - 2026-09-23
 
 ### Fixed
@@ -16,9 +32,12 @@
   spanning the whole galaxy) and repeatedly (debounced) as the 3D camera
   moves. New schema v25 adds a composite `idx_sectors_center` index
   (`_db._migrate_v24_to_v25`) so the query can range-scan instead of
-  examining every row. Run `migrateDb.py` (or restart the app -- `_db.
-  get_connection`/`migrate_database` apply it automatically) to pick this
-  up on an existing database.
+  examining every row. **Run `migrateDb.py` (or `update.sh`/`install.sh`,
+  which call it) against the database to pick this up** -- restarting the
+  app alone does *not* apply it: the API's own connections are read-only
+  (`ensure_schema=False`) and never run schema DDL at all, and even a
+  read-write connection's `_ensure_schema` only runs `CREATE TABLE IF NOT
+  EXISTS`, a no-op against a table that already exists (see [5.46.17]).
 
 ## [5.46.15] - 2026-09-23
 

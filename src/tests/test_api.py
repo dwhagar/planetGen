@@ -217,7 +217,10 @@ def fake_wiki_client(monkeypatch):
 def test_health_ok(client):
     response = client.get("/api/health")
     assert response.status_code == 200
-    assert response.get_json() == {"status": "ok"}
+    body = response.get_json()
+    assert body["status"] == "ok"
+    assert body["schema_current"] is True
+    assert body["schema_version"] == _db.SCHEMA_VERSION
 
 
 def test_unreachable_database_returns_503_not_a_crash():
