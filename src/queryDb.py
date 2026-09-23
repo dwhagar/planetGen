@@ -583,12 +583,16 @@ def _load_nav_phenomenon_endpoint(conn, phenomenon_type, phenomenon_id):
             `None` if this phenomenon has never been placed in the galaxy).
 
     Raises:
-        ValueError: If `phenomenon_type` is unrecognized, or no such row
-            exists.
+        ValueError: If `phenomenon_type` is unrecognized, is a type with no
+            galaxy-frame placement columns at all (currently only
+            `"supernova_remnant"` -- see `_SUPERNOVA_REMNANT_TABLE`'s own
+            docstring), or no such row exists.
     """
-    table = _PHENOMENON_TYPE_TO_TABLE.get(phenomenon_type)
-    if table is None:
-        raise ValueError(f"unrecognized phenomenon type {phenomenon_type!r}")
+    if phenomenon_type not in _PLACEABLE_PHENOMENON_TYPES:
+        raise ValueError(
+            f"{phenomenon_type!r} has no galaxy-frame placement and can never be a NAV endpoint"
+        )
+    table = _PHENOMENON_TYPE_TO_TABLE[phenomenon_type]
 
     row = conn.execute(
         f"SELECT center_x_pc, center_y_pc, center_z_pc FROM {table} WHERE id = ?",
@@ -917,6 +921,22 @@ expression (a plain column for nebulae/asteroid fields, a literal `0` for
 the two point-like compact-remnant types)."""
 
 
+_SUPERNOVA_REMNANT_TABLE = ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly")
+"""tuple: The `supernova_remnant` counterpart to one `_PHENOMENON_TABLES`
+entry -- kept OUT of that tuple deliberately, since `supernova_remnants`
+never gained the v21 galaxy-frame placement columns
+(`center_x_pc`/`center_y_pc`/`center_z_pc`/`galactic_radius_pc`) the other
+four phenomenon tables did (see `schema.sql`'s own "v16"/"v21" header
+notes) -- so it can never appear on the Galaxy Map or as a NAV endpoint,
+and can't share `_placed_phenomenon_rows`/`galaxy_placed_phenomena`/
+`phenomena_near_sector`'s common query shape, which all select
+`center_x_pc`. It still has its own real `radius_ly` (unlike the two
+point-like compact-remnant types), so it's fully usable everywhere that
+only needs the phenomenon's own physical size -- `list_phenomena`/
+`count_phenomena`'s flat listing, `phenomenon_detail`'s page, and
+`lib/phenomenonmap.py`'s AU-scale diagram."""
+
+
 def _placed_phenomenon_rows(conn):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
@@ -956,11 +976,15 @@ def _placed_phenomenon_rows(conn):
 def list_phenomena(conn, limit=None, offset=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
-    neutron star -- the four in `_PHENOMENON_TABLES`), across every sector
-    and regardless of galaxy placement -- `GET /api/phenomena`'s own flat
-    listing (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which
-    only returns the galaxy-placed subset, for the Galaxy Map) or
-    `phenomena_near_sector` (one sector's own neighborhood).
+    neutron star/supernova remnant -- the four in `_PHENOMENON_TABLES`
+    plus `_SUPERNOVA_REMNANT_TABLE`), across every sector and regardless
+    of galaxy placement -- `GET /api/phenomena`'s own flat listing
+    (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which only
+    returns the galaxy-placed subset, for the Galaxy Map) or
+    `phenomena_near_sector` (one sector's own neighborhood) -- neither of
+    which a supernova remnant can ever appear in, since its table has no
+    galaxy-frame placement columns at all (see `_SUPERNOVA_REMNANT_TABLE`'s
+    own docstring); its `placed` is therefore always `False` here.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -971,30 +995,31 @@ def list_phenomena(conn, limit=None, offset=None):
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
     shown on that system's own `system.py` page), not a standalone exotic
-    phenomenon; `nebulae`/`asteroid_fields` have no `star_id` at all
-    (always standalone, see their own table comments) and need no such
-    filter.
+    phenomenon; `nebulae`/`asteroid_fields`/`supernova_remnants` have no
+    `star_id` at all (always standalone, see their own table comments) and
+    need no such filter.
 
     Returns:
         list[dict]: One row per phenomenon, ordered by name: `id`, `type`
-            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, or
-            `"neutron_star"`), `name`, `descriptor`, `radius_ly`,
-            `sector_id`/`sector_name` (both `None` if this phenomenon has
-            never been linked to a sector -- see `schema.sql`'s "v18"
-            header note), and `placed` (bool -- whether it has a galaxy
-            position at all, `center_x_pc IS NOT NULL`).
+            (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
+            `"neutron_star"`, or `"supernova_remnant"`), `name`,
+            `descriptor`, `radius_ly`, `sector_id`/`sector_name` (both
+            `None` if this phenomenon has never been linked to a sector --
+            see `schema.sql`'s "v18" header note), and `placed` (bool --
+            whether it has a galaxy position at all, `center_x_pc IS NOT
+            NULL`; always `False` for a supernova remnant).
     """
     union_parts = [
         f"""
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
                {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                t.sector_id AS sector_id, sec.name AS sector_name,
-               t.center_x_pc AS center_x_pc
+               {"NULL" if table == "supernova_remnants" else "t.center_x_pc"} AS center_x_pc
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
-        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
     ]
     query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
     params = []
@@ -1017,9 +1042,10 @@ def list_phenomena(conn, limit=None, offset=None):
 def count_phenomena(conn):
     """
     Returns the total number of exotic phenomena across every type in
-    `_PHENOMENON_TABLES`, ignoring any pagination -- the denominator
-    `list_phenomena(conn, limit=...)` callers (the API's
-    `/api/phenomena`) need to report how many pages exist.
+    `_PHENOMENON_TABLES` plus `_SUPERNOVA_REMNANT_TABLE`, ignoring any
+    pagination -- the denominator `list_phenomena(conn, limit=...)`
+    callers (the API's `/api/phenomena`) need to report how many pages
+    exist.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -1032,16 +1058,30 @@ def count_phenomena(conn):
             f"SELECT COUNT(*) AS n FROM {table}"
             + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
         ).fetchone()["n"]
-        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES
+        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
     )
 
 
-_PHENOMENON_TYPE_TO_TABLE = {type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES}
+_PHENOMENON_TYPE_TO_TABLE = {
+    type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
+}
 """dict: `type` value (as returned by `list_phenomena`/`galaxy_placed_phenomena`)
 -> its backing table name, e.g. `"nebula"` -> `"nebulae"` -- the reverse of
 `_PHENOMENON_TABLES`'s own `(table, type_label, ...)` order, used by
 `phenomenon_detail` to find the one table a `(type, id)` pair actually
-means without hand-listing the mapping a second time."""
+means without hand-listing the mapping a second time. Includes
+`_SUPERNOVA_REMNANT_TABLE` too, since `phenomenon_detail`'s plain `SELECT
+t.*` works for it exactly the same as for the other four types even
+though it can't participate in the galaxy-placement-only helpers below."""
+
+_PLACEABLE_PHENOMENON_TYPES = frozenset(type_label for _t, type_label, _de, _re in _PHENOMENON_TABLES)
+"""frozenset: The `type` values that DO have galaxy-frame placement
+columns (everything in `_PHENOMENON_TABLES`) -- deliberately excludes
+`"supernova_remnant"`, unlike `_PHENOMENON_TYPE_TO_TABLE` above. Guards
+`_load_nav_phenomenon_endpoint` against ever running its `center_x_pc`
+SELECT against `supernova_remnants`, which has no such column and would
+otherwise raise a raw SQL error instead of the clean `ValueError` a NAV
+request for an inherently unplaceable phenomenon type should get."""
 
 
 def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
@@ -1050,7 +1090,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     plus its sector's name (see `list_phenomena`'s identical `sector_id`/
     `sector_name` convention) -- for `GET /api/phenomena/<type>/<id>`
     (`html/phenomenon.py`'s detail page). Unlike `list_phenomena`'s
-    normalized `descriptor`/`radius_ly` (a common shape across all four
+    normalized `descriptor`/`radius_ly` (a common shape across all five
     types, for a flat list), this returns the row as-is: each type has its
     own genuinely different set of fields (a nebula's `nebula_type`/
     `composition`/`formation_cause` vs. a black hole's
@@ -1062,7 +1102,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         conn (stellarObjects._db.Connection): An open, read-only connection.
         phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`).
+            `"neutron_star"`, `"supernova_remnant"`).
         phenomenon_id (int): The row's own `id` in its backing table.
 
     Returns:

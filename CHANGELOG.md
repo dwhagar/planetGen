@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.46.11] - 2026-09-23
+
+### Added
+- **Zoomable, real-scale diagram on every stellar phenomenon's page.**
+  `phenomenon.py` gains a "Diagram" panel (new `lib/phenomenonmap.py` +
+  `static/phenomenonmap.js`, reusing `static/mapzoom.js`'s shared zoom/pan)
+  drawn directly to astronomical-unit scale: a nebula/asteroid field's real
+  `radius_ly` becomes an actual to-scale circle, zoomable from about 1 AU
+  up to 1 ly across. A black hole/neutron star (whose real size is
+  negligible at this scale) instead shows a small fixed illustrative dot.
+- **Supernova remnants are now a full first-class phenomenon type.**
+  Previously `supernova_remnants` had no web page at all. `phenomena.py`'s
+  listing and `phenomenon.py`'s detail page (morphology, progenitor type,
+  age, radius, any compact remnant left behind, galactic orbit) now cover
+  it, plus its own real-scale Diagram panel. It has no galaxy-frame
+  placement columns of its own, though (unlike the other four phenomenon
+  types), so it never appears on the Galaxy Map and can't be a NAV
+  endpoint -- `phenomenon.py` shows a short note explaining this instead
+  of offering "Navigate from/to here" buttons that would only fail.
+
+### Fixed
+- `queryDb.nav_between` would 500 with a raw "unknown column center_x_pc"
+  SQL error if ever asked to resolve a supernova remnant as a NAV
+  endpoint (its table genuinely has no such column). Now raises a clean
+  `ValueError`, same as any other invalid NAV request.
+
 ## [5.46.10] - 2026-09-23
 
 ### Added

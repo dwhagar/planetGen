@@ -21,6 +21,7 @@ from stellarObjects.nebulaData import Nebula
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.spaceSector import SpaceSector
+from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
 
 
@@ -398,6 +399,27 @@ def test_nav_between_raises_value_error_for_unrecognized_phenomenon_type(two_sec
     try:
         with pytest.raises(ValueError):
             nav_between(conn, ids["a"][0], 1, to_kind="phenomenon", to_type="not_a_real_type")
+    finally:
+        conn.close()
+
+
+def test_nav_between_rejects_a_real_supernova_remnant_endpoint(two_sector_galaxy):
+    # supernova_remnants is a RECOGNIZED phenomenon table (queryDb.
+    # _PHENOMENON_TYPE_TO_TABLE has an entry for it, so phenomenon_detail/
+    # list_phenomena/phenomenon.py's own page all work for it) but has no
+    # galaxy-frame placement columns at all (unlike nebula/asteroid_field/
+    # black_hole/neutron_star) -- nav_between must still cleanly reject it
+    # with a ValueError rather than crash with a raw "unknown column
+    # center_x_pc" SQL error, which is what happened before
+    # queryDb._PLACEABLE_PHENOMENON_TYPES was added to guard this path.
+    config, ids = two_sector_galaxy
+    remnant = SupernovaRemnant(SystemConfig())
+    conn = _db.get_connection(config)
+    try:
+        remnant_id = _db.insert_supernova_remnant(conn, remnant)
+        conn.commit()
+        with pytest.raises(ValueError):
+            nav_between(conn, ids["a"][0], remnant_id, to_kind="phenomenon", to_type="supernova_remnant")
     finally:
         conn.close()
 

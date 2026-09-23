@@ -3,11 +3,14 @@
 
 """
 Phenomena list: every exotic phenomenon (nebula/asteroid field/black hole/
-neutron star -- `queryDb._PHENOMENON_TABLES`) in the current database, one
-flat table across every sector and regardless of galaxy placement --
-`GET /api/phenomena`, the paginated counterpart to `galaxy.py`'s own
-plotted-only view (`GET /api/galaxy/phenomena`, which only shows the
-galaxy-placed subset as dots on the map).
+neutron star/supernova remnant -- `queryDb._PHENOMENON_TABLES` plus
+`_SUPERNOVA_REMNANT_TABLE`) in the current database, one flat table across
+every sector and regardless of galaxy placement -- `GET /api/phenomena`,
+the paginated counterpart to `galaxy.py`'s own plotted-only view
+(`GET /api/galaxy/phenomena`, which only shows the galaxy-placed subset as
+dots on the map -- a supernova remnant never appears there, or in its "On
+Galaxy Map" column below, since its own table has no galaxy-frame
+placement columns at all; see `_SUPERNOVA_REMNANT_TABLE`'s docstring).
 
 Each row links to `phenomenon.py`, this project's first detail/info page
 for a standalone phenomenon -- until now these had no page of their own at
@@ -32,6 +35,7 @@ the API's own max page size, see `docs/api.md`'s "Pagination"."""
 _TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
+    "supernova_remnant": "Supernova Remnant",
 }
 
 

@@ -141,12 +141,17 @@ connectivity to that specific schema rather than the default one.
   same reason `/api/galaxy/sectors` isn't.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
-  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
+  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset, and
+  can never include a supernova remnant — see below) —
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,
-  `total`, `limit`, `offset`). Each item has `id`, `type`, `name`,
+  `total`, `limit`, `offset`). Each item has `id`, `type`
+  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
+  `"supernova_remnant"`), `name`,
   `descriptor`, `radius_ly` (same shape as `/api/galaxy/phenomena`'s own
   items), plus `sector_id`/`sector_name` (both `null` if never linked to a
-  sector) and `placed` (bool, whether it has a galaxy position at all) —
+  sector) and `placed` (bool, whether it has a galaxy position at all —
+  always `false` for a supernova remnant, which has no galaxy-frame
+  placement columns of its own) —
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
@@ -154,12 +159,15 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/
-  `has_accretion_disk`), plus `type` and `sector_name` — `queryDb.
+  `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
+  `age_years`), plus `type` and `sector_name` — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
-  `black_hole`/`neutron_star`; an unrecognized type or a nonexistent id is
+  `black_hole`/`neutron_star`/`supernova_remnant`; an unrecognized type or
+  a nonexistent id is
   a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
-  detail page of its own, only a hover tooltip on the Sector/Galaxy Map).
+  detail page of its own, only a hover tooltip on the Sector/Galaxy Map),
+  now including a to-scale AU diagram (`../src/html/lib/phenomenonmap.py`).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
   the faceted search behind `../src/html/search.py`: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
@@ -273,8 +281,12 @@ field/black hole/neutron star).
 **Phenomenon endpoints.** Pass `from_kind=phenomenon&from_type=<type>`
 (and/or the `to_*` equivalents) to route to/from a phenomenon instead of a
 system -- `from`/`to` then names that phenomenon's own row id, and
-`from_type`/`to_type` is one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys
-(`nebula`, `asteroid_field`, `black_hole`, `neutron_star`). A phenomenon
+`from_type`/`to_type` is one of `nebula`, `asteroid_field`, `black_hole`,
+`neutron_star` (NOT `supernova_remnant` -- that phenomenon type is fully
+recognized everywhere else, `GET /api/phenomena/<type>/<id>` included, but
+its own table has no galaxy-frame placement columns at all, so it can
+never be a NAV endpoint; passing it here is a `404`, same as an
+unrecognized type or a nonexistent id). A phenomenon
 endpoint's own `route.path`/`route.positions` id is a
 `"phenomenon:<type>:<id>"` string (a plain int id, same as always, for a
 system) -- only `route.path[0]`/`route.path[-1]` can ever be a phenomenon;

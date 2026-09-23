@@ -746,6 +746,55 @@ a:focus-visible .galaxymap-star-core {
   min-width: 12rem;
 }
 
+/* Phenomenon diagram: flat, zoomable SVG drawn directly to AU scale
+   (html/lib/phenomenonmap.py, html/phenomenon.py) -- same static/mapzoom.js
+   viewBox zoom/pan as the Galaxy Map above (static/phenomenonmap.js is its
+   own small wiring script, same shape as galaxymap.js), so this reuses the
+   identical .starmap-controls/.starmap-btn/.starmap-scale styling too;
+   only the layout/viewport/svg rules need their own (structurally
+   identical, but honestly-named) copies below rather than reusing
+   .galaxymap-*, which is a different map. */
+.phenomenonmap-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.phenomenonmap-viewport {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100%, 26rem);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.phenomenonmap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  /* phenomenonmap.js/mapzoom.js own drag-to-pan via pointer events --
+     without this, a touch browser intercepts a vertical drag as page
+     scroll before those handlers ever see it (same reasoning
+     .galaxymap-svg's identical rule documents). */
+  touch-action: none;
+}
+
+.phenomenonmap-svg:active {
+  cursor: grabbing;
+}
+
+.phenomenonmap-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 14rem;
+  min-width: 12rem;
+}
+
 /* NAV map: flat SVG plot of a NAV request's origin/destination/route
    (html/lib/navmap.py, html/nav.py) -- a static plot with no static/*.js
    file of its own, same reasoning as the Galaxy map above (a top-down,

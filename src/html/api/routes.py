@@ -550,8 +550,9 @@ def phenomenon(phenomenon_type, phenomenon_id):
     """
     One phenomenon's full detail -- `html/phenomenon.py`'s info page.
     `phenomenon_type` is one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys
-    (`nebula`/`asteroid_field`/`black_hole`/`neutron_star`); anything else,
-    or an id that doesn't exist under it, is a 404.
+    (`nebula`/`asteroid_field`/`black_hole`/`neutron_star`/
+    `supernova_remnant`); anything else, or an id that doesn't exist under
+    it, is a 404.
     """
     try:
         detail = query_phenomenon_detail(get_db(), phenomenon_type, phenomenon_id)
