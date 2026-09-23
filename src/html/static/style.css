@@ -1105,6 +1105,13 @@ code {
   display: block;
   width: 100%;
   height: 100%;
+  /* Positioned (not just `display: block`) so it reliably paints above
+     `.sysmap-spheres-canvas` by z-index -- an absolutely-positioned
+     sibling otherwise paints above normal-flow boxes regardless of DOM
+     order, which would bury every marker's stroke/label/life-badge under
+     its own opaque sphere. */
+  position: relative;
+  z-index: 1;
 }
 
 /* A hidden scene is marked with this class (toggled via `classList`),
@@ -1171,11 +1178,20 @@ code {
   stroke-width: 1.5px;
 }
 
+/* The dark `stroke` outline keeps the glyph legible over a live sphere's
+   own color/texture (which, unlike the flat marker fill it replaces, isn't
+   guaranteed contrast) -- `paint-order: stroke` draws it first so it never
+   fights the glyph's own fill for which one wins at the edge. Harmless
+   no-op for a marker whose sphere never renders. */
 .sysmap-classletter {
   font-size: 0.7rem;
   font-weight: 700;
   pointer-events: none;
   user-select: none;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .sysmap-label {
@@ -1224,35 +1240,34 @@ code {
   font-size: 0.85rem;
 }
 
-/* Body-appearance preview (static/systemmap.js) -- a small rotating 3D
-   sphere for whichever planet/moon is currently selected, hidden (via the
-   `hidden` attribute, toggled from JS) for a star/belt selection or before
-   anything's been clicked yet. A floating overlay INSIDE `.sysmap-viewport`
-   (a sibling of the `<svg>` scenes, not a separate side-panel box), so the
-   rendered sphere reads as part of the map itself; `systemmap.js` moves it
-   (via `left`/`top`) to float beside whichever marker was just clicked,
-   using this rule's `top`/`right` only as the sensible default before
-   anything's been positioned yet. A drop shadow (rather than
-   `.sysmap-viewport`'s own flat background) is what keeps it legible
-   sitting directly on top of the map's own orbit lines/markers. */
-.sysmap-preview {
+/* Per-marker body-appearance spheres (static/systemmap.js) -- one shared
+   WebGL canvas covering the whole `.sysmap-viewport`, drawn *behind* every
+   scene's `<svg>` (see `.sysmap-svg`'s own `z-index` above) so each
+   marker's stroke/label/life-badge still paints on top of its own live
+   sphere. `pointer-events: none` so clicks still hit the SVG markers
+   underneath for the existing click-for-info handling; the canvas itself
+   never intercepts input. */
+.sysmap-spheres-canvas {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 6.5rem;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius);
-  background: var(--bg-subtle);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.sysmap-preview canvas {
-  display: block;
+  inset: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Toggled on a marker's own `<g>` by `static/systemmap.js` once its sphere
+   has actually been drawn this frame (never on `WebGLRenderer` init
+   failure, so an unsupported browser just keeps the plain flat marker) --
+   makes the flat circle's own fill transparent so the sphere underneath
+   shows through in exactly the same footprint, and drops the flat 2D gas-
+   giant ring silhouette in favor of the sphere's own tilted 3D one. */
+.sysmap-sphere-active .sysmap-body-fill {
+  fill: transparent;
+}
+
+.sysmap-sphere-active .sysmap-ring {
+  display: none;
 }
 
 /* Galaxy Map (3D) (html/lib/galaxymap3d.py, html/static/galaxymap3d.js) --
