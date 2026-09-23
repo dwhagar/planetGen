@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.46.21] - 2026-09-23
+
+### Changed
+- **Galaxy Map (3D) interaction model reworked:** left-click now only
+  centers the view on the clicked dot/empty space and selects it
+  (previously it also zoomed in, which punished an imprecise click by
+  zooming into empty space nowhere near the intended target -- the
+  likely cause of "I can't zoom into known space" once a dot was too
+  small/far to click precisely from the full-galaxy starting view).
+  Double-click now does what a single click used to (center, select,
+  AND zoom in by one `clickZoomFactor` step). Right-click no longer does
+  anything (previously zoomed out) -- the browser's own default context
+  menu is left alone instead of being suppressed for nothing. The panel's
+  own hint text/`aria-label` (`lib/galaxymap3d.py`) updated to match.
+- **The illustrative density cloud (the "shows the spiral arms" layer)
+  now renders as soft, translucent, additively-blended spheres
+  (`THREE.InstancedMesh`) instead of tiny flat `THREE.Points` dots** --
+  it read as a sparse scatter-plot rather than shaded spiral structure.
+  Each sphere's size varies with its own `relative_density` (denser
+  regions read as visibly bigger/brighter blobs) and with the camera's
+  current orbit radius (so the cloud keeps a sensible relative size
+  across zoom levels); additive blending lets overlapping spheres
+  brighten rather than simply occlude, the cheap way many soft blobs
+  merge into continuous-looking shading along a spiral arm.
+
 ## [5.46.20] - 2026-09-23
 
 ### Fixed

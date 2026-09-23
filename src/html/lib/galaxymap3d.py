@@ -159,8 +159,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
-    rotate, scroll to zoom, click to zoom in/select, right-click to zoom
-    out), plus a `<script type="application/json">` block carrying the
+    rotate, scroll or the zoom buttons to zoom, click to center/select,
+    double-click to center/select AND zoom in -- no right-click action),
+    plus a `<script type="application/json">` block carrying the
     zoom-range numbers (`view_radius_bounds`) and `initial_view`'s own
     payload for the first frame -- everything after that first frame comes
     from the client's own live `fetch()` calls to `galaxy_view.py`.
@@ -222,17 +223,19 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
 <section class="panel">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; left-click to zoom in (bigger steps
-  while zoomed out, finer near a single sector) &middot; right-click to zoom out &middot; bright dots
-  &asymp; generated sectors &middot; small dim dots &asymp; real, not-yet-generated sector addresses &middot;
-  faint points &asymp; illustrative predicted density</span>
+  <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a dot or
+  empty space to center the view there and select it &middot; double-click to do the same AND zoom in (bigger
+  steps while zoomed out, finer near a single sector) &middot; bright dots &asymp; generated sectors &middot;
+  small dim dots &asymp; real, not-yet-generated sector addresses &middot; faint spheres &asymp; illustrative
+  predicted density</span>
 </div>
 {shape_hint}
 <div class="starmap-layout">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
-     aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons
-     to zoom, click a dot or empty space to zoom in and select, right-click to zoom out."></canvas>
+     aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons to
+     zoom, click a dot or empty space to center the view there and select it, double-click to do the same and
+     zoom in."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale"></div>
 </div>
 <div class="starmap-side">
@@ -242,7 +245,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
   <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
 </div>
 <aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Click a sector dot for details, or click empty space to zoom in there.</p>
+<p class="hint">Click a sector dot for details, or double-click a dot or empty space to zoom in there.</p>
 </aside>
 </div>
 </div>

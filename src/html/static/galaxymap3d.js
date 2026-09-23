@@ -27,8 +27,22 @@
 //   - planned: real, not-yet-generated qualifying addresses -- small dim
 //              sprites, click selects (shows the copyable designation/
 //              CLI snippet) but never navigates.
-//   - density: an illustrative point cloud (THREE.Points, not individual
-//              sprites -- not interactive, no identity to track).
+//   - density: an illustrative cloud of soft, translucent, additively-
+//              blended spheres (THREE.InstancedMesh, one shared low-poly
+//              SphereGeometry -- not individual Sprite/Mesh objects,
+//              which wouldn't scale to a thousand-plus instances as
+//              cheaply) -- not interactive, no identity to track. Sized
+//              in real world-space parsecs (unlike placed/planned's own
+//              constant-screen-pixel markers below), scaled per-instance
+//              by that point's own relative_density AND by the camera's
+//              current orbit radius (see DENSITY_RADIUS_FRACTION) so the
+//              cloud keeps reading as roughly the same relative size
+//              across zoom levels. Additive blending lets overlapping
+//              spheres brighten where they overlap rather than simply
+//              occluding each other -- the cheap way many soft
+//              transparent blobs merge into continuous-looking shading
+//              along a spiral arm instead of reading as a sparse
+//              scatter-plot of discrete dots.
 //
 // Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
 // below interpolates between lib/galaxymap3d.py's own
@@ -364,20 +378,36 @@ function initGalaxyMap3d(canvasEl, data) {
   var placedSpritesByKey = new Map();
   var plannedSpritesByKey = new Map();
 
-  // sizeAttenuation: false -- a constant SCREEN-pixel point size
-  // regardless of camera distance (three.js's PointsMaterial supports
-  // this natively, unlike Sprite -- see updateMarkerScales below for how
-  // placed/planned markers get the same effect). This illustrative cloud
-  // needs to read as a recognizable galaxy shape from any zoom level,
-  // including the full-galaxy starting view thousands of parsecs out,
-  // where a world-space point size would shrink to sub-pixel and vanish.
-  var densityGeometry = new THREE.BufferGeometry();
-  var densityMaterial = new THREE.PointsMaterial({
-    size: 2.2, sizeAttenuation: false, vertexColors: true,
-    transparent: true, opacity: 0.55, depthWrite: false,
+  // See this file's own module docstring for why this is an InstancedMesh
+  // of real, additively-blended spheres rather than the flat THREE.Points
+  // scatter this used to be. DENSITY_INSTANCE_CAPACITY is a safety margin
+  // above stellarObjects.galaxyViewport.DENSITY_SAMPLE_COUNT (1200) --
+  // InstancedMesh.count (set per-update in applyDensity) can render fewer
+  // instances than this capacity with no reallocation, but never more, so
+  // this stays a headroom margin rather than an exact mirror of that
+  // server-side constant.
+  var DENSITY_INSTANCE_CAPACITY = 1600;
+  // Each sphere's world-space radius is this fraction of the camera's
+  // CURRENT orbit radius (recomputed in applyDensity, which reruns on
+  // every live re-fetch as the camera moves) -- not a fixed parsec value,
+  // since a fixed size would either vanish at the full-galaxy starting
+  // view or dwarf the scene once zoomed in close. DENSITY_MIN/MAX_SCALE
+  // then varies that base size per-instance by the point's own
+  // relative_density (denser regions read as visibly bigger/brighter
+  // blobs, not just differently colored ones).
+  var DENSITY_RADIUS_FRACTION = 0.05;
+  var DENSITY_MIN_SCALE = 0.6;
+  var DENSITY_MAX_SCALE = 2.2;
+
+  var densityGeometry = new THREE.SphereGeometry(1, 12, 10);
+  var densityMaterial = new THREE.MeshBasicMaterial({
+    vertexColors: true, transparent: true, opacity: 0.4,
+    depthWrite: false, blending: THREE.AdditiveBlending,
   });
-  var densityPoints = new THREE.Points(densityGeometry, densityMaterial);
-  scene.add(densityPoints);
+  var densityMesh = new THREE.InstancedMesh(densityGeometry, densityMaterial, DENSITY_INSTANCE_CAPACITY);
+  densityMesh.count = 0;
+  densityMesh.frustumCulled = false;
+  scene.add(densityMesh);
 
   var highlightSprite = new THREE.Sprite(
     new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false })
@@ -480,31 +510,42 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
+  // Shared by densityColor (below) and applyDensity's own per-instance
+  // scale -- both want the same "how dense is this, on a 0..1 scale"
+  // number, just mapped to a color and a size respectively.
+  function densityIntensity(relativeDensity) {
+    return Math.max(0, Math.min(1, Math.log2((relativeDensity || 0) + 1) / 3));
+  }
+
   function densityColor(relativeDensity) {
     // Dim, cool color at low density warming toward the accent color at
     // high density -- purely illustrative (see lib/galaxyViewport.py's
     // own docstring), so this is a display choice, not derived physics.
-    var t = Math.max(0, Math.min(1, Math.log2((relativeDensity || 0) + 1) / 3));
     var base = new THREE.Color(accentColor);
     var dim = new THREE.Color(0x3a3f55);
-    return dim.clone().lerp(base, t);
+    return dim.clone().lerp(base, densityIntensity(relativeDensity));
   }
 
+  var densityMatrix = new THREE.Matrix4();
+  var densityInstanceColor = new THREE.Color();
+
   function applyDensity(points) {
-    var positions = new Float32Array(points.length * 3);
-    var colors = new Float32Array(points.length * 3);
-    for (var i = 0; i < points.length; i++) {
-      positions[i * 3] = points[i].x;
-      positions[i * 3 + 1] = points[i].y;
-      positions[i * 3 + 2] = points[i].z;
-      var color = densityColor(points[i].relative_density);
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
+    var count = Math.min(points.length, DENSITY_INSTANCE_CAPACITY);
+    var baseRadius = Math.max(orbit.radius * DENSITY_RADIUS_FRACTION, 1e-6);
+    for (var i = 0; i < count; i++) {
+      var point = points[i];
+      var t = densityIntensity(point.relative_density);
+      var scale = baseRadius * (DENSITY_MIN_SCALE + (DENSITY_MAX_SCALE - DENSITY_MIN_SCALE) * t);
+      densityMatrix.makeScale(scale, scale, scale);
+      densityMatrix.setPosition(point.x, point.y, point.z);
+      densityMesh.setMatrixAt(i, densityMatrix);
+      densityMesh.setColorAt(i, densityInstanceColor.copy(densityColor(point.relative_density)));
     }
-    densityGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    densityGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    densityGeometry.computeBoundingSphere();
+    densityMesh.count = count;
+    densityMesh.instanceMatrix.needsUpdate = true;
+    if (densityMesh.instanceColor) {
+      densityMesh.instanceColor.needsUpdate = true;
+    }
   }
 
   function applyView(view) {
@@ -695,22 +736,62 @@ function initGalaxyMap3d(canvasEl, data) {
     return hit ? hitPoint : null;
   }
 
-  function zoomToward(point, entry) {
-    var factor = clickZoomFactor(orbit.radius);
-    var newRadius = Math.max(MIN_RADIUS, orbit.radius / factor);
+  // selectEntry alone (no target/radius change) just updates the
+  // highlight/info panel -- shared by centerOn/centerAndZoom below so a
+  // click/double-click on empty space (entry === null) leaves whatever
+  // was last selected showing, the same "recentering doesn't clear your
+  // selection" behavior the old single zoomToward function had.
+  function selectEntry(point, entry) {
+    if (!entry) {
+      return;
+    }
+    highlightPosition(point.x, point.y, point.z, entry.kind === "placed" ? placedScreenRadiusPx(entry.system_count) : PLANNED_PX);
+    if (entry.kind === "placed") {
+      showPlacedInfo(entry);
+    } else {
+      showPlannedInfo(entry);
+    }
+  }
+
+  // Single click: re-centers the view on the clicked point (or selects/
+  // navigates-info for a clicked dot) WITHOUT zooming -- deliberately not
+  // "click to zoom" any more (see this file's own module docstring's
+  // former "Click-to-zoom is LOGARITHMIC" note, now double-click's own
+  // job below). Centering alone, with no zoom commitment, is what makes
+  // it possible to walk the camera across the galaxy toward a small/
+  // distant dot over several clicks without a bad click also zooming
+  // into empty space you didn't mean to approach.
+  function centerOn(point, entry) {
     target.copy(point);
-    orbit.radius = newRadius;
     applyCamera();
     updateScaleBar();
-    if (entry) {
-      highlightPosition(point.x, point.y, point.z, entry.kind === "placed" ? placedScreenRadiusPx(entry.system_count) : PLANNED_PX);
-      if (entry.kind === "placed") {
-        showPlacedInfo(entry);
-      } else {
-        showPlannedInfo(entry);
-      }
-    }
+    selectEntry(point, entry);
     scheduleFetch(true);
+  }
+
+  // Double click: the old single-click behavior -- centers AND zooms in
+  // by one clickZoomFactor step, in the same motion a click used to.
+  function centerAndZoom(point, entry) {
+    var factor = clickZoomFactor(orbit.radius);
+    target.copy(point);
+    orbit.radius = Math.max(MIN_RADIUS, orbit.radius / factor);
+    applyCamera();
+    updateScaleBar();
+    selectEntry(point, entry);
+    scheduleFetch(true);
+  }
+
+  // Resolves a click/double-click's target point the same way for both:
+  // a hit dot's own position, or (empty space) the depth-sphere fallback
+  // -- shared so centerOn/centerAndZoom above never have to duplicate the
+  // raycast-then-fall-back logic.
+  function resolveClickTarget(clientX, clientY) {
+    var hit = entryAtClientPoint(clientX, clientY);
+    if (hit) {
+      return hit;
+    }
+    var depthPoint = depthPointAtClientPoint(clientX, clientY);
+    return depthPoint ? { point: depthPoint, entry: null } : null;
   }
 
   canvasEl.addEventListener("click", function (event) {
@@ -718,23 +799,26 @@ function initGalaxyMap3d(canvasEl, data) {
       suppressNextClick = false;
       return;
     }
-    var hit = entryAtClientPoint(event.clientX, event.clientY);
-    if (hit) {
-      zoomToward(hit.point, hit.entry);
-      return;
-    }
-    var depthPoint = depthPointAtClientPoint(event.clientX, event.clientY);
-    if (depthPoint) {
-      zoomToward(depthPoint, null);
+    var resolved = resolveClickTarget(event.clientX, event.clientY);
+    if (resolved) {
+      centerOn(resolved.point, resolved.entry);
     }
   });
 
-  canvasEl.addEventListener("contextmenu", function (event) {
-    event.preventDefault();
-    var factor = clickZoomFactor(orbit.radius);
-    setRadius(orbit.radius * factor);
-    scheduleFetch(true);
+  canvasEl.addEventListener("dblclick", function (event) {
+    if (suppressNextClick) {
+      suppressNextClick = false;
+      return;
+    }
+    var resolved = resolveClickTarget(event.clientX, event.clientY);
+    if (resolved) {
+      centerAndZoom(resolved.point, resolved.entry);
+    }
   });
+
+  // No right-click action any more (see this file's own module
+  // docstring) -- the browser's own default context menu is left alone,
+  // rather than preventDefault()-ing it for nothing.
 
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
