@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.46.10] - 2026-09-23
+
+### Added
+- **Real interactive zoom/pan on the Galaxy Map.** With enough placed
+  sectors, the core cluster used to squash into what looked like a single
+  dot no matter how many sectors actually existed -- the map was one fixed,
+  non-interactive SVG scaled to fit the single farthest-placed sector, and
+  `?quadrant=` only cropped that same squashed drawing. Scroll/wheel to
+  zoom (centered on the cursor), drag to pan, and `+`/`-`/`Reset view`
+  buttons, all the way in to about 100 ly across -- implemented as `viewBox`
+  mutations on the existing server-drawn SVG (new shared
+  `static/mapzoom.js`, reused as-is by a future phenomenon-diagram zoom;
+  `static/galaxymap.js` wires it to the galaxy map's own scale readout).
+  The `?quadrant=` crop is unchanged as the map's *starting* view; zoom/pan
+  layers on top of it.
+
+### Fixed
+- **A marker/label click anywhere on the Galaxy Map stopped navigating**
+  partway through implementing the above: capturing the pointer on
+  `pointerdown` (needed so a drag that leaves the SVG mid-gesture keeps
+  panning) retargeted the resulting `click` event to the `<svg>` itself
+  per the Pointer Events spec, so `navform.js`'s delegated
+  `closest("[data-nav-target]")` lookup never found the actual marker.
+  Deferred `setPointerCapture` until a real drag is detected instead of
+  calling it unconditionally on every pointerdown.
+
 ## [5.46.9] - 2026-09-23
 
 ### Added
