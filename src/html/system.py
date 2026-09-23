@@ -377,10 +377,16 @@ def handler():
         # NAV needs a sector to measure a position from at all -- see
         # queryDb.nav_between's own availability rules, which this only
         # pre-checks the first (cheapest) condition of. A system in a
-        # non-galaxy-placed sector still gets the link: same-sector NAV
+        # non-galaxy-placed sector still gets the links: same-sector NAV
         # is always available once that much is true, nav.py itself
-        # works out whether cross-sector NAV also applies.
-        nav_html = post_link("nav.py", {"db": db_name, "from": system_id}, "Navigate from here", css_class="btn")
+        # works out whether cross-sector NAV also applies. "From" sets
+        # nav.py's origin directly; "To" sets only its destination and
+        # lets nav.py prompt for an origin -- the symmetric entry point
+        # nav.py's own origin picker now supports.
+        nav_html = (
+            post_link("nav.py", {"db": db_name, "from": system_id}, "Navigate from here", css_class="btn")
+            + post_link("nav.py", {"db": db_name, "to": system_id}, "Navigate to here", css_class="btn")
+        )
 
     location_html = ""
     if system["location"]:

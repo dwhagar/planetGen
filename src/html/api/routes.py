@@ -386,7 +386,10 @@ def systems_near(system_id):
 
 def _parse_system_id_param(query_args, name):
     """
-    Parses a required `<name>` query parameter as a `star_systems.id`.
+    Parses a required `<name>` query parameter as an id -- a
+    `star_systems.id` when its matching `<name>_kind` is `"system"`
+    (the default), or a phenomenon table's own row id when it's
+    `"phenomenon"` (see `_parse_nav_endpoint_params`).
 
     Args:
         query_args (werkzeug.datastructures.MultiDict): `request.args`.
@@ -407,20 +410,58 @@ def _parse_system_id_param(query_args, name):
         raise ApiError(f"{name} must be an integer, got {raw_value!r}")
 
 
+def _parse_nav_endpoint_params(query_args, name):
+    """
+    Parses one `/api/nav` endpoint's full reference: its id
+    (`_parse_system_id_param`) plus `<name>_kind` (`"system"`, the
+    default, or `"phenomenon"`) and, when it's a phenomenon,
+    `<name>_type` (one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys --
+    validated by `nav_between`/`_load_nav_phenomenon_endpoint` itself,
+    via the same `ValueError` -> 404 handling `phenomenon()` above
+    already uses for the same set of types, not re-validated here).
+
+    Args:
+        query_args (werkzeug.datastructures.MultiDict): `request.args`.
+        name (str): `"from"` or `"to"`.
+
+    Returns:
+        tuple: `(id, kind, phenomenon_type)` -- `phenomenon_type` is
+              `None` when `kind == "system"`.
+
+    Raises:
+        ApiError: If the id is missing/not an integer, `<name>_kind` is
+            neither `"system"` nor `"phenomenon"`, or `kind ==
+            "phenomenon"` with no `<name>_type` given.
+    """
+    endpoint_id = _parse_system_id_param(query_args, name)
+    kind = query_args.get(f"{name}_kind", "system")
+    if kind not in ("system", "phenomenon"):
+        raise ApiError(f"{name}_kind must be 'system' or 'phenomenon', got {kind!r}")
+    phenomenon_type = None
+    if kind == "phenomenon":
+        phenomenon_type = query_args.get(f"{name}_type")
+        if not phenomenon_type:
+            raise ApiError(f"{name}_type query parameter is required when {name}_kind is 'phenomenon'")
+    return endpoint_id, kind, phenomenon_type
+
+
 @bp.route("/nav")
 def nav():
     """
-    Course, distance, and optimal route between two systems -- see
-    `queryDb.nav_between` for the full availability rules (a system not
-    assigned to any sector, or two systems in different sectors where
-    either sector lacks a galaxy placement, both mean NAV isn't
-    available for that pair) and docs/api.md for the response shape.
+    Course, distance, and optimal route between two endpoints -- each
+    either a star system (the default) or a standalone phenomenon
+    (`?from_kind=phenomenon&from_type=nebula&from=<id>`, and likewise for
+    `to`) -- see `queryDb.nav_between` for the full availability rules
+    and docs/api.md for the response shape.
     """
-    from_id = _parse_system_id_param(request.args, "from")
-    to_id = _parse_system_id_param(request.args, "to")
+    from_id, from_kind, from_type = _parse_nav_endpoint_params(request.args, "from")
+    to_id, to_kind, to_type = _parse_nav_endpoint_params(request.args, "to")
 
     try:
-        result = nav_between(get_db(), from_id, to_id)
+        result = nav_between(
+            get_db(), from_id, to_id,
+            from_kind=from_kind, to_kind=to_kind, from_type=from_type, to_type=to_type,
+        )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
@@ -432,8 +473,32 @@ def nav():
         "warp_times": [leg._asdict() for leg in result["warp_times"]],
         "origin_position": result["origin_position"],
         "destination_position": result["destination_position"],
-        "route": result["route"],
+        "route": _route_for_json(result["route"]),
     })
+
+
+def _route_for_json(route):
+    """
+    `route["positions"]` can have both plain-int keys (a system hop) and
+    `queryDb._phenomenon_nav_key`-shaped string keys (a phenomenon
+    origin/destination) since phenomenon endpoints were added -- Flask's
+    `jsonify` sorts dict keys by default, and comparing an int key against
+    a string key mid-sort raises `TypeError: '<' not supported between
+    instances of 'int' and 'str'` (confirmed directly: a system-to-
+    phenomenon `/api/nav` request 500'd here before this fix). JSON object
+    keys are always strings regardless, so this stringifies every key at
+    this JSON-serialization boundary specifically, rather than changing
+    `nav_between`'s own return shape -- its direct Python callers (e.g.
+    `test_navigation.py`) still index a system hop's own position by its
+    real int id.
+    """
+    if route is None:
+        return None
+    return {
+        "path": route["path"],
+        "distance_ly": route["distance_ly"],
+        "positions": {str(node_id): position for node_id, position in route["positions"].items()},
+    }
 
 
 @bp.route("/galaxy/sectors")

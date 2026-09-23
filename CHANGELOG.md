@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.46.9] - 2026-09-23
+
+### Added
+- **"Navigate to here" (symmetric with the existing "Navigate from here"),
+  and NAV support for standalone phenomena.** `system.py` now offers both
+  directions; `phenomenon.py` gains both buttons too (nebulae, asteroid
+  fields, black holes, and neutron stars can now be NAV origins/
+  destinations, including a full optimal route via adjacent systems, not
+  just a direct course). `nav.py`'s origin picker now accepts an
+  already-known destination (from a "Navigate to here" link) and carries
+  it through to the course instead of re-prompting. `GET /api/nav` gained
+  `from_kind`/`to_kind`/`from_type`/`to_type` query parameters for this
+  (see `docs/api.md`'s NAV section) -- existing system-to-system callers
+  are unaffected.
+
+### Fixed
+- **`GET /api/nav` 500'd for any route involving a phenomenon endpoint.**
+  `route.positions` could end up with both an int key (a system hop) and
+  a string key (a phenomenon endpoint), and Flask's default JSON
+  serialization sorts dict keys, which raises `TypeError` comparing an
+  int to a string. Fixed by stringifying every key at the JSON boundary
+  (`api/routes.py`), confirmed against a running instance and covered by
+  a regression test.
+
 ## [5.46.8] - 2026-09-23
 
 ### Changed

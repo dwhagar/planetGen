@@ -17,6 +17,7 @@ import pytest
 from queryDb import NavUnavailable, nav_between
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
+from stellarObjects.nebulaData import Nebula
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.spaceSector import SpaceSector
@@ -285,5 +286,127 @@ def test_nav_between_raises_value_error_for_missing_system(two_sector_galaxy):
     try:
         with pytest.raises(ValueError):
             nav_between(conn, ids["a"][0], 999999999)
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------
+# queryDb.nav_between -- phenomenon endpoints (nebula, standing in for
+# every _PHENOMENON_TYPE_TO_TABLE type -- they all share the same
+# galaxy-frame-placement/no-sector-local-position shape this exercises).
+# ---------------------------------------------------------------------
+
+def _insert_nebula(config, center_x_pc=None, sector_id=None):
+    """Inserts one nebula row, galaxy-placed at `(center_x_pc, 0, 0)` pc
+    when given, else left unplaced (never generated into the galaxy) --
+    mirrors `two_sector_galaxy`'s own hand-picked-coordinates convention
+    rather than running the real placement algorithm, since only the
+    resulting position/placement state matters for these tests."""
+    nebula = Nebula(SystemConfig())
+    placement = None
+    if center_x_pc is not None:
+        placement = {
+            "center_x_pc": center_x_pc, "center_y_pc": 0.0, "center_z_pc": 0.0,
+            "galactic_radius_pc": abs(center_x_pc),
+        }
+    conn = _db.get_connection(config)
+    try:
+        nebula_id = _db.insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
+        conn.commit()
+    finally:
+        conn.close()
+    return nebula_id
+
+
+def test_nav_between_system_to_placed_phenomenon_is_galaxy_scope(two_sector_galaxy):
+    config, ids = two_sector_galaxy
+    # 10 pc =~ 32.6 ly from the galaxy origin, same axis sector A's system
+    # 0 already sits at (galaxy x=0).
+    nebula_id = _insert_nebula(config, center_x_pc=10.0)
+
+    conn = _db.get_connection(config)
+    try:
+        result = nav_between(conn, ids["a"][0], nebula_id, to_kind="phenomenon", to_type="nebula")
+    finally:
+        conn.close()
+
+    assert result["scope"] == "galaxy"
+    assert result["destination_position"][0] > 0
+    assert result["direct"].distance_ly == pytest.approx(result["destination_position"][0], rel=1e-6)
+    assert result["route"] is not None
+    assert result["route"]["path"][0] == ids["a"][0]
+    assert result["route"]["path"][-1] == "phenomenon:nebula:" + str(nebula_id)
+    assert result["route"]["positions"]["phenomenon:nebula:" + str(nebula_id)] == pytest.approx(
+        result["destination_position"]
+    )
+
+
+def test_nav_between_phenomenon_to_phenomenon_is_galaxy_scope(two_sector_galaxy):
+    config, ids = two_sector_galaxy
+    nebula_a = _insert_nebula(config, center_x_pc=5.0)
+    nebula_b = _insert_nebula(config, center_x_pc=-5.0)
+
+    conn = _db.get_connection(config)
+    try:
+        result = nav_between(
+            conn, nebula_a, nebula_b,
+            from_kind="phenomenon", from_type="nebula", to_kind="phenomenon", to_type="nebula",
+        )
+    finally:
+        conn.close()
+
+    assert result["scope"] == "galaxy"
+    assert result["direct"].distance_ly > 0
+    # Both endpoints are real, distinct nodes -- a route must exist (the
+    # kNN graph over every system plus these two one-off phenomenon nodes
+    # is always at least this reachable in a fixture this small).
+    assert result["route"] is not None
+
+
+def test_nav_between_unplaced_phenomenon_is_unavailable(two_sector_galaxy):
+    config, ids = two_sector_galaxy
+    nebula_id = _insert_nebula(config, center_x_pc=None)
+
+    conn = _db.get_connection(config)
+    try:
+        with pytest.raises(NavUnavailable):
+            nav_between(conn, ids["a"][0], nebula_id, to_kind="phenomenon", to_type="nebula")
+    finally:
+        conn.close()
+
+
+def test_nav_between_phenomenon_never_qualifies_for_sector_scope(two_sector_galaxy):
+    # Even when a phenomenon's own "nearest sector" convenience link
+    # (sector_id) matches a system's real sector, that's not real
+    # containment -- NAV between them must still resolve at galaxy scope,
+    # never sector scope (see _load_nav_phenomenon_endpoint's docstring).
+    config, ids = two_sector_galaxy
+    nebula_id = _insert_nebula(config, center_x_pc=1.0, sector_id=ids["sector_a"])
+
+    conn = _db.get_connection(config)
+    try:
+        result = nav_between(conn, ids["a"][0], nebula_id, to_kind="phenomenon", to_type="nebula")
+    finally:
+        conn.close()
+
+    assert result["scope"] == "galaxy"
+
+
+def test_nav_between_raises_value_error_for_unrecognized_phenomenon_type(two_sector_galaxy):
+    config, ids = two_sector_galaxy
+    conn = _db.get_connection(config)
+    try:
+        with pytest.raises(ValueError):
+            nav_between(conn, ids["a"][0], 1, to_kind="phenomenon", to_type="not_a_real_type")
+    finally:
+        conn.close()
+
+
+def test_nav_between_raises_value_error_for_missing_phenomenon(two_sector_galaxy):
+    config, ids = two_sector_galaxy
+    conn = _db.get_connection(config)
+    try:
+        with pytest.raises(ValueError):
+            nav_between(conn, ids["a"][0], 999999999, to_kind="phenomenon", to_type="nebula")
     finally:
         conn.close()

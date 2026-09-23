@@ -140,9 +140,25 @@ def handler():
         badge_bits.append(f"Sector: {sector_link}")
     badges_html = "<p class=\"badges\">" + "".join(f'<span class="badge">{bit}</span>' for bit in badge_bits) + "</p>"
 
+    # Offered unconditionally, unlike system.py's own sector-gated nav
+    # buttons -- nav.py itself renders a clear "not available" message
+    # for a phenomenon never placed in the galaxy, rather than this page
+    # having to duplicate that same placement check just to decide
+    # whether to show the button at all.
+    nav_html = (
+        post_link(
+            "nav.py", {"db": db_name, "from": detail["id"], "from_kind": "phenomenon", "from_type": phenomenon_type},
+            "Navigate from here", css_class="btn",
+        )
+        + post_link(
+            "nav.py", {"db": db_name, "to": detail["id"], "to_kind": "phenomenon", "to_type": phenomenon_type},
+            "Navigate to here", css_class="btn",
+        )
+    )
+
     fields_html = _fields_html(phenomenon_type, detail)
     body = f"""
-<div class="page-subhead">{breadcrumb}{badges_html}</div>
+<div class="page-subhead">{breadcrumb}{badges_html}{nav_html}</div>
 <section class="panel">
 <h2>{esc(type_label)} Data</h2>
 <div class="table-scroll"><table>

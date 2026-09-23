@@ -401,6 +401,58 @@ def test_nav_returns_404_for_unknown_system(client, seeded_sector):
     assert "error" in response.get_json()
 
 
+def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config):
+    """
+    Regression test for a real bug this endpoint's own manual testing
+    caught: `route["positions"]` can have both a plain-int key (a system
+    hop) and a `queryDb._phenomenon_nav_key`-shaped string key (a
+    phenomenon endpoint) once phenomenon endpoints exist -- Flask's
+    `jsonify` sorts dict keys by default, and comparing an int key
+    against a string key mid-sort raised a 500 `TypeError` here before
+    `api/routes._route_for_json` fixed it, confirmed directly against a
+    running instance of this exact endpoint.
+    """
+    sector = SpaceSector("Phenomenon Nav Sector", edge_ly=10.0)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = False
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+
+    empty_vertices = {"inner": [], "outer": []}
+    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
+        "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
+    })
+
+    from stellarObjects.nebulaData import Nebula
+    nebula = Nebula(SystemConfig())
+    conn = _db.get_connection(mysql_config)
+    try:
+        system_id = conn.execute(
+            "SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)
+        ).fetchone()["id"]
+        nebula_id = _db.insert_nebula(conn, nebula, sector_id=sector_id, placement={
+            "center_x_pc": 5.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 5.0,
+        })
+        conn.commit()
+    finally:
+        conn.close()
+
+    response = client.get(
+        f"/api/nav?from={system_id}&to={nebula_id}&to_kind=phenomenon&to_type=nebula"
+    )
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["scope"] == "galaxy"
+    assert body["route"] is not None
+    phenomenon_key = f"phenomenon:nebula:{nebula_id}"
+    assert body["route"]["path"][-1] == phenomenon_key
+    assert phenomenon_key in body["route"]["positions"]
+    assert str(system_id) in body["route"]["positions"]
+
+
 def test_nav_returns_400_when_system_has_no_sector(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
