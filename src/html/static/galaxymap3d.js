@@ -16,8 +16,8 @@
 // x/y span the galactic plane, +z is galactic north. `camera.up` is set
 // to (0, 0, 1) once, at scene setup, specifically so that convention
 // reads as "up" on screen without needing any per-position sign flip the
-// way galaxymap.py's flat SVG projection (a legacy "+y is down on
-// screen" convention) needs one.
+// way this map's own former flat SVG projection (a legacy "+y is down on
+// screen" convention) needed one.
 //
 // Three content tiers per live fetch (queryDb.galaxy_view's own
 // placed/planned/density lists -- see stellarObjects.galaxyViewport's
@@ -227,18 +227,28 @@ function makeRingTexture(color) {
 // through that Python module again, so a server-computed style would
 // only ever apply to the first frame.
 
-var PLACED_MIN_R = 0.6;
-var PLACED_MAX_R = 3.0;
+// Every marker below is sized in constant SCREEN pixels, not world
+// parsecs -- recomputed every frame from each object's own live distance
+// to the camera (updateMarkerScales, in the render loop below), the
+// standard "billboard with constant screen size" technique. A world-unit
+// sprite radius (three.js's own Sprite default) would perspective-shrink
+// with distance like any other object: correct for something meant to
+// represent real physical size, but wrong for a point-of-interest marker
+// that needs to stay visible/clickable from a full-galaxy overview
+// thousands of parsecs out, the same way a system marker on a game's own
+// galaxy map stays a legible dot regardless of camera distance.
+var PLACED_MIN_PX = 4.0;
+var PLACED_MAX_PX = 16.0;
 var PLACED_CORE_FILL = "#fff6df";
 var PLACED_CORE_STROKE = "#caa54d";
 var PLACED_HALO_FILL = "#ffd88a";
 
-function placedRadiusPc(systemCount) {
+function placedScreenRadiusPx(systemCount) {
   var count = systemCount || 0;
-  return Math.max(PLACED_MIN_R, Math.min(PLACED_MAX_R, PLACED_MIN_R + 0.5 * Math.sqrt(count)));
+  return Math.max(PLACED_MIN_PX, Math.min(PLACED_MAX_PX, PLACED_MIN_PX + 2.5 * Math.sqrt(count)));
 }
 
-var PLANNED_R = 0.35;
+var PLANNED_PX = 3.0;
 var PLANNED_FILL = "#7fa8d9";
 var PLANNED_STROKE = "#3f5f80";
 
@@ -354,10 +364,17 @@ function initGalaxyMap3d(canvasEl, data) {
   var placedSpritesByKey = new Map();
   var plannedSpritesByKey = new Map();
 
+  // sizeAttenuation: false -- a constant SCREEN-pixel point size
+  // regardless of camera distance (three.js's PointsMaterial supports
+  // this natively, unlike Sprite -- see updateMarkerScales below for how
+  // placed/planned markers get the same effect). This illustrative cloud
+  // needs to read as a recognizable galaxy shape from any zoom level,
+  // including the full-galaxy starting view thousands of parsecs out,
+  // where a world-space point size would shrink to sub-pixel and vanish.
   var densityGeometry = new THREE.BufferGeometry();
   var densityMaterial = new THREE.PointsMaterial({
-    size: 1.2, sizeAttenuation: true, vertexColors: true,
-    transparent: true, opacity: 0.35, depthWrite: false,
+    size: 2.2, sizeAttenuation: false, vertexColors: true,
+    transparent: true, opacity: 0.55, depthWrite: false,
   });
   var densityPoints = new THREE.Points(densityGeometry, densityMaterial);
   scene.add(densityPoints);
@@ -366,33 +383,67 @@ function initGalaxyMap3d(canvasEl, data) {
     new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false })
   );
   highlightSprite.visible = false;
+  highlightSprite.userData.screenRadiusPx = PLACED_MAX_PX;
   scene.add(highlightSprite);
 
-  function highlightPosition(x, y, z, radius) {
+  function highlightPosition(x, y, z, screenRadiusPx) {
     highlightSprite.position.set(x, y, z);
-    var r = radius || 1.0;
-    highlightSprite.scale.set(r * 2.6, r * 2.6, 1);
+    highlightSprite.userData.screenRadiusPx = (screenRadiusPx || PLACED_MIN_PX) * 1.3;
     highlightSprite.visible = true;
   }
 
   function makePlacedSprite(entry) {
-    var radius = placedRadiusPc(entry.system_count);
     var group = new THREE.Group();
     var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: placedHaloTexture, transparent: true, depthWrite: false, opacity: 0.45 }));
-    halo.scale.set(radius * 2.4, radius * 2.4, 1);
     var core = new THREE.Sprite(new THREE.SpriteMaterial({ map: placedCoreTexture, transparent: true, depthWrite: false }));
-    core.scale.set(radius * 2, radius * 2, 1);
     group.add(halo);
     group.add(core);
     group.position.set(entry.x, entry.y, entry.z);
+    group.userData.screenRadiusPx = placedScreenRadiusPx(entry.system_count);
     return group;
   }
 
   function makePlannedSprite(entry) {
     var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, opacity: 0.75 }));
-    sprite.scale.set(PLANNED_R * 2, PLANNED_R * 2, 1);
     sprite.position.set(entry.x, entry.y, entry.z);
+    sprite.userData.screenRadiusPx = PLANNED_PX;
     return sprite;
+  }
+
+  // --- Constant-screen-size billboard scaling -----------------------------
+  //
+  // Recomputed every frame (cheap: a handful of thousand simple vector
+  // ops) from each marker's own live distance to the camera, so a
+  // marker's ON-SCREEN size stays whatever its own userData.screenRadiusPx
+  // says regardless of how far the camera currently is -- see the
+  // PLACED_MIN_PX/MAX_PX comment above for why. worldPerScreenPixel here
+  // is the same "world units per screen pixel at distance 1" factor
+  // updateScaleBar's own worldUnitsPerScreenPixel divides out at the
+  // camera's CURRENT orbit radius; this multiplies it back in per-object
+  // by that object's own real distance instead.
+  function updateMarkerScales() {
+    var heightPx = canvasEl.clientHeight || 1;
+    var fovRad = THREE.MathUtils.degToRad(camera.fov);
+    var worldPerScreenPixelPerUnitDistance = (2 * Math.tan(fovRad / 2)) / heightPx;
+
+    function screenSizedScale(object3d, screenRadiusPx, sizeMultiplier) {
+      var distance = camera.position.distanceTo(object3d.position);
+      var worldDiameter = screenRadiusPx * 2 * worldPerScreenPixelPerUnitDistance * distance;
+      var scaled = worldDiameter * (sizeMultiplier || 1);
+      object3d.scale.set(scaled, scaled, 1);
+    }
+
+    placedSpritesByKey.forEach(function (group) {
+      var px = group.userData.screenRadiusPx;
+      screenSizedScale(group.children[0], px, 1.2); // halo
+      screenSizedScale(group.children[1], px, 1.0); // core
+    });
+    plannedSpritesByKey.forEach(function (sprite) {
+      screenSizedScale(sprite, sprite.userData.screenRadiusPx, 1.0);
+    });
+    if (highlightSprite.visible) {
+      screenSizedScale(highlightSprite, highlightSprite.userData.screenRadiusPx, 1.0);
+    }
   }
 
   // Diffs the live tier against what's already on screen -- keyed so a
@@ -652,7 +703,7 @@ function initGalaxyMap3d(canvasEl, data) {
     applyCamera();
     updateScaleBar();
     if (entry) {
-      highlightPosition(point.x, point.y, point.z, entry.kind === "placed" ? placedRadiusPc(entry.system_count) : PLANNED_R);
+      highlightPosition(point.x, point.y, point.z, entry.kind === "placed" ? placedScreenRadiusPx(entry.system_count) : PLANNED_PX);
       if (entry.kind === "placed") {
         showPlacedInfo(entry);
       } else {
@@ -807,6 +858,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   (function animate() {
     requestAnimationFrame(animate);
+    updateMarkerScales();
     renderer.render(scene, camera);
   })();
 }

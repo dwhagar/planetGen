@@ -5,7 +5,8 @@
 // static/mapzoom.js viewBox zoom/pan onto #phenomenonmap-svg, plus the
 // +/-/Reset buttons and a live "~X AU/ly across" scale readout.
 //
-// Unlike galaxymap.js (which converts a separate px-per-ly ratio),
+// Unlike the old flat galaxymap.js (superseded by a real 3D scene, see
+// lib/galaxymap3d.py) once did, converting a separate px-per-ly ratio,
 // render_phenomenon_map_panel draws every shape in real AU coordinates
 // directly -- this diagram's own SVG user units ARE astronomical units,
 // one-to-one -- so the live viewBox width itself already IS the current

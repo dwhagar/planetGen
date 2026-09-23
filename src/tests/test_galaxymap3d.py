@@ -1,0 +1,127 @@
+"""
+html/lib/galaxymap3d.py regression tests -- the interactive 3D Galaxy
+Map's server-side panel builder (`galaxy.py` calls `view_radius_bounds`
+to pick its first `get_galaxy_view` radius, then
+`render_galaxy_map3d_panel` to build the page). No database needed --
+both functions take plain dicts, the same shape `apiclient.
+get_galaxy_shape`/`get_galaxy_view` return.
+
+Run with: pytest src/tests/test_galaxymap3d.py
+"""
+import json
+import os
+import sys
+
+_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
+sys.path.insert(0, _SRC_DIR)
+
+import pytest  # noqa: E402
+
+from galaxymap3d import (  # noqa: E402
+    CLICK_ZOOM_FACTOR_MAX,
+    CLICK_ZOOM_FACTOR_MIN,
+    MIN_VIEW_RADIUS_FLOOR_PC,
+    render_galaxy_map3d_panel,
+    view_radius_bounds,
+)
+
+from stellarObjects.program_constants import GALAXY_RADIUS_PC  # noqa: E402
+
+EDGE_PC = 3.526
+
+
+def _empty_view(edge_pc=EDGE_PC, has_shape=False):
+    return {"placed": [], "planned": [], "density": [], "edge_pc": edge_pc, "has_shape": has_shape}
+
+
+def _json_payload(html):
+    marker = '<script type="application/json" id="galaxymap3d-data">'
+    start = html.index(marker) + len(marker)
+    end = html.index("</script>", start)
+    return json.loads(html[start:end])
+
+
+# --- view_radius_bounds -----------------------------------------------------
+
+def test_view_radius_bounds_without_a_shape_uses_the_default_galaxy_radius():
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, None)
+    assert max_radius == pytest.approx(GALAXY_RADIUS_PC * 1.05)
+    assert min_radius == pytest.approx(EDGE_PC * 1.5)
+
+
+def test_view_radius_bounds_with_a_shape_uses_its_own_outer_shell_index():
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 99})
+    assert max_radius == pytest.approx((99 + 1) * EDGE_PC * 1.05)
+
+
+def test_view_radius_bounds_min_has_an_absolute_floor():
+    # A pathologically tiny edge_pc must not compute a floor smaller than
+    # MIN_VIEW_RADIUS_FLOOR_PC.
+    min_radius, _max_radius = view_radius_bounds(0.001, None)
+    assert min_radius == pytest.approx(MIN_VIEW_RADIUS_FLOOR_PC)
+
+
+def test_view_radius_bounds_max_is_always_well_past_min():
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 0})
+    assert max_radius >= min_radius * 10
+
+
+# --- render_galaxy_map3d_panel -----------------------------------------------
+
+def test_panel_includes_the_canvas_and_controls():
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
+    assert 'id="galaxymap3d-canvas"' in html
+    assert 'data-action="zoom-in"' in html
+    assert 'data-action="zoom-out"' in html
+    assert 'data-action="reset"' in html
+    assert 'id="galaxymap3d-info"' in html
+
+
+def test_panel_json_payload_has_every_field_the_client_reads():
+    view = _empty_view(has_shape=True)
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, view)
+    data = _json_payload(html)
+
+    assert data["db"] == "mydb"
+    assert data["fetchPath"] == "galaxy_view.py"
+    assert data["edgePc"] == pytest.approx(EDGE_PC)
+    assert data["edgeLy"] > 0
+    assert data["clickZoomFactorMin"] == CLICK_ZOOM_FACTOR_MIN
+    assert data["clickZoomFactorMax"] == CLICK_ZOOM_FACTOR_MAX
+    assert data["initialCenter"] == [0.0, 0.0, 0.0]
+    assert data["initialRadiusPc"] == data["maxViewRadiusPc"]
+    assert data["initial"] == view
+
+
+def test_panel_shows_a_hint_when_no_shape_has_been_built():
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(has_shape=False))
+    assert "density skeleton hasn&#x27;t been built yet" in html or "density skeleton hasn't been built yet" in html
+    assert "generate.py plan" in html
+
+
+def test_panel_omits_the_hint_when_a_shape_exists():
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, _empty_view(has_shape=True))
+    assert "density skeleton hasn't been built yet" not in html
+
+
+def test_panel_json_is_safely_escaped_against_script_breakout():
+    # A database name is arbitrary operator-supplied text -- confirms the
+    # same </script>-breakout mitigation lib/starmap.py's own
+    # _json_script uses is applied here too.
+    html = render_galaxy_map3d_panel("weird</script><script>alert(1)</script>db", None, EDGE_PC, _empty_view())
+    assert "</script><script>alert" not in html
+    data = _json_payload(html)
+    assert data["db"] == "weird</script><script>alert(1)</script>db"
+
+
+def test_panel_includes_real_placed_and_planned_data_from_the_initial_view():
+    view = {
+        "placed": [{"id": 1, "name": "Real Sector", "x": 1.0, "y": 2.0, "z": 3.0,
+                     "galactic_radius_pc": 3.7, "shell_index": 1, "shell_slot_index": 0,
+                     "designation": "ABC", "system_count": 4, "distance_pc": 0.0}],
+        "planned": [], "density": [], "edge_pc": EDGE_PC, "has_shape": True,
+    }
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 10}, EDGE_PC, view)
+    data = _json_payload(html)
+    assert data["initial"]["placed"][0]["name"] == "Real Sector"
