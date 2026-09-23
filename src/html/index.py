@@ -40,7 +40,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import browse  # noqa: E402 -- html/'s own dir is already sys.path[0] (this script's own), so a plain sibling import
 from apiclient import ApiError, NotFoundError, list_databases  # noqa: E402
-from page import render, run  # noqa: E402
+from page import run  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
 
 
@@ -76,6 +76,6 @@ if _databases:
     # database too, exactly as if this request had arrived as
     # `?db=<name>` in the first place.
     os.environ["QUERY_STRING"] = f"db={quote(_db_name)}"
-    render(*browse.handler(_db_name))
+    run(lambda: browse.handler(_db_name))
 else:
     run(handler)

@@ -76,9 +76,33 @@ def _assert_clean_html(result, label):
 # --- Happy-path smoke tests --------------------------------------------------
 
 def test_index_page_renders(live_api, seeded_db):
+    """
+    Regression test for a real bug this exact test caught in CI:
+    index.py picks `list_databases()`'s first (name-sorted) database and
+    calls `browse.handler(_db_name)` on it -- but, unlike every other
+    call in this codebase, that call was made directly, not through
+    `run()`, so any exception it raised (e.g. the picked database having
+    no schema yet -- a real, reachable state, not just a test artifact:
+    CI's own MySQL service container always pre-creates an empty
+    "planetgen" database via MYSQL_DATABASE, which sorts before this
+    fixture's "planetgen_test_..." one and gets picked instead) crashed
+    the whole script with a raw, unhandled traceback and zero HTTP
+    output, instead of the same graceful ApiError -> 502 page every other
+    route in this codebase gets. Fixed in src/html/index.py by routing
+    through `run(lambda: browse.handler(_db_name))` like everything else.
+
+    Because a real deployment (and CI) can have more than one matching
+    database on the shared server, this test doesn't assume index.py's
+    *own* seeded_db is the one that gets picked -- only that it never
+    crashes raw and always renders clean HTML, whichever database (with
+    or without a schema yet) ends up first alphabetically.
+    """
     _config, db_name, _sector_id, _system_ids = seeded_db
     result = run_page(live_api, "index.py")
-    assert result.status_code == 200
+    assert result.status_code in (200, 502), (
+        f"index.py returned status_code={result.status_code} (0 means the CGI process crashed "
+        f"before writing any output -- see stderr): {result.stderr[:2000]}"
+    )
     _assert_clean_html(result, "index.py")
 
 
