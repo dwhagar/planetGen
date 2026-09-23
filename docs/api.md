@@ -609,7 +609,21 @@ No separate
 vhost/`ServerName` is needed either way: `../src/html/`'s own pages read
 `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. this same
 vhost) to find the API -- point it at wherever `gunicorn` ends up
-listening if using that instead. Either way, set `PLANETGEN_MYSQL_*` in
+listening if using that instead.
+
+**If this vhost also redirects `:80` to HTTPS (including a `certbot
+--apache`-generated redirect), that redirect must exclude `/api`.**
+Otherwise every CGI page's own loopback call to
+`PLANETGEN_API_BASE_URL`'s default `http://127.0.0.1/api` gets caught by
+the redirect too, and `urllib` follows it -- turning an instant local
+call into a real round trip out to the public hostname and back in on
+every single page load, confirmed in production as a cause of doubled
+Apache connection load and connection-exhaustion timeouts under
+concurrent traffic. See `examples/apache/planetgen.conf.example`'s own
+"HTTPS" section for the exact `RewriteCond`/`RewriteRule` exclusion and
+why.
+
+Either way, set `PLANETGEN_MYSQL_*` in
 the process environment to point at the deployed MySQL database, ideally
 via a read-only account (see above) -- under `mod_wsgi` this means the
 Apache service's own process environment (e.g. `/etc/apache2/envvars`, or

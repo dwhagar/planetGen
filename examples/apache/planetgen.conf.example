@@ -183,20 +183,55 @@
 # The `:80` VirtualHost above serves plain HTTP; a production deployment
 # should terminate TLS in front of it rather than serve real traffic this
 # way. Simplest path: `certbot --apache`, which rewrites the `:80` block
-# into a redirect and generates the `:443` block below for you. To do it
-# by hand instead:
+# into a redirect and generates the `:443` block below for you -- but
+# read the warning below regardless of whether you do this by hand or let
+# certbot do it, since certbot's own rewrite has the exact same trap.
 #
-#   1. Copy every line from `<VirtualHost *:80>` down to `</VirtualHost>`
-#      into a new `<VirtualHost *:443>` block, then add:
+# *** Whatever redirects :80 to :443 MUST exclude /api. ***
+#
+# `html/lib/apiclient.py` (every CGI page's own HTTP client for the API)
+# defaults to PLANETGEN_API_BASE_URL=http://127.0.0.1/api -- a plain-HTTP
+# loopback call made on EVERY page load (every page calls it at least
+# twice: its own data, plus /api/auth/me for the nav bar's login state).
+# A blanket "redirect everything on :80 to https" rule (including
+# certbot's own default rewrite) catches that loopback call too: Python's
+# urllib follows the redirect, turning what should be an instant local
+# call into a real round trip out through DNS/TLS/anything in front of
+# this box to the public hostname and back in. Confirmed in production as
+# the cause of doubled Apache connection load per page view (one
+# held-open browser-facing CGI request plus one self-inflicted extra
+# inbound HTTPS request per API call) and the resulting connection
+# exhaustion/timeouts under even modest concurrent traffic -- with
+# refused connections that never show up in the error log, because Apache
+# never accepted them in the first place. If you used `certbot --apache`,
+# check the :80 block it generated and add the same exclusion described
+# below by hand; certbot has no way to know this project's own API calls
+# itself over loopback.
+#
+# To do it by hand:
+#
+#   1. WSGIDaemonProcess is a server-wide declaration, not per-vhost --
+#      move the `WSGIDaemonProcess planetgen-api ...` line above BOTH
+#      VirtualHost blocks (rather than leaving it inside :80's, as the
+#      block above has it today) so the :443 block below can reference
+#      the same process group too, without a second, conflicting
+#      declaration. `WSGIScriptAlias`/`<Directory api>`/`<Files
+#      "wsgi.py">` still need to be repeated in EACH vhost that mounts
+#      /api (mod_wsgi's own per-vhost mount, unlike the daemon process
+#      itself) -- copy those three from the :80 block above into the new
+#      :443 block, along with everything else in it (`<Directory html>`/
+#      `<Directory lib>`/`<Directory static>` etc.), then add:
 #
 #        SSLEngine on
 #        SSLCertificateFile /etc/letsencrypt/live/planetgen.example.com/fullchain.pem
 #        SSLCertificateKeyFile /etc/letsencrypt/live/planetgen.example.com/privkey.pem
 #
-#   2. Replace the `:80` block's contents (keep `ServerName`) with a
-#      redirect to the `:443` one:
+#   2. Replace the `:80` block's contents with just its own `/api` mount
+#      (`WSGIScriptAlias`/`<Directory api>`/`<Files "wsgi.py">`, kept
+#      as-is) plus a redirect for everything else:
 #
 #        RewriteEngine On
-#        RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+#        RewriteCond %{REQUEST_URI} !^/api
+#        RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [R=permanent,L]
 #
 # Needs `a2enmod ssl rewrite` in addition to the modules enabled above.

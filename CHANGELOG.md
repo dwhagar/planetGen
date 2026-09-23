@@ -1,5 +1,31 @@
 # Changelog
 
+## [5.46.20] - 2026-09-23
+
+### Fixed
+- **A `:80`-to-HTTPS redirect vhost with no exclusion for `/api` silently
+  turns every CGI page's own internal API call into a real public
+  round trip back into the same server, doubling Apache's connection
+  load per page view.** Confirmed against a real production vhost:
+  `html/lib/apiclient.py` defaults to `PLANETGEN_API_BASE_URL=http://
+  127.0.0.1/api`, a plain-HTTP loopback call every page makes at least
+  twice (its own data, plus `/api/auth/me`); a blanket `Redirect
+  permanent /` (or an equivalent `RewriteRule`, including certbot's own
+  default `--apache` rewrite) on the `:80` vhost catches that loopback
+  call too, and `urllib` follows the redirect out through DNS/TLS/
+  anything in front of the box and back in -- exactly the connection-
+  exhaustion/timeout pattern (with refused connections that never reach
+  the error log, since Apache never accepted them) reported alongside
+  the `sector_detail`/`galaxy/view` timeouts this and recent releases
+  already fixed. `examples/apache/planetgen.conf.example`'s own "HTTPS"
+  section previously instructed copying the whole `:80` block (daemon
+  process declaration included, which would conflict once duplicated)
+  into `:443` and redirecting `:80` unconditionally -- it now excludes
+  `/api` from that redirect and mounts `/api` locally on `:80` too,
+  reusing one server-wide `WSGIDaemonProcess` declaration instead of two
+  conflicting ones. `docs/api.md`'s "Deploying behind Apache" section
+  cross-references the same warning.
+
 ## [5.46.19] - 2026-09-23
 
 ### Fixed
