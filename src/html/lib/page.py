@@ -22,6 +22,7 @@ Sector Map/NAV Map marker plotted inside an `<svg>`, where a `<form>`
 can't nest -- see `fmt.data_nav_params` and `static/navform.js`.
 """
 
+import json
 import os
 import sys
 import traceback
@@ -185,6 +186,28 @@ def send_headers(status="200 OK", set_cookie_headers=None):
     _write_security_headers()
     for cookie in set_cookie_headers or []:
         sys.stdout.write(f"Set-Cookie: {cookie}\r\n")
+    sys.stdout.write("\r\n")
+
+
+def send_json_headers(status="200 OK"):
+    """
+    Writes the CGI response status + header block for a JSON body
+    (`Content-Type: application/json`) instead of `send_headers`'s own
+    hardcoded `text/html` -- used only by a script that returns raw JSON
+    directly to the browser rather than a rendered page (today, just
+    `html/galaxy_view.py`, the interactive 3D Galaxy Map's own live-
+    viewport proxy: its client-side JS calls it directly via `fetch()`,
+    unlike every other page here, which is rendered server-side and never
+    fetched by the browser's own script).
+
+    Args:
+        status (str): CGI status line -- `"200 OK"` unless the caller is
+                      reporting an error.
+    """
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stdout.write(f"Status: {status}\r\n")
+    sys.stdout.write("Content-Type: application/json; charset=utf-8\r\n")
+    _write_security_headers()
     sys.stdout.write("\r\n")
 
 
@@ -391,3 +414,45 @@ def run(handler):
             render_error(f"<pre>{esc(traceback.format_exc())}</pre>", status="500 Internal Server Error", raw=True)
         else:
             render_error("An unexpected error occurred.", status="500 Internal Server Error")
+
+
+def render_json_error(message, status="400 Bad Request"):
+    """`run_json`'s JSON counterpart to `render_error` -- writes `{"error":
+    message}` instead of an HTML error page, and exits, same as that
+    function."""
+    send_json_headers(status)
+    sys.stdout.write(json.dumps({"error": message}))
+    sys.exit(0)
+
+
+def run_json(handler):
+    """
+    `run`'s JSON counterpart: calls `handler()` (which returns a
+    JSON-serializable value, usually a `dict`) and writes it as the whole
+    response body, with the same exception handling `run` gives an HTML
+    page (`NotFoundError` -> 404, `ApiError` -> 502, anything else -> 500)
+    but via `render_json_error` instead of a rendered error page -- used
+    by a script whose only job is a browser `fetch()` target (today, just
+    `html/galaxy_view.py`), never a page a person navigates to directly.
+
+    Args:
+        handler (callable): Zero-argument function returning a
+                            JSON-serializable value.
+    """
+    try:
+        payload = handler()
+        send_json_headers()
+        sys.stdout.write(json.dumps(payload))
+    except NotFoundError as exc:
+        render_json_error(str(exc), status="404 Not Found")
+    except ApiError as exc:
+        traceback.print_exc(file=sys.stderr)
+        render_json_error(str(exc), status="502 Bad Gateway")
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
+        debug_env = os.environ.get("PLANETGEN_DEBUG")
+        debug = bool(debug_env) if debug_env is not None else load_config()["debug"]
+        if debug:
+            render_json_error(traceback.format_exc(), status="500 Internal Server Error")
+        else:
+            render_json_error("An unexpected error occurred.", status="500 Internal Server Error")

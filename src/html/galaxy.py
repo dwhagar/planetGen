@@ -142,11 +142,12 @@ def handler():
     badges_html = "<p class=\"badges\">" + "".join(
         f'<span class="badge">{bit}</span>' for bit in badge_bits
     ) + "</p>"
+    explore_3d_html = f'<p class="hint">{post_link("galaxy3d.py", {"db": db_name}, "Explore in 3D →")}</p>'
 
     title = f"Galaxy Map: Quadrant {quadrant}" if quadrant else "Galaxy Map"
     breadcrumb_html = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(title)}</p>'
     body = f"""
-<div class="page-subhead">{breadcrumb_html}{badges_html}</div>
+<div class="page-subhead">{breadcrumb_html}{badges_html}{explore_3d_html}</div>
 {map_html}
 <section class="panel">
 <h2>{esc(table_title)}</h2>
