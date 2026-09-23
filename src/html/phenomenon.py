@@ -142,8 +142,7 @@ def handler():
 
     fields_html = _fields_html(phenomenon_type, detail)
     body = f"""
-{breadcrumb}
-{badges_html}
+<div class="page-subhead">{breadcrumb}{badges_html}</div>
 <section class="panel">
 <h2>{esc(type_label)} Data</h2>
 <div class="table-scroll"><table>

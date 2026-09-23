@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.46.8] - 2026-09-23
+
+### Changed
+- **Compacted the spread-out page header on System/Sector/Galaxy/Phenomenon
+  pages into one line.** The breadcrumb, Octant/binary badges, "Navigate
+  from here" button, and nearest-location text used to each be a
+  separately stacked, full-width block -- on `system.py` alone that was 4
+  lines of near-empty vertical space before the actual content started.
+  Added a shared `.page-subhead` flex row (`static/style.css`) and wired
+  it into `system.py`, `sector.py`, `galaxy.py`, and `phenomenon.py`.
+  Verified in a browser: the header on a binary system's page shrank from
+  roughly 650px of vertical space to about 150px.
+
 ## [5.46.7] - 2026-09-23
 
 ### Changed

@@ -194,6 +194,31 @@ h2 {
   font-weight: 500;
 }
 
+/* One compact row for a page's breadcrumb + badges + nav button(s) +
+   location line -- these used to each be a separately stacked, full-width
+   block (system.py was the worst offender: 4 of them, one per line,
+   spreading the page's own header out well past what any of them
+   individually needed). `.breadcrumb`/`.badges`'s own bottom margins are
+   zeroed out here so the row's own `gap` is the only spacing between
+   them. */
+.page-subhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-subhead .breadcrumb,
+.page-subhead .badges {
+  margin: 0;
+}
+
+.page-subhead .location {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .panel {
   background: var(--bg-elevated);
   border: 1px solid var(--border);

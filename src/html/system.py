@@ -380,15 +380,21 @@ def handler():
         # non-galaxy-placed sector still gets the link: same-sector NAV
         # is always available once that much is true, nav.py itself
         # works out whether cross-sector NAV also applies.
-        nav_html = f'<p>{post_link("nav.py", {"db": db_name, "from": system_id}, "Navigate from here", css_class="btn")}</p>'
+        nav_html = post_link("nav.py", {"db": db_name, "from": system_id}, "Navigate from here", css_class="btn")
 
     location_html = ""
     if system["location"]:
         name_to_id = {row["name"]: row["id"] for row in system["sector_siblings"]}
         location_html = (
-            f'<p class="location">Location: '
-            f'{linkify_location(db_name, system["location"], name_to_id)}</p>'
+            f'<span class="location">Location: '
+            f'{linkify_location(db_name, system["location"], name_to_id)}</span>'
         )
+
+    # One compact flex row (breadcrumb + Octant/binary badges + the Navigate
+    # button + nearest-neighbor location) instead of four separately
+    # stacked, vertically spread-out blocks -- see static/style.css's
+    # `.page-subhead` rule.
+    subhead_html = f'<div class="page-subhead">{back_html}{summary_html}{nav_html}{location_html}</div>'
 
     map_html = ""
     if system["stars"]:
@@ -403,10 +409,7 @@ def handler():
     )
 
     body = f"""
-{back_html}
-{summary_html}
-{nav_html}
-{location_html}
+{subhead_html}
 {map_html}
 {wiki_upload_html}
 {description_html}
