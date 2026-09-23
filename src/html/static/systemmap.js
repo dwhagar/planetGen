@@ -16,13 +16,15 @@
 // unescaped content), same as `sectormap.js`, since every data-* value is
 // still database content.
 //
-// A planet/moon selection also redraws `#sysmap-preview` -- a small
-// rotating shaded sphere (three.js, the same vendored build `sectormap.js`
-// uses -- see `static/vendor/THIRD_PARTY_NOTICES.txt`), the one genuinely
-// 3D element on this otherwise flat-SVG page. It's an appearance preview
-// only (color/gas-giant banding+ring/atmosphere glow from the clicked
-// marker's own `data-*`), not a second position plot -- the SVG scenes
-// above remain this map's actual true-position diagram.
+// Every star/planet/moon marker in the currently visible scene also gets
+// its own live-rendered 3D sphere on `#sysmap-spheres-canvas` (three.js,
+// the same vendored build `sectormap.js` uses -- see
+// `static/vendor/THIRD_PARTY_NOTICES.txt`), sized and positioned to
+// exactly replace that marker's own flat SVG circle -- an appearance
+// layer only (color/gas-giant banding+ring/atmosphere glow, all from that
+// marker's own `data-*`), not a second position plot: the SVG scenes
+// remain this map's actual true-position diagram, and a sphere that fails
+// to render (no WebGL) just leaves that marker's flat circle showing.
 
 import * as THREE from "./vendor/three.module.min.js";
 
@@ -46,7 +48,7 @@ function classField(el) {
   return el.dataset.classdesc ? "Class " + cls + " -- " + el.dataset.classdesc : "Class " + cls;
 }
 
-// --- Body preview (the one 3D element on this page) -----------------------
+// --- Per-marker body spheres (the one 3D layer on this page) --------------
 
 var GLOW_VERTEX_SHADER = [
   "varying vec3 vNormal;",
@@ -153,9 +155,32 @@ function glowColorForTemp(tempK) {
   return "#bfe3ff";
 }
 
-function initPreview(canvasEl) {
-  var renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+// The whole diagram's fixed coordinate space -- must match
+// `lib/systemmap.py`'s own `_VIEW_SIZE_PX`, since this is what turns a
+// marker's `cx`/`cy`/`r` (in that same fixed viewBox) into real canvas
+// pixels below.
+var VIEW_SIZE_PX = 700;
+
+// One shared WebGL context that renders every visible marker's own sphere
+// via a scissored sub-viewport per marker -- not one `<canvas>`/context
+// per body. A browser caps how many WebGL contexts can exist at once
+// (commonly single digits to a couple dozen, silently dropping the
+// oldest once exceeded), which a system with a dozen-plus planets/moons
+// would blow through immediately; a single context drawing N small
+// scissored regions in one render loop has no such ceiling and is also
+// just cheaper (one GL context, one set of shared geometry/materials,
+// reconfigured per marker before each of that marker's own draw calls).
+// Returns `null` (leaving every marker's flat circle as its plain
+// fallback) if this browser can't create a WebGL context at all.
+function initSphereField(canvasEl) {
+  var renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true });
+  } catch (err) {
+    return null;
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setScissorTest(true);
   if (THREE.SRGBColorSpace) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
   }
@@ -163,15 +188,17 @@ function initPreview(canvasEl) {
   var FOV_DEG = 32;
   var scene = new THREE.Scene();
   var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.1, 100);
+  camera.aspect = 1; // every marker's own scissored viewport is square
+  camera.updateProjectionMatrix();
 
-  // How far back the camera sits is chosen per body (see `frameCamera`,
-  // called from `updatePreview`) rather than fixed: a gas giant's ring
-  // reaches much further from center (out to `RING_OUTER_R`) than a bare
-  // sphere (`SPHERE_R` + a little for the atmosphere glow shell) does, and
-  // a fixed framing tight enough for the sphere alone clips the ring
-  // clean out of the frustum -- confirmed directly (an early version framed
-  // for the sphere only, and the ring never appeared -- it was simply
-  // outside the visible frame, not a visibility/material bug).
+  // How far back the camera sits is chosen per marker (see `renderFrame`)
+  // rather than fixed: a gas giant's ring reaches much further from
+  // center (out to `RING_OUTER_R`) than a bare sphere (`SPHERE_R` + a
+  // little for the atmosphere glow shell) does, and a fixed framing tight
+  // enough for the sphere alone clips the ring clean out of the frustum --
+  // confirmed directly (an early version framed for the sphere only, and
+  // the ring never appeared -- it was simply outside the visible frame,
+  // not a visibility/material bug).
   var elevation = 0.12; // slight downward look, a hint of "looking at a globe" rather than dead-on
   function frameCamera(halfExtent) {
     var distance = halfExtent / Math.tan(THREE.MathUtils.degToRad(FOV_DEG / 2));
@@ -192,10 +219,14 @@ function initPreview(canvasEl) {
   var RING_INNER_R = 1.25;
   var RING_OUTER_R = 1.7;
 
-  var sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(SPHERE_R, 48, 32),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0.05 })
-  );
+  // A planet/moon is externally lit (its own `sun` above); a star is
+  // self-luminous, so it gets its own unlit material instead -- swapped
+  // onto the one shared `sphere` mesh per marker (see `configureBody`)
+  // rather than a second sphere mesh, since only one is ever drawn at a
+  // time regardless.
+  var planetMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0.05 });
+  var starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  var sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 48, 32), planetMaterial);
   bodyGroup.add(sphere);
 
   var ring = new THREE.Mesh(
@@ -203,7 +234,6 @@ function initPreview(canvasEl) {
     new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, depthWrite: false })
   );
   ring.rotation.x = THREE.MathUtils.degToRad(70);
-  ring.visible = false;
   bodyGroup.add(ring);
 
   var glowMaterial = new THREE.ShaderMaterial({
@@ -216,16 +246,53 @@ function initPreview(canvasEl) {
     depthWrite: false,
   });
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
-  glow.visible = false;
   bodyGroup.add(glow);
 
-  frameCamera(GLOW_R * 1.15); // a sensible default before anything's been clicked yet
+  // The markers of whichever scene is currently visible -- see
+  // `gatherSphereMarkers` -- and, in lockstep, each one's own on-canvas
+  // pixel rect (`recomputeRects`), kept separate so a resize alone (no
+  // marker-set change) only has to redo the cheap geometry math, not
+  // rebuild every marker's cached textures.
+  var markers = [];
+  var rects = [];
+
+  function disposeMarker(marker) {
+    if (marker.bandTexture) {
+      marker.bandTexture.dispose();
+    }
+    if (marker.ringTexture) {
+      marker.ringTexture.dispose();
+    }
+  }
+
+  function recomputeRects() {
+    var size = canvasEl.clientWidth || 0;
+    var scale = size / VIEW_SIZE_PX;
+    rects = markers.map(function (marker) {
+      var cx = (parseFloat(marker.circle.getAttribute("cx")) || 0) * scale;
+      var cy = (parseFloat(marker.circle.getAttribute("cy")) || 0) * scale;
+      var r = (parseFloat(marker.circle.getAttribute("r")) || 0) * scale;
+      // The local half-extent (`frameCamera`'s own units) that a gas
+      // giant's ring or a plain glow shell needs to stay in-frame -- see
+      // that function's own comment -- mapped so the body's own
+      // `SPHERE_R` (1 local unit) lands at exactly this marker's own
+      // on-screen radius, the same relationship the flat circle it
+      // replaces already had to its neighbors.
+      var halfExtent = (marker.isGasGiant ? RING_OUTER_R : GLOW_R) * 1.15;
+      return { cx: cx, cy: cy, side: 2 * halfExtent * r, halfExtent: halfExtent };
+    });
+  }
+
+  function setMarkers(list) {
+    markers.forEach(disposeMarker);
+    markers = list;
+    recomputeRects();
+  }
 
   function resize() {
     var size = canvasEl.clientWidth || 160;
     renderer.setSize(size, size, false);
-    camera.aspect = 1;
-    camera.updateProjectionMatrix();
+    recomputeRects();
   }
   if (typeof ResizeObserver !== "undefined") {
     new ResizeObserver(resize).observe(canvasEl);
@@ -233,127 +300,130 @@ function initPreview(canvasEl) {
   resize();
   window.addEventListener("resize", resize);
 
+  function configureBody(marker) {
+    if (marker.isStar) {
+      sphere.material = starMaterial;
+      starMaterial.color.set(marker.color);
+      ring.visible = false;
+      // A star gets its own glow shell too, tinted to its own spectral
+      // color rather than `glowColorForTemp` -- a cheap "it's a light
+      // source" cue, not a real corona simulation.
+      glow.visible = true;
+      glowMaterial.uniforms.glowColor.value.set(marker.color);
+      return;
+    }
+    sphere.material = planetMaterial;
+    planetMaterial.map = marker.isGasGiant ? marker.bandTexture : null;
+    planetMaterial.color.set(marker.isGasGiant ? "#ffffff" : marker.color);
+    planetMaterial.needsUpdate = true;
+
+    ring.visible = marker.isGasGiant;
+    if (marker.isGasGiant) {
+      ring.material.map = marker.ringTexture;
+      ring.material.needsUpdate = true;
+    }
+
+    glow.visible = marker.hasAtmosphere;
+    if (marker.hasAtmosphere) {
+      glowMaterial.uniforms.glowColor.value.set(marker.glowColor);
+    }
+  }
+
+  // Renders every current marker's own sphere into its own scissored
+  // sub-viewport of the shared canvas, once per frame. The whole canvas
+  // is explicitly cleared first (scissor test off) rather than relying on
+  // each marker's own per-rect autoClear -- the canvas persists across
+  // scene switches, so without this, a marker from a now-hidden scene
+  // would leave its last-drawn sphere ghosted on screen forever, since
+  // nothing else would ever touch those particular pixels again.
+  function renderFrame() {
+    var w = canvasEl.clientWidth || 0;
+    var h = canvasEl.clientHeight || 0;
+    if (!w || !h) {
+      return;
+    }
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, w, h);
+    renderer.clear();
+    renderer.setScissorTest(true);
+
+    for (var i = 0; i < markers.length; i++) {
+      var marker = markers[i];
+      var rect = rects[i];
+      if (!rect || rect.side <= 0) {
+        continue;
+      }
+      marker.rotation += 0.006;
+      bodyGroup.rotation.y = marker.rotation;
+      configureBody(marker);
+
+      // `setViewport`/`setScissor` both take the rect's bottom-left
+      // corner (WebGL's own coordinate convention), so `cy`/`side` --
+      // computed above in ordinary top-left DOM pixel space, same as
+      // `cx`/`cy` on the marker's own SVG circle -- need flipping here.
+      var x = rect.cx - rect.side / 2;
+      var glY = h - (rect.cy - rect.side / 2) - rect.side;
+      renderer.setViewport(x, glY, rect.side, rect.side);
+      renderer.setScissor(x, glY, rect.side, rect.side);
+      frameCamera(rect.halfExtent);
+      renderer.render(scene, camera);
+    }
+  }
+
   (function animate() {
     requestAnimationFrame(animate);
-    bodyGroup.rotation.y += 0.006;
-    renderer.render(scene, camera);
+    renderFrame();
   })();
 
-  return {
-    sphere: sphere, ring: ring, glow: glow, glowMaterial: glowMaterial,
-    frameCamera: frameCamera, ringOuterR: RING_OUTER_R, glowR: GLOW_R,
-  };
+  return { setMarkers: setMarkers };
 }
 
-var previewCanvas = document.getElementById("sysmap-preview-canvas");
-var previewContainer = document.getElementById("sysmap-preview");
-var preview = previewCanvas ? initPreview(previewCanvas) : null;
+var spheresCanvas = document.getElementById("sysmap-spheres-canvas");
+var sphereField = spheresCanvas ? initSphereField(spheresCanvas) : null;
 
-// Floats `#sysmap-preview` beside `markerEl` (the clicked `<g data-kind>`)
-// instead of leaving it at its CSS-default corner -- `getScreenCTM()` is
-// the standard DOM API for turning an SVG-internal coordinate (the
-// marker's own `<circle>` cx/cy, in the scene's fixed viewBox units) into
-// real on-screen pixels, which correctly accounts for the SVG being
-// scaled responsively to whatever size `.sysmap-viewport` is actually
-// rendered at (see `lib/systemmap.py`'s docstring: the viewBox is a fixed
-// 700x700, but the visible box itself is fluid). Falls back to leaving
-// the preview at its CSS default position (top-right) if anything here
-// can't be resolved, rather than throwing.
-function positionPreviewNear(markerEl) {
-  var viewport = previewContainer.parentElement;
-  var svg = markerEl.ownerSVGElement;
-  var circle = markerEl.querySelector("circle");
-  if (!viewport || !svg || !circle || typeof svg.getScreenCTM !== "function") {
-    return;
+// Builds `sphereField`'s marker list from whichever scene `<svg>` is now
+// visible -- every `.sysmap-body` (star/planet/moon; `.sysmap-belt` isn't
+// a sphere and is left alone) with its own `<circle class="sysmap-body-
+// fill">`, `data-color`/`data-bodytype`/`data-hasatmosphere`/`data-
+// surfacetemp` read the same way the old single-body preview read them
+// off the clicked marker. A gas giant's band/ring textures are built once
+// here (not per frame -- `renderFrame` only re-reads the cached texture),
+// and `sysmap-sphere-active` is added so `style.css` can drop that
+// marker's own flat circle fill/ring silhouette in favor of the sphere
+// now standing in for them -- only once WebGL is confirmed working
+// (`sphereField` non-null), so an unsupported browser keeps the plain
+// flat marker instead of an empty transparent hole.
+function gatherSphereMarkers(sceneEl) {
+  if (!sceneEl) {
+    return [];
   }
-  var ctm = svg.getScreenCTM();
-  if (!ctm) {
-    return;
-  }
-  var point = svg.createSVGPoint();
-  point.x = parseFloat(circle.getAttribute("cx")) || 0;
-  point.y = parseFloat(circle.getAttribute("cy")) || 0;
-  var screenPoint = point.matrixTransform(ctm);
-
-  var viewportRect = viewport.getBoundingClientRect();
-  var previewRect = previewContainer.getBoundingClientRect();
-  var markerX = screenPoint.x - viewportRect.left;
-  var markerY = screenPoint.y - viewportRect.top;
-
-  // The marker's own radius, converted from the SVG's fixed viewBox units
-  // to real on-screen pixels via the CTM's scale factor (its "a"/"b"
-  // components are the transformed X basis vector -- ctm has no rotation
-  // here, only uniform scale, so its magnitude is that scale factor) --
-  // without this, a flat pixel offset clears a small moon marker fine but
-  // still lands squarely on top of a large planet/star marker.
-  var scale = Math.hypot(ctm.a, ctm.b) || 1;
-  var markerScreenRadius = (parseFloat(circle.getAttribute("r")) || 0) * scale;
-
-  var margin = 8;
-  var offset = markerScreenRadius + 14;
-  // Prefer floating to the marker's right; flip to its left if that would
-  // run the preview off the viewport's own right edge.
-  var left = markerX + offset;
-  if (left + previewRect.width + margin > viewportRect.width) {
-    left = markerX - offset - previewRect.width;
-  }
-  var top = markerY - previewRect.height / 2;
-
-  left = Math.max(margin, Math.min(left, viewportRect.width - previewRect.width - margin));
-  top = Math.max(margin, Math.min(top, viewportRect.height - previewRect.height - margin));
-
-  previewContainer.style.left = left + "px";
-  previewContainer.style.top = top + "px";
-  previewContainer.style.right = "auto";
-}
-
-function updatePreview(dataset, markerEl) {
-  if (!preview || !previewContainer) {
-    return;
-  }
-  var color = dataset.color || "#8a8f9c";
-  var isGasGiant = dataset.bodytype === "Gas Giant";
-
-  // A gas giant's ring reaches out to `ringOuterR` in its own local X --
-  // untouched by the ring's own tilt (only its Y-extent foreshortens, see
-  // this file's own `frameCamera` comment) -- so it, not the sphere/glow,
-  // is what the camera needs to fit back far enough for.
-  preview.frameCamera((isGasGiant ? preview.ringOuterR : preview.glowR) * 1.15);
-
-  if (preview.sphere.material.map) {
-    preview.sphere.material.map.dispose();
-  }
-  preview.sphere.material.map = isGasGiant ? makeBandTexture(color) : null;
-  preview.sphere.material.color.set(isGasGiant ? "#ffffff" : color);
-  preview.sphere.material.needsUpdate = true;
-
-  preview.ring.visible = isGasGiant;
-  if (isGasGiant) {
-    if (preview.ring.material.map) {
-      preview.ring.material.map.dispose();
+  var markers = [];
+  var els = sceneEl.querySelectorAll(".sysmap-body");
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    var circle = el.querySelector("circle.sysmap-body-fill");
+    if (!circle) {
+      continue;
     }
-    preview.ring.material.map = makeRingTexture(color);
-    preview.ring.material.needsUpdate = true;
+    var isStar = el.dataset.kind === "star";
+    var isGasGiant = !isStar && el.dataset.bodytype === "Gas Giant";
+    var marker = {
+      circle: circle,
+      isStar: isStar,
+      isGasGiant: isGasGiant,
+      color: el.dataset.color || "#8a8f9c",
+      hasAtmosphere: !isStar && el.dataset.hasatmosphere === "true",
+      glowColor: glowColorForTemp(parseSurfaceTempK(el.dataset.surfacetemp)),
+      rotation: Math.random() * Math.PI * 2, // dephased so a scene's spheres don't all spin in lockstep
+    };
+    if (isGasGiant) {
+      marker.bandTexture = makeBandTexture(marker.color);
+      marker.ringTexture = makeRingTexture(marker.color);
+    }
+    el.classList.add("sysmap-sphere-active");
+    markers.push(marker);
   }
-
-  var hasAtmosphere = dataset.hasatmosphere === "true";
-  preview.glow.visible = hasAtmosphere;
-  if (hasAtmosphere) {
-    preview.glowMaterial.uniforms.glowColor.value.set(glowColorForTemp(parseSurfaceTempK(dataset.surfacetemp)));
-  }
-
-  // Unhidden before measuring -- positionPreviewNear reads its actual
-  // rendered size via getBoundingClientRect(), which is 0x0 while hidden.
-  previewContainer.hidden = false;
-  if (markerEl) {
-    positionPreviewNear(markerEl);
-  }
-}
-
-function hidePreview() {
-  if (previewContainer) {
-    previewContainer.hidden = true;
-  }
+  return markers;
 }
 
 // --- Info panel / scene switching ------------------------------------------
@@ -407,12 +477,6 @@ function showInfo(el) {
     hint.textContent = "Click again to view its moon system.";
     panel.appendChild(hint);
   }
-
-  if (kind === "planet" || kind === "moon") {
-    updatePreview(el.dataset, el);
-  } else {
-    hidePreview();
-  }
 }
 
 function resetInfo(panel) {
@@ -421,7 +485,6 @@ function resetInfo(panel) {
   hint.className = "hint";
   hint.textContent = "Click a star, planet, moon, or asteroid belt for details.";
   panel.appendChild(hint);
-  hidePreview();
 }
 
 function initSystemMap(root) {
@@ -458,6 +521,10 @@ function initSystemMap(root) {
     });
     if (!active) {
       return;
+    }
+
+    if (sphereField) {
+      sphereField.setMarkers(gatherSphereMarkers(active));
     }
 
     crumb.textContent = "";

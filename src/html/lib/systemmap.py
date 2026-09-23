@@ -51,16 +51,26 @@ this planet's moon system" diagram); clicking any other object or a belt
 instead fills the info side panel from its `data-*` attributes, exactly
 like `starmap.py`/`sectormap.js`'s own click-for-info pattern.
 
-Clicking a planet/moon specifically also redraws `sysmap-preview` -- the
-one genuinely 3D element on this page: a small rotating shaded sphere
-(three.js, same vendored build `sectormap.js` uses), colored by the
-body's own class (`_class_color`, handed over pre-resolved as `data-color`
-so this module stays the one place that mapping lives), banded with a
-tilted ring for a gas giant (`data-bodytype`), and wrapped in a soft
-fresnel-glow atmosphere shell, tinted by `data-surfacetemp`, when
-`data-hasatmosphere` is set. This previews *appearance* only (no real
-position data goes into it) -- the true-position diagram above remains
-this map's actual subject.
+Every star/planet/moon marker's flat SVG circle is also live-rendered as a
+small rotating shaded sphere (three.js, same vendored build
+`sectormap.js` uses -- `static/systemmap.js`'s `#sysmap-spheres-canvas`),
+colored by the body's own class (`_class_color`, handed over pre-resolved
+as `data-color` so this module stays the one place that mapping lives --
+a star instead gets its own real spectral-type color from `_star_color`,
+same as `starmap.py`), banded with a tilted ring for a gas giant
+(`data-bodytype`), and wrapped in a soft fresnel-glow atmosphere shell,
+tinted by `data-surfacetemp`, when `data-hasatmosphere` is set. One shared
+WebGL context draws every visible marker's own sphere each frame via
+scissored sub-viewports (not one `<canvas>`/context per body -- browsers
+cap how many WebGL contexts can exist at once, easily blown through by a
+crowded system), positioned and sized to exactly cover that marker's own
+`<circle>` (whose own fill becomes transparent once its sphere is live,
+via `sysmap-sphere-active` -- see `static/systemmap.js`), so the sphere
+reads as *replacing* the flat marker rather than a separate preview
+floating beside it. This is an appearance layer only (no real position
+data goes into it) -- the true-position diagram (marker placement, labels,
+click-for-info, scene switching) remains this map's actual subject and is
+untouched by whether a sphere successfully renders on top of it.
 """
 
 import colorsys
@@ -574,7 +584,10 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
             f'<ellipse class="sysmap-ring" cx="{cx:.1f}" cy="{cy:.1f}" rx="{r_px * 1.7:.1f}" ry="{r_px * 0.5:.1f}" '
             f'transform="rotate(-20 {cx:.1f} {cy:.1f})"></ellipse>'
         )
-    parts.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r_px:.1f}" fill="{fill}" stroke="{stroke}"></circle>')
+    parts.append(
+        f'<circle class="sysmap-body-fill" cx="{cx:.1f}" cy="{cy:.1f}" r="{r_px:.1f}" '
+        f'fill="{fill}" stroke="{stroke}"></circle>'
+    )
     if planet_class and r_px >= 8:
         parts.append(
             f'<text class="sysmap-classletter" x="{cx:.1f}" y="{cy:.1f}" fill="{text_color}" '
@@ -615,10 +628,17 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
 def _star_marker_svg(cx, cy, r_px, star, attrs):
     fill, stroke = _star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     name = attrs.get("name", "star")
+    # Handed to the client as `data-color` too (like a planet/moon's own
+    # "color" attr -- see `_planet_attrs`) so `static/systemmap.js`'s 3D
+    # sphere renderer can color a star's own live-rendered sphere without
+    # duplicating `_star_color`'s spectral-type logic in JS.
+    star_attrs = dict(attrs)
+    star_attrs["color"] = fill
     return (
-        f'<g class="sysmap-body sysmap-star" tabindex="0" role="button"{_data_attrs(attrs)} '
+        f'<g class="sysmap-body sysmap-star" tabindex="0" role="button"{_data_attrs(star_attrs)} '
         f'aria-label="{esc(name)}">'
-        f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r_px:.1f}" fill="{fill}" stroke="{stroke}"></circle>'
+        f'<circle class="sysmap-body-fill" cx="{cx:.1f}" cy="{cy:.1f}" r="{r_px:.1f}" '
+        f'fill="{fill}" stroke="{stroke}"></circle>'
         f'<text class="sysmap-label sysmap-star-label" x="{cx:.1f}" y="{cy + r_px + 15:.1f}" '
         f'text-anchor="middle">{esc(name)}</text>'
         "</g>"
@@ -644,8 +664,8 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         # (`_class_color`) -- handed to the client as a resolved hex string
         # (like `starmap.py`'s star colors) rather than duplicating
         # `_CLASS_COLORS` in JS, so this module stays the one place a
-        # planet class's color is decided. Drives `sysmap-preview`'s 3D
-        # body-preview sphere in `static/systemmap.js`.
+        # planet class's color is decided. Drives this marker's own live 3D
+        # sphere in `static/systemmap.js` (`#sysmap-spheres-canvas`).
         "color": _class_color(planet["planet_class"]),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
@@ -1178,23 +1198,20 @@ def render_system_map_panel(system, stars, planets, belts):
     else:
         info_panel = '<aside class="starmap-info" id="sysmap-info"><p class="hint">Nothing to show yet.</p></aside>'
 
-    # A rotating shaded-sphere preview of whichever planet/moon is
-    # currently selected -- `static/systemmap.js` shows/hides, repositions
-    # (floated beside the clicked marker, via `getScreenCTM`), and redraws
-    # this from the clicked marker's own `data-color`/`data-bodytype`/
-    # `data-hasatmosphere` (a real planet/moon has none of those to show
-    # itself, so this stays out of the DOM entirely for a system with no
-    # planets or moons at all). A `<canvas>`, not an `<svg>`, since this is
-    # the one part of the System Map that's genuinely 3D -- see this
-    # module's own docstring for why the rest deliberately isn't. Lives
-    # INSIDE `.sysmap-viewport` (an absolutely-positioned overlay, not a
-    # separate side-panel box) so the rendered sphere reads as part of the
-    # map itself, floating next to whatever it's previewing.
-    preview_html = (
-        '<div class="sysmap-preview" id="sysmap-preview" hidden>'
-        '<canvas id="sysmap-preview-canvas" aria-hidden="true"></canvas>'
-        "</div>"
-        if planets else ""
+    # One shared WebGL canvas, sized to cover the whole `.sysmap-viewport`
+    # and drawn *behind* every scene's `<svg>` (see `style.css`'s
+    # `.sysmap-spheres-canvas`/`.sysmap-svg` z-index rule), that
+    # `static/systemmap.js` uses to render every visible star/planet/moon
+    # marker's own live 3D sphere in place, each scissored to exactly that
+    # marker's own `<circle>` -- see this module's own docstring. A single
+    # `<canvas>`, not one per marker (or an `<svg>`, the one part of the
+    # System Map that's genuinely 3D). `stars` (never empty whenever this
+    # panel renders at all -- see `render_system_map_panel`'s caller) is
+    # this block's presence guard, same reasoning the old single-body
+    # preview used `planets` for.
+    spheres_html = (
+        '<canvas id="sysmap-spheres-canvas" class="sysmap-spheres-canvas" aria-hidden="true"></canvas>'
+        if stars else ""
     )
 
     return f"""
@@ -1205,8 +1222,8 @@ def render_system_map_panel(system, stars, planets, belts):
 </div>
 <div class="starmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">
+{spheres_html}
 {''.join(scenes)}
-{preview_html}
 </div>
 <div class="starmap-side">
 <div class="sysmap-crumb" id="sysmap-crumb"></div>

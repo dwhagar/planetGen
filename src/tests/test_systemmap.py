@@ -360,7 +360,7 @@ def test_many_clustered_planets_do_not_crash_and_still_place_every_body():
     assert html.count('class="sysmap-body sysmap-planet"') == 15
 
 
-# --- body preview data (sysmap-preview / static/systemmap.js's own input) --
+# --- body preview data (sysmap-spheres-canvas / static/systemmap.js's own input) --
 
 def test_planet_attrs_carries_a_resolved_class_color():
     planet = _planet(1, 10, AU_KM, 0.0, planet_class="J")
@@ -389,30 +389,36 @@ def test_planet_attrs_formats_surface_temperature():
     assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, surface_temperature_k=None))["surfacetemp"] is None
 
 
-def test_render_system_map_panel_includes_the_preview_container_only_with_planets():
+def test_render_system_map_panel_includes_the_spheres_canvas_whenever_there_are_stars():
     system = {"name": "Preview Test", "binary_configuration": None}
     with_planet = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
-    assert 'id="sysmap-preview"' in with_planet
-    assert 'id="sysmap-preview-canvas"' in with_planet
+    assert 'id="sysmap-spheres-canvas"' in with_planet
 
-    without_planets = sm.render_system_map_panel(system, [_star(10)], [], [])
-    assert 'id="sysmap-preview"' not in without_planets
+    # A star alone (no planets/belts) still gets a marker of its own in the
+    # "system" scene -- the shared canvas is guarded on `stars`, not
+    # `planets`, since every star's marker also gets a live sphere now, not
+    # just planets/moons.
+    star_only = sm.render_system_map_panel(system, [_star(10)], [], [])
+    assert 'id="sysmap-spheres-canvas"' in star_only
+
+    no_stars = sm.render_system_map_panel(system, [], [], [])
+    assert 'id="sysmap-spheres-canvas"' not in no_stars
 
 
-def test_3d_preview_lives_inside_the_map_viewport_not_a_separate_box():
-    # Regression guard: the rotating 3D sphere preview used to sit in the
-    # separate `.starmap-side` column next to the map, not in the map
-    # itself. It should now be a sibling of the SVG scenes inside
-    # `.sysmap-viewport` -- i.e. the viewport's own closing `</div>` comes
-    # AFTER `#sysmap-preview`, not before it.
+def test_spheres_canvas_lives_inside_the_map_viewport_not_a_separate_box():
+    # Regression guard: the rotating 3D sphere layer must be a sibling of
+    # the SVG scenes inside `.sysmap-viewport` (so `style.css` can stack it
+    # directly behind them by z-index), not off in the separate
+    # `.starmap-side` info column -- i.e. the viewport's own closing
+    # `</div>` comes AFTER `#sysmap-spheres-canvas`, not before it.
     system = {"name": "Preview Location Test", "binary_configuration": None}
     html = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
 
     viewport_start = html.index('class="starmap-viewport sysmap-viewport"')
-    preview_start = html.index('id="sysmap-preview"')
+    canvas_start = html.index('id="sysmap-spheres-canvas"')
     side_start = html.index('class="starmap-side"')
-    assert viewport_start < preview_start < side_start, (
-        "#sysmap-preview should be inside .sysmap-viewport, before .starmap-side opens"
+    assert viewport_start < canvas_start < side_start, (
+        "#sysmap-spheres-canvas should be inside .sysmap-viewport, before .starmap-side opens"
     )
 
 

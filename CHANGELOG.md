@@ -1,5 +1,26 @@
 # Changelog
 
+## [5.46.13] - 2026-09-23
+
+### Changed
+- **Every star/planet/moon marker on the System Map now renders its own
+  live 3D sphere in place, not just a floating preview beside a click.**
+  Previously, only the one planet/moon last clicked got a rotating 3D
+  preview -- floated in a small box beside its flat marker (`#sysmap-
+  preview`) rather than replacing it, and the whole-system view's star and
+  every other unclicked body stayed flat 2D circles regardless. Every
+  visible marker (star included) now gets its own sphere, sized and
+  positioned to exactly cover -- and read as replacing -- its own flat
+  circle, all drawn each frame through one shared WebGL canvas
+  (`#sysmap-spheres-canvas`, `lib/systemmap.py` + `static/systemmap.js`)
+  via a scissored sub-viewport per marker, rather than one `<canvas>`/
+  context per body (which would risk exceeding a browser's cap on
+  concurrent WebGL contexts in a crowded system). A star gets its own
+  unlit, spectral-color-tinted sphere (`_star_color`, newly exposed as
+  `data-color` same as a planet/moon's own class color) plus a matching
+  glow shell; falls back to the plain flat marker for a browser that
+  can't create a WebGL context at all.
+
 ## [5.46.12] - 2026-09-23
 
 ### Added
