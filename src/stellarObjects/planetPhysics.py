@@ -207,7 +207,22 @@ def calculate_orbital_period_years(distance_au, primary_mass_kg):
 
     Returns:
         float: Orbital period in years.
+
+    Raises:
+        ValueError: If `distance_au` or `primary_mass_kg` isn't positive --
+            every real caller always has a positive orbital distance and
+            primary mass, so this guards against a `ZeroDivisionError`/
+            `math domain error` escaping from a coding mistake upstream
+            (e.g. an orbital-overlap correction pushing `distance` to zero
+            or negative) with the same clean-`ValueError` treatment
+            `calculate_surface_gravity` already gives a non-positive
+            gravity, instead of a confusing low-level exception.
     """
+    if distance_au <= 0 or primary_mass_kg <= 0:
+        raise ValueError(
+            f"calculate_orbital_period_years: distance_au ({distance_au}) and primary_mass_kg "
+            f"({primary_mass_kg}) must both be positive."
+        )
     primary_mass_sol = primary_mass_kg / physical_constants.SOLAR_MASS_TO_KG
     return math.sqrt(distance_au ** 3 / primary_mass_sol)
 

@@ -557,6 +557,7 @@ def test_binary_system_markdown_renders_each_stars_table():
     duplicated in both code paths (systemData.py's close- and wide-binary
     branches each had their own copy of the same one-newline join).
     """
+    import html as html_module
     import os
     import sys
 
@@ -582,4 +583,9 @@ def test_binary_system_markdown_renders_each_stars_table():
             f"into one unrendered paragraph again"
         )
         for name in star_names:
-            assert f">{name}<" in html, f"{name}'s header did not render as a heading"
+            # mdconvert.py HTML-escapes every heading's text (see its module
+            # docstring) -- a name containing '/&/</> (e.g. from an
+            # apostrophe-bearing generated name) is expected to come out
+            # escaped, not literal.
+            escaped_name = html_module.escape(name)
+            assert f">{escaped_name}<" in html, f"{name}'s header did not render as a heading"
