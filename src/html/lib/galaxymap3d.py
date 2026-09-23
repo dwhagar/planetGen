@@ -3,15 +3,17 @@
 """
 Interactive 3D Galaxy Map panel: a real perspective-camera WebGL scene
 (three.js, `static/galaxymap3d.js`) a visitor can fly freely through --
-unlike the flat, face-on SVG Galaxy Map (`lib/galaxymap.py`), whose
-camera never moves and whose whole-galaxy dataset is baked into one page
-load, this map's camera can travel anywhere in the galaxy, so most of
-what it draws is fetched live as the camera moves (`html/galaxy_view.py`,
-this page's own client-side JS `fetch()` target -- see that script's own
-docstring) rather than server-rendered once.
+this replaced an earlier flat, face-on SVG projection (a fixed camera,
+whose whole-galaxy dataset was baked into one page load, and whose
+fixed-radius markers grew relative to the view as you zoomed in with no
+camera to shrink them the opposite way). This map's camera can travel
+anywhere in the galaxy instead, so most of what it draws is fetched live
+as the camera moves (`html/galaxy_view.py`, this page's own client-side
+JS `fetch()` target -- see that script's own docstring) rather than
+server-rendered once.
 
 This module's job mirrors `lib/starmap.py`'s division of labor:
-`galaxy3d.py` (the page) makes every `apiclient` call (`get_galaxy_shape`/
+`galaxy.py` (the page) makes every `apiclient` call (`get_galaxy_shape`/
 `get_galaxy_view`); this module only ever turns already-fetched plain
 data into the panel's HTML and its one starting JSON payload -- every
 *later* payload (`static/galaxymap3d.js`'s own live re-fetches as the
@@ -32,9 +34,9 @@ module docstring for what each means):
   the current view is too wide to enumerate individual planned
   addresses -- not clickable, carries no info of its own.
 
-Unlike `lib/starmap.py`/`lib/galaxymap.py` (every dot's size/color/
-position is computed once, server-side, and the client only ever draws
-exactly what it's handed), per-dot *styling* (radius/opacity/color
+Unlike `lib/starmap.py` (every dot's size/color/position is computed
+once, server-side, and the client only ever draws exactly what it's
+handed), per-dot *styling* (radius/opacity/color
 formulas) for these three tiers lives entirely in `static/galaxymap3d.js`
 instead: the overwhelming majority of what gets drawn arrives through
 this page's own live `fetch()` re-queries as the camera moves, which
@@ -120,7 +122,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     """
     `(min_view_radius_pc, max_view_radius_pc)` -- see the module
     docstring's own explanation of what these bound. A pure function of
-    already-fetched data (no I/O), so `galaxy3d.py` (the page) can call it
+    already-fetched data (no I/O), so `galaxy.py` (the page) can call it
     directly to pick the radius its own first `get_galaxy_view` call uses,
     before this module's own panel-rendering function ever runs.
 
@@ -181,7 +183,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
                          `initial_view` itself is fetched).
         initial_view (dict): `apiclient.get_galaxy_view`'s own return
             shape (`placed`/`planned`/`density`/`edge_pc`/`has_shape`),
-            fetched by `galaxy3d.py` for the galactic origin at
+            fetched by `galaxy.py` for the galactic origin at
             `view_radius_bounds`'s own `max_view_radius_pc` -- the
             zoomed-all-the-way-out starting view.
 

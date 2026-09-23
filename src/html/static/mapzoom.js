@@ -1,21 +1,30 @@
 // html/static/mapzoom.js
 //
 // Shared viewBox-based zoom/pan for a flat, static, server-rendered
-// `<svg>` map -- galaxymap.js (the Galaxy Map) and phenomenonmap.js (a
-// stellar phenomenon's own AU-scale diagram) both use this instead of
-// each hand-rolling the same wheel-zoom/drag-pan/click-vs-drag logic.
-// Unlike sectormap.js's three.js scene (a real 3D camera), there is no
-// camera here at all -- "zooming" is just shrinking/growing the SVG's own
-// `viewBox` rect, which the browser already re-renders at full vector
-// fidelity (every marker/label was drawn in real SVG units server-side,
-// so magnifying the viewBox magnifies them too, for free -- no separate
-// level-of-detail logic needed).
+// `<svg>` map -- phenomenonmap.js (a stellar phenomenon's own AU-scale
+// diagram) is this module's one caller today (the Galaxy Map used to be
+// a second one, static/galaxymap.js, before it became a real 3D scene --
+// see lib/galaxymap3d.py); written generically rather than folded into
+// that one caller directly, so a future flat SVG map can reuse it the
+// same way instead of hand-rolling the same wheel-zoom/drag-pan/
+// click-vs-drag logic again.
+// Unlike sectormap.js's/galaxymap3d.js's three.js scenes (a real 3D
+// camera), there is no camera here at all -- "zooming" is just shrinking/
+// growing the SVG's own `viewBox` rect, which the browser already
+// re-renders at full vector fidelity (every marker/label was drawn in
+// real SVG units server-side, so magnifying the viewBox magnifies them
+// too, for free -- no separate level-of-detail logic needed). This is
+// also exactly why a flat SVG map's own markers grow steadily *larger*
+// relative to the view as you zoom in with no camera to shrink them the
+// opposite way -- the effect a real 3D camera (sectormap.js/
+// galaxymap3d.js) doesn't have, since a sprite's *world* size stays
+// fixed while its on-screen size naturally falls off with distance.
 //
-// Exponential zoom (not a linear px step) throughout, since both callers
-// span a huge dynamic range (a whole galaxy down to ~100 ly; a full
-// light-year down to 1 AU is a ~63,000x span) where a fixed linear step
-// would be unusably coarse at the zoomed-in end or unusably slow at the
-// zoomed-out end.
+// Exponential zoom (not a linear px step) throughout, since a caller like
+// phenomenonmap.js's own AU-scale diagram spans a huge dynamic range (a
+// full light-year down to 1 AU is a ~63,000x span) where a fixed linear
+// step would be unusably coarse at the zoomed-in end or unusably slow at
+// the zoomed-out end.
 
 (function () {
   "use strict";

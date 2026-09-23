@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.46.15] - 2026-09-23
+## [5.46.16] - 2026-09-23
 
 ### Fixed
 - **`GET /api/galaxy/view` (the interactive 3D Galaxy Map's live-viewport
@@ -12,13 +12,59 @@
   v22). `sectors.center_x/y/z_pc` had no index
   (`queryDb.galaxy_sectors_in_view`'s own bounding-box `WHERE` clause said
   so explicitly), and this endpoint is hit hard: once server-side on
-  every `galaxy3d.py` page load (the zoomed-all-the-way-out starting
-  view, spanning the whole galaxy) and repeatedly (debounced) as the 3D
-  camera moves. New schema v25 adds a composite `idx_sectors_center`
-  index (`_db._migrate_v24_to_v25`) so the query can range-scan instead of
+  every galaxy-map page load (the zoomed-all-the-way-out starting view,
+  spanning the whole galaxy) and repeatedly (debounced) as the 3D camera
+  moves. New schema v25 adds a composite `idx_sectors_center` index
+  (`_db._migrate_v24_to_v25`) so the query can range-scan instead of
   examining every row. Run `migrateDb.py` (or restart the app -- `_db.
   get_connection`/`migrate_database` apply it automatically) to pick this
   up on an existing database.
+
+## [5.46.15] - 2026-09-23
+
+### Changed
+- **`galaxy.py` (the "Galaxy Map" page) now renders the 3D map directly**,
+  in place of the flat SVG projection -- rather than living alongside it
+  as a separate `galaxy3d.py` page (5.46.13's original approach). The
+  flat SVG rendering code (`lib/galaxymap.py`'s former
+  `render_galaxy_map_panel` and `static/galaxymap.js`) is removed
+  entirely; `lib/galaxymap.py` keeps only the plain Quadrant/Ring
+  classification math `galaxy.py`'s own data tables and
+  `sector.py`/`browse.py`'s "Quadrant N" links still need.
+
+### Fixed
+- **The 3D map's illustrative density cloud was invisible from the
+  starting full-galaxy view.** Its points were sized in world-space
+  parsecs with perspective attenuation on -- correct for something meant
+  to represent real physical size, but a 1-2 pc point shrinks to
+  sub-pixel from thousands of parsecs away. Switched to a constant
+  on-screen pixel size (`sizeAttenuation: false`) so the cloud stays
+  visible at any zoom level.
+- **The density cloud didn't read as a recognizable galaxy shape.**
+  Points were drawn uniformly across the whole query volume -- at a wide
+  view, almost all of that volume is near-empty halo, so only a sparse,
+  shapeless scatter of points ever landed somewhere bright. Switched to
+  importance sampling from a bulge+disk mixture shaped like the galaxy's
+  own real mass distribution, so the cloud now visibly reads as a bright
+  core plus a disk (spiral-arm contrast still comes through via each
+  point's own real predicted density driving its color).
+- **Placed/not-yet-generated sector markers were effectively invisible
+  from a wide view** (the same world-space-sizing problem as the density
+  cloud above) -- "I don't see the sectors we've generated anywhere."
+  Both tiers now use the same constant-screen-size billboard technique
+  (recomputed every frame from each marker's own live distance to the
+  camera), so a generated sector stays a visible, clickable dot
+  regardless of how far the camera currently is, without ever growing to
+  dominate the view up close either.
+
+### Added
+- **`tests/galaxy_shape_visualizer_cli.py`** -- a diagnostic tool that
+  renders the galaxy's real density model as an actual face-on/edge-on
+  image (matplotlib), for directly eyeballing whether a set of shape
+  parameters produces a recognizable spiral rather than only judging it
+  through `relative_density` numbers. Optionally overlays every real,
+  already-generated sector's own position when given `--mysql-*`
+  connection args.
 
 ## [5.46.14] - 2026-09-23
 

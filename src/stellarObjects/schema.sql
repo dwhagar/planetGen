@@ -610,7 +610,7 @@
 -- v25: a spatial index on `sectors.center_x_pc`/`center_y_pc`/
 --   `center_z_pc` -- `queryDb.galaxy_sectors_in_view` (the interactive 3D
 --   Galaxy Map's live-viewport `GET /api/galaxy/view`, called repeatedly
---   as its camera moves, plus once server-side on every `galaxy3d.py`
+--   as its camera moves, plus once server-side on every `galaxy.py`
 --   page load for the zoomed-all-the-way-out starting view) runs a
 --   bounding-box `WHERE center_x_pc BETWEEN ... AND center_y_pc BETWEEN
 --   ... AND center_z_pc BETWEEN ...` on every call; without an index
