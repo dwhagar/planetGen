@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.46.5] - 2026-09-23
+
+### Fixed
+- **A binary system's own per-star property tables didn't render.** Each
+  star's `###`/`===` section header was joined to its property table by a
+  single newline instead of a blank line, so `html/lib/mdconvert.py`'s
+  blank-line block splitter lumped the heading and table into one block --
+  neither a valid single-line heading nor a valid table -- and rendered it
+  as one escaped paragraph of literal `#`/`|` characters instead of a real
+  heading plus table. Happened once per star, so every binary system showed
+  two broken blocks. Fixed in `systemData.py`'s close- and wide-binary
+  rendering paths.
+- **Generated systems could place two asteroid belts overlapping each
+  other, or a planet's orbit inside an asteroid belt.** Two independent
+  causes: (1) a wide (S-type) binary's cross-star clearance check
+  unconditionally skipped a trailing asteroid belt when finding a star's
+  "outermost" object, so belt-vs-belt (or belt-vs-planet) overlap between
+  the two stars' disks was never checked at all; (2) a forced
+  habitable-world/explicit-class placement drew its distance uniformly
+  within the target zone with no awareness of already-placed belts, and
+  could land inside one, or otherwise leave the object list no longer
+  sorted by distance -- which the existing overlap correction only ever
+  checks between immediate list neighbors, so a resulting overlap with a
+  non-adjacent belt went uncorrected. Fixed by making cross-star clearance
+  belt-aware (using a belt's own outer edge and a fixed minimum-separation
+  threshold, since a belt has no mass for the existing Hill-radius
+  criterion to apply to) and by making zone-forced distance selection
+  avoid already-placed belt spans. Added an independent, all-pairs overlap
+  invariant check (not a re-derivation of the existing correction's own
+  formula) to catch any future regression of this kind.
+
 ## [5.46.4] - 2026-09-19
 
 ### Fixed

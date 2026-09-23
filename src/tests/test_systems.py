@@ -23,7 +23,7 @@ from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects import physical_constants, program_constants as prog_c
 from stellarObjects.utils import (circular_orbital_speed_kms, minimum_update_interval_years,
-                                   mutual_hill_radius_m, orbital_position_au)
+                                   mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au)
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track
@@ -141,6 +141,109 @@ def assert_no_orbital_overlap(system):
     _assert_no_overlap_within(system.secondary_planets)
 
 
+def assert_no_belt_overlap_all_pairs(system):
+    """
+    Independent, all-pairs safety net -- deliberately NOT a re-derivation
+    of `validate_system`'s own spacing formula (that's what
+    `assert_no_orbital_overlap`/`_assert_no_overlap_within` already is, an
+    adjacent-list-pairs mirror of it). This instead asserts the one
+    invariant that must hold regardless of *how* objects got spaced: no
+    asteroid belt's own `[lower_limit, upper_limit]` span may overlap
+    another belt's span, or contain a planet's `distance`, for ANY pair in
+    a list -- not just list-adjacent ones.
+
+    This is the regression guard for a fixed bug where a zone-forced
+    placement (a forced `HABITABLE_WORLD`, or an explicit `SLOTS` class
+    request) could land a planet or belt at a distance the sequential
+    generation loop's own `estimated_distance` progression never implied,
+    breaking the "list order == distance order" assumption
+    `validate_system`'s adjacent-pairs sweep depends on -- so two belts
+    could overlap, or a planet's orbit could sit inside a belt, without
+    either being caught, because the object that would have caught it
+    wasn't actually its list neighbor. Fixed via belt-aware distance
+    selection (`StarSystem._distance_avoiding_belts`) and cross-star belt
+    clearance (`StarSystem._validate_cross_star_clearance`).
+
+    Deliberately does NOT compare across `system.planets` and
+    `system.secondary_planets` for a wide (S-type) binary: each list's
+    `distance` is measured from its OWN star, so the two lists don't share
+    a coordinate frame at all -- a primary-list belt at "3 AU" and a
+    secondary-list planet at "3 AU" are three AU from two different stars,
+    typically separated by tens of AU of binary orbital separation, not
+    anywhere near each other in real space. That cross-star relationship
+    has its own physically-meaningful check
+    (`StarSystem._validate_cross_star_clearance`'s worst-case-gap-vs-
+    binary-separation reasoning), which is exercised separately below.
+    """
+    for planet_list in (system.planets, system.secondary_planets):
+        belts = [obj for obj in planet_list if obj.body_type == 'a']
+
+        for i, belt in enumerate(belts):
+            for other in belts[i + 1:]:
+                overlap = belt.lower_limit < other.upper_limit and other.lower_limit < belt.upper_limit
+                assert not overlap, (
+                    f"asteroid belts overlap: [{belt.lower_limit}, {belt.upper_limit}] "
+                    f"and [{other.lower_limit}, {other.upper_limit}]"
+                )
+            for planet in planet_list:
+                if planet.body_type == 'a':
+                    continue
+                inside = belt.lower_limit < planet.distance < belt.upper_limit
+                assert not inside, (
+                    f"{planet.name}'s orbit at {planet.distance} AU sits inside asteroid belt "
+                    f"[{belt.lower_limit}, {belt.upper_limit}]"
+                )
+
+
+def assert_cross_star_clearance_holds(system):
+    """
+    For a wide (S-type) binary, mirrors `StarSystem._validate_cross_star_
+    clearance`'s own worst-case-gap-vs-threshold formula (the physically
+    correct way to compare the two stars' outermost objects -- each list's
+    `distance` is measured from its own star, so a raw interval-overlap
+    check across the two lists, the way `assert_no_belt_overlap_all_pairs`
+    checks within one list, would be meaningless -- see that function's
+    own docstring) to confirm the correction actually converged, the same
+    "mirror the formula as a convergence check" role
+    `assert_no_orbital_overlap` plays for `validate_system` itself.
+
+    Regression guard for `_validate_cross_star_clearance` unconditionally
+    skipping either star's trailing `AsteroidBelt` when finding its
+    "outermost planet" -- this now finds the true outermost object (belt
+    included) on each side and applies the same belt-aware threshold
+    (`MIN_ASTEROID_BELT_SEPARATION` when either side is a belt, the
+    Gladman mutual-Hill-radius criterion when both are real planets) the
+    fixed method itself uses.
+    """
+    if system.binary_type != "wide" or not system.planets or not system.secondary_planets:
+        return
+
+    def edge_au(obj):
+        return obj.upper_limit if obj.body_type == 'a' else obj.distance
+
+    outer_p = max(system.planets, key=edge_au)
+    outer_s = max(system.secondary_planets, key=edge_au)
+
+    a_bin = system.wide_binary.separation_au
+    worst_case_gap_au = a_bin - edge_au(outer_p) - edge_au(outer_s)
+
+    if outer_p.body_type == 'a' or outer_s.body_type == 'a':
+        threshold_au = prog_c.MIN_ASTEROID_BELT_SEPARATION
+    else:
+        central_mass_kg = system.primary_star.mass + system.secondary_star.mass
+        r_h_mutual_au = mutual_hill_radius_au(
+            outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg,
+        )
+        threshold_au = physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
+
+    tolerance = max(1e-9, abs(threshold_au) * 1e-9)
+    assert worst_case_gap_au >= threshold_au - tolerance, (
+        f"wide binary's two disks encroach: outermost primary object edge={edge_au(outer_p)} AU, "
+        f"outermost secondary object edge={edge_au(outer_s)} AU, a_bin={a_bin} AU, "
+        f"worst-case gap={worst_case_gap_au}, required>={threshold_au}"
+    )
+
+
 def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
     """
     Regression test for a bug where `validate_system`'s
@@ -239,6 +342,8 @@ def test_baseline_random_system_generates_without_error(star_type):
         assert str(system).strip()
         assert_ages_never_exceed_lifespan(system)
         assert_no_orbital_overlap(system)
+        assert_no_belt_overlap_all_pairs(system)
+        assert_cross_star_clearance_holds(system)
         assert_counts_are_consistent(system)
         assert_positions_and_speeds_are_consistent(system)
 
@@ -252,6 +357,8 @@ def test_each_tristate_flag_forced(star_type, value, attr):
         assert str(system).strip()
         assert_ages_never_exceed_lifespan(system)
         assert_no_orbital_overlap(system)
+        assert_no_belt_overlap_all_pairs(system)
+        assert_cross_star_clearance_holds(system)
         assert_counts_are_consistent(system)
         assert_positions_and_speeds_are_consistent(system)
 
@@ -333,8 +440,33 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
             failures_belt += 1
         if system.hab_count == 0:
             failures_hab += 1
+        assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
     assert failures_hab == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a habitable world in {failures_hab}/{trials} trials"
+
+
+def test_wide_binary_asteroid_belts_forced_do_not_overlap_across_stars():
+    """
+    Regression guard for `_validate_cross_star_clearance` unconditionally
+    skipping any star's trailing `AsteroidBelt` when finding its
+    "outermost planet" -- meaning a wide (S-type) binary's two disks could
+    have belts (or a belt and the other star's outermost planet) overlap
+    in real space with no check catching it at all. Forces ASTEROID_BELT
+    on both stars' generation (primary via `apply_guarantees`, secondary
+    always independently random -- so this also forces `MAX_PLANETS` to
+    push both disks as far out as possible, maximizing how often the two
+    disks would actually reach each other and exercise the cross-star
+    check) and asserts the fixed all-pairs invariant across both stars'
+    combined object lists.
+    """
+    trials = 15
+    for _ in range(trials):
+        system = StarSystem(system_config=make_config(
+            "M2VII", BINARY_SYSTEM=True, WIDE_BINARY=True, ASTEROID_BELT=True, MAX_PLANETS=True,
+        ))
+        assert system.binary_type == "wide"
+        assert_no_belt_overlap_all_pairs(system)
+        assert_cross_star_clearance_holds(system)
 
 
 @pytest.mark.parametrize("age", ["young", "old", None])
@@ -411,3 +543,43 @@ def test_binary_system_star_properties_are_sane():
             # value should match either constituent star's own value.
             assert proxy.galactic_orbital_speed_kms == pytest.approx(primary.galactic_orbital_speed_kms)
             assert proxy.galactic_orbital_period_gy == pytest.approx(primary.galactic_orbital_period_gy)
+
+
+def test_binary_system_markdown_renders_each_stars_table():
+    """
+    Regression guard for a fixed bug: each binary star's own `###` header
+    was joined to its property table by a single '\\n', not a blank line,
+    so html/lib/mdconvert.py's blank-line block splitter lumped the header
+    and table into one block -- which is neither a valid single-line
+    heading nor a valid table -- and rendered as one escaped, literal
+    paragraph of '#'/'|' text instead of a real <h3> + <table>. Checks both
+    binary configurations (close/P-type and wide/S-type), since the bug was
+    duplicated in both code paths (systemData.py's close- and wide-binary
+    branches each had their own copy of the same one-newline join).
+    """
+    import os
+    import sys
+
+    _src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, os.path.join(_src_dir, "html", "lib"))
+    from mdconvert import markdown_to_html  # same path setup as test_mdconvert.py
+
+    for wide_binary in (False, True):
+        system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=wide_binary))
+        # _db.py's persist_star_system renders the web-facing copy with
+        # MARKDOWN=True (ATX headers) -- match that exactly, since MARKDOWN
+        # defaults to False (wikitext '===' headers) which mdconvert.py
+        # doesn't parse as headings at all.
+        system.system_config.MARKDOWN = True
+        html = markdown_to_html(str(system))
+
+        star_names = [s.name for s in system.stars]
+        assert len(star_names) == 2
+        table_count = html.count("<table>")
+        assert table_count >= 2, (
+            f"expected at least one rendered <table> per star (got {table_count} "
+            f"for {star_names}); a binary star's header+table likely collapsed "
+            f"into one unrendered paragraph again"
+        )
+        for name in star_names:
+            assert f">{name}<" in html, f"{name}'s header did not render as a heading"

@@ -195,16 +195,25 @@ def test_apply_guarantees_false_ignores_slots_and_forced_habitable_world():
 
 # ---------------------------------------------------------------------------
 # Cross-star clearance (_validate_cross_star_clearance) -- uses lightweight
-# stub objects (duck-typed: body_type/distance/mass) rather than full Planet
-# instances, so the pruning algorithm itself can be tested deterministically
-# without depending on randomized generation.
+# stub objects (duck-typed: body_type/distance/mass/lower_limit/upper_limit)
+# rather than full Planet/AsteroidBelt instances, so the pruning algorithm
+# itself can be tested deterministically without depending on randomized
+# generation.
 # ---------------------------------------------------------------------------
 
 class _StubPlanet:
-    def __init__(self, distance, mass=5.972e24, body_type="t"):
+    def __init__(self, distance, mass=5.972e24, body_type="t", upper_limit=None, lower_limit=None):
         self.distance = distance
         self.mass = mass
         self.body_type = body_type
+        # Only meaningful for a belt stand-in (body_type="a") -- real
+        # AsteroidBelt objects have these too, and _validate_cross_star_
+        # clearance's edge_au() reads upper_limit (not distance) for a
+        # belt's own outer edge. Default them to `distance` itself so a
+        # caller that doesn't care about belt geometry can still pass
+        # body_type="a" without also having to spell out matching limits.
+        self.upper_limit = upper_limit if upper_limit is not None else distance
+        self.lower_limit = lower_limit if lower_limit is not None else distance
 
 
 def _wide_system_for_clearance_test(separation_au, primary_a_crit_au, secondary_a_crit_au):
@@ -273,13 +282,34 @@ def test_cross_star_clearance_terminates_when_a_list_is_exhausted():
     assert len(system.planets) + len(system.secondary_planets) == 1
 
 
-def test_cross_star_clearance_skips_belts_as_outermost_body():
-    # A trailing AsteroidBelt has no discrete Hill sphere to evaluate -- if
-    # either side's outermost body is a belt, this is a no-op (see the
-    # method's own docstring).
+def test_cross_star_clearance_prunes_belt_as_outermost_body():
+    # Regression guard: a trailing AsteroidBelt used to be skipped entirely
+    # when finding a star's "outermost planet" (no discrete Hill sphere to
+    # evaluate), so two belts -- or a belt and the other star's own
+    # outermost planet -- could encroach on each other with no check
+    # catching it at all. Fixed: a belt is now a valid "outermost object",
+    # using its own upper_limit as the relevant edge, checked against the
+    # fixed MIN_ASTEROID_BELT_SEPARATION buffer (a belt has no mass for the
+    # Gladman mutual-Hill-radius criterion to apply to).
     system = _wide_system_for_clearance_test(separation_au=10.0, primary_a_crit_au=5.0, secondary_a_crit_au=5.0)
-    system.planets = [_StubPlanet(distance=4.999, body_type="a")]
-    system.secondary_planets = [_StubPlanet(distance=4.999, body_type="a")]
+    system.planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=4.999)]
+    system.secondary_planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=4.999)]
+
+    system._validate_cross_star_clearance()
+
+    # 10.0 - 4.999 - 4.999 = 0.002 AU, far under MIN_ASTEROID_BELT_SEPARATION
+    # -- one belt must have been pruned (equal margins -- either is a valid
+    # tie-break outcome).
+    assert len(system.planets) + len(system.secondary_planets) == 1
+
+
+def test_cross_star_clearance_leaves_well_separated_belts_alone():
+    # The belt-aware counterpart to test_cross_star_clearance_no_op_when_
+    # trivially_satisfied -- confirms the fix doesn't make belt clearance
+    # over-eager when there's plainly enough room.
+    system = _wide_system_for_clearance_test(separation_au=100.0, primary_a_crit_au=40.0, secondary_a_crit_au=40.0)
+    system.planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=5.0)]
+    system.secondary_planets = [_StubPlanet(distance=4.0, body_type="a", lower_limit=3.5, upper_limit=5.0)]
 
     system._validate_cross_star_clearance()
 
