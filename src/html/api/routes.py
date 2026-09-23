@@ -46,6 +46,7 @@ from queryDb import (
     count_phenomena,
     count_sectors,
     count_systems,
+    galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
     list_phenomena,
@@ -524,6 +525,19 @@ def galaxy_phenomena():
     for the same reason `/api/galaxy/sectors` isn't.
     """
     return jsonify({"items": galaxy_placed_phenomena(get_db())})
+
+
+@bp.route("/galaxy/shape")
+def galaxy_shape():
+    """
+    The galaxy's stored density-skeleton shape (`generate.py plan`'s own
+    output, `queryDb.galaxy_density_shape`) -- the real spiral/disk/bulge
+    model the Galaxy Map (`html/galaxy.py`) shades its "expected density"
+    cloud from, for whatever space hasn't actually been generated yet.
+    `"shape"` is `null` when the skeleton has never been built (the map
+    then falls back to its own generic illustrative gradient).
+    """
+    return jsonify({"shape": galaxy_density_shape(get_db())})
 
 
 @bp.route("/phenomena")

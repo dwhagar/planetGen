@@ -322,6 +322,14 @@ def get_galaxy_phenomena(db):
     return _request("/galaxy/phenomena", {"db": db})["items"]
 
 
+def get_galaxy_shape(db):
+    """Returns `GET /api/galaxy/shape`'s `shape` dict -- the galaxy's
+    stored density-skeleton shape (`generate.py plan`'s output), or
+    `None` if that skeleton has never been built."""
+    _require_db(db)
+    return _request("/galaxy/shape", {"db": db})["shape"]
+
+
 def get_phenomena(db, limit=None, offset=None):
     """Returns `GET /api/phenomena`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`) -- see `queryDb.list_phenomena`'s

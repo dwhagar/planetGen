@@ -36,6 +36,7 @@ import pytest
 
 import generate as galaxyGen
 import generate as sectorGen
+import queryDb
 from stellarObjects import _db, program_constants
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
 from stellarObjects.galaxyGeometry import (
@@ -133,6 +134,36 @@ def _all_sectors(mysql_config):
         ).fetchall()
     finally:
         conn.close()
+
+
+def test_galaxy_density_shape_returns_none_before_a_skeleton_is_built(mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert queryDb.galaxy_density_shape(conn) is None
+    finally:
+        conn.close()
+
+
+def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
+    # The Galaxy Map (html/galaxy.py, via GET /api/galaxy/shape) reads this
+    # exact dict to shade its "expected density" cloud from the real model
+    # instead of the illustrative fallback gradient -- confirms the shape
+    # this function hands back round-trips every field `GalaxyShape`/
+    # `_db.get_galaxy_shape` produce, not just that it returns *something*.
+    _seed_skeleton(mysql_config, outer_shell_index=42, e_value=2.5)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        shape_dict = queryDb.galaxy_density_shape(conn)
+    finally:
+        conn.close()
+
+    assert shape_dict is not None
+    for field in _SKELETON_SHAPE._fields:
+        assert shape_dict[field] == pytest.approx(getattr(_SKELETON_SHAPE, field))
+    assert shape_dict["edge_pc"] == pytest.approx(EDGE_PC)
+    assert shape_dict["outer_shell_index"] == 42
+    assert shape_dict["expected_system_count_at_density_1"] == pytest.approx(2.5)
 
 
 def test_shell_batch_mode_generates_every_slot_and_is_idempotent(mysql_config):

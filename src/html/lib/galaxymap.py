@@ -42,15 +42,25 @@ different ways:
 
 - **Real, generated sectors** -- bright dots, sized/colored by their own
   actual `system_count`.
-- **Un-generated space** -- a soft radial "cloud" gradient (brighter near
-  the core, fading outward). This is purely illustrative shading, NOT a
-  real population model -- no disk/bulge/spiral density envelope exists
-  anywhere in this codebase yet (`galaxyGen.py` generates any requested
-  shell/neighborhood uniformly; see
-  `docs/design/galaxy-coordinate-system.md` section 7, question 2, still
-  open). It exists only so an overwhelmingly-empty galaxy -- which is the
-  normal, expected state, since the addressable volume runs into the
-  hundreds of billions of sector slots -- doesn't render as a blank void.
+- **Un-generated space** -- shaded by the galaxy's real predicted density,
+  when it's known. `generate.py plan` computes and stores a singleton
+  `galaxy_shape` row (`stellarObjects.galaxyDensity.GalaxyShape` -- the
+  exponential-disk-plus-bulge-plus-spiral-arm model, see
+  `docs/design/galaxy-disk-density.md`) that already gates/weights actual
+  sector generation (`generate.py`'s `_BatchDensity`); `html/galaxy.py`
+  passes that same shape down here (`galaxy_shape`, `queryDb.
+  galaxy_density_shape`/`GET /api/galaxy/shape`) so `_expected_density_elements`
+  can evaluate `galaxyDensity.relative_density` across the visible disk
+  and shade a grid of small tiles by it -- un-filled space still reads as
+  the actual predicted spiral, not a generic radial glow. If the skeleton
+  has never been built (`galaxy_shape is None` -- `generate.py plan` was
+  never run), this falls back to `_cloud_defs`'s original soft radial
+  "cloud" gradient (brighter near the core, fading outward) -- purely
+  illustrative shading, not a real population model, same as before this
+  module read any actual density. Either way this exists so an
+  overwhelmingly-empty galaxy -- the normal, expected state, since the
+  addressable volume runs into the hundreds of billions of sector slots --
+  doesn't render as a blank void.
 """
 
 import math
@@ -58,15 +68,22 @@ import math
 from fmt import data_nav_params, esc, post_link
 
 try:
+    from stellarObjects.galaxyDensity import GalaxyShape, relative_density
     from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
-    from stellarObjects.utils import pc_to_ly
+    from stellarObjects.utils import ly_to_pc, pc_to_ly
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching starmap.py's own pattern (dbutil.py
     # itself no longer has one -- stellarObjects is a hard dependency
     # there now that its MySQL connection helpers are load-bearing).
+    # `GalaxyShape`/`relative_density` left `None` -- `_expected_density_elements`
+    # treats that the same as "skeleton never built" and falls back to the
+    # illustrative gradient, same as a deployment where it's just missing data.
     DEFAULT_SECTOR_EDGE_LY = 11.5
     pc_to_ly = None
+    ly_to_pc = None
+    GalaxyShape = None
+    relative_density = None
 
 QUADRANT_LABELS = ("I", "II", "III", "IV")
 """tuple[str]: The four galaxy-scale Quadrants, in azimuthal order starting
@@ -172,13 +189,45 @@ def ring_bounds_ly(ring_index):
     return inner_ly, outer_ly
 
 
-def _rings_to_show(sectors):
+_SPIRAL_VIEW_SCALE_LENGTHS = 2.0
+"""float: How many `disk_scale_length_pc`s out the default (un-zoomed)
+view reaches when the galaxy's real density model is known -- enough for
+its spiral arms to complete a visible wind or two (see
+`docs/design/galaxy-disk-density.md`'s own pitch-angle worked example),
+so the map reads as a spiral by default even when almost nothing has been
+generated yet. Without this, `_rings_to_show`'s sector-driven minimum
+alone (`_MIN_RINGS_SHOWN`, ~300 ly) stays well inside the "trivially
+solid" bulge core for any Milky-Way-scale shape (that design doc found it
+extends to ~2,770 ly), so the density cloud would render as a uniform
+bright disc -- accurate for that tiny a patch, but never showing the
+actual spiral shape at all. Capped by the model's own real, stored outer
+edge (`outer_shell_index`/`edge_pc`) when that's smaller, so a small toy
+galaxy never gets zoomed out past its own true extent."""
+
+
+def _rings_to_show(sectors, galaxy_shape=None):
     """At least `_MIN_RINGS_SHOWN`, or enough to cover every placed
-    sector's own Ring plus one extra empty Ring of context beyond it."""
+    sector's own Ring plus one extra empty Ring of context beyond it --
+    or, when `galaxy_shape` is known, enough to reach
+    `_SPIRAL_VIEW_SCALE_LENGTHS` of its real disk scale length (capped at
+    its own stored outer edge) if that's farther out still, so the
+    "expected density" cloud actually has spiral structure to show by
+    default -- see `_SPIRAL_VIEW_SCALE_LENGTHS`'s own docstring."""
     max_shell = max((s["shell_index"] for s in sectors if s["shell_index"] is not None), default=None)
-    if max_shell is None:
-        return _MIN_RINGS_SHOWN
-    return max(_MIN_RINGS_SHOWN, sector_ring(max_shell) + 2)
+    sector_rings = _MIN_RINGS_SHOWN if max_shell is None else max(_MIN_RINGS_SHOWN, sector_ring(max_shell) + 2)
+
+    if not galaxy_shape:
+        return sector_rings
+
+    spiral_reach_pc = _SPIRAL_VIEW_SCALE_LENGTHS * galaxy_shape["disk_scale_length_pc"]
+    outer_shell_index = galaxy_shape.get("outer_shell_index")
+    edge_pc = galaxy_shape.get("edge_pc")
+    if outer_shell_index is not None and edge_pc is not None:
+        spiral_reach_pc = min(spiral_reach_pc, (outer_shell_index + 1) * edge_pc)
+
+    spiral_reach_ly = pc_to_ly(spiral_reach_pc) if pc_to_ly else spiral_reach_pc * 3.2616
+    spiral_rings = math.ceil(spiral_reach_ly / (RING_SHELL_WIDTH * DEFAULT_SECTOR_EDGE_LY))
+    return max(sector_rings, spiral_rings)
 
 
 _MAX_RINGS_DRAWN = 10
@@ -253,6 +302,191 @@ def _cloud_defs():
         '<stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>'
         "</radialGradient>"
     )
+
+
+_DENSITY_GRID_CELLS = 64
+"""int: Tiles per side of the "expected density" grid (see
+`_expected_density_elements`) -- a compromise between a visibly-spiral
+shape (needs enough resolution to show arm/inter-arm contrast rather than
+smearing it into a uniform ring) and how many `<rect>` elements one page
+render can afford (`_DENSITY_GRID_CELLS**2`, before the circular-crop skip
+below removes the ~21% that fall in the square's corners -- a few thousand
+either way, trivial for both server-side generation and the browser)."""
+
+_DENSITY_MAX_OPACITY = 0.6
+"""float: Cap on a single density tile's own `fill-opacity` -- keeps even
+the single brightest tile in view from fully obscuring a "star" dot drawn
+on top of it (same reasoning `_cloud_defs`'s own 0.5 center-stop cap
+followed)."""
+
+_DENSITY_RADIAL_GAMMA = 0.4
+"""float: Exponent `_expected_density_elements` applies to each tile's
+*azimuthally-averaged* density (`_radial_baseline_density` -- the same
+`relative_density` formula with the spiral-arm term's own azimuthal
+average substituted for its real value, i.e. `arm_factor -> 1`),
+normalized against the single brightest tile currently in view, to get
+that tile's smooth radial "how close to the core" glow. `relative_density`
+falls off steeply (bulge/disk both exponential in radius, see
+`docs/design/galaxy-disk-density.md`), so a linear (`gamma=1`) scale would
+leave everything past the inner bulge reading as barely-there -- `< 1` is
+a standard display-only contrast stretch (the same idea a telescope
+image's own "curves" adjustment applies before its real structure is
+visible by eye), same reasoning `_star_visual`'s own `log2` scale follows
+for a sector dot's size. Kept separate from the spiral-arm contrast itself
+(`_DENSITY_ARM_CONTRAST`) specifically so gamma-stretching one doesn't
+also distort the other: the radius-spanning falloff and the arm/inter-arm
+swing *at one radius* are different-sized effects (the model's own
+worked example puts the swing at `~2.33x`, tiny next to the bulge-to-edge
+falloff), so stretching both with one shared exponent leaves whichever
+effect is smaller looking flat -- see `_expected_density_elements`'s own
+docstring."""
+
+_DENSITY_ARM_CONTRAST = 1.0
+"""float: How strongly a tile's real spiral-arm modulation (`density /
+_radial_baseline_density` at that same position -- exactly `arm_factor`,
+`galaxyDensity`'s own `[1 - arm_amplitude, 1 + arm_amplitude]` range, once
+the bulge-dilution near the core has been divided back out) multiplies
+its radial glow (`_DENSITY_RADIAL_GAMMA`'s output) to get the final tile
+opacity. `1.0` applies that real ratio unscaled -- already a genuine,
+data-driven `~2.33x` arm/inter-arm swing for this model's own worked
+example (`docs/design/galaxy-disk-density.md`), not fabricated contrast;
+a value here would only ever be tuned up for a shape whose own
+`arm_amplitude` is too subtle to read as a spiral at a glance, never used
+to invent structure the model doesn't actually predict."""
+
+_DENSITY_MIN_OPACITY = 0.01
+"""float: Below this, `_expected_density_elements` skips emitting the tile
+entirely rather than adding a practically-invisible `<rect>` -- keeps the
+outer, empty-inter-arm-trough majority of the grid from bloating the SVG
+with elements no one can see."""
+
+
+def _radial_baseline_density(shape, r_pc):
+    """
+    `galaxyDensity._raw_density` at `(r_pc, 0, 0)` (disk plane, `z=0` --
+    this map's own projection), but with the spiral-arm term's own
+    azimuthal average (`arm_factor`'s mean over a full `theta` revolution
+    is exactly `1`, since it's `1 + amplitude * cos(...)` and cosine
+    averages to `0`) substituted for its real, `theta`-dependent value --
+    i.e. this shape's smooth bulge+disk envelope *without* any spiral
+    structure riding on it, at whatever radius a real tile's own
+    `relative_density` (which *does* include the real arm term) can be
+    compared against to isolate that tile's own arm/inter-arm contrast
+    (`_expected_density_elements`: `density / _radial_baseline_density(...)
+    == arm_factor` exactly, algebraically, once the shared bulge/disk
+    terms cancel). Public formula, not a private `galaxyDensity` internal
+    reused out of turn -- restated directly from
+    `docs/design/galaxy-disk-density.md` section 1's own spec, the same
+    one `galaxyDensity._raw_density`/`relative_density` implement.
+
+    Args:
+        shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
+        r_pc (float): In-plane (and, since `z=0`, also 3D) galactocentric
+            radius, parsecs -- always `>= 0`.
+
+    Returns:
+        float: `>= 0`, normalized the same way `relative_density` is
+            (`shape.k_norm` applied).
+    """
+    bulge = shape.bulge_amplitude * math.exp(-r_pc / shape.bulge_scale_radius_pc)
+    disk_radial = math.exp(-r_pc / shape.disk_scale_length_pc)
+    return shape.k_norm * (bulge + disk_radial)
+
+
+def _expected_density_elements(galaxy_shape, px_per_ly):
+    """
+    The real "expected density" shading -- a `_DENSITY_GRID_CELLS`-square
+    grid of small tiles, each shaded by `galaxyDensity.relative_density`
+    at that tile's own galaxy-frame position (the disk plane, `z=0`: this
+    map is a flat face-on projection, the same plane `sector_quadrant`
+    already classifies by). Each tile's opacity is a smooth radial glow
+    (`_radial_baseline_density`, peak-normalized and gamma-stretched --
+    `_DENSITY_RADIAL_GAMMA`) multiplied by that tile's own real spiral-arm
+    contrast (`_DENSITY_ARM_CONTRAST`) -- split this way, rather than
+    gamma-stretching the raw `relative_density` directly, specifically
+    because the radius-spanning falloff (bulge peak down to near-zero at
+    the edge) is a far bigger effect than the arm/inter-arm swing *at any
+    one radius*, so a single shared stretch flattens the arms into
+    invisibility even though they're really there. Un-generated space this
+    way still reads as the galaxy's actual
+    predicted spiral shape -- bulge core, two arms, inter-arm troughs --
+    rather than a generic radial glow, wherever that shape is actually
+    known.
+
+    Args:
+        galaxy_shape (dict or None): `queryDb.galaxy_density_shape`'s
+            return shape (every `galaxyDensity.GalaxyShape` field, plus a
+            few this function ignores) -- `None` if `generate.py plan`
+            has never been run against this database.
+        px_per_ly (float): Pixels per light-year at the current scale
+            (same value `_project`/`_ring_elements` already use), so a
+            tile's screen position converts back to a real galaxy-frame
+            position.
+
+    Returns:
+        str or None: A `<defs>` clip-path plus one clipped `<g>` of
+            `<rect>` tiles, or `None` if `galaxy_shape` is `None` (no
+            skeleton built yet), every in-view tile came back at a
+            non-positive baseline density (never actually happens -- the
+            model has no hard-zero region -- but guarded rather than
+            assumed), or `stellarObjects` isn't importable in this
+            deployment (see this module's own top-of-file try/except) --
+            any of those, the caller falls back to `_cloud_defs`'s
+            illustrative gradient instead.
+    """
+    if galaxy_shape is None or GalaxyShape is None:
+        return None
+
+    shape = GalaxyShape(**{field: galaxy_shape[field] for field in GalaxyShape._fields})
+    cell_px = _SVG_SIZE / _DENSITY_GRID_CELLS
+    max_r_px = _MAP_RADIUS_PX + cell_px  # generous margin so a tile centered just outside the
+                                          # ring still gets clipped cleanly rather than cut mid-tile
+
+    # First pass: every in-view tile's own real density and radial baseline, plus the
+    # brightest baseline found -- the radial glow below needs that peak to normalize against.
+    tiles = []
+    peak_baseline = 0.0
+    for row in range(_DENSITY_GRID_CELLS):
+        cy = (row + 0.5) * cell_px
+        dy_px = cy - _CENTER
+        for col in range(_DENSITY_GRID_CELLS):
+            cx = (col + 0.5) * cell_px
+            dx_px = cx - _CENTER
+            if dx_px * dx_px + dy_px * dy_px > max_r_px * max_r_px:
+                continue
+
+            x_ly, y_ly = dx_px / px_per_ly, -dy_px / px_per_ly  # +Y up in galaxy-frame, see _project
+            x_pc = ly_to_pc(x_ly) if ly_to_pc else x_ly / 3.2616
+            y_pc = ly_to_pc(y_ly) if ly_to_pc else y_ly / 3.2616
+
+            density = relative_density((x_pc, y_pc, 0.0), shape)
+            baseline = _radial_baseline_density(shape, math.hypot(x_pc, y_pc))
+            tiles.append((cx, cy, density, baseline))
+            if baseline > peak_baseline:
+                peak_baseline = baseline
+
+    if not tiles or peak_baseline <= 0:
+        return None
+
+    parts = [
+        f'<defs><clipPath id="galaxyDensityClip">'
+        f'<circle cx="{_CENTER:.1f}" cy="{_CENTER:.1f}" r="{_MAP_RADIUS_PX:.1f}"/>'
+        f"</clipPath></defs>",
+        '<g clip-path="url(#galaxyDensityClip)">',
+    ]
+    for cx, cy, density, baseline in tiles:
+        radial_glow = max(0.0, baseline / peak_baseline) ** _DENSITY_RADIAL_GAMMA
+        arm_contrast = (max(0.0, density) / baseline) ** _DENSITY_ARM_CONTRAST if baseline > 0 else 1.0
+        opacity = min(_DENSITY_MAX_OPACITY, _DENSITY_MAX_OPACITY * radial_glow * arm_contrast)
+        if opacity < _DENSITY_MIN_OPACITY:
+            continue
+        parts.append(
+            f'<rect x="{cx - cell_px / 2:.2f}" y="{cy - cell_px / 2:.2f}" '
+            f'width="{cell_px:.2f}" height="{cell_px:.2f}" fill="var(--accent)" '
+            f'fill-opacity="{opacity:.3f}"/>'
+        )
+    parts.append("</g>")
+    return "".join(parts)
 
 
 def _ring_elements(rings_to_show, px_per_ly):
@@ -408,12 +642,12 @@ def _star_elements(db_name, sectors, px_per_ly):
     return "".join(parts)
 
 
-def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
+def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None, galaxy_shape=None):
     """
     Builds the "Galaxy Map" panel: a flat SVG plot of every galaxy-placed
     sector (a bright dot, sized/colored by `system_count`) inside four
-    Quadrants and concentric Rings, over an illustrative "expected
-    density" cloud gradient -- see this module's docstring.
+    Quadrants and concentric Rings, over an "expected density" cloud --
+    see this module's docstring, and `galaxy_shape` below.
 
     Args:
         db_name (str): The current `?db=` value, used to build every link.
@@ -435,17 +669,36 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
                                 sphere reaches into (a black hole/neutron
                                 star is point-like even there). `None`/
                                 empty plots none.
+        galaxy_shape (dict or None): `queryDb.galaxy_density_shape`'s
+                                return shape -- the galaxy's real, stored
+                                disk/bulge/spiral-arm density model
+                                (`generate.py plan`'s output). When given,
+                                un-generated space is shaded by this
+                                model's own `relative_density`
+                                (`_expected_density_elements`) instead of
+                                the generic illustrative gradient, so the
+                                map still reads as the predicted spiral
+                                even where nothing has been generated yet.
+                                `None` (the skeleton was never built) falls
+                                back to that illustrative gradient.
 
     Returns:
         str: A complete `<section class="panel">` block.
     """
-    rings_to_show = _rings_to_show(sectors)
+    rings_to_show = _rings_to_show(sectors, galaxy_shape)
     _inner, outer_ly = ring_bounds_ly(rings_to_show - 1)
     px_per_ly = _MAP_RADIUS_PX / outer_ly if outer_ly else 1.0
 
+    density_html = _expected_density_elements(galaxy_shape, px_per_ly)
+    density_is_real = density_html is not None
+    if not density_is_real:
+        density_html = (
+            f"<defs>{_cloud_defs()}</defs>"
+            f'<circle cx="{_CENTER:.1f}" cy="{_CENTER:.1f}" r="{_MAP_RADIUS_PX:.1f}" fill="url(#galaxyCloud)"/>'
+        )
+
     body = (
-        f"<defs>{_cloud_defs()}</defs>"
-        f'<circle cx="{_CENTER:.1f}" cy="{_CENTER:.1f}" r="{_MAP_RADIUS_PX:.1f}" fill="url(#galaxyCloud)"/>'
+        f"{density_html}"
         f"{_ring_elements(rings_to_show, px_per_ly)}"
         f"{_quadrant_axis_elements()}"
         f"{_quadrant_label_elements(db_name, quadrant)}"
@@ -485,16 +738,29 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
         f'Quadrant.">{body}</svg>'
     )
 
+    hint_parts = []
     if not sectors:
-        legend_extra = '<p class="hint">No sectors have been placed in the galaxy yet -- see galaxyGen.py.</p>'
-    else:
-        legend_extra = ""
+        hint_parts.append('<p class="hint">No sectors have been placed in the galaxy yet -- see galaxyGen.py.</p>')
+    if not density_is_real:
+        hint_parts.append(
+            '<p class="hint">The galaxy\'s density skeleton hasn\'t been built yet '
+            "(<code>generate.py plan</code>) -- shading below is illustrative only, not the galaxy's "
+            "real predicted density.</p>"
+        )
+    legend_extra = "".join(hint_parts)
+
+    density_hint = (
+        "shading &asymp; the galaxy's real predicted stellar density (generate.py plan), including "
+        "space not generated yet"
+        if density_is_real
+        else "shading &asymp; illustrative expected density, not real data"
+    )
 
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>Galaxy Map -- {esc(scope_label)}</h2>
-  <span class="hint">Dot size/brightness &asymp; systems in that sector &middot; small purple/tan/dark/blue dots &asymp; nebulae/asteroid fields/black holes/neutron stars (hover for details) &middot; shading &asymp; illustrative expected density, not real data</span>
+  <span class="hint">Dot size/brightness &asymp; systems in that sector &middot; small purple/tan/dark/blue dots &asymp; nebulae/asteroid fields/black holes/neutron stars (hover for details) &middot; {density_hint}</span>
 </div>
 <div class="galaxymap-layout">
 <div class="galaxymap-viewport">

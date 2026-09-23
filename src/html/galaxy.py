@@ -27,6 +27,13 @@ quantity to size a dot by, and at this scale its own physical extent
 (which can itself span several sectors) would be a misleading dot size;
 that real extent is instead depicted where it belongs, as a translucent
 cloud on the Sector Map (`sector.py`) of any sector it reaches into.
+
+Also fetches the galaxy's own stored density-skeleton shape
+(`get_galaxy_shape`, `GET /api/galaxy/shape` -- `generate.py plan`'s
+output, `None` if that's never been run) and hands it to
+`render_galaxy_map_panel` so un-generated space is shaded by the galaxy's
+real predicted spiral/disk/bulge density instead of a generic
+illustrative gradient.
 """
 
 import os
@@ -35,7 +42,7 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import get_galaxy_phenomena, get_galaxy_sectors
+from apiclient import get_galaxy_phenomena, get_galaxy_sectors, get_galaxy_shape
 from fmt import esc, post_link
 from galaxymap import QUADRANT_LABELS, render_galaxy_map_panel, ring_bounds_ly, sector_quadrant, sector_ring
 from page import nav_params, run
@@ -112,8 +119,11 @@ def handler():
 
     sectors = get_galaxy_sectors(db_name)
     phenomena = get_galaxy_phenomena(db_name)
+    galaxy_shape = get_galaxy_shape(db_name)
 
-    map_html = render_galaxy_map_panel(db_name, sectors, quadrant=quadrant, phenomena=phenomena)
+    map_html = render_galaxy_map_panel(
+        db_name, sectors, quadrant=quadrant, phenomena=phenomena, galaxy_shape=galaxy_shape,
+    )
 
     if quadrant:
         table_title = f"Sectors in Quadrant {quadrant}"

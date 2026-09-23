@@ -36,7 +36,7 @@ import math
 
 import pymysql
 
-from stellarObjects._db import add_mysql_connection_args, get_connection, mysql_config_from_args
+from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
@@ -1345,6 +1345,38 @@ def galaxy_placed_sectors(conn):
         }
         for r in rows
     ]
+
+
+def galaxy_density_shape(conn):
+    """
+    The galaxy's stored density-skeleton shape (the singleton
+    `galaxy_shape` row `generate.py plan` writes -- see
+    `stellarObjects.galaxyDensity.GalaxyShape` and `_db.get_galaxy_shape`),
+    serialized to a plain JSON-able dict. This is the real
+    exponential-disk-plus-bulge-plus-spiral-arm model already used to gate
+    and weight actual sector generation (`generate.py`'s `_BatchDensity`);
+    exposing it here lets the Galaxy Map (`html/lib/galaxymap.py`) shade
+    its "expected density" cloud from this same model instead of a
+    generic illustrative gradient, so un-generated space still reads as
+    the spiral it's predicted to be.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        dict or None: Every `GalaxyShape` field plus `edge_pc`,
+            `outer_shell_index`, `expected_system_count_at_density_1`.
+            `None` if `generate.py plan` has never been run against this
+            database (no `galaxy_shape` row yet).
+    """
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None:
+        return None
+    shape = dict(skeleton.shape._asdict())
+    shape["edge_pc"] = skeleton.edge_pc
+    shape["outer_shell_index"] = skeleton.outer_shell_index
+    shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1
+    return shape
 
 
 # ---------------------------------------------------------------------
