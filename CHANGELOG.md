@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.46.7] - 2026-09-23
+
+### Changed
+- **System Map: better label collision avoidance, and the 3D body preview
+  now lives inside the map itself.** A planet/moon label that collided
+  with a neighbor used to try only "above"/"below" before giving up and
+  hiding the label entirely; it now also tries "right"/"left", then a
+  further-out "above"/"below" tier (connected back to its marker with a
+  short leader line) before giving up -- in a stress test, this cut the
+  hidden-label rate from ~40% to ~16% for a tightly packed cluster, with
+  zero label-to-label overlaps either way. Separately, the rotating 3D
+  sphere preview (`#sysmap-preview`) used to sit in a fixed sidebar box
+  next to the map; it now floats inside the map viewport itself, next to
+  whichever marker was just clicked.
+
 ## [5.46.6] - 2026-09-23
 
 ### Fixed

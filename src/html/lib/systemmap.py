@@ -369,6 +369,26 @@ _LABEL_MIN_HALFWIDTH_PX = 20.0
 _LABEL_HALF_HEIGHT_PX = 9.0
 _LABEL_GAP_PX = 4.0
 
+# Tried in this order for every body -- "below"/"above" first (the
+# original two, cheapest to read since they sit on the marker's own
+# vertical axis), then the two horizontal sides, before finally trying
+# "below"/"above" again at _LABEL_PUSH_GAP_PX clearance (a second, further-
+# out tier in the same two directions, rather than new directions or a
+# multiplied gap in all four): a "below" rect pushed out by at least one
+# full label-height clears any earlier "below" rect regardless of either
+# label's own text width (their x-ranges never have to be compared at all
+# once their y-ranges are made disjoint by construction), which a
+# multiplied-gap push in "right"/"left" can't promise the same way (there,
+# the two rects' clearance instead depends on the OTHER label's own width,
+# which isn't known when placing this one). A body whose label still
+# collides in all 6 tries (an extremely dense cluster) is the only
+# remaining case that drops its label entirely -- rare enough now that
+# it's a last resort, not the common outcome the old 2-direction version
+# made it.
+_LABEL_DIRECTIONS = ("below", "above", "right", "left")
+_LABEL_PUSH_DIRECTIONS = ("below", "above")
+_LABEL_PUSH_GAP_PX = _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2 + 2.0
+
 
 def _label_half_width_px(text):
     """A cheap stand-in for actually measuring `text` at `.sysmap-label`'s
@@ -398,19 +418,43 @@ def _star_label_rect(cx, cy, r_px, name):
     return (cx - half_w, top, cx + half_w, top + _LABEL_HALF_HEIGHT_PX * 2)
 
 
+def _label_candidate_rect(cx, cy, marker_r, half_w, direction, gap):
+    """One candidate placement's bounding box for `direction` (one of
+    `_LABEL_DIRECTIONS`), at `gap` clearance from the marker's own edge."""
+    if direction == "below":
+        top = cy + marker_r + gap
+        return (cx - half_w, top, cx + half_w, top + _LABEL_HALF_HEIGHT_PX * 2)
+    if direction == "above":
+        bottom = cy - marker_r - gap
+        return (cx - half_w, bottom - _LABEL_HALF_HEIGHT_PX * 2, cx + half_w, bottom)
+    if direction == "right":
+        left = cx + marker_r + gap
+        return (left, cy - _LABEL_HALF_HEIGHT_PX, left + half_w * 2, cy + _LABEL_HALF_HEIGHT_PX)
+    # "left"
+    right = cx - marker_r - gap
+    return (right - half_w * 2, cy - _LABEL_HALF_HEIGHT_PX, right, cy + _LABEL_HALF_HEIGHT_PX)
+
+
 def _label_sides_2d(entries, seed_rects=None):
     """
-    Given `[(cx, cy, marker_r, name), ...]`, returns one `"below"`/
-    `"above"`/`None` per entry: which band that body's name label should
-    be drawn in, or `None` to skip drawing it. Unlike the old fixed
-    schematic map's `_label_sides` (which only ever had to de-collide
-    labels along one shared horizontal band, since every marker sat on the
-    same line), markers here can be anywhere in the plane, so this checks
-    each candidate label's own bounding box against every *other* label
-    already placed, in true 2D, rather than assuming any shared axis.
-    A body whose label collides in both bands drops its label entirely --
-    that body's name, and everything else about it, is still one click
-    away in the info panel.
+    Given `[(cx, cy, marker_r, name), ...]`, returns one
+    `{"direction", "rect", "pushed"}` dict (or `None` to skip drawing
+    that label entirely) per entry: where that body's name label should
+    be drawn. Unlike the old fixed schematic map's `_label_sides` (which
+    only ever had to de-collide labels along one shared horizontal band,
+    since every marker sat on the same line), markers here can be
+    anywhere in the plane, so this checks each candidate label's own
+    bounding box against every *other* label already placed, in true 2D,
+    rather than assuming any shared axis.
+
+    Tries all four cardinal directions (`_LABEL_DIRECTIONS`) at the normal
+    gap first, then "below"/"above" again at `_LABEL_PUSH_GAP_PX` clearance
+    before giving up -- a "pushed" placement is far enough from its own
+    marker that `_body_marker_svg` draws a thin leader line connecting
+    them, so a repositioned label still visibly belongs to its body. Only
+    a body whose label collides in all 6 tries (an extremely dense
+    cluster) drops its label entirely -- that body's name, and everything
+    else about it, is still one click away in the info panel.
 
     Args:
         entries (list[tuple]): `(cx, cy, marker_r, name)`, in the order
@@ -422,31 +466,32 @@ def _label_sides_2d(entries, seed_rects=None):
             call.
 
     Returns:
-        list[str or None]: One entry per input, in the same order.
+        list[dict or None]: One entry per input, in the same order. Each
+            dict has `direction` (one of `_LABEL_DIRECTIONS`), `rect` (the
+            accepted bounding box), and `pushed` (bool, whether this used
+            the further-out "below"/"above" tier and so needs a leader
+            line).
     """
     accepted_rects = list(seed_rects or [])
-    sides = []
+    placements = []
     for cx, cy, marker_r, name in entries:
         half_w = _label_half_width_px(name)
-        candidates = {
-            "below": (
-                cx - half_w, cy + marker_r + _LABEL_GAP_PX,
-                cx + half_w, cy + marker_r + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2,
-            ),
-            "above": (
-                cx - half_w, cy - marker_r - _LABEL_GAP_PX - _LABEL_HALF_HEIGHT_PX * 2,
-                cx + half_w, cy - marker_r - _LABEL_GAP_PX,
-            ),
-        }
         chosen = None
-        for side in ("below", "above"):
-            rect = candidates[side]
-            if not any(_rects_overlap(rect, other) for other in accepted_rects):
-                chosen = side
-                accepted_rects.append(rect)
+        for pushed, gap, directions in (
+            (False, _LABEL_GAP_PX, _LABEL_DIRECTIONS),
+            (True, _LABEL_PUSH_GAP_PX, _LABEL_PUSH_DIRECTIONS),
+        ):
+            for direction in directions:
+                rect = _label_candidate_rect(cx, cy, marker_r, half_w, direction, gap)
+                if not any(_rects_overlap(rect, other) for other in accepted_rects):
+                    chosen = {"direction": direction, "rect": rect, "pushed": pushed}
+                    break
+            if chosen:
                 break
-        sides.append(chosen)
-    return sides
+        if chosen:
+            accepted_rects.append(chosen["rect"])
+        placements.append(chosen)
+    return placements
 
 
 def _data_attrs(attrs):
@@ -457,8 +502,43 @@ _LIFE_BADGE_FILL = "#3ecf6e"
 _LIFE_BADGE_STROKE = "#1c7a3e"
 
 
+def _label_position(cx, cy, r_px, direction, gap):
+    """The `(x, y, text_anchor)` a `.sysmap-label` `<text>` should render
+    at for `direction`/`gap` (see `_label_candidate_rect`, which this
+    mirrors so the rendered text actually lands inside the rect that was
+    reserved for it during collision checking). "below"/"above" keep this
+    module's original hand-tuned baseline offsets (10/-4 past the rect's
+    own near edge) at the default gap; "right"/"left" are new."""
+    if direction == "below":
+        return cx, cy + r_px + gap + 10, "middle"
+    if direction == "above":
+        return cx, cy - r_px - gap - 4, "middle"
+    if direction == "right":
+        return cx + r_px + gap, cy + 4, "start"
+    # "left"
+    return cx - r_px - gap, cy + 4, "end"
+
+
+def _leader_line_svg(cx, cy, r_px, direction, gap):
+    """A short stub `<line>` from the marker's own edge to just short of
+    where its label begins -- drawn whenever a label isn't in its default,
+    immediately-adjacent "below" spot (see `_body_marker_svg`), so a label
+    `_label_sides_2d` had to reposition to avoid a collision still reads as
+    visually connected to its own body rather than looking like a stray,
+    unrelated label floating nearby."""
+    if direction == "below":
+        x1, y1, x2, y2 = cx, cy + r_px, cx, cy + r_px + gap
+    elif direction == "above":
+        x1, y1, x2, y2 = cx, cy - r_px, cx, cy - r_px - gap
+    elif direction == "right":
+        x1, y1, x2, y2 = cx + r_px, cy, cx + r_px + gap, cy
+    else:  # "left"
+        x1, y1, x2, y2 = cx - r_px, cy, cx - r_px - gap, cy
+    return f'<line class="sysmap-label-leader" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}"></line>'
+
+
 def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False,
-                      label_above=False, show_label=True, has_life=False):
+                      label_direction="below", label_pushed=False, show_label=True, has_life=False):
     """
     Builds one clickable `<g>` for a planet or moon: a filled/stroked
     circle colored by `planet_class` (see `_CLASS_COLORS`), the class
@@ -467,15 +547,18 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
     for an at-a-glance silhouette cue beyond just color, a small green
     "supports life" badge at the marker's own edge when `has_life` is set
     (`planets`/`moons`.`life_chemical` is non-NULL), and (when
-    `show_label` is set) a name label underneath -- or, when `label_above`
-    is also set (see `_label_sides_2d`), above, to keep it clear of a
-    tightly-packed neighbor's own label. `show_label` alone going False
-    (also from `_label_sides_2d`, when neither band could clear a tight
-    enough cluster) only drops the visible text, not the body's name from
-    `aria-label` -- it's still reachable, just via a click on the marker
-    rather than a glance at the diagram. `is_self` marks the one body a
-    moon-scene is *about* (the planet drilled into, now standing in for
-    the scene's own origin) -- drawn with a soft halo and picked out by
+    `show_label` is set) a name label at `label_direction` (one of
+    `_LABEL_DIRECTIONS` -- "below", this function's own default, needs no
+    further reasoning; any other value, or `label_pushed` being set,
+    means `_label_sides_2d` had to move this label to avoid colliding with
+    a neighbor, so a short leader line is drawn connecting it back to this
+    marker). `show_label` alone going False (also from `_label_sides_2d`,
+    when no direction at any distance could clear a tight enough cluster)
+    only drops the visible text, not the body's name from `aria-label` --
+    it's still reachable, just via a click on the marker rather than a
+    glance at the diagram. `is_self` marks the one body a moon-scene is
+    *about* (the planet drilled into, now standing in for the scene's own
+    origin) -- drawn with a soft halo and picked out by
     `static/systemmap.js` as the default info-panel content when that
     scene opens, via its `data-self="true"` marker.
     """
@@ -506,9 +589,20 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
             f'fill="{_LIFE_BADGE_FILL}" stroke="{_LIFE_BADGE_STROKE}"><title>Supports life</title></circle>'
         )
     if label_text and show_label:
-        label_y = cy - r_px - 8 if label_above else cy + r_px + 14
+        gap = _LABEL_PUSH_GAP_PX if label_pushed else _LABEL_GAP_PX
+        # "below"/"above" at the normal gap need no leader -- immediately
+        # adjacent, above/below is the obvious default reading, exactly
+        # like this map's original (pre-collision-avoidance) behavior.
+        # "right"/"left" get one even at the normal gap, since a label
+        # floating to a marker's side isn't as self-evidently "this
+        # marker's own name" without one; the further-out pushed tier
+        # (below/above only -- see _LABEL_PUSH_DIRECTIONS) always does too.
+        needs_leader = label_pushed or label_direction in ("right", "left")
+        if needs_leader:
+            parts.append(_leader_line_svg(cx, cy, r_px, label_direction, gap))
+        label_x, label_y, anchor = _label_position(cx, cy, r_px, label_direction, gap)
         parts.append(
-            f'<text class="sysmap-label" x="{cx:.1f}" y="{label_y:.1f}" text-anchor="middle">{esc(label_text)}</text>'
+            f'<text class="sysmap-label" x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="{anchor}">{esc(label_text)}</text>'
         )
 
     self_attr = ' data-self="true"' if is_self else ""
@@ -718,17 +812,20 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     star_svg = _star_marker_svg(_CENTER_PX, _CENTER_PX, star_r, star, star_attrs)
 
     seed_rects = [extra_obstacle["label_rect"]] if extra_obstacle and extra_obstacle.get("label_rect") else None
-    sides = _label_sides_2d(
+    placements = _label_sides_2d(
         [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects,
     )
     body_svgs = []
-    for marker, side in zip(planet_markers, sides):
+    for marker, placement in zip(planet_markers, placements):
         row = marker["row"]
         scene_target = f'planet-{row["id"]}' if row.get("moons") else None
         attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
         body_svgs.append(_body_marker_svg(
             marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-planet", attrs, label_above=(side == "above"), show_label=(side is not None),
+            "sysmap-planet", attrs,
+            label_direction=(placement["direction"] if placement else "below"),
+            label_pushed=bool(placement and placement["pushed"]),
+            show_label=(placement is not None),
             has_life=bool(row.get("life_chemical")),
         ))
 
@@ -942,15 +1039,18 @@ def _render_system_scene(system, stars, planets, belts):
             "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
         }))
 
-    sides = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers])
+    placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers])
     body_svgs = []
-    for marker, side in zip(planet_markers, sides):
+    for marker, placement in zip(planet_markers, placements):
         row = marker["row"]
         scene_target = f'planet-{row["id"]}' if row.get("moons") else None
         attrs = _planet_attrs(row, kind="planet", scene_target=scene_target)
         body_svgs.append(_body_marker_svg(
             marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-planet", attrs, label_above=(side == "above"), show_label=(side is not None),
+            "sysmap-planet", attrs,
+            label_direction=(placement["direction"] if placement else "below"),
+            label_pushed=bool(placement and placement["pushed"]),
+            show_label=(placement is not None),
             has_life=bool(row.get("life_chemical")),
         ))
 
@@ -998,14 +1098,17 @@ def _render_moon_scene(planet):
         has_life=bool(planet.get("life_chemical")),
     )
 
-    sides = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers])
+    placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers])
     body_svgs = []
-    for marker, side in zip(markers, sides):
+    for marker, placement in zip(markers, placements):
         row = marker["row"]
         attrs = _planet_attrs(row, kind="moon", parent_name=row.get("_parent_name"))
         body_svgs.append(_body_marker_svg(
             marker["cx"], marker["cy"], marker["r"], row["planet_class"], row["body_type"], row["name"],
-            "sysmap-moon", attrs, label_above=(side == "above"), show_label=(side is not None),
+            "sysmap-moon", attrs,
+            label_direction=(placement["direction"] if placement else "below"),
+            label_pushed=bool(placement and placement["pushed"]),
+            show_label=(placement is not None),
             has_life=bool(row.get("life_chemical")),
         ))
 
@@ -1076,13 +1179,17 @@ def render_system_map_panel(system, stars, planets, belts):
         info_panel = '<aside class="starmap-info" id="sysmap-info"><p class="hint">Nothing to show yet.</p></aside>'
 
     # A rotating shaded-sphere preview of whichever planet/moon is
-    # currently selected -- `static/systemmap.js` shows/hides and redraws
+    # currently selected -- `static/systemmap.js` shows/hides, repositions
+    # (floated beside the clicked marker, via `getScreenCTM`), and redraws
     # this from the clicked marker's own `data-color`/`data-bodytype`/
     # `data-hasatmosphere` (a real planet/moon has none of those to show
     # itself, so this stays out of the DOM entirely for a system with no
     # planets or moons at all). A `<canvas>`, not an `<svg>`, since this is
     # the one part of the System Map that's genuinely 3D -- see this
-    # module's own docstring for why the rest deliberately isn't.
+    # module's own docstring for why the rest deliberately isn't. Lives
+    # INSIDE `.sysmap-viewport` (an absolutely-positioned overlay, not a
+    # separate side-panel box) so the rendered sphere reads as part of the
+    # map itself, floating next to whatever it's previewing.
     preview_html = (
         '<div class="sysmap-preview" id="sysmap-preview" hidden>'
         '<canvas id="sysmap-preview-canvas" aria-hidden="true"></canvas>'
@@ -1099,10 +1206,10 @@ def render_system_map_panel(system, stars, planets, belts):
 <div class="starmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">
 {''.join(scenes)}
+{preview_html}
 </div>
 <div class="starmap-side">
 <div class="sysmap-crumb" id="sysmap-crumb"></div>
-{preview_html}
 {info_panel}
 </div>
 </div>
