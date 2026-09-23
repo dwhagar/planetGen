@@ -571,6 +571,16 @@ def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     assert all(row["star_system_id"] in system_ids for row in body["results"]["stars"]["rows"])
 
 
+def test_search_text_queries(client, seeded_sector):
+    _config, _sector_id, _system_ids = seeded_sector
+
+    for query_param in ("sector_q=Test", "system_q=Test", "star_q=Test", "planet_q=Test", "moon_q=Test"):
+        response = client.get(f"/api/search?{query_param}")
+        assert response.status_code == 200
+        body = response.get_json()
+        assert "results" in body
+
+
 def test_unmatched_route_returns_json_404(client):
     response = client.get("/api/no-such-route")
     assert response.status_code == 404

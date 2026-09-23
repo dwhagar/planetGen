@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.46.11] - 2026-09-23
+## [5.46.12] - 2026-09-23
 
 ### Added
 - **Zoomable, real-scale diagram on every stellar phenomenon's page.**
@@ -26,7 +26,7 @@
   endpoint (its table genuinely has no such column). Now raises a clean
   `ValueError`, same as any other invalid NAV request.
 
-## [5.46.10] - 2026-09-23
+## [5.46.11] - 2026-09-23
 
 ### Added
 - **Real interactive zoom/pan on the Galaxy Map.** With enough placed
@@ -52,7 +52,7 @@
   Deferred `setPointerCapture` until a real drag is detected instead of
   calling it unconditionally on every pointerdown.
 
-## [5.46.9] - 2026-09-23
+## [5.46.10] - 2026-09-23
 
 ### Added
 - **"Navigate to here" (symmetric with the existing "Navigate from here"),
@@ -76,7 +76,7 @@
   (`api/routes.py`), confirmed against a running instance and covered by
   a regression test.
 
-## [5.46.8] - 2026-09-23
+## [5.46.9] - 2026-09-23
 
 ### Changed
 - **Compacted the spread-out page header on System/Sector/Galaxy/Phenomenon
@@ -89,7 +89,7 @@
   Verified in a browser: the header on a binary system's page shrank from
   roughly 650px of vertical space to about 150px.
 
-## [5.46.7] - 2026-09-23
+## [5.46.8] - 2026-09-23
 
 ### Changed
 - **System Map: better label collision avoidance, and the 3D body preview
@@ -104,7 +104,7 @@
   next to the map; it now floats inside the map viewport itself, next to
   whichever marker was just clicked.
 
-## [5.46.6] - 2026-09-23
+## [5.46.7] - 2026-09-23
 
 ### Fixed
 - **A planet's evolutionary/civilization narrative could contradict its own
@@ -126,7 +126,7 @@
   capped by it. Includes a hard invariant assertion and dedicated
   regression tests.
 
-## [5.46.5] - 2026-09-23
+## [5.46.6] - 2026-09-23
 
 ### Fixed
 - **A binary system's own per-star property tables didn't render.** Each
@@ -156,6 +156,21 @@
   avoid already-placed belt spans. Added an independent, all-pairs overlap
   invariant check (not a re-derivation of the existing correction's own
   formula) to catch any future regression of this kind.
+## [5.46.5] - 2026-09-20
+
+### Fixed
+- **`src/html/search.py` and `GET /api/search` crashed with a 500 error on any
+  text search.** In `queryDb.py`, the SQL LIKE clauses across all five text search
+  helpers (`_search_result_sectors`, `_search_result_systems`,
+  `_search_result_stars`, `_search_result_planets`, `_search_result_moons`) used
+  Python string literals `"ESCAPE '\\'"`. In Python string literals, `"\\"`
+  resolves to a single backslash (`\`), passing `ESCAPE '\'` to MySQL. In
+  MySQL/MariaDB, `\` is an escape character in string literals, so `\'` was
+  parsed as an escaped single quote that left the string literal unclosed,
+  causing MySQL syntax error 1064 and triggering a 500 Internal Server Error in
+  the Flask API client (`planetGen API error (500): internal server error`).
+  Updated all five queries to `"ESCAPE '\\\\'"` so MySQL receives `ESCAPE '\\'`
+  and correctly evaluates the escape character as a single literal backslash.
 
 ## [5.46.4] - 2026-09-19
 
