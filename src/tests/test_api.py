@@ -214,13 +214,43 @@ def fake_wiki_client(monkeypatch):
     return _FakeWikiClient
 
 
-def test_health_ok(client):
+def test_health_ok(mysql_config, client):
+    # `client`'s own database starts completely empty (see `mysql_config`'s
+    # docstring) -- lay the schema down first, the same way a real
+    # deployment always has one by the time its API is ever queried (see
+    # `default_admin_client`'s identical step), so this exercises the
+    # "reachable and current" case the test's own name promises rather
+    # than the "never migrated at all" case `test_health_ok_reports_an_
+    # uninitialized_schema_without_erroring` below covers instead.
+    _db.get_connection(mysql_config).close()
+
     response = client.get("/api/health")
     assert response.status_code == 200
     body = response.get_json()
     assert body["status"] == "ok"
     assert body["schema_current"] is True
     assert body["schema_version"] == _db.SCHEMA_VERSION
+
+
+def test_health_reports_an_uninitialized_schema_without_erroring(client):
+    """
+    `client`'s own database starts completely empty -- no `schema_migrations`
+    table at all, one step further back than "some migrations pending"
+    (which `schema_row` coming back empty already handles). `/api/health`
+    should still report 200 with `schema_current: False` and a helpful
+    `detail` rather than the earlier bug of an uncaught table-doesn't-exist
+    error surfacing as a bare 503 "unreachable" (which is meant for an
+    actually-unreachable server, not a reachable one that's simply never
+    been migrated -- see `test_unreachable_database_returns_503_not_a_crash`
+    for that case).
+    """
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["status"] == "ok"
+    assert body["schema_current"] is False
+    assert body["schema_version"] is None
+    assert "not been initialized" in body["detail"]
 
 
 def test_unreachable_database_returns_503_not_a_crash():

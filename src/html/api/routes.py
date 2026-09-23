@@ -273,11 +273,23 @@ def health():
     """
     try:
         get_db().execute("SELECT 1")
-        schema_row = get_db().execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
     except Exception as exc:
         return jsonify({"status": "error", "detail": str(exc)}), 503
 
-    schema_version = schema_row["version"] if schema_row else None
+    # A separate try/except from the reachability check above: a database
+    # that answers `SELECT 1` fine but has never had `schema.sql`/
+    # `migrateDb.py` applied to it at all has no `schema_migrations` table
+    # yet either -- one step further back than "some migrations pending"
+    # (schema_row would simply come back empty for that), not an
+    # unreachable database. Reported the same way a stale-but-present
+    # schema_migrations row is below (200, schema_current False), not
+    # folded into the 503 case above.
+    try:
+        schema_row = get_db().execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
+        schema_version = schema_row["version"] if schema_row else None
+    except Exception:
+        schema_version = None
+
     body = {
         "status": "ok",
         "schema_version": schema_version,
@@ -287,6 +299,9 @@ def health():
         body["detail"] = (
             f"Database schema is at v{schema_version}, code expects v{_db.SCHEMA_VERSION} -- "
             f"run migrateDb.py (or update.sh/install.sh) against this database."
+            if schema_version is not None else
+            f"Database schema has not been initialized yet (no schema_migrations table), code expects "
+            f"v{_db.SCHEMA_VERSION} -- run migrateDb.py (or update.sh/install.sh) against this database."
         )
     return jsonify(body)
 

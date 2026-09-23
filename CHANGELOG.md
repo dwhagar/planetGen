@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.46.18] - 2026-09-23
+
+### Fixed
+- **`GET /api/health` was returning a bare 503 "error" for a database
+  that's reachable but has never had `schema.sql`/`migrateDb.py` applied
+  to it at all** (no `schema_migrations` table yet -- one step further
+  back than "some migrations pending", which it already handled). Caught
+  by CI: `test_health_ok` exercised exactly this case by accident (its
+  `client` fixture's database starts completely empty) and failed after
+  [5.46.17]'s health-reporting change merged. `/api/health` now reports
+  this the same way it already reports a stale-but-present schema
+  (`200`, `schema_current: false`, a `detail` naming the fix) rather than
+  folding it into the "unreachable" 503 case, which is meant for an
+  actually-unreachable server. `test_health_ok` now lays the schema down
+  first (matching how a real deployment's database always already has
+  one by the time its API is queried), and a new test covers the
+  never-migrated-at-all case directly.
+
 ## [5.46.17] - 2026-09-23
 
 ### Fixed
