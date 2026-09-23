@@ -195,21 +195,82 @@ def test_relax_markers_handles_identical_positions_without_crashing():
 # --- _label_sides_2d ---------------------------------------------------------
 
 def test_label_sides_2d_gives_isolated_labels_the_below_band():
-    sides = sm._label_sides_2d([(0.0, 0.0, 10.0, "A"), (500.0, 500.0, 10.0, "B")])
-    assert sides == ["below", "below"]
+    placements = sm._label_sides_2d([(0.0, 0.0, 10.0, "A"), (500.0, 500.0, 10.0, "B")])
+    assert [p["direction"] for p in placements] == ["below", "below"]
+    assert all(not p["pushed"] for p in placements)
 
 
-def test_label_sides_2d_moves_a_colliding_label_above_then_drops_a_third():
-    # Three markers stacked at (nearly) the same point -- "below" then
-    # "above" get claimed, and the third has nowhere left to go.
-    sides = sm._label_sides_2d([
+def test_label_sides_2d_cycles_through_all_four_cardinal_directions():
+    # Four markers stacked at (nearly) the same point -- claims below,
+    # above, right, left in that order before needing to push any of them
+    # into a diagonal spot.
+    placements = sm._label_sides_2d([
         (100.0, 100.0, 10.0, "AAAAAAAAAA"),
         (100.0, 100.0, 10.0, "BBBBBBBBBB"),
         (100.0, 100.0, 10.0, "CCCCCCCCCC"),
+        (100.0, 100.0, 10.0, "DDDDDDDDDD"),
     ])
-    assert sides[0] == "below"
-    assert sides[1] == "above"
-    assert sides[2] is None
+    assert [p["direction"] for p in placements] == ["below", "above", "right", "left"]
+    assert all(not p["pushed"] for p in placements)
+
+
+def test_label_sides_2d_pushes_a_fifth_label_further_out_instead_of_dropping_it():
+    # A fifth marker at the same point has no room left in any of the four
+    # cardinal directions at the normal gap -- it should still get a real
+    # placement (a further-out "below"/"above" tier) rather than being
+    # dropped outright. Uses long (10-char) names specifically because a
+    # width-dependent push (e.g. a diagonal offset) would NOT reliably
+    # clear a wide label -- the "below"/"above" push here is
+    # width-independent by construction (see _LABEL_PUSH_DIRECTIONS'
+    # own comment), so this must still succeed regardless of name length.
+    placements = sm._label_sides_2d([
+        (100.0, 100.0, 10.0, "AAAAAAAAAA"),
+        (100.0, 100.0, 10.0, "BBBBBBBBBB"),
+        (100.0, 100.0, 10.0, "CCCCCCCCCC"),
+        (100.0, 100.0, 10.0, "DDDDDDDDDD"),
+        (100.0, 100.0, 10.0, "EEEEEEEEEE"),
+    ])
+    fifth = placements[4]
+    assert fifth is not None
+    assert fifth["pushed"] is True
+    assert fifth["direction"] in sm._LABEL_PUSH_DIRECTIONS
+
+
+def test_label_sides_2d_drops_a_label_only_once_every_direction_is_exhausted():
+    # Seven markers at the same point exhausts all four cardinal directions
+    # at the normal gap plus the "below"/"above" pushed tier (6 real
+    # placements) -- the seventh has nowhere left, and only then is it
+    # actually dropped.
+    entries = [(100.0, 100.0, 10.0, f"NAME{i}") for i in range(7)]
+    placements = sm._label_sides_2d(entries)
+    assert all(p is not None for p in placements[:6])
+    assert placements[6] is None
+
+
+# --- _body_marker_svg label leader lines ------------------------------------
+
+def test_leader_line_omitted_for_default_below_and_above():
+    # "below"/"above" at the normal gap are immediately adjacent to the
+    # marker -- the obvious default reading, same as this map's original
+    # (pre-collision-avoidance) behavior -- so neither draws a leader line.
+    for direction in ("below", "above"):
+        svg = sm._body_marker_svg(
+            100.0, 100.0, 10.0, "M", "t", "Test Body", "sysmap-planet", {"id": 1},
+            label_direction=direction, label_pushed=False,
+        )
+        assert "sysmap-label-leader" not in svg
+
+
+def test_leader_line_drawn_for_right_left_and_pushed_placements():
+    # "right"/"left" (a less self-evidently-connected direction than
+    # below/above) and anything in the further-out pushed tier both get a
+    # leader line connecting them back to the marker.
+    for direction, pushed in (("right", False), ("left", False), ("below", True), ("above", True)):
+        svg = sm._body_marker_svg(
+            100.0, 100.0, 10.0, "M", "t", "Test Body", "sysmap-planet", {"id": 1},
+            label_direction=direction, label_pushed=pushed,
+        )
+        assert "sysmap-label-leader" in svg
 
 
 # --- render_system_map_panel (end-to-end HTML) ------------------------------
@@ -336,6 +397,23 @@ def test_render_system_map_panel_includes_the_preview_container_only_with_planet
 
     without_planets = sm.render_system_map_panel(system, [_star(10)], [], [])
     assert 'id="sysmap-preview"' not in without_planets
+
+
+def test_3d_preview_lives_inside_the_map_viewport_not_a_separate_box():
+    # Regression guard: the rotating 3D sphere preview used to sit in the
+    # separate `.starmap-side` column next to the map, not in the map
+    # itself. It should now be a sibling of the SVG scenes inside
+    # `.sysmap-viewport` -- i.e. the viewport's own closing `</div>` comes
+    # AFTER `#sysmap-preview`, not before it.
+    system = {"name": "Preview Location Test", "binary_configuration": None}
+    html = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
+
+    viewport_start = html.index('class="starmap-viewport sysmap-viewport"')
+    preview_start = html.index('id="sysmap-preview"')
+    side_start = html.index('class="starmap-side"')
+    assert viewport_start < preview_start < side_start, (
+        "#sysmap-preview should be inside .sysmap-viewport, before .starmap-side opens"
+    )
 
 
 def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():

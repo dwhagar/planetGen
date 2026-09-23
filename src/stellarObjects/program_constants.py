@@ -1247,6 +1247,46 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
 list: A list of planet class codes that are considered habitable.
 """
 
+PLANET_CLASS_MAX_LIFE_STAGE = {
+    # Each habitable class's OWN "description" text above already commits
+    # to a life-complexity ceiling -- `evolution.get_evolutionary_timeline`
+    # used to have no idea what `planet_class` even was, so a Class G
+    # planet (description: "simple life") could still roll all the way to
+    # "Technological Civilization" if the star was old/fast-evolving
+    # enough, contradicting its own generated text. Keys are
+    # `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone keys;
+    # a class not listed here (H, K, M, O, P, V) is uncapped -- its
+    # description doesn't commit to any life-complexity ceiling at all
+    # ("an adaptable world", "a terrestrial Earth-like world", etc.), so
+    # the full milestone range -- including a technological civilization,
+    # same as real Earth -- remains fair game.
+    "E": "abiogenesis",         # "barely supports life" (this class's own
+                                 # PLANET_CLASSES comment) -- the hottest,
+                                 # youngest of the E->F->G progression;
+                                 # capped at the most minimal stage,
+                                 # "chemotrophs and extremophiles" only.
+    "F": "photosynthesis",      # description: "...bacterial life" --
+                                 # prokaryotic/microbial, matching
+                                 # EVOLUTIONARY_TEXT['photosynthesis']'s
+                                 # "simple, light-harvesting microbes...
+                                 # microbial mats" (no nucleated cells yet).
+    "G": "photosynthesis",      # description: "...simple life" -- same
+                                 # prokaryotic tier as Class F.
+    "L": "multicellularity",    # description: "...with vegetation" --
+                                 # matches EVOLUTIONARY_TEXT
+                                 # ['multicellularity']'s own "pioneering
+                                 # flora...moss, ferns...vascular plants",
+                                 # but not yet a sapient civilization.
+}
+"""
+dict[str, str]: Maps a habitable planet class code to the highest
+`EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
+is consistent with -- see `evolution.get_evolutionary_timeline`'s
+`planet_class` parameter, the only reader of this mapping. A class not
+present here is uncapped (full range, up to and including a technological
+civilization).
+"""
+
 MOON_BLACKLIST = ['Q', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.

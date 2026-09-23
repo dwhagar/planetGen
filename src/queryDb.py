@@ -531,6 +531,86 @@ def _load_nav_endpoint(conn, system_id):
     return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly}
 
 
+def _phenomenon_nav_key(phenomenon_type, phenomenon_id):
+    """
+    The node id a phenomenon endpoint uses in `nav_between`'s position/
+    adjacency-graph dicts and `route["path"]` -- a plain string (not a
+    tuple) specifically because `route`/`route["positions"]` round-trip
+    through `jsonify` (`/api/nav`), and a dict with a tuple key isn't
+    JSON-serializable at all, while a `star_systems.id` int key already
+    survives that round trip (JSON object keys are always strings, and
+    `json.dumps` stringifies an int key for free). The `"phenomenon:"`
+    prefix can never collide with a stringified system id.
+
+    Args:
+        phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
+        phenomenon_id (int): The phenomenon's own row id.
+
+    Returns:
+        str: e.g. `"phenomenon:nebula:5"`.
+    """
+    return f"phenomenon:{phenomenon_type}:{phenomenon_id}"
+
+
+def _load_nav_phenomenon_endpoint(conn, phenomenon_type, phenomenon_id):
+    """
+    Loads the galaxy-frame position needed to resolve a phenomenon as one
+    end of a NAV request -- the phenomenon counterpart to
+    `_load_nav_endpoint`, returning the same `sector_id`/`position_ly`/
+    `galaxy_position_ly` shape so `nav_between` can treat either kind of
+    endpoint identically from that point on.
+
+    A phenomenon's own `sector_id` column (see `_PHENOMENON_TABLES`'s own
+    v18/v21 header notes) is only ever a "nearest already-generated
+    sector" convenience link, not real containment the way a system's
+    `sector_id` foreign key is -- a phenomenon has no sector-LOCAL
+    position at all, only a galaxy-frame one, so it can never qualify for
+    sector-scope NAV. `sector_id`/`position_ly` are therefore always
+    `None` here regardless of that convenience column, which is exactly
+    what makes `nav_between`'s own sector-scope eligibility check
+    correctly exclude a phenomenon endpoint without needing a separate
+    "is this a phenomenon" flag anywhere in that logic.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
+            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, `"neutron_star"`).
+        phenomenon_id (int): The phenomenon's own row id.
+
+    Returns:
+        dict: `sector_id` (always `None`), `position_ly` (always `None`),
+            `galaxy_position_ly` (`(x, y, z)` tuple in light-years, or
+            `None` if this phenomenon has never been placed in the galaxy).
+
+    Raises:
+        ValueError: If `phenomenon_type` is unrecognized, is a type with no
+            galaxy-frame placement columns at all (currently only
+            `"supernova_remnant"` -- see `_SUPERNOVA_REMNANT_TABLE`'s own
+            docstring), or no such row exists.
+    """
+    if phenomenon_type not in _PLACEABLE_PHENOMENON_TYPES:
+        raise ValueError(
+            f"{phenomenon_type!r} has no galaxy-frame placement and can never be a NAV endpoint"
+        )
+    table = _PHENOMENON_TYPE_TO_TABLE[phenomenon_type]
+
+    row = conn.execute(
+        f"SELECT center_x_pc, center_y_pc, center_z_pc FROM {table} WHERE id = ?",
+        (phenomenon_id,),
+    ).fetchone()
+    if row is None:
+        raise ValueError(f"no {table} row with id {phenomenon_id}")
+
+    galaxy_position_ly = None
+    if row["center_x_pc"] is not None:
+        galaxy_position_ly = (
+            pc_to_ly(row["center_x_pc"]),
+            pc_to_ly(row["center_y_pc"]),
+            pc_to_ly(row["center_z_pc"]),
+        )
+    return {"sector_id": None, "position_ly": None, "galaxy_position_ly": galaxy_position_ly}
+
+
 def _sector_local_positions(conn, sector_id):
     """
     Returns every placed system's sector-local position (in light-years)
@@ -599,30 +679,45 @@ def _galaxy_frame_positions(conn):
     return positions
 
 
-def nav_between(conn, from_system_id, to_system_id, adjacency_k=NAV_ADJACENCY_K):
+def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
+                 from_kind="system", to_kind="system", from_type=None, to_type=None):
     """
-    Resolves full NAV information between two systems: a direct course
-    (distance/azimuth/altitude/warp travel times, from
-    `stellarObjects.navigation`) plus an optimal route via adjacent
-    systems (`stellarObjects.navGraph`), or raises if NAV doesn't apply to
-    this pair.
+    Resolves full NAV information between two endpoints -- each either a
+    star system or a standalone phenomenon (nebula/asteroid field/black
+    hole/neutron star) -- a direct course (distance/azimuth/altitude/warp
+    travel times, from `stellarObjects.navigation`) plus an optimal route
+    via adjacent systems (`stellarObjects.navGraph`), or raises if NAV
+    doesn't apply to this pair.
 
     NAV availability rules (see docs/api.md's NAV section for the
     user-facing statement of these):
-        - Either system not assigned to any sector -> unavailable.
-        - Same sector -> available, scoped to that sector's own systems
-          (sector-local positions).
-        - Different sectors, both galaxy-placed -> available, scoped to
-          every system in every galaxy-placed sector (absolute
-          galaxy-frame positions).
-        - Different sectors, either not galaxy-placed -> unavailable.
+        - Both endpoints are systems in the SAME sector -> available,
+          scoped to that sector's own systems (sector-local positions) --
+          checked first/preferred, same as before this function supported
+          phenomenon endpoints at all.
+        - Otherwise, both endpoints have a galaxy-frame position (a system
+          in a galaxy-placed sector, or a galaxy-placed phenomenon) ->
+          available at galaxy scope. A phenomenon endpoint can only ever
+          reach this branch: it has no sector-LOCAL position at all (see
+          `_load_nav_phenomenon_endpoint`), so it never qualifies for
+          sector scope regardless of its own "nearest sector" convenience
+          link.
+        - Anything else (an unplaced system, a phenomenon never placed in
+          the galaxy, or two systems in different sectors where either
+          lacks a galaxy placement) -> unavailable.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
-        from_system_id (int): The `star_systems.id` to route from.
-        to_system_id (int): The `star_systems.id` to route to.
+        from_id (int): The origin's own row id -- `star_systems.id` when
+            `from_kind == "system"`, else the phenomenon's own table id.
+        to_id (int): Same, for the destination.
         adjacency_k (int): Passed through to
             `navGraph.build_knn_adjacency` as `k`.
+        from_kind (str): `"system"` (default) or `"phenomenon"`.
+        to_kind (str): Same, for the destination.
+        from_type (str, optional): Required when `from_kind ==
+            "phenomenon"` -- one of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
+        to_type (str, optional): Same, for the destination.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -631,50 +726,81 @@ def nav_between(conn, from_system_id, to_system_id, adjacency_k=NAV_ADJACENCY_K)
             `origin_position`/`destination_position` (the `(x, y, z)`
             light-year positions `direct` was computed from, in `scope`'s
             frame -- sector-local for `"sector"`, galaxy-frame for
-            `"galaxy"`), and `route`: `None` if `from_system_id ==
-            to_system_id` or no path exists through the adjacency graph,
-            else `{"path": [...system ids...], "distance_ly": float,
-            "positions": {system_id: (x, y, z), ...}}` (one entry per id in
+            `"galaxy"`), and `route`: `None` if the two endpoints resolve
+            to the same node or no path exists through the adjacency
+            graph, else `{"path": [...node ids...], "distance_ly": float,
+            "positions": {node_id: (x, y, z), ...}}` (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
             -- for rendering the route, e.g. `html/lib/navmap.py`, without
-            a second position lookup).
+            a second position lookup). A node id is a plain `star_systems.
+            id` int for a system hop (every INTERMEDIATE hop always is,
+            regardless of either endpoint's own kind -- only `path[0]`/
+            `path[-1]` can ever be a phenomenon), or a
+            `_phenomenon_nav_key`-shaped string for a phenomenon endpoint.
 
     Raises:
-        ValueError: If either system id doesn't exist.
+        ValueError: If an endpoint id (or `from_type`/`to_type`) doesn't
+            resolve to a real row.
         NavUnavailable: If NAV doesn't apply to this pair, per the rules
             above. `str(exc)` explains why.
     """
-    origin = _load_nav_endpoint(conn, from_system_id)
-    destination = _load_nav_endpoint(conn, to_system_id)
+    def resolve(ref_id, kind, phenomenon_type):
+        if kind == "phenomenon":
+            return _load_nav_phenomenon_endpoint(conn, phenomenon_type, ref_id)
+        return _load_nav_endpoint(conn, ref_id)
 
-    if origin["sector_id"] is None or destination["sector_id"] is None:
-        raise NavUnavailable("NAV requires both systems to be assigned to a sector")
+    def node_key(ref_id, kind, phenomenon_type):
+        return ref_id if kind == "system" else _phenomenon_nav_key(phenomenon_type, ref_id)
 
-    if origin["sector_id"] == destination["sector_id"]:
+    origin = resolve(from_id, from_kind, from_type)
+    destination = resolve(to_id, to_kind, to_type)
+    from_key = node_key(from_id, from_kind, from_type)
+    to_key = node_key(to_id, to_kind, to_type)
+
+    sector_scope_ok = (
+        origin["sector_id"] is not None
+        and origin["sector_id"] == destination["sector_id"]
+        and origin["position_ly"] is not None
+        and destination["position_ly"] is not None
+    )
+    galaxy_scope_ok = (
+        origin["galaxy_position_ly"] is not None
+        and destination["galaxy_position_ly"] is not None
+    )
+
+    if sector_scope_ok:
         scope = "sector"
         positions = _sector_local_positions(conn, origin["sector_id"])
         origin_position, destination_position = origin["position_ly"], destination["position_ly"]
-    else:
-        if origin["galaxy_position_ly"] is None or destination["galaxy_position_ly"] is None:
-            raise NavUnavailable(
-                "NAV between different sectors requires both sectors to have a galaxy placement"
-            )
+    elif galaxy_scope_ok:
         scope = "galaxy"
         positions = _galaxy_frame_positions(conn)
+        # A phenomenon endpoint is never itself a row _galaxy_frame_positions
+        # reads (it isn't a star_systems row at all) -- added as this one-
+        # off query's own extra graph node instead, under its own
+        # _phenomenon_nav_key so it can't collide with any real system id.
+        if from_kind == "phenomenon":
+            positions[from_key] = origin["galaxy_position_ly"]
+        if to_kind == "phenomenon":
+            positions[to_key] = destination["galaxy_position_ly"]
         origin_position, destination_position = origin["galaxy_position_ly"], destination["galaxy_position_ly"]
+    else:
+        raise NavUnavailable(
+            "NAV requires both endpoints to share a sector, or both to have a galaxy placement"
+        )
 
     direct = course_between(origin_position, destination_position)
 
     route = None
-    if from_system_id != to_system_id:
+    if from_key != to_key:
         graph = build_knn_adjacency(positions, adjacency_k)
-        found = shortest_path(graph, from_system_id, to_system_id)
+        found = shortest_path(graph, from_key, to_key)
         if found is not None:
             path, distance_ly = found
             route = {
                 "path": path,
                 "distance_ly": distance_ly,
-                "positions": {system_id: positions[system_id] for system_id in path},
+                "positions": {node_id: positions[node_id] for node_id in path},
             }
 
     return {
@@ -795,6 +921,22 @@ expression (a plain column for nebulae/asteroid fields, a literal `0` for
 the two point-like compact-remnant types)."""
 
 
+_SUPERNOVA_REMNANT_TABLE = ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly")
+"""tuple: The `supernova_remnant` counterpart to one `_PHENOMENON_TABLES`
+entry -- kept OUT of that tuple deliberately, since `supernova_remnants`
+never gained the v21 galaxy-frame placement columns
+(`center_x_pc`/`center_y_pc`/`center_z_pc`/`galactic_radius_pc`) the other
+four phenomenon tables did (see `schema.sql`'s own "v16"/"v21" header
+notes) -- so it can never appear on the Galaxy Map or as a NAV endpoint,
+and can't share `_placed_phenomenon_rows`/`galaxy_placed_phenomena`/
+`phenomena_near_sector`'s common query shape, which all select
+`center_x_pc`. It still has its own real `radius_ly` (unlike the two
+point-like compact-remnant types), so it's fully usable everywhere that
+only needs the phenomenon's own physical size -- `list_phenomena`/
+`count_phenomena`'s flat listing, `phenomenon_detail`'s page, and
+`lib/phenomenonmap.py`'s AU-scale diagram."""
+
+
 def _placed_phenomenon_rows(conn):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
@@ -834,11 +976,15 @@ def _placed_phenomenon_rows(conn):
 def list_phenomena(conn, limit=None, offset=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
-    neutron star -- the four in `_PHENOMENON_TABLES`), across every sector
-    and regardless of galaxy placement -- `GET /api/phenomena`'s own flat
-    listing (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which
-    only returns the galaxy-placed subset, for the Galaxy Map) or
-    `phenomena_near_sector` (one sector's own neighborhood).
+    neutron star/supernova remnant -- the four in `_PHENOMENON_TABLES`
+    plus `_SUPERNOVA_REMNANT_TABLE`), across every sector and regardless
+    of galaxy placement -- `GET /api/phenomena`'s own flat listing
+    (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which only
+    returns the galaxy-placed subset, for the Galaxy Map) or
+    `phenomena_near_sector` (one sector's own neighborhood) -- neither of
+    which a supernova remnant can ever appear in, since its table has no
+    galaxy-frame placement columns at all (see `_SUPERNOVA_REMNANT_TABLE`'s
+    own docstring); its `placed` is therefore always `False` here.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -849,30 +995,31 @@ def list_phenomena(conn, limit=None, offset=None):
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
     shown on that system's own `system.py` page), not a standalone exotic
-    phenomenon; `nebulae`/`asteroid_fields` have no `star_id` at all
-    (always standalone, see their own table comments) and need no such
-    filter.
+    phenomenon; `nebulae`/`asteroid_fields`/`supernova_remnants` have no
+    `star_id` at all (always standalone, see their own table comments) and
+    need no such filter.
 
     Returns:
         list[dict]: One row per phenomenon, ordered by name: `id`, `type`
-            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, or
-            `"neutron_star"`), `name`, `descriptor`, `radius_ly`,
-            `sector_id`/`sector_name` (both `None` if this phenomenon has
-            never been linked to a sector -- see `schema.sql`'s "v18"
-            header note), and `placed` (bool -- whether it has a galaxy
-            position at all, `center_x_pc IS NOT NULL`).
+            (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
+            `"neutron_star"`, or `"supernova_remnant"`), `name`,
+            `descriptor`, `radius_ly`, `sector_id`/`sector_name` (both
+            `None` if this phenomenon has never been linked to a sector --
+            see `schema.sql`'s "v18" header note), and `placed` (bool --
+            whether it has a galaxy position at all, `center_x_pc IS NOT
+            NULL`; always `False` for a supernova remnant).
     """
     union_parts = [
         f"""
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
                {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                t.sector_id AS sector_id, sec.name AS sector_name,
-               t.center_x_pc AS center_x_pc
+               {"NULL" if table == "supernova_remnants" else "t.center_x_pc"} AS center_x_pc
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
-        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
     ]
     query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
     params = []
@@ -895,9 +1042,10 @@ def list_phenomena(conn, limit=None, offset=None):
 def count_phenomena(conn):
     """
     Returns the total number of exotic phenomena across every type in
-    `_PHENOMENON_TABLES`, ignoring any pagination -- the denominator
-    `list_phenomena(conn, limit=...)` callers (the API's
-    `/api/phenomena`) need to report how many pages exist.
+    `_PHENOMENON_TABLES` plus `_SUPERNOVA_REMNANT_TABLE`, ignoring any
+    pagination -- the denominator `list_phenomena(conn, limit=...)`
+    callers (the API's `/api/phenomena`) need to report how many pages
+    exist.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -910,16 +1058,30 @@ def count_phenomena(conn):
             f"SELECT COUNT(*) AS n FROM {table}"
             + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
         ).fetchone()["n"]
-        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES
+        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
     )
 
 
-_PHENOMENON_TYPE_TO_TABLE = {type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES}
+_PHENOMENON_TYPE_TO_TABLE = {
+    type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
+}
 """dict: `type` value (as returned by `list_phenomena`/`galaxy_placed_phenomena`)
 -> its backing table name, e.g. `"nebula"` -> `"nebulae"` -- the reverse of
 `_PHENOMENON_TABLES`'s own `(table, type_label, ...)` order, used by
 `phenomenon_detail` to find the one table a `(type, id)` pair actually
-means without hand-listing the mapping a second time."""
+means without hand-listing the mapping a second time. Includes
+`_SUPERNOVA_REMNANT_TABLE` too, since `phenomenon_detail`'s plain `SELECT
+t.*` works for it exactly the same as for the other four types even
+though it can't participate in the galaxy-placement-only helpers below."""
+
+_PLACEABLE_PHENOMENON_TYPES = frozenset(type_label for _t, type_label, _de, _re in _PHENOMENON_TABLES)
+"""frozenset: The `type` values that DO have galaxy-frame placement
+columns (everything in `_PHENOMENON_TABLES`) -- deliberately excludes
+`"supernova_remnant"`, unlike `_PHENOMENON_TYPE_TO_TABLE` above. Guards
+`_load_nav_phenomenon_endpoint` against ever running its `center_x_pc`
+SELECT against `supernova_remnants`, which has no such column and would
+otherwise raise a raw SQL error instead of the clean `ValueError` a NAV
+request for an inherently unplaceable phenomenon type should get."""
 
 
 def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
@@ -928,7 +1090,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     plus its sector's name (see `list_phenomena`'s identical `sector_id`/
     `sector_name` convention) -- for `GET /api/phenomena/<type>/<id>`
     (`html/phenomenon.py`'s detail page). Unlike `list_phenomena`'s
-    normalized `descriptor`/`radius_ly` (a common shape across all four
+    normalized `descriptor`/`radius_ly` (a common shape across all five
     types, for a flat list), this returns the row as-is: each type has its
     own genuinely different set of fields (a nebula's `nebula_type`/
     `composition`/`formation_cause` vs. a black hole's
@@ -940,7 +1102,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         conn (stellarObjects._db.Connection): An open, read-only connection.
         phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`).
+            `"neutron_star"`, `"supernova_remnant"`).
         phenomenon_id (int): The row's own `id` in its backing table.
 
     Returns:

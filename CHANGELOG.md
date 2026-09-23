@@ -1,5 +1,161 @@
 # Changelog
 
+## [5.46.12] - 2026-09-23
+
+### Added
+- **Zoomable, real-scale diagram on every stellar phenomenon's page.**
+  `phenomenon.py` gains a "Diagram" panel (new `lib/phenomenonmap.py` +
+  `static/phenomenonmap.js`, reusing `static/mapzoom.js`'s shared zoom/pan)
+  drawn directly to astronomical-unit scale: a nebula/asteroid field's real
+  `radius_ly` becomes an actual to-scale circle, zoomable from about 1 AU
+  up to 1 ly across. A black hole/neutron star (whose real size is
+  negligible at this scale) instead shows a small fixed illustrative dot.
+- **Supernova remnants are now a full first-class phenomenon type.**
+  Previously `supernova_remnants` had no web page at all. `phenomena.py`'s
+  listing and `phenomenon.py`'s detail page (morphology, progenitor type,
+  age, radius, any compact remnant left behind, galactic orbit) now cover
+  it, plus its own real-scale Diagram panel. It has no galaxy-frame
+  placement columns of its own, though (unlike the other four phenomenon
+  types), so it never appears on the Galaxy Map and can't be a NAV
+  endpoint -- `phenomenon.py` shows a short note explaining this instead
+  of offering "Navigate from/to here" buttons that would only fail.
+
+### Fixed
+- `queryDb.nav_between` would 500 with a raw "unknown column center_x_pc"
+  SQL error if ever asked to resolve a supernova remnant as a NAV
+  endpoint (its table genuinely has no such column). Now raises a clean
+  `ValueError`, same as any other invalid NAV request.
+
+## [5.46.11] - 2026-09-23
+
+### Added
+- **Real interactive zoom/pan on the Galaxy Map.** With enough placed
+  sectors, the core cluster used to squash into what looked like a single
+  dot no matter how many sectors actually existed -- the map was one fixed,
+  non-interactive SVG scaled to fit the single farthest-placed sector, and
+  `?quadrant=` only cropped that same squashed drawing. Scroll/wheel to
+  zoom (centered on the cursor), drag to pan, and `+`/`-`/`Reset view`
+  buttons, all the way in to about 100 ly across -- implemented as `viewBox`
+  mutations on the existing server-drawn SVG (new shared
+  `static/mapzoom.js`, reused as-is by a future phenomenon-diagram zoom;
+  `static/galaxymap.js` wires it to the galaxy map's own scale readout).
+  The `?quadrant=` crop is unchanged as the map's *starting* view; zoom/pan
+  layers on top of it.
+
+### Fixed
+- **A marker/label click anywhere on the Galaxy Map stopped navigating**
+  partway through implementing the above: capturing the pointer on
+  `pointerdown` (needed so a drag that leaves the SVG mid-gesture keeps
+  panning) retargeted the resulting `click` event to the `<svg>` itself
+  per the Pointer Events spec, so `navform.js`'s delegated
+  `closest("[data-nav-target]")` lookup never found the actual marker.
+  Deferred `setPointerCapture` until a real drag is detected instead of
+  calling it unconditionally on every pointerdown.
+
+## [5.46.10] - 2026-09-23
+
+### Added
+- **"Navigate to here" (symmetric with the existing "Navigate from here"),
+  and NAV support for standalone phenomena.** `system.py` now offers both
+  directions; `phenomenon.py` gains both buttons too (nebulae, asteroid
+  fields, black holes, and neutron stars can now be NAV origins/
+  destinations, including a full optimal route via adjacent systems, not
+  just a direct course). `nav.py`'s origin picker now accepts an
+  already-known destination (from a "Navigate to here" link) and carries
+  it through to the course instead of re-prompting. `GET /api/nav` gained
+  `from_kind`/`to_kind`/`from_type`/`to_type` query parameters for this
+  (see `docs/api.md`'s NAV section) -- existing system-to-system callers
+  are unaffected.
+
+### Fixed
+- **`GET /api/nav` 500'd for any route involving a phenomenon endpoint.**
+  `route.positions` could end up with both an int key (a system hop) and
+  a string key (a phenomenon endpoint), and Flask's default JSON
+  serialization sorts dict keys, which raises `TypeError` comparing an
+  int to a string. Fixed by stringifying every key at the JSON boundary
+  (`api/routes.py`), confirmed against a running instance and covered by
+  a regression test.
+
+## [5.46.9] - 2026-09-23
+
+### Changed
+- **Compacted the spread-out page header on System/Sector/Galaxy/Phenomenon
+  pages into one line.** The breadcrumb, Octant/binary badges, "Navigate
+  from here" button, and nearest-location text used to each be a
+  separately stacked, full-width block -- on `system.py` alone that was 4
+  lines of near-empty vertical space before the actual content started.
+  Added a shared `.page-subhead` flex row (`static/style.css`) and wired
+  it into `system.py`, `sector.py`, `galaxy.py`, and `phenomenon.py`.
+  Verified in a browser: the header on a binary system's page shrank from
+  roughly 650px of vertical space to about 150px.
+
+## [5.46.8] - 2026-09-23
+
+### Changed
+- **System Map: better label collision avoidance, and the 3D body preview
+  now lives inside the map itself.** A planet/moon label that collided
+  with a neighbor used to try only "above"/"below" before giving up and
+  hiding the label entirely; it now also tries "right"/"left", then a
+  further-out "above"/"below" tier (connected back to its marker with a
+  short leader line) before giving up -- in a stress test, this cut the
+  hidden-label rate from ~40% to ~16% for a tightly packed cluster, with
+  zero label-to-label overlaps either way. Separately, the rotating 3D
+  sphere preview (`#sysmap-preview`) used to sit in a fixed sidebar box
+  next to the map; it now floats inside the map viewport itself, next to
+  whichever marker was just clicked.
+
+## [5.46.7] - 2026-09-23
+
+### Fixed
+- **A planet's evolutionary/civilization narrative could contradict its own
+  class description.** A planet's fixed per-class flavor text (e.g. Class
+  G: "a rocky, barren world with simple life") and its evolutionary/tech
+  milestone (`evolution.get_evolutionary_timeline`, up to "Technological
+  Civilization") were generated by two completely independent code paths
+  -- the planet's own class was never passed into the evolutionary-timeline
+  calculation at all, so an old/fast-evolving star, or a forced
+  `INTELLIGENT_LIFE=True`, could still report a full technological
+  civilization for a planet whose own class text says life there tops out
+  at "simple" or "bacterial." Added `program_constants.
+  PLANET_CLASS_MAX_LIFE_STAGE`, a per-class ceiling on the highest
+  milestone that class's description is consistent with (Class E capped at
+  the most minimal stage, F/G at simple/bacterial, L at vegetation/
+  multicellular; classes with no explicit life-complexity wording in their
+  description stay uncapped), and threads the planet's class through so
+  both the natural age-based roll and a forced `INTELLIGENT_LIFE=True` are
+  capped by it. Includes a hard invariant assertion and dedicated
+  regression tests.
+
+## [5.46.6] - 2026-09-23
+
+### Fixed
+- **A binary system's own per-star property tables didn't render.** Each
+  star's `###`/`===` section header was joined to its property table by a
+  single newline instead of a blank line, so `html/lib/mdconvert.py`'s
+  blank-line block splitter lumped the heading and table into one block --
+  neither a valid single-line heading nor a valid table -- and rendered it
+  as one escaped paragraph of literal `#`/`|` characters instead of a real
+  heading plus table. Happened once per star, so every binary system showed
+  two broken blocks. Fixed in `systemData.py`'s close- and wide-binary
+  rendering paths.
+- **Generated systems could place two asteroid belts overlapping each
+  other, or a planet's orbit inside an asteroid belt.** Two independent
+  causes: (1) a wide (S-type) binary's cross-star clearance check
+  unconditionally skipped a trailing asteroid belt when finding a star's
+  "outermost" object, so belt-vs-belt (or belt-vs-planet) overlap between
+  the two stars' disks was never checked at all; (2) a forced
+  habitable-world/explicit-class placement drew its distance uniformly
+  within the target zone with no awareness of already-placed belts, and
+  could land inside one, or otherwise leave the object list no longer
+  sorted by distance -- which the existing overlap correction only ever
+  checks between immediate list neighbors, so a resulting overlap with a
+  non-adjacent belt went uncorrected. Fixed by making cross-star clearance
+  belt-aware (using a belt's own outer edge and a fixed minimum-separation
+  threshold, since a belt has no mass for the existing Hill-radius
+  criterion to apply to) and by making zone-forced distance selection
+  avoid already-placed belt spans. Added an independent, all-pairs overlap
+  invariant check (not a re-derivation of the existing correction's own
+  formula) to catch any future regression of this kind.
 ## [5.46.5] - 2026-09-20
 
 ### Fixed

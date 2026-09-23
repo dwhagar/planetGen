@@ -140,9 +140,18 @@ def _scale_bar_html(px_per_ly):
 
 
 def _point_html(db_name, waypoint, svg_x, svg_y, css_class, radius):
-    nav_params = data_nav_params({"db": db_name, "id": waypoint["id"]})
+    # A route's own intermediate hops are always real systems (see
+    # queryDb.nav_between's docstring), but the origin/destination
+    # themselves can each be a standalone phenomenon instead -- routed to
+    # phenomenon.py, with its own type/id params, rather than system.py.
+    if waypoint.get("kind") == "phenomenon":
+        nav_target = "phenomenon.py"
+        nav_params = data_nav_params({"db": db_name, "type": waypoint["type"], "id": waypoint["id"]})
+    else:
+        nav_target = "system.py"
+        nav_params = data_nav_params({"db": db_name, "id": waypoint["id"]})
     return (
-        f'<a class="navmap-point {css_class}" href="#" data-nav-target="system.py" '
+        f'<a class="navmap-point {css_class}" href="#" data-nav-target="{nav_target}" '
         f'data-nav-params="{nav_params}"><title>{esc(waypoint["name"])}</title>'
         f'<circle cx="{svg_x:.1f}" cy="{svg_y:.1f}" r="{radius:.1f}"/>'
         f'<text x="{svg_x:.1f}" y="{svg_y - radius - 5:.1f}" text-anchor="middle">'
@@ -159,16 +168,23 @@ def render_nav_map_panel(db_name, waypoints, has_route):
 
     Args:
         db_name (str): The current `?db=` value, used to build each
-                       point's link back to `system.py`.
+                       point's link back to `system.py` (or, for a
+                       phenomenon origin/destination, `phenomenon.py`).
         waypoints (list[dict]): Ordered origin-to-destination, each with
                                 `id`, `name`, `position` (an `(x, y, z)`
                                 light-year tuple in `nav_between`'s scope
                                 frame -- `origin_position`/
                                 `destination_position`/a route's
                                 `positions` entries, see `queryDb.
-                                nav_between`), and `role` (`"origin"`,
-                                `"destination"`, or `"hop"`). Always at
-                                least the origin and destination; any
+                                nav_between`), `role` (`"origin"`,
+                                `"destination"`, or `"hop"`), and `kind`
+                                (`"system"`, the default read when the key
+                                is absent, or `"phenomenon"` -- a `"hop"`
+                                is always `"system"`, only the origin/
+                                destination can be a phenomenon; when
+                                `kind == "phenomenon"`, `type` must also be
+                                set to its `queryDb._PHENOMENON_TYPE_TO_TABLE`
+                                key). Always at least the origin and destination; any
                                 `"hop"` entries in between are the
                                 optimal route's intermediate systems, in
                                 path order.

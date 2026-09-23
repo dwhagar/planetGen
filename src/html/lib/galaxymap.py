@@ -74,6 +74,16 @@ from `+X` -- `sector_quadrant` indexes into this. Deliberately the plain
 2D I-IV convention (see this module's own docstring) rather than the
 sector-internal octant's Roman-numeral scheme."""
 
+_MIN_VIEW_SIZE_LY = 100.0
+"""float: The deepest zoom-in this map allows, as a full viewBox-edge span
+in light-years (not a radius) -- static/mapzoom.js clamps its own zoom
+range to this, converted to SVG units via each render's own `px_per_ly`
+(see `render_galaxy_map_panel`). Matches the ~100 ly scale
+`RING_TARGET_LY` already uses for a Ring's own thickness -- deliberately
+the same number (not a coincidence to reconcile): "zoom in to about one
+Ring's width" is a natural, already-established scale reference on this
+same map, not an arbitrary new one."""
+
 RING_TARGET_LY = 100.0
 """float: The approximate light-year thickness a Ring should aim for.
 `RING_SHELL_WIDTH` is derived from this so Ring boundaries land close to
@@ -453,10 +463,26 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
         scope_label = "Full galaxy"
         nav_html = ""
 
+    # Real interactive zoom/pan (static/mapzoom.js), not just the quadrant
+    # crop's own fixed viewBox above -- that crop only decides where this
+    # map STARTS; from there, scroll/drag/the +/-/Reset buttons let a
+    # visitor zoom in far past it. `_MIN_VIEW_SIZE_LY` (~100 ly across, via
+    # this module's own `RING_TARGET_LY`) converted to this render's own
+    # `px_per_ly` is the deepest zoom-in this map allows -- independent of
+    # `quadrant`, so the same 100 ly floor applies whether zoom starts from
+    # the full galaxy or a Quadrant crop. Floored/capped so a sparse galaxy
+    # (whose own full extent is already under 100 ly) can't compute a
+    # min-zoom LARGER than the starting view, which would make "zoom in"
+    # zoom out instead.
+    min_view_size = min(_SVG_SIZE, max(20.0, _MIN_VIEW_SIZE_LY * 2 * px_per_ly))
+
     svg = (
-        f'<svg class="galaxymap-svg" viewBox="{view_box}" role="img" '
-        f'aria-label="Galaxy map, {esc(scope_label)}. Click a bright dot for its sector, '
-        f'a Roman-numeral label to jump to that Quadrant.">{body}</svg>'
+        f'<svg class="galaxymap-svg" id="galaxymap-svg" viewBox="{view_box}" role="img" '
+        f'data-min-view-size="{min_view_size:.2f}" data-max-view-size="{_SVG_SIZE:.2f}" '
+        f'data-px-per-ly="{px_per_ly:.6f}" '
+        f'aria-label="Galaxy map, {esc(scope_label)}. Scroll or use the +/- buttons to zoom, '
+        f'drag to pan. Click a bright dot for its sector, a Roman-numeral label to jump to that '
+        f'Quadrant.">{body}</svg>'
     )
 
     if not sectors:
@@ -473,12 +499,20 @@ def render_galaxy_map_panel(db_name, sectors, quadrant=None, phenomena=None):
 <div class="galaxymap-layout">
 <div class="galaxymap-viewport">
 {svg}
+<div class="starmap-scale" id="galaxymap-scale"></div>
 </div>
 <div class="galaxymap-side">
+<div class="starmap-controls" id="galaxymap-controls">
+  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
+  <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
+  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
+</div>
 {nav_html}
-<p class="hint">Rings are fixed {RING_SHELL_WIDTH}-shell bands (~{RING_TARGET_LY:.0f} ly each); Quadrants I-IV split the galaxy into four 90-degree azimuthal arcs from the core.</p>
+<p class="hint">Rings are fixed {RING_SHELL_WIDTH}-shell bands (~{RING_TARGET_LY:.0f} ly each); Quadrants I-IV split the galaxy into four 90-degree azimuthal arcs from the core. Scroll/drag/+/- to zoom in, down to about {_MIN_VIEW_SIZE_LY:.0f} ly wide.</p>
 {legend_extra}
 </div>
 </div>
 </section>
+<script src="static/mapzoom.js"></script>
+<script src="static/galaxymap.js"></script>
 """

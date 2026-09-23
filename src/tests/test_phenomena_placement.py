@@ -518,3 +518,79 @@ def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_co
     # falls within the sector's bounding sphere -- compute_phenomenon_placement's
     # own jitter always keeps it within the cube's half-extent.
     assert match["distance_ly"] >= 0
+
+
+# ---------------------------------------------------------------------------
+# supernova_remnant support in list_phenomena/count_phenomena/
+# phenomenon_detail (html/phenomena.py's listing, html/phenomenon.py's
+# detail page) -- added alongside this diagram's own AU-scale feature,
+# since supernova_remnants previously had no web page at all. It has its
+# own real radius_ly (unlike black_hole/neutron_star) but NO galaxy-frame
+# placement columns (unlike the other four phenomenon types), which is
+# exactly what queryDb._SUPERNOVA_REMNANT_TABLE is kept separate from
+# _PHENOMENON_TABLES for -- see that constant's own docstring, and
+# test_navigation.py's test_nav_between_rejects_a_real_supernova_remnant_endpoint
+# for the NAV side of that same distinction.
+# ---------------------------------------------------------------------------
+
+def test_list_phenomena_includes_a_supernova_remnant_always_unplaced(mysql_config):
+    remnant = SupernovaRemnant(SystemConfig())
+    conn = _db.get_connection(mysql_config)
+    try:
+        remnant_id = _db.insert_supernova_remnant(conn, remnant)
+        conn.commit()
+        rows = queryDb.list_phenomena(conn)
+    finally:
+        conn.close()
+
+    row = next(r for r in rows if r["id"] == remnant_id and r["type"] == "supernova_remnant")
+    assert row["name"] == remnant.name
+    assert row["descriptor"] == remnant.morphology
+    assert row["radius_ly"] == pytest.approx(remnant.radius_ly)
+    assert row["placed"] is False
+
+
+def test_count_phenomena_includes_supernova_remnants(mysql_config):
+    # A core-collapse progenitor can leave a detectable compact remnant of
+    # its own (SupernovaRemnant.__init__'s own probabilistic roll), which
+    # would insert a SECOND, genuinely-standalone-shaped black_holes/
+    # neutron_stars row (star_id NULL) that count_phenomena's own
+    # black_holes/neutron_stars branch can't distinguish from a real
+    # standalone one -- retry for a guaranteed Type Ia progenitor (never
+    # leaves anything behind) so this test's "+1" is deterministic.
+    remnant = SupernovaRemnant(SystemConfig())
+    for _ in range(50):
+        if remnant.compact_remnant is None:
+            break
+        remnant = SupernovaRemnant(SystemConfig())
+    else:
+        pytest.fail("could not generate a supernova remnant with no embedded compact remnant")
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        before = queryDb.count_phenomena(conn)
+        _db.insert_supernova_remnant(conn, remnant)
+        conn.commit()
+        after = queryDb.count_phenomena(conn)
+    finally:
+        conn.close()
+
+    assert after == before + 1
+
+
+def test_phenomenon_detail_returns_a_supernova_remnants_own_columns(mysql_config):
+    remnant = SupernovaRemnant(SystemConfig())
+    conn = _db.get_connection(mysql_config)
+    try:
+        remnant_id = _db.insert_supernova_remnant(conn, remnant)
+        conn.commit()
+        detail = queryDb.phenomenon_detail(conn, "supernova_remnant", remnant_id)
+    finally:
+        conn.close()
+
+    assert detail["name"] == remnant.name
+    assert detail["morphology"] == remnant.morphology
+    assert detail["progenitor_type"] == remnant.progenitor_type
+    assert detail["radius_ly"] == pytest.approx(remnant.radius_ly)
+    assert detail["type"] == "supernova_remnant"
+    assert detail["sector_name"] is None

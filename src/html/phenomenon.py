@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 from apiclient import get_phenomenon
 from fmt import esc, post_link
 from page import nav_params, run
+from phenomenonmap import render_phenomenon_map_panel
 
 try:
     from stellarObjects.utils import pc_to_ly
@@ -53,9 +54,18 @@ def _title_case(value):
     return (value or "").replace("_", " ").replace("-", " ").capitalize()
 
 
+def _progenitor_text(value):
+    # "Type Ia" is already correctly cased as stored -- _title_case would
+    # mangle it (no "_"/"-" to split on, so its own .capitalize() just
+    # lowercases the "Ia" to "ia"). "core-collapse" has no such special
+    # casing to preserve, so it goes through _title_case normally.
+    return value if value == "Type Ia" else _title_case(value)
+
+
 _TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
+    "supernova_remnant": "Supernova Remnant",
 }
 
 # (column, label, formatter) per type -- formatter takes the raw column
@@ -103,6 +113,15 @@ _FIELD_SPECS = {
         ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s" if v is not None else None),
         ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy" if v is not None else None),
     ],
+    "supernova_remnant": [
+        ("morphology", "Morphology", _title_case),
+        ("progenitor_type", "Progenitor Type", _progenitor_text),
+        ("age_years", "Age", lambda v: f"{v:,.0f} years"),
+        ("radius_ly", "Radius", _ly),
+        ("compact_remnant_kind", "Compact Remnant Left Behind", _title_case),
+        ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s"),
+        ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy"),
+    ],
 }
 
 
@@ -140,10 +159,42 @@ def handler():
         badge_bits.append(f"Sector: {sector_link}")
     badges_html = "<p class=\"badges\">" + "".join(f'<span class="badge">{bit}</span>' for bit in badge_bits) + "</p>"
 
+    # Offered unconditionally for every OTHER type, unlike system.py's own
+    # sector-gated nav buttons -- nav.py itself renders a clear "not
+    # available" message for a phenomenon never placed in the galaxy, so
+    # this page doesn't have to duplicate that same placement check just
+    # to decide whether to show the button at all. A supernova remnant is
+    # the one exception: its own table has no galaxy-frame placement
+    # columns at ALL (see queryDb._SUPERNOVA_REMNANT_TABLE's docstring),
+    # not merely "not placed yet" -- nav_between rejects it outright
+    # (ValueError, queryDb._load_nav_phenomenon_endpoint), so offering the
+    # button here would just walk a visitor into that error instead of
+    # nav.py's normal unplaced-phenomenon message.
+    if phenomenon_type == "supernova_remnant":
+        nav_html = ""
+        nav_hint_html = (
+            '<p class="hint">A supernova remnant has no known position in the galaxy '
+            "yet, so it can't be used for navigation.</p>"
+        )
+    else:
+        nav_html = (
+            post_link(
+                "nav.py", {"db": db_name, "from": detail["id"], "from_kind": "phenomenon", "from_type": phenomenon_type},
+                "Navigate from here", css_class="btn",
+            )
+            + post_link(
+                "nav.py", {"db": db_name, "to": detail["id"], "to_kind": "phenomenon", "to_type": phenomenon_type},
+                "Navigate to here", css_class="btn",
+            )
+        )
+        nav_hint_html = ""
+
+    map_html = render_phenomenon_map_panel(phenomenon_type, detail["name"], detail.get("radius_ly") or 0)
     fields_html = _fields_html(phenomenon_type, detail)
     body = f"""
-{breadcrumb}
-{badges_html}
+<div class="page-subhead">{breadcrumb}{badges_html}{nav_html}</div>
+{nav_hint_html}
+{map_html}
 <section class="panel">
 <h2>{esc(type_label)} Data</h2>
 <div class="table-scroll"><table>

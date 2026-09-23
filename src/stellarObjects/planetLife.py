@@ -194,7 +194,7 @@ def apply_life_data(planet):
 
     # Generate evolutionary timeline data if the planet is habitable and not a moon
     if planet.zone == 'e' and not planet.is_moon: # Only for habitable planets
-        planet.evolutionary_data = get_evolutionary_timeline(planet.star)
+        planet.evolutionary_data = get_evolutionary_timeline(planet.star, planet.planet_class)
 
 
 def decide_flavor_text(planet):

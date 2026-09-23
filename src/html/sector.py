@@ -298,9 +298,9 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 </section>
 """
 
+    breadcrumb_html = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(sector["name"])}</p>'
     body = f"""
-<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(sector['name'])}</p>
-{badges_html}
+<div class="page-subhead">{breadcrumb_html}{badges_html}</div>
 {wiki_html}
 {admin_panel_html}
 {map_html}

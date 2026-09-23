@@ -141,12 +141,17 @@ connectivity to that specific schema rather than the default one.
   same reason `/api/galaxy/sectors` isn't.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
-  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
+  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset, and
+  can never include a supernova remnant — see below) —
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,
-  `total`, `limit`, `offset`). Each item has `id`, `type`, `name`,
+  `total`, `limit`, `offset`). Each item has `id`, `type`
+  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
+  `"supernova_remnant"`), `name`,
   `descriptor`, `radius_ly` (same shape as `/api/galaxy/phenomena`'s own
   items), plus `sector_id`/`sector_name` (both `null` if never linked to a
-  sector) and `placed` (bool, whether it has a galaxy position at all) —
+  sector) and `placed` (bool, whether it has a galaxy position at all —
+  always `false` for a supernova remnant, which has no galaxy-frame
+  placement columns of its own) —
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
@@ -154,12 +159,15 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/
-  `has_accretion_disk`), plus `type` and `sector_name` — `queryDb.
+  `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
+  `age_years`), plus `type` and `sector_name` — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
-  `black_hole`/`neutron_star`; an unrecognized type or a nonexistent id is
+  `black_hole`/`neutron_star`/`supernova_remnant`; an unrecognized type or
+  a nonexistent id is
   a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
-  detail page of its own, only a hover tooltip on the Sector/Galaxy Map).
+  detail page of its own, only a hover tooltip on the Sector/Galaxy Map),
+  now including a to-scale AU diagram (`../src/html/lib/phenomenonmap.py`).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
   the faceted search behind `../src/html/search.py`: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
@@ -266,19 +274,41 @@ client (the real detail still reaches Flask's own logger).
 `GET /api/nav?from=<system_id>&to=<system_id>` returns a direct course
 (distance, azimuth, altitude, warp travel times) plus an optimal route via
 adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
-graph with Dijkstra shortest-path) between two systems.
+graph with Dijkstra shortest-path) between two endpoints -- each either a
+star system (the default) or a standalone phenomenon (nebula/asteroid
+field/black hole/neutron star).
 
-**Availability.** NAV only applies to a pair of systems that satisfy all of:
+**Phenomenon endpoints.** Pass `from_kind=phenomenon&from_type=<type>`
+(and/or the `to_*` equivalents) to route to/from a phenomenon instead of a
+system -- `from`/`to` then names that phenomenon's own row id, and
+`from_type`/`to_type` is one of `nebula`, `asteroid_field`, `black_hole`,
+`neutron_star` (NOT `supernova_remnant` -- that phenomenon type is fully
+recognized everywhere else, `GET /api/phenomena/<type>/<id>` included, but
+its own table has no galaxy-frame placement columns at all, so it can
+never be a NAV endpoint; passing it here is a `404`, same as an
+unrecognized type or a nonexistent id). A phenomenon
+endpoint's own `route.path`/`route.positions` id is a
+`"phenomenon:<type>:<id>"` string (a plain int id, same as always, for a
+system) -- only `route.path[0]`/`route.path[-1]` can ever be a phenomenon;
+every intermediate hop is always a system.
 
-- Both systems are assigned to a sector (`star_systems.sector_id IS NOT
-  NULL`) — a `404` (unknown system id) or a `400` with `"NAV requires both
-  systems to be assigned to a sector"` otherwise.
-- If the two systems are in different sectors, both of those sectors must
-  have a galaxy placement (`sectors.center_x/y/z_pc IS NOT NULL`, i.e. both
-  were placed by `galaxyGen.py`) — otherwise a `400` with `"NAV between
-  different sectors requires both sectors to have a galaxy placement"`.
-  Same-sector NAV never needs this — it works even in a database with no
-  galaxy generated at all.
+**Availability.** NAV only applies to a pair of endpoints that satisfy one of:
+
+- Both are systems in the SAME sector (`star_systems.sector_id IS NOT
+  NULL`, matching) -- scoped to that sector's own systems (sector-local
+  positions). Checked first/preferred over the galaxy-scope rule below.
+- Otherwise, both have a galaxy-frame position -- a system whose sector has
+  a galaxy placement (`sectors.center_x/y/z_pc IS NOT NULL`, i.e. placed by
+  `galaxyGen.py`), or a phenomenon that's itself been placed in the galaxy
+  (`--sector-id` at generation time -- see `generate.py phenomenon`'s own
+  help). A phenomenon endpoint can only ever be resolved this way: it has
+  no sector-local position of its own, regardless of which sector its own
+  `sector_id` names as its nearest neighbor (that column is a browsing
+  convenience, not real containment).
+- Anything else (an unplaced system, a phenomenon never placed in the
+  galaxy, or two systems in different sectors where either lacks a galaxy
+  placement) is a `404` (unknown id) or a `400` with `"NAV requires both
+  endpoints to share a sector, or both to have a galaxy placement"`.
 
 **Course convention.** Azimuth and altitude are both galactic-plane-relative
 (see `stellarObjects/navigation.py`'s module docstring): azimuth is the
@@ -323,14 +353,17 @@ not a bearing relative to any particular ship heading.
   `"sector"`, absolute galaxy-frame for `"galaxy"`) — what `html/nav.py`'s
   NAV Map plot (`html/lib/navmap.py`) draws.
 - `route`: the shortest path via adjacent systems (nodes: every system in
-  scope; edges: each system's `k`-nearest neighbors, symmetrized), as a list
-  of system ids from `from` to `to` inclusive, its total distance, and
-  `positions` (one `[x, y, z]` entry per id in `path`, same frame as
-  `origin_position`/`destination_position`). `null` if no path exists
-  through the adjacency graph (only possible for the `"galaxy"` scope — the
-  `"sector"` scope's graph is always fully reachable since every system in a
-  sector gets an edge once `k` is at least the sector's own system count
-  minus one).
+  scope, plus a phenomenon endpoint's own one-off node when `from`/`to` is
+  one; edges: each node's `k`-nearest neighbors, symmetrized), as a list of
+  node ids from `from` to `to` inclusive (a plain int for a system, a
+  `"phenomenon:<type>:<id>"` string for a phenomenon -- only `path[0]`/
+  `path[-1]` can ever be the latter), its total distance, and `positions`
+  (one `[x, y, z]` entry per id in `path`, keyed as a string either way
+  since JSON object keys always are, same frame as `origin_position`/
+  `destination_position`). `null` if no path exists through the adjacency
+  graph (only possible for the `"galaxy"` scope — the `"sector"` scope's
+  graph is always fully reachable since every system in a sector gets an
+  edge once `k` is at least the sector's own system count minus one).
 
 ## Write endpoints
 

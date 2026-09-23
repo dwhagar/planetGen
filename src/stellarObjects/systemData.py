@@ -594,7 +594,7 @@ class StarSystem:
                 # An explicit per-slot specification takes priority over all of the
                 # normal random/forced generation logic below.
                 if slot_spec is not None:
-                    obj = self.generate_slot_object(slot_spec, estimated_distance)
+                    obj = self.generate_slot_object(slot_spec, estimated_distance, planets=planets)
                     if getattr(obj, 'planet_class', None) in program_constants.HABITABLE_PLANET_CLASSES:
                         found_hab = True
                     if getattr(obj, 'body_type', None) == 'a':
@@ -609,7 +609,7 @@ class StarSystem:
                     if not hz and i == 0:
                         if (estimated_distance > habitable_zone[1] or
                                 0 < habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
-                            estimated_distance = self._forced_habitable_distance()
+                            estimated_distance = self._forced_habitable_distance(planets)
                             hz = True
                     elif not hz and i > 0:
                         last_planet = planets[i - 1]
@@ -625,7 +625,11 @@ class StarSystem:
                         belt_is_protected = last_planet.body_type == 'a' and self.system_config.ASTEROID_BELT is True
 
                         if beyond_hz and not prev_slot_explicit and not belt_is_protected:
-                            estimated_distance = self._forced_habitable_distance()
+                            # planets[i - 1] itself is about to be discarded and
+                            # replaced below -- exclude it from belt-avoidance so
+                            # a belt being overwritten here doesn't spuriously
+                            # constrain where its own replacement can land.
+                            estimated_distance = self._forced_habitable_distance(planets[:i - 1])
                             planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
                                             planet_class="M")
                             planets[i - 1] = planet
@@ -636,7 +640,7 @@ class StarSystem:
                                 break
                             continue
                         elif i == system_objects - 1:
-                            estimated_distance = self._forced_habitable_distance()
+                            estimated_distance = self._forced_habitable_distance(planets)
                             hz = True
 
                     if hz:
@@ -783,11 +787,20 @@ class StarSystem:
         that orbital slot, the same spirit as `_generate_planets`'s own
         documented "runs out of stable room" behavior.
 
-        Trailing `AsteroidBelt` objects are skipped when finding a star's
-        "outermost planet" -- a belt has no discrete mass/Hill sphere to
-        evaluate here -- by walking inward past any trailing belt(s); if
-        either star's list contains no real `Planet` at all, this is a
-        no-op.
+        A star's "outermost" object can be an `AsteroidBelt` as well as a
+        `Planet` -- found as whichever object has the greatest outer edge
+        (`upper_limit` for a belt, `distance` for a planet), not just the
+        list's last element, since the belt-aware placement fix in
+        `_distance_avoiding_belts` no longer guarantees a strictly
+        distance-sorted list. A belt has no discrete mass/Hill sphere, so
+        the Gladman mutual-Hill-radius criterion below only applies when
+        BOTH stars' outermost objects are real planets; if either one is a
+        belt, this falls back to a plain geometric non-overlap requirement
+        (worst-case gap must clear `program_constants.
+        MIN_ASTEROID_BELT_SEPARATION`, the same fixed buffer
+        `validate_system` already uses between same-star neighbors),
+        since a belt has no mass to derive a dynamical-stability margin
+        from in the first place.
 
         As the equal-mass, circular-orbit sanity check in
         `utils.holman_wiegert_critical_semimajor_axis`'s own docstring
@@ -813,29 +826,31 @@ class StarSystem:
         a_bin = self.wide_binary.separation_au
         central_mass_kg = self.primary_star.mass + self.secondary_star.mass
 
-        def outermost_planet(planet_list):
-            for obj in reversed(planet_list):
-                if obj.body_type != 'a':
-                    return obj
-            return None
+        def edge_au(obj):
+            return obj.upper_limit if obj.body_type == 'a' else obj.distance
+
+        def outermost(planet_list):
+            return max(planet_list, key=edge_au)
 
         while self.planets and self.secondary_planets:
-            outer_p = outermost_planet(self.planets)
-            outer_s = outermost_planet(self.secondary_planets)
-            if outer_p is None or outer_s is None:
-                break
+            outer_p = outermost(self.planets)
+            outer_s = outermost(self.secondary_planets)
 
-            worst_case_gap_au = a_bin - outer_p.distance - outer_s.distance
-            r_h_mutual_au = mutual_hill_radius_au(
-                outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg
-            )
-            threshold_au = physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
+            worst_case_gap_au = a_bin - edge_au(outer_p) - edge_au(outer_s)
+
+            if outer_p.body_type == 'a' or outer_s.body_type == 'a':
+                threshold_au = program_constants.MIN_ASTEROID_BELT_SEPARATION
+            else:
+                r_h_mutual_au = mutual_hill_radius_au(
+                    outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg
+                )
+                threshold_au = physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
 
             if worst_case_gap_au >= threshold_au:
                 break
 
-            primary_room = self.primary_star.a_crit_au - outer_p.distance
-            secondary_room = self.secondary_star.a_crit_au - outer_s.distance
+            primary_room = self.primary_star.a_crit_au - edge_au(outer_p)
+            secondary_room = self.secondary_star.a_crit_au - edge_au(outer_s)
             if primary_room <= secondary_room:
                 self.planets.remove(outer_p)
             else:
@@ -1028,7 +1043,7 @@ class StarSystem:
 
         return system
 
-    def generate_slot_object(self, slot_spec, estimated_distance):
+    def generate_slot_object(self, slot_spec, estimated_distance, planets=None):
         """
         Builds the celestial object explicitly requested for one orbital slot
         by `system_config.SLOTS`.
@@ -1039,6 +1054,10 @@ class StarSystem:
                               "planet_class"/"moons" keys (see `SystemConfig.SLOTS`).
             estimated_distance (float): The orbital distance (in AU) computed
                                         for this slot by the generation loop.
+            planets (list, optional): Objects already placed earlier in this
+                same loop, passed through to `calculate_distance_for_class`
+                so an explicit class request doesn't land inside an
+                already-placed belt (see `_distance_avoiding_belts`).
 
         Returns:
             Planet or AsteroidBelt: The generated object for this slot.
@@ -1055,13 +1074,13 @@ class StarSystem:
 
         if slot_type == "planet":
             planet_class = slot_spec.get("planet_class")
-            distance = self.calculate_distance_for_class(planet_class, estimated_distance)
+            distance = self.calculate_distance_for_class(planet_class, estimated_distance, planets=planets)
             return Planet(self.system_config, self.star, self.star.habitable_zone, distance,
                          planet_class=planet_class, moon_count=slot_spec.get("moons"))
 
         raise ValueError(f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'.")
 
-    def calculate_distance_for_class(self, planet_class, estimated_distance):
+    def calculate_distance_for_class(self, planet_class, estimated_distance, planets=None):
         """
         Adjusts an orbital distance so that it falls in a zone (hot, cold, or
         ecosphere) that actually supports a requested `planet_class`.
@@ -1080,6 +1099,10 @@ class StarSystem:
                                         if the slot doesn't specify one.
             estimated_distance (float): The orbital distance (in AU) computed
                                         for this slot by the generation loop.
+            planets (list, optional): Objects already placed earlier in this
+                same loop -- passed through to `_distance_avoiding_belts` so
+                the adjusted distance doesn't land inside an already-placed
+                belt.
 
         Returns:
             float: `estimated_distance`, or an adjusted distance (in AU) that
@@ -1101,17 +1124,21 @@ class StarSystem:
             return estimated_distance
 
         if class_data.get('e'):
-            return self._distance_within_zone_with_margin(inner, outer)
+            return self._distance_within_zone_with_margin(inner, outer, planets=planets)
         if class_data.get('h'):
+            if planets:
+                return self._distance_avoiding_belts(inner * 0.05, inner * 0.95, planets)
             return random.uniform(inner * 0.05, inner * 0.95)
         if class_data.get('c'):
+            if planets:
+                return self._distance_avoiding_belts(outer * 1.05, outer * 3.0, planets)
             return outer * random.uniform(1.05, 3.0)
 
         # No zone supports this class; leave the distance as-is and let
         # planetPhysics raise its usual, clearer validation error.
         return estimated_distance
 
-    def _distance_within_zone_with_margin(self, inner, outer):
+    def _distance_within_zone_with_margin(self, inner, outer, planets=None):
         """
         Draws a distance uniformly within `[inner, outer]`, leaving a
         safety margin at both edges against `validate_system`'s own
@@ -1132,25 +1159,106 @@ class StarSystem:
         Args:
             inner (float): Zone's inner bound, in AU.
             outer (float): Zone's outer bound, in AU.
+            planets (list, optional): Objects already placed earlier in
+                this same orbit-placement loop (`AsteroidBelt`/`Planet`
+                mix). When given, any already-placed belt's own
+                `[lower_limit, upper_limit]` span is excluded from the
+                draw (see `_distance_avoiding_belts`) -- this is what
+                keeps a forced-habitable-world/explicit-class placement
+                from landing *inside* an asteroid belt that happened to
+                be placed earlier at a smaller loop index but a
+                numerically closer distance (the loop's `estimated_distance`
+                sequence isn't monotonic once a zone-forced placement
+                overrides it, so "placed earlier" doesn't imply "closer
+                in").  `None` (the default) keeps the old belt-blind
+                behavior, e.g. for callers with no `planets` list yet.
 
         Returns:
-            float: A distance in AU, safely inside `[inner, outer]`.
+            float: A distance in AU, safely inside `[inner, outer]`, and
+                  outside every already-placed belt's span when `planets`
+                  is given.
         """
         margin = min(program_constants.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
-        return random.uniform(inner + margin, outer - margin)
+        lo, hi = inner + margin, outer - margin
+        if planets:
+            return self._distance_avoiding_belts(lo, hi, planets)
+        return random.uniform(lo, hi)
 
-    def _forced_habitable_distance(self):
+    def _distance_avoiding_belts(self, lo, hi, planets):
+        """
+        Draws a distance uniformly within `[lo, hi]`, excluding any
+        already-placed `AsteroidBelt`'s own `[lower_limit, upper_limit]`
+        span -- the belt-awareness `_distance_within_zone_with_margin` and
+        `calculate_distance_for_class` need so a zone-forced planet
+        placement can't land inside a belt that already occupies part of
+        that zone (see `docs/TODO.md`'s "generated system had two
+        overlapping asteroid belts, and a planet orbit inside a belt"
+        entry -- this is the second half of that fix; the first half is
+        `_validate_cross_star_clearance` no longer skipping belts).
+
+        Falls back to a plain uniform draw across `[lo, hi]` if belts
+        already cover the whole range (a rare, pathological case) --
+        `validate_system`'s own adjacent-pair spacing correction remains
+        the backstop for whatever residual overlap that leaves.
+
+        Args:
+            lo (float): Range lower bound, in AU.
+            hi (float): Range upper bound, in AU.
+            planets (list): Already-placed `AsteroidBelt`/`Planet` objects
+                to check against (only belts, `body_type == 'a'`, actually
+                constrain anything here).
+
+        Returns:
+            float: A distance in AU, inside `[lo, hi]` and outside every
+                  belt span in `planets` when that leaves any room at all.
+        """
+        if hi <= lo:
+            return lo
+
+        belt_spans = sorted(
+            (max(lo, obj.lower_limit), min(hi, obj.upper_limit))
+            for obj in planets
+            if obj.body_type == 'a' and obj.lower_limit < hi and obj.upper_limit > lo
+        )
+
+        free_spans = []
+        cursor = lo
+        for span_lo, span_hi in belt_spans:
+            if span_lo > cursor:
+                free_spans.append((cursor, span_lo))
+            cursor = max(cursor, span_hi)
+        if cursor < hi:
+            free_spans.append((cursor, hi))
+
+        if not free_spans:
+            return random.uniform(lo, hi)
+
+        weights = [span_hi - span_lo for span_lo, span_hi in free_spans]
+        pick = random.uniform(0, sum(weights))
+        for (span_lo, span_hi), weight in zip(free_spans, weights):
+            if pick <= weight:
+                return random.uniform(span_lo, span_hi)
+            pick -= weight
+        return random.uniform(*free_spans[-1])
+
+    def _forced_habitable_distance(self, planets=None):
         """
         Draws a distance for a planet the generation loop is forcing into
         the habitable zone (`HABITABLE_WORLD=True`), via
         `_distance_within_zone_with_margin`.
+
+        Args:
+            planets (list, optional): Already-placed objects in this same
+                loop -- passed through so the draw avoids landing inside
+                an already-placed belt (see
+                `_distance_within_zone_with_margin`).
 
         Returns:
             float: A distance in AU, safely inside the star's
                   `habitable_zone`.
         """
         inner, outer = self.star.habitable_zone
-        return self._distance_within_zone_with_margin(inner, outer)
+        return self._distance_within_zone_with_margin(inner, outer, planets=planets)
 
     def count_objects(self, planets=None):
         """
@@ -1726,7 +1834,7 @@ class StarSystem:
                 all_output_parts.append('\n\n') # Blank line after age sentence
                 header_level = '===' if not self.system_config.MARKDOWN else '###'
                 all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
-                all_output_parts.append('\n') # Add a newline after the header
+                all_output_parts.append('\n\n') # Blank line after the header so the markdown converter treats the table as its own block
 
                 # Each individual star's to_paragraph_list() returns [data_block, age_sentence]
                 individual_star_details = star_obj.to_paragraph_list()
@@ -1760,7 +1868,7 @@ class StarSystem:
                 all_output_parts.append('\n\n')
                 header_level = '===' if not self.system_config.MARKDOWN else '###'
                 all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
-                all_output_parts.append('\n')
+                all_output_parts.append('\n\n') # Blank line after the header so the markdown converter treats the table as its own block
 
                 individual_star_details = star_obj.to_paragraph_list()
                 all_output_parts.append(individual_star_details[0])

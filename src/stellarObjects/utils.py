@@ -265,6 +265,38 @@ def ly_to_pc(ly):
     return ly * (physical_constants.LY_TO_AU / physical_constants.AU_PER_PARSEC)
 
 
+def ly_to_au(ly):
+    """
+    Converts a distance in light-years (ly) to astronomical units (AU),
+    for human-readable display at a stellar-phenomenon's own AU scale
+    (`html/lib/phenomenonmap.py`'s diagram) -- the AU counterpart to
+    `pc_to_ly`/`ly_to_pc` above, using the same
+    `physical_constants.LY_TO_AU` this package's other ly<->AU
+    conversions already share.
+
+    Args:
+        ly (float): The distance in light-years.
+
+    Returns:
+        float: The distance in astronomical units.
+    """
+    return ly * physical_constants.LY_TO_AU
+
+
+def au_to_ly(au):
+    """
+    Converts a distance in astronomical units (AU) to light-years (ly) --
+    the inverse of `ly_to_au`. See that function's docstring.
+
+    Args:
+        au (float): The distance in astronomical units.
+
+    Returns:
+        float: The distance in light-years.
+    """
+    return au * physical_constants.AU_TO_LY
+
+
 def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.

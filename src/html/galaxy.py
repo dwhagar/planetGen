@@ -134,9 +134,9 @@ def handler():
     ) + "</p>"
 
     title = f"Galaxy Map: Quadrant {quadrant}" if quadrant else "Galaxy Map"
+    breadcrumb_html = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(title)}</p>'
     body = f"""
-<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))} &rarr; {esc(title)}</p>
-{badges_html}
+<div class="page-subhead">{breadcrumb_html}{badges_html}</div>
 {map_html}
 <section class="panel">
 <h2>{esc(table_title)}</h2>

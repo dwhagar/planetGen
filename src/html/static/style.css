@@ -194,6 +194,31 @@ h2 {
   font-weight: 500;
 }
 
+/* One compact row for a page's breadcrumb + badges + nav button(s) +
+   location line -- these used to each be a separately stacked, full-width
+   block (system.py was the worst offender: 4 of them, one per line,
+   spreading the page's own header out well past what any of them
+   individually needed). `.breadcrumb`/`.badges`'s own bottom margins are
+   zeroed out here so the row's own `gap` is the only spacing between
+   them. */
+.page-subhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-subhead .breadcrumb,
+.page-subhead .badges {
+  margin: 0;
+}
+
+.page-subhead .location {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .panel {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -634,10 +659,12 @@ tbody tr:last-child td {
 }
 
 /* Galaxy map: flat SVG plot of galaxy-placed sectors (html/lib/galaxymap.py,
-   html/galaxy.py) -- no static/*.js file of its own; Quadrant zoom is a
-   plain server-rendered link that changes the SVG's own viewBox, and every
-   dot is a plain <a> to sector.py, so this needs no client-side script the
-   3D sector map (.starmap-*, above) does. */
+   html/galaxy.py). Quadrant zoom is still a plain server-rendered link
+   that starts the SVG's own viewBox cropped to one quadrant, but real
+   zoom/pan from there on is static/galaxymap.js + static/mapzoom.js
+   (viewBox-based, no camera/3D the way the sector map's .starmap-* needs
+   -- see mapzoom.js's own module docstring), reusing that shared module's
+   generic .starmap-controls/.starmap-btn/.starmap-scale styling below. */
 .galaxymap-layout {
   display: flex;
   flex-wrap: wrap;
@@ -646,6 +673,7 @@ tbody tr:last-child td {
 }
 
 .galaxymap-viewport {
+  position: relative;
   flex: 0 0 auto;
   width: min(100%, 26rem);
   aspect-ratio: 1 / 1;
@@ -658,6 +686,16 @@ tbody tr:last-child td {
   width: 100%;
   height: 100%;
   display: block;
+  cursor: grab;
+  /* galaxymap.js/mapzoom.js own drag-to-pan via pointer events --
+     without this, a touch browser intercepts a vertical drag as page
+     scroll before those handlers ever see it (same reasoning
+     .starmap-canvas's identical rule documents). */
+  touch-action: none;
+}
+
+.galaxymap-svg:active {
+  cursor: grabbing;
 }
 
 .galaxymap-ring {
@@ -701,6 +739,55 @@ a:focus-visible .galaxymap-star-core {
 }
 
 .galaxymap-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 14rem;
+  min-width: 12rem;
+}
+
+/* Phenomenon diagram: flat, zoomable SVG drawn directly to AU scale
+   (html/lib/phenomenonmap.py, html/phenomenon.py) -- same static/mapzoom.js
+   viewBox zoom/pan as the Galaxy Map above (static/phenomenonmap.js is its
+   own small wiring script, same shape as galaxymap.js), so this reuses the
+   identical .starmap-controls/.starmap-btn/.starmap-scale styling too;
+   only the layout/viewport/svg rules need their own (structurally
+   identical, but honestly-named) copies below rather than reusing
+   .galaxymap-*, which is a different map. */
+.phenomenonmap-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.phenomenonmap-viewport {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100%, 26rem);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.phenomenonmap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  /* phenomenonmap.js/mapzoom.js own drag-to-pan via pointer events --
+     without this, a touch browser intercepts a vertical drag as page
+     scroll before those handlers ever see it (same reasoning
+     .galaxymap-svg's identical rule documents). */
+  touch-action: none;
+}
+
+.phenomenonmap-svg:active {
+  cursor: grabbing;
+}
+
+.phenomenonmap-side {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -1098,6 +1185,17 @@ code {
   user-select: none;
 }
 
+/* Drawn only when _label_sides_2d had to move a label away from its
+   default "below" spot to avoid colliding with a neighbor -- a thin stub
+   connecting the marker's own edge to where its (repositioned) label
+   begins, so it still reads as belonging to that body. */
+.sysmap-label-leader {
+  stroke: var(--text-muted);
+  stroke-width: 1px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .sysmap-star-label {
   fill: var(--text);
   font-weight: 700;
@@ -1129,17 +1227,26 @@ code {
 /* Body-appearance preview (static/systemmap.js) -- a small rotating 3D
    sphere for whichever planet/moon is currently selected, hidden (via the
    `hidden` attribute, toggled from JS) for a star/belt selection or before
-   anything's been clicked yet. Square like `.starmap-viewport`, but much
-   smaller -- this is a supporting preview next to the info panel, not the
-   map itself. */
+   anything's been clicked yet. A floating overlay INSIDE `.sysmap-viewport`
+   (a sibling of the `<svg>` scenes, not a separate side-panel box), so the
+   rendered sphere reads as part of the map itself; `systemmap.js` moves it
+   (via `left`/`top`) to float beside whichever marker was just clicked,
+   using this rule's `top`/`right` only as the sensible default before
+   anything's been positioned yet. A drop shadow (rather than
+   `.sysmap-viewport`'s own flat background) is what keeps it legible
+   sitting directly on top of the map's own orbit lines/markers. */
 .sysmap-preview {
-  width: 100%;
-  max-width: 10rem;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 6.5rem;
   aspect-ratio: 1 / 1;
-  align-self: center;
   border-radius: var(--radius);
   background: var(--bg-subtle);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .sysmap-preview canvas {

@@ -249,7 +249,65 @@ var previewCanvas = document.getElementById("sysmap-preview-canvas");
 var previewContainer = document.getElementById("sysmap-preview");
 var preview = previewCanvas ? initPreview(previewCanvas) : null;
 
-function updatePreview(dataset) {
+// Floats `#sysmap-preview` beside `markerEl` (the clicked `<g data-kind>`)
+// instead of leaving it at its CSS-default corner -- `getScreenCTM()` is
+// the standard DOM API for turning an SVG-internal coordinate (the
+// marker's own `<circle>` cx/cy, in the scene's fixed viewBox units) into
+// real on-screen pixels, which correctly accounts for the SVG being
+// scaled responsively to whatever size `.sysmap-viewport` is actually
+// rendered at (see `lib/systemmap.py`'s docstring: the viewBox is a fixed
+// 700x700, but the visible box itself is fluid). Falls back to leaving
+// the preview at its CSS default position (top-right) if anything here
+// can't be resolved, rather than throwing.
+function positionPreviewNear(markerEl) {
+  var viewport = previewContainer.parentElement;
+  var svg = markerEl.ownerSVGElement;
+  var circle = markerEl.querySelector("circle");
+  if (!viewport || !svg || !circle || typeof svg.getScreenCTM !== "function") {
+    return;
+  }
+  var ctm = svg.getScreenCTM();
+  if (!ctm) {
+    return;
+  }
+  var point = svg.createSVGPoint();
+  point.x = parseFloat(circle.getAttribute("cx")) || 0;
+  point.y = parseFloat(circle.getAttribute("cy")) || 0;
+  var screenPoint = point.matrixTransform(ctm);
+
+  var viewportRect = viewport.getBoundingClientRect();
+  var previewRect = previewContainer.getBoundingClientRect();
+  var markerX = screenPoint.x - viewportRect.left;
+  var markerY = screenPoint.y - viewportRect.top;
+
+  // The marker's own radius, converted from the SVG's fixed viewBox units
+  // to real on-screen pixels via the CTM's scale factor (its "a"/"b"
+  // components are the transformed X basis vector -- ctm has no rotation
+  // here, only uniform scale, so its magnitude is that scale factor) --
+  // without this, a flat pixel offset clears a small moon marker fine but
+  // still lands squarely on top of a large planet/star marker.
+  var scale = Math.hypot(ctm.a, ctm.b) || 1;
+  var markerScreenRadius = (parseFloat(circle.getAttribute("r")) || 0) * scale;
+
+  var margin = 8;
+  var offset = markerScreenRadius + 14;
+  // Prefer floating to the marker's right; flip to its left if that would
+  // run the preview off the viewport's own right edge.
+  var left = markerX + offset;
+  if (left + previewRect.width + margin > viewportRect.width) {
+    left = markerX - offset - previewRect.width;
+  }
+  var top = markerY - previewRect.height / 2;
+
+  left = Math.max(margin, Math.min(left, viewportRect.width - previewRect.width - margin));
+  top = Math.max(margin, Math.min(top, viewportRect.height - previewRect.height - margin));
+
+  previewContainer.style.left = left + "px";
+  previewContainer.style.top = top + "px";
+  previewContainer.style.right = "auto";
+}
+
+function updatePreview(dataset, markerEl) {
   if (!preview || !previewContainer) {
     return;
   }
@@ -284,7 +342,12 @@ function updatePreview(dataset) {
     preview.glowMaterial.uniforms.glowColor.value.set(glowColorForTemp(parseSurfaceTempK(dataset.surfacetemp)));
   }
 
+  // Unhidden before measuring -- positionPreviewNear reads its actual
+  // rendered size via getBoundingClientRect(), which is 0x0 while hidden.
   previewContainer.hidden = false;
+  if (markerEl) {
+    positionPreviewNear(markerEl);
+  }
 }
 
 function hidePreview() {
@@ -346,7 +409,7 @@ function showInfo(el) {
   }
 
   if (kind === "planet" || kind === "moon") {
-    updatePreview(el.dataset);
+    updatePreview(el.dataset, el);
   } else {
     hidePreview();
   }
