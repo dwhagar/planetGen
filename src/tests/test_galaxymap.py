@@ -104,3 +104,61 @@ def test_all_four_phenomenon_types_have_distinct_colors_and_labels():
     labels = {_PHENOMENON_TYPE_LABELS[t] for t in types}
     assert len(colors) == 4
     assert len(labels) == 4
+
+
+def _galaxy_shape():
+    """A real, small `queryDb.galaxy_density_shape`-shaped dict -- same
+    field set `html/galaxy.py` passes through from `GET /api/galaxy/shape`,
+    built via the actual `galaxyDensity.build_galaxy_shape` rather than
+    hand-picked numbers, so these tests exercise the real model."""
+    from stellarObjects.galaxyDensity import build_galaxy_shape
+
+    shape = build_galaxy_shape(
+        disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0,
+        bulge_scale_radius_pc=200.0, bulge_amplitude=1.0,
+        arm_count=2, pitch_angle_rad=0.2618, arm_amplitude=0.4,
+    )
+    shape_dict = dict(shape._asdict())
+    shape_dict.update({"edge_pc": 3.5, "outer_shell_index": 4000, "expected_system_count_at_density_1": 4.32})
+    return shape_dict
+
+
+def test_render_galaxy_map_panel_shades_real_density_when_shape_given():
+    html = render_galaxy_map_panel("db", [_sector()], galaxy_shape=_galaxy_shape())
+    assert "galaxyDensityClip" in html
+    assert "<rect" in html
+    assert "galaxyCloud" not in html
+    assert "real predicted stellar density" in html
+    assert "density skeleton hasn't been built yet" not in html
+
+
+def test_render_galaxy_map_panel_falls_back_to_illustrative_gradient_without_shape():
+    html = render_galaxy_map_panel("db", [_sector()], galaxy_shape=None)
+    assert "galaxyCloud" in html
+    assert "galaxyDensityClip" not in html
+    assert "illustrative expected density, not real data" in html
+    assert "generate.py plan" in html
+
+
+def test_render_galaxy_map_panel_zooms_out_to_show_the_spiral_when_little_is_placed():
+    # A single sector close to the core would otherwise keep the default
+    # view pinned to just a few hundred ly (_MIN_RINGS_SHOWN) -- deep
+    # inside this shape's own "trivially solid" bulge core, nowhere near
+    # its spiral structure. With a real galaxy_shape, the default view
+    # should reach out toward the disk scale length instead.
+    shape = _galaxy_shape()
+    with_shape = render_galaxy_map_panel("db", [_sector()], galaxy_shape=shape)
+    without_shape = render_galaxy_map_panel("db", [_sector()], galaxy_shape=None)
+
+    def px_per_ly(html):
+        marker = 'data-px-per-ly="'
+        start = html.index(marker) + len(marker)
+        return float(html[start:html.index('"', start)])
+
+    assert px_per_ly(with_shape) < px_per_ly(without_shape)
+
+
+def test_render_galaxy_map_panel_handles_a_real_shape_with_no_sectors():
+    html = render_galaxy_map_panel("db", [], galaxy_shape=_galaxy_shape())
+    assert "<rect" in html
+    assert "No sectors have been placed" in html

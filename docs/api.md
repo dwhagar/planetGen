@@ -139,6 +139,14 @@ connectivity to that specific schema rather than the default one.
   reaches into — a black hole/neutron star stays point-like there too — see
   `/api/sectors/<id>`'s `phenomena` key above). Not paginated, for the
   same reason `/api/galaxy/sectors` isn't.
+- `GET /api/galaxy/shape` — `{"shape": ...}`, the galaxy's stored
+  density-skeleton shape (`generate.py plan`'s output): every
+  `stellarObjects.galaxyDensity.GalaxyShape` field plus `edge_pc`,
+  `outer_shell_index`, and `expected_system_count_at_density_1`
+  (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
+  has never been built. The Galaxy Map shades its "expected density"
+  cloud from this real model (falling back to a generic illustrative
+  gradient when `null`) instead of a placeholder.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset, and
