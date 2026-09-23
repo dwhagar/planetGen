@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.46.13] - 2026-09-23
+## [5.46.14] - 2026-09-23
 
 ### Changed
 - **Every star/planet/moon marker on the System Map now renders its own
@@ -20,6 +20,46 @@
   `data-color` same as a planet/moon's own class color) plus a matching
   glow shell; falls back to the plain flat marker for a browser that
   can't create a WebGL context at all.
+
+## [5.46.13] - 2026-09-23
+
+### Added
+- **Interactive 3D Galaxy Map.** New "Galaxy Map (3D)" page
+  (`galaxy3d.py`, linked from the existing flat Galaxy Map) -- a real
+  perspective-camera WebGL scene (three.js, `lib/galaxymap3d.py` +
+  `static/galaxymap3d.js`) a visitor can rotate, dolly, and click through,
+  instead of only ever viewing the galaxy from directly above the disk.
+  Because a real 3D camera scales sprite size with distance for free, this
+  also fixes the flat map's own "star icon doesn't shrink as you zoom in"
+  scaling problem, without any special-case code.
+  - **Live viewport queries, not one whole-galaxy payload.** New
+    `GET /api/galaxy/view` (`queryDb.galaxy_view`, backed by a new pure
+    `stellarObjects.galaxyViewport` module) returns, for whatever the
+    camera's current view actually covers: real, already-generated
+    sectors nearby; real, not-yet-generated sector addresses this
+    galaxy's own density model predicts would qualify (exact, out to a
+    200 pc cap); and, for the rest of a wider view, a coarse illustrative
+    density point cloud. Fetched (debounced) by the page's own
+    client-side JS directly from a new browser-facing proxy,
+    `galaxy_view.py`, as the camera moves -- never baked into one page
+    load the way the flat map's own dataset is.
+  - **Logarithmic click-to-zoom.** Left-click zooms in on whatever's
+    under the cursor (a sector, a real not-yet-generated address, or
+    empty space), right-click zooms out -- both by a step size that
+    shrinks the closer the camera already is (big multiplicative jumps
+    while zoomed out over the whole galaxy, fine ones once close to a
+    single sector), rather than a flat factor that's either too slow to
+    cross the galaxy or too coarse to land on one sector.
+  - **Sector designation/address, surfaced and copyable.** Clicking a
+    real, not-yet-generated address now shows its provisional designation
+    and a "Copy CLI command" button with the exact
+    `generate.py galaxy --shell K --slot N` invocation to generate it.
+  - **`generate.py galaxy --shell K --slot N`.** New single-address
+    generation mode (on top of existing `--shell` batch and
+    `--center-sector` neighborhood modes) -- generates exactly the one
+    sector slot at that address via the existing lazy-generation entry
+    point (`ensure_sector_generated`), the direct path from a designation
+    copied out of the new 3D map into this script.
 
 ## [5.46.12] - 2026-09-23
 

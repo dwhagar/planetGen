@@ -1064,6 +1064,13 @@ def add_galaxy_arguments(parser):
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
                                  "stored center.")
 
+    parser.add_argument('--slot', type=int, metavar='N',
+                        help="Requires --shell K: single-address mode, generating exactly the one "
+                             "not-yet-generated sector slot at (shell K, slot N) -- e.g. the address "
+                             "behind a designation code copied from the interactive Galaxy Map -- "
+                             "rather than a whole shell or neighborhood. Skips it (exit status 1) if it "
+                             "doesn't qualify (would hold no real content at this galaxy's own predicted "
+                             "density) or is already generated (reports its existing sector_id instead).")
     parser.add_argument('--limit', type=int,
                         help="With --shell: generate only the first N not-yet-generated slots of the "
                              "shell, rather than the whole shell.")
@@ -1113,6 +1120,23 @@ def validate_galaxy_args(args, parser):
 
     if args.shell is not None and args.shell < 0:
         parser.error("--shell must be >= 0.")
+
+    if args.slot is not None and args.shell is None:
+        parser.error("--slot requires --shell.")
+    if args.slot is not None and args.slot < 0:
+        parser.error("--slot must be >= 0.")
+    if args.slot is not None and args.limit is not None:
+        parser.error("--limit only applies to --shell (batch mode), not --shell --slot (single-address "
+                     "mode).")
+    if args.slot is not None and args.yes:
+        parser.error("--yes only applies to --shell (batch mode), not --shell --slot (single-address "
+                     "mode).")
+    if args.slot is not None and args.radius_pc is not None:
+        parser.error("--radius-pc doesn't apply to --shell --slot (single-address mode).")
+    if args.slot is not None and (args.density is not None or args.num_systems is not None):
+        parser.error("--density/--num-systems can't be combined with --shell --slot (single-address "
+                     "mode) -- ensure_sector_generated always uses this address's own real predicted "
+                     "density, the same as when the galaxy map's own live view found it.")
 
     if args.center_sector is not None and args.radius_pc is None:
         parser.error("--center-sector requires --radius-pc.")
@@ -1954,14 +1978,83 @@ def run_random_start(args, edge_pc, progress):
     run_local_neighborhood(args, edge_pc, progress)
 
 
+def run_single_slot(args, edge_pc, progress):
+    """
+    Single-address mode: generates exactly the one sector slot at
+    `(--shell K, --slot N)`, via the same `ensure_sector_generated` the
+    galaxy map's own "recalculate on visit" entry point uses -- the direct
+    path from a designation code copied out of the interactive 3D Galaxy
+    Map (`html/lib/galaxymap3d.py`) into this script, without having to
+    batch a whole shell (`run_shell_batch`) or search a `--center-sector`
+    neighborhood (`run_local_neighborhood`) just to reach one specific
+    not-yet-generated slot.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments; `args.shell`/
+            `args.slot` must not be `None`.
+        edge_pc (float): The sector edge length, in parsecs (`_edge_pc`)
+                         -- used only for the designation printed below;
+                         `ensure_sector_generated` derives its own edge
+                         length from the stored skeleton, which is always
+                         the same value in practice (both come from
+                         `program_constants.DEFAULT_SECTOR_EDGE_LY` unless
+                         `--edge-ly` was overridden when `plan` first built
+                         that skeleton).
+        progress (rich.progress.Progress): `run_galaxy`'s shared progress
+            display -- a single-item "Sector" task, completed immediately.
+
+    Raises:
+        SystemExit: If `--slot` is out of range for `--shell`'s own slot
+                   count, or if this address doesn't qualify (would hold
+                   no real content at this galaxy's own predicted density).
+    """
+    shell_index = args.shell
+    slot_index = args.slot
+    total_slots = shell_sector_count(shell_index)
+    if not (0 <= slot_index < total_slots):
+        log.error(
+            f"--slot {slot_index} is out of range for shell {shell_index} (holds {total_slots} slots, "
+            f"0..{total_slots - 1})."
+        )
+        raise SystemExit(1)
+
+    task = progress.add_task(f"Sector (shell {shell_index} slot {slot_index})", total=1)
+    mysql_config = _db.mysql_config_from_args(args)
+    result = ensure_sector_generated(shell_index, slot_index, config=mysql_config)
+    progress.update(task, advance=1)
+
+    if not result["qualifies"]:
+        log.error(
+            f"Shell {shell_index} slot {slot_index} doesn't qualify -- it would hold no real content at "
+            f"this galaxy's own predicted density (below the 1-star-per-sector threshold, or outside "
+            f"every stored candidate band)."
+        )
+        raise SystemExit(1)
+
+    designation = provisional_sector_designation(
+        shell_index, slot_index, edge_pc, program_constants.DEFAULT_SECTOR_EDGE_LY,
+    )
+    if result["created"]:
+        log.normal(
+            f"Saved sector '{result['sector_name']}' [{designation}] at shell {shell_index} slot "
+            f"{slot_index} (sector_id={result['sector_id']})."
+        )
+    else:
+        log.normal(
+            f"Sector [{designation}] at shell {shell_index} slot {slot_index} already existed "
+            f"(sector_id={result['sector_id']})."
+        )
+
+
 def run_galaxy(args):
     """
-    Dispatches to shell-batch, local-neighborhood, or random-start mode.
+    Dispatches to single-address, shell-batch, local-neighborhood, or
+    random-start mode.
 
     Owns the one `rich.progress.Progress` display shared across whichever
     mode runs -- each mode adds its own "Sectors" task to it (see
-    `run_shell_batch`/`run_local_neighborhood`/`run_random_start`'s own
-    `progress` docstrings).
+    `run_single_slot`/`run_shell_batch`/`run_local_neighborhood`/
+    `run_random_start`'s own `progress` docstrings).
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
@@ -1972,7 +2065,9 @@ def run_galaxy(args):
     with _generation_progress() as progress:
         log.set_console(progress.console)
         try:
-            if args.shell is not None:
+            if args.slot is not None:
+                run_single_slot(args, edge_pc, progress)
+            elif args.shell is not None:
                 run_shell_batch(args, edge_pc, progress)
             elif args.center_sector is not None:
                 run_local_neighborhood(args, edge_pc, progress)

@@ -302,6 +302,84 @@ def test_shell_batch_mode_rejects_large_shell_without_limit_or_yes(mysql_config)
 
 
 # ---------------------------------------------------------------------------
+# --shell K --slot N -- single-address mode, the direct path from a
+# designation/address copied out of the interactive 3D Galaxy Map
+# (html/lib/galaxymap3d.py) into this script. Thin wrapper around
+# ensure_sector_generated (already covered in isolation below) plus its
+# own argparse validation -- the validation tests need no real database at
+# all (parser.error fires during argument parsing, before any connection
+# attempt), so they use a dummy --mysql-* argv fragment and run
+# unconditionally, unlike every mysql_config-fixture test in this file.
+# ---------------------------------------------------------------------------
+
+_DUMMY_MYSQL_ARGV = [
+    "--mysql-host", "localhost", "--mysql-port", "3306",
+    "--mysql-user", "x", "--mysql-password", "x", "--mysql-database", "x",
+]
+
+
+def test_slot_requires_shell():
+    with pytest.raises(SystemExit):
+        _run_cli(["--slot", "3"] + _DUMMY_MYSQL_ARGV)
+
+
+@pytest.mark.parametrize("extra_arg", [
+    ["--limit", "1"],
+    ["--yes"],
+    ["--radius-pc", "5.0"],
+    ["--density", "2.0"],
+    ["--num-systems", "1"],
+])
+def test_slot_rejects_flags_that_only_apply_to_other_modes(extra_arg):
+    with pytest.raises(SystemExit):
+        _run_cli(["--shell", "0", "--slot", "0"] + extra_arg + _DUMMY_MYSQL_ARGV)
+
+
+def test_slot_rejects_negative_index():
+    with pytest.raises(SystemExit):
+        _run_cli(["--shell", "0", "--slot", "-1"] + _DUMMY_MYSQL_ARGV)
+
+
+def test_slot_mode_generates_exactly_the_one_requested_slot(mysql_config):
+    shell_index = 0
+    n_0 = shell_sector_count(shell_index)
+    _seed_skeleton(mysql_config, bands=[(shell_index, 0, 0, n_0 - 1)])
+
+    _run_cli(["--shell", str(shell_index), "--slot", "1"] + _mysql_argv(mysql_config))
+
+    sectors = _all_sectors(mysql_config)
+    assert len(sectors) == 1
+    assert (sectors[0]["shell_index"], sectors[0]["shell_slot_index"]) == (shell_index, 1)
+    assert sectors[0]["center_x_pc"] is not None
+
+    # Re-running the identical address must reuse it, not duplicate it.
+    _run_cli(["--shell", str(shell_index), "--slot", "1"] + _mysql_argv(mysql_config))
+    sectors_after_rerun = _all_sectors(mysql_config)
+    assert len(sectors_after_rerun) == 1
+    assert sectors_after_rerun[0]["id"] == sectors[0]["id"]
+
+
+def test_slot_mode_rejects_out_of_range_slot(mysql_config):
+    shell_index = 0
+    n_0 = shell_sector_count(shell_index)
+    _seed_skeleton(mysql_config, bands=[(shell_index, 0, 0, n_0 - 1)])
+
+    with pytest.raises(SystemExit):
+        _run_cli(["--shell", str(shell_index), "--slot", str(n_0)] + _mysql_argv(mysql_config))
+    assert _all_sectors(mysql_config) == []
+
+
+def test_slot_mode_rejects_a_non_qualifying_slot(mysql_config):
+    # No stored band at all -- ensure_sector_generated's own "certain no"
+    # path (see test_ensure_sector_generated_reports_no_content_outside_every_stored_band).
+    _seed_skeleton(mysql_config, bands=[])
+
+    with pytest.raises(SystemExit):
+        _run_cli(["--shell", "5000", "--slot", "0"] + _mysql_argv(mysql_config))
+    assert _all_sectors(mysql_config) == []
+
+
+# ---------------------------------------------------------------------------
 # ensure_sector_generated -- the visit-triggered lazy-generation entry point
 # built on top of the 'generate.py plan' skeleton (galaxy_shape/galaxy_shell_band),
 # rather than an explicit --shell/--center-sector batch.

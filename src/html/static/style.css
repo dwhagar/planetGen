@@ -1270,6 +1270,47 @@ code {
   display: none;
 }
 
+/* Galaxy Map (3D) (html/lib/galaxymap3d.py, html/static/galaxymap3d.js) --
+   reuses every generic .starmap-* rule above (layout/viewport/controls/
+   info panel/scale bar) unchanged; these three are its own additions:
+   a hover tooltip with no .starmap-* equivalent (the flat SVG map uses a
+   native <title>, the sector map has no per-object hover at all), and the
+   planned-sector info panel's copyable CLI snippet/fallback field. */
+.galaxymap3d-tooltip {
+  position: absolute;
+  z-index: 3;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.galaxymap3d-cli-snippet {
+  display: block;
+  margin: 0 0 0.6rem;
+  padding: 0.5rem 0.65rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.galaxymap3d-address-field {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+}
+
 @media (max-width: 40rem) {
   body {
     padding-left: 1rem;

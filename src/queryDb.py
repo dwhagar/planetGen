@@ -38,10 +38,12 @@ import pymysql
 
 from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
 from stellarObjects._version import VersionAction, version_banner
+from stellarObjects.galaxyGeometry import provisional_sector_designation
+from stellarObjects.galaxyViewport import PLANNED_RADIUS_CAP_PC, density_sample_points, planned_slots_in_view
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
-from stellarObjects.program_constants import NAV_ADJACENCY_K, PLANET_CLASSES
+from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, PLANET_CLASSES
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
 
@@ -1377,6 +1379,180 @@ def galaxy_density_shape(conn):
     shape["outer_shell_index"] = skeleton.outer_shell_index
     shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1
     return shape
+
+
+# ---------------------------------------------------------------------
+# Interactive 3D Galaxy Map viewport queries -- backs GET /api/galaxy/view
+# and `html/galaxy_view.py`, called fresh every time the map's own camera
+# moves. Unlike `galaxy_placed_sectors`/`galaxy_density_shape` above (each
+# called once per page load for the flat, whole-galaxy overview map),
+# these are scoped to a moving viewport -- see `stellarObjects.
+# galaxyViewport`'s own module docstring for the three content tiers
+# (placed/planned/density) this combines.
+# ---------------------------------------------------------------------
+
+GALAXY_VIEW_MAX_PLACED = 2000
+"""int: Cap on how many placed (already-generated) sectors
+`galaxy_sectors_in_view` returns, closest-first -- a view centered on a
+heavily-generated region could otherwise return an unbounded response."""
+
+
+def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc, limit=GALAXY_VIEW_MAX_PLACED):
+    """
+    Every galaxy-placed sector within `radius_pc` of `(center_x_pc,
+    center_y_pc, center_z_pc)`, closest first -- the "placed" tier of the
+    interactive 3D Galaxy Map's live viewport (see `stellarObjects.
+    galaxyViewport`'s module docstring), unlike `galaxy_placed_sectors`
+    (the whole galaxy, once, for the flat overview map's own quadrant/ring
+    tables).
+
+    `sectors.center_x/y/z_pc` aren't individually indexed (only
+    `galactic_radius_pc`/`shell_index` are -- see schema.sql's `sectors`
+    table), so the bounding-box `WHERE` clause below doesn't use an index
+    either; it still narrows the row-fetch volume before the exact
+    Euclidean-distance filter and closest-`limit` truncation, both done in
+    Python, the same division of labor `phenomena_near_sector` already
+    uses for its own bounding-sphere prefilter.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        center_x_pc, center_y_pc, center_z_pc (float): The view center,
+            galaxy-frame parsecs.
+        radius_pc (float): The view radius, parsecs.
+        limit (int): See `GALAXY_VIEW_MAX_PLACED`.
+
+    Returns:
+        list[dict]: `id`, `name`, `x`/`y`/`z`, `galactic_radius_pc`,
+            `shell_index`, `shell_slot_index`, `designation`
+            (`provisional_sector_designation`, `None` if this sector has
+            no `shell_slot_index` -- a placement predating the v8 schema's
+            per-slot addressing), `system_count`, `distance_pc` (from the
+            given center).
+    """
+    rows = conn.execute(
+        """
+        SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, sec.edge_mpc,
+               (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
+        FROM sectors sec
+        WHERE sec.center_x_pc IS NOT NULL
+          AND sec.center_x_pc BETWEEN ? AND ?
+          AND sec.center_y_pc BETWEEN ? AND ?
+          AND sec.center_z_pc BETWEEN ? AND ?
+        """,
+        (
+            center_x_pc - radius_pc, center_x_pc + radius_pc,
+            center_y_pc - radius_pc, center_y_pc + radius_pc,
+            center_z_pc - radius_pc, center_z_pc + radius_pc,
+        ),
+    ).fetchall()
+
+    radius_sq = radius_pc * radius_pc
+    candidates = []
+    for r in rows:
+        dx = r["center_x_pc"] - center_x_pc
+        dy = r["center_y_pc"] - center_y_pc
+        dz = r["center_z_pc"] - center_z_pc
+        distance_sq = dx * dx + dy * dy + dz * dz
+        if distance_sq > radius_sq:
+            continue
+        candidates.append((distance_sq, r))
+    candidates.sort(key=lambda pair: pair[0])
+    candidates = candidates[:limit]
+
+    results = []
+    for distance_sq, r in candidates:
+        shell_index, shell_slot_index = r["shell_index"], r["shell_slot_index"]
+        if shell_index is not None and shell_slot_index is not None and r["edge_mpc"]:
+            designation = provisional_sector_designation(
+                shell_index, shell_slot_index, mpc_to_pc(r["edge_mpc"]), pc_to_ly(mpc_to_pc(r["edge_mpc"])),
+            )
+        else:
+            designation = None
+        results.append({
+            "id": r["id"], "name": r["name"],
+            "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
+            "galactic_radius_pc": r["galactic_radius_pc"],
+            "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+            "designation": designation,
+            "system_count": r["system_count"],
+            "distance_pc": math.sqrt(distance_sq),
+        })
+    return results
+
+
+def galaxy_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc):
+    """
+    The interactive 3D Galaxy Map's full live-viewport payload: every
+    real, already-generated sector nearby (`galaxy_sectors_in_view`), every
+    real, not-yet-generated sector address this galaxy's own density model
+    predicts would qualify (`galaxyViewport.planned_slots_in_view`, only
+    enumerated up to its own `PLANNED_RADIUS_CAP_PC` -- see that module's
+    docstring), and -- for whatever's left of `radius_pc` beyond that cap
+    -- a coarse illustrative density point cloud
+    (`galaxyViewport.density_sample_points`).
+
+    Works even before `generate.py plan` has ever been run: with no stored
+    `galaxy_shape`, planned slots are returned unfiltered (every enumerated
+    address, not just "qualifying" ones -- there's no density model yet to
+    qualify them against) and the density tier is simply empty (nothing to
+    sample), so the address scheme itself (shells/slots -- independent of
+    any density/population model, see `docs/design/galaxy-coordinate-
+    system.md` section 3) is still fully explorable.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        center_x_pc, center_y_pc, center_z_pc (float): The view center,
+            galaxy-frame parsecs.
+        radius_pc (float): The view radius, parsecs.
+
+    Returns:
+        dict: `placed` (`galaxy_sectors_in_view`'s own list), `planned`
+            (`planned_slots_in_view`'s own list -- covers up to
+            `PLANNED_RADIUS_CAP_PC` of the requested `radius_pc`, whatever
+            that is; the address scheme has no reason to leave this
+            empty), `density` (`density_sample_points`'s own list, `[]`
+            whenever `radius_pc` doesn't exceed `PLANNED_RADIUS_CAP_PC` --
+            `planned` already covers the whole view exactly in that case,
+            so there's nothing left for an illustrative tier to add),
+            `edge_pc`, `has_shape` (bool -- whether a real density model
+            gates `planned`'s own qualification, i.e. whether `generate.py
+            plan` has been run).
+    """
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is not None:
+        edge_pc = skeleton.edge_pc
+        shape = skeleton.shape
+        expected_system_count = skeleton.expected_system_count_at_density_1
+    else:
+        edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+        shape = None
+        expected_system_count = None
+    edge_ly = pc_to_ly(edge_pc)
+
+    center_pc = (center_x_pc, center_y_pc, center_z_pc)
+
+    placed = galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc)
+    exclude_addresses = {
+        (sector["shell_index"], sector["shell_slot_index"])
+        for sector in placed
+        if sector["shell_index"] is not None and sector["shell_slot_index"] is not None
+    }
+
+    planned = planned_slots_in_view(
+        center_pc, radius_pc, edge_pc, edge_ly, shape, expected_system_count, exclude_addresses,
+    )
+
+    # The density cloud is only worth sampling for the part of the view
+    # planned_slots_in_view's own radius cap couldn't cover with exact
+    # addresses -- a view already entirely within that cap has nothing
+    # left for an illustrative tier to add.
+    density = density_sample_points(center_pc, radius_pc, shape) if radius_pc > PLANNED_RADIUS_CAP_PC else []
+
+    return {
+        "placed": placed, "planned": planned, "density": density,
+        "edge_pc": edge_pc, "has_shape": shape is not None,
+    }
 
 
 # ---------------------------------------------------------------------
