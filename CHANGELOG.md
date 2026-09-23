@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.46.15] - 2026-09-23
+
+### Fixed
+- **`GET /api/galaxy/view` (the interactive 3D Galaxy Map's live-viewport
+  query, added in [5.46.13]) was a genuine full-table scan on `sectors`
+  every single call -- confirmed in production as the site going down
+  under load (`TimeoutError`/"Truncated or oversized response headers"
+  from the WSGI daemon), the exact same failure mode already documented
+  and fixed once before for the pre-v22 `/api/search` ([5.35.7], schema
+  v22). `sectors.center_x/y/z_pc` had no index
+  (`queryDb.galaxy_sectors_in_view`'s own bounding-box `WHERE` clause said
+  so explicitly), and this endpoint is hit hard: once server-side on
+  every `galaxy3d.py` page load (the zoomed-all-the-way-out starting
+  view, spanning the whole galaxy) and repeatedly (debounced) as the 3D
+  camera moves. New schema v25 adds a composite `idx_sectors_center`
+  index (`_db._migrate_v24_to_v25`) so the query can range-scan instead of
+  examining every row. Run `migrateDb.py` (or restart the app -- `_db.
+  get_connection`/`migrate_database` apply it automatically) to pick this
+  up on an existing database.
+
 ## [5.46.14] - 2026-09-23
 
 ### Changed
