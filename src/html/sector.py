@@ -5,11 +5,10 @@
 Sector detail page: the sector's name/size and every system placed in it,
 with quadrant and star-type info, linking to `system.py` for each -- plus
 an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
-plotted by position within the sector, outlined by the sector's real
-on-shell wedge shape when it has a galaxy placement (else a plain cube),
-plus a translucent cloud for every nebula/asteroid field (and a point
-marker for every black hole/neutron star) whose real galaxy-frame sphere
-reaches into this sector's own cube (`queryDb.phenomena_near_sector`, via
+plotted by position within the sector, plus a translucent cloud for every
+nebula/asteroid field (and a point marker for every black hole/neutron
+star) whose real galaxy-frame sphere reaches into this sector's own cube
+(`queryDb.phenomena_near_sector`, via
 `GET /api/sectors/<id>`'s `phenomena` key -- see `schema.sql`'s
 "v18"/"v21" header notes). That same phenomena list also gets its own
 table below the systems one (mirroring `phenomena.py`'s flat listing,

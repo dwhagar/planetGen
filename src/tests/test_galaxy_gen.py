@@ -41,7 +41,8 @@ from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_coun
 from stellarObjects.galaxyGeometry import (
     enumerate_sectors_within_radius, sector_position_pc, shell_sector_count,
 )
-from stellarObjects.utils import ly_to_pc
+from stellarObjects.sectorGeometry import cube_orientation
+from stellarObjects.utils import ly_to_pc, mpc_to_pc
 
 EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 
@@ -1030,3 +1031,215 @@ def test_generate_sector_does_not_force_content_onto_an_explicit_zero():
     _sector_name, sector = galaxyGen.generate_sector(args)
     assert sector.entries == []
     assert sector.phenomena == []
+
+
+# ---------------------------------------------------------------------------
+# Sector-view bounds: every star system AND every placed exotic phenomenon,
+# across a real, multi-shell test galaxy, must land within the actual
+# coordinate region its own sector's cube occupies in the galaxy frame --
+# not just a same-named number compared to a constant.
+#
+# A sector's cube is NOT axis-aligned with the galaxy's global X/Y/Z: its
+# local +Z points radially outward from the galactic center and its local
+# +X/+Y follow from that (`sectorGeometry.cube_orientation`), the same
+# convention `html/lib/starmap.py`'s `_rotate_to_galaxy_frame` applies to
+# every star dot before drawing it against the sector's own wedge outline.
+# So "is this point inside the sector" only means something once it's
+# re-expressed along *that* sector's own local axes -- `_bounds_violation`
+# below does exactly that (re-project the point's offset from the sector's
+# center onto its own local axes, then compare each component to
+# +/- half the sector's edge), for both:
+#   - every star system's `position_x/y/z_mpc` (already stored in that
+#     local frame -- `SpaceSector.add_system` samples it directly there),
+#     rotated into the galaxy frame the same way the Sector Map does, then
+#     re-checked against the real cube; and
+#   - every checkable phenomenon's already-absolute `center_x/y/z_pc`
+#     (black holes, neutron stars, nebulae, asteroid fields -- the four
+#     `sector.phenomena` types `_db.insert_sector` gives a real galaxy-frame
+#     center via `_galaxy_placement_from_sector_offset`; a supernova
+#     remnant/rogue planet/comet has no coordinate columns of its own at
+#     all -- see those tables' own "no placement columns" schema notes --
+#     so there is nothing to check for those three).
+# ---------------------------------------------------------------------------
+
+_CHECKABLE_PHENOMENON_TABLES = (
+    ("black_holes", "black hole"),
+    ("neutron_stars", "neutron star"),
+    ("nebulae", "nebula"),
+    ("asteroid_fields", "asteroid field"),
+)
+"""tuple: `(table_name, label)` for every phenomenon type that gets its own
+real `center_x/y/z_pc` (see this section's own docstring) -- the only ones
+a coordinate-bounds check is even possible for."""
+
+_BOUNDS_TOLERANCE_PC = 1e-6
+"""float: Floating-point slack for the cube-membership check below -- far
+finer than any real generation-scale distance here, purely to absorb
+rotation/projection round-off, not to paper over a real violation."""
+
+
+def _project_onto_axes(vector, axes):
+    """`vector`'s own components along each of `axes` (an orthonormal
+    basis, e.g. `cube_orientation`'s return value) -- a plain change of
+    basis via dot products, the inverse of how a local offset gets rotated
+    into the galaxy frame in the first place."""
+    return tuple(sum(v * a for v, a in zip(vector, axis)) for axis in axes)
+
+
+def _sector_cube_contexts(mysql_config):
+    """
+    For every galaxy-placed sector, the real coordinate region its cube
+    occupies: its absolute galaxy-frame center, half-edge (parsecs), and
+    its own local cube axes (`cube_orientation`) -- see this section's own
+    docstring for why the axes matter and aren't just the global X/Y/Z.
+
+    Returns:
+        dict: `{sector_id: {"center_pc": (x, y, z), "half_edge_pc": float,
+              "axes": (local_x, local_y, local_z), "shell_index": int,
+              "shell_slot_index": int}}`.
+    """
+    conn = _db.get_connection(mysql_config)
+    try:
+        rows = conn.execute(
+            "SELECT id, shell_index, shell_slot_index, edge_mpc, "
+            "center_x_pc, center_y_pc, center_z_pc FROM sectors "
+            "WHERE center_x_pc IS NOT NULL"
+        ).fetchall()
+    finally:
+        conn.close()
+
+    contexts = {}
+    for row in rows:
+        center_pc = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        contexts[row["id"]] = {
+            "center_pc": center_pc,
+            "half_edge_pc": mpc_to_pc(row["edge_mpc"]) / 2.0,
+            "axes": cube_orientation(center_pc),
+            "shell_index": row["shell_index"],
+            "shell_slot_index": row["shell_slot_index"],
+        }
+    return contexts
+
+
+def _bounds_violation(sector_ctx, absolute_position_pc, label):
+    """`None` if `absolute_position_pc` (a plain galaxy-frame `(x, y, z)`,
+    parsecs) falls inside `sector_ctx`'s real cube; otherwise a
+    human-readable description of exactly how far outside, and on which of
+    the sector's own local axes, it landed."""
+    center_pc = sector_ctx["center_pc"]
+    delta = tuple(absolute_position_pc[i] - center_pc[i] for i in range(3))
+    local_coords = _project_onto_axes(delta, sector_ctx["axes"])
+    half_edge = sector_ctx["half_edge_pc"]
+
+    for axis_name, value in zip("xyz", local_coords):
+        if not (-half_edge - _BOUNDS_TOLERANCE_PC <= value <= half_edge + _BOUNDS_TOLERANCE_PC):
+            return (
+                f"{label} (shell {sector_ctx['shell_index']}, slot {sector_ctx['shell_slot_index']}): "
+                f"local-{axis_name}={value:.6f} pc, outside +/-{half_edge:.6f} pc"
+            )
+    return None
+
+
+def test_stars_and_phenomena_fit_within_their_sectors_real_bounds_across_shells_0_through_4(
+    mysql_config, monkeypatch,
+):
+    """
+    Generates a real test galaxy spanning shells ("rings") 0 through 4 --
+    518 sectors total (3 + 28 + 79 + 154 + 254, see `shell_sector_count`)
+    -- through the real `generate.py galaxy --shell` pipeline, then checks
+    every star system's and every checkable phenomenon's actual galaxy-frame
+    position against the real coordinate region its own sector's cube
+    occupies (see this section's own docstring -- not merely a same-named
+    number compared to a constant, but the point re-expressed along that
+    sector's own, generally non-axis-aligned, local cube axes).
+
+    Real astrophysical rates make a black hole or nebula genuinely rare
+    per sector (see `PHENOMENON_RATE_PER_STAR_SYSTEM`'s own docstring --
+    a mean well under 1 per sector for either), so leaving their counts to
+    chance would make this test's own phenomenon coverage flaky. `_sample_
+    poisson_count` is monkeypatched to always return 1 (for every positive
+    mean it's asked for) instead, forcing every one of the seven phenomenon
+    types to appear at least once per sector -- deterministic, full
+    coverage of every checkable type's own placement path, not a hope that
+    a large enough run rolls at least one of each by luck.
+
+    `-planets` keeps each system's own generation cheap (system/phenomenon
+    *position*, not planet/moon content, is what this test cares about),
+    so the whole 518-sector galaxy (with every sector's phenomena forced
+    on top) still generates in well under a minute.
+    """
+    monkeypatch.setattr(galaxyGen, "_sample_poisson_count", lambda mean, rng=None: 1 if mean > 0 else 0)
+
+    for shell_index in range(5):
+        _run_cli(
+            ["--shell", str(shell_index), "--num-systems", "3", "-planets"] + _mysql_argv(mysql_config)
+        )
+
+    sectors = _all_sectors(mysql_config)
+    expected_sector_count = sum(shell_sector_count(k) for k in range(5))
+    assert len(sectors) == expected_sector_count
+
+    contexts = _sector_cube_contexts(mysql_config)
+    assert len(contexts) == expected_sector_count
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        star_rows = conn.execute(
+            "SELECT sector_id, id AS system_id, position_x_mpc, position_y_mpc, position_z_mpc "
+            "FROM star_systems WHERE position_x_mpc IS NOT NULL"
+        ).fetchall()
+
+        phenomenon_rows = []
+        for table, label in _CHECKABLE_PHENOMENON_TABLES:
+            rows = conn.execute(
+                f"SELECT sector_id, id, center_x_pc, center_y_pc, center_z_pc FROM {table} "
+                f"WHERE center_x_pc IS NOT NULL"
+            ).fetchall()
+            phenomenon_rows.extend((label, row) for row in rows)
+    finally:
+        conn.close()
+
+    assert star_rows, "expected at least some star systems across shells 0-4"
+    # The forced-count monkeypatch above should make every checkable type
+    # show up at least once -- confirms this test's own setup actually
+    # exercises all four, not just whichever ones happened to place.
+    seen_labels = {label for label, _row in phenomenon_rows}
+    assert seen_labels == {label for _table, label in _CHECKABLE_PHENOMENON_TABLES}
+
+    violations = []
+
+    for row in star_rows:
+        ctx = contexts[row["sector_id"]]
+        local_x, local_y, local_z = ctx["axes"]
+        # position_x/y/z_mpc is already this system's position along the
+        # sector's own local cube axes (SpaceSector.add_system's own
+        # sampling frame -- see spaceSector.py's module docstring), so its
+        # absolute galaxy-frame position is the sector's own center plus
+        # that local offset rotated into the galaxy frame -- the exact
+        # transform html/lib/starmap.py's `_rotate_to_galaxy_frame` applies
+        # at render time, reproduced here rather than assumed correct.
+        lx = mpc_to_pc(row["position_x_mpc"])
+        ly_ = mpc_to_pc(row["position_y_mpc"])
+        lz = mpc_to_pc(row["position_z_mpc"])
+        rotated = tuple(
+            lx * local_x[i] + ly_ * local_y[i] + lz * local_z[i]
+            for i in range(3)
+        )
+        absolute_pc = tuple(ctx["center_pc"][i] + rotated[i] for i in range(3))
+
+        violation = _bounds_violation(ctx, absolute_pc, f"star system {row['system_id']}")
+        if violation:
+            violations.append(violation)
+
+    for label, row in phenomenon_rows:
+        ctx = contexts[row["sector_id"]]
+        absolute_pc = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        violation = _bounds_violation(ctx, absolute_pc, f"{label} {row['id']}")
+        if violation:
+            violations.append(violation)
+
+    total_checked = len(star_rows) + len(phenomenon_rows)
+    assert not violations, (
+        f"{len(violations)} of {total_checked} generated stars/phenomena fell outside their own "
+        f"sector's real (rotated) cube bounds:\n" + "\n".join(violations[:50])
+    )

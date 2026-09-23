@@ -71,6 +71,7 @@ from .nameUniqueness import resolve_companion, resolve_diminutive, resolve_greek
 from .nebulaData import Nebula
 from .planetData import Planet
 from .roguePlanetData import InterstellarComet, RoguePlanet
+from .sectorGeometry import cube_orientation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .supernovaRemnantData import SupernovaRemnant
@@ -2401,6 +2402,23 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
     galaxy-frame center in parsecs, given the owning sector's own stored
     `galaxy_position` -- see `schema.sql`'s "v21" header note.
 
+    `offset_ly` is expressed along the sector's own local cube axes (the
+    same frame `SpaceSector.add_system` samples a star system's position
+    in -- see `spaceSector.py`'s module docstring), which are generally
+    NOT aligned with the galaxy's global X/Y/Z: a sector's cube is rotated
+    so its own local +Z points radially outward from the galactic center
+    (`sectorGeometry.cube_orientation`, per
+    `docs/design/galaxy-coordinate-system.md` section 3's "Cube
+    orientation"). So `offset_ly` is rotated into the galaxy frame via
+    that same `cube_orientation` before being added to the sector's own
+    center -- the identical transform `html/lib/starmap.py`'s
+    `_rotate_to_galaxy_frame` applies to a star system's position at
+    render time. Skipping this rotation (as an earlier version of this
+    function did, treating `offset_ly`'s components as already
+    galaxy-frame) let a phenomenon's stored center land outside its own
+    sector's real cube whenever that cube wasn't coincidentally
+    axis-aligned -- true of nearly every sector in the galaxy.
+
     Unlike `compute_phenomenon_placement` (an independent random jitter,
     for `phenomenonGen.py`'s own standalone `--sector-id` use, where no
     specific in-sector position was ever computed), this is a plain
@@ -2414,7 +2432,8 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
             if that sector itself was never placed in the galaxy
             (`sectorGen.py`'s own standalone CLI).
         offset_ly (tuple): The phenomenon's `(x, y, z)` position in
-            light-years, relative to the sector's own center.
+            light-years, relative to the sector's own center, along that
+            sector's own local cube axes.
 
     Returns:
         dict or None: `center_x_pc`/`center_y_pc`/`center_z_pc`/
@@ -2423,10 +2442,15 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
     if galaxy_position is None:
         return None
 
+    center_pc = (
+        galaxy_position["center_x_pc"], galaxy_position["center_y_pc"], galaxy_position["center_z_pc"],
+    )
+    local_x, local_y, local_z = cube_orientation(center_pc)
     offset_x_pc, offset_y_pc, offset_z_pc = (ly_to_pc(coordinate) for coordinate in offset_ly)
-    x = galaxy_position["center_x_pc"] + offset_x_pc
-    y = galaxy_position["center_y_pc"] + offset_y_pc
-    z = galaxy_position["center_z_pc"] + offset_z_pc
+
+    x = center_pc[0] + offset_x_pc * local_x[0] + offset_y_pc * local_y[0] + offset_z_pc * local_z[0]
+    y = center_pc[1] + offset_x_pc * local_x[1] + offset_y_pc * local_y[1] + offset_z_pc * local_z[1]
+    z = center_pc[2] + offset_x_pc * local_x[2] + offset_y_pc * local_y[2] + offset_z_pc * local_z[2]
     return {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
