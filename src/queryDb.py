@@ -939,7 +939,7 @@ only needs the phenomenon's own physical size -- `list_phenomena`/
 `lib/phenomenonmap.py`'s AU-scale diagram."""
 
 
-def _placed_phenomenon_rows(conn):
+def _placed_phenomenon_rows(conn, bbox=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
     v18/v21-placeable standalone-phenomenon tables, normalized to one
@@ -948,6 +948,21 @@ def _placed_phenomenon_rows(conn):
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
+        bbox (tuple, optional): `(center_x_pc, center_y_pc, center_z_pc,
+            margin_pc)` -- when given, adds a `center_x_pc BETWEEN ...`
+            (and y/z) SQL `WHERE` clause to each table's own query, the
+            same bounding-box prefilter `galaxy_sectors_in_view` already
+            uses for `sectors` (see that function's own docstring and
+            `schema.sql`'s "v25"/"v26" header notes). `None` (the default,
+            used by `galaxy_placed_phenomena`'s own whole-galaxy listing,
+            which genuinely needs every row) runs the old unconditional
+            scan. `phenomena_near_sector` is the only caller that passes
+            this, since it's the only one that only ever needs a
+            neighborhood, not the whole galaxy -- without it, this was a
+            confirmed-in-production full-table-scan-across-four-tables on
+            every single `sector_detail` call (see `schema.sql`'s "v26"
+            header note), the same failure mode "v25"'s note already
+            documented for `sectors` before that migration.
 
     Returns:
         list[dict]: `id`, `type` (`"nebula"`, `"asteroid_field"`,
@@ -955,6 +970,21 @@ def _placed_phenomenon_rows(conn):
             `radius_ly` (0 for the two compact-remnant types), `x`/`y`/`z`
             (`center_x/y/z_pc`), `galactic_radius_pc`.
     """
+    where_bbox = ""
+    bbox_params = ()
+    if bbox is not None:
+        cx, cy, cz, margin_pc = bbox
+        where_bbox = (
+            " AND center_x_pc BETWEEN ? AND ?"
+            " AND center_y_pc BETWEEN ? AND ?"
+            " AND center_z_pc BETWEEN ? AND ?"
+        )
+        bbox_params = (
+            cx - margin_pc, cx + margin_pc,
+            cy - margin_pc, cy + margin_pc,
+            cz - margin_pc, cz + margin_pc,
+        )
+
     rows = []
     for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
         query_rows = conn.execute(
@@ -963,7 +993,9 @@ def _placed_phenomenon_rows(conn):
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
             FROM {table}
             WHERE center_x_pc IS NOT NULL
+            {where_bbox}
             """,
+            bbox_params,
         ).fetchall()
         for row in query_rows:
             rows.append({
@@ -973,6 +1005,40 @@ def _placed_phenomenon_rows(conn):
                 "galactic_radius_pc": row["galactic_radius_pc"],
             })
     return rows
+
+
+def _widest_placed_phenomenon_radius_ly(conn):
+    """
+    The largest `radius_ly` among currently placed `nebulae`/
+    `asteroid_fields` rows (the only two phenomenon tables with a real,
+    non-zero radius -- see `_PHENOMENON_TABLES`), or `0.0` if neither
+    table has any placed row at all.
+
+    `phenomena_near_sector` uses this to size its own bounding-box margin
+    (see that function's docstring): a bare `MAX(radius_ly)` aggregate
+    query, not a full row fetch, so this stays cheap even on a large
+    galaxy (MySQL can satisfy it from an index or a single scan of one
+    narrow column, never the whole row for every placed phenomenon the
+    way the old unconditional `_placed_phenomenon_rows` scan did) while
+    keeping the bounding box exactly as correct as that old unconditional
+    scan for a phenomenon of any size, rather than assuming a fixed
+    ceiling that a future (or deliberately test-constructed) oversized row
+    could silently fall outside of.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        float: The widest placed radius, light-years.
+    """
+    widest = 0.0
+    for table in ("nebulae", "asteroid_fields"):
+        row = conn.execute(
+            f"SELECT MAX(radius_ly) AS widest FROM {table} WHERE center_x_pc IS NOT NULL"
+        ).fetchone()
+        if row and row["widest"] is not None:
+            widest = max(widest, row["widest"])
+    return widest
 
 
 def list_phenomena(conn, limit=None, offset=None):
@@ -1169,6 +1235,19 @@ def phenomena_near_sector(conn, sector_id):
     gaps/overlaps" tolerance (`docs/design/galaxy-coordinate-system.md`
     section 3) rather than a false-negative risk.
 
+    Reads via `_placed_phenomenon_rows`'s own `bbox` argument -- a SQL
+    bounding-box prefilter, not the whole-galaxy scan that function's
+    default (`bbox=None`) runs -- sized to `half_diagonal_pc` plus
+    whatever the widest currently-placed `radius_ly` actually is
+    (`_widest_placed_phenomenon_radius_ly`), so it stays exactly as
+    correct as scanning every row (a phenomenon of any size, however
+    large, that could plausibly overlap is still included) while letting
+    MySQL range-scan `idx_{table}_center` instead of examining every row
+    in all four tables on every call -- see `schema.sql`'s "v26" header
+    note for the production failure this fixes (a genuine full-table-scan
+    -times-four on every `GET /api/sectors/<id>`, "the exact same failure
+    mode `schema.sql`'s "v25" note already documented for `sectors`).
+
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
         sector_id (int): The `sectors.id` to check against.
@@ -1197,9 +1276,11 @@ def phenomena_near_sector(conn, sector_id):
         return []
 
     half_diagonal_pc = mpc_to_pc(sector["edge_mpc"]) * math.sqrt(3) / 2
+    margin_pc = half_diagonal_pc + ly_to_pc(_widest_placed_phenomenon_radius_ly(conn))
+    bbox = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"], margin_pc)
 
     matches = []
-    for phenomenon in _placed_phenomenon_rows(conn):
+    for phenomenon in _placed_phenomenon_rows(conn, bbox=bbox):
         dx = phenomenon["x"] - sector["center_x_pc"]
         dy = phenomenon["y"] - sector["center_y_pc"]
         dz = phenomenon["z"] - sector["center_z_pc"]

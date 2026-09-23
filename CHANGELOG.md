@@ -1,5 +1,39 @@
 # Changelog
 
+## [5.46.19] - 2026-09-23
+
+### Fixed
+- **`GET /api/sectors/<id>` (`html/sector.py`'s page, and its Sector Map)
+  and, under load, unrelated pages sharing the same single-process
+  `planetgen-api` WSGIDaemonProcess (`html/system.py` included) were
+  timing out / failing outright in production** ("Truncated or oversized
+  response headers received from daemon process" and read-timeout errors
+  in `planetgen.error.log`, clearing only after an Apache restart -- the
+  same failure signature [5.46.16]'s `idx_sectors_center` fix addressed
+  for the Galaxy Map). Root cause: `queryDb.phenomena_near_sector` called
+  `_placed_phenomenon_rows` with no bounding box at all, so *every*
+  `sector_detail` call did a genuine full-table scan across all four
+  placed-phenomenon tables (`nebulae`/`asteroid_fields`/`black_holes`/
+  `neutron_stars`), pulling every galaxy-placed phenomenon in the entire
+  database into Python on every single sector page view. Once a database
+  had a non-trivial number of placed phenomena, a handful of concurrent
+  sector-page views were enough to hold every one of the API's 5 worker
+  threads (and, in turn, its MySQL connection pool, which has no
+  checkout timeout) in slow queries at once, starving every other
+  request behind them until Apache was restarted.
+  `_placed_phenomenon_rows` now takes an optional SQL bounding-box filter
+  (the same `BETWEEN`-range-scan technique [5.46.16]'s fix used for
+  `sectors`), and `phenomena_near_sector` uses it, padded by the widest
+  currently-placed phenomenon radius (a cheap `MAX(radius_ly)` query, not
+  a fixed assumption, so it stays exactly as correct for an arbitrarily
+  large placed phenomenon as the old unconditional scan). New schema v26
+  adds the matching spatial indexes
+  (`idx_{nebulae,asteroid_fields,black_holes,neutron_stars}_center`) --
+  **run `migrateDb.py` (or `update.sh`/`install.sh`) against any existing
+  deployment's database for this fix to actually take effect**; `GET
+  /api/health` (see [5.46.17]) will report `schema_current: false` in the
+  meantime.
+
 ## [5.46.18] - 2026-09-23
 
 ### Fixed

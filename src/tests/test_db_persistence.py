@@ -1160,7 +1160,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -1242,7 +1242,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -1338,7 +1338,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -1423,7 +1423,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -1517,7 +1517,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
         conn.commit()
 
@@ -1624,7 +1624,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
         conn.commit()
 
@@ -1690,7 +1690,7 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1784,7 +1784,7 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1888,7 +1888,7 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
 
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (20)")
         conn.commit()
 
