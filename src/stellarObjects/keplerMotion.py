@@ -147,7 +147,24 @@ def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_ma
 
     Returns:
         tuple: `(true_anomaly_rad, distance_au)`.
+
+    Raises:
+        ValueError: If `eccentricity` is outside `[0, 1)` -- outside that
+            range the `sqrt(1 - eccentricity)` term below goes complex (a
+            silent `nan`, since Python's `**`/`math.sqrt` on a negative
+            float raises for `math.sqrt` but this uses the two-argument
+            `sqrt`-under-`atan2` form) or the orbit isn't actually
+            elliptical (`e >= 1` is `comet_orbital_state`'s "parabolic"
+            case instead, via `true_anomaly_and_distance_parabolic`) --
+            without this check, an out-of-range `e` silently returns a
+            plausible-looking but physically meaningless number instead of
+            failing loudly.
     """
+    if not (0 <= eccentricity < 1):
+        raise ValueError(
+            f"true_anomaly_and_distance_elliptical: eccentricity ({eccentricity}) must be in [0, 1) "
+            f"for a bound elliptical orbit -- e >= 1 is a parabolic/hyperbolic orbit, not this function."
+        )
     eccentric_anomaly = solve_eccentric_anomaly(mean_anomaly_rad, eccentricity)
     true_anomaly_rad = 2 * math.atan2(
         math.sqrt(1 + eccentricity) * math.sin(eccentric_anomaly / 2),

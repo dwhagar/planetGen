@@ -1172,6 +1172,15 @@ funnels through this same function -- rather than needing each type's own
 prefix/suffix lists to be extended individually.
 """
 
+MAX_NAME_GENERATION_ATTEMPTS = 10_000
+"""
+Hard cap on `generate_phoneme_salad_name`'s own retry loop -- see that
+function's `Raises` doc. A real generation run finds a valid name within a
+handful of attempts; this is only a backstop against `is_name_valid`
+rejecting every candidate forever (previously an unconditional `while
+True` with no way out at all).
+"""
+
 
 def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split=True, syllable_fraction=1.0, max_length=None):
     """
@@ -1230,9 +1239,21 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
 
     Returns:
         str: A newly generated, unique name.
+
+    Raises:
+        RuntimeError: If `MAX_NAME_GENERATION_ATTEMPTS` consecutive draws
+            all fail `is_name_valid` -- confirmed (via a hard-timeout test,
+            `test_bughunt_name_exhaustion.py`) to otherwise loop forever
+            with no way out. In real generation this is never reached (a
+            valid name is essentially always found within a handful of
+            attempts); this guard only matters if `is_name_valid`'s own
+            filters (or a `name_list`/`prefix_list`/`suffix_list` this
+            narrow) were ever misconfigured to reject everything, in which
+            case a whole generation run should fail loudly and immediately
+            rather than hang with no explanation.
     """
     reseed_rng()
-    while True:
+    for _attempt in range(MAX_NAME_GENERATION_ATTEMPTS):
         name = secrets.choice(name_list)
 
         syllables = split_into_syllables(name)
@@ -1297,6 +1318,11 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
                 parts = name.split("'")
                 name = "'".join([part[0].upper() + part[1:] if part else part for part in parts])
             return name
+
+    raise RuntimeError(
+        f"generate_phoneme_salad_name: no valid name found in {MAX_NAME_GENERATION_ATTEMPTS} attempts "
+        f"(name_list={name_list!r}) -- is_name_valid is rejecting every candidate."
+    )
 
 
 def generate_sector_name():
