@@ -1,0 +1,56 @@
+name: Stamp version
+
+# After a PR merges, turn its note under changes/ into a real release:
+# bump _version.py, the README badge and CHANGELOG.md together and commit
+# "Release x.y.z" to main. PRs never pick version numbers themselves, so
+# parallel PRs can't collide on one (see changes/README.md).
+#
+# Needs Settings > Actions > General > Workflow permissions set to "Read
+# and write" (or at least not blocking the `contents: write` below), and
+# any branch protection on main has to let github-actions push.
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["changes/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One stamper at a time, never cancelled mid-push. Each run stamps every
+# note pending on the latest main, so a run skipped by the queue loses
+# nothing.
+concurrency:
+  group: stamp-version
+  cancel-in-progress: false
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          # Full history: bump_version.py orders notes by when they merged.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Stamp pending notes and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
+          # Retry if someone else pushed to main between our fetch and push:
+          # start over from the new main rather than merging into it.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python scripts/bump_version.py --commit
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((attempt * 5))
+          done
+          echo "Couldn't push the release commit after 3 attempts." >&2
+          exit 1

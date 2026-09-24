@@ -1,0 +1,30 @@
+name: Release note
+
+# Every PR adds one note under changes/ and leaves the version alone; the
+# version is stamped after merge by stamp-version.yml. Separate from ci.yml
+# so adding or removing the `no-release` label re-runs only this check.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  release-note:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the PR's release note
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          NO_RELEASE: ${{ contains(github.event.pull_request.labels.*.name, 'no-release') }}
+        run: |
+          flag=""
+          if [ "$NO_RELEASE" = "true" ]; then flag="--allow-no-fragment"; fi
+          python scripts/bump_version.py --check-pr "origin/$BASE_REF" $flag

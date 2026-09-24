@@ -8,6 +8,11 @@ single source of truth `setup.py`/the CLI `--version` banners already read
 bumped alongside a real release; this caught README.md sitting 3 releases
 stale (5.24.0 while `__version__` was already 5.27.0) with no CI signal at
 all until a deploy-readiness check noticed it by hand.
+
+PRs no longer bump any of these by hand: they add a note under `changes/`
+and `scripts/bump_version.py` updates all three together after merge (see
+`changes/README.md`), so a failure here usually means someone edited one of
+them directly.
 """
 
 import os
@@ -32,7 +37,8 @@ def test_readme_version_badge_matches_version_py():
     assert match.group(1) == __version__, (
         f"README.md's version badge says {match.group(1)!r}, but "
         f"stellarObjects/_version.py's __version__ is {__version__!r} -- "
-        "bump the README badge alongside any version release."
+        "don't edit the version by hand; add a note under changes/ and let "
+        "scripts/bump_version.py stamp it (see changes/README.md)."
     )
 
 
@@ -43,5 +49,6 @@ def test_changelog_top_entry_matches_version_py():
     assert match.group(1) == __version__, (
         f"CHANGELOG.md's top entry is [{match.group(1)}], but "
         f"stellarObjects/_version.py's __version__ is {__version__!r} -- "
-        "add a new top entry (or bump this one) alongside any version release."
+        "don't edit the version by hand; add a note under changes/ and let "
+        "scripts/bump_version.py stamp it (see changes/README.md)."
     )
