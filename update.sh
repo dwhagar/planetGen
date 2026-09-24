@@ -5,7 +5,7 @@
 # Pulls the latest planetGen changes from git, then:
 #   - If the pull actually brought new commits, re-runs `install.sh` so
 #     everything it covers (the Python package, the NLTK corpus, Apache's
-#     CGI module, permissions) stays correct afterward -- a `git pull` on
+#     CGI module, permissions, the tile cache directory) stays correct afterward -- a `git pull` on
 #     its own isn't enough: pulling a changed file rewrites it with
 #     whatever mode is tracked in the repo (non-executable, historically
 #     -- see `docs/TODO.md`'s "Deployment bugs found in production"
@@ -100,6 +100,9 @@ if [[ "$before" == "$after" ]]; then
         exit 1
     fi
     "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+    # Cheap and idempotent too, and puts back a tile cache directory that
+    # was deleted or never created (an install from before it existed).
+    "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 else
     echo "== 2/2: Re-running install.sh to keep permissions (and everything else it covers) correct =="
     # A pull rewrites any changed file with whatever mode is tracked in the

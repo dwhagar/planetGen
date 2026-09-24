@@ -86,9 +86,10 @@
     # SetEnv PLANETGEN_MYSQL_DATABASE_PREFIX planetgen
     #
     # The 3D Galaxy Map's tile cache (html/lib/tilecache.py). Defaults to
-    # /var/cache/planetgen/tiles if Apache's user can create it, else a
-    # folder in Apache's (usually private, cleared on restart) /tmp:
-    #   sudo install -d -o www-data -g www-data -m 750 /var/cache/planetgen/tiles
+    # /var/cache/planetgen/tiles, which install.sh/update.sh create for
+    # Apache's user. If you move it here rather than in config.json's
+    # tile_cache.dir, create it with:
+    #   sudo examples/apache/create-cache-dir.sh /path/to/tiles
     # SetEnv PLANETGEN_TILE_CACHE_DIR /var/cache/planetgen/tiles
     # SetEnv PLANETGEN_TILE_CACHE_MAX_MB 200
     #

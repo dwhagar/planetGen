@@ -84,17 +84,29 @@ def max_cache_bytes():
         return 200 * 1024 * 1024
 
 
+def configured_cache_dir():
+    """
+    The directory the cache is meant to live in (`PLANETGEN_TILE_CACHE_DIR`,
+    then `tile_cache.dir`, then `DEFAULT_CACHE_DIR`), or `None` when the
+    disk cache is off. Doesn't create or check anything --
+    `examples/apache/create-cache-dir.sh` asks this where to create it.
+    """
+    if max_cache_bytes() == 0:
+        return None
+    return os.environ.get("PLANETGEN_TILE_CACHE_DIR") or _config().get("dir") or DEFAULT_CACHE_DIR
+
+
 def cache_dir():
     """
     The writable cache root, created if needed, or `None` when the disk
     cache is off or no candidate directory is writable.
     """
-    if max_cache_bytes() == 0:
+    configured = configured_cache_dir()
+    if configured is None:
         return None
-    configured = os.environ.get("PLANETGEN_TILE_CACHE_DIR") or _config().get("dir") or ""
-    candidates = [configured] if configured else [
-        DEFAULT_CACHE_DIR, os.path.join(tempfile.gettempdir(), "planetgen-tiles"),
-    ]
+    candidates = [configured]
+    if configured == DEFAULT_CACHE_DIR:
+        candidates.append(os.path.join(tempfile.gettempdir(), "planetgen-tiles"))
     for candidate in candidates:
         try:
             os.makedirs(candidate, mode=0o750, exist_ok=True)
