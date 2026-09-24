@@ -4,15 +4,11 @@
 """
 Phenomena list: every exotic phenomenon (nebula/asteroid field/black hole/
 neutron star/supernova remnant/rogue planet/interstellar comet --
-`queryDb._PHENOMENON_TABLES` plus `_UNPLACED_PHENOMENON_TABLES`) in the
-current database, one flat table across every sector and regardless of
-galaxy placement -- `GET /api/phenomena`, the paginated counterpart to
-`galaxy.py`'s own plotted-only view (`GET /api/galaxy/phenomena`, which
-only shows the galaxy-placed subset as dots on the map -- a supernova
-remnant/rogue planet/interstellar comet never appears there, or in its "On
-Galaxy Map" column below, since none of those three tables have any
-galaxy-frame placement columns at all; see `_SUPERNOVA_REMNANT_TABLE`'s
-docstring).
+`queryDb._PHENOMENON_TABLES`) in the current database, one flat table
+across every sector and regardless of galaxy placement -- `GET
+/api/phenomena`, the paginated counterpart to `galaxy.py`'s own
+plotted-only view (`GET /api/galaxy/phenomena`, which only shows the
+galaxy-placed subset).
 
 Each row links to `phenomenon.py`, this project's first detail/info page
 for a standalone phenomenon -- until now these had no page of their own at

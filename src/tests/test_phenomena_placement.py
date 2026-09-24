@@ -431,9 +431,8 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
     """
     Full pipeline test: a SpaceSector with a star system and all seven
     exotic phenomenon types, saved via save_sector -- confirms every type
-    lands in its own table, linked by sector_id, with black-hole/
-    neutron-star/nebula/asteroid-field additionally getting a real
-    galaxy-frame position converted from their own sector-relative offset
+    lands in its own table, linked by sector_id, and gets a real
+    galaxy-frame position converted from its own sector-relative offset
     (not an independently re-randomized jitter).
     """
     from stellarObjects.asteroidFieldData import AsteroidField
@@ -451,7 +450,10 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
     neutron_star_entry = sector.add_phenomenon(NeutronStar(SystemConfig()), "neutron-star")
     nebula_entry = sector.add_phenomenon(Nebula(SystemConfig()), "nebula")
     field_entry = sector.add_phenomenon(AsteroidField(SystemConfig()), "asteroid-field")
-    remnant_entry = sector.add_phenomenon(SupernovaRemnant(SystemConfig()), "supernova-remnant")
+    # No embedded compact remnant, so black_holes holds only the one above.
+    remnant = SupernovaRemnant(SystemConfig())
+    remnant.compact_remnant = None
+    remnant_entry = sector.add_phenomenon(remnant, "supernova-remnant")
     planet_entry = sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
     comet_entry = sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet")
 
@@ -486,13 +488,14 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
     assert planet_row["name"] == planet_entry.phenomenon.name
     assert comet_row["name"] == comet_entry.phenomenon.name
 
-    # The four galaxy-placeable types get a real position converted from
-    # their own sector-relative offset (galaxy_position + offset, NOT an
-    # independent random jitter within the cube's half-extent, which is
-    # what compute_phenomenon_placement's own jitter would give instead).
+    # Every type gets a real position converted from its own
+    # sector-relative offset (galaxy_position + offset, NOT an independent
+    # random jitter within the cube's half-extent, which is what
+    # compute_phenomenon_placement's own jitter would give instead).
     for row, entry in (
         (bh_row, black_hole_entry), (ns_row, neutron_star_entry),
         (nebula_row, nebula_entry), (field_row, field_entry),
+        (remnant_row, remnant_entry), (planet_row, planet_entry), (comet_row, comet_entry),
     ):
         expected = _db._galaxy_placement_from_sector_offset(galaxy_position, entry.position)
         assert row["center_x_pc"] == pytest.approx(expected["center_x_pc"])
@@ -500,6 +503,68 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
         assert row["center_z_pc"] == pytest.approx(expected["center_z_pc"])
         assert row["galactic_radius_pc"] == pytest.approx(expected["galactic_radius_pc"])
 
+
+
+def test_supernova_remnants_compact_remnant_shares_its_sector_and_center(mysql_config):
+    sector_id = _place_sector(mysql_config, "Remnant Core Sector", (30.0, 10.0, 0.0))
+    remnant = SupernovaRemnant(SystemConfig())
+    remnant.compact_remnant = NeutronStar(SystemConfig())
+    placement = {"center_x_pc": 30.5, "center_y_pc": 10.0, "center_z_pc": 0.0, "galactic_radius_pc": 32.0}
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        remnant_id = _db.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=placement)
+        conn.commit()
+        remnant_row = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
+        core_row = conn.execute(
+            "SELECT * FROM neutron_stars WHERE id = ?", (remnant_row["compact_remnant_neutron_star_id"],)
+        ).fetchone()
+        near = {(m["type"], m["id"]) for m in queryDb.phenomena_near_sector(conn, sector_id)}
+    finally:
+        conn.close()
+
+    assert remnant_row["center_x_pc"] == pytest.approx(30.5)
+    assert core_row["sector_id"] == sector_id
+    assert core_row["center_x_pc"] == pytest.approx(30.5)
+    assert ("supernova_remnant", remnant_id) in near
+    assert ("neutron_star", core_row["id"]) in near
+
+
+def test_phenomena_near_sector_lists_every_type_and_its_own_far_away_ones(mysql_config):
+    # Every type placed in a sector shows up in its phenomena list, nearest
+    # first -- including one whose (older, pre-rotation-fix) center landed
+    # far outside the cube, since it was still generated as part of this
+    # sector.
+    sector_id = _place_sector(mysql_config, "Every Type Sector", (-20.0, 60.0, 3.0), edge_ly=11.5)
+    near_placement = {"center_x_pc": -20.0, "center_y_pc": 60.0, "center_z_pc": 3.0, "galactic_radius_pc": 63.3}
+    far_placement = {"center_x_pc": -20.0, "center_y_pc": 90.0, "center_z_pc": 3.0, "galactic_radius_pc": 92.2}
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        remnant = SupernovaRemnant(SystemConfig())
+        remnant.compact_remnant = None
+        remnant.radius_ly = 1.0
+        remnant_id = _db.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=near_placement)
+        planet_id = _db.insert_rogue_planet(
+            conn, RoguePlanet(SystemConfig()), sector_id=sector_id, placement=far_placement,
+        )
+        comet_id = _db.insert_interstellar_comet(
+            conn, InterstellarComet(SystemConfig()), sector_id=sector_id, placement=near_placement,
+        )
+        # Same far spot, but no link to this sector: stays out.
+        stranger_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), placement=far_placement)
+        conn.commit()
+        matches = queryDb.phenomena_near_sector(conn, sector_id)
+    finally:
+        conn.close()
+
+    keys = [(m["type"], m["id"]) for m in matches]
+    assert ("supernova_remnant", remnant_id) in keys
+    assert ("interstellar_comet", comet_id) in keys
+    assert ("rogue_planet", planet_id) in keys
+    assert ("rogue_planet", stranger_id) not in keys
+    assert keys[-1] == ("rogue_planet", planet_id)
+    assert [m["distance_ly"] for m in matches] == sorted(m["distance_ly"] for m in matches)
 
 def test_insert_sector_links_phenomena_without_placement_for_an_unplaced_sector(mysql_config):
     # A sector generated via sectorGen.py's own standalone CLI (no galaxy
@@ -569,14 +634,9 @@ def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_co
 # ---------------------------------------------------------------------------
 # supernova_remnant support in list_phenomena/count_phenomena/
 # phenomenon_detail (html/phenomena.py's listing, html/phenomenon.py's
-# detail page) -- added alongside this diagram's own AU-scale feature,
-# since supernova_remnants previously had no web page at all. It has its
-# own real radius_ly (unlike black_hole/neutron_star) but NO galaxy-frame
-# placement columns (unlike the other four phenomenon types), which is
-# exactly what queryDb._SUPERNOVA_REMNANT_TABLE is kept separate from
-# _PHENOMENON_TABLES for -- see that constant's own docstring, and
-# test_navigation.py's test_nav_between_rejects_a_real_supernova_remnant_endpoint
-# for the NAV side of that same distinction.
+# detail page). It has its own real radius_ly (unlike black_hole/
+# neutron_star); since v28 it also has galaxy-frame placement columns,
+# though one inserted without a placement (as here) stays unplaced.
 # ---------------------------------------------------------------------------
 
 def test_list_phenomena_includes_a_supernova_remnant_always_unplaced(mysql_config):

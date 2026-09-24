@@ -184,42 +184,27 @@ def handler():
         badge_bits.append(f"Sector: {sector_link}")
     badges_html = "<p class=\"badges\">" + "".join(f'<span class="badge">{bit}</span>' for bit in badge_bits) + "</p>"
 
-    # Offered unconditionally for every OTHER type, unlike system.py's own
-    # sector-gated nav buttons -- nav.py itself renders a clear "not
-    # available" message for a phenomenon never placed in the galaxy, so
-    # this page doesn't have to duplicate that same placement check just
-    # to decide whether to show the button at all. Three types are the
-    # exception: none of supernova_remnant/rogue_planet/interstellar_comet
-    # has any galaxy-frame placement columns at ALL (see queryDb.
-    # _SUPERNOVA_REMNANT_TABLE's docstring), not merely "not placed yet"
-    # -- nav_between rejects all three outright (ValueError, queryDb.
-    # _load_nav_phenomenon_endpoint), so offering the button here would
-    # just walk a visitor into that error instead of nav.py's normal
-    # unplaced-phenomenon message.
-    if phenomenon_type in ("supernova_remnant", "rogue_planet", "interstellar_comet"):
-        nav_html = ""
-        nav_hint_html = (
-            f'<p class="hint">This phenomenon type ({esc(type_label)}) has no known '
-            "position in the galaxy, so it can't be used for navigation.</p>"
+    # Offered for every type, unlike system.py's own sector-gated nav
+    # buttons -- nav.py itself renders a clear "not available" message for
+    # a phenomenon never placed in the galaxy, so this page doesn't have to
+    # duplicate that same placement check just to decide whether to show
+    # the button at all (every type has placement columns since v28, see
+    # schema.sql's "v28" header note).
+    nav_html = (
+        post_link(
+            "nav.py", {"db": db_name, "from": detail["id"], "from_kind": "phenomenon", "from_type": phenomenon_type},
+            "Navigate from here", css_class="btn",
         )
-    else:
-        nav_html = (
-            post_link(
-                "nav.py", {"db": db_name, "from": detail["id"], "from_kind": "phenomenon", "from_type": phenomenon_type},
-                "Navigate from here", css_class="btn",
-            )
-            + post_link(
-                "nav.py", {"db": db_name, "to": detail["id"], "to_kind": "phenomenon", "to_type": phenomenon_type},
-                "Navigate to here", css_class="btn",
-            )
+        + post_link(
+            "nav.py", {"db": db_name, "to": detail["id"], "to_kind": "phenomenon", "to_type": phenomenon_type},
+            "Navigate to here", css_class="btn",
         )
-        nav_hint_html = ""
+    )
 
     map_html = render_phenomenon_map_panel(phenomenon_type, detail["name"], detail.get("radius_ly") or 0)
     fields_html = _fields_html(phenomenon_type, detail)
     body = f"""
 <div class="page-subhead">{breadcrumb}{badges_html}{nav_html}</div>
-{nav_hint_html}
 {map_html}
 <section class="panel">
 <h2>{esc(type_label)} Data</h2>

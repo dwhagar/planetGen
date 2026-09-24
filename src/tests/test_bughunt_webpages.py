@@ -192,6 +192,59 @@ def test_sector_page_with_galaxy_placement_renders_neighbor_indicators(live_api,
         assert "designation" in entry and entry["designation"]
 
 
+
+def test_sector_page_lists_and_maps_every_phenomenon_type(live_api, mysql_config):
+    # Supernova remnants, rogue planets and interstellar comets had no
+    # galaxy position before schema v28, so they never reached the Sector
+    # Map or the sector's own listing. Every type now shows up in both,
+    # and the Contents table lists phenomena alongside the systems.
+    import html
+    import json
+
+    from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+
+    sector = SpaceSector(name="Phenomena Contents Sector", edge_ly=40.0)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = False
+    system = StarSystem(system_config=cfg)
+    sector.add_system(system, system_config=cfg)
+    remnant = SupernovaRemnant(SystemConfig())
+    remnant.compact_remnant = None
+    entries = [
+        sector.add_phenomenon(remnant, "supernova-remnant"),
+        sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet"),
+        sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet"),
+    ]
+    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
+        "galactic_radius_pc": (500.0 ** 2 + 200.0 ** 2 + 10.0 ** 2) ** 0.5,
+        "vertices_pc": {"inner": [], "outer": []},
+    })
+
+    result = run_page(live_api, "sector.py", query={"db": mysql_config.database, "id": str(sector_id)})
+    assert result.status_code == 200
+    _assert_clean_html(result, "sector.py")
+
+    contents = result.body.split("<h2>Contents</h2>", 1)[1].split("</section>", 1)[0]
+    conn = _db.get_connection(mysql_config)
+    try:
+        system_name = conn.execute(
+            "SELECT name FROM star_systems WHERE sector_id = ?", (sector_id,),
+        ).fetchone()["name"]
+    finally:
+        conn.close()
+    for name in [system_name] + [entry.phenomenon.name for entry in entries]:
+        assert html.escape(name) in contents
+    for label in ("Supernova Remnant", "Rogue Planet", "Interstellar Comet", "Star System"):
+        assert label in contents
+
+    match = re.search(r'<script type="application/json" id="starmap-data">(.*?)</script>', result.body, re.DOTALL)
+    scene = json.loads(match.group(1))
+    kinds = {cloud["kind"] for cloud in scene["clouds"]}
+    assert {"supernovaRemnant", "roguePlanet", "interstellarComet"} <= kinds
+
 def test_system_page_renders(live_api, seeded_db):
     _config, db_name, _sector_id, system_ids = seeded_db
     result = run_page(live_api, "system.py", query={"db": db_name, "id": str(system_ids[0])})

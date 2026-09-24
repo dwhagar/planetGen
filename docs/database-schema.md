@@ -420,6 +420,18 @@ its own `created_at`, and each sector takes its oldest system's
 of when they were made, so they keep the migration's own time. The full
 reasoning is in `schema.sql`'s "v27" header note.
 
+**Phenomenon placement (v28).** `supernova_remnants`, `rogue_planets`
+and `interstellar_comets` gain the same `center_x_pc`/`center_y_pc`/
+`center_z_pc`/`galactic_radius_pc` columns the other four phenomenon
+tables have, so every phenomenon type can appear on the Sector Map and be
+a NAV endpoint. A supernova remnant's embedded black hole or neutron star
+takes the remnant's own sector and center. `_migrate_v27_to_v28` adds the
+columns and indexes online like v27, then gives each existing row that is
+linked to a galaxy-placed sector a random point inside that sector's
+cube (its real generated position was never saved), seeded by the row's
+id. Rows with no placed sector stay unplaced. The full reasoning is in
+`schema.sql`'s "v28" header note.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
@@ -1041,7 +1053,7 @@ white dwarf).
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`sectorGen`) or placed near (`phenomenonGen.py --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | |
 | `age_years` | DOUBLE | NOT NULL | |
@@ -1051,6 +1063,7 @@ white dwarf).
 | `compact_remnant_black_hole_id` | INTEGER | FK -> `black_holes.id`, `ON DELETE SET NULL`, nullable | |
 | `compact_remnant_neutron_star_id` | INTEGER | FK -> `neutron_stars.id`, `ON DELETE SET NULL`, nullable | |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a supernova remnant is always standalone). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this remnant's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 
 ### `rogue_planets`
 
@@ -1060,13 +1073,14 @@ from any star.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`sectorGen`) or placed near (`phenomenonGen.py --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
 | `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 
 ### `interstellar_comets`
 
@@ -1076,12 +1090,13 @@ unbound from any star.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | Always NULL today. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`sectorGen`) or placed near (`phenomenonGen.py --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `nucleus_diameter_km`, `velocity_kms` | DOUBLE | NOT NULL | `velocity_kms` is hyperbolic excess speed relative to any star it passes — a separate, non-advancing descriptive stat from the `galactic_orbital_*` columns below (its own bulk galactic motion). |
 | `is_active` | BOOLEAN | NOT NULL | Whether it currently shows a coma/tail. |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary`. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (an interstellar comet is always standalone). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this comet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 
 ### `interstellar_comet_composition`
 

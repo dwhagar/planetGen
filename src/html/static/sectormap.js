@@ -335,6 +335,25 @@ var CLOUD_KIND_RECIPES = {
       [0, "#ffffff"], [0.35, "#cfe8ffe0"], [0.6, "#8fc7ff80"], [0.82, "rgba(0,0,0,0)"],
     ]);
   },
+  // A thin, bright expanding shell around a faint interior -- how a
+  // supernova remnant (Cassiopeia A, the Veil) actually reads.
+  supernovaRemnant: function () {
+    return makeSimpleRadialTexture(128, [
+      [0, "#ffb07a20"], [0.45, "#ffb07a30"], [0.62, "#ff8a5cb0"], [0.7, "#8fd6ffa0"], [0.8, "rgba(0,0,0,0)"],
+    ]);
+  },
+  // A dim, starless world lit only by its own internal heat.
+  roguePlanet: function () {
+    return makeSimpleRadialTexture(96, [
+      [0, "#6b5a8a"], [0.45, "#3d3350f0"], [0.62, "#2a2438c0"], [0.8, "rgba(0,0,0,0)"],
+    ]);
+  },
+  // An icy nucleus inside a pale cyan coma.
+  interstellarComet: function () {
+    return makeSimpleRadialTexture(96, [
+      [0, "#ffffff"], [0.2, "#e6fbffe0"], [0.5, "#8ff0e080"], [0.8, "rgba(0,0,0,0)"],
+    ]);
+  },
 };
 
 function textureForCloud(cloud) {
@@ -358,6 +377,9 @@ var CLOUD_GLOW_RECIPES = {
   blackHoleAccreting: { color: "#ff9d4d", power: 1.8, strength: 1.6, scale: 1.4 },
   blackHoleQuiescent: { color: "#4b2f66", power: 2.5, strength: 0.7, scale: 1.2 },
   neutronStar: { color: "#8fc7ff", power: 1.2, strength: 2.4, scale: 1.45 },
+  supernovaRemnant: { color: "#ff8a5c", power: 2.0, strength: 1.2, scale: 1.2 },
+  roguePlanet: { color: "#7d6aa8", power: 2.5, strength: 0.8, scale: 1.25 },
+  interstellarComet: { color: "#8ff0e0", power: 1.4, strength: 1.8, scale: 1.4 },
 };
 
 function glowRecipeForCloud(cloud) {
