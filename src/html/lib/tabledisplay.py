@@ -14,7 +14,7 @@ numbers instead of a live `Star`/`Planet` object's attributes.
 
 `_HTML_CONFIG.MARKDOWN = True` makes those formatters emit the HTML
 "coeff &times; 10<sup>exp</sup>" form (the same form already used for
-`markdown_content`, safely un-escaped by `mdconvert.py`), not the wikitext
+rendered system Markdown, safely un-escaped by `mdconvert.py`), not the wikitext
 "{{Exp|coeff|exp}}" template form -- the wrong one for embedding directly
 into an HTML page, which was the whole bug: the interactive HTML viewer used
 to read the wikitext form straight out of the database.

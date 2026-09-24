@@ -17,7 +17,7 @@ Reaching for a full CommonMark parser for that surface would be the
 wrong tool -- and `html/` is deliberately dependency-free (standard
 library only), so pulling one in isn't an option anyway.
 
-Security note: `markdown_content` is trusted-ish generated data, but not
+Security note: rendered system Markdown is trusted-ish generated data, but not
 fully -- a `--name`/`--star-type` override on the CLI can inject
 arbitrary characters into it. Every block is HTML-escaped in full before
 any markup is emitted, and the one legitimate raw-HTML pattern
@@ -145,7 +145,7 @@ def _convert(text):
 
 def markdown_to_html(text):
     """
-    Converts one `markdown_content` string (a full rendered system page)
+    Converts one Markdown string (a rendered system page, or one piece of it)
     into an HTML fragment suitable for embedding inside a container
     element -- no `<html>`/`<body>` wrapper. Every heading gets an `id`
     (see `_slugify`) so it can be linked to directly; callers that need
@@ -153,7 +153,7 @@ def markdown_to_html(text):
     `markdown_to_html_with_headings` instead.
 
     Args:
-        text (str): The Markdown source, e.g. `star_systems.markdown_content`.
+        text (str): The Markdown source, e.g. from `stellarObjects.systemRender`.
 
     Returns:
         str: HTML markup. Empty string for `None`/empty input.
@@ -169,7 +169,7 @@ def markdown_to_html_with_headings(text):
     rendered content.
 
     Args:
-        text (str): The Markdown source, e.g. `star_systems.markdown_content`.
+        text (str): The Markdown source, e.g. from `stellarObjects.systemRender`.
 
     Returns:
         tuple: `(html, headings)` -- `html` as `markdown_to_html` returns;
