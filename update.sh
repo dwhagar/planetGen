@@ -103,6 +103,9 @@ if [[ "$before" == "$after" ]]; then
     # Cheap and idempotent too, and puts back a tile cache directory that
     # was deleted or never created (an install from before it existed).
     "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
+    # Same for the debug log: creates it if debug was turned on since the
+    # last run, and keeps its permissions and logrotate config current.
+    "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
 else
     echo "== 2/2: Re-running install.sh to keep permissions (and everything else it covers) correct =="
     # A pull rewrites any changed file with whatever mode is tracked in the

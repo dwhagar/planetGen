@@ -77,7 +77,7 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `--flavor-chance-system <float>`: Overrides the default system-level flavor text chance (0.0 to 1.0).
 *   `--flavor-chance-planet <float>`: Overrides the default planet-level flavor text chance (0.0 to 1.0).
 *   `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.
-*   `--debug [file]`: Logs every choice the generator makes, and why, with timestamps, to the console. If `file` is given, also mirrors that output to `file`. Available on every subcommand.
+*   `--debug [file]`: Logs every choice the generator makes, and why, with timestamps, to the console. If `file` is given, also mirrors that output to `file`. Available on every subcommand. For a permanent, far more detailed log of everything (every random roll, SQL statement and web request too), set `"debug": true` in `config.json` instead; it writes to `/var/log/planetgen.log` (see [`docs/config.md`](docs/config.md)).
 *   `--quiet` / `--silent`: Suppresses all output except errors. Available on every subcommand. Combined with `--debug`, a filename is required (there would otherwise be nowhere for debug output to go).
 
 **Note on Incompatible Options:**
