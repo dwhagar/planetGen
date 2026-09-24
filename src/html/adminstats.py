@@ -36,10 +36,7 @@ from apiclient import (  # noqa: E402
 )
 from fmt import esc, post_link  # noqa: E402
 from page import incoming_cookie_header, nav_params, redirect, render, render_error  # noqa: E402
-
-_NAMES_PAGE_SIZE = 100
-"""int: Base names per page of the duplicate-names list."""
-
+from pagination import fetch_page, parse_page, render_pagination  # noqa: E402
 
 def _format_bytes(value):
     if value is None:
@@ -67,13 +64,6 @@ def _format_duration(seconds):
 
 def _format_count(value):
     return "unknown" if value is None else f"{value:,}"
-
-
-def _parse_offset(raw):
-    try:
-        return max(0, int(raw))
-    except (TypeError, ValueError):
-        return 0
 
 
 def _tile_cache_info():
@@ -278,7 +268,7 @@ def _name_link(db_name, row):
     return f'{esc(row["name"])} <span class="hint">{row["kind"]} in</span> {system_link}'
 
 
-def _duplicate_names_html(db_name, database, names, error):
+def _duplicate_names_html(db_name, database, names, names_page, error):
     collisions = database["name_collisions"]
     summary = _tiles([
         ("Names made unique", _format_count(collisions.get("distinct_base_names"))),
@@ -303,7 +293,8 @@ def _duplicate_names_html(db_name, database, names, error):
   <thead><tr><th>Base name</th><th>Collided as</th><th>Now named</th></tr></thead>
   <tbody>{''.join(rows)}</tbody>
 </table></div>
-{_names_pagination(db_name, names)}
+{render_pagination("adminstats.py", {"db": db_name}, "names_page", names_page, names["total"],
+                   anchor="duplicate-names", label="Duplicate name pages")}
 """
     return f"""
 <section class="panel" id="duplicate-names">
@@ -318,26 +309,7 @@ system, planet and moon that now carries one.</p>
 """
 
 
-def _names_pagination(db_name, names):
-    total, offset, limit = names["total"], names["offset"], names["limit"]
-    if total <= limit:
-        return ""
-    shown_to = min(offset + limit, total)
-    prev_link = (
-        post_link("adminstats.py#duplicate-names", {"db": db_name, "names_offset": max(0, offset - limit)}, "&larr; Prev")
-        if offset > 0 else '<span class="hint">&larr; Prev</span>'
-    )
-    next_link = (
-        post_link("adminstats.py#duplicate-names", {"db": db_name, "names_offset": offset + limit}, "Next &rarr;")
-        if shown_to < total else '<span class="hint">Next &rarr;</span>'
-    )
-    return (
-        f'<div class="pagination">{prev_link}'
-        f"<span>{offset + 1:,}&ndash;{shown_to:,} of {total:,}</span>{next_link}</div>"
-    )
-
-
-def _page_html(db_name, db_names, cookie_header, names_offset):
+def _page_html(db_name, db_names, cookie_header, names_page):
     started = time.perf_counter()
     stats = admin_stats(cookie_header, db_name)
     api_ms = (time.perf_counter() - started) * 1000
@@ -348,12 +320,15 @@ def _page_html(db_name, db_names, cookie_header, names_offset):
         names = None
         names_error = None
         try:
-            names = admin_duplicate_names(cookie_header, db_name, limit=_NAMES_PAGE_SIZE, offset=names_offset)
+            names, names_page = fetch_page(
+                lambda limit, offset: admin_duplicate_names(cookie_header, db_name, limit=limit, offset=offset),
+                names_page,
+            )
         except ApiError as exc:
             names_error = str(exc)
         sections.extend([
             _database_html(database, db_names),
-            _duplicate_names_html(db_name, database, names, names_error),
+            _duplicate_names_html(db_name, database, names, names_page, names_error),
             _timestamps_html(database),
             _tables_html(database),
         ])
@@ -385,7 +360,7 @@ if db_name not in db_names:
     render_error(f"Unknown database {db_name!r}.", status="404 Not Found")
 
 try:
-    body = _page_html(db_name, db_names, cookie_header, _parse_offset(params.get("names_offset")))
+    body = _page_html(db_name, db_names, cookie_header, parse_page(params.get("names_page")))
 except (ApiError, NotFoundError) as exc:
     render_error(f"Could not load stats from the planetGen API ({exc}).", status="502 Bad Gateway")
 
