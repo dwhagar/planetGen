@@ -82,9 +82,9 @@ connectivity to that specific schema rather than the default one.
   could plausibly reach into this sector's cube, plus every placed one
   generated as part of this sector, nearest its center first — `id`,
   `type` (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
-  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`), `name`,
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`/`"quasar"`), `name`,
   `descriptor`, `radius_ly` (always 0 for a black hole/neutron star/rogue
-  planet/interstellar comet — point-like at this scale), `distance_ly`,
+  planet/interstellar comet/quasar — point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
   relative to this sector's own — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
@@ -225,7 +225,7 @@ connectivity to that specific schema rather than the default one.
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,
   `total`, `limit`, `offset`). Each item has `id`, `type`
   (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
-  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`), `name`,
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`/`"quasar"`), `name`,
   `descriptor`, `radius_ly` (same shape as `/api/galaxy/phenomena`'s own
   items), plus `sector_id`/`sector_name` (both `null` if never linked to a
   sector) and `placed` (bool, whether it has a galaxy position at all) —
@@ -240,7 +240,7 @@ connectivity to that specific schema rather than the default one.
   `age_years`), plus `type` and `sector_name` — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
   `black_hole`/`neutron_star`/`supernova_remnant`/`rogue_planet`/
-  `interstellar_comet`; an unrecognized type or
+  `interstellar_comet`/`quasar`; an unrecognized type or
   a nonexistent id is
   a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
@@ -389,14 +389,14 @@ adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
 graph with Dijkstra shortest-path) between two endpoints -- each either a
 star system (the default) or a standalone phenomenon (nebula/asteroid
 field/black hole/neutron star/supernova remnant/rogue planet/interstellar
-comet).
+comet/quasar).
 
 **Phenomenon endpoints.** Pass `from_kind=phenomenon&from_type=<type>`
 (and/or the `to_*` equivalents) to route to/from a phenomenon instead of a
 system -- `from`/`to` then names that phenomenon's own row id, and
 `from_type`/`to_type` is one of `nebula`, `asteroid_field`, `black_hole`,
-`neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`
-(an unrecognized type or a nonexistent id is a `404`). A phenomenon
+`neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`,
+`quasar` (an unrecognized type or a nonexistent id is a `404`). A phenomenon
 endpoint's own `route.path`/`route.positions` id is a
 `"phenomenon:<type>:<id>"` string (a plain int id, same as always, for a
 system) -- only `route.path[0]`/`route.path[-1]` can ever be a phenomenon;

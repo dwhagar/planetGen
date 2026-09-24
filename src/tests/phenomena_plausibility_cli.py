@@ -11,7 +11,7 @@ the planet-focused engine.
 
 Batch-generates standalone phenomena (black holes, neutron stars, nebulae,
 supernova remnants, rogue planets, interstellar comets, asteroid fields)
-in memory -- no database round-trip needed -- across all seven types,
+in memory -- no database round-trip needed -- across all eight types,
 then reports:
 
   * hard physical-invariant violations (analytically-derived formulas --
@@ -57,7 +57,7 @@ def process_args():
     )
     parser.add_argument(
         "--types", nargs="+", default=None, metavar="TYPE", choices=list(pp.PHENOMENON_TYPES),
-        help="Restrict to these phenomenon types (default: all seven).",
+        help="Restrict to these phenomenon types (default: all eight).",
     )
     parser.add_argument(
         "--k", type=float, default=3.0,

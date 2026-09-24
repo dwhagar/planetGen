@@ -717,6 +717,13 @@
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
 --   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
+-- v30: new `quasars` table -- a galaxy's active nucleus (`quasarData.Quasar`).
+--   Only ever generated at the galactic center (0, 0, 0), by the one
+--   shell-0 sector that hosts the nucleus (`generate.add_galactic_nucleus`),
+--   so it has the usual placement columns but
+--   no galactic-orbit columns: it is the point everything else orbits.
+--   A brand-new table, so `_ensure_schema`'s `CREATE TABLE IF NOT EXISTS`
+--   creates it; `_migrate_v29_to_v30` only records the version.--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1711,6 +1718,49 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     KEY idx_supernova_remnants_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
     KEY idx_supernova_remnants_modified_at (modified_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- quasars -- v30 exotic phenomenon: a galaxy's active nucleus, always at
+-- the galactic center. See this file's "v30" header note.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS quasars (
+    id                              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sector_id                       BIGINT UNSIGNED,
+    name                            VARCHAR(255) NOT NULL,
+    black_hole_mass_solar           DOUBLE NOT NULL,
+    event_horizon_radius_km         DOUBLE NOT NULL,
+    eddington_ratio                 DOUBLE NOT NULL,
+    luminosity_w                    DOUBLE NOT NULL,
+    accretion_rate_solar_per_year   DOUBLE NOT NULL,
+    broad_line_region_light_days    DOUBLE NOT NULL,
+    is_radio_loud                   TINYINT(1) NOT NULL CHECK (is_radio_loud IN (0, 1)),
+    -- NULL when radio-quiet (no jets).
+    jet_length_ly                   DOUBLE,
+    active_age_years                DOUBLE NOT NULL,
+
+    -- The galactic center, when placed. NULL together: never placed.
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
+    -- v27-style row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT chk_quasars_placement CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
+    CONSTRAINT fk_quasars_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    KEY idx_quasars_sector_id (sector_id),
+    KEY idx_quasars_galactic_radius_pc (galactic_radius_pc),
+    KEY idx_quasars_center (center_x_pc, center_y_pc, center_z_pc),
+    KEY idx_quasars_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

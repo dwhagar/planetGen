@@ -67,6 +67,7 @@ _TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
+    "quasar": "Quasar",
 }
 
 _ROGUE_PLANET_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
@@ -146,6 +147,18 @@ _FIELD_SPECS = {
         ("composition_summary", "Composition", esc),
         ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s"),
         ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy"),
+    ],
+    # No galactic-orbit rows: a quasar sits at the galactic center.
+    "quasar": [
+        ("black_hole_mass_solar", "Black Hole Mass", lambda v: f"{v:.2e} solar masses"),
+        ("event_horizon_radius_km", "Event Horizon Radius", lambda v: f"{v:.2e} km"),
+        ("luminosity_w", "Luminosity", lambda v: f"{v:.2e} W"),
+        ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),
+        ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{v:,.2f} solar masses/year"),
+        ("broad_line_region_light_days", "Broad-Line Region Radius", lambda v: f"{v:,.0f} light-days"),
+        ("is_radio_loud", "Radio-Loud (Jets)", _bool_text),
+        ("jet_length_ly", "Jet Length", lambda v: f"{v:,.0f} ly"),
+        ("active_age_years", "Active For", lambda v: f"{v:,.0f} years"),
     ],
 }
 

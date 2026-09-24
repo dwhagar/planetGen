@@ -271,6 +271,15 @@ def test_render_map_panel_draws_an_accreting_black_hole_point():
     assert cloud["radiusText"] == "0.00 ly"
 
 
+def test_render_map_panel_draws_a_quasar_point():
+    system = _make_system()
+    phenomenon = _phenomenon(type_="quasar", descriptor="radio-loud", radius_ly=0)
+    scene = _scene_data(render_map_panel("db", 1000.0, None, None, None, [system], phenomena=[phenomenon]))
+    cloud = scene["clouds"][0]
+    assert cloud["kind"] == "quasar"
+    assert cloud["typeLabel"] == "Quasar (Radio-loud)"
+
+
 def test_render_map_panel_draws_a_quiescent_black_hole_point():
     system = _make_system()
     phenomenon = _phenomenon(type_="black_hole", descriptor="quiescent", radius_ly=0)

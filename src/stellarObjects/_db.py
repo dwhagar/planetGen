@@ -76,6 +76,7 @@ from .roguePlanetData import InterstellarComet, RoguePlanet
 from .sectorGeometry import cube_orientation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
+from .quasarData import Quasar
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 from .utils import (
@@ -84,7 +85,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 29
+SCHEMA_VERSION = 30
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1834,6 +1835,71 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     return field_id
 
 
+GALACTIC_CENTER_PLACEMENT = {
+    "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 0.0,
+}
+"""dict: The galactic origin, in `_placement_values`' shape -- where every
+placed quasar sits."""
+
+
+def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
+    """
+    Inserts a `quasars` row (see `schema.sql`'s "v30" header note).
+
+    A quasar is a galaxy's nucleus, so any placement at all is snapped to
+    the galactic center (`GALACTIC_CENTER_PLACEMENT`): `insert_sector`'s
+    converted in-sector offset already lands there up to rounding, and
+    `save_phenomenon`'s `--sector-id` jitter would otherwise scatter it.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        quasar (Quasar): The quasar to persist.
+        sector_id (int, optional): The core sector it belongs to.
+        placement (dict, optional): Any non-`None` value places it at the
+            galactic center; `None` leaves it unplaced.
+
+    Returns:
+        int: The new `quasars.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO quasars (
+            sector_id, name, black_hole_mass_solar, event_horizon_radius_km, eddington_ratio,
+            luminosity_w, accretion_rate_solar_per_year, broad_line_region_light_days,
+            is_radio_loud, jet_length_ly, active_age_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            sector_id, quasar.name, quasar.black_hole_mass_solar, quasar.event_horizon_radius_km,
+            quasar.eddington_ratio, quasar.luminosity_w, quasar.accretion_rate_solar_per_year,
+            quasar.broad_line_region_light_days, int(quasar.is_radio_loud), quasar.jet_length_ly,
+            quasar.active_age_years,
+            *_placement_values(GALACTIC_CENTER_PLACEMENT if placement is not None else None),
+        ),
+    )
+    return cur.lastrowid
+
+
+def _check_quasar_sector(conn, sector_id):
+    """
+    Refuses to place a quasar "at" a sector that doesn't host the galactic
+    nucleus (any shell-0 sector's cube contains the origin), or into a
+    galaxy that already has one -- a galaxy has a single nucleus.
+
+    Raises:
+        ValueError: If either rule would be broken.
+    """
+    row = conn.execute("SELECT shell_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None or row["shell_index"] != 0:
+        raise ValueError(
+            f"a quasar can only be placed in a shell-0 sector (the galactic core); sector {sector_id} is not one"
+        )
+    existing = conn.execute("SELECT id FROM quasars WHERE center_x_pc IS NOT NULL LIMIT 1").fetchone()
+    if existing is not None:
+        raise ValueError(f"this galaxy already has a quasar at its center (quasars.id={existing['id']})")
+
+
 _PHENOMENON_INSERTERS = {
     "black-hole": insert_black_hole,
     "neutron-star": insert_neutron_star,
@@ -1842,6 +1908,7 @@ _PHENOMENON_INSERTERS = {
     "supernova-remnant": insert_supernova_remnant,
     "rogue-planet": insert_rogue_planet,
     "comet": insert_interstellar_comet,
+    "quasar": insert_quasar,
 }
 """dict: `program_constants.PHENOMENON_TYPE_CHOICES` value -> the
 `insert_*` function for its table. Every one takes `sector_id=` and
@@ -1905,6 +1972,8 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             inserter = _PHENOMENON_INSERTERS.get(phenomenon_type)
             if inserter is None:
                 raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
+            if phenomenon_type == "quasar" and sector_id is not None:
+                _check_quasar_sector(conn, sector_id)
             placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
             return inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
     finally:
@@ -4469,7 +4538,7 @@ def _migrate_v25_to_v26(conn):
 TIMESTAMPED_TABLES = (
     "sectors", "star_systems",
     "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
-    "rogue_planets", "interstellar_comets", "asteroid_fields",
+    "rogue_planets", "interstellar_comets", "asteroid_fields", "quasars",
 )
 """tuple: The top-level tables carrying v27's `created_at`/`modified_at`
 row timestamps -- see `schema.sql`'s "v27" header note. Child rows
@@ -4787,6 +4856,21 @@ def _migrate_v28_to_v29(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (29)")
 
 
+def _migrate_v29_to_v30(conn):
+    """
+    Records schema v30 -- the new `quasars` table (see `schema.sql`'s
+    "v30" header note). Like `_migrate_v15_to_v16`, a brand-new table
+    needs no `ALTER TABLE`: `_ensure_schema` already created it, so this
+    step only keeps the bookkeeping counter accurate.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (30)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -4858,7 +4942,8 @@ def migrate_database(config=None):
     (added for v28's placement columns on `supernova_remnants`/
     `rogue_planets`/`interstellar_comets`), and `_migrate_v28_to_v29`
     (dropping the stored wikitext/Markdown page text v29 renders on
-    demand instead) are the migration steps so far; see
+    demand instead), and `_migrate_v29_to_v30` (recording v30's new
+    `quasars` table) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4958,6 +5043,10 @@ def migrate_database(config=None):
         if version < 29:
             _migrate_v28_to_v29(conn)
             version = 29
+
+        if version < 30:
+            _migrate_v29_to_v30(conn)
+            version = 30
 
         conn.commit()
         return version
