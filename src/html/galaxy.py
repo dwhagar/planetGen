@@ -49,6 +49,7 @@ from fmt import esc, post_link
 from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
 from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from page import nav_params, run
+from pagination import page_slice, parse_page, render_pagination
 from tilecache import fetch_tiles
 
 try:
@@ -99,12 +100,19 @@ def _quadrant_summary_table(db_name, sectors):
     return "".join(rows)
 
 
-def _quadrant_sector_table(db_name, sectors, quadrant):
+def _quadrant_sector_table(db_name, sectors, quadrant, page):
+    """One page (`lib/pagination.py`) of the Quadrant's placed sectors,
+    nearest the core first. Returns `(rows_html, pager_html)`."""
     members = [s for s in sectors if sector_quadrant(s["x"], s["y"]) == quadrant]
     members.sort(key=lambda s: s["galactic_radius_pc"])
+    page_members, page = page_slice(members, page)
+    pager_html = render_pagination(
+        "galaxy.py", {"db": db_name, "quadrant": quadrant}, "page", page, len(members),
+        anchor="galaxy-table", label="Sector pages",
+    )
 
     rows = []
-    for sector in members:
+    for sector in page_members:
         ring = sector_ring(sector["shell_index"])
         distance_ly = _display_ly(sector["galactic_radius_pc"])
         rows.append(
@@ -115,7 +123,8 @@ def _quadrant_sector_table(db_name, sectors, quadrant):
             f'<td>{sector["system_count"] or 0}</td>'
             "</tr>"
         )
-    return "".join(rows) or '<tr><td colspan="4"><em>No sectors placed in this Quadrant yet.</em></td></tr>'
+    rows_html = "".join(rows) or '<tr><td colspan="4"><em>No sectors placed in this Quadrant yet.</em></td></tr>'
+    return rows_html, pager_html
 
 
 def handler():
@@ -137,11 +146,12 @@ def handler():
     if quadrant:
         table_title = f"Sectors in Quadrant {quadrant}"
         table_head = "<tr><th>Name</th><th>Ring</th><th>Distance from core</th><th>Systems</th></tr>"
-        table_rows = _quadrant_sector_table(db_name, sectors, quadrant)
+        table_rows, pager_html = _quadrant_sector_table(db_name, sectors, quadrant, parse_page(params.get("page")))
     else:
         table_title = "Quadrants"
         table_head = "<tr><th>Quadrant</th><th>Placed sectors</th><th>Total systems</th><th>Extent</th></tr>"
         table_rows = _quadrant_summary_table(db_name, sectors)
+        pager_html = ""
 
     placed_count = len(sectors)
     badges_html = (
@@ -154,12 +164,13 @@ def handler():
     body = f"""
 <div class="page-subhead">{breadcrumb_html}{badges_html}</div>
 {map_html}
-<section class="panel">
+<section class="panel" id="galaxy-table">
 <h2>{esc(table_title)}</h2>
 <div class="table-scroll"><table>
   <thead>{table_head}</thead>
   <tbody>{table_rows}</tbody>
 </table></div>
+{pager_html}
 </section>
 <script type="module" src="static/galaxymap3d.js"></script>
 """

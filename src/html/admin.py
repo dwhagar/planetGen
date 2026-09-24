@@ -38,14 +38,16 @@ from apiclient import (
 )
 from fmt import esc
 from page import form_params, incoming_cookie_header, redirect, render, render_error
+from pagination import page_slice, parse_page, render_pagination
 
 
-def _keys_table_html(keys):
+def _keys_table_html(keys, keys_page=1):
     if not keys:
         return '<p class="hint">No API keys yet.</p>'
 
+    page_keys, keys_page = page_slice(keys, keys_page)
     rows = []
-    for key in keys:
+    for key in page_keys:
         if key["revoked_at"]:
             status = f'<span class="badge">revoked {esc(key["revoked_at"])}</span>'
             action = ""
@@ -72,10 +74,11 @@ def _keys_table_html(keys):
   <thead><tr><th>Label</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr></thead>
   <tbody>{''.join(rows)}</tbody>
 </table></div>
+{render_pagination("admin.py", {}, "keys_page", keys_page, len(keys), anchor="api-keys", label="API key pages")}
 """
 
 
-def _page_html(identity, keys, new_key=None, error=None, wiki_message=None, wiki_error=None):
+def _page_html(identity, keys, new_key=None, error=None, wiki_message=None, wiki_error=None, keys_page=1):
     error_html = f'<p class="error">{esc(error)}</p>' if error else ""
     new_key_html = ""
     if new_key is not None:
@@ -98,12 +101,12 @@ def _page_html(identity, keys, new_key=None, error=None, wiki_message=None, wiki
 </section>
 {new_key_html}
 {error_html}
-<section class="panel">
+<section class="panel" id="api-keys">
 <h2>API Keys</h2>
 <p class="hint">Used as an <code>Authorization: Bearer &lt;key&gt;</code>
 header against the write endpoints documented in the API reference
 (sector/system create, update, delete).</p>
-{_keys_table_html(keys)}
+{_keys_table_html(keys, keys_page)}
 <form method="post" action="admin.py" class="search-form">
   <input type="hidden" name="action" value="create_key">
   <div class="search-fields">
@@ -160,10 +163,13 @@ new_key = None
 error = None
 wiki_message = None
 wiki_error = None
+keys_page = 1
 
 if os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
     fields = form_params()
     action = fields.get("action")
+    # The key table's pager posts just `keys_page`, no action.
+    keys_page = parse_page(fields.get("keys_page"))
     try:
         if action == "create_key":
             label = fields.get("label", "").strip()
@@ -190,7 +196,7 @@ if os.environ.get("REQUEST_METHOD", "GET").upper() == "POST":
                         f"Wiki link for sector {sector_id} in {db_name!r} "
                         f"{'cleared' if wiki_url is None else f'set to {wiki_url}'}."
                     )
-        else:
+        elif action:
             error = "Unrecognized form action."
     except ApiError as exc:
         if action == "set_sector_wiki_url":
@@ -205,4 +211,5 @@ try:
 except ApiError as exc:
     render_error(f"Could not reach the planetGen API ({exc}).", status="502 Bad Gateway")
 
-render("Admin", _page_html(identity, keys, new_key=new_key, error=error, wiki_message=wiki_message, wiki_error=wiki_error))
+render("Admin", _page_html(identity, keys, new_key=new_key, error=error, wiki_message=wiki_message,
+                           wiki_error=wiki_error, keys_page=keys_page))

@@ -390,7 +390,7 @@ def get_phenomenon(db, phenomenon_type, phenomenon_id):
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
-def get_search(db, texts, tags, sizes=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `queryDb.search`'s docstring for the full shape.
@@ -407,6 +407,10 @@ def get_search(db, texts, tags, sizes=None):
             `<entity>_min_radius_km`/`<entity>_max_radius_km`, omitting
             either bound that's `None`. An absent key (or `sizes` itself
             being `None`) sends no size filter for that entity.
+        limit (int, optional): Rows per result panel (the API's own
+            default when `None`).
+        offsets (dict, optional): `{panel: offset}` -- sent as
+            `<panel>_offset`, one page per result panel.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -421,6 +425,10 @@ def get_search(db, texts, tags, sizes=None):
             pairs.append((f"{entity}_min_radius_km", min_km))
         if max_km is not None:
             pairs.append((f"{entity}_max_radius_km", max_km))
+    if limit is not None:
+        pairs.append(("limit", limit))
+    for panel, offset in (offsets or {}).items():
+        pairs.append((f"{panel}_offset", offset))
     return _request("/search", pairs)
 
 

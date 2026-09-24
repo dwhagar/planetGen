@@ -46,6 +46,7 @@ from apiclient import (
 from fmt import esc, format_distance_ly, linkify_location, post_link
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, nav_params, run
+from pagination import page_slice, parse_page, render_pagination
 from starmap import render_map_panel
 
 _PHENOMENON_TYPE_LABELS = {
@@ -193,7 +194,10 @@ def handler():
                     for star in row["stars"]
                 ],
             })
-    rows_html = "".join(rows) or '<tr><td colspan="6"><em>None</em></td></tr>'
+    # The map above plots every system, so the full list is already here;
+    # the table shows one page of it (see lib/pagination.py).
+    page_rows, systems_page = page_slice(rows, parse_page(params.get("systems_page")))
+    rows_html = "".join(page_rows) or '<tr><td colspan="6"><em>None</em></td></tr>'
 
     def _phenomenon_row_html(row):
         radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
@@ -210,7 +214,9 @@ def handler():
             "</tr>"
         )
 
-    phenomena_rows_html = "".join(_phenomenon_row_html(row) for row in (sector.get("phenomena") or []))
+    page_phenomena, phenomena_page = page_slice(sector.get("phenomena") or [], parse_page(params.get("phenomena_page")))
+    phenomena_rows_html = "".join(_phenomenon_row_html(row) for row in page_phenomena)
+    page_state = {"db": db_name, "id": sector_id, "systems_page": systems_page, "phenomena_page": phenomena_page}
 
     center_pc = (
         (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
@@ -245,12 +251,14 @@ def handler():
     phenomena_section_html = ""
     if phenomenon_count:
         phenomena_section_html = f"""
-<section class="panel">
+<section class="panel" id="sector-phenomena">
 <h2>Nearby Exotic Phenomena</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Type</th><th>Descriptor</th><th>Radius</th><th>Distance</th></tr></thead>
   <tbody>{phenomena_rows_html}</tbody>
 </table></div>
+{render_pagination("sector.py", page_state, "phenomena_page", phenomena_page, phenomenon_count,
+                   anchor="sector-phenomena", label="Nearby phenomena pages")}
 </section>
 """
 
@@ -305,12 +313,14 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 {wiki_html}
 {admin_panel_html}
 {map_html}
-<section class="panel">
+<section class="panel" id="sector-systems">
 <h2>Systems</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Octant</th><th>Binary</th><th>Star type</th><th>From center</th><th>Location</th></tr></thead>
   <tbody>{rows_html}</tbody>
 </table></div>
+{render_pagination("sector.py", page_state, "systems_page", systems_page, system_count,
+                   anchor="sector-systems", label="System pages")}
 </section>
 {phenomena_section_html}
 <script type="module" src="static/sectormap.js"></script>

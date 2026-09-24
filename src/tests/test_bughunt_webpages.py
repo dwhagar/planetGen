@@ -115,13 +115,12 @@ def test_browse_page_renders(live_api, seeded_db):
 
 
 def test_browse_page_paginates_sectors(live_api, mysql_config):
-    """browse.py used to cap its Sectors table at 500 rows with no way to
-    ever reach anything past that (see that module's own docstring) --
-    confirms real Prev/Next pagination instead: 105 empty sectors (zero-
-    padded names, so alphabetical order == creation order) split across
-    exactly two pages of 100, and requesting page 2 via the same POST
-    params browse.py's own Next link submits (sector_offset) returns the
-    second page's own rows, not the first's."""
+    """browse.py pages its Sectors table through the shared pager
+    (lib/pagination.py), 50 rows a page: 105 empty sectors (zero-padded
+    names, so alphabetical order == creation order) fill three pages, and
+    requesting page 2 or 3 via the same POST params the pager's own links
+    submit (sectors_page) returns that page's own rows. A page number past
+    the end shows the last page rather than an empty table."""
     for i in range(105):
         sector = SpaceSector(f"Pag Sector {i:03d}", edge_ly=10.0)
         _db.save_sector(sector, config=mysql_config)
@@ -131,19 +130,30 @@ def test_browse_page_paginates_sectors(live_api, mysql_config):
     _assert_clean_html(page1, "browse.py (page 1)")
     assert "105 sectors" in page1.body
     assert "Pag Sector 000" in page1.body
-    assert "Pag Sector 099" in page1.body
-    assert "Pag Sector 100" not in page1.body  # page 2's own first row
+    assert "Pag Sector 049" in page1.body
+    assert "Pag Sector 050" not in page1.body  # page 2's own first row
     assert 'class="pagination"' in page1.body
-    assert "Next" in page1.body
+    assert "Showing 1&ndash;50 of 105" in page1.body
+    assert 'name="sectors_page" value="3"' in page1.body  # the Last link
 
     page2 = run_page(
         live_api, "browse.py", method="POST",
-        body={"db": mysql_config.database, "sector_offset": "100"},
+        body={"db": mysql_config.database, "sectors_page": "2"},
     )
     assert page2.status_code == 200
     _assert_clean_html(page2, "browse.py (page 2)")
-    assert "Pag Sector 104" in page2.body
-    assert "Pag Sector 099" not in page2.body  # page 1's own last row
+    assert "Pag Sector 050" in page2.body
+    assert "Pag Sector 099" in page2.body
+    assert "Pag Sector 049" not in page2.body  # page 1's own last row
+    assert "Pag Sector 100" not in page2.body
+
+    past_end = run_page(
+        live_api, "browse.py", method="POST",
+        body={"db": mysql_config.database, "sectors_page": "40"},
+    )
+    assert past_end.status_code == 200
+    assert "Pag Sector 104" in past_end.body
+    assert "Showing 101&ndash;105 of 105" in past_end.body
 
 
 def test_sector_page_renders(live_api, seeded_db):
@@ -242,6 +252,77 @@ def test_search_page_renders(live_api, seeded_db):
     result = run_page(live_api, "search.py", query={"db": db_name})
     assert result.status_code == 200
     _assert_clean_html(result, "search.py")
+
+
+def test_search_page_pages_a_result_panel(live_api, mysql_config):
+    """A search result panel shows 50 rows a page with the shared pager,
+    and the pager's own link (sectors_page, plus the active filters)
+    brings back the next page's rows with the filter still applied."""
+    for i in range(60):
+        _db.save_sector(SpaceSector(f"Pager Sector {i:03d}", edge_ly=10.0), config=mysql_config)
+    _db.save_sector(SpaceSector("Unrelated", edge_ly=10.0), config=mysql_config)
+
+    def _panel(body):
+        # Just the Sectors result panel -- the name autocomplete list
+        # elsewhere on the page carries every sector name.
+        panel = body[body.index('id="search-sectors"'):]
+        return panel[:panel.index("</section>")]
+
+    page1 = run_page(live_api, "search.py", query={"db": mysql_config.database, "sector_q": "Pager"})
+    assert page1.status_code == 200
+    _assert_clean_html(page1, "search.py (page 1)")
+    panel1 = _panel(page1.body)
+    assert "Sectors (60)" in panel1
+    assert "Pager Sector 049" in panel1
+    assert "Pager Sector 050" not in panel1
+    assert "Showing 1&ndash;50 of 60" in panel1
+
+    page2 = run_page(
+        live_api, "search.py", method="POST",
+        body={"db": mysql_config.database, "sector_q": "Pager", "sectors_page": "2"},
+    )
+    assert page2.status_code == 200
+    _assert_clean_html(page2, "search.py (page 2)")
+    panel2 = _panel(page2.body)
+    assert "Pager Sector 050" in panel2
+    assert "Pager Sector 059" in panel2
+    assert "Pager Sector 049" not in panel2
+    assert "Unrelated" not in panel2
+    assert "Showing 51&ndash;60 of 60" in panel2
+
+
+def test_sector_page_pages_its_systems_table(live_api, mysql_config):
+    """The sector page's map still gets every system, but its Systems
+    table shows one page of 50 with the shared pager."""
+    sector = SpaceSector("Crowded Sector", edge_ly=10.0)
+    for i in range(55):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "M5V"
+        cfg.PLANETS = False
+        cfg.BINARY_SYSTEM = False
+        sector.add_system(StarSystem(system_config=cfg), position=(i * 0.05, 0.0, 0.0), system_config=cfg)
+    sector_id = _db.save_sector(sector, config=mysql_config)
+
+    def _table_rows(body):
+        table = body[body.index('id="sector-systems"'):]
+        table = table[:table.index("</section>")]
+        tbody = table[table.index("<tbody>"):table.index("</tbody>")]
+        return tbody.count("<tr>")
+
+    page1 = run_page(live_api, "sector.py", query={"db": mysql_config.database, "id": str(sector_id)})
+    assert page1.status_code == 200
+    _assert_clean_html(page1, "sector.py (page 1)")
+    assert _table_rows(page1.body) == 50
+    assert "Showing 1&ndash;50 of 55" in page1.body
+
+    page2 = run_page(
+        live_api, "sector.py", method="POST",
+        body={"db": mysql_config.database, "id": str(sector_id), "systems_page": "2"},
+    )
+    assert page2.status_code == 200
+    _assert_clean_html(page2, "sector.py (page 2)")
+    assert _table_rows(page2.body) == 5
+    assert "Showing 51&ndash;55 of 55" in page2.body
 
 
 def test_nav_page_renders(live_api, seeded_db):
