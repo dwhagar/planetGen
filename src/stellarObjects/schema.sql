@@ -623,6 +623,26 @@
 --   center_z_pc)` index lets MySQL range-scan on the first column instead
 --   of examining every row, same reasoning as v22's indexes.
 --
+-- v26: the same v25 spatial-index fix, applied to `nebulae`/
+--   `asteroid_fields`/`black_holes`/`neutron_stars`. `queryDb.
+--   phenomena_near_sector` -- called on every `GET /api/sectors/<id>`
+--   (`html/sector.py`'s own page, and the Sector Map it renders) -- used
+--   to read every galaxy-placed row from all four tables unconditionally
+--   (`WHERE center_x_pc IS NOT NULL`, no bounding box at all) and filter
+--   by distance in Python; confirmed in production as the same failure
+--   mode v25's note documents (`TimeoutError`/"Truncated or oversized
+--   response headers", severe enough that other, unrelated pages sharing
+--   the single `planetgen-api` WSGIDaemonProcess -- see `docs/apache-
+--   deployment.md`'s "MySQL accounts" note -- stalled behind it too,
+--   until Apache was restarted). Now scoped to a SQL bounding box first
+--   (`queryDb._placed_phenomenon_rows`'s own `bbox` argument), padded by
+--   the widest `radius_ly` actually present in `nebulae`/`asteroid_fields`
+--   at call time (queried directly, rather than assuming a fixed ceiling,
+--   so this stays exactly as correct as the old unconditional scan for an
+--   arbitrarily large placed phenomenon -- see that function's own
+--   docstring) -- these four composite indexes are what let MySQL
+--   range-scan that bounding box instead of still examining every row.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1440,7 +1460,11 @@ CREATE TABLE IF NOT EXISTS black_holes (
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
     KEY idx_black_holes_star_id (star_id),
     KEY idx_black_holes_sector_id (sector_id),
-    KEY idx_black_holes_galactic_radius_pc (galactic_radius_pc)
+    KEY idx_black_holes_galactic_radius_pc (galactic_radius_pc),
+    -- v26: lets `queryDb.phenomena_near_sector`'s bounding-box query
+    -- range-scan on center_x_pc instead of a full table scan -- see the
+    -- header comment's "v26" note.
+    KEY idx_black_holes_center (center_x_pc, center_y_pc, center_z_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS neutron_stars (
@@ -1481,7 +1505,9 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
     KEY idx_neutron_stars_star_id (star_id),
     KEY idx_neutron_stars_sector_id (sector_id),
-    KEY idx_neutron_stars_galactic_radius_pc (galactic_radius_pc)
+    KEY idx_neutron_stars_galactic_radius_pc (galactic_radius_pc),
+    -- v26: see black_holes' identical "v26" index comment above.
+    KEY idx_neutron_stars_center (center_x_pc, center_y_pc, center_z_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1532,7 +1558,9 @@ CREATE TABLE IF NOT EXISTS nebulae (
     CONSTRAINT fk_nebulae_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
     KEY idx_nebulae_sector_id (sector_id),
-    KEY idx_nebulae_galactic_radius_pc (galactic_radius_pc)
+    KEY idx_nebulae_galactic_radius_pc (galactic_radius_pc),
+    -- v26: see black_holes' identical "v26" index comment above.
+    KEY idx_nebulae_center (center_x_pc, center_y_pc, center_z_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1673,7 +1701,9 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     CONSTRAINT fk_asteroid_fields_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
     KEY idx_asteroid_fields_sector_id (sector_id),
-    KEY idx_asteroid_fields_galactic_radius_pc (galactic_radius_pc)
+    KEY idx_asteroid_fields_galactic_radius_pc (galactic_radius_pc),
+    -- v26: see black_holes' identical "v26" index comment above.
+    KEY idx_asteroid_fields_center (center_x_pc, center_y_pc, center_z_pc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS asteroid_field_composition (

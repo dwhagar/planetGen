@@ -432,3 +432,97 @@ def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():
     assert 'data-atmosphere="Hydrogen-Helium"' in html
     assert 'data-surfacetemp="165 K"' in html
     assert 'data-composition="hydrogen and helium"' in html
+
+
+# --- Measure distance (real km data attrs + toggle button) -----------------
+
+def test_planet_marker_carries_real_km_position_not_the_log_scaled_pixel_one():
+    # static/systemmap.js's own "measure distance" feature needs the real,
+    # un-log-scaled position -- confirms _planet_attrs hands over the exact
+    # stored position_x/y_km, not something derived from the drawn marker's
+    # own (log-scaled) pixel radius.
+    planet = _planet(1, 10, 3.0 * AU_KM, 4.0 * AU_KM)
+    attrs = sm._planet_attrs(planet)
+    assert attrs["xkm"] == pytest.approx(3.0 * AU_KM)
+    assert attrs["ykm"] == pytest.approx(4.0 * AU_KM)
+    assert attrs["radiuskm"] == planet["radius_km"]
+
+
+def test_moon_marker_also_carries_real_km_position():
+    moon = _moon(1, 1.0e5, -2.0e5)
+    attrs = sm._planet_attrs(moon, kind="moon", parent_name="Planet 1")
+    assert attrs["xkm"] == pytest.approx(1.0e5)
+    assert attrs["ykm"] == pytest.approx(-2.0e5)
+    assert attrs["radiuskm"] == moon["radius_km"]
+
+
+def test_render_system_map_panel_star_marker_carries_radiuskm():
+    system = {"name": "Radius Test", "binary_configuration": None}
+    html = sm.render_system_map_panel(system, [_star(10, radius_km=696_000)], [_planet(1, 10, AU_KM, 0.0)], [])
+    assert 'data-radiuskm="696000"' in html
+
+
+def test_render_system_map_panel_wide_binary_star_marker_carries_radiuskm():
+    system = {
+        "name": "Wide Binary Radius Test", "binary_configuration": "wide",
+        "binary_mutual_position_x_km": 5000.0 * AU_KM, "binary_mutual_position_y_km": 0.0,
+        "binary_mutual_position_z_km": 0.0,
+    }
+    stars = [_star(10, radius_km=696_000), _star(11, radius_km=350_000)]
+    html = sm.render_system_map_panel(system, stars, [_planet(1, 10, AU_KM, 0.0), _planet(2, 11, AU_KM, 0.0)], [])
+    assert 'data-radiuskm="696000"' in html
+    assert 'data-radiuskm="350000"' in html
+
+
+def test_render_system_map_panel_includes_measure_distance_button_whenever_there_are_stars():
+    system = {"name": "Measure Button Test", "binary_configuration": None}
+    with_star = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
+    assert 'id="sysmap-measure-btn"' in with_star
+
+    no_stars = sm.render_system_map_panel(system, [], [], [])
+    assert 'id="sysmap-measure-btn"' not in no_stars
+
+
+def test_close_binary_star_markers_carry_their_own_real_km_offset_not_the_barycenter_origin():
+    # Regression guard: static/systemmap.js's own obstacle-avoidance math
+    # assumes the scene's "self" .sysmap-star marker's own data-xkm/
+    # data-ykm IS the obstacle circle's real center -- for a close binary
+    # that's each star's own small real offset from the shared
+    # barycenter (see _binary_star_positions_km), never (0, 0) for both
+    # (only a single, non-binary star sits exactly at the scene's own
+    # local origin).
+    primary, secondary = _star(20, mass_kg=2.5e30), _star(21, mass_kg=1.0e30)
+    system = {
+        "name": "Close Binary", "binary_configuration": "close",
+        "binary_mutual_position_x_km": 0.2 * AU_KM, "binary_mutual_position_y_km": 0.0,
+        "binary_mutual_position_z_km": 0.0,
+    }
+    expected = sm._binary_star_positions_km(system, [primary, secondary])
+    html = sm.render_system_map_panel(system, [primary, secondary], [], [])
+
+    for star_id in (20, 21):
+        ex, ey = expected[star_id]
+        assert f'data-xkm="{ex}"' in html
+        assert f'data-ykm="{ey}"' in html
+
+
+def test_wide_binary_companion_marker_carries_the_real_separation_not_its_drawn_position():
+    # The companion star's marker is drawn at a fixed, merely
+    # representative pixel position (see _render_wide_binary_scenes's own
+    # docstring -- the real separation is routinely 10-1000x a planet's
+    # own orbit and would blow out the frame) -- but a "measure distance"
+    # click needs the REAL separation, not that drawn position, so
+    # data-xkm/data-ykm must carry binary_mutual_position_x/y_km exactly,
+    # decoupled from wherever the marker itself was actually drawn.
+    primary, secondary = _star(30, mass_kg=1.8e30), _star(31, mass_kg=0.6e30)
+    system = {
+        "name": "Wide Binary", "binary_configuration": "wide",
+        "binary_mutual_position_x_km": 50 * AU_KM, "binary_mutual_position_y_km": 20 * AU_KM,
+        "binary_mutual_position_z_km": 0.0,
+    }
+    html = sm.render_system_map_panel(system, [primary, secondary], [], [])
+    assert f'data-xkm="{50 * AU_KM}"' in html
+    assert f'data-ykm="{20 * AU_KM}"' in html
+    # The primary, in its own "system" scene, is always the local origin.
+    assert 'data-xkm="0.0"' in html
+    assert 'data-ykm="0.0"' in html

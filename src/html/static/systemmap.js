@@ -27,6 +27,7 @@
 // to render (no WebGL) just leaves that marker's flat circle showing.
 
 import * as THREE from "./vendor/three.module.min.js";
+import { makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
 
 function addField(dl, label, value) {
   if (!value && value !== 0) {
@@ -49,33 +50,12 @@ function classField(el) {
 }
 
 // --- Per-marker body spheres (the one 3D layer on this page) --------------
-
-var GLOW_VERTEX_SHADER = [
-  "varying vec3 vNormal;",
-  "varying vec3 vViewDir;",
-  "void main() {",
-  "  vNormal = normalize(normalMatrix * normal);",
-  "  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);",
-  "  vViewDir = normalize(-viewPosition.xyz);",
-  "  gl_Position = projectionMatrix * viewPosition;",
-  "}",
-].join("\n");
-
-// A standard fresnel rim-glow: brightest where the surface normal points
-// away from the camera (the limb), near-zero head-on -- rendered on a
-// slightly larger, back-face-only, additively-blended sphere around the
-// body itself, the common cheap "planet atmosphere" trick (no real
-// scattering simulation, just a glow that reads as one).
-var GLOW_FRAGMENT_SHADER = [
-  "uniform vec3 glowColor;",
-  "varying vec3 vNormal;",
-  "varying vec3 vViewDir;",
-  "void main() {",
-  "  float rim = 1.0 - max(dot(vNormal, vViewDir), 0.0);",
-  "  float intensity = pow(rim, 2.5);",
-  "  gl_FragColor = vec4(glowColor, intensity);",
-  "}",
-].join("\n");
+//
+// The glow shader (GLOW_VERTEX_SHADER/GLOW_FRAGMENT_SHADER) and the star
+// granulation texture now live in ./bodyRendering.js, shared with
+// sectormap.js's own star/nebula/asteroid-field/black-hole/neutron-star
+// spheres -- imported above (makeGlowMaterial/makeStarSurfaceTexture)
+// rather than duplicated here.
 
 function hexToRgba(hex, alpha) {
   var c = new THREE.Color(hex);
@@ -137,6 +117,7 @@ function makeRingTexture(baseColorHex) {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+
 
 function parseSurfaceTempK(text) {
   var match = /(-?[\d.]+)/.exec(text || "");
@@ -236,15 +217,13 @@ function initSphereField(canvasEl) {
   ring.rotation.x = THREE.MathUtils.degToRad(70);
   bodyGroup.add(ring);
 
-  var glowMaterial = new THREE.ShaderMaterial({
-    uniforms: { glowColor: { value: new THREE.Color(0xbcdfff) } },
-    vertexShader: GLOW_VERTEX_SHADER,
-    fragmentShader: GLOW_FRAGMENT_SHADER,
-    side: THREE.BackSide,
-    blending: THREE.AdditiveBlending,
-    transparent: true,
-    depthWrite: false,
-  });
+  var PLANET_GLOW_POWER = 2.5;
+  var PLANET_GLOW_STRENGTH = 1.0;
+  var STAR_GLOW_POWER = 1.5;
+  var STAR_GLOW_STRENGTH = 2.2;
+  var STAR_GLOW_SCALE = 1.45;
+
+  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
   bodyGroup.add(glow);
 
@@ -263,6 +242,9 @@ function initSphereField(canvasEl) {
     if (marker.ringTexture) {
       marker.ringTexture.dispose();
     }
+    if (marker.starTexture) {
+      marker.starTexture.dispose();
+    }
   }
 
   function recomputeRects() {
@@ -277,8 +259,16 @@ function initSphereField(canvasEl) {
       // that function's own comment -- mapped so the body's own
       // `SPHERE_R` (1 local unit) lands at exactly this marker's own
       // on-screen radius, the same relationship the flat circle it
-      // replaces already had to its neighbors.
-      var halfExtent = (marker.isGasGiant ? RING_OUTER_R : GLOW_R) * 1.15;
+      // replaces already had to its neighbors. A star's own glow shell
+      // is scaled up by STAR_GLOW_SCALE (see configureBody) -- framed
+      // for that larger reach here too, or its corona would simply clip
+      // outside the frustum the same way an under-framed gas giant ring
+      // once did (see this function's own earlier fix for that).
+      var halfExtent = marker.isGasGiant
+        ? RING_OUTER_R * 1.15
+        : marker.isStar
+          ? GLOW_R * STAR_GLOW_SCALE * 1.15
+          : GLOW_R * 1.15;
       return { cx: cx, cy: cy, side: 2 * halfExtent * r, halfExtent: halfExtent };
     });
   }
@@ -303,13 +293,33 @@ function initSphereField(canvasEl) {
   function configureBody(marker) {
     if (marker.isStar) {
       sphere.material = starMaterial;
-      starMaterial.color.set(marker.color);
+      // marker.starTexture (see makeStarTexture) already bakes the
+      // star's own color into its granulation pattern -- tinting
+      // starMaterial.color on top of that too would double-multiply it
+      // (darker/oversaturated), so the material's own color resets to
+      // white whenever a texture is doing the coloring instead. Falls
+      // back to the old flat-tinted-sphere look only if the texture
+      // somehow isn't there.
+      if (marker.starTexture) {
+        starMaterial.color.set(0xffffff);
+        starMaterial.map = marker.starTexture;
+      } else {
+        starMaterial.color.set(marker.color);
+        starMaterial.map = null;
+      }
+      starMaterial.needsUpdate = true;
       ring.visible = false;
       // A star gets its own glow shell too, tinted to its own spectral
       // color rather than `glowColorForTemp` -- a cheap "it's a light
-      // source" cue, not a real corona simulation.
+      // source" cue, not a real corona simulation. Bigger and brighter
+      // than a planet's own subtle atmosphere rim (STAR_GLOW_SCALE/
+      // _POWER/_STRENGTH vs. PLANET_*) -- it needs to read unmistakably
+      // as "this is the light source", not just a faint haze.
       glow.visible = true;
+      glow.scale.setScalar(STAR_GLOW_SCALE);
       glowMaterial.uniforms.glowColor.value.set(marker.color);
+      glowMaterial.uniforms.glowPower.value = STAR_GLOW_POWER;
+      glowMaterial.uniforms.glowStrength.value = STAR_GLOW_STRENGTH;
       return;
     }
     sphere.material = planetMaterial;
@@ -325,7 +335,10 @@ function initSphereField(canvasEl) {
 
     glow.visible = marker.hasAtmosphere;
     if (marker.hasAtmosphere) {
+      glow.scale.setScalar(1);
       glowMaterial.uniforms.glowColor.value.set(marker.glowColor);
+      glowMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
+      glowMaterial.uniforms.glowStrength.value = PLANET_GLOW_STRENGTH;
     }
   }
 
@@ -420,6 +433,9 @@ function gatherSphereMarkers(sceneEl) {
       marker.bandTexture = makeBandTexture(marker.color);
       marker.ringTexture = makeRingTexture(marker.color);
     }
+    if (isStar) {
+      marker.starTexture = makeStarSurfaceTexture(THREE, marker.color);
+    }
     el.classList.add("sysmap-sphere-active");
     markers.push(marker);
   }
@@ -487,13 +503,164 @@ function resetInfo(panel) {
   panel.appendChild(hint);
 }
 
+// --- Measure distance -------------------------------------------------
+//
+// Real straight-line distance between any two bodies (star, planet, or
+// moon) in the currently visible scene, computed from their own raw
+// `data-xkm`/`data-ykm` (set by `lib/systemmap.py`'s `_planet_attrs`/
+// `_wide_binary_star_attrs`/etc -- see that module's own comment on why
+// this has to come from real km, not this scene's drawn pixel positions:
+// the shared log radial scale (`_radial_px`) preserves real angle but not
+// real distance). When the straight line between the two would pass
+// through the scene's own center body (its star, or -- one level in, a
+// moon scene -- the planet drilled into), also computes the shortest
+// path that goes around it instead: two tangent line segments from each
+// point to the obstacle circle, plus the arc between the two tangent
+// points -- the standard "shortest path around a circular obstacle"
+// construction (the same geometry as a belt wrapped partway around a
+// pulley), not a literal spline curve fit, but the real minimum distance
+// a route that has to clear the body would need to cover.
+
+var AU_KM = 149597870.7;
+
+function formatDistanceKm(km) {
+  if (km == null || !isFinite(km)) {
+    return "unknown";
+  }
+  var au = km / AU_KM;
+  if (au >= 0.01) {
+    return au.toLocaleString(undefined, { maximumFractionDigits: 3 }) + " AU";
+  }
+  return Math.round(km).toLocaleString() + " km";
+}
+
+// The distance from point (px, py) to the nearest point on segment AB --
+// used to test whether a straight-line route would pass through the
+// obstacle circle, centered anywhere -- NOT assumed to be the origin: a
+// close binary's own two stars each sit at their own small real offset
+// from the shared barycenter (see lib/systemmap.py's `_render_system_
+// scene`), not at (0, 0), so the obstacle's own real position has to be
+// a real point here, not a hard-coded one.
+function pointToSegmentDistance(px, py, ax, ay, bx, by) {
+  var abx = bx - ax, aby = by - ay;
+  var lengthSq = abx * abx + aby * aby;
+  var t = lengthSq > 0 ? ((px - ax) * abx + (py - ay) * aby) / lengthSq : 0;
+  t = Math.max(0, Math.min(1, t));
+  var cx = ax + t * abx, cy = ay + t * aby;
+  return Math.hypot(px - cx, py - cy);
+}
+
+// The shortest path from A to B that never enters the circle of radius
+// `r` centered at the origin -- callers pass A/B already translated so
+// the obstacle's own real center sits at (0, 0) (see `computeMeasurement`,
+// which does that translation once for both this and
+// `pointToSegmentDistance` above). Tangent length from A
+// (sqrt(|OA|^2 - r^2)), tangent length from B, plus r times the angle
+// swept along the arc between the two tangent points. `null` if either
+// point is inside/on the obstacle itself (not expected for two real
+// orbiting bodies, but guarded rather than returning a nonsensical
+// result), or if the tangent lines alone already clear the obstacle
+// without needing any arc at all (possible right at the edge of
+// intersection, from floating-point rounding in the caller's own
+// clearance check).
+function routeAroundCircle(ax, ay, bx, by, r) {
+  var dA = Math.hypot(ax, ay), dB = Math.hypot(bx, by);
+  if (dA <= r || dB <= r) {
+    return null;
+  }
+  var tA = Math.sqrt(dA * dA - r * r);
+  var tB = Math.sqrt(dB * dB - r * r);
+  var theta = Math.acos(Math.max(-1, Math.min(1, (ax * bx + ay * by) / (dA * dB))));
+  var arcAngle = theta - Math.acos(r / dA) - Math.acos(r / dB);
+  if (arcAngle <= 0) {
+    return null;
+  }
+  return tA + tB + r * arcAngle;
+}
+
+function measurableLabel(el) {
+  return el.dataset.name || "Unknown";
+}
+
+// `sceneEl` is the currently active body-marker `<svg class="sysmap-svg">`
+// (never an orbits-only layer -- see `initSystemMap`'s own comment on
+// why those are kept separate) -- its own center body is whichever of
+// `.sysmap-star` (a star-centered scene) or `[data-self="true"]` (a
+// moon-centered scene) it contains; never both, see `lib/systemmap.py`'s
+// own `is_self`/`_star_marker_svg` docstrings for why those two markers
+// are mutually exclusive across every scene this map ever builds.
+function computeMeasurement(elA, elB, sceneEl) {
+  var ax = parseFloat(elA.dataset.xkm), ay = parseFloat(elA.dataset.ykm);
+  var bx = parseFloat(elB.dataset.xkm), by = parseFloat(elB.dataset.ykm);
+  if (!isFinite(ax) || !isFinite(ay) || !isFinite(bx) || !isFinite(by)) {
+    return null;
+  }
+
+  var result = { straightKm: Math.hypot(bx - ax, by - ay), routeKm: null, routeLabel: null };
+  var obstacleEl = sceneEl && (sceneEl.querySelector(".sysmap-star") || sceneEl.querySelector('[data-self="true"]'));
+  var obstacleR = obstacleEl ? parseFloat(obstacleEl.dataset.radiuskm) : NaN;
+  if (obstacleEl && isFinite(obstacleR) && obstacleR > 0) {
+    var ocx = parseFloat(obstacleEl.dataset.xkm), ocy = parseFloat(obstacleEl.dataset.ykm);
+    if (!isFinite(ocx)) ocx = 0;
+    if (!isFinite(ocy)) ocy = 0;
+    var clearance = pointToSegmentDistance(ocx, ocy, ax, ay, bx, by);
+    if (clearance < obstacleR) {
+      var routeKm = routeAroundCircle(ax - ocx, ay - ocy, bx - ocx, by - ocy, obstacleR);
+      if (routeKm != null) {
+        result.routeKm = routeKm;
+        result.routeLabel = "Around " + (obstacleEl.dataset.kind === "star" ? "the star" : measurableLabel(obstacleEl));
+      }
+    }
+  }
+  return result;
+}
+
+function showMeasurementPrompt(panel, el) {
+  panel.textContent = "";
+  var heading = document.createElement("h3");
+  heading.textContent = measurableLabel(el) + " selected";
+  panel.appendChild(heading);
+  var hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = "Click a second star, planet, or moon in this same view to measure the distance.";
+  panel.appendChild(hint);
+}
+
+function showMeasurementResult(panel, elA, elB, measurement) {
+  panel.textContent = "";
+  var heading = document.createElement("h3");
+  heading.textContent = "Distance";
+  panel.appendChild(heading);
+
+  var dl = document.createElement("dl");
+  addField(dl, "Between", measurableLabel(elA) + " and " + measurableLabel(elB));
+  addField(dl, "Straight-line", measurement ? formatDistanceKm(measurement.straightKm) : "unavailable");
+  if (measurement && measurement.routeKm != null) {
+    addField(dl, measurement.routeLabel, formatDistanceKm(measurement.routeKm));
+  }
+  panel.appendChild(dl);
+
+  var hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = "Click a body to start a new measurement, or turn off Measure distance.";
+  panel.appendChild(hint);
+}
+
 function initSystemMap(root) {
   var info = document.getElementById("sysmap-info");
   var crumb = document.getElementById("sysmap-crumb");
   if (!info) {
     return;
   }
-  var scenes = Array.prototype.slice.call(root.querySelectorAll(".sysmap-svg"));
+  // `.sysmap-orbits-layer`s are excluded here (a separate list below) --
+  // `lib/systemmap.py`'s `_scene_svg_pair` now emits TWO sibling `<svg
+  // class="sysmap-svg" data-scene="...">`s per scene (an orbits-only
+  // layer plus this, the body-marker layer -- see that function's own
+  // docstring for why), and `active`/`self`/`sceneFocusLabel` below all
+  // need the body-marker one specifically (the orbits layer has no
+  // `[data-self]`/`[data-kind]` markers of its own to find).
+  var scenes = Array.prototype.slice.call(root.querySelectorAll(".sysmap-svg:not(.sysmap-orbits-layer)"));
+  var orbitLayers = Array.prototype.slice.call(root.querySelectorAll(".sysmap-orbits-layer"));
 
   // A drilled-into scene's own crumb label depends on what was drilled
   // into: a planet's own moons (`kind === "planet"`, from a scene
@@ -518,6 +685,13 @@ function initSystemMap(root) {
       if (isActive) {
         active = scene;
       }
+    });
+    // Kept in lockstep with the body-marker layer above by the same
+    // data-scene value, not folded into that same loop -- an orbits
+    // layer is never a candidate for `active` (see `scenes`'s own
+    // comment above).
+    orbitLayers.forEach(function (layer) {
+      layer.classList.toggle("sysmap-hidden", layer.dataset.scene !== sceneId);
     });
     if (!active) {
       return;
@@ -546,6 +720,8 @@ function initSystemMap(root) {
       }
     }
 
+    clearMeasureSelection();
+
     var self = active.querySelector('[data-self="true"]');
     if (self) {
       showInfo(self);
@@ -554,9 +730,79 @@ function initSystemMap(root) {
     }
   }
 
+  // --- Measure distance ---------------------------------------------
+  //
+  // Off by default -- normal clicks keep their existing behavior (info
+  // panel / drill into a planet's moons) until this is toggled on, at
+  // which point clicking a star/planet/moon selects it as one of two
+  // measurement endpoints instead (see `computeMeasurement` above).
+  var measureBtn = document.getElementById("sysmap-measure-btn");
+  var measureMode = false;
+  var measureSelection = [];
+
+  function clearMeasureSelection() {
+    measureSelection.forEach(function (el) {
+      el.classList.remove("sysmap-measure-selected");
+    });
+    measureSelection = [];
+  }
+
+  function setMeasureMode(on) {
+    measureMode = on;
+    clearMeasureSelection();
+    if (measureBtn) {
+      measureBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      measureBtn.classList.toggle("starmap-btn-active", on);
+    }
+    if (on) {
+      info.textContent = "";
+      var hint = document.createElement("p");
+      hint.className = "hint";
+      hint.textContent = "Click two stars, planets, or moons in the same view to measure the distance between them.";
+      info.appendChild(hint);
+    } else {
+      resetInfo(info);
+    }
+  }
+
+  function isMeasurable(el) {
+    var kind = el.dataset.kind;
+    return (kind === "star" || kind === "planet" || kind === "moon") && el.dataset.xkm != null;
+  }
+
+  function handleMeasureClick(el) {
+    if (measureSelection.length >= 2) {
+      clearMeasureSelection();
+    }
+    if (measureSelection.indexOf(el) !== -1) {
+      return;
+    }
+    measureSelection.push(el);
+    el.classList.add("sysmap-measure-selected");
+    if (measureSelection.length < 2) {
+      showMeasurementPrompt(info, el);
+      return;
+    }
+    var sceneEl = el.closest(".sysmap-svg");
+    var measurement = computeMeasurement(measureSelection[0], measureSelection[1], sceneEl);
+    showMeasurementResult(info, measureSelection[0], measureSelection[1], measurement);
+  }
+
+  if (measureBtn) {
+    measureBtn.addEventListener("click", function () {
+      setMeasureMode(!measureMode);
+    });
+  }
+
   root.addEventListener("click", function (event) {
     var el = event.target.closest("[data-kind]");
     if (!el) {
+      return;
+    }
+    if (measureMode) {
+      if (isMeasurable(el)) {
+        handleMeasureClick(el);
+      }
       return;
     }
     if (el.dataset.scene) {
@@ -575,6 +821,12 @@ function initSystemMap(root) {
       return;
     }
     event.preventDefault();
+    if (measureMode) {
+      if (isMeasurable(el)) {
+        handleMeasureClick(el);
+      }
+      return;
+    }
     if (el.dataset.scene) {
       showScene(el.dataset.scene);
     } else {

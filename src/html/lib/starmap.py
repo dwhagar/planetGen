@@ -3,7 +3,11 @@
 """
 Interactive 3D sector starmap: every placed star system in a sector (two,
 overlapping, for a binary), plus every nearby nebula/asteroid field/black
-hole/neutron star, rendered as a real WebGL scene (`static/sectormap.js`,
+hole/neutron star, plus a small clickable indicator toward each
+immediately surrounding sector (`_neighbor_indicator_data`, see
+`queryDb.sector_neighbors`) -- linking straight to it if already
+generated, or showing its address (ready to feed into `generate.py galaxy
+--shell K --slot N`) if not -- rendered as a real WebGL scene (`static/sectormap.js`,
 via three.js -- vendored at `static/vendor/three.module.min.js`, see that
 directory's `THIRD_PARTY_NOTICES.txt`) instead of the CSS
 `transform-style: preserve-3d` scene this module used to build directly as
@@ -355,8 +359,9 @@ inside) its own boundary."""
 def _compass_data(center_pc):
     """
     Points from the sector's own local origin toward the galactic center --
-    the sector-map equivalent of a map's north arrow, except the direction
-    it points is computed exactly from this sector's own stored
+    the sector-map's own "north" arrow (labeled plain "N", the same
+    convention a real map's compass rose uses), except the direction it
+    points is computed exactly from this sector's own stored
     `sectors.center_x/y/z_pc` (the negative of the sector's own outward
     radial direction, `-normalize(center_pc)`) rather than fixed to a
     constant screen direction.
@@ -374,10 +379,10 @@ def _compass_data(center_pc):
                                     sector has no galaxy placement.
 
     Returns:
-        dict or None: `{"tip": [x, y, z], "label": "Galactic Center"}`, or
-                      `None` if `center_pc` is `None` or (within
-                      floating-point tolerance) the galactic center
-                      itself, which has no meaningful direction to point.
+        dict or None: `{"tip": [x, y, z], "label": "N"}`, or `None` if
+                      `center_pc` is `None` or (within floating-point
+                      tolerance) the galactic center itself, which has no
+                      meaningful direction to point.
     """
     if center_pc is None or any(c is None for c in center_pc):
         return None
@@ -389,7 +394,71 @@ def _compass_data(center_pc):
 
     ux, uy, uz = -cx / norm, -cy / norm, -cz / norm
     reach = _SCENE_HALF_PX * _COMPASS_ARROW_REACH
-    return {"tip": [ux * reach, -uy * reach, uz * reach], "label": "Galactic Center"}
+    return {"tip": [ux * reach, -uy * reach, uz * reach], "label": "N"}
+
+
+_NEIGHBOR_INDICATOR_REACH = 1.35
+"""How far a neighboring-sector indicator sits past `_SCENE_HALF_PX`, as a
+multiple of it -- past `_COMPASS_ARROW_REACH` so these never sit right on
+top of the compass arrow's own tip, and (like that arrow) placed by
+direction alone rather than at the neighbor's real, wildly varying
+distance -- see `_neighbor_indicator_data`'s own docstring."""
+
+_NEIGHBOR_INDICATOR_RADIUS_PX = 7.0
+"""A neighboring-sector indicator's own drawn size -- fixed, unlike a star
+dot's radius (`_star_dot_radius`), since there's no real "size" a sector
+address has; comparable to a real star dot's own range (`_MIN_DOT_R`
+3-`_MAX_DOT_R` 14) so it reads as a marker of similar visual weight."""
+
+
+def _neighbor_indicator_data(db_name, neighbor):
+    """
+    Builds one neighboring-sector indicator's plain-dict scene entry --
+    `sectormap.js` draws it as a small clickable marker just outside this
+    sector's own wedge/cube, in the real direction (already galaxy-frame,
+    same as the wedge outline and compass arrow -- see this module's own
+    docstring) of that neighbor's actual center, but placed at a fixed
+    `_NEIGHBOR_INDICATOR_REACH` rather than that real (and highly
+    variable -- a lateral neighbor sits about one sector-edge away, a
+    radial one likewise, but neither exactly) distance, the same "point
+    by direction, not by true distance" convention `_compass_data`'s own
+    arrow already uses.
+
+    Args:
+        db_name (str): The current `?db=` value, for an existing
+                       neighbor's own `navParams`.
+        neighbor (dict): One entry from `queryDb.sector_neighbors`.
+
+    Returns:
+        dict or None: The indicator's scene entry (`x`/`y`/`z`,
+            `shellIndex`/`shellSlotIndex`, `designation`, `exists`, and --
+            only when `exists` -- `name`/`navTarget`/`navParams`), or
+            `None` if this neighbor's own direction is (within
+            floating-point tolerance) undefined -- not expected in
+            practice (two distinct sector centers are never that close),
+            but the same defensive-`None` convention `_compass_data` uses
+            for its own zero-length case.
+    """
+    dx, dy, dz = neighbor["direction_pc"]
+    norm = math.sqrt(dx * dx + dy * dy + dz * dz)
+    if norm < 1e-9:
+        return None
+
+    ux, uy, uz = dx / norm, dy / norm, dz / norm
+    reach = _SCENE_HALF_PX * _NEIGHBOR_INDICATOR_REACH
+    data = {
+        "x": ux * reach, "y": -uy * reach, "z": uz * reach,
+        "r": _NEIGHBOR_INDICATOR_RADIUS_PX,
+        "isNeighbor": True,
+        "shellIndex": neighbor["shell_index"], "shellSlotIndex": neighbor["shell_slot_index"],
+        "designation": neighbor["designation"],
+        "exists": neighbor["exists"],
+    }
+    if neighbor["exists"]:
+        data["name"] = neighbor["sector_name"]
+        data["navTarget"] = "sector.py"
+        data["navParams"] = {"db": db_name, "id": neighbor["sector_id"]}
+    return data
 
 
 def _ly_per_px_at_zoom_1(half_edge):
@@ -551,9 +620,10 @@ def _star_dot_radius(radius_km):
 def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None):
     """
     Builds one star's plain-dict scene entry -- `sectormap.js` draws it as
-    a billboarded sprite (a real WebGL billboard always faces the camera by
-    construction, unlike the old CSS version's `_dot_html`, which had to
-    counter-rotate a flat disc by hand every frame to fake the same thing).
+    a real, textured, glowing 3D sphere (`static/bodyRendering.js`'s
+    granulation texture, tinted to `fill` below), unlike the old CSS
+    version's `_dot_html`, which had to counter-rotate a flat disc by hand
+    every frame to fake a billboard.
     """
     dot_r = _star_dot_radius(star["radius_km"])
     if max_r is not None:
@@ -583,7 +653,7 @@ def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None
 # single sector -- a big emission nebula can dwarf the whole scene -- so
 # unlike a star dot's radius (always tiny next to the scene), this needs
 # its own generous cap: large enough to visibly engulf/overflow the frame
-# without an unbounded sprite size for a pathological radius_ly value.
+# without an unbounded sphere size for a pathological radius_ly value.
 _MAX_CLOUD_RADIUS_PX = 6 * (2 * _SCENE_HALF_PX)
 
 # Fill color (and base opacity, baked into the alpha channel below) per
@@ -710,18 +780,23 @@ def _json_script(data):
     )
 
 
-def _noscript_list_html(db_name, systems, phenomena):
+def _noscript_list_html(db_name, systems, phenomena, neighbors=None):
     """
     A plain, always-present (no JS required) list of links -- the
     `<noscript>` fallback for a browser that can't run the WebGL scene
-    `sectormap.js` builds, so the sector's own systems/phenomena are still
-    reachable rather than the panel being entirely blank without
-    JavaScript. Not a substitute for the map itself (no position/size/
-    color -- just names and links), same spirit as any other progressive-
-    enhancement fallback list. Built from `fmt.post_link` -- a real
-    `<form>` submit button, not a plain `<a href>` -- same as every other
-    in-app link now, so `db`/an id doesn't show up in the address bar even
-    here, and it needs no JavaScript of its own to work either.
+    `sectormap.js` builds, so the sector's own systems/phenomena/already-
+    generated neighbors are still reachable rather than the panel being
+    entirely blank without JavaScript. Not a substitute for the map itself
+    (no position/size/color -- just names and links), same spirit as any
+    other progressive-enhancement fallback list. Built from
+    `fmt.post_link` -- a real `<form>` submit button, not a plain `<a
+    href>` -- same as every other in-app link now, so `db`/an id doesn't
+    show up in the address bar even here, and it needs no JavaScript of
+    its own to work either.
+
+    A not-yet-generated neighbor is omitted here -- it has nowhere to
+    link to (its own "copy the CLI command" affordance is JS-only, same
+    as the map itself), unlike an existing one.
     """
     items = []
     for system in systems:
@@ -732,12 +807,19 @@ def _noscript_list_html(db_name, systems, phenomena):
             esc(phenomenon["name"]),
         )
         items.append(f'<li>{link}</li>')
+    for neighbor in (neighbors or []):
+        if not neighbor["exists"]:
+            continue
+        link = post_link("sector.py", {"db": db_name, "id": neighbor["sector_id"]}, esc(neighbor["sector_name"]))
+        items.append(f'<li>{link}</li>')
     if not items:
         return ""
     return f'<noscript><ul class="starmap-noscript-list">{"".join(items)}</ul></noscript>'
 
 
-def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems, phenomena=None):
+def render_map_panel(
+    db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems, phenomena=None, neighbors=None,
+):
     """
     Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
     interactive WebGL scene into (drag to rotate, scroll/button to zoom,
@@ -802,6 +884,12 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
                               -- these are placed directly with no
                               `_rotate_to_galaxy_frame` step. `None`/empty
                               draws no clouds at all.
+        neighbors (list[dict] or None): `queryDb.sector_neighbors`'s
+                              return shape -- this sector's immediately
+                              surrounding addresses, each rendered as a
+                              small clickable indicator just past the
+                              scene's own edge (`_neighbor_indicator_data`).
+                              `None`/empty draws no indicators.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -897,6 +985,11 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
 
     ly_per_px = _ly_per_px_at_zoom_1(half_edge)
 
+    neighbors_data = [
+        entry for entry in (_neighbor_indicator_data(db_name, neighbor) for neighbor in (neighbors or []))
+        if entry is not None
+    ]
+
     scene_data = {
         "sceneHalfPx": _SCENE_HALF_PX,
         "defaultZoom": default_zoom,
@@ -905,6 +998,7 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
         "compass": compass,
         "stars": stars_data,
         "clouds": clouds_data,
+        "neighbors": neighbors_data,
     }
 
     if systems or clouds_data:
@@ -924,13 +1018,13 @@ def render_map_panel(db_name, edge_mpc, shell_index, shell_slot_index, center_pc
         if ly_per_px else ""
     )
 
-    noscript_html = _noscript_list_html(db_name, systems, phenomena)
+    noscript_html = _noscript_list_html(db_name, systems, phenomena, neighbors)
 
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields, glowing points &asymp; black holes/neutron stars, near this sector</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields, glowing points &asymp; black holes/neutron stars, near this sector &middot; small markers at the edge &asymp; neighboring sectors</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">

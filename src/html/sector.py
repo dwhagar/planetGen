@@ -217,7 +217,7 @@ def handler():
     )
     map_html = render_map_panel(
         db_name, sector["edge_mpc"], sector["shell_index"], sector["shell_slot_index"], center_pc, map_systems,
-        phenomena=sector.get("phenomena"),
+        phenomena=sector.get("phenomena"), neighbors=sector.get("neighbors"),
     )
 
     edge_text = f"{sector['edge_ly']:,.2f} ly"

@@ -82,7 +82,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 25
+SCHEMA_VERSION = 26
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -4353,6 +4353,39 @@ def _migrate_v24_to_v25(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (25)")
 
 
+_V26_CENTER_INDEX_TABLES = ("nebulae", "asteroid_fields", "black_holes", "neutron_stars")
+"""tuple: The four exotic-phenomenon tables `_migrate_v25_to_v26` adds a
+spatial index to -- see that function's own docstring."""
+
+
+def _migrate_v25_to_v26(conn):
+    """
+    Adds v26's spatial indexes on `nebulae`/`asteroid_fields`/
+    `black_holes`/`neutron_stars`' own `center_x_pc`/`center_y_pc`/
+    `center_z_pc` -- see `schema.sql`'s "v26" header note
+    (`queryDb.phenomena_near_sector`, called on every `GET
+    /api/sectors/<id>`, was doing a genuine full-table-scan-times-four on
+    every call without these -- the same failure mode v25's own note
+    documents for `sectors`, confirmed in production). Guarded through
+    `_has_index` (`_has_column`'s own reasoning, for an index) rather than
+    a bare `ADD KEY`, since `schema.sql`'s `CREATE TABLE` has carried these
+    indexes from the start of this migration's own existence -- a database
+    `_ensure_schema` creates fresh already has them despite
+    `schema_migrations` reporting an older version.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in _V26_CENTER_INDEX_TABLES:
+        index_name = f"idx_{table}_center"
+        if not _has_index(conn, table, index_name):
+            conn.execute(f"ALTER TABLE {table} ADD KEY {index_name} (center_x_pc, center_y_pc, center_z_pc)")
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (26)")
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -4382,8 +4415,10 @@ def migrate_database(config=None):
     `_migrate_v21_to_v22` (added for v22's search-facing indexes),
     `_migrate_v22_to_v23` (added for v23's wiki-publishing link columns on
     `sectors`/`star_systems`), `_migrate_v23_to_v24` (added for v24's
-    name-uniqueness registry tables), and `_migrate_v24_to_v25` (added for
-    v25's spatial index on `sectors`) are the migration steps so far; see
+    name-uniqueness registry tables), `_migrate_v24_to_v25` (added for
+    v25's spatial index on `sectors`), and `_migrate_v25_to_v26` (added
+    for v26's spatial indexes on `nebulae`/`asteroid_fields`/
+    `black_holes`/`neutron_stars`) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4467,6 +4502,10 @@ def migrate_database(config=None):
         if version < 25:
             _migrate_v24_to_v25(conn)
             version = 25
+
+        if version < 26:
+            _migrate_v25_to_v26(conn)
+            version = 26
 
         conn.commit()
         return version

@@ -85,6 +85,7 @@ _TYPE_COLORS = {
     "nebula": "#c9a8e0", "asteroid_field": "#b89a6e",
     "black_hole": "#1a1a1a", "neutron_star": "#cfe8ff",
     "supernova_remnant": "#e08a5c",
+    "rogue_planet": "#7a8ba0", "interstellar_comet": "#a8d0e0",
 }
 _DEFAULT_COLOR = "#9aa0ac"
 
@@ -98,7 +99,8 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
     Args:
         phenomenon_type (str): One of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s
             keys (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`, `"supernova_remnant"`).
+            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
+            `"interstellar_comet"`).
         name (str): The phenomenon's own name, for the SVG's `aria-label`.
         radius_ly (float): The phenomenon's own real radius, in
             light-years -- `0`/`None` for a point-like compact remnant

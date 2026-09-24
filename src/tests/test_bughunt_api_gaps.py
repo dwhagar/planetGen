@@ -22,6 +22,7 @@ import pytest
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
+from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 
 # Reuse test_api.py's own fixtures rather than reimplementing the app/DB
 # wiring -- pytest fixtures are just functions with @pytest.fixture, so
@@ -36,6 +37,20 @@ def _save_nebula(mysql_config, sector_id=None):
     nebula = Nebula(cfg)
     phenomenon_id = _db.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
     return phenomenon_id, nebula
+
+
+def _save_rogue_planet(mysql_config, sector_id=None):
+    cfg = SystemConfig()
+    rogue_planet = RoguePlanet(cfg)
+    phenomenon_id = _db.save_phenomenon(rogue_planet, cfg, "rogue-planet", config=mysql_config, sector_id=sector_id)
+    return phenomenon_id, rogue_planet
+
+
+def _save_interstellar_comet(mysql_config, sector_id=None):
+    cfg = SystemConfig()
+    comet = InterstellarComet(cfg)
+    phenomenon_id = _db.save_phenomenon(comet, cfg, "comet", config=mysql_config, sector_id=sector_id)
+    return phenomenon_id, comet
 
 
 # --- GET /api/phenomena (flat, paginated listing) ---------------------------
@@ -115,14 +130,30 @@ def test_phenomenon_detail_unknown_type_is_404_not_500(client, mysql_config):
     assert response.status_code == 404
 
 
-def test_phenomenon_detail_rogue_planet_type_is_404_not_500(client, mysql_config):
-    """rogue_planet/interstellar_comet are valid PHENOMENON_TYPE_CHOICES
-    but deliberately excluded from _PHENOMENON_TYPE_TO_TABLE's detail
-    lookup (per that constant's own docstring) -- confirms that exclusion
-    fails as a clean 404, not a crash, rather than silently assuming
-    every generator-recognized type is also a valid detail-route type."""
-    response = client.get("/api/phenomena/rogue_planet/1")
-    assert response.status_code == 404
+def test_phenomenon_detail_returns_saved_rogue_planet(client, mysql_config):
+    """rogue_planet/interstellar_comet (generated via
+    program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM's own "rogue-planet"/
+    "comet" rates -- confirmed present in the database the whole time) are
+    valid _PHENOMENON_TYPE_TO_TABLE detail types, same as every other
+    phenomenon -- neither has any galaxy-frame placement columns of its
+    own (see queryDb._ROGUE_PLANET_TABLE's docstring), but that only
+    excludes them from the galaxy-placement-only helpers, never from this
+    detail route."""
+    phenomenon_id, rogue_planet = _save_rogue_planet(mysql_config)
+    response = client.get(f"/api/phenomena/rogue_planet/{phenomenon_id}")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["id"] == phenomenon_id
+    assert body["name"] == rogue_planet.name
+
+
+def test_phenomenon_detail_returns_saved_interstellar_comet(client, mysql_config):
+    phenomenon_id, comet = _save_interstellar_comet(mysql_config)
+    response = client.get(f"/api/phenomena/interstellar_comet/{phenomenon_id}")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["id"] == phenomenon_id
+    assert body["name"] == comet.name
 
 
 # --- GET /api/galaxy/phenomena (galaxy-placed subset only) -------------------

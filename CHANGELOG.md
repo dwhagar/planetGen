@@ -1,5 +1,291 @@
 # Changelog
 
+## [5.46.32] - 2026-09-24
+
+### Added
+- **System Map: "Measure distance" -- click any two stars, planets, or
+  moons in the same view for the real distance between them.** A new
+  toggle button puts the map into selection mode; the two clicked bodies
+  highlight and the info panel shows the real straight-line distance
+  (from each body's own true, un-log-scaled km position, not its drawn
+  pixel position -- the shared log radial scale that places markers on
+  screen preserves real angle but not real distance). When that straight
+  line would pass through the scene's own center body (the star, or --
+  one level in, a moon scene -- the planet drilled into), a second
+  "around it" figure is also shown: the exact shortest path that clears
+  the obstacle (two tangent lines plus the arc between them), not just a
+  flagged "blocked". Works for a binary's own two stars too, including a
+  close pair's small real offset from their shared barycenter.
+
+## [5.46.31] - 2026-09-24
+
+### Added
+- **Sector Map: clickable indicators for every immediately surrounding
+  sector.** A small marker sits just past the scene's own edge in the
+  real direction of each same-shell (lateral) Voronoi neighbor
+  (`sectorGeometry.lateral_neighbor_slots`, exact) and the nearest
+  inward/outward radial neighbor (`sectorGeometry.radial_neighbor_slot`,
+  nearest-by-distance). An already-generated neighbor's indicator links
+  straight to it; a not-yet-generated one shows its address and a
+  copyable `generate.py galaxy --shell K --slot N` command, the same
+  convention the Galaxy Map's own "planned" tier already uses.
+  `queryDb.sector_neighbors` (also folded into `sector_detail`'s own
+  `neighbors` key) drives this from the API side.
+
+## [5.46.30] - 2026-09-24
+
+### Changed
+- **Sector Map: stars, nebulae, asteroid fields, black holes, and neutron
+  stars are now real, textured, glowing 3D spheres** instead of flat
+  camera-facing sprites, matching the System Map's own body rendering.
+  Each body is a textured core mesh (star granulation, nebula/asteroid/
+  compact-remnant textures reused unchanged as sphere surfaces) plus a
+  fresnel rim-glow shell sized and colored per body kind (bright corona
+  for stars/neutron stars/accreting black holes, a softer shell for
+  nebulae/asteroid fields). The glow shader and star granulation texture
+  are now shared with the System Map via a new `static/bodyRendering.js`
+  module rather than duplicated between the two files.
+
+## [5.46.29] - 2026-09-24
+
+### Changed
+- **Galaxy Map (3D): a placed (already-generated) sector's own marker is
+  now colored by its real stellar density** (`system_count / edge_ly **
+  3`, relative to `physical_constants.LOCAL_STELLAR_DENSITY_LY3` -- the
+  real local-neighborhood average this whole generator already
+  calibrates against), not just sized by raw system count. Marker size
+  still scales with `system_count` as before; only the color (dim bronze
+  at low density, bright gold at high) is new. The info panel gained a
+  "Density" field showing the same ratio (e.g. "1.8x local average").
+  `queryDb.galaxy_sectors_in_view`'s own returned shape gained `edge_ly`
+  per sector to make this possible.
+
+## [5.46.28] - 2026-09-24
+
+### Fixed
+- **Galaxy Map (3D): rapidly clicking/double-clicking or mashing the
+  zoom buttons could fire off a live API request per click, faster than
+  the server can service them.** `doFetch`'s own `activeAbort.abort()`
+  only stops the *browser* from waiting on a superseded response -- it
+  doesn't reliably stop the server from finishing a query it already
+  started (Flask/WSGI doesn't check for a disconnected client mid-query
+  unless specifically coded to), so rapid clicking still burned a real
+  WSGI thread/DB-connection-pool slot per click even when every earlier
+  response got thrown away client-side the instant the next one fired --
+  a real contributor to the production connection-exhaustion pattern
+  already fixed elsewhere in this and recent releases. Every interaction
+  that requests an immediate fetch (click, double-click, the +/-/reset
+  buttons) now funnels through one shared cap: at most 4 accepted
+  immediate fetches per second. A click faster than that still moves the
+  camera/selection instantly (never throttled), it just falls back to
+  the existing debounced delay for its own data fetch instead of firing
+  right away, so a rapid burst still settles on exactly one fetch
+  shortly after it stops rather than either hammering the server once
+  per click or never syncing to the final camera position at all.
+
+## [5.46.27] - 2026-09-24
+
+### Added
+- **`browse.py`'s Sectors and Standalone Systems tables are now really
+  paginated** (100 rows/page, independent Prev/Next controls per table)
+  instead of a single page capped at 500 rows with a "try Search
+  instead" hint and no way to ever reach anything past that cap. Each
+  table's own `sector_offset`/`standalone_offset` page position is
+  independent, so paginating one never resets the other back to page 1.
+
+## [5.46.26] - 2026-09-24
+
+### Fixed
+- **Rogue planets and interstellar comets were completely invisible
+  everywhere** -- generated at a non-trivial rate
+  (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`'s own
+  `"rogue-planet": 0.1` and `"comet": 0.05`, roughly one rogue planet per
+  ten star systems, far more common than a nebula) and saved to the
+  `rogue_planets`/`interstellar_comets` tables the whole time, but no
+  query function anywhere (`list_phenomena`, `count_phenomena`,
+  `phenomenon_detail`) ever read either table, so they never appeared in
+  the Phenomena listing or had a detail page of their own, despite
+  existing in the database. Both are now wired up the same way
+  `supernova_remnant` already was (no galaxy-frame placement columns of
+  their own, so still absent from the Galaxy Map / Sector Map / NAV --
+  only the flat listing and detail page gain them). `html/phenomenon.py`
+  gained field specs for each type's own real columns (a rogue planet's
+  `planet_type`/`mass_kg`/`composition`/etc., a comet's
+  `nucleus_diameter_km`/`velocity_kms`/`is_active`/etc.).
+
+  Nebulae, by contrast, were already fully wired up -- their apparent
+  rarity is real, deliberately-researched astronomical calibration
+  (`"nebula"` rate is a cited-literature `5e4 / 2e11` per star system,
+  several orders of magnitude below a rogue planet's own rate), not a
+  bug; expect one to actually appear only in a very large generated
+  galaxy.
+
+## [5.46.25] - 2026-09-24
+
+### Fixed
+- **`migrate_database` never actually applied 5.46.19's v26 migration**
+  (the spatial indexes on `nebulae`/`asteroid_fields`/`black_holes`/
+  `neutron_stars` that fix `sector.py`'s production timeout) -- the
+  `_migrate_v25_to_v26` function existed but was never called from
+  `migrate_database`'s own version cascade, so running `migrateDb.py`
+  against an existing (pre-v26) database left it silently stuck at v25
+  forever, `GET /api/health`'s `schema_current` reporting `false`
+  indefinitely with no way to clear it short of applying the index by
+  hand. Caught by running the full test suite against a real MySQL
+  server rather than relying on syntax/logic review alone -- every
+  `test_migrate_v*` regression test failed with `schema_version == 25`,
+  not `SCHEMA_VERSION` (26). A fresh database (`_ensure_schema`, which
+  reads the indexes straight from `schema.sql`'s own `CREATE TABLE`) was
+  never affected -- only a database migrated from an earlier version.
+
+## [5.46.24] - 2026-09-24
+
+### Fixed
+- **System Map: an orbit line drawn under a body's own live sphere
+  visibly cut across it** instead of being occluded -- the sphere is
+  drawn on a separate `<canvas>` layered by CSS z-index relative to the
+  SVG, so within a single `<svg>` a body's own opaque sphere had no way
+  to occlude a sibling orbit-line element painted in that same stacking
+  context. Each scene is now built as two sibling `<svg>`s (an
+  aria-hidden orbits-only layer, and the existing body-marker layer,
+  both toggled together by `static/systemmap.js`'s `showScene`) stacked
+  either side of the sphere canvas, so a sphere now actually covers the
+  orbit line drawn under it. Belt rings (interactive markers, not
+  decorative lines) stay in the body-marker layer.
+
+### Changed
+- **System Map: stars now render with a mottled granulation texture**
+  (layered sine "turbulence" in both UV directions, tinted to the star's
+  own spectral color) instead of a flat single-color sphere.
+- **System Map: a star's own glow shell is now bigger and brighter than
+  a planet's subtle atmosphere rim** (wider falloff, higher intensity,
+  larger radius), reading clearly as a light source rather than the same
+  faint haze a planet's atmosphere gets.
+
+## [5.46.23] - 2026-09-24
+
+### Changed
+- **Sector Map's compass arrow (pointing toward the galactic center) now
+  labels itself plain "N"**, matching a real map's compass-rose
+  convention, instead of the more verbose "Galactic Center →" text.
+
+## [5.46.22] - 2026-09-24
+
+### Fixed
+- **Galaxy Map (3D): a selected placed/planned sector could disappear
+  entirely once zoomed in close to it.** The live re-fetch's own bounding
+  box shrinks as the camera's orbit radius shrinks; a click/double-click
+  that landed even slightly off a sector's own exact stored position
+  (easy from far out, where its marker is only a handful of screen
+  pixels) meant a later, smaller-radius re-fetch could legitimately no
+  longer include it, and the client dropped anything missing from a
+  fresh fetch. The selected entry is now pinned client-side and
+  re-inserted into each fetch's own tier if the live query didn't happen
+  to return it, so it stays in the scene for as long as it's selected.
+
+## [5.46.21] - 2026-09-23
+
+### Changed
+- **Galaxy Map (3D) interaction model reworked:** left-click now only
+  centers the view on the clicked dot/empty space and selects it
+  (previously it also zoomed in, which punished an imprecise click by
+  zooming into empty space nowhere near the intended target -- the
+  likely cause of "I can't zoom into known space" once a dot was too
+  small/far to click precisely from the full-galaxy starting view).
+  Double-click now does what a single click used to (center, select,
+  AND zoom in by one `clickZoomFactor` step). Right-click no longer does
+  anything (previously zoomed out) -- the browser's own default context
+  menu is left alone instead of being suppressed for nothing. The panel's
+  own hint text/`aria-label` (`lib/galaxymap3d.py`) updated to match.
+- **The illustrative density cloud (the "shows the spiral arms" layer)
+  now renders as soft, translucent, additively-blended spheres
+  (`THREE.InstancedMesh`) instead of tiny flat `THREE.Points` dots** --
+  it read as a sparse scatter-plot rather than shaded spiral structure.
+  Each sphere's size varies with its own `relative_density` (denser
+  regions read as visibly bigger/brighter blobs) and with the camera's
+  current orbit radius (so the cloud keeps a sensible relative size
+  across zoom levels); additive blending lets overlapping spheres
+  brighten rather than simply occlude, the cheap way many soft blobs
+  merge into continuous-looking shading along a spiral arm.
+
+## [5.46.20] - 2026-09-23
+
+### Fixed
+- **A `:80`-to-HTTPS redirect vhost with no exclusion for `/api` silently
+  turns every CGI page's own internal API call into a real public
+  round trip back into the same server, doubling Apache's connection
+  load per page view.** Confirmed against a real production vhost:
+  `html/lib/apiclient.py` defaults to `PLANETGEN_API_BASE_URL=http://
+  127.0.0.1/api`, a plain-HTTP loopback call every page makes at least
+  twice (its own data, plus `/api/auth/me`); a blanket `Redirect
+  permanent /` (or an equivalent `RewriteRule`, including certbot's own
+  default `--apache` rewrite) on the `:80` vhost catches that loopback
+  call too, and `urllib` follows the redirect out through DNS/TLS/
+  anything in front of the box and back in -- exactly the connection-
+  exhaustion/timeout pattern (with refused connections that never reach
+  the error log, since Apache never accepted them) reported alongside
+  the `sector_detail`/`galaxy/view` timeouts this and recent releases
+  already fixed. `examples/apache/planetgen.conf.example`'s own "HTTPS"
+  section previously instructed copying the whole `:80` block (daemon
+  process declaration included, which would conflict once duplicated)
+  into `:443` and redirecting `:80` unconditionally -- it now excludes
+  `/api` from that redirect and mounts `/api` locally on `:80` too,
+  reusing one server-wide `WSGIDaemonProcess` declaration instead of two
+  conflicting ones. `docs/api.md`'s "Deploying behind Apache" section
+  cross-references the same warning.
+
+## [5.46.19] - 2026-09-23
+
+### Fixed
+- **`GET /api/sectors/<id>` (`html/sector.py`'s page, and its Sector Map)
+  and, under load, unrelated pages sharing the same single-process
+  `planetgen-api` WSGIDaemonProcess (`html/system.py` included) were
+  timing out / failing outright in production** ("Truncated or oversized
+  response headers received from daemon process" and read-timeout errors
+  in `planetgen.error.log`, clearing only after an Apache restart -- the
+  same failure signature [5.46.16]'s `idx_sectors_center` fix addressed
+  for the Galaxy Map). Root cause: `queryDb.phenomena_near_sector` called
+  `_placed_phenomenon_rows` with no bounding box at all, so *every*
+  `sector_detail` call did a genuine full-table scan across all four
+  placed-phenomenon tables (`nebulae`/`asteroid_fields`/`black_holes`/
+  `neutron_stars`), pulling every galaxy-placed phenomenon in the entire
+  database into Python on every single sector page view. Once a database
+  had a non-trivial number of placed phenomena, a handful of concurrent
+  sector-page views were enough to hold every one of the API's 5 worker
+  threads (and, in turn, its MySQL connection pool, which has no
+  checkout timeout) in slow queries at once, starving every other
+  request behind them until Apache was restarted.
+  `_placed_phenomenon_rows` now takes an optional SQL bounding-box filter
+  (the same `BETWEEN`-range-scan technique [5.46.16]'s fix used for
+  `sectors`), and `phenomena_near_sector` uses it, padded by the widest
+  currently-placed phenomenon radius (a cheap `MAX(radius_ly)` query, not
+  a fixed assumption, so it stays exactly as correct for an arbitrarily
+  large placed phenomenon as the old unconditional scan). New schema v26
+  adds the matching spatial indexes
+  (`idx_{nebulae,asteroid_fields,black_holes,neutron_stars}_center`) --
+  **run `migrateDb.py` (or `update.sh`/`install.sh`) against any existing
+  deployment's database for this fix to actually take effect**; `GET
+  /api/health` (see [5.46.17]) will report `schema_current: false` in the
+  meantime.
+
+## [5.46.18] - 2026-09-23
+
+### Fixed
+- **`GET /api/health` was returning a bare 503 "error" for a database
+  that's reachable but has never had `schema.sql`/`migrateDb.py` applied
+  to it at all** (no `schema_migrations` table yet -- one step further
+  back than "some migrations pending", which it already handled). Caught
+  by CI: `test_health_ok` exercised exactly this case by accident (its
+  `client` fixture's database starts completely empty) and failed after
+  [5.46.17]'s health-reporting change merged. `/api/health` now reports
+  this the same way it already reports a stale-but-present schema
+  (`200`, `schema_current: false`, a `detail` naming the fix) rather than
+  folding it into the "unreachable" 503 case, which is meant for an
+  actually-unreachable server. `test_health_ok` now lays the schema down
+  first (matching how a real deployment's database always already has
+  one by the time its API is queried), and a new test covers the
+  never-migrated-at-all case directly.
+
 ## [5.46.17] - 2026-09-23
 
 ### Fixed

@@ -214,13 +214,43 @@ def fake_wiki_client(monkeypatch):
     return _FakeWikiClient
 
 
-def test_health_ok(client):
+def test_health_ok(mysql_config, client):
+    # `client`'s own database starts completely empty (see `mysql_config`'s
+    # docstring) -- lay the schema down first, the same way a real
+    # deployment always has one by the time its API is ever queried (see
+    # `default_admin_client`'s identical step), so this exercises the
+    # "reachable and current" case the test's own name promises rather
+    # than the "never migrated at all" case `test_health_ok_reports_an_
+    # uninitialized_schema_without_erroring` below covers instead.
+    _db.get_connection(mysql_config).close()
+
     response = client.get("/api/health")
     assert response.status_code == 200
     body = response.get_json()
     assert body["status"] == "ok"
     assert body["schema_current"] is True
     assert body["schema_version"] == _db.SCHEMA_VERSION
+
+
+def test_health_reports_an_uninitialized_schema_without_erroring(client):
+    """
+    `client`'s own database starts completely empty -- no `schema_migrations`
+    table at all, one step further back than "some migrations pending"
+    (which `schema_row` coming back empty already handles). `/api/health`
+    should still report 200 with `schema_current: False` and a helpful
+    `detail` rather than the earlier bug of an uncaught table-doesn't-exist
+    error surfacing as a bare 503 "unreachable" (which is meant for an
+    actually-unreachable server, not a reachable one that's simply never
+    been migrated -- see `test_unreachable_database_returns_503_not_a_crash`
+    for that case).
+    """
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["status"] == "ok"
+    assert body["schema_current"] is False
+    assert body["schema_version"] is None
+    assert "not been initialized" in body["detail"]
 
 
 def test_unreachable_database_returns_503_not_a_crash():
@@ -553,6 +583,35 @@ def test_galaxy_sectors_excludes_unplaced_sectors(client, seeded_sector):
     response = client.get("/api/galaxy/sectors")
     assert response.status_code == 200
     assert response.get_json() == {"items": []}
+
+
+def test_galaxy_view_placed_sector_includes_edge_ly(client, mysql_config):
+    """`GET /api/galaxy/view`'s own "placed" tier (queryDb.
+    galaxy_sectors_in_view) exposes each placed sector's own real
+    edge_ly -- added so static/galaxymap3d.js can color a sector marker
+    by its own true stellar density (system_count / edge_ly ** 3)
+    relative to the real local average, rather than raw system count
+    alone."""
+    sector = SpaceSector("Density Test Sector", edge_ly=10.0)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = False
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+
+    empty_vertices = {"inner": [], "outer": []}
+    _db.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
+        "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
+    })
+
+    response = client.get("/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=1000")
+    assert response.status_code == 200
+    placed = response.get_json()["placed"]
+    assert len(placed) == 1
+    assert placed[0]["edge_ly"] == pytest.approx(10.0)
+    assert placed[0]["system_count"] == 1
 
 
 def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):

@@ -38,11 +38,12 @@ import pymysql
 
 from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
 from stellarObjects._version import VersionAction, version_banner
-from stellarObjects.galaxyGeometry import provisional_sector_designation
+from stellarObjects.galaxyGeometry import provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import PLANNED_RADIUS_CAP_PC, density_sample_points, planned_slots_in_view
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
+from stellarObjects.sectorGeometry import lateral_neighbor_slots, radial_neighbor_slot
 from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, PLANET_CLASSES
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
@@ -586,9 +587,9 @@ def _load_nav_phenomenon_endpoint(conn, phenomenon_type, phenomenon_id):
 
     Raises:
         ValueError: If `phenomenon_type` is unrecognized, is a type with no
-            galaxy-frame placement columns at all (currently only
-            `"supernova_remnant"` -- see `_SUPERNOVA_REMNANT_TABLE`'s own
-            docstring), or no such row exists.
+            galaxy-frame placement columns at all (`_UNPLACED_PHENOMENON_
+            TABLES`'s own three types -- see `_SUPERNOVA_REMNANT_TABLE`'s
+            own docstring), or no such row exists.
     """
     if phenomenon_type not in _PLACEABLE_PHENOMENON_TYPES:
         raise ValueError(
@@ -815,6 +816,77 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     }
 
 
+def sector_neighbors(conn, sector):
+    """
+    Every immediately-surrounding sector address for a galaxy-placed
+    sector -- its exact same-shell (lateral) Voronoi neighbors
+    (`sectorGeometry.lateral_neighbor_slots`) plus its nearest inward and
+    outward radial neighbor (`sectorGeometry.radial_neighbor_slot`), each
+    tagged with whether a real `sectors` row already exists there. Drives
+    the Sector Map's (`html/lib/starmap.py`) neighboring-sector
+    indicators -- an existing neighbor's indicator links straight to it
+    (`sector.py`); a not-yet-generated one shows its address so it can be
+    fed to `generate.py galaxy --shell K --slot N`, the same convention
+    the Galaxy Map's own "planned" tier already uses
+    (`galaxyViewport.planned_slots_in_view`).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        sector (dict or Row): This sector's own row -- needs
+            `shell_index`, `shell_slot_index`, and `edge_mpc`.
+
+    Returns:
+        list[dict]: `shell_index`, `shell_slot_index`, `direction_pc`
+            (`[x, y, z]`, this neighbor's galaxy-frame center minus this
+            sector's own -- a direction, not clamped to the sector's own
+            cube), `exists` (bool), `sector_id`/`sector_name` (both `None`
+            when `exists` is `False`), and `designation`
+            (`provisional_sector_designation`, always present so a
+            not-yet-generated neighbor has a human-readable label even
+            with no name of its own). `[]` for a sector with no galaxy
+            placement.
+    """
+    shell_index, shell_slot_index, edge_mpc = sector["shell_index"], sector["shell_slot_index"], sector["edge_mpc"]
+    if shell_index is None or shell_slot_index is None or not edge_mpc:
+        return []
+
+    edge_pc = mpc_to_pc(edge_mpc)
+    edge_ly = pc_to_ly(edge_pc)
+    this_position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+
+    addresses = [(shell_index, slot) for slot in lateral_neighbor_slots(shell_index, shell_slot_index, edge_pc)]
+    for direction in (-1, 1):
+        radial_slot = radial_neighbor_slot(shell_index, shell_slot_index, edge_pc, direction)
+        if radial_slot is not None:
+            addresses.append((shell_index + direction, radial_slot))
+    if not addresses:
+        return []
+
+    clauses = " OR ".join(["(shell_index = ? AND shell_slot_index = ?)"] * len(addresses))
+    params = [value for address in addresses for value in address]
+    rows = conn.execute(
+        f"SELECT id, name, shell_index, shell_slot_index FROM sectors WHERE {clauses}", tuple(params),
+    ).fetchall()
+    existing = {(r["shell_index"], r["shell_slot_index"]): r for r in rows}
+
+    results = []
+    for addr_shell, addr_slot in addresses:
+        position = sector_position_pc(addr_shell, addr_slot, edge_pc)
+        direction_pc = [
+            position[0] - this_position[0], position[1] - this_position[1], position[2] - this_position[2],
+        ]
+        match = existing.get((addr_shell, addr_slot))
+        results.append({
+            "shell_index": addr_shell, "shell_slot_index": addr_slot,
+            "direction_pc": direction_pc,
+            "exists": match is not None,
+            "sector_id": match["id"] if match else None,
+            "sector_name": match["name"] if match else None,
+            "designation": provisional_sector_designation(addr_shell, addr_slot, edge_pc, edge_ly),
+        })
+    return results
+
+
 def sector_detail(conn, sector_id):
     """
     Returns one sector's full web-display detail: name, size, galaxy
@@ -841,10 +913,11 @@ def sector_detail(conn, sector_id):
             `position_z_mpc`, and `stars` -- 1 entry (single) or 2
             (primary then secondary), each `role`/`star_type`/
             `temperature_k`/`radius_km`/`luminosity_w`), `phenomena`
-            (see `phenomena_near_sector`), and `wiki_url` (`sectors.wiki_url`
-            -- `None` if this sector has never been uploaded to, or
-            manually linked to, a wiki page; see `schema.sql`'s "v22"
-            header note).
+            (see `phenomena_near_sector`), `neighbors` (see
+            `sector_neighbors`, `[]` for a sector with no galaxy
+            placement), and `wiki_url` (`sectors.wiki_url` -- `None` if
+            this sector has never been uploaded to, or manually linked
+            to, a wiki page; see `schema.sql`'s "v22" header note).
 
     Raises:
         ValueError: If no such sector exists.
@@ -890,6 +963,7 @@ def sector_detail(conn, sector_id):
         "system_count": len(systems),
         "systems": systems,
         "phenomena": phenomena_near_sector(conn, sector_id),
+        "neighbors": sector_neighbors(conn, sector),
         "wiki_url": sector["wiki_url"],
     }
 
@@ -938,8 +1012,60 @@ only needs the phenomenon's own physical size -- `list_phenomena`/
 `count_phenomena`'s flat listing, `phenomenon_detail`'s page, and
 `lib/phenomenonmap.py`'s AU-scale diagram."""
 
+_ROGUE_PLANET_TABLE = (
+    "rogue_planets", "rogue_planet",
+    "(CASE WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0",
+)
+"""tuple: The `rogue_planet` counterpart to one `_PHENOMENON_TABLES` entry
+-- same "no galaxy-frame placement columns at all" reasoning as
+`_SUPERNOVA_REMNANT_TABLE` (see that constant's own docstring; `schema.sql`
+never gave `rogue_planets` `center_x/y/z_pc` either). Its `radius_expr` is
+a literal `0`, not a real column, for the same reason `black_holes`/
+`neutron_stars` use one in `_PHENOMENON_TABLES`: a rogue planet's own
+`radius_km` is planet-scale, utterly negligible next to the light-year
+scale `list_phenomena`'s shared `radius_ly` column otherwise means.
 
-def _placed_phenomenon_rows(conn):
+Confirmed missing end-to-end before this was added: `generate.py`
+(`generate_sector_phenomena`) has always generated and saved these at a
+non-trivial rate (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`'s
+own `"rogue-planet": 0.1` -- roughly one per ten star systems, far more
+common than a nebula), but no query function anywhere ever read the
+`rogue_planets` table, so a generated rogue planet was completely
+invisible in every listing/page despite existing in the database the
+whole time."""
+
+_INTERSTELLAR_COMET_TABLE = (
+    "interstellar_comets", "interstellar_comet",
+    "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0",
+)
+"""tuple: The `interstellar_comet` counterpart to one `_PHENOMENON_TABLES`
+entry -- same "no galaxy-frame placement columns at all" reasoning as
+`_ROGUE_PLANET_TABLE` immediately above (and the same "confirmed missing
+end-to-end" history: generated via `program_constants.
+PHENOMENON_RATE_PER_STAR_SYSTEM`'s `"comet"` rate, never once queried).
+`radius_expr` is a literal `0` for the same reason -- `nucleus_diameter_km`
+is negligible at this shared column's light-year scale. Named
+`interstellar_comet`, not bare `comet`, to stay unambiguous next to the
+unrelated `comets` table (a star system's own planet-orbiting comets,
+`queryDb.system_detail`'s own `comets` key -- a completely different
+table this constant has nothing to do with)."""
+
+_UNPLACED_PHENOMENON_TABLES = (_SUPERNOVA_REMNANT_TABLE, _ROGUE_PLANET_TABLE, _INTERSTELLAR_COMET_TABLE)
+"""tuple: Every phenomenon type with no galaxy-frame placement columns at
+all (as opposed to `_PHENOMENON_TABLES`' own four, which simply may or may
+not be placed yet) -- `_PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES`
+is `list_phenomena`/`count_phenomena`/`_PHENOMENON_TYPE_TO_TABLE`'s own
+"every type" tuple, shared here so a future phenomenon type only ever
+needs adding in one place."""
+
+_UNPLACED_PHENOMENON_TABLE_NAMES = frozenset(table for table, *_rest in _UNPLACED_PHENOMENON_TABLES)
+"""frozenset: Just the table names out of `_UNPLACED_PHENOMENON_TABLES` --
+`list_phenomena`'s own union query selects a literal `NULL AS center_x_pc`
+for any of these (they have no such column at all to select), unlike
+`_PHENOMENON_TABLES`' own four, which select their real column."""
+
+
+def _placed_phenomenon_rows(conn, bbox=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
     v18/v21-placeable standalone-phenomenon tables, normalized to one
@@ -948,6 +1074,21 @@ def _placed_phenomenon_rows(conn):
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
+        bbox (tuple, optional): `(center_x_pc, center_y_pc, center_z_pc,
+            margin_pc)` -- when given, adds a `center_x_pc BETWEEN ...`
+            (and y/z) SQL `WHERE` clause to each table's own query, the
+            same bounding-box prefilter `galaxy_sectors_in_view` already
+            uses for `sectors` (see that function's own docstring and
+            `schema.sql`'s "v25"/"v26" header notes). `None` (the default,
+            used by `galaxy_placed_phenomena`'s own whole-galaxy listing,
+            which genuinely needs every row) runs the old unconditional
+            scan. `phenomena_near_sector` is the only caller that passes
+            this, since it's the only one that only ever needs a
+            neighborhood, not the whole galaxy -- without it, this was a
+            confirmed-in-production full-table-scan-across-four-tables on
+            every single `sector_detail` call (see `schema.sql`'s "v26"
+            header note), the same failure mode "v25"'s note already
+            documented for `sectors` before that migration.
 
     Returns:
         list[dict]: `id`, `type` (`"nebula"`, `"asteroid_field"`,
@@ -955,6 +1096,21 @@ def _placed_phenomenon_rows(conn):
             `radius_ly` (0 for the two compact-remnant types), `x`/`y`/`z`
             (`center_x/y/z_pc`), `galactic_radius_pc`.
     """
+    where_bbox = ""
+    bbox_params = ()
+    if bbox is not None:
+        cx, cy, cz, margin_pc = bbox
+        where_bbox = (
+            " AND center_x_pc BETWEEN ? AND ?"
+            " AND center_y_pc BETWEEN ? AND ?"
+            " AND center_z_pc BETWEEN ? AND ?"
+        )
+        bbox_params = (
+            cx - margin_pc, cx + margin_pc,
+            cy - margin_pc, cy + margin_pc,
+            cz - margin_pc, cz + margin_pc,
+        )
+
     rows = []
     for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
         query_rows = conn.execute(
@@ -963,7 +1119,9 @@ def _placed_phenomenon_rows(conn):
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
             FROM {table}
             WHERE center_x_pc IS NOT NULL
+            {where_bbox}
             """,
+            bbox_params,
         ).fetchall()
         for row in query_rows:
             rows.append({
@@ -975,18 +1133,54 @@ def _placed_phenomenon_rows(conn):
     return rows
 
 
+def _widest_placed_phenomenon_radius_ly(conn):
+    """
+    The largest `radius_ly` among currently placed `nebulae`/
+    `asteroid_fields` rows (the only two phenomenon tables with a real,
+    non-zero radius -- see `_PHENOMENON_TABLES`), or `0.0` if neither
+    table has any placed row at all.
+
+    `phenomena_near_sector` uses this to size its own bounding-box margin
+    (see that function's docstring): a bare `MAX(radius_ly)` aggregate
+    query, not a full row fetch, so this stays cheap even on a large
+    galaxy (MySQL can satisfy it from an index or a single scan of one
+    narrow column, never the whole row for every placed phenomenon the
+    way the old unconditional `_placed_phenomenon_rows` scan did) while
+    keeping the bounding box exactly as correct as that old unconditional
+    scan for a phenomenon of any size, rather than assuming a fixed
+    ceiling that a future (or deliberately test-constructed) oversized row
+    could silently fall outside of.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+
+    Returns:
+        float: The widest placed radius, light-years.
+    """
+    widest = 0.0
+    for table in ("nebulae", "asteroid_fields"):
+        row = conn.execute(
+            f"SELECT MAX(radius_ly) AS widest FROM {table} WHERE center_x_pc IS NOT NULL"
+        ).fetchone()
+        if row and row["widest"] is not None:
+            widest = max(widest, row["widest"])
+    return widest
+
+
 def list_phenomena(conn, limit=None, offset=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
-    neutron star/supernova remnant -- the four in `_PHENOMENON_TABLES`
-    plus `_SUPERNOVA_REMNANT_TABLE`), across every sector and regardless
-    of galaxy placement -- `GET /api/phenomena`'s own flat listing
-    (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which only
-    returns the galaxy-placed subset, for the Galaxy Map) or
-    `phenomena_near_sector` (one sector's own neighborhood) -- neither of
-    which a supernova remnant can ever appear in, since its table has no
-    galaxy-frame placement columns at all (see `_SUPERNOVA_REMNANT_TABLE`'s
-    own docstring); its `placed` is therefore always `False` here.
+    neutron star/supernova remnant/rogue planet/interstellar comet -- the
+    four in `_PHENOMENON_TABLES` plus `_UNPLACED_PHENOMENON_TABLES`),
+    across every sector and regardless of galaxy placement -- `GET
+    /api/phenomena`'s own flat listing (`html/phenomena.py`), unlike
+    `galaxy_placed_phenomena` (which only returns the galaxy-placed
+    subset, for the Galaxy Map) or `phenomena_near_sector` (one sector's
+    own neighborhood) -- neither of which a supernova remnant/rogue
+    planet/interstellar comet can ever appear in, since none of those
+    three tables have galaxy-frame placement columns at all (see
+    `_SUPERNOVA_REMNANT_TABLE`'s own docstring); their `placed` is
+    therefore always `False` here.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -997,31 +1191,31 @@ def list_phenomena(conn, limit=None, offset=None):
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
     shown on that system's own `system.py` page), not a standalone exotic
-    phenomenon; `nebulae`/`asteroid_fields`/`supernova_remnants` have no
-    `star_id` at all (always standalone, see their own table comments) and
-    need no such filter.
+    phenomenon; every other table here has no `star_id` at all (always
+    standalone, see their own table comments) and needs no such filter.
 
     Returns:
         list[dict]: One row per phenomenon, ordered by name: `id`, `type`
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`, or `"supernova_remnant"`), `name`,
-            `descriptor`, `radius_ly`, `sector_id`/`sector_name` (both
-            `None` if this phenomenon has never been linked to a sector --
-            see `schema.sql`'s "v18" header note), and `placed` (bool --
-            whether it has a galaxy position at all, `center_x_pc IS NOT
-            NULL`; always `False` for a supernova remnant).
+            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
+            `"interstellar_comet"`), `name`, `descriptor`, `radius_ly`,
+            `sector_id`/`sector_name` (both `None` if this phenomenon has
+            never been linked to a sector -- see `schema.sql`'s "v18"
+            header note), and `placed` (bool -- whether it has a galaxy
+            position at all, `center_x_pc IS NOT NULL`; always `False` for
+            any of `_UNPLACED_PHENOMENON_TABLES`'s own three types).
     """
     union_parts = [
         f"""
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
                {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                t.sector_id AS sector_id, sec.name AS sector_name,
-               {"NULL" if table == "supernova_remnants" else "t.center_x_pc"} AS center_x_pc
+               {"NULL" if table in _UNPLACED_PHENOMENON_TABLE_NAMES else "t.center_x_pc"} AS center_x_pc
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
-        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES
     ]
     query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
     params = []
@@ -1044,7 +1238,7 @@ def list_phenomena(conn, limit=None, offset=None):
 def count_phenomena(conn):
     """
     Returns the total number of exotic phenomena across every type in
-    `_PHENOMENON_TABLES` plus `_SUPERNOVA_REMNANT_TABLE`, ignoring any
+    `_PHENOMENON_TABLES` plus `_UNPLACED_PHENOMENON_TABLES`, ignoring any
     pagination -- the denominator `list_phenomena(conn, limit=...)`
     callers (the API's `/api/phenomena`) need to report how many pages
     exist.
@@ -1060,29 +1254,31 @@ def count_phenomena(conn):
             f"SELECT COUNT(*) AS n FROM {table}"
             + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
         ).fetchone()["n"]
-        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
+        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES
     )
 
 
 _PHENOMENON_TYPE_TO_TABLE = {
-    type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES + (_SUPERNOVA_REMNANT_TABLE,)
+    type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES
 }
 """dict: `type` value (as returned by `list_phenomena`/`galaxy_placed_phenomena`)
 -> its backing table name, e.g. `"nebula"` -> `"nebulae"` -- the reverse of
 `_PHENOMENON_TABLES`'s own `(table, type_label, ...)` order, used by
 `phenomenon_detail` to find the one table a `(type, id)` pair actually
 means without hand-listing the mapping a second time. Includes
-`_SUPERNOVA_REMNANT_TABLE` too, since `phenomenon_detail`'s plain `SELECT
-t.*` works for it exactly the same as for the other four types even
-though it can't participate in the galaxy-placement-only helpers below."""
+`_UNPLACED_PHENOMENON_TABLES` too, since `phenomenon_detail`'s plain
+`SELECT t.*` works for those exactly the same as for the other four types
+even though they can't participate in the galaxy-placement-only helpers
+below."""
 
 _PLACEABLE_PHENOMENON_TYPES = frozenset(type_label for _t, type_label, _de, _re in _PHENOMENON_TABLES)
 """frozenset: The `type` values that DO have galaxy-frame placement
 columns (everything in `_PHENOMENON_TABLES`) -- deliberately excludes
-`"supernova_remnant"`, unlike `_PHENOMENON_TYPE_TO_TABLE` above. Guards
-`_load_nav_phenomenon_endpoint` against ever running its `center_x_pc`
-SELECT against `supernova_remnants`, which has no such column and would
-otherwise raise a raw SQL error instead of the clean `ValueError` a NAV
+every one of `_UNPLACED_PHENOMENON_TABLES`'s own types, unlike
+`_PHENOMENON_TYPE_TO_TABLE` above. Guards `_load_nav_phenomenon_endpoint`
+against ever running its `center_x_pc` SELECT against one of those tables,
+none of which has any such column, and would otherwise raise a raw SQL
+error instead of the clean `ValueError` a NAV
 request for an inherently unplaceable phenomenon type should get."""
 
 
@@ -1092,7 +1288,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     plus its sector's name (see `list_phenomena`'s identical `sector_id`/
     `sector_name` convention) -- for `GET /api/phenomena/<type>/<id>`
     (`html/phenomenon.py`'s detail page). Unlike `list_phenomena`'s
-    normalized `descriptor`/`radius_ly` (a common shape across all five
+    normalized `descriptor`/`radius_ly` (a common shape across all seven
     types, for a flat list), this returns the row as-is: each type has its
     own genuinely different set of fields (a nebula's `nebula_type`/
     `composition`/`formation_cause` vs. a black hole's
@@ -1104,7 +1300,8 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         conn (stellarObjects._db.Connection): An open, read-only connection.
         phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`, `"supernova_remnant"`).
+            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
+            `"interstellar_comet"`).
         phenomenon_id (int): The row's own `id` in its backing table.
 
     Returns:
@@ -1169,6 +1366,19 @@ def phenomena_near_sector(conn, sector_id):
     gaps/overlaps" tolerance (`docs/design/galaxy-coordinate-system.md`
     section 3) rather than a false-negative risk.
 
+    Reads via `_placed_phenomenon_rows`'s own `bbox` argument -- a SQL
+    bounding-box prefilter, not the whole-galaxy scan that function's
+    default (`bbox=None`) runs -- sized to `half_diagonal_pc` plus
+    whatever the widest currently-placed `radius_ly` actually is
+    (`_widest_placed_phenomenon_radius_ly`), so it stays exactly as
+    correct as scanning every row (a phenomenon of any size, however
+    large, that could plausibly overlap is still included) while letting
+    MySQL range-scan `idx_{table}_center` instead of examining every row
+    in all four tables on every call -- see `schema.sql`'s "v26" header
+    note for the production failure this fixes (a genuine full-table-scan
+    -times-four on every `GET /api/sectors/<id>`, "the exact same failure
+    mode `schema.sql`'s "v25" note already documented for `sectors`).
+
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
         sector_id (int): The `sectors.id` to check against.
@@ -1197,9 +1407,11 @@ def phenomena_near_sector(conn, sector_id):
         return []
 
     half_diagonal_pc = mpc_to_pc(sector["edge_mpc"]) * math.sqrt(3) / 2
+    margin_pc = half_diagonal_pc + ly_to_pc(_widest_placed_phenomenon_radius_ly(conn))
+    bbox = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"], margin_pc)
 
     matches = []
-    for phenomenon in _placed_phenomenon_rows(conn):
+    for phenomenon in _placed_phenomenon_rows(conn, bbox=bbox):
         dx = phenomenon["x"] - sector["center_x_pc"]
         dy = phenomenon["y"] - sector["center_y_pc"]
         dz = phenomenon["z"] - sector["center_z_pc"]
@@ -1430,7 +1642,10 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             `shell_index`, `shell_slot_index`, `designation`
             (`provisional_sector_designation`, `None` if this sector has
             no `shell_slot_index` -- a placement predating the v8 schema's
-            per-slot addressing), `system_count`, `distance_pc` (from the
+            per-slot addressing), `system_count`, `edge_ly` (this
+            sector's own real edge length -- lets a client compute its
+            true stellar density, `system_count / edge_ly ** 3`, rather
+            than just its raw system count), `distance_pc` (from the
             given center).
     """
     rows = conn.execute(
@@ -1480,6 +1695,7 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             "shell_index": shell_index, "shell_slot_index": shell_slot_index,
             "designation": designation,
             "system_count": r["system_count"],
+            "edge_ly": pc_to_ly(mpc_to_pc(r["edge_mpc"])) if r["edge_mpc"] else None,
             "distance_pc": math.sqrt(distance_sq),
         })
     return results

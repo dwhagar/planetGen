@@ -164,7 +164,7 @@ def test_render_map_panel_compass_present_only_when_placed():
     scene_placed = _scene_data(render_map_panel("db", 1000.0, 3, 42, (500.0, 200.0, -100.0), [system]))
     assert scene_unplaced["compass"] is None
     assert scene_placed["compass"] is not None
-    assert scene_placed["compass"]["label"] == "Galactic Center"
+    assert scene_placed["compass"]["label"] == "N"
 
 
 def test_render_map_panel_binary_system_gets_two_star_entries():
@@ -294,6 +294,63 @@ def test_render_map_panel_neutron_star_with_no_descriptor_falls_back_to_plain_la
     phenomenon = _phenomenon(type_="neutron_star", descriptor=None, radius_ly=0)
     scene = _scene_data(render_map_panel("db", 1000.0, None, None, None, [system], phenomena=[phenomenon]))
     assert scene["clouds"][0]["typeLabel"] == "Neutron Star"
+
+
+def _neighbor(shell_index=6, shell_slot_index=99, direction_pc=(1.0, 0.0, 0.0), exists=False, sector_id=None,
+              sector_name=None, designation="600000063"):
+    return {
+        "shell_index": shell_index, "shell_slot_index": shell_slot_index, "direction_pc": list(direction_pc),
+        "exists": exists, "sector_id": sector_id, "sector_name": sector_name, "designation": designation,
+    }
+
+
+def test_render_map_panel_neighbors_empty_by_default():
+    system = _make_system()
+    scene = _scene_data(render_map_panel("db", 1000.0, 5, 100, (500.0, 200.0, -100.0), [system]))
+    assert scene["neighbors"] == []
+
+
+def test_render_map_panel_existing_neighbor_carries_nav_params():
+    system = _make_system()
+    neighbor = _neighbor(exists=True, sector_id=42, sector_name="Neighboring Sector")
+    scene = _scene_data(render_map_panel(
+        "mydb", 1000.0, 5, 100, (500.0, 200.0, -100.0), [system], neighbors=[neighbor],
+    ))
+    entry = scene["neighbors"][0]
+    assert entry["exists"] is True
+    assert entry["name"] == "Neighboring Sector"
+    assert entry["navTarget"] == "sector.py"
+    assert entry["navParams"] == {"db": "mydb", "id": 42}
+    assert entry["shellIndex"] == 6 and entry["shellSlotIndex"] == 99
+
+
+def test_render_map_panel_missing_neighbor_carries_no_nav_params():
+    system = _make_system()
+    neighbor = _neighbor(exists=False, designation="ABCDEF")
+    scene = _scene_data(render_map_panel(
+        "db", 1000.0, 5, 100, (500.0, 200.0, -100.0), [system], neighbors=[neighbor],
+    ))
+    entry = scene["neighbors"][0]
+    assert entry["exists"] is False
+    assert "navTarget" not in entry
+    assert "navParams" not in entry
+    assert entry["designation"] == "ABCDEF"
+
+
+def test_render_map_panel_neighbor_indicator_sits_along_its_own_direction():
+    # Placed at a fixed reach past the scene's own edge, in the given
+    # direction -- along +x here, so y/z should stay at (approximately)
+    # zero and x should be positive and clearly past the scene's own
+    # half-edge (see lib/starmap.py's own `_NEIGHBOR_INDICATOR_REACH`).
+    system = _make_system()
+    neighbor = _neighbor(direction_pc=(1.0, 0.0, 0.0))
+    scene = _scene_data(render_map_panel(
+        "db", 1000.0, 5, 100, (500.0, 200.0, -100.0), [system], neighbors=[neighbor],
+    ))
+    entry = scene["neighbors"][0]
+    assert entry["x"] > scene["sceneHalfPx"]
+    assert entry["y"] == pytest.approx(0.0, abs=1e-9)
+    assert entry["z"] == pytest.approx(0.0, abs=1e-9)
 
 
 def test_json_script_escapes_script_close_tag_in_a_name():

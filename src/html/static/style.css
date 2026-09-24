@@ -257,6 +257,20 @@ h2 {
   overflow-x: auto;
 }
 
+/* Prev/summary/Next row under a paginated table (html/browse.py) -- the
+   summary text sits between the two controls so the row reads left to
+   right the same way regardless of which control (if either) is a live
+   link vs. the plain-text `.hint` a page/table boundary replaces it
+   with. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -626,6 +640,16 @@ tbody tr:last-child td {
 }
 
 .starmap-btn:hover {
+  border-color: var(--accent);
+}
+
+/* A toggled-on state for a .starmap-btn that stays pressed rather than
+   firing once -- currently just "Measure distance"
+   (static/systemmap.js), but generic enough for any future toggle
+   button sharing this class. */
+.starmap-btn-active {
+  background: var(--accent);
+  color: var(--accent-contrast);
   border-color: var(--accent);
 }
 
@@ -1128,6 +1152,25 @@ code {
   pointer-events: none;
 }
 
+/* The orbits-only sibling `<svg>` `lib/systemmap.py`'s `_scene_svg_pair`
+   emits alongside the body-marker one above -- absolutely positioned
+   (unlike the body-marker `.sysmap-svg`'s own `position: relative`,
+   which is what sizes `.sysmap-viewport`'s aspect-ratio box) and given a
+   z-index BELOW `.sysmap-spheres-canvas` (below), rather than above it
+   like the body-marker layer, so a body's own live sphere -- drawn on
+   that canvas, between these two layers -- now actually occludes the
+   orbit line it sits on top of instead of the line always painting over
+   every sphere regardless of position (see `_scene_svg_pair`'s own
+   docstring for why one `<svg>` alone couldn't do this: a canvas
+   element's z-index applies to the whole element, so it could never
+   sit "inside" a single SVG's own internal paint order between two of
+   that SVG's own child elements). */
+.sysmap-orbits-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
 .sysmap-body,
 .sysmap-belt {
   cursor: pointer;
@@ -1147,6 +1190,17 @@ code {
 .sysmap-belt:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* One of "Measure distance"'s own two selected endpoints
+   (static/systemmap.js's own handleMeasureClick) -- a dashed accent
+   ring, distinct from the plain solid hover/focus stroke above, so a
+   selected body still reads as "selected" even after the pointer moves
+   off it (hover/focus alone don't persist). */
+.sysmap-measure-selected circle.sysmap-body-fill {
+  stroke: var(--accent);
+  stroke-width: 3px;
+  stroke-dasharray: 4 2;
 }
 
 /* A belt is now a plain stroked `<circle>` (a full ring around its own
@@ -1275,7 +1329,10 @@ code {
    info panel/scale bar) unchanged; these three are its own additions:
    a hover tooltip with no .starmap-* equivalent (the flat SVG map uses a
    native <title>, the sector map has no per-object hover at all), and the
-   planned-sector info panel's copyable CLI snippet/fallback field. */
+   planned-sector info panel's copyable CLI snippet/fallback field --
+   the latter two also reused as-is by the Sector Map's own not-yet-
+   generated neighboring-sector indicators (html/static/sectormap.js),
+   the identical "copy a generate.py CLI command" concept one level in. */
 .galaxymap3d-tooltip {
   position: absolute;
   z-index: 3;

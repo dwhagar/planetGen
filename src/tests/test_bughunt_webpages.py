@@ -114,11 +114,82 @@ def test_browse_page_renders(live_api, seeded_db):
     _assert_clean_html(result, "browse.py")
 
 
+def test_browse_page_paginates_sectors(live_api, mysql_config):
+    """browse.py used to cap its Sectors table at 500 rows with no way to
+    ever reach anything past that (see that module's own docstring) --
+    confirms real Prev/Next pagination instead: 105 empty sectors (zero-
+    padded names, so alphabetical order == creation order) split across
+    exactly two pages of 100, and requesting page 2 via the same POST
+    params browse.py's own Next link submits (sector_offset) returns the
+    second page's own rows, not the first's."""
+    for i in range(105):
+        sector = SpaceSector(f"Pag Sector {i:03d}", edge_ly=10.0)
+        _db.save_sector(sector, config=mysql_config)
+
+    page1 = run_page(live_api, "browse.py", query={"db": mysql_config.database})
+    assert page1.status_code == 200
+    _assert_clean_html(page1, "browse.py (page 1)")
+    assert "105 sectors" in page1.body
+    assert "Pag Sector 000" in page1.body
+    assert "Pag Sector 099" in page1.body
+    assert "Pag Sector 100" not in page1.body  # page 2's own first row
+    assert 'class="pagination"' in page1.body
+    assert "Next" in page1.body
+
+    page2 = run_page(
+        live_api, "browse.py", method="POST",
+        body={"db": mysql_config.database, "sector_offset": "100"},
+    )
+    assert page2.status_code == 200
+    _assert_clean_html(page2, "browse.py (page 2)")
+    assert "Pag Sector 104" in page2.body
+    assert "Pag Sector 099" not in page2.body  # page 1's own last row
+
+
 def test_sector_page_renders(live_api, seeded_db):
     _config, db_name, sector_id, _system_ids = seeded_db
     result = run_page(live_api, "sector.py", query={"db": db_name, "id": str(sector_id)})
     assert result.status_code == 200
     _assert_clean_html(result, "sector.py")
+
+
+def test_sector_page_with_galaxy_placement_renders_neighbor_indicators(live_api, mysql_config):
+    # seeded_db's own sector has no galaxy placement at all, so
+    # test_sector_page_renders above never exercises the neighboring-
+    # sector indicators (`queryDb.sector_neighbors`) end to end through a
+    # real page render -- this seeds one with a real galaxy address
+    # instead (same `_db.insert_sector`-with-`galaxy_position` pattern
+    # `test_galaxy_gen.py`'s own address tests use) and confirms the
+    # Sector Map's embedded scene data actually carries them.
+    from stellarObjects.galaxyGeometry import galactic_radius_pc, sector_position_pc
+
+    edge_pc = 3.526
+    shell_index, shell_slot_index = 5, 100
+    position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            sector_id = _db.insert_sector(conn, SpaceSector(name="Placed Sector"), galaxy_position={
+                "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
+                "galactic_radius_pc": galactic_radius_pc(position),
+                "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+                "vertices_pc": {"inner": [], "outer": []},
+            })
+    finally:
+        conn.close()
+
+    result = run_page(live_api, "sector.py", query={"db": mysql_config.database, "id": str(sector_id)})
+    assert result.status_code == 200
+    _assert_clean_html(result, "sector.py")
+
+    import json
+    match = re.search(r'<script type="application/json" id="starmap-data">(.*?)</script>', result.body, re.DOTALL)
+    assert match, "no #starmap-data script found in sector.py's own output"
+    scene = json.loads(match.group(1))
+    assert len(scene["neighbors"]) > 0
+    for entry in scene["neighbors"]:
+        assert entry["exists"] is False  # nothing else was ever placed
+        assert "designation" in entry and entry["designation"]
 
 
 def test_system_page_renders(live_api, seeded_db):

@@ -66,7 +66,14 @@ _TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
+    "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
 }
+
+_ROGUE_PLANET_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
+
+
+def _rogue_planet_type_text(value):
+    return _ROGUE_PLANET_TYPE_LABELS.get(value, value)
 
 # (column, label, formatter) per type -- formatter takes the raw column
 # value and returns display text, or None to omit the row entirely (a
@@ -122,6 +129,24 @@ _FIELD_SPECS = {
         ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s"),
         ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy"),
     ],
+    "rogue_planet": [
+        ("planet_type", "Type", _rogue_planet_type_text),
+        ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
+        ("radius_km", "Radius", lambda v: f"{v:,.0f} km"),
+        ("composition", "Composition", esc),
+        ("has_internal_heat", "Internal Heat", _bool_text),
+        ("has_moons", "Has Moons", _bool_text),
+        ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s"),
+        ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy"),
+    ],
+    "interstellar_comet": [
+        ("nucleus_diameter_km", "Nucleus Diameter", lambda v: f"{v:,.2f} km"),
+        ("velocity_kms", "Velocity", lambda v: f"{v:,.1f} km/s"),
+        ("is_active", "Active", _bool_text),
+        ("composition_summary", "Composition", esc),
+        ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s"),
+        ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy"),
+    ],
 }
 
 
@@ -163,18 +188,19 @@ def handler():
     # sector-gated nav buttons -- nav.py itself renders a clear "not
     # available" message for a phenomenon never placed in the galaxy, so
     # this page doesn't have to duplicate that same placement check just
-    # to decide whether to show the button at all. A supernova remnant is
-    # the one exception: its own table has no galaxy-frame placement
-    # columns at ALL (see queryDb._SUPERNOVA_REMNANT_TABLE's docstring),
-    # not merely "not placed yet" -- nav_between rejects it outright
-    # (ValueError, queryDb._load_nav_phenomenon_endpoint), so offering the
-    # button here would just walk a visitor into that error instead of
-    # nav.py's normal unplaced-phenomenon message.
-    if phenomenon_type == "supernova_remnant":
+    # to decide whether to show the button at all. Three types are the
+    # exception: none of supernova_remnant/rogue_planet/interstellar_comet
+    # has any galaxy-frame placement columns at ALL (see queryDb.
+    # _SUPERNOVA_REMNANT_TABLE's docstring), not merely "not placed yet"
+    # -- nav_between rejects all three outright (ValueError, queryDb.
+    # _load_nav_phenomenon_endpoint), so offering the button here would
+    # just walk a visitor into that error instead of nav.py's normal
+    # unplaced-phenomenon message.
+    if phenomenon_type in ("supernova_remnant", "rogue_planet", "interstellar_comet"):
         nav_html = ""
         nav_hint_html = (
-            '<p class="hint">A supernova remnant has no known position in the galaxy '
-            "yet, so it can't be used for navigation.</p>"
+            f'<p class="hint">This phenomenon type ({esc(type_label)}) has no known '
+            "position in the galaxy, so it can't be used for navigation.</p>"
         )
     else:
         nav_html = (
