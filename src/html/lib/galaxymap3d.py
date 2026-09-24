@@ -191,15 +191,15 @@ FETCH_RADIUS_FACTOR = 1.6
 orbit radius, so what's just off-screen is already there when the camera
 turns."""
 
-PLANNED_VIEW_RADIUS_PC = 20.0
-"""float: Planned (not-yet-generated) slots are shown out to this far from
-the camera target -- a sphere of ~400 slots at the default sector size,
-from up to ~64 of the smallest (`PLANNED_TILE_MAX_EDGE_PC`) tiles."""
-
-PLANNED_MAX_VIEW_RADIUS_PC = 200.0
-"""float: Planned slots are only fetched while the view radius is at most
-this; the density cloud takes over for wider views (the same 200 pc
-switch-over the map has always had)."""
+PLANNED_MAX_VIEW_RADIUS_PC = 32.0
+"""float: Planned (not-yet-generated) slots are shown while the view
+radius is at most this, and then out to the whole view radius, so they
+fill the screen. They used to be clipped to a 20 pc ball around the
+target while the view reached out to 200 pc, which drew a lone ball of
+dots in empty space (near the galactic plane every slot qualifies, so
+the ball was solid). A 32 pc view holds about 3,000 slots at the default
+sector size, from up to ~125 of the smallest (`PLANNED_TILE_MAX_EDGE_PC`)
+tiles. The density cloud takes over for wider views."""
 
 MAX_TILES_PER_REQUEST = 128
 """int: Mirrors `queryDb.MAX_TILES_PER_REQUEST`."""
@@ -271,8 +271,7 @@ def initial_tile_request(orbit_radius_pc, has_shape, center_pc=(0.0, 0.0, 0.0)):
     keys = _tiles_intersecting_sphere(level, center_pc, view_radius)
     if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
         planned_level = _tile_level_for_view_radius(PLANNED_TILE_MAX_EDGE_PC)
-        planned_radius = min(view_radius, PLANNED_VIEW_RADIUS_PC)
-        keys += [key for key in _tiles_intersecting_sphere(planned_level, center_pc, planned_radius) if key not in keys]
+        keys += [key for key in _tiles_intersecting_sphere(planned_level, center_pc, view_radius) if key not in keys]
     density_key = None
     if has_shape and view_radius > PLANNED_MAX_VIEW_RADIUS_PC:
         density_key = _tile_containing(level, center_pc)
@@ -337,7 +336,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "plannedTileMaxEdgePc": PLANNED_TILE_MAX_EDGE_PC,
-        "plannedViewRadiusPc": PLANNED_VIEW_RADIUS_PC,
         "plannedMaxViewRadiusPc": PLANNED_MAX_VIEW_RADIUS_PC,
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
         "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
