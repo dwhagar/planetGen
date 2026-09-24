@@ -18,7 +18,7 @@ covered a handful of unused placeholder fields for the web interface.
 have to repeat across Apache `SetEnv` lines, systemd `EnvironmentFile`s,
 and `--mysql-*` CLI flags -- MySQL connection details (including the
 control-schema name), the API's rate limits, the admin cookie's `Secure`
-flag, the CGI browser's debug-page toggle, and the site's own display
+flag, the debug log switch, and the site's own display
 name/base URL/API endpoint.
 
 Precedence, everywhere a setting has more than one source, is: an
@@ -55,6 +55,7 @@ DEFAULT_CONFIG = {
     "base_url": "http://localhost/",
     "api_base_url": "http://127.0.0.1/api",
     "debug": False,
+    "log_file": "/var/log/planetgen.log",
     "mysql": {
         "host": "127.0.0.1",
         "port": 3306,
@@ -127,3 +128,49 @@ def load_config():
         overrides = json.load(f)
     _merge(merged, overrides)
     return merged
+
+
+_FALSE_STRINGS = ("", "0", "false", "no", "off")
+
+
+def debug_enabled(config=None):
+    """
+    Whether this deployment's debug mode is on: the `PLANETGEN_DEBUG`
+    environment variable when set (`0`/`false`/`no`/`off`/empty mean off,
+    anything else on), else `config.json`'s `"debug"`, which defaults to
+    off when missing. Debug mode turns on the verbose debug log (see
+    `stellarObjects.log`) and the web interface's traceback-in-page 500
+    responses.
+
+    Args:
+        config (dict, optional): An already-loaded `load_config()` result,
+            to skip re-reading the file.
+
+    Returns:
+        bool
+    """
+    env = os.environ.get("PLANETGEN_DEBUG")
+    if env is not None:
+        return env.strip().lower() not in _FALSE_STRINGS
+    if config is None:
+        config = load_config()
+    return bool(config.get("debug"))
+
+
+def log_file_path(config=None):
+    """
+    Where the debug log goes: `PLANETGEN_LOG_FILE` when set, else
+    `config.json`'s `"log_file"`, else `/var/log/planetgen.log`.
+
+    Args:
+        config (dict, optional): An already-loaded `load_config()` result.
+
+    Returns:
+        str
+    """
+    env = os.environ.get("PLANETGEN_LOG_FILE")
+    if env:
+        return env
+    if config is None:
+        config = load_config()
+    return config.get("log_file") or DEFAULT_CONFIG["log_file"]

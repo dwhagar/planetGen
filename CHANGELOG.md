@@ -1,5 +1,75 @@
 # Changelog
 
+## [5.51.0] - 2026-09-24
+
+### Added
+- **Every kind of stellar phenomenon now appears on the Sector Map.**
+  Supernova remnants, rogue planets and interstellar comets had no galaxy
+  position, so they were missing from the Sector Map, the sector's
+  listing and NAV. They now have one (schema v28), drawn as a glowing
+  shell, a dim world and an icy coma, and each is clickable like the
+  others. A supernova remnant's leftover black hole or neutron star sits
+  at the remnant's center. `migrateDb.py` gives existing ones a random
+  spot inside the sector they were generated in.
+
+### Changed
+- **The sector page lists its phenomena alongside its systems.** One
+  "Contents" table replaces the separate Systems and Nearby Exotic
+  Phenomena tables, nearest the sector's center first, with a distance
+  column, 50 rows a page. A phenomenon generated as part of a sector is always listed
+  there, even if an older placement put it outside the cube.
+
+## [5.50.0] - 2026-09-24
+
+### Added
+- **A debug log for the whole program.** `"debug": true` in `config.json`
+  (off when missing) makes the generator CLI, the maintenance scripts, the
+  web pages and the API all write to `/var/log/planetgen.log` (`log_file`
+  to move it): every decision the generator makes and why, every random
+  roll with the source line that asked for it and the probabilities it was
+  compared against, every SQL statement, web request, API call and admin
+  access check, and every error with its traceback, all timestamped to the
+  millisecond. A seeded run generates the same result with it on or off.
+- **Log rotation for it.** `install.sh`/`update.sh` create the log file
+  when debug is on (writable by Apache and shell users alike) and install
+  `/etc/logrotate.d/planetgen`: daily, or as soon as it passes 100 MB
+  (checked hourly), keeping 7 compressed copies.
+
+### Changed
+- **Web pages no longer show tracebacks when debug is on.** They went to
+  the page itself before; now they go to the debug log, and the 500 page
+  says so.
+
+## [5.49.2] - 2026-09-24
+
+### Changed
+- **Editing a sector no longer throws away the whole Galaxy Map cache.**
+  The tile cache used to go stale on any change to the database. It now
+  asks the new `GET /api/galaxy/changes`, which reads the schema-v27
+  `modified_at` columns plus new sector and system ids, which cube tiles
+  changed, and deletes just those, on the server's disk and in each
+  visitor's browser. A rename refetches the dozen tiles holding that
+  sector. Deleting a sector, re-planning the galaxy or a new release
+  still refreshes everything, since a deleted row leaves nothing to
+  locate its tiles by.
+
+## [5.49.1] - 2026-09-24
+
+### Changed
+- **Every list on the site now pages 50 rows at a time with the same
+  pager.** Browse's sectors and standalone systems, Phenomena, a sector's
+  systems and nearby phenomena, a Galaxy Map Quadrant's sector list, each
+  Search result panel, the admin API key list and the admin stats page's
+  duplicate-names list all share one control
+  (`src/html/lib/pagination.py`): a "Showing X-Y of Z" summary, First/Prev,
+  numbered pages, Next/Last. Phenomena no longer stops at 500 rows and
+  Search no longer stops at 300 matches per panel; every match is
+  reachable a page at a time.
+- `GET /api/search` pages each result panel: `limit` (default 300, as
+  before) plus `sectors_offset`/`systems_offset`/`stars_offset`/
+  `planets_offset`/`moons_offset`/`belts_offset`, and each panel now
+  reports `total`, `limit` and `offset` alongside `truncated`.
+
 ## [5.49.0] - 2026-09-24
 
 ### Added

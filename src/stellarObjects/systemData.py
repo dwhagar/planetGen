@@ -321,7 +321,13 @@ class StarSystem:
                 habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
                 belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             if habitable_satisfied and belt_satisfied:
+                log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
+                          f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
+                          f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
                 break
+            log.debug(f"Planet generation attempt {_attempt + 1}/{program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
+                      f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
+                      f"required and found: {belt_satisfied})")
 
         self.star.adjust_age_for_planets(self.planets)
         if self.binary_type == "wide":
@@ -391,6 +397,9 @@ class StarSystem:
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
         self.comet_count = self.count_comets()
+        log.debug(f"System {self.primary_star.name!r} finished: binary={self.binary_type or 'no'}, "
+                  f"{self.planet_count} planets, {self.belt_count} belts, {self.moon_count} moons, "
+                  f"{self.comet_count} comets, {self.hab_count} habitable")
 
     def _generate_comets(self, star):
         """

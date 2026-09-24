@@ -27,6 +27,7 @@ alongside `html/` in a real deployment.
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -37,6 +38,7 @@ import urllib.request
 # `stellarObjects.appconfig` is importable here too.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from stellarObjects import log  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
 
 API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL") or load_config()["api_base_url"]
@@ -111,16 +113,20 @@ def _request(path, params=None):
     if query:
         url = f"{url}?{query}"
 
+    start = time.perf_counter()
     try:
         with urllib.request.urlopen(url, timeout=_TIMEOUT_SECONDS) as response:
             body = response.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
         detail = _error_detail(exc)
+        _log_call("GET", url, start, f"HTTP {exc.code}: {detail}")
         if exc.code == 404:
             raise NotFoundError(detail)
         raise ApiError(f"planetGen API error ({exc.code}): {detail}", status_code=exc.code)
     except urllib.error.URLError as exc:
+        _log_call("GET", url, start, f"unreachable: {exc.reason}")
         raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc.reason}")
+    _log_call("GET", url, start, f"HTTP 200, {len(body)} bytes")
 
     try:
         return json.loads(body)
@@ -175,17 +181,24 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
         headers["Cookie"] = cookie_header
 
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
+    start = time.perf_counter()
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw_body = response.read().decode("utf-8")
             set_cookie_headers = response.headers.get_all("Set-Cookie") or []
     except urllib.error.HTTPError as exc:
         detail = _error_detail(exc)
+        _log_call(method, url, start, f"HTTP {exc.code}: {detail}")
         if exc.code == 404:
             raise NotFoundError(detail)
         raise ApiError(f"planetGen API error ({exc.code}): {detail}", status_code=exc.code)
     except urllib.error.URLError as exc:
+        _log_call(method, url, start, f"unreachable: {exc.reason}")
         raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc.reason}")
+    # Request bodies aren't logged: login and credential changes carry passwords.
+    _log_call(method, url, start, f"HTTP {response.status}, {len(raw_body)} bytes, "
+                                  f"{len(set_cookie_headers)} Set-Cookie header(s), "
+                                  f"{'a' if json_body is not None else 'no'} JSON request body")
 
     parsed_body = None
     if raw_body:
@@ -194,6 +207,12 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
         except ValueError as exc:
             raise ApiError(f"planetGen API returned an unparseable response: {exc}")
     return parsed_body, set_cookie_headers
+
+
+def _log_call(method, url, start, outcome):
+    """One debug-log line per API call, attributed to the `apiclient`
+    function that made it (`get_system`, `auth_me`, ...)."""
+    log.debug(f"API {method} {url} -> {outcome} in {(time.perf_counter() - start) * 1000:.1f}ms", stacklevel=4)
 
 
 def _build_query(params):
@@ -383,11 +402,13 @@ def get_galaxy_tiles(db, tile_keys, density_key=None):
     })
 
 
-def get_galaxy_stamp(db):
-    """Returns `GET /api/galaxy/stamp`'s `stamp` -- the token tile caches
-    key on (see `queryDb.galaxy_content_stamp`)."""
+def get_galaxy_changes(db, since=None):
+    """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
+    `tiles`) -- which cube tiles changed since `since`, an earlier call's
+    `state` (see `queryDb.galaxy_changes`). `lib/tilecache.py` uses it to
+    refresh only the tiles an edit touched."""
     _require_db(db)
-    return _request("/galaxy/stamp", {"db": db})["stamp"]
+    return _request("/galaxy/changes", {"db": db, "since": since})
 
 def get_phenomena(db, limit=None, offset=None):
     """Returns `GET /api/phenomena`'s full paginated envelope
@@ -404,7 +425,7 @@ def get_phenomenon(db, phenomenon_type, phenomenon_id):
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
-def get_search(db, texts, tags, sizes=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `queryDb.search`'s docstring for the full shape.
@@ -421,6 +442,10 @@ def get_search(db, texts, tags, sizes=None):
             `<entity>_min_radius_km`/`<entity>_max_radius_km`, omitting
             either bound that's `None`. An absent key (or `sizes` itself
             being `None`) sends no size filter for that entity.
+        limit (int, optional): Rows per result panel (the API's own
+            default when `None`).
+        offsets (dict, optional): `{panel: offset}` -- sent as
+            `<panel>_offset`, one page per result panel.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -435,6 +460,10 @@ def get_search(db, texts, tags, sizes=None):
             pairs.append((f"{entity}_min_radius_km", min_km))
         if max_km is not None:
             pairs.append((f"{entity}_max_radius_km", max_km))
+    if limit is not None:
+        pairs.append(("limit", limit))
+    for panel, offset in (offsets or {}).items():
+        pairs.append((f"{panel}_offset", offset))
     return _request("/search", pairs)
 
 

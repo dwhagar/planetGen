@@ -48,13 +48,15 @@ connection per call, per TODO.md's "add real connection pooling" note.
 import math
 import os
 import random
+import re
+import time
 from collections import namedtuple
 
 import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import keplerMotion, physical_constants
+from . import keplerMotion, log, physical_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField
@@ -82,7 +84,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 28
+SCHEMA_VERSION = 29
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -286,6 +288,19 @@ class _Cursor:
         return getattr(self._cursor, name)
 
 
+_SECRET_SQL = re.compile(r"password|token|key_hash|secret", re.IGNORECASE)
+_SQL_LOG_LIMIT = 1000
+
+
+def _sql_for_log(sql, params):
+    """One-line SQL plus its parameters for the debug log, with the
+    parameters withheld on statements touching credentials."""
+    text = " ".join(sql.split())
+    shown = "<withheld: credentials>" if _SECRET_SQL.search(text) else repr(params)
+    line = f"{text} | params={shown}"
+    return line if len(line) <= _SQL_LOG_LIMIT else line[:_SQL_LOG_LIMIT] + f"... ({len(line)} chars)"
+
+
 class Connection:
     """
     Thin wrapper around a pooled `pymysql` connection that keeps this
@@ -316,7 +331,18 @@ class Connection:
 
     def execute(self, sql, params=()):
         cur = self._conn.cursor()
-        cur.execute(sql.replace("?", "%s"), params)
+        if not log.debug_log_active():
+            cur.execute(sql.replace("?", "%s"), params)
+            return _Cursor(cur)
+        start = time.perf_counter()
+        try:
+            cur.execute(sql.replace("?", "%s"), params)
+        except Exception as exc:
+            log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: {_sql_for_log(sql, params)} "
+                      f"-> {type(exc).__name__}: {exc}", stacklevel=3)
+            raise
+        log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
+                  f"{_sql_for_log(sql, params)}", stacklevel=3)
         return _Cursor(cur)
 
     def executemany(self, sql, seq_of_params):
@@ -330,7 +356,12 @@ class Connection:
         same as `sqlite3.Connection.executemany`.
         """
         cur = self._conn.cursor()
-        cur.executemany(sql.replace("?", "%s"), list(seq_of_params))
+        rows = list(seq_of_params)
+        start = time.perf_counter()
+        cur.executemany(sql.replace("?", "%s"), rows)
+        if log.debug_log_active():
+            log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
+                      f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", stacklevel=3)
         return _Cursor(cur)
 
     def executescript(self, script):
@@ -1604,21 +1635,36 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     return cur.lastrowid
 
 
-def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None) -> int:
+def _placement_values(placement):
     """
-    Inserts a `supernova_remnants` row (see `schema.sql`'s "v16" header
-    note), plus (for a core-collapse progenitor whose collapsed core is
-    still detectable) its embedded `black_holes`/`neutron_stars` row.
+    `placement`'s four `center_x_pc`/`center_y_pc`/`center_z_pc`/
+    `galactic_radius_pc` values in column order, all `None` for a `None`
+    placement -- the tail of every placeable phenomenon's `INSERT`.
+    """
+    placement = placement or {}
+    return (
+        placement.get("center_x_pc"), placement.get("center_y_pc"),
+        placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
+    )
+
+
+def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, placement=None) -> int:
+    """
+    Inserts a `supernova_remnants` row (see `schema.sql`'s "v16"/"v28"
+    header notes), plus (for a core-collapse progenitor whose collapsed
+    core is still detectable) its embedded `black_holes`/`neutron_stars`
+    row, which shares the remnant's own `sector_id` and `placement` -- it
+    sits at the remnant's center.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
         remnant (SupernovaRemnant): The remnant to persist.
         sector_id (int, optional): The sector this remnant was generated
-            as part of (`sectorGen.generate_sector_phenomena`), if any --
-            this table has no galaxy-frame placement columns of its own
-            (unlike `nebulae`/`asteroid_fields`/(v21 on) `black_holes`/
-            `neutron_stars`), so this is a link only, not a real position.
-            `None` for one never generated as part of any sector.
+            as part of (`sectorGen.generate_sector_phenomena`) or placed
+            near (`phenomenonGen.py --sector-id`). `None` for one never
+            generated as part of any sector.
+        placement (dict, optional): As in `insert_black_hole` -- the
+            galaxy-frame center, or `None` to leave this remnant unplaced.
 
     Returns:
         int: The new `supernova_remnants.id`.
@@ -1628,10 +1674,14 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None) ->
     neutron_star_id = None
     if isinstance(remnant.compact_remnant, BlackHole):
         compact_remnant_kind = "black_hole"
-        black_hole_id = insert_black_hole(conn, remnant.compact_remnant)
+        black_hole_id = insert_black_hole(
+            conn, remnant.compact_remnant, sector_id=sector_id, placement=placement,
+        )
     elif isinstance(remnant.compact_remnant, NeutronStar):
         compact_remnant_kind = "neutron_star"
-        neutron_star_id = insert_neutron_star(conn, remnant.compact_remnant)
+        neutron_star_id = insert_neutron_star(
+            conn, remnant.compact_remnant, sector_id=sector_id, placement=placement,
+        )
 
     cur = conn.execute(
         """
@@ -1639,30 +1689,31 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None) ->
             sector_id, name, morphology, age_years, radius_ly, progenitor_type,
             compact_remnant_kind, compact_remnant_black_hole_id, compact_remnant_neutron_star_id,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_phase_deg, galactic_min_update_interval_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, remnant.name, remnant.morphology, remnant.age_years, remnant.radius_ly,
             remnant.progenitor_type, compact_remnant_kind, black_hole_id, neutron_star_id,
             remnant.galactic_orbital_speed_kms, remnant.galactic_orbital_period_gy,
             remnant.galactic_orbital_phase_deg, remnant.galactic_min_update_interval_years,
+            *_placement_values(placement),
         ),
     )
     return cur.lastrowid
 
 
-def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None) -> int:
+def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=None) -> int:
     """
-    Inserts a `rogue_planets` row (see `schema.sql`'s "v16" header note).
+    Inserts a `rogue_planets` row (see `schema.sql`'s "v16"/"v28" header
+    notes).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
         planet (RoguePlanet): The rogue planet to persist.
-        sector_id (int, optional): As in `insert_supernova_remnant` -- a
-            link to the sector this rogue planet was generated as part of,
-            not a real in-sector position (this table has no placement
-            columns of its own).
+        sector_id (int, optional): As in `insert_supernova_remnant`.
+        placement (dict, optional): As in `insert_supernova_remnant`.
 
     Returns:
         int: The new `rogue_planets.id`.
@@ -1672,32 +1723,32 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None) -> int:
         INSERT INTO rogue_planets (
             sector_id, name, planet_type, mass_kg, radius_km, composition, has_internal_heat, has_moons,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_phase_deg, galactic_min_update_interval_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, planet.name, planet.planet_type, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
+            *_placement_values(placement),
         ),
     )
     return cur.lastrowid
 
 
-def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None) -> int:
+def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, placement=None) -> int:
     """
     Inserts an `interstellar_comets` row (plus its
-    `interstellar_comet_composition` child rows; see `schema.sql`'s "v16"
-    header note).
+    `interstellar_comet_composition` child rows; see `schema.sql`'s
+    "v16"/"v28" header notes).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
         comet (InterstellarComet): The comet to persist.
-        sector_id (int, optional): As in `insert_supernova_remnant` -- a
-            link to the sector this comet was generated as part of, not a
-            real in-sector position (this table has no placement columns
-            of its own).
+        sector_id (int, optional): As in `insert_supernova_remnant`.
+        placement (dict, optional): As in `insert_supernova_remnant`.
 
     Returns:
         int: The new `interstellar_comets.id`.
@@ -1707,14 +1758,16 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None) ->
         INSERT INTO interstellar_comets (
             sector_id, name, nucleus_diameter_km, velocity_kms, is_active, composition_summary,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
-            galactic_orbital_phase_deg, galactic_min_update_interval_years
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            galactic_orbital_phase_deg, galactic_min_update_interval_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, comet.name, comet.nucleus_diameter_km, comet.velocity_kms,
             int(comet.is_active), comet.get_composition_summary(),
             comet.galactic_orbital_speed_kms, comet.galactic_orbital_period_gy,
             comet.galactic_orbital_phase_deg, comet.galactic_min_update_interval_years,
+            *_placement_values(placement),
         ),
     )
     comet_id = cur.lastrowid
@@ -1781,6 +1834,21 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     return field_id
 
 
+_PHENOMENON_INSERTERS = {
+    "black-hole": insert_black_hole,
+    "neutron-star": insert_neutron_star,
+    "nebula": insert_nebula,
+    "asteroid-field": insert_asteroid_field,
+    "supernova-remnant": insert_supernova_remnant,
+    "rogue-planet": insert_rogue_planet,
+    "comet": insert_interstellar_comet,
+}
+"""dict: `program_constants.PHENOMENON_TYPE_CHOICES` value -> the
+`insert_*` function for its table. Every one takes `sector_id=` and
+`placement=` keywords (v28 gave the last three types placement columns),
+so `insert_sector` and `save_phenomenon` share this one lookup."""
+
+
 def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: str, config=None,
                      sector_id=None) -> int:
     """
@@ -1810,14 +1878,11 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
         sector_id (int, optional): The sector to associate this phenomenon
             with (`phenomenonGen.py --sector-id`, or `insert_sector`'s own
             call for a `sectorGen.generate_sector_phenomena`-generated
-            one). For `"nebula"`/`"asteroid-field"`/`"black-hole"`/
-            `"neutron-star"` (the four types with galaxy-frame placement
-            columns), this also places the phenomenon in the galaxy near
-            this already-placed sector via `compute_phenomenon_placement`
-            -- for `"supernova-remnant"`/`"rogue-planet"`/`"comet"` (no
-            placement columns of their own), it's a link only. `None` (the
-            default) leaves it unplaced/unlinked, exactly like every
-            earlier schema version.
+            one). This also places the phenomenon in the galaxy near this
+            already-placed sector via `compute_phenomenon_placement` (every
+            type has placement columns since v28). `None` (the default)
+            leaves it unplaced/unlinked, exactly like every earlier schema
+            version.
 
     Returns:
         int: The new row's id, in whichever table `phenomenon`/
@@ -1837,22 +1902,11 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
                 # single-star branch already inserts the satellite
                 # black_holes/neutron_stars row -- see that function.
                 return insert_star_system(conn, phenomenon, system_config)
-            if phenomenon_type in ("black-hole", "neutron-star", "nebula", "asteroid-field"):
-                placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
-                if phenomenon_type == "black-hole":
-                    return insert_black_hole(conn, phenomenon, sector_id=sector_id, placement=placement)
-                if phenomenon_type == "neutron-star":
-                    return insert_neutron_star(conn, phenomenon, sector_id=sector_id, placement=placement)
-                if phenomenon_type == "nebula":
-                    return insert_nebula(conn, phenomenon, sector_id=sector_id, placement=placement)
-                return insert_asteroid_field(conn, phenomenon, sector_id=sector_id, placement=placement)
-            if phenomenon_type == "supernova-remnant":
-                return insert_supernova_remnant(conn, phenomenon, sector_id=sector_id)
-            if phenomenon_type == "rogue-planet":
-                return insert_rogue_planet(conn, phenomenon, sector_id=sector_id)
-            if phenomenon_type == "comet":
-                return insert_interstellar_comet(conn, phenomenon, sector_id=sector_id)
-            raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
+            inserter = _PHENOMENON_INSERTERS.get(phenomenon_type)
+            if inserter is None:
+                raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
+            placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
+            return inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
     finally:
         conn.close()
 
@@ -2034,9 +2088,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     Inserts a full `StarSystem` -- the `star_systems` row, its `stars` row(s),
     and every planet/moon/asteroid belt/comet it contains -- into the database.
 
-    No page text is stored (v28): wikitext/Markdown are rendered on demand
+    No page text is stored (v29): wikitext/Markdown are rendered on demand
     from these rows by `stellarObjects/systemRender.py` -- see
-    `schema.sql`'s "v28" header note.
+    `schema.sql`'s "v29" header note.
 
     `star_system.star.name` is reserved via `reserve_system_name` (v24,
     `nameUniqueness.py`), mutating it in place if a collision requires a
@@ -2227,10 +2281,8 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     (in light-years, from `SpaceSector.add_phenomenon`) is converted to an
     absolute galaxy-frame center via `_galaxy_placement_from_sector_offset`
     when `galaxy_position` is given (`None` when this sector itself was
-    never placed in the galaxy, exactly like every star system's own
-    placement); a `"supernova-remnant"`/`"rogue-planet"`/`"comet"` entry is
-    only ever linked by `sector_id` (see those tables' own "no placement
-    columns of their own" note).
+    placement) -- every phenomenon type since v28 (see `schema.sql`'s
+    "v28" header note).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -2310,23 +2362,11 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
         )
 
     for entry in sector.phenomena:
-        placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
-        if entry.phenomenon_type == "black-hole":
-            insert_black_hole(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
-        elif entry.phenomenon_type == "neutron-star":
-            insert_neutron_star(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
-        elif entry.phenomenon_type == "nebula":
-            insert_nebula(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
-        elif entry.phenomenon_type == "asteroid-field":
-            insert_asteroid_field(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
-        elif entry.phenomenon_type == "supernova-remnant":
-            insert_supernova_remnant(conn, entry.phenomenon, sector_id=sector_id)
-        elif entry.phenomenon_type == "rogue-planet":
-            insert_rogue_planet(conn, entry.phenomenon, sector_id=sector_id)
-        elif entry.phenomenon_type == "comet":
-            insert_interstellar_comet(conn, entry.phenomenon, sector_id=sector_id)
-        else:
+        inserter = _PHENOMENON_INSERTERS.get(entry.phenomenon_type)
+        if inserter is None:
             raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
+        placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
+        inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
 
     return sector_id
 
@@ -4252,6 +4292,20 @@ def _has_index(conn, table, index_name):
     return row is not None
 
 
+def _has_constraint(conn, table, constraint_name):
+    """
+    Whether `table` already has a constraint named `constraint_name` --
+    `_has_index`'s own reasoning, for a named CHECK (used by
+    `_migrate_v27_to_v28`).
+    """
+    row = conn.execute(
+        "SELECT 1 FROM information_schema.table_constraints"
+        " WHERE table_schema = DATABASE() AND table_name = ? AND constraint_name = ?",
+        (table, constraint_name),
+    ).fetchone()
+    return row is not None
+
+
 def _migrate_v22_to_v23(conn):
     """
     Adds v23's wiki-publishing link columns -- see `schema.sql`'s header
@@ -4567,16 +4621,148 @@ def _backfill_v27_timestamps(conn):
         conn.commit()
 
 
-V28_DROPPED_COLUMNS = ("wikitext_content", "markdown_content")
-"""tuple: The `star_systems` page-text columns v28 dropped -- see
-`schema.sql`'s "v28" header note."""
+V28_PLACED_TABLES = ("supernova_remnants", "rogue_planets", "interstellar_comets")
+"""tuple: The phenomenon tables v28 gave galaxy-frame placement columns --
+see `schema.sql`'s "v28" header note."""
+
+_V28_PLACEMENT_COLUMNS_DDL = (
+    "ADD COLUMN center_x_pc DOUBLE, ADD COLUMN center_y_pc DOUBLE, "
+    "ADD COLUMN center_z_pc DOUBLE, ADD COLUMN galactic_radius_pc DOUBLE"
+)
 
 
 def _migrate_v27_to_v28(conn):
     """
-    Drops `star_systems.wikitext_content`/`markdown_content` -- v28 renders
+    Adds v28's galaxy-frame placement columns (plus their null-together
+    CHECK and spatial/radius indexes) to every table in
+    `V28_PLACED_TABLES`, then backfills a position for every existing row
+    it can -- see `schema.sql`'s "v28" header note and
+    `_backfill_v28_placements`.
+
+    Safe on a large, live table the same way `_migrate_v26_to_v27` is:
+    columns go in with `ALGORITHM=INSTANT` where supported and indexes are
+    built online (`_alter_table_online`). Every step is guarded through
+    `_has_column`/`_has_index`/`_has_constraint`, so a database
+    `_ensure_schema` created fresh (which already has all of this) makes
+    the whole step a no-op.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in V28_PLACED_TABLES:
+        if not _has_column(conn, table, "center_x_pc"):
+            _alter_table_online(
+                conn, table, _V28_PLACEMENT_COLUMNS_DDL,
+                ("ALGORITHM=INSTANT", "ALGORITHM=INPLACE, LOCK=NONE"),
+            )
+        for index_name, columns in (
+            (f"idx_{table}_galactic_radius_pc", "galactic_radius_pc"),
+            (f"idx_{table}_center", "center_x_pc, center_y_pc, center_z_pc"),
+        ):
+            if not _has_index(conn, table, index_name):
+                _alter_table_online(
+                    conn, table, f"ADD KEY {index_name} ({columns})", ("ALGORITHM=INPLACE, LOCK=NONE",),
+                )
+
+    _backfill_v28_placements(conn)
+
+    # The CHECKs go on last: MySQL validates every existing row when one is
+    # added, and the backfill above only ever writes all four columns
+    # together, so they pass.
+    for table in V28_PLACED_TABLES:
+        if not _has_constraint(conn, table, f"chk_{table}_placement"):
+            conn.execute(
+                f"ALTER TABLE {table} ADD CONSTRAINT chk_{table}_placement CHECK ("
+                "(center_x_pc IS NULL) = (center_y_pc IS NULL) AND "
+                "(center_y_pc IS NULL) = (center_z_pc IS NULL) AND "
+                "(center_z_pc IS NULL) = (galactic_radius_pc IS NULL))"
+            )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (28)")
+
+
+def _random_placement_in_sector(sector_row, seed):
+    """
+    A galaxy-frame placement at a uniformly random point inside one
+    galaxy-placed sector's own (rotated) cube -- what `sectorGen` would
+    have picked, for a pre-v28 row whose real in-sector position was never
+    saved. Seeded, so the same row always lands on the same point.
+
+    Args:
+        sector_row (dict-like): `center_x_pc`/`center_y_pc`/`center_z_pc`/
+            `edge_mpc` of the owning sector.
+        seed (str): Seeds the random offset (the row's table and id).
+
+    Returns:
+        dict: `_galaxy_placement_from_sector_offset`'s return shape.
+    """
+    rng = random.Random(seed)
+    half_edge_ly = milliparsecs_to_ly(sector_row["edge_mpc"]) / 2
+    offset_ly = tuple(rng.uniform(-half_edge_ly, half_edge_ly) for _ in range(3))
+    return _galaxy_placement_from_sector_offset(sector_row, offset_ly)
+
+
+def _backfill_v28_placements(conn):
+    """
+    `_migrate_v27_to_v28`'s backfill. Every `V28_PLACED_TABLES` row that
+    is linked to a galaxy-placed sector but has no center yet gets
+    `_random_placement_in_sector`'s point; then every supernova remnant's
+    embedded black hole/neutron star that still has no center takes its
+    remnant's sector and center (it sits at the remnant's middle). Works
+    in primary-key batches, committing after each, like
+    `_backfill_v27_timestamps`; only still-NULL rows are touched, so an
+    interrupted run just carries on where it stopped when re-run.
+    """
+    for table in V28_PLACED_TABLES:
+        for first_id, last_id in _id_batches(conn, table):
+            rows = conn.execute(
+                f"""
+                SELECT t.id, s.center_x_pc, s.center_y_pc, s.center_z_pc, s.edge_mpc
+                FROM {table} t
+                JOIN sectors s ON s.id = t.sector_id
+                WHERE t.id BETWEEN ? AND ?
+                  AND t.center_x_pc IS NULL AND s.center_x_pc IS NOT NULL
+                """,
+                (first_id, last_id),
+            ).fetchall()
+            for row in rows:
+                placement = _random_placement_in_sector(row, f"{table}:{row['id']}")
+                conn.execute(
+                    f"UPDATE {table} SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
+                    " galactic_radius_pc = ? WHERE id = ?",
+                    (*_placement_values(placement), row["id"]),
+                )
+            conn.commit()
+
+    for remnant_table, id_column in (
+        ("black_holes", "compact_remnant_black_hole_id"),
+        ("neutron_stars", "compact_remnant_neutron_star_id"),
+    ):
+        conn.execute(
+            f"""
+            UPDATE {remnant_table} r
+            JOIN supernova_remnants snr ON snr.{id_column} = r.id
+            SET r.sector_id = snr.sector_id,
+                r.center_x_pc = snr.center_x_pc, r.center_y_pc = snr.center_y_pc,
+                r.center_z_pc = snr.center_z_pc, r.galactic_radius_pc = snr.galactic_radius_pc
+            WHERE r.center_x_pc IS NULL AND r.star_id IS NULL AND snr.center_x_pc IS NOT NULL
+            """
+        )
+        conn.commit()
+
+
+V29_DROPPED_COLUMNS = ("wikitext_content", "markdown_content")
+"""tuple: The `star_systems` page-text columns v29 dropped -- see
+`schema.sql`'s "v29" header note."""
+
+
+def _migrate_v28_to_v29(conn):
+    """
+    Drops `star_systems.wikitext_content`/`markdown_content` -- v29 renders
     both on demand from the rest of the system's rows instead
-    (`stellarObjects/systemRender.py`; see `schema.sql`'s "v28" header
+    (`stellarObjects/systemRender.py`; see `schema.sql`'s "v29" header
     note). This deletes data, so take a backup first if you want the old
     stored copies (the PR that added this step describes how).
 
@@ -4591,14 +4777,14 @@ def _migrate_v27_to_v28(conn):
                            committed -- the caller commits once every step
                            up to `SCHEMA_VERSION` has run).
     """
-    present = [column for column in V28_DROPPED_COLUMNS if _has_column(conn, "star_systems", column)]
+    present = [column for column in V29_DROPPED_COLUMNS if _has_column(conn, "star_systems", column)]
     if present:
         _alter_table_online(
             conn, "star_systems", ", ".join(f"DROP COLUMN {column}" for column in present),
             ("ALGORITHM=INSTANT", "ALGORITHM=INPLACE, LOCK=NONE"),
         )
 
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (28)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (29)")
 
 
 def touch_star_system(conn, star_system_id):
@@ -4669,7 +4855,9 @@ def migrate_database(config=None):
     v26's spatial indexes on `nebulae`/`asteroid_fields`/`black_holes`/
     `neutron_stars`), `_migrate_v26_to_v27` (added for v27's
     `created_at`/`modified_at` row timestamps), and `_migrate_v27_to_v28`
-    (dropping the stored wikitext/Markdown page text v28 renders on
+    (added for v28's placement columns on `supernova_remnants`/
+    `rogue_planets`/`interstellar_comets`), and `_migrate_v28_to_v29`
+    (dropping the stored wikitext/Markdown page text v29 renders on
     demand instead) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
@@ -4766,6 +4954,10 @@ def migrate_database(config=None):
         if version < 28:
             _migrate_v27_to_v28(conn)
             version = 28
+
+        if version < 29:
+            _migrate_v28_to_v29(conn)
+            version = 29
 
         conn.commit()
         return version

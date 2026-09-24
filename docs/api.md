@@ -78,15 +78,17 @@ connectivity to that specific schema rather than the default one.
   `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, `center_distance_ly`,
   and `stars`, each
   with `role`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
-  `phenomena` (every galaxy-placed nebula/asteroid field/black hole/
-  neutron star whose sphere could plausibly reach into this sector's
-  cube — `id`, `type`
-  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`), `name`,
-  `descriptor`, `radius_ly` (always 0 for a black hole/neutron star —
-  point-like at this scale), `distance_ly`,
+  `phenomena` (every galaxy-placed standalone phenomenon whose sphere
+  could plausibly reach into this sector's cube, plus every placed one
+  generated as part of this sector, nearest its center first — `id`,
+  `type` (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`), `name`,
+  `descriptor`, `radius_ly` (always 0 for a black hole/neutron star/rogue
+  planet/interstellar comet — point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
   relative to this sector's own — `queryDb.phenomena_near_sector`, empty
-  for an unplaced sector; see `schema.sql`'s "v18"/"v21" header notes),
+  for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
+  notes),
   and `wiki_url` (`null` until this sector has a wiki page — see "Wiki
   publishing" below) (`queryDb.sector_detail`). Distinct from
   `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
@@ -123,7 +125,7 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/systems/<id>/text?format=wikitext|markdown` — the system's
   full wiki page, `{"id", "format", "content"}`, rendered from its
   database rows on each request (`stellarObjects/systemRender.py`; no page
-  text is stored since schema v28). `format` defaults to `wikitext`; any
+  text is stored since schema v29). `format` defaults to `wikitext`; any
   other value is a `400`.
 - `GET /api/systems/<id>/sections` — the same page as Markdown split for
   the system page's expandable list: `overview` (a binary pair's own data
@@ -203,24 +205,30 @@ connectivity to that specific schema rather than the default one.
   twice that tile's edge of its center. At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
-- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>"}`
-  (`queryDb.galaxy_content_stamp`), which changes whenever tile contents
-  could: sectors placed or removed, new star systems, a re-planned galaxy
-  shape, or a new planetGen release. `../src/html/lib/tilecache.py` (the
-  web layer's disk cache) and the map's browser cache both key on it.
+- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
+  "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
+  tile contents could: sectors placed, edited or removed (their
+  `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
+  or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
+- `GET /api/galaxy/changes?since=<state>` — `{"stamp", "state", "full",
+  "tiles"}` (`queryDb.galaxy_changes`): the keys of the tiles that changed
+  since that `state`, found from `sectors.modified_at`, new sector ids and
+  new star-system ids. `full` is `true` (and `tiles` empty) when that can't
+  be pinned to tiles: a deleted sector, a new shape or release, more than
+  1,000 changed sectors, or a missing or unreadable `since`.
+  `../src/html/lib/tilecache.py` (the web layer's disk cache) calls it
+  about once a minute and deletes only the listed tiles, and passes the
+  list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
-  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset, and
-  can never include a supernova remnant — see below) —
+  `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,
   `total`, `limit`, `offset`). Each item has `id`, `type`
   (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
-  `"supernova_remnant"`), `name`,
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`), `name`,
   `descriptor`, `radius_ly` (same shape as `/api/galaxy/phenomena`'s own
   items), plus `sector_id`/`sector_name` (both `null` if never linked to a
-  sector) and `placed` (bool, whether it has a galaxy position at all —
-  always `false` for a supernova remnant, which has no galaxy-frame
-  placement columns of its own) —
+  sector) and `placed` (bool, whether it has a galaxy position at all) —
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
@@ -231,7 +239,8 @@ connectivity to that specific schema rather than the default one.
   `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
   `age_years`), plus `type` and `sector_name` — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
-  `black_hole`/`neutron_star`/`supernova_remnant`; an unrecognized type or
+  `black_hole`/`neutron_star`/`supernova_remnant`/`rogue_planet`/
+  `interstellar_comet`; an unrecognized type or
   a nonexistent id is
   a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
@@ -251,11 +260,19 @@ connectivity to that specific schema rather than the default one.
   present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
   name lists), `facet_labels` (`"facet:value"` -> label, for an
   active-filter chip), and `results` (`sectors`/`systems`/`stars`/
-  `planets`/`moons`/`belts` -> `{"rows": [...], "truncated": bool}`, or
+  `planets`/`moons`/`belts` -> `{"rows": [...], "total", "limit",
+  "offset", "truncated"}`, or
   `null` for an object type with no active reason to query it — see
   `queryDb.search`'s docstring for the exact inclusion rule; a size range
   alone is reason enough, same as a tag or name term). `stars`/`planets`/
-  `moons` result rows each include their own `radius_km`.
+  `moons` result rows each include their own `radius_km`. Each result
+  panel is paged on its own: `limit` sets the rows per panel (default
+  300, clamped to 500 like "Pagination" below), and `sectors_offset`/
+  `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
+  `belts_offset` pick each panel's page; `total` is that panel's full
+  match count and `truncated` is true when `rows` isn't all of them. An
+  offset past the last match returns the last page (with its real
+  `offset`).
 - `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
   each wiki backend has a `base_url` plus credentials configured
   deployment-wide (`config.json`'s `wiki` section, or the matching
@@ -331,7 +348,7 @@ used by the `../src/html/` admin pages) or an API key, sent as
 
 ### Pagination
 
-`/api/sectors` and `/api/systems` return a paginated envelope rather than a
+`/api/sectors`, `/api/systems` and `/api/phenomena` return a paginated envelope rather than a
 bare list — this project's own roadmap (`docs/TODO.md`, Phase 4) plans
 galaxy-scale generation, so an unbounded listing endpoint would eventually
 return an unbounded response:
@@ -371,17 +388,15 @@ client (the real detail still reaches Flask's own logger).
 adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
 graph with Dijkstra shortest-path) between two endpoints -- each either a
 star system (the default) or a standalone phenomenon (nebula/asteroid
-field/black hole/neutron star).
+field/black hole/neutron star/supernova remnant/rogue planet/interstellar
+comet).
 
 **Phenomenon endpoints.** Pass `from_kind=phenomenon&from_type=<type>`
 (and/or the `to_*` equivalents) to route to/from a phenomenon instead of a
 system -- `from`/`to` then names that phenomenon's own row id, and
 `from_type`/`to_type` is one of `nebula`, `asteroid_field`, `black_hole`,
-`neutron_star` (NOT `supernova_remnant` -- that phenomenon type is fully
-recognized everywhere else, `GET /api/phenomena/<type>/<id>` included, but
-its own table has no galaxy-frame placement columns at all, so it can
-never be a NAV endpoint; passing it here is a `404`, same as an
-unrecognized type or a nonexistent id). A phenomenon
+`neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`
+(an unrecognized type or a nonexistent id is a `404`). A phenomenon
 endpoint's own `route.path`/`route.positions` id is a
 `"phenomenon:<type>:<id>"` string (a plain int id, same as always, for a
 system) -- only `route.path[0]`/`route.path[-1]` can ever be a phenomenon;

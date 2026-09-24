@@ -1,9 +1,9 @@
 # tests/test_system_render.py
 
 """
-Schema v28: a system's wikitext/Markdown page is no longer stored but
+Schema v29: a system's wikitext/Markdown page is no longer stored but
 rendered from its database rows (`stellarObjects/systemRender.py`) -- see
-`schema.sql`'s "v28" header note. These tests pin the property that made
+`schema.sql`'s "v29" header note. These tests pin the property that made
 dropping the stored copies safe: rendering a system from the database
 gives exactly what rendering the freshly generated object gave (which is
 what used to be stored), for every kind of system.
@@ -153,7 +153,7 @@ def test_sections_split_the_page_per_body(mysql_config):
     assert len(sections["moons"]) == sum(len(p.moons) for p in planets)
 
 
-def test_migrate_v27_to_v28_drops_the_stored_page_text(mysql_config):
+def test_migrate_v28_to_v29_drops_the_stored_page_text(mysql_config):
     cfg = _config(BINARY_SYSTEM=False, PLANETS=False)
     system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
 
@@ -161,8 +161,8 @@ def test_migrate_v27_to_v28_drops_the_stored_page_text(mysql_config):
     try:
         conn.execute("ALTER TABLE star_systems ADD COLUMN wikitext_content LONGTEXT, ADD COLUMN markdown_content LONGTEXT")
         conn.execute("UPDATE star_systems SET wikitext_content = 'old', markdown_content = 'old'")
-        conn.execute("DELETE FROM schema_migrations WHERE version = 28")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (27)")
+        conn.execute("DELETE FROM schema_migrations WHERE version = 29")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (28)")
         conn.commit()
     finally:
         conn.close()
@@ -172,7 +172,7 @@ def test_migrate_v27_to_v28_drops_the_stored_page_text(mysql_config):
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
         columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
-        assert not columns & set(_db.V28_DROPPED_COLUMNS)
+        assert not columns & set(_db.V29_DROPPED_COLUMNS)
         assert render_system_text(conn, system_id, "markdown").startswith("# ")
     finally:
         conn.close()

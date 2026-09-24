@@ -2,19 +2,18 @@
 # html/sector.py
 
 """
-Sector detail page: the sector's name/size and every system placed in it
-(nearest the sector's center first), with quadrant and star-type info,
-linking to `system.py` for each -- plus an interactive 3D "Sector Map"
-(see `lib/starmap.py`) of the same systems plotted by position within the
-sector, plus a translucent cloud for every
-nebula/asteroid field (and a point marker for every black hole/neutron
-star) whose real galaxy-frame sphere reaches into this sector's own cube
-(`queryDb.phenomena_near_sector`, via
+Sector detail page: the sector's name/size and every system placed in it,
+with quadrant and star-type info, linking to `system.py` for each -- plus
+an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
+plotted by position within the sector, plus a translucent cloud for every
+nebula/asteroid field/supernova remnant (and a point marker for every
+black hole/neutron star/rogue planet/interstellar comet) whose real
+galaxy-frame sphere reaches into this sector's own cube, or that was
+generated as part of it (`queryDb.phenomena_near_sector`, via
 `GET /api/sectors/<id>`'s `phenomena` key -- see `schema.sql`'s
-"v18"/"v21" header notes). That same phenomena list also gets its own
-table below the systems one (mirroring `phenomena.py`'s flat listing,
-scoped to just this sector's own neighborhood), each row linking to
-`phenomenon.py` -- omitted entirely when nothing nearby qualifies.
+"v18"/"v21"/"v28" header notes). The "Contents" table lists those
+phenomena alongside the sector's systems, nearest the sector's center
+first, each row linking to `system.py` or `phenomenon.py`.
 
 Once this sector has a wiki page (`sectors.wiki_url` -- either uploaded
 from here or set directly via `html/admin.py`'s manual-link admin
@@ -46,11 +45,14 @@ from apiclient import (
 from fmt import esc, format_distance_ly, linkify_location, post_link
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, nav_params, run
+from pagination import page_slice, parse_page, render_pagination
 from starmap import render_map_panel
 
 _PHENOMENON_TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
+    "supernova_remnant": "Supernova Remnant",
+    "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
 }
 """dict: Same display labels `phenomena.py`'s own flat listing uses, for
 `queryDb.phenomena_near_sector`'s `type` values."""
@@ -147,7 +149,9 @@ def handler():
     systems = sector["systems"]
     name_to_id = {row["name"]: row["id"] for row in systems}
 
-    rows = []
+    # (distance from the sector's center in ly, or None if unplaced; row HTML)
+    # for every system and phenomenon, merged into one Contents table below.
+    content_rows = []
     map_systems = []
     for row in systems:
         # binary_type only ever describes a 'close' (P-type) pair's merged
@@ -159,16 +163,17 @@ def handler():
             star_type = row["binary_type"]
         else:
             star_type = " / ".join(star["star_type"] for star in row["stars"]) if row["stars"] else ""
-        rows.append(
+        distance_ly = row.get("center_distance_ly")
+        content_rows.append((distance_ly, (
             "<tr>"
             f'<td>{post_link("system.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
-            f'<td>{esc(row["quadrant"])}</td>'
-            f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
+            f'<td>{"Binary Star System" if row["is_binary"] else "Star System"}</td>'
             f'<td>{esc(star_type or "")}</td>'
-            f'<td>{format_distance_ly(row.get("center_distance_ly"))}</td>'
+            f'<td>{esc(row["quadrant"])}</td>'
             f'<td>{linkify_location(db_name, row["location"], name_to_id)}</td>'
+            f'<td>{format_distance_ly(distance_ly)}</td>'
             "</tr>"
-        )
+        )))
         if row["position_x_mpc"] is not None and row["stars"]:
             # One entry for a single star, two (primary, then secondary)
             # for a binary -- each with its own star_type/temperature/
@@ -193,24 +198,35 @@ def handler():
                     for star in row["stars"]
                 ],
             })
-    rows_html = "".join(rows) or '<tr><td colspan="6"><em>None</em></td></tr>'
 
-    def _phenomenon_row_html(row):
-        radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
+    for row in (sector.get("phenomena") or []):
+        details = [(row["descriptor"] or "").replace("_", " ").capitalize()]
+        if row["radius_ly"]:
+            details.append(f"{row['radius_ly']:,.2f} ly radius")
+        details = ", ".join(bit for bit in details if bit)
         phenomenon_link = post_link(
             "phenomenon.py", {"db": db_name, "type": row["type"], "id": row["id"]}, esc(row["name"])
         )
-        return (
+        content_rows.append((row["distance_ly"], (
             "<tr>"
             f'<td>{phenomenon_link}</td>'
             f'<td>{esc(_PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]))}</td>'
-            f'<td>{esc((row["descriptor"] or "").replace("_", " ").capitalize())}</td>'
-            f'<td>{radius_text}</td>'
-            f'<td>{row["distance_ly"]:,.1f} ly</td>'
+            f'<td>{esc(details)}</td>'
+            "<td>&ndash;</td>"
+            "<td>&ndash;</td>"
+            f'<td>{format_distance_ly(row["distance_ly"])}</td>'
             "</tr>"
-        )
+        )))
 
-    phenomena_rows_html = "".join(_phenomenon_row_html(row) for row in (sector.get("phenomena") or []))
+    # Nearest the sector's center first; anything with no position last.
+    # The map above plots everything, so the full list is already here;
+    # the table shows one page of it (see lib/pagination.py).
+    content_rows.sort(key=lambda entry: (entry[0] is None, entry[0] or 0.0))
+    page_rows, contents_page = page_slice(content_rows, parse_page(params.get("contents_page")))
+    contents_html = "".join(html for _distance, html in page_rows) or (
+        '<tr><td colspan="6"><em>None</em></td></tr>'
+    )
+    page_state = {"db": db_name, "id": sector_id, "contents_page": contents_page}
 
     center_pc = (
         (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
@@ -232,7 +248,7 @@ def handler():
     ]
     if phenomenon_count:
         phenomenon_word = "phenomenon" if phenomenon_count == 1 else "phenomena"
-        badge_bits.append(f"{phenomenon_count} nearby exotic {phenomenon_word}")
+        badge_bits.append(f"{phenomenon_count} {phenomenon_word}")
     if sector["placed"]:
         quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
         badge_bits.append(
@@ -241,18 +257,6 @@ def handler():
     badges_html = "<p class=\"badges\">" + "".join(
         f'<span class="badge">{bit}</span>' for bit in badge_bits
     ) + "</p>"
-
-    phenomena_section_html = ""
-    if phenomenon_count:
-        phenomena_section_html = f"""
-<section class="panel">
-<h2>Nearby Exotic Phenomena</h2>
-<div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Type</th><th>Descriptor</th><th>Radius</th><th>Distance</th></tr></thead>
-  <tbody>{phenomena_rows_html}</tbody>
-</table></div>
-</section>
-"""
 
     wiki_html = ""
     if identity is not None or sector["wiki_url"]:
@@ -305,14 +309,15 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 {wiki_html}
 {admin_panel_html}
 {map_html}
-<section class="panel">
-<h2>Systems</h2>
+<section class="panel" id="sector-contents">
+<h2>Contents</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Octant</th><th>Binary</th><th>Star type</th><th>From center</th><th>Location</th></tr></thead>
-  <tbody>{rows_html}</tbody>
+  <thead><tr><th>Name</th><th>Type</th><th>Details</th><th>Octant</th><th>Location</th><th>From center</th></tr></thead>
+  <tbody>{contents_html}</tbody>
 </table></div>
+{render_pagination("sector.py", page_state, "contents_page", contents_page, len(content_rows),
+                   anchor="sector-contents", label="Contents pages")}
 </section>
-{phenomena_section_html}
 <script type="module" src="static/sectormap.js"></script>
 """
     return f"Sector: {sector['name']}", body

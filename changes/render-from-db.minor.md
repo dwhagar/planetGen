@@ -5,7 +5,7 @@
   terrestrial/gas giant, Habitable yes/no and Inhabited yes/no, and
   opening onto that body's own description. Wikitext and Markdown buttons
   show the full generated page in a code box with a Copy button.
-- **Wiki page text is no longer stored (schema v28).**
+- **Wiki page text is no longer stored (schema v29).**
   `star_systems.wikitext_content`/`markdown_content` are dropped; both
   formats are rendered on demand from the system's rows
   (`stellarObjects/systemRender.py`), so pages now follow renames, names
@@ -15,7 +15,7 @@
   and `GET /api/systems/<id>/sections`. **The migration deletes the stored
   copies: back up first** (`mysqldump`, or `src/checkRenderParity.py
   --export-dir`, which also compares the stored and rendered text on a
-  database still at v27).
+  database still at v28).
 
 ### Fixed
 - **Binary stars could load with their primary and secondary swapped**

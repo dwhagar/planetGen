@@ -42,12 +42,14 @@ import generate  # noqa: E402
 from queryDb import (
     NO_SECTOR,
     NavUnavailable,
+    SEARCH_RESULT_LIMIT,
+    SEARCH_RESULT_PANELS,
     SEARCH_TAG_FACETS,
     count_phenomena,
     count_sectors,
     count_systems,
     MAX_TILES_PER_REQUEST,
-    galaxy_content_stamp,
+    galaxy_changes,
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
@@ -417,7 +419,7 @@ def system_text(system_id):
     `GET /api/systems/<id>/text?format=wikitext|markdown` -- the system's
     full wiki page, rendered now from its database rows
     (`stellarObjects/systemRender.py`; no page text is stored since
-    schema v28). `format` defaults to `wikitext`.
+    schema v29). `format` defaults to `wikitext`.
     """
     fmt = request.args.get("format", "wikitext")
     if fmt not in SYSTEM_TEXT_FORMATS:
@@ -603,10 +605,9 @@ def galaxy_sectors():
 @bp.route("/galaxy/phenomena")
 def galaxy_phenomena():
     """
-    Every galaxy-placed nebula/asteroid field/black hole/neutron star
-    (`nebulae`/`asteroid_fields`/`black_holes`/`neutron_stars`.
-    `center_x/y/z_pc` not NULL -- see `schema.sql`'s "v18"/"v21" header
-    notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
+    Every galaxy-placed standalone phenomenon (`center_x/y/z_pc` not
+    NULL, in any `queryDb._PHENOMENON_TABLES` table -- see `schema.sql`'s
+    "v18"/"v21"/"v29" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
     as small dots on the same `html/galaxy.py` Galaxy Map. Not paginated,
     for the same reason `/api/galaxy/sectors` isn't.
     """
@@ -692,11 +693,25 @@ def galaxy_tiles_route():
 @bp.route("/galaxy/stamp")
 def galaxy_stamp_route():
     """
-    `{"stamp": "<16 hex>"}` -- changes whenever the galaxy's tile contents
-    could change (see `queryDb.galaxy_content_stamp`). Tile caches key on
-    it, so a cached tile is never reused after new sectors are generated.
+    `{"stamp": "<16 hex>", "state": "<token>"}` -- `stamp` changes whenever
+    the galaxy's tile contents could change (see
+    `queryDb.galaxy_content_stamp`), and `state` is what
+    `/galaxy/changes?since=` takes to say which tiles did.
     """
-    return jsonify({"stamp": galaxy_content_stamp(get_db())})
+    changes = galaxy_changes(get_db())
+    return jsonify({"stamp": changes["stamp"], "state": changes["state"]})
+
+
+@bp.route("/galaxy/changes")
+def galaxy_changes_route():
+    """
+    `?since=<state>` -- which cube tiles changed since that state (see
+    `queryDb.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`.
+    `html/lib/tilecache.py` calls this about once a minute and deletes
+    only the listed tiles, or all of them when `full`. A missing or
+    unreadable `since` just answers `full`.
+    """
+    return jsonify(galaxy_changes(get_db(), request.args.get("since")))
 
 @bp.route("/phenomena")
 def phenomena():
@@ -749,6 +764,12 @@ def search():
     (repeatable, e.g. `?class=M&class=K` for two active Class tags); and
     `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/
     `moon_`) for a size range, in km -- either bound may be omitted.
+
+    Each result panel is paged independently: `limit` is the rows per
+    panel (default `SEARCH_RESULT_LIMIT`, clamped to `MAX_PAGE_LIMIT`,
+    validated like every other `limit`), and `sectors_offset`/
+    `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
+    `belts_offset` pick each panel's page.
     """
     args = request.args
     texts = {
@@ -765,7 +786,15 @@ def search():
         "moon": _parse_size_range(args, "moon"),
     }
 
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes))
+    limit = SEARCH_RESULT_LIMIT
+    if args.get("limit") is not None:
+        limit, _offset = _paginate({"limit": args.get("limit")})
+    offsets = {
+        panel: _paginate({"offset": args.get(f"{panel}_offset")})[1]
+        for panel in SEARCH_RESULT_PANELS
+    }
+
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets))
 
 
 @bp.route("/wiki-config")

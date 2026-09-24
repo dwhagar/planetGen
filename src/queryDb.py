@@ -32,9 +32,11 @@ sys.path shim needed, unlike the root-level entry scripts
 """
 
 import argparse
+import datetime
 import hashlib
 import json
 import math
+import re
 
 import pymysql
 
@@ -49,6 +51,7 @@ from stellarObjects.galaxyViewport import (
     planned_slots_in_tile,
     planned_slots_in_view,
     tile_bounds_pc,
+    tile_keys_containing,
 )
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
@@ -597,8 +600,7 @@ def _load_nav_phenomenon_endpoint(conn, phenomenon_type, phenomenon_id):
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
-        phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
-            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, `"neutron_star"`).
+        phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
         phenomenon_id (int): The phenomenon's own row id.
 
     Returns:
@@ -607,16 +609,12 @@ def _load_nav_phenomenon_endpoint(conn, phenomenon_type, phenomenon_id):
             `None` if this phenomenon has never been placed in the galaxy).
 
     Raises:
-        ValueError: If `phenomenon_type` is unrecognized, is a type with no
-            galaxy-frame placement columns at all (`_UNPLACED_PHENOMENON_
-            TABLES`'s own three types -- see `_SUPERNOVA_REMNANT_TABLE`'s
-            own docstring), or no such row exists.
+        ValueError: If `phenomenon_type` is unrecognized, or no such row
+            exists.
     """
-    if phenomenon_type not in _PLACEABLE_PHENOMENON_TYPES:
-        raise ValueError(
-            f"{phenomenon_type!r} has no galaxy-frame placement and can never be a NAV endpoint"
-        )
-    table = _PHENOMENON_TYPE_TO_TABLE[phenomenon_type]
+    table = _PHENOMENON_TYPE_TO_TABLE.get(phenomenon_type)
+    if table is None:
+        raise ValueError(f"no such phenomenon type: {phenomenon_type!r}")
 
     row = conn.execute(
         f"SELECT center_x_pc, center_y_pc, center_z_pc FROM {table} WHERE id = ?",
@@ -1023,90 +1021,42 @@ _PHENOMENON_TABLES = (
     ("black_holes", "black_hole",
      "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)", "0"),
     ("neutron_stars", "neutron_star", "pulsar_type", "0"),
+    # v28: the last three types gained the same placement columns
+    # (schema.sql's "v28" header note). A supernova remnant has a real
+    # radius_ly of its own; a rogue planet's radius_km and a comet's
+    # nucleus are negligible at light-year scale, so both are points like
+    # the compact remnants above. The comet is `interstellar_comet`, not
+    # bare `comet`, to stay unambiguous next to the unrelated `comets`
+    # table (a star system's own planet-orbiting comets).
+    ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly"),
+    ("rogue_planets", "rogue_planet",
+     "(CASE WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
+    ("interstellar_comets", "interstellar_comet",
+     "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0"),
 )
-"""tuple: `(table_name, type_label, descriptor_expr, radius_expr)` for each
-galaxy-placeable standalone phenomenon `phenomena_near_sector`/
-`galaxy_placed_phenomena` read from -- see `schema.sql`'s "v18"/"v21"
-header notes. `descriptor_expr` is a SQL expression for each table's own
-one-line flavor field (a nebula's `nebula_type`, a black hole's accretion
-state), normalized to a common `descriptor` key so callers don't need to
-know which table a given `type` came from; `radius_expr` is likewise a SQL
-expression (a plain column for nebulae/asteroid fields, a literal `0` for
-the two point-like compact-remnant types)."""
+"""tuple: `(table_name, type_label, descriptor_expr, radius_expr)` for
+every standalone phenomenon table -- all seven have galaxy-frame placement
+columns since v28 (see `schema.sql`'s "v18"/"v21"/"v28" header notes),
+though any single row may still be unplaced. `descriptor_expr` is a SQL
+expression for each table's own one-line flavor field (a nebula's
+`nebula_type`, a black hole's accretion state), normalized to a common
+`descriptor` key so callers don't need to know which table a given `type`
+came from; `radius_expr` is likewise a SQL expression (a plain column
+where the object has a light-year-scale size, a literal `0` for the
+point-like types)."""
 
-
-_SUPERNOVA_REMNANT_TABLE = ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly")
-"""tuple: The `supernova_remnant` counterpart to one `_PHENOMENON_TABLES`
-entry -- kept OUT of that tuple deliberately, since `supernova_remnants`
-never gained the v21 galaxy-frame placement columns
-(`center_x_pc`/`center_y_pc`/`center_z_pc`/`galactic_radius_pc`) the other
-four phenomenon tables did (see `schema.sql`'s own "v16"/"v21" header
-notes) -- so it can never appear on the Galaxy Map or as a NAV endpoint,
-and can't share `_placed_phenomenon_rows`/`galaxy_placed_phenomena`/
-`phenomena_near_sector`'s common query shape, which all select
-`center_x_pc`. It still has its own real `radius_ly` (unlike the two
-point-like compact-remnant types), so it's fully usable everywhere that
-only needs the phenomenon's own physical size -- `list_phenomena`/
-`count_phenomena`'s flat listing, `phenomenon_detail`'s page, and
-`lib/phenomenonmap.py`'s AU-scale diagram."""
-
-_ROGUE_PLANET_TABLE = (
-    "rogue_planets", "rogue_planet",
-    "(CASE WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0",
+_RADIUS_PHENOMENON_TABLES = tuple(
+    table for table, _type_label, _descriptor_expr, radius_expr in _PHENOMENON_TABLES if radius_expr != "0"
 )
-"""tuple: The `rogue_planet` counterpart to one `_PHENOMENON_TABLES` entry
--- same "no galaxy-frame placement columns at all" reasoning as
-`_SUPERNOVA_REMNANT_TABLE` (see that constant's own docstring; `schema.sql`
-never gave `rogue_planets` `center_x/y/z_pc` either). Its `radius_expr` is
-a literal `0`, not a real column, for the same reason `black_holes`/
-`neutron_stars` use one in `_PHENOMENON_TABLES`: a rogue planet's own
-`radius_km` is planet-scale, utterly negligible next to the light-year
-scale `list_phenomena`'s shared `radius_ly` column otherwise means.
-
-Confirmed missing end-to-end before this was added: `generate.py`
-(`generate_sector_phenomena`) has always generated and saved these at a
-non-trivial rate (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`'s
-own `"rogue-planet": 0.1` -- roughly one per ten star systems, far more
-common than a nebula), but no query function anywhere ever read the
-`rogue_planets` table, so a generated rogue planet was completely
-invisible in every listing/page despite existing in the database the
-whole time."""
-
-_INTERSTELLAR_COMET_TABLE = (
-    "interstellar_comets", "interstellar_comet",
-    "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0",
-)
-"""tuple: The `interstellar_comet` counterpart to one `_PHENOMENON_TABLES`
-entry -- same "no galaxy-frame placement columns at all" reasoning as
-`_ROGUE_PLANET_TABLE` immediately above (and the same "confirmed missing
-end-to-end" history: generated via `program_constants.
-PHENOMENON_RATE_PER_STAR_SYSTEM`'s `"comet"` rate, never once queried).
-`radius_expr` is a literal `0` for the same reason -- `nucleus_diameter_km`
-is negligible at this shared column's light-year scale. Named
-`interstellar_comet`, not bare `comet`, to stay unambiguous next to the
-unrelated `comets` table (a star system's own planet-orbiting comets,
-`queryDb.system_detail`'s own `comets` key -- a completely different
-table this constant has nothing to do with)."""
-
-_UNPLACED_PHENOMENON_TABLES = (_SUPERNOVA_REMNANT_TABLE, _ROGUE_PLANET_TABLE, _INTERSTELLAR_COMET_TABLE)
-"""tuple: Every phenomenon type with no galaxy-frame placement columns at
-all (as opposed to `_PHENOMENON_TABLES`' own four, which simply may or may
-not be placed yet) -- `_PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES`
-is `list_phenomena`/`count_phenomena`/`_PHENOMENON_TYPE_TO_TABLE`'s own
-"every type" tuple, shared here so a future phenomenon type only ever
-needs adding in one place."""
-
-_UNPLACED_PHENOMENON_TABLE_NAMES = frozenset(table for table, *_rest in _UNPLACED_PHENOMENON_TABLES)
-"""frozenset: Just the table names out of `_UNPLACED_PHENOMENON_TABLES` --
-`list_phenomena`'s own union query selects a literal `NULL AS center_x_pc`
-for any of these (they have no such column at all to select), unlike
-`_PHENOMENON_TABLES`' own four, which select their real column."""
+"""tuple: The `_PHENOMENON_TABLES` tables with a real `radius_ly` column
+(nebulae, asteroid fields, supernova remnants) --
+`_widest_placed_phenomenon_radius_ly` checks just these."""
 
 
-def _placed_phenomenon_rows(conn, bbox=None):
+def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
-    v18/v21-placeable standalone-phenomenon tables, normalized to one
+    `_PHENOMENON_TABLES`, normalized to one
     common shape -- shared by `phenomena_near_sector` (which then filters
     by distance) and `galaxy_placed_phenomena` (which doesn't need to).
 
@@ -1127,16 +1077,23 @@ def _placed_phenomenon_rows(conn, bbox=None):
             every single `sector_detail` call (see `schema.sql`'s "v26"
             header note), the same failure mode "v25"'s note already
             documented for `sectors` before that migration.
+        sector_id (int, optional): When given (instead of `bbox`), reads
+            only the placed rows whose own `sector_id` is this sector --
+            an indexed lookup `phenomena_near_sector` uses so a sector
+            always lists the phenomena generated as part of it.
 
     Returns:
-        list[dict]: `id`, `type` (`"nebula"`, `"asteroid_field"`,
-            `"black_hole"`, or `"neutron_star"`), `name`, `descriptor`,
-            `radius_ly` (0 for the two compact-remnant types), `x`/`y`/`z`
-            (`center_x/y/z_pc`), `galactic_radius_pc`.
+        list[dict]: `id`, `type` (one of `_PHENOMENON_TABLES`' type
+            labels), `name`, `descriptor`, `radius_ly` (0 for the
+            point-like types), `x`/`y`/`z` (`center_x/y/z_pc`),
+            `galactic_radius_pc`.
     """
     where_bbox = ""
     bbox_params = ()
-    if bbox is not None:
+    if sector_id is not None:
+        where_bbox = " AND sector_id = ?"
+        bbox_params = (sector_id,)
+    elif bbox is not None:
         cx, cy, cz, margin_pc = bbox
         where_bbox = (
             " AND center_x_pc BETWEEN ? AND ?"
@@ -1173,10 +1130,9 @@ def _placed_phenomenon_rows(conn, bbox=None):
 
 def _widest_placed_phenomenon_radius_ly(conn):
     """
-    The largest `radius_ly` among currently placed `nebulae`/
-    `asteroid_fields` rows (the only two phenomenon tables with a real,
-    non-zero radius -- see `_PHENOMENON_TABLES`), or `0.0` if neither
-    table has any placed row at all.
+    The largest `radius_ly` among currently placed rows of the phenomenon
+    tables with a real, non-zero radius (`_RADIUS_PHENOMENON_TABLES`), or
+    `0.0` if none of them has any placed row at all.
 
     `phenomena_near_sector` uses this to size its own bounding-box margin
     (see that function's docstring): a bare `MAX(radius_ly)` aggregate
@@ -1196,7 +1152,7 @@ def _widest_placed_phenomenon_radius_ly(conn):
         float: The widest placed radius, light-years.
     """
     widest = 0.0
-    for table in ("nebulae", "asteroid_fields"):
+    for table in _RADIUS_PHENOMENON_TABLES:
         row = conn.execute(
             f"SELECT MAX(radius_ly) AS widest FROM {table} WHERE center_x_pc IS NOT NULL"
         ).fetchone()
@@ -1208,17 +1164,12 @@ def _widest_placed_phenomenon_radius_ly(conn):
 def list_phenomena(conn, limit=None, offset=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
-    neutron star/supernova remnant/rogue planet/interstellar comet -- the
-    four in `_PHENOMENON_TABLES` plus `_UNPLACED_PHENOMENON_TABLES`),
-    across every sector and regardless of galaxy placement -- `GET
-    /api/phenomena`'s own flat listing (`html/phenomena.py`), unlike
-    `galaxy_placed_phenomena` (which only returns the galaxy-placed
-    subset, for the Galaxy Map) or `phenomena_near_sector` (one sector's
-    own neighborhood) -- neither of which a supernova remnant/rogue
-    planet/interstellar comet can ever appear in, since none of those
-    three tables have galaxy-frame placement columns at all (see
-    `_SUPERNOVA_REMNANT_TABLE`'s own docstring); their `placed` is
-    therefore always `False` here.
+    neutron star/supernova remnant/rogue planet/interstellar comet --
+    every table in `_PHENOMENON_TABLES`), across every sector and
+    regardless of galaxy placement -- `GET /api/phenomena`'s own flat
+    listing (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which
+    only returns the galaxy-placed subset, for the Galaxy Map) or
+    `phenomena_near_sector` (one sector's own neighborhood).
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -1240,20 +1191,19 @@ def list_phenomena(conn, limit=None, offset=None):
             `sector_id`/`sector_name` (both `None` if this phenomenon has
             never been linked to a sector -- see `schema.sql`'s "v18"
             header note), and `placed` (bool -- whether it has a galaxy
-            position at all, `center_x_pc IS NOT NULL`; always `False` for
-            any of `_UNPLACED_PHENOMENON_TABLES`'s own three types).
+            position at all, `center_x_pc IS NOT NULL`).
     """
     union_parts = [
         f"""
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
                {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                t.sector_id AS sector_id, sec.name AS sector_name,
-               {"NULL" if table in _UNPLACED_PHENOMENON_TABLE_NAMES else "t.center_x_pc"} AS center_x_pc
+               t.center_x_pc AS center_x_pc
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
-        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
     ]
     query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
     params = []
@@ -1276,7 +1226,7 @@ def list_phenomena(conn, limit=None, offset=None):
 def count_phenomena(conn):
     """
     Returns the total number of exotic phenomena across every type in
-    `_PHENOMENON_TABLES` plus `_UNPLACED_PHENOMENON_TABLES`, ignoring any
+    `_PHENOMENON_TABLES`, ignoring any
     pagination -- the denominator `list_phenomena(conn, limit=...)`
     callers (the API's `/api/phenomena`) need to report how many pages
     exist.
@@ -1292,32 +1242,18 @@ def count_phenomena(conn):
             f"SELECT COUNT(*) AS n FROM {table}"
             + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
         ).fetchone()["n"]
-        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES
+        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES
     )
 
 
 _PHENOMENON_TYPE_TO_TABLE = {
-    type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES + _UNPLACED_PHENOMENON_TABLES
+    type_label: table for table, type_label, _de, _re in _PHENOMENON_TABLES
 }
 """dict: `type` value (as returned by `list_phenomena`/`galaxy_placed_phenomena`)
 -> its backing table name, e.g. `"nebula"` -> `"nebulae"` -- the reverse of
 `_PHENOMENON_TABLES`'s own `(table, type_label, ...)` order, used by
 `phenomenon_detail` to find the one table a `(type, id)` pair actually
-means without hand-listing the mapping a second time. Includes
-`_UNPLACED_PHENOMENON_TABLES` too, since `phenomenon_detail`'s plain
-`SELECT t.*` works for those exactly the same as for the other four types
-even though they can't participate in the galaxy-placement-only helpers
-below."""
-
-_PLACEABLE_PHENOMENON_TYPES = frozenset(type_label for _t, type_label, _de, _re in _PHENOMENON_TABLES)
-"""frozenset: The `type` values that DO have galaxy-frame placement
-columns (everything in `_PHENOMENON_TABLES`) -- deliberately excludes
-every one of `_UNPLACED_PHENOMENON_TABLES`'s own types, unlike
-`_PHENOMENON_TYPE_TO_TABLE` above. Guards `_load_nav_phenomenon_endpoint`
-against ever running its `center_x_pc` SELECT against one of those tables,
-none of which has any such column, and would otherwise raise a raw SQL
-error instead of the clean `ValueError` a NAV
-request for an inherently unplaceable phenomenon type should get."""
+means without hand-listing the mapping a second time."""
 
 
 def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
@@ -1373,8 +1309,8 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
 
 def galaxy_placed_phenomena(conn):
     """
-    Every galaxy-placed nebula/asteroid field/black hole/neutron star --
-    the phenomenon counterpart to `galaxy_placed_sectors`, plotted as small
+    Every galaxy-placed standalone phenomenon (all `_PHENOMENON_TABLES`
+    types) -- the phenomenon counterpart to `galaxy_placed_sectors`, plotted as small
     dots on the same Galaxy Map (`html/lib/galaxymap.py`).
 
     Args:
@@ -1388,11 +1324,14 @@ def galaxy_placed_phenomena(conn):
 
 def phenomena_near_sector(conn, sector_id):
     """
-    Every galaxy-placed nebula/asteroid field/black hole/neutron star
-    whose sphere could plausibly reach into `sector_id`'s own cube -- the
-    data `html/lib/starmap.py`'s Sector Map draws (translucent clouds for
-    nebulae/asteroid fields, point markers for the two compact-remnant
-    types, whose own `radius_ly` is always 0 -- see `_PHENOMENON_TABLES`).
+    Every galaxy-placed standalone phenomenon (any `_PHENOMENON_TABLES`
+    type) whose sphere could plausibly reach into `sector_id`'s own cube,
+    plus every placed one generated as part of this sector (its own
+    `sector_id`) wherever it sits -- the data `html/lib/starmap.py`'s
+    Sector Map draws (translucent clouds for nebulae/asteroid fields/
+    supernova remnants, point markers for the point-like types, whose own
+    `radius_ly` is always 0 -- see `_PHENOMENON_TABLES`) and
+    `html/sector.py` lists alongside the sector's systems.
 
     An exact cube-vs-sphere overlap test isn't worth the complexity here,
     so this compares against each cube's own *bounding* sphere (radius =
@@ -1412,7 +1351,7 @@ def phenomena_near_sector(conn, sector_id):
     correct as scanning every row (a phenomenon of any size, however
     large, that could plausibly overlap is still included) while letting
     MySQL range-scan `idx_{table}_center` instead of examining every row
-    in all four tables on every call -- see `schema.sql`'s "v26" header
+    in every phenomenon table on every call -- see `schema.sql`'s "v26" header
     note for the production failure this fixes (a genuine full-table-scan
     -times-four on every `GET /api/sectors/<id>`, "the exact same failure
     mode `schema.sql`'s "v25" note already documented for `sectors`).
@@ -1422,10 +1361,9 @@ def phenomena_near_sector(conn, sector_id):
         sector_id (int): The `sectors.id` to check against.
 
     Returns:
-        list[dict]: One entry per candidate phenomenon: `id`, `type`
-            (`"nebula"`, `"asteroid_field"`, `"black_hole"`, or
-            `"neutron_star"`), `name`, `descriptor`,
-            `radius_ly`, `distance_ly` (sector center to phenomenon
+        list[dict]: One entry per candidate phenomenon, nearest first:
+            `id`, `type` (one of `_PHENOMENON_TABLES`' type labels),
+            `name`, `descriptor`, `radius_ly`, `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
@@ -1448,13 +1386,22 @@ def phenomena_near_sector(conn, sector_id):
     margin_pc = half_diagonal_pc + ly_to_pc(_widest_placed_phenomenon_radius_ly(conn))
     bbox = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"], margin_pc)
 
+    # A phenomenon generated as part of this sector always belongs in its
+    # listing, even if an older placement put its center outside the cube.
+    home_rows = _placed_phenomenon_rows(conn, sector_id=sector_id)
+    home_keys = {(row["type"], row["id"]) for row in home_rows}
+    nearby_rows = [
+        row for row in _placed_phenomenon_rows(conn, bbox=bbox) if (row["type"], row["id"]) not in home_keys
+    ]
+
     matches = []
-    for phenomenon in _placed_phenomenon_rows(conn, bbox=bbox):
+    for phenomenon in home_rows + nearby_rows:
         dx = phenomenon["x"] - sector["center_x_pc"]
         dy = phenomenon["y"] - sector["center_y_pc"]
         dz = phenomenon["z"] - sector["center_z_pc"]
         distance_pc = math.sqrt(dx * dx + dy * dy + dz * dz)
-        if distance_pc > half_diagonal_pc + ly_to_pc(phenomenon["radius_ly"]):
+        is_home = (phenomenon["type"], phenomenon["id"]) in home_keys
+        if not is_home and distance_pc > half_diagonal_pc + ly_to_pc(phenomenon["radius_ly"]):
             continue
         matches.append({
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
@@ -1462,6 +1409,7 @@ def phenomena_near_sector(conn, sector_id):
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
         })
+    matches.sort(key=lambda match: match["distance_ly"])
     return matches
 
 
@@ -2049,34 +1997,183 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     return {"tiles": tiles, "density": density, "edge_pc": edge_pc, "has_shape": shape is not None}
 
 
-def galaxy_content_stamp(conn):
+GALAXY_CHANGES_MAX_SECTORS = 1000
+"""int: Most changed sectors `galaxy_changes` lists tiles for. More than
+that (a big generation run, say) reports `full` instead -- refetching
+everything is cheaper than invalidating tens of thousands of tiles one
+by one."""
+
+_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)$")
+
+
+def _state_token(state):
+    """`galaxy_content_state`'s dict as the opaque string the API hands
+    out and `galaxy_changes` reads back."""
+    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}".format(**state)
+
+
+def _parse_state_token(token):
+    """The dict `_state_token` encoded, or `None` for anything else."""
+    match = _STATE_TOKEN_RE.match(str(token or ""))
+    if not match:
+        return None
+    base, sectors, sector_max_id, sector_modified, system_max_id = match.groups()
+    return {
+        "base": base, "sectors": int(sectors), "sector_max_id": int(sector_max_id),
+        "sector_modified": sector_modified, "system_max_id": int(system_max_id),
+    }
+
+
+def _timestamp_digits(value):
+    """A `TIMESTAMP(3)` value as 17 digits (`YYYYMMDDHHMMSSmmm`), or `"0"`
+    for `NULL` -- compact, and orders the same way the timestamp does."""
+    if value is None:
+        return "0"
+    if isinstance(value, str):
+        value = datetime.datetime.fromisoformat(value)
+    return value.strftime("%Y%m%d%H%M%S") + f"{value.microsecond // 1000:03d}"
+
+
+def _timestamp_literal(digits):
+    """`_timestamp_digits`' output back as a literal MySQL compares
+    against a `TIMESTAMP(3)` column."""
+    if digits == "0":
+        return "1970-01-01 00:00:01.000"
+    d = digits
+    return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
+
+
+def galaxy_content_state(conn):
+    """
+    Everything `galaxy_tiles`' output depends on, summarized as a handful
+    of numbers:
+
+    - `base`: a hash of the stored galaxy shape and this code's version.
+      Planned slots, density clouds, `edge_pc` and `has_shape` depend on
+      the shape, and a release may change the tile format, so a new
+      `base` means every tile is stale.
+    - `sectors`/`sector_max_id`: how many sectors are placed, and the
+      highest sector id. Together they tell a new sector (higher id) from
+      a deleted one (the count drops).
+    - `sector_modified`: the newest `sectors.modified_at` (v27). A
+      sector's own edit (a rename, say) bumps it, and so does deleting one
+      of its systems (`_db.touch_sector`).
+    - `system_max_id`: the highest star-system id. A new system changes
+      its sector's system count. System edits don't touch a tile (tiles
+      only show the count), so `star_systems.modified_at` isn't used.
+
+    Cheap by design -- one indexed count and three index-only maxima --
+    since the web layer checks it about once a minute per database.
+
+    Returns:
+        dict: The keys above; `sector_modified` as `_timestamp_digits`.
+    """
+    sector_row = conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL"
+    ).fetchone()
+    maxima = conn.execute(
+        "SELECT (SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
+        "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
+        "(SELECT COALESCE(MAX(id), 0) FROM star_systems) AS system_max_id"
+    ).fetchone()
+    base = hashlib.sha256(json.dumps(
+        {"shape": galaxy_density_shape(conn), "version": __version__}, sort_keys=True, default=str,
+    ).encode("utf-8")).hexdigest()[:16]
+    return {
+        "base": base,
+        "sectors": int(sector_row["n"]),
+        "sector_max_id": int(maxima["sector_max_id"]),
+        "sector_modified": _timestamp_digits(maxima["sector_modified"]),
+        "system_max_id": int(maxima["system_max_id"]),
+    }
+
+
+def galaxy_content_stamp(conn, state=None):
     """
     A short token that changes whenever anything `galaxy_tiles` returns
-    could change: the placed-sector set (count and highest id), the
-    highest star-system id (new systems change a sector's system count),
-    the stored galaxy shape, and this code's own version (so a release
-    that changes the tile format never reuses old cached tiles). The web
-    layer and the browser key their tile caches by it, so a stale tile is
-    never served after new sectors are generated.
+    could change -- a hash of `galaxy_content_state`. The web layer and
+    the browser key their tile caches by it, so a stale tile is never
+    served after sectors are generated, renamed or deleted.
 
-    Cheap by design -- one indexed aggregate and two primary-key maxima --
-    since it runs once per Galaxy Map page load.
+    Args:
+        state (dict, optional): An already-read `galaxy_content_state`.
 
     Returns:
         str: 16 hex characters.
     """
-    sector_row = conn.execute(
-        "SELECT COUNT(*) AS n, COALESCE(MAX(id), 0) AS max_id FROM sectors WHERE center_x_pc IS NOT NULL"
-    ).fetchone()
-    system_row = conn.execute("SELECT COALESCE(MAX(id), 0) AS max_id FROM star_systems").fetchone()
-    parts = {
-        "sectors": [int(sector_row["n"]), int(sector_row["max_id"])],
-        "systems": int(system_row["max_id"]),
-        "shape": galaxy_density_shape(conn),
-        "version": __version__,
-    }
-    digest = hashlib.sha256(json.dumps(parts, sort_keys=True, default=str).encode("utf-8"))
-    return digest.hexdigest()[:16]
+    if state is None:
+        state = galaxy_content_state(conn)
+    return hashlib.sha256(_state_token(state).encode("utf-8")).hexdigest()[:16]
+
+
+def galaxy_changes(conn, since=None):
+    """
+    What changed in the galaxy's tiles since an earlier state -- how the
+    web layer's tile cache refreshes only the cubes an edit touched
+    instead of throwing every cached tile away.
+
+    Uses v27's `sectors.modified_at` (see `galaxy_content_state`): each
+    sector edited since `since`, each new sector, and each sector that
+    gained a system is "changed", and so is the one tile per level that
+    holds its center (`galaxyViewport.tile_keys_containing`). A sector
+    never moves once placed, so its center is where it was before too.
+
+    Deletions leave no row behind, so a deleted sector can't be located;
+    the placed count drops, and the answer is `full` instead. So is a new
+    shape or release (`base`), an unreadable `since`, or more than
+    `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        since (str or None): A `state` from an earlier call (or
+            `GET /api/galaxy/stamp`), or `None`.
+
+    Returns:
+        dict: `stamp` (`galaxy_content_stamp` now), `state` (the token to
+            pass as `since` next time), `full` (every tile may have
+            changed), and `tiles` (sorted keys of the changed tiles; empty
+            when `full`).
+    """
+    state = galaxy_content_state(conn)
+    result = {"stamp": galaxy_content_stamp(conn, state), "state": _state_token(state), "full": False, "tiles": []}
+    previous = _parse_state_token(since)
+    if previous is None or previous["base"] != state["base"]:
+        result["full"] = True
+        return result
+    if previous == state:
+        return result
+
+    new_placed = conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE id > ? AND center_x_pc IS NOT NULL",
+        (previous["sector_max_id"],),
+    ).fetchone()["n"]
+    if previous["sectors"] + int(new_placed) != state["sectors"]:
+        result["full"] = True
+        return result
+
+    rows = conn.execute(
+        """
+        SELECT center_x_pc, center_y_pc, center_z_pc
+        FROM sectors
+        WHERE center_x_pc IS NOT NULL
+          AND (id > ? OR modified_at > ?
+               OR id IN (SELECT sector_id FROM star_systems WHERE id > ?))
+        LIMIT ?
+        """,
+        (
+            previous["sector_max_id"], _timestamp_literal(previous["sector_modified"]),
+            previous["system_max_id"], GALAXY_CHANGES_MAX_SECTORS + 1,
+        ),
+    ).fetchall()
+    if len(rows) > GALAXY_CHANGES_MAX_SECTORS:
+        result["full"] = True
+        return result
+
+    keys = set()
+    for r in rows:
+        keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
+    result["tiles"] = sorted(keys)
+    return result
 
 # ---------------------------------------------------------------------
 # Faceted search -- backs GET /api/search and html/search.py. Ported
@@ -2271,17 +2368,42 @@ def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
 
 # --- Result panels ---
 
-def _search_result_sectors(conn, term):
+SEARCH_RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
+
+
+def _search_page(conn, select_sql, from_sql, order_sql, params, limit, offset):
+    """
+    Runs one result panel's query a page at a time: a `COUNT(*)` over
+    `from_sql` (its FROM/JOIN/WHERE, sharing `params`) for the panel's
+    total, then `limit` rows from `offset` in `order_sql` order. An
+    `offset` past the last match (a stale page link) is pulled back to
+    the last page's first row.
+
+    Returns:
+        tuple[list, dict]: `(rows, page)` -- `page` is the panel's
+            `{"total", "limit", "offset", "truncated"}` (`truncated`:
+            `rows` holds fewer than `total`, i.e. there are more pages).
+    """
+    total = conn.execute(f"SELECT COUNT(*) AS n {from_sql}", list(params)).fetchone()["n"]
+    if total and offset >= total:
+        offset = ((total - 1) // limit) * limit
     rows = conn.execute(
-        "SELECT id, name, edge_mpc FROM sectors WHERE name LIKE ? ESCAPE '\\\\' ORDER BY name LIMIT ?",
-        (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
+        f"{select_sql} {from_sql} ORDER BY {order_sql} LIMIT ? OFFSET ?", list(params) + [limit, offset]
     ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    return rows, {"total": total, "limit": limit, "offset": offset, "truncated": len(rows) < total}
 
 
-def _search_result_systems(conn, term):
-    rows = conn.execute(
+def _search_result_sectors(conn, term, limit, offset):
+    rows, page = _search_page(
+        conn, "SELECT id, name, edge_mpc", "FROM sectors WHERE name LIKE ? ESCAPE '\\\\'", "name, id",
+        [_search_like_pattern(term)], limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
+
+
+def _search_result_systems(conn, term, limit, offset):
+    rows, page = _search_page(
+        conn,
         """
         SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
@@ -2290,15 +2412,11 @@ def _search_result_systems(conn, term):
                    AS primary_star_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
                    AS secondary_star_type
-        FROM star_systems ss
-        WHERE ss.name LIKE ? ESCAPE '\\\\'
-        ORDER BY ss.name
-        LIMIT ?
         """,
-        (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    rows = rows[:SEARCH_RESULT_LIMIT]
+        "FROM star_systems ss WHERE ss.name LIKE ? ESCAPE '\\\\'",
+        "ss.name, ss.id",
+        [_search_like_pattern(term)], limit, offset,
+    )
     return {
         "rows": [
             {
@@ -2307,11 +2425,11 @@ def _search_result_systems(conn, term):
             }
             for r in rows
         ],
-        "truncated": truncated,
+        **page,
     }
 
 
-def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=None):
+def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if spectral_tags:
         clauses.append(f"SUBSTR(s.star_type, 1, 1) IN ({','.join('?' * len(spectral_tags))})")
@@ -2324,23 +2442,17 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=
         clauses.append("s.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
-        SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM stars s
-        JOIN star_systems ss ON ss.id = s.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, s.name
-        LIMIT ?
-        """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    rows, page = _search_page(
+        conn,
+        "SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
+        f"FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE 1=1{where}",
+        "ss.name, s.name, s.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_range=None):
+def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -2356,24 +2468,20 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_ra
         clauses.append("p.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
+    rows, page = _search_page(
+        conn,
+        """
         SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM planets p
-        JOIN star_systems ss ON ss.id = p.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index
-        LIMIT ?
         """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+        f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
+        "ss.name, ss.id, p.orbital_index, p.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_range=None):
+def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -2389,47 +2497,41 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_rang
         clauses.append("m.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
+    rows, page = _search_page(
+        conn,
+        """
         SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
+        """,
+        f"""
         FROM moons m
         JOIN planets p ON p.id = m.planet_id
         JOIN star_systems ss ON ss.id = m.star_system_id
         WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index, m.orbital_index
-        LIMIT ?
         """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+        "ss.name, ss.id, p.orbital_index, m.orbital_index, m.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_belts(conn, density_tags):
+def _search_result_belts(conn, density_tags, limit, offset):
     clauses, params = [], []
     if density_tags:
         clauses.append(f"ab.density IN ({','.join('?' * len(density_tags))})")
         params.extend(sorted(density_tags))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
-        SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM asteroid_belts ab
-        JOIN star_systems ss ON ss.id = ab.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, ab.orbital_index
-        LIMIT ?
-        """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    rows, page = _search_page(
+        conn,
+        "SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
+        f"FROM asteroid_belts ab JOIN star_systems ss ON ss.id = ab.star_system_id WHERE 1=1{where}",
+        "ss.name, ss.id, ab.orbital_index, ab.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def search(conn, texts, tags, sizes=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -2454,6 +2556,10 @@ def search(conn, texts, tags, sizes=None):
         sizes (dict, optional): `{"star", "planet", "moon"} -> (min_km,
             max_km)`, each bound `None` for "unbounded" -- an absent key
             (or `None` altogether) means no size filter for that entity.
+        limit (int): Rows per result panel page.
+        offsets (dict, optional): `{panel: offset}` for any of
+            `SEARCH_RESULT_PANELS` -- each panel pages independently; an
+            absent panel starts at 0.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -2462,8 +2568,10 @@ def search(conn, texts, tags, sizes=None):
             distinct names), `facet_labels` (`{"facet:value": label}`,
             for rendering an active-filter chip without a second lookup),
             and `results` (`sectors`/`systems`/`stars`/`planets`/`moons`/
-            `belts` -> `{"rows": [...], "truncated": bool}`, or `None`
-            for a panel with no reason to run).
+            `belts` -> `{"rows": [...], "total", "limit", "offset",
+            "truncated"}`, one page of that panel's matches -- `truncated`
+            meaning `rows` isn't every match -- or `None` for a panel
+            with no reason to run).
     """
     sizes = sizes or {}
     star_size, planet_size, moon_size = sizes.get("star"), sizes.get("planet"), sizes.get("moon")
@@ -2517,25 +2625,32 @@ def search(conn, texts, tags, sizes=None):
         moons_included = moon_has_reason
         belts_included = belt_has_reason
 
-    results = {"sectors": None, "systems": None, "stars": None, "planets": None, "moons": None, "belts": None}
+    offsets = offsets or {}
+
+    def _page(panel):
+        return limit, offsets.get(panel, 0)
+
+    results = {panel: None for panel in SEARCH_RESULT_PANELS}
     if texts.get("sector_q"):
-        results["sectors"] = _search_result_sectors(conn, texts["sector_q"])
+        results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
     if texts.get("system_q"):
-        results["systems"] = _search_result_systems(conn, texts["system_q"])
+        results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
     if stars_included:
         results["stars"] = _search_result_stars(
-            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), size_range=star_size
+            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size
         )
     if planets_included:
         results["planets"] = _search_result_planets(
-            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), size_range=planet_size
+            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
+            size_range=planet_size,
         )
     if moons_included:
         results["moons"] = _search_result_moons(
-            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), size_range=moon_size
+            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
+            size_range=moon_size,
         )
     if belts_included:
-        results["belts"] = _search_result_belts(conn, density_tags)
+        results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
 
     return {"facets": facets, "autocomplete": autocomplete, "facet_labels": facet_labels, "results": results}
 

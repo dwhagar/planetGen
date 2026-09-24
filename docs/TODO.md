@@ -45,10 +45,11 @@ renumber when items are added or finished.
    and every API route queries MySQL fresh, including results that rarely
    change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
    detail). The 3D Galaxy Map already has one: its cube tiles are cached
-   on disk by the web layer (`html/lib/tilecache.py`, keyed by
-   `GET /api/galaxy/stamp`) and in the browser. Extend that pattern to the
-   other pages, and once rows carry modified timestamps, invalidate per
-   tile/page instead of on any change to the database.
+   on disk by the web layer (`html/lib/tilecache.py`) and in the browser,
+   and an edit refreshes only the tiles it touched (`GET /api/galaxy/
+   changes`, from the v27 `modified_at` columns). Extend that pattern to
+   the other pages, invalidating each page from its own rows'
+   `modified_at`.
 
 ### System Map (`lib/systemmap.py`, `static/systemmap.js`)
 
@@ -63,21 +64,9 @@ renumber when items are added or finished.
    close binary. Done means the drawn path and reported distance agree
    and both respect those clearances.
 
-### Sector Map and phenomena (`lib/starmap.py`, `static/sectormap.js`, `queryDb.py`, schema)
-
-3. [ ] **Show every kind of stellar phenomenon on the Sector Map, all
-   clickable.** Only nebulae, asteroid fields, black holes and neutron
-   stars appear (`queryDb._PHENOMENON_TABLES`). Supernova remnants, rogue
-   planets and interstellar comets have no galaxy-frame position columns
-   (`_UNPLACED_PHENOMENON_TABLES`, see [5.46.26]), so they're absent from
-   the Sector Map, Galaxy Map and NAV. Done means all seven types are
-   placed (schema migration plus generation in `phenomenonGen.py`/
-   `SpaceSector.add_phenomenon`), returned by `phenomena_near_sector`,
-   drawn by `sectormap.js` and link to `phenomenon.py`.
-
 ### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
 
-4. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
+3. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
    Investigate a representation driven by the real galaxy/sector geometry
    (`stellarObjects/galaxyGeometry.py`: concentric Fibonacci-sphere shells
    of Voronoi sector slots) instead of per-sector sprites plus an
@@ -96,14 +85,14 @@ renumber when items are added or finished.
 
 Low priority; nobody is waiting on these.
 
-5. [ ] **The API can't create a system inside an existing sector.**
+4. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-6. [ ] **The API can't edit a system's generated content.** `PATCH
+5. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -113,10 +102,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-7. [ ] Assign government ownership to star systems so that groups of
+6. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-8. [ ] Flag worlds with life for generated names of their dominant
+7. [ ] Flag worlds with life for generated names of their dominant
     species.
-9. [ ] A database of spacefaring species.
-10. [ ] Model younger and older civilizations: what differs with a
+8. [ ] A database of spacefaring species.
+9. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

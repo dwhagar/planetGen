@@ -3,7 +3,7 @@
 """
 On-demand rendering of a stored star system's wiki page text.
 
-Since schema v28 no page text is stored (see `schema.sql`'s "v28" header
+Since schema v29 no page text is stored (see `schema.sql`'s "v29" header
 note): both formats are rebuilt from the database rows whenever they are
 needed -- `_db.load_star_system` reconstructs the generation object graph
 and `StarSystem.__str__` renders it, exactly as generation itself used to

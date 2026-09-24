@@ -39,7 +39,11 @@
 #   7. Runs `examples/apache/create-cache-dir.sh` to create the Galaxy Map's
 #      on-disk tile cache (`tile_cache.dir` in config.json, default
 #      /var/cache/planetgen/tiles) owned by Apache's worker user.
-#   8. Prints the one remaining manual step: copying and enabling the
+#   8. Runs `examples/apache/setup-debug-log.sh` to create the debug log
+#      (`log_file` in config.json, default /var/log/planetgen.log) when
+#      `debug` is on, writable by Apache and CLI users alike, and to
+#      install its logrotate config.
+#   9. Prints the one remaining manual step: copying and enabling the
 #      example virtual host config. This script never touches Apache's
 #      site configuration itself -- ServerName, TLS, and logging are
 #      site-specific decisions for a human to make, not something to
@@ -70,7 +74,7 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
-echo "== 1/7: Installing the Python package =="
+echo "== 1/8: Installing the Python package =="
 # `pip install .` (a proper, build-isolated PEP 517 install), NOT the
 # legacy `python3 setup.py install` this used to run. setuptools itself
 # now prints "Please avoid running setup.py directly" for that direct
@@ -143,11 +147,11 @@ echo "== 1/7: Installing the Python package =="
 "$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed "${SCRIPT_DIR}[api]"
 
 echo
-echo "== 2/7: Migrating the configured MySQL database to the current schema =="
+echo "== 2/8: Migrating the configured MySQL database to the current schema =="
 "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
 
 echo
-echo "== 3/7: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
+echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
 mkdir -p "$NLTK_DATA_DIR"
 # A plain `nltk.download()` call, not `python -m nltk.downloader`: nltk's
 # own `__init__.py` already imports `nltk.downloader` internally (for the
@@ -161,7 +165,7 @@ mkdir -p "$NLTK_DATA_DIR"
 chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
-echo "== 4/7: Making the CGI scripts and shell scripts executable =="
+echo "== 4/8: Making the CGI scripts and shell scripts executable =="
 # No -maxdepth: every *.py under src/html/, at any subdirectory depth
 # (src/html/lib/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
@@ -179,7 +183,7 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
-echo "== 5/7: Enabling Apache's CGI and headers modules =="
+echo "== 5/8: Enabling Apache's CGI and headers modules =="
 if command -v a2enmod >/dev/null 2>&1; then
     # cgid: runs the src/html/ CGI scripts. headers: needed for the
     # `Header always set ...` lines in examples/apache/planetgen.conf.example
@@ -193,12 +197,16 @@ else
 fi
 
 echo
-echo "== 6/7: Setting directory ownership/permissions for Apache =="
+echo "== 6/8: Setting directory ownership/permissions for Apache =="
 "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 echo
-echo "== 7/7: Creating the Galaxy Map tile cache directory =="
+echo "== 7/8: Creating the Galaxy Map tile cache directory =="
 "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
+
+echo
+echo "== 8/8: Setting up the debug log and its rotation =="
+"$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
 
 if [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
     cat <<EOF

@@ -680,7 +680,27 @@
 --     sectors with no systems) have nothing to recover from, so they
 --     keep the migration's own time.
 --
--- v28: dropped `star_systems.wikitext_content`/`markdown_content`, the
+-- v28: galaxy-frame placement for the last three phenomenon types --
+--   `supernova_remnants`, `rogue_planets` and `interstellar_comets` gain
+--   the same `center_x_pc`/`center_y_pc`/`center_z_pc`/
+--   `galactic_radius_pc` columns (plus the null-together CHECK and the
+--   v26-style spatial index) `nebulae`/`asteroid_fields` (v18) and
+--   `black_holes`/`neutron_stars` (v21) already have. Before this, those
+--   three were only ever linked to a sector by `sector_id`, so they never
+--   appeared on the Sector Map or in `queryDb.phenomena_near_sector` even
+--   though `sectorGen` placed each one at a real spot inside its sector.
+--   `_db.insert_sector` now stores that spot, and a supernova remnant's
+--   embedded black hole/neutron star gets the remnant's own sector and
+--   center too.
+--   - `_migrate_v27_to_v28` adds the columns with `ALGORITHM=INSTANT`
+--     where supported and the indexes online, like v27. It then backfills
+--     every existing row that has a galaxy-placed `sector_id`: the real
+--     in-sector position was never saved, so each gets a random point
+--     inside its own sector's cube (seeded by the row's id, so a re-run
+--     picks the same point). Rows with no sector, or whose sector was
+--     never placed, stay NULL.
+--
+-- v29: dropped `star_systems.wikitext_content`/`markdown_content`, the
 --   full wiki page text rendered once at generation time. Every value that
 --   text was built from already has its own column (the same reasoning v5
 --   applied to the `table_*` snapshot columns), so both formats are now
@@ -695,7 +715,7 @@
 --   system and comparing against the stored copy; the only fixes needed
 --   were binary-pair orientation on load (`BinaryStarProxy.from_dict`/
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
---   matching generation). `_migrate_v27_to_v28` drops the two columns.
+--   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1041,8 +1061,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,
 
-    -- No stored page text since v28: wikitext/Markdown are rendered on
-    -- demand from the rows above -- see the header comment's "v28" note.
+    -- No stored page text since v29: wikitext/Markdown are rendered on
+    -- demand from the rows above -- see the header comment's "v29" note.
 
     -- One system = one wiki page (stars/planets/moons are sections within
     -- it, per StarSystem.__str__), so exactly one URL per wiki target --
@@ -1661,9 +1681,23 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v28: this remnant's own galaxy-frame center -- see this file's "v28"
+    -- header note. NULL together: never placed in the galaxy.
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
+    CONSTRAINT chk_supernova_remnants_placement CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
 
     CONSTRAINT fk_supernova_remnants_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
@@ -1672,6 +1706,9 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     CONSTRAINT fk_supernova_remnants_neutron_star
         FOREIGN KEY (compact_remnant_neutron_star_id) REFERENCES neutron_stars(id) ON DELETE SET NULL,
     KEY idx_supernova_remnants_sector_id (sector_id),
+    -- v28: see the header comment's "v28" note.
+    KEY idx_supernova_remnants_galactic_radius_pc (galactic_radius_pc),
+    KEY idx_supernova_remnants_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
     KEY idx_supernova_remnants_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1696,13 +1733,30 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v28: this rogue planet's own galaxy-frame center -- see this file's "v28"
+    -- header note. NULL together: never placed in the galaxy.
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
+    CONSTRAINT chk_rogue_planets_placement CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
     CONSTRAINT fk_rogue_planets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
     KEY idx_rogue_planets_sector_id (sector_id),
+    -- v28: see the header comment's "v28" note.
+    KEY idx_rogue_planets_galactic_radius_pc (galactic_radius_pc),
+    KEY idx_rogue_planets_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
     KEY idx_rogue_planets_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1730,13 +1784,30 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v28: this comet's own galaxy-frame center -- see this file's "v28"
+    -- header note. NULL together: never placed in the galaxy.
+    center_x_pc         DOUBLE,
+    center_y_pc         DOUBLE,
+    center_z_pc         DOUBLE,
+    galactic_radius_pc  DOUBLE,
+
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
+    CONSTRAINT chk_interstellar_comets_placement CHECK (
+        (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
+        (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
+        (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
+    ),
+
     CONSTRAINT fk_interstellar_comets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
     KEY idx_interstellar_comets_sector_id (sector_id),
+    -- v28: see the header comment's "v28" note.
+    KEY idx_interstellar_comets_galactic_radius_pc (galactic_radius_pc),
+    KEY idx_interstellar_comets_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
     KEY idx_interstellar_comets_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

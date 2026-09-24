@@ -8,7 +8,7 @@ each row showing compact stats (class, type, habitable, inhabited) and
 opening onto that body's own generated description -- plus the stars/
 bodies tables and the system map.
 
-Nothing about the page text is stored (schema v28): the list's
+Nothing about the page text is stored (schema v29): the list's
 descriptions come from `GET /api/systems/<id>/sections`, and the
 Wikitext/Markdown buttons (`code=wikitext|markdown`) show the full wiki
 page from `GET /api/systems/<id>/text` in a code box with a Copy button
@@ -339,7 +339,7 @@ def _system_section_html(db_name, system_id, system, sections, code_fmt, code_co
     """
     The "System" panel: the natively rendered system list, with Wikitext/
     Markdown buttons that show the page's generated code (rendered on
-    demand -- nothing is stored, see `schema.sql`'s "v28" header note) in
+    demand -- nothing is stored, see `schema.sql`'s "v29" header note) in
     a code box above it, plus links to the wiki copies once uploaded.
     """
     base_params = {"db": db_name, "id": system_id}

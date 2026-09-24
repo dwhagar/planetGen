@@ -2,13 +2,13 @@
 # src/checkRenderParity.py
 
 """
-Pre-upgrade check for schema v28, which drops the stored page text
+Pre-upgrade check for schema v29, which drops the stored page text
 (`star_systems.wikitext_content`/`markdown_content`) and renders both
 formats from the database rows instead (see `stellarObjects/schema.sql`'s
-"v28" header note).
+"v29" header note).
 
-Run this against a database that is still at v27 -- before `update.sh`/
-`migrateDb.py` applies v28, since that step deletes the stored copies it
+Run this against a database that is still at v28 -- before `update.sh`/
+`migrateDb.py` applies v29, since that step deletes the stored copies it
 compares against. For every system it renders the page fresh
 (`stellarObjects/systemRender.py`) and compares it with the stored copy,
 line by line, sorting each difference into one of three buckets:
@@ -111,7 +111,7 @@ def classify(stored, rendered, names):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Compare each system's stored wikitext/Markdown with a fresh render, before schema v28 drops it.",
+        description="Compare each system's stored wikitext/Markdown with a fresh render, before schema v29 drops it.",
     )
     parser.add_argument("--export-dir", help="Also write every system's stored text to this directory.")
     parser.add_argument("--show", type=int, default=5, help="How many 'other' diffs to print (default 5).")
@@ -123,7 +123,7 @@ def main():
     try:
         columns = {r["Field"] for r in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
         if "markdown_content" not in columns:
-            print(f"{config.database}: the stored page text is already gone (schema v28 or later) -- nothing to compare.")
+            print(f"{config.database}: the stored page text is already gone (schema v29 or later) -- nothing to compare.")
             return
 
         export_dir = os.path.join(args.export_dir, config.database) if args.export_dir else None
