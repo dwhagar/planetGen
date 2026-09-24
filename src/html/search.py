@@ -40,6 +40,13 @@ own tags/name field is active, or its type is explicitly selected via the
 master filter: e.g. selecting only "Stars" hides the Planets panel even
 if a planet-class tag happens to also be selected.
 
+Each result panel is paged on its own (`sectors_page`/`systems_page`/
+`stars_page`/`planets_page`/`moons_page`/`belts_page`),
+`pagination.PAGE_SIZE` rows at a time through `GET /api/search`'s own
+per-panel `limit`/`<panel>_offset`, with the site's shared pager
+(`lib/pagination.py`). Changing any filter starts every panel back at
+page 1.
+
 This page is a thin renderer over `GET /api/search` -- every query
 (facet-option discovery, name search, autocomplete) lives once, in
 `queryDb.search` (shared with the API itself), not duplicated here.
@@ -55,6 +62,7 @@ from apiclient import get_search
 from fmt import esc, post_link
 
 from page import nav_multi_params, run
+from pagination import PAGE_SIZE, page_offset, parse_page, render_pagination
 
 # Mirrors queryDb.SEARCH_TAG_FACETS -- duplicated, not imported, since
 # this page only ever talks to the database through the API (see the
@@ -77,14 +85,27 @@ SIZE_ENTITIES = ("star", "planet", "moon")
 SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bound in ("min", "max"))
 
 
-def _count_suffix(n, truncated):
-    return f" ({n}{'+' if truncated else ''})"
+RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
+"""Mirrors queryDb.SEARCH_RESULT_PANELS, duplicated for the same reason
+as TAG_FACETS above -- each one's page is its own `<panel>_page` param."""
 
 
-def _truncated_note(result_limit, truncated):
-    if not truncated:
-        return ""
-    return f'<p class="hint">Showing the first {result_limit} matches -- refine your search for more precise results.</p>'
+def _count_suffix(result):
+    return f" ({result['total']:,})"
+
+
+def _result_page(result):
+    """The 1-based page the API actually returned for a panel (it pulls
+    a stale, past-the-end offset back to the last page)."""
+    return result["offset"] // result["limit"] + 1
+
+
+def _pager_html(state, panel, result):
+    return render_pagination(
+        "search.py", _build_params(state["db"], state["texts"], state["tags"], state["pages"]),
+        f"{panel}_page", _result_page(result), result["total"], page_size=result["limit"],
+        anchor=f"search-{panel}", label=f"{panel.capitalize()} result pages",
+    )
 
 
 def _sector_link(db_name, sector_id):
@@ -106,7 +127,10 @@ def _datalist_html(list_id, names):
 # preserving every other currently active filter.
 # ---------------------------------------------------------------------
 
-def _build_params(db_name, texts, tags):
+def _build_params(db_name, texts, tags, pages=None):
+    """The params that re-render this page with these filters. `pages`
+    (`{panel: page}`) is only passed by the result pagers -- every filter
+    change leaves it out, starting each panel back at page 1."""
     params = [("db", db_name)]
     for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q") + SIZE_FIELDS:
         value = texts.get(key)
@@ -115,6 +139,9 @@ def _build_params(db_name, texts, tags):
     for facet in TAG_FACETS:
         for value in sorted(tags.get(facet, ())):
             params.append((facet, value))
+    for panel, page in (pages or {}).items():
+        if page > 1:
+            params.append((f"{panel}_page", page))
     return params
 
 
@@ -228,10 +255,11 @@ def _active_filters_html(state, facet_labels):
 
 # ---------------------------------------------------------------------
 # Result panels -- each renders one `results[panel]` entry
-# (`{"rows": [...], "truncated": bool}`) from GET /api/search.
+# (`{"rows": [...], "total", "limit", "offset", "truncated"}`, one page of
+# matches) from GET /api/search, with its own pager under the table.
 # ---------------------------------------------------------------------
 
-def _sectors_panel(db_name, result):
+def _sectors_panel(db_name, result, pager_html):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
@@ -241,18 +269,18 @@ def _sectors_panel(db_name, result):
         for row in rows
     ) or '<tr><td colspan="2"><em>None</em></td></tr>'
     return f"""
-<section class="panel">
-<h2>Sectors{_count_suffix(len(rows), result["truncated"])}</h2>
+<section class="panel" id="search-sectors">
+<h2>Sectors{_count_suffix(result)}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Cube Edge</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(len(rows), result["truncated"])}
+{pager_html}
 </section>
 """
 
 
-def _systems_panel(db_name, result):
+def _systems_panel(db_name, result, pager_html):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
@@ -264,13 +292,13 @@ def _systems_panel(db_name, result):
         for row in rows
     ) or '<tr><td colspan="4"><em>None</em></td></tr>'
     return f"""
-<section class="panel">
-<h2>Systems{_count_suffix(len(rows), result["truncated"])}</h2>
+<section class="panel" id="search-systems">
+<h2>Systems{_count_suffix(result)}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Sector</th><th>Binary</th><th>Star type</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(len(rows), result["truncated"])}
+{pager_html}
 </section>
 """
 
@@ -279,7 +307,7 @@ def _radius_km(row):
     return f'{row["radius_km"]:,.0f} km' if row.get("radius_km") is not None else "&mdash;"
 
 
-def _stars_panel(db_name, result):
+def _stars_panel(db_name, result, pager_html):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
@@ -293,18 +321,18 @@ def _stars_panel(db_name, result):
         for row in rows
     ) or '<tr><td colspan="6"><em>None</em></td></tr>'
     return f"""
-<section class="panel">
-<h2>Stars{_count_suffix(len(rows), result["truncated"])}</h2>
+<section class="panel" id="search-stars">
+<h2>Stars{_count_suffix(result)}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Role</th><th>Type</th><th>Radius</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(len(rows), result["truncated"])}
+{pager_html}
 </section>
 """
 
 
-def _planets_panel(db_name, result):
+def _planets_panel(db_name, result, pager_html):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
@@ -319,18 +347,18 @@ def _planets_panel(db_name, result):
         for row in rows
     ) or '<tr><td colspan="7"><em>None</em></td></tr>'
     return f"""
-<section class="panel">
-<h2>Planets{_count_suffix(len(rows), result["truncated"])}</h2>
+<section class="panel" id="search-planets">
+<h2>Planets{_count_suffix(result)}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Radius</th><th>Life Chemistry</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(len(rows), result["truncated"])}
+{pager_html}
 </section>
 """
 
 
-def _moons_panel(db_name, result):
+def _moons_panel(db_name, result, pager_html):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
@@ -346,18 +374,18 @@ def _moons_panel(db_name, result):
         for row in rows
     ) or '<tr><td colspan="8"><em>None</em></td></tr>'
     return f"""
-<section class="panel">
-<h2>Moons{_count_suffix(len(rows), result["truncated"])}</h2>
+<section class="panel" id="search-moons">
+<h2>Moons{_count_suffix(result)}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Body</th><th>Radius</th><th>Life Chemistry</th><th>Orbits</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(len(rows), result["truncated"])}
+{pager_html}
 </section>
 """
 
 
-def _belts_panel(db_name, result):
+def _belts_panel(db_name, result, pager_html):
     rows = result["rows"]
     body_rows = "".join(
         "<tr>"
@@ -369,13 +397,13 @@ def _belts_panel(db_name, result):
         for row in rows
     ) or '<tr><td colspan="4"><em>None</em></td></tr>'
     return f"""
-<section class="panel">
-<h2>Asteroid Belts{_count_suffix(len(rows), result["truncated"])}</h2>
+<section class="panel" id="search-belts">
+<h2>Asteroid Belts{_count_suffix(result)}</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Density</th><th>Composition</th><th>System</th><th>Sector</th></tr></thead>
   <tbody>{body_rows}</tbody>
 </table></div>
-{_truncated_note(len(rows), result["truncated"])}
+{pager_html}
 </section>
 """
 
@@ -390,12 +418,16 @@ _PANEL_RENDERERS = {
 }
 
 
-def _render_results(db_name, results):
+def _render_results(state, results):
+    # The pagers carry every panel's page as the API actually returned it.
+    state = dict(state, pages={
+        panel: _result_page(results[panel]) for panel in RESULT_PANELS if results[panel] is not None
+    })
     sections = []
-    for panel in ("sectors", "systems", "stars", "planets", "moons", "belts"):
+    for panel in RESULT_PANELS:
         result = results[panel]
         if result is not None:
-            sections.append(_PANEL_RENDERERS[panel](db_name, result))
+            sections.append(_PANEL_RENDERERS[panel](state["db"], result, _pager_html(state, panel, result)))
     return "".join(sections) if sections else '<p class="hint">No matching objects.</p>'
 
 
@@ -421,10 +453,14 @@ def handler():
     tags["body"] &= {"t", "g"}
     tags["moon_body"] &= {"t", "g"}
 
-    state = {"db": db_name, "texts": texts, "tags": tags}
+    pages = {panel: parse_page(_first(f"{panel}_page")) for panel in RESULT_PANELS}
+    state = {"db": db_name, "texts": texts, "tags": tags, "pages": pages}
 
     sizes = {entity: _size_range_from_texts(texts, entity) for entity in SIZE_ENTITIES}
-    data = get_search(db_name, texts, tags, sizes=sizes)
+    data = get_search(
+        db_name, texts, tags, sizes=sizes, limit=PAGE_SIZE,
+        offsets={panel: page_offset(page) for panel, page in pages.items()},
+    )
 
     facet_titles = {
         "type": "Object Type",
@@ -508,7 +544,7 @@ def handler():
 
     any_active = bool(any(tags[facet] for facet in TAG_FACETS) or any(texts.values()))
     if any_active:
-        results_html = _render_results(db_name, data["results"])
+        results_html = _render_results(state, data["results"])
     else:
         results_html = '<p class="hint">Select a tag below, or enter a name above and press Search, to see matching results.</p>'
 

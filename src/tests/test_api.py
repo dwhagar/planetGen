@@ -724,6 +724,31 @@ def test_search_text_queries(client, seeded_sector):
         assert "results" in body
 
 
+def test_search_pages_each_result_panel(client, mysql_config):
+    for i in range(60):
+        _db.save_sector(SpaceSector(f"Pager Sector {i:03d}", edge_ly=10.0), config=mysql_config)
+
+    first = client.get("/api/search?sector_q=Pager&limit=50").get_json()["results"]["sectors"]
+    assert (first["total"], first["limit"], first["offset"], first["truncated"]) == (60, 50, 0, True)
+    assert [row["name"] for row in first["rows"]][:2] == ["Pager Sector 000", "Pager Sector 001"]
+    assert len(first["rows"]) == 50
+
+    second = client.get("/api/search?sector_q=Pager&limit=50&sectors_offset=50").get_json()["results"]["sectors"]
+    assert [row["name"] for row in second["rows"]] == [f"Pager Sector {i:03d}" for i in range(50, 60)]
+    assert (second["offset"], second["truncated"]) == (50, True)
+
+    # Past the end comes back as the last page, with its real offset.
+    past_end = client.get("/api/search?sector_q=Pager&limit=50&sectors_offset=900").get_json()
+    assert past_end["results"]["sectors"]["offset"] == 50
+
+    # Without a limit, the old 300-row default still fits every match.
+    default = client.get("/api/search?sector_q=Pager").get_json()["results"]["sectors"]
+    assert (default["limit"], len(default["rows"]), default["truncated"]) == (300, 60, False)
+
+    assert client.get("/api/search?sector_q=Pager&sectors_offset=-1").status_code == 400
+    assert client.get("/api/search?sector_q=Pager&limit=0").status_code == 400
+
+
 def test_unmatched_route_returns_json_404(client):
     response = client.get("/api/no-such-route")
     assert response.status_code == 404

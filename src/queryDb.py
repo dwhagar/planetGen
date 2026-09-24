@@ -2206,17 +2206,42 @@ def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
 
 # --- Result panels ---
 
-def _search_result_sectors(conn, term):
+SEARCH_RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
+
+
+def _search_page(conn, select_sql, from_sql, order_sql, params, limit, offset):
+    """
+    Runs one result panel's query a page at a time: a `COUNT(*)` over
+    `from_sql` (its FROM/JOIN/WHERE, sharing `params`) for the panel's
+    total, then `limit` rows from `offset` in `order_sql` order. An
+    `offset` past the last match (a stale page link) is pulled back to
+    the last page's first row.
+
+    Returns:
+        tuple[list, dict]: `(rows, page)` -- `page` is the panel's
+            `{"total", "limit", "offset", "truncated"}` (`truncated`:
+            `rows` holds fewer than `total`, i.e. there are more pages).
+    """
+    total = conn.execute(f"SELECT COUNT(*) AS n {from_sql}", list(params)).fetchone()["n"]
+    if total and offset >= total:
+        offset = ((total - 1) // limit) * limit
     rows = conn.execute(
-        "SELECT id, name, edge_mpc FROM sectors WHERE name LIKE ? ESCAPE '\\\\' ORDER BY name LIMIT ?",
-        (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
+        f"{select_sql} {from_sql} ORDER BY {order_sql} LIMIT ? OFFSET ?", list(params) + [limit, offset]
     ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    return rows, {"total": total, "limit": limit, "offset": offset, "truncated": len(rows) < total}
 
 
-def _search_result_systems(conn, term):
-    rows = conn.execute(
+def _search_result_sectors(conn, term, limit, offset):
+    rows, page = _search_page(
+        conn, "SELECT id, name, edge_mpc", "FROM sectors WHERE name LIKE ? ESCAPE '\\\\'", "name, id",
+        [_search_like_pattern(term)], limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
+
+
+def _search_result_systems(conn, term, limit, offset):
+    rows, page = _search_page(
+        conn,
         """
         SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
@@ -2225,15 +2250,11 @@ def _search_result_systems(conn, term):
                    AS primary_star_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
                    AS secondary_star_type
-        FROM star_systems ss
-        WHERE ss.name LIKE ? ESCAPE '\\\\'
-        ORDER BY ss.name
-        LIMIT ?
         """,
-        (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    rows = rows[:SEARCH_RESULT_LIMIT]
+        "FROM star_systems ss WHERE ss.name LIKE ? ESCAPE '\\\\'",
+        "ss.name, ss.id",
+        [_search_like_pattern(term)], limit, offset,
+    )
     return {
         "rows": [
             {
@@ -2242,11 +2263,11 @@ def _search_result_systems(conn, term):
             }
             for r in rows
         ],
-        "truncated": truncated,
+        **page,
     }
 
 
-def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=None):
+def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if spectral_tags:
         clauses.append(f"SUBSTR(s.star_type, 1, 1) IN ({','.join('?' * len(spectral_tags))})")
@@ -2259,23 +2280,17 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=
         clauses.append("s.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
-        SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM stars s
-        JOIN star_systems ss ON ss.id = s.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, s.name
-        LIMIT ?
-        """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    rows, page = _search_page(
+        conn,
+        "SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
+        f"FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE 1=1{where}",
+        "ss.name, s.name, s.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_range=None):
+def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -2291,24 +2306,20 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_ra
         clauses.append("p.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
+    rows, page = _search_page(
+        conn,
+        """
         SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM planets p
-        JOIN star_systems ss ON ss.id = p.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index
-        LIMIT ?
         """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+        f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
+        "ss.name, ss.id, p.orbital_index, p.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_range=None):
+def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -2324,47 +2335,41 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_rang
         clauses.append("m.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
+    rows, page = _search_page(
+        conn,
+        """
         SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
+        """,
+        f"""
         FROM moons m
         JOIN planets p ON p.id = m.planet_id
         JOIN star_systems ss ON ss.id = m.star_system_id
         WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index, m.orbital_index
-        LIMIT ?
         """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+        "ss.name, ss.id, p.orbital_index, m.orbital_index, m.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_belts(conn, density_tags):
+def _search_result_belts(conn, density_tags, limit, offset):
     clauses, params = [], []
     if density_tags:
         clauses.append(f"ab.density IN ({','.join('?' * len(density_tags))})")
         params.extend(sorted(density_tags))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
-        SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM asteroid_belts ab
-        JOIN star_systems ss ON ss.id = ab.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, ab.orbital_index
-        LIMIT ?
-        """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    rows, page = _search_page(
+        conn,
+        "SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
+        f"FROM asteroid_belts ab JOIN star_systems ss ON ss.id = ab.star_system_id WHERE 1=1{where}",
+        "ss.name, ss.id, ab.orbital_index, ab.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def search(conn, texts, tags, sizes=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -2389,6 +2394,10 @@ def search(conn, texts, tags, sizes=None):
         sizes (dict, optional): `{"star", "planet", "moon"} -> (min_km,
             max_km)`, each bound `None` for "unbounded" -- an absent key
             (or `None` altogether) means no size filter for that entity.
+        limit (int): Rows per result panel page.
+        offsets (dict, optional): `{panel: offset}` for any of
+            `SEARCH_RESULT_PANELS` -- each panel pages independently; an
+            absent panel starts at 0.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -2397,8 +2406,10 @@ def search(conn, texts, tags, sizes=None):
             distinct names), `facet_labels` (`{"facet:value": label}`,
             for rendering an active-filter chip without a second lookup),
             and `results` (`sectors`/`systems`/`stars`/`planets`/`moons`/
-            `belts` -> `{"rows": [...], "truncated": bool}`, or `None`
-            for a panel with no reason to run).
+            `belts` -> `{"rows": [...], "total", "limit", "offset",
+            "truncated"}`, one page of that panel's matches -- `truncated`
+            meaning `rows` isn't every match -- or `None` for a panel
+            with no reason to run).
     """
     sizes = sizes or {}
     star_size, planet_size, moon_size = sizes.get("star"), sizes.get("planet"), sizes.get("moon")
@@ -2452,25 +2463,32 @@ def search(conn, texts, tags, sizes=None):
         moons_included = moon_has_reason
         belts_included = belt_has_reason
 
-    results = {"sectors": None, "systems": None, "stars": None, "planets": None, "moons": None, "belts": None}
+    offsets = offsets or {}
+
+    def _page(panel):
+        return limit, offsets.get(panel, 0)
+
+    results = {panel: None for panel in SEARCH_RESULT_PANELS}
     if texts.get("sector_q"):
-        results["sectors"] = _search_result_sectors(conn, texts["sector_q"])
+        results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
     if texts.get("system_q"):
-        results["systems"] = _search_result_systems(conn, texts["system_q"])
+        results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
     if stars_included:
         results["stars"] = _search_result_stars(
-            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), size_range=star_size
+            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size
         )
     if planets_included:
         results["planets"] = _search_result_planets(
-            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), size_range=planet_size
+            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
+            size_range=planet_size,
         )
     if moons_included:
         results["moons"] = _search_result_moons(
-            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), size_range=moon_size
+            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
+            size_range=moon_size,
         )
     if belts_included:
-        results["belts"] = _search_result_belts(conn, density_tags)
+        results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
 
     return {"facets": facets, "autocomplete": autocomplete, "facet_labels": facet_labels, "results": results}
 

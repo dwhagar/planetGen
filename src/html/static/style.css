@@ -257,18 +257,71 @@ h2 {
   overflow-x: auto;
 }
 
-/* Prev/summary/Next row under a paginated table (html/browse.py) -- the
-   summary text sits between the two controls so the row reads left to
-   right the same way regardless of which control (if either) is a live
-   link vs. the plain-text `.hint` a page/table boundary replaces it
-   with. */
+/* The site's one pager (html/lib/pagination.py), under every paged
+   table: a "Showing X-Y of Z" summary, then First/Prev, numbered pages
+   and Next/Last. Each control is a `post_link` form button (or a plain
+   span when disabled/current), all sized alike so the row doesn't shift
+   as the current page moves. */
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem 1rem;
   margin-top: 0.75rem;
   font-size: 0.85rem;
+}
+
+.pagination-summary {
+  color: var(--text-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pagination-controls .table-form {
+  display: inline-flex;
+}
+
+.page-link,
+.link-btn.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--link);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.link-btn.page-link:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.page-link.current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+.page-link.disabled {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.page-gap {
+  color: var(--text-muted);
+  padding: 0 0.15rem;
 }
 
 table {

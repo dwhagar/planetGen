@@ -19,6 +19,10 @@ for a standalone phenomenon -- until now these had no page of their own at
 all (`lib/starmap.py`/`lib/galaxymap.py`'s own tooltips said so
 explicitly); both of those maps' phenomenon markers now link here too (see
 their own modules).
+
+Paged through the API (`GET /api/phenomena`'s `limit`/`offset`),
+`pagination.PAGE_SIZE` rows at a time with the site's shared pager
+(`lib/pagination.py`), `page` carrying the current page number.
 """
 
 import os
@@ -29,10 +33,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib
 from apiclient import get_phenomena
 from fmt import esc, post_link
 from page import nav_params, run
-
-_MAX_ROWS = 500
-"""int: Same "cap, don't paginate" convention `browse.py` already uses --
-the API's own max page size, see `docs/api.md`'s "Pagination"."""
+from pagination import fetch_page, parse_page, render_pagination
 
 _TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
@@ -42,18 +43,16 @@ _TYPE_LABELS = {
 }
 
 
-def _truncated_note(total, shown):
-    if total <= shown:
-        return ""
-    return f'<p class="hint">Showing the first {shown} of {total} -- try Search for a more targeted view.</p>'
-
-
 def handler():
     params = nav_params()
     db_name = params.get("db", "")
 
-    page = get_phenomena(db_name, limit=_MAX_ROWS)
-    items, total = page["items"], page["total"]
+    envelope, page = fetch_page(
+        lambda limit, offset: get_phenomena(db_name, limit=limit, offset=offset),
+        parse_page(params.get("page")),
+    )
+    items, total = envelope["items"], envelope["total"]
+    pager_html = render_pagination("phenomena.py", {"db": db_name}, "page", page, total, label="Phenomena pages")
 
     def _row_html(row):
         radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
@@ -84,7 +83,6 @@ def handler():
 <p class="badges"><span class="badge">{count_badge}</span></p>
 <section class="panel">
 <h2>Phenomena</h2>
-{_truncated_note(total, len(items))}
 <div class="table-scroll"><table>
   <thead>
     <tr><th>Name</th><th>Type</th><th>Descriptor</th><th>Radius</th><th>Sector</th><th>On Galaxy Map</th></tr>
@@ -93,6 +91,7 @@ def handler():
     {rows}
   </tbody>
 </table></div>
+{pager_html}
 </section>
 """
     return "Phenomena", body
