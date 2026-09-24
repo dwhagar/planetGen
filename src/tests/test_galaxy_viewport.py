@@ -370,3 +370,35 @@ def test_density_points_for_tile_is_deterministic_and_sized():
     reach = 2 * tile_edge_pc(8)
     assert all(math.dist((p["x"], p["y"], p["z"]), center) <= reach + 1e-6 for p in first)
     assert density_points_for_tile(8, 128, 128, 128, None) == []
+
+
+def test_zoomed_in_density_cloud_follows_the_disk_not_a_ball():
+    """
+    A view a few hundred parsecs across, out in a Milky-Way-sized disk,
+    is far too small for the galaxy-wide mixture proposal: it used to keep
+    only a handful of candidates and top up the rest uniformly, drawing a
+    ball of points around the view. Sampled locally against the real
+    density instead, the cloud stays a slab that thins away from the
+    plane.
+    """
+    milky_way = build_galaxy_shape(
+        disk_scale_length_pc=2800.0,
+        disk_scale_height_pc=350.0,
+        bulge_scale_radius_pc=200.0,
+        bulge_amplitude=1.0,
+        arm_count=2,
+        pitch_angle_rad=math.radians(15.0),
+        arm_amplitude=0.4,
+    )
+    center = (8000.0, 0.0, 0.0)
+    radius = 1000.0
+    points = density_sample_points(center, radius, shape=milky_way, count=1600)
+    assert len(points) == 1600
+    assert all(math.dist((p["x"], p["y"], p["z"]), center) <= radius + 1e-6 for p in points)
+
+    # A uniform ball puts ~21% of its volume more than 600 pc off the plane
+    # (two caps of height 400 pc); the disk puts far less there.
+    far_off_plane = sum(1 for p in points if abs(p["z"]) > 600.0) / len(points)
+    assert far_off_plane < 0.1
+    near_plane = sum(1 for p in points if abs(p["z"]) < 200.0) / len(points)
+    assert near_plane > 0.4
