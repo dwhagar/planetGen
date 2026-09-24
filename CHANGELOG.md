@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.46.23] - 2026-09-24
+
+### Changed
+- **Sector Map's compass arrow (pointing toward the galactic center) now
+  labels itself plain "N"**, matching a real map's compass-rose
+  convention, instead of the more verbose "Galactic Center →" text.
+
 ## [5.46.22] - 2026-09-24
 
 ### Fixed

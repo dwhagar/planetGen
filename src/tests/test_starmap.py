@@ -164,7 +164,7 @@ def test_render_map_panel_compass_present_only_when_placed():
     scene_placed = _scene_data(render_map_panel("db", 1000.0, 3, 42, (500.0, 200.0, -100.0), [system]))
     assert scene_unplaced["compass"] is None
     assert scene_placed["compass"] is not None
-    assert scene_placed["compass"]["label"] == "Galactic Center"
+    assert scene_placed["compass"]["label"] == "N"
 
 
 def test_render_map_panel_binary_system_gets_two_star_entries():

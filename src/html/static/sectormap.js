@@ -348,7 +348,10 @@ function initStarmap(canvasEl, data) {
     ]);
     scene.add(new THREE.Line(arrowGeometry, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor) })));
 
-    var label = makeTextSprite(data.compass.label + " →", accentColor);
+    // Plain "N" at the arrow's own tip (the standard compass-rose
+    // convention) -- no extra arrow glyph appended to the text itself,
+    // since the line already drawn above IS the arrow.
+    var label = makeTextSprite(data.compass.label, accentColor);
     label.position.set(tip[0], tip[1], tip[2]);
     scene.add(label);
   }

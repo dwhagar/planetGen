@@ -355,8 +355,9 @@ inside) its own boundary."""
 def _compass_data(center_pc):
     """
     Points from the sector's own local origin toward the galactic center --
-    the sector-map equivalent of a map's north arrow, except the direction
-    it points is computed exactly from this sector's own stored
+    the sector-map's own "north" arrow (labeled plain "N", the same
+    convention a real map's compass rose uses), except the direction it
+    points is computed exactly from this sector's own stored
     `sectors.center_x/y/z_pc` (the negative of the sector's own outward
     radial direction, `-normalize(center_pc)`) rather than fixed to a
     constant screen direction.
@@ -374,10 +375,10 @@ def _compass_data(center_pc):
                                     sector has no galaxy placement.
 
     Returns:
-        dict or None: `{"tip": [x, y, z], "label": "Galactic Center"}`, or
-                      `None` if `center_pc` is `None` or (within
-                      floating-point tolerance) the galactic center
-                      itself, which has no meaningful direction to point.
+        dict or None: `{"tip": [x, y, z], "label": "N"}`, or `None` if
+                      `center_pc` is `None` or (within floating-point
+                      tolerance) the galactic center itself, which has no
+                      meaningful direction to point.
     """
     if center_pc is None or any(c is None for c in center_pc):
         return None
@@ -389,7 +390,7 @@ def _compass_data(center_pc):
 
     ux, uy, uz = -cx / norm, -cy / norm, -cz / norm
     reach = _SCENE_HALF_PX * _COMPASS_ARROW_REACH
-    return {"tip": [ux * reach, -uy * reach, uz * reach], "label": "Galactic Center"}
+    return {"tip": [ux * reach, -uy * reach, uz * reach], "label": "N"}
 
 
 def _ly_per_px_at_zoom_1(half_edge):
