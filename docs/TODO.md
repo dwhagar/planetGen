@@ -8,7 +8,8 @@ read the code and the reference docs (`src/stellarObjects/schema.sql` and
 `docs/database-schema.md` for the schema, `docs/api.md` and
 `docs/html-interface.md` for the web interface,
 `docs/design/galaxy-coordinate-system.md` for galaxy geometry). When an
-item ships, delete it here and describe it in the PR's `changes/` note.
+item ships, delete it here, renumber the rest, and describe the change
+in the PR's `changes/` note.
 
 Each open item says what's wrong (the observed symptom), where to start
 looking, and what "done" means, so it can be picked up cold.
@@ -26,129 +27,160 @@ admin auth and wiki publishing.
 
 ## Open items
 
-### Production stability
+Numbered in the order to work them: bug fixes first (the production
+crash before anything else), then everything else from the smallest change
+to the largest. The numbers run across groups; renumber when items are
+added or finished.
 
-- [ ] **Apache was OOM-killed on the production server (2026-09-24
-  01:13 UTC).** `systemctl status apache2` showed `Result: oom-kill`
-  after ~56 CPU-minutes. Just before it, `planetgen.error.log` shows
-  `/galaxy_view.py` CGI requests timing out on their call to
-  `/api/galaxy/view` (`apiclient._request`, 30 s `_TIMEOUT_SECONDS`) and
-  then `Truncated or oversized response headers received from daemon
-  process 'planetgen-api'` for every in-flight request, i.e. the WSGI
-  daemon died. The access log shows the Galaxy Map's opening view asking
-  for `/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=15082.8` (a 1.7 MB
-  response) and `/api/galaxy/sectors` (508 KB) on each page load, and
-  bursts of large-radius `/api/galaxy/view` calls returning 500/504.
-  Suspect the Galaxy Map's view queries (`queryDb.galaxy_view`,
-  `stellarObjects/galaxyViewport.py`) holding large result sets per
-  request across several daemon threads. Being investigated in its own
-  project thread; done means the cause is known and the map can't take
-  the server down.
+### Plan: what to do first
 
-### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_view`)
+- **Stop the crash (1).** Production stability comes before everything
+   else, and its root cause shapes both the cache (6) and the Galaxy Map
+   rework (9).
+- **Clear the small visual bugs (2-4)** in one or two quick PRs: each is
+   confined to one or two front-end files and can be checked with a
+   screenshot.
+- **Fix the skeleton shape (5) before the rework (9).** If unfilled
+   sectors are placed or qualified wrongly, that's a data/generation bug
+   the new map would inherit, not just a drawing problem.
+- **Design the cache (6) once the crash cause is known**, then do the
+   System Map route (7) and the phenomena schema work (8).
+- **Do the Galaxy Map rework (9) last** of the active work: it's the
+   largest change and builds on 1, 5 and 6.
 
-- [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
-  Investigate a representation driven by the real galaxy/sector geometry
-  (`stellarObjects/galaxyGeometry.py`: concentric Fibonacci-sphere shells
-  of Voronoi sector slots) instead of per-sector sprites plus an
-  illustrative density cloud. Idea to evaluate first: group neighboring
-  sectors and draw them as arc segments of shells (a band of shells by an
-  angular range), shaded by density, so the map shows the galaxy's
-  structure at every zoom without enumerating individual sectors. Done
-  means a written comparison of options, then an implementation that
-  loads quickly at full-galaxy zoom.
-- [ ] **The unfilled-sector skeleton forms a sphere at the center
-  instead of a spiral galaxy.** The "planned" tier (real,
-  not-yet-generated sector addresses,
-  `galaxyViewport.planned_slots_in_view`) draws as a ball around the
-  galactic center, while the illustrative density cloud
-  (`density_sample_points`) does look like a spiral. Verify that the
-  centers of the qualifying unfilled sectors trace the disk/arms/bulge
-  the density skeleton (`galaxy_shape`, `galaxyDensity.predicted_star_count`)
-  describes. Things to check: whether qualification against the shape is
-  applied, whether `PLANNED_RADIUS_CAP_PC` (200 pc around the view
-  center) is what's producing the ball, and whether the slot centers
-  from `enumerate_sectors_within_radius` are in galaxy-frame parsecs like
-  everything else. Done means a test that samples slot centers and
-  asserts they follow the disk, plus the fix.
-- [ ] **Remove the large sphere marker drawn for a star in a sector.**
-  The Galaxy Map still shows a large sphere for a star inside a placed
-  sector, left over from the idea of showing the brightest stars at
-  galaxy scale, which proved unhelpful. Remove the marker and whatever
-  API/query fields exist only to feed it.
+### Bug fixes
+
+Things that are broken today, most urgent first, then smallest to largest.
+
+1. [ ] **Apache was OOM-killed on the production server (2026-09-24
+   01:13 UTC).** `systemctl status apache2` showed `Result: oom-kill`
+   after ~56 CPU-minutes. Just before it, `planetgen.error.log` shows
+   `/galaxy_view.py` CGI requests timing out on their call to
+   `/api/galaxy/view` (`apiclient._request`, 30 s `_TIMEOUT_SECONDS`) and
+   then `Truncated or oversized response headers received from daemon
+   process 'planetgen-api'` for every in-flight request, i.e. the WSGI
+   daemon died. The access log shows the Galaxy Map's opening view asking
+   for `/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=15082.8` (a 1.7 MB
+   response) and `/api/galaxy/sectors` (508 KB) on each page load, and
+   bursts of large-radius `/api/galaxy/view` calls returning 500/504.
+   Suspect the Galaxy Map's view queries (`queryDb.galaxy_view`,
+   `stellarObjects/galaxyViewport.py`) holding large result sets per
+   request across several daemon threads. Being investigated in its own
+   project thread; done means the cause is known and the map can't take
+   the server down.
+
+2. [ ] **Remove the large sphere marker drawn for a star in a sector.**
+   The Galaxy Map still shows a large sphere for a star inside a placed
+   sector, left over from the idea of showing the brightest stars at
+   galaxy scale, which proved unhelpful. Remove the marker and whatever
+   API/query fields exist only to feed it.
+
+3. [ ] **Bring orbital paths back without drawing them over bodies.**
+   Orbit lines disappeared after [5.46.24] split each scene into an
+   orbits-only `<svg>` under the sphere `<canvas>` and a marker `<svg>`
+   over it. They should be visible again while still being hidden behind
+   the star/planet spheres. Check that `showScene` in `systemmap.js`
+   shows the orbits layer and that the canvas isn't painting an opaque
+   background over it.
+
+4. [ ] **Star glow renders as an opaque shell, not a 3D glow.** The
+   fresnel glow shell (`bodyRendering.makeGlowMaterial`, used by
+   `systemmap.js` and `sectormap.js`, strengthened in [5.46.24]) should
+   read as light fading out from the star's limb, but it shows as a solid
+   opaque layer. Investigate the material's blending, transparency,
+   `depthWrite` and alpha falloff. Verify with screenshots of both maps
+   before and after (Playwright with the bundled Chromium works here).
+
+5. [ ] **The unfilled-sector skeleton forms a sphere at the center
+   instead of a spiral galaxy.** The "planned" tier (real,
+   not-yet-generated sector addresses,
+   `galaxyViewport.planned_slots_in_view`) draws as a ball around the
+   galactic center, while the illustrative density cloud
+   (`density_sample_points`) does look like a spiral. Verify that the
+   centers of the qualifying unfilled sectors trace the disk/arms/bulge
+   the density skeleton (`galaxy_shape`, `galaxyDensity.predicted_star_count`)
+   describes. Things to check: whether qualification against the shape is
+   applied, whether `PLANNED_RADIUS_CAP_PC` (200 pc around the view
+   center) is what's producing the ball, and whether the slot centers
+   from `enumerate_sectors_within_radius` are in galaxy-frame parsecs like
+   everything else. Done means a test that samples slot centers and
+   asserts they follow the disk, plus the fix.
 
 ### Performance
 
-- [ ] **Add a cache so pages don't hit the database on every request.**
-  Every CGI page calls the Flask API through `html/lib/apiclient.py`,
-  and every API route queries MySQL fresh, including results that rarely
-  change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
-  detail, the Galaxy Map's view payloads). Design a cache layer (where it
-  lives: API process memory, a shared store, or HTTP caching headers;
-  what the keys are; and how writes, generation and the orbit updater
-  invalidate it). Related to the OOM item above, since repeated large
-  galaxy queries are part of that picture.
+6. [ ] **Add a cache so pages don't hit the database on every request.**
+   Every CGI page calls the Flask API through `html/lib/apiclient.py`,
+   and every API route queries MySQL fresh, including results that rarely
+   change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
+   detail, the Galaxy Map's view payloads). Design a cache layer (where it
+   lives: API process memory, a shared store, or HTTP caching headers;
+   what the keys are; and how writes, generation and the orbit updater
+   invalidate it). Wait for item 1's root cause first: repeated large
+   galaxy queries are part of that picture.
 
-### Sector Map (`src/html/sector.py`, `lib/starmap.py`, `static/sectormap.js`)
+### System Map (`lib/systemmap.py`, `static/systemmap.js`)
 
-- [ ] **Show every kind of stellar phenomenon on the Sector Map, all
-  clickable.** Only nebulae, asteroid fields, black holes and neutron
-  stars appear (`queryDb._PHENOMENON_TABLES`). Supernova remnants, rogue
-  planets and interstellar comets have no galaxy-frame position columns
-  (`_UNPLACED_PHENOMENON_TABLES`, see [5.46.26]), so they're absent from
-  the Sector Map, Galaxy Map and NAV. Done means all seven types are
-  placed (schema migration plus generation in `phenomenonGen.py`/
-  `SpaceSector.add_phenomenon`), returned by `phenomena_near_sector`,
-  drawn by `sectormap.js` and link to `phenomenon.py`.
+7. [ ] **Draw the Measure distance path and route it around obstacles.**
+   "Measure distance" ([5.46.32]) reports a straight-line distance plus,
+   when the line crosses the scene's central body, a tangent-and-arc
+   detour around that one body (`computeMeasurement`,
+   `routeAroundCircle`). It should also draw the path on the map, and the
+   route should avoid every body it would pass through (planets, moons,
+   either star of a binary), keep a safe distance from stars rather than
+   just clearing the surface, and not thread between the two stars of a
+   close binary. Done means the drawn path and reported distance agree
+   and both respect those clearances.
 
-### System Map and shared rendering (`lib/systemmap.py`, `static/systemmap.js`, `static/bodyRendering.js`)
+### Sector Map and phenomena (`lib/starmap.py`, `static/sectormap.js`, `queryDb.py`, schema)
 
-- [ ] **Star glow renders as an opaque shell, not a 3D glow.** The
-  fresnel glow shell (`bodyRendering.makeGlowMaterial`, used by
-  `systemmap.js` and `sectormap.js`, strengthened in [5.46.24]) should
-  read as light fading out from the star's limb, but it shows as a solid
-  opaque layer. Investigate the material's blending, transparency,
-  `depthWrite` and alpha falloff. Verify with screenshots of both maps
-  before and after (Playwright with the bundled Chromium works here).
-- [ ] **Bring orbital paths back without drawing them over bodies.**
-  Orbit lines disappeared after [5.46.24] split each scene into an
-  orbits-only `<svg>` under the sphere `<canvas>` and a marker `<svg>`
-  over it. They should be visible again while still being hidden behind
-  the star/planet spheres. Check that `showScene` in `systemmap.js`
-  shows the orbits layer and that the canvas isn't painting an opaque
-  background over it.
-- [ ] **Draw the Measure distance path and route it around obstacles.**
-  "Measure distance" ([5.46.32]) reports a straight-line distance plus,
-  when the line crosses the scene's central body, a tangent-and-arc
-  detour around that one body (`computeMeasurement`,
-  `routeAroundCircle`). It should also draw the path on the map, and the
-  route should avoid every body it would pass through (planets, moons,
-  either star of a binary), keep a safe distance from stars rather than
-  just clearing the surface, and not thread between the two stars of a
-  close binary. Done means the drawn path and reported distance agree
-  and both respect those clearances.
+8. [ ] **Show every kind of stellar phenomenon on the Sector Map, all
+   clickable.** Only nebulae, asteroid fields, black holes and neutron
+   stars appear (`queryDb._PHENOMENON_TABLES`). Supernova remnants, rogue
+   planets and interstellar comets have no galaxy-frame position columns
+   (`_UNPLACED_PHENOMENON_TABLES`, see [5.46.26]), so they're absent from
+   the Sector Map, Galaxy Map and NAV. Done means all seven types are
+   placed (schema migration plus generation in `phenomenonGen.py`/
+   `SpaceSector.add_phenomenon`), returned by `phenomena_near_sector`,
+   drawn by `sectormap.js` and link to `phenomenon.py`.
 
-### Web API
+### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_view`)
 
-- [ ] **The API can't create a system inside an existing sector.**
-  `POST /api/systems` only creates standalone systems (`sector_id =
-  NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
-  placement and Hill-sphere separation logic (`SpaceSector.add_system`),
-  which was left out of the write API to keep the admin-auth change
-  small.
-- [ ] **The API can't edit a system's generated content.** `PATCH
-  /api/systems/<id>` only renames. Changing stars/planets/moons/belts
-  means `DELETE` then `POST` (regenerate). It may never need solving;
-  kept here in case it does.
+9. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
+   Investigate a representation driven by the real galaxy/sector geometry
+   (`stellarObjects/galaxyGeometry.py`: concentric Fibonacci-sphere shells
+   of Voronoi sector slots) instead of per-sector sprites plus an
+   illustrative density cloud. Idea to evaluate first: group neighboring
+   sectors and draw them as arc segments of shells (a band of shells by an
+   angular range), shaded by density, so the map shows the galaxy's
+   structure at every zoom without enumerating individual sectors. Done
+   means a written comparison of options, then an implementation that
+   loads quickly at full-galaxy zoom.
+
+### Web API (`src/html/api/routes.py`)
+
+Low priority; nobody is waiting on these.
+
+10. [ ] **The API can't create a system inside an existing sector.**
+    `POST /api/systems` only creates standalone systems (`sector_id =
+    NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
+    placement and Hill-sphere separation logic (`SpaceSector.add_system`),
+    which was left out of the write API to keep the admin-auth change
+    small.
+
+11. [ ] **The API can't edit a system's generated content.** `PATCH
+    /api/systems/<id>` only renames. Changing stars/planets/moons/belts
+    means `DELETE` then `POST` (regenerate). It may never need solving;
+    kept here in case it does.
 
 ## Population and Politics
 
-Exploratory ideas, not yet designed:
+Exploratory ideas, not yet designed. Each needs a design pass before it
+can be ordered against the work above.
 
-- [ ] Assign government ownership to star systems so that groups of
-  systems form territories mapped in 3D space.
-- [ ] Flag worlds with life for generated names of their dominant
-  species.
-- [ ] A database of spacefaring species.
-- [ ] Model younger and older civilizations: what differs with a
-  society's age and how to store and present it.
+12. [ ] Assign government ownership to star systems so that groups of
+    systems form territories mapped in 3D space.
+13. [ ] Flag worlds with life for generated names of their dominant
+    species.
+14. [ ] A database of spacefaring species.
+15. [ ] Model younger and older civilizations: what differs with a
+    society's age and how to store and present it.
