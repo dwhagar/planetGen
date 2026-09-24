@@ -157,3 +157,20 @@ def test_prune_deletes_oldest_files_down_to_budget(tmp_path):
     remaining = sorted(p.name for p in stamp_dir.iterdir())
     assert remaining == [f"t12_{i}_0_0.json" for i in range(6, 10)]
     assert (root / "db" / "stamp.json").exists()
+
+
+def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_path):
+    # What examples/apache/create-cache-dir.sh creates -- never created or
+    # checked by the helper itself.
+    target = tmp_path / "not-yet" / "tiles"
+    monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(target))
+    monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+    assert tilecache.configured_cache_dir() == str(target)
+    assert not target.exists()
+
+    monkeypatch.delenv("PLANETGEN_TILE_CACHE_DIR")
+    monkeypatch.setattr(tilecache, "_config", lambda: {})
+    assert tilecache.configured_cache_dir() == tilecache.DEFAULT_CACHE_DIR
+
+    monkeypatch.setenv("PLANETGEN_TILE_CACHE_MAX_MB", "0")
+    assert tilecache.configured_cache_dir() is None
