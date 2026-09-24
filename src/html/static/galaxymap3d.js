@@ -28,16 +28,14 @@
 //   - planned: real, not-yet-generated qualifying addresses -- small dim
 //              sprites, click selects (shows the copyable designation/
 //              CLI snippet) but never navigates.
-//   - density: the galaxy's predicted density, drawn as translucent
-//              cylindrical segment prisms (ring x azimuth x height cells
-//              of galactic cylindrical coordinates, a whole number of
-//              sector shells across, sized to the current view -- see
+//   - density: the galaxy's predicted density, drawn as solid, lit
+//              cylindrical segment prisms (ring x wedge x layer cells of
+//              galactic cylindrical coordinates, a power-of-two number of
+//              sector widths across, sized to the current view -- see
 //              ./galaxyprisms.js). Computed right here from the galaxy's
 //              own analytic shape, not fetched. Not interactive. Each
-//              prism's faces are shaded by a fixed light, its color and
-//              brightness by its mean density, and they are additively
-//              blended, so overlapping prisms brighten rather than hide
-//              each other and the markers in them stay visible.
+//              prism is colored and shrunk inside its cell by its mean
+//              density; the sector markers draw on top of them.
 //
 // Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
 // below interpolates between lib/galaxymap3d.py's own
