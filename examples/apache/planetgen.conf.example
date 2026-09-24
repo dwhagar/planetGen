@@ -85,6 +85,13 @@
     # SetEnv PLANETGEN_MYSQL_PASSWORD changeme
     # SetEnv PLANETGEN_MYSQL_DATABASE_PREFIX planetgen
     #
+    # The 3D Galaxy Map's tile cache (html/lib/tilecache.py). Defaults to
+    # /var/cache/planetgen/tiles if Apache's user can create it, else a
+    # folder in Apache's (usually private, cleared on restart) /tmp:
+    #   sudo install -d -o www-data -g www-data -m 750 /var/cache/planetgen/tiles
+    # SetEnv PLANETGEN_TILE_CACHE_DIR /var/cache/planetgen/tiles
+    # SetEnv PLANETGEN_TILE_CACHE_MAX_MB 200
+    #
     # NOTE: none of the SetEnv lines on this page reach the mod_wsgi API
     # below (see the WSGIScriptAlias block's own comment) -- set every
     # PLANETGEN_* variable (including the two below) in Apache's own
@@ -169,7 +176,13 @@
     # requests correctly within a single process, and `create_app` logs a
     # warning at startup if that assumption stops holding. `threads=5`
     # alone shares this one process's memory, so it stays accurate.
-    WSGIDaemonProcess planetgen-api processes=1 threads=5
+    #
+    # request-timeout=60 restarts the daemon if requests run far longer
+    # than any page waits for them (the CGI pages give up after 30 s), so
+    # a runaway request can't hold threads and memory until the kernel's
+    # OOM killer takes Apache down with it -- what happened on 2026-09-24
+    # with the Galaxy Map's old unbounded view query.
+    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
     WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
     <Directory /var/lib/planetGen/src/html/api>
         Require all denied

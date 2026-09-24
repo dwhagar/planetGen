@@ -46,9 +46,12 @@ from queryDb import (
     count_phenomena,
     count_sectors,
     count_systems,
+    MAX_TILES_PER_REQUEST,
+    galaxy_content_stamp,
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    galaxy_tiles,
     galaxy_view,
     list_phenomena,
     list_sectors,
@@ -627,6 +630,38 @@ def galaxy_view_route():
 
     return jsonify(galaxy_view(get_db(), cx, cy, cz, radius_pc))
 
+
+
+@bp.route("/galaxy/tiles")
+def galaxy_tiles_route():
+    """
+    The 3D Galaxy Map's cube tiles -- `tiles` is a comma-separated list of
+    `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`), `density` an
+    optional single key to anchor a density cloud on. See
+    `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
+    tiles" section. Each tile's work is bounded, so unlike `/galaxy/view`
+    no request can scan an unbounded region. Called by `html/
+    galaxy_tiles.py`, which caches every tile on disk and only forwards
+    the ones it doesn't already have.
+    """
+    tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
+    density_key = request.args.get("density") or None
+    if len(tile_keys) > MAX_TILES_PER_REQUEST:
+        raise ApiError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
+    try:
+        return jsonify(galaxy_tiles(get_db(), tile_keys, density_key))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/stamp")
+def galaxy_stamp_route():
+    """
+    `{"stamp": "<16 hex>"}` -- changes whenever the galaxy's tile contents
+    could change (see `queryDb.galaxy_content_stamp`). Tile caches key on
+    it, so a cached tile is never reused after new sectors are generated.
+    """
+    return jsonify({"stamp": galaxy_content_stamp(get_db())})
 
 @bp.route("/phenomena")
 def phenomena():

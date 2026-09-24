@@ -27,47 +27,26 @@ admin auth and wiki publishing.
 
 ## Open items
 
-Numbered in the order to work them: bug fixes first (the production
-crash before anything else), then everything else from the smallest change
+Numbered in the order to work them: bug fixes first, then everything else from the smallest change
 to the largest. The numbers run across groups; renumber when items are
 added or finished.
 
 ### Plan: what to do first
 
-- **Stop the crash (1).** Production stability comes before everything
-   else, and its root cause shapes both the cache (6) and the Galaxy Map
-   rework (9).
 - **Clear the small visual bugs (2-4)** in one or two quick PRs: each is
    confined to one or two front-end files and can be checked with a
    screenshot.
 - **Fix the skeleton shape (5) before the rework (9).** If unfilled
    sectors are placed or qualified wrongly, that's a data/generation bug
    the new map would inherit, not just a drawing problem.
-- **Design the cache (6) once the crash cause is known**, then do the
-   System Map route (7) and the phenomena schema work (8).
+- **Extend the cache (6)**, then do the System Map route (7) and the
+   phenomena schema work (8).
 - **Do the Galaxy Map rework (9) last** of the active work: it's the
-   largest change and builds on 1, 5 and 6.
+   largest change and builds on 5 and 6.
 
 ### Bug fixes
 
 Things that are broken today, most urgent first, then smallest to largest.
-
-1. [ ] **Apache was OOM-killed on the production server (2026-09-24
-   01:13 UTC).** `systemctl status apache2` showed `Result: oom-kill`
-   after ~56 CPU-minutes. Just before it, `planetgen.error.log` shows
-   `/galaxy_view.py` CGI requests timing out on their call to
-   `/api/galaxy/view` (`apiclient._request`, 30 s `_TIMEOUT_SECONDS`) and
-   then `Truncated or oversized response headers received from daemon
-   process 'planetgen-api'` for every in-flight request, i.e. the WSGI
-   daemon died. The access log shows the Galaxy Map's opening view asking
-   for `/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=15082.8` (a 1.7 MB
-   response) and `/api/galaxy/sectors` (508 KB) on each page load, and
-   bursts of large-radius `/api/galaxy/view` calls returning 500/504.
-   Suspect the Galaxy Map's view queries (`queryDb.galaxy_view`,
-   `stellarObjects/galaxyViewport.py`) holding large result sets per
-   request across several daemon threads. Being investigated in its own
-   project thread; done means the cause is known and the map can't take
-   the server down.
 
 2. [ ] **Remove the large sphere marker drawn for a star in a sector.**
    The Galaxy Map still shows a large sphere for a star inside a placed
@@ -112,11 +91,11 @@ Things that are broken today, most urgent first, then smallest to largest.
    Every CGI page calls the Flask API through `html/lib/apiclient.py`,
    and every API route queries MySQL fresh, including results that rarely
    change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
-   detail, the Galaxy Map's view payloads). Design a cache layer (where it
-   lives: API process memory, a shared store, or HTTP caching headers;
-   what the keys are; and how writes, generation and the orbit updater
-   invalidate it). Wait for item 1's root cause first: repeated large
-   galaxy queries are part of that picture.
+   detail). The 3D Galaxy Map already has one: its cube tiles are cached
+   on disk by the web layer (`html/lib/tilecache.py`, keyed by
+   `GET /api/galaxy/stamp`) and in the browser. Extend that pattern to the
+   other pages, and once rows carry modified timestamps, invalidate per
+   tile/page instead of on any change to the database.
 
 ### System Map (`lib/systemmap.py`, `static/systemmap.js`)
 
@@ -143,7 +122,7 @@ Things that are broken today, most urgent first, then smallest to largest.
    `SpaceSector.add_phenomenon`), returned by `phenomena_near_sector`,
    drawn by `sectormap.js` and link to `phenomenon.py`.
 
-### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_view`)
+### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
 
 9. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
    Investigate a representation driven by the real galaxy/sector geometry
