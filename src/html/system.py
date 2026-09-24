@@ -2,22 +2,24 @@
 # html/system.py
 
 """
-System detail page: stars, planets/moons, asteroid belts, comets, and the
-system's full description. Defaults to rendering `markdown_content` as
-actual HTML (via `mdconvert.markdown_to_html_with_headings`) so the
-description reads like a normal page instead of a wall of raw Markdown,
-with a table-of-contents linking to each heading (a collapsed pulldown on
-narrow windows, a fixed sidebar on wide ones); `?view=source`
-switches to the original raw-text view (wikitext or Markdown, toggled via
-`&format=`), which is what you want when copy-pasting into a wiki.
+System detail page: the system rendered natively as an expandable list --
+its stars, planets (moons nested under each), asteroid belts and comets,
+each row showing compact stats (class, type, habitable, inhabited) and
+opening onto that body's own generated description -- plus the stars/
+bodies tables and the system map.
+
+Nothing about the page text is stored (schema v28): the list's
+descriptions come from `GET /api/systems/<id>/sections`, and the
+Wikitext/Markdown buttons (`code=wikitext|markdown`) show the full wiki
+page from `GET /api/systems/<id>/text` in a code box with a Copy button
+(`static/copycode.js`), both rendered from the database rows on demand.
 
 Once this system has been uploaded to a wiki (`star_systems.wikijs_url`/
-`mediawiki_url` -- see `schema.sql`'s "v22" header note), the Description
-section is replaced entirely by a link to that page (opening in a new
-tab) rather than the rendered/source view above -- the wiki page is then
-the canonical copy. An admin session (`auth_me`) additionally gets an
-"Upload to Wiki" form offering whichever backend(s) are both configured
-deployment-wide (`GET /api/wiki-config`) and not yet uploaded to.
+`mediawiki_url` -- see `schema.sql`'s "v22" header note), the System
+panel links to that page (opening in a new tab). An admin session
+(`auth_me`) additionally gets an "Upload to Wiki" form offering whichever
+backend(s) are both configured deployment-wide (`GET /api/wiki-config`)
+and not yet uploaded to.
 """
 
 import os
@@ -25,9 +27,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
-from apiclient import ApiError, auth_me, get_system, get_wiki_config, upload_system_to_wiki
+from apiclient import (
+    ApiError, auth_me, get_system, get_system_sections, get_system_text, get_wiki_config, upload_system_to_wiki,
+)
 from fmt import esc, linkify_location, nearest_neighbors_location, post_link
-from mdconvert import markdown_to_html_with_headings
+from mdconvert import markdown_to_html
 from page import form_params, incoming_cookie_header, nav_params, run
 from systemmap import render_system_map_panel
 from tabledisplay import (
@@ -186,104 +190,187 @@ def _bodies_html(planets, belts, comets, stars, binary_configuration):
     return "".join(sections)
 
 
-def _toc_html(headings):
-    """
-    Builds the table-of-contents linking to each heading
-    `markdown_to_html_with_headings` found in the rendered description --
-    skipped entirely when there's nothing worth a contents list for (just
-    the system's own top-level heading, or no description at all).
+_BODY_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas giant"}
 
-    A checkbox-driven disclosure: collapsed into a pulldown above the
-    prose by default (so it doesn't eat vertical space next to the
-    reading column), or -- once the window is wide enough to have real
-    margin space beyond the centered content column -- fixed in the
-    right-hand margin and always shown open (see `.toc` in style.css,
-    which also explains why this isn't a native <details>/<summary>).
-    Only one of these ever exists on a page, so the fixed `id` below
-    never collides.
+
+def _flag_html(label, value):
+    """One yes/no chip in a system-list row, e.g. "Habitable: Yes"."""
+    state = "yes" if value else "no"
+    return f'<span class="flag flag-{state}">{label}: {"Yes" if value else "No"}</span>'
+
+
+def _row_html(title, stats, markdown, children_html="", children_visible=False):
     """
-    if len(headings) <= 1:
-        return ""
-    items = "".join(
-        f'<li class="toc-level-{heading["level"]}"><a href="#{heading["id"]}">{esc(heading["text"])}</a></li>'
-        for heading in headings
+    One clickable row of the system list: a native `<details>` whose
+    summary line is the body's name plus its compact stats, opening onto
+    that body's own generated description. Needs no script.
+
+    `children_html` (nested rows) sits inside the `<details>` -- shown only
+    once the row is opened, as a planet's moons are -- or, with
+    `children_visible`, right after it, always shown, as a wide pair's
+    star's own bodies are.
+    """
+    stats_html = "".join(stats)
+    description = markdown_to_html(markdown) if markdown else ""
+    inside, after = ("", children_html) if children_visible else (children_html, "")
+    return f"""
+<li><details class="body-row">
+<summary><span class="body-name">{title}</span><span class="body-stats">{stats_html}</span></summary>
+<div class="body-detail prose">{description}</div>
+{inside}
+</details>{after}</li>"""
+
+
+def _star_row_html(star, sections, children_html=""):
+    stats = [f'<span class="stat">{esc(star["star_type"])}</span>']
+    if star["role"] != "single":
+        stats.append(f'<span class="stat">{esc(star["role"].capitalize())}</span>')
+    return _row_html(
+        esc(star["name"]), stats, sections["stars"].get(str(star["id"])), children_html, children_visible=True,
     )
-    return f"""
-<nav class="toc" aria-label="Table of contents">
-<input type="checkbox" id="toc-toggle" class="toc-toggle">
-<label for="toc-toggle" class="toc-title">Contents</label>
-<ul>{items}</ul>
-</nav>
-"""
 
 
-def _description_html(db_name, system_id, view, fmt, markdown_content, wikitext_content, wikijs_url, mediawiki_url):
+def _planet_row_html(body, sections, is_moon=False):
+    stats = [
+        f'<span class="stat">Class {esc(body["planet_class"])}</span>' if body["planet_class"] else "",
+        f'<span class="stat">{_BODY_TYPE_LABELS.get(body["body_type"], "")}</span>',
+        _flag_html("Habitable", body["habitable"]),
+        _flag_html("Inhabited", body["inhabited"]),
+    ]
+    children_html = ""
+    if is_moon:
+        markdown = sections["moons"].get(str(body["id"]))
+    else:
+        markdown = sections["planets"].get(str(body["id"]))
+        moons = body.get("moons") or []
+        if moons:
+            stats.append(f'<span class="stat">{len(moons)} moon{"s" if len(moons) != 1 else ""}</span>')
+            children_html = '<ul class="system-list">' + "".join(
+                _planet_row_html(moon, sections, is_moon=True) for moon in moons
+            ) + "</ul>"
+    return _row_html(esc(body["name"]), stats, markdown, children_html)
+
+
+def _belt_row_html(belt, sections):
+    stats = [f'<span class="stat">{esc(belt["density"]).capitalize()}</span>'] if belt.get("density") else []
+    return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])))
+
+
+def _comet_row_html(comet, sections):
+    kind = "Elliptical" if comet["orbit_type"] == "elliptical" else "Parabolic"
+    stats = [
+        f'<span class="stat">{kind} comet</span>',
+        f'<span class="stat">{"Active" if comet["is_active"] else "Dormant"}</span>',
+    ]
+    return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])))
+
+
+def _orbiting_rows_html(planets, belts, comets, sections):
+    """A star's (or a close pair's) own bodies, in orbital order -- planets
+    and belts share one `orbital_index` space per star -- then comets."""
+    ordered = sorted(
+        [("planet", p) for p in planets] + [("belt", b) for b in belts],
+        key=lambda item: item[1]["orbital_index"],
+    )
+    rows = [
+        _planet_row_html(body, sections) if kind == "planet" else _belt_row_html(body, sections)
+        for kind, body in ordered
+    ]
+    rows.extend(_comet_row_html(comet, sections) for comet in comets)
+    return "".join(rows)
+
+
+def _system_list_html(system, sections):
     """
-    Builds the description section: rendered HTML by default, or the raw
-    wikitext/Markdown source (for copy-pasting into a wiki) when
-    `view=source` -- unless this system has already been uploaded to a
-    wiki (`wikijs_url`/`mediawiki_url` non-`None`), in which case the
-    whole section becomes a link to the wiki page(s) instead (opening in
-    a new tab), regardless of `view`/`fmt` -- the wiki page is the
-    canonical copy at that point, not the locally rendered/source view.
+    The system rendered natively: the page's overview (a binary pair's
+    own data, the system summary, any flavor text) above an expandable
+    list of its stars, planets (with their moons nested under them),
+    asteroid belts and comets. Each row shows compact stats and opens onto
+    that body's own generated description -- see
+    `stellarObjects.systemRender.render_system_sections`.
+
+    A `'wide'` (S-type) pair's bodies each orbit one of its two stars, so
+    they're nested under that star's own row; a single star's or a
+    `'close'` (P-type) pair's bodies orbit the whole system and follow
+    the star rows at the top level.
     """
-    if wikijs_url or mediawiki_url:
-        links = []
-        if wikijs_url:
-            links.append(f'<a href="{esc(wikijs_url)}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>')
-        if mediawiki_url:
-            links.append(
-                f'<a href="{esc(mediawiki_url)}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>'
+    stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
+    if system.get("binary_configuration") == "wide":
+        rows = []
+        for star in stars:
+            children = _orbiting_rows_html(
+                [p for p in planets if p["star_id"] == star["id"]],
+                [b for b in belts if b["star_id"] == star["id"]],
+                [c for c in comets if c["star_id"] == star["id"]],
+                sections,
             )
-        return f"""
-<section class="panel">
-<h2>Description</h2>
-<p>This system's description is published on the wiki: {" &middot; ".join(links)}</p>
-</section>
-"""
+            children_html = f'<ul class="system-list">{children}</ul>' if children else ""
+            rows.append(_star_row_html(star, sections, children_html))
+        rows_html = "".join(rows)
+    else:
+        rows_html = "".join(_star_row_html(star, sections) for star in stars)
+        rows_html += _orbiting_rows_html(planets, belts, comets, sections)
 
-    base_params = {"db": db_name, "id": system_id}
-
-    if view == "source":
-        content = wikitext_content if fmt == "wikitext" else markdown_content
-        other_fmt = "markdown" if fmt == "wikitext" else "wikitext"
-        rows = min((content or "").count("\n") + 3, 40)
-        rendered_link = post_link("system.py", base_params, "Rendered")
-        other_fmt_link = post_link(
-            "system.py", {**base_params, "view": "source", "format": other_fmt}, f"{other_fmt.capitalize()} source"
-        )
-        return f"""
-<section class="panel">
-<div class="panel-header">
-  <h2>Description</h2>
-  <div class="view-toggle">
-    {rendered_link}
-    <span class="view-toggle-current">{esc(fmt.capitalize())} source</span>
-    {other_fmt_link}
-  </div>
-</div>
-<textarea readonly rows="{rows}" class="content-box" aria-label="{esc(fmt)} source">{esc(content)}</textarea>
-</section>
-"""
-
-    rendered, headings = markdown_to_html_with_headings(markdown_content)
-    toc_html = _toc_html(headings)
-    wikitext_link = post_link("system.py", {**base_params, "view": "source"}, "Wikitext source")
-    markdown_link = post_link("system.py", {**base_params, "view": "source", "format": "markdown"}, "Markdown source")
+    overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
     return f"""
-<section class="panel">
-<div class="panel-header">
-  <h2>Description</h2>
-  <div class="view-toggle">
-    <span class="view-toggle-current">Rendered</span>
-    {wikitext_link}
-    {markdown_link}
+<div class="prose system-overview">{overview_html}</div>
+<ul class="system-list system-list-root">{rows_html}</ul>
+"""
+
+
+def _code_html(code_fmt, content):
+    """The generated wiki page in a read-only code box, with a Copy button
+    (`static/copycode.js` -- the page's Content-Security-Policy allows no
+    inline script)."""
+    label = "Wikitext" if code_fmt == "wikitext" else "Markdown"
+    rows = min(content.count("\n") + 3, 30)
+    return f"""
+<div class="code-view">
+  <div class="code-view-header">
+    <span class="view-toggle-current">{label}</span>
+    <button type="button" class="btn copy-btn" data-copy-target="system-code">Copy</button>
   </div>
+  <textarea readonly rows="{rows}" id="system-code" class="content-box" aria-label="{label} source">{esc(content)}</textarea>
 </div>
-{toc_html}
-<article class="prose">
-{rendered}
-</article>
+"""
+
+
+def _system_section_html(db_name, system_id, system, sections, code_fmt, code_content):
+    """
+    The "System" panel: the natively rendered system list, with Wikitext/
+    Markdown buttons that show the page's generated code (rendered on
+    demand -- nothing is stored, see `schema.sql`'s "v28" header note) in
+    a code box above it, plus links to the wiki copies once uploaded.
+    """
+    base_params = {"db": db_name, "id": system_id}
+    buttons = []
+    for fmt, label in (("wikitext", "Wikitext"), ("markdown", "Markdown")):
+        if fmt == code_fmt:
+            buttons.append(post_link("system.py", base_params, f"Hide {label}", css_class="btn btn-active"))
+        else:
+            buttons.append(post_link("system.py", {**base_params, "code": fmt}, label, css_class="btn"))
+
+    wiki_links = []
+    if system["wikijs_url"]:
+        wiki_links.append(
+            f'<a href="{esc(system["wikijs_url"])}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>'
+        )
+    if system["mediawiki_url"]:
+        wiki_links.append(
+            f'<a href="{esc(system["mediawiki_url"])}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>'
+        )
+    wiki_html = f'<p class="hint">Published on the wiki: {" &middot; ".join(wiki_links)}</p>' if wiki_links else ""
+    code_html = _code_html(code_fmt, code_content) if code_fmt else ""
+
+    return f"""
+<section class="panel" id="system-panel">
+<div class="panel-header">
+  <h2>System</h2>
+  <div class="view-toggle">{"".join(buttons)}</div>
+</div>
+{wiki_html}
+{code_html}
+{_system_list_html(system, sections)}
 </section>
 """
 
@@ -340,14 +427,13 @@ def handler():
     params = nav_params()
     db_name = params.get("db", "")
     system_id = params.get("id", "")
-    view = params.get("view", "rendered")
-    if view not in ("rendered", "source"):
-        view = "rendered"
-    fmt = params.get("format", "wikitext")
-    if fmt not in ("wikitext", "markdown"):
-        fmt = "wikitext"
+    code_fmt = params.get("code")
+    if code_fmt not in ("wikitext", "markdown"):
+        code_fmt = None
 
     system = get_system(db_name, system_id)
+    sections = get_system_sections(db_name, system_id)
+    code_content = get_system_text(db_name, system_id, code_fmt)["content"] if code_fmt else ""
 
     back_html = f'<p class="breadcrumb">{post_link("browse.py", {"db": db_name}, esc(db_name))}'
     if system["sector_id"] is not None:
@@ -418,19 +504,17 @@ def handler():
     bodies_html = _bodies_html(
         system["planets"], system["belts"], system["comets"], system["stars"], system.get("binary_configuration")
     )
-    description_html = _description_html(
-        db_name, system_id, view, fmt, system["markdown_content"], system["wikitext_content"],
-        system["wikijs_url"], system["mediawiki_url"],
-    )
+    system_html = _system_section_html(db_name, system_id, system, sections, code_fmt, code_content)
 
     body = f"""
 {subhead_html}
 {map_html}
 {wiki_upload_html}
-{description_html}
+{system_html}
 {stars_html}
 {bodies_html}
 <script type="module" src="static/systemmap.js"></script>
+<script type="module" src="static/copycode.js"></script>
 """
     return f"System: {system['name']}", body
 

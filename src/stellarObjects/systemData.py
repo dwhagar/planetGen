@@ -1722,34 +1722,18 @@ class StarSystem:
 
         return reclassified
 
-    def __str__(self):
+    def summary_paragraph(self):
         """
-        Generates a string output for the system data, including a summary and
-        details for each celestial body.
-
-        This method compiles a comprehensive summary of the entire star system,
-        including details about the central star and each of its orbiting
-        objects. The output is formatted as a human-readable string, suitable for
-        display in a console or for writing to a file.
-
-        The method provides a high-level overview of the system, including the
-        total number of planets, asteroid belts, and moons, as well as the number
-        of potentially habitable worlds. It then lists each celestial body in
-        order, providing a detailed description of its properties. The final
-        output may also include a category tag for wiki-based systems.
+        Builds the system summary paragraph -- object counts, habitable
+        worlds, heliosphere and gravitational edge -- that `__str__` places
+        near the top of the page. Its own method so a caller rendering the
+        page piece by piece (`systemRender.render_system_sections`) gets
+        exactly the same sentences.
 
         Returns:
-            str: A formatted string representing the entire star system.
+            str: The paragraph, in whichever format `system_config.MARKDOWN`
+                selects (only relevant through `to_paragraph`).
         """
-        all_output_parts = []
-
-        # Add level 1 header for the system name
-        if self.system_config.MARKDOWN:
-            all_output_parts.append(f"# {self.star.name}\n\n")
-        else:
-            all_output_parts.append(f"= {self.star.name} =\n\n")
-
-        # Generate system summary sentences (needed before star details for binary systems)
         system_summary_sentences = []
         segments = []
         if 0 < self.planet_count != self.m_count and self.hab_count != self.planet_count:
@@ -1805,8 +1789,36 @@ class StarSystem:
         system_summary_sentences.append(
             f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
 
-        combined_system_summary_paragraph = to_paragraph(system_summary_sentences)
+        return to_paragraph(system_summary_sentences)
 
+    def __str__(self):
+        """
+        Generates a string output for the system data, including a summary and
+        details for each celestial body.
+
+        This method compiles a comprehensive summary of the entire star system,
+        including details about the central star and each of its orbiting
+        objects. The output is formatted as a human-readable string, suitable for
+        display in a console or for writing to a file.
+
+        The method provides a high-level overview of the system, including the
+        total number of planets, asteroid belts, and moons, as well as the number
+        of potentially habitable worlds. It then lists each celestial body in
+        order, providing a detailed description of its properties. The final
+        output may also include a category tag for wiki-based systems.
+
+        Returns:
+            str: A formatted string representing the entire star system.
+        """
+        all_output_parts = []
+
+        # Add level 1 header for the system name
+        if self.system_config.MARKDOWN:
+            all_output_parts.append(f"# {self.star.name}\n\n")
+        else:
+            all_output_parts.append(f"= {self.star.name} =\n\n")
+
+        combined_system_summary_paragraph = self.summary_paragraph()
 
         if self.binary_type == "close":
             # Get combined binary system data and age from the proxy

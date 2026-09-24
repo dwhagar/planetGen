@@ -301,6 +301,12 @@ class BinaryStarProxy(Star):
         proxy.system_config = system_config
         primary = Star.from_dict(data["primary"], system_config)
         secondary = Star.from_dict(data["secondary"], system_config)
+        # Same "heavier star is the proxy's primary" convention `__init__`
+        # applies -- a caller rebuilding from database rows passes the
+        # stars in `stars.role` (generation) order, which `__init__` may
+        # have swapped.
+        if secondary.mass > primary.mass:
+            primary, secondary = secondary, primary
         proxy._primary = primary
         proxy._secondary = secondary
         proxy.stars = [primary, secondary]

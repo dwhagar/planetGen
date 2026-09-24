@@ -82,7 +82,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 27
+SCHEMA_VERSION = 28
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2034,18 +2034,15 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     Inserts a full `StarSystem` -- the `star_systems` row, its `stars` row(s),
     and every planet/moon/asteroid belt/comet it contains -- into the database.
 
-    Both `wikitext_content` and `markdown_content` are rendered here, from
-    this same already-generated `star_system` object, back-to-back
-    (toggling `system_config.MARKDOWN` and restoring it afterward) -- see
-    `schema.sql`'s header comment for why they can't be independently
-    regenerated later and still match.
+    No page text is stored (v28): wikitext/Markdown are rendered on demand
+    from these rows by `stellarObjects/systemRender.py` -- see
+    `schema.sql`'s "v28" header note.
 
     `star_system.star.name` is reserved via `reserve_system_name` (v24,
-    `nameUniqueness.py`) *before* that rendering, mutating it in place if
-    a collision requires a decorated name -- so the stored rendered
-    content always matches the stored name, and every other system/
-    sector/planet/moon anywhere in the database stays distinct from this
-    one. See that function's own docstring for the full mechanism.
+    `nameUniqueness.py`), mutating it in place if a collision requires a
+    decorated name, so every other system/sector/planet/moon anywhere in
+    the database stays distinct from this one. See that function's own
+    docstring for the full mechanism.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -2130,22 +2127,11 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         quadrant = None
         location = None
 
-    # Name-uniqueness (v24, nameUniqueness.py) -- reserved *before* the
-    # rendering below, and mutated onto star_system.star.name in place,
-    # so a renamed system's stored wikitext_content/markdown_content
-    # actually matches its stored name.
+    # Name-uniqueness (v24, nameUniqueness.py) -- mutated onto
+    # star_system.star.name in place, so the caller's object matches the
+    # stored name.
     final_name, name_base, diminutive_index = reserve_system_name(conn, star_system.star.name)
     star_system.star.name = final_name
-
-    # Render both formats from this same generated object -- rendering is
-    # idempotent (Phase 0), so toggling MARKDOWN here has no other effect
-    # on the object and doesn't re-roll anything.
-    original_markdown = system_config.MARKDOWN
-    system_config.MARKDOWN = False
-    wikitext_content = str(star_system)
-    system_config.MARKDOWN = True
-    markdown_content = str(star_system)
-    system_config.MARKDOWN = original_markdown
 
     cur = conn.execute(
         """
@@ -2168,8 +2154,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km,
             binary_secondary_mass_fraction,
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
-            system_flavor_text, schema_version, wikitext_content, markdown_content
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            system_flavor_text, schema_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.star.name,
@@ -2179,7 +2165,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             *proxy_only_fields,
             *mutual_orbit_fields,
             *planetary_wobble_fields,
-            star_system.system_flavor_text, SCHEMA_VERSION, wikitext_content, markdown_content,
+            star_system.system_flavor_text, SCHEMA_VERSION,
         ),
     )
     star_system_id = cur.lastrowid
@@ -2964,14 +2950,18 @@ def _load_single_star(conn, star_system_id, system_config):
     ).fetchone()
 
     black_hole_row = conn.execute("SELECT * FROM black_holes WHERE star_id = ?", (star_row["id"],)).fetchone()
+    neutron_star_row = None
+    if black_hole_row is None:
+        neutron_star_row = conn.execute("SELECT * FROM neutron_stars WHERE star_id = ?", (star_row["id"],)).fetchone()
+
     if black_hole_row is not None:
-        return BlackHole.from_dict(_black_hole_row_to_dict(star_row, black_hole_row), system_config)
-
-    neutron_star_row = conn.execute("SELECT * FROM neutron_stars WHERE star_id = ?", (star_row["id"],)).fetchone()
-    if neutron_star_row is not None:
-        return NeutronStar.from_dict(_neutron_star_row_to_dict(star_row, neutron_star_row), system_config)
-
-    return Star.from_dict(_star_row_to_dict(star_row), system_config)
+        star = BlackHole.from_dict(_black_hole_row_to_dict(star_row, black_hole_row), system_config)
+    elif neutron_star_row is not None:
+        star = NeutronStar.from_dict(_neutron_star_row_to_dict(star_row, neutron_star_row), system_config)
+    else:
+        star = Star.from_dict(_star_row_to_dict(star_row), system_config)
+    star.db_id = star_row["id"]
+    return star
 
 
 def _binary_proxy_row_to_dict(star_system_row, primary_dict, secondary_dict):
@@ -3200,6 +3190,11 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     moon/asteroid belt it contains (in original orbital order), and every
     comet it contains -- from a `star_systems` row and its related rows.
 
+    Each reconstructed star/planet/moon/belt/comet also carries `db_id`,
+    its own row's `id`, so a caller rendering per-body text
+    (`systemRender.render_system_sections`) can match it back to the
+    rows `queryDb.system_detail` returns.
+
     Args:
         conn (Connection): An open, schema-initialized connection.
         star_system_id (int): The `star_systems.id` to load.
@@ -3253,6 +3248,16 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     else:
         star = _load_single_star(conn, star_system_id, system_config)
 
+    # The page is titled with the star's (a close pair's proxy's) name.
+    # Generation gives the system and its single/primary star the same
+    # name, but every later rename -- `PATCH /api/systems/<id>`,
+    # `dedupeNames.py`, the name-uniqueness decorations
+    # `_rename_existing_system_for_diminutive`/`reserve_system_name` apply
+    # to an existing system -- only updates `star_systems.name`, so that
+    # column is the one to follow. A close pair's proxy already takes it
+    # (`_binary_proxy_row_to_dict`).
+    star.name = row["name"]
+
     system = object.__new__(StarSystem)
     system.system_config = system_config
     system.star = star
@@ -3275,12 +3280,22 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     )
 
     if binary_configuration == "close":
-        system.primary_star = star._primary
-        system.secondary_star = star._secondary
-        system.stars = [star._primary, star._secondary]
+        # `primary_star`/`secondary_star` keep generation order (the
+        # `stars.role` rows), which can differ from the proxy's own
+        # heavier-first `_primary`/`_secondary` -- `StarSystem.__str__`
+        # renders the per-star sections in this order.
+        if secondary_row["mass_kg"] > primary_row["mass_kg"]:
+            system.primary_star, system.secondary_star = star._secondary, star._primary
+        else:
+            system.primary_star, system.secondary_star = star._primary, star._secondary
+        system.primary_star.db_id = primary_row["id"]
+        system.secondary_star.db_id = secondary_row["id"]
+        system.stars = [system.primary_star, system.secondary_star]
     elif binary_configuration == "wide":
         system.primary_star = star
         system.secondary_star = secondary_star
+        star.db_id = primary_row["id"]
+        secondary_star.db_id = secondary_row["id"]
         system.stars = [star, secondary_star]
     else:
         system.primary_star = star
@@ -3306,7 +3321,9 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                 "SELECT component FROM comet_composition WHERE comet_id = ? ORDER BY position",
                 (r["id"],),
             ).fetchall()
-            comets.append(Comet.from_dict(_comet_row_to_dict(r, comp_rows), system_config))
+            comet = Comet.from_dict(_comet_row_to_dict(r, comp_rows), system_config)
+            comet.db_id = r["id"]
+            comets.append(comet)
         return comets
 
     def _build_object_list(planet_rows_subset, belt_rows_subset, owning_star):
@@ -3325,14 +3342,20 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                     "WHERE belt_id = ? ORDER BY position",
                     (r["id"],),
                 ).fetchall()
-                objects.append(AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config))
+                belt = AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config)
+                belt.db_id = r["id"]
+                objects.append(belt)
             else:
                 planet_data = _planet_or_moon_row_to_dict(conn, r, is_moon=False)
                 moon_rows = conn.execute(
                     "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (r["id"],)
                 ).fetchall()
                 planet_data["moons"] = [_planet_or_moon_row_to_dict(conn, mr, is_moon=True) for mr in moon_rows]
-                objects.append(Planet.from_dict(planet_data, owning_star, system_config))
+                planet = Planet.from_dict(planet_data, owning_star, system_config)
+                planet.db_id = r["id"]
+                for moon, moon_row in zip(planet.moons, moon_rows):
+                    moon.db_id = moon_row["id"]
+                objects.append(planet)
         return objects
 
     if binary_configuration == "wide":
@@ -4544,6 +4567,40 @@ def _backfill_v27_timestamps(conn):
         conn.commit()
 
 
+V28_DROPPED_COLUMNS = ("wikitext_content", "markdown_content")
+"""tuple: The `star_systems` page-text columns v28 dropped -- see
+`schema.sql`'s "v28" header note."""
+
+
+def _migrate_v27_to_v28(conn):
+    """
+    Drops `star_systems.wikitext_content`/`markdown_content` -- v28 renders
+    both on demand from the rest of the system's rows instead
+    (`stellarObjects/systemRender.py`; see `schema.sql`'s "v28" header
+    note). This deletes data, so take a backup first if you want the old
+    stored copies (the PR that added this step describes how).
+
+    Tries `ALGORITHM=INSTANT` (a metadata-only drop on MySQL 8.0.29+/
+    MariaDB 10.4+), then an online `INPLACE` rebuild, via
+    `_alter_table_online`. Guarded through `_has_column`, so a database
+    `_ensure_schema` created fresh (which never has these columns) makes
+    this a no-op.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    present = [column for column in V28_DROPPED_COLUMNS if _has_column(conn, "star_systems", column)]
+    if present:
+        _alter_table_online(
+            conn, "star_systems", ", ".join(f"DROP COLUMN {column}" for column in present),
+            ("ALGORITHM=INSTANT", "ALGORITHM=INPLACE, LOCK=NONE"),
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (28)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -4610,9 +4667,10 @@ def migrate_database(config=None):
     name-uniqueness registry tables), `_migrate_v24_to_v25` (added for
     v25's spatial index on `sectors`), `_migrate_v25_to_v26` (added for
     v26's spatial indexes on `nebulae`/`asteroid_fields`/`black_holes`/
-    `neutron_stars`), and `_migrate_v26_to_v27` (added for v27's
-    `created_at`/`modified_at` row timestamps) are the migration steps so
-    far; see
+    `neutron_stars`), `_migrate_v26_to_v27` (added for v27's
+    `created_at`/`modified_at` row timestamps), and `_migrate_v27_to_v28`
+    (dropping the stored wikitext/Markdown page text v28 renders on
+    demand instead) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4704,6 +4762,10 @@ def migrate_database(config=None):
         if version < 27:
             _migrate_v26_to_v27(conn)
             version = 27
+
+        if version < 28:
+            _migrate_v27_to_v28(conn)
+            version = 28
 
         conn.commit()
         return version

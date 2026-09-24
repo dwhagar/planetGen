@@ -680,6 +680,23 @@
 --     sectors with no systems) have nothing to recover from, so they
 --     keep the migration's own time.
 --
+-- v28: dropped `star_systems.wikitext_content`/`markdown_content`, the
+--   full wiki page text rendered once at generation time. Every value that
+--   text was built from already has its own column (the same reasoning v5
+--   applied to the `table_*` snapshot columns), so both formats are now
+--   rendered on demand: `_db.load_star_system` rebuilds the generation
+--   object graph and `stellarObjects/systemRender.py` renders it
+--   (`StarSystem.__str__`, toggling `SystemConfig.MARKDOWN`). Rendered
+--   fresh, a page follows every later change the stored copy never saw --
+--   a rename, a name made unique after the text was rendered (planets and
+--   moons get their suffix in `insert_planet`/`insert_moon`, after
+--   `insert_star_system` used to render), and each orbit tick's current
+--   wobble and comet positions. Checked before the drop by rendering every
+--   system and comparing against the stored copy; the only fixes needed
+--   were binary-pair orientation on load (`BinaryStarProxy.from_dict`/
+--   `WideBinaryPair.from_dict` re-derive which star is the heavier,
+--   matching generation). `_migrate_v27_to_v28` drops the two columns.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1024,15 +1041,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     system_flavor_text   TEXT,
     schema_version       INT NOT NULL DEFAULT 1,
 
-    -- Fully rendered page text, ready to paste/upload. Both must be
-    -- rendered from the SAME already-generated StarSystem object
-    -- (toggle system_config.MARKDOWN, render, toggle back, render again)
-    -- -- generation mixes unseedable `secrets` with seedable `random`
-    -- (see spaceSector.py's module docstring), so the other format can
-    -- never be faithfully regenerated later. LONGTEXT, not TEXT -- see
-    -- the MySQL port note above.
-    wikitext_content     LONGTEXT,
-    markdown_content     LONGTEXT,
+    -- No stored page text since v28: wikitext/Markdown are rendered on
+    -- demand from the rows above -- see the header comment's "v28" note.
 
     -- One system = one wiki page (stars/planets/moons are sections within
     -- it, per StarSystem.__str__), so exactly one URL per wiki target --

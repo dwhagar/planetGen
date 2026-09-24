@@ -285,6 +285,20 @@ def get_system(db, system_id):
     return _request(f"/systems/{system_id}", {"db": db})
 
 
+def get_system_text(db, system_id, fmt):
+    """Returns `GET /api/systems/<id>/text`'s `{id, format, content}` --
+    the full wiki page as `fmt` (`"wikitext"` or `"markdown"`)."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/text", {"db": db, "format": fmt})
+
+
+def get_system_sections(db, system_id):
+    """Returns `GET /api/systems/<id>/sections` -- the page's Markdown split
+    per body, see `stellarObjects.systemRender.render_system_sections`."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/sections", {"db": db})
+
+
 def get_systems_near(db, system_id, radius):
     """Returns `GET /api/systems/<id>/near`'s bare list of
     `{id, name, distance_ly}`."""
