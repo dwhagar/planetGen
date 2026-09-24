@@ -168,27 +168,6 @@ connectivity to that specific schema rather than the default one.
   has never been built. The Galaxy Map shades its "expected density"
   cloud from this real model (falling back to a generic illustrative
   gradient when `null`) instead of a placeholder.
-- `GET /api/galaxy/view?cx=<pc>&cy=<pc>&cz=<pc>&radius_pc=<pc>` —
-  `{"placed": [...], "planned": [...], "density": [...], "edge_pc": ...,
-  "has_shape": ...}` (`queryDb.galaxy_view`), the interactive 3D Galaxy
-  Map's (`../src/html/galaxy.py`) own live-viewport query, scoped to a
-  moving camera rather than the whole galaxy in one shot the way
-  `/api/galaxy/sectors` is: `placed` is that same per-sector shape (plus
-  `shell_slot_index`, `designation`, `distance_pc`, and `edge_ly` — this
-  sector's own real edge length, `null` if it predates per-sector edge
-  tracking, lets a client compute its true stellar density,
-  `system_count / edge_ly ** 3`) but only within `radius_pc` of `(cx, cy,
-  cz)`, closest-first, capped at 2,000; `planned`
-  is every real, not-yet-generated `(shell_index, shell_slot_index)`
-  address this galaxy's own density model predicts would qualify, within
-  the same radius up to its own 40 pc cap (`shell_index`,
-  `shell_slot_index`, `x`/`y`/`z`, `distance_pc`, `designation`,
-  `predicted_star_count`, `relative_density` — `None` for the last two if
-  no skeleton has been built), capped at 4,000; `density` is a coarse,
-  illustrative point cloud (`x`/`y`/`z`, `relative_density`) for whatever
-  part of the view that 40 pc cap couldn't cover with exact addresses,
-  empty when it didn't need to. `radius_pc` is silently clamped to 20,000.
-  Kept for API clients; the Galaxy Map itself now uses `/api/galaxy/tiles`.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
@@ -198,7 +177,9 @@ connectivity to that specific schema rather than the default one.
   `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "density":
   {"key": ..., "points": [...]} | null, "edge_pc": ..., "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
-  box (the `/api/galaxy/view` shape minus `distance_pc`), lowest id first,
+  box (the `/api/galaxy/sectors` shape plus `shell_slot_index`,
+  `designation` and `edge_ly`, this sector's real edge length, `null` if it
+  predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated
   slots, only for 16 pc tiles (empty otherwise); `density`, when a
   `density` key is given, is an illustrative cloud of 1,600 points within

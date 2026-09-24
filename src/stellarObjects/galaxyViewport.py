@@ -9,7 +9,7 @@ that map is a single bird's-eye overview. The interactive 3D map
 (`html/lib/galaxymap3d.py`/`static/galaxymap3d.js`) is the opposite: a
 real camera that moves freely through the galaxy, so what it needs to
 plot changes every time it moves -- this module is the data layer behind
-that, called fresh (via `queryDb.galaxy_view`) each time the camera's
+that, called fresh (via `queryDb.galaxy_tiles`) each time the camera's
 viewport changes.
 
 Three tiers of content, matching the three sprite kinds
