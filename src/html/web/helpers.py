@@ -44,6 +44,7 @@ from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
 import apiclient
+from api.authz import SESSION_COOKIE_NAME
 from pagination import render_pagination
 
 # ---------------------------------------------------------------------
@@ -151,10 +152,14 @@ def current_admin():
     The logged-in admin (`{"username", "must_change_credentials"}`) or
     `None`, from the request's session cookie. Looked up once per request
     (in-process `GET /api/auth/me`) and cached on `g`; a lookup failure
-    counts as "not logged in" rather than breaking the page.
+    counts as "not logged in" rather than breaking the page. A request with
+    no session cookie at all (nearly every visitor) skips the lookup.
     """
     admin = g.get("web_admin", _UNSET)
     if admin is _UNSET:
+        if not request.cookies.get(SESSION_COOKIE_NAME):
+            g.web_admin = None
+            return None
         try:
             admin = apiclient.auth_me(request.headers.get("Cookie"))
         except (apiclient.ApiError, apiclient.NotFoundError):

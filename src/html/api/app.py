@@ -7,7 +7,6 @@ See `docs/api.md` for how to run this in development and how it deploys
 behind the project's existing Apache2 vhost (`examples/apache/`).
 """
 
-import os
 import time
 
 from flask import Flask, g, jsonify, request
@@ -29,18 +28,19 @@ def _is_api_request():
 
 
 def create_app(config_object=Config):
+    # The HTML pages (html/web/), imported here rather than at the top so
+    # `import api.app` stays cheap for callers that never build an app.
+    import web
+
     # /static/ is src/html/static/ -- Apache serves it directly in
     # production (examples/apache/); this only matters for the dev server
     # (`python src/html/wsgi.py`) and tests.
-    app = Flask(__name__, static_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static"))
+    app = Flask(__name__, static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
     limiter.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
-    # The HTML pages (html/web/), imported here rather than at the top so
-    # `import api.app` stays cheap for callers that never build an app.
-    import web
     web.init_app(app, limiter=limiter)
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)

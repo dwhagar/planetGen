@@ -8,7 +8,7 @@ How it works: the first page that renders a form gives the browser a
 random nonce in the `pg_csrf` cookie (HttpOnly, SameSite=Strict, Secure
 unless `SESSION_COOKIE_SECURE` is off). The form carries
 `HMAC-SHA256(SECRET_KEY, nonce)` in a hidden `csrf_token` field. On any
-POST/PUT/PATCH/DELETE to a `web` route, `protect()` recomputes the HMAC
+POST/PUT/PATCH/DELETE to a page (any path outside `/api`), `protect()` recomputes the HMAC
 from the cookie and compares it with the field in constant time; a
 missing or wrong token gets a 400 page and the view never runs.
 
@@ -24,8 +24,9 @@ Use in a template:
       ...
     </form>
 
-Nothing else is needed; the check runs for every `web` route. The JSON
-API under `/api` is not affected (it has its own CSRF defense: JSON
+Nothing else is needed: the check runs app-wide for every unsafe request
+outside `/api` (registered by `web.init_app`), so a new form route is
+covered without doing anything. The JSON API under `/api` is not affected (it has its own CSRF defense: JSON
 bodies plus a SameSite=Strict session cookie, see `api/auth.py`).
 """
 
@@ -79,9 +80,12 @@ def valid(submitted, nonce):
 
 
 def protect():
-    """`before_request` hook for the `web` blueprint: rejects an unsafe
-    request whose form token doesn't match its cookie."""
+    """App-wide `before_request` hook: rejects an unsafe request to any
+    page (anything outside `/api`) whose form token doesn't match its
+    cookie."""
     if request.method not in UNSAFE_METHODS:
+        return None
+    if request.path == "/api" or request.path.startswith("/api/"):
         return None
     submitted = request.form.get(FIELD_NAME) or request.headers.get("X-CSRF-Token")
     if not valid(submitted, request.cookies.get(COOKIE_NAME)):

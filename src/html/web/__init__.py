@@ -29,7 +29,7 @@ Pieces:
   pages still on CGI).
 - `transport.py`: lets `apiclient` run in-process here (no HTTP hop).
 - `csrf.py`: `csrf_field()` for POST forms; checked on every unsafe
-  request to a `web` route.
+  request outside `/api`.
 - `errors.py`: HTML 404/502/500 pages that never show a traceback.
 """
 
@@ -95,8 +95,6 @@ def _template_globals():
     }
 
 
-bp.before_request(csrf.protect)
-bp.after_request(csrf.set_cookie)
 errors.register(bp)
 
 from . import views  # noqa: E402,F401 -- registers the routes on bp
@@ -114,6 +112,8 @@ def init_app(app, limiter=None):
             `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
+    app.before_request(csrf.protect)
+    app.after_request(csrf.set_cookie)
     if limiter is not None:
         limiter.exempt(bp)
     transport.install()
