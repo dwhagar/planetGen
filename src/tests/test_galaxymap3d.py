@@ -107,8 +107,8 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["db"] == "mydb"
     assert data["fetchPath"] == "galaxy_tiles.py"
     assert data["hasShape"] is True
-    for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedViewRadiusPc",
-                  "plannedMaxViewRadiusPc", "fetchRadiusFactor", "maxTilesPerRequest"):
+    for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedMaxViewRadiusPc",
+                  "fetchRadiusFactor", "maxTilesPerRequest"):
         assert field in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
     assert data["edgeLy"] > 0
@@ -179,4 +179,17 @@ def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
 
 def test_initial_tile_request_has_no_density_without_a_shape():
     _keys, density_key = initial_tile_request(16000.0, False)
+    assert density_key is None
+
+
+def test_planned_tiles_cover_the_whole_view_not_a_smaller_ball():
+    # A zoomed-in view fetches planned tiles out to the full view radius,
+    # so the dots fill the screen instead of clustering into a ball around
+    # the target.
+    center = (8000.0, 3.0, -2.0)
+    orbit_radius = PLANNED_MAX_VIEW_RADIUS_PC / FETCH_RADIUS_FACTOR
+    keys, density_key = initial_tile_request(orbit_radius, True, center)
+    view_radius = orbit_radius * FETCH_RADIUS_FACTOR
+    planned_keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, center, view_radius)
+    assert set(planned_keys) <= set(keys)
     assert density_key is None

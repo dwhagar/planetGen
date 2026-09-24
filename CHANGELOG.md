@@ -1,5 +1,49 @@
 # Changelog
 
+## [5.49.0] - 2026-09-24
+
+### Added
+- **Admin stats page.** Logged-in admins get a new Stats page (sidenav
+  and a link on the Admin page) showing server health (API version,
+  uptime, load, memory, MySQL version/uptime/connections, galaxy tile
+  cache usage and free disk) and stats about the current database: exact
+  sector and system counts, size on disk, schema version, when rows were
+  last created or modified, and per-table row estimates and sizes.
+- **Names made unique.** The same page counts every name the uniqueness
+  rules had to decorate (Alpha/Beta..., Little..., ...Kin) and lists each
+  one with links to every sector and system carrying it; planets and
+  moons link to their system.
+- New admin-only endpoints `GET /api/admin/stats` and
+  `GET /api/admin/duplicate-names` (see `docs/api.md`).
+
+## [5.48.3] - 2026-09-24
+
+### Fixed
+- **Zoomed in on the Galaxy Map, unfilled sectors still drew as a ball.**
+  Two things drew it. Unfilled (not-yet-generated) sector dots were
+  clipped to a 20 pc ball around the view center while the view reached
+  out to 200 pc, and near the galactic plane every slot qualifies, so the
+  ball was solid. They now fill the whole view, shown while the view
+  radius is 32 pc or less, and fade out toward its edge. Wider zoomed-in
+  views get the density cloud instead, which had its own ball: a view a
+  few hundred parsecs across kept almost none of its galaxy-wide samples
+  and topped up with uniform points around the view. It now samples such
+  views locally against the real density, so the cloud follows the disk.
+
+## [5.48.2] - 2026-09-24
+
+### Changed
+- **The browse page's sector list now runs outward from the galactic
+  core.** Sectors are sorted by distance from the core (nearest first),
+  with sectors never placed in a galaxy listed after them by name, and a
+  new "Distance from core" column shows each one's distance. Paging walks
+  the same order.
+- **A sector's systems table now runs outward from the sector's center.**
+  Systems are sorted by distance from the sector's center (nearest first),
+  with a new "From center" column. `GET /api/sectors` gains
+  `galactic_radius_pc`/`galactic_radius_ly` and `GET /api/sectors/<id>`'s
+  systems gain `center_distance_ly`.
+
 ## [5.48.1] - 2026-09-24
 
 ### Fixed

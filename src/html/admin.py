@@ -2,7 +2,8 @@
 # html/admin.py
 
 """
-Admin landing page: API key management (list/create/revoke -- `GET`/
+Admin landing page (server health and database stats have their own
+page, `adminstats.py`, linked from here): API key management (list/create/revoke -- `GET`/
 `POST /api/auth/api-keys`, `DELETE /api/auth/api-keys/<id>`). Sector/
 system creation, modification, and deletion are done directly against the
 JSON API (`docs/api.md`'s "Write endpoints"), authenticated with one of
@@ -95,6 +96,7 @@ def _page_html(identity, keys, new_key=None, error=None, wiki_message=None, wiki
 <h2>Signed in</h2>
 <p><strong>{esc(identity['username'])}</strong> &mdash;
 <a href="changecreds.py">change username/password</a> &mdash;
+<a href="adminstats.py">server and database stats</a> &mdash;
 <a href="logout.py">log out</a></p>
 </section>
 {new_key_html}

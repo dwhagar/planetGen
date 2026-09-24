@@ -194,6 +194,15 @@ def nearest_neighbors_location(db_name, location, neighbors):
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
 
 
+def format_distance_ly(distance_ly):
+    """Formats a distance in light-years for a table cell, e.g.
+    `"26,012.4 ly"`, or an en dash when there is none (`None`, an unplaced
+    sector or system)."""
+    if distance_ly is None:
+        return "&ndash;"
+    return f"{distance_ly:,.1f} ly"
+
+
 def format_density(edge_ly, system_count):
     """
     Formats a sector's star density as systems per cubic light-year, with a

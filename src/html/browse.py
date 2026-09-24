@@ -2,8 +2,9 @@
 # html/browse.py
 
 """
-Per-database overview: every sector (with its system count) and every
-standalone system (one generated with no sector, `sector_id IS NULL`).
+Per-database overview: every sector (with its system count), nearest the
+galactic core first with unplaced sectors after, and every standalone
+system (one generated with no sector, `sector_id IS NULL`).
 
 Both tables are paginated through the API (`GET /api/sectors`/`GET
 /api/systems`'s own `limit`/`offset` -- see docs/api.md's "Pagination"),
@@ -19,7 +20,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from apiclient import get_sectors, get_systems
-from fmt import esc, format_density, post_link
+from fmt import esc, format_density, format_distance_ly, post_link
 from galaxymap import sector_quadrant
 from page import nav_params, run
 from pagination import fetch_page, parse_page, render_pagination
@@ -68,9 +69,10 @@ def handler(db_name=None):
         f'<td>{row["system_count"]}</td>'
         f'<td>{format_density(row["edge_ly"], row["system_count"])}</td>'
         f'<td>{_galaxy_position_cell(db_name, row)}</td>'
+        f'<td>{format_distance_ly(row.get("galactic_radius_ly"))}</td>'
         "</tr>"
         for row in sectors
-    ) or '<tr><td colspan="4"><em>None</em></td></tr>'
+    ) or '<tr><td colspan="5"><em>None</em></td></tr>'
 
     standalone_rows = "".join(
         "<tr>"
@@ -97,7 +99,7 @@ def handler(db_name=None):
   {post_link("galaxy.py", {"db": db_name}, "Galaxy Map &rarr;")}
 </div>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Systems</th><th>Density</th><th>Galaxy Position</th></tr></thead>
+  <thead><tr><th>Name</th><th>Systems</th><th>Density</th><th>Galaxy Position</th><th>Distance from core</th></tr></thead>
   <tbody>{sector_rows}</tbody>
 </table></div>
 {sectors_pager}

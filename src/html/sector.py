@@ -2,10 +2,11 @@
 # html/sector.py
 
 """
-Sector detail page: the sector's name/size and every system placed in it,
-with quadrant and star-type info, linking to `system.py` for each -- plus
-an interactive 3D "Sector Map" (see `lib/starmap.py`) of the same systems
-plotted by position within the sector, plus a translucent cloud for every
+Sector detail page: the sector's name/size and every system placed in it
+(nearest the sector's center first), with quadrant and star-type info,
+linking to `system.py` for each -- plus an interactive 3D "Sector Map"
+(see `lib/starmap.py`) of the same systems plotted by position within the
+sector, plus a translucent cloud for every
 nebula/asteroid field (and a point marker for every black hole/neutron
 star) whose real galaxy-frame sphere reaches into this sector's own cube
 (`queryDb.phenomena_near_sector`, via
@@ -42,7 +43,7 @@ from apiclient import (
     get_wiki_config,
     upload_sector_to_wiki,
 )
-from fmt import esc, linkify_location, post_link
+from fmt import esc, format_distance_ly, linkify_location, post_link
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, nav_params, run
 from pagination import page_slice, parse_page, render_pagination
@@ -165,6 +166,7 @@ def handler():
             f'<td>{esc(row["quadrant"])}</td>'
             f'<td>{"Yes" if row["is_binary"] else "No"}</td>'
             f'<td>{esc(star_type or "")}</td>'
+            f'<td>{format_distance_ly(row.get("center_distance_ly"))}</td>'
             f'<td>{linkify_location(db_name, row["location"], name_to_id)}</td>'
             "</tr>"
         )
@@ -195,7 +197,7 @@ def handler():
     # The map above plots every system, so the full list is already here;
     # the table shows one page of it (see lib/pagination.py).
     page_rows, systems_page = page_slice(rows, parse_page(params.get("systems_page")))
-    rows_html = "".join(page_rows) or '<tr><td colspan="5"><em>None</em></td></tr>'
+    rows_html = "".join(page_rows) or '<tr><td colspan="6"><em>None</em></td></tr>'
 
     def _phenomenon_row_html(row):
         radius_text = f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else "&ndash;"
@@ -314,7 +316,7 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 <section class="panel" id="sector-systems">
 <h2>Systems</h2>
 <div class="table-scroll"><table>
-  <thead><tr><th>Name</th><th>Octant</th><th>Binary</th><th>Star type</th><th>Location</th></tr></thead>
+  <thead><tr><th>Name</th><th>Octant</th><th>Binary</th><th>Star type</th><th>From center</th><th>Location</th></tr></thead>
   <tbody>{rows_html}</tbody>
 </table></div>
 {render_pagination("sector.py", page_state, "systems_page", systems_page, system_count,

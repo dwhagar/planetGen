@@ -535,6 +535,26 @@ def auth_revoke_api_key(cookie_header, key_id):
     _auth_request("DELETE", f"/auth/api-keys/{key_id}", cookie_header=cookie_header)
 
 
+def admin_stats(cookie_header, db):
+    """`GET /api/admin/stats?db=` -- server health and statistics about
+    one database, for `html/adminstats.py`."""
+    _require_db(db)
+    body, _set_cookie_headers = _auth_request(
+        "GET", f"/admin/stats?{_build_query({'db': db})}", cookie_header=cookie_header,
+    )
+    return body
+
+
+def admin_duplicate_names(cookie_header, db, limit=None, offset=None):
+    """`GET /api/admin/duplicate-names?db=&limit=&offset=` -- one page of the
+    names the uniqueness rules had to decorate, each with the rows that
+    carry it."""
+    _require_db(db)
+    query = _build_query({"db": db, "limit": limit, "offset": offset})
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/duplicate-names?{query}", cookie_header=cookie_header)
+    return body
+
+
 # ---------------------------------------------------------------------
 # Wiki publishing (schema.sql's "v22" header note) -- POST .../wiki, and
 # GET /api/wiki-config so a page knows which backend(s), if any, to offer
