@@ -19,7 +19,9 @@ they're skipped, not failed, when no MySQL test server is configured/
 reachable.
 """
 
+import datetime
 import math
+import time
 
 import pytest
 
@@ -1160,7 +1162,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -1242,7 +1244,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -1338,7 +1340,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -1423,7 +1425,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -1517,7 +1519,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
         conn.commit()
 
@@ -1624,7 +1626,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
         conn.commit()
 
@@ -1690,7 +1692,7 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1784,7 +1786,7 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1888,7 +1890,7 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
 
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26, 27)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (20)")
         conn.commit()
 
@@ -1942,5 +1944,143 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
         assert new_bh_row["sector_id"] == sector_id
         assert new_bh_row["center_x_pc"] == pytest.approx(5.5)
         assert new_bh_row["galactic_radius_pc"] == pytest.approx(placement["galactic_radius_pc"])
+    finally:
+        conn.close()
+
+
+def _drop_v27_timestamp_columns(conn):
+    """
+    Drops v27's `created_at`/`modified_at` columns and `modified_at`
+    indexes from every `_db.TIMESTAMPED_TABLES` table (keeping
+    `star_systems.created_at`, which predates v27) -- the same "already
+    exists on a freshly-bootstrapped test database" reasoning
+    `_drop_v17_phenomenon_columns` gives for its own tables. See
+    `schema.sql`'s "v27" header note.
+    """
+    for table in _db.TIMESTAMPED_TABLES:
+        drops = [f"DROP INDEX idx_{table}_modified_at", "DROP COLUMN modified_at"]
+        if table != "star_systems":
+            drops.append("DROP COLUMN created_at")
+        conn.execute(f"ALTER TABLE {table} " + ", ".join(drops))
+
+
+def test_migrate_v26_to_v27_adds_and_backfills_row_timestamps(mysql_config, monkeypatch):
+    """
+    Simulates a database created under schema v26 (no row timestamps
+    beyond `star_systems.created_at`), with a sector holding two systems,
+    an empty sector and a standalone black hole already in it, then checks
+    that migrate_database brings it up to v27: every top-level table has
+    both columns and the `modified_at` index; each system's `modified_at`
+    is backfilled from its own `created_at`; the populated sector takes
+    its oldest system's `created_at` for both; and rows with nothing to
+    recover from (the empty sector, the black hole) get the migration's
+    own time. A batch size of 1 makes the backfill cross batch
+    boundaries.
+    """
+    monkeypatch.setattr(_db, "_V27_BACKFILL_BATCH_SIZE", 1)
+    first_created = datetime.datetime(2020, 1, 1, 0, 0, 0)
+    second_created = datetime.datetime(2021, 6, 15, 12, 30, 0)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        sector_id = _db.save_sector(SpaceSector("Timestamp Migration Sector", edge_ly=11.5), config=mysql_config)
+        empty_sector_id = _db.save_sector(SpaceSector("Empty Timestamp Sector", edge_ly=11.5), config=mysql_config)
+        with conn:
+            system_ids = []
+            for _ in range(2):
+                system, cfg = _make_system_with_moons_and_belt()
+                system_ids.append(_db.insert_star_system(conn, system, cfg))
+            bh_id = _db.insert_black_hole(conn, BlackHole(SystemConfig()))
+
+        _drop_v27_timestamp_columns(conn)
+        for system_id, created in zip(system_ids, (second_created, first_created)):
+            conn.execute(
+                "UPDATE star_systems SET sector_id = ?, created_at = ? WHERE id = ?",
+                (sector_id, created, system_id),
+            )
+        conn.execute("DELETE FROM schema_migrations WHERE version = 27")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (26)")
+        conn.commit()
+
+        sector_columns_before = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM sectors").fetchall()}
+        assert "modified_at" not in sector_columns_before
+    finally:
+        conn.close()
+
+    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+
+    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    try:
+        for table in _db.TIMESTAMPED_TABLES:
+            columns = {row["Field"] for row in conn.execute(f"SHOW COLUMNS FROM {table}").fetchall()}
+            assert {"created_at", "modified_at"} <= columns, table
+            indexes = {row["Key_name"] for row in conn.execute(f"SHOW INDEX FROM {table}").fetchall()}
+            assert f"idx_{table}_modified_at" in indexes, table
+
+        def timestamps(table, row_id):
+            return conn.execute(f"SELECT created_at, modified_at FROM {table} WHERE id = ?", (row_id,)).fetchone()
+
+        for system_id, created in zip(system_ids, (second_created, first_created)):
+            row = timestamps("star_systems", system_id)
+            assert row["created_at"] == created
+            assert row["modified_at"] == created
+
+        row = timestamps("sectors", sector_id)
+        assert row["created_at"] == first_created
+        assert row["modified_at"] == first_created
+
+        for table, row_id in (("sectors", empty_sector_id), ("black_holes", bh_id)):
+            row = timestamps(table, row_id)
+            assert row["created_at"] > second_created, table
+            assert row["modified_at"] > second_created, table
+    finally:
+        conn.close()
+
+    # Running it again on an already-current database is a no-op.
+    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+
+
+def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
+    """
+    v27: `modified_at` moves when a row is edited (MySQL's `ON UPDATE`)
+    or one of a system's child rows changes (`touch_star_system`), but
+    NOT when `advance_orbital_phases` ticks the simulation clock forward
+    -- see `schema.sql`'s "v27" header note.
+    """
+    binary_cfg = SystemConfig()
+    binary_cfg.STAR_TYPE = "G2V"
+    binary_cfg.BINARY_SYSTEM = True
+    binary_cfg.WIDE_BINARY = False
+    binary_cfg.PLANETS = False
+    binary_system = StarSystem(system_config=binary_cfg)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = _db.insert_star_system(conn, binary_system, binary_cfg)
+            bh_id = _db.insert_black_hole(conn, BlackHole(SystemConfig()))
+
+        def modified(table, row_id):
+            return conn.execute(f"SELECT modified_at FROM {table} WHERE id = ?", (row_id,)).fetchone()["modified_at"]
+
+        system_before = modified("star_systems", system_id)
+        bh_before = modified("black_holes", bh_id)
+        time.sleep(0.05)
+
+        counts = _db.advance_orbital_phases(conn, elapsed_years=1e5)
+        assert counts["binary_mutual_orbits"] > 0
+        assert counts["black_holes"] > 0
+        assert modified("star_systems", system_id) == system_before
+        assert modified("black_holes", bh_id) == bh_before
+
+        with conn:
+            conn.execute("UPDATE star_systems SET name = ? WHERE id = ?", ("Renamed For Test", system_id))
+        system_renamed = modified("star_systems", system_id)
+        assert system_renamed > system_before
+
+        time.sleep(0.05)
+        with conn:
+            _db.touch_star_system(conn, system_id)
+        assert modified("star_systems", system_id) > system_renamed
     finally:
         conn.close()

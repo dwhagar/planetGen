@@ -403,6 +403,23 @@ docstring) — it only accepts a source already at the database's current
 `SCHEMA_VERSION` (today, v22), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
+**Row timestamps (v27).** `sectors`, `star_systems` and the seven
+exotic-phenomenon tables each carry `created_at` and `modified_at`
+(millisecond precision), with an index on `modified_at`. MySQL bumps
+`modified_at` itself on any `UPDATE` that changes the row. Child rows
+(stars, planets, moons, belts, comets) have no timestamps of their own;
+changing one bumps its system's `modified_at` (`_db.touch_star_system`),
+and deleting a system bumps its sector's (`_db.touch_sector`). Orbit
+ticks from `updateOrbits.py` deliberately don't count as a change; see
+`orbit_simulation_state.last_updated_at` for those. `_migrate_v26_to_v27`
+adds the columns with `ALGORITHM=INSTANT` where the server supports it
+and builds the indexes online, so it's safe on a large, live database.
+It then backfills in small batches: each system's `modified_at` starts at
+its own `created_at`, and each sector takes its oldest system's
+`created_at` for both columns. Phenomena and empty sectors have no record
+of when they were made, so they keep the migration's own time. The full
+reasoning is in `schema.sql`'s "v27" header note.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,

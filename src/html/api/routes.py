@@ -1076,11 +1076,16 @@ def update_system(system_id):
 def delete_system(system_id):
     """`DELETE /api/systems/<id>` -- no request body. Its stars/planets/
     moons/belts are deleted with it (all `ON DELETE CASCADE`, per
-    `schema.sql`)."""
+    `schema.sql`). Bumps the system's sector's `modified_at`, since a
+    deleted row leaves no timestamp of its own behind (`schema.sql`'s
+    "v27" header note)."""
     conn = _write_conn()
     try:
         with conn:
+            row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
+            if deleted:
+                _db.touch_sector(conn, row["sector_id"])
     finally:
         conn.close()
 

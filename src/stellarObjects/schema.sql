@@ -643,6 +643,43 @@
 --   docstring) -- these four composite indexes are what let MySQL
 --   range-scan that bounding box instead of still examining every row.
 --
+-- v27: row timestamps on the top-level tables -- `sectors`,
+--   `star_systems` and the seven exotic-phenomenon tables (`_db.py`'s
+--   `TIMESTAMPED_TABLES`). Each gets `created_at` (`star_systems` already
+--   had one) and `modified_at`, plus an index on `modified_at` so "what
+--   changed since T" is a range scan rather than a full one -- the shape
+--   a tile/page cache needs to decide what to rebuild.
+--   - `modified_at` is `TIMESTAMP(3) ... ON UPDATE CURRENT_TIMESTAMP(3)`,
+--     so MySQL itself bumps it on any `UPDATE` that changes the row --
+--     no call site has to remember to. Millisecond precision so two
+--     changes a fraction of a second apart still compare as different.
+--   - Child rows (`stars`, `planets`, `moons`, `asteroid_belts`,
+--     `comets` and their own detail tables) get no timestamps. A change
+--     to one bumps its parent system's `modified_at` instead, through
+--     `_db.touch_star_system` -- cheaper than a timestamp (and index) on
+--     the largest tables, and a cache only ever needs to know that the
+--     system changed. Deleting a system bumps its sector the same way
+--     (`_db.touch_sector`). Generation writes a system and its children
+--     together, so the system's own insert already covers them.
+--   - `updateOrbits.py`'s orbit ticks (`_db.advance_orbital_phases`) do
+--     NOT count as a modification: each of its `UPDATE`s sets
+--     `modified_at = modified_at`, which stops `ON UPDATE` from firing.
+--     The simulation clock moving would otherwise mark every row changed
+--     on every run; `orbit_simulation_state.last_updated_at` is the
+--     timestamp for that instead.
+--   - Done in application code rather than triggers, which on a
+--     binary-logged server need privileges a web-app account usually
+--     doesn't have, and couldn't tell an orbit tick from an edit anyway.
+--   - `_migrate_v26_to_v27` adds the columns with `ALGORITHM=INSTANT`
+--     where supported (a metadata-only change, no table rebuild) and the
+--     indexes online (`ALGORITHM=INPLACE, LOCK=NONE`), so it's safe to
+--     run against a large, live database. It then backfills in
+--     primary-key batches (committing after each): a system's
+--     `modified_at` starts at its own `created_at`, and a sector takes
+--     its oldest system's `created_at` for both columns. Phenomena (and
+--     sectors with no systems) have nothing to recover from, so they
+--     keep the migration's own time.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -728,6 +765,10 @@ CREATE TABLE IF NOT EXISTS sectors (
     -- header comment's "v23" note. NULL means no page yet.
     wiki_url            VARCHAR(2048),
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -749,7 +790,9 @@ CREATE TABLE IF NOT EXISTS sectors (
     -- v25: lets `queryDb.galaxy_sectors_in_view`'s bounding-box query
     -- range-scan on center_x_pc instead of a full table scan -- see the
     -- header comment's "v25" note.
-    KEY idx_sectors_center (center_x_pc, center_y_pc, center_z_pc)
+    KEY idx_sectors_center (center_x_pc, center_y_pc, center_z_pc),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_sectors_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- This sector's own exact prism vertices (v7 -- see the header comment's
@@ -1000,6 +1043,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     wikijs_url           VARCHAR(2048),
 
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     CONSTRAINT fk_star_systems_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
@@ -1007,7 +1051,9 @@ CREATE TABLE IF NOT EXISTS star_systems (
         FOREIGN KEY (system_config_id) REFERENCES system_configs(id),
     KEY idx_star_systems_sector_id (sector_id),
     KEY idx_star_systems_system_config_id (system_config_id),
-    KEY idx_star_systems_name (name)
+    KEY idx_star_systems_name (name),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_star_systems_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1448,6 +1494,10 @@ CREATE TABLE IF NOT EXISTS black_holes (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     CONSTRAINT chk_black_holes_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -1464,7 +1514,9 @@ CREATE TABLE IF NOT EXISTS black_holes (
     -- v26: lets `queryDb.phenomena_near_sector`'s bounding-box query
     -- range-scan on center_x_pc instead of a full table scan -- see the
     -- header comment's "v26" note.
-    KEY idx_black_holes_center (center_x_pc, center_y_pc, center_z_pc)
+    KEY idx_black_holes_center (center_x_pc, center_y_pc, center_z_pc),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_black_holes_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS neutron_stars (
@@ -1493,6 +1545,10 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     CONSTRAINT chk_neutron_stars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -1507,7 +1563,9 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     KEY idx_neutron_stars_sector_id (sector_id),
     KEY idx_neutron_stars_galactic_radius_pc (galactic_radius_pc),
     -- v26: see black_holes' identical "v26" index comment above.
-    KEY idx_neutron_stars_center (center_x_pc, center_y_pc, center_z_pc)
+    KEY idx_neutron_stars_center (center_x_pc, center_y_pc, center_z_pc),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_neutron_stars_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1543,6 +1601,10 @@ CREATE TABLE IF NOT EXISTS nebulae (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
     -- `_migrate_v17_to_v18` can add the exact same constraint by name to a
     -- migrated (not freshly created) database -- an anonymous CHECK gets
@@ -1560,7 +1622,9 @@ CREATE TABLE IF NOT EXISTS nebulae (
     KEY idx_nebulae_sector_id (sector_id),
     KEY idx_nebulae_galactic_radius_pc (galactic_radius_pc),
     -- v26: see black_holes' identical "v26" index comment above.
-    KEY idx_nebulae_center (center_x_pc, center_y_pc, center_z_pc)
+    KEY idx_nebulae_center (center_x_pc, center_y_pc, center_z_pc),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_nebulae_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1587,13 +1651,19 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     CONSTRAINT fk_supernova_remnants_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
     CONSTRAINT fk_supernova_remnants_black_hole
         FOREIGN KEY (compact_remnant_black_hole_id) REFERENCES black_holes(id) ON DELETE SET NULL,
     CONSTRAINT fk_supernova_remnants_neutron_star
         FOREIGN KEY (compact_remnant_neutron_star_id) REFERENCES neutron_stars(id) ON DELETE SET NULL,
-    KEY idx_supernova_remnants_sector_id (sector_id)
+    KEY idx_supernova_remnants_sector_id (sector_id),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_supernova_remnants_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1616,9 +1686,15 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     CONSTRAINT fk_rogue_planets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
-    KEY idx_rogue_planets_sector_id (sector_id)
+    KEY idx_rogue_planets_sector_id (sector_id),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_rogue_planets_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1644,9 +1720,15 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     CONSTRAINT fk_interstellar_comets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
-    KEY idx_interstellar_comets_sector_id (sector_id)
+    KEY idx_interstellar_comets_sector_id (sector_id),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_interstellar_comets_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
@@ -1691,6 +1773,10 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
+    -- v27: row timestamps -- see the header comment's "v27" note.
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
     CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -1703,7 +1789,9 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     KEY idx_asteroid_fields_sector_id (sector_id),
     KEY idx_asteroid_fields_galactic_radius_pc (galactic_radius_pc),
     -- v26: see black_holes' identical "v26" index comment above.
-    KEY idx_asteroid_fields_center (center_x_pc, center_y_pc, center_z_pc)
+    KEY idx_asteroid_fields_center (center_x_pc, center_y_pc, center_z_pc),
+    -- v27: see the header comment's "v27" note.
+    KEY idx_asteroid_fields_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS asteroid_field_composition (
