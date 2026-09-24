@@ -1128,6 +1128,25 @@ code {
   pointer-events: none;
 }
 
+/* The orbits-only sibling `<svg>` `lib/systemmap.py`'s `_scene_svg_pair`
+   emits alongside the body-marker one above -- absolutely positioned
+   (unlike the body-marker `.sysmap-svg`'s own `position: relative`,
+   which is what sizes `.sysmap-viewport`'s aspect-ratio box) and given a
+   z-index BELOW `.sysmap-spheres-canvas` (below), rather than above it
+   like the body-marker layer, so a body's own live sphere -- drawn on
+   that canvas, between these two layers -- now actually occludes the
+   orbit line it sits on top of instead of the line always painting over
+   every sphere regardless of position (see `_scene_svg_pair`'s own
+   docstring for why one `<svg>` alone couldn't do this: a canvas
+   element's z-index applies to the whole element, so it could never
+   sit "inside" a single SVG's own internal paint order between two of
+   that SVG's own child elements). */
+.sysmap-orbits-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
 .sysmap-body,
 .sysmap-belt {
   cursor: pointer;

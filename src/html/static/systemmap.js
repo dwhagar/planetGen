@@ -65,14 +65,21 @@ var GLOW_VERTEX_SHADER = [
 // away from the camera (the limb), near-zero head-on -- rendered on a
 // slightly larger, back-face-only, additively-blended sphere around the
 // body itself, the common cheap "planet atmosphere" trick (no real
-// scattering simulation, just a glow that reads as one).
+// scattering simulation, just a glow that reads as one). glowPower/
+// glowStrength are the same shell reused for a star's own corona too
+// (see configureBody) -- a lower glowPower spreads the glow in across
+// more of the disc instead of a thin limb-only rim, and a higher
+// glowStrength brightens it, together reading as "this is a light
+// source" rather than the same subtle atmosphere haze a planet gets.
 var GLOW_FRAGMENT_SHADER = [
   "uniform vec3 glowColor;",
+  "uniform float glowPower;",
+  "uniform float glowStrength;",
   "varying vec3 vNormal;",
   "varying vec3 vViewDir;",
   "void main() {",
   "  float rim = 1.0 - max(dot(vNormal, vViewDir), 0.0);",
-  "  float intensity = pow(rim, 2.5);",
+  "  float intensity = pow(rim, glowPower) * glowStrength;",
   "  gl_FragColor = vec4(glowColor, intensity);",
   "}",
 ].join("\n");
@@ -133,6 +140,49 @@ function makeRingTexture(baseColorHex) {
   gradient.addColorStop(1.0, "rgba(0,0,0,0)");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// A star's photosphere reads as mottled granulation, not a clean flat
+// disc -- unlike makeBandTexture's height-only banding (correct for a
+// horizontally-banded gas giant), this varies in BOTH UV directions:
+// several layered sine "octaves" at different frequencies/phases/axes,
+// cross-modulated against each other, give an irregular blotchy pattern
+// (bright granulation cells and darker starspot-like patches) rather
+// than a regular grid a plain 2D sine product would produce. Built once
+// per star marker (cached as marker.starTexture, same convention
+// bandTexture/ringTexture already use), not per frame.
+function makeStarTexture(baseColorHex) {
+  var size = 128;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+  var base = new THREE.Color(baseColorHex);
+  var imageData = ctx.createImageData(size, size);
+  for (var y = 0; y < size; y++) {
+    var v = y / size;
+    for (var x = 0; x < size; x++) {
+      var u = x / size;
+      var n =
+        0.5 +
+        0.22 * Math.sin(u * Math.PI * 18 + Math.sin(v * 11) * 2.0) +
+        0.18 * Math.sin(v * Math.PI * 14 + Math.cos(u * 9) * 2.4) +
+        0.12 * Math.sin((u + v) * Math.PI * 23) +
+        0.1 * Math.sin((u - v) * Math.PI * 27 + 1.3);
+      n = Math.max(0, Math.min(1, n));
+      // Kept bright overall (0.72-1.12x) -- a self-luminous surface, so
+      // this is texture/granulation, never allowed to read as "shadow".
+      var shade = 0.72 + 0.4 * n;
+      var idx = (y * size + x) * 4;
+      imageData.data[idx] = Math.min(255, Math.round(base.r * 255 * shade));
+      imageData.data[idx + 1] = Math.min(255, Math.round(base.g * 255 * shade));
+      imageData.data[idx + 2] = Math.min(255, Math.round(base.b * 255 * shade));
+      imageData.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
   var texture = new THREE.CanvasTexture(canvasEl);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
@@ -236,8 +286,18 @@ function initSphereField(canvasEl) {
   ring.rotation.x = THREE.MathUtils.degToRad(70);
   bodyGroup.add(ring);
 
+  var PLANET_GLOW_POWER = 2.5;
+  var PLANET_GLOW_STRENGTH = 1.0;
+  var STAR_GLOW_POWER = 1.5;
+  var STAR_GLOW_STRENGTH = 2.2;
+  var STAR_GLOW_SCALE = 1.45;
+
   var glowMaterial = new THREE.ShaderMaterial({
-    uniforms: { glowColor: { value: new THREE.Color(0xbcdfff) } },
+    uniforms: {
+      glowColor: { value: new THREE.Color(0xbcdfff) },
+      glowPower: { value: PLANET_GLOW_POWER },
+      glowStrength: { value: PLANET_GLOW_STRENGTH },
+    },
     vertexShader: GLOW_VERTEX_SHADER,
     fragmentShader: GLOW_FRAGMENT_SHADER,
     side: THREE.BackSide,
@@ -263,6 +323,9 @@ function initSphereField(canvasEl) {
     if (marker.ringTexture) {
       marker.ringTexture.dispose();
     }
+    if (marker.starTexture) {
+      marker.starTexture.dispose();
+    }
   }
 
   function recomputeRects() {
@@ -277,8 +340,16 @@ function initSphereField(canvasEl) {
       // that function's own comment -- mapped so the body's own
       // `SPHERE_R` (1 local unit) lands at exactly this marker's own
       // on-screen radius, the same relationship the flat circle it
-      // replaces already had to its neighbors.
-      var halfExtent = (marker.isGasGiant ? RING_OUTER_R : GLOW_R) * 1.15;
+      // replaces already had to its neighbors. A star's own glow shell
+      // is scaled up by STAR_GLOW_SCALE (see configureBody) -- framed
+      // for that larger reach here too, or its corona would simply clip
+      // outside the frustum the same way an under-framed gas giant ring
+      // once did (see this function's own earlier fix for that).
+      var halfExtent = marker.isGasGiant
+        ? RING_OUTER_R * 1.15
+        : marker.isStar
+          ? GLOW_R * STAR_GLOW_SCALE * 1.15
+          : GLOW_R * 1.15;
       return { cx: cx, cy: cy, side: 2 * halfExtent * r, halfExtent: halfExtent };
     });
   }
@@ -303,13 +374,33 @@ function initSphereField(canvasEl) {
   function configureBody(marker) {
     if (marker.isStar) {
       sphere.material = starMaterial;
-      starMaterial.color.set(marker.color);
+      // marker.starTexture (see makeStarTexture) already bakes the
+      // star's own color into its granulation pattern -- tinting
+      // starMaterial.color on top of that too would double-multiply it
+      // (darker/oversaturated), so the material's own color resets to
+      // white whenever a texture is doing the coloring instead. Falls
+      // back to the old flat-tinted-sphere look only if the texture
+      // somehow isn't there.
+      if (marker.starTexture) {
+        starMaterial.color.set(0xffffff);
+        starMaterial.map = marker.starTexture;
+      } else {
+        starMaterial.color.set(marker.color);
+        starMaterial.map = null;
+      }
+      starMaterial.needsUpdate = true;
       ring.visible = false;
       // A star gets its own glow shell too, tinted to its own spectral
       // color rather than `glowColorForTemp` -- a cheap "it's a light
-      // source" cue, not a real corona simulation.
+      // source" cue, not a real corona simulation. Bigger and brighter
+      // than a planet's own subtle atmosphere rim (STAR_GLOW_SCALE/
+      // _POWER/_STRENGTH vs. PLANET_*) -- it needs to read unmistakably
+      // as "this is the light source", not just a faint haze.
       glow.visible = true;
+      glow.scale.setScalar(STAR_GLOW_SCALE);
       glowMaterial.uniforms.glowColor.value.set(marker.color);
+      glowMaterial.uniforms.glowPower.value = STAR_GLOW_POWER;
+      glowMaterial.uniforms.glowStrength.value = STAR_GLOW_STRENGTH;
       return;
     }
     sphere.material = planetMaterial;
@@ -325,7 +416,10 @@ function initSphereField(canvasEl) {
 
     glow.visible = marker.hasAtmosphere;
     if (marker.hasAtmosphere) {
+      glow.scale.setScalar(1);
       glowMaterial.uniforms.glowColor.value.set(marker.glowColor);
+      glowMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
+      glowMaterial.uniforms.glowStrength.value = PLANET_GLOW_STRENGTH;
     }
   }
 
@@ -420,6 +514,9 @@ function gatherSphereMarkers(sceneEl) {
       marker.bandTexture = makeBandTexture(marker.color);
       marker.ringTexture = makeRingTexture(marker.color);
     }
+    if (isStar) {
+      marker.starTexture = makeStarTexture(marker.color);
+    }
     el.classList.add("sysmap-sphere-active");
     markers.push(marker);
   }
@@ -493,7 +590,15 @@ function initSystemMap(root) {
   if (!info) {
     return;
   }
-  var scenes = Array.prototype.slice.call(root.querySelectorAll(".sysmap-svg"));
+  // `.sysmap-orbits-layer`s are excluded here (a separate list below) --
+  // `lib/systemmap.py`'s `_scene_svg_pair` now emits TWO sibling `<svg
+  // class="sysmap-svg" data-scene="...">`s per scene (an orbits-only
+  // layer plus this, the body-marker layer -- see that function's own
+  // docstring for why), and `active`/`self`/`sceneFocusLabel` below all
+  // need the body-marker one specifically (the orbits layer has no
+  // `[data-self]`/`[data-kind]` markers of its own to find).
+  var scenes = Array.prototype.slice.call(root.querySelectorAll(".sysmap-svg:not(.sysmap-orbits-layer)"));
+  var orbitLayers = Array.prototype.slice.call(root.querySelectorAll(".sysmap-orbits-layer"));
 
   // A drilled-into scene's own crumb label depends on what was drilled
   // into: a planet's own moons (`kind === "planet"`, from a scene
@@ -518,6 +623,13 @@ function initSystemMap(root) {
       if (isActive) {
         active = scene;
       }
+    });
+    // Kept in lockstep with the body-marker layer above by the same
+    // data-scene value, not folded into that same loop -- an orbits
+    // layer is never a candidate for `active` (see `scenes`'s own
+    // comment above).
+    orbitLayers.forEach(function (layer) {
+      layer.classList.toggle("sysmap-hidden", layer.dataset.scene !== sceneId);
     });
     if (!active) {
       return;

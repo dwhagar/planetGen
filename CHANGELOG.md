@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.46.24] - 2026-09-24
+
+### Fixed
+- **System Map: an orbit line drawn under a body's own live sphere
+  visibly cut across it** instead of being occluded -- the sphere is
+  drawn on a separate `<canvas>` layered by CSS z-index relative to the
+  SVG, so within a single `<svg>` a body's own opaque sphere had no way
+  to occlude a sibling orbit-line element painted in that same stacking
+  context. Each scene is now built as two sibling `<svg>`s (an
+  aria-hidden orbits-only layer, and the existing body-marker layer,
+  both toggled together by `static/systemmap.js`'s `showScene`) stacked
+  either side of the sphere canvas, so a sphere now actually covers the
+  orbit line drawn under it. Belt rings (interactive markers, not
+  decorative lines) stay in the body-marker layer.
+
+### Changed
+- **System Map: stars now render with a mottled granulation texture**
+  (layered sine "turbulence" in both UV directions, tinted to the star's
+  own spectral color) instead of a flat single-color sphere.
+- **System Map: a star's own glow shell is now bigger and brighter than
+  a planet's subtle atmosphere rim** (wider falloff, higher intensity,
+  larger radius), reading clearly as a light source rather than the same
+  faint haze a planet's atmosphere gets.
+
 ## [5.46.23] - 2026-09-24
 
 ### Changed

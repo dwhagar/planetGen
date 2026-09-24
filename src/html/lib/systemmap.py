@@ -753,6 +753,64 @@ def _binary_star_positions_km(system, stars):
     }
 
 
+def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner):
+    """
+    Wraps a scene's own orbit-line markup and body-marker markup as TWO
+    sibling `<svg data-scene="...">` elements sharing the same
+    `data-scene`/`viewBox`/hidden state, instead of the one combined
+    `<svg>` every scene-builder function used to return.
+
+    Why: `static/systemmap.js`'s per-marker sphere canvas
+    (`#sysmap-spheres-canvas`) sits at a fixed z-index relative to the
+    SVG content -- but within a single `<svg>`, a body's own opaque
+    sphere (drawn on an entirely separate `<canvas>` element, never as
+    SVG content of its own) has no way to occlude an orbit line that's a
+    sibling SVG element painted in that very same stacking context, which
+    is why an orbit line used to visibly cut across every rendered sphere
+    it passed under/through. Splitting each scene into an orbits-only
+    layer and a body-marker layer lets `style.css` stack them either side
+    of that canvas (`.sysmap-orbits-layer`'s own z-index rule) instead.
+
+    `static/systemmap.js`'s `showScene` already toggles every
+    `.sysmap-svg` sharing one `data-scene` value together (see that
+    function's own `orbitLayers` handling) -- both `<svg>`s below carry
+    the same `class="sysmap-svg"` (the orbits one with the additional
+    `sysmap-orbits-layer` modifier `style.css` positions/z-indexes by),
+    so no further JS wiring is needed to keep them in lockstep.
+
+    Args:
+        scene_id (str): Shared `data-scene` value for both `<svg>`s.
+        aria_label (str): The body-marker layer's own `aria-label` (raw,
+            not pre-escaped -- this function escapes it). The orbits
+            layer is `aria-hidden` instead -- it carries no information
+            of its own beyond what the body markers already expose.
+        hidden (bool): Whether both `<svg>`s start `sysmap-hidden`.
+        orbits_inner (str): This scene's own decorative `<circle
+            class="sysmap-orbit">` markup (already-built SVG fragments) --
+            NOT a belt ring, which (unlike a plain orbit line) is itself a
+            real focusable/clickable marker (`tabindex="0" role="button"`,
+            see `_belt_ring_svg`) and belongs in `bodies_inner` instead,
+            alongside the other body markers -- this layer is
+            `aria-hidden`, which must never contain focusable content.
+        bodies_inner (str): This scene's own star/planet/moon/belt marker
+            markup (already-built SVG fragments).
+
+    Returns:
+        str: Two concatenated sibling `<svg>` elements.
+    """
+    hidden_class = " sysmap-hidden" if hidden else ""
+    view_box = f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}"'
+    orbits_svg = (
+        f'<svg class="sysmap-svg sysmap-orbits-layer{hidden_class}" data-scene="{esc(scene_id)}" '
+        f'{view_box} aria-hidden="true">{orbits_inner}</svg>'
+    )
+    bodies_svg = (
+        f'<svg class="sysmap-svg{hidden_class}" data-scene="{esc(scene_id)}" '
+        f'{view_box} role="group" aria-label="{esc(aria_label)}">{bodies_inner}</svg>'
+    )
+    return orbits_svg + bodies_svg
+
+
 def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacle=None):
     """
     Builds one star-centered scene: the given `star` fixed at this scene's
@@ -809,6 +867,13 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
 
     star_r = _star_radius_px(star["radius_km"])
     orbit_paths = []
+    # Kept OUT of orbit_paths (which _scene_svg_pair puts in the
+    # aria-hidden, non-interactive orbits layer) -- unlike a plain
+    # sysmap-orbit circle, a belt ring is itself a real clickable/
+    # focusable marker (tabindex="0" role="button", see
+    # _belt_ring_svg), so it belongs with the other body markers in the
+    # scene's normal, accessible layer instead.
+    belt_svgs = []
     markers = [{"type": "star", "cx": _CENTER_PX, "cy": _CENTER_PX, "r": star_r, "fixed": True}]
     if extra_obstacle is not None:
         markers.append({
@@ -824,7 +889,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     for belt in belts:
         r_px = _radial_px(belt["distance_km"], lo, hi)
         band_px = _belt_band_px(belt, r_px)
-        orbit_paths.append(_belt_ring_svg(_CENTER_PX, _CENTER_PX, r_px, band_px, belt))
+        belt_svgs.append(_belt_ring_svg(_CENTER_PX, _CENTER_PX, r_px, band_px, belt))
 
     _relax_markers(markers, _MARKER_GAP_PX)
     planet_markers = [m for m in markers if m["type"] == "planet"]
@@ -849,13 +914,12 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             has_life=bool(row.get("life_chemical")),
         ))
 
-    hidden_class = " sysmap-hidden" if hidden else ""
-    return (
-        f'<svg class="sysmap-svg{hidden_class}" data-scene="{esc(scene_id)}" '
-        f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}" role="group" '
-        f'aria-label="{esc(aria_label)}">'
-        f'{"".join(orbit_paths)}{star_svg}{"".join(body_svgs)}{extra_svg}'
-        "</svg>"
+    return _scene_svg_pair(
+        scene_id, aria_label, hidden,
+        "".join(orbit_paths),
+        # belt_svgs drawn first, same relative "underneath" stacking its
+        # old spot (inside orbit_paths, before star_svg/body_svgs) had.
+        f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}',
     )
 
 
@@ -1024,6 +1088,10 @@ def _render_system_scene(system, stars, planets, belts):
     # too-close planet out of the way, but the star itself never moves
     # again here (see `_relax_markers`'s own `fixed` handling).
     orbit_paths = []
+    # See _star_scene_svg's identical belt_svgs comment -- kept out of
+    # orbit_paths (the aria-hidden orbits layer) since a belt ring is a
+    # real focusable/clickable marker, not decorative.
+    belt_svgs = []
     markers = list(star_markers)
     for planet in planets:
         ax_px, ay_px = anchor_px(planet.get("star_id"))
@@ -1037,7 +1105,7 @@ def _render_system_scene(system, stars, planets, belts):
         ax_px, ay_px = anchor_px(belt.get("star_id"))
         r_px = _radial_px(belt["distance_km"], lo, hi)
         band_px = _belt_band_px(belt, r_px)
-        orbit_paths.append(_belt_ring_svg(ax_px, ay_px, r_px, band_px, belt))
+        belt_svgs.append(_belt_ring_svg(ax_px, ay_px, r_px, band_px, belt))
 
     _relax_markers(markers, _MARKER_GAP_PX)
 
@@ -1074,12 +1142,12 @@ def _render_system_scene(system, stars, planets, belts):
             has_life=bool(row.get("life_chemical")),
         ))
 
-    return (
-        f'<svg class="sysmap-svg" data-scene="system" '
-        f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}" role="group" '
-        f'aria-label="System map for {esc(system["name"])}">'
-        f'{"".join(orbit_paths)}{"".join(star_svgs)}{"".join(body_svgs)}'
-        "</svg>"
+    return _scene_svg_pair(
+        "system", f'System map for {system["name"]}', False,
+        "".join(orbit_paths),
+        # belt_svgs drawn first, same relative "underneath" stacking its
+        # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
+        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}',
     )
 
 
@@ -1141,22 +1209,22 @@ def _render_moon_scene(planet):
     # directly (`hasAttribute('hidden')` stayed false/true opposite of
     # what `.hidden` itself reported) -- leaving both this attribute and
     # any `[hidden]` CSS rule permanently out of sync with it.
-    return (
-        f'<svg class="sysmap-svg sysmap-hidden" data-scene="planet-{planet["id"]}" '
-        f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}" role="group" '
-        f'aria-label="Moons of {esc(planet["name"])}">'
-        f'{"".join(orbit_paths)}{center_svg}{"".join(body_svgs)}'
-        "</svg>"
+    return _scene_svg_pair(
+        f'planet-{planet["id"]}', f'Moons of {planet["name"]}', True,
+        "".join(orbit_paths),
+        f'{center_svg}{"".join(body_svgs)}',
     )
 
 
 def render_system_map_panel(system, stars, planets, belts):
     """
-    Builds the "System Map" panel embedded in `system.py`: an `<svg>` per
-    scene (the whole system, plus one more for every planet with moons --
-    see the module docstring for why this doesn't need to recurse any
-    deeper than that) and an info side panel that `static/systemmap.js`
-    fills in on click and swaps between scenes.
+    Builds the "System Map" panel embedded in `system.py`: TWO sibling
+    `<svg>`s per scene (an orbits-only layer plus a body-marker layer --
+    see `_scene_svg_pair`'s own docstring for why two, not one), for the
+    whole system plus one more pair for every planet with moons (see the
+    module docstring for why this doesn't need to recurse any deeper than
+    that), and an info side panel that `static/systemmap.js` fills in on
+    click and swaps between scenes.
 
     Args:
         system (dict): The `star_systems` row, including
@@ -1199,16 +1267,20 @@ def render_system_map_panel(system, stars, planets, belts):
         info_panel = '<aside class="starmap-info" id="sysmap-info"><p class="hint">Nothing to show yet.</p></aside>'
 
     # One shared WebGL canvas, sized to cover the whole `.sysmap-viewport`
-    # and drawn *behind* every scene's `<svg>` (see `style.css`'s
-    # `.sysmap-spheres-canvas`/`.sysmap-svg` z-index rule), that
-    # `static/systemmap.js` uses to render every visible star/planet/moon
-    # marker's own live 3D sphere in place, each scissored to exactly that
-    # marker's own `<circle>` -- see this module's own docstring. A single
-    # `<canvas>`, not one per marker (or an `<svg>`, the one part of the
-    # System Map that's genuinely 3D). `stars` (never empty whenever this
-    # panel renders at all -- see `render_system_map_panel`'s caller) is
-    # this block's presence guard, same reasoning the old single-body
-    # preview used `planets` for.
+    # and drawn BETWEEN each scene's two sibling `<svg>`s -- below the
+    # body-marker layer, above the orbits-only layer (see `style.css`'s
+    # `.sysmap-spheres-canvas`/`.sysmap-svg`/`.sysmap-orbits-layer`
+    # z-index rules, and `_scene_svg_pair`'s own docstring for why each
+    # scene is two `<svg>`s rather than one) -- that `static/systemmap.js`
+    # uses to render every visible star/planet/moon marker's own live 3D
+    # sphere in place, each scissored to exactly that marker's own
+    # `<circle>`, so a sphere now actually occludes the orbit line drawn
+    # under it instead of the line always painting on top regardless of
+    # the sphere's own footprint. A single `<canvas>`, not one per marker
+    # (or an `<svg>`, the one part of the System Map that's genuinely 3D).
+    # `stars` (never empty whenever this panel renders at all -- see
+    # `render_system_map_panel`'s caller) is this block's presence guard,
+    # same reasoning the old single-body preview used `planets` for.
     spheres_html = (
         '<canvas id="sysmap-spheres-canvas" class="sysmap-spheres-canvas" aria-hidden="true"></canvas>'
         if stars else ""
