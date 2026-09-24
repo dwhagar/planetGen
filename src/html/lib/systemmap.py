@@ -681,6 +681,23 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         # `_data_attrs` omits a `None` value entirely, so this attribute's
         # mere presence in the DOM is the boolean.
         "hasatmosphere": "true" if has_atmosphere else None,
+        # Raw, real (not log-scaled, not pixel) coordinates -- relative to
+        # this body's own anchor (the star it orbits, or the planet it
+        # moons), same units `_star_scene_svg`/`_render_system_scene`
+        # themselves compute `cx`/`cy` from. `static/systemmap.js`'s own
+        # "measure distance" feature reads these directly rather than
+        # trying to reconstruct a real km distance from two markers'
+        # drawn pixel positions, which the shared log radial scale
+        # (`_radial_px`) makes lossy for that purpose -- real angle is
+        # preserved, but real *distance* isn't recoverable from pixels
+        # alone. `radiuskm` (this body's own physical size) is included
+        # too so the same feature can treat it as a "can't route through
+        # this body" obstacle when it's the scene's own center (a moon
+        # scene's `data-self="true"` planet) -- unused, harmless, for
+        # every other body.
+        "xkm": planet.get("position_x_km") or 0.0,
+        "ykm": planet.get("position_y_km") or 0.0,
+        "radiuskm": planet.get("radius_km"),
     }
     if parent_name is not None:
         attrs["parent"] = parent_name
@@ -935,6 +952,18 @@ def _wide_binary_star_attrs(system, star, suffix, is_primary, scene_target=None)
         "mass": to_plain_text(format_star_mass(star["mass_kg"])),
         "radius": to_plain_text(format_star_radius(star["radius_km"])),
         "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
+        # Raw km, alongside the formatted display string above -- see
+        # `_planet_attrs`'s identical `radiuskm` for why (the "measure
+        # distance" feature's own around-the-star obstacle radius).
+        "radiuskm": star["radius_km"],
+        # This star, viewed in its own scene, always sits at that scene's
+        # own local origin -- exactly like a moon scene's own drilled-
+        # into planet. `_render_wide_binary_scenes` overrides both keys
+        # for the one case that isn't this star's own scene: the
+        # companion marker it draws *inside the other star's* scene,
+        # where the real separation (not 0, 0) is what a "measure
+        # distance" click needs.
+        "xkm": 0.0, "ykm": 0.0,
     }
     if scene_target is not None:
         attrs["scene"] = scene_target
@@ -992,6 +1021,14 @@ def _render_wide_binary_scenes(system, stars, planets, belts):
     companion_radius_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
     companion_cx, companion_cy = _polar_to_px(_CENTER_PX, _CENTER_PX, companion_radius_px, bx, by)
     companion_attrs = _wide_binary_star_attrs(system, secondary, " B", is_primary=False, scene_target=secondary_scene_id)
+    # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
+    # sets -- this marker represents the secondary at its real position
+    # *relative to the primary*, not its own scene's origin, and that
+    # real separation (bx, by) is exactly what a "measure distance" click
+    # needs, decoupled from `companion_cx`/`companion_cy`'s own fixed,
+    # merely-representative drawn position (see this function's own
+    # docstring on why those two can't be the same value here).
+    companion_attrs["xkm"], companion_attrs["ykm"] = bx, by
     companion_marker_svg = _star_marker_svg(companion_cx, companion_cy, companion_r, secondary, companion_attrs)
     companion_obstacle = {
         "cx": companion_cx, "cy": companion_cy,
@@ -1117,6 +1154,7 @@ def _render_system_scene(system, stars, planets, belts):
             continue
         star = marker["star"]
         is_primary = marker["is_primary"]
+        sx, sy = star_pos_km[star["id"]]
         star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star, {
             "kind": "star",
             "name": f'{system["name"]}{marker["suffix"]}',
@@ -1125,6 +1163,13 @@ def _render_system_scene(system, stars, planets, belts):
             "mass": to_plain_text(format_star_mass(star["mass_kg"])),
             "radius": to_plain_text(format_star_radius(star["radius_km"])),
             "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
+            "radiuskm": star["radius_km"],
+            # Real km (a close binary's own true, small separation from
+            # the shared barycenter -- (0, 0) for a single star, per
+            # `star_pos_km`'s own construction above), not this marker's
+            # drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
+            # identical `xkm`/`ykm`.
+            "xkm": sx, "ykm": sy,
         }))
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers])
@@ -1286,11 +1331,27 @@ def render_system_map_panel(system, stars, planets, belts):
         if stars else ""
     )
 
+    # "Measure distance" toggle -- lets a visitor click any two bodies in
+    # the currently visible scene (two planets, two moons, or a binary's
+    # two stars) for the real straight-line distance between them, plus a
+    # route-around-the-obstacle distance when that straight line would
+    # otherwise pass through the scene's own center body (see
+    # `static/systemmap.js`'s own `computeMeasurement`). Gated on `stars`
+    # the same way `spheres_html` above is -- a system with no stars at
+    # all (shouldn't happen -- see this function's own docstring) has
+    # nothing to measure between regardless.
+    controls_html = (
+        '<div class="starmap-controls" id="sysmap-controls">'
+        '<button type="button" class="starmap-btn" id="sysmap-measure-btn" aria-pressed="false">'
+        "Measure distance</button></div>"
+        if stars else ""
+    )
+
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>System Map</h2>
-  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life</span>
+  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; "Measure distance" then click two bodies for the real distance between them</span>
 </div>
 <div class="starmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">
@@ -1298,6 +1359,7 @@ def render_system_map_panel(system, stars, planets, belts):
 {''.join(scenes)}
 </div>
 <div class="starmap-side">
+{controls_html}
 <div class="sysmap-crumb" id="sysmap-crumb"></div>
 {info_panel}
 </div>

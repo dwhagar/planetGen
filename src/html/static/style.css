@@ -643,6 +643,16 @@ tbody tr:last-child td {
   border-color: var(--accent);
 }
 
+/* A toggled-on state for a .starmap-btn that stays pressed rather than
+   firing once -- currently just "Measure distance"
+   (static/systemmap.js), but generic enough for any future toggle
+   button sharing this class. */
+.starmap-btn-active {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
 .starmap-info {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
@@ -1180,6 +1190,17 @@ code {
 .sysmap-belt:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* One of "Measure distance"'s own two selected endpoints
+   (static/systemmap.js's own handleMeasureClick) -- a dashed accent
+   ring, distinct from the plain solid hover/focus stroke above, so a
+   selected body still reads as "selected" even after the pointer moves
+   off it (hover/focus alone don't persist). */
+.sysmap-measure-selected circle.sysmap-body-fill {
+  stroke: var(--accent);
+  stroke-width: 3px;
+  stroke-dasharray: 4 2;
 }
 
 /* A belt is now a plain stroked `<circle>` (a full ring around its own

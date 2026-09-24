@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.46.32] - 2026-09-24
+
+### Added
+- **System Map: "Measure distance" -- click any two stars, planets, or
+  moons in the same view for the real distance between them.** A new
+  toggle button puts the map into selection mode; the two clicked bodies
+  highlight and the info panel shows the real straight-line distance
+  (from each body's own true, un-log-scaled km position, not its drawn
+  pixel position -- the shared log radial scale that places markers on
+  screen preserves real angle but not real distance). When that straight
+  line would pass through the scene's own center body (the star, or --
+  one level in, a moon scene -- the planet drilled into), a second
+  "around it" figure is also shown: the exact shortest path that clears
+  the obstacle (two tangent lines plus the arc between them), not just a
+  flagged "blocked". Works for a binary's own two stars too, including a
+  close pair's small real offset from their shared barycenter.
+
 ## [5.46.31] - 2026-09-24
 
 ### Added
