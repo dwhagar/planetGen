@@ -261,6 +261,32 @@ connectivity to that specific schema rather than the default one.
 - `POST /api/systems/<id>/wiki` — publish a system's already-generated
   page to a wiki (see "Wiki publishing" below).
 
+### Admin stats (admin auth required)
+
+Both take `?db=` like the read endpoints, and need an admin past the
+forced credential change. They back the admin stats page
+(`../src/html/adminstats.py`).
+
+- `GET /api/admin/stats` — health and statistics for one database:
+  `api` (version, Python version, process uptime, load average, memory),
+  `mysql` (server version, uptime, connected threads; `null` fields when
+  `SHOW GLOBAL STATUS` isn't allowed), and `database` (`reachable`,
+  `schema_version`/`schema_expected`/`schema_current`, `size_bytes`,
+  exact `counts` for `sectors`/`star_systems`, `tables` with
+  `information_schema`'s estimated rows and data/index bytes,
+  `timestamps` with each v27 table's newest `created_at` and latest
+  `modified_at`, and `name_collisions`: how many base names had to be
+  made unique per level plus `distinct_base_names`). An unreachable
+  database still returns 200, with `database.reachable: false` and a
+  `detail`.
+- `GET /api/admin/duplicate-names` — paginated (`limit`/`offset`, by base
+  name, alphabetical) list of the names the uniqueness rules decorated:
+  `{"total", "limit", "offset", "items": [{"base_name", "levels",
+  "rows"}]}`. `levels` names the registries it collided in (`sector`,
+  `system`, `body`); each row is `{"kind", "id", "name"}` with
+  `sector_id` for a system and `star_system_id`/`system_name` for a
+  planet or moon.
+
 ### Authentication
 
 - `POST /api/auth/login` `{"username", "password"}` — sets the session
