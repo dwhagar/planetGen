@@ -255,8 +255,8 @@ function makeRingTexture(color) {
 // that needs to stay visible/clickable from a full-galaxy overview
 // thousands of parsecs out, the same way a system marker on a game's own
 // galaxy map stays a legible dot regardless of camera distance.
-var PLACED_MIN_PX = 4.0;
-var PLACED_MAX_PX = 16.0;
+var PLACED_MIN_PX = 3.0;
+var PLACED_MAX_PX = 7.0;
 // Near-white/gray, not a fixed hue -- placedColor() below tints each
 // marker's own sprite material to its own real-density color via plain
 // multiplication (THREE.SpriteMaterial's own `color` * texture), which
@@ -268,7 +268,7 @@ var PLACED_HALO_BASE_FILL = "#ffffff";
 
 function placedScreenRadiusPx(systemCount) {
   var count = systemCount || 0;
-  return Math.max(PLACED_MIN_PX, Math.min(PLACED_MAX_PX, PLACED_MIN_PX + 2.5 * Math.sqrt(count)));
+  return Math.max(PLACED_MIN_PX, Math.min(PLACED_MAX_PX, PLACED_MIN_PX + 0.6 * Math.sqrt(count)));
 }
 
 // A placed sector's own REAL stellar density (system_count / edge_ly^3),
@@ -504,8 +504,14 @@ function initGalaxyMap3d(canvasEl, data) {
     var fovRad = THREE.MathUtils.degToRad(camera.fov);
     var worldPerScreenPixelPerUnitDistance = (2 * Math.tan(fovRad / 2)) / heightPx;
 
-    function screenSizedScale(object3d, screenRadiusPx, sizeMultiplier) {
-      var distance = camera.position.distanceTo(object3d.position);
+    // `anchor` is the world position to measure distance from -- a placed
+    // sector's halo/core sprites sit at (0, 0, 0) INSIDE their group, so
+    // their own `.position` is not where they are; measuring from it gave
+    // the camera's distance to the galactic origin instead, which blew a
+    // sector far from the core up into a sphere big enough to fill the
+    // whole view once zoomed in on it.
+    function screenSizedScale(object3d, screenRadiusPx, sizeMultiplier, anchor) {
+      var distance = camera.position.distanceTo(anchor || object3d.position);
       var worldDiameter = screenRadiusPx * 2 * worldPerScreenPixelPerUnitDistance * distance;
       var scaled = worldDiameter * (sizeMultiplier || 1);
       object3d.scale.set(scaled, scaled, 1);
@@ -513,8 +519,8 @@ function initGalaxyMap3d(canvasEl, data) {
 
     placedSpritesByKey.forEach(function (group) {
       var px = group.userData.screenRadiusPx;
-      screenSizedScale(group.children[0], px, 1.2); // halo
-      screenSizedScale(group.children[1], px, 1.0); // core
+      screenSizedScale(group.children[0], px, 1.2, group.position); // halo
+      screenSizedScale(group.children[1], px, 1.0, group.position); // core
     });
     plannedSpritesByKey.forEach(function (sprite) {
       screenSizedScale(sprite, sprite.userData.screenRadiusPx, 1.0);

@@ -27,7 +27,7 @@
 // to render (no WebGL) just leaves that marker's flat circle showing.
 
 import * as THREE from "./vendor/three.module.min.js";
-import { makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
+import { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
 
 function addField(dl, label, value) {
   if (!value && value !== 0) {
@@ -217,13 +217,18 @@ function initSphereField(canvasEl) {
   ring.rotation.x = THREE.MathUtils.degToRad(70);
   bodyGroup.add(ring);
 
-  var PLANET_GLOW_POWER = 2.5;
-  var PLANET_GLOW_STRENGTH = 1.0;
-  var STAR_GLOW_POWER = 1.5;
-  var STAR_GLOW_STRENGTH = 2.2;
+  var PLANET_GLOW_POWER = 1.4;
+  var PLANET_GLOW_STRENGTH = 0.7;
+  var STAR_GLOW_POWER = 1.8;
+  var STAR_GLOW_STRENGTH = 1.0;
   var STAR_GLOW_SCALE = 1.45;
+  // The glow shell's radius relative to the body sphere's own, planet
+  // (unscaled) and star (scaled up by STAR_GLOW_SCALE) -- the shader
+  // starts its fade at the body's limb (see bodyRendering.js).
+  var PLANET_GLOW_INNER = glowInnerRatio(GLOW_R / SPHERE_R);
+  var STAR_GLOW_INNER = glowInnerRatio((GLOW_R * STAR_GLOW_SCALE) / SPHERE_R);
 
-  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH);
+  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH, GLOW_R / SPHERE_R);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
   bodyGroup.add(glow);
 
@@ -320,6 +325,7 @@ function initSphereField(canvasEl) {
       glowMaterial.uniforms.glowColor.value.set(marker.color);
       glowMaterial.uniforms.glowPower.value = STAR_GLOW_POWER;
       glowMaterial.uniforms.glowStrength.value = STAR_GLOW_STRENGTH;
+      glowMaterial.uniforms.innerRatio.value = STAR_GLOW_INNER;
       return;
     }
     sphere.material = planetMaterial;
@@ -339,6 +345,7 @@ function initSphereField(canvasEl) {
       glowMaterial.uniforms.glowColor.value.set(marker.glowColor);
       glowMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
       glowMaterial.uniforms.glowStrength.value = PLANET_GLOW_STRENGTH;
+      glowMaterial.uniforms.innerRatio.value = PLANET_GLOW_INNER;
     }
   }
 

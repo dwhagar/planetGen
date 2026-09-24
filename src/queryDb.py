@@ -1471,7 +1471,9 @@ def system_detail(conn, system_id):
             `sector_siblings` (`{id, name}` for every other system in the
             same sector, empty if standalone -- for linkifying
             `location`'s "nearest: ..." names without a second round
-            trip).
+            trip), and `nearest_neighbors` (`{id, name, distance_ly}` for
+            the closest same-sector systems, nearest first -- see
+            `_nearest_sector_siblings`).
 
     Raises:
         ValueError: If no such system exists.
@@ -1512,11 +1514,15 @@ def system_detail(conn, system_id):
     ).fetchall()
 
     sector_siblings = []
+    nearest_neighbors = []
     if system["sector_id"] is not None:
         sibling_rows = conn.execute(
-            "SELECT id, name FROM star_systems WHERE sector_id = ?", (system["sector_id"],)
+            "SELECT id, name, position_x_mpc, position_y_mpc, position_z_mpc"
+            " FROM star_systems WHERE sector_id = ?",
+            (system["sector_id"],),
         ).fetchall()
         sector_siblings = [{"id": r["id"], "name": r["name"]} for r in sibling_rows]
+        nearest_neighbors = _nearest_sector_siblings(system, sibling_rows)
 
     return {
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
@@ -1533,7 +1539,49 @@ def system_detail(conn, system_id):
         "belts": [dict(b) for b in belts],
         "comets": [dict(c) for c in comets],
         "sector_siblings": sector_siblings,
+        "nearest_neighbors": nearest_neighbors,
     }
+
+
+NEAREST_NEIGHBOR_COUNT = 3
+"""int: How many nearest same-sector systems `system_detail` lists -- the
+same count the stored `location` string was generated with
+(`_db._location_for_entry`)."""
+
+
+def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT):
+    """
+    The `count` systems in `system`'s own sector nearest to it, computed
+    from their current rows rather than parsed back out of the stored
+    `location` string. That string is written at generation time, before
+    each neighbor's name has been made unique (`_db.insert_star_system`'s
+    `reserve_system_name` can still add a suffix afterwards) and never
+    updated when a system is renamed, so the names it lists often no
+    longer match any row and can't be linked.
+
+    Args:
+        system (dict-like): The `star_systems` row being shown.
+        sibling_rows (list): `id`/`name`/`position_*_mpc` rows for every
+                             system in the same sector (including
+                             `system` itself, which is skipped).
+        count (int): See `NEAREST_NEIGHBOR_COUNT`.
+
+    Returns:
+        list[dict]: Nearest first, each with `id`, `name`, `distance_ly`.
+            Empty when `system` has no stored position.
+    """
+    origin = (system["position_x_mpc"], system["position_y_mpc"], system["position_z_mpc"])
+    if any(v is None for v in origin):
+        return []
+    neighbors = []
+    for row in sibling_rows:
+        position = (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"])
+        if row["id"] == system["id"] or any(v is None for v in position):
+            continue
+        distance_ly = milliparsecs_to_ly(math.dist(origin, position))
+        neighbors.append({"id": row["id"], "name": row["name"], "distance_ly": distance_ly})
+    neighbors.sort(key=lambda entry: entry["distance_ly"])
+    return neighbors[:count]
 
 
 def galaxy_placed_sectors(conn):

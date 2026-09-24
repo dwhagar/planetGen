@@ -1,0 +1,96 @@
+# tests/test_skeleton_shape.py
+
+"""
+Checks that the unfilled-sector skeleton -- the real, not-yet-generated
+sector slots the density model says qualify (`predicted_star_count >= 1`,
+the Galaxy Map's "planned" tier) -- traces a flattened disk, not a ball
+around the galactic center.
+
+Slots are sampled straight from the address scheme (`sector_position_pc`
+over random shells/slots) rather than through
+`galaxyViewport.planned_slots_in_view`, whose own view-radius cap
+(`PLANNED_RADIUS_CAP_PC`) only ever returns a small sphere around the view
+center; this test is about where qualifying slot centers really are.
+Uses `generate.py plan`'s own default shape parameters.
+"""
+
+import math
+import random
+
+import pytest
+
+from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
+from stellarObjects.galaxyGeometry import sector_position_pc, shell_radius_pc, shell_sector_count
+from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
+
+EDGE_LY = 11.5
+EDGE_PC = EDGE_LY / 3.26156
+
+# generate.py's own `plan` defaults (--disk-scale-length-pc etc.).
+DEFAULT_SHAPE = build_galaxy_shape(
+    disk_scale_length_pc=2800.0,
+    disk_scale_height_pc=350.0,
+    bulge_scale_radius_pc=200.0,
+    bulge_amplitude=1.0,
+    arm_count=2,
+    pitch_angle_rad=math.radians(15.0),
+    arm_amplitude=0.4,
+)
+
+SAMPLE_COUNT = 40000
+MAX_SAMPLE_RADIUS_PC = 20000.0
+
+
+def _sampled_slots():
+    """(shell_index, position) for SAMPLE_COUNT random slots, shells drawn
+    uniformly by radius out past the galaxy's edge."""
+    rng = random.Random(20260924)
+    slots = []
+    for _ in range(SAMPLE_COUNT):
+        shell_index = int(rng.uniform(0.0, MAX_SAMPLE_RADIUS_PC) / EDGE_PC)
+        slot_index = rng.randrange(shell_sector_count(shell_index))
+        slots.append((shell_index, sector_position_pc(shell_index, slot_index, EDGE_PC)))
+    return slots
+
+
+def _qualifying_positions(slots):
+    expected = expected_system_count_at_density_1(EDGE_LY)
+    return [position for _shell, position in slots if predicted_star_count(position, DEFAULT_SHAPE, expected) >= 1.0]
+
+
+def _approx(value):
+    return pytest.approx(value, rel=1e-9, abs=1e-6)
+
+
+def test_slot_centers_are_galaxy_frame_parsecs_on_their_own_shell():
+    for shell_index, (x, y, z) in _sampled_slots()[:2000]:
+        assert math.sqrt(x * x + y * y + z * z) == _approx(shell_radius_pc(shell_index, EDGE_PC))
+
+
+def test_qualifying_slots_trace_a_flattened_disk_not_a_ball():
+    positions = _qualifying_positions(_sampled_slots())
+    assert len(positions) > 1000
+
+    in_plane = sorted(math.hypot(x, y) for x, y, _z in positions)
+    heights = sorted(abs(z) for _x, _y, z in positions)
+    max_r = in_plane[-1]
+    p95_height = heights[int(0.95 * len(heights))]
+
+    # The disk reaches out to many scale lengths...
+    assert max_r > 10000.0
+    # ...but stays thin: a ball would have its heights comparable to its
+    # in-plane extent.
+    assert heights[-1] < 0.15 * max_r
+    assert p95_height < 0.1 * max_r
+
+
+def test_disk_thins_toward_its_outer_edge():
+    positions = _qualifying_positions(_sampled_slots())
+
+    def max_height(r_lo, r_hi):
+        return max(abs(z) for x, y, z in positions if r_lo <= math.hypot(x, y) < r_hi)
+
+    # Qualification needs a denser spot further out, so the qualifying
+    # layer narrows with galactic radius instead of staying a fixed slab
+    # (or bulging out like a sphere).
+    assert max_height(8000.0, 12000.0) < max_height(0.0, 2000.0)

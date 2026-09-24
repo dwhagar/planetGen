@@ -26,7 +26,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 
 from apiclient import ApiError, auth_me, get_system, get_wiki_config, upload_system_to_wiki
-from fmt import esc, linkify_location, post_link
+from fmt import esc, linkify_location, nearest_neighbors_location, post_link
 from mdconvert import markdown_to_html_with_headings
 from page import form_params, incoming_cookie_header, nav_params, run
 from systemmap import render_system_map_panel
@@ -389,7 +389,16 @@ def handler():
         )
 
     location_html = ""
-    if system["location"]:
+    neighbors = system.get("nearest_neighbors")
+    if system["location"] and neighbors:
+        location_html = (
+            f'<span class="location">Location: '
+            f'{nearest_neighbors_location(db_name, system["location"], neighbors)}</span>'
+        )
+    elif system["location"]:
+        # An API without `nearest_neighbors`, or a system with no stored
+        # position: fall back to linking whichever names in the stored
+        # string still match a system in the same sector.
         name_to_id = {row["name"]: row["id"] for row in system["sector_siblings"]}
         location_html = (
             f'<span class="location">Location: '

@@ -15,15 +15,29 @@
 // file's own `import * as THREE from "./vendor/three.module.min.js"`
 // without risking two separate THREE instances ever existing in one page.
 
-// A standard fresnel rim-glow: brightest where the surface normal points
-// away from the camera (the limb), near-zero head-on -- rendered on a
-// slightly larger, back-face-only, additively-blended sphere around the
-// body itself, the common cheap "atmosphere/corona" trick (no real
-// scattering simulation, just a glow that reads as one). glowPower/
-// glowStrength are per-material uniforms (not baked into the shader
-// source) so one shared ShaderMaterial can be reused for a subtle planet
-// atmosphere rim in one place and a bright star/nebula corona in another,
-// just by setting different uniform values -- see makeGlowMaterial below.
+// A halo glow rendered on a larger, back-face-only, additively-blended
+// sphere around the body itself, the common cheap "atmosphere/corona"
+// trick (no real scattering simulation, just a glow that reads as one).
+//
+// Only the shell's far side is drawn, and its outward normals there point
+// AWAY from the camera, so `facing = -dot(normal, viewDir)` runs from 1 (a
+// line of sight through the middle, hidden behind the body's own opaque
+// sphere) down to 0 at the shell's silhouette. `sqrt(1 - facing^2)` turns
+// that back into how far out from the body's center the pixel is, as a
+// fraction of the shell's radius; `innerRatio` (body radius / shell
+// radius) is where the body's own limb falls on that scale. The glow is
+// full `glowStrength` at the limb and fades as `(1 - t)^glowPower` to
+// nothing at the shell's edge, `t` being 0 at the limb and 1 at the edge,
+// so it reads as light spreading out from the body whatever the shell's
+// size. (Measuring the rim the front-face way, `1 - dot`, clamps to a
+// constant 1 on every back face, which is what used to paint the whole
+// shell as one flat, opaque disc.)
+//
+// glowPower/glowStrength/innerRatio are per-material uniforms (not baked
+// into the shader source) so one shared ShaderMaterial can be reused for
+// a subtle planet atmosphere rim in one place and a bright star/nebula
+// corona in another, just by setting different uniform values -- see
+// makeGlowMaterial below.
 export var GLOW_VERTEX_SHADER = [
   "varying vec3 vNormal;",
   "varying vec3 vViewDir;",
@@ -39,28 +53,36 @@ export var GLOW_FRAGMENT_SHADER = [
   "uniform vec3 glowColor;",
   "uniform float glowPower;",
   "uniform float glowStrength;",
+  "uniform float innerRatio;",
   "varying vec3 vNormal;",
   "varying vec3 vViewDir;",
   "void main() {",
-  "  float rim = 1.0 - max(dot(vNormal, vViewDir), 0.0);",
-  "  float intensity = pow(rim, glowPower) * glowStrength;",
+  "  float facing = clamp(-dot(normalize(vNormal), normalize(vViewDir)), 0.0, 1.0);",
+  "  float radial = sqrt(1.0 - facing * facing);",
+  "  float t = clamp((radial - innerRatio) / max(1.0 - innerRatio, 0.001), 0.0, 1.0);",
+  "  float intensity = clamp(pow(1.0 - t, glowPower) * glowStrength, 0.0, 1.0);",
   "  gl_FragColor = vec4(glowColor, intensity);",
   "}",
 ].join("\n");
 
 // Builds one glow ShaderMaterial -- `THREE` is the caller's own module
 // instance (see this file's own header comment for why it's passed in
-// rather than imported here). `glowPower` (lower = glow spreads in
-// further from the limb, not just a thin rim) and `glowStrength` (overall
-// brightness) both default to a subtle "planet atmosphere" reading;
-// callers wanting a brighter/wider "this is a light source" corona (a
-// star, a neutron star, an accreting black hole) pass their own values.
-export function makeGlowMaterial(THREE, colorHex, glowPower, glowStrength) {
+// rather than imported here). `glowPower` (lower = the glow holds its
+// brightness further out from the limb before fading) and `glowStrength`
+// (brightness at the limb, clamped to 1) both default to a subtle
+// "planet atmosphere" reading; callers wanting a brighter/wider "this is
+// a light source" corona (a star, a neutron star, an accreting black
+// hole) pass their own values. `shellScale` is the shell's radius as a
+// multiple of the body's own (the mesh scale the caller gives it), so the
+// fade starts exactly at the body's limb; the `innerRatio` uniform can be
+// changed later if one material is shared by shells of different sizes.
+export function makeGlowMaterial(THREE, colorHex, glowPower, glowStrength, shellScale) {
   return new THREE.ShaderMaterial({
     uniforms: {
       glowColor: { value: new THREE.Color(colorHex) },
       glowPower: { value: glowPower != null ? glowPower : 2.5 },
       glowStrength: { value: glowStrength != null ? glowStrength : 1.0 },
+      innerRatio: { value: glowInnerRatio(shellScale) },
     },
     vertexShader: GLOW_VERTEX_SHADER,
     fragmentShader: GLOW_FRAGMENT_SHADER,
@@ -69,6 +91,12 @@ export function makeGlowMaterial(THREE, colorHex, glowPower, glowStrength) {
     transparent: true,
     depthWrite: false,
   });
+}
+
+// The `innerRatio` uniform for a glow shell `shellScale` times the body's
+// own radius (see GLOW_FRAGMENT_SHADER).
+export function glowInnerRatio(shellScale) {
+  return shellScale > 1 ? 1 / shellScale : 0;
 }
 
 // A star's photosphere reads as mottled granulation, not a clean flat
