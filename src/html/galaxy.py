@@ -14,10 +14,10 @@ bigger and bigger, hiding sectors" and made scroll/+/-/click zoom feel
 broken well before it actually was.
 
 This page itself only fetches what the map's *first* paint needs
-(`get_galaxy_shape`, then one `get_galaxy_view` call for the zoomed-all-
-the-way-out starting view) -- every later view, as the visitor's camera
-moves, is fetched directly by the page's own client-side JS from
-`galaxy_view.py`, never through this handler again.
+(`get_galaxy_shape`, then the zoomed-all-the-way-out starting view's
+tiles through `lib/tilecache.py`'s disk cache) -- every later view, as
+the visitor's camera moves, is fetched directly by the page's own
+client-side JS from `galaxy_tiles.py`, never through this handler again.
 
 Below the map, this page still keeps its own two data tables --
 independent of how the map is drawn, and still useful as a plain-text
@@ -44,11 +44,12 @@ import sys
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-from apiclient import get_galaxy_sectors, get_galaxy_shape, get_galaxy_view
+from apiclient import get_galaxy_sectors, get_galaxy_shape
 from fmt import esc, post_link
 from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
-from galaxymap3d import render_galaxy_map3d_panel, view_radius_bounds
+from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from page import nav_params, run
+from tilecache import fetch_tiles
 
 try:
     from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
@@ -128,7 +129,8 @@ def handler():
     galaxy_shape = get_galaxy_shape(db_name)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    initial_view = get_galaxy_view(db_name, 0.0, 0.0, 0.0, max_radius)
+    tile_keys, density_key = initial_tile_request(max_radius, galaxy_shape is not None)
+    initial_view = fetch_tiles(db_name, tile_keys, density_key)
 
     map_html = render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view)
 

@@ -12,6 +12,9 @@ exercise the exact same read path (`queryDb.py`/`stellarObjects._db.load_sector`
 `load_star_system`) production traffic does.
 """
 
+import math
+import re
+
 import pytest
 
 from api.app import create_app
@@ -19,6 +22,7 @@ from api.config import Config
 from stellarObjects import _db, adminAuth
 from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
+from stellarObjects.galaxyViewport import tiles_intersecting_sphere
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from wikiClient import WikiClientPageExistsError, WikiPage
@@ -613,6 +617,72 @@ def test_galaxy_view_placed_sector_includes_edge_ly(client, mysql_config):
     assert placed[0]["edge_ly"] == pytest.approx(10.0)
     assert placed[0]["system_count"] == 1
 
+
+
+def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, shell_index=None, shell_slot_index=None):
+    sector = SpaceSector(name, edge_ly=edge_ly)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = False
+    cfg.BINARY_SYSTEM = False
+    sector.add_system(StarSystem(system_config=cfg), position=(0.0, 0.0, 0.0), system_config=cfg)
+    position = {
+        "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
+        "galactic_radius_pc": math.dist(center_pc, (0.0, 0.0, 0.0)),
+        "vertices_pc": {"inner": [], "outer": []},
+    }
+    if shell_index is not None:
+        position["shell_index"] = shell_index
+        position["shell_slot_index"] = shell_slot_index
+    return _db.save_sector(sector, config=mysql_config, galaxy_position=position)
+
+
+def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
+    """`GET /api/galaxy/tiles` puts each placed sector in exactly the tile
+    whose half-open box holds its center, and lists planned slots only
+    for small tiles."""
+    _place_sector(mysql_config, "Near Core", (5.0, 5.0, 5.0))
+    _place_sector(mysql_config, "Far Out", (9000.0, -3000.0, 20.0))
+
+    near = tiles_intersecting_sphere(12, (5.0, 5.0, 5.0), 0.0)[0]
+    far = tiles_intersecting_sphere(12, (9000.0, -3000.0, 20.0), 0.0)[0]
+    whole = "0/0/0/0"
+    response = client.get(f"/api/galaxy/tiles?tiles={near},{far},{whole}")
+    assert response.status_code == 200
+    body = response.get_json()
+    tiles = body["tiles"]
+    assert [s["name"] for s in tiles[near]["placed"]] == ["Near Core"]
+    assert [s["name"] for s in tiles[far]["placed"]] == ["Far Out"]
+    assert sorted(s["name"] for s in tiles[whole]["placed"]) == ["Far Out", "Near Core"]
+    assert tiles[near]["placed"][0]["system_count"] == 1
+    assert tiles[near]["placed"][0]["edge_ly"] == pytest.approx(10.0)
+    # No galaxy shape here, so small tiles list every slot unfiltered;
+    # the level-0 tile is far too big to list slots at all.
+    assert tiles[near]["planned"]
+    assert tiles[whole]["planned"] == []
+    assert body["density"] is None
+    assert body["has_shape"] is False
+
+
+def test_galaxy_tiles_rejects_bad_requests(client, mysql_config):
+    _db.get_connection(mysql_config).close()
+    assert client.get("/api/galaxy/tiles?tiles=13/0/0/0").status_code == 400
+    assert client.get("/api/galaxy/tiles?tiles=1/2/0/0").status_code == 400
+    assert client.get("/api/galaxy/tiles?tiles=nonsense").status_code == 400
+    too_many = ",".join(f"12/{i}/0/0" for i in range(129))
+    assert client.get(f"/api/galaxy/tiles?tiles={too_many}").status_code == 400
+    empty = client.get("/api/galaxy/tiles?tiles=&density=1/0/0/0")
+    assert empty.status_code == 200
+    assert empty.get_json()["density"] == {"key": "1/0/0/0", "points": []}
+
+
+def test_galaxy_stamp_changes_when_a_sector_is_placed(client, mysql_config):
+    _db.get_connection(mysql_config).close()
+    first = client.get("/api/galaxy/stamp").get_json()["stamp"]
+    assert re.fullmatch(r"[0-9a-f]{16}", first)
+    assert client.get("/api/galaxy/stamp").get_json()["stamp"] == first
+    _place_sector(mysql_config, "New Sector", (1.0, 2.0, 3.0))
+    assert client.get("/api/galaxy/stamp").get_json()["stamp"] != first
 
 def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector

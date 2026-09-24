@@ -1,10 +1,10 @@
 """
 html/lib/galaxymap3d.py regression tests -- the interactive 3D Galaxy
 Map's server-side panel builder (`galaxy.py` calls `view_radius_bounds`
-to pick its first `get_galaxy_view` radius, then
-`render_galaxy_map3d_panel` to build the page). No database needed --
-both functions take plain dicts, the same shape `apiclient.
-get_galaxy_shape`/`get_galaxy_view` return.
+to pick its starting radius, `initial_tile_request` for the first
+frame's tiles, then `render_galaxy_map3d_panel` to build the page). No
+database needed -- every function takes plain data, the same shape
+`apiclient.get_galaxy_shape`/`tilecache.fetch_tiles` return.
 
 Run with: pytest src/tests/test_galaxymap3d.py
 """
@@ -21,18 +21,27 @@ import pytest  # noqa: E402
 from galaxymap3d import (  # noqa: E402
     CLICK_ZOOM_FACTOR_MAX,
     CLICK_ZOOM_FACTOR_MIN,
+    FETCH_RADIUS_FACTOR,
     MIN_VIEW_RADIUS_FLOOR_PC,
+    PLANNED_MAX_VIEW_RADIUS_PC,
+    initial_tile_request,
     render_galaxy_map3d_panel,
     view_radius_bounds,
 )
 
+from stellarObjects.galaxyViewport import (  # noqa: E402
+    TILE_MAX_LEVEL,
+    parse_tile_key,
+    tile_level_for_view_radius,
+    tiles_intersecting_sphere,
+)
 from stellarObjects.program_constants import GALAXY_RADIUS_PC  # noqa: E402
 
 EDGE_PC = 3.526
 
 
 def _empty_view(edge_pc=EDGE_PC, has_shape=False):
-    return {"placed": [], "planned": [], "density": [], "edge_pc": edge_pc, "has_shape": has_shape}
+    return {"stamp": "0123456789abcdef", "tiles": {}, "density": None, "edge_pc": edge_pc, "has_shape": has_shape}
 
 
 def _json_payload(html):
@@ -84,7 +93,11 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     data = _json_payload(html)
 
     assert data["db"] == "mydb"
-    assert data["fetchPath"] == "galaxy_view.py"
+    assert data["fetchPath"] == "galaxy_tiles.py"
+    assert data["hasShape"] is True
+    for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedViewRadiusPc",
+                  "plannedMaxViewRadiusPc", "fetchRadiusFactor", "maxTilesPerRequest"):
+        assert field in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
     assert data["edgeLy"] > 0
     assert data["clickZoomFactorMin"] == CLICK_ZOOM_FACTOR_MIN
@@ -116,12 +129,40 @@ def test_panel_json_is_safely_escaped_against_script_breakout():
 
 
 def test_panel_includes_real_placed_and_planned_data_from_the_initial_view():
-    view = {
+    view = _empty_view(has_shape=True)
+    view["tiles"]["1/1/1/1"] = {
         "placed": [{"id": 1, "name": "Real Sector", "x": 1.0, "y": 2.0, "z": 3.0,
                      "galactic_radius_pc": 3.7, "shell_index": 1, "shell_slot_index": 0,
-                     "designation": "ABC", "system_count": 4, "distance_pc": 0.0}],
-        "planned": [], "density": [], "edge_pc": EDGE_PC, "has_shape": True,
+                     "designation": "ABC", "system_count": 4}],
+        "planned": [],
     }
     html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 10}, EDGE_PC, view)
     data = _json_payload(html)
-    assert data["initial"]["placed"][0]["name"] == "Real Sector"
+    assert data["initial"]["tiles"]["1/1/1/1"]["placed"][0]["name"] == "Real Sector"
+    assert data["initial"]["stamp"] == "0123456789abcdef"
+
+
+# --- initial_tile_request ----------------------------------------------------
+
+@pytest.mark.parametrize("orbit_radius", [16000.0, 900.0, 120.0, 30.0, 5.3])
+def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
+    center = (321.0, -45.0, 6.0)
+    keys, density_key = initial_tile_request(orbit_radius, True, center)
+    view_radius = orbit_radius * FETCH_RADIUS_FACTOR
+    level = tile_level_for_view_radius(view_radius)
+    view_keys = tiles_intersecting_sphere(level, center, view_radius)
+    assert keys[:len(view_keys)] == view_keys
+    for key in keys:
+        parse_tile_key(key)
+    if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
+        assert any(key.startswith(f"{TILE_MAX_LEVEL}/") for key in keys)
+        assert density_key is None
+    else:
+        assert all(key.startswith(f"{level}/") for key in keys)
+        assert density_key is not None and density_key.startswith(f"{level}/")
+    assert len(keys) <= 128
+
+
+def test_initial_tile_request_has_no_density_without_a_shape():
+    _keys, density_key = initial_tile_request(16000.0, False)
+    assert density_key is None
