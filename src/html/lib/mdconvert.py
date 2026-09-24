@@ -81,7 +81,7 @@ def _render_table(lines):
         for row in rows[2:]  # rows[1] is the '|---|---|' separator
     ]
 
-    out = ['<table>', '<thead><tr>']
+    out = ['<div class="table-scroll"><table>', '<thead><tr>']
     for cell in header_cells:
         out.append(f'<th>{_restore_safe_sup_tags(html.escape(cell))}</th>')
     out.append('</tr></thead><tbody>')
@@ -90,7 +90,7 @@ def _render_table(lines):
         for cell in row:
             out.append(f'<td>{_restore_safe_sup_tags(html.escape(cell))}</td>')
         out.append('</tr>')
-    out.append('</tbody></table>')
+    out.append('</tbody></table></div>')
     return ''.join(out)
 
 

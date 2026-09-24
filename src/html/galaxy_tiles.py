@@ -3,15 +3,16 @@
 
 """
 Interactive 3D Galaxy Map tile endpoint -- the JSON `static/
-galaxymap3d.js` fetches as its camera moves, replacing `galaxy_view.py`'s
+galaxymap3d.js` fetches as its camera moves, replacing the old `galaxy_view.py`'s
 "everything within R of this point" query with fixed cubes of space (see
 `stellarObjects.galaxyViewport`'s "Cube tiles" section).
 
 `tiles` is a comma-separated list of `level/ix/iy/iz` keys and `density`
 an optional single key to anchor the illustrative density cloud on. Both
-come from the GET query string for the same reason `galaxy_view.py`'s
-parameters do (see that script's docstring): this is only ever fetched by
-the page's own script, never navigated to.
+come from the GET query string rather than `nav_params`'s POST
+convention: this is only ever fetched by the page's own script, never
+navigated to, so a `fetch()` URL never reaches the address bar, history
+or a `Referer` header.
 
 Every tile goes through `lib/tilecache.py`'s disk cache first; only tiles
 not already cached reach the API. The response carries the database's
@@ -41,8 +42,7 @@ def handler():
         return fetch_tiles(db_name, tile_keys, density_key, known_stamp)
     except TileRequestError as exc:
         # The page's own script sent a bad request -- a 400, not the 502
-        # `run_json` gives an API failure (same distinction
-        # `galaxy_view.py` draws).
+        # `run_json` gives an API failure.
         render_json_error(str(exc))
 
 

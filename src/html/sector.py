@@ -42,7 +42,7 @@ from apiclient import (
     get_wiki_config,
     upload_sector_to_wiki,
 )
-from fmt import esc, format_distance_ly, linkify_location, post_link
+from fmt import esc, format_distance_ly, linkify_location, post_link, static_url
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, nav_params, run
 from pagination import page_slice, parse_page, render_pagination
@@ -318,7 +318,7 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 {render_pagination("sector.py", page_state, "contents_page", contents_page, len(content_rows),
                    anchor="sector-contents", label="Contents pages")}
 </section>
-<script type="module" src="static/sectormap.js"></script>
+<script type="module" src="{static_url("sectormap.js")}"></script>
 """
     return f"Sector: {sector['name']}", body
 

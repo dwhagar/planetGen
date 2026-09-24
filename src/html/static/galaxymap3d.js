@@ -49,8 +49,15 @@
 // and without a step so coarse up close that it blows past the one
 // sector being approached.
 
-import * as THREE from "./vendor/three.module.min.js";
-import { buildPrismGeometry, prismsForView } from "./galaxyprisms.js";
+// Sibling modules are imported with this module's own `?v=<version>`
+// query (html/lib/fmt.py's `static_url`), so they are cached and
+// refreshed with the page's script. A plain static `import "./x.js"`
+// would drop the query: an update could then leave a stale copy cached,
+// and a page that also loaded the same file by its versioned URL would
+// get a second, separate instance of it.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
+const { buildPrismGeometry, prismsForView } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");

@@ -32,7 +32,8 @@
 #      `docs/TODO.md` -- a `core.fileMode=false` git config on the authoring
 #      machine silently dropped this once already, and nothing about a
 #      git checkout should be trusted to carry it reliably).
-#   5. Enables Apache's CGI and headers modules (`a2enmod cgid headers`).
+#   5. Enables Apache's CGI, headers and deflate modules (`a2enmod cgid headers
+#      deflate`).
 #   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `src/html/`/`db/` directories for Apache's worker
 #      user/group.
@@ -183,14 +184,15 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
-echo "== 5/8: Enabling Apache's CGI and headers modules =="
+echo "== 5/8: Enabling Apache's CGI, headers and deflate modules =="
 if command -v a2enmod >/dev/null 2>&1; then
-    # cgid: runs the src/html/ CGI scripts. headers: needed for the
-    # `Header always set ...` lines in examples/apache/planetgen.conf.example
-    # -- both are needed regardless of whether the optional `wsgi` module
-    # (the Flask API) is enabled too, so unlike `wsgi` these are automated
-    # here rather than left to the manual site-config step below.
-    a2enmod cgid headers
+    # cgid: runs the src/html/ CGI scripts. headers: static/'s
+    # Cache-Control/nosniff lines in examples/apache/planetgen.conf.example.
+    # deflate: that file's compression block. All three are needed
+    # regardless of whether the optional `wsgi` module (the Flask API) is
+    # enabled too, so unlike `wsgi` these are automated here rather than
+    # left to the manual site-config step below.
+    a2enmod cgid headers deflate
 else
     echo "warning: a2enmod not found -- is apache2 installed?" >&2
     echo "  Try: sudo apt install apache2" >&2

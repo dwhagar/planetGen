@@ -11,7 +11,9 @@ never a database row or connection.
 
 import html
 import json
+import os
 import re
+from urllib.parse import quote
 
 try:
     from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
@@ -21,6 +23,52 @@ except ImportError:
     # comparison, rather than failing outright (matches every other
     # html/lib module's own fallback for an optional stellarObjects import).
     LOCAL_STELLAR_DENSITY_LY3 = None
+
+
+def _read_package_version():
+    """
+    The planetGen package version (`src/stellarObjects/_version.py`'s
+    `__version__`, which the post-merge stamp Action updates), read as
+    text with a regex the way `setup.py` does -- importing
+    `stellarObjects` would pull in `nltk` and friends just for a string.
+    Falls back to `"dev"` if the file can't be found or parsed, so a page
+    still renders (just without a meaningful cache-busting value).
+    """
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                        "stellarObjects", "_version.py")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', handle.read(), re.MULTILINE)
+    except OSError:
+        return "dev"
+    return match.group(1) if match else "dev"
+
+
+STATIC_VERSION = _read_package_version()
+
+
+def static_url(name):
+    """
+    The URL of a file under `html/static/`, with `?v=<package version>`
+    appended -- the one place every `<link>`/`<script src>` in the shell
+    and the pages gets its static URL from. The version changes with every
+    release, so Apache can tell browsers to cache `static/` for a year
+    (`Cache-Control: immutable`, see examples/apache/planetgen.conf.example)
+    while an update still reaches everyone on their next page view.
+
+    ES modules that import siblings (`sectormap.js` -> `bodyRendering.js`,
+    `vendor/three.module.min.js`) copy their own `?v=` onto those imports
+    (`import.meta.url`), so each module has exactly one URL per page.
+
+    Args:
+        name (str): Path relative to `static/`, e.g. `"style.css"` or
+                    `"vendor/three.module.min.js"`.
+
+    Returns:
+        str: e.g. `"static/style.css?v=5.52.0"` (relative, like every
+             other link in `html/`).
+    """
+    return f"static/{name}?v={quote(STATIC_VERSION, safe='')}"
 
 
 def esc(value):
