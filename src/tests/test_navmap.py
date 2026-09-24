@@ -22,6 +22,11 @@ import pytest  # noqa: E402
 from navmap import _project_all, _scale, render_nav_map_panel  # noqa: E402
 
 
+def _link(name, **params):
+    """Stands in for `web.helpers.page_url`: `/<name>?k=v&...`."""
+    return f"/{name}?" + "&".join(f"{key}={value}" for key, value in sorted(params.items()))
+
+
 def _waypoint(id_, name, position, role):
     return {"id": id_, "name": name, "position": position, "role": role}
 
@@ -56,7 +61,7 @@ def test_render_nav_map_panel_direct_only_has_no_route_line():
         _waypoint(1, "Origin", (0.0, 0.0, 0.0), "origin"),
         _waypoint(2, "Destination", (4.0, 0.0, 0.0), "destination"),
     ]
-    html = render_nav_map_panel("test.db", waypoints, has_route=False)
+    html = render_nav_map_panel(_link, waypoints, has_route=False)
 
     assert "navmap-direct-line" in html
     assert "navmap-route-line" not in html
@@ -71,15 +76,16 @@ def test_render_nav_map_panel_with_route_draws_route_line_and_hops():
         _waypoint(2, "Waystation", (2.0, 0.0, 0.0), "hop"),
         _waypoint(3, "Destination", (4.0, 0.0, 0.0), "destination"),
     ]
-    html = render_nav_map_panel("test.db", waypoints, has_route=True)
+    html = render_nav_map_panel(_link, waypoints, has_route=True)
 
     assert "navmap-direct-line" in html
     assert "navmap-route-line" in html
     assert "navmap-hop" in html
     assert "Waystation" in html
-    assert 'data-nav-target="system.py"' in html
-    assert 'data-nav-params="{&quot;db&quot;:&quot;test.db&quot;,&quot;id&quot;:1}"' in html
-    assert 'data-nav-params="{&quot;db&quot;:&quot;test.db&quot;,&quot;id&quot;:3}"' in html
+    assert '<a class="navmap-point navmap-origin" href="/system?system_id=1">' in html
+    assert '<a class="navmap-point navmap-hop" href="/system?system_id=2">' in html
+    assert '<a class="navmap-point navmap-destination" href="/system?system_id=3">' in html
+    assert "data-nav" not in html
 
 
 def test_render_nav_map_panel_escapes_names():
@@ -87,7 +93,17 @@ def test_render_nav_map_panel_escapes_names():
         _waypoint(1, "<script>alert(1)</script>", (0.0, 0.0, 0.0), "origin"),
         _waypoint(2, "Destination", (1.0, 0.0, 0.0), "destination"),
     ]
-    html = render_nav_map_panel("test.db", waypoints, has_route=False)
+    html = render_nav_map_panel(_link, waypoints, has_route=False)
 
     assert "<script>" not in html
     assert "&lt;script&gt;" in html
+
+
+def test_render_nav_map_panel_links_a_phenomenon_endpoint():
+    waypoints = [
+        {"id": 4, "kind": "phenomenon", "type": "black_hole", "name": "Maw",
+         "position": (0.0, 0.0, 0.0), "role": "origin"},
+        _waypoint(2, "Destination", (1.0, 0.0, 0.0), "destination"),
+    ]
+    html = render_nav_map_panel(_link, waypoints, has_route=False)
+    assert 'href="/phenomenon?phenomenon_id=4&amp;phenomenon_type=black_hole"' in html

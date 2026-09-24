@@ -42,17 +42,24 @@ no longer draws this shape as a wireframe (dropped as visual clutter), but
 its extent still drives `_default_zoom`'s fallback framing for a sector
 with nothing else plotted in it (see that function's own docstring).
 
-Clicking a star/cloud (or activating one of the `<noscript>`/accessible-
-fallback list's own buttons) doesn't navigate straight to `system.py`/
-`phenomenon.py` -- it populates the info side panel first, so a click
-shows details before the panel's own link is what navigates away.
+Clicking a star/cloud (or activating one of the accessible fallback
+list's own buttons) doesn't navigate straight to the system/phenomenon
+page -- it populates the info side panel first, so a click shows details
+before the panel's own link (a plain `<a href>`, from each entry's `href`)
+is what navigates away.
+
+Links: `render_map_panel` takes a `link_url(name, **params)` callable
+(the Flask pages pass `web.helpers.page_url`) and calls it as
+`link_url("system", system_id=...)`, `link_url("phenomenon",
+phenomenon_type=..., phenomenon_id=...)` and `link_url("sector",
+sector_id=...)`; every scene entry carries the result as `href`.
 """
 
 import colorsys
 import json
 import math
 
-from fmt import esc, post_link
+from fmt import esc
 
 try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -412,7 +419,7 @@ address has; comparable to a real star dot's own range (`_MIN_DOT_R`
 3-`_MAX_DOT_R` 14) so it reads as a marker of similar visual weight."""
 
 
-def _neighbor_indicator_data(db_name, neighbor):
+def _neighbor_indicator_data(link_url, neighbor):
     """
     Builds one neighboring-sector indicator's plain-dict scene entry --
     `sectormap.js` draws it as a small clickable marker just outside this
@@ -426,14 +433,14 @@ def _neighbor_indicator_data(db_name, neighbor):
     arrow already uses.
 
     Args:
-        db_name (str): The current `?db=` value, for an existing
-                       neighbor's own `navParams`.
+        link_url (callable): Builds an existing neighbor's own `href`
+                       (see the module docstring).
         neighbor (dict): One entry from `queryDb.sector_neighbors`.
 
     Returns:
         dict or None: The indicator's scene entry (`x`/`y`/`z`,
             `shellIndex`/`shellSlotIndex`, `designation`, `exists`, and --
-            only when `exists` -- `name`/`navTarget`/`navParams`), or
+            only when `exists` -- `name`/`href`), or
             `None` if this neighbor's own direction is (within
             floating-point tolerance) undefined -- not expected in
             practice (two distinct sector centers are never that close),
@@ -457,8 +464,7 @@ def _neighbor_indicator_data(db_name, neighbor):
     }
     if neighbor["exists"]:
         data["name"] = neighbor["sector_name"]
-        data["navTarget"] = "sector.py"
-        data["navParams"] = {"db": db_name, "id": neighbor["sector_id"]}
+        data["href"] = link_url("sector", sector_id=neighbor["sector_id"])
     return data
 
 
@@ -618,7 +624,7 @@ def _star_dot_radius(radius_km):
     return max(_MIN_DOT_R, min(_MAX_DOT_R, dot_r))
 
 
-def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None):
+def _star_data(link_url, system, star, x_px, y_px, z_px, label_suffix, max_r=None):
     """
     Builds one star's plain-dict scene entry -- `sectormap.js` draws it as
     a real, textured, glowing 3D sphere (`static/bodyRendering.js`'s
@@ -638,15 +644,8 @@ def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None
         "temp": star["temp_display"],
         "quadrant": system["quadrant"],
         "location": system["location"],
-        # Read by `sectormap.js`'s info panel and passed straight to
-        # `window.planetgenSubmitNav` (`static/navform.js`) -- a plain
-        # object, not `fmt.data_nav_params`'s escaped-JSON-*string* form,
-        # since this is embedded directly into `_json_script`'s own JSON
-        # rather than an HTML attribute (see that convention's other use,
-        # `lib/galaxymap.py`/`lib/navmap.py`'s `<svg>` markers, which --
-        # unlike this scene -- really is HTML `data-nav-params`).
-        "navTarget": "system.py",
-        "navParams": {"db": db_name, "id": system["id"]},
+        # `sectormap.js`'s info panel links here with a plain `<a href>`.
+        "href": link_url("system", system_id=system["id"]),
     }
 
 
@@ -695,7 +694,7 @@ def _phenomenon_cloud_radius_px(radius_ly, half_edge):
     return max(4.0, min(_MAX_CLOUD_RADIUS_PX, radius_px))
 
 
-def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
+def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     """
     Builds one phenomenon's plain-dict scene entry. A nebula gets its own
     per-instance `coreColor`/`edgeColor` (two gradient stops, `#rrggbbaa`)
@@ -703,16 +702,12 @@ def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
     kind carries no color data at all -- `sectormap.js`'s own fixed
     recipes (mirroring this module's old `_ASTEROID_FIELD_BACKGROUND`/
     `_BLACK_HOLE_*_BACKGROUND`/`_NEUTRON_STAR_BACKGROUND` constants, now
-    retired from here) draw those from `kind` alone. Carries `navTarget`/
-    `navParams` to `phenomenon.py` (this project's detail page for a
-    standalone phenomenon), the same plain-object convention `_star_data`
-    uses for a star system -- `sectormap.js`'s info panel passes either
-    straight to `window.planetgenSubmitNav` (`static/navform.js`) so
-    following it never puts `phenomenon.py?...` in the browser's own
-    address bar.
+    retired from here) draw those from `kind` alone. Carries `href`, the
+    phenomenon's own detail page, the same as `_star_data` does for a star
+    system -- `sectormap.js`'s info panel links there.
 
     Args:
-        db_name (str): The current `?db=` value, for `navParams`.
+        link_url (callable): Builds `href` (see the module docstring).
         phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
                            (`id`, `type`, `name`, `descriptor`, `radius_ly`,
                            `distance_ly`).
@@ -730,8 +725,7 @@ def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
         "name": phenomenon["name"],
         "radiusText": f'{phenomenon["radius_ly"]:,.2f} ly',
         "distanceText": f'{phenomenon["distance_ly"]:,.1f} ly from sector center',
-        "navTarget": "phenomenon.py",
-        "navParams": {"db": db_name, "type": phenomenon["type"], "id": phenomenon["id"]},
+        "href": link_url("phenomenon", phenomenon_type=phenomenon["type"], phenomenon_id=phenomenon["id"]),
     }
 
     if phenomenon_type == "nebula":
@@ -790,45 +784,42 @@ def _json_script(data):
     )
 
 
-def _noscript_list_html(db_name, systems, phenomena, neighbors=None):
+def _noscript_list_html(link_url, systems, phenomena, neighbors=None):
     """
     A plain, always-present (no JS required) list of links -- the
     `<noscript>` fallback for a browser that can't run the WebGL scene
     `sectormap.js` builds, so the sector's own systems/phenomena/already-
     generated neighbors are still reachable rather than the panel being
     entirely blank without JavaScript. Not a substitute for the map itself
-    (no position/size/color -- just names and links), same spirit as any
-    other progressive-enhancement fallback list. Built from
-    `fmt.post_link` -- a real `<form>` submit button, not a plain `<a
-    href>` -- same as every other in-app link now, so `db`/an id doesn't
-    show up in the address bar even here, and it needs no JavaScript of
-    its own to work either.
+    (no position/size/color -- just names and plain `<a href>` links),
+    same spirit as any other progressive-enhancement fallback list.
 
     A not-yet-generated neighbor is omitted here -- it has nowhere to
     link to (its own "copy the CLI command" affordance is JS-only, same
     as the map itself), unlike an existing one.
     """
+    def item(url, name):
+        return f'<li><a href="{esc(url)}">{esc(name)}</a></li>'
+
     items = []
     for system in systems:
-        items.append(f'<li>{post_link("system.py", {"db": db_name, "id": system["id"]}, esc(system["name"]))}</li>')
+        items.append(item(link_url("system", system_id=system["id"]), system["name"]))
     for phenomenon in (phenomena or []):
-        link = post_link(
-            "phenomenon.py", {"db": db_name, "type": phenomenon["type"], "id": phenomenon["id"]},
-            esc(phenomenon["name"]),
-        )
-        items.append(f'<li>{link}</li>')
+        items.append(item(
+            link_url("phenomenon", phenomenon_type=phenomenon["type"], phenomenon_id=phenomenon["id"]),
+            phenomenon["name"],
+        ))
     for neighbor in (neighbors or []):
         if not neighbor["exists"]:
             continue
-        link = post_link("sector.py", {"db": db_name, "id": neighbor["sector_id"]}, esc(neighbor["sector_name"]))
-        items.append(f'<li>{link}</li>')
+        items.append(item(link_url("sector", sector_id=neighbor["sector_id"]), neighbor["sector_name"]))
     if not items:
         return ""
     return f'<noscript><ul class="starmap-noscript-list">{"".join(items)}</ul></noscript>'
 
 
 def render_map_panel(
-    db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems, phenomena=None, neighbors=None,
+    link_url, edge_mpc, shell_index, shell_slot_index, center_pc, systems, phenomena=None, neighbors=None,
 ):
     """
     Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
@@ -851,11 +842,10 @@ def render_map_panel(
     plotted in it.
 
     Args:
-        db_name (str): The current `?db=` value, used to build each
-                       entry's `navParams` (`static/navform.js` posts
-                       these to `system.py`/`phenomenon.py` on click, same
-                       as every other in-app navigation -- see that
-                       file's own docstring).
+        link_url (callable): `link_url(name, **params)` -> URL, used to
+                       build each entry's `href` (see the module
+                       docstring); the Flask sector page passes
+                       `web.helpers.page_url`.
         edge_mpc (float): The sector's cube edge (`sectors.edge_mpc`) --
                           every system's `position_*_mpc` is relative to
                           the sector's cubic center (see schema.sql's
@@ -946,13 +936,13 @@ def render_map_panel(
         # name is "<system name> B"; see systemData.StarSystem.__init__),
         # and reads as a real star name rather than an internal role label.
         primary_suffix = " A" if is_binary else ""
-        stars_data.append(_star_data(db_name, system, stars[0], x_px, y_px, z_px, primary_suffix))
+        stars_data.append(_star_data(link_url, system, stars[0], x_px, y_px, z_px, primary_suffix))
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
             offset = primary_r * _BINARY_OFFSET_FRACTION
             stars_data.append(_star_data(
-                db_name, system, stars[1], x_px + offset, y_px + offset, z_px, " B",
+                link_url, system, stars[1], x_px + offset, y_px + offset, z_px, " B",
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
 
@@ -973,7 +963,7 @@ def render_map_panel(
         z_px = nz * _SCENE_HALF_PX
         radius_px = _phenomenon_cloud_radius_px(phenomenon["radius_ly"], half_edge)
         if radius_px:
-            clouds_data.append(_cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px))
+            clouds_data.append(_cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px))
             # The cloud's own edge, not just its center -- a large nebula
             # can dwarf the scene (see `_MAX_CLOUD_RADIUS_PX`), and its
             # center alone would understate how far out it actually reaches.
@@ -996,7 +986,7 @@ def render_map_panel(
     ly_per_px = _ly_per_px_at_zoom_1(half_edge)
 
     neighbors_data = [
-        entry for entry in (_neighbor_indicator_data(db_name, neighbor) for neighbor in (neighbors or []))
+        entry for entry in (_neighbor_indicator_data(link_url, neighbor) for neighbor in (neighbors or []))
         if entry is not None
     ]
 
@@ -1028,7 +1018,7 @@ def render_map_panel(
         if ly_per_px else ""
     )
 
-    noscript_html = _noscript_list_html(db_name, systems, phenomena, neighbors)
+    noscript_html = _noscript_list_html(link_url, systems, phenomena, neighbors)
 
     return f"""
 <section class="panel">

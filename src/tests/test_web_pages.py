@@ -120,7 +120,7 @@ def test_home_renders_both_tables_and_shell(client, fake):
     assert "Sector 002" in html and "System 001" in html
     assert "3 sectors" in html and "2 standalone systems" in html
     # Not-yet-moved pages are plain GET links to the CGI scripts.
-    assert f'href="/sector.py?db={DB}&amp;id=1"' in html
+    assert 'href="/sector/1"' in html
     assert f'href="/system.py?db={DB}&amp;id=1001"' in html
     # The home page is no section; nothing in the main nav is current.
     assert 'aria-current="page"' not in re.search(
@@ -163,7 +163,7 @@ def test_sections_link_to_moved_and_legacy_pages(client, fake):
     assert _section_link(html, "Sectors").group(0).startswith('<a href="/sectors"')
     assert _section_link(html, "Systems").group(0).startswith('<a href="/systems"')
     assert _section_link(html, "Galaxy").group(0).startswith(f'<a href="/galaxy.py?db={DB}"')
-    assert _section_link(html, "Nav").group(0).startswith(f'<a href="/nav.py?db={DB}"')
+    assert _section_link(html, "Nav").group(0).startswith('<a href="/nav"')
 
 
 def test_database_comes_from_config_never_the_url(client, fake):
@@ -368,7 +368,7 @@ def test_page_url_resolves_moved_and_legacy_pages(app):
     with app.test_request_context("/"):
         assert page_url("index") == "/"
         assert page_url("sectors") == "/sectors"
-        assert page_url("sector", sector_id=5) == f"/sector.py?db={DB}&id=5"
+        assert page_url("sector", sector_id=5) == "/sector/5"
         assert page_url("phenomenon", phenomenon_type="nebula", phenomenon_id=3) == \
             f"/phenomenon.py?db={DB}&type=nebula&id=3"
         assert page_url("galaxy", _anchor="map") == f"/galaxy.py?db={DB}#map"

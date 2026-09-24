@@ -185,22 +185,12 @@ function showNeighborInfo(panel, entry) {
   panel.appendChild(makeCopyButton(cliSnippet(entry.shellIndex, entry.shellSlotIndex)));
 }
 
-// A real, focusable `<a>` carrying `data-nav-target`/`data-nav-params`
-// instead of an `href` query string -- `static/navform.js`'s document-
-// level click handler (loaded on every page, see `lib/page.py`'s
-// `render`) is what actually follows it, by posting a throwaway hidden
-// form, the same convention every other in-app link now uses
-// (`lib/fmt.py`'s `post_link` builds the non-JS-required `<form>` version
-// of the same idea; a `<form>` can't be dynamically inserted into this
-// panel's own DOM update flow as conveniently as a plain `<a>` can, so
-// this stays in the `data-nav-target` camp like the map's own SVG-era
-// markers already had to for the same "can't nest a form" reason).
+// A plain `<a href>` to the entry's own page (`href`, built server-side by
+// lib/starmap.py), so Back, open-in-new-tab and copy-link all work.
 function navLink(entry, label) {
   var link = document.createElement("a");
-  link.href = "#";
+  link.href = entry.href || "#";
   link.className = "btn";
-  link.dataset.navTarget = entry.navTarget;
-  link.dataset.navParams = JSON.stringify(entry.navParams || {});
   link.textContent = label;
   return link;
 }
