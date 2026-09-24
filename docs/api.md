@@ -67,13 +67,16 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/sectors?limit=<n>&offset=<n>` — every sector, paginated (see
   "Pagination" below), each with `id`, `name`, `edge_mpc`, `edge_ly`,
   `system_count`, and its galaxy placement (`center_x_pc`/`center_y_pc`/
-  `center_z_pc`/`shell_index`/`shell_slot_index`, all `null` together for
-  an unplaced sector, plus a `placed` bool) (`queryDb.list_sectors`/
-  `count_sectors`).
+  `center_z_pc`/`galactic_radius_pc`/`galactic_radius_ly`/`shell_index`/
+  `shell_slot_index`, all
+  `null` together for an unplaced sector, plus a `placed` bool), nearest
+  the galactic core first, then unplaced sectors by name
+  (`queryDb.list_sectors`/`count_sectors`).
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
-  it — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
-  `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, and `stars`, each
+  it, nearest the sector's center first — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
+  `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, `center_distance_ly`,
+  and `stars`, each
   with `role`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
   `phenomena` (every galaxy-placed nebula/asteroid field/black hole/
   neutron star whose sphere could plausibly reach into this sector's
