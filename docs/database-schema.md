@@ -432,14 +432,14 @@ cube (its real generated position was never saved), seeded by the row's
 id. Rows with no placed sector stay unplaced. The full reasoning is in
 `schema.sql`'s "v28" header note.
 
-**Quasars (v30).** A new `quasars` table holds a galaxy's active nucleus
+**Quasars (v31).** A new `quasars` table holds a galaxy's active nucleus
 (`quasarData.Quasar`). A quasar is only ever generated at the galactic
 center, by the first shell-0 sector (`generate.add_galactic_nucleus`,
 rolled against `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`), so a
 placed row always sits at (0, 0, 0) and a galaxy has at most one. It has
 the usual placement columns and row timestamps, but no galactic-orbit
 columns: it is the point everything else orbits. A brand-new table needs
-no `ALTER TABLE`, so `_migrate_v29_to_v30` only records the version.
+no `ALTER TABLE`, so `_migrate_v30_to_v31` only records the version.
 
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
@@ -1092,8 +1092,8 @@ from any star.
 
 ### `quasars`
 
-Added in v30. A galaxy's active nucleus: its central supermassive black
-hole, accreting near its Eddington limit. See `schema.sql`'s "v30" header
+Added in v31. A galaxy's active nucleus: its central supermassive black
+hole, accreting near its Eddington limit. See `schema.sql`'s "v31" header
 note.
 
 | Column | Type | Null | Notes |

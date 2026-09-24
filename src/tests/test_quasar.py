@@ -1,7 +1,7 @@
 # tests/test_quasar.py
 
 """
-Tests for the quasar phenomenon (schema v30): the `Quasar` model itself,
+Tests for the quasar phenomenon (schema v31): the `Quasar` model itself,
 its one-per-galaxy placement at the galactic center, storage, and how it
 shows up in the sector's phenomena and on the site.
 """

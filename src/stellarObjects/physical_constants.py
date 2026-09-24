@@ -25,6 +25,7 @@ SPEED_OF_LIGHT_M_S = 2.998e8  # Speed of light in a vacuum, m/s -- used for Schw
 R = 8.314  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.381e-23  # Boltzmann constant in J/K
 STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # Stefan-Boltzmann constant in W/m²/K⁴
+COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the floor for any body's surface temperature
 
 # --- Astronomical Constants ---
 SOLAR_MASS_TO_KG = 1.989e30  # Solar mass to kilograms conversion factor

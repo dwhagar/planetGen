@@ -717,13 +717,24 @@
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
 --   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
--- v30: new `quasars` table -- a galaxy's active nucleus (`quasarData.Quasar`).
+-- v30: no shape change -- a data cleanup of two generator bugs in
+--   `planets`/`moons`. A body `planetPhysics.reconcile_zone_and_class`
+--   moved into an airless class kept its old class's `atm_density`/
+--   `atm_molar_density`/`scale_height_km` (now cleared on reclassification,
+--   and NULLed on `atmosphere = 'None'` rows), and bodies around very dim
+--   stars could come out below the cosmic microwave background (now
+--   floored at `physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K`,
+--   2.725 K, and raised to it on existing rows). `_migrate_v29_to_v30` does
+--   both updates.
+--
+-- v31: new `quasars` table -- a galaxy's active nucleus (`quasarData.Quasar`).
 --   Only ever generated at the galactic center (0, 0, 0), by the one
 --   shell-0 sector that hosts the nucleus (`generate.add_galactic_nucleus`),
---   so it has the usual placement columns but
---   no galactic-orbit columns: it is the point everything else orbits.
---   A brand-new table, so `_ensure_schema`'s `CREATE TABLE IF NOT EXISTS`
---   creates it; `_migrate_v29_to_v30` only records the version.--
+--   so it has the usual placement columns but no galactic-orbit columns:
+--   it is the point everything else orbits. A brand-new table, so
+--   `_ensure_schema`'s `CREATE TABLE IF NOT EXISTS` creates it;
+--   `_migrate_v30_to_v31` only records the version.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1721,8 +1732,8 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- quasars -- v30 exotic phenomenon: a galaxy's active nucleus, always at
--- the galactic center. See this file's "v30" header note.
+-- quasars -- v31 exotic phenomenon: a galaxy's active nucleus, always at
+-- the galactic center. See this file's "v31" header note.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS quasars (
     id                              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

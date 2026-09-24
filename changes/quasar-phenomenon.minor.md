@@ -8,4 +8,4 @@
   in the sector's Contents table, in the phenomena list and on its own
   detail page, and `generate.py phenomenon --type quasar` makes one on
   demand (`--sector-id` must be a shell-0 sector). New `quasars` table,
-  schema v30; run `migrateDb.py` (update.sh does).
+  schema v31; run `migrateDb.py` (update.sh does).

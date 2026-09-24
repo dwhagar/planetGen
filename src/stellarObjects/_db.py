@@ -85,7 +85,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 30
+SCHEMA_VERSION = 31
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1844,7 +1844,7 @@ placed quasar sits."""
 
 def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
     """
-    Inserts a `quasars` row (see `schema.sql`'s "v30" header note).
+    Inserts a `quasars` row (see `schema.sql`'s "v31" header note).
 
     A quasar is a galaxy's nucleus, so any placement at all is snapped to
     the galactic center (`GALACTIC_CENTER_PLACEMENT`): `insert_sector`'s
@@ -4858,8 +4858,46 @@ def _migrate_v28_to_v29(conn):
 
 def _migrate_v29_to_v30(conn):
     """
-    Records schema v30 -- the new `quasars` table (see `schema.sql`'s
-    "v30" header note). Like `_migrate_v15_to_v16`, a brand-new table
+    Cleans up two kinds of bad surface-condition values older generator
+    code saved on `planets`/`moons` -- see `schema.sql`'s "v30" header
+    note. No columns change, so a database `_ensure_schema` created fresh
+    has nothing to fix and every `UPDATE` here matches no rows.
+
+    - Airless bodies (`atmosphere = 'None'`) that kept a previous class's
+      `atm_density`/`atm_molar_density`/`scale_height_km` after
+      `planetPhysics.reconcile_zone_and_class` moved them into an airless
+      class: set back to NULL, like every other airless body.
+    - `surface_temperature_k` below the cosmic microwave background
+      (`physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K`): raised to it.
+
+    Deliberately leaves `star_systems.modified_at` alone, like the orbit
+    ticks do (see `schema.sql`'s "v27" note): nothing the Galaxy Map tile
+    cache draws depends on these values.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    floor_k = physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K
+    for table in ("planets", "moons"):
+        conn.execute(
+            f"UPDATE {table} SET atm_density = NULL, atm_molar_density = NULL, scale_height_km = NULL "
+            "WHERE atmosphere = 'None' AND (atm_density IS NOT NULL OR atm_molar_density IS NOT NULL "
+            "OR scale_height_km IS NOT NULL)"
+        )
+        conn.execute(
+            f"UPDATE {table} SET surface_temperature_k = ? WHERE surface_temperature_k < ?",
+            (floor_k, floor_k),
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (30)")
+
+
+def _migrate_v30_to_v31(conn):
+    """
+    Records schema v31 -- the new `quasars` table (see `schema.sql`'s
+    "v31" header note). Like `_migrate_v15_to_v16`, a brand-new table
     needs no `ALTER TABLE`: `_ensure_schema` already created it, so this
     step only keeps the bookkeeping counter accurate.
 
@@ -4868,7 +4906,7 @@ def _migrate_v29_to_v30(conn):
                            committed -- the caller commits once every step
                            up to `SCHEMA_VERSION` has run).
     """
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (30)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
 
 
 def touch_star_system(conn, star_system_id):
@@ -4940,9 +4978,11 @@ def migrate_database(config=None):
     `neutron_stars`), `_migrate_v26_to_v27` (added for v27's
     `created_at`/`modified_at` row timestamps), and `_migrate_v27_to_v28`
     (added for v28's placement columns on `supernova_remnants`/
-    `rogue_planets`/`interstellar_comets`), and `_migrate_v28_to_v29`
+    `rogue_planets`/`interstellar_comets`), `_migrate_v28_to_v29`
     (dropping the stored wikitext/Markdown page text v29 renders on
-    demand instead), and `_migrate_v29_to_v30` (recording v30's new
+    demand instead), `_migrate_v29_to_v30` (clearing stale atmosphere
+    values on airless bodies and flooring surface temperatures at the
+    cosmic background), and `_migrate_v30_to_v31` (recording v31's new
     `quasars` table) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
@@ -5047,6 +5087,10 @@ def migrate_database(config=None):
         if version < 30:
             _migrate_v29_to_v30(conn)
             version = 30
+
+        if version < 31:
+            _migrate_v30_to_v31(conn)
+            version = 31
 
         conn.commit()
         return version
