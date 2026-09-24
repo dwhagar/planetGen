@@ -4503,6 +4503,10 @@ def migrate_database(config=None):
             _migrate_v24_to_v25(conn)
             version = 25
 
+        if version < 26:
+            _migrate_v25_to_v26(conn)
+            version = 26
+
         conn.commit()
         return version
     finally:

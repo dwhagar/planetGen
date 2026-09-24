@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.46.25] - 2026-09-24
+
+### Fixed
+- **`migrate_database` never actually applied 5.46.19's v26 migration**
+  (the spatial indexes on `nebulae`/`asteroid_fields`/`black_holes`/
+  `neutron_stars` that fix `sector.py`'s production timeout) -- the
+  `_migrate_v25_to_v26` function existed but was never called from
+  `migrate_database`'s own version cascade, so running `migrateDb.py`
+  against an existing (pre-v26) database left it silently stuck at v25
+  forever, `GET /api/health`'s `schema_current` reporting `false`
+  indefinitely with no way to clear it short of applying the index by
+  hand. Caught by running the full test suite against a real MySQL
+  server rather than relying on syntax/logic review alone -- every
+  `test_migrate_v*` regression test failed with `schema_version == 25`,
+  not `SCHEMA_VERSION` (26). A fresh database (`_ensure_schema`, which
+  reads the indexes straight from `schema.sql`'s own `CREATE TABLE`) was
+  never affected -- only a database migrated from an earlier version.
+
 ## [5.46.24] - 2026-09-24
 
 ### Fixed
