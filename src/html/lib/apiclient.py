@@ -433,27 +433,6 @@ def get_galaxy_shape(db):
     return _request("/galaxy/shape", {"db": db})["shape"]
 
 
-def get_galaxy_view(db, cx, cy, cz, radius_pc):
-    """
-    Returns `GET /api/galaxy/view`'s full live-viewport payload
-    (`placed`/`planned`/`density`/`edge_pc`/`has_shape` -- see
-    `queryDb.galaxy_view`'s docstring for the shape) for the interactive
-    3D Galaxy Map's own camera position. Unlike every other `get_galaxy_*`
-    function here, this is called from `html/galaxy_view.py` (the
-    browser-facing JSON proxy the map's own client-side JS fetches from
-    directly, on every camera move) rather than from a page's `handler()`
-    at render time -- see that script's own docstring.
-
-    Args:
-        db (str): The `?db=` value.
-        cx, cy, cz (float): The view center, galaxy-frame parsecs.
-        radius_pc (float): The view radius, parsecs.
-    """
-    _require_db(db)
-    return _request("/galaxy/view", {"db": db, "cx": cx, "cy": cy, "cz": cz, "radius_pc": radius_pc})
-
-
-
 def get_galaxy_tiles(db, tile_keys, density_key=None):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`density`/
