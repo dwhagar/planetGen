@@ -47,7 +47,7 @@ from queryDb import (
     count_sectors,
     count_systems,
     MAX_TILES_PER_REQUEST,
-    galaxy_content_stamp,
+    galaxy_changes,
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
@@ -657,11 +657,25 @@ def galaxy_tiles_route():
 @bp.route("/galaxy/stamp")
 def galaxy_stamp_route():
     """
-    `{"stamp": "<16 hex>"}` -- changes whenever the galaxy's tile contents
-    could change (see `queryDb.galaxy_content_stamp`). Tile caches key on
-    it, so a cached tile is never reused after new sectors are generated.
+    `{"stamp": "<16 hex>", "state": "<token>"}` -- `stamp` changes whenever
+    the galaxy's tile contents could change (see
+    `queryDb.galaxy_content_stamp`), and `state` is what
+    `/galaxy/changes?since=` takes to say which tiles did.
     """
-    return jsonify({"stamp": galaxy_content_stamp(get_db())})
+    changes = galaxy_changes(get_db())
+    return jsonify({"stamp": changes["stamp"], "state": changes["state"]})
+
+
+@bp.route("/galaxy/changes")
+def galaxy_changes_route():
+    """
+    `?since=<state>` -- which cube tiles changed since that state (see
+    `queryDb.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`.
+    `html/lib/tilecache.py` calls this about once a minute and deletes
+    only the listed tiles, or all of them when `full`. A missing or
+    unreadable `since` just answers `full`.
+    """
+    return jsonify(galaxy_changes(get_db(), request.args.get("since")))
 
 @bp.route("/phenomena")
 def phenomena():

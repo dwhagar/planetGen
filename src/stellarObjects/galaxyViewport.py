@@ -301,6 +301,40 @@ def tile_bounds_pc(level, ix, iy, iz):
     return lo, hi
 
 
+def tile_keys_containing(point_pc):
+    """
+    The key of the one tile per level whose half-open box holds
+    `point_pc` -- every tile a sector centered there appears in, so the
+    tiles to refetch when that sector changes (`queryDb.galaxy_changes`).
+
+    Args:
+        point_pc (tuple): `(x, y, z)`, parsecs.
+
+    Returns:
+        list[str]: One key per level, coarsest first, or `[]` for a point
+            outside the root cube (which no tile holds).
+    """
+    origin = -TILE_ROOT_EDGE_PC / 2.0
+    keys = []
+    for level in range(TILE_MAX_LEVEL + 1):
+        edge = tile_edge_pc(level)
+        span = 2 ** level
+        index = []
+        for value in point_pc:
+            i = math.floor((value - origin) / edge)
+            # Settle a rounding tie against the same `lo <= v < hi` test
+            # `queryDb.galaxy_sectors_in_box` uses.
+            if origin + i * edge > value:
+                i -= 1
+            elif origin + (i + 1) * edge <= value:
+                i += 1
+            if not 0 <= i < span:
+                return []
+            index.append(i)
+        keys.append(tile_key(level, *index))
+    return keys
+
+
 def tile_level_for_view_radius(radius_pc):
     """
     The level whose tiles are the smallest still at least `radius_pc` on

@@ -2,7 +2,7 @@
 
 """
 Tests for `html/lib/tilecache.py`, the web layer's on-disk cache of 3D
-Galaxy Map tiles. The API calls (`get_galaxy_stamp`/`get_galaxy_tiles`)
+Galaxy Map tiles. The API calls (`get_galaxy_changes`/`get_galaxy_tiles`)
 are replaced with fakes that count calls, so no API or database is
 needed.
 """
@@ -21,14 +21,25 @@ import tilecache  # noqa: E402
 
 
 class FakeApi:
+    """`stamp` is the database's current stamp; `changed` the tiles
+    `get_galaxy_changes` reports since the last stamp, or `None` for a
+    `full` answer."""
+
     def __init__(self, stamp="00000000000000aa"):
         self.stamp = stamp
+        self.changed = []
         self.stamp_calls = 0
+        self.since = []
         self.tile_calls = []
 
-    def get_galaxy_stamp(self, db):
+    def get_galaxy_changes(self, db, since=None):
         self.stamp_calls += 1
-        return self.stamp
+        self.since.append(since)
+        full = since is None or self.changed is None
+        return {
+            "stamp": self.stamp, "state": "state-" + self.stamp,
+            "full": full, "tiles": [] if full else list(self.changed),
+        }
 
     def get_galaxy_tiles(self, db, tile_keys, density_key=None):
         self.tile_calls.append((list(tile_keys), density_key))
@@ -42,7 +53,7 @@ class FakeApi:
 @pytest.fixture
 def api(monkeypatch, tmp_path):
     fake = FakeApi()
-    monkeypatch.setattr(tilecache, "get_galaxy_stamp", fake.get_galaxy_stamp)
+    monkeypatch.setattr(tilecache, "get_galaxy_changes", fake.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", fake.get_galaxy_tiles)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
@@ -81,7 +92,7 @@ def test_stamp_is_remembered_then_rechecked(api, monkeypatch):
     assert api.stamp_calls == 2
 
 
-def test_new_stamp_drops_old_tiles(api, monkeypatch):
+def test_full_change_drops_every_old_tile(api, monkeypatch):
     tilecache.fetch_tiles("mydb", ["12/1/2/3"])
     root = tilecache.cache_dir()
     db_dir = tilecache._db_dir(root, "mydb")
@@ -89,11 +100,67 @@ def test_new_stamp_drops_old_tiles(api, monkeypatch):
 
     old_stamp = api.stamp
     api.stamp = "00000000000000bb"
+    api.changed = None
     monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
     result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    assert result["stamp"] == "00000000000000bb"
+    assert result["stamp"] == result["generation"] == "00000000000000bb"
     assert result["cached"] == 0
     assert not os.path.exists(os.path.join(db_dir, old_stamp))
+
+
+def test_only_changed_tiles_are_dropped(api, monkeypatch):
+    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+    assert api.since == [None]
+
+    api.stamp = "00000000000000bb"
+    api.changed = ["12/1/2/3", "11/0/1/1"]
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    result = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+    assert api.since[-1] == "state-00000000000000aa"
+    assert result["stamp"] == "00000000000000bb"
+    assert result["generation"] == first["generation"] == "00000000000000aa"
+    assert result["cached"] == 1
+    assert api.tile_calls[-1] == (["12/1/2/3"], None)
+
+
+def test_browser_is_told_which_tiles_changed_since_its_stamp(api, monkeypatch):
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    api.stamp, api.changed = "00000000000000bb", ["12/1/2/3"]
+    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    api.stamp, api.changed = "00000000000000cc", ["12/9/9/9"]
+
+    current = tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000cc")
+    assert "history" not in current
+
+    behind = tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000aa")
+    assert behind["history"] == [
+        {"from": "00000000000000aa", "to": "00000000000000bb", "tiles": ["12/1/2/3"]},
+        {"from": "00000000000000bb", "to": "00000000000000cc", "tiles": ["12/9/9/9"]},
+    ]
+    assert tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000bb")["history"] == behind["history"][1:]
+    # The first page render doesn't know the browser's stamp yet.
+    assert tilecache.fetch_tiles("mydb", ["12/1/2/3"])["history"] == behind["history"]
+    # Too old for the history: the browser drops everything.
+    assert tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000ff")["history"] == []
+
+
+def test_history_is_trimmed_to_its_key_budget(monkeypatch):
+    monkeypatch.setattr(tilecache, "HISTORY_MAX_KEYS", 5)
+    history = [{"from": str(i), "to": str(i + 1), "tiles": ["k"] * 2} for i in range(4)]
+    assert tilecache._trim_history(history) == history[2:]
+    assert tilecache._trim_history([{"from": "a", "to": "b", "tiles": ["k"] * 6}]) == []
+
+
+def test_old_stamp_file_format_starts_afresh(api):
+    root = tilecache.cache_dir()
+    db_dir = tilecache._db_dir(root, "mydb")
+    os.makedirs(os.path.join(db_dir, "00000000000000aa"))
+    with open(os.path.join(db_dir, "stamp.json"), "w", encoding="utf-8") as f:
+        json.dump({"stamp": "00000000000000aa"}, f)
+    result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    assert api.since == [None]
+    assert result["cached"] == 0 and result["generation"] == "00000000000000aa"
 
 
 def test_databases_are_cached_separately(api):

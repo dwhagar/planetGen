@@ -640,8 +640,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // browser's localStorage (so a revisit or reload doesn't refetch them),
   // and on the server's disk (lib/tilecache.py) -- only tiles in none of
   // those reach the API and database. Every response carries the current
-  // stamp; when it changes (new sectors generated), every cached tile is
-  // dropped and refetched.
+  // stamp; when it differs from ours, the response also lists which tiles
+  // changed since (history), and only those are dropped and refetched. A
+  // change the history can't account for (a deleted sector, a new
+  // release, a stamp older than the history) drops every cached tile.
 
   var TILE_ROOT = data.tileRootEdgePc || 65536;
   var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 12;
@@ -732,7 +734,13 @@ function initGalaxyMap3d(canvasEl, data) {
   var TILE_MEMORY_MAX = 2000;
   var DENSITY_MEMORY_MAX = 24;
   var STORAGE_PREFIX = "planetgen:tile:" + data.db + ":";
-  var currentStamp = (data.initial && data.initial.stamp) || "";
+  // Where the stamp our stored tiles are at is kept, and the generation
+  // (the label our stored tiles are filed under since they last all went
+  // stale).
+  var STAMP_RECORD = STORAGE_PREFIX + "@stamp";
+  var remembered = readStampRecord();
+  var currentStamp = remembered.stamp || "";
+  var currentGeneration = remembered.generation || "";
   var tileMemory = new Map();
   var densityMemory = new Map();
 
@@ -767,8 +775,30 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // Drops this database's stored tiles, except the current stamp's when
-  // keepCurrent is set.
+  function readStampRecord() {
+    var store = storage();
+    try {
+      var record = store ? JSON.parse(store.getItem(STAMP_RECORD) || "{}") : {};
+      return record && typeof record === "object" ? record : {};
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function rememberStamp() {
+    var store = storage();
+    if (!store) {
+      return;
+    }
+    try {
+      store.setItem(STAMP_RECORD, JSON.stringify({ stamp: currentStamp, generation: currentGeneration }));
+    } catch (err) {
+      // Next visit just starts afresh.
+    }
+  }
+
+  // Drops this database's stored tiles, except the current generation's
+  // when keepCurrent is set.
   function purgeStoredTiles(keepCurrent) {
     var store = storage();
     if (!store) {
@@ -778,8 +808,8 @@ function initGalaxyMap3d(canvasEl, data) {
       var doomed = [];
       for (var i = 0; i < store.length; i++) {
         var name = store.key(i);
-        if (name && name.indexOf(STORAGE_PREFIX) === 0) {
-          if (!keepCurrent || name.indexOf(STORAGE_PREFIX + currentStamp + ":") !== 0) {
+        if (name && name.indexOf(STORAGE_PREFIX) === 0 && name !== STAMP_RECORD) {
+          if (!keepCurrent || name.indexOf(STORAGE_PREFIX + currentGeneration + ":") !== 0) {
             doomed.push(name);
           }
         }
@@ -791,12 +821,24 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function storageName(key) {
-    return STORAGE_PREFIX + currentStamp + ":" + key;
+    return STORAGE_PREFIX + currentGeneration + ":" + key;
+  }
+
+  function removeStoredTile(key) {
+    var store = storage();
+    if (!store || !currentGeneration) {
+      return;
+    }
+    try {
+      store.removeItem(storageName(key));
+    } catch (err) {
+      // Nothing more to do.
+    }
   }
 
   function storedTile(key) {
     var store = storage();
-    if (!store || !currentStamp) {
+    if (!store || !currentGeneration) {
       return undefined;
     }
     try {
@@ -809,7 +851,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   function storeTile(key, tile) {
     var store = storage();
-    if (!store || !currentStamp) {
+    if (!store || !currentGeneration) {
       return;
     }
     var raw = JSON.stringify(tile);
@@ -859,14 +901,55 @@ function initGalaxyMap3d(canvasEl, data) {
     memorySet(densityMemory, key, points, DENSITY_MEMORY_MAX);
   }
 
-  function adoptStamp(stamp) {
+  // The tile keys that changed between fromStamp and toStamp, from a
+  // response's history (checks oldest first, each {from, to, tiles}), or
+  // null when the history doesn't reach back to fromStamp unbroken.
+  function staleKeys(fromStamp, toStamp, history) {
+    if (!fromStamp || !Array.isArray(history)) {
+      return null;
+    }
+    var start = -1;
+    for (var i = history.length - 1; i >= 0; i--) {
+      if (history[i] && history[i].from === fromStamp) {
+        start = i;
+        break;
+      }
+    }
+    if (start < 0) {
+      return null;
+    }
+    var keys = [];
+    var at = fromStamp;
+    for (var j = start; j < history.length; j++) {
+      var entry = history[j];
+      if (!entry || entry.from !== at || !Array.isArray(entry.tiles)) {
+        return null;
+      }
+      keys = keys.concat(entry.tiles);
+      at = entry.to;
+    }
+    return at === toStamp ? keys : null;
+  }
+
+  function adoptStamp(payload) {
+    var stamp = payload.stamp;
     if (!stamp || stamp === currentStamp) {
       return false;
     }
+    var stale = currentGeneration ? staleKeys(currentStamp, stamp, payload.history) : null;
     currentStamp = stamp;
-    tileMemory.clear();
-    densityMemory.clear();
-    purgeStoredTiles(true);
+    if (stale) {
+      stale.forEach(function (key) {
+        tileMemory.delete(key);
+        removeStoredTile(key);
+      });
+    } else {
+      currentGeneration = payload.generation || stamp;
+      tileMemory.clear();
+      densityMemory.clear();
+      purgeStoredTiles(true);
+    }
+    rememberStamp();
     return true;
   }
 
@@ -874,7 +957,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!payload) {
       return false;
     }
-    var stampChanged = adoptStamp(payload.stamp);
+    var stampChanged = adoptStamp(payload);
     if (payload.has_shape != null) {
       hasShape = !!payload.has_shape;
     }
@@ -887,8 +970,8 @@ function initGalaxyMap3d(canvasEl, data) {
     return stampChanged;
   }
 
-  purgeStoredTiles(true);
   absorb(data.initial);
+  purgeStoredTiles(true);
 
   // --- Drawing from tiles --------------------------------------------------
 
@@ -999,6 +1082,9 @@ function initGalaxyMap3d(canvasEl, data) {
     if (missing.density) {
       params.set("density", missing.density);
     }
+    if (currentStamp) {
+      params.set("stamp", currentStamp);
+    }
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {
@@ -1012,9 +1098,10 @@ function initGalaxyMap3d(canvasEl, data) {
         }
         var stampChanged = absorb(payload);
         var stillMissing = renderFromCache(neededTiles());
-        // A new stamp dropped every cached tile, and a view needing more
-        // than one request's worth of tiles has more to fetch -- either
-        // way, go again (tiles already fetched are cached by now).
+        // A new stamp dropped changed (or all) cached tiles, and a view
+        // needing more than one request's worth of tiles has more to
+        // fetch -- either way, go again (tiles already fetched are
+        // cached by now).
         if (stampChanged || stillMissing.tiles.length || stillMissing.density) {
           scheduleFetch(false);
         }

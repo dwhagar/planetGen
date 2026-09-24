@@ -29,6 +29,7 @@ from stellarObjects.galaxyViewport import (
     tile_bounds_pc,
     tile_edge_pc,
     tile_key,
+    tile_keys_containing,
     tile_level_for_view_radius,
     tiles_intersecting_sphere,
     _sample_bulge_point_pc,
@@ -295,6 +296,21 @@ def test_view_level_tiles_are_at_least_the_view_radius_and_few(radius):
     center = (1234.5, -987.6, 12.3)
     keys = tiles_intersecting_sphere(level, center, radius)
     assert 1 <= len(keys) <= 27
+
+
+def test_tile_keys_containing_gives_one_holding_tile_per_level():
+    point = (5.0, -1234.5, 16.0)
+    keys = tile_keys_containing(point)
+    assert len(keys) == TILE_MAX_LEVEL + 1
+    for level, key in enumerate(keys):
+        parsed = parse_tile_key(key)
+        assert parsed[0] == level
+        lo, hi = tile_bounds_pc(*parsed)
+        assert all(lo[a] <= point[a] < hi[a] for a in range(3))
+    # A point exactly on a boundary belongs to the tile above it, the same
+    # half-open rule the sector-in-box query uses.
+    assert tile_keys_containing((0.0, 0.0, 0.0))[1] == "1/1/1/1"
+    assert tile_keys_containing((TILE_ROOT_EDGE_PC, 0.0, 0.0)) == []
 
 
 def test_tiles_intersecting_sphere_covers_the_sphere():
