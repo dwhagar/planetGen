@@ -72,10 +72,11 @@ Things that are broken today, most urgent first, then smallest to largest.
    (`galaxyViewport.planned_slots_in_view`) is every qualifying slot
    within `PLANNED_RADIUS_CAP_PC` (200 pc) of the view center, so it is
    always a sphere around wherever the camera is looking, and a solid one
-   near the core, where every slot qualifies. Being fixed together with
-   item 1, whose cube-tile fetching replaces that query; done means the
-   planned tier shows qualifying slots across the whole view (or a
-   per-tile sample of them at wide zoom) instead of one ball.
+   near the core, where every slot qualifies. PR #72 (item 1's cube-tile
+   fetching) replaces that query and only loads planned slots within
+   20 pc of the camera target once zoomed in, which removes the ball;
+   delete this item once #72 has merged and the map is checked on real
+   data.
 
 ### Performance
 
