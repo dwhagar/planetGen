@@ -21,29 +21,21 @@
 // way this map's own former flat SVG projection (a legacy "+y is down on
 // screen" convention) needed one.
 //
-// Three content tiers (each tile's placed/planned lists plus a separate
-// density cloud -- see stellarObjects.galaxyViewport's module docstring):
+// Three content tiers (each tile's placed/planned lists, plus density
+// shading computed in the browser):
 //   - placed:  real, already-generated sectors -- bright sprites, sized
 //              by system_count, click selects + navigates.
 //   - planned: real, not-yet-generated qualifying addresses -- small dim
 //              sprites, click selects (shows the copyable designation/
 //              CLI snippet) but never navigates.
-//   - density: an illustrative cloud of soft, translucent, additively-
-//              blended spheres (THREE.InstancedMesh, one shared low-poly
-//              SphereGeometry -- not individual Sprite/Mesh objects,
-//              which wouldn't scale to a thousand-plus instances as
-//              cheaply) -- not interactive, no identity to track. Sized
-//              in real world-space parsecs (unlike placed/planned's own
-//              constant-screen-pixel markers below), scaled per-instance
-//              by that point's own relative_density AND by the camera's
-//              current orbit radius (see DENSITY_RADIUS_FRACTION) so the
-//              cloud keeps reading as roughly the same relative size
-//              across zoom levels. Additive blending lets overlapping
-//              spheres brighten where they overlap rather than simply
-//              occluding each other -- the cheap way many soft
-//              transparent blobs merge into continuous-looking shading
-//              along a spiral arm instead of reading as a sparse
-//              scatter-plot of discrete dots.
+//   - density: the galaxy's predicted density, drawn as solid, lit
+//              cylindrical segment prisms (ring x wedge x layer cells of
+//              galactic cylindrical coordinates, a power-of-two number of
+//              sector widths across, sized to the current view -- see
+//              ./galaxyprisms.js). Computed right here from the galaxy's
+//              own analytic shape, not fetched. Not interactive. Each
+//              prism is colored and shrunk inside its cell by its mean
+//              density; the sector markers draw on top of them.
 //
 // Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
 // below interpolates between lib/galaxymap3d.py's own
@@ -63,6 +55,7 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
+const { buildPrismGeometry, prismsForView } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -439,39 +432,60 @@ function initGalaxyMap3d(canvasEl, data) {
   var placedSpritesByKey = new Map();
   var plannedSpritesByKey = new Map();
 
-  // See this file's own module docstring for why this is an InstancedMesh
-  // of real, additively-blended spheres rather than the flat THREE.Points
-  // scatter this used to be. DENSITY_INSTANCE_CAPACITY is a safety margin
-  // above stellarObjects.galaxyViewport.DENSITY_TILE_SAMPLE_COUNT (1600) --
-  // InstancedMesh.count (set per-update in applyDensity) can render fewer
-  // instances than this capacity with no reallocation, but never more, so
-  // this stays a headroom margin rather than an exact mirror of that
-  // server-side constant.
-  var DENSITY_INSTANCE_CAPACITY = 2000;
-  // Each sphere's world-space radius is this fraction of the camera's
-  // CURRENT orbit radius (recomputed in applyDensity, which reruns on
-  // every live re-fetch as the camera moves) -- not a fixed parsec value,
-  // since a fixed size would either vanish at the full-galaxy starting
-  // view or dwarf the scene once zoomed in close. DENSITY_MIN/MAX_SCALE
-  // then varies that base size per-instance by the point's own
-  // relative_density (denser regions read as visibly bigger/brighter
-  // blobs, not just differently colored ones).
-  var DENSITY_RADIUS_FRACTION = 0.05;
-  var DENSITY_MIN_SCALE = 0.6;
-  var DENSITY_MAX_SCALE = 2.2;
-
-  var densityGeometry = new THREE.SphereGeometry(1, 12, 10);
-  var densityMaterial = new THREE.MeshBasicMaterial({
-    vertexColors: true, transparent: true, opacity: 0.4,
-    depthWrite: false, blending: THREE.AdditiveBlending,
+  // The density prisms: one opaque, lit mesh, rebuilt whenever the view's
+  // prism set changes (updatePrisms, below). Each prism is shrunk inside
+  // its own cell by its density, so dense regions read as big, bright,
+  // near-touching blocks and thin ones as small dim ones with space
+  // between -- structure shows even where color alone barely changes.
+  // A thin brighter outline along each face's own edges (found from the
+  // face's 0..1 uv, about a screen pixel wide) keeps neighboring faces
+  // apart. Whole prisms close to the camera are dropped (nearCut, tested
+  // on each prism's own center), so flying through the disk shows what's
+  // ahead instead of a wall of the nearest prisms. The logdepthbuf chunks match the renderer's
+  // logarithmic depth buffer.
+  var prismMaterial = new THREE.ShaderMaterial({
+    uniforms: { nearCut: { value: 0 } },
+    vertexShader: [
+      "#include <common>",
+      "#include <logdepthbuf_pars_vertex>",
+      "uniform float nearCut;",
+      "attribute vec3 prismColor;",
+      "attribute vec3 prismCenter;",
+      "attribute vec2 faceUv;",
+      "varying vec3 vColor;",
+      "varying vec2 vUv;",
+      "varying float vKeep;",
+      "void main() {",
+      "  vColor = prismColor;",
+      "  vUv = faceUv;",
+      "  vKeep = step(nearCut, distance(cameraPosition, prismCenter));",
+      "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+      "  gl_Position = projectionMatrix * mvPosition;",
+      "  #include <logdepthbuf_vertex>",
+      "}",
+    ].join("\n"),
+    fragmentShader: [
+      "#include <common>",
+      "#include <logdepthbuf_pars_fragment>",
+      "varying vec3 vColor;",
+      "varying vec2 vUv;",
+      "varying float vKeep;",
+      "void main() {",
+      "  if (vKeep < 0.5) discard;",
+      "  #include <logdepthbuf_fragment>",
+      "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
+      "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
+      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), 0.18 * edge), 1.0);",
+      "  #include <colorspace_fragment>",
+      "}",
+    ].join("\n"),
   });
-  var densityMesh = new THREE.InstancedMesh(densityGeometry, densityMaterial, DENSITY_INSTANCE_CAPACITY);
-  densityMesh.count = 0;
-  densityMesh.frustumCulled = false;
-  scene.add(densityMesh);
+  var prismMesh = new THREE.Mesh(new THREE.BufferGeometry(), prismMaterial);
+  prismMesh.frustumCulled = false;
+  scene.add(prismMesh);
 
   var highlightSprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false })
+    new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false, depthTest: false })
   );
   highlightSprite.visible = false;
   highlightSprite.userData.screenRadiusPx = PLACED_MAX_PX;
@@ -487,10 +501,10 @@ function initGalaxyMap3d(canvasEl, data) {
     var group = new THREE.Group();
     var color = placedDensityColor(entry, data.referenceDensityPerLy3);
     var halo = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: placedHaloTexture, color: color, transparent: true, depthWrite: false, opacity: 0.45,
+      map: placedHaloTexture, color: color, transparent: true, depthWrite: false, depthTest: false, opacity: 0.45,
     }));
     var core = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: placedCoreTexture, color: color, transparent: true, depthWrite: false,
+      map: placedCoreTexture, color: color, transparent: true, depthWrite: false, depthTest: false,
     }));
     group.add(halo);
     group.add(core);
@@ -521,7 +535,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function makePlannedSprite(entry) {
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, opacity: PLANNED_OPACITY }));
+    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, depthTest: false, opacity: PLANNED_OPACITY }));
     sprite.position.set(entry.x, entry.y, entry.z);
     sprite.userData.screenRadiusPx = PLANNED_PX;
     return sprite;
@@ -623,28 +637,112 @@ function initGalaxyMap3d(canvasEl, data) {
     return dim.clone().lerp(base, densityIntensity(relativeDensity));
   }
 
-  var densityMatrix = new THREE.Matrix4();
-  var densityInstanceColor = new THREE.Color();
+  // The light the prisms' faces are shaded by: from galactic north, a
+  // little off to one side, so tops, walls and sides all read apart.
+  var PRISM_LIGHT = new THREE.Vector3(0.35, -0.3, 0.9).normalize();
+  var PRISM_AMBIENT = 0.35;
+  // Each prism's share of its cell, per side, for the thinnest and the
+  // densest prism drawn.
+  var PRISM_FILL_MIN = 0.3;
+  var PRISM_FILL_MAX = 0.92;
+  // Prism shading runs over a much wider density range than the markers'
+  // densityIntensity (which tops out at 7x): the drawing floor
+  // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
+  // through a dim-to-accent-to-white ramp.
+  var PRISM_DENSITY_LOW = 0.02;
+  var PRISM_DENSITY_HIGH = 100;
+  var PRISM_DIM = new THREE.Color(0x1d2340);
+  var PRISM_ACCENT = new THREE.Color(accentColor);
+  var PRISM_HOT = new THREE.Color(0xeef0ff);
 
-  function applyDensity(points) {
-    var count = Math.min(points.length, DENSITY_INSTANCE_CAPACITY);
-    var baseRadius = Math.max(orbit.radius * DENSITY_RADIUS_FRACTION, 1e-6);
-    for (var i = 0; i < count; i++) {
-      var point = points[i];
-      var t = densityIntensity(point.relative_density);
-      var scale = baseRadius * (DENSITY_MIN_SCALE + (DENSITY_MAX_SCALE - DENSITY_MIN_SCALE) * t);
-      densityMatrix.makeScale(scale, scale, scale);
-      densityMatrix.setPosition(point.x, point.y, point.z);
-      densityMesh.setMatrixAt(i, densityMatrix);
-      // Additive blending, so a darker color is a fainter sphere.
-      densityInstanceColor.copy(densityColor(point.relative_density)).multiplyScalar(edgeFade(point.x, point.y, point.z));
-      densityMesh.setColorAt(i, densityInstanceColor);
+  function prismIntensity(relativeDensity) {
+    var t = Math.log(Math.max(relativeDensity, 1e-9) / PRISM_DENSITY_LOW) / Math.log(PRISM_DENSITY_HIGH / PRISM_DENSITY_LOW);
+    return Math.max(0, Math.min(1, t));
+  }
+
+  function prismColor(t) {
+    return t < 0.6 ? PRISM_DIM.clone().lerp(PRISM_ACCENT, t / 0.6) : PRISM_ACCENT.clone().lerp(PRISM_HOT, (t - 0.6) / 0.4);
+  }
+  // Prisms centered nearer the camera than this x the orbit radius (the
+  // camera's distance to the target) aren't drawn.
+  var NEAR_CUT = 0.4;
+  var galaxyShape = data.densityShape || null;
+  var edgePc = data.edgePc || 1;
+  // Densities already worked out, per prism size (shells per prism).
+  var prismDensityCaches = new Map();
+  var PRISM_CACHE_SIZES = 4;
+  var prismSetKey = "";
+
+  function prismDensityCache(shells) {
+    var cache = memoryGet(prismDensityCaches, shells);
+    if (!cache) {
+      cache = new Map();
+      memorySet(prismDensityCaches, shells, cache, PRISM_CACHE_SIZES);
     }
-    densityMesh.count = count;
-    densityMesh.instanceMatrix.needsUpdate = true;
-    if (densityMesh.instanceColor) {
-      densityMesh.instanceColor.needsUpdate = true;
+    return cache;
+  }
+
+  function updatePrisms(viewRadius) {
+    if (!galaxyShape) {
+      prismMesh.visible = false;
+      return;
     }
+    var center = [target.x, target.y, target.z];
+    var key = center.join(",") + ":" + viewRadius;
+    if (key === prismSetKey) {
+      return;
+    }
+    prismSetKey = key;
+    var cells = prismsForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache).prisms;
+    var colorsOf = [];
+    var centersOf = [];
+    var prisms = cells.map(function (cell) {
+      var t = prismIntensity(cell.density);
+      var midR = (cell.r0 + cell.r1) / 2;
+      var midT = (cell.t0 + cell.t1) / 2;
+      var midZ = (cell.z0 + cell.z1) / 2;
+      var fill = (PRISM_FILL_MIN + (PRISM_FILL_MAX - PRISM_FILL_MIN) * t) / 2;
+      var fade = edgeFade(midR * Math.cos(midT), midR * Math.sin(midT), midZ);
+      colorsOf.push(prismColor(t).multiplyScalar(0.25 + 0.75 * fade));
+      centersOf.push([midR * Math.cos(midT), midR * Math.sin(midT), midZ]);
+      // Shrunk about the cell's middle by the same fraction on every side.
+      return {
+        r0: midR - fill * (cell.r1 - cell.r0), r1: midR + fill * (cell.r1 - cell.r0),
+        t0: midT - fill * (cell.t1 - cell.t0), t1: midT + fill * (cell.t1 - cell.t0),
+        z0: midZ - fill * (cell.z1 - cell.z0), z1: midZ + fill * (cell.z1 - cell.z0),
+      };
+    });
+    var built = buildPrismGeometry(prisms);
+
+    var colors = new Float32Array(built.owners.length * 3);
+    var centers = new Float32Array(built.owners.length * 3);
+    var normals = built.normals;
+    for (var v = 0; v < built.owners.length; v++) {
+      var c = colorsOf[built.owners[v]];
+      var lit = normals[3 * v] * PRISM_LIGHT.x + normals[3 * v + 1] * PRISM_LIGHT.y + normals[3 * v + 2] * PRISM_LIGHT.z;
+      var shade = PRISM_AMBIENT + (1 - PRISM_AMBIENT) * Math.max(0, lit);
+      colors[3 * v] = c.r * shade;
+      colors[3 * v + 1] = c.g * shade;
+      colors[3 * v + 2] = c.b * shade;
+      var mid = centersOf[built.owners[v]];
+      centers[3 * v] = mid[0];
+      centers[3 * v + 1] = mid[1];
+      centers[3 * v + 2] = mid[2];
+    }
+
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
+    geometry.setAttribute("prismColor", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("prismCenter", new THREE.BufferAttribute(centers, 3));
+    geometry.setAttribute("faceUv", new THREE.BufferAttribute(built.uvs, 2));
+    geometry.setIndex(new THREE.BufferAttribute(built.indices, 1));
+    prismMesh.geometry.dispose();
+    prismMesh.geometry = geometry;
+    prismMesh.visible = prisms.length > 0;
+  }
+
+  function updateNearCut() {
+    prismMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
   }
 
   var PLACED_KEY_OF = function (e) { return "p" + e.id; };
@@ -696,7 +794,6 @@ function initGalaxyMap3d(canvasEl, data) {
   var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 32;
   var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
   var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
-  var hasShape = !!data.hasShape;
 
   function tileLevelForRadius(radius) {
     if (!(radius > 0)) {
@@ -743,17 +840,6 @@ function initGalaxyMap3d(canvasEl, data) {
     return found.map(function (f) { return f.key; });
   }
 
-  function tileContaining(level, point) {
-    var edge = tileEdge(level);
-    var origin = -TILE_ROOT / 2;
-    var span = Math.pow(2, level);
-    var p = [point.x, point.y, point.z];
-    var index = p.map(function (v) {
-      return Math.max(0, Math.min(span - 1, Math.floor((v - origin) / edge)));
-    });
-    return level + "/" + index.join("/");
-  }
-
   function neededTiles() {
     var viewRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, orbit.radius * FETCH_RADIUS_FACTOR));
     var level = tileLevelForRadius(viewRadius);
@@ -772,14 +858,12 @@ function initGalaxyMap3d(canvasEl, data) {
         }
       });
     }
-    var densityKey = hasShape && viewRadius > PLANNED_MAX_VIEW_RADIUS ? tileContaining(level, target) : null;
-    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, densityKey: densityKey, viewRadius: viewRadius };
+    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, viewRadius: viewRadius };
   }
 
   // --- Tile caches ---------------------------------------------------------
 
   var TILE_MEMORY_MAX = 2000;
-  var DENSITY_MEMORY_MAX = 24;
   var STORAGE_PREFIX = "planetgen:tile:" + data.db + ":";
   // Where the stamp our stored tiles are at is kept, and the generation
   // (the label our stored tiles are filed under since they last all went
@@ -789,7 +873,6 @@ function initGalaxyMap3d(canvasEl, data) {
   var currentStamp = remembered.stamp || "";
   var currentGeneration = remembered.generation || "";
   var tileMemory = new Map();
-  var densityMemory = new Map();
 
   // Map iteration order is insertion order, so re-inserting on every hit
   // and evicting from the front makes these LRU caches.
@@ -937,17 +1020,6 @@ function initGalaxyMap3d(canvasEl, data) {
     storeTile(key, tile);
   }
 
-  // Density clouds (~100 KB each) stay in memory only; they would crowd
-  // tiles out of localStorage's few-megabyte budget, and the server's
-  // disk cache already serves them without touching the database.
-  function getDensity(key) {
-    return memoryGet(densityMemory, key);
-  }
-
-  function putDensity(key, points) {
-    memorySet(densityMemory, key, points, DENSITY_MEMORY_MAX);
-  }
-
   // The tile keys that changed between fromStamp and toStamp, from a
   // response's history (checks oldest first, each {from, to, tiles}), or
   // null when the history doesn't reach back to fromStamp unbroken.
@@ -993,7 +1065,6 @@ function initGalaxyMap3d(canvasEl, data) {
     } else {
       currentGeneration = payload.generation || stamp;
       tileMemory.clear();
-      densityMemory.clear();
       purgeStoredTiles(true);
     }
     rememberStamp();
@@ -1005,15 +1076,9 @@ function initGalaxyMap3d(canvasEl, data) {
       return false;
     }
     var stampChanged = adoptStamp(payload);
-    if (payload.has_shape != null) {
-      hasShape = !!payload.has_shape;
-    }
     Object.keys(payload.tiles || {}).forEach(function (key) {
       putTile(key, payload.tiles[key]);
     });
-    if (payload.density && payload.density.key) {
-      putDensity(payload.density.key, payload.density.points || []);
-    }
     return stampChanged;
   }
 
@@ -1055,19 +1120,9 @@ function initGalaxyMap3d(canvasEl, data) {
     syncTier(withPinned(placed, PLACED_KEY_OF, "placed"), placedSpritesByKey, PLACED_KEY_OF, makePlacedSprite, "placed");
     syncTier(withPinned(planned, PLANNED_KEY_OF, "planned"), plannedSpritesByKey, PLANNED_KEY_OF, makePlannedSprite, "planned");
 
-    var densityMissing = false;
-    if (!need.densityKey) {
-      applyDensity([]);
-    } else {
-      var points = getDensity(need.densityKey);
-      if (points === undefined) {
-        // Keep the previous cloud on screen until the new one arrives.
-        densityMissing = true;
-      } else {
-        applyDensity(points);
-      }
-    }
-    return { tiles: missing, density: densityMissing ? need.densityKey : null };
+    updatePrisms(need.viewRadius);
+    return missing;
+
   }
 
   // --- Live tile fetching --------------------------------------------------
@@ -1116,7 +1171,7 @@ function initGalaxyMap3d(canvasEl, data) {
     fetchTimer = null;
     var need = neededTiles();
     var missing = renderFromCache(need);
-    if (!missing.tiles.length && !missing.density) {
+    if (!missing.length) {
       return;
     }
     if (activeAbort) {
@@ -1125,11 +1180,8 @@ function initGalaxyMap3d(canvasEl, data) {
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     activeAbort = controller;
     var params = new URLSearchParams({
-      db: data.db, tiles: missing.tiles.slice(0, MAX_TILES_PER_REQUEST).join(","),
+      db: data.db, tiles: missing.slice(0, MAX_TILES_PER_REQUEST).join(","),
     });
-    if (missing.density) {
-      params.set("density", missing.density);
-    }
     if (currentStamp) {
       params.set("stamp", currentStamp);
     }
@@ -1150,7 +1202,7 @@ function initGalaxyMap3d(canvasEl, data) {
         // needing more than one request's worth of tiles has more to
         // fetch -- either way, go again (tiles already fetched are
         // cached by now).
-        if (stampChanged || stillMissing.tiles.length || stillMissing.density) {
+        if (stampChanged || stillMissing.length) {
           scheduleFetch(false);
         }
       })
@@ -1168,7 +1220,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // First frame: normally every tile is already cached (the page embeds
   // them), so this only fetches if the page's own tile fetch came up short.
   var initialMissing = renderFromCache(neededTiles());
-  if (initialMissing.tiles.length || initialMissing.density) {
+  if (initialMissing.length) {
     scheduleFetch(false);
   }
 
@@ -1586,6 +1638,7 @@ function initGalaxyMap3d(canvasEl, data) {
   (function animate() {
     requestAnimationFrame(animate);
     updateMarkerScales();
+    updateNearCut();
     renderer.render(scene, camera);
   })();
 }

@@ -138,8 +138,7 @@ def handler():
     galaxy_shape = get_galaxy_shape(db_name)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    tile_keys, density_key = initial_tile_request(max_radius, galaxy_shape is not None)
-    initial_view = fetch_tiles(db_name, tile_keys, density_key)
+    initial_view = fetch_tiles(db_name, initial_tile_request(max_radius), None)
 
     map_html = render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view)
 
