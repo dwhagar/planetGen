@@ -5,13 +5,15 @@
 Per-database overview: every sector (with its system count) and every
 standalone system (one generated with no sector, `sector_id IS NULL`).
 
-Both tables are capped at the API's own max page size (`GET /api/sectors`/
-`GET /api/systems`, 500 rows -- see docs/api.md's "Pagination") rather
-than paginated here: a flat HTML table was always meant for a browsable,
-human-scale database, and this project's own galaxy-scale roadmap
-(docs/TODO.md Phase 4) is exactly why that cap exists on the API side in
-the first place -- `search.py`/`galaxy.py` are the tools for a database
-too big for this page's own tables to show in full.
+Both tables are genuinely paginated (`GET /api/sectors`/`GET /api/systems`'s
+own `limit`/`offset` -- see docs/api.md's "Pagination"), `_PAGE_SIZE` rows
+at a time with Prev/Next controls, rather than the single-page "first 500,
+then go use Search instead" cap this page used to have -- that cap meant a
+database with more sectors/standalone systems than fit on one page had no
+way to ever reach the rest of them from this listing at all, only via
+Search's own targeted filters. Each table's own `sector_offset`/
+`standalone_offset` query/POST parameter is independent, so paginating one
+table never resets the other's current page.
 """
 
 import os
@@ -24,7 +26,9 @@ from fmt import esc, format_density, post_link
 from galaxymap import sector_quadrant
 from page import nav_params, run
 
-_MAX_ROWS = 500
+_PAGE_SIZE = 100
+"""int: Rows per page for both tables -- matches the API's own default
+`limit` (see docs/api.md's "Pagination"), well under its 500-row max."""
 
 
 def _galaxy_position_cell(db_name, sector):
@@ -38,20 +42,74 @@ def _galaxy_position_cell(db_name, sector):
     return post_link("galaxy.py", {"db": db_name, "quadrant": quadrant}, f"Quadrant {quadrant}")
 
 
-def _truncated_note(total, shown):
-    if total <= shown:
+def _parse_offset(raw):
+    """Parses a `sector_offset`/`standalone_offset` nav param back into a
+    non-negative int -- defensively: a hand-edited/stale URL carrying a
+    negative or non-numeric value falls back to 0 (page 1) rather than
+    raising, since this only ever controls which page is shown, never
+    anything security-sensitive."""
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, value)
+
+
+def _pagination_controls(db_name, offset_param, total, offset, other_offset_param, other_offset):
+    """
+    Builds a "showing X-Y of Z" line plus Prev/Next controls for one
+    table -- `post_link`s carrying the OTHER table's own current offset
+    unchanged (`other_offset_param`/`other_offset`), so paginating this
+    table never resets the other one back to page 1.
+
+    Args:
+        db_name (str): The current `?db=` value.
+        offset_param (str): This table's own offset param name
+            (`"sector_offset"` or `"standalone_offset"`).
+        total (int): Total row count (`get_sectors`/`get_systems`'s own
+            `total`).
+        offset (int): This table's own current offset.
+        other_offset_param (str): The other table's offset param name.
+        other_offset (int): The other table's own current offset --
+            carried through unchanged on every link this builds.
+
+    Returns:
+        str: A `<div class="pagination">` block, or `""` if everything
+            fits on one page already (nothing to paginate).
+    """
+    if total <= _PAGE_SIZE:
         return ""
-    return f'<p class="hint">Showing the first {shown} of {total} -- try Search for a more targeted view.</p>'
+
+    shown_from = offset + 1
+    shown_to = min(offset + _PAGE_SIZE, total)
+    summary = f"{shown_from:,}&ndash;{shown_to:,} of {total:,}"
+
+    prev_offset = max(0, offset - _PAGE_SIZE)
+    next_offset = offset + _PAGE_SIZE
+    prev_params = {"db": db_name, offset_param: prev_offset, other_offset_param: other_offset}
+    next_params = {"db": db_name, offset_param: next_offset, other_offset_param: other_offset}
+    prev_html = (
+        post_link("browse.py", prev_params, "&larr; Prev") if offset > 0 else '<span class="hint">&larr; Prev</span>'
+    )
+    next_html = (
+        post_link("browse.py", next_params, "Next &rarr;")
+        if next_offset < total
+        else '<span class="hint">Next &rarr;</span>'
+    )
+    return f'<div class="pagination">{prev_html}<span class="hint">{summary}</span>{next_html}</div>'
 
 
 def handler(db_name=None):
+    params = nav_params()
     if db_name is None:
-        db_name = nav_params().get("db", "")
+        db_name = params.get("db", "")
+    sector_offset = _parse_offset(params.get("sector_offset"))
+    standalone_offset = _parse_offset(params.get("standalone_offset"))
 
-    sectors_page = get_sectors(db_name, limit=_MAX_ROWS)
+    sectors_page = get_sectors(db_name, limit=_PAGE_SIZE, offset=sector_offset)
     sectors, sectors_total = sectors_page["items"], sectors_page["total"]
 
-    standalone_page = get_systems(db_name, sector_id="none", limit=_MAX_ROWS)
+    standalone_page = get_systems(db_name, sector_id="none", limit=_PAGE_SIZE, offset=standalone_offset)
     standalone, standalone_total = standalone_page["items"], standalone_page["total"]
 
     sector_rows = "".join(
@@ -92,7 +150,7 @@ def handler(db_name=None):
   <thead><tr><th>Name</th><th>Systems</th><th>Density</th><th>Galaxy Position</th></tr></thead>
   <tbody>{sector_rows}</tbody>
 </table></div>
-{_truncated_note(sectors_total, len(sectors))}
+{_pagination_controls(db_name, "sector_offset", sectors_total, sector_offset, "standalone_offset", standalone_offset)}
 </section>
 
 <section class="panel" id="standalone-systems">
@@ -101,7 +159,7 @@ def handler(db_name=None):
   <thead><tr><th>Name</th><th>Binary</th><th>Star type</th></tr></thead>
   <tbody>{standalone_rows}</tbody>
 </table></div>
-{_truncated_note(standalone_total, len(standalone))}
+{_pagination_controls(db_name, "standalone_offset", standalone_total, standalone_offset, "sector_offset", sector_offset)}
 </section>
 """
     return f"Browse: {db_name}", body

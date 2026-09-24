@@ -257,6 +257,20 @@ h2 {
   overflow-x: auto;
 }
 
+/* Prev/summary/Next row under a paginated table (html/browse.py) -- the
+   summary text sits between the two controls so the row reads left to
+   right the same way regardless of which control (if either) is a live
+   link vs. the plain-text `.hint` a page/table boundary replaces it
+   with. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;

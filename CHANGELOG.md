@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.46.27] - 2026-09-24
+
+### Added
+- **`browse.py`'s Sectors and Standalone Systems tables are now really
+  paginated** (100 rows/page, independent Prev/Next controls per table)
+  instead of a single page capped at 500 rows with a "try Search
+  instead" hint and no way to ever reach anything past that cap. Each
+  table's own `sector_offset`/`standalone_offset` page position is
+  independent, so paginating one never resets the other back to page 1.
+
 ## [5.46.26] - 2026-09-24
 
 ### Fixed
