@@ -2601,6 +2601,8 @@ def main():
     else:
         level = log.NORMAL
     log.configure(level, debug_file=(args.debug or None))
+    log.debug("Command: %s, options: %s", args.command,
+              {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
 
     seed = secrets.randbits(128)
     random.seed(seed)

@@ -7,7 +7,11 @@ See `docs/api.md` for how to run this in development and how it deploys
 behind the project's existing Apache2 vhost (`examples/apache/`).
 """
 
-from flask import Flask, jsonify
+import time
+
+from flask import Flask, g, jsonify, request
+
+from stellarObjects import log
 
 from .auth import bp as auth_bp
 from .common import ApiError, close_control_db
@@ -26,8 +30,47 @@ def create_app(config_object=Config):
     app.teardown_appcontext(close_control_db)
     _register_error_handlers(app)
     _register_security_headers(app)
+    _register_request_logging(app)
     _warn_if_unshared_ratelimit_storage(app)
     return app
+
+
+_SECRET_WORDS = ("password", "token", "secret", "key")
+
+
+def _register_request_logging(app):
+    """
+    With the debug log on (see `stellarObjects.log`), records every API
+    request as it arrives and as it's answered -- method, path, query,
+    caller, which credential it carried (never the credential itself),
+    status, size and time taken. Request bodies are summarized by their
+    field names only; a login's password never reaches the log.
+    """
+    @app.before_request
+    def _log_request_start():
+        g.log_request_started = time.perf_counter()
+        if not log.debug_log_active():
+            return
+        args = {k: ("<withheld>" if any(w in k.lower() for w in _SECRET_WORDS) else v)
+                for k, v in request.args.lists()}
+        credential = ("API key" if request.headers.get("Authorization", "").startswith("Bearer ")
+                      else "session cookie" if request.cookies else "none")
+        body = ""
+        if request.is_json:
+            payload = request.get_json(silent=True)
+            if isinstance(payload, dict):
+                body = f", JSON body fields {sorted(payload)}"
+        log.debug(f"API request: {request.method} {request.path} args={args} from {request.remote_addr} "
+                  f"(credential: {credential}, user agent {request.headers.get('User-Agent', '?')!r}){body}")
+
+    @app.after_request
+    def _log_request_end(response):
+        if log.debug_log_active():
+            started = g.get("log_request_started")
+            elapsed = f" in {(time.perf_counter() - started) * 1000:.1f}ms" if started is not None else ""
+            log.debug(f"API response: {request.method} {request.path} -> {response.status} "
+                      f"({response.calculate_content_length() or 0} bytes){elapsed}")
+        return response
 
 
 def _register_security_headers(app):
@@ -81,6 +124,7 @@ def _register_error_handlers(app):
 
     @app.errorhandler(ApiError)
     def _handle_api_error(exc):
+        log.debug(f"API error {exc.status_code} on {request.method} {request.path}: {exc.message}")
         return jsonify({"error": exc.message}), exc.status_code
 
     @app.errorhandler(404)
@@ -98,6 +142,8 @@ def _register_error_handlers(app):
         # str(exc) back to the client risks leaking internals (file
         # paths, query text) that aren't this API's business to expose.
         # The real detail still reaches Flask's own logger.
+        # With the debug log on, this also lands there (app.logger
+        # propagates to the root logger, which the debug log listens on).
         app.logger.exception("Unhandled exception in API request")
         return jsonify({"error": "internal server error"}), 500
 
@@ -109,6 +155,7 @@ def _register_error_handlers(app):
         # raises a bare 429) the same way `404`/`405` above catch Flask's
         # own routing exceptions, without importing Flask-Limiter's
         # exception type here just to reference it once.
+        log.debug(f"Rate limit exceeded by {request.remote_addr} on {request.path}: {exc.description}")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429
 
 

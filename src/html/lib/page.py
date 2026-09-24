@@ -25,6 +25,7 @@ can't nest -- see `fmt.data_nav_params` and `static/navform.js`.
 import json
 import os
 import sys
+import time
 import traceback
 from urllib.parse import parse_qs
 
@@ -36,7 +37,54 @@ from fmt import esc, post_link  # noqa: F401 -- post_link re-exported for `from 
 # already does, so `stellarObjects.appconfig` is importable here too.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from stellarObjects.appconfig import load_config  # noqa: E402
+from stellarObjects import log  # noqa: E402
+from stellarObjects.appconfig import debug_enabled, load_config  # noqa: E402
+
+_request_started = None
+_SECRET_FIELD_WORDS = ("password", "token", "secret", "key", "cookie")
+
+
+def _redact_fields(fields):
+    """Form/query fields for the debug log, with anything credential-like
+    (`password`, `new_password`, API key labels' secrets, ...) withheld."""
+    return {name: ("<withheld>" if any(word in name.lower() for word in _SECRET_FIELD_WORDS) else values)
+            for name, values in fields.items()}
+
+
+def start_request_log():
+    """
+    Names this CGI process in the debug log after its script
+    (`web/system.py`), keeps log output off stdout (it's the HTTP
+    response), and records the incoming request. Called by `run`/
+    `run_json`; safe to call more than once.
+    """
+    global _request_started
+    if _request_started is not None:
+        return
+    _request_started = time.perf_counter()
+    script = os.path.basename(os.environ.get("SCRIPT_FILENAME") or sys.argv[0] or "cgi")
+    log.set_component(f"web/{script}")
+    log.configure(log.NORMAL, console=False)
+    if not log.debug_log_active():
+        return
+    env = os.environ
+    log.debug(f"Request: {env.get('REQUEST_METHOD', 'GET')} {env.get('REQUEST_URI') or env.get('SCRIPT_NAME', script)} "
+              f"from {env.get('REMOTE_ADDR', '?')} (user agent {env.get('HTTP_USER_AGENT', '?')!r}, referer "
+              f"{env.get('HTTP_REFERER', '-')!r}, {'with' if env.get('HTTP_COOKIE') else 'no'} cookie)")
+    query = parse_qs(env.get("QUERY_STRING", ""))
+    if query:
+        log.debug(f"Query parameters: {_redact_fields(query)}")
+    if env.get("REQUEST_METHOD", "GET").upper() == "POST":
+        log.debug(f"POST fields ({env.get('CONTENT_LENGTH', '0')} bytes): {_redact_fields(form_multi_params())}")
+
+
+def _log_response(status, kind):
+    start_request_log()
+    if log.debug_log_active():
+        elapsed = ""
+        if _request_started is not None:
+            elapsed = f" after {(time.perf_counter() - _request_started) * 1000:.1f}ms"
+        log.debug(f"Response: {status} ({kind}){elapsed}", stacklevel=3)
 
 
 def query_params():
@@ -180,6 +228,7 @@ def send_headers(status="200 OK", set_cookie_headers=None):
     # The response declares charset=utf-8 below; stdout's default encoding
     # is platform/locale-dependent (e.g. cp1252 on Windows) and would
     # otherwise raise UnicodeEncodeError on any non-ASCII generated name.
+    _log_response(status, "HTML page")
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.write(f"Status: {status}\r\n")
     sys.stdout.write("Content-Type: text/html; charset=utf-8\r\n")
@@ -204,6 +253,7 @@ def send_json_headers(status="200 OK"):
         status (str): CGI status line -- `"200 OK"` unless the caller is
                       reporting an error.
     """
+    _log_response(status, "JSON")
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.write(f"Status: {status}\r\n")
     sys.stdout.write("Content-Type: application/json; charset=utf-8\r\n")
@@ -239,6 +289,7 @@ def redirect(url, set_cookie_headers=None):
                    `Content-Type` header.
         set_cookie_headers (list[str], optional): See `send_headers`.
     """
+    _log_response("302 Found", f"redirect to {url}")
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stdout.write("Status: 302 Found\r\n")
     sys.stdout.write(f"Location: {url}\r\n")
@@ -341,6 +392,7 @@ def render(title, body_html, status="200 OK", set_cookie_headers=None):
     """
     safe_title = esc(title)
     site_name = esc(load_config()["site_name"])
+    log.debug(f"Rendering page {title!r} ({len(body_html)} bytes of body HTML)")
     send_headers(status, set_cookie_headers=set_cookie_headers)
     sys.stdout.write(f"""<!doctype html>
 <html lang="en">
@@ -373,8 +425,7 @@ def render_error(message, status="404 Not Found", raw=False):
                        `NotFoundError` echoing back an invalid `?db=`
                        value), which must never be interpolated
                        unescaped into the page.
-        raw (bool): Set only for the developer-only `PLANETGEN_DEBUG`
-                   traceback dump, which is pre-wrapped in `<pre>`.
+        raw (bool): Treat `message` as already-safe HTML.
     """
     body = message if raw else esc(message)
     render("Error", f'<section class="panel"><p class="error">{body}</p></section>', status=status)
@@ -394,26 +445,32 @@ def run(handler):
         handler (callable): Zero-argument function returning
                             `(title, body_html)`.
     """
+    start_request_log()
     try:
         title, body_html = handler()
         render(title, body_html)
     except NotFoundError as exc:
+        log.debug(f"Not found: {exc}")
         render_error(str(exc), status="404 Not Found")
     except ApiError as exc:
         traceback.print_exc(file=sys.stderr)
+        log.exception(f"API error while building the page: {exc}")
         render_error(str(exc), status="502 Bad Gateway")
     except Exception:
-        # Always logged to stderr (Apache's error log); only echoed into
-        # the page itself when PLANETGEN_DEBUG (or config.json's "debug")
-        # is set, since a public 500 page must not leak file paths or
-        # query text by default.
+        # Always logged to stderr (Apache's error log), and to the debug
+        # log when debug is on -- never into the page itself, which is
+        # public and must not leak file paths or query text, even when
+        # someone has left debug on.
         traceback.print_exc(file=sys.stderr)
-        debug_env = os.environ.get("PLANETGEN_DEBUG")
-        debug = bool(debug_env) if debug_env is not None else load_config()["debug"]
-        if debug:
-            render_error(f"<pre>{esc(traceback.format_exc())}</pre>", status="500 Internal Server Error", raw=True)
-        else:
-            render_error("An unexpected error occurred.", status="500 Internal Server Error")
+        log.exception("Unhandled exception while building the page")
+        render_error(_unexpected_error_message(), status="500 Internal Server Error")
+
+
+def _unexpected_error_message():
+    if debug_enabled():
+        return (f"An unexpected error occurred. The traceback is in the debug log "
+                f"(process {os.getpid()}, {time.strftime('%Y-%m-%d %H:%M:%S')}).")
+    return "An unexpected error occurred."
 
 
 def render_json_error(message, status="400 Bad Request"):
@@ -439,20 +496,28 @@ def run_json(handler):
         handler (callable): Zero-argument function returning a
                             JSON-serializable value.
     """
+    start_request_log()
     try:
         payload = handler()
         send_json_headers()
-        sys.stdout.write(json.dumps(payload))
+        body = json.dumps(payload)
+        log.debug(f"JSON response body: {len(body)} bytes")
+        sys.stdout.write(body)
     except NotFoundError as exc:
+        log.debug(f"Not found: {exc}")
         render_json_error(str(exc), status="404 Not Found")
     except ApiError as exc:
         traceback.print_exc(file=sys.stderr)
+        log.exception(f"API error while building the response: {exc}")
         render_json_error(str(exc), status="502 Bad Gateway")
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        debug_env = os.environ.get("PLANETGEN_DEBUG")
-        debug = bool(debug_env) if debug_env is not None else load_config()["debug"]
-        if debug:
-            render_json_error(traceback.format_exc(), status="500 Internal Server Error")
-        else:
-            render_json_error("An unexpected error occurred.", status="500 Internal Server Error")
+        log.exception("Unhandled exception while building the response")
+        render_json_error(_unexpected_error_message(), status="500 Internal Server Error")
+
+
+# Under a real CGI server, start logging before the page's own module-level
+# code runs (some pages make API calls or redirect before ever reaching
+# `run`).
+if os.environ.get("GATEWAY_INTERFACE"):
+    start_request_log()
