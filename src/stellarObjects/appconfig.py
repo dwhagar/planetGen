@@ -70,6 +70,7 @@ DEFAULT_CONFIG = {
         "storage_uri": "memory://",
     },
     "admin_cookie_insecure": False,
+    "secret_key": "",
     "tile_cache": {
         "dir": "",
         "max_mb": 200,

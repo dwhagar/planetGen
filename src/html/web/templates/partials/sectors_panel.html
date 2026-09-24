@@ -1,0 +1,25 @@
+{#- The Sectors table. Expects `sectors` from views._sectors_panel and
+    `show_more_link` (bool): link the heading to /sectors. -#}
+<section class="panel" id="sectors" aria-labelledby="sectors-heading">
+  <div class="panel-header">
+    <h2 id="sectors-heading">{% if show_more_link %}<a href="{{ url_for('web.sectors') }}">Sectors</a>{% else %}Sectors{% endif %}</h2>
+    <a href="{{ page_url('galaxy') }}">Galaxy Map &rarr;</a>
+  </div>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Systems</th><th scope="col">Density</th><th scope="col">Galaxy Position</th><th scope="col">Distance from core</th></tr></thead>
+    <tbody>
+      {%- for row in sectors.rows %}
+      <tr>
+        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>{{ row.system_count }}</td>
+        <td>{{ row.density }}</td>
+        <td>{% if row.quadrant %}<a href="{{ row.quadrant_url }}">Quadrant {{ row.quadrant }}</a>{% else %}<span class="hint">Unplaced</span>{% endif %}</td>
+        <td>{{ row.distance }}</td>
+      </tr>
+      {%- else %}
+      <tr><td colspan="5"><em>None</em></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ sectors.pager }}
+</section>

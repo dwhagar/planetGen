@@ -18,6 +18,7 @@
     "storage_uri": "memory://"
   },
   "admin_cookie_insecure": false,
+  "secret_key": "",
   "tile_cache": {
     "dir": "",
     "max_mb": 200
