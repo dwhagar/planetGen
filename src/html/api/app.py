@@ -91,24 +91,26 @@ def _register_request_logging(app):
 
 def _register_security_headers(app):
     """
-    Adds defense-in-depth response headers to every response. The one
-    place they're decided for everything this app serves:
-
-    - JSON (and anything else that isn't HTML): `default-src 'none'` --
-      a JSON body never needs to load anything.
-    - HTML pages (`html/web/`): `web.CONTENT_SECURITY_POLICY` (same-origin
-      scripts/styles only, no framing, no plugins, forms and `<base>`
-      same-origin only).
+    Adds defense-in-depth response headers to every response. The HTML
+    pages (`html/web/`) get the CGI shell's own `page.SECURITY_HEADERS`
+    (the one source of the pages' CSP and the rest), so a page looks the
+    same to the browser whether CGI or Flask served it. Everything else
+    (API JSON, static files under the dev server) gets the same three
+    basic headers with `Content-Security-Policy: default-src 'none'` --
+    a JSON body never needs to load anything.
     """
-    from web import CONTENT_SECURITY_POLICY
+    from web import SECURITY_HEADERS
 
     @app.after_request
     def _add_headers(response):
+        if response.mimetype == "text/html":
+            for name, value in SECURITY_HEADERS:
+                response.headers.setdefault(name, value)
+            return response
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
-        policy = CONTENT_SECURITY_POLICY if response.mimetype == "text/html" else "default-src 'none'"
-        response.headers.setdefault("Content-Security-Policy", policy)
+        response.headers.setdefault("Content-Security-Policy", "default-src 'none'")
         return response
 
 

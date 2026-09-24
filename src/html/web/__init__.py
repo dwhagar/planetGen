@@ -53,16 +53,7 @@ from stellarObjects.appconfig import load_config  # noqa: E402
 from . import csrf, errors, transport  # noqa: E402
 from .helpers import SECTIONS, current_admin, page_url  # noqa: E402
 
-try:
-    # The CGI shell's own policy, when it defines one (single source).
-    from page import CONTENT_SECURITY_POLICY  # noqa: E402
-except ImportError:
-    CONTENT_SECURITY_POLICY = (
-        "default-src 'self'; base-uri 'self'; form-action 'self'; "
-        "frame-ancestors 'none'; object-src 'none'"
-    )
-"""str: The Content-Security-Policy every HTML response gets (set in
-`api/app.py`'s security-header hook). No inline scripts or styles."""
+from page import SECURITY_HEADERS  # noqa: E402,F401 -- re-exported for api/app.py
 
 STATIC_DIR = _STATIC_DIR
 """str: `src/html/static/`. `create_app` makes it the app's static folder
@@ -108,8 +99,8 @@ def init_app(app, limiter=None):
         app (flask.Flask): The app.
         limiter (flask_limiter.Limiter, optional): When given, the pages
             themselves are exempt from rate limiting (the CGI pages never
-            were); the API calls they make still count, see
-            `api.limiter.is_in_process_call`.
+            were). The API calls they make in-process skip only the
+            default limits; see `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
     app.before_request(csrf.protect)

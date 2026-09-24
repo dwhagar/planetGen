@@ -276,18 +276,20 @@
 #      the same process group too, without a second, conflicting
 #      declaration. `WSGIScriptAlias`/`<Directory api>`/`<Files
 #      "wsgi.py">` still need to be repeated in EACH vhost that mounts
-#      /api (mod_wsgi's own per-vhost mount, unlike the daemon process
+#      the app (mod_wsgi's own per-vhost mount, unlike the daemon process
 #      itself) -- copy those three from the :80 block above into the new
-#      :443 block, along with everything else in it (`<Directory html>`/
-#      `<Directory lib>`/`<Directory static>` etc.), then add:
+#      :443 block, along with everything else in it (`Alias /static/`,
+#      `ScriptAliasMatch`, `<Directory html>`/`<Directory lib>`/
+#      `<Directory static>` etc.), then add:
 #
 #        SSLEngine on
 #        SSLCertificateFile /etc/letsencrypt/live/planetgen.example.com/fullchain.pem
 #        SSLCertificateKeyFile /etc/letsencrypt/live/planetgen.example.com/privkey.pem
 #
-#   2. Replace the `:80` block's contents with just its own `/api` mount
-#      (`WSGIScriptAlias`/`<Directory api>`/`<Files "wsgi.py">`, kept
-#      as-is) plus a redirect for everything else:
+#   2. Replace the `:80` block's contents with just its own app mount
+#      (`WSGIScriptAlias /`/`<Directory api>`/`<Files "wsgi.py">`, kept
+#      as-is) plus a redirect for everything except /api (mod_rewrite
+#      runs before the mount, so only /api reaches the app on :80):
 #
 #        RewriteEngine On
 #        RewriteCond %{REQUEST_URI} !^/api

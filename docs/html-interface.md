@@ -59,8 +59,8 @@ account now.
 
 | File | Purpose |
 |---|---|
-| `../src/html/index.py` | Renders `browse.py`'s own content directly, in place (`browse.handler`, called in-process -- see that page's module docstring for why not a redirect), for the first schema `GET /api/databases` returns. |
-| `../src/html/browse.py` | A chosen database's sectors and standalone systems, linking each galaxy-placed sector's row into `galaxy.py`. |
+| `../src/html/index.py` | Shim: 301 to `/`, the Flask-served home page (see "Flask pages" below). |
+| `../src/html/browse.py` | Shim: 301 to `/` (keeping `sectors_page`/`standalone_page`); the sector and standalone-system lists are Flask pages now (`/`, `/sectors`, `/systems`, see "Flask pages" below). |
 | `../src/html/galaxy.py` | "Galaxy Map": a real perspective-camera WebGL scene (`lib/galaxymap3d.py` + `static/galaxymap3d.js`, three.js) a visitor can rotate/dolly/click through, rather than only ever viewing the galaxy from directly above a flat projection (a former SVG-based version had exactly that limitation, and its markers grew relative to the view as you zoomed in with no camera to shrink them the opposite way -- replaced, not kept alongside). Only fetches the zoomed-all-the-way-out starting view itself (`GET /api/galaxy/shape`, then that view's cube tiles through `lib/tilecache.py`); every later view, as the camera moves, is fetched by the page's own client-side JS directly from `galaxy_tiles.py`, never through this handler again. Left-click zooms in on whatever was clicked (a placed sector, a real not-yet-generated address, or empty space), right-click zooms out -- both by a *logarithmic* step (big jumps zoomed out over the whole galaxy, fine ones once close to a single sector), not a flat factor. Clicking a not-yet-generated address shows its designation and a copyable `generate.py galaxy --shell K --slot N` command (see that flag's own docstring in `generate.py`) instead of navigating anywhere. Below the map, still keeps its own two data tables (`GET /api/galaxy/sectors`), independent of the map itself: every sector actually placed in the galaxy grouped into four azimuthal Quadrants (I-IV) and concentric Rings (`shell_index` bands, `lib/galaxymap.py`) -- the full-galaxy default view is a per-Quadrant summary table; a `quadrant` of `I\|II\|III\|IV` swaps it for a full, distance-sorted sector list for that Quadrant (no longer cropping the map itself -- the 3D map has its own free-flying camera). Sectors never placed in the galaxy (the common case for a plain `sectorGen.py` run) stay out of this page, visible only via `browse.py`'s flat sector table. |
 | `../src/html/galaxy_view.py` | The interactive 3D Galaxy Map's own live-viewport JSON endpoint -- the one script under `html/` that returns raw JSON instead of a page, and the one browser-reachable proxy `static/galaxymap3d.js` calls directly via `fetch()` (debounced, on every camera move), rather than being rendered once. Proxies `GET /api/galaxy/view` (`queryDb.galaxy_view`) the same way every other page here proxies its own API calls, just returning the JSON straight through (`page.run_json`) instead of wrapping it in a rendered page. Not meant to be navigated to directly. The map itself now uses `galaxy_tiles.py`; this stays for anything still calling it. |
 | `../src/html/galaxy_tiles.py` | The 3D Galaxy Map's tile endpoint, fetched by `static/galaxymap3d.js` as its camera moves: returns the requested fixed cubes of space (`tiles=level/ix/iy/iz,...`) and optionally one density cloud (`density=level/ix/iy/iz`), JSON via `page.run_json`. Goes through `lib/tilecache.py`, so only tiles not already cached on disk reach the API (`GET /api/galaxy/tiles`). A malformed request is a 400. Not meant to be navigated to directly. |
@@ -160,6 +160,154 @@ dark tokens appear twice (OS dark and explicit dark) and must be kept
 identical. The map canvases read their colours when they start, so they
 follow a theme change on the next page view.
 
+## Flask pages (the pages are moving off CGI)
+
+The site is moving from one CGI script per page to HTML pages served by
+the same Flask app as the API (`../src/html/web/`, registered by
+`api/app.py`'s `create_app`). Pages move one at a time; until a page
+moves, its CGI script keeps working exactly as described above. Moved so
+far:
+
+| URL | Replaces | Shows |
+|---|---|---|
+| `/` | `index.py`, `browse.py` | Every sector and every standalone system, each table paged on its own (`?sectors_page=N`, `?standalone_page=N`). |
+| `/sectors` | `browse.py#sectors` | The sectors table alone. |
+| `/systems` | `browse.py#standalone-systems` | The standalone systems table alone. |
+| `/search?q=...` | -- | The header search box. Forwards to `search.py` (system-name search) until the search page moves. |
+
+`index.py` and `browse.py` are now CGI shims that answer `301 Moved
+Permanently` to `/`, carrying `sectors_page`/`standalone_page` from the
+old GET query or POST body (`lib/page.py`'s `moved_permanently`). The
+cleanup PR removes them.
+
+What changes for a visitor:
+
+- **Plain GET links and bookmarkable URLs.** Links between moved pages
+  are ordinary `<a href>`s (no hidden POST forms), so Back, reload,
+  open-in-new-tab, bookmarks and sharing all work.
+- **No database in the URL.** The pages show one database, taken from
+  config (`mysql.database` / `PLANETGEN_MYSQL_DATABASE`), never from the
+  request. Links from a moved page to a page still on CGI are plain GET
+  links such as `/sector.py?db=planetgen&id=5` (the CGI pages read a GET
+  query through `nav_params()`); that is the one place `db` still shows,
+  until each page moves.
+- **New header** instead of the side rail: site name, the sections
+  (Galaxy, Sectors, Systems, Phenomena, Nav) with `aria-current="page"`
+  on the current one, a search box, and Login or Admin/Stats/Logout plus
+  the theme button. Below 56rem the sections, search and account links
+  fold into a native `<details>` "Menu" (works without JavaScript). A
+  "Skip to content" link comes first, and every page but the home page
+  has a breadcrumb trail.
+- **Faster**: no Python process start per page, and no HTTP call from
+  the page back to the API (see below). Visitors without a session
+  cookie cost no login lookup at all.
+
+### How a Flask page is built
+
+```
+src/html/web/
+  __init__.py     blueprint `web`, template globals, init_app()
+  views.py        the routes
+  helpers.py      db_name, page_url, crumb, render_page, trusted_html,
+                  pager, current_admin, LEGACY_PAGES
+  transport.py    in-process transport for lib/apiclient.py
+  csrf.py         CSRF tokens for POST forms
+  errors.py       HTML 404/502/500 pages
+  templates/      base.html + one template per page (+ partials/)
+```
+
+A page is a route plus a template:
+
+```python
+# web/views.py
+@bp.route("/phenomena")
+def phenomena():
+    envelope, page = fetch_page(
+        lambda limit, offset: apiclient.get_phenomena(db_name(), limit=limit, offset=offset),
+        parse_page(request.args.get("page")),
+    )
+    return render_page(
+        "phenomena.html", title="Phenomena", section="phenomena",
+        breadcrumbs=[crumb("Phenomena")],
+        rows=envelope["items"],
+        pager=pager("page", page, envelope["total"], anchor="list", label="Phenomenon pages"),
+    )
+```
+
+```jinja
+{# web/templates/phenomena.html #}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" id="list">
+  ... {{ row.name }} ...   {# escaped automatically #}
+  {{ pager }}              {# Markup from lib/pagination.py #}
+</section>
+{% endblock %}
+```
+
+The helpers (all in `web/helpers.py`):
+
+- `render_page(template, title=, section=None, breadcrumbs=(),
+  description=None, status=200, **context)`: renders a template that
+  extends `base.html`. `section` is one of `SECTIONS` (`galaxy`,
+  `sectors`, `systems`, `phenomena`, `nav`) and gets `aria-current`.
+- `crumb(label, name=None, **params)`: one breadcrumb. "Home" is added
+  in front automatically; the last crumb (no `name`) is the current page.
+- `page_url(name, **params)`: the URL of any page by endpoint name,
+  moved or not. Moved pages go through `url_for("web.<name>")`; pages
+  still on CGI through `LEGACY_PAGES`.
+- `db_name()`: the one database. Never read `db` from the request.
+- `trusted_html(html)`: passes HTML built by a `lib/` renderer (the star
+  and system maps, `fmt.format_density`, ...) through unescaped. Those
+  renderers escape their own inputs; never wrap request or database text
+  in it directly.
+- `pager(page_param, page, total, anchor=None, label="Pages", keep=None)`:
+  the shared pager (`lib/pagination.render_pagination`, GET mode) linking
+  back to the current path with `?<page_param>=N`; `keep` carries other
+  query parameters (another table's page number).
+- `current_admin()`: the logged-in admin or `None`, one lookup per
+  request (cached on `g`). Also available in templates.
+- In templates: `static_url("x.js")` (`/static/x.js?v=<version>`, from
+  `fmt.static_url`), `page_url(...)`, `current_admin()`,
+  `csrf_field()`, `site_name`, and blocks `head` (extra `<script>`/
+  `<link>`, e.g. a map module), `heading`, `subhead` and `content`.
+
+**Moving a page** (what each page PR does): add its route to `views.py`
+under the endpoint name its `LEGACY_PAGES` entry uses (`sector`,
+`system`, `galaxy`, ...), add its template, delete the `LEGACY_PAGES`
+entry (every link to the page then switches to the new URL; a test fails
+if a name is both a route and a legacy entry), and turn the old `.py`
+script into a shim calling `page.moved_permanently(new_path, keep)`.
+
+**Data in-process.** Views call the same `lib/apiclient.py` functions as
+the CGI pages (`get_sector(db, id)`, `auth_me(cookie_header)`, ...).
+Inside a Flask request, `web/transport.py` dispatches each call straight
+through the app's own `/api` routes (same validation, auth and JSON as
+over HTTP, in a fresh app context so database connections open and
+close per call) instead of making an HTTP request to itself. Outside a
+Flask request (a CGI page, a script) the functions use HTTP as before.
+These in-process calls are exempt from the API's app-wide default rate
+limit (a page view is not API abuse); a route's own limit (login,
+writes) still applies to the visitor's address. Page views themselves
+are not rate-limited, as the CGI pages never were.
+
+**Forms.** Any POST/PUT/PATCH/DELETE to a path outside `/api` must carry
+the CSRF token: put `{{ csrf_field() }}` inside the `<form>`. The token
+is an HMAC (keyed with `secret_key` from `config.json`, see
+[`config.md`](config.md)) of a random value in the `pg_csrf` cookie
+(HttpOnly, SameSite=Strict); a missing or wrong token gets a 400 page
+and the view never runs.
+
+**Errors.** An `apiclient.NotFoundError` becomes a 404 page, an
+`apiclient.ApiError` a 502 page (without the API's detail), anything
+else a 500 page saying only "An unexpected error occurred."; the
+traceback goes to Apache's error log and the debug log, never the page.
+Unknown URLs get the HTML 404 page; `/api/...` keeps its JSON errors.
+
+**Headers.** Every HTML response carries `lib/page.py`'s
+`SECURITY_HEADERS` (the same CSP as the CGI pages), set in
+`api/app.py`; JSON keeps `default-src 'none'`.
+
 ## Locating the database (and the API)
 
 Every page here needs the planetGen API (`../src/html/api/`, see
@@ -241,5 +389,10 @@ smoke test without standing up Apache at all -- start the API separately
 first (see [`api.md`](api.md#running-locally)), then, from the repo root:
 
 ```bash
-PLANETGEN_API_BASE_URL=http://127.0.0.1:5000/api QUERY_STRING="db=planetgen" python3 html/browse.py
+PLANETGEN_API_BASE_URL=http://127.0.0.1:5000/api QUERY_STRING="db=planetgen&id=1" python3 src/html/sector.py
 ```
+
+The Flask pages need no CGI at all: `python3 src/html/wsgi.py` serves
+them (and `/static/`) at `http://127.0.0.1:5000/` alongside the API. Set
+`admin_cookie_insecure` in `config.json` to log in over plain HTTP
+there.

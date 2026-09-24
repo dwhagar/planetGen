@@ -1753,6 +1753,7 @@ body.app {
 }
 
 .app .site-menu-panel .site-search {
+  flex: none;
   max-width: none;
   margin: 0;
 }
@@ -1860,10 +1861,16 @@ body.app {
     padding: 0.9rem 0.9rem;
   }
 
-  /* Tables scroll inside their panel rather than widening the page. */
+  /* Tables scroll sideways inside their panel rather than widening the
+     page or wrapping every cell to one word per line. */
   .app .table-scroll {
     margin: 0 -0.9rem;
     padding: 0 0.9rem;
+  }
+
+  .app .table-scroll th,
+  .app .table-scroll td {
+    white-space: nowrap;
   }
 
   .app .pagination {

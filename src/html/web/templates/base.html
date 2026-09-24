@@ -98,7 +98,7 @@ subhead (badges or actions under the <h1>). -#}
   {%- block content %}{% endblock %}
 </main>
 <footer class="site-footer">
-  <p>{{ site_name }} &middot; planetGen {{ site_version }}</p>
+  <p>{% if site_name != "planetGen" %}{{ site_name }} &middot; {% endif %}planetGen {{ site_version }}</p>
 </footer>
 </body>
 </html>
