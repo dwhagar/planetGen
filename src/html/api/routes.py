@@ -70,6 +70,8 @@ from stellarObjects import _db
 from stellarObjects._db import MySQLConfig, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
+from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
+from stellarObjects.systemRender import render_system_sections, render_system_text
 from stellarObjects.utils import ly_to_milliparsecs
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
@@ -411,6 +413,39 @@ def system_detail(system_id):
     return jsonify(detail)
 
 
+@bp.route("/systems/<int:system_id>/text")
+def system_text(system_id):
+    """
+    `GET /api/systems/<id>/text?format=wikitext|markdown` -- the system's
+    full wiki page, rendered now from its database rows
+    (`stellarObjects/systemRender.py`; no page text is stored since
+    schema v29). `format` defaults to `wikitext`.
+    """
+    fmt = request.args.get("format", "wikitext")
+    if fmt not in SYSTEM_TEXT_FORMATS:
+        raise ApiError(f"'format' must be one of: {', '.join(SYSTEM_TEXT_FORMATS)}")
+    try:
+        content = render_system_text(get_db(), system_id, fmt)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify({"id": system_id, "format": fmt, "content": content})
+
+
+@bp.route("/systems/<int:system_id>/sections")
+def system_sections(system_id):
+    """
+    `GET /api/systems/<id>/sections` -- the same page as Markdown, split
+    per star/planet/moon/belt/comet (keyed by row id) plus the system
+    `overview`, for `html/system.py`'s expandable system list -- see
+    `systemRender.render_system_sections`.
+    """
+    try:
+        sections = render_system_sections(get_db(), system_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify(sections)
+
+
 @bp.route("/systems/<int:system_id>/near")
 def systems_near(system_id):
     # This endpoint itself still returns bare JSON, just a list of ids and
@@ -572,7 +607,7 @@ def galaxy_phenomena():
     """
     Every galaxy-placed standalone phenomenon (`center_x/y/z_pc` not
     NULL, in any `queryDb._PHENOMENON_TABLES` table -- see `schema.sql`'s
-    "v18"/"v21"/"v28" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
+    "v18"/"v21"/"v29" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
     as small dots on the same `html/galaxy.py` Galaxy Map. Not paginated,
     for the same reason `/api/galaxy/sectors` isn't.
     """
@@ -1163,10 +1198,9 @@ def delete_system(system_id):
 # Wiki publishing (schema.sql's "v22" header note) -- both routes below
 # share the same request shape and backend-resolution/error-mapping
 # helpers, differing only in where their page content comes from
-# (`star_systems.markdown_content`/`wikitext_content`, already rendered
-# at generation time, vs. `_sector_wiki_content`'s on-the-fly summary --
-# sectors have no persisted rendered page of their own) and which column
-# the resulting URL is written back to.
+# (`systemRender.render_system_text` for a system, `_sector_wiki_content`
+# for a sector's summary -- both built on the fly) and which column the
+# resulting URL is written back to.
 # ---------------------------------------------------------------------
 
 def _wiki_client_for(backend):
@@ -1260,9 +1294,10 @@ def _create_wiki_page(client, path, title, content):
 def upload_system_wiki(system_id):
     """
     `POST /api/systems/<id>/wiki` `{"backend": "wikijs"|"mediawiki",
-    "path": str}` -- publishes this system's already-generated page
-    (`markdown_content` for `wikijs`, `wikitext_content` for `mediawiki`,
-    see `_db.insert_star_system`) to the chosen wiki, then records the
+    "path": str}` -- publishes this system's page -- rendered now
+    from its database rows, Markdown for `wikijs` and wikitext for
+    `mediawiki` (`stellarObjects/systemRender.py`) -- to the chosen wiki,
+    then records the
     new page's URL on `star_systems.wikijs_url`/`mediawiki_url` (see
     `schema.sql`'s "v22" header note) so `html/system.py` can swap its
     description section for a link to it afterward.
@@ -1280,10 +1315,10 @@ def upload_system_wiki(system_id):
 
     try:
         system = query_system_detail(get_db(), system_id)
+        content = render_system_text(get_db(), system_id, "markdown" if backend == "wikijs" else "wikitext")
     except ValueError:
         raise ApiError(f"no such system: {system_id}", status_code=404)
 
-    content = system["markdown_content"] if backend == "wikijs" else system["wikitext_content"]
     page_path = path if backend == "wikijs" else system["name"]
     page = _create_wiki_page(client, page_path, system["name"], content)
 
@@ -1302,8 +1337,8 @@ def upload_system_wiki(system_id):
 def _sector_wiki_content(sector):
     """
     Builds a sector-summary page's content, fresh, in both Markdown (for
-    `wikijs`) and wikitext (for `mediawiki`) -- unlike a system, a sector
-    has no persisted `markdown_content`/`wikitext_content` of its own
+    `wikijs`) and wikitext (for `mediawiki`) -- like a system's own page
+    (`systemRender.render_system_text`), nothing is stored
     (see `schema.sql`'s "v22" header note), so this is rendered on the
     fly from `sector`'s already-queried detail (`queryDb.sector_detail`'s
     shape) at upload time: the sector's name/size, and one table row per

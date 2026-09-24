@@ -108,10 +108,12 @@ connectivity to that specific schema rather than the default one.
   `binary_mutual_position_x/y/z_km` (the secondary's position relative to
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
-  `markdown_content`, `wikitext_content`, `wikijs_url`/`mediawiki_url`
+  `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
-  its own nested `moons`), `belts`, `sector_siblings` (`{id, name}`
+  its own nested `moons`; every planet and moon also carries `habitable`,
+  `life_stage` — the furthest evolutionary milestone its timeline reached,
+  or `null` — and `inhabited`), `belts`, `sector_siblings` (`{id, name}`
   for every other system in the same sector), and `nearest_neighbors`
   (`{id, name, distance_ly}` for the up-to-3 closest systems in the same
   sector, nearest first, computed from current positions and names; the
@@ -120,6 +122,17 @@ connectivity to that specific schema rather than the default one.
   shape, not the generation object graph" relationship to
   `stellarObjects._db.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.
+- `GET /api/systems/<id>/text?format=wikitext|markdown` — the system's
+  full wiki page, `{"id", "format", "content"}`, rendered from its
+  database rows on each request (`stellarObjects/systemRender.py`; no page
+  text is stored since schema v29). `format` defaults to `wikitext`; any
+  other value is a `400`.
+- `GET /api/systems/<id>/sections` — the same page as Markdown split for
+  the system page's expandable list: `overview` (a binary pair's own data
+  table, the system summary, flavor text) plus `stars`, `planets`,
+  `moons`, `belts` and `comets`, each an object mapping a row `id` (as a
+  string) to that body's own Markdown, without its heading (and, for a
+  planet, without its moons' sections).
 - `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
   sector within `radius` light-years (`queryDb.systems_within_radius`).
 - `GET /api/nav?from=<id>&to=<id>` — course, distance, and an optimal route
@@ -580,10 +593,9 @@ same request shape:
   accepted but ignored for `"mediawiki"`, whose title — the system's or
   sector's own name — is its address instead (`src/wikiClient/mediawiki.py`).
 
-A system publishes its already-generated page (`markdown_content` to
-`wikijs`, `wikitext_content` to `mediawiki` — the same two columns `GET
-/api/systems/<id>` returns). A sector has no persisted page of its own;
-one is built fresh at upload time from its own current detail (name,
+A system publishes its page rendered from the database at upload time
+(Markdown to `wikijs`, wikitext to `mediawiki` — the same text `GET
+/api/systems/<id>/text` returns). A sector's page is likewise built fresh at upload time from its own current detail (name,
 edge, and a table of its systems — `routes.py`'s `_sector_wiki_content`).
 
 On success (`201`), both return the new page's

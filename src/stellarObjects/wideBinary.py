@@ -225,6 +225,13 @@ class WideBinaryPair:
         Returns:
             WideBinaryPair: The reconstructed pair.
         """
+        # Same "heavier star is the pair's primary" convention `__init__`
+        # applies -- a `StarSystem`'s own `primary_star`/`secondary_star`
+        # (and so the `stars` rows' `role`) keep generation order, which
+        # `__init__` may have swapped, so the pair's orientation has to be
+        # re-derived from the masses rather than taken from the caller.
+        if secondary.mass > primary.mass:
+            primary, secondary = secondary, primary
         pair = object.__new__(cls)
         pair.system_config = system_config
         pair.primary = primary

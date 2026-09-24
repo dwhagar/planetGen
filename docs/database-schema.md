@@ -485,12 +485,14 @@ MySQL has no dedicated boolean type either. Plain booleans are `TINYINT(1)`
 
 ### Rendered wiki text and URLs
 
-`star_systems` holds the complete rendered page for a system twice —
-`wikitext_content` (MediaWiki markup) and `markdown_content` (Wiki.js-style
-Markdown) — both produced from the *same* generated `StarSystem` object,
-rendered back-to-back at save time. They can't be independently
-regenerated later and still match, because generation mixes the unseedable
-`secrets` module with the seedable `random` module. Alongside them,
+No rendered page text is stored (v29 dropped `star_systems.wikitext_content`/
+`markdown_content`). Every value the page shows has its own column, so
+`_db.load_star_system` rebuilds the generation object graph and
+`stellarObjects/systemRender.py` renders either format on demand — the
+same `StarSystem.__str__` generation used to run once before saving, so
+the text is identical, except that it now follows later changes (renames,
+names made unique, orbit ticks' current wobble and comet positions).
+`src/checkRenderParity.py` compares the two on a database still at v28.
 `mediawiki_url`/`wikijs_url` (v22 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
 /api/systems/<id>/wiki` (`src/wikiClient/`, `html/system.py`'s "Upload to
@@ -498,8 +500,7 @@ Wiki" form) has actually uploaded it there — one system is one wiki page;
 individual stars/planets/moons are sections within that one page, not
 separate pages. Existence on a given wiki is never a separate stored
 flag — it's exactly "the matching URL column is not NULL"; `html/system.py`
-swaps its rendered/source Description section for a link to that page
-(opening in a new tab) whenever either is set. `sectors.wiki_url` is the
+links to that page (opening in a new tab) whenever either is set. `sectors.wiki_url` is the
 per-sector equivalent (see that table's own column doc above) — a single
 column, since a sector's page is generated fresh at upload time rather
 than persisted the way a system's is.
@@ -744,8 +745,6 @@ One row per generated system (single-star or binary).
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
-| `wikitext_content` | TEXT | nullable | Full rendered page, MediaWiki markup. |
-| `markdown_content` | TEXT | nullable | Full rendered page, Markdown. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
 | `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |
 | `created_at` | TEXT | NOT NULL, default `CURRENT_TIMESTAMP` | |

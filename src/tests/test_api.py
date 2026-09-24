@@ -378,7 +378,8 @@ def test_system_detail_found_and_not_found(client, seeded_sector):
     assert body["id"] == system_ids[0]
     assert body["sector_id"] == sector_id
     assert "stars" in body and body["stars"]
-    assert "markdown_content" in body
+    # No stored page text since schema v28 -- see /text and /sections.
+    assert "markdown_content" not in body and "wikitext_content" not in body
     assert {s["id"] for s in body["sector_siblings"]} == set(system_ids)
     # Nearest same-sector systems come from live rows (ids, current
     # names), never the system itself, nearest first.
@@ -393,6 +394,58 @@ def test_system_detail_found_and_not_found(client, seeded_sector):
 
     response = client.get("/api/systems/999999999")
     assert response.status_code == 404
+
+
+def test_system_text_renders_both_formats_from_the_database(client, seeded_sector):
+    _config, _sector_id, system_ids = seeded_sector
+    name = client.get(f"/api/systems/{system_ids[0]}").get_json()["name"]
+
+    wikitext = client.get(f"/api/systems/{system_ids[0]}/text").get_json()
+    assert wikitext["format"] == "wikitext"
+    assert wikitext["content"].startswith(f"= {name} =")
+    assert "[[Category:Star Systems]]" in wikitext["content"]
+
+    markdown = client.get(f"/api/systems/{system_ids[0]}/text?format=markdown").get_json()
+    assert markdown["content"].startswith(f"# {name}")
+
+    assert client.get(f"/api/systems/{system_ids[0]}/text?format=html").status_code == 400
+    assert client.get("/api/systems/999999999/text").status_code == 404
+
+
+def test_system_text_follows_a_rename(admin_client, seeded_sector):
+    _config, _sector_id, system_ids = seeded_sector
+    response = admin_client.patch(f"/api/systems/{system_ids[0]}", json={"name": "Renamed After Generation"})
+    assert response.status_code == 200
+
+    content = admin_client.get(f"/api/systems/{system_ids[0]}/text?format=markdown").get_json()["content"]
+    assert content.startswith("# Renamed After Generation")
+
+
+def test_system_sections_cover_every_body(client, mysql_config):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.MOONS = True
+    cfg.COMETS = True
+    cfg.ASTEROID_BELT = True
+    cfg.BINARY_SYSTEM = False
+    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+
+    detail = client.get(f"/api/systems/{system_id}").get_json()
+    sections = client.get(f"/api/systems/{system_id}/sections").get_json()
+    assert detail["planets"] and detail["planets"][0]["moons"] and detail["belts"] and detail["comets"]
+
+    assert "This system contains" in sections["overview"] or "no stellar objects" in sections["overview"]
+    assert set(sections["stars"]) == {str(s["id"]) for s in detail["stars"]}
+    assert set(sections["planets"]) == {str(p["id"]) for p in detail["planets"]}
+    assert set(sections["moons"]) == {str(m["id"]) for p in detail["planets"] for m in p["moons"]}
+    assert set(sections["belts"]) == {str(b["id"]) for b in detail["belts"]}
+    assert set(sections["comets"]) == {str(c["id"]) for c in detail["comets"]}
+    for planet in detail["planets"]:
+        # A planet's own section stops before its moons' sections begin.
+        assert "### " not in sections["planets"][str(planet["id"])]
+        assert {"habitable", "inhabited", "life_stage"} <= set(planet)
+
+    assert client.get("/api/systems/999999999/sections").status_code == 404
 
 
 def test_systems_near_requires_radius(client, seeded_sector):
@@ -1160,8 +1213,9 @@ def test_upload_system_wiki_wikijs_persists_url_on_the_matching_column(
     detail = admin_client_with_wiki.get(f"/api/systems/{system_id}").get_json()
     assert detail["wikijs_url"] == page["url"]
     assert detail["mediawiki_url"] is None
-    # markdown_content, not wikitext_content, is what wikijs got
-    assert call["content"] == detail["markdown_content"]
+    # Markdown, not wikitext, is what wikijs got -- rendered fresh
+    markdown = admin_client_with_wiki.get(f"/api/systems/{system_id}/text?format=markdown").get_json()
+    assert call["content"] == markdown["content"]
 
 
 def test_upload_system_wiki_mediawiki_uses_the_system_name_as_the_page_path(
@@ -1181,7 +1235,8 @@ def test_upload_system_wiki_mediawiki_uses_the_system_name_as_the_page_path(
     detail = admin_client_with_wiki.get(f"/api/systems/{system_id}").get_json()
     assert detail["mediawiki_url"] is not None
     assert detail["wikijs_url"] is None
-    assert call["content"] == detail["wikitext_content"]
+    wikitext = admin_client_with_wiki.get(f"/api/systems/{system_id}/text?format=wikitext").get_json()
+    assert call["content"] == wikitext["content"]
 
 
 def test_upload_system_wiki_page_exists_maps_to_409(admin_client_with_wiki, seeded_sector, monkeypatch):

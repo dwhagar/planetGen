@@ -37,6 +37,26 @@ _MILESTONE_DISPLAY_NAMES = {
 }
 
 
+def life_stage_from_paragraphs(paragraphs):
+    """
+    Recovers the milestone `get_evolutionary_timeline` chose from the
+    paragraph it wrote -- the only place it's recorded, stored as-is in
+    `planet_evolutionary_paragraphs`/`moon_evolutionary_paragraphs`.
+
+    Args:
+        paragraphs (list[str]): A body's evolutionary paragraphs.
+
+    Returns:
+        str or None: One of `MILESTONE_KEYS`, or `None` when no milestone
+            has been reached (or the body has no timeline at all).
+    """
+    for paragraph in paragraphs:
+        for key, display_name in _MILESTONE_DISPLAY_NAMES.items():
+            if f"would have been {display_name} at " in paragraph:
+                return key
+    return None
+
+
 def get_evolutionary_timeline(star, planet_class=None):
     """
     Generates a speculative evolutionary timeline for a planet based on its

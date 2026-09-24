@@ -57,7 +57,10 @@ from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
 from stellarObjects.sectorGeometry import lateral_neighbor_slots, radial_neighbor_slot
-from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, PLANET_CLASSES
+from stellarObjects.evolution import life_stage_from_paragraphs
+from stellarObjects.program_constants import (
+    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, PLANET_CLASSES,
+)
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
 
@@ -1429,8 +1432,7 @@ def system_detail(conn, system_id):
             `'wide'`, or `None` -- see `schema.sql`'s "v15" note),
             `binary_mutual_position_x/y/z_km` (the secondary's position
             relative to the primary -- NULL for a single star; see
-            `schema.sql`'s "v14"/"v15" notes), `markdown_content`,
-            `wikitext_content`, `wikijs_url`/`mediawiki_url`
+            `schema.sql`'s "v14"/"v15" notes), `wikijs_url`/`mediawiki_url`
             (`star_systems.wikijs_url`/`mediawiki_url` -- `None` for
             whichever wiki (or both) this system hasn't been uploaded to
             yet; see `schema.sql`'s "v22" header note), `stars` (id/role/name/
@@ -1438,7 +1440,9 @@ def system_detail(conn, system_id):
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `planets`
             (each a `planets` row, including its own `star_id`, plus its
-            own `moons` list), `belts` (`asteroid_belts` rows, including
+            own `moons` list; every planet and moon also carries
+            `habitable`, `life_stage` and `inhabited` -- see
+            `_with_life_fields`), `belts` (`asteroid_belts` rows, including
             `star_id`), `comets` (`comets` rows, including `star_id` --
             no `orbital_index`, see `insert_comet`'s docstring), and
             `sector_siblings` (`{id, name}` for every other system in the
@@ -1469,13 +1473,15 @@ def system_detail(conn, system_id):
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall()
+    planet_stages = _life_stages(conn, "planet_evolutionary_paragraphs", "planet_id", "planets", system_id)
+    moon_stages = _life_stages(conn, "moon_evolutionary_paragraphs", "moon_id", "moons", system_id)
     planets = []
     for planet in planet_rows:
         moon_rows = conn.execute(
             "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],)
         ).fetchall()
-        planet_dict = dict(planet)
-        planet_dict["moons"] = [dict(m) for m in moon_rows]
+        planet_dict = _with_life_fields(dict(planet), planet_stages)
+        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages) for m in moon_rows]
         planets.append(planet_dict)
 
     belts = conn.execute(
@@ -1505,7 +1511,6 @@ def system_detail(conn, system_id):
         "binary_mutual_position_x_km": system["binary_mutual_position_x_km"],
         "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
-        "markdown_content": system["markdown_content"], "wikitext_content": system["wikitext_content"],
         "wikijs_url": system["wikijs_url"], "mediawiki_url": system["mediawiki_url"],
         "stars": [dict(s) for s in stars],
         "planets": planets,
@@ -1514,6 +1519,41 @@ def system_detail(conn, system_id):
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,
     }
+
+
+def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
+    """
+    `{body id: life stage}` for every planet (or moon) in one system that
+    has an evolutionary timeline -- see `evolution.life_stage_from_paragraphs`.
+    One query for the whole system rather than one per body.
+    """
+    rows = conn.execute(
+        f"SELECT p.{id_column} AS body_id, p.paragraph FROM {paragraph_table} p"
+        f" JOIN {body_table} b ON b.id = p.{id_column}"
+        f" WHERE b.star_system_id = ? ORDER BY p.{id_column}, p.position",
+        (system_id,),
+    ).fetchall()
+    paragraphs = {}
+    for row in rows:
+        paragraphs.setdefault(row["body_id"], []).append(row["paragraph"])
+    return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
+
+
+def _with_life_fields(body, stages):
+    """
+    Adds the system page's per-body life summary to one `planets`/`moons`
+    row dict: `habitable` (its class is one of
+    `program_constants.HABITABLE_PLANET_CLASSES`, the same test
+    `StarSystem.count_habitable` uses), `life_stage` (the most advanced
+    evolutionary milestone its timeline reached, or `None`) and
+    `inhabited` (habitable and reached a technological civilization --
+    the page only ever describes a timeline for a habitable class, see
+    `Planet._generate_life_and_flavor_paragraphs`).
+    """
+    body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
+    body["life_stage"] = stages.get(body["id"]) if body["habitable"] else None
+    body["inhabited"] = body["life_stage"] == "technological_civilization"
+    return body
 
 
 NEAREST_NEIGHBOR_COUNT = 3

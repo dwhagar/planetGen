@@ -262,6 +262,28 @@ def test_system_page_renders(live_api, seeded_db):
     _assert_clean_html(result, "system.py")
 
 
+def test_system_page_lists_bodies_and_shows_generated_code(live_api, mysql_config):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.MOONS = True
+    cfg.BINARY_SYSTEM = False
+    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    query = {"db": mysql_config.database, "id": str(system_id)}
+
+    result = run_page(live_api, "system.py", query=query)
+    assert result.status_code == 200
+    _assert_clean_html(result, "system.py")
+    assert 'class="system-list system-list-root"' in result.body
+    assert "Habitable: " in result.body and "Inhabited: " in result.body
+    assert 'id="system-code"' not in result.body
+
+    for fmt, marker in (("wikitext", "[[Category:Star Systems]]"), ("markdown", "| Property | Value |")):
+        result = run_page(live_api, "system.py", query={**query, "code": fmt})
+        assert result.status_code == 200
+        assert 'id="system-code"' in result.body and "data-copy-target" in result.body
+        assert marker in result.body.replace("&#x27;", "'")
+
+
 def test_galaxy_page_renders(live_api, seeded_db, tmp_path):
     _config, db_name, _sector_id, _system_ids = seeded_db
     cache_env = {"PLANETGEN_TILE_CACHE_DIR": str(tmp_path / "tiles")}
