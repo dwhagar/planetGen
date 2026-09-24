@@ -67,13 +67,16 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/sectors?limit=<n>&offset=<n>` — every sector, paginated (see
   "Pagination" below), each with `id`, `name`, `edge_mpc`, `edge_ly`,
   `system_count`, and its galaxy placement (`center_x_pc`/`center_y_pc`/
-  `center_z_pc`/`shell_index`/`shell_slot_index`, all `null` together for
-  an unplaced sector, plus a `placed` bool) (`queryDb.list_sectors`/
-  `count_sectors`).
+  `center_z_pc`/`galactic_radius_pc`/`galactic_radius_ly`/`shell_index`/
+  `shell_slot_index`, all
+  `null` together for an unplaced sector, plus a `placed` bool), nearest
+  the galactic core first, then unplaced sectors by name
+  (`queryDb.list_sectors`/`count_sectors`).
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
-  it — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
-  `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, and `stars`, each
+  it, nearest the sector's center first — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
+  `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, `center_distance_ly`,
+  and `stars`, each
   with `role`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
   `phenomena` (every galaxy-placed nebula/asteroid field/black hole/
   neutron star whose sphere could plausibly reach into this sector's
@@ -260,6 +263,32 @@ connectivity to that specific schema rather than the default one.
 - `DELETE /api/systems/<id>` — remove a system.
 - `POST /api/systems/<id>/wiki` — publish a system's already-generated
   page to a wiki (see "Wiki publishing" below).
+
+### Admin stats (admin auth required)
+
+Both take `?db=` like the read endpoints, and need an admin past the
+forced credential change. They back the admin stats page
+(`../src/html/adminstats.py`).
+
+- `GET /api/admin/stats` — health and statistics for one database:
+  `api` (version, Python version, process uptime, load average, memory),
+  `mysql` (server version, uptime, connected threads; `null` fields when
+  `SHOW GLOBAL STATUS` isn't allowed), and `database` (`reachable`,
+  `schema_version`/`schema_expected`/`schema_current`, `size_bytes`,
+  exact `counts` for `sectors`/`star_systems`, `tables` with
+  `information_schema`'s estimated rows and data/index bytes,
+  `timestamps` with each v27 table's newest `created_at` and latest
+  `modified_at`, and `name_collisions`: how many base names had to be
+  made unique per level plus `distinct_base_names`). An unreachable
+  database still returns 200, with `database.reachable: false` and a
+  `detail`.
+- `GET /api/admin/duplicate-names` — paginated (`limit`/`offset`, by base
+  name, alphabetical) list of the names the uniqueness rules decorated:
+  `{"total", "limit", "offset", "items": [{"base_name", "levels",
+  "rows"}]}`. `levels` names the registries it collided in (`sector`,
+  `system`, `body`); each row is `{"kind", "id", "name"}` with
+  `sector_id` for a system and `star_system_id`/`system_name` for a
+  planet or moon.
 
 ### Authentication
 

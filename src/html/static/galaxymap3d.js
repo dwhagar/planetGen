@@ -339,7 +339,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var scene = new THREE.Scene();
 
-  var FOV_DEG = 50;
+  var FOV_DEG = data.fovDeg || 50;
   var farPlane = Math.max(data.maxViewRadiusPc * 6, 1000);
   var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, Math.max(data.minViewRadiusPc / 50, 0.001), farPlane);
   camera.up.set(0, 0, 1);
@@ -348,7 +348,15 @@ function initGalaxyMap3d(canvasEl, data) {
   var MAX_RADIUS = data.maxViewRadiusPc;
   var CLICK_FACTOR_MIN = data.clickZoomFactorMin || 1.15;
   var CLICK_FACTOR_MAX = data.clickZoomFactorMax || 4.0;
-  var WHEEL_ZOOM_RATIO = 1.1;
+  // Wheel zoom scales with how far the wheel actually moved (normalized
+  // to pixels): one ~100 px mouse-wheel notch is a ~1.28x step, while a
+  // trackpad's stream of tiny deltas zooms smoothly instead of taking a
+  // full step on every event. Pinch-zoom arrives as ctrl+wheel with even
+  // smaller deltas, hence the boost.
+  var WHEEL_ZOOM_PER_PX = 0.0025;
+  var WHEEL_MAX_PX = 200;
+  var PINCH_BOOST = 4;
+  var GALAXY_RADIUS = data.galaxyRadiusPc || data.maxViewRadiusPc;
   var KEY_ROTATE_STEP = THREE.MathUtils.degToRad(6);
   var ROTATE_SENSITIVITY = THREE.MathUtils.degToRad(0.4);
   var DRAG_CLICK_THRESHOLD_PX = 4;
@@ -379,6 +387,9 @@ function initGalaxyMap3d(canvasEl, data) {
     var offset = offsetFromOrbit(orbit);
     camera.position.set(target.x + offset.x, target.y + offset.y, target.z + offset.z);
     camera.lookAt(target);
+    // Raycasts read matrixWorld, which otherwise only updates at the next
+    // render -- a click right after a move would pick against the old view.
+    camera.updateMatrixWorld();
   }
   applyCamera();
 
@@ -481,8 +492,29 @@ function initGalaxyMap3d(canvasEl, data) {
     return group;
   }
 
+  // Planned dots stop at the view radius around the target (the density
+  // cloud a little past it), so both fade out toward that edge instead of
+  // stopping at a hard spherical rim the eye reads as a ball.
+  // fadeRadius is the current view radius (set by renderFromCache).
+  var PLANNED_OPACITY = 0.75;
+  var EDGE_FADE_START = 0.6;
+  var EDGE_FADE_END = 1.0;
+  var fadeRadius = 0;
+
+  function edgeFade(x, y, z) {
+    if (!(fadeRadius > 0)) {
+      return 1;
+    }
+    var dx = x - target.x;
+    var dy = y - target.y;
+    var dz = z - target.z;
+    var t = Math.sqrt(dx * dx + dy * dy + dz * dz) / fadeRadius;
+    var u = Math.max(0, Math.min(1, (t - EDGE_FADE_START) / (EDGE_FADE_END - EDGE_FADE_START)));
+    return 1 - u * u * (3 - 2 * u);
+  }
+
   function makePlannedSprite(entry) {
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, opacity: 0.75 }));
+    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, opacity: PLANNED_OPACITY }));
     sprite.position.set(entry.x, entry.y, entry.z);
     sprite.userData.screenRadiusPx = PLANNED_PX;
     return sprite;
@@ -522,8 +554,12 @@ function initGalaxyMap3d(canvasEl, data) {
       screenSizedScale(group.children[0], px, 1.2, group.position); // halo
       screenSizedScale(group.children[1], px, 1.0, group.position); // core
     });
-    plannedSpritesByKey.forEach(function (sprite) {
+    var pinnedPlannedKey = pinnedEntry && pinnedEntry.kind === "planned" ? PLANNED_KEY_OF(pinnedEntry) : null;
+    plannedSpritesByKey.forEach(function (sprite, key) {
       screenSizedScale(sprite, sprite.userData.screenRadiusPx, 1.0);
+      // The selected dot never fades away, even out past the view's edge.
+      var p = sprite.position;
+      sprite.material.opacity = key === pinnedPlannedKey ? PLANNED_OPACITY : PLANNED_OPACITY * edgeFade(p.x, p.y, p.z);
     });
     if (highlightSprite.visible) {
       screenSizedScale(highlightSprite, highlightSprite.userData.screenRadiusPx, 1.0);
@@ -593,7 +629,9 @@ function initGalaxyMap3d(canvasEl, data) {
       densityMatrix.makeScale(scale, scale, scale);
       densityMatrix.setPosition(point.x, point.y, point.z);
       densityMesh.setMatrixAt(i, densityMatrix);
-      densityMesh.setColorAt(i, densityInstanceColor.copy(densityColor(point.relative_density)));
+      // Additive blending, so a darker color is a fainter sphere.
+      densityInstanceColor.copy(densityColor(point.relative_density)).multiplyScalar(edgeFade(point.x, point.y, point.z));
+      densityMesh.setColorAt(i, densityInstanceColor);
     }
     densityMesh.count = count;
     densityMesh.instanceMatrix.needsUpdate = true;
@@ -646,8 +684,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var TILE_ROOT = data.tileRootEdgePc || 65536;
   var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 12;
   var PLANNED_TILE_EDGE = data.plannedTileMaxEdgePc || 16;
-  var PLANNED_VIEW_RADIUS = data.plannedViewRadiusPc || 20;
-  var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 200;
+  var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 32;
   var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
   var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
   var hasShape = !!data.hasShape;
@@ -715,7 +752,10 @@ function initGalaxyMap3d(canvasEl, data) {
     var plannedKeys = [];
     var plannedRadius = 0;
     if (viewRadius <= PLANNED_MAX_VIEW_RADIUS) {
-      plannedRadius = Math.min(viewRadius, PLANNED_VIEW_RADIUS);
+      // Out to the whole view, not a smaller ball around the target: a
+      // clipped ball of dots floating in empty space is exactly what the
+      // galaxy doesn't look like up close.
+      plannedRadius = viewRadius;
       plannedKeys = tilesIntersectingSphere(tileLevelForRadius(PLANNED_TILE_EDGE), target, plannedRadius);
       plannedKeys.forEach(function (key) {
         if (keys.indexOf(key) < 0) {
@@ -724,7 +764,7 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     }
     var densityKey = hasShape && viewRadius > PLANNED_MAX_VIEW_RADIUS ? tileContaining(level, target) : null;
-    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, densityKey: densityKey };
+    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, densityKey: densityKey, viewRadius: viewRadius };
   }
 
   // --- Tile caches ---------------------------------------------------------
@@ -902,6 +942,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // Draws whatever of the needed tiles is already cached; returns what's
   // still missing.
   function renderFromCache(need) {
+    fadeRadius = need.viewRadius;
     var placed = [];
     var planned = [];
     var missing = [];
@@ -954,7 +995,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // rapid clicking still costs the server work per click even when every
   // earlier response gets thrown away client-side. A click/double-click's
   // own visual effect (the camera recentering/zooming, via centerOn/
-  // centerAndZoom) is never throttled here, only the network fetch that
+  // zoomInOnTarget) is never throttled here, only the network fetch that
   // follows it -- clicking faster than the cap still feels instant, it
   // just falls back to the standard debounced delay below instead of
   // firing right away, so a rapid burst still settles on exactly one
@@ -1103,7 +1144,20 @@ function initGalaxyMap3d(canvasEl, data) {
     "wheel",
     function (event) {
       event.preventDefault();
-      setRadius(orbit.radius * (event.deltaY < 0 ? 1 / WHEEL_ZOOM_RATIO : WHEEL_ZOOM_RATIO));
+      var deltaPx = event.deltaY;
+      if (event.deltaMode === 1) {
+        deltaPx *= 33;
+      } else if (event.deltaMode === 2) {
+        deltaPx *= canvasEl.clientHeight || 400;
+      }
+      if (event.ctrlKey) {
+        deltaPx *= PINCH_BOOST;
+      }
+      deltaPx = Math.max(-WHEEL_MAX_PX, Math.min(WHEEL_MAX_PX, deltaPx));
+      if (!deltaPx) {
+        return;
+      }
+      setRadius(orbit.radius * Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
       scheduleFetch(false);
     },
     { passive: false }
@@ -1146,32 +1200,65 @@ function initGalaxyMap3d(canvasEl, data) {
     for (var i = 0; i < hits.length; i++) {
       var entry = entryByObject.get(hits[i].object);
       if (entry) {
-        return { entry: entry, point: hits[i].point };
+        // The sector's own position, not where the ray grazed its marker:
+        // a marker is a fixed number of screen pixels, which from far out
+        // spans hundreds of parsecs, so centering on the grazed spot left
+        // the sector drifting off-center (and out of view) while zooming in.
+        return { entry: entry, point: new THREE.Vector3(entry.x, entry.y, entry.z) };
       }
     }
     return null;
   }
 
-  // Empty-space click target: intersects an invisible sphere of the
-  // camera's OWN current orbit radius, centered on the current target --
-  // an approximation of "the depth the camera is presently looking at",
-  // so clicking past empty space still lands somewhere reasonable in 3D
-  // rather than needing a ground plane a free-flying galaxy scene has no
-  // natural equivalent of.
+  // Empty-space click target: where the click's ray meets the plane
+  // through the current target parallel to the galactic disk -- so
+  // clicking empty space over a spiral arm lands ON the arm, the point
+  // you see under the cursor, rather than above or below it. When the
+  // disk is seen nearly edge-on that ray can run off almost parallel to
+  // the plane, so a hit farther than DISK_PICK_MAX_RADII orbit radii from
+  // the target falls back to the plane through the target facing the
+  // camera (the depth the camera is looking at). Either way the point is
+  // kept inside the galaxy -- within GALAXY_RADIUS of the core across the
+  // disk and a tenth of that above or below it -- so a click can never
+  // recenter the view out in the void.
+  //
+  // (This used to intersect a sphere of the orbit radius around the
+  // target -- but the camera sits ON that sphere, so the ray's nearest
+  // hit was the camera itself or the sphere's far side, and a click
+  // moved the view thousands of parsecs away from where it landed.)
+  var DISK_PICK_MAX_RADII = 2;
+  var GALAXY_HALF_THICKNESS = GALAXY_RADIUS / 10;
+
   function depthPointAtClientPoint(clientX, clientY) {
     var ndc = ndcFromClientPoint(clientX, clientY);
     if (!ndc) {
       return null;
     }
     raycaster.setFromCamera(ndc, camera);
-    var sphere = new THREE.Sphere(target, Math.max(orbit.radius, MIN_RADIUS));
+    var ray = raycaster.ray;
     var hitPoint = new THREE.Vector3();
-    var hit = raycaster.ray.intersectSphere(sphere, hitPoint);
-    return hit ? hitPoint : null;
+    var diskPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -target.z);
+    var hit = ray.intersectPlane(diskPlane, hitPoint);
+    if (!hit || hitPoint.distanceTo(target) > orbit.radius * DISK_PICK_MAX_RADII) {
+      var facing = new THREE.Vector3().subVectors(camera.position, target).normalize();
+      var focalPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(facing, target);
+      hit = ray.intersectPlane(focalPlane, hitPoint);
+    }
+    if (!hit) {
+      return null;
+    }
+    var across = Math.hypot(hitPoint.x, hitPoint.y);
+    if (across > GALAXY_RADIUS) {
+      hitPoint.x *= GALAXY_RADIUS / across;
+      hitPoint.y *= GALAXY_RADIUS / across;
+    }
+    var maxZ = Math.max(GALAXY_HALF_THICKNESS, Math.abs(target.z));
+    hitPoint.z = Math.max(-maxZ, Math.min(maxZ, hitPoint.z));
+    return hitPoint;
   }
 
   // selectEntry alone (no target/radius change) just updates the
-  // highlight/info panel -- shared by centerOn/centerAndZoom below so a
+  // highlight/info panel -- shared by the click/double-click handlers so a
   // click/double-click on empty space (entry === null) leaves whatever
   // was last selected showing, the same "recentering doesn't clear your
   // selection" behavior the old single zoomToward function had.
@@ -1219,21 +1306,18 @@ function initGalaxyMap3d(canvasEl, data) {
     scheduleFetch(true);
   }
 
-  // Double click: the old single-click behavior -- centers AND zooms in
-  // by one clickZoomFactor step, in the same motion a click used to.
-  function centerAndZoom(point, entry) {
-    var factor = clickZoomFactor(orbit.radius);
-    target.copy(point);
-    orbit.radius = Math.max(MIN_RADIUS, orbit.radius / factor);
-    applyCamera();
-    updateScaleBar();
-    selectEntry(point, entry);
+  // Double click: centers AND zooms in by one clickZoomFactor step. A
+  // double-click's first click has already centered on the point (see the
+  // click handler), so this zooms in on that same point rather than
+  // re-picking under the cursor, which by now is over something else.
+  function zoomInOnTarget() {
+    setRadius(orbit.radius / clickZoomFactor(orbit.radius));
     scheduleFetch(true);
   }
 
   // Resolves a click/double-click's target point the same way for both:
-  // a hit dot's own position, or (empty space) the depth-sphere fallback
-  // -- shared so centerOn/centerAndZoom above never have to duplicate the
+  // a hit dot's own position, or (empty space) depthPointAtClientPoint
+  // -- shared so the click handlers below never have to duplicate the
   // raycast-then-fall-back logic.
   function resolveClickTarget(clientX, clientY) {
     var hit = entryAtClientPoint(clientX, clientY);
@@ -1244,14 +1328,24 @@ function initGalaxyMap3d(canvasEl, data) {
     return depthPoint ? { point: depthPoint, entry: null } : null;
   }
 
+  // Only a double-click's FIRST click recenters (event.detail counts the
+  // clicks in a burst): the second one lands at the same screen spot,
+  // which after the first recenter shows a different point, and
+  // recentering again there walked the view off in that direction.
+  var lastCenterClickAt = 0;
+
   canvasEl.addEventListener("click", function (event) {
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
     }
+    if (event.detail > 1) {
+      return;
+    }
     var resolved = resolveClickTarget(event.clientX, event.clientY);
     if (resolved) {
       centerOn(resolved.point, resolved.entry);
+      lastCenterClickAt = Date.now();
     }
   });
 
@@ -1260,10 +1354,15 @@ function initGalaxyMap3d(canvasEl, data) {
       suppressNextClick = false;
       return;
     }
-    var resolved = resolveClickTarget(event.clientX, event.clientY);
-    if (resolved) {
-      centerAndZoom(resolved.point, resolved.entry);
+    // Normally the first click just centered the view (see above); if it
+    // didn't (a browser that skipped it), center here first.
+    if (Date.now() - lastCenterClickAt > 1000) {
+      var resolved = resolveClickTarget(event.clientX, event.clientY);
+      if (resolved) {
+        centerOn(resolved.point, resolved.entry);
+      }
     }
+    zoomInOnTarget();
   });
 
   // No right-click action any more (see this file's own module

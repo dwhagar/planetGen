@@ -13,6 +13,7 @@ from flask import Flask, g, jsonify, request
 
 from stellarObjects import log
 
+from .admin import bp as admin_bp
 from .auth import bp as auth_bp
 from .common import ApiError, close_control_db
 from .config import Config
@@ -26,6 +27,7 @@ def create_app(config_object=Config):
     limiter.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)
     _register_error_handlers(app)
