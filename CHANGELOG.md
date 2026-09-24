@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.46.22] - 2026-09-24
+
+### Fixed
+- **Galaxy Map (3D): a selected placed/planned sector could disappear
+  entirely once zoomed in close to it.** The live re-fetch's own bounding
+  box shrinks as the camera's orbit radius shrinks; a click/double-click
+  that landed even slightly off a sector's own exact stored position
+  (easy from far out, where its marker is only a handful of screen
+  pixels) meant a later, smaller-radius re-fetch could legitimately no
+  longer include it, and the client dropped anything missing from a
+  fresh fetch. The selected entry is now pinned client-side and
+  re-inserted into each fetch's own tier if the live query didn't happen
+  to return it, so it stays in the scene for as long as it's selected.
+
 ## [5.46.21] - 2026-09-23
 
 ### Changed

@@ -548,13 +548,28 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
+  var PLACED_KEY_OF = function (e) { return "p" + e.id; };
+  var PLANNED_KEY_OF = function (e) { return e.shell_index + ":" + e.shell_slot_index; };
+
+  // See pinnedEntry's own comment above selectEntry -- re-inserts the
+  // pinned entry into a freshly-fetched tier list if the live query
+  // itself didn't happen to include it, so syncTier never drops it.
+  function withPinned(list, keyOf, kind) {
+    if (!pinnedEntry || pinnedEntry.kind !== kind) {
+      return list;
+    }
+    var pinnedKey = keyOf(pinnedEntry);
+    for (var i = 0; i < list.length; i++) {
+      if (keyOf(list[i]) === pinnedKey) {
+        return list;
+      }
+    }
+    return list.concat([pinnedEntry]);
+  }
+
   function applyView(view) {
-    syncTier(view.placed || [], placedSpritesByKey, function (e) { return "p" + e.id; }, makePlacedSprite, "placed");
-    syncTier(
-      view.planned || [], plannedSpritesByKey,
-      function (e) { return e.shell_index + ":" + e.shell_slot_index; },
-      makePlannedSprite, "planned",
-    );
+    syncTier(withPinned(view.placed || [], PLACED_KEY_OF, "placed"), placedSpritesByKey, PLACED_KEY_OF, makePlacedSprite, "placed");
+    syncTier(withPinned(view.planned || [], PLANNED_KEY_OF, "planned"), plannedSpritesByKey, PLANNED_KEY_OF, makePlannedSprite, "planned");
     applyDensity(view.density || []);
   }
 
@@ -741,10 +756,26 @@ function initGalaxyMap3d(canvasEl, data) {
   // click/double-click on empty space (entry === null) leaves whatever
   // was last selected showing, the same "recentering doesn't clear your
   // selection" behavior the old single zoomToward function had.
+  //
+  // Also PINS the selected entry (see pinnedEntry/applyView below): the
+  // live re-fetch's own bounding box shrinks as orbit.radius shrinks
+  // (doFetch's own FETCH_RADIUS_FACTOR), so once you're centering/
+  // zooming in toward one specific sector, a click/double-click that
+  // landed even slightly off that sector's own exact stored position
+  // (easy to do from far out, where its marker is only a handful of
+  // screen pixels wide) could otherwise cause a later, smaller-radius
+  // re-fetch to legitimately no longer include it -- and syncTier
+  // removes anything not present in a fresh fetch, making the very
+  // sector you just selected and are flying toward vanish outright.
+  // Pinning keeps it in the scene regardless of what the live viewport
+  // query returns, for as long as it stays selected.
+  var pinnedEntry = null;
+
   function selectEntry(point, entry) {
     if (!entry) {
       return;
     }
+    pinnedEntry = entry;
     highlightPosition(point.x, point.y, point.z, entry.kind === "placed" ? placedScreenRadiusPx(entry.system_count) : PLANNED_PX);
     if (entry.kind === "placed") {
       showPlacedInfo(entry);
