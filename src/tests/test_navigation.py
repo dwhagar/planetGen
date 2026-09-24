@@ -403,25 +403,27 @@ def test_nav_between_raises_value_error_for_unrecognized_phenomenon_type(two_sec
         conn.close()
 
 
-def test_nav_between_rejects_a_real_supernova_remnant_endpoint(two_sector_galaxy):
-    # supernova_remnants is a RECOGNIZED phenomenon table (queryDb.
-    # _PHENOMENON_TYPE_TO_TABLE has an entry for it, so phenomenon_detail/
-    # list_phenomena/phenomenon.py's own page all work for it) but has no
-    # galaxy-frame placement columns at all (unlike nebula/asteroid_field/
-    # black_hole/neutron_star) -- nav_between must still cleanly reject it
-    # with a ValueError rather than crash with a raw "unknown column
-    # center_x_pc" SQL error, which is what happened before
-    # queryDb._PLACEABLE_PHENOMENON_TYPES was added to guard this path.
+def test_nav_between_reaches_a_placed_supernova_remnant(two_sector_galaxy):
+    # supernova_remnants gained galaxy-frame placement columns in v28 (see
+    # schema.sql's "v28" header note), so a placed one is a NAV endpoint
+    # like any other phenomenon; an unplaced one is unavailable, not a
+    # raw SQL error.
     config, ids = two_sector_galaxy
     remnant = SupernovaRemnant(SystemConfig())
+    placement = {"center_x_pc": 10.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 10.0}
     conn = _db.get_connection(config)
     try:
-        remnant_id = _db.insert_supernova_remnant(conn, remnant)
+        placed_id = _db.insert_supernova_remnant(conn, remnant, placement=placement)
+        unplaced_id = _db.insert_supernova_remnant(conn, SupernovaRemnant(SystemConfig()))
         conn.commit()
-        with pytest.raises(ValueError):
-            nav_between(conn, ids["a"][0], remnant_id, to_kind="phenomenon", to_type="supernova_remnant")
+        result = nav_between(conn, ids["a"][0], placed_id, to_kind="phenomenon", to_type="supernova_remnant")
+        with pytest.raises(NavUnavailable):
+            nav_between(conn, ids["a"][0], unplaced_id, to_kind="phenomenon", to_type="supernova_remnant")
     finally:
         conn.close()
+
+    assert result["scope"] == "galaxy"
+    assert result["route"]["path"][-1] == f"phenomenon:supernova_remnant:{placed_id}"
 
 
 def test_nav_between_raises_value_error_for_missing_phenomenon(two_sector_galaxy):

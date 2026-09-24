@@ -570,10 +570,9 @@ def galaxy_sectors():
 @bp.route("/galaxy/phenomena")
 def galaxy_phenomena():
     """
-    Every galaxy-placed nebula/asteroid field/black hole/neutron star
-    (`nebulae`/`asteroid_fields`/`black_holes`/`neutron_stars`.
-    `center_x/y/z_pc` not NULL -- see `schema.sql`'s "v18"/"v21" header
-    notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
+    Every galaxy-placed standalone phenomenon (`center_x/y/z_pc` not
+    NULL, in any `queryDb._PHENOMENON_TABLES` table -- see `schema.sql`'s
+    "v18"/"v21"/"v28" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
     as small dots on the same `html/galaxy.py` Galaxy Map. Not paginated,
     for the same reason `/api/galaxy/sectors` isn't.
     """

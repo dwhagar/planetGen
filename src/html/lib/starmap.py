@@ -2,8 +2,9 @@
 
 """
 Interactive 3D sector starmap: every placed star system in a sector (two,
-overlapping, for a binary), plus every nearby nebula/asteroid field/black
-hole/neutron star, plus a small clickable indicator toward each
+overlapping, for a binary), plus every nearby standalone phenomenon
+(nebula/asteroid field/supernova remnant/black hole/neutron star/rogue
+planet/interstellar comet), plus a small clickable indicator toward each
 immediately surrounding sector (`_neighbor_indicator_data`, see
 `queryDb.sector_neighbors`) -- linking straight to it if already
 generated, or showing its address (ready to feed into `generate.py galaxy
@@ -749,6 +750,15 @@ def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
     elif phenomenon_type == "neutron_star":
         data["kind"] = "neutronStar"
         data["typeLabel"] = f'Neutron Star ({descriptor.replace("-", " ").capitalize()})' if descriptor else "Neutron Star"
+    elif phenomenon_type == "supernova_remnant":
+        data["kind"] = "supernovaRemnant"
+        data["typeLabel"] = f'Supernova Remnant ({descriptor.capitalize()})' if descriptor else "Supernova Remnant"
+    elif phenomenon_type == "rogue_planet":
+        data["kind"] = "roguePlanet"
+        data["typeLabel"] = f'Rogue Planet ({descriptor.capitalize()})' if descriptor else "Rogue Planet"
+    elif phenomenon_type == "interstellar_comet":
+        data["kind"] = "interstellarComet"
+        data["typeLabel"] = f'Interstellar Comet ({descriptor.capitalize()})' if descriptor else "Interstellar Comet"
     else:
         # Defensive fallback for a future phenomenon type this function
         # doesn't know about yet -- drawn the same as a default-colored
@@ -874,9 +884,9 @@ def render_map_panel(
                               `temperature_k`, `radius_km`,
                               `luminosity_w`, `temp_display`.
         phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
-                              return shape -- every nebula/asteroid field/
-                              black hole/neutron star whose sphere could
-                              plausibly reach into this sector's cube. Its
+                              return shape -- every standalone phenomenon
+                              whose sphere could plausibly reach into this
+                              sector's cube. Its
                               `offset_x/y/z_ly` are already galaxy-frame
                               (computed directly from two galaxy-frame
                               centers -- see `schema.sql`'s "v18" note), so
@@ -1024,7 +1034,7 @@ def render_map_panel(
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields, glowing points &asymp; black holes/neutron stars, near this sector &middot; small markers at the edge &asymp; neighboring sectors</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants, glowing points &asymp; black holes/neutron stars/rogue planets/interstellar comets, near this sector &middot; small markers at the edge &asymp; neighboring sectors</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">

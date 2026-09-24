@@ -1162,13 +1162,9 @@ def test_generate_sector_does_not_force_content_onto_an_explicit_zero():
 #     local frame -- `SpaceSector.add_system` samples it directly there),
 #     rotated into the galaxy frame the same way the Sector Map does, then
 #     re-checked against the real cube; and
-#   - every checkable phenomenon's already-absolute `center_x/y/z_pc`
-#     (black holes, neutron stars, nebulae, asteroid fields -- the four
-#     `sector.phenomena` types `_db.insert_sector` gives a real galaxy-frame
-#     center via `_galaxy_placement_from_sector_offset`; a supernova
-#     remnant/rogue planet/comet has no coordinate columns of its own at
-#     all -- see those tables' own "no placement columns" schema notes --
-#     so there is nothing to check for those three).
+#   - every phenomenon's already-absolute `center_x/y/z_pc` (all seven
+#     `sector.phenomena` types, which `_db.insert_sector` gives a real
+#     galaxy-frame center via `_galaxy_placement_from_sector_offset`).
 # ---------------------------------------------------------------------------
 
 _CHECKABLE_PHENOMENON_TABLES = (
@@ -1176,6 +1172,9 @@ _CHECKABLE_PHENOMENON_TABLES = (
     ("neutron_stars", "neutron star"),
     ("nebulae", "nebula"),
     ("asteroid_fields", "asteroid field"),
+    ("supernova_remnants", "supernova remnant"),
+    ("rogue_planets", "rogue planet"),
+    ("interstellar_comets", "interstellar comet"),
 )
 """tuple: `(table_name, label)` for every phenomenon type that gets its own
 real `center_x/y/z_pc` (see this section's own docstring) -- the only ones
@@ -1311,7 +1310,7 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_bounds_across_shells_
     assert star_rows, "expected at least some star systems across shells 0-4"
     # The forced-count monkeypatch above should make every checkable type
     # show up at least once -- confirms this test's own setup actually
-    # exercises all four, not just whichever ones happened to place.
+    # exercises all seven, not just whichever ones happened to place.
     seen_labels = {label for label, _row in phenomenon_rows}
     assert seen_labels == {label for _table, label in _CHECKABLE_PHENOMENON_TABLES}
 

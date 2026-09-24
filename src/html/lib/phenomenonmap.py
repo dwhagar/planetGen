@@ -26,11 +26,8 @@ Galaxy/Sector Map's much larger scales); it renders as a small fixed dot
 rather than a to-scale circle, same convention `galaxymap.py`'s own
 `_PHENOMENON_TABLES` comment documents.
 
-A supernova remnant has no galaxy-frame placement at all (see
-`queryDb._SUPERNOVA_REMNANT_TABLE`'s own docstring) and so never appears
-on the Galaxy Map or as a NAV endpoint -- but it does have its own real
-`radius_ly`, which is all this diagram needs, so it renders here exactly
-like a nebula/asteroid field.
+A supernova remnant has its own real `radius_ly`, which is all this
+diagram needs, so it renders here exactly like a nebula/asteroid field.
 """
 
 from fmt import esc
