@@ -6,9 +6,11 @@
 // from a CDN). Unlike sectormap.js's scene (every star/cloud baked into
 // one JSON block at page load, camera always orbiting a fixed origin),
 // this camera's own orbit TARGET moves freely through the galaxy -- most
-// of what's drawn is fetched live from galaxy_view.py as the camera
-// moves, never baked into the page beyond the very first frame
-// (#galaxymap3d-data's own "initial" payload).
+// of what's drawn is fetched live from galaxy_tiles.py as the camera
+// moves, one fixed cube of space ("tile") at a time from galaxy_tiles.py,
+// never baked into the page beyond the very first frame
+// (#galaxymap3d-data's own "initial" payload) -- see the "Cube tiles"
+// section below.
 //
 // Coordinate convention: every position here is the design doc's own
 // galaxy-frame parsecs (docs/design/galaxy-coordinate-system.md), passed
@@ -19,9 +21,8 @@
 // way this map's own former flat SVG projection (a legacy "+y is down on
 // screen" convention) needed one.
 //
-// Three content tiers per live fetch (queryDb.galaxy_view's own
-// placed/planned/density lists -- see stellarObjects.galaxyViewport's
-// module docstring):
+// Three content tiers (each tile's placed/planned lists plus a separate
+// density cloud -- see stellarObjects.galaxyViewport's module docstring):
 //   - placed:  real, already-generated sectors -- bright sprites, sized
 //              by system_count, click selects + navigates.
 //   - planned: real, not-yet-generated qualifying addresses -- small dim
@@ -423,12 +424,12 @@ function initGalaxyMap3d(canvasEl, data) {
   // See this file's own module docstring for why this is an InstancedMesh
   // of real, additively-blended spheres rather than the flat THREE.Points
   // scatter this used to be. DENSITY_INSTANCE_CAPACITY is a safety margin
-  // above stellarObjects.galaxyViewport.DENSITY_SAMPLE_COUNT (1200) --
+  // above stellarObjects.galaxyViewport.DENSITY_TILE_SAMPLE_COUNT (1600) --
   // InstancedMesh.count (set per-update in applyDensity) can render fewer
   // instances than this capacity with no reallocation, but never more, so
   // this stays a headroom margin rather than an exact mirror of that
   // server-side constant.
-  var DENSITY_INSTANCE_CAPACITY = 1600;
+  var DENSITY_INSTANCE_CAPACITY = 2000;
   // Each sphere's world-space radius is this fraction of the camera's
   // CURRENT orbit radius (recomputed in applyDensity, which reruns on
   // every live re-fetch as the camera moves) -- not a fixed parsec value,
@@ -620,18 +621,327 @@ function initGalaxyMap3d(canvasEl, data) {
     return list.concat([pinnedEntry]);
   }
 
-  function applyView(view) {
-    syncTier(withPinned(view.placed || [], PLACED_KEY_OF, "placed"), placedSpritesByKey, PLACED_KEY_OF, makePlacedSprite, "placed");
-    syncTier(withPinned(view.planned || [], PLANNED_KEY_OF, "planned"), plannedSpritesByKey, PLANNED_KEY_OF, makePlannedSprite, "planned");
-    applyDensity(view.density || []);
+
+  // --- Cube tiles ----------------------------------------------------------
+  //
+  // The map asks for fixed cubes of space ("tiles") rather than "everything
+  // within R of the camera target" -- see stellarObjects.galaxyViewport's
+  // "Cube tiles" section. Space is an octree: level 0 is one cube
+  // tileRootEdgePc on a side centered on the galactic origin, each level
+  // halves the edge, and a tile's key is "level/ix/iy/iz". neededTiles()
+  // picks the smallest level whose tiles are at least the view radius
+  // across (so at most 27 tiles cover the view), plus the smallest tiles
+  // (the only ones that list planned slots) around the target when zoomed
+  // in. lib/galaxymap3d.py's initial_tile_request does the same in Python
+  // for the first frame.
+  //
+  // A tile's contents depend only on its key and the database's content
+  // stamp, so tiles are cached three ways: in memory here, in this
+  // browser's localStorage (so a revisit or reload doesn't refetch them),
+  // and on the server's disk (lib/tilecache.py) -- only tiles in none of
+  // those reach the API and database. Every response carries the current
+  // stamp; when it changes (new sectors generated), every cached tile is
+  // dropped and refetched.
+
+  var TILE_ROOT = data.tileRootEdgePc || 65536;
+  var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 12;
+  var PLANNED_TILE_EDGE = data.plannedTileMaxEdgePc || 16;
+  var PLANNED_VIEW_RADIUS = data.plannedViewRadiusPc || 20;
+  var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 200;
+  var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
+  var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
+  var hasShape = !!data.hasShape;
+
+  function tileLevelForRadius(radius) {
+    if (!(radius > 0)) {
+      return TILE_MAX_LEVEL;
+    }
+    var level = Math.floor(Math.log2(TILE_ROOT / radius));
+    return Math.max(0, Math.min(TILE_MAX_LEVEL, level));
   }
 
-  applyView(data.initial || { placed: [], planned: [], density: [] });
+  function tileEdge(level) {
+    return TILE_ROOT / Math.pow(2, level);
+  }
 
-  // --- Live viewport fetching ---------------------------------------------
+  // Nearest first, matching galaxyViewport.tiles_intersecting_sphere.
+  function tilesIntersectingSphere(level, center, radius) {
+    var edge = tileEdge(level);
+    var origin = -TILE_ROOT / 2;
+    var span = Math.pow(2, level);
+    var c = [center.x, center.y, center.z];
+    var lo = [];
+    var hi = [];
+    for (var axis = 0; axis < 3; axis++) {
+      lo.push(Math.max(0, Math.floor((c[axis] - radius - origin) / edge)));
+      hi.push(Math.min(span - 1, Math.floor((c[axis] + radius - origin) / edge)));
+    }
+    var found = [];
+    for (var ix = lo[0]; ix <= hi[0]; ix++) {
+      for (var iy = lo[1]; iy <= hi[1]; iy++) {
+        for (var iz = lo[2]; iz <= hi[2]; iz++) {
+          var index = [ix, iy, iz];
+          var distanceSq = 0;
+          for (var a = 0; a < 3; a++) {
+            var boxLo = origin + index[a] * edge;
+            var nearest = Math.min(Math.max(c[a], boxLo), boxLo + edge);
+            distanceSq += (c[a] - nearest) * (c[a] - nearest);
+          }
+          if (distanceSq <= radius * radius) {
+            found.push({ d: distanceSq, key: level + "/" + ix + "/" + iy + "/" + iz });
+          }
+        }
+      }
+    }
+    found.sort(function (p, q) { return p.d - q.d; });
+    return found.map(function (f) { return f.key; });
+  }
+
+  function tileContaining(level, point) {
+    var edge = tileEdge(level);
+    var origin = -TILE_ROOT / 2;
+    var span = Math.pow(2, level);
+    var p = [point.x, point.y, point.z];
+    var index = p.map(function (v) {
+      return Math.max(0, Math.min(span - 1, Math.floor((v - origin) / edge)));
+    });
+    return level + "/" + index.join("/");
+  }
+
+  function neededTiles() {
+    var viewRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, orbit.radius * FETCH_RADIUS_FACTOR));
+    var level = tileLevelForRadius(viewRadius);
+    var keys = tilesIntersectingSphere(level, target, viewRadius);
+    var plannedKeys = [];
+    var plannedRadius = 0;
+    if (viewRadius <= PLANNED_MAX_VIEW_RADIUS) {
+      plannedRadius = Math.min(viewRadius, PLANNED_VIEW_RADIUS);
+      plannedKeys = tilesIntersectingSphere(tileLevelForRadius(PLANNED_TILE_EDGE), target, plannedRadius);
+      plannedKeys.forEach(function (key) {
+        if (keys.indexOf(key) < 0) {
+          keys.push(key);
+        }
+      });
+    }
+    var densityKey = hasShape && viewRadius > PLANNED_MAX_VIEW_RADIUS ? tileContaining(level, target) : null;
+    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, densityKey: densityKey };
+  }
+
+  // --- Tile caches ---------------------------------------------------------
+
+  var TILE_MEMORY_MAX = 2000;
+  var DENSITY_MEMORY_MAX = 24;
+  var STORAGE_PREFIX = "planetgen:tile:" + data.db + ":";
+  var currentStamp = (data.initial && data.initial.stamp) || "";
+  var tileMemory = new Map();
+  var densityMemory = new Map();
+
+  // Map iteration order is insertion order, so re-inserting on every hit
+  // and evicting from the front makes these LRU caches.
+  function memoryGet(cache, key) {
+    if (!cache.has(key)) {
+      return undefined;
+    }
+    var value = cache.get(key);
+    cache.delete(key);
+    cache.set(key, value);
+    return value;
+  }
+
+  function memorySet(cache, key, value, max) {
+    cache.delete(key);
+    cache.set(key, value);
+    while (cache.size > max) {
+      cache.delete(cache.keys().next().value);
+    }
+  }
+
+  // localStorage can be missing, full, or throw on any access (private
+  // browsing, blocked site data) -- every use is wrapped, and the map
+  // works the same without it, just refetching from the server cache.
+  function storage() {
+    try {
+      return window.localStorage || null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // Drops this database's stored tiles, except the current stamp's when
+  // keepCurrent is set.
+  function purgeStoredTiles(keepCurrent) {
+    var store = storage();
+    if (!store) {
+      return;
+    }
+    try {
+      var doomed = [];
+      for (var i = 0; i < store.length; i++) {
+        var name = store.key(i);
+        if (name && name.indexOf(STORAGE_PREFIX) === 0) {
+          if (!keepCurrent || name.indexOf(STORAGE_PREFIX + currentStamp + ":") !== 0) {
+            doomed.push(name);
+          }
+        }
+      }
+      doomed.forEach(function (name) { store.removeItem(name); });
+    } catch (err) {
+      // Nothing more to do -- storage just stays as it was.
+    }
+  }
+
+  function storageName(key) {
+    return STORAGE_PREFIX + currentStamp + ":" + key;
+  }
+
+  function storedTile(key) {
+    var store = storage();
+    if (!store || !currentStamp) {
+      return undefined;
+    }
+    try {
+      var raw = store.getItem(storageName(key));
+      return raw ? JSON.parse(raw) : undefined;
+    } catch (err) {
+      return undefined;
+    }
+  }
+
+  function storeTile(key, tile) {
+    var store = storage();
+    if (!store || !currentStamp) {
+      return;
+    }
+    var raw = JSON.stringify(tile);
+    try {
+      store.setItem(storageName(key), raw);
+    } catch (err) {
+      // Probably full: drop other stamps' leftovers and try once more,
+      // then drop this database's tiles entirely and try a last time.
+      purgeStoredTiles(true);
+      try {
+        store.setItem(storageName(key), raw);
+      } catch (err2) {
+        purgeStoredTiles(false);
+        try {
+          store.setItem(storageName(key), raw);
+        } catch (err3) {
+          // Leave it memory-only.
+        }
+      }
+    }
+  }
+
+  function getTile(key) {
+    var tile = memoryGet(tileMemory, key);
+    if (tile === undefined) {
+      tile = storedTile(key);
+      if (tile !== undefined) {
+        memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
+      }
+    }
+    return tile;
+  }
+
+  function putTile(key, tile) {
+    memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
+    storeTile(key, tile);
+  }
+
+  // Density clouds (~100 KB each) stay in memory only; they would crowd
+  // tiles out of localStorage's few-megabyte budget, and the server's
+  // disk cache already serves them without touching the database.
+  function getDensity(key) {
+    return memoryGet(densityMemory, key);
+  }
+
+  function putDensity(key, points) {
+    memorySet(densityMemory, key, points, DENSITY_MEMORY_MAX);
+  }
+
+  function adoptStamp(stamp) {
+    if (!stamp || stamp === currentStamp) {
+      return false;
+    }
+    currentStamp = stamp;
+    tileMemory.clear();
+    densityMemory.clear();
+    purgeStoredTiles(true);
+    return true;
+  }
+
+  function absorb(payload) {
+    if (!payload) {
+      return false;
+    }
+    var stampChanged = adoptStamp(payload.stamp);
+    if (payload.has_shape != null) {
+      hasShape = !!payload.has_shape;
+    }
+    Object.keys(payload.tiles || {}).forEach(function (key) {
+      putTile(key, payload.tiles[key]);
+    });
+    if (payload.density && payload.density.key) {
+      putDensity(payload.density.key, payload.density.points || []);
+    }
+    return stampChanged;
+  }
+
+  purgeStoredTiles(true);
+  absorb(data.initial);
+
+  // --- Drawing from tiles --------------------------------------------------
+
+  function withinSphere(entry, radius) {
+    var dx = entry.x - target.x;
+    var dy = entry.y - target.y;
+    var dz = entry.z - target.z;
+    return dx * dx + dy * dy + dz * dz <= radius * radius;
+  }
+
+  // Draws whatever of the needed tiles is already cached; returns what's
+  // still missing.
+  function renderFromCache(need) {
+    var placed = [];
+    var planned = [];
+    var missing = [];
+    var plannedSet = new Set(need.plannedKeys);
+    need.keys.forEach(function (key) {
+      var tile = getTile(key);
+      if (tile === undefined) {
+        missing.push(key);
+        return;
+      }
+      Array.prototype.push.apply(placed, tile.placed || []);
+      if (plannedSet.has(key)) {
+        (tile.planned || []).forEach(function (entry) {
+          if (withinSphere(entry, need.plannedRadius)) {
+            planned.push(entry);
+          }
+        });
+      }
+    });
+    syncTier(withPinned(placed, PLACED_KEY_OF, "placed"), placedSpritesByKey, PLACED_KEY_OF, makePlacedSprite, "placed");
+    syncTier(withPinned(planned, PLANNED_KEY_OF, "planned"), plannedSpritesByKey, PLANNED_KEY_OF, makePlannedSprite, "planned");
+
+    var densityMissing = false;
+    if (!need.densityKey) {
+      applyDensity([]);
+    } else {
+      var points = getDensity(need.densityKey);
+      if (points === undefined) {
+        // Keep the previous cloud on screen until the new one arrives.
+        densityMissing = true;
+      } else {
+        applyDensity(points);
+      }
+    }
+    return { tiles: missing, density: densityMissing ? need.densityKey : null };
+  }
+
+  // --- Live tile fetching --------------------------------------------------
 
   var FETCH_DEBOUNCE_MS = 300;
-  var FETCH_RADIUS_FACTOR = 1.6;
   var fetchTimer = null;
   var activeAbort = null;
 
@@ -640,22 +950,16 @@ function initGalaxyMap3d(canvasEl, data) {
   // actually trigger an IMMEDIATE live fetch: at most MAX_CLICKS_PER_SECOND
   // per second. `doFetch`'s own activeAbort.abort() only stops the
   // BROWSER from waiting on a superseded response -- it doesn't reliably
-  // stop the server from finishing a query it already started (Flask/
-  // WSGI doesn't check for a disconnected client mid-query unless
-  // specifically coded to), so rapid clicking still burns a real WSGI
-  // thread/DB-connection-pool slot per click even when every earlier
-  // response gets thrown away client-side the instant the next one
-  // fires -- confirmed as a real contributor to production connection
-  // exhaustion under concurrent load. A click/double-click's own visual
-  // effect (the camera recentering/zooming, via centerOn/centerAndZoom)
-  // is never throttled here, only the network fetch that follows it --
-  // clicking faster than the cap still feels instant, it just falls back
-  // to the standard debounced delay below instead of firing right away,
-  // so a rapid burst still settles on exactly one fetch shortly after it
-  // stops (the same collapsing behavior continuous wheel-scrolling
-  // already relies on) rather than either hammering the server once per
-  // click or never syncing the display to the final camera position at
-  // all.
+  // stop the server from finishing a request it already started, so
+  // rapid clicking still costs the server work per click even when every
+  // earlier response gets thrown away client-side. A click/double-click's
+  // own visual effect (the camera recentering/zooming, via centerOn/
+  // centerAndZoom) is never throttled here, only the network fetch that
+  // follows it -- clicking faster than the cap still feels instant, it
+  // just falls back to the standard debounced delay below instead of
+  // firing right away, so a rapid burst still settles on exactly one
+  // fetch shortly after it stops. (With tiles, an aborted request's work
+  // isn't wasted either: the server caches whatever it computed.)
   var MAX_CLICKS_PER_SECOND = 4;
   var MIN_MS_BETWEEN_IMMEDIATE_FETCHES = 1000 / MAX_CLICKS_PER_SECOND;
   var lastImmediateFetchAt = 0;
@@ -678,23 +982,43 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function doFetch() {
+    fetchTimer = null;
+    var need = neededTiles();
+    var missing = renderFromCache(need);
+    if (!missing.tiles.length && !missing.density) {
+      return;
+    }
     if (activeAbort) {
       activeAbort.abort();
     }
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     activeAbort = controller;
-    var radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, orbit.radius * FETCH_RADIUS_FACTOR));
     var params = new URLSearchParams({
-      db: data.db, cx: target.x, cy: target.y, cz: target.z, radius_pc: radius,
+      db: data.db, tiles: missing.tiles.slice(0, MAX_TILES_PER_REQUEST).join(","),
     });
+    if (missing.density) {
+      params.set("density", missing.density);
+    }
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {
-          throw new Error("galaxy_view.py returned " + response.status);
+          throw new Error("galaxy_tiles.py returned " + response.status);
         }
         return response.json();
       })
-      .then(applyView)
+      .then(function (payload) {
+        if (activeAbort === controller) {
+          activeAbort = null;
+        }
+        var stampChanged = absorb(payload);
+        var stillMissing = renderFromCache(neededTiles());
+        // A new stamp dropped every cached tile, and a view needing more
+        // than one request's worth of tiles has more to fetch -- either
+        // way, go again (tiles already fetched are cached by now).
+        if (stampChanged || stillMissing.tiles.length || stillMissing.density) {
+          scheduleFetch(false);
+        }
+      })
       .catch(function (err) {
         if (err && err.name === "AbortError") {
           return;
@@ -704,6 +1028,13 @@ function initGalaxyMap3d(canvasEl, data) {
         // and there's no useful place to surface a network error inside
         // this canvas.
       });
+  }
+
+  // First frame: normally every tile is already cached (the page embeds
+  // them), so this only fetches if the page's own tile fetch came up short.
+  var initialMissing = renderFromCache(neededTiles());
+  if (initialMissing.tiles.length || initialMissing.density) {
+    scheduleFetch(false);
   }
 
   // --- Pointer/keyboard interaction --------------------------------------
@@ -845,9 +1176,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // was last selected showing, the same "recentering doesn't clear your
   // selection" behavior the old single zoomToward function had.
   //
-  // Also PINS the selected entry (see pinnedEntry/applyView below): the
-  // live re-fetch's own bounding box shrinks as orbit.radius shrinks
-  // (doFetch's own FETCH_RADIUS_FACTOR), so once you're centering/
+  // Also PINS the selected entry (see pinnedEntry/renderFromCache above): the
+  // live view's own tile set shrinks as orbit.radius shrinks
+  // (neededTiles' own FETCH_RADIUS_FACTOR), so once you're centering/
   // zooming in toward one specific sector, a click/double-click that
   // landed even slightly off that sector's own exact stored position
   // (easy to do from far out, where its marker is only a handful of

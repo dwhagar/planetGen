@@ -28,5 +28,5 @@
 ### Added
 - **`tests/test_skeleton_shape.py`** confirms the unfilled-sector
   skeleton's slot centers form a thin disk in galaxy-frame parsecs; the
-  sphere the Galaxy Map draws comes from its 200 pc planned-tier radius
-  cap, which the tile-based fetching work replaces.
+  sphere the Galaxy Map used to draw came from its old 200 pc
+  planned-tier radius cap, which the cube tiles in 5.47.0 replaced.

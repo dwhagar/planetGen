@@ -163,17 +163,35 @@ connectivity to that specific schema rather than the default one.
   cz)`, closest-first, capped at 2,000; `planned`
   is every real, not-yet-generated `(shell_index, shell_slot_index)`
   address this galaxy's own density model predicts would qualify, within
-  the same radius up to its own 200 pc cap (`shell_index`,
+  the same radius up to its own 40 pc cap (`shell_index`,
   `shell_slot_index`, `x`/`y`/`z`, `distance_pc`, `designation`,
   `predicted_star_count`, `relative_density` — `None` for the last two if
   no skeleton has been built), capped at 4,000; `density` is a coarse,
   illustrative point cloud (`x`/`y`/`z`, `relative_density`) for whatever
-  part of the view that 200 pc cap couldn't cover with exact addresses,
+  part of the view that 40 pc cap couldn't cover with exact addresses,
   empty when it didn't need to. `radius_pc` is silently clamped to 20,000.
-  Called repeatedly (debounced) by `../src/html/galaxy_view.py`, the
-  browser-facing proxy `static/galaxymap3d.js`'s own client-side `fetch()`
-  actually calls — never by the browser directly, same as every other
-  page here.
+  Kept for API clients; the Galaxy Map itself now uses `/api/galaxy/tiles`.
+- `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
+  Galaxy Map's data, one fixed cube of space ("tile") at a time
+  (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
+  65,536 pc on a side centered on the galactic origin, each level halves
+  the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
+  (`ix` counts cubes along x from the root cube's −x face). Returns
+  `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "density":
+  {"key": ..., "points": [...]} | null, "edge_pc": ..., "has_shape": ...}`:
+  `placed` is every placed sector whose center is in the tile's half-open
+  box (the `/api/galaxy/view` shape minus `distance_pc`), lowest id first,
+  at most 250; `planned` lists the tile's qualifying not-yet-generated
+  slots, only for 16 pc tiles (empty otherwise); `density`, when a
+  `density` key is given, is an illustrative cloud of 1,600 points within
+  twice that tile's edge of its center. At most 128 keys per request; a
+  malformed key is a 400. Every part depends only on its key and the
+  database's contents, so callers cache it by key and `/api/galaxy/stamp`.
+- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>"}`
+  (`queryDb.galaxy_content_stamp`), which changes whenever tile contents
+  could: sectors placed or removed, new star systems, a re-planned galaxy
+  shape, or a new planetGen release. `../src/html/lib/tilecache.py` (the
+  web layer's disk cache) and the map's browser cache both key on it.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset, and

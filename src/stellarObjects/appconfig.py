@@ -69,6 +69,10 @@ DEFAULT_CONFIG = {
         "storage_uri": "memory://",
     },
     "admin_cookie_insecure": False,
+    "tile_cache": {
+        "dir": "",
+        "max_mb": 200,
+    },
     "wiki": {
         # Either, both, or neither backend may be configured at once -- a
         # backend is "configured" (offered as an upload target) purely by

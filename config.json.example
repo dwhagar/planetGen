@@ -17,6 +17,10 @@
     "storage_uri": "memory://"
   },
   "admin_cookie_insecure": false,
+  "tile_cache": {
+    "dir": "",
+    "max_mb": 200
+  },
   "wiki": {
     "wikijs": {
       "base_url": "",

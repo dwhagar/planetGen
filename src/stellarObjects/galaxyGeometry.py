@@ -368,6 +368,129 @@ def slot_index_bounds_for_phi_range(phi_min, phi_max, n_k):
     return i_min, i_max
 
 
+_THETA_WINDOW_MARGIN_TURNS = 1e-6
+"""float: Slack (in whole turns, i.e. fractions of `2*pi`) added to each
+side of `_slot_indices_in_theta_window`'s azimuth window. `_theta_for_index`
+loses a few ULPs of `i / GOLDEN_RATIO` for outer-shell slot indices in the
+hundreds of millions (about 1e-7 turns), so the window is widened by an
+order of magnitude more than that. The prune only has to be conservative:
+every slot it keeps still gets its exact distance checked."""
+
+_DIRECT_SCAN_MAX_SLOTS = 64
+"""int: Below this many slots in a phi band, `_slot_indices_in_theta_window`
+just returns the whole band -- the Fibonacci-stride bookkeeping costs more
+than it saves."""
+
+
+def _azimuth_half_width(phi_center, alpha_max):
+    """
+    The largest azimuth difference `|theta - theta_center|` any direction
+    within angular distance `alpha_max` of `(phi_center, theta_center)` can
+    have -- the longitude half-width of a spherical cap,
+    `asin(sin(alpha_max) / sin(phi_center))`. Returns `pi` (no azimuth
+    pruning at all) when the cap reaches a pole, where every azimuth is
+    possible.
+    """
+    if phi_center - alpha_max <= 0.0 or phi_center + alpha_max >= math.pi:
+        return math.pi
+    ratio = math.sin(alpha_max) / math.sin(phi_center)
+    if ratio >= 1.0:
+        return math.pi
+    return math.asin(ratio)
+
+
+def _fibonacci_stride(band_length):
+    """The Fibonacci number `_slot_indices_in_theta_window` strides by for a
+    band of `band_length` slots: the largest one no bigger than
+    `sqrt(band_length / (2 * sqrt(5)))`, which balances the per-residue
+    setup cost against the number of azimuth wraps per residue (see that
+    function's docstring)."""
+    target = max(1.0, math.sqrt(band_length / (2.0 * math.sqrt(5.0))))
+    a, b = 1, 2
+    while b <= target:
+        a, b = b, a + b
+    return a
+
+
+def _slot_indices_in_theta_window(i_min, i_max, theta_center, half_width):
+    """
+    The slot indices in `[i_min, i_max]` whose azimuth (`_theta_for_index`)
+    could lie within `half_width` radians of `theta_center`, in no
+    particular order -- a superset (by `_THETA_WINDOW_MARGIN_TURNS`) of the
+    exact answer, never a subset.
+
+    Without this, `enumerate_sectors_within_radius` walked every slot in a
+    shell's whole phi band. Far from the core that band wraps all the way
+    around the galaxy: a 200 pc view 8 kpc out walked ~180 million slots
+    (~140 s of pure Python) to find ~770 thousand.
+
+    Stepping from slot `j` to slot `j + F`, for a Fibonacci number `F`,
+    moves the azimuth by the same tiny, fixed amount every time
+    (`F / GOLDEN_RATIO` is always within `1 / (sqrt(5) * F)` of an
+    integer), so for each residue `j` in `[i_min, i_min + F)` the slots
+    `j, j + F, j + 2F, ...` sweep the azimuth linearly. The ones inside the
+    window are then a closed-form range of multiples, found without
+    visiting the ones outside it. Cost is about `2F + band / (sqrt(5) * F)`
+    per shell plus one step per slot returned.
+
+    Args:
+        i_min, i_max (int): Inclusive slot-index band (from
+            `slot_index_bounds_for_phi_range`).
+        theta_center (float): Window center azimuth, radians.
+        half_width (float): Window half-width, radians. `>= pi` means no
+            azimuth pruning.
+
+    Yields:
+        int: Candidate slot indices.
+    """
+    band_length = i_max - i_min + 1
+    if band_length <= 0:
+        return
+    if half_width >= math.pi or band_length <= _DIRECT_SCAN_MAX_SLOTS:
+        yield from range(i_min, i_max + 1)
+        return
+
+    two_pi = 2.0 * math.pi
+    golden_step = 1.0 / GOLDEN_RATIO
+    center_turns = (theta_center / two_pi) % 1.0
+    half_turns = half_width / two_pi + _THETA_WINDOW_MARGIN_TURNS
+    if half_turns >= 0.5:
+        yield from range(i_min, i_max + 1)
+        return
+    window_lo = center_turns - half_turns
+    window_hi = center_turns + half_turns
+
+    stride = _fibonacci_stride(band_length)
+    drift = stride * golden_step
+    drift -= round(drift)  # signed, |drift| < 1 / (sqrt(5) * stride)
+
+    for j in range(i_min, min(i_max, i_min + stride - 1) + 1):
+        t_max = (i_max - j) // stride
+        start = (j * golden_step) % 1.0
+        if drift == 0.0:
+            # Only possible for stride 1 (1 / GOLDEN_RATIO is irrational),
+            # which band lengths above the direct-scan cutoff never pick;
+            # handled anyway so the arithmetic below never divides by zero.
+            yield from range(i_min, i_max + 1)
+            return
+        # Azimuth of slot j + t*stride, in turns, before wrapping:
+        # start + t*drift. It lands in the window for wrap m when
+        # window_lo + m <= start + t*drift <= window_hi + m.
+        end = start + t_max * drift
+        sweep_lo, sweep_hi = min(start, end), max(start, end)
+        for m in range(math.floor(sweep_lo - window_hi), math.ceil(sweep_hi - window_lo) + 1):
+            if drift > 0:
+                t_lo = (window_lo + m - start) / drift
+                t_hi = (window_hi + m - start) / drift
+            else:
+                t_lo = (window_hi + m - start) / drift
+                t_hi = (window_lo + m - start) / drift
+            first = max(0, math.ceil(t_lo))
+            last = min(t_max, math.floor(t_hi))
+            for t in range(first, last + 1):
+                yield j + t * stride
+
+
 def _candidate_shell_range(p_norm, radius_pc, edge_pc):
     """
     Which shell indices could possibly hold a slot within `radius_pc` of a
@@ -480,6 +603,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     if not at_origin:
         cx, cy, cz = center
         phi_center = math.acos(max(-1.0, min(1.0, cz / p_norm)))
+        theta_center = math.atan2(cy, cx)
 
     for k in range(k_min, k_max + 1):
         r_k = shell_radius_pc(k, edge_pc)
@@ -527,7 +651,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
         phi_max = min(math.pi, phi_center + alpha_max)
         i_min, i_max = slot_index_bounds_for_phi_range(phi_min, phi_max, n_k)
 
-        for i in range(i_min, i_max + 1):
+        for i in _slot_indices_in_theta_window(i_min, i_max, theta_center, _azimuth_half_width(phi_center, alpha_max)):
             x, y, z = sector_position_pc(k, i, edge_pc)
             dist = math.dist((x, y, z), center)
             if dist <= radius_pc:

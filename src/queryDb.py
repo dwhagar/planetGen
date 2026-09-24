@@ -32,14 +32,24 @@ sys.path shim needed, unlike the root-level entry scripts
 """
 
 import argparse
+import hashlib
+import json
 import math
 
 import pymysql
 
 from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
-from stellarObjects._version import VersionAction, version_banner
+from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import provisional_sector_designation, sector_position_pc
-from stellarObjects.galaxyViewport import PLANNED_RADIUS_CAP_PC, density_sample_points, planned_slots_in_view
+from stellarObjects.galaxyViewport import (
+    PLANNED_RADIUS_CAP_PC,
+    density_points_for_tile,
+    density_sample_points,
+    parse_tile_key,
+    planned_slots_in_tile,
+    planned_slots_in_view,
+    tile_bounds_pc,
+)
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
@@ -1822,6 +1832,186 @@ def galaxy_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc):
         "edge_pc": edge_pc, "has_shape": shape is not None,
     }
 
+
+
+# ---------------------------------------------------------------------
+# Cube tiles -- backs GET /api/galaxy/tiles and GET /api/galaxy/stamp. See
+# `stellarObjects.galaxyViewport`'s "Cube tiles" section for the model.
+# ---------------------------------------------------------------------
+
+GALAXY_TILE_MAX_PLACED = 250
+"""int: Most placed sectors one tile returns. Small tiles never hold this
+many; for big, zoomed-out tiles it's a sample (lowest ids first, so the
+same sample every time) -- a zoomed-out view can't show thousands of
+sub-pixel sectors anyway, and zooming in switches to smaller tiles that
+hold the rest."""
+
+MAX_TILES_PER_REQUEST = 128
+"""int: Most tiles one `/api/galaxy/tiles` request may ask for. The map
+needs at most 27 view tiles plus about 64 planned tiles at once."""
+
+
+def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
+    """
+    Placed sectors whose center lies in the half-open box `[lo, hi)`,
+    lowest id first, at most `limit` -- the "placed" half of one tile.
+
+    Two queries rather than `galaxy_sectors_in_view`'s one: the first
+    reads only the (indexed, `idx_sectors_center`) sector columns with a
+    `LIMIT`, and the per-sector system count runs only for the sectors
+    actually returned, so a box covering the whole galaxy costs one
+    bounded read instead of a count for every placed sector.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        limit (int): See `GALAXY_TILE_MAX_PLACED`.
+
+    Returns:
+        list[dict]: The same entries `galaxy_sectors_in_view` returns,
+            minus `distance_pc`.
+    """
+    rows = conn.execute(
+        """
+        SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, sec.edge_mpc
+        FROM sectors sec
+        WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
+          AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
+          AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
+        ORDER BY sec.id
+        LIMIT ?
+        """,
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+    ).fetchall()
+    if not rows:
+        return []
+
+    ids = [r["id"] for r in rows]
+    placeholders = ", ".join("?" for _ in ids)
+    counts = {
+        c["sector_id"]: c["system_count"]
+        for c in conn.execute(
+            f"SELECT sector_id, COUNT(*) AS system_count FROM star_systems "
+            f"WHERE sector_id IN ({placeholders}) GROUP BY sector_id",
+            ids,
+        ).fetchall()
+    }
+    return [_placed_sector_entry(r, counts.get(r["id"], 0)) for r in rows]
+
+
+def _placed_sector_entry(r, system_count):
+    """One placed-tier dict (see `galaxy_sectors_in_view`'s Returns) from a
+    `sectors` row, without `distance_pc`."""
+    shell_index, shell_slot_index = r["shell_index"], r["shell_slot_index"]
+    edge_pc = mpc_to_pc(r["edge_mpc"]) if r["edge_mpc"] else None
+    if shell_index is not None and shell_slot_index is not None and edge_pc:
+        designation = provisional_sector_designation(shell_index, shell_slot_index, edge_pc, pc_to_ly(edge_pc))
+    else:
+        designation = None
+    return {
+        "id": r["id"], "name": r["name"],
+        "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
+        "galactic_radius_pc": r["galactic_radius_pc"],
+        "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+        "designation": designation,
+        "system_count": system_count,
+        "edge_ly": pc_to_ly(edge_pc) if edge_pc else None,
+    }
+
+
+def galaxy_tiles(conn, tile_keys, density_key=None):
+    """
+    The contents of each requested cube tile, plus optionally one density
+    cloud -- the interactive 3D Galaxy Map's data source. Every part of
+    the result depends only on its tile key and the database's contents
+    (see `galaxy_content_stamp`), so callers can cache each part by key.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        tile_keys (list[str]): `"level/ix/iy/iz"` keys (see
+            `galaxyViewport.parse_tile_key`), at most
+            `MAX_TILES_PER_REQUEST`.
+        density_key (str or None): A tile key to anchor a density cloud on
+            (`galaxyViewport.density_points_for_tile`), or `None` for none.
+
+    Returns:
+        dict: `tiles` (`{key: {"placed": [...], "planned": [...]}}`, see
+            `galaxy_sectors_in_box`/`galaxyViewport.planned_slots_in_tile`),
+            `density` (`{"key": density_key, "points": [...]}`, or `None`
+            when no `density_key` was given; `points` is empty when the
+            galaxy has no shape yet), `edge_pc`, `has_shape`.
+
+    Raises:
+        ValueError: On a malformed key or too many keys.
+    """
+    parsed = [(key, parse_tile_key(key)) for key in dict.fromkeys(tile_keys)]
+    if len(parsed) > MAX_TILES_PER_REQUEST:
+        raise ValueError(f"at most {MAX_TILES_PER_REQUEST} tiles per request, got {len(parsed)}")
+    density_tile = parse_tile_key(density_key) if density_key else None
+
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is not None:
+        edge_pc = skeleton.edge_pc
+        shape = skeleton.shape
+        expected_system_count = skeleton.expected_system_count_at_density_1
+    else:
+        edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+        shape = None
+        expected_system_count = None
+    edge_ly = pc_to_ly(edge_pc)
+
+    tiles = {}
+    for key, (level, ix, iy, iz) in parsed:
+        lo, hi = tile_bounds_pc(level, ix, iy, iz)
+        placed = galaxy_sectors_in_box(conn, lo, hi)
+        exclude_addresses = {
+            (sector["shell_index"], sector["shell_slot_index"])
+            for sector in placed
+            if sector["shell_index"] is not None and sector["shell_slot_index"] is not None
+        }
+        planned = planned_slots_in_tile(
+            level, ix, iy, iz, edge_pc, edge_ly, shape, expected_system_count, exclude_addresses,
+        )
+        tiles[key] = {"placed": placed, "planned": planned}
+
+    density = None
+    if density_tile is not None:
+        points = density_points_for_tile(*density_tile, shape) if shape is not None else []
+        density = {"key": density_key, "points": points}
+
+    return {"tiles": tiles, "density": density, "edge_pc": edge_pc, "has_shape": shape is not None}
+
+
+def galaxy_content_stamp(conn):
+    """
+    A short token that changes whenever anything `galaxy_tiles` returns
+    could change: the placed-sector set (count and highest id), the
+    highest star-system id (new systems change a sector's system count),
+    the stored galaxy shape, and this code's own version (so a release
+    that changes the tile format never reuses old cached tiles). The web
+    layer and the browser key their tile caches by it, so a stale tile is
+    never served after new sectors are generated.
+
+    Cheap by design -- one indexed aggregate and two primary-key maxima --
+    since it runs once per Galaxy Map page load.
+
+    Returns:
+        str: 16 hex characters.
+    """
+    sector_row = conn.execute(
+        "SELECT COUNT(*) AS n, COALESCE(MAX(id), 0) AS max_id FROM sectors WHERE center_x_pc IS NOT NULL"
+    ).fetchone()
+    system_row = conn.execute("SELECT COALESCE(MAX(id), 0) AS max_id FROM star_systems").fetchone()
+    parts = {
+        "sectors": [int(sector_row["n"]), int(sector_row["max_id"])],
+        "systems": int(system_row["max_id"]),
+        "shape": galaxy_density_shape(conn),
+        "version": __version__,
+    }
+    digest = hashlib.sha256(json.dumps(parts, sort_keys=True, default=str).encode("utf-8"))
+    return digest.hexdigest()[:16]
 
 # ---------------------------------------------------------------------
 # Faceted search -- backs GET /api/search and html/search.py. Ported
