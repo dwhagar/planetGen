@@ -14,6 +14,7 @@ exercise the exact same read path (`queryDb.py`/`stellarObjects._db.load_sector`
 
 import math
 import re
+import time
 
 import pytest
 
@@ -921,6 +922,25 @@ def test_delete_sector_detaches_rather_than_deletes_its_systems(admin_client, se
     response = admin_client.get(f"/api/systems/{system_ids[0]}")
     assert response.status_code == 200
     assert response.get_json()["sector_id"] is None
+
+
+def test_delete_system_bumps_its_sectors_modified_at(admin_client, seeded_sector):
+    # v27: a deleted row leaves no timestamp behind, so its sector's
+    # modified_at is what tells a cache the sector changed.
+    config, sector_id, system_ids = seeded_sector
+
+    def sector_modified_at():
+        conn = _db.get_connection(config)
+        try:
+            return conn.execute("SELECT modified_at FROM sectors WHERE id = ?", (sector_id,)).fetchone()["modified_at"]
+        finally:
+            conn.close()
+
+    before = sector_modified_at()
+    time.sleep(0.05)
+    response = admin_client.delete(f"/api/systems/{system_ids[0]}")
+    assert response.status_code == 200
+    assert sector_modified_at() > before
 
 
 def test_create_system_generates_and_persists_a_standalone_system(admin_client):

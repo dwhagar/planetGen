@@ -82,7 +82,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 26
+SCHEMA_VERSION = 27
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -826,9 +826,12 @@ def _rename_existing_body_for_companion(conn, base_name):
         return False
 
     table = "planets" if row["first_body_kind"] == "planet" else "moons"
-    current = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (row["first_body_id"],)).fetchone()
+    current = conn.execute(
+        f"SELECT name, star_system_id FROM {table} WHERE id = ?", (row["first_body_id"],),
+    ).fetchone()
     if current is not None:
         conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (f"{current['name']} {suffix}", row["first_body_id"]))
+        touch_star_system(conn, current["star_system_id"])
     conn.execute(
         "UPDATE body_name_registry SET suffix_index = ? WHERE base_name = ?",
         (next_index, base_name),
@@ -4386,6 +4389,195 @@ def _migrate_v25_to_v26(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (26)")
 
 
+TIMESTAMPED_TABLES = (
+    "sectors", "star_systems",
+    "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
+    "rogue_planets", "interstellar_comets", "asteroid_fields",
+)
+"""tuple: The top-level tables carrying v27's `created_at`/`modified_at`
+row timestamps -- see `schema.sql`'s "v27" header note. Child rows
+(stars, planets, moons, belts, comets, ...) have no timestamps of their
+own; a change to one bumps its parent system's `modified_at` instead
+(`touch_star_system`)."""
+
+_V27_CREATED_AT_DDL = "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+_V27_MODIFIED_AT_DDL = (
+    "modified_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)"
+)
+
+
+def _alter_table_online(conn, table, alteration, algorithms):
+    """
+    Runs `ALTER TABLE {table} {alteration}` with the cheapest of
+    `algorithms` the server accepts, falling back to a plain `ALTER TABLE`
+    (the server's own choice) only if none of them is supported.
+
+    For v27's migration on a large production table: `ALGORITHM=INSTANT`
+    (MySQL 8.0.12+/MariaDB 10.3+) adds a column as a metadata-only change
+    with no table rebuild at all, and `ALGORITHM=INPLACE, LOCK=NONE` builds
+    an index (or, where INSTANT isn't available, a column) while still
+    letting reads and writes through. Asking for them explicitly makes the
+    server refuse rather than silently fall back to a blocking table copy,
+    which is what lets this function try the next option instead. An
+    older server that doesn't know a clause at all rejects it the same
+    way (a syntax error), so it's handled by the same fallback.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+        table (str): Table name (a module-level constant, never input).
+        alteration (str): The `ALTER TABLE` body, e.g. `ADD COLUMN ...`.
+        algorithms (tuple[str]): Clauses to try in order, e.g.
+            `("ALGORITHM=INSTANT", "ALGORITHM=INPLACE, LOCK=NONE")`.
+    """
+    for algorithm in algorithms:
+        try:
+            conn.execute(f"ALTER TABLE {table} {alteration}, {algorithm}")
+            return
+        except pymysql.MySQLError:
+            continue
+    conn.execute(f"ALTER TABLE {table} {alteration}")
+
+
+def _migrate_v26_to_v27(conn):
+    """
+    Adds v27's `created_at`/`modified_at` row timestamps (and an index on
+    `modified_at`) to every table in `TIMESTAMPED_TABLES` -- see
+    `schema.sql`'s "v27" header note. `star_systems` already had
+    `created_at`, so it only gains `modified_at`.
+
+    Written to be safe on a large, live table: each column is added with
+    `ALGORITHM=INSTANT` where the server supports it (no rebuild, no
+    lock), falling back to an online `INPLACE` rebuild, and each index is
+    built online (`ALGORITHM=INPLACE, LOCK=NONE`) -- see
+    `_alter_table_online`. Every step is guarded through `_has_column`/
+    `_has_index`, so a database `_ensure_schema` created fresh (which
+    already has all of this) makes the whole step a no-op.
+
+    Then backfills what can be recovered, via `_backfill_v27_timestamps`:
+    a system's `modified_at` starts at its own (pre-existing, real)
+    `created_at`, and a sector's `created_at`/`modified_at` both start at
+    its oldest system's `created_at`. Nothing recorded when a phenomenon
+    was made, so those rows (and any sector with no systems) keep the
+    time this migration ran.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in TIMESTAMPED_TABLES:
+        columns = []
+        if not _has_column(conn, table, "created_at"):
+            columns.append(_V27_CREATED_AT_DDL)
+        if not _has_column(conn, table, "modified_at"):
+            columns.append(_V27_MODIFIED_AT_DDL)
+        if columns:
+            _alter_table_online(
+                conn, table, ", ".join(f"ADD COLUMN {column}" for column in columns),
+                ("ALGORITHM=INSTANT", "ALGORITHM=INPLACE, LOCK=NONE"),
+            )
+
+        index_name = f"idx_{table}_modified_at"
+        if not _has_index(conn, table, index_name):
+            _alter_table_online(
+                conn, table, f"ADD KEY {index_name} (modified_at)", ("ALGORITHM=INPLACE, LOCK=NONE",),
+            )
+
+    _backfill_v27_timestamps(conn)
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (27)")
+
+
+_V27_BACKFILL_BATCH_SIZE = 5000
+"""int: How many `id`s `_backfill_v27_timestamps` covers per `UPDATE`,
+committing after each one so no single statement holds row locks on a
+large table for long."""
+
+
+def _id_batches(conn, table):
+    """
+    Yields `(first_id, last_id)` ranges covering every `id` in `table`,
+    `_V27_BACKFILL_BATCH_SIZE` ids at a time (ranges over the id space, so
+    gaps from deleted rows just make a batch smaller).
+    """
+    row = conn.execute(f"SELECT MIN(id) AS lo, MAX(id) AS hi FROM {table}").fetchone()
+    if row["lo"] is None:
+        return
+    for first_id in range(row["lo"], row["hi"] + 1, _V27_BACKFILL_BATCH_SIZE):
+        yield first_id, first_id + _V27_BACKFILL_BATCH_SIZE - 1
+
+
+def _backfill_v27_timestamps(conn):
+    """
+    `_migrate_v26_to_v27`'s backfill -- see that function's docstring for
+    what's recovered. Works through each table in primary-key batches,
+    committing after each, so a large live table is never locked by one
+    long `UPDATE`. Every value is derived from `star_systems.created_at`,
+    which this never changes, so a backfill interrupted partway just
+    redoes the same work when `migrate_database` is run again (the
+    `schema_migrations` row isn't written until it finishes).
+
+    Setting `modified_at` explicitly here also keeps `ON UPDATE` from
+    overwriting it with the current time.
+    """
+    for first_id, last_id in _id_batches(conn, "star_systems"):
+        conn.execute(
+            "UPDATE star_systems SET modified_at = created_at WHERE id BETWEEN ? AND ?",
+            (first_id, last_id),
+        )
+        conn.commit()
+
+    for first_id, last_id in _id_batches(conn, "sectors"):
+        conn.execute(
+            """
+            UPDATE sectors s
+            JOIN (
+                SELECT sector_id, MIN(created_at) AS first_created
+                FROM star_systems
+                WHERE sector_id BETWEEN ? AND ?
+                GROUP BY sector_id
+            ) f ON f.sector_id = s.id
+            SET s.created_at = f.first_created, s.modified_at = f.first_created
+            """,
+            (first_id, last_id),
+        )
+        conn.commit()
+
+
+def touch_star_system(conn, star_system_id):
+    """
+    Bumps one `star_systems` row's `modified_at` to now -- how a change to
+    one of its child rows (a planet's or moon's rename, say) shows up as a
+    change to the system, since child tables carry no timestamps of their
+    own (see `schema.sql`'s "v27" header note). A no-op for a
+    `star_system_id` that no longer exists.
+
+    Args:
+        conn (Connection): Part of the same transaction as the child
+            row's own change.
+        star_system_id (int): The parent system's `id`.
+    """
+    conn.execute(
+        "UPDATE star_systems SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (star_system_id,),
+    )
+
+
+def touch_sector(conn, sector_id):
+    """
+    Bumps one `sectors` row's `modified_at` to now -- `touch_star_system`'s
+    counterpart one level up, for a change `sectors`' own columns can't
+    show (a system in it being deleted, say). A no-op for a `None` or
+    no-longer-existing `sector_id`.
+
+    Args:
+        conn (Connection): Part of the same transaction as the change.
+        sector_id (int or None): The sector's `id`.
+    """
+    if sector_id is None:
+        return
+    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (sector_id,))
+
+
 def migrate_database(config=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
@@ -4416,9 +4608,11 @@ def migrate_database(config=None):
     `_migrate_v22_to_v23` (added for v23's wiki-publishing link columns on
     `sectors`/`star_systems`), `_migrate_v23_to_v24` (added for v24's
     name-uniqueness registry tables), `_migrate_v24_to_v25` (added for
-    v25's spatial index on `sectors`), and `_migrate_v25_to_v26` (added
-    for v26's spatial indexes on `nebulae`/`asteroid_fields`/
-    `black_holes`/`neutron_stars`) are the migration steps so far; see
+    v25's spatial index on `sectors`), `_migrate_v25_to_v26` (added for
+    v26's spatial indexes on `nebulae`/`asteroid_fields`/`black_holes`/
+    `neutron_stars`), and `_migrate_v26_to_v27` (added for v27's
+    `created_at`/`modified_at` row timestamps) are the migration steps so
+    far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4506,6 +4700,10 @@ def migrate_database(config=None):
         if version < 26:
             _migrate_v25_to_v26(conn)
             version = 26
+
+        if version < 27:
+            _migrate_v26_to_v27(conn)
+            version = 27
 
         conn.commit()
         return version
@@ -4626,6 +4824,16 @@ def advance_orbital_phases(conn, elapsed_years):
     `UPDATE` with its own `galactic_min_update_interval_years` guard, the
     same "one table, one guard" pattern every other `UPDATE` in this
     function already follows.
+
+    v27: every `UPDATE` here on a table with a `modified_at` column
+    (`star_systems` and the phenomenon tables) sets `modified_at =
+    modified_at` explicitly, which stops MySQL's `ON UPDATE
+    CURRENT_TIMESTAMP` from firing -- an orbit tick is the simulation
+    clock moving, not the row being edited, and would otherwise mark
+    every row in the galaxy as changed on each run. Anything that needs
+    to know when the simulation last moved reads
+    `orbit_simulation_state.last_updated_at` instead. See `schema.sql`'s
+    "v27" header note.
 
     Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
     reference point the *next* call's `elapsed_years` should be measured
@@ -4811,7 +5019,8 @@ def advance_orbital_phases(conn, elapsed_years):
             binary_primary_position_z_km = -binary_secondary_mass_fraction * binary_mutual_position_z_km,
             binary_secondary_position_x_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_x_km,
             binary_secondary_position_y_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_y_km,
-            binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km
+            binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km,
+            modified_at = modified_at
         WHERE is_binary = 1
           AND binary_mutual_orbital_period_years > 0
           AND ? >= binary_mutual_min_update_interval_years
@@ -4841,7 +5050,8 @@ def advance_orbital_phases(conn, elapsed_years):
             binary_planetary_wobble_z_km = -(
                 SELECT COALESCE(SUM((p.mass_kg / (ss.binary_effective_mass_kg + p.mass_kg)) * p.position_z_km), 0)
                 FROM planets p WHERE p.star_system_id = ss.id AND p.star_id IS NULL
-            )
+            ),
+            modified_at = modified_at
         WHERE ss.binary_configuration = 'close'
         """
     )
@@ -4855,7 +5065,8 @@ def advance_orbital_phases(conn, elapsed_years):
         UPDATE star_systems
         SET binary_galactic_orbital_phase_deg =
                 MOD(binary_galactic_orbital_phase_deg
-                    + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360)
+                    + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360),
+            modified_at = modified_at
         WHERE binary_configuration = 'close'
           AND binary_galactic_orbital_period_gy > 0
           AND ? >= binary_galactic_min_update_interval_years
@@ -4873,7 +5084,8 @@ def advance_orbital_phases(conn, elapsed_years):
             f"""
             UPDATE {table}
             SET galactic_orbital_phase_deg =
-                MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360)
+                MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360),
+                modified_at = modified_at
             WHERE star_id IS NULL AND galactic_orbital_period_gy > 0 AND ? >= galactic_min_update_interval_years
             """,
             (elapsed_years, elapsed_years),
@@ -4885,7 +5097,8 @@ def advance_orbital_phases(conn, elapsed_years):
             f"""
             UPDATE {table}
             SET galactic_orbital_phase_deg =
-                MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360)
+                MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360),
+                modified_at = modified_at
             WHERE galactic_orbital_period_gy > 0 AND ? >= galactic_min_update_interval_years
             """,
             (elapsed_years, elapsed_years),

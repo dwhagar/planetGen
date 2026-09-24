@@ -134,8 +134,8 @@ def _dedupe_bodies(conn):
         int: How many `planets`/`moons` rows (combined) this call
             actually renamed.
     """
-    planet_rows = [dict(row, kind="planet") for row in conn.execute("SELECT id, name FROM planets ORDER BY id").fetchall()]
-    moon_rows = [dict(row, kind="moon") for row in conn.execute("SELECT id, name FROM moons ORDER BY id").fetchall()]
+    planet_rows = [dict(row, kind="planet") for row in conn.execute("SELECT id, name, star_system_id FROM planets ORDER BY id").fetchall()]
+    moon_rows = [dict(row, kind="moon") for row in conn.execute("SELECT id, name, star_system_id FROM moons ORDER BY id").fetchall()]
 
     groups = defaultdict(list)
     for row in planet_rows + moon_rows:
@@ -154,6 +154,7 @@ def _dedupe_bodies(conn):
             if new_name != row["name"]:
                 table = "planets" if row["kind"] == "planet" else "moons"
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, row["id"]))
+                _db.touch_star_system(conn, row["star_system_id"])
                 renamed += 1
             _db.confirm_body_name(conn, name_base, row["id"], row["kind"], suffix_index)
     return renamed
