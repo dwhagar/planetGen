@@ -1568,7 +1568,10 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             `shell_index`, `shell_slot_index`, `designation`
             (`provisional_sector_designation`, `None` if this sector has
             no `shell_slot_index` -- a placement predating the v8 schema's
-            per-slot addressing), `system_count`, `distance_pc` (from the
+            per-slot addressing), `system_count`, `edge_ly` (this
+            sector's own real edge length -- lets a client compute its
+            true stellar density, `system_count / edge_ly ** 3`, rather
+            than just its raw system count), `distance_pc` (from the
             given center).
     """
     rows = conn.execute(
@@ -1618,6 +1621,7 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             "shell_index": shell_index, "shell_slot_index": shell_slot_index,
             "designation": designation,
             "system_count": r["system_count"],
+            "edge_ly": pc_to_ly(mpc_to_pc(r["edge_mpc"])) if r["edge_mpc"] else None,
             "distance_pc": math.sqrt(distance_sq),
         })
     return results

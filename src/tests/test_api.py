@@ -585,6 +585,35 @@ def test_galaxy_sectors_excludes_unplaced_sectors(client, seeded_sector):
     assert response.get_json() == {"items": []}
 
 
+def test_galaxy_view_placed_sector_includes_edge_ly(client, mysql_config):
+    """`GET /api/galaxy/view`'s own "placed" tier (queryDb.
+    galaxy_sectors_in_view) exposes each placed sector's own real
+    edge_ly -- added so static/galaxymap3d.js can color a sector marker
+    by its own true stellar density (system_count / edge_ly ** 3)
+    relative to the real local average, rather than raw system count
+    alone."""
+    sector = SpaceSector("Density Test Sector", edge_ly=10.0)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = False
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+
+    empty_vertices = {"inner": [], "outer": []}
+    _db.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
+        "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
+    })
+
+    response = client.get("/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=1000")
+    assert response.status_code == 200
+    placed = response.get_json()["placed"]
+    assert len(placed) == 1
+    assert placed[0]["edge_ly"] == pytest.approx(10.0)
+    assert placed[0]["system_count"] == 1
+
+
 def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 

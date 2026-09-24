@@ -23,8 +23,11 @@ Three content tiers, matching `queryDb.galaxy_view`'s own three lists
 (`placed`/`planned`/`density` -- see `stellarObjects.galaxyViewport`'s
 module docstring for what each means):
 
-- **Placed**: real, already-generated sectors -- bright, clickable,
-  sized/colored by `system_count`, navigates to `sector.py`.
+- **Placed**: real, already-generated sectors -- bright, clickable, sized
+  by `system_count`, colored by real stellar density (`system_count /
+  edge_ly ** 3`, relative to `physical_constants.LOCAL_STELLAR_DENSITY_LY3`
+  -- see `render_galaxy_map3d_panel`'s own `referenceDensityPerLy3`),
+  navigates to `sector.py`.
 - **Planned**: real, not-yet-generated sector addresses this galaxy's own
   density model (when built) predicts would qualify -- small, dim,
   clickable, shows its designation/address (copyable straight into
@@ -77,6 +80,7 @@ out:
 import json
 
 try:
+    from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
     from stellarObjects.program_constants import GALAXY_RADIUS_PC
     from stellarObjects.utils import ly_to_pc, pc_to_ly
 except ImportError:
@@ -84,6 +88,7 @@ except ImportError:
     # duplicated fallback, matching every other lib/ module's identical
     # pattern (see e.g. galaxymap.py's own top-of-file try/except).
     GALAXY_RADIUS_PC = 15000.0
+    LOCAL_STELLAR_DENSITY_LY3 = 0.00284
     def ly_to_pc(ly):
         return ly / 3.2616
     def pc_to_ly(pc):
@@ -206,6 +211,15 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
         "initialCenter": [0.0, 0.0, 0.0],
         "initialRadiusPc": max_radius,
         "initial": initial_view,
+        # The real, sampled-in-the-solar-neighborhood average this
+        # project's own generation already calibrates against (see
+        # physical_constants.LOCAL_STELLAR_DENSITY_LY3's own citations) --
+        # static/galaxymap3d.js colors each placed sector by its own real
+        # density (system_count / edge_ly ** 3) RELATIVE to this same
+        # reference, so "denser than real average" / "sparser than real
+        # average" means the same thing on this map that it does in the
+        # generator itself, not an arbitrary client-side scale.
+        "referenceDensityPerLy3": LOCAL_STELLAR_DENSITY_LY3,
     }
 
     shape_hint = (
@@ -225,9 +239,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
   <h2>Galaxy Map (3D)</h2>
   <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a dot or
   empty space to center the view there and select it &middot; double-click to do the same AND zoom in (bigger
-  steps while zoomed out, finer near a single sector) &middot; bright dots &asymp; generated sectors &middot;
-  small dim dots &asymp; real, not-yet-generated sector addresses &middot; faint spheres &asymp; illustrative
-  predicted density</span>
+  steps while zoomed out, finer near a single sector) &middot; generated-sector dots colored by their own real
+  stellar density (dim &rarr; bright, relative to the real local average) &middot; small dim dots &asymp; real,
+  not-yet-generated sector addresses &middot; faint spheres &asymp; illustrative predicted density</span>
 </div>
 {shape_hint}
 <div class="starmap-layout">

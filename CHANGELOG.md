@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.46.29] - 2026-09-24
+
+### Changed
+- **Galaxy Map (3D): a placed (already-generated) sector's own marker is
+  now colored by its real stellar density** (`system_count / edge_ly **
+  3`, relative to `physical_constants.LOCAL_STELLAR_DENSITY_LY3` -- the
+  real local-neighborhood average this whole generator already
+  calibrates against), not just sized by raw system count. Marker size
+  still scales with `system_count` as before; only the color (dim bronze
+  at low density, bright gold at high) is new. The info panel gained a
+  "Density" field showing the same ratio (e.g. "1.8x local average").
+  `queryDb.galaxy_sectors_in_view`'s own returned shape gained `edge_ly`
+  per sector to make this possible.
+
 ## [5.46.28] - 2026-09-24
 
 ### Fixed

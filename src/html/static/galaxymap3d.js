@@ -124,8 +124,11 @@ function showPlacedInfo(entry) {
   heading.textContent = entry.name || "Unnamed sector";
   panel.appendChild(heading);
 
+  var relativeDensity = placedRelativeDensity(entry, sceneData.referenceDensityPerLy3);
+
   var dl = document.createElement("dl");
   addField(dl, "Systems", entry.system_count != null ? entry.system_count : 0);
+  addField(dl, "Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null);
   addField(dl, "Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null);
   addField(dl, "Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.shell_slot_index) : null);
   addField(dl, "Designation", entry.designation);
@@ -253,13 +256,52 @@ function makeRingTexture(color) {
 // galaxy map stays a legible dot regardless of camera distance.
 var PLACED_MIN_PX = 4.0;
 var PLACED_MAX_PX = 16.0;
-var PLACED_CORE_FILL = "#fff6df";
-var PLACED_CORE_STROKE = "#caa54d";
-var PLACED_HALO_FILL = "#ffd88a";
+// Near-white/gray, not a fixed hue -- placedColor() below tints each
+// marker's own sprite material to its own real-density color via plain
+// multiplication (THREE.SpriteMaterial's own `color` * texture), which
+// only stays clean (scales brightness/saturation) against a white/gray
+// base; a colored base texture would shift hue unpredictably instead.
+var PLACED_CORE_BASE_FILL = "#ffffff";
+var PLACED_CORE_BASE_STROKE = "#c4c4c4";
+var PLACED_HALO_BASE_FILL = "#ffffff";
 
 function placedScreenRadiusPx(systemCount) {
   var count = systemCount || 0;
   return Math.max(PLACED_MIN_PX, Math.min(PLACED_MAX_PX, PLACED_MIN_PX + 2.5 * Math.sqrt(count)));
+}
+
+// A placed sector's own REAL stellar density (system_count / edge_ly^3),
+// relative to physical_constants.LOCAL_STELLAR_DENSITY_LY3 (the real
+// local-neighborhood average this whole generator already calibrates
+// against -- see lib/galaxymap3d.py's own referenceDensityPerLy3
+// comment) -- 1.0 means exactly average, >1 denser, <1 sparser. `null`
+// when edge_ly isn't available (a sector placed before per-sector edge
+// tracking existed) rather than a false 0, so placedDensityColor below
+// can fall back to a neutral mid-tone instead of reading as "empty".
+var PLACED_LOW_DENSITY_COLOR = "#4a3f2e";
+var PLACED_HIGH_DENSITY_COLOR = "#fff6df";
+
+function placedRelativeDensity(entry, referenceDensityPerLy3) {
+  if (!entry.edge_ly || !referenceDensityPerLy3) {
+    return null;
+  }
+  var densityPerLy3 = (entry.system_count || 0) / Math.pow(entry.edge_ly, 3);
+  return densityPerLy3 / referenceDensityPerLy3;
+}
+
+// Same "log2(x+1)/3" shape densityIntensity (below, for the illustrative
+// cloud) uses, for a consistent dim-to-bright response curve -- fed real
+// per-sector density here instead of the server's own illustrative
+// model, and mapped through a warm bronze-to-gold range (rather than the
+// cloud's cooler dim-to-accent one) so a real, already-generated
+// sector's own marker stays visually distinct from illustrative shading
+// at a glance, exactly like it already was before density coloring.
+function placedDensityColor(entry, referenceDensityPerLy3) {
+  var relative = placedRelativeDensity(entry, referenceDensityPerLy3);
+  var t = relative == null ? 0.5 : Math.max(0, Math.min(1, Math.log2(relative + 1) / 3));
+  var low = new THREE.Color(PLACED_LOW_DENSITY_COLOR);
+  var high = new THREE.Color(PLACED_HIGH_DENSITY_COLOR);
+  return low.clone().lerp(high, t);
 }
 
 var PLANNED_PX = 3.0;
@@ -273,8 +315,8 @@ var highlightTexture = null;
 
 function ensureTextures(accentColor) {
   if (!placedCoreTexture) {
-    placedCoreTexture = makeDotTexture(PLACED_CORE_FILL, PLACED_CORE_STROKE);
-    placedHaloTexture = makeDotTexture(PLACED_HALO_FILL, null);
+    placedCoreTexture = makeDotTexture(PLACED_CORE_BASE_FILL, PLACED_CORE_BASE_STROKE);
+    placedHaloTexture = makeDotTexture(PLACED_HALO_BASE_FILL, null);
     plannedTexture = makeDotTexture(PLANNED_FILL, PLANNED_STROKE);
     highlightTexture = makeRingTexture(accentColor);
   }
@@ -424,8 +466,13 @@ function initGalaxyMap3d(canvasEl, data) {
 
   function makePlacedSprite(entry) {
     var group = new THREE.Group();
-    var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: placedHaloTexture, transparent: true, depthWrite: false, opacity: 0.45 }));
-    var core = new THREE.Sprite(new THREE.SpriteMaterial({ map: placedCoreTexture, transparent: true, depthWrite: false }));
+    var color = placedDensityColor(entry, data.referenceDensityPerLy3);
+    var halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: placedHaloTexture, color: color, transparent: true, depthWrite: false, opacity: 0.45,
+    }));
+    var core = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: placedCoreTexture, color: color, transparent: true, depthWrite: false,
+    }));
     group.add(halo);
     group.add(core);
     group.position.set(entry.x, entry.y, entry.z);

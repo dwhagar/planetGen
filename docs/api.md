@@ -153,8 +153,11 @@ connectivity to that specific schema rather than the default one.
   Map's (`../src/html/galaxy.py`) own live-viewport query, scoped to a
   moving camera rather than the whole galaxy in one shot the way
   `/api/galaxy/sectors` is: `placed` is that same per-sector shape (plus
-  `shell_slot_index`, `designation`, `distance_pc`) but only within
-  `radius_pc` of `(cx, cy, cz)`, closest-first, capped at 2,000; `planned`
+  `shell_slot_index`, `designation`, `distance_pc`, and `edge_ly` — this
+  sector's own real edge length, `null` if it predates per-sector edge
+  tracking, lets a client compute its true stellar density,
+  `system_count / edge_ly ** 3`) but only within `radius_pc` of `(cx, cy,
+  cz)`, closest-first, capped at 2,000; `planned`
   is every real, not-yet-generated `(shell_index, shell_slot_index)`
   address this galaxy's own density model predicts would qualify, within
   the same radius up to its own 200 pc cap (`shell_index`,
