@@ -481,8 +481,29 @@ function initGalaxyMap3d(canvasEl, data) {
     return group;
   }
 
+  // Planned dots stop at the view radius around the target (the density
+  // cloud a little past it), so both fade out toward that edge instead of
+  // stopping at a hard spherical rim the eye reads as a ball.
+  // fadeRadius is the current view radius (set by renderFromCache).
+  var PLANNED_OPACITY = 0.75;
+  var EDGE_FADE_START = 0.6;
+  var EDGE_FADE_END = 1.0;
+  var fadeRadius = 0;
+
+  function edgeFade(x, y, z) {
+    if (!(fadeRadius > 0)) {
+      return 1;
+    }
+    var dx = x - target.x;
+    var dy = y - target.y;
+    var dz = z - target.z;
+    var t = Math.sqrt(dx * dx + dy * dy + dz * dz) / fadeRadius;
+    var u = Math.max(0, Math.min(1, (t - EDGE_FADE_START) / (EDGE_FADE_END - EDGE_FADE_START)));
+    return 1 - u * u * (3 - 2 * u);
+  }
+
   function makePlannedSprite(entry) {
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, opacity: 0.75 }));
+    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, opacity: PLANNED_OPACITY }));
     sprite.position.set(entry.x, entry.y, entry.z);
     sprite.userData.screenRadiusPx = PLANNED_PX;
     return sprite;
@@ -522,8 +543,12 @@ function initGalaxyMap3d(canvasEl, data) {
       screenSizedScale(group.children[0], px, 1.2, group.position); // halo
       screenSizedScale(group.children[1], px, 1.0, group.position); // core
     });
-    plannedSpritesByKey.forEach(function (sprite) {
+    var pinnedPlannedKey = pinnedEntry && pinnedEntry.kind === "planned" ? PLANNED_KEY_OF(pinnedEntry) : null;
+    plannedSpritesByKey.forEach(function (sprite, key) {
       screenSizedScale(sprite, sprite.userData.screenRadiusPx, 1.0);
+      // The selected dot never fades away, even out past the view's edge.
+      var p = sprite.position;
+      sprite.material.opacity = key === pinnedPlannedKey ? PLANNED_OPACITY : PLANNED_OPACITY * edgeFade(p.x, p.y, p.z);
     });
     if (highlightSprite.visible) {
       screenSizedScale(highlightSprite, highlightSprite.userData.screenRadiusPx, 1.0);
@@ -593,7 +618,9 @@ function initGalaxyMap3d(canvasEl, data) {
       densityMatrix.makeScale(scale, scale, scale);
       densityMatrix.setPosition(point.x, point.y, point.z);
       densityMesh.setMatrixAt(i, densityMatrix);
-      densityMesh.setColorAt(i, densityInstanceColor.copy(densityColor(point.relative_density)));
+      // Additive blending, so a darker color is a fainter sphere.
+      densityInstanceColor.copy(densityColor(point.relative_density)).multiplyScalar(edgeFade(point.x, point.y, point.z));
+      densityMesh.setColorAt(i, densityInstanceColor);
     }
     densityMesh.count = count;
     densityMesh.instanceMatrix.needsUpdate = true;
@@ -646,8 +673,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var TILE_ROOT = data.tileRootEdgePc || 65536;
   var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 12;
   var PLANNED_TILE_EDGE = data.plannedTileMaxEdgePc || 16;
-  var PLANNED_VIEW_RADIUS = data.plannedViewRadiusPc || 20;
-  var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 200;
+  var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 32;
   var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
   var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
   var hasShape = !!data.hasShape;
@@ -715,7 +741,10 @@ function initGalaxyMap3d(canvasEl, data) {
     var plannedKeys = [];
     var plannedRadius = 0;
     if (viewRadius <= PLANNED_MAX_VIEW_RADIUS) {
-      plannedRadius = Math.min(viewRadius, PLANNED_VIEW_RADIUS);
+      // Out to the whole view, not a smaller ball around the target: a
+      // clipped ball of dots floating in empty space is exactly what the
+      // galaxy doesn't look like up close.
+      plannedRadius = viewRadius;
       plannedKeys = tilesIntersectingSphere(tileLevelForRadius(PLANNED_TILE_EDGE), target, plannedRadius);
       plannedKeys.forEach(function (key) {
         if (keys.indexOf(key) < 0) {
@@ -724,7 +753,7 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     }
     var densityKey = hasShape && viewRadius > PLANNED_MAX_VIEW_RADIUS ? tileContaining(level, target) : null;
-    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, densityKey: densityKey };
+    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, densityKey: densityKey, viewRadius: viewRadius };
   }
 
   // --- Tile caches ---------------------------------------------------------
@@ -902,6 +931,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // Draws whatever of the needed tiles is already cached; returns what's
   // still missing.
   function renderFromCache(need) {
+    fadeRadius = need.viewRadius;
     var placed = [];
     var planned = [];
     var missing = [];
