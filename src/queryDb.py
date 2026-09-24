@@ -1853,11 +1853,17 @@ def galaxy_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc):
 # ---------------------------------------------------------------------
 
 GALAXY_TILE_MAX_PLACED = 250
-"""int: Most placed sectors one tile returns. Small tiles never hold this
-many; for big, zoomed-out tiles it's a sample (lowest ids first, so the
-same sample every time) -- a zoomed-out view can't show thousands of
-sub-pixel sectors anyway, and zooming in switches to smaller tiles that
-hold the rest."""
+"""int: Most placed sectors one tile returns. Past this, a tile returns an
+evenly spaced sample (every Nth sector by id, so the same sample every
+time) -- a zoomed-out view can't show thousands of sub-pixel sectors
+anyway, and zooming in switches to smaller tiles that hold the rest.
+
+The sample has to be spread out, not just the first ids: a local
+neighborhood is generated shell by shell outward from the core, so its
+lowest ids are its core-facing shells. Taking the lowest 250 used to draw
+a generated 100 ly sphere as a core-facing bowl, cut off flat where the
+cap ran out. A fully generated 64 pc tile holds thousands of sectors, so
+this isn't only a far-zoomed-out case."""
 
 MAX_TILES_PER_REQUEST = 128
 """int: Most tiles one `/api/galaxy/tiles` request may ask for. The map
@@ -1867,13 +1873,16 @@ needs at most 27 view tiles plus about 64 planned tiles at once."""
 def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
     """
     Placed sectors whose center lies in the half-open box `[lo, hi)`,
-    lowest id first, at most `limit` -- the "placed" half of one tile.
+    ordered by id, at most `limit` -- the "placed" half of one tile. When
+    the box holds more than `limit`, it's every Nth of them by id, `N =
+    ceil(count / limit)` (see `GALAXY_TILE_MAX_PLACED` for why not the
+    lowest ids).
 
     Two queries rather than `galaxy_sectors_in_view`'s one: the first
-    reads only the (indexed, `idx_sectors_center`) sector columns with a
-    `LIMIT`, and the per-sector system count runs only for the sectors
-    actually returned, so a box covering the whole galaxy costs one
-    bounded read instead of a count for every placed sector.
+    reads only the (indexed, `idx_sectors_center`) sector columns, and the
+    per-sector system count runs only for the sectors actually returned,
+    so a box covering the whole galaxy costs one read of the sector
+    columns instead of a count for every placed sector.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -1887,16 +1896,23 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
     """
     rows = conn.execute(
         """
-        SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, sec.edge_mpc
-        FROM sectors sec
-        WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
-          AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
-          AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
-        ORDER BY sec.id
+        SELECT id, name, center_x_pc, center_y_pc, center_z_pc,
+               galactic_radius_pc, shell_index, shell_slot_index, edge_mpc
+        FROM (
+            SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+                   sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, sec.edge_mpc,
+                   ROW_NUMBER() OVER (ORDER BY sec.id) AS row_num,
+                   COUNT(*) OVER () AS row_total
+            FROM sectors sec
+            WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
+              AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
+              AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
+        ) ranked
+        WHERE MOD(row_num - 1, CEILING(row_total / ?)) = 0
+        ORDER BY id
         LIMIT ?
         """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit), int(limit)),
     ).fetchall()
     if not rows:
         return []
