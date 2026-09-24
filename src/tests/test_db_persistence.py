@@ -1929,7 +1929,6 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
         galaxy_position = {
             "center_x_pc": 5.0, "center_y_pc": -3.0, "center_z_pc": 1.0,
             "galactic_radius_pc": math.sqrt(5.0 ** 2 + 3.0 ** 2 + 1.0 ** 2),
-            "vertices_pc": {"inner": [], "outer": []},
         }
         sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
@@ -2063,13 +2062,12 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     galaxy-placed sector, plus a rogue planet in a never-placed sector and
     a comet with no sector at all. After migrating: the three tables have
     v28's columns, indexes and CHECK; each row in the placed sector sits
-    inside that sector's own rotated cube; the remnant's black hole shares
+    inside that sector's own cube; the remnant's black hole shares
     its remnant's sector and center; and the rows with no placed sector
     stay unplaced. A batch size of 1 makes the backfill cross batch
     boundaries.
     """
     from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-    from stellarObjects.sectorGeometry import cube_orientation
     from stellarObjects.supernovaRemnantData import SupernovaRemnant
     from stellarObjects.utils import ly_to_pc
 
@@ -2078,7 +2076,6 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     galaxy_position = {
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.sqrt(sum(c * c for c in center_pc)),
-        "vertices_pc": {"inner": [], "outer": []},
     }
     placed_sector_id = _db.save_sector(
         SpaceSector("Placement Migration Sector", edge_ly=11.5), config=mysql_config,
@@ -2115,7 +2112,8 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
 
     half_edge_pc = ly_to_pc(11.5) / 2
-    axes = cube_orientation(center_pc)
+    # No grid address, so placement falls back to an axis-aligned cube.
+    axes = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in _db.V28_PLACED_TABLES:

@@ -42,7 +42,7 @@ import pymysql
 
 from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
 from stellarObjects._version import VersionAction, __version__, version_banner
-from stellarObjects.galaxyGeometry import provisional_sector_designation, sector_position_pc
+from stellarObjects.galaxyGeometry import neighbor_addresses, provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import (
     density_points_for_tile,
     parse_tile_key,
@@ -53,7 +53,6 @@ from stellarObjects.galaxyViewport import (
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
-from stellarObjects.sectorGeometry import lateral_neighbor_slots, radial_neighbor_slot
 from stellarObjects.evolution import life_stage_from_paragraphs
 from stellarObjects.program_constants import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, PLANET_CLASSES,
@@ -106,7 +105,7 @@ def list_sectors(conn, limit=None, offset=None):
     """
     query = """
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, COUNT(ss.id) AS system_count
+               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index, COUNT(ss.id) AS system_count
         FROM sectors sec
         LEFT JOIN star_systems ss ON ss.sector_id = sec.id
         GROUP BY sec.id
@@ -127,7 +126,8 @@ def list_sectors(conn, limit=None, offset=None):
             "galactic_radius_ly": (
                 pc_to_ly(r["galactic_radius_pc"]) if r["galactic_radius_pc"] is not None else None
             ),
-            "shell_index": r["shell_index"], "shell_slot_index": r["shell_slot_index"],
+            "ring_index": r["ring_index"], "layer_index": r["layer_index"],
+            "ring_slot_index": r["ring_slot_index"],
             "placed": r["center_x_pc"] is not None,
         }
         for r in rows
@@ -832,73 +832,63 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     }
 
 
+def sector_address(row):
+    """A `sectors` row's `(ring_index, layer_index, ring_slot_index)`, or
+    `None` when it has no grid address (never placed, or hand-placed)."""
+    address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    return None if any(value is None for value in address) else address
+
+
 def sector_neighbors(conn, sector):
     """
-    Every immediately-surrounding sector address for a galaxy-placed
-    sector -- its exact same-shell (lateral) Voronoi neighbors
-    (`sectorGeometry.lateral_neighbor_slots`) plus its nearest inward and
-    outward radial neighbor (`sectorGeometry.radial_neighbor_slot`), each
-    tagged with whether a real `sectors` row already exists there. Drives
-    the Sector Map's (`html/lib/starmap.py`) neighboring-sector
-    indicators -- an existing neighbor's indicator links straight to it
-    (`sector.py`); a not-yet-generated one shows its address so it can be
-    fed to `generate.py galaxy --shell K --slot N`, the same convention
-    the Galaxy Map's own "planned" tier already uses
-    (`galaxyViewport.planned_slots_in_view`).
+    Every cell sharing a face with a galaxy-placed sector
+    (`galaxyGeometry.neighbor_addresses`: the slots either side, the
+    layers above and below, and the overlapping slots in the rings inside
+    and outside), each tagged with whether a real `sectors` row already
+    exists there. Drives the Sector Map's (`html/lib/starmap.py`)
+    neighboring-sector indicators -- an existing neighbor links straight
+    to it; a not-yet-generated one shows its address so it can be fed to
+    `generate.py galaxy --ring I --layer J --slot K`.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
         sector (dict or Row): This sector's own row -- needs
-            `shell_index`, `shell_slot_index`, and `edge_mpc`.
+            `ring_index`, `layer_index`, `ring_slot_index`, and `edge_mpc`.
 
     Returns:
-        list[dict]: `shell_index`, `shell_slot_index`, `direction_pc`
-            (`[x, y, z]`, this neighbor's galaxy-frame center minus this
-            sector's own -- a direction, not clamped to the sector's own
-            cube), `exists` (bool), `sector_id`/`sector_name` (both `None`
-            when `exists` is `False`), and `designation`
-            (`provisional_sector_designation`, always present so a
-            not-yet-generated neighbor has a human-readable label even
-            with no name of its own). `[]` for a sector with no galaxy
-            placement.
+        list[dict]: `ring_index`, `layer_index`, `ring_slot_index`,
+            `direction_pc` (`[x, y, z]`, this neighbor's galaxy-frame
+            center minus this sector's own), `exists` (bool),
+            `sector_id`/`sector_name` (both `None` when `exists` is
+            `False`), and `designation` (`provisional_sector_designation`).
+            `[]` for a sector with no grid address.
     """
-    shell_index, shell_slot_index, edge_mpc = sector["shell_index"], sector["shell_slot_index"], sector["edge_mpc"]
-    if shell_index is None or shell_slot_index is None or not edge_mpc:
+    address = sector_address(sector)
+    if address is None or not sector["edge_mpc"]:
         return []
 
-    edge_pc = mpc_to_pc(edge_mpc)
-    edge_ly = pc_to_ly(edge_pc)
-    this_position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    edge_pc = mpc_to_pc(sector["edge_mpc"])
+    this_position = sector_position_pc(*address, edge_pc)
+    addresses = neighbor_addresses(*address)
 
-    addresses = [(shell_index, slot) for slot in lateral_neighbor_slots(shell_index, shell_slot_index, edge_pc)]
-    for direction in (-1, 1):
-        radial_slot = radial_neighbor_slot(shell_index, shell_slot_index, edge_pc, direction)
-        if radial_slot is not None:
-            addresses.append((shell_index + direction, radial_slot))
-    if not addresses:
-        return []
-
-    clauses = " OR ".join(["(shell_index = ? AND shell_slot_index = ?)"] * len(addresses))
-    params = [value for address in addresses for value in address]
+    clauses = " OR ".join(["(ring_index = ? AND layer_index = ? AND ring_slot_index = ?)"] * len(addresses))
+    params = [value for neighbor in addresses for value in neighbor]
     rows = conn.execute(
-        f"SELECT id, name, shell_index, shell_slot_index FROM sectors WHERE {clauses}", tuple(params),
+        f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {clauses}", tuple(params),
     ).fetchall()
-    existing = {(r["shell_index"], r["shell_slot_index"]): r for r in rows}
+    existing = {(r["ring_index"], r["layer_index"], r["ring_slot_index"]): r for r in rows}
 
     results = []
-    for addr_shell, addr_slot in addresses:
-        position = sector_position_pc(addr_shell, addr_slot, edge_pc)
-        direction_pc = [
-            position[0] - this_position[0], position[1] - this_position[1], position[2] - this_position[2],
-        ]
-        match = existing.get((addr_shell, addr_slot))
+    for neighbor in addresses:
+        position = sector_position_pc(*neighbor, edge_pc)
+        match = existing.get(neighbor)
         results.append({
-            "shell_index": addr_shell, "shell_slot_index": addr_slot,
-            "direction_pc": direction_pc,
+            "ring_index": neighbor[0], "layer_index": neighbor[1], "ring_slot_index": neighbor[2],
+            "direction_pc": [position[i] - this_position[i] for i in range(3)],
             "exists": match is not None,
             "sector_id": match["id"] if match else None,
             "sector_name": match["name"] if match else None,
-            "designation": provisional_sector_designation(addr_shell, addr_slot, edge_pc, edge_ly),
+            "designation": provisional_sector_designation(*neighbor),
         })
     return results
 
@@ -933,8 +923,8 @@ def sector_detail(conn, sector_id):
 
     Returns:
         dict: `id`, `name`, `edge_mpc`, `edge_ly`, `center_x_pc`/
-            `center_y_pc`/`center_z_pc`, `shell_index`, `shell_slot_index`,
-            `placed`, `system_count`, and `systems` (one entry per system
+            `center_y_pc`/`center_z_pc`, `ring_index`, `layer_index`,
+            `ring_slot_index`, `placed`, `system_count`, and `systems` (one entry per system
             placed in this sector, nearest the sector's center first,
             then any with no position by name: `id`, `name`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `position_x_mpc`/`position_y_mpc`/
@@ -991,7 +981,8 @@ def sector_detail(conn, sector_id):
         "edge_ly": milliparsecs_to_ly(sector["edge_mpc"]),
         "center_x_pc": sector["center_x_pc"], "center_y_pc": sector["center_y_pc"],
         "center_z_pc": sector["center_z_pc"], "galactic_radius_pc": sector["galactic_radius_pc"],
-        "shell_index": sector["shell_index"], "shell_slot_index": sector["shell_slot_index"],
+        "ring_index": sector["ring_index"], "layer_index": sector["layer_index"],
+        "ring_slot_index": sector["ring_slot_index"],
         "placed": sector["center_x_pc"] is not None,
         "system_count": len(systems),
         "systems": systems,
@@ -1606,12 +1597,12 @@ def galaxy_placed_sectors(conn):
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z` (`center_x/y/z_pc`),
-            `galactic_radius_pc`, `shell_index`, `system_count`.
+            `galactic_radius_pc`, `ring_index`, `system_count`.
     """
     rows = conn.execute(
         """
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index,
+               sec.galactic_radius_pc, sec.ring_index,
                (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
         FROM sectors sec
         WHERE sec.center_x_pc IS NOT NULL
@@ -1622,7 +1613,7 @@ def galaxy_placed_sectors(conn):
         {
             "id": r["id"], "name": r["name"],
             "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-            "galactic_radius_pc": r["galactic_radius_pc"], "shell_index": r["shell_index"],
+            "galactic_radius_pc": r["galactic_radius_pc"], "ring_index": r["ring_index"],
             "system_count": r["system_count"],
         }
         for r in rows
@@ -1647,7 +1638,7 @@ def galaxy_density_shape(conn):
 
     Returns:
         dict or None: Every `GalaxyShape` field plus `edge_pc`,
-            `outer_shell_index`, `expected_system_count_at_density_1`.
+            `outer_ring_index`, `expected_system_count_at_density_1`.
             `None` if `generate.py plan` has never been run against this
             database (no `galaxy_shape` row yet).
     """
@@ -1656,7 +1647,7 @@ def galaxy_density_shape(conn):
         return None
     shape = dict(skeleton.shape._asdict())
     shape["edge_pc"] = skeleton.edge_pc
-    shape["outer_shell_index"] = skeleton.outer_shell_index
+    shape["outer_ring_index"] = skeleton.outer_ring_index
     shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1
     return shape
 
@@ -1706,10 +1697,9 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z`, `galactic_radius_pc`,
-            `shell_index`, `shell_slot_index`, `designation`
+            `ring_index`, `layer_index`, `ring_slot_index`, `designation`
             (`provisional_sector_designation`, `None` if this sector has
-            no `shell_slot_index` -- a placement predating the v8 schema's
-            per-slot addressing), `system_count`, `edge_ly` (this
+            no grid address), `system_count`, `edge_ly` (this
             sector's own real edge length -- lets a client compute its
             true stellar density, `system_count / edge_ly ** 3`, rather
             than just its raw system count), `distance_pc` (from the
@@ -1718,7 +1708,8 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
     rows = conn.execute(
         """
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, sec.edge_mpc,
+               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               sec.edge_mpc,
                (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
         FROM sectors sec
         WHERE sec.center_x_pc IS NOT NULL
@@ -1748,23 +1739,9 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
 
     results = []
     for distance_sq, r in candidates:
-        shell_index, shell_slot_index = r["shell_index"], r["shell_slot_index"]
-        if shell_index is not None and shell_slot_index is not None and r["edge_mpc"]:
-            designation = provisional_sector_designation(
-                shell_index, shell_slot_index, mpc_to_pc(r["edge_mpc"]), pc_to_ly(mpc_to_pc(r["edge_mpc"])),
-            )
-        else:
-            designation = None
-        results.append({
-            "id": r["id"], "name": r["name"],
-            "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-            "galactic_radius_pc": r["galactic_radius_pc"],
-            "shell_index": shell_index, "shell_slot_index": shell_slot_index,
-            "designation": designation,
-            "system_count": r["system_count"],
-            "edge_ly": pc_to_ly(mpc_to_pc(r["edge_mpc"])) if r["edge_mpc"] else None,
-            "distance_pc": math.sqrt(distance_sq),
-        })
+        entry = _placed_sector_entry(r, r["system_count"])
+        entry["distance_pc"] = math.sqrt(distance_sq)
+        results.append(entry)
     return results
 
 
@@ -1809,7 +1786,8 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
     rows = conn.execute(
         """
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, sec.edge_mpc
+               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               sec.edge_mpc
         FROM sectors sec
         WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
           AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
@@ -1838,18 +1816,14 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
 def _placed_sector_entry(r, system_count):
     """One placed-tier dict (see `galaxy_sectors_in_view`'s Returns) from a
     `sectors` row, without `distance_pc`."""
-    shell_index, shell_slot_index = r["shell_index"], r["shell_slot_index"]
+    address = sector_address(r)
     edge_pc = mpc_to_pc(r["edge_mpc"]) if r["edge_mpc"] else None
-    if shell_index is not None and shell_slot_index is not None and edge_pc:
-        designation = provisional_sector_designation(shell_index, shell_slot_index, edge_pc, pc_to_ly(edge_pc))
-    else:
-        designation = None
     return {
         "id": r["id"], "name": r["name"],
         "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
         "galactic_radius_pc": r["galactic_radius_pc"],
-        "shell_index": shell_index, "shell_slot_index": shell_slot_index,
-        "designation": designation,
+        "ring_index": r["ring_index"], "layer_index": r["layer_index"], "ring_slot_index": r["ring_slot_index"],
+        "designation": provisional_sector_designation(*address) if address is not None else None,
         "system_count": system_count,
         "edge_ly": pc_to_ly(edge_pc) if edge_pc else None,
     }
@@ -1894,19 +1868,16 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
         edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
         shape = None
         expected_system_count = None
-    edge_ly = pc_to_ly(edge_pc)
 
     tiles = {}
     for key, (level, ix, iy, iz) in parsed:
         lo, hi = tile_bounds_pc(level, ix, iy, iz)
         placed = galaxy_sectors_in_box(conn, lo, hi)
         exclude_addresses = {
-            (sector["shell_index"], sector["shell_slot_index"])
-            for sector in placed
-            if sector["shell_index"] is not None and sector["shell_slot_index"] is not None
+            address for address in (sector_address(sector) for sector in placed) if address is not None
         }
         planned = planned_slots_in_tile(
-            level, ix, iy, iz, edge_pc, edge_ly, shape, expected_system_count, exclude_addresses,
+            level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses,
         )
         tiles[key] = {"placed": placed, "planned": planned}
 

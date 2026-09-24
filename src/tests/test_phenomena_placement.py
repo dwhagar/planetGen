@@ -24,24 +24,23 @@ import queryDb
 from stellarObjects import _db
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.config import SystemConfig
+from stellarObjects.galaxyGeometry import sector_orientation
 from stellarObjects.nebulaData import Nebula
-from stellarObjects.sectorGeometry import cube_orientation
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.utils import ly_to_pc, mpc_to_pc, pc_to_ly
 
 
 def _place_sector(mysql_config, name, center_pc, edge_ly=11.5):
     """Persists an empty, galaxy-placed sector at an exact `center_pc` --
-    a plain synthetic placement (no real Fibonacci-sphere/shell address),
+    a plain synthetic placement (no real ring/layer/slot address),
     which is all `compute_phenomenon_placement`/`phenomena_near_sector`
     need (they only ever read `sectors.center_x/y/z_pc`/`edge_mpc`, never
-    `shell_index`/`shell_slot_index`)."""
+    the grid address)."""
     sector = SpaceSector(name, edge_ly=edge_ly)
     cx, cy, cz = center_pc
     galaxy_position = {
         "center_x_pc": cx, "center_y_pc": cy, "center_z_pc": cz,
         "galactic_radius_pc": math.sqrt(cx * cx + cy * cy + cz * cz),
-        "vertices_pc": {"inner": [], "outer": []},
     }
     return _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
@@ -268,10 +267,9 @@ from stellarObjects.supernovaRemnantData import SupernovaRemnant
 
 
 def test_galaxy_placement_from_sector_offset_converts_ly_offset_to_absolute_pc():
-    # A sector sitting directly on the galactic north axis is
-    # cube_orientation's own identity-rotation special case (local_x =
-    # (1,0,0), local_y = (0,1,0), local_z = (0,0,1) -- see that function's
-    # own near-pole-degeneracy handling), so a local offset along the
+    # A sector sitting directly on the galactic axis is
+    # sector_orientation's own identity-rotation special case (local_x =
+    # (1,0,0), local_y = (0,1,0), local_z = (0,0,1)), so a local offset along the
     # sector's own +X axis lands exactly along the galaxy's own +X too --
     # a hand-computable case that isolates the plain unit conversion
     # (ly -> pc) and addition from the rotation itself (see the next test
@@ -290,25 +288,25 @@ def test_galaxy_placement_from_sector_offset_converts_ly_offset_to_absolute_pc()
     )
 
 
-def test_galaxy_placement_from_sector_offset_rotates_the_offset_by_the_sectors_own_cube_orientation():
+def test_galaxy_placement_from_sector_offset_rotates_the_offset_by_the_sectors_own_orientation():
     # A sector NOT on the galactic axis (this file's own _place_sector
     # fixture uses positions like this) has a genuinely non-identity
-    # cube_orientation -- confirms the local offset is rotated into the
+    # sector_orientation -- confirms the local offset is rotated into the
     # galaxy frame along THAT sector's own real local axes (the identical
     # transform html/lib/starmap.py's `_rotate_to_galaxy_frame` applies to
     # a star system's position at render time), not added straight onto
     # the galaxy's own global X/Y/Z the way an earlier, buggy version of
     # this function did -- that silently placed roughly 1 in 5 generated
     # phenomena (black holes, neutron stars, nebulae, asteroid fields)
-    # outside their own sector's real cube, caught by
-    # test_galaxy_gen.py's own multi-shell bounds regression test.
+    # outside their own sector, caught by test_galaxy_gen.py's own
+    # multi-ring bounds regression test.
     galaxy_position = {"center_x_pc": 10.0, "center_y_pc": -5.0, "center_z_pc": 2.0}
     offset_ly = (1.0, -2.0, 0.5)
 
     placement = _db._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
 
     center_pc = (10.0, -5.0, 2.0)
-    local_x, local_y, local_z = cube_orientation(center_pc)
+    local_x, local_y, local_z = sector_orientation(center_pc)
     offset_pc = tuple(ly_to_pc(c) for c in offset_ly)
     expected = tuple(
         center_pc[i] + offset_pc[0] * local_x[i] + offset_pc[1] * local_y[i] + offset_pc[2] * local_z[i]
@@ -460,7 +458,6 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
     galaxy_position = {
         "center_x_pc": 100.0, "center_y_pc": -40.0, "center_z_pc": 5.0,
         "galactic_radius_pc": math.sqrt(100.0 ** 2 + 40.0 ** 2 + 5.0 ** 2),
-        "vertices_pc": {"inner": [], "outer": []},
     }
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 

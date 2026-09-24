@@ -112,14 +112,14 @@ function showObjectInfo(entry) {
 // A neighboring sector's own address -- shared display convention with
 // `static/galaxymap3d.js`'s identically-named helpers for its own
 // "planned" (not-yet-generated) sector addresses, since this is the same
-// underlying concept one level in: a `(shell_index, shell_slot_index)`
+// underlying concept one level in: a `(ring_index, layer_index, ring_slot_index)`
 // address, generated or not.
-function formatAddress(shellIndex, slotIndex) {
-  return "shell " + shellIndex + " slot " + slotIndex;
+function formatAddress(ringIndex, layerIndex, slotIndex) {
+  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-function cliSnippet(shellIndex, slotIndex) {
-  return "generate.py galaxy --shell " + shellIndex + " --slot " + slotIndex;
+function cliSnippet(ringIndex, layerIndex, slotIndex) {
+  return "generate.py galaxy --ring " + ringIndex + " --layer " + layerIndex + " --slot " + slotIndex;
 }
 
 function makeCopyButton(text) {
@@ -159,7 +159,7 @@ function makeCopyButton(text) {
 
 // A neighboring sector that already exists just links straight to it
 // (same as a star/cloud entry); one that doesn't yet shows its address
-// and a copyable `generate.py galaxy --shell K --slot N` command instead
+// and a copyable `generate.py galaxy --ring I --layer J --slot K` command instead
 // -- the same "not yet generated" info panel shape
 // `static/galaxymap3d.js`'s own `showPlannedInfo` already uses for its
 // "planned" tier, one galaxy-map zoom level up from this sector-level view.
@@ -169,7 +169,7 @@ function showNeighborInfo(panel, entry) {
   panel.appendChild(heading);
 
   var dl = document.createElement("dl");
-  addField(dl, "Address", formatAddress(entry.shellIndex, entry.shellSlotIndex));
+  addField(dl, "Address", formatAddress(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex));
   addField(dl, "Designation", entry.designation);
   panel.appendChild(dl);
 
@@ -180,9 +180,9 @@ function showNeighborInfo(panel, entry) {
 
   var code = document.createElement("code");
   code.className = "galaxymap3d-cli-snippet";
-  code.textContent = cliSnippet(entry.shellIndex, entry.shellSlotIndex);
+  code.textContent = cliSnippet(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex);
   panel.appendChild(code);
-  panel.appendChild(makeCopyButton(cliSnippet(entry.shellIndex, entry.shellSlotIndex)));
+  panel.appendChild(makeCopyButton(cliSnippet(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex)));
 }
 
 // A real, focusable `<a>` carrying `data-nav-target`/`data-nav-params`

@@ -1,307 +1,286 @@
 # tests/test_galaxy_geometry.py
 
 """
-Tests for `stellarObjects.galaxyGeometry` -- the shell/Fibonacci-sphere
-radial tiling scheme (`docs/design/galaxy-coordinate-system.md` section 3)
-and the radius-based neighborhood-enumeration primitive built on top of it
-(section 8, `enumerate_sectors_within_radius`).
+Tests for `stellarObjects.galaxyGeometry` -- the cylindrical
+ring/layer/slot sector grid (`docs/design/galaxy-coordinate-system.md`,
+"Cylindrical sector grid") and the radius-based neighborhood enumeration
+built on it.
 
-The enumeration tests are deliberately deterministic and checkable, not
-statistical: `test_enumerate_matches_brute_force_over_several_shells`
-cross-checks the pruned algorithm's output against an independent
-brute-force scan of every slot in the same shells (same underlying
-`sector_position_pc`, different traversal logic -- the "same ground truth
-function, independently reached two ways" cross-check confirms the
-pruning logic includes/excludes exactly the same slots brute force would,
-not that the position formula itself is correct). The other tests use
-small, hand-computable shells (`shell_index=0`, 3 slots) with explicitly
-worked-out expected values.
+The enumeration tests cross-check the pruned algorithm against an
+independent brute-force scan of every slot in the same rings and layers,
+so they confirm the pruning includes/excludes exactly what brute force
+would. The rest use small, hand-computable rings.
 """
 
 import math
+import random
 
 import pytest
 
 from stellarObjects.galaxyGeometry import (
-    GOLDEN_RATIO,
-    _azimuth_half_width,
-    _candidate_shell_range,
-    _slot_indices_in_theta_window,
-    _theta_for_index,
-    slot_index_bounds_for_phi_range,
+    RING_SLOT_MULTIPLE,
+    SectorCell,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
+    layer_bounds_pc,
+    layer_center_z_pc,
+    local_to_galaxy_pc,
+    neighbor_addresses,
+    parse_sector_designation,
     provisional_sector_designation,
+    ring_bounds_pc,
+    ring_radius_pc,
+    ring_sector_count,
+    sector_address_at,
+    sector_cell_vertices_pc,
+    sector_orientation,
     sector_position_pc,
     sector_quadrant,
-    sector_ring,
-    sector_wedge_vertices_pc,
-    shell_radius_pc,
-    shell_sector_count,
+    sector_zone,
+    slot_angle_bounds,
 )
 
-EDGE_PC = 3.526  # ~DEFAULT_SECTOR_EDGE_LY (11.5 ly) converted to parsecs.
+EDGE_PC = 11.5 / 3.26156
 
 
-# ---------------------------------------------------------------------------
-# Shell math -- cross-checked against docs/design/galaxy-coordinate-system.md
-# section 3's own worked table.
-# ---------------------------------------------------------------------------
-
-@pytest.mark.parametrize("shell_index,expected_n_k", [
-    (0, 3), (1, 28), (2, 79), (3, 154), (5, 380), (10, 1385),
+@pytest.mark.parametrize("ring_index, expected", [
+    (0, 4), (1, 8), (2, 16), (3, 20), (10, 64), (100, 632),
 ])
-def test_shell_sector_count_matches_design_doc_table(shell_index, expected_n_k):
-    assert shell_sector_count(shell_index) == expected_n_k
+def test_ring_sector_count_rounds_centerline_circumference_to_a_multiple_of_4(ring_index, expected):
+    assert ring_sector_count(ring_index) == expected
 
 
-def test_shell_radius_pc_is_nominal_midpoint_of_shell_thickness():
-    # r_k = (k + 0.5) * edge_pc -- shell 0 spans [0, edge_pc), nominal
-    # radius is exactly half the edge length.
-    assert shell_radius_pc(0, EDGE_PC) == pytest.approx(0.5 * EDGE_PC)
-    assert shell_radius_pc(49, EDGE_PC) == pytest.approx(49.5 * EDGE_PC)
+def test_ring_sector_count_is_always_a_positive_multiple_and_keeps_arcs_near_one_edge():
+    for ring_index in range(0, 5000, 7):
+        n = ring_sector_count(ring_index)
+        assert n >= RING_SLOT_MULTIPLE and n % RING_SLOT_MULTIPLE == 0
+        if ring_index >= 5:
+            arc_edges = 2 * math.pi * (ring_index + 0.5) / n
+            assert abs(arc_edges - 1.0) < 0.1
 
 
-def test_sector_position_pc_matches_design_doc_worked_example():
-    # docs/design/galaxy-coordinate-system.md section 6's worked example:
-    # shell k=50, slot i=12000 (of N_50=32047), edge_pc=3.526.
-    n_50 = shell_sector_count(50)
-    assert n_50 == 32047
-
-    x, y, z = sector_position_pc(50, 12000, 3.526)
-    assert galactic_radius_pc((x, y, z)) == pytest.approx(178.06, abs=0.05)
-    assert x == pytest.approx(-144.4, abs=0.5)
-    assert y == pytest.approx(94.2, abs=0.5)
-    assert z == pytest.approx(44.6, abs=0.5)
-
-
-def test_sector_position_pc_rejects_out_of_range_slot_index():
-    n_0 = shell_sector_count(0)
+def test_ring_sector_count_rejects_negative_ring():
     with pytest.raises(ValueError):
-        sector_position_pc(0, n_0, EDGE_PC)  # exactly one past the end
+        ring_sector_count(-1)
+
+
+def test_ring_and_layer_bounds():
+    assert ring_bounds_pc(3, 2.0) == (6.0, 8.0)
+    assert ring_radius_pc(3, 2.0) == 7.0
+    assert layer_bounds_pc(0, 2.0) == (-1.0, 1.0)
+    assert layer_bounds_pc(-2, 2.0) == (-5.0, -3.0)
+    assert layer_center_z_pc(-2, 2.0) == -4.0
+
+
+def test_slot_angle_bounds_tile_the_full_circle():
+    n = ring_sector_count(7)
+    assert slot_angle_bounds(7, 0)[0] == 0.0
+    assert slot_angle_bounds(7, n - 1)[1] == pytest.approx(2 * math.pi)
+    for k in range(n - 1):
+        assert slot_angle_bounds(7, k)[1] == pytest.approx(slot_angle_bounds(7, k + 1)[0])
+
+
+def test_sector_position_pc_is_ring_centerline_slot_middle_layer_midplane():
+    x, y, z = sector_position_pc(0, 2, 1, 2.0)
+    # Ring 0 has 4 slots; slot 1's middle is at 135 degrees, radius 1.
+    assert (x, y, z) == pytest.approx((-math.sqrt(0.5), math.sqrt(0.5), 4.0))
+
+
+def test_sector_position_pc_rejects_out_of_range_slot():
     with pytest.raises(ValueError):
-        sector_position_pc(0, -1, EDGE_PC)
+        sector_position_pc(0, 0, 4, EDGE_PC)
+    with pytest.raises(ValueError):
+        sector_position_pc(0, 0, -1, EDGE_PC)
 
 
-# ---------------------------------------------------------------------------
-# sector_ring / sector_quadrant / provisional_sector_designation -- a single
-# bit-packed hex number labeling a not-yet-generated (or not-yet-visited)
-# sector address, built from html/lib/galaxymap.py's own Ring/Quadrant
-# concept but duplicated here so galaxyGen.py's CLI doesn't need to depend
-# on that CGI-only module.
-# ---------------------------------------------------------------------------
-
-DEFAULT_EDGE_LY = 11.5  # matches program_constants.DEFAULT_SECTOR_EDGE_LY
+def test_sector_address_at_round_trips_every_sector_center():
+    for ring_index in range(0, 40):
+        for slot_index in range(ring_sector_count(ring_index)):
+            for layer_index in (-3, 0, 5):
+                center = sector_position_pc(ring_index, layer_index, slot_index, EDGE_PC)
+                assert sector_address_at(center, EDGE_PC) == (ring_index, layer_index, slot_index)
 
 
-@pytest.mark.parametrize("shell_index,expected_ring", [
-    (0, 0), (8, 0), (9, 1), (17, 1), (18, 2), (50, 5),
-])
-def test_sector_ring_matches_galaxymap_9_shell_bands(shell_index, expected_ring):
-    # html/lib/galaxymap.py's RING_SHELL_WIDTH is round(100 / 11.5) = 9 --
-    # cross-checked by hand here rather than importing that module.
-    assert sector_ring(shell_index, DEFAULT_EDGE_LY) == expected_ring
+def test_sector_address_at_matches_bounds_for_random_points():
+    rng = random.Random(7)
+    for _ in range(500):
+        point = (rng.uniform(-300, 300), rng.uniform(-300, 300), rng.uniform(-50, 50))
+        ring, layer, slot = sector_address_at(point, EDGE_PC)
+        r_lo, r_hi = ring_bounds_pc(ring, EDGE_PC)
+        z_lo, z_hi = layer_bounds_pc(layer, EDGE_PC)
+        t_lo, t_hi = slot_angle_bounds(ring, slot)
+        theta = math.atan2(point[1], point[0]) % (2 * math.pi)
+        assert r_lo <= math.hypot(point[0], point[1]) < r_hi
+        assert z_lo <= point[2] < z_hi
+        assert t_lo - 1e-12 <= theta < t_hi + 1e-12
 
 
-def test_sector_ring_clamps_shell_width_to_at_least_1():
-    # An edge length larger than the ring target must not divide by 0 or
-    # produce a 0-width band.
-    assert sector_ring(5, edge_ly=500.0) == 5
+def test_sector_orientation_is_radial_tangential_north():
+    radial, tangential, north = sector_orientation((0.0, 5.0, 3.0))
+    assert radial == pytest.approx((0.0, 1.0, 0.0))
+    assert tangential == pytest.approx((-1.0, 0.0, 0.0))
+    assert north == (0.0, 0.0, 1.0)
+    # On the axis (only a hand-placed sector) it falls back to the
+    # galaxy's own axes.
+    assert sector_orientation((0.0, 0.0, 1.0)) == ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
 
 
-@pytest.mark.parametrize("x_pc,y_pc,expected_quadrant", [
-    (1.0, 0.0, 1), (0.0, 1.0, 2), (-1.0, 0.0, 3), (0.0, -1.0, 4),
-    (1.0, 1.0, 1), (-1.0, 1.0, 2), (-1.0, -1.0, 3), (1.0, -1.0, 4),
-])
-def test_sector_quadrant_returns_1_through_4_counterclockwise_from_plus_x(x_pc, y_pc, expected_quadrant):
-    assert sector_quadrant(x_pc, y_pc) == expected_quadrant
+def test_local_to_galaxy_pc_applies_the_sector_axes():
+    center = (0.0, 10.0, 2.0)
+    assert local_to_galaxy_pc(center, (1.0, 2.0, 3.0)) == pytest.approx((-2.0, 11.0, 5.0))
 
 
-def test_provisional_sector_designation_matches_worked_example():
-    # Reuses test_sector_position_pc_matches_design_doc_worked_example's
-    # shell=50/slot=12000 position (x=-144.4, y=94.2 -> Quadrant 2; shell
-    # 50 -> Ring 5 per the table above). Packed by hand: ring=5 in bits
-    # 34+, (quadrant-1)=1 in bits 32-33, slot=12000 (0x2EE0) in bits 0-31
-    # -> (5 << 34) | (1 << 32) | 12000 == 0x1500002EE0.
-    designation = provisional_sector_designation(50, 12000, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
-    assert designation == "1500002EE0"
-
-
-def test_provisional_sector_designation_is_deterministic():
-    first = provisional_sector_designation(50, 12000, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
-    second = provisional_sector_designation(50, 12000, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
-    assert first == second
-
-
-def test_provisional_sector_designation_round_trips_ring_quadrant_slot():
-    shell_index, shell_slot_index = 50, 30000  # n_50 == 32047, see shell_sector_count table above
-    edge_pc = 3.526
-    x_pc, y_pc, _z_pc = sector_position_pc(shell_index, shell_slot_index, edge_pc)
-    expected_ring = sector_ring(shell_index, DEFAULT_EDGE_LY)
-    expected_quadrant = sector_quadrant(x_pc, y_pc)
-
-    packed = int(
-        provisional_sector_designation(shell_index, shell_slot_index, edge_pc, DEFAULT_EDGE_LY),
-        16,
-    )
-    recovered_slot = packed & ((1 << 32) - 1)
-    recovered_quadrant = ((packed >> 32) & 0b11) + 1
-    recovered_ring = packed >> 34
-
-    assert recovered_slot == shell_slot_index
-    assert recovered_quadrant == expected_quadrant
-    assert recovered_ring == expected_ring
-
-
-def test_provisional_sector_designation_distinguishes_different_quadrants_and_rings():
-    # Same slot index, different shells/positions -> different packed
-    # values (no accidental collision from the bit layout).
-    a = provisional_sector_designation(0, 0, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
-    b = provisional_sector_designation(50, 0, edge_pc=3.526, edge_ly=DEFAULT_EDGE_LY)
-    assert a != b
-
-
-# ---------------------------------------------------------------------------
-# sector_wedge_vertices_pc -- the sector's approximate on-shell cell shape,
-# for the "proper 3D shape" sector-map outline (html/lib/starmap.py).
-# ---------------------------------------------------------------------------
-
-def test_sector_wedge_vertices_pc_returns_8_points_at_the_two_radial_bounds():
-    shell_index, slot_index = 50, 12000
-    r_k = shell_radius_pc(shell_index, EDGE_PC)
-    r_min, r_max = r_k - EDGE_PC / 2, r_k + EDGE_PC / 2
-
-    vertices = sector_wedge_vertices_pc(shell_index, slot_index, EDGE_PC)
+def test_sector_cell_vertices_pc_sit_on_the_cell_bounds():
+    vertices = sector_cell_vertices_pc(5, -1, 3, EDGE_PC)
     assert len(vertices) == 8
-
-    radii = sorted(galactic_radius_pc(v) for v in vertices)
-    for radius in radii[:4]:
-        assert radius == pytest.approx(r_min, abs=1e-6)
-    for radius in radii[4:]:
-        assert radius == pytest.approx(r_max, abs=1e-6)
-
-
-def test_sector_wedge_vertices_pc_is_centered_near_the_sector_position():
-    # The wedge's own angular half-widths are small for a shell this
-    # populated (n_50 = 32047), so its 8 vertices should average out
-    # close to the exact center point `sector_position_pc` returns --
-    # loosely (this is an approximate patch, not an exact one), but not
-    # off by anything close to a full sector edge.
-    shell_index, slot_index = 50, 12000
-    center = sector_position_pc(shell_index, slot_index, EDGE_PC)
-    vertices = sector_wedge_vertices_pc(shell_index, slot_index, EDGE_PC)
-
-    mean = tuple(sum(v[axis] for v in vertices) / 8 for axis in range(3))
-    for axis in range(3):
-        assert mean[axis] == pytest.approx(center[axis], abs=EDGE_PC / 2)
-
-
-def test_sector_wedge_vertices_pc_rejects_out_of_range_slot_index():
-    n_0 = shell_sector_count(0)
+    r_bounds = ring_bounds_pc(5, EDGE_PC)
+    z_bounds = layer_bounds_pc(-1, EDGE_PC)
+    for index, (x, y, z) in enumerate(vertices):
+        assert math.hypot(x, y) == pytest.approx(r_bounds[(index >> 2) & 1])
+        assert z == pytest.approx(z_bounds[(index >> 1) & 1])
     with pytest.raises(ValueError):
-        sector_wedge_vertices_pc(0, n_0, EDGE_PC)
+        sector_cell_vertices_pc(0, 0, 9, EDGE_PC)
+
+
+@pytest.mark.parametrize("ring_index", [0, 1, 12, 400])
+def test_sector_cell_samples_land_inside_the_true_cell(ring_index):
+    edge_ly = 11.5
+    cell = SectorCell.for_ring(ring_index, edge_ly)
+    rng = random.Random(ring_index)
+    slot = ring_sector_count(ring_index) // 2
+    center = sector_position_pc(ring_index, 2, slot, edge_ly)
+    for _ in range(300):
+        local = cell.sample(rng)
+        assert cell.contains(local)
+        point = local_to_galaxy_pc(center, local)
+        assert sector_address_at(point, edge_ly) == (ring_index, 2, slot)
+
+
+def test_sector_cell_volume_matches_an_edge_cubed_away_from_the_core():
+    cell = SectorCell.for_ring(1000, 11.5)
+    assert cell.volume == pytest.approx(11.5 ** 3, rel=0.01)
+    # Every ring's cells together make the full annulus.
+    for ring_index in (0, 3, 50):
+        cell = SectorCell.for_ring(ring_index, 2.0)
+        annulus = math.pi * (((ring_index + 1) * 2.0) ** 2 - (ring_index * 2.0) ** 2) * 2.0
+        assert cell.volume * ring_sector_count(ring_index) == pytest.approx(annulus)
+
+
+def test_sector_cell_contains_rejects_points_outside():
+    cell = SectorCell.for_ring(10, 1.0)
+    assert not cell.contains((0.0, 0.0, 0.6))
+    assert not cell.contains((0.6, 0.0, 0.0))
+    assert not cell.contains((0.0, 0.6, 0.0))
+    assert cell.contains((0.0, 0.0, 0.0))
+
+
+def _faces_touch(a, b):
+    """Brute-force face adjacency between two cells: they share a face of
+    nonzero area."""
+    (ra, la, sa), (rb, lb, sb) = a, b
+    if a == b:
+        return False
+    if ra == rb and la == lb:
+        n = ring_sector_count(ra)
+        return (sa - sb) % n in (1, n - 1)
+    if ra == rb and sa == sb:
+        return abs(la - lb) == 1
+    if la == lb and abs(ra - rb) == 1:
+        a0, a1 = slot_angle_bounds(ra, sa)
+        b0, b1 = slot_angle_bounds(rb, sb)
+        return min(a1, b1) - max(a0, b0) > 1e-12
+    return False
+
+
+@pytest.mark.parametrize("address", [(0, 0, 0), (0, 3, 2), (1, 0, 5), (2, -1, 15), (37, 4, 100), (38, 0, 0)])
+def test_neighbor_addresses_match_brute_force_face_adjacency(address):
+    ring, layer, _slot = address
+    expected = set()
+    for r in range(max(0, ring - 2), ring + 3):
+        for l in range(layer - 2, layer + 3):
+            for s in range(ring_sector_count(r)):
+                if _faces_touch(address, (r, l, s)):
+                    expected.add((r, l, s))
+    got = neighbor_addresses(*address)
+    assert len(got) == len(set(got))
+    assert set(got) == expected
+
+
+def test_sector_zone_groups_rings_into_about_100_ly_bands():
+    assert sector_zone(0, 11.5) == 0
+    assert sector_zone(8, 11.5) == 0
+    assert sector_zone(9, 11.5) == 1
+    assert sector_zone(5, 200.0) == 5
+
+
+@pytest.mark.parametrize("x_pc, y_pc, expected", [(1, 1, 1), (-1, 1, 2), (-1, -1, 3), (1, -1, 4)])
+def test_sector_quadrant_counts_counterclockwise_from_plus_x(x_pc, y_pc, expected):
+    assert sector_quadrant(x_pc, y_pc) == expected
+
+
+@pytest.mark.parametrize("address", [(0, 0, 0), (0, -4096, 3), (4073, 340, 25000), (12, -7, 50), (1, 4095, 7)])
+def test_provisional_sector_designation_round_trips(address):
+    code = provisional_sector_designation(*address)
+    assert code == code.upper()
+    assert parse_sector_designation(code) == address
+
+
+def test_provisional_sector_designation_is_unique_over_a_block():
+    seen = set()
+    for ring in range(0, 6):
+        for layer in range(-3, 4):
+            for slot in range(ring_sector_count(ring)):
+                seen.add(provisional_sector_designation(ring, layer, slot))
+    assert len(seen) == sum(ring_sector_count(r) for r in range(6)) * 7
+
+
+def test_provisional_sector_designation_rejects_out_of_range_layer():
     with pytest.raises(ValueError):
-        sector_wedge_vertices_pc(0, -1, EDGE_PC)
+        provisional_sector_designation(0, 4096, 0)
+    with pytest.raises(ValueError):
+        parse_sector_designation(f"{(0 << 33) | (4096 << 20) | 9:X}")
 
 
-# ---------------------------------------------------------------------------
-# Hand-computed small case: shell 0 has exactly 3 slots. Position formula,
-# worked by hand:
-#   phi_i   = acos(1 - 2*(i+0.5)/3)
-#   theta_i = (2*pi*i / golden_ratio) mod 2*pi
-# ---------------------------------------------------------------------------
-
-def _hand_computed_shell_0_positions(edge_pc):
-    r_0 = 0.5 * edge_pc
-    positions = []
-    for i in range(3):
-        phi = math.acos(1 - 2 * (i + 0.5) / 3)
-        theta = (2 * math.pi * i / GOLDEN_RATIO) % (2 * math.pi)
-        x = r_0 * math.sin(phi) * math.cos(theta)
-        y = r_0 * math.sin(phi) * math.sin(theta)
-        z = r_0 * math.cos(phi)
-        positions.append((x, y, z))
-    return positions
+def _brute_force_within_radius(center, radius_pc, edge_pc):
+    r_c = math.hypot(center[0], center[1])
+    max_ring = int((r_c + radius_pc) / edge_pc) + 1
+    max_layer = int((abs(center[2]) + radius_pc) / edge_pc) + 1
+    result = set()
+    for ring in range(max_ring + 1):
+        for layer in range(-max_layer, max_layer + 1):
+            for slot in range(ring_sector_count(ring)):
+                pos = sector_position_pc(ring, layer, slot, edge_pc)
+                if math.dist(pos, center) <= radius_pc:
+                    result.add((ring, layer, slot))
+    return result
 
 
-def test_sector_position_pc_matches_hand_computed_shell_0():
-    expected = _hand_computed_shell_0_positions(EDGE_PC)
-    for i, expected_position in enumerate(expected):
-        actual = sector_position_pc(0, i, EDGE_PC)
-        assert actual == pytest.approx(expected_position)
-
-
-def test_enumerate_from_origin_over_shell_0_matches_hand_computed_radius_filter():
-    """A deterministic, hand-checkable case: with P at the origin and R
-    exactly shell 0's own radius, every one of shell 0's 3 known,
-    hand-computed slots must be returned (all sit at exactly r_0 from the
-    origin); with R set just under that radius, none should be."""
-    r_0 = shell_radius_pc(0, EDGE_PC)
-    expected_positions = _hand_computed_shell_0_positions(EDGE_PC)
-
-    included = list(enumerate_sectors_within_radius((0.0, 0.0, 0.0), r_0, EDGE_PC))
-    included_addresses = {(shell, slot) for shell, slot, *_ in included}
-    assert included_addresses == {(0, 0), (0, 1), (0, 2)}
-    for shell, slot, x, y, z, dist in included:
-        assert (x, y, z) == pytest.approx(expected_positions[slot])
-        assert dist == pytest.approx(r_0)
-
-    excluded = list(enumerate_sectors_within_radius((0.0, 0.0, 0.0), r_0 * 0.99, EDGE_PC))
-    assert excluded == []
-
-
-# ---------------------------------------------------------------------------
-# Cross-check against independent brute force, for a P that is NOT the
-# origin (the harder case per the design note) -- both the pruned
-# algorithm and the brute-force scan build on the same
-# `sector_position_pc`, but reach their answer via genuinely different
-# traversal logic, so agreement confirms the pruning includes/excludes
-# exactly the slots brute force would.
-# ---------------------------------------------------------------------------
-
-def _brute_force_within_radius(center, radius_pc, edge_pc, max_shell):
-    """Iterates every slot of every shell 0..max_shell (inclusive) and
-    filters by exact distance -- the "obviously correct, too slow to use
-    for real" reference implementation `enumerate_sectors_within_radius`
-    is checked against."""
-    results = []
-    for shell_index in range(max_shell + 1):
-        n_k = shell_sector_count(shell_index)
-        for slot_index in range(n_k):
-            position = sector_position_pc(shell_index, slot_index, edge_pc)
-            dist = math.dist(position, center)
-            if dist <= radius_pc:
-                results.append((shell_index, slot_index))
-    return set(results)
-
-
-@pytest.mark.parametrize("center,radius_pc", [
-    ((5.0, 0.0, 0.0), 4.0),
-    ((0.0, 6.0, 2.0), 5.0),
-    ((-3.0, 3.0, 3.0), 6.0),
-    ((10.0, -10.0, 5.0), 3.0),
+@pytest.mark.parametrize("center, radius_pc", [
+    ((0.0, 0.0, 0.0), 20.0),
+    ((30.0, -12.0, 4.0), 15.0),
+    ((-70.0, 55.0, -20.0), 25.0),
+    ((100.0, 0.0, 0.0), 3.0),
+    ((5.0, 5.0, 0.0), 60.0),
 ])
-def test_enumerate_matches_brute_force_over_several_shells(center, radius_pc):
-    max_shell = 6  # generous -- shells 0-6 span radius up to ~22.9 pc at EDGE_PC
-    expected = _brute_force_within_radius(center, radius_pc, EDGE_PC, max_shell)
-
-    actual = {
-        (shell, slot)
-        for shell, slot, *_ in enumerate_sectors_within_radius(center, radius_pc, EDGE_PC)
-    }
-
-    assert actual == expected
-    assert expected, "test parameters must produce at least one match to be a meaningful check"
+def test_enumerate_matches_brute_force(center, radius_pc):
+    got = {(r, l, s) for r, l, s, *_ in enumerate_sectors_within_radius(center, radius_pc, EDGE_PC)}
+    assert got == _brute_force_within_radius(center, radius_pc, EDGE_PC)
 
 
-def test_enumerate_distances_are_exact():
-    center = (2.0, -1.0, 4.0)
-    radius_pc = 5.0
-    for shell, slot, x, y, z, dist in enumerate_sectors_within_radius(center, radius_pc, EDGE_PC):
+def test_enumerate_randomized_against_brute_force():
+    rng = random.Random(3)
+    for _ in range(25):
+        center = (rng.uniform(-120, 120), rng.uniform(-120, 120), rng.uniform(-30, 30))
+        radius = rng.uniform(0, 30)
+        got = {(r, l, s) for r, l, s, *_ in enumerate_sectors_within_radius(center, radius, EDGE_PC)}
+        assert got == _brute_force_within_radius(center, radius, EDGE_PC)
+
+
+def test_enumerate_reports_exact_centers_and_distances():
+    center = (40.0, 10.0, 3.0)
+    for ring, layer, slot, x, y, z, dist in enumerate_sectors_within_radius(center, 20.0, EDGE_PC):
+        assert (x, y, z) == pytest.approx(sector_position_pc(ring, layer, slot, EDGE_PC))
         assert dist == pytest.approx(math.dist((x, y, z), center))
-        assert dist <= radius_pc
-        # And the returned position matches recomputing it directly.
-        assert (x, y, z) == pytest.approx(sector_position_pc(shell, slot, EDGE_PC))
 
 
 def test_enumerate_rejects_invalid_radius_or_edge():
@@ -311,132 +290,11 @@ def test_enumerate_rejects_invalid_radius_or_edge():
         list(enumerate_sectors_within_radius((0, 0, 0), 1.0, 0.0))
 
 
-def test_enumerate_zero_radius_returns_at_most_the_exact_point():
-    # A radius of exactly 0 should never match a slot unless P sits
-    # exactly on that slot's own computed position (astronomically never
-    # true for arbitrary P, but must not crash or over-match).
-    results = list(enumerate_sectors_within_radius((123.456, -78.9, 0.1), 0.0, EDGE_PC))
-    assert results == []
+def test_enumerate_zero_radius_on_a_center_returns_just_that_sector():
+    center = sector_position_pc(9, -2, 11, EDGE_PC)
+    got = [(r, l, s) for r, l, s, *_ in enumerate_sectors_within_radius(center, 0.0, EDGE_PC)]
+    assert got == [(9, -2, 11)]
 
 
-# ---------------------------------------------------------------------------
-# Internal helper correctness (the two pruning steps in isolation).
-# ---------------------------------------------------------------------------
-
-def test_candidate_shell_range_is_exact_for_a_simple_case():
-    # P at radius 10 pc, R = 2 pc, edge_pc = 1 pc -- shells are 1 pc thick,
-    # nominal radius r_k = k + 0.5. Only k in [8, 11] can have
-    # |r_k - 10| <= 2 (r_k in [8, 12]).
-    k_min, k_max = _candidate_shell_range(p_norm=10.0, radius_pc=2.0, edge_pc=1.0)
-    for k in range(k_min, k_max + 1):
-        r_k = shell_radius_pc(k, 1.0)
-        assert abs(r_k - 10.0) <= 2.0 + 1e-9
-    # And the immediate neighbors just outside the range must fail the test.
-    assert abs(shell_radius_pc(k_min - 1, 1.0) - 10.0) > 2.0
-    assert abs(shell_radius_pc(k_max + 1, 1.0) - 10.0) > 2.0
-
-
-def test_slot_index_bounds_round_trip_through_phi_for_index():
-    n_k = shell_sector_count(20)
-    for i in (0, 1, n_k // 2, n_k - 2, n_k - 1):
-        phi = math.acos(1 - 2 * (i + 0.5) / n_k)
-        i_min, i_max = slot_index_bounds_for_phi_range(phi, phi, n_k)
-        assert i_min <= i <= i_max
-
-
-
-# ---------------------------------------------------------------------------
-# Azimuth pruning (`_slot_indices_in_theta_window`) -- far from the core a
-# shell's phi band wraps all the way around the galaxy, and walking all of
-# it is what made a 200 pc view 8 kpc out take ~140 s.
-# ---------------------------------------------------------------------------
-
-def _azimuth_gap(theta, center):
-    return abs((theta - center + math.pi) % (2 * math.pi) - math.pi)
-
-
-@pytest.mark.parametrize("i_min,band,theta_center,half_width", [
-    (0, 5000, 0.3, 0.01),
-    (123_456_789, 80_000, -3.1, 0.002),        # window straddles +/-pi
-    (400_000_000, 50_000, math.pi, 0.0005),    # outer-shell indices, tiny window
-    (10_000, 20_000, 1.0, 0.8),                # wide window
-    (5_000_000, 30_000, -1.7, 0.0),            # zero-width window (margin only)
-])
-def test_theta_window_keeps_every_slot_in_the_window_and_little_else(i_min, band, theta_center, half_width):
-    i_max = i_min + band - 1
-    got = list(_slot_indices_in_theta_window(i_min, i_max, theta_center, half_width))
-    assert len(got) == len(set(got)), "no slot index may be yielded twice"
-    got = set(got)
-    assert all(i_min <= i <= i_max for i in got)
-
-    expected = {
-        i for i in range(i_min, i_max + 1)
-        if _azimuth_gap(_theta_for_index(i), theta_center) <= half_width
-    }
-    assert expected <= got
-    # Nothing far outside the window (the margin is ~6e-6 rad).
-    assert all(_azimuth_gap(_theta_for_index(i), theta_center) <= half_width + 1e-4 for i in got)
-
-
-def test_theta_window_without_pruning_returns_the_whole_band():
-    assert list(_slot_indices_in_theta_window(100, 50_000, 0.0, math.pi)) == list(range(100, 50_001))
-    assert list(_slot_indices_in_theta_window(7, 20, 1.0, 0.001)) == list(range(7, 21))
-
-
-def test_azimuth_half_width_covers_every_direction_in_the_cap():
-    for phi_center, alpha in ((1.2, 0.05), (0.3, 0.1), (2.9, 0.2)):
-        half = _azimuth_half_width(phi_center, alpha)
-        # Points on the cap's edge, all the way round.
-        for step in range(360):
-            bearing = math.radians(step)
-            # Direction at angular distance alpha from (phi_center, 0) along `bearing`.
-            cos_phi = math.cos(phi_center) * math.cos(alpha) + math.sin(phi_center) * math.sin(alpha) * math.cos(bearing)
-            phi = math.acos(max(-1.0, min(1.0, cos_phi)))
-            dtheta = math.atan2(
-                math.sin(bearing) * math.sin(alpha) * math.sin(phi_center),
-                math.cos(alpha) - math.cos(phi_center) * cos_phi,
-            )
-            assert abs(dtheta) <= half + 1e-9
-
-
-def test_azimuth_half_width_is_unpruned_when_the_cap_reaches_a_pole():
-    assert _azimuth_half_width(0.05, 0.1) == math.pi
-    assert _azimuth_half_width(math.pi - 0.05, 0.1) == math.pi
-
-
-def _phi_band_reference(center, radius_pc, edge_pc):
-    """The enumeration before azimuth pruning: every slot in each candidate
-    shell's phi band, filtered by exact distance."""
-    p_norm = galactic_radius_pc(center)
-    phi_center = math.acos(max(-1.0, min(1.0, center[2] / p_norm)))
-    k_min, k_max = _candidate_shell_range(p_norm, radius_pc, edge_pc)
-    found = set()
-    for k in range(k_min, k_max + 1):
-        r_k = shell_radius_pc(k, edge_pc)
-        n_k = shell_sector_count(k)
-        cos_alpha = (p_norm * p_norm + r_k * r_k - radius_pc * radius_pc) / (2 * p_norm * r_k)
-        if cos_alpha <= -1:
-            i_min, i_max = 0, n_k - 1
-        else:
-            alpha = 0.0 if cos_alpha >= 1 else math.acos(cos_alpha)
-            i_min, i_max = slot_index_bounds_for_phi_range(
-                max(0.0, phi_center - alpha), min(math.pi, phi_center + alpha), n_k,
-            )
-        for i in range(i_min, i_max + 1):
-            if math.dist(sector_position_pc(k, i, edge_pc), center) <= radius_pc:
-                found.add((k, i))
-    return found
-
-
-@pytest.mark.parametrize("center,radius_pc", [
-    ((1500.0, 200.0, 10.0), 6.0),
-    ((-2500.0, 1e-3, 0.0), 5.0),      # azimuth window straddles +/-pi
-    ((-2500.0, -1e-3, 0.0), 5.0),
-    ((300.0, -900.0, 1800.0), 8.0),
-    ((0.5, -0.5, 2000.0), 6.0),       # near the pole: no azimuth pruning
-])
-def test_enumerate_far_from_core_matches_phi_band_scan(center, radius_pc):
-    expected = _phi_band_reference(center, radius_pc, EDGE_PC)
-    actual = {(shell, slot) for shell, slot, *_ in enumerate_sectors_within_radius(center, radius_pc, EDGE_PC)}
-    assert actual == expected
-    assert expected
+def test_galactic_radius_pc_is_3d_distance():
+    assert galactic_radius_pc((3.0, 4.0, 12.0)) == pytest.approx(13.0)

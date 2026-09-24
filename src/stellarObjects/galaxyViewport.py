@@ -19,7 +19,7 @@ Three tiers of content, matching the three sprite kinds
   galaxy_sectors_in_view` handles this tier directly (it needs the
   database; nothing here does).
 - **Planned**: real, not-yet-generated sector *addresses* -- exact
-  `(shell_index, shell_slot_index)` slots this galaxy's own shape model
+  `(ring_index, layer_index, ring_slot_index)` grid cells this galaxy's own shape model
   predicts would qualify (see `galaxyDensity.predicted_star_count`, the
   same >= 1 threshold `generate.py`'s `ensure_sector_generated`/
   `_BatchDensity` already gate real generation on), enumerated exactly
@@ -51,13 +51,10 @@ from .galaxyGeometry import enumerate_sectors_within_radius, provisional_sector_
 
 PLANNED_RADIUS_CAP_PC = 40.0
 """float: The largest view radius `planned_slots_in_view` will actually
-enumerate individual slot addresses for, however large a `radius_pc` its
-caller asks for. `enumerate_sectors_within_radius` is only cheap for a
-"local neighborhood" -- a view spanning the whole galaxy (tens of
-thousands of parsecs) would enumerate a shell's entire slot count, which
-runs into the hundreds of millions for an outer shell (see
-`docs/design/galaxy-coordinate-system.md` section 3's own worked table).
-Beyond this radius, callers get `density_sample_points`'s illustrative
+enumerate individual addresses for, however large a `radius_pc` its
+caller asks for. `enumerate_sectors_within_radius` costs about one step
+per address it returns, and a view spanning the whole galaxy holds
+billions. Beyond this radius, callers get `density_sample_points`'s illustrative
 cloud instead -- exact addresses only become worth enumerating once the
 view has actually narrowed down to something close to a "handful to a
 few dozen real sectors" neighborhood, the scale this primitive was always
@@ -102,7 +99,7 @@ def qualifying_threshold_star_count():
     return 1.0
 
 
-def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
+def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
                            expected_system_count_at_density_1, exclude_addresses,
                            cap=PLANNED_MAX_RESULTS):
     """
@@ -111,9 +108,9 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
     (`predicted_star_count >= 1`) -- the "planned" tier `static/
     galaxymap3d.js` renders as small, dim, clickable dots (see the module
     docstring's own tier breakdown), each carrying its real
-    `(shell_index, shell_slot_index)` address and a copyable provisional
-    designation, ready to feed straight into `generate.py galaxy --shell
-    K --slot N`.
+    `(ring_index, layer_index, ring_slot_index)` address and a copyable
+    provisional designation, ready to feed straight into `generate.py
+    galaxy --ring I --layer J --slot K`.
 
     Args:
         center_pc (tuple): `(x, y, z)`, galaxy-frame parsecs -- the
@@ -124,11 +121,6 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
                            view should use `density_sample_points` instead
                            for anything beyond that cap.
         edge_pc (float): The sector edge length, parsecs.
-        edge_ly (float): The same edge length, light-years (for
-                         `provisional_sector_designation`'s own Ring
-                         lookup -- see that function's docstring for why
-                         it takes both units rather than converting one
-                         from the other itself).
         shape (galaxyDensity.GalaxyShape or None): The galaxy's stored
             shape parameters. `None` (no `generate.py plan` has been run
             against this database yet) means there's no density model to
@@ -139,7 +131,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
         expected_system_count_at_density_1 (float or None): See
             `galaxySkeleton.expected_system_count_at_density_1` -- required
             (and used) only when `shape` is given.
-        exclude_addresses (set): `{(shell_index, shell_slot_index), ...}`
+        exclude_addresses (set): `{(ring_index, layer_index, ring_slot_index), ...}`
             -- addresses to skip because a real sector already exists
             there (the caller already queried those separately as the
             "placed" tier; this avoids listing the same address twice
@@ -147,8 +139,8 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
         cap (int): See `PLANNED_MAX_RESULTS`.
 
     Returns:
-        list[dict]: Closest-first, each with `shell_index`,
-            `shell_slot_index`, `x`/`y`/`z` (parsecs), `distance_pc`
+        list[dict]: Closest-first, each with `ring_index`, `layer_index`,
+            `ring_slot_index`, `x`/`y`/`z` (parsecs), `distance_pc`
             (from `center_pc`), `designation`
             (`provisional_sector_designation`), and `predicted_star_count`/
             `relative_density` (both `None` when `shape` is `None`).
@@ -163,22 +155,19 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
             enumerate_sectors_within_radius(center_pc, r, edge_pc),
             shape, expected_system_count_at_density_1, exclude_addresses,
         ),
-        key=lambda slot: (slot[5], slot[0], slot[1]),
+        key=lambda slot: (slot[6], slot[0], slot[1], slot[2]),
     )
-    return [
-        _planned_entry(slot, edge_pc, edge_ly, distance_pc=slot[5])
-        for slot in closest
-    ]
+    return [_planned_entry(slot, distance_pc=slot[6]) for slot in closest]
 
 
 def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_addresses):
     """Filters `enumerate_sectors_within_radius`-shaped tuples down to the
     ones worth showing as "planned" (see `planned_slots_in_view`), yielding
-    `(shell_index, shell_slot_index, x, y, z, distance_pc, star_count,
-    density)` -- the last two `None` when `shape` is `None`."""
+    `(ring_index, layer_index, ring_slot_index, x, y, z, distance_pc,
+    star_count, density)` -- the last two `None` when `shape` is `None`."""
     threshold = qualifying_threshold_star_count()
-    for shell_index, shell_slot_index, x, y, z, distance_pc in slots:
-        if (shell_index, shell_slot_index) in exclude_addresses:
+    for ring_index, layer_index, slot_index, x, y, z, distance_pc in slots:
+        if (ring_index, layer_index, slot_index) in exclude_addresses:
             continue
         if shape is not None:
             star_count = predicted_star_count((x, y, z), shape, expected_system_count_at_density_1)
@@ -188,16 +177,16 @@ def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_
         else:
             star_count = None
             density = None
-        yield (shell_index, shell_slot_index, x, y, z, distance_pc, star_count, density)
+        yield (ring_index, layer_index, slot_index, x, y, z, distance_pc, star_count, density)
 
 
-def _planned_entry(slot, edge_pc, edge_ly, distance_pc=None):
+def _planned_entry(slot, distance_pc=None):
     """One planned-tier dict from a `_qualifying_slots` tuple."""
-    shell_index, shell_slot_index, x, y, z, _distance, star_count, density = slot
+    ring_index, layer_index, slot_index, x, y, z, _distance, star_count, density = slot
     entry = {
-        "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+        "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
         "x": x, "y": y, "z": z,
-        "designation": provisional_sector_designation(shell_index, shell_slot_index, edge_pc, edge_ly),
+        "designation": provisional_sector_designation(ring_index, layer_index, slot_index),
         "predicted_star_count": star_count, "relative_density": density,
     }
     if distance_pc is not None:
@@ -386,7 +375,7 @@ def _in_box(point, lo, hi):
     return all(lo[axis] <= point[axis] < hi[axis] for axis in range(3))
 
 
-def planned_slots_in_tile(level, ix, iy, iz, edge_pc, edge_ly, shape,
+def planned_slots_in_tile(level, ix, iy, iz, edge_pc, shape,
                           expected_system_count_at_density_1, exclude_addresses):
     """
     Every planned slot (see `planned_slots_in_view` for what qualifies)
@@ -410,13 +399,13 @@ def planned_slots_in_tile(level, ix, iy, iz, edge_pc, edge_ly, shape,
     circumradius = tile_edge * math.sqrt(3.0) / 2.0
     in_tile = (
         slot for slot in enumerate_sectors_within_radius(center, circumradius, edge_pc)
-        if _in_box(slot[2:5], lo, hi)
+        if _in_box(slot[3:6], lo, hi)
     )
     slots = sorted(
         _qualifying_slots(in_tile, shape, expected_system_count_at_density_1, exclude_addresses),
-        key=lambda slot: (slot[0], slot[1]),
+        key=lambda slot: slot[:3],
     )
-    return [_planned_entry(slot, edge_pc, edge_ly) for slot in slots]
+    return [_planned_entry(slot) for slot in slots]
 
 
 def density_points_for_tile(level, ix, iy, iz, shape, count=DENSITY_TILE_SAMPLE_COUNT):

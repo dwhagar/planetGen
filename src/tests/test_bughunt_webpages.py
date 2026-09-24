@@ -174,16 +174,15 @@ def test_sector_page_with_galaxy_placement_renders_neighbor_indicators(live_api,
     from stellarObjects.galaxyGeometry import galactic_radius_pc, sector_position_pc
 
     edge_pc = 3.526
-    shell_index, shell_slot_index = 5, 100
-    position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    address = (5, 1, 20)
+    position = sector_position_pc(*address, edge_pc)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
             sector_id = _db.insert_sector(conn, SpaceSector(name="Placed Sector"), galaxy_position={
                 "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
                 "galactic_radius_pc": galactic_radius_pc(position),
-                "shell_index": shell_index, "shell_slot_index": shell_slot_index,
-                "vertices_pc": {"inner": [], "outer": []},
+                "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
             })
     finally:
         conn.close()
@@ -230,7 +229,6 @@ def test_sector_page_lists_and_maps_every_phenomenon_type(live_api, mysql_config
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
         "galactic_radius_pc": (500.0 ** 2 + 200.0 ** 2 + 10.0 ** 2) ** 0.5,
-        "vertices_pc": {"inner": [], "outer": []},
     })
 
     result = run_page(live_api, "sector.py", query={"db": mysql_config.database, "id": str(sector_id)})

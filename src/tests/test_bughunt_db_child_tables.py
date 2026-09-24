@@ -2,16 +2,16 @@
 
 """
 Tier 1 bug-hunt coverage: exhaustive, column-level round-trip checks for
-the seven `schema.sql` tables confirmed (by cross-referencing every table
+the `schema.sql` tables confirmed (by cross-referencing every table
 name against `src/tests/*.py` -- see the bug-hunt plan) to have **zero**
-existing direct test coverage: `sector_vertices`, `system_config_slots`,
+existing direct test coverage: `system_config_slots`,
 `planet_evolutionary_paragraphs`, `planet_reflection_spectrum`,
 `moon_evolutionary_paragraphs`, `moon_reflection_spectrum`, and
 `asteroid_belt_composition`.
 
 Every other table already has direct coverage in `test_db_persistence.py`/
 `test_galaxy_gen.py`/`test_phenomena.py`/etc. (confirmed by the same
-cross-reference); this file exists specifically to close those seven
+cross-reference); this file exists specifically to close those
 gaps, not to duplicate what's already covered. Unlike
 `test_db_persistence.py`'s flagship round-trip tests (which compare via
 `str(obj) == str(reloaded)`, comprehensive for whatever `__str__`
@@ -38,7 +38,6 @@ import pytest
 from stellarObjects import _db
 from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.config import SystemConfig
-from stellarObjects.sectorGeometry import prism_vertices
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
@@ -50,48 +49,36 @@ def _make_config(**overrides):
     return cfg
 
 
-# --- sector_vertices -------------------------------------------------------
+# --- sectors grid address ---------------------------------------------------
 
-def test_sector_vertices_round_trip_with_real_prism_geometry(mysql_config):
-    """insert_sector writes one sector_vertices row per (ring, index) pair
-    in galaxy_position['vertices_pc'] -- confirms real, non-empty prism
-    geometry lands there with the exact coordinates given, for both rings."""
+def test_sector_grid_address_round_trips(mysql_config):
+    """insert_sector writes the cylindrical grid address (ring, layer,
+    slot) and position a galaxy-placed sector carries; the cell's corners
+    are recomputed from the address, so no vertex rows are stored."""
     conn = _db.get_connection(mysql_config)
     try:
-        vertices = prism_vertices(shell_index=1, shell_slot_index=0, edge_pc=10.0)
         galaxy_position = {
-            "center_x_pc": 5.0, "center_y_pc": 6.0, "center_z_pc": 7.0,
-            "galactic_radius_pc": 10.7, "shell_index": 1, "shell_slot_index": 0,
-            "vertices_pc": vertices,
+            "center_x_pc": 5.0, "center_y_pc": 6.0, "center_z_pc": -7.0,
+            "galactic_radius_pc": 10.49, "ring_index": 2, "layer_index": -3, "ring_slot_index": 9,
         }
-        sector_id = _db.insert_sector(conn, SpaceSector(name="VertexTest"), galaxy_position=galaxy_position)
+        sector_id = _db.insert_sector(conn, SpaceSector(name="AddressTest"), galaxy_position=galaxy_position)
         conn.commit()
-
-        for ring in ("inner", "outer"):
-            rows = conn.execute(
-                "SELECT vertex_index, x_pc, y_pc, z_pc FROM sector_vertices "
-                "WHERE sector_id = ? AND ring = ? ORDER BY vertex_index",
-                (sector_id, ring),
-            ).fetchall()
-            assert len(rows) == len(vertices[ring]), f"{ring}: expected {len(vertices[ring])} rows, got {len(rows)}"
-            for row, (x, y, z) in zip(rows, vertices[ring]):
-                assert row["x_pc"] == pytest.approx(x)
-                assert row["y_pc"] == pytest.approx(y)
-                assert row["z_pc"] == pytest.approx(z)
+        row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+        assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) == (2, -3, 9)
+        assert row["center_z_pc"] == pytest.approx(-7.0)
+        assert _db.get_sector_id_at(conn, 2, -3, 9) == sector_id
+        assert _db.get_sector_id_at(conn, 2, 3, 9) is None
     finally:
         conn.close()
 
 
-def test_sector_vertices_absent_without_galaxy_position(mysql_config):
-    """A standalone (never galaxy-placed) sector must have zero
-    sector_vertices rows -- confirms the table isn't populated with
-    garbage when there's no real geometry to write."""
+def test_standalone_sector_has_no_grid_address(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
         sector_id = _db.insert_sector(conn, SpaceSector(name="NoGalaxyPos"), galaxy_position=None)
         conn.commit()
-        rows = conn.execute("SELECT * FROM sector_vertices WHERE sector_id = ?", (sector_id,)).fetchall()
-        assert rows == []
+        row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+        assert row["ring_index"] is None and row["layer_index"] is None and row["ring_slot_index"] is None
     finally:
         conn.close()
 

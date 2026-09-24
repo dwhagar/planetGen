@@ -642,11 +642,18 @@ class SpaceSector:
         entries (list): The `SectorSystemEntry` instances the sector contains.
         phenomena (list): The `SectorPhenomenonEntry` instances the sector
                           contains -- see `add_phenomenon`.
+        cell (galaxyGeometry.SectorCell or None): For a galaxy-placed
+            sector, its real cylindrical cell in light-years (sector-local
+            axes, origin at the sector center). New positions are then
+            sampled inside that cell instead of the cube, and its volume
+            replaces `edge_ly ** 3`. `None` (the default, every standalone
+            sector) keeps the cube.
     """
 
-    def __init__(self, name, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY):
+    def __init__(self, name, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY, cell=None):
         self.name = name
         self.edge_ly = edge_ly
+        self.cell = cell
         self.entries = []
         self.phenomena = []
 
@@ -655,8 +662,27 @@ class SpaceSector:
 
     @property
     def volume_ly3(self):
-        """float: The sector's volume in cubic light-years (`edge_ly ** 3`)."""
+        """float: The sector's volume in cubic light-years (its cell's, or
+        `edge_ly ** 3` for a cube)."""
+        if self.cell is not None:
+            return self.cell.volume
         return self.edge_ly ** 3
+
+    def _sample_point(self):
+        """A uniformly random sector-local point inside the sector's cell,
+        or its cube when it has none."""
+        if self.cell is not None:
+            return self.cell.sample(_rng)
+        half_edge = self.edge_ly / 2
+        return tuple(_rng.uniform(-half_edge, half_edge) for _ in range(3))
+
+    def contains(self, position):
+        """Whether a sector-local `(x, y, z)` (light-years) lies inside the
+        sector's cell, or its cube when it has none."""
+        if self.cell is not None:
+            return self.cell.contains(position)
+        half_edge = self.edge_ly / 2
+        return all(-half_edge <= coordinate <= half_edge for coordinate in position)
 
     def expected_system_count(self):
         """
@@ -720,9 +746,8 @@ class SpaceSector:
             ValueError: If no such point could be found within
                        `program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS` tries.
         """
-        half_edge = self.edge_ly / 2
         for attempt in range(1, program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS + 1):
-            candidate = tuple(_rng.uniform(-half_edge, half_edge) for _ in range(3))
+            candidate = self._sample_point()
             if all(
                 distance_between(candidate, position) >= (
                     min_separation_ly if min_separation_ly is not None
@@ -731,8 +756,8 @@ class SpaceSector:
                 for neighbor, position in self._massive_neighbors()
             ):
                 log.debug(f"Sector {self.name!r}: random position {_fmt_position(candidate)} accepted on attempt "
-                          f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in a "
-                          f"{self.edge_ly} ly cube, clear of every massive neighbor's "
+                          f"{attempt}/{program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS} (uniform in the "
+                          f"{self.edge_ly} ly {'cell' if self.cell is not None else 'cube'}, clear of every massive neighbor's "
                           f"{'flat ' + str(min_separation_ly) + ' ly' if min_separation_ly is not None else 'Hill sphere'})")
                 return candidate
 
@@ -799,6 +824,8 @@ class SpaceSector:
         half_edge = self.edge_ly / 2
         jitter_ly = min(jitter_ly, half_edge)
         position = tuple(_rng.uniform(-jitter_ly, jitter_ly) for _ in range(3))
+        if not self.contains(position):
+            position = (0.0, 0.0, 0.0)
         return self.add_system(star_system, position=position, system_config=system_config)
 
     def add_phenomenon(self, phenomenon, phenomenon_type, position=None, min_separation_ly=None):
@@ -848,8 +875,7 @@ class SpaceSector:
             if is_massive:
                 position = self._random_position(phenomenon, min_separation_ly)
             else:
-                half_edge = self.edge_ly / 2
-                position = tuple(_rng.uniform(-half_edge, half_edge) for _ in range(3))
+                position = self._sample_point()
 
         entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position)
         self.phenomena.append(entry)
@@ -982,7 +1008,7 @@ class SpaceSector:
                               f"rejected (no Hill-sphere-clear spot within "
                               f"{program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS} nudges)")
                     continue
-                if not all(-half_edge <= coordinate <= half_edge for coordinate in position):
+                if not self.contains(position):
                     log.debug(f"Sector {self.name!r}: candidate at {_fmt_position(position)} rejected (outside "
                               f"the sector's +/-{half_edge} ly bounds)")
                     continue

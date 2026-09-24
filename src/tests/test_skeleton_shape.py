@@ -6,8 +6,9 @@ sector slots the density model says qualify (`predicted_star_count >= 1`,
 the Galaxy Map's "planned" tier) -- traces a flattened disk, not a ball
 around the galactic center.
 
-Slots are sampled straight from the address scheme (`sector_position_pc`
-over random shells/slots) rather than through
+Slots are sampled straight from the address scheme (random points in a
+ball, snapped to their cell's center with `sector_address_at`) rather
+than through
 `galaxyViewport.planned_slots_in_view`, whose own view-radius cap
 (`PLANNED_RADIUS_CAP_PC`) only ever returns a small sphere around the view
 center; this test is about where qualifying slot centers really are.
@@ -20,7 +21,9 @@ import random
 import pytest
 
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
-from stellarObjects.galaxyGeometry import sector_position_pc, shell_radius_pc, shell_sector_count
+from stellarObjects.galaxyGeometry import (
+    cylindrical_radius_pc, layer_center_z_pc, ring_radius_pc, sector_address_at, sector_position_pc,
+)
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
 
 EDGE_LY = 11.5
@@ -42,29 +45,36 @@ MAX_SAMPLE_RADIUS_PC = 20000.0
 
 
 def _sampled_slots():
-    """(shell_index, position) for SAMPLE_COUNT random slots, shells drawn
-    uniformly by radius out past the galaxy's edge."""
+    """(address, position) for SAMPLE_COUNT random slots: points drawn
+    uniformly by radius (in a random direction) out past the galaxy's
+    edge, each snapped to its own cell's center -- so nothing about the
+    sampling itself favors the plane."""
     rng = random.Random(20260924)
     slots = []
     for _ in range(SAMPLE_COUNT):
-        shell_index = int(rng.uniform(0.0, MAX_SAMPLE_RADIUS_PC) / EDGE_PC)
-        slot_index = rng.randrange(shell_sector_count(shell_index))
-        slots.append((shell_index, sector_position_pc(shell_index, slot_index, EDGE_PC)))
+        r = rng.uniform(0.0, MAX_SAMPLE_RADIUS_PC)
+        cos_polar = rng.uniform(-1.0, 1.0)
+        sin_polar = math.sqrt(1.0 - cos_polar * cos_polar)
+        theta = rng.uniform(0.0, 2 * math.pi)
+        point = (r * sin_polar * math.cos(theta), r * sin_polar * math.sin(theta), r * cos_polar)
+        address = sector_address_at(point, EDGE_PC)
+        slots.append((address, sector_position_pc(*address, EDGE_PC)))
     return slots
 
 
 def _qualifying_positions(slots):
     expected = expected_system_count_at_density_1(EDGE_LY)
-    return [position for _shell, position in slots if predicted_star_count(position, DEFAULT_SHAPE, expected) >= 1.0]
+    return [position for _address, position in slots if predicted_star_count(position, DEFAULT_SHAPE, expected) >= 1.0]
 
 
 def _approx(value):
     return pytest.approx(value, rel=1e-9, abs=1e-6)
 
 
-def test_slot_centers_are_galaxy_frame_parsecs_on_their_own_shell():
-    for shell_index, (x, y, z) in _sampled_slots()[:2000]:
-        assert math.sqrt(x * x + y * y + z * z) == _approx(shell_radius_pc(shell_index, EDGE_PC))
+def test_slot_centers_are_galaxy_frame_parsecs_on_their_own_ring_and_layer():
+    for (ring_index, layer_index, _slot), position in _sampled_slots()[:2000]:
+        assert cylindrical_radius_pc(position) == _approx(ring_radius_pc(ring_index, EDGE_PC))
+        assert position[2] == _approx(layer_center_z_pc(layer_index, EDGE_PC))
 
 
 def test_qualifying_slots_trace_a_flattened_disk_not_a_ball():

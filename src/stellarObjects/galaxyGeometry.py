@@ -1,167 +1,335 @@
 # stellarObjects/galaxyGeometry.py
 
 """
-Galaxy-Scale Shell Tiling and Neighborhood Enumeration
-=========================================================
+Galaxy-Scale Cylindrical Sector Grid
+=======================================
 
-Implements the radial, shell-based sector-tiling scheme from
-`docs/design/galaxy-coordinate-system.md` section 3 (shell counts,
-Fibonacci-sphere placement within a shell) and the generation-unit
-enumeration primitive documented in that file's "Generation unit: sector
-enumeration by radius" section (find every `(shell_index,
-shell_slot_index)` address whose center falls within radius R of an
-arbitrary point P in galaxy-space, not just the galactic origin).
+Every galaxy-placed sector is one cell of a cylindrical grid centered on
+the galactic origin (see `docs/design/galaxy-coordinate-system.md`,
+"Cylindrical sector grid"):
 
-Every distance here is in parsecs, matching the schema's
-`sectors.center_x/y/z_pc`/`galactic_radius_pc` columns -- this module has
-no opinion on light-years/milliparsecs; callers convert at their own
-boundary (`stellarObjects/utils.py`'s `pc_to_ly`/`ly_to_pc` for the
-Hill-sphere threading, `pc_to_mpc`/`mpc_to_pc` for nothing here since
-`edge_mpc` is converted to `edge_pc` once by the caller before any of
-these functions are used).
+- **Ring** `i` (radial): cylindrical radius `R` in `[i*w, (i+1)*w)`.
+- **Layer** `j` (height, signed): `z` in `[(j - 1/2)*h, (j + 1/2)*h)`, so
+  layer 0 is centered on the galactic plane.
+- **Slot** `k` (angle): ring `i` is cut into `ring_sector_count(i)` equal
+  wedges, slot `k` spanning `theta` in `[2*pi*k/N, 2*pi*(k+1)/N)` from
+  `+X`, counterclockwise.
 
-Nothing in this module touches the database or does I/O -- it is pure
-geometry, deterministic and side-effect-free, so it can be unit-tested
-against exact hand-computable values.
+`w` and `h` are both the sector edge length (`edge_pc`, 11.5 ly by
+default), and `N` is chosen so the arc along a ring's centerline is also
+about one edge, so every cell is close to an `edge_pc` cube (within ~5%
+from ring 10 outward). `N` is always a multiple of `RING_SLOT_MULTIPLE`
+(4), so each galactic Quadrant holds whole sectors.
+
+The cells tile space exactly -- no gaps, no overlaps -- and every lookup
+is closed-form: `sector_address_at` maps a point straight to its cell,
+`neighbor_addresses` lists a cell's face neighbors, and
+`enumerate_sectors_within_radius` walks only the cells near a point.
+
+Every distance here is in parsecs, matching `sectors.center_x/y/z_pc`.
+Pure geometry: no database, no I/O.
 """
 
 import math
 
-GOLDEN_RATIO = (1 + 5 ** 0.5) / 2
-"""float: The golden ratio, used for the golden-angle azimuthal step in
-`sector_position_pc` -- see the design doc section 3."""
+RING_SLOT_MULTIPLE = 4
+"""int: Every ring's slot count is a multiple of this, so the four
+galactic Quadrants (`sector_quadrant`) each hold a whole number of
+sectors and a Quadrant boundary never splits one."""
+
+DESIGNATION_SLOT_BITS = 20
+"""int: Low bits of a packed designation holding the slot -- enough for
+the ~411,000 slots of ring 65,535, far past any galaxy this project
+builds (the default Milky Way reaches ring ~4,100, ~26,000 slots)."""
+
+DESIGNATION_LAYER_BITS = 13
+"""int: Bits above the slot holding the layer, biased by
+`DESIGNATION_LAYER_BIAS` so negative layers pack as plain integers."""
+
+DESIGNATION_LAYER_BIAS = 1 << (DESIGNATION_LAYER_BITS - 1)
+"""int: Added to a layer index before packing (layers -4096..4095)."""
 
 
-def shell_radius_pc(shell_index, edge_pc):
+def ring_sector_count(ring_index):
     """
-    The nominal radius of shell `shell_index`, in parsecs -- the radius
-    every one of that shell's sector centers sits at (design doc section
-    3: `r_k = (k + 0.5) * edge_pc`).
+    How many slots ring `ring_index` holds: `2*pi*(i + 1/2)` (the ring's
+    centerline circumference in edge lengths) rounded to the nearest
+    multiple of `RING_SLOT_MULTIPLE`, never fewer than that. Independent
+    of `edge_pc`, which cancels out.
 
     Args:
-        shell_index (int): The shell index `k` (`k = 0, 1, 2, ...`).
-        edge_pc (float): The (uniform, per this design's scope) sector
-                         edge length, in parsecs.
+        ring_index (int): `i >= 0`.
 
     Returns:
-        float: The shell's nominal radius, in parsecs.
+        int: `N_i`, a positive multiple of `RING_SLOT_MULTIPLE`.
     """
-    return (shell_index + 0.5) * edge_pc
+    if ring_index < 0:
+        raise ValueError(f"ring_index must be >= 0, got {ring_index}")
+    circumference_edges = 2 * math.pi * (ring_index + 0.5)
+    return max(RING_SLOT_MULTIPLE, RING_SLOT_MULTIPLE * round(circumference_edges / RING_SLOT_MULTIPLE))
 
 
-def shell_sector_count(shell_index):
+def ring_radius_pc(ring_index, edge_pc):
+    """The cylindrical radius of ring `ring_index`'s centerline, where its
+    sector centers sit: `(i + 1/2) * edge_pc`."""
+    return (ring_index + 0.5) * edge_pc
+
+
+def ring_bounds_pc(ring_index, edge_pc):
+    """`(inner, outer)` cylindrical radius of ring `ring_index`, parsecs."""
+    return ring_index * edge_pc, (ring_index + 1) * edge_pc
+
+
+def layer_center_z_pc(layer_index, edge_pc):
+    """The `z` of layer `layer_index`'s midplane: `j * edge_pc`."""
+    return layer_index * edge_pc
+
+
+def layer_bounds_pc(layer_index, edge_pc):
+    """`(bottom, top)` `z` of layer `layer_index`, parsecs."""
+    return (layer_index - 0.5) * edge_pc, (layer_index + 0.5) * edge_pc
+
+
+def slot_angle_bounds(ring_index, slot_index):
+    """`(theta_start, theta_end)` of one slot, radians from `+X`."""
+    n = ring_sector_count(ring_index)
+    step = 2 * math.pi / n
+    return slot_index * step, (slot_index + 1) * step
+
+
+def _check_slot(ring_index, slot_index):
+    n = ring_sector_count(ring_index)
+    if not (0 <= slot_index < n):
+        raise ValueError(
+            f"ring_slot_index {slot_index} out of range for ring {ring_index} "
+            f"(holds {n} slots, 0..{n - 1})"
+        )
+    return n
+
+
+def sector_position_pc(ring_index, layer_index, slot_index, edge_pc):
     """
-    How many sector slots shell `shell_index` holds -- design doc section
-    3: `N_k = round(4 * pi * (k + 0.5)^2)`, dimensionless (independent of
-    `edge_pc`, which cancels out of the derivation).
-
-    Args:
-        shell_index (int): The shell index `k`.
-
-    Returns:
-        int: `N_k`, always >= 1.
-    """
-    r_k_edges = shell_index + 0.5
-    return round(4 * math.pi * r_k_edges * r_k_edges)
-
-
-def sector_position_pc(shell_index, shell_slot_index, edge_pc):
-    """
-    The `(x, y, z)` center of one sector slot, in parsecs -- design doc
-    section 3's deterministic Fibonacci (golden-angle) sphere placement
-    within shell `shell_index`.
-
-    Args:
-        shell_index (int): The shell index `k`.
-        shell_slot_index (int): The slot index `i` within the shell,
-                                `0 <= i < shell_sector_count(shell_index)`.
-        edge_pc (float): The sector edge length, in parsecs.
-
-    Returns:
-        tuple: `(x, y, z)` in parsecs.
+    The `(x, y, z)` center of one sector, in parsecs: on its ring's
+    centerline, at its slot's middle angle, on its layer's midplane.
 
     Raises:
-        ValueError: If `shell_slot_index` is out of range for this shell.
+        ValueError: If `slot_index` is out of range for the ring.
     """
-    n_k = shell_sector_count(shell_index)
-    if not (0 <= shell_slot_index < n_k):
-        raise ValueError(
-            f"shell_slot_index {shell_slot_index} out of range for shell {shell_index} "
-            f"(holds {n_k} slots, 0..{n_k - 1})"
-        )
+    n = _check_slot(ring_index, slot_index)
+    r = ring_radius_pc(ring_index, edge_pc)
+    theta = (slot_index + 0.5) * 2 * math.pi / n
+    return (r * math.cos(theta), r * math.sin(theta), layer_center_z_pc(layer_index, edge_pc))
 
-    r_k = shell_radius_pc(shell_index, edge_pc)
-    i = shell_slot_index
-    phi = _phi_for_index(i, n_k)
-    theta = _theta_for_index(i)
 
-    sin_phi = math.sin(phi)
-    x = r_k * sin_phi * math.cos(theta)
-    y = r_k * sin_phi * math.sin(theta)
-    z = r_k * math.cos(phi)
-    return (x, y, z)
+def cylindrical_radius_pc(position):
+    """`sqrt(x^2 + y^2)` -- distance from the galactic axis."""
+    return math.hypot(position[0], position[1])
 
 
 def galactic_radius_pc(position):
     """
-    The distance from the galactic origin to `position`, in parsecs --
-    `sqrt(x^2 + y^2 + z^2)`, matching `sectors.galactic_radius_pc`.
-
-    Args:
-        position (tuple): `(x, y, z)` in parsecs.
-
-    Returns:
-        float: The distance from the origin, in parsecs.
+    `sqrt(x^2 + y^2 + z^2)` -- straight-line distance from the galactic
+    center, matching `sectors.galactic_radius_pc`.
     """
     x, y, z = position
     return math.sqrt(x * x + y * y + z * z)
 
 
-def sector_ring(shell_index, edge_ly, ring_target_ly=100.0):
+def sector_address_at(position, edge_pc):
     """
-    The Ring index -- a fixed-width band of consecutive `shell_index`
-    values approximately `ring_target_ly` light-years thick -- that
-    `shell_index` falls in. Matches `html/lib/galaxymap.py`'s own
-    identically-named Ring concept (the Galaxy Map's radial grouping)
-    exactly whenever it's called with the same `edge_ly` that module
-    displays -- always `program_constants.DEFAULT_SECTOR_EDGE_LY` today,
-    since nothing in this codebase varies a galaxy's sector edge length
-    once generation starts. Duplicated here (rather than importing that
-    CGI-only module) so this module stays usable from `galaxyGen.py`'s
-    CLI, which has no business depending on the web front-end layer.
+    The `(ring_index, layer_index, ring_slot_index)` cell containing a
+    galaxy-frame point.
 
     Args:
-        shell_index (int): The shell index `k`.
-        edge_ly (float): The sector edge length, in light-years -- note
-                         this is light-years, unlike every other
-                         `edge_pc` parameter in this module (see
-                         `provisional_sector_designation`'s docstring on
-                         why).
-        ring_target_ly (float): The approximate light-year thickness a
-                                Ring should aim for. Defaults to 100.0,
-                                matching `html/lib/galaxymap.py`'s own
-                                `RING_TARGET_LY`.
+        position (tuple): `(x, y, z)`, parsecs.
+        edge_pc (float): The sector edge length, parsecs.
 
     Returns:
-        int: The Ring index.
+        tuple: `(ring_index, layer_index, ring_slot_index)`.
     """
-    ring_shell_width = max(1, round(ring_target_ly / edge_ly))
-    return shell_index // ring_shell_width
+    x, y, z = position
+    ring_index = int(math.floor(math.hypot(x, y) / edge_pc))
+    layer_index = int(math.floor(z / edge_pc + 0.5))
+    n = ring_sector_count(ring_index)
+    theta = math.atan2(y, x) % (2 * math.pi)
+    slot_index = min(n - 1, int(theta * n / (2 * math.pi)))
+    return ring_index, layer_index, slot_index
+
+
+def sector_orientation(center_pc):
+    """
+    A sector's local axes in the galaxy frame, the frame
+    `star_systems.position_x/y/z_mpc` offsets are expressed in: local
+    `+X` points radially outward from the galactic axis, local `+Y` points
+    toward increasing `theta` (counterclockwise seen from galactic north),
+    and local `+Z` is galactic north. The same convention for every
+    sector, so a system's octant means the same thing everywhere.
+
+    Args:
+        center_pc (tuple): The sector's own `(x, y, z)` center, parsecs.
+            Every grid cell's center is off the galactic axis by at least
+            half an edge; a point exactly on the axis (only a hand-placed
+            sector can be) gets the galaxy's own axes.
+
+    Returns:
+        tuple: `(local_x, local_y, local_z)`, each a unit `(x, y, z)`.
+    """
+    x, y, _z = center_pc
+    r = math.hypot(x, y)
+    if r < 1e-12:
+        return (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)
+    cos_t, sin_t = x / r, y / r
+    return (cos_t, sin_t, 0.0), (-sin_t, cos_t, 0.0), (0.0, 0.0, 1.0)
+
+
+def local_to_galaxy_pc(center_pc, offset_pc):
+    """Converts a sector-local offset (parsecs, `sector_orientation`'s
+    axes) into an absolute galaxy-frame point."""
+    ax, ay, az = sector_orientation(center_pc)
+    ox, oy, oz = offset_pc
+    return tuple(center_pc[i] + ox * ax[i] + oy * ay[i] + oz * az[i] for i in range(3))
+
+
+def sector_cell_vertices_pc(ring_index, layer_index, slot_index, edge_pc):
+    """
+    The 8 corners of one cell, galaxy frame, parsecs. List index is
+    `4*r_bit + 2*z_bit + theta_bit` (each bit 0 for the low bound, 1 for
+    the high one), so corners `i` and `i ^ 1`, `i ^ 2`, `i ^ 4` share an
+    edge. The two curved faces (inner and outer ring surfaces) bow
+    slightly between their corners; at 11.5 ly the bow is under 0.2 ly
+    from ring 10 outward. Ring 0's cells are pie wedges, so their four
+    inner corners all sit on the galactic axis.
+    """
+    _check_slot(ring_index, slot_index)
+    r_bounds = ring_bounds_pc(ring_index, edge_pc)
+    z_bounds = layer_bounds_pc(layer_index, edge_pc)
+    t_bounds = slot_angle_bounds(ring_index, slot_index)
+    vertices = []
+    for r in r_bounds:
+        for z in z_bounds:
+            for theta in t_bounds:
+                vertices.append((r * math.cos(theta), r * math.sin(theta), z))
+    return vertices
+
+
+class SectorCell:
+    """
+    One grid cell in its own sector-local frame (`sector_orientation`'s
+    axes, origin at the sector center), in whatever length unit it was
+    built with -- `SpaceSector` uses light-years. Lets sector generation
+    place systems inside the real cylindrical cell instead of a cube.
+
+    Attributes:
+        r_inner, r_outer (float): The ring's inner/outer cylindrical radius.
+        r_center (float): The ring centerline radius (the local origin sits
+            this far from the galactic axis).
+        half_angle (float): Half the slot's angular width, radians.
+        half_height (float): Half the layer's height.
+    """
+
+    def __init__(self, r_inner, r_outer, half_angle, half_height):
+        self.r_inner = r_inner
+        self.r_outer = r_outer
+        self.r_center = (r_inner + r_outer) / 2
+        self.half_angle = half_angle
+        self.half_height = half_height
+
+    @classmethod
+    def for_ring(cls, ring_index, edge):
+        """The cell shape of any sector in ring `ring_index`, for sector
+        edge length `edge` (any unit)."""
+        n = ring_sector_count(ring_index)
+        return cls(ring_index * edge, (ring_index + 1) * edge, math.pi / n, edge / 2)
+
+    @property
+    def volume(self):
+        """The cell's volume, in the unit cubed."""
+        return (self.r_outer ** 2 - self.r_inner ** 2) * self.half_angle * 2 * self.half_height
+
+    def contains(self, point):
+        """Whether a sector-local point lies inside the cell (boundary
+        inclusive)."""
+        lx, ly, lz = point
+        if abs(lz) > self.half_height:
+            return False
+        px = self.r_center + lx
+        r = math.hypot(px, ly)
+        if r < self.r_inner or r > self.r_outer:
+            return False
+        if r == 0.0:
+            return True
+        return abs(math.atan2(ly, px)) <= self.half_angle
+
+    def sample(self, rng):
+        """A uniformly random sector-local point inside the cell."""
+        r = math.sqrt(rng.uniform(self.r_inner ** 2, self.r_outer ** 2))
+        theta = rng.uniform(-self.half_angle, self.half_angle)
+        z = rng.uniform(-self.half_height, self.half_height)
+        return (r * math.cos(theta) - self.r_center, r * math.sin(theta), z)
+
+
+def _overlapping_slots(from_ring, slot_index, to_ring):
+    """Slots of `to_ring` whose angular span overlaps slot `slot_index`
+    of `from_ring` (touching at a single boundary angle doesn't count).
+    Integer arithmetic, so coinciding boundaries are exact."""
+    n_from = ring_sector_count(from_ring)
+    n_to = ring_sector_count(to_ring)
+    first = (slot_index * n_to) // n_from
+    last = -((-(slot_index + 1) * n_to) // n_from) - 1  # ceil(...) - 1
+    return list(range(first, last + 1))
+
+
+def neighbor_addresses(ring_index, layer_index, slot_index):
+    """
+    Every cell sharing a face (of nonzero area) with this one: the two
+    slots either side in the same ring and layer, the cells directly
+    above and below, and the one or two overlapping slots in each
+    adjacent ring (ring slot counts differ, so cells in neighboring rings
+    are offset like brick courses). Ring 0 has no inward neighbor.
+
+    Returns:
+        list[tuple]: `(ring_index, layer_index, ring_slot_index)` tuples,
+            no duplicates, not including the cell itself.
+    """
+    n = _check_slot(ring_index, slot_index)
+    result = [
+        (ring_index, layer_index, (slot_index - 1) % n),
+        (ring_index, layer_index, (slot_index + 1) % n),
+        (ring_index, layer_index - 1, slot_index),
+        (ring_index, layer_index + 1, slot_index),
+    ]
+    for other in (ring_index - 1, ring_index + 1):
+        if other < 0:
+            continue
+        result.extend((other, layer_index, s) for s in _overlapping_slots(ring_index, slot_index, other))
+    seen = set()
+    unique = []
+    for address in result:
+        if address not in seen and address != (ring_index, layer_index, slot_index):
+            seen.add(address)
+            unique.append(address)
+    return unique
+
+
+def sector_zone(ring_index, edge_ly, zone_target_ly=100.0):
+    """
+    The Zone index -- a fixed-width band of consecutive rings about
+    `zone_target_ly` light-years wide that the Galaxy pages group sectors
+    by (`html/lib/galaxymap.py`'s identically-named concept). Takes
+    light-years, unlike the rest of this module.
+
+    Returns:
+        int: `ring_index // round(zone_target_ly / edge_ly)`.
+    """
+    zone_ring_width = max(1, round(zone_target_ly / edge_ly))
+    return ring_index // zone_ring_width
 
 
 def sector_quadrant(x_pc, y_pc):
     """
     Classifies a galaxy-frame `(x, y)` position into one of 4 azimuthal
-    Quadrants, numbered 1-4 counterclockwise from `+X` -- the same
-    `theta = atan2(y, x)` split as `html/lib/galaxymap.py`'s own
-    `sector_quadrant` (which labels the same four arcs "I"-"IV"), just a
-    plain int here for `provisional_sector_designation`'s digit.
-
-    Args:
-        x_pc (float): Galaxy-frame x. Any unit is fine (parsecs,
-                      light-years, ...) -- only the ratio to `y_pc`
-                      matters.
-        y_pc (float): Galaxy-frame y, same unit as `x_pc`.
+    Quadrants, numbered 1-4 counterclockwise from `+X` -- the same split
+    as `html/lib/galaxymap.py`'s `sector_quadrant` (labelled "I"-"IV").
 
     Returns:
         int: 1, 2, 3, or 4.
@@ -170,419 +338,76 @@ def sector_quadrant(x_pc, y_pc):
     return min(3, int(theta // (math.pi / 2))) + 1
 
 
-DESIGNATION_SLOT_BITS = 32
-"""int: How many low bits of `provisional_sector_designation`'s packed
-integer are reserved for the raw `shell_slot_index`. 32 bits (up to
-~4.29 billion) comfortably covers even a Milky-Way-scale galaxy's largest
-shells -- ~227 million slots for a 15,000 pc galaxy, see
-`docs/design/galaxy-coordinate-system.md` section 3's own worked table --
-with enormous headroom to spare."""
-
-DESIGNATION_QUADRANT_BITS = 2
-"""int: How many bits above the slot field hold the Quadrant -- packed
-zero-based (`quadrant - 1`, i.e. 0-3) since exactly 4 values fit an exact
-2-bit field, then the Ring occupies every remaining higher bit."""
-
-
-def provisional_sector_designation(shell_index, shell_slot_index, edge_pc, edge_ly):
+def provisional_sector_designation(ring_index, layer_index, slot_index):
     """
-    Builds a short provisional designation for a sector address as a
-    single hex number: Ring, Quadrant, and the raw slot index bit-packed
-    into one integer (`ring` in the high bits, `quadrant - 1` in the next
-    `DESIGNATION_QUADRANT_BITS`, `shell_slot_index` in the low
-    `DESIGNATION_SLOT_BITS`) and printed as plain uppercase hex, e.g.
-    `"1500002EE0"`. For referring to a `(shell_index, shell_slot_index)`
-    address before (or without) ever generating it, the way a real
-    astronomical catalog gives a not-yet-fully-characterized object a
-    provisional name derived from its position rather than waiting for a
-    proper one.
+    A short, reversible code for a sector address, for referring to one
+    before (or without) generating it: ring, biased layer and slot
+    bit-packed into one integer and printed as uppercase hex, e.g.
+    `"FE81000A2B"`. `parse_sector_designation` undoes it.
 
-    Deterministic and O(1) -- no scan over the shell's other slots is
-    needed (unlike, say, "the Nth sector generated in this Ring/Quadrant
-    so far" would require), consistent with this codebase's galaxy-
-    skeleton design principle of never doing per-sector work proportional
-    to a shell's slot count (which runs into the hundreds of millions for
-    an outer shell -- see docs/design/galaxy-coordinate-system.md section
-    9's storage-analysis addendum).
-
-    Genuinely reversible back to `(ring, quadrant, shell_slot_index)` --
-    the fixed-width bit fields have no ambiguous boundary the way
-    concatenating separately-sized hex numbers would. `ring` (see
-    `sector_ring`) is still a lossy bucket of `shell_index` though, so
-    this can't be unpacked all the way back to the exact `shell_index` --
-    a caller who needs the real address keeps it around itself; this
-    designation is a display label, not an addressing scheme of its own.
-
-    Args:
-        shell_index (int): The shell index `k`.
-        shell_slot_index (int): The slot index within the shell. Must be
-                                less than `2**DESIGNATION_SLOT_BITS` --
-                                true of every shell this codebase's
-                                galaxy-skeleton design targets (see
-                                `DESIGNATION_SLOT_BITS`'s own docstring).
-        edge_pc (float): The sector edge length, in parsecs -- passed
-                         straight through to `sector_position_pc` for the
-                         Quadrant lookup.
-        edge_ly (float): The same edge length, in light-years -- passed
-                         to `sector_ring`. Taken as a second parameter
-                         rather than converted from `edge_pc` internally
-                         because this module deliberately has no opinion
-                         on light-years (see the module docstring); a
-                         caller that already has one unit derives the
-                         other via `stellarObjects.utils`'
-                         `pc_to_ly`/`ly_to_pc` before calling in here.
-
-    Returns:
-        str: The designation, uppercase hex, e.g. `"1500002EE0"`.
+    Raises:
+        ValueError: If the layer or slot doesn't fit its bit field.
     """
-    x_pc, y_pc, _z_pc = sector_position_pc(shell_index, shell_slot_index, edge_pc)
-    ring = sector_ring(shell_index, edge_ly)
-    quadrant = sector_quadrant(x_pc, y_pc)
+    biased_layer = layer_index + DESIGNATION_LAYER_BIAS
+    if not (0 <= biased_layer < (1 << DESIGNATION_LAYER_BITS)):
+        raise ValueError(f"layer_index {layer_index} out of designation range")
+    if not (0 <= slot_index < (1 << DESIGNATION_SLOT_BITS)):
+        raise ValueError(f"ring_slot_index {slot_index} out of designation range")
     packed = (
-        (ring << (DESIGNATION_QUADRANT_BITS + DESIGNATION_SLOT_BITS))
-        | ((quadrant - 1) << DESIGNATION_SLOT_BITS)
-        | shell_slot_index
+        (ring_index << (DESIGNATION_LAYER_BITS + DESIGNATION_SLOT_BITS))
+        | (biased_layer << DESIGNATION_SLOT_BITS)
+        | slot_index
     )
     return f"{packed:X}"
 
 
-def sector_wedge_vertices_pc(shell_index, shell_slot_index, edge_pc):
+def parse_sector_designation(designation):
     """
-    Approximates the 8 vertices of the actual (non-cubic) cell a sector
-    occupies on its shell -- unlike `sector_position_pc`'s single center
-    point, or the model's fixed `edge_pc`-sided cube (the sector's
-    generation *volume*, unrelated to where that volume sits on the
-    shell -- see docs/design/galaxy-coordinate-system.md's "The
-    geometric problem, stated plainly"), this is a curved-sided wedge:
-    bounded radially by the shell's own thickness (`shell_radius_pc`
-    +/- half of `edge_pc`) and, in angle, by roughly how much of the
-    shell's surface this slot's Fibonacci placement "owns" relative to
-    its immediate neighbors.
-
-    The angular half-widths are a deliberate approximation, not an exact
-    spherical-Voronoi boundary -- computing the real Voronoi cell among a
-    shell's slots (up to ~227 million in the outermost shells) is
-    unnecessary just to draw an outline. Each slot is instead assumed to
-    cover a solid angle of `4*pi/n_k` steradians (the shell's total solid
-    angle split evenly across its `n_k` slots) laid out as a roughly
-    square patch in `(phi, theta)`: `dphi ~ sqrt(4*pi/n_k)`, and
-    `dtheta ~ dphi/sin(phi)` so the patch keeps that same area (not the
-    same angular width) as the theta-circles narrow toward the poles.
-
-    Args:
-        shell_index (int): The shell index `k`.
-        shell_slot_index (int): The slot index `i` within the shell.
-        edge_pc (float): The sector edge length, in parsecs.
-
-    Returns:
-        list[tuple]: 8 `(x, y, z)` points in parsecs, in the same
-                     galaxy-frame origin/axes as `sector_position_pc`.
-                     Ordered by `(r_bit, phi_bit, theta_bit)`, each 0
-                     (low bound) or 1 (high bound), as list index
-                     `4*r_bit + 2*phi_bit + theta_bit` -- so index `i`
-                     and index `i ^ 1`/`i ^ 2`/`i ^ 4` are always the
-                     cell's 12 edges (differ in exactly one bit).
+    The `(ring_index, layer_index, ring_slot_index)` a designation from
+    `provisional_sector_designation` encodes.
 
     Raises:
-        ValueError: If `shell_slot_index` is out of range for this shell.
+        ValueError: If it isn't valid hex or names an out-of-range slot.
     """
-    n_k = shell_sector_count(shell_index)
-    if not (0 <= shell_slot_index < n_k):
-        raise ValueError(
-            f"shell_slot_index {shell_slot_index} out of range for shell {shell_index} "
-            f"(holds {n_k} slots, 0..{n_k - 1})"
-        )
-
-    r_k = shell_radius_pc(shell_index, edge_pc)
-    phi = _phi_for_index(shell_slot_index, n_k)
-    theta = _theta_for_index(shell_slot_index)
-
-    dphi_half = 0.5 * math.sqrt(4 * math.pi / n_k)
-    sin_phi = math.sin(phi)
-    dtheta_half = dphi_half / max(sin_phi, 1e-6)
-
-    r_bounds = (r_k - edge_pc / 2, r_k + edge_pc / 2)
-    phi_bounds = (max(0.0, phi - dphi_half), min(math.pi, phi + dphi_half))
-    theta_bounds = (theta - dtheta_half, theta + dtheta_half)
-
-    vertices = []
-    for r in r_bounds:
-        for phi_bound in phi_bounds:
-            sin_phi_bound = math.sin(phi_bound)
-            cos_phi_bound = math.cos(phi_bound)
-            for theta_bound in theta_bounds:
-                vertices.append((
-                    r * sin_phi_bound * math.cos(theta_bound),
-                    r * sin_phi_bound * math.sin(theta_bound),
-                    r * cos_phi_bound,
-                ))
-    return vertices
+    packed = int(designation.strip(), 16)
+    slot_index = packed & ((1 << DESIGNATION_SLOT_BITS) - 1)
+    biased_layer = (packed >> DESIGNATION_SLOT_BITS) & ((1 << DESIGNATION_LAYER_BITS) - 1)
+    ring_index = packed >> (DESIGNATION_LAYER_BITS + DESIGNATION_SLOT_BITS)
+    _check_slot(ring_index, slot_index)
+    return ring_index, biased_layer - DESIGNATION_LAYER_BIAS, slot_index
 
 
-def _phi_for_index(i, n_k):
-    """The exact polar angle `sector_position_pc` uses for slot `i` of an
-    `n_k`-slot shell -- factored out so `slot_index_bounds_for_phi_range`
-    (the inverse) can be checked against the same formula."""
-    return math.acos(1 - 2 * (i + 0.5) / n_k)
-
-
-def _theta_for_index(i):
-    """The azimuthal angle `sector_position_pc`/`sector_wedge_vertices_pc`
-    use for slot `i` -- the golden-angle (Fibonacci sphere) step
-    `GOLDEN_RATIO`'s own docstring refers to: `theta_i = (2*pi*i /
-    GOLDEN_RATIO) mod 2*pi`, independent of shell size (unlike `phi`,
-    which depends on `n_k`) -- successive slots spiral around by the same
-    irrational fraction of a full turn regardless of which shell they're
-    in."""
-    return (2 * math.pi * i / GOLDEN_RATIO) % (2 * math.pi)
-
-
-def slot_index_bounds_for_phi_range(phi_min, phi_max, n_k):
-    """
-    Inverts `_phi_for_index`: given a target polar-angle range `[phi_min,
-    phi_max]` (`0 <= phi_min <= phi_max <= pi`), returns the contiguous
-    `[i_min, i_max]` slot-index range (inclusive, clamped to
-    `[0, n_k - 1]`) that could hold a slot whose own `phi` falls in that
-    range.
-
-    `phi_i = acos(1 - 2*(i+0.5)/n_k)` is strictly increasing in `i` (as `i`
-    runs 0..n_k-1, `1 - 2*(i+0.5)/n_k` runs from just under 1 down to just
-    over -1, and `acos` is strictly decreasing over `[-1, 1]`, so the
-    composition is strictly increasing) -- so a phi range maps to exactly
-    one contiguous index range, found by inverting the formula:
-    `i = n_k * (1 - cos(phi)) / 2 - 0.5`. A 1-slot buffer is added on each
-    side to absorb floating-point rounding at the boundary.
-
-    Args:
-        phi_min (float): Lower polar-angle bound, radians.
-        phi_max (float): Upper polar-angle bound, radians.
-        n_k (int): This shell's total slot count.
-
-    Returns:
-        tuple: `(i_min, i_max)`, inclusive, clamped to `[0, n_k - 1]`.
-    """
-    i_min = n_k * (1 - math.cos(phi_min)) / 2 - 0.5
-    i_max = n_k * (1 - math.cos(phi_max)) / 2 - 0.5
-    i_min = max(0, math.floor(i_min) - 1)
-    i_max = min(n_k - 1, math.ceil(i_max) + 1)
-    return i_min, i_max
-
-
-_THETA_WINDOW_MARGIN_TURNS = 1e-6
-"""float: Slack (in whole turns, i.e. fractions of `2*pi`) added to each
-side of `_slot_indices_in_theta_window`'s azimuth window. `_theta_for_index`
-loses a few ULPs of `i / GOLDEN_RATIO` for outer-shell slot indices in the
-hundreds of millions (about 1e-7 turns), so the window is widened by an
-order of magnitude more than that. The prune only has to be conservative:
-every slot it keeps still gets its exact distance checked."""
-
-_DIRECT_SCAN_MAX_SLOTS = 64
-"""int: Below this many slots in a phi band, `_slot_indices_in_theta_window`
-just returns the whole band -- the Fibonacci-stride bookkeeping costs more
-than it saves."""
-
-
-def _azimuth_half_width(phi_center, alpha_max):
-    """
-    The largest azimuth difference `|theta - theta_center|` any direction
-    within angular distance `alpha_max` of `(phi_center, theta_center)` can
-    have -- the longitude half-width of a spherical cap,
-    `asin(sin(alpha_max) / sin(phi_center))`. Returns `pi` (no azimuth
-    pruning at all) when the cap reaches a pole, where every azimuth is
-    possible.
-    """
-    if phi_center - alpha_max <= 0.0 or phi_center + alpha_max >= math.pi:
-        return math.pi
-    ratio = math.sin(alpha_max) / math.sin(phi_center)
-    if ratio >= 1.0:
-        return math.pi
-    return math.asin(ratio)
-
-
-def _fibonacci_stride(band_length):
-    """The Fibonacci number `_slot_indices_in_theta_window` strides by for a
-    band of `band_length` slots: the largest one no bigger than
-    `sqrt(band_length / (2 * sqrt(5)))`, which balances the per-residue
-    setup cost against the number of azimuth wraps per residue (see that
-    function's docstring)."""
-    target = max(1.0, math.sqrt(band_length / (2.0 * math.sqrt(5.0))))
-    a, b = 1, 2
-    while b <= target:
-        a, b = b, a + b
-    return a
-
-
-def _slot_indices_in_theta_window(i_min, i_max, theta_center, half_width):
-    """
-    The slot indices in `[i_min, i_max]` whose azimuth (`_theta_for_index`)
-    could lie within `half_width` radians of `theta_center`, in no
-    particular order -- a superset (by `_THETA_WINDOW_MARGIN_TURNS`) of the
-    exact answer, never a subset.
-
-    Without this, `enumerate_sectors_within_radius` walked every slot in a
-    shell's whole phi band. Far from the core that band wraps all the way
-    around the galaxy: a 200 pc view 8 kpc out walked ~180 million slots
-    (~140 s of pure Python) to find ~770 thousand.
-
-    Stepping from slot `j` to slot `j + F`, for a Fibonacci number `F`,
-    moves the azimuth by the same tiny, fixed amount every time
-    (`F / GOLDEN_RATIO` is always within `1 / (sqrt(5) * F)` of an
-    integer), so for each residue `j` in `[i_min, i_min + F)` the slots
-    `j, j + F, j + 2F, ...` sweep the azimuth linearly. The ones inside the
-    window are then a closed-form range of multiples, found without
-    visiting the ones outside it. Cost is about `2F + band / (sqrt(5) * F)`
-    per shell plus one step per slot returned.
-
-    Args:
-        i_min, i_max (int): Inclusive slot-index band (from
-            `slot_index_bounds_for_phi_range`).
-        theta_center (float): Window center azimuth, radians.
-        half_width (float): Window half-width, radians. `>= pi` means no
-            azimuth pruning.
-
-    Yields:
-        int: Candidate slot indices.
-    """
-    band_length = i_max - i_min + 1
-    if band_length <= 0:
-        return
-    if half_width >= math.pi or band_length <= _DIRECT_SCAN_MAX_SLOTS:
-        yield from range(i_min, i_max + 1)
-        return
-
-    two_pi = 2.0 * math.pi
-    golden_step = 1.0 / GOLDEN_RATIO
-    center_turns = (theta_center / two_pi) % 1.0
-    half_turns = half_width / two_pi + _THETA_WINDOW_MARGIN_TURNS
-    if half_turns >= 0.5:
-        yield from range(i_min, i_max + 1)
-        return
-    window_lo = center_turns - half_turns
-    window_hi = center_turns + half_turns
-
-    stride = _fibonacci_stride(band_length)
-    drift = stride * golden_step
-    drift -= round(drift)  # signed, |drift| < 1 / (sqrt(5) * stride)
-
-    for j in range(i_min, min(i_max, i_min + stride - 1) + 1):
-        t_max = (i_max - j) // stride
-        start = (j * golden_step) % 1.0
-        if drift == 0.0:
-            # Only possible for stride 1 (1 / GOLDEN_RATIO is irrational),
-            # which band lengths above the direct-scan cutoff never pick;
-            # handled anyway so the arithmetic below never divides by zero.
-            yield from range(i_min, i_max + 1)
-            return
-        # Azimuth of slot j + t*stride, in turns, before wrapping:
-        # start + t*drift. It lands in the window for wrap m when
-        # window_lo + m <= start + t*drift <= window_hi + m.
-        end = start + t_max * drift
-        sweep_lo, sweep_hi = min(start, end), max(start, end)
-        for m in range(math.floor(sweep_lo - window_hi), math.ceil(sweep_hi - window_lo) + 1):
-            if drift > 0:
-                t_lo = (window_lo + m - start) / drift
-                t_hi = (window_hi + m - start) / drift
-            else:
-                t_lo = (window_hi + m - start) / drift
-                t_hi = (window_lo + m - start) / drift
-            first = max(0, math.ceil(t_lo))
-            last = min(t_max, math.floor(t_hi))
-            for t in range(first, last + 1):
-                yield j + t * stride
-
-
-def _candidate_shell_range(p_norm, radius_pc, edge_pc):
-    """
-    Which shell indices could possibly hold a slot within `radius_pc` of a
-    point `radius_pc` away... i.e. `p_norm` away from the origin --
-    the triangle-inequality pruning step from the design note: a shell at
-    nominal radius `r_k` can only contain a point within `radius_pc` of P
-    if `|r_k - p_norm| <= radius_pc` (every slot in a shell sits at the
-    exact same radius `r_k`, so this is an exact necessary-and-sufficient
-    condition on `r_k` itself, not an approximation).
-
-    Args:
-        p_norm (float): `|P|`, P's own distance from the origin, parsecs.
-        radius_pc (float): The neighborhood radius R, parsecs.
-        edge_pc (float): The sector edge length, parsecs.
-
-    Returns:
-        tuple: `(k_min, k_max)`, inclusive, both `>= 0`.
-    """
-    # k must satisfy k_min_exact <= k <= k_max_exact (see the derivation
-    # above) -- the smallest/largest valid integers are ceil/floor of
-    # those exact bounds respectively (not floor/ceil, which would admit
-    # an extra, non-qualifying shell on each side). A small epsilon
-    # nudges the exact bounds outward by a hair first, so a boundary value
-    # that should land exactly on an integer (e.g. |r_k - p_norm| == R to
-    # the mathematically exact answer) isn't excluded by floating-point
-    # rounding landing a few ULPs to the wrong side of it.
-    epsilon = 1e-9
-    k_min_exact = (p_norm - radius_pc) / edge_pc - 0.5
-    k_max_exact = (p_norm + radius_pc) / edge_pc - 0.5
-    k_min = max(0, math.ceil(k_min_exact - epsilon))
-    k_max = max(0, math.floor(k_max_exact + epsilon))
-    return k_min, k_max
+def _slots_near_angle(n, theta_center, half_width):
+    """Slot indices (of an `n`-slot ring) whose center angle lies within
+    `half_width` of `theta_center`, wrapping around; every slot when the
+    window covers the whole ring."""
+    step = 2 * math.pi / n
+    if half_width * 2 >= 2 * math.pi - step:
+        return range(n)
+    # Slot k's center is (k + 0.5) * step.
+    first = math.ceil((theta_center - half_width) / step - 0.5 - 1e-9)
+    last = math.floor((theta_center + half_width) / step - 0.5 + 1e-9)
+    return sorted({k % n for k in range(first, last + 1)})
 
 
 def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     """
-    Enumerates every `(shell_index, shell_slot_index)` sector slot whose
-    center falls within `radius_pc` of an arbitrary point `center` in
-    galaxy-space -- the single generation-unit primitive both `galaxyGen.py`
-    batch mode (`center` = the galactic origin, `radius_pc` = a shell's
-    outer radius) and local-neighborhood mode (`center` = an existing
-    sector's own stored center, a small `radius_pc`) are built on. See
-    `docs/design/galaxy-coordinate-system.md`'s "Generation unit: sector
-    enumeration by radius" section for the full derivation and Big-O
-    discussion this function implements.
-
-    Two pruning passes keep this from scaling with a shell's total slot
-    count (`shell_sector_count`, which reaches into the hundreds of
-    millions for outer shells):
-
-    1. **Shell pruning** (`_candidate_shell_range`): only shells whose
-       fixed radius `r_k` is within `radius_pc` of `|center|` are visited
-       at all -- an O(1) exact bound, not an approximation, since every
-       slot in a shell sits at that same radius.
-    2. **Slot pruning within a shell** (`slot_index_bounds_for_phi_range`):
-       within a visited shell, only the contiguous band of slot indices
-       whose polar angle could possibly be close enough to `center`'s own
-       direction is examined, using the exact necessary condition
-       `|phi_slot - phi_center| <= alpha_max` (derived from the spherical
-       law of cosines -- see the design note). This band's width scales
-       with the actual angular size of the search radius, not with the
-       shell's total slot count, so a small local neighborhood stays cheap
-       even in an outer shell with hundreds of millions of slots.
-
-    Every slot surviving both prunes still gets its exact position computed
-    and its exact distance to `center` checked (`sector_position_pc` is
-    cheap, and the prunes above are necessary-but-not-always-sufficient at
-    the margins -- see the design note's worked Big-O), so this function's
-    output is exact, never approximate.
-
-    Special-cased when `center` is (within floating-point tolerance) the
-    galactic origin itself: every slot in a qualifying shell is exactly
-    `r_k` from the origin, so the whole shell either entirely qualifies or
-    entirely doesn't -- no per-slot angular pruning is meaningful (there is
-    no well-defined "center's own direction" at the origin), and every slot
-    in a qualifying shell is yielded directly without a per-slot distance
-    check.
+    Every sector address whose center lies within `radius_pc` of `center`
+    -- the primitive behind `generate.py galaxy`'s neighborhood modes and
+    the Galaxy Map's planned-sector tier. Visits only the rings and
+    layers that can reach the sphere and, within each, only the slots in
+    the matching angular window, so the cost scales with the answer, not
+    with a ring's slot count.
 
     Args:
-        center (tuple): `(x, y, z)` in parsecs -- the point neighbors are
-                        sought around. Does not need to be an already
-                        placed sector's center; any point works.
-        radius_pc (float): The search radius R, in parsecs. Must be >= 0.
-        edge_pc (float): The (uniform) sector edge length, in parsecs.
-                         Must be > 0.
+        center (tuple): `(x, y, z)`, parsecs -- any point.
+        radius_pc (float): `>= 0`.
+        edge_pc (float): `> 0`.
 
     Yields:
-        tuple: `(shell_index, shell_slot_index, x, y, z, distance_pc)` for
-              every slot within `radius_pc` of `center`, in no particular
-              order. `(x, y, z)` is the slot's own galaxy-frame center
-              (parsecs, from the origin -- NOT relative to `center`);
-              `distance_pc` is its distance to `center`.
+        tuple: `(ring_index, layer_index, ring_slot_index, x, y, z,
+            distance_pc)` for every qualifying cell, in no particular
+            order; `(x, y, z)` is that cell's own center.
 
     Raises:
         ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
@@ -592,67 +417,37 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     if edge_pc <= 0:
         raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
 
-    p_norm = galactic_radius_pc(center)
-    k_min, k_max = _candidate_shell_range(p_norm, radius_pc, edge_pc)
+    cx, cy, cz = center
+    r_c = math.hypot(cx, cy)
+    theta_c = math.atan2(cy, cx)
+    eps = 1e-9
 
-    # Origin special case: no direction to prune slots by, but every slot
-    # in a qualifying shell is exactly r_k from the origin, so the
-    # shell-level prune above is already the exact final answer.
-    at_origin = p_norm < 1e-9
+    ring_min = max(0, math.ceil((r_c - radius_pc) / edge_pc - 0.5 - eps))
+    ring_max = math.floor((r_c + radius_pc) / edge_pc - 0.5 + eps)
+    layer_min = math.ceil((cz - radius_pc) / edge_pc - eps)
+    layer_max = math.floor((cz + radius_pc) / edge_pc + eps)
 
-    if not at_origin:
-        cx, cy, cz = center
-        phi_center = math.acos(max(-1.0, min(1.0, cz / p_norm)))
-        theta_center = math.atan2(cy, cx)
-
-    for k in range(k_min, k_max + 1):
-        r_k = shell_radius_pc(k, edge_pc)
-        n_k = shell_sector_count(k)
-
-        if at_origin:
-            if r_k <= radius_pc:
-                for i in range(n_k):
-                    x, y, z = sector_position_pc(k, i, edge_pc)
-                    yield (k, i, x, y, z, r_k)
-            continue
-
-        # Law of cosines: radius_pc^2 = p_norm^2 + r_k^2 - 2*p_norm*r_k*cos(alpha)
-        # => cos(alpha_max) = (p_norm^2 + r_k^2 - radius_pc^2) / (2*p_norm*r_k).
-        # A slot at angular separation <= alpha_max from center's own
-        # direction is the exact (not approximate) necessary-and-sufficient
-        # condition for *some* point at that angular separation and radius
-        # r_k to be within radius_pc of center; per-slot exact distance is
-        # still checked below since a specific slot's own theta may not
-        # achieve that minimum.
-        cos_alpha_max = (p_norm * p_norm + r_k * r_k - radius_pc * radius_pc) / (2 * p_norm * r_k)
-
-        if cos_alpha_max <= -1:
-            # radius_pc >= p_norm + r_k: every point in this shell is
-            # guaranteed within radius_pc (the shell's own max possible
-            # distance from center). Skip the angular prune and the
-            # per-slot distance check entirely -- no slot can fail.
-            for i in range(n_k):
-                x, y, z = sector_position_pc(k, i, edge_pc)
-                dist = math.dist((x, y, z), center)
-                yield (k, i, x, y, z, dist)
-            continue
-
-        if cos_alpha_max >= 1:
-            # Shell-level pruning already guarantees an intersection exists,
-            # but floating-point slop right at the boundary can put
-            # cos_alpha_max fractionally over 1 (alpha_max ~ 0) -- treat as
-            # "only the single closest slot direction could possibly
-            # qualify" rather than skipping the shell outright.
-            alpha_max = 0.0
-        else:
-            alpha_max = math.acos(cos_alpha_max)
-
-        phi_min = max(0.0, phi_center - alpha_max)
-        phi_max = min(math.pi, phi_center + alpha_max)
-        i_min, i_max = slot_index_bounds_for_phi_range(phi_min, phi_max, n_k)
-
-        for i in _slot_indices_in_theta_window(i_min, i_max, theta_center, _azimuth_half_width(phi_center, alpha_max)):
-            x, y, z = sector_position_pc(k, i, edge_pc)
-            dist = math.dist((x, y, z), center)
-            if dist <= radius_pc:
-                yield (k, i, x, y, z, dist)
+    for ring_index in range(ring_min, ring_max + 1):
+        r_m = ring_radius_pc(ring_index, edge_pc)
+        n = ring_sector_count(ring_index)
+        for layer_index in range(layer_min, layer_max + 1):
+            z_m = layer_center_z_pc(layer_index, edge_pc)
+            dz = z_m - cz
+            planar_sq = radius_pc * radius_pc - dz * dz
+            if planar_sq < 0:
+                continue
+            planar = math.sqrt(planar_sq)
+            if abs(r_m - r_c) > planar + eps:
+                continue
+            if r_c < 1e-9 or r_m + r_c <= planar:
+                slots = range(n)
+            else:
+                cos_max = (r_m * r_m + r_c * r_c - planar_sq) / (2 * r_m * r_c)
+                half_width = math.acos(max(-1.0, min(1.0, cos_max)))
+                slots = _slots_near_angle(n, theta_c, half_width)
+            for slot_index in slots:
+                theta = (slot_index + 0.5) * 2 * math.pi / n
+                x, y = r_m * math.cos(theta), r_m * math.sin(theta)
+                dist = math.dist((x, y, z_m), center)
+                if dist <= radius_pc + eps:
+                    yield (ring_index, layer_index, slot_index, x, y, z_m, dist)

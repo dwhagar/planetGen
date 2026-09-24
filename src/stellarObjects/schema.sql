@@ -717,6 +717,26 @@
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
 --   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
+-- v30: galaxy-placed sectors moved from spherical shells to a cylindrical
+--   grid (see docs/design/galaxy-coordinate-system.md, "Cylindrical
+--   sector grid"). A sector's address is now `(ring_index, layer_index,
+--   ring_slot_index)`: ring = cylindrical radius band, layer = height band
+--   centered on the plane, slot = angular wedge, each about one sector
+--   edge (11.5 ly) across. `sectors.shell_index`/`shell_slot_index` give
+--   way to those three columns (UNIQUE together); `sector_vertices` is
+--   dropped, since a cell's corners are closed-form
+--   (`galaxyGeometry.sector_cell_vertices_pc`); `galaxy_shape.
+--   outer_shell_index` becomes `outer_ring_index`; and `galaxy_shell_band`
+--   becomes `galaxy_ring_band`, one row per ring holding the layer range
+--   that can hold content. Star-system offsets
+--   (`star_systems.position_x/y/z_mpc`) are now along the sector's
+--   cylindrical axes (local +X radial, +Y along the ring, +Z galactic
+--   north -- `galaxyGeometry.sector_orientation`). Shell-addressed sectors
+--   can't be mapped onto the new cells, so `_migrate_v29_to_v30` deletes
+--   every galaxy-placed sector together with its systems and phenomena
+--   and rebuilds the skeleton from the stored shape; visiting the galaxy
+--   regenerates them. Standalone (never placed) sectors are untouched.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -792,11 +812,12 @@ CREATE TABLE IF NOT EXISTS sectors (
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
 
-    -- The sector's stable (shell, slot) address within the shell/
-    -- Fibonacci-sphere tiling scheme -- deliberately not part of the
-    -- CHECK below (see the header comment's "v4" note).
-    shell_index         INT,
-    shell_slot_index    INT,
+    -- v30: the sector's cell in the cylindrical grid (ring = radius band,
+    -- layer = height band, slot = angular wedge) -- see the header
+    -- comment's "v30" note. Deliberately not part of the CHECK below.
+    ring_index          INT,
+    layer_index         INT,
+    ring_slot_index     INT,
 
     -- v23: manually-set-or-uploaded wiki page link -- see this file's
     -- header comment's "v23" note. NULL means no page yet.
@@ -812,17 +833,14 @@ CREATE TABLE IF NOT EXISTS sectors (
         (center_z_pc IS NULL) = (galactic_radius_pc IS NULL)
     ),
 
-    -- v8: at most one sector per (shell_index, shell_slot_index) address --
-    -- see the header comment's "v8" note (galaxyGen.ensure_sector_generated
-    -- relies on this to make a lazy-generation race produce a clear
-    -- IntegrityError rather than a silent duplicate sector at the same
-    -- address). NULL-together sectors (never placed in a galaxy) don't
-    -- collide with each other or with a placed sector -- ordinary SQL NULL
-    -- semantics for UNIQUE.
-    UNIQUE (shell_index, shell_slot_index),
+    -- At most one sector per address (v8, re-keyed in v30) --
+    -- `generate.ensure_sector_generated` relies on this to turn a
+    -- lazy-generation race into a clear IntegrityError rather than a
+    -- duplicate sector. Never-placed sectors (NULL address) don't collide
+    -- -- ordinary SQL NULL semantics for UNIQUE.
+    UNIQUE KEY uq_sectors_address (ring_index, layer_index, ring_slot_index),
 
     KEY idx_sectors_galactic_radius_pc (galactic_radius_pc),
-    KEY idx_sectors_shell_index (shell_index),
     KEY idx_sectors_name (name),
     -- v25: lets `queryDb.galaxy_sectors_in_view`'s bounding-box query
     -- range-scan on center_x_pc instead of a full table scan -- see the
@@ -832,40 +850,13 @@ CREATE TABLE IF NOT EXISTS sectors (
     KEY idx_sectors_modified_at (modified_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- This sector's own exact prism vertices (v7 -- see the header comment's
--- "v6/v7" note), one row per vertex rather than a serialized blob:
--- `sectorGeometry.prism_vertices` returns a variable number of vertices
--- per sector (typically 5-7, not fixed), split into an "inner" ring (on
--- the shell's inner bounding sphere) and an "outer" ring (on its outer
--- bounding sphere), both in the same cyclic order. `vertex_index` is that
--- cyclic position (0-based) within its own ring, not a global ordering --
--- pairing `(sector_id, vertex_index)` across the two rings gives the
--- lateral edge each pair of inner/outer vertices spans. No row exists for
--- a sector never placed in a galaxy (mirrors, at the application level
--- rather than a cross-table CHECK -- SQLite can't express "rows exist in
--- another table" as a CHECK constraint -- the same NULL-together
--- condition `sectors`'s own galaxy-placement columns enforce directly).
-CREATE TABLE IF NOT EXISTS sector_vertices (
-    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    sector_id     BIGINT UNSIGNED NOT NULL,
-    ring          VARCHAR(8) NOT NULL CHECK (ring IN ('inner', 'outer')),
-    vertex_index  INT NOT NULL,
-    x_pc          DOUBLE NOT NULL,
-    y_pc          DOUBLE NOT NULL,
-    z_pc          DOUBLE NOT NULL,
-
-    CONSTRAINT fk_sector_vertices_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
-    UNIQUE (sector_id, ring, vertex_index),
-    KEY idx_sector_vertices_sector_id (sector_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- ---------------------------------------------------------------------
--- galaxy_shape / galaxy_shell_band -- the galaxy-wide density "skeleton"
--- (v8 -- see the header comment's "v8" note). `galaxy_shape` is a
--- singleton (`id` pinned to 1, enforced by the CHECK) -- there is exactly
--- one galaxy. Building or rebuilding the skeleton (`galaxyPlan.py`)
--- replaces this row and every `galaxy_shell_band` row wholesale; neither
+-- galaxy_shape / galaxy_ring_band -- the galaxy-wide density "skeleton"
+-- (v8, re-keyed to rings in v30 -- see the header comment's notes).
+-- `galaxy_shape` is a singleton (`id` pinned to 1, enforced by the CHECK)
+-- -- there is exactly one galaxy. Building or rebuilding the skeleton
+-- (`generate.py plan`) replaces this row and every `galaxy_ring_band` row
+-- wholesale; neither
 -- table is ever partially updated.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS galaxy_shape (
@@ -885,8 +876,9 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     k_norm                      DOUBLE NOT NULL,
 
     -- The sector edge length this skeleton was built at, in parsecs
-    -- (galaxyGeometry's own scope -- every shell/sector-address formula
-    -- takes this as a parameter rather than assuming a fixed constant).
+    -- (galaxyGeometry's own scope -- every grid formula takes this as a
+    -- parameter, as both the ring width and the layer height, rather than
+    -- assuming a fixed constant).
     edge_pc                     DOUBLE NOT NULL,
 
     -- SpaceSector(edge_ly=...).expected_system_count() at relative_density
@@ -895,25 +887,22 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- fact, not worth re-deriving from edge_pc on every call.
     expected_system_count_at_density_1  DOUBLE NOT NULL,
 
-    -- The last shell index with any qualifying content -- this galaxy's
-    -- real edge, discovered by `galaxyPlan.py` (a run of consecutive empty
-    -- shells beyond it), not picked as an arbitrary radius.
-    outer_shell_index           INT NOT NULL
+    -- The last ring with any qualifying content -- this galaxy's real
+    -- edge, found by `generate.py plan` (a run of consecutive empty rings
+    -- beyond it), not picked as an arbitrary radius. (v30; was
+    -- `outer_shell_index`.)
+    outer_ring_index            INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- One contiguous candidate slot-index band per shell (almost always
--- exactly one -- see the header comment's "v8" note). `band_index` orders
--- multiple bands within the same shell (0-based); a shell with no
--- qualifying content at all has no rows here.
-CREATE TABLE IF NOT EXISTS galaxy_shell_band (
-    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    shell_index      INT NOT NULL,
-    band_index       INT NOT NULL,
-    slot_index_min   INT NOT NULL,
-    slot_index_max   INT NOT NULL,
-
-    UNIQUE (shell_index, band_index),
-    KEY idx_galaxy_shell_band_shell_index (shell_index)
+-- One row per ring that could hold content (v30; replaces v8's
+-- `galaxy_shell_band`): the inclusive range of layers whose sector centers
+-- can clear the qualification threshold for some angle
+-- (`galaxySkeleton.find_ring_band`). Always symmetric about the plane. A
+-- ring with no row has no content at all.
+CREATE TABLE IF NOT EXISTS galaxy_ring_band (
+    ring_index       INT NOT NULL PRIMARY KEY,
+    layer_index_min  INT NOT NULL,
+    layer_index_max  INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when
