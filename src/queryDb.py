@@ -44,12 +44,9 @@ from stellarObjects._db import add_mysql_connection_args, get_connection, get_ga
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import (
-    PLANNED_RADIUS_CAP_PC,
     density_points_for_tile,
-    density_sample_points,
     parse_tile_key,
     planned_slots_in_tile,
-    planned_slots_in_view,
     tile_bounds_pc,
     tile_keys_containing,
 )
@@ -1665,9 +1662,8 @@ def galaxy_density_shape(conn):
 
 
 # ---------------------------------------------------------------------
-# Interactive 3D Galaxy Map viewport queries -- backs GET /api/galaxy/view
-# and `html/galaxy_view.py`, called fresh every time the map's own camera
-# moves. Unlike `galaxy_placed_sectors`/`galaxy_density_shape` above (each
+# Interactive 3D Galaxy Map viewport queries -- the placed-sector shape
+# the cube tiles below reuse. Unlike `galaxy_placed_sectors`/`galaxy_density_shape` above (each
 # called once per page load for the flat, whole-galaxy overview map),
 # these are scoped to a moving viewport -- see `stellarObjects.
 # galaxyViewport`'s own module docstring for the three content tiers
@@ -1770,81 +1766,6 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             "distance_pc": math.sqrt(distance_sq),
         })
     return results
-
-
-def galaxy_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc):
-    """
-    The interactive 3D Galaxy Map's full live-viewport payload: every
-    real, already-generated sector nearby (`galaxy_sectors_in_view`), every
-    real, not-yet-generated sector address this galaxy's own density model
-    predicts would qualify (`galaxyViewport.planned_slots_in_view`, only
-    enumerated up to its own `PLANNED_RADIUS_CAP_PC` -- see that module's
-    docstring), and -- for whatever's left of `radius_pc` beyond that cap
-    -- a coarse illustrative density point cloud
-    (`galaxyViewport.density_sample_points`).
-
-    Works even before `generate.py plan` has ever been run: with no stored
-    `galaxy_shape`, planned slots are returned unfiltered (every enumerated
-    address, not just "qualifying" ones -- there's no density model yet to
-    qualify them against) and the density tier is simply empty (nothing to
-    sample), so the address scheme itself (shells/slots -- independent of
-    any density/population model, see `docs/design/galaxy-coordinate-
-    system.md` section 3) is still fully explorable.
-
-    Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
-        center_x_pc, center_y_pc, center_z_pc (float): The view center,
-            galaxy-frame parsecs.
-        radius_pc (float): The view radius, parsecs.
-
-    Returns:
-        dict: `placed` (`galaxy_sectors_in_view`'s own list), `planned`
-            (`planned_slots_in_view`'s own list -- covers up to
-            `PLANNED_RADIUS_CAP_PC` of the requested `radius_pc`, whatever
-            that is; the address scheme has no reason to leave this
-            empty), `density` (`density_sample_points`'s own list, `[]`
-            whenever `radius_pc` doesn't exceed `PLANNED_RADIUS_CAP_PC` --
-            `planned` already covers the whole view exactly in that case,
-            so there's nothing left for an illustrative tier to add),
-            `edge_pc`, `has_shape` (bool -- whether a real density model
-            gates `planned`'s own qualification, i.e. whether `generate.py
-            plan` has been run).
-    """
-    skeleton = get_galaxy_shape(conn)
-    if skeleton is not None:
-        edge_pc = skeleton.edge_pc
-        shape = skeleton.shape
-        expected_system_count = skeleton.expected_system_count_at_density_1
-    else:
-        edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-        shape = None
-        expected_system_count = None
-    edge_ly = pc_to_ly(edge_pc)
-
-    center_pc = (center_x_pc, center_y_pc, center_z_pc)
-
-    placed = galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_pc)
-    exclude_addresses = {
-        (sector["shell_index"], sector["shell_slot_index"])
-        for sector in placed
-        if sector["shell_index"] is not None and sector["shell_slot_index"] is not None
-    }
-
-    planned = planned_slots_in_view(
-        center_pc, radius_pc, edge_pc, edge_ly, shape, expected_system_count, exclude_addresses,
-    )
-
-    # The density cloud is only worth sampling for the part of the view
-    # planned_slots_in_view's own radius cap couldn't cover with exact
-    # addresses -- a view already entirely within that cap has nothing
-    # left for an illustrative tier to add.
-    density = density_sample_points(center_pc, radius_pc, shape) if radius_pc > PLANNED_RADIUS_CAP_PC else []
-
-    return {
-        "placed": placed, "planned": planned, "density": density,
-        "edge_pc": edge_pc, "has_shape": shape is not None,
-    }
-
 
 
 # ---------------------------------------------------------------------

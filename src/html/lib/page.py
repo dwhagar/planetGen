@@ -244,8 +244,8 @@ def send_json_headers(status="200 OK"):
     (`Content-Type: application/json`) instead of `send_headers`'s own
     hardcoded `text/html` -- used only by a script that returns raw JSON
     directly to the browser rather than a rendered page (today, just
-    `html/galaxy_view.py`, the interactive 3D Galaxy Map's own live-
-    viewport proxy: its client-side JS calls it directly via `fetch()`,
+    `html/galaxy_tiles.py`, the interactive 3D Galaxy Map's own tile
+    proxy: its client-side JS calls it directly via `fetch()`,
     unlike every other page here, which is rendered server-side and never
     fetched by the browser's own script).
 
@@ -491,7 +491,7 @@ def run_json(handler):
     page (`NotFoundError` -> 404, `ApiError` -> 502, anything else -> 500)
     but via `render_json_error` instead of a rendered error page -- used
     by a script whose only job is a browser `fetch()` target (today, just
-    `html/galaxy_view.py`), never a page a person navigates to directly.
+    `html/galaxy_tiles.py`), never a page a person navigates to directly.
 
     Args:
         handler (callable): Zero-argument function returning a
