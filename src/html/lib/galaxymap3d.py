@@ -64,9 +64,10 @@ out:
 - `min_view_radius_pc`/`max_view_radius_pc` bound how far the camera can
   dolly -- the floor sits just past a couple of sector-widths (so
   approaching one specific sector never has to overshoot past clicking
-  distance), the ceiling is this galaxy's own real outer edge (its
-  stored skeleton's `outer_shell_index`, or a real Milky-Way-scale radius
-  as a starting-point default when no skeleton has been built yet).
+  distance), the ceiling is far enough back that this galaxy's own real
+  outer edge (its stored skeleton's `outer_shell_index`, or a real
+  Milky-Way-scale radius as a starting-point default when no skeleton has
+  been built yet) fits inside the camera's field of view.
 - Left/right-click zoom is **logarithmic**, not a flat step: the closer
   the camera already is, the smaller each click's own multiplicative jump
   gets. `static/galaxymap3d.js`'s own `clickZoomFactor` interpolates
@@ -135,6 +136,12 @@ this factor for the zoomed-all-the-way-out ceiling -- a hair of headroom
 so the outermost real content isn't sitting exactly on the view's own
 edge."""
 
+CAMERA_FOV_DEG = 50.0
+"""float: The map camera's vertical field of view, degrees (passed to
+`static/galaxymap3d.js` as `fovDeg`). `view_radius_bounds` needs it to
+back the camera off far enough that the whole galaxy fits in the square
+viewport at the zoomed-all-the-way-out view."""
+
 
 def view_radius_bounds(edge_pc, galaxy_shape):
     """
@@ -154,11 +161,29 @@ def view_radius_bounds(edge_pc, galaxy_shape):
         tuple[float, float]: `(min_view_radius_pc, max_view_radius_pc)`.
     """
     min_radius = max(MIN_VIEW_RADIUS_FLOOR_PC, edge_pc * 1.5)
-    if galaxy_shape and galaxy_shape.get("outer_shell_index") is not None:
-        max_radius = (galaxy_shape["outer_shell_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
-    else:
-        max_radius = GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
+    max_radius = galaxy_extent_pc(edge_pc, galaxy_shape) / math.tan(math.radians(CAMERA_FOV_DEG / 2))
     return min_radius, max(max_radius, min_radius * 10)
+
+
+def galaxy_extent_pc(edge_pc, galaxy_shape):
+    """
+    The galaxy's own outer edge, parsecs, padded by
+    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_shell_index`,
+    or `GALAXY_RADIUS_PC` when no skeleton has been built yet. The camera
+    target is kept inside this radius (`galaxyRadiusPc`), and
+    `view_radius_bounds` backs the camera off far enough to fit it.
+
+    Args:
+        edge_pc (float): The sector edge length, parsecs.
+        galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
+            return shape, or `None`.
+
+    Returns:
+        float: The padded outer radius, parsecs.
+    """
+    if galaxy_shape and galaxy_shape.get("outer_shell_index") is not None:
+        return (galaxy_shape["outer_shell_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
+    return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
 
 
 FETCH_RADIUS_FACTOR = 1.6
@@ -319,6 +344,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
         "hasShape": bool(initial_view.get("has_shape")),
         "edgePc": edge_pc,
         "edgeLy": edge_ly,
+        "fovDeg": CAMERA_FOV_DEG,
+        "galaxyRadiusPc": galaxy_extent_pc(edge_pc, galaxy_shape),
         "minViewRadiusPc": min_radius,
         "maxViewRadiusPc": max_radius,
         "clickZoomFactorMin": CLICK_ZOOM_FACTOR_MIN,
