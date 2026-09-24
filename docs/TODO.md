@@ -35,18 +35,12 @@ added or finished.
 ### Plan: what to do first
 
 - **Stop the crash (1).** Production stability comes before everything
-   else, and its root cause shapes both the cache (6) and the Galaxy Map
-   rework (9).
-- **Clear the small visual bugs (2-4)** in one or two quick PRs: each is
-   confined to one or two front-end files and can be checked with a
-   screenshot.
-- **Fix the skeleton shape (5) before the rework (9).** If unfilled
-   sectors are placed or qualified wrongly, that's a data/generation bug
-   the new map would inherit, not just a drawing problem.
-- **Design the cache (6) once the crash cause is known**, then do the
-   System Map route (7) and the phenomena schema work (8).
-- **Do the Galaxy Map rework (9) last** of the active work: it's the
-   largest change and builds on 1, 5 and 6.
+   else, and its root cause shapes both the cache (3) and the Galaxy Map
+   rework (6). The skeleton drawing fix (2) rides along with it.
+- **Design the cache (3) once the crash cause is known**, then do the
+   System Map route (4) and the phenomena schema work (5).
+- **Do the Galaxy Map rework (6) last** of the active work: it's the
+   largest change and builds on 1, 2 and 3.
 
 ### Bug fixes
 
@@ -69,46 +63,23 @@ Things that are broken today, most urgent first, then smallest to largest.
    project thread; done means the cause is known and the map can't take
    the server down.
 
-2. [ ] **Remove the large sphere marker drawn for a star in a sector.**
-   The Galaxy Map still shows a large sphere for a star inside a placed
-   sector, left over from the idea of showing the brightest stars at
-   galaxy scale, which proved unhelpful. Remove the marker and whatever
-   API/query fields exist only to feed it.
-
-3. [ ] **Bring orbital paths back without drawing them over bodies.**
-   Orbit lines disappeared after [5.46.24] split each scene into an
-   orbits-only `<svg>` under the sphere `<canvas>` and a marker `<svg>`
-   over it. They should be visible again while still being hidden behind
-   the star/planet spheres. Check that `showScene` in `systemmap.js`
-   shows the orbits layer and that the canvas isn't painting an opaque
-   background over it.
-
-4. [ ] **Star glow renders as an opaque shell, not a 3D glow.** The
-   fresnel glow shell (`bodyRendering.makeGlowMaterial`, used by
-   `systemmap.js` and `sectormap.js`, strengthened in [5.46.24]) should
-   read as light fading out from the star's limb, but it shows as a solid
-   opaque layer. Investigate the material's blending, transparency,
-   `depthWrite` and alpha falloff. Verify with screenshots of both maps
-   before and after (Playwright with the bundled Chromium works here).
-
-5. [ ] **The unfilled-sector skeleton forms a sphere at the center
-   instead of a spiral galaxy.** The "planned" tier (real,
-   not-yet-generated sector addresses,
-   `galaxyViewport.planned_slots_in_view`) draws as a ball around the
-   galactic center, while the illustrative density cloud
-   (`density_sample_points`) does look like a spiral. Verify that the
-   centers of the qualifying unfilled sectors trace the disk/arms/bulge
-   the density skeleton (`galaxy_shape`, `galaxyDensity.predicted_star_count`)
-   describes. Things to check: whether qualification against the shape is
-   applied, whether `PLANNED_RADIUS_CAP_PC` (200 pc around the view
-   center) is what's producing the ball, and whether the slot centers
-   from `enumerate_sectors_within_radius` are in galaxy-frame parsecs like
-   everything else. Done means a test that samples slot centers and
-   asserts they follow the disk, plus the fix.
+2. [ ] **The unfilled-sector skeleton draws as a sphere instead of a
+   spiral galaxy.** The data is right: `tests/test_skeleton_shape.py`
+   samples real slot addresses and confirms the qualifying ones sit on
+   their shell radii in galaxy-frame parsecs and form a thin disk (out to
+   ~14 kpc, 95% within ~0.9 kpc of the plane, thinning outward). The ball
+   comes from the drawing: the "planned" tier
+   (`galaxyViewport.planned_slots_in_view`) is every qualifying slot
+   within `PLANNED_RADIUS_CAP_PC` (200 pc) of the view center, so it is
+   always a sphere around wherever the camera is looking, and a solid one
+   near the core, where every slot qualifies. Being fixed together with
+   item 1, whose cube-tile fetching replaces that query; done means the
+   planned tier shows qualifying slots across the whole view (or a
+   per-tile sample of them at wide zoom) instead of one ball.
 
 ### Performance
 
-6. [ ] **Add a cache so pages don't hit the database on every request.**
+3. [ ] **Add a cache so pages don't hit the database on every request.**
    Every CGI page calls the Flask API through `html/lib/apiclient.py`,
    and every API route queries MySQL fresh, including results that rarely
    change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
@@ -120,7 +91,7 @@ Things that are broken today, most urgent first, then smallest to largest.
 
 ### System Map (`lib/systemmap.py`, `static/systemmap.js`)
 
-7. [ ] **Draw the Measure distance path and route it around obstacles.**
+4. [ ] **Draw the Measure distance path and route it around obstacles.**
    "Measure distance" ([5.46.32]) reports a straight-line distance plus,
    when the line crosses the scene's central body, a tangent-and-arc
    detour around that one body (`computeMeasurement`,
@@ -133,7 +104,7 @@ Things that are broken today, most urgent first, then smallest to largest.
 
 ### Sector Map and phenomena (`lib/starmap.py`, `static/sectormap.js`, `queryDb.py`, schema)
 
-8. [ ] **Show every kind of stellar phenomenon on the Sector Map, all
+5. [ ] **Show every kind of stellar phenomenon on the Sector Map, all
    clickable.** Only nebulae, asteroid fields, black holes and neutron
    stars appear (`queryDb._PHENOMENON_TABLES`). Supernova remnants, rogue
    planets and interstellar comets have no galaxy-frame position columns
@@ -145,7 +116,7 @@ Things that are broken today, most urgent first, then smallest to largest.
 
 ### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_view`)
 
-9. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
+6. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
    Investigate a representation driven by the real galaxy/sector geometry
    (`stellarObjects/galaxyGeometry.py`: concentric Fibonacci-sphere shells
    of Voronoi sector slots) instead of per-sector sprites plus an
@@ -154,20 +125,24 @@ Things that are broken today, most urgent first, then smallest to largest.
    angular range), shaded by density, so the map shows the galaxy's
    structure at every zoom without enumerating individual sectors. Done
    means a written comparison of options, then an implementation that
-   loads quickly at full-galaxy zoom.
+   loads quickly at full-galaxy zoom. (Today's density cloud also renders
+   black: its `InstancedMesh` material sets `vertexColors: true` with no
+   per-vertex `color` attribute, which zeroes the per-instance colors.
+   Turning that off alone saturates it to white, so it needs retuning or
+   replacing as part of this.)
 
 ### Web API (`src/html/api/routes.py`)
 
 Low priority; nobody is waiting on these.
 
-10. [ ] **The API can't create a system inside an existing sector.**
+7. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-11. [ ] **The API can't edit a system's generated content.** `PATCH
+8. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -177,10 +152,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-12. [ ] Assign government ownership to star systems so that groups of
+9. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-13. [ ] Flag worlds with life for generated names of their dominant
+10. [ ] Flag worlds with life for generated names of their dominant
     species.
-14. [ ] A database of spacefaring species.
-15. [ ] Model younger and older civilizations: what differs with a
+11. [ ] A database of spacefaring species.
+12. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

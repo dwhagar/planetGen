@@ -168,6 +168,32 @@ def linkify_location(db_name, location, name_to_id):
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(linked_entries)
 
 
+def nearest_neighbors_location(db_name, location, neighbors):
+    """
+    The "Location:" text for a system page, built from live
+    `queryDb.system_detail` `nearest_neighbors` data: the sector name
+    (the stored `location` string's own prefix) followed by each nearest
+    neighbor as a link to its own `system.py` page with its distance.
+    Every neighbor here has a real id, so every one is linked, unlike
+    `linkify_location`, which can only link names that still match a row.
+
+    Args:
+        db_name (str): The current `?db=` value.
+        location (str): The raw `star_systems.location` value (only its
+                        sector-name prefix is used).
+        neighbors (list[dict]): `{id, name, distance_ly}`, nearest first.
+
+    Returns:
+        str: HTML-safe markup.
+    """
+    prefix = (location or "").split(_LOCATION_NEIGHBOR_MARKER, 1)[0]
+    entries = [
+        f'{post_link("system.py", {"db": db_name, "id": n["id"]}, esc(n["name"]))} ({n["distance_ly"]:.1f} ly)'
+        for n in neighbors
+    ]
+    return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
+
+
 def format_density(edge_ly, system_count):
     """
     Formats a sector's star density as systems per cubic light-year, with a

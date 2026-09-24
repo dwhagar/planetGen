@@ -106,9 +106,12 @@ connectivity to that specific schema rather than the default one.
   `markdown_content`, `wikitext_content`, `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
-  its own nested `moons`), `belts`, and `sector_siblings` (`{id, name}`
-  for every other system in the same sector, for linkifying `location`'s
-  "nearest: ..." names) (`queryDb.system_detail`) — same "flat display
+  its own nested `moons`), `belts`, `sector_siblings` (`{id, name}`
+  for every other system in the same sector), and `nearest_neighbors`
+  (`{id, name, distance_ly}` for the up-to-3 closest systems in the same
+  sector, nearest first, computed from current positions and names; the
+  names inside `location` are frozen at generation time and can be
+  stale) (`queryDb.system_detail`) — same "flat display
   shape, not the generation object graph" relationship to
   `stellarObjects._db.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.

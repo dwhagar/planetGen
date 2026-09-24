@@ -12,6 +12,8 @@ exercise the exact same read path (`queryDb.py`/`stellarObjects._db.load_sector`
 `load_star_system`) production traffic does.
 """
 
+import math
+
 import pytest
 
 from api.app import create_app
@@ -375,6 +377,16 @@ def test_system_detail_found_and_not_found(client, seeded_sector):
     assert "stars" in body and body["stars"]
     assert "markdown_content" in body
     assert {s["id"] for s in body["sector_siblings"]} == set(system_ids)
+    # Nearest same-sector systems come from live rows (ids, current
+    # names), never the system itself, nearest first.
+    neighbors = body["nearest_neighbors"]
+    assert 0 < len(neighbors) <= min(3, len(system_ids) - 1)
+    assert system_ids[0] not in {n["id"] for n in neighbors}
+    assert {n["id"] for n in neighbors} <= set(system_ids)
+    distances = [n["distance_ly"] for n in neighbors]
+    assert distances == sorted(distances)
+    # The fixture's two systems sit at (1, 1, 1) and (-2, 0.5, 3) ly.
+    assert neighbors[0]["distance_ly"] == pytest.approx(math.sqrt(9 + 0.25 + 4), rel=1e-3)
 
     response = client.get("/api/systems/999999999")
     assert response.status_code == 404

@@ -392,7 +392,7 @@ function makeBodySpheres(radius, coreTexture, coreColorHex, glow) {
   var core = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), coreMaterial);
   core.scale.setScalar(radius);
 
-  var glowMaterial = makeGlowMaterial(THREE, glow.color, glow.power, glow.strength);
+  var glowMaterial = makeGlowMaterial(THREE, glow.color, glow.power, glow.strength, glow.scale);
   var glowMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), glowMaterial);
   glowMesh.scale.setScalar(radius * glow.scale);
 

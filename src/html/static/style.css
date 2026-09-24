@@ -1123,6 +1123,12 @@ code {
   max-width: none;
   aspect-ratio: 1 / 1;
   overflow: hidden;
+  /* Its own stacking context, so `.sysmap-orbits-layer`'s `z-index: -1`
+     stacks it below the spheres canvas but still above this box's own
+     background. Without one, a negative z-index child paints beneath
+     the nearest stacking context's background -- here, the viewport's
+     own opaque `--bg-subtle` fill -- and every orbit line disappears. */
+  isolation: isolate;
 }
 
 .sysmap-svg {
