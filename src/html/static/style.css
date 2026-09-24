@@ -1651,7 +1651,9 @@ body.app {
 
 .app .site-sections a[aria-current="page"],
 .app .site-account a[aria-current="page"] {
-  color: var(--accent);
+  /* --link, not --accent: --accent on --bg-subtle is 4.45:1 in the light
+     theme, under WCAG AA's 4.5:1 for text. */
+  color: var(--link);
   background: var(--bg-subtle);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
