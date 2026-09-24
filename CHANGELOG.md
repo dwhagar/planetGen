@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.46.28] - 2026-09-24
+
+### Fixed
+- **Galaxy Map (3D): rapidly clicking/double-clicking or mashing the
+  zoom buttons could fire off a live API request per click, faster than
+  the server can service them.** `doFetch`'s own `activeAbort.abort()`
+  only stops the *browser* from waiting on a superseded response -- it
+  doesn't reliably stop the server from finishing a query it already
+  started (Flask/WSGI doesn't check for a disconnected client mid-query
+  unless specifically coded to), so rapid clicking still burned a real
+  WSGI thread/DB-connection-pool slot per click even when every earlier
+  response got thrown away client-side the instant the next one fired --
+  a real contributor to the production connection-exhaustion pattern
+  already fixed elsewhere in this and recent releases. Every interaction
+  that requests an immediate fetch (click, double-click, the +/-/reset
+  buttons) now funnels through one shared cap: at most 4 accepted
+  immediate fetches per second. A click faster than that still moves the
+  camera/selection instantly (never throttled), it just falls back to
+  the existing debounced delay for its own data fetch instead of firing
+  right away, so a rapid burst still settles on exactly one fetch
+  shortly after it stops rather than either hammering the server once
+  per click or never syncing to the final camera position at all.
+
 ## [5.46.27] - 2026-09-24
 
 ### Added

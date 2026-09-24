@@ -582,11 +582,46 @@ function initGalaxyMap3d(canvasEl, data) {
   var fetchTimer = null;
   var activeAbort = null;
 
+  // Caps how often a click/double-click/zoom-button interaction (every
+  // caller that passes scheduleFetch(true) -- see each one below) can
+  // actually trigger an IMMEDIATE live fetch: at most MAX_CLICKS_PER_SECOND
+  // per second. `doFetch`'s own activeAbort.abort() only stops the
+  // BROWSER from waiting on a superseded response -- it doesn't reliably
+  // stop the server from finishing a query it already started (Flask/
+  // WSGI doesn't check for a disconnected client mid-query unless
+  // specifically coded to), so rapid clicking still burns a real WSGI
+  // thread/DB-connection-pool slot per click even when every earlier
+  // response gets thrown away client-side the instant the next one
+  // fires -- confirmed as a real contributor to production connection
+  // exhaustion under concurrent load. A click/double-click's own visual
+  // effect (the camera recentering/zooming, via centerOn/centerAndZoom)
+  // is never throttled here, only the network fetch that follows it --
+  // clicking faster than the cap still feels instant, it just falls back
+  // to the standard debounced delay below instead of firing right away,
+  // so a rapid burst still settles on exactly one fetch shortly after it
+  // stops (the same collapsing behavior continuous wheel-scrolling
+  // already relies on) rather than either hammering the server once per
+  // click or never syncing the display to the final camera position at
+  // all.
+  var MAX_CLICKS_PER_SECOND = 4;
+  var MIN_MS_BETWEEN_IMMEDIATE_FETCHES = 1000 / MAX_CLICKS_PER_SECOND;
+  var lastImmediateFetchAt = 0;
+
   function scheduleFetch(immediate) {
     if (fetchTimer) {
       clearTimeout(fetchTimer);
     }
-    fetchTimer = setTimeout(doFetch, immediate ? 0 : FETCH_DEBOUNCE_MS);
+    var delay = FETCH_DEBOUNCE_MS;
+    if (immediate) {
+      var now = Date.now();
+      if (now - lastImmediateFetchAt >= MIN_MS_BETWEEN_IMMEDIATE_FETCHES) {
+        lastImmediateFetchAt = now;
+        delay = 0;
+      }
+      // else: rate-limited -- falls through to the debounced delay above
+      // instead of a bare no-op, so state still eventually syncs.
+    }
+    fetchTimer = setTimeout(doFetch, delay);
   }
 
   function doFetch() {
