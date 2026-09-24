@@ -190,11 +190,20 @@ connectivity to that specific schema rather than the default one.
   twice that tile's edge of its center. At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
-- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>"}`
-  (`queryDb.galaxy_content_stamp`), which changes whenever tile contents
-  could: sectors placed or removed, new star systems, a re-planned galaxy
-  shape, or a new planetGen release. `../src/html/lib/tilecache.py` (the
-  web layer's disk cache) and the map's browser cache both key on it.
+- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
+  "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
+  tile contents could: sectors placed, edited or removed (their
+  `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
+  or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
+- `GET /api/galaxy/changes?since=<state>` — `{"stamp", "state", "full",
+  "tiles"}` (`queryDb.galaxy_changes`): the keys of the tiles that changed
+  since that `state`, found from `sectors.modified_at`, new sector ids and
+  new star-system ids. `full` is `true` (and `tiles` empty) when that can't
+  be pinned to tiles: a deleted sector, a new shape or release, more than
+  1,000 changed sectors, or a missing or unreadable `since`.
+  `../src/html/lib/tilecache.py` (the web layer's disk cache) calls it
+  about once a minute and deletes only the listed tiles, and passes the
+  list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset, and

@@ -369,11 +369,13 @@ def get_galaxy_tiles(db, tile_keys, density_key=None):
     })
 
 
-def get_galaxy_stamp(db):
-    """Returns `GET /api/galaxy/stamp`'s `stamp` -- the token tile caches
-    key on (see `queryDb.galaxy_content_stamp`)."""
+def get_galaxy_changes(db, since=None):
+    """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
+    `tiles`) -- which cube tiles changed since `since`, an earlier call's
+    `state` (see `queryDb.galaxy_changes`). `lib/tilecache.py` uses it to
+    refresh only the tiles an edit touched."""
     _require_db(db)
-    return _request("/galaxy/stamp", {"db": db})["stamp"]
+    return _request("/galaxy/changes", {"db": db, "since": since})
 
 def get_phenomena(db, limit=None, offset=None):
     """Returns `GET /api/phenomena`'s full paginated envelope

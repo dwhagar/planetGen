@@ -15,7 +15,9 @@ the page's own script, never navigated to.
 
 Every tile goes through `lib/tilecache.py`'s disk cache first; only tiles
 not already cached reach the API. The response carries the database's
-content `stamp`, which the browser keys its own tile cache by.
+content `stamp` and cache `generation`; `stamp` is the one the browser's
+own tile cache is at, so when that's out of date the response also lists
+which tiles changed since (`history`), and the browser drops only those.
 """
 
 import os
@@ -33,9 +35,10 @@ def handler():
     db_name = params.get("db", "")
     tile_keys = [key for key in (params.get("tiles") or "").split(",") if key]
     density_key = params.get("density") or None
+    known_stamp = params.get("stamp") or None
 
     try:
-        return fetch_tiles(db_name, tile_keys, density_key)
+        return fetch_tiles(db_name, tile_keys, density_key, known_stamp)
     except TileRequestError as exc:
         # The page's own script sent a bad request -- a 400, not the 502
         # `run_json` gives an API failure (same distinction

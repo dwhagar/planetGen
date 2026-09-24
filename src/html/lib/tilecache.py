@@ -8,22 +8,26 @@ camera moves.
 A tile's contents (see `stellarObjects.galaxyViewport`'s "Cube tiles"
 section and `queryDb.galaxy_tiles`) depend only on its key and on the
 database's contents, which `queryDb.galaxy_content_stamp` summarizes as a
-short "stamp". So every tile is cached under
-`<cache dir>/<db>/<stamp>/<tile>.json`, and a cached tile is reused until
-the stamp changes (new sectors generated, the galaxy re-planned, or a new
-planetGen release). `fetch_tiles` asks the API only for the tiles it
-doesn't already have, and when every tile is cached it doesn't call the
-API for tiles at all.
+short "stamp". Tiles are cached as `<cache dir>/<db>/<generation>/
+<tile>.json`, where the generation is the stamp at the last time every
+tile went stale. `fetch_tiles` asks the API only for the tiles it doesn't
+already have, and when every tile is cached it doesn't call the API for
+tiles at all.
 
-The stamp itself comes from the API (`GET /api/galaxy/stamp`, one cheap
-query) but is remembered on disk for `STAMP_TTL_SECONDS`, so a database
-change shows up on the map within that long and busy traffic still costs
-at most one stamp lookup per database per `STAMP_TTL_SECONDS`. When the
-stamp changes, the old stamp's tiles are deleted.
+Freshness is checked at most once per `STAMP_TTL_SECONDS` per database,
+with one cheap API call (`GET /api/galaxy/changes`, see
+`queryDb.galaxy_changes`), which reads the schema-v27 `modified_at`
+columns and answers which tiles changed since the last check. Only those
+tile files are deleted, so renaming a sector refetches the dozen tiles
+holding it rather than the whole map. A change that can't be pinned to
+tiles (a deleted sector, a re-planned galaxy, a new planetGen release)
+answers `full`, and a new generation starts with nothing cached.
 
 The browser keeps its own copy of every tile too (`static/galaxymap3d.js`,
-in `localStorage`, keyed by the same stamp), so a visitor panning back
-over space they've already seen doesn't even reach this cache.
+in `localStorage`, keyed by the generation). `stamp.json` remembers the
+last few checks' changed tiles (`history`), and `fetch_tiles` hands them
+to the browser whenever its stamp is out of date, so the browser drops
+only those tiles too.
 
 Everything here fails open: an unwritable or missing cache directory, a
 corrupt file, or a race with another request just means the tile is
@@ -38,7 +42,7 @@ import re
 import tempfile
 import time
 
-from apiclient import get_galaxy_stamp, get_galaxy_tiles
+from apiclient import get_galaxy_changes, get_galaxy_tiles
 from stellarObjects.appconfig import load_config
 from stellarObjects.galaxyViewport import parse_tile_key, tile_key
 
@@ -49,8 +53,16 @@ folder in the system temp directory when Apache can't create this one."""
 
 STAMP_TTL_SECONDS = 60
 """int: How long a database's stamp is trusted before asking the API again
--- the longest a newly generated sector can take to appear on an open
-map."""
+-- the longest a newly generated or edited sector can take to appear on
+an open map."""
+
+HISTORY_MAX_KEYS = 1500
+"""int: Most changed-tile keys `stamp.json`'s `history` keeps, across all
+its entries. Oldest entries go first; a browser whose stamp is older than
+what's left just drops all its tiles."""
+
+HISTORY_MAX_ENTRIES = 32
+"""int: Most checks `history` remembers."""
 
 PRUNE_PROBABILITY = 0.05
 """float: Chance that a request which wrote new tiles also checks the
@@ -170,42 +182,121 @@ def _remove_tree(path):
         pass
 
 
+def _read_remembered(db_dir):
+    """`stamp.json`'s contents when well-formed, else `None` (including
+    the pre-generation `{"stamp"}` format, which just starts afresh)."""
+    remembered = _read_json(os.path.join(db_dir, "stamp.json"))
+    if not (
+        isinstance(remembered, dict)
+        and _STAMP_RE.match(str(remembered.get("stamp", "")))
+        and _STAMP_RE.match(str(remembered.get("generation", "")))
+        and isinstance(remembered.get("state"), str)
+        and isinstance(remembered.get("history"), list)
+    ):
+        return None
+    return remembered
+
+
+def _delete_tiles(generation_dir, tile_keys):
+    for key in tile_keys:
+        try:
+            os.unlink(os.path.join(generation_dir, _tile_filename("t", key)))
+        except (OSError, ValueError):
+            pass
+
+
+def _trim_history(history):
+    """The newest `history` entries that fit `HISTORY_MAX_ENTRIES` and
+    `HISTORY_MAX_KEYS`."""
+    kept = []
+    total = 0
+    for entry in reversed(history[-HISTORY_MAX_ENTRIES:]):
+        total += len(entry["tiles"])
+        if total > HISTORY_MAX_KEYS:
+            break
+        kept.append(entry)
+    return list(reversed(kept))
+
+
 def current_stamp(db, root=None):
     """
-    The database's current content stamp: from `<db dir>/stamp.json` when
-    that's younger than `STAMP_TTL_SECONDS`, else from the API (and then
-    remembered). When the API reports a new stamp, every other stamp's
-    cached tiles for this database are deleted.
+    The database's current stamp, generation and change history: from
+    `<db dir>/stamp.json` when that's younger than `STAMP_TTL_SECONDS`,
+    else from `GET /api/galaxy/changes` (and then remembered). A check
+    that finds changes deletes just the changed tiles, or on a `full`
+    answer starts a new generation and deletes every other one.
+
+    Returns:
+        dict: `stamp`, `generation` (`None` when there's no disk cache),
+            and `history` (a list of `{"from", "to", "tiles"}`, oldest
+            first: each check that found changes, and the tile keys it
+            found).
     """
     if root is None:
-        return get_galaxy_stamp(db)
+        return {"stamp": get_galaxy_changes(db)["stamp"], "generation": None, "history": []}
 
     db_dir = _db_dir(root, db)
     stamp_path = os.path.join(db_dir, "stamp.json")
-    remembered = _read_json(stamp_path)
+    remembered = _read_remembered(db_dir)
     try:
         age = time.time() - os.path.getmtime(stamp_path)
     except OSError:
         age = None
-    if (
-        isinstance(remembered, dict)
-        and _STAMP_RE.match(str(remembered.get("stamp", "")))
-        and age is not None
-        and 0 <= age < STAMP_TTL_SECONDS
-    ):
-        return remembered["stamp"]
+    if remembered is not None and age is not None and 0 <= age < STAMP_TTL_SECONDS:
+        return remembered
 
-    stamp = get_galaxy_stamp(db)
+    changes = get_galaxy_changes(db, remembered["state"] if remembered else None)
+    stamp = changes.get("stamp")
     if not _STAMP_RE.match(str(stamp)):
-        return stamp
-    _write_json(stamp_path, {"stamp": stamp})
+        return {"stamp": stamp, "generation": None, "history": []}
+
+    stale = []
+    if remembered is not None and not changes.get("full"):
+        generation = remembered["generation"]
+        history = remembered["history"]
+        if stamp != remembered["stamp"]:
+            stale = [str(key) for key in changes.get("tiles") or []]
+            history = _trim_history(history + [{"from": remembered["stamp"], "to": stamp, "tiles": stale}])
+    else:
+        generation = stamp
+        history = []
+
+    info = {"stamp": stamp, "state": str(changes.get("state") or ""), "generation": generation, "history": history}
+    generation_dir = os.path.join(db_dir, generation)
+    # Deleted both before and after the new stamp is written: a request
+    # still working under the old stamp checks it before writing a tile
+    # (see `fetch_tiles`), so whichever side of the write it lands on, a
+    # tile fetched before the change doesn't survive it.
+    _delete_tiles(generation_dir, stale)
+    _write_json(stamp_path, info)
+    _delete_tiles(generation_dir, stale)
     try:
         for entry in os.scandir(db_dir):
-            if entry.is_dir() and entry.name != stamp:
+            if entry.is_dir() and entry.name != generation:
                 _remove_tree(entry.path)
     except OSError:
         pass
-    return stamp
+    return info
+
+
+def _stale_since(known_stamp, info):
+    """
+    The `history` entries a browser holding `known_stamp` hasn't seen yet,
+    so it drops just their tiles: `None` when its stamp is current
+    (nothing to send), all of `history` when its stamp isn't known (the
+    first page render, before the browser's own storage is read), and
+    `[]` when its stamp is older than the history, which the browser
+    reads as "drop everything".
+    """
+    if known_stamp == info["stamp"]:
+        return None
+    history = info.get("history") or []
+    if known_stamp is None:
+        return history
+    for index in range(len(history) - 1, -1, -1):
+        if history[index]["from"] == known_stamp:
+            return history[index:]
+    return []
 
 
 def _round_floats(value):
@@ -247,7 +338,7 @@ def validate_request(tile_keys, density_key):
     return keys, density
 
 
-def fetch_tiles(db, tile_keys, density_key=None):
+def fetch_tiles(db, tile_keys, density_key=None, known_stamp=None):
     """
     The requested tiles (and optional density cloud), from the disk cache
     where possible and from `GET /api/galaxy/tiles` for the rest, caching
@@ -257,13 +348,17 @@ def fetch_tiles(db, tile_keys, density_key=None):
         db (str): The `?db=` value.
         tile_keys (list[str]): `level/ix/iy/iz` keys.
         density_key (str or None): A tile key to anchor a density cloud on.
+        known_stamp (str or None): The stamp the browser's own cache is
+            at, when it has one.
 
     Returns:
-        dict: `stamp` (see `current_stamp` -- the browser keys its own
-            cache by it), `tiles` (`{key: {"placed", "planned"}}`),
-            `density` (`{"key", "points"}` or `None`), `edge_pc`,
-            `has_shape`, and `cached` (how many of the requested parts
-            came from disk -- for diagnostics).
+        dict: `stamp` and `generation` (see `current_stamp` -- the browser
+            keys its own cache by the generation), `history` (only when
+            `known_stamp` isn't current: the changed tiles the browser
+            hasn't seen, see `_stale_since`), `tiles` (`{key: {"placed",
+            "planned"}}`), `density` (`{"key", "points"}` or `None`),
+            `edge_pc`, `has_shape`, and `cached` (how many of the
+            requested parts came from disk -- for diagnostics).
 
     Raises:
         TileRequestError: On a malformed request.
@@ -271,20 +366,22 @@ def fetch_tiles(db, tile_keys, density_key=None):
     """
     tile_keys, density_key = validate_request(tile_keys, density_key)
     root = cache_dir()
-    stamp = current_stamp(db, root)
-    stamp_dir = os.path.join(_db_dir(root, db), stamp) if root and _STAMP_RE.match(str(stamp)) else None
+    info = current_stamp(db, root)
+    stamp = info["stamp"]
+    generation = info["generation"]
+    generation_dir = os.path.join(_db_dir(root, db), generation) if root and generation else None
 
     tiles = {}
     density = None
     meta = None
-    if stamp_dir:
-        meta = _read_json(os.path.join(stamp_dir, "meta.json"))
+    if generation_dir:
+        meta = _read_json(os.path.join(generation_dir, "meta.json"))
         for key in tile_keys:
-            cached = _read_json(os.path.join(stamp_dir, _tile_filename("t", key)))
+            cached = _read_json(os.path.join(generation_dir, _tile_filename("t", key)))
             if isinstance(cached, dict):
                 tiles[key] = cached
         if density_key:
-            cached = _read_json(os.path.join(stamp_dir, _tile_filename("d", density_key)))
+            cached = _read_json(os.path.join(generation_dir, _tile_filename("d", density_key)))
             if isinstance(cached, list):
                 density = {"key": density_key, "points": cached}
 
@@ -300,13 +397,15 @@ def fetch_tiles(db, tile_keys, density_key=None):
         if fetched_density is not None:
             fetched_density = {"key": density_key, "points": _round_floats(fetched_density.get("points") or [])}
 
-        if stamp_dir:
-            _write_json(os.path.join(stamp_dir, "meta.json"), meta)
+        # Another request may have found changes while this one was
+        # fetching; what it fetched could be from before them.
+        if generation_dir and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
+            _write_json(os.path.join(generation_dir, "meta.json"), meta)
             for key, value in fetched_tiles.items():
                 if key in missing:
-                    _write_json(os.path.join(stamp_dir, _tile_filename("t", key)), value)
+                    _write_json(os.path.join(generation_dir, _tile_filename("t", key)), value)
             if fetched_density is not None:
-                _write_json(os.path.join(stamp_dir, _tile_filename("d", density_key)), fetched_density["points"])
+                _write_json(os.path.join(generation_dir, _tile_filename("d", density_key)), fetched_density["points"])
             if random.random() < PRUNE_PROBABILITY:
                 prune(root)
 
@@ -314,14 +413,19 @@ def fetch_tiles(db, tile_keys, density_key=None):
         if fetched_density is not None:
             density = fetched_density
 
-    return {
+    result = {
         "stamp": stamp,
+        "generation": generation,
         "tiles": {key: tiles[key] for key in tile_keys if key in tiles},
         "density": density,
         "edge_pc": meta.get("edge_pc"),
         "has_shape": bool(meta.get("has_shape")),
         "cached": cached_count,
     }
+    history = _stale_since(known_stamp, info)
+    if history is not None:
+        result["history"] = history
+    return result
 
 
 def prune(root, max_bytes=None):

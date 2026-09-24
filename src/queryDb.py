@@ -32,9 +32,11 @@ sys.path shim needed, unlike the root-level entry scripts
 """
 
 import argparse
+import datetime
 import hashlib
 import json
 import math
+import re
 
 import pymysql
 
@@ -49,6 +51,7 @@ from stellarObjects.galaxyViewport import (
     planned_slots_in_tile,
     planned_slots_in_view,
     tile_bounds_pc,
+    tile_keys_containing,
 )
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
@@ -2009,34 +2012,183 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     return {"tiles": tiles, "density": density, "edge_pc": edge_pc, "has_shape": shape is not None}
 
 
-def galaxy_content_stamp(conn):
+GALAXY_CHANGES_MAX_SECTORS = 1000
+"""int: Most changed sectors `galaxy_changes` lists tiles for. More than
+that (a big generation run, say) reports `full` instead -- refetching
+everything is cheaper than invalidating tens of thousands of tiles one
+by one."""
+
+_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)$")
+
+
+def _state_token(state):
+    """`galaxy_content_state`'s dict as the opaque string the API hands
+    out and `galaxy_changes` reads back."""
+    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}".format(**state)
+
+
+def _parse_state_token(token):
+    """The dict `_state_token` encoded, or `None` for anything else."""
+    match = _STATE_TOKEN_RE.match(str(token or ""))
+    if not match:
+        return None
+    base, sectors, sector_max_id, sector_modified, system_max_id = match.groups()
+    return {
+        "base": base, "sectors": int(sectors), "sector_max_id": int(sector_max_id),
+        "sector_modified": sector_modified, "system_max_id": int(system_max_id),
+    }
+
+
+def _timestamp_digits(value):
+    """A `TIMESTAMP(3)` value as 17 digits (`YYYYMMDDHHMMSSmmm`), or `"0"`
+    for `NULL` -- compact, and orders the same way the timestamp does."""
+    if value is None:
+        return "0"
+    if isinstance(value, str):
+        value = datetime.datetime.fromisoformat(value)
+    return value.strftime("%Y%m%d%H%M%S") + f"{value.microsecond // 1000:03d}"
+
+
+def _timestamp_literal(digits):
+    """`_timestamp_digits`' output back as a literal MySQL compares
+    against a `TIMESTAMP(3)` column."""
+    if digits == "0":
+        return "1970-01-01 00:00:01.000"
+    d = digits
+    return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
+
+
+def galaxy_content_state(conn):
+    """
+    Everything `galaxy_tiles`' output depends on, summarized as a handful
+    of numbers:
+
+    - `base`: a hash of the stored galaxy shape and this code's version.
+      Planned slots, density clouds, `edge_pc` and `has_shape` depend on
+      the shape, and a release may change the tile format, so a new
+      `base` means every tile is stale.
+    - `sectors`/`sector_max_id`: how many sectors are placed, and the
+      highest sector id. Together they tell a new sector (higher id) from
+      a deleted one (the count drops).
+    - `sector_modified`: the newest `sectors.modified_at` (v27). A
+      sector's own edit (a rename, say) bumps it, and so does deleting one
+      of its systems (`_db.touch_sector`).
+    - `system_max_id`: the highest star-system id. A new system changes
+      its sector's system count. System edits don't touch a tile (tiles
+      only show the count), so `star_systems.modified_at` isn't used.
+
+    Cheap by design -- one indexed count and three index-only maxima --
+    since the web layer checks it about once a minute per database.
+
+    Returns:
+        dict: The keys above; `sector_modified` as `_timestamp_digits`.
+    """
+    sector_row = conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL"
+    ).fetchone()
+    maxima = conn.execute(
+        "SELECT (SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
+        "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
+        "(SELECT COALESCE(MAX(id), 0) FROM star_systems) AS system_max_id"
+    ).fetchone()
+    base = hashlib.sha256(json.dumps(
+        {"shape": galaxy_density_shape(conn), "version": __version__}, sort_keys=True, default=str,
+    ).encode("utf-8")).hexdigest()[:16]
+    return {
+        "base": base,
+        "sectors": int(sector_row["n"]),
+        "sector_max_id": int(maxima["sector_max_id"]),
+        "sector_modified": _timestamp_digits(maxima["sector_modified"]),
+        "system_max_id": int(maxima["system_max_id"]),
+    }
+
+
+def galaxy_content_stamp(conn, state=None):
     """
     A short token that changes whenever anything `galaxy_tiles` returns
-    could change: the placed-sector set (count and highest id), the
-    highest star-system id (new systems change a sector's system count),
-    the stored galaxy shape, and this code's own version (so a release
-    that changes the tile format never reuses old cached tiles). The web
-    layer and the browser key their tile caches by it, so a stale tile is
-    never served after new sectors are generated.
+    could change -- a hash of `galaxy_content_state`. The web layer and
+    the browser key their tile caches by it, so a stale tile is never
+    served after sectors are generated, renamed or deleted.
 
-    Cheap by design -- one indexed aggregate and two primary-key maxima --
-    since it runs once per Galaxy Map page load.
+    Args:
+        state (dict, optional): An already-read `galaxy_content_state`.
 
     Returns:
         str: 16 hex characters.
     """
-    sector_row = conn.execute(
-        "SELECT COUNT(*) AS n, COALESCE(MAX(id), 0) AS max_id FROM sectors WHERE center_x_pc IS NOT NULL"
-    ).fetchone()
-    system_row = conn.execute("SELECT COALESCE(MAX(id), 0) AS max_id FROM star_systems").fetchone()
-    parts = {
-        "sectors": [int(sector_row["n"]), int(sector_row["max_id"])],
-        "systems": int(system_row["max_id"]),
-        "shape": galaxy_density_shape(conn),
-        "version": __version__,
-    }
-    digest = hashlib.sha256(json.dumps(parts, sort_keys=True, default=str).encode("utf-8"))
-    return digest.hexdigest()[:16]
+    if state is None:
+        state = galaxy_content_state(conn)
+    return hashlib.sha256(_state_token(state).encode("utf-8")).hexdigest()[:16]
+
+
+def galaxy_changes(conn, since=None):
+    """
+    What changed in the galaxy's tiles since an earlier state -- how the
+    web layer's tile cache refreshes only the cubes an edit touched
+    instead of throwing every cached tile away.
+
+    Uses v27's `sectors.modified_at` (see `galaxy_content_state`): each
+    sector edited since `since`, each new sector, and each sector that
+    gained a system is "changed", and so is the one tile per level that
+    holds its center (`galaxyViewport.tile_keys_containing`). A sector
+    never moves once placed, so its center is where it was before too.
+
+    Deletions leave no row behind, so a deleted sector can't be located;
+    the placed count drops, and the answer is `full` instead. So is a new
+    shape or release (`base`), an unreadable `since`, or more than
+    `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        since (str or None): A `state` from an earlier call (or
+            `GET /api/galaxy/stamp`), or `None`.
+
+    Returns:
+        dict: `stamp` (`galaxy_content_stamp` now), `state` (the token to
+            pass as `since` next time), `full` (every tile may have
+            changed), and `tiles` (sorted keys of the changed tiles; empty
+            when `full`).
+    """
+    state = galaxy_content_state(conn)
+    result = {"stamp": galaxy_content_stamp(conn, state), "state": _state_token(state), "full": False, "tiles": []}
+    previous = _parse_state_token(since)
+    if previous is None or previous["base"] != state["base"]:
+        result["full"] = True
+        return result
+    if previous == state:
+        return result
+
+    new_placed = conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE id > ? AND center_x_pc IS NOT NULL",
+        (previous["sector_max_id"],),
+    ).fetchone()["n"]
+    if previous["sectors"] + int(new_placed) != state["sectors"]:
+        result["full"] = True
+        return result
+
+    rows = conn.execute(
+        """
+        SELECT center_x_pc, center_y_pc, center_z_pc
+        FROM sectors
+        WHERE center_x_pc IS NOT NULL
+          AND (id > ? OR modified_at > ?
+               OR id IN (SELECT sector_id FROM star_systems WHERE id > ?))
+        LIMIT ?
+        """,
+        (
+            previous["sector_max_id"], _timestamp_literal(previous["sector_modified"]),
+            previous["system_max_id"], GALAXY_CHANGES_MAX_SECTORS + 1,
+        ),
+    ).fetchall()
+    if len(rows) > GALAXY_CHANGES_MAX_SECTORS:
+        result["full"] = True
+        return result
+
+    keys = set()
+    for r in rows:
+        keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
+    result["tiles"] = sorted(keys)
+    return result
 
 # ---------------------------------------------------------------------
 # Faceted search -- backs GET /api/search and html/search.py. Ported

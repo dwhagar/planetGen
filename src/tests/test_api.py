@@ -23,7 +23,7 @@ from api.config import Config
 from stellarObjects import _db, adminAuth
 from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyViewport import tiles_intersecting_sphere
+from stellarObjects.galaxyViewport import tile_keys_containing, tiles_intersecting_sphere
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from wikiClient import WikiClientPageExistsError, WikiPage
@@ -694,6 +694,76 @@ def test_galaxy_stamp_changes_when_a_sector_is_placed(client, mysql_config):
     assert client.get("/api/galaxy/stamp").get_json()["stamp"] == first
     _place_sector(mysql_config, "New Sector", (1.0, 2.0, 3.0))
     assert client.get("/api/galaxy/stamp").get_json()["stamp"] != first
+
+def _galaxy_changes(client, since):
+    response = client.get("/api/galaxy/changes", query_string={"since": since})
+    assert response.status_code == 200
+    return response.get_json()
+
+
+def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config):
+    # A rename bumps `sectors.modified_at` (v27), which names the one tile
+    # per level holding that sector -- not the other sector's.
+    renamed_id = _place_sector(mysql_config, "Renamed", (5.0, 5.0, 5.0))
+    _place_sector(mysql_config, "Untouched", (9000.0, -3000.0, 20.0))
+    before = client.get("/api/galaxy/stamp").get_json()
+
+    unchanged = _galaxy_changes(client, before["state"])
+    assert unchanged == {"stamp": before["stamp"], "state": before["state"], "full": False, "tiles": []}
+
+    time.sleep(0.01)
+    conn = _db.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", ("Renamed Again", renamed_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+    changes = _galaxy_changes(client, before["state"])
+    assert changes["full"] is False
+    assert changes["stamp"] != before["stamp"]
+    assert changes["tiles"] == sorted(tile_keys_containing((5.0, 5.0, 5.0)))
+    assert _galaxy_changes(client, changes["state"])["tiles"] == []
+
+
+def test_galaxy_changes_lists_a_new_sectors_tiles(client, mysql_config):
+    _place_sector(mysql_config, "Old", (5.0, 5.0, 5.0))
+    before = client.get("/api/galaxy/stamp").get_json()
+    _place_sector(mysql_config, "New", (-800.0, 40.0, 3.0))
+    changes = _galaxy_changes(client, before["state"])
+    assert changes["full"] is False
+    assert changes["tiles"] == sorted(tile_keys_containing((-800.0, 40.0, 3.0)))
+
+
+def test_galaxy_changes_lists_the_tiles_of_a_sector_that_lost_a_system(admin_client, mysql_config):
+    # Tiles show each sector's system count; deleting a system bumps its
+    # sector (`_db.touch_sector`).
+    sector_id = _place_sector(mysql_config, "Shrinking", (100.0, 200.0, 300.0))
+    conn = _db.get_connection(mysql_config)
+    try:
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+    finally:
+        conn.close()
+    before = admin_client.get("/api/galaxy/stamp").get_json()
+    time.sleep(0.01)
+    assert admin_client.delete(f"/api/systems/{system_id}").status_code == 200
+    changes = _galaxy_changes(admin_client, before["state"])
+    assert changes["full"] is False
+    assert changes["tiles"] == sorted(tile_keys_containing((100.0, 200.0, 300.0)))
+
+
+def test_galaxy_changes_is_full_after_a_deletion_or_a_bad_since(admin_client, mysql_config):
+    # A deleted sector leaves no row to locate its tiles by.
+    sector_id = _place_sector(mysql_config, "Doomed", (5.0, 5.0, 5.0))
+    _place_sector(mysql_config, "Survivor", (50.0, 5.0, 5.0))
+    before = admin_client.get("/api/galaxy/stamp").get_json()
+    assert admin_client.delete(f"/api/sectors/{sector_id}").status_code == 200
+    changes = _galaxy_changes(admin_client, before["state"])
+    assert changes["full"] is True and changes["tiles"] == []
+
+    for since in ("", "nonsense", "0123456789abcdef.1.2.3.4"):
+        assert _galaxy_changes(admin_client, since)["full"] is True
+
 
 def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
