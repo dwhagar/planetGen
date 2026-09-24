@@ -192,11 +192,20 @@ connectivity to that specific schema rather than the default one.
   twice that tile's edge of its center. At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
-- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>"}`
-  (`queryDb.galaxy_content_stamp`), which changes whenever tile contents
-  could: sectors placed or removed, new star systems, a re-planned galaxy
-  shape, or a new planetGen release. `../src/html/lib/tilecache.py` (the
-  web layer's disk cache) and the map's browser cache both key on it.
+- `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
+  "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
+  tile contents could: sectors placed, edited or removed (their
+  `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
+  or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
+- `GET /api/galaxy/changes?since=<state>` — `{"stamp", "state", "full",
+  "tiles"}` (`queryDb.galaxy_changes`): the keys of the tiles that changed
+  since that `state`, found from `sectors.modified_at`, new sector ids and
+  new star-system ids. `full` is `true` (and `tiles` empty) when that can't
+  be pinned to tiles: a deleted sector, a new shape or release, more than
+  1,000 changed sectors, or a missing or unreadable `since`.
+  `../src/html/lib/tilecache.py` (the web layer's disk cache) calls it
+  about once a minute and deletes only the listed tiles, and passes the
+  list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
@@ -238,11 +247,19 @@ connectivity to that specific schema rather than the default one.
   present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
   name lists), `facet_labels` (`"facet:value"` -> label, for an
   active-filter chip), and `results` (`sectors`/`systems`/`stars`/
-  `planets`/`moons`/`belts` -> `{"rows": [...], "truncated": bool}`, or
+  `planets`/`moons`/`belts` -> `{"rows": [...], "total", "limit",
+  "offset", "truncated"}`, or
   `null` for an object type with no active reason to query it — see
   `queryDb.search`'s docstring for the exact inclusion rule; a size range
   alone is reason enough, same as a tag or name term). `stars`/`planets`/
-  `moons` result rows each include their own `radius_km`.
+  `moons` result rows each include their own `radius_km`. Each result
+  panel is paged on its own: `limit` sets the rows per panel (default
+  300, clamped to 500 like "Pagination" below), and `sectors_offset`/
+  `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
+  `belts_offset` pick each panel's page; `total` is that panel's full
+  match count and `truncated` is true when `rows` isn't all of them. An
+  offset past the last match returns the last page (with its real
+  `offset`).
 - `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
   each wiki backend has a `base_url` plus credentials configured
   deployment-wide (`config.json`'s `wiki` section, or the matching
@@ -318,7 +335,7 @@ used by the `../src/html/` admin pages) or an API key, sent as
 
 ### Pagination
 
-`/api/sectors` and `/api/systems` return a paginated envelope rather than a
+`/api/sectors`, `/api/systems` and `/api/phenomena` return a paginated envelope rather than a
 bare list — this project's own roadmap (`docs/TODO.md`, Phase 4) plans
 galaxy-scale generation, so an unbounded listing endpoint would eventually
 return an unbounded response:

@@ -45,6 +45,7 @@ from apiclient import (
 from fmt import esc, format_distance_ly, linkify_location, post_link
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, nav_params, run
+from pagination import page_slice, parse_page, render_pagination
 from starmap import render_map_panel
 
 _PHENOMENON_TYPE_LABELS = {
@@ -218,10 +219,14 @@ def handler():
         )))
 
     # Nearest the sector's center first; anything with no position last.
+    # The map above plots everything, so the full list is already here;
+    # the table shows one page of it (see lib/pagination.py).
     content_rows.sort(key=lambda entry: (entry[0] is None, entry[0] or 0.0))
-    contents_html = "".join(html for _distance, html in content_rows) or (
+    page_rows, contents_page = page_slice(content_rows, parse_page(params.get("contents_page")))
+    contents_html = "".join(html for _distance, html in page_rows) or (
         '<tr><td colspan="6"><em>None</em></td></tr>'
     )
+    page_state = {"db": db_name, "id": sector_id, "contents_page": contents_page}
 
     center_pc = (
         (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
@@ -304,12 +309,14 @@ to a few hours to finish -- the page will not respond until it completes.</p>
 {wiki_html}
 {admin_panel_html}
 {map_html}
-<section class="panel">
+<section class="panel" id="sector-contents">
 <h2>Contents</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Name</th><th>Type</th><th>Details</th><th>Octant</th><th>Location</th><th>From center</th></tr></thead>
   <tbody>{contents_html}</tbody>
 </table></div>
+{render_pagination("sector.py", page_state, "contents_page", contents_page, len(content_rows),
+                   anchor="sector-contents", label="Contents pages")}
 </section>
 <script type="module" src="static/sectormap.js"></script>
 """

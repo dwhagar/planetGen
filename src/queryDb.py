@@ -32,9 +32,11 @@ sys.path shim needed, unlike the root-level entry scripts
 """
 
 import argparse
+import datetime
 import hashlib
 import json
 import math
+import re
 
 import pymysql
 
@@ -49,6 +51,7 @@ from stellarObjects.galaxyViewport import (
     planned_slots_in_tile,
     planned_slots_in_view,
     tile_bounds_pc,
+    tile_keys_containing,
 )
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
@@ -1954,34 +1957,183 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     return {"tiles": tiles, "density": density, "edge_pc": edge_pc, "has_shape": shape is not None}
 
 
-def galaxy_content_stamp(conn):
+GALAXY_CHANGES_MAX_SECTORS = 1000
+"""int: Most changed sectors `galaxy_changes` lists tiles for. More than
+that (a big generation run, say) reports `full` instead -- refetching
+everything is cheaper than invalidating tens of thousands of tiles one
+by one."""
+
+_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)$")
+
+
+def _state_token(state):
+    """`galaxy_content_state`'s dict as the opaque string the API hands
+    out and `galaxy_changes` reads back."""
+    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}".format(**state)
+
+
+def _parse_state_token(token):
+    """The dict `_state_token` encoded, or `None` for anything else."""
+    match = _STATE_TOKEN_RE.match(str(token or ""))
+    if not match:
+        return None
+    base, sectors, sector_max_id, sector_modified, system_max_id = match.groups()
+    return {
+        "base": base, "sectors": int(sectors), "sector_max_id": int(sector_max_id),
+        "sector_modified": sector_modified, "system_max_id": int(system_max_id),
+    }
+
+
+def _timestamp_digits(value):
+    """A `TIMESTAMP(3)` value as 17 digits (`YYYYMMDDHHMMSSmmm`), or `"0"`
+    for `NULL` -- compact, and orders the same way the timestamp does."""
+    if value is None:
+        return "0"
+    if isinstance(value, str):
+        value = datetime.datetime.fromisoformat(value)
+    return value.strftime("%Y%m%d%H%M%S") + f"{value.microsecond // 1000:03d}"
+
+
+def _timestamp_literal(digits):
+    """`_timestamp_digits`' output back as a literal MySQL compares
+    against a `TIMESTAMP(3)` column."""
+    if digits == "0":
+        return "1970-01-01 00:00:01.000"
+    d = digits
+    return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
+
+
+def galaxy_content_state(conn):
+    """
+    Everything `galaxy_tiles`' output depends on, summarized as a handful
+    of numbers:
+
+    - `base`: a hash of the stored galaxy shape and this code's version.
+      Planned slots, density clouds, `edge_pc` and `has_shape` depend on
+      the shape, and a release may change the tile format, so a new
+      `base` means every tile is stale.
+    - `sectors`/`sector_max_id`: how many sectors are placed, and the
+      highest sector id. Together they tell a new sector (higher id) from
+      a deleted one (the count drops).
+    - `sector_modified`: the newest `sectors.modified_at` (v27). A
+      sector's own edit (a rename, say) bumps it, and so does deleting one
+      of its systems (`_db.touch_sector`).
+    - `system_max_id`: the highest star-system id. A new system changes
+      its sector's system count. System edits don't touch a tile (tiles
+      only show the count), so `star_systems.modified_at` isn't used.
+
+    Cheap by design -- one indexed count and three index-only maxima --
+    since the web layer checks it about once a minute per database.
+
+    Returns:
+        dict: The keys above; `sector_modified` as `_timestamp_digits`.
+    """
+    sector_row = conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL"
+    ).fetchone()
+    maxima = conn.execute(
+        "SELECT (SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
+        "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
+        "(SELECT COALESCE(MAX(id), 0) FROM star_systems) AS system_max_id"
+    ).fetchone()
+    base = hashlib.sha256(json.dumps(
+        {"shape": galaxy_density_shape(conn), "version": __version__}, sort_keys=True, default=str,
+    ).encode("utf-8")).hexdigest()[:16]
+    return {
+        "base": base,
+        "sectors": int(sector_row["n"]),
+        "sector_max_id": int(maxima["sector_max_id"]),
+        "sector_modified": _timestamp_digits(maxima["sector_modified"]),
+        "system_max_id": int(maxima["system_max_id"]),
+    }
+
+
+def galaxy_content_stamp(conn, state=None):
     """
     A short token that changes whenever anything `galaxy_tiles` returns
-    could change: the placed-sector set (count and highest id), the
-    highest star-system id (new systems change a sector's system count),
-    the stored galaxy shape, and this code's own version (so a release
-    that changes the tile format never reuses old cached tiles). The web
-    layer and the browser key their tile caches by it, so a stale tile is
-    never served after new sectors are generated.
+    could change -- a hash of `galaxy_content_state`. The web layer and
+    the browser key their tile caches by it, so a stale tile is never
+    served after sectors are generated, renamed or deleted.
 
-    Cheap by design -- one indexed aggregate and two primary-key maxima --
-    since it runs once per Galaxy Map page load.
+    Args:
+        state (dict, optional): An already-read `galaxy_content_state`.
 
     Returns:
         str: 16 hex characters.
     """
-    sector_row = conn.execute(
-        "SELECT COUNT(*) AS n, COALESCE(MAX(id), 0) AS max_id FROM sectors WHERE center_x_pc IS NOT NULL"
-    ).fetchone()
-    system_row = conn.execute("SELECT COALESCE(MAX(id), 0) AS max_id FROM star_systems").fetchone()
-    parts = {
-        "sectors": [int(sector_row["n"]), int(sector_row["max_id"])],
-        "systems": int(system_row["max_id"]),
-        "shape": galaxy_density_shape(conn),
-        "version": __version__,
-    }
-    digest = hashlib.sha256(json.dumps(parts, sort_keys=True, default=str).encode("utf-8"))
-    return digest.hexdigest()[:16]
+    if state is None:
+        state = galaxy_content_state(conn)
+    return hashlib.sha256(_state_token(state).encode("utf-8")).hexdigest()[:16]
+
+
+def galaxy_changes(conn, since=None):
+    """
+    What changed in the galaxy's tiles since an earlier state -- how the
+    web layer's tile cache refreshes only the cubes an edit touched
+    instead of throwing every cached tile away.
+
+    Uses v27's `sectors.modified_at` (see `galaxy_content_state`): each
+    sector edited since `since`, each new sector, and each sector that
+    gained a system is "changed", and so is the one tile per level that
+    holds its center (`galaxyViewport.tile_keys_containing`). A sector
+    never moves once placed, so its center is where it was before too.
+
+    Deletions leave no row behind, so a deleted sector can't be located;
+    the placed count drops, and the answer is `full` instead. So is a new
+    shape or release (`base`), an unreadable `since`, or more than
+    `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        since (str or None): A `state` from an earlier call (or
+            `GET /api/galaxy/stamp`), or `None`.
+
+    Returns:
+        dict: `stamp` (`galaxy_content_stamp` now), `state` (the token to
+            pass as `since` next time), `full` (every tile may have
+            changed), and `tiles` (sorted keys of the changed tiles; empty
+            when `full`).
+    """
+    state = galaxy_content_state(conn)
+    result = {"stamp": galaxy_content_stamp(conn, state), "state": _state_token(state), "full": False, "tiles": []}
+    previous = _parse_state_token(since)
+    if previous is None or previous["base"] != state["base"]:
+        result["full"] = True
+        return result
+    if previous == state:
+        return result
+
+    new_placed = conn.execute(
+        "SELECT COUNT(*) AS n FROM sectors WHERE id > ? AND center_x_pc IS NOT NULL",
+        (previous["sector_max_id"],),
+    ).fetchone()["n"]
+    if previous["sectors"] + int(new_placed) != state["sectors"]:
+        result["full"] = True
+        return result
+
+    rows = conn.execute(
+        """
+        SELECT center_x_pc, center_y_pc, center_z_pc
+        FROM sectors
+        WHERE center_x_pc IS NOT NULL
+          AND (id > ? OR modified_at > ?
+               OR id IN (SELECT sector_id FROM star_systems WHERE id > ?))
+        LIMIT ?
+        """,
+        (
+            previous["sector_max_id"], _timestamp_literal(previous["sector_modified"]),
+            previous["system_max_id"], GALAXY_CHANGES_MAX_SECTORS + 1,
+        ),
+    ).fetchall()
+    if len(rows) > GALAXY_CHANGES_MAX_SECTORS:
+        result["full"] = True
+        return result
+
+    keys = set()
+    for r in rows:
+        keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
+    result["tiles"] = sorted(keys)
+    return result
 
 # ---------------------------------------------------------------------
 # Faceted search -- backs GET /api/search and html/search.py. Ported
@@ -2176,17 +2328,42 @@ def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
 
 # --- Result panels ---
 
-def _search_result_sectors(conn, term):
+SEARCH_RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
+
+
+def _search_page(conn, select_sql, from_sql, order_sql, params, limit, offset):
+    """
+    Runs one result panel's query a page at a time: a `COUNT(*)` over
+    `from_sql` (its FROM/JOIN/WHERE, sharing `params`) for the panel's
+    total, then `limit` rows from `offset` in `order_sql` order. An
+    `offset` past the last match (a stale page link) is pulled back to
+    the last page's first row.
+
+    Returns:
+        tuple[list, dict]: `(rows, page)` -- `page` is the panel's
+            `{"total", "limit", "offset", "truncated"}` (`truncated`:
+            `rows` holds fewer than `total`, i.e. there are more pages).
+    """
+    total = conn.execute(f"SELECT COUNT(*) AS n {from_sql}", list(params)).fetchone()["n"]
+    if total and offset >= total:
+        offset = ((total - 1) // limit) * limit
     rows = conn.execute(
-        "SELECT id, name, edge_mpc FROM sectors WHERE name LIKE ? ESCAPE '\\\\' ORDER BY name LIMIT ?",
-        (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
+        f"{select_sql} {from_sql} ORDER BY {order_sql} LIMIT ? OFFSET ?", list(params) + [limit, offset]
     ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    return rows, {"total": total, "limit": limit, "offset": offset, "truncated": len(rows) < total}
 
 
-def _search_result_systems(conn, term):
-    rows = conn.execute(
+def _search_result_sectors(conn, term, limit, offset):
+    rows, page = _search_page(
+        conn, "SELECT id, name, edge_mpc", "FROM sectors WHERE name LIKE ? ESCAPE '\\\\'", "name, id",
+        [_search_like_pattern(term)], limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
+
+
+def _search_result_systems(conn, term, limit, offset):
+    rows, page = _search_page(
+        conn,
         """
         SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
@@ -2195,15 +2372,11 @@ def _search_result_systems(conn, term):
                    AS primary_star_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
                    AS secondary_star_type
-        FROM star_systems ss
-        WHERE ss.name LIKE ? ESCAPE '\\\\'
-        ORDER BY ss.name
-        LIMIT ?
         """,
-        (_search_like_pattern(term), SEARCH_RESULT_LIMIT + 1),
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    rows = rows[:SEARCH_RESULT_LIMIT]
+        "FROM star_systems ss WHERE ss.name LIKE ? ESCAPE '\\\\'",
+        "ss.name, ss.id",
+        [_search_like_pattern(term)], limit, offset,
+    )
     return {
         "rows": [
             {
@@ -2212,11 +2385,11 @@ def _search_result_systems(conn, term):
             }
             for r in rows
         ],
-        "truncated": truncated,
+        **page,
     }
 
 
-def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=None):
+def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if spectral_tags:
         clauses.append(f"SUBSTR(s.star_type, 1, 1) IN ({','.join('?' * len(spectral_tags))})")
@@ -2229,23 +2402,17 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, size_range=
         clauses.append("s.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
-        SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM stars s
-        JOIN star_systems ss ON ss.id = s.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, s.name
-        LIMIT ?
-        """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    rows, page = _search_page(
+        conn,
+        "SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
+        f"FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE 1=1{where}",
+        "ss.name, s.name, s.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_range=None):
+def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -2261,24 +2428,20 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, size_ra
         clauses.append("p.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
+    rows, page = _search_page(
+        conn,
+        """
         SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM planets p
-        JOIN star_systems ss ON ss.id = p.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index
-        LIMIT ?
         """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+        f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
+        "ss.name, ss.id, p.orbital_index, p.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_range=None):
+def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
     clauses, params = [], []
     if class_tags:
         clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
@@ -2294,47 +2457,41 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, size_rang
         clauses.append("m.name LIKE ? ESCAPE '\\\\'")
         params.append(_search_like_pattern(term))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
+    rows, page = _search_page(
+        conn,
+        """
         SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
+        """,
+        f"""
         FROM moons m
         JOIN planets p ON p.id = m.planet_id
         JOIN star_systems ss ON ss.id = m.star_system_id
         WHERE 1=1{where}
-        ORDER BY ss.name, p.orbital_index, m.orbital_index
-        LIMIT ?
         """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+        "ss.name, ss.id, p.orbital_index, m.orbital_index, m.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_belts(conn, density_tags):
+def _search_result_belts(conn, density_tags, limit, offset):
     clauses, params = [], []
     if density_tags:
         clauses.append(f"ab.density IN ({','.join('?' * len(density_tags))})")
         params.extend(sorted(density_tags))
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
-    params.append(SEARCH_RESULT_LIMIT + 1)
-    rows = conn.execute(
-        f"""
-        SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id
-        FROM asteroid_belts ab
-        JOIN star_systems ss ON ss.id = ab.star_system_id
-        WHERE 1=1{where}
-        ORDER BY ss.name, ab.orbital_index
-        LIMIT ?
-        """,
-        params,
-    ).fetchall()
-    truncated = len(rows) > SEARCH_RESULT_LIMIT
-    return {"rows": [dict(r) for r in rows[:SEARCH_RESULT_LIMIT]], "truncated": truncated}
+    rows, page = _search_page(
+        conn,
+        "SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
+        f"FROM asteroid_belts ab JOIN star_systems ss ON ss.id = ab.star_system_id WHERE 1=1{where}",
+        "ss.name, ss.id, ab.orbital_index, ab.id",
+        params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
 
 
-def search(conn, texts, tags, sizes=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -2359,6 +2516,10 @@ def search(conn, texts, tags, sizes=None):
         sizes (dict, optional): `{"star", "planet", "moon"} -> (min_km,
             max_km)`, each bound `None` for "unbounded" -- an absent key
             (or `None` altogether) means no size filter for that entity.
+        limit (int): Rows per result panel page.
+        offsets (dict, optional): `{panel: offset}` for any of
+            `SEARCH_RESULT_PANELS` -- each panel pages independently; an
+            absent panel starts at 0.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -2367,8 +2528,10 @@ def search(conn, texts, tags, sizes=None):
             distinct names), `facet_labels` (`{"facet:value": label}`,
             for rendering an active-filter chip without a second lookup),
             and `results` (`sectors`/`systems`/`stars`/`planets`/`moons`/
-            `belts` -> `{"rows": [...], "truncated": bool}`, or `None`
-            for a panel with no reason to run).
+            `belts` -> `{"rows": [...], "total", "limit", "offset",
+            "truncated"}`, one page of that panel's matches -- `truncated`
+            meaning `rows` isn't every match -- or `None` for a panel
+            with no reason to run).
     """
     sizes = sizes or {}
     star_size, planet_size, moon_size = sizes.get("star"), sizes.get("planet"), sizes.get("moon")
@@ -2422,25 +2585,32 @@ def search(conn, texts, tags, sizes=None):
         moons_included = moon_has_reason
         belts_included = belt_has_reason
 
-    results = {"sectors": None, "systems": None, "stars": None, "planets": None, "moons": None, "belts": None}
+    offsets = offsets or {}
+
+    def _page(panel):
+        return limit, offsets.get(panel, 0)
+
+    results = {panel: None for panel in SEARCH_RESULT_PANELS}
     if texts.get("sector_q"):
-        results["sectors"] = _search_result_sectors(conn, texts["sector_q"])
+        results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
     if texts.get("system_q"):
-        results["systems"] = _search_result_systems(conn, texts["system_q"])
+        results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
     if stars_included:
         results["stars"] = _search_result_stars(
-            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), size_range=star_size
+            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size
         )
     if planets_included:
         results["planets"] = _search_result_planets(
-            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), size_range=planet_size
+            conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
+            size_range=planet_size,
         )
     if moons_included:
         results["moons"] = _search_result_moons(
-            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), size_range=moon_size
+            conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
+            size_range=moon_size,
         )
     if belts_included:
-        results["belts"] = _search_result_belts(conn, density_tags)
+        results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
 
     return {"facets": facets, "autocomplete": autocomplete, "facet_labels": facet_labels, "results": results}
 

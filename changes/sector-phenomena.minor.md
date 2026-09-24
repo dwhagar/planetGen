@@ -12,5 +12,5 @@
 - **The sector page lists its phenomena alongside its systems.** One
   "Contents" table replaces the separate Systems and Nearby Exotic
   Phenomena tables, nearest the sector's center first, with a distance
-  column. A phenomenon generated as part of a sector is always listed
+  column, 50 rows a page. A phenomenon generated as part of a sector is always listed
   there, even if an older placement put it outside the cube.
