@@ -48,13 +48,15 @@ connection per call, per TODO.md's "add real connection pooling" note.
 import math
 import os
 import random
+import re
+import time
 from collections import namedtuple
 
 import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import keplerMotion, physical_constants
+from . import keplerMotion, log, physical_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField
@@ -286,6 +288,19 @@ class _Cursor:
         return getattr(self._cursor, name)
 
 
+_SECRET_SQL = re.compile(r"password|token|key_hash|secret", re.IGNORECASE)
+_SQL_LOG_LIMIT = 1000
+
+
+def _sql_for_log(sql, params):
+    """One-line SQL plus its parameters for the debug log, with the
+    parameters withheld on statements touching credentials."""
+    text = " ".join(sql.split())
+    shown = "<withheld: credentials>" if _SECRET_SQL.search(text) else repr(params)
+    line = f"{text} | params={shown}"
+    return line if len(line) <= _SQL_LOG_LIMIT else line[:_SQL_LOG_LIMIT] + f"... ({len(line)} chars)"
+
+
 class Connection:
     """
     Thin wrapper around a pooled `pymysql` connection that keeps this
@@ -316,7 +331,18 @@ class Connection:
 
     def execute(self, sql, params=()):
         cur = self._conn.cursor()
-        cur.execute(sql.replace("?", "%s"), params)
+        if not log.debug_log_active():
+            cur.execute(sql.replace("?", "%s"), params)
+            return _Cursor(cur)
+        start = time.perf_counter()
+        try:
+            cur.execute(sql.replace("?", "%s"), params)
+        except Exception as exc:
+            log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: {_sql_for_log(sql, params)} "
+                      f"-> {type(exc).__name__}: {exc}", stacklevel=3)
+            raise
+        log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
+                  f"{_sql_for_log(sql, params)}", stacklevel=3)
         return _Cursor(cur)
 
     def executemany(self, sql, seq_of_params):
@@ -330,7 +356,12 @@ class Connection:
         same as `sqlite3.Connection.executemany`.
         """
         cur = self._conn.cursor()
-        cur.executemany(sql.replace("?", "%s"), list(seq_of_params))
+        rows = list(seq_of_params)
+        start = time.perf_counter()
+        cur.executemany(sql.replace("?", "%s"), rows)
+        if log.debug_log_active():
+            log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
+                      f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", stacklevel=3)
         return _Cursor(cur)
 
     def executescript(self, script):

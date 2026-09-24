@@ -13,7 +13,7 @@ from functools import wraps
 
 from flask import g, request
 
-from stellarObjects import adminAuth
+from stellarObjects import adminAuth, log
 
 from .common import ApiError, get_control_db
 
@@ -66,15 +66,20 @@ def require_admin(fresh=False):
         @wraps(view)
         def wrapped(*args, **kwargs):
             admin = _current_admin()
+            via = "API key" if request.headers.get("Authorization", "").startswith(_BEARER_PREFIX) else "session cookie"
             if admin is None:
+                log.debug(f"Access to {request.path} denied: no valid {via} (401)")
                 raise ApiError("authentication required", status_code=401)
             if fresh and admin["must_change_credentials"]:
+                log.debug(f"Access to {request.path} denied for {admin['username']!r}: default credentials "
+                          f"not changed yet (403)")
                 raise ApiError(
                     "default credentials must be changed (POST /api/auth/change-credentials) "
                     "before this action is allowed",
                     status_code=403,
                 )
             g.admin_user = admin
+            log.debug(f"Access to {request.path} granted to admin {admin['username']!r} via {via}")
             return view(*args, **kwargs)
         return wrapped
     return decorator
