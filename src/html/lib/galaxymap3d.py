@@ -148,7 +148,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     `(min_view_radius_pc, max_view_radius_pc)` -- see the module
     docstring's own explanation of what these bound. A pure function of
     already-fetched data (no I/O), so `galaxy.py` (the page) can call it
-    directly to pick the radius its own first `get_galaxy_view` call uses,
+    directly to pick the radius its own first tile request uses,
     before this module's own panel-rendering function ever runs.
 
     Args:
@@ -312,7 +312,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
             return shape, or `None` if `generate.py plan` has never been
             run -- when `None`, the panel shows a hint that planned-sector
             qualification/density shading isn't real yet (see
-            `queryDb.galaxy_view`'s own `has_shape` field, which
+            `queryDb.galaxy_tiles`'s own `has_shape` field, which
             `initial_view` already carries through).
         edge_pc (float): The sector edge length, parsecs
                          (`initial_view["edge_pc"]`, passed separately

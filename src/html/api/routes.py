@@ -54,7 +54,6 @@ from queryDb import (
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
     galaxy_tiles,
-    galaxy_view,
     list_phenomena,
     list_sectors,
     list_systems,
@@ -627,47 +626,6 @@ def galaxy_shape():
     return jsonify({"shape": galaxy_density_shape(get_db())})
 
 
-MAX_GALAXY_VIEW_RADIUS_PC = 20000.0
-"""float: Silently clamps an oversized `radius_pc` on `/galaxy/view` --
-covers this project's own default Milky-Way-scale galaxy radius
-(`program_constants.GALAXY_RADIUS_PC`, 15,000 pc) with headroom, while
-still bounding how large a bounding-box scan `queryDb.
-galaxy_sectors_in_view` ever has to run for one request. `planned`/
-`density` are separately capped inside `queryDb.galaxy_view` itself
-(`galaxyViewport.PLANNED_RADIUS_CAP_PC`/`DENSITY_SAMPLE_COUNT`) regardless
-of this clamp."""
-
-
-@bp.route("/galaxy/view")
-def galaxy_view_route():
-    """
-    The interactive 3D Galaxy Map's live viewport query -- everywhere the
-    flat overview map's `/galaxy/sectors` returns the whole galaxy's own
-    placed sectors in one shot, this instead returns just what's near
-    `cx`/`cy`/`cz` (galaxy-frame parsecs) within `radius_pc`, across all
-    three content tiers `queryDb.galaxy_view` combines (placed/planned/
-    density -- see that function's own docstring). Called repeatedly
-    (debounced) as the 3D map's camera moves, via `html/galaxy_view.py`
-    (the browser-facing CGI proxy for this route -- the browser itself
-    never calls this API directly, same as every other page in `html/`).
-    """
-    try:
-        cx = float(request.args["cx"])
-        cy = float(request.args["cy"])
-        cz = float(request.args["cz"])
-        radius_pc = float(request.args["radius_pc"])
-    except KeyError as exc:
-        raise ApiError(f"{exc.args[0]} query parameter is required")
-    except ValueError:
-        raise ApiError("cx/cy/cz/radius_pc must all be numbers")
-    if radius_pc <= 0:
-        raise ApiError("radius_pc must be greater than 0")
-    radius_pc = min(radius_pc, MAX_GALAXY_VIEW_RADIUS_PC)
-
-    return jsonify(galaxy_view(get_db(), cx, cy, cz, radius_pc))
-
-
-
 @bp.route("/galaxy/tiles")
 def galaxy_tiles_route():
     """
@@ -675,9 +633,9 @@ def galaxy_tiles_route():
     `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`), `density` an
     optional single key to anchor a density cloud on. See
     `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
-    tiles" section. Each tile's work is bounded, so unlike `/galaxy/view`
-    no request can scan an unbounded region. Called by `html/
-    galaxy_tiles.py`, which caches every tile on disk and only forwards
+    tiles" section. Each tile's work is bounded, so no request can scan an
+    unbounded region (the removed `/galaxy/view` route could). Called by
+    `html/galaxy_tiles.py`, which caches every tile on disk and only forwards
     the ones it doesn't already have.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]

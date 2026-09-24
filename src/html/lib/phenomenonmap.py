@@ -30,7 +30,7 @@ A supernova remnant has its own real `radius_ly`, which is all this
 diagram needs, so it renders here exactly like a nebula/asteroid field.
 """
 
-from fmt import esc
+from fmt import esc, static_url
 
 try:
     from stellarObjects.utils import ly_to_au
@@ -164,6 +164,6 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
 </div>
 </div>
 </section>
-<script src="static/mapzoom.js"></script>
-<script src="static/phenomenonmap.js"></script>
+<script src="{static_url("mapzoom.js")}"></script>
+<script src="{static_url("phenomenonmap.js")}"></script>
 """
