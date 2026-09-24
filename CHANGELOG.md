@@ -1,5 +1,32 @@
 # Changelog
 
+## [5.46.26] - 2026-09-24
+
+### Fixed
+- **Rogue planets and interstellar comets were completely invisible
+  everywhere** -- generated at a non-trivial rate
+  (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`'s own
+  `"rogue-planet": 0.1` and `"comet": 0.05`, roughly one rogue planet per
+  ten star systems, far more common than a nebula) and saved to the
+  `rogue_planets`/`interstellar_comets` tables the whole time, but no
+  query function anywhere (`list_phenomena`, `count_phenomena`,
+  `phenomenon_detail`) ever read either table, so they never appeared in
+  the Phenomena listing or had a detail page of their own, despite
+  existing in the database. Both are now wired up the same way
+  `supernova_remnant` already was (no galaxy-frame placement columns of
+  their own, so still absent from the Galaxy Map / Sector Map / NAV --
+  only the flat listing and detail page gain them). `html/phenomenon.py`
+  gained field specs for each type's own real columns (a rogue planet's
+  `planet_type`/`mass_kg`/`composition`/etc., a comet's
+  `nucleus_diameter_km`/`velocity_kms`/`is_active`/etc.).
+
+  Nebulae, by contrast, were already fully wired up -- their apparent
+  rarity is real, deliberately-researched astronomical calibration
+  (`"nebula"` rate is a cited-literature `5e4 / 2e11` per star system,
+  several orders of magnitude below a rogue planet's own rate), not a
+  bug; expect one to actually appear only in a very large generated
+  galaxy.
+
 ## [5.46.25] - 2026-09-24
 
 ### Fixed
