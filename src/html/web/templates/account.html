@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Username and password</h2>
+  <p>Signed in as <strong>{{ admin.username }}</strong>.</p>
+  {%- if forced %}
+  <p class="hint">This account still uses the default username and password. Choose new ones before using the admin pages.</p>
+  {%- endif %}
+  {%- if error %}
+  <p class="error" role="alert">{{ error }}</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.account') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="search-fields">
+      <label class="search-field">Current password
+        <input type="password" name="current_password" autocomplete="current-password" required autofocus>
+      </label>
+      <label class="search-field">New username
+        <input type="text" name="new_username" value="{{ new_username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </label>
+      <label class="search-field">New password
+        <input type="password" name="new_password" autocomplete="new-password" required minlength="12" aria-describedby="new-password-hint">
+      </label>
+    </div>
+    <p class="hint" id="new-password-hint">At least 12 characters.</p>
+    <div class="search-actions">
+      <button type="submit" class="btn">Change credentials</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

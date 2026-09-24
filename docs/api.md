@@ -279,7 +279,7 @@ connectivity to that specific schema rather than the default one.
 
 Both take `?db=` like the read endpoints, and need an admin past the
 forced credential change. They back the admin stats page
-(`../src/html/adminstats.py`).
+(`/admin/stats`, `../src/html/web/admin_pages.py`).
 
 - `GET /api/admin/stats` — health and statistics for one database:
   `api` (version, Python version, process uptime, load average, memory),
@@ -497,7 +497,7 @@ when) after the write actually succeeds.
   `database-schema.md`).
 - `wiki_url` (`PATCH` only): non-empty string, or `null` to clear it back
   to "no page yet" — the manual "set the wiki link directly" admin
-  affordance (`../src/html/admin.py`); the same column `POST
+  affordance (the `/admin` page); the same column `POST
   /api/sectors/<id>/wiki` (below) writes automatically on a successful
   upload. Rejected as an unrecognized field on `POST` — a brand-new
   sector has never been uploaded anywhere.
@@ -703,7 +703,7 @@ limiting").
 
 **The admin session cookie requires HTTPS.** It's set `Secure` by default
 (`config.SESSION_COOKIE_SECURE`) -- the browser never sends it over plain
-HTTP, so `login.py`/`admin.py` won't work behind a vhost that's HTTP-only.
+HTTP, so `/login` and `/admin` won't work behind a vhost that's HTTP-only.
 Terminate TLS in front of this vhost (e.g. `certbot --apache`) before
 using the admin pages; only set `PLANETGEN_ADMIN_COOKIE_INSECURE=1` for
 local development without TLS in front, never in production.

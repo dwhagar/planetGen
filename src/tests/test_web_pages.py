@@ -229,7 +229,7 @@ def test_search_box_forwards_to_cgi_search(client, fake):
 
 def test_login_link_and_no_auth_lookup_without_cookie(client, fake):
     html = client.get("/").get_data(as_text=True)
-    assert f'<a href="/login.py?db={DB}"' in html
+    assert '<a href="/login"' in html
     assert ">Admin</a>" not in html
     assert not [call for call in fake.calls if call[0] == "auth_me"]
 

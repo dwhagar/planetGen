@@ -131,7 +131,7 @@ That same account also needs to create and seed the **control schema**
 content-schema migration, every time it's run (i.e. every
 `install.sh`/`update.sh`).
 
-**The admin web UI (`login.py`/`admin.py`/`adminstats.py`/`changecreds.py`) requires
+**The admin web UI (`/login`, `/admin`, `/admin/stats`, `/account`) requires
 HTTPS** — its session cookie is `Secure` by default and simply won't be
 sent by the browser over plain HTTP. Terminate TLS in front of this vhost
 (e.g. `certbot --apache`) before relying on it; see
