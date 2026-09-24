@@ -26,26 +26,7 @@ admin auth and wiki publishing.
 
 ## Open items
 
-### Production stability
-
-- [ ] **Apache was OOM-killed on the production server (2026-09-24
-  01:13 UTC).** `systemctl status apache2` showed `Result: oom-kill`
-  after ~56 CPU-minutes. Just before it, `planetgen.error.log` shows
-  `/galaxy_view.py` CGI requests timing out on their call to
-  `/api/galaxy/view` (`apiclient._request`, 30 s `_TIMEOUT_SECONDS`) and
-  then `Truncated or oversized response headers received from daemon
-  process 'planetgen-api'` for every in-flight request, i.e. the WSGI
-  daemon died. The access log shows the Galaxy Map's opening view asking
-  for `/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=15082.8` (a 1.7 MB
-  response) and `/api/galaxy/sectors` (508 KB) on each page load, and
-  bursts of large-radius `/api/galaxy/view` calls returning 500/504.
-  Suspect the Galaxy Map's view queries (`queryDb.galaxy_view`,
-  `stellarObjects/galaxyViewport.py`) holding large result sets per
-  request across several daemon threads. Being investigated in its own
-  project thread; done means the cause is known and the map can't take
-  the server down.
-
-### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_view`)
+### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
 
 - [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
   Investigate a representation driven by the real galaxy/sector geometry
@@ -65,12 +46,15 @@ admin auth and wiki publishing.
   (`density_sample_points`) does look like a spiral. Verify that the
   centers of the qualifying unfilled sectors trace the disk/arms/bulge
   the density skeleton (`galaxy_shape`, `galaxyDensity.predicted_star_count`)
-  describes. Things to check: whether qualification against the shape is
-  applied, whether `PLANNED_RADIUS_CAP_PC` (200 pc around the view
-  center) is what's producing the ball, and whether the slot centers
-  from `enumerate_sectors_within_radius` are in galaxy-frame parsecs like
-  everything else. Done means a test that samples slot centers and
-  asserts they follow the disk, plus the fix.
+  describes. Likely cause: the old view query listed the 4,000 slots
+  nearest the view center, which at the full-galaxy starting view is a
+  ball around the core. Since the map moved to cube tiles, planned slots
+  are only fetched within 20 pc of the camera target once zoomed in
+  (`lib/galaxymap3d.py`'s `PLANNED_*` settings), and the ball no longer
+  shows at full-galaxy zoom. Still to do: confirm with real data that
+  qualification against the shape is applied and the slot centers are
+  galaxy-frame parsecs. Done means a test that samples slot centers and
+  asserts they follow the disk, plus any fix.
 - [ ] **Remove the large sphere marker drawn for a star in a sector.**
   The Galaxy Map still shows a large sphere for a star inside a placed
   sector, left over from the idea of showing the brightest stars at
@@ -79,15 +63,15 @@ admin auth and wiki publishing.
 
 ### Performance
 
-- [ ] **Add a cache so pages don't hit the database on every request.**
-  Every CGI page calls the Flask API through `html/lib/apiclient.py`,
-  and every API route queries MySQL fresh, including results that rarely
-  change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
-  detail, the Galaxy Map's view payloads). Design a cache layer (where it
-  lives: API process memory, a shared store, or HTTP caching headers;
-  what the keys are; and how writes, generation and the orbit updater
-  invalidate it). Related to the OOM item above, since repeated large
-  galaxy queries are part of that picture.
+- [ ] **Extend caching beyond the Galaxy Map's tiles.** The 3D map's
+  cube tiles are now cached on disk by the web layer
+  (`html/lib/tilecache.py`, keyed by `GET /api/galaxy/stamp`) and in the
+  browser. Every other CGI page still calls the API fresh, including
+  results that rarely change (`/api/galaxy/sectors`, which the Galaxy
+  Map page loads in full for its tables on every visit, `/api/galaxy/shape`,
+  sector and system detail). Extend the same pattern (a disk cache in
+  the web layer keyed by a cheap content stamp) where it pays off, and
+  decide how the orbit updater's writes invalidate system detail.
 
 ### Sector Map (`src/html/sector.py`, `lib/starmap.py`, `static/sectormap.js`)
 

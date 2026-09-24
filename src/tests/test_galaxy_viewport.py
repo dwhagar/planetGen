@@ -18,7 +18,19 @@ from stellarObjects.galaxyGeometry import enumerate_sectors_within_radius
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
 from stellarObjects.galaxyViewport import (
     DENSITY_SAMPLE_COUNT,
+    DENSITY_TILE_SAMPLE_COUNT,
     PLANNED_RADIUS_CAP_PC,
+    PLANNED_TILE_MAX_EDGE_PC,
+    TILE_MAX_LEVEL,
+    TILE_ROOT_EDGE_PC,
+    density_points_for_tile,
+    parse_tile_key,
+    planned_slots_in_tile,
+    tile_bounds_pc,
+    tile_edge_pc,
+    tile_key,
+    tile_level_for_view_radius,
+    tiles_intersecting_sphere,
     _sample_bulge_point_pc,
     _sample_disk_point_pc,
     density_sample_points,
@@ -238,3 +250,107 @@ def test_sample_bulge_point_pc_matches_the_bulge_envelope_scale():
     points = [_sample_bulge_point_pc(rng, SHAPE) for _ in range(n)]
     mean_r = sum(math.sqrt(x * x + y * y + z * z) for x, y, z in points) / n
     assert mean_r == pytest.approx(SHAPE.bulge_scale_radius_pc, rel=0.15)
+
+
+
+# --- Bounded planned search --------------------------------------------------
+
+def test_planned_radius_cap_bounds_the_work_far_from_the_core():
+    # A huge requested radius 8 kpc out -- the view that used to take
+    # ~140 s and ~400 MB -- is clamped and returns promptly, capped.
+    import time
+    started = time.monotonic()
+    result = planned_slots_in_view(
+        (8000.0, 0.0, 0.0), 15000.0, EDGE_PC, EDGE_LY, shape=None,
+        expected_system_count_at_density_1=None, exclude_addresses=set(),
+    )
+    assert len(result) == 4000
+    assert max(entry["distance_pc"] for entry in result) <= PLANNED_RADIUS_CAP_PC
+    assert time.monotonic() - started < 10
+
+
+# --- Cube tiles --------------------------------------------------------------
+
+def test_tile_key_round_trips_and_validates():
+    assert parse_tile_key(tile_key(3, 1, 2, 7)) == (3, 1, 2, 7)
+    for bad in ("", "1/2/3", "a/0/0/0", "-1/0/0/0", f"{TILE_MAX_LEVEL + 1}/0/0/0", "2/4/0/0", "2/0/-1/0"):
+        with pytest.raises(ValueError):
+            parse_tile_key(bad)
+
+
+def test_tile_levels_halve_the_edge_and_tile_the_root_cube():
+    assert tile_edge_pc(0) == TILE_ROOT_EDGE_PC
+    assert tile_edge_pc(TILE_MAX_LEVEL) == PLANNED_TILE_MAX_EDGE_PC
+    lo, hi = tile_bounds_pc(1, 1, 0, 1)
+    assert lo == (0.0, -TILE_ROOT_EDGE_PC / 2, 0.0)
+    assert hi == (TILE_ROOT_EDGE_PC / 2, 0.0, TILE_ROOT_EDGE_PC / 2)
+
+
+@pytest.mark.parametrize("radius", [5.0, 16.0, 100.0, 777.0, 24000.0, 80000.0])
+def test_view_level_tiles_are_at_least_the_view_radius_and_few(radius):
+    level = tile_level_for_view_radius(radius)
+    if level > 0:
+        assert tile_edge_pc(level) >= radius or level == TILE_MAX_LEVEL
+    assert level == TILE_MAX_LEVEL or tile_edge_pc(level + 1) < radius
+    center = (1234.5, -987.6, 12.3)
+    keys = tiles_intersecting_sphere(level, center, radius)
+    assert 1 <= len(keys) <= 27
+
+
+def test_tiles_intersecting_sphere_covers_the_sphere():
+    rng = random.Random(3)
+    center = (-40.0, 25.0, 3.0)
+    radius = 30.0
+    keys = set(tiles_intersecting_sphere(TILE_MAX_LEVEL, center, radius))
+    edge = tile_edge_pc(TILE_MAX_LEVEL)
+    for _ in range(500):
+        point = [center[axis] + rng.uniform(-radius, radius) for axis in range(3)]
+        if math.dist(point, center) > radius:
+            continue
+        index = [math.floor((point[axis] + TILE_ROOT_EDGE_PC / 2) / edge) for axis in range(3)]
+        assert tile_key(TILE_MAX_LEVEL, *index) in keys
+
+
+def test_planned_slots_partition_into_tiles():
+    # Every slot within a region shows up in exactly one small tile.
+    center = (20.0, -10.0, 5.0)
+    radius = 12.0
+    by_tile = []
+    for key in tiles_intersecting_sphere(TILE_MAX_LEVEL, center, radius):
+        level, ix, iy, iz = parse_tile_key(key)
+        by_tile.extend(
+            (entry["shell_index"], entry["shell_slot_index"])
+            for entry in planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, None, None, set())
+        )
+    assert len(by_tile) == len(set(by_tile))
+    expected = {(k, i) for k, i, *_ in enumerate_sectors_within_radius(center, radius, EDGE_PC)}
+    assert expected <= set(by_tile)
+
+
+def test_planned_slots_in_tile_respects_shape_and_exclusions():
+    key = tiles_intersecting_sphere(TILE_MAX_LEVEL, (0.0, 0.0, 0.0), 0.0)[0]
+    level, ix, iy, iz = parse_tile_key(key)
+    unfiltered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, None, None, set())
+    assert unfiltered and all(entry["predicted_star_count"] is None for entry in unfiltered)
+    excluded = {(unfiltered[0]["shell_index"], unfiltered[0]["shell_slot_index"])}
+    remaining = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, None, None, excluded)
+    assert len(remaining) == len(unfiltered) - 1
+    filtered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, SHAPE, E, set())
+    assert all(entry["predicted_star_count"] >= qualifying_threshold_star_count() for entry in filtered)
+
+
+def test_planned_slots_skip_big_tiles_and_tiny_sectors():
+    assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, 2047, 2047, 2047, EDGE_PC, EDGE_LY, None, None, set()) == []
+    # A 0.5 pc sector edge would put thousands of slots in a 16 pc tile.
+    assert planned_slots_in_tile(TILE_MAX_LEVEL, 2048, 2048, 2048, 0.5, 1.63, None, None, set()) == []
+
+
+def test_density_points_for_tile_is_deterministic_and_sized():
+    first = density_points_for_tile(8, 128, 128, 128, SHAPE)
+    assert len(first) == DENSITY_TILE_SAMPLE_COUNT
+    assert first == density_points_for_tile(8, 128, 128, 128, SHAPE)
+    lo, hi = tile_bounds_pc(8, 128, 128, 128)
+    center = tuple((lo[axis] + hi[axis]) / 2 for axis in range(3))
+    reach = 2 * tile_edge_pc(8)
+    assert all(math.dist((p["x"], p["y"], p["z"]), center) <= reach + 1e-6 for p in first)
+    assert density_points_for_tile(8, 128, 128, 128, None) == []

@@ -8,20 +8,23 @@ whose whole-galaxy dataset was baked into one page load, and whose
 fixed-radius markers grew relative to the view as you zoomed in with no
 camera to shrink them the opposite way). This map's camera can travel
 anywhere in the galaxy instead, so most of what it draws is fetched live
-as the camera moves (`html/galaxy_view.py`, this page's own client-side
-JS `fetch()` target -- see that script's own docstring) rather than
-server-rendered once.
+as the camera moves, one fixed cube of space ("tile") at a time
+(`html/galaxy_tiles.py`, this page's own client-side JS `fetch()` target
+-- see that script's own docstring, and `stellarObjects.galaxyViewport`'s
+"Cube tiles" section) rather than server-rendered once. Tiles are cached
+on the server's disk (`lib/tilecache.py`) and in the visitor's browser.
 
 This module's job mirrors `lib/starmap.py`'s division of labor:
-`galaxy.py` (the page) makes every `apiclient` call (`get_galaxy_shape`/
-`get_galaxy_view`); this module only ever turns already-fetched plain
-data into the panel's HTML and its one starting JSON payload -- every
-*later* payload (`static/galaxymap3d.js`'s own live re-fetches as the
-camera moves) never passes through this module at all.
+`galaxy.py` (the page) fetches the first frame's tiles
+(`initial_tile_request` says which); this module only ever turns
+already-fetched plain data into the panel's HTML and its one starting
+JSON payload -- every *later* payload (`static/galaxymap3d.js`'s own live
+tile fetches as the camera moves) never passes through this module at
+all.
 
-Three content tiers, matching `queryDb.galaxy_view`'s own three lists
-(`placed`/`planned`/`density` -- see `stellarObjects.galaxyViewport`'s
-module docstring for what each means):
+Three content tiers, matching each tile's `placed`/`planned` lists and
+the separate density cloud (see `stellarObjects.galaxyViewport`'s module
+docstring for what each means):
 
 - **Placed**: real, already-generated sectors -- bright, clickable, sized
   by `system_count`, colored by real stellar density (`system_count /
@@ -79,11 +82,21 @@ out:
 
 import json
 
+import math
+
 try:
+    from stellarObjects.galaxyViewport import (
+        PLANNED_TILE_MAX_EDGE_PC,
+        TILE_MAX_LEVEL,
+        TILE_ROOT_EDGE_PC,
+    )
     from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
     from stellarObjects.program_constants import GALAXY_RADIUS_PC
     from stellarObjects.utils import ly_to_pc, pc_to_ly
 except ImportError:
+    TILE_ROOT_EDGE_PC = 65536.0
+    TILE_MAX_LEVEL = 12
+    PLANNED_TILE_MAX_EDGE_PC = 16.0
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching every other lib/ module's identical
     # pattern (see e.g. galaxymap.py's own top-of-file try/except).
@@ -148,6 +161,98 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     return min_radius, max(max_radius, min_radius * 10)
 
 
+FETCH_RADIUS_FACTOR = 1.6
+"""float: The map fetches content out to this multiple of the camera's
+orbit radius, so what's just off-screen is already there when the camera
+turns."""
+
+PLANNED_VIEW_RADIUS_PC = 20.0
+"""float: Planned (not-yet-generated) slots are shown out to this far from
+the camera target -- a sphere of ~400 slots at the default sector size,
+from up to ~64 of the smallest (`PLANNED_TILE_MAX_EDGE_PC`) tiles."""
+
+PLANNED_MAX_VIEW_RADIUS_PC = 200.0
+"""float: Planned slots are only fetched while the view radius is at most
+this; the density cloud takes over for wider views (the same 200 pc
+switch-over the map has always had)."""
+
+MAX_TILES_PER_REQUEST = 128
+"""int: Mirrors `queryDb.MAX_TILES_PER_REQUEST`."""
+
+
+def _tile_level_for_view_radius(radius_pc):
+    """Same as `galaxyViewport.tile_level_for_view_radius` (duplicated
+    so this module keeps working under its ImportError fallback)."""
+    if radius_pc <= 0:
+        return TILE_MAX_LEVEL
+    return max(0, min(TILE_MAX_LEVEL, math.floor(math.log2(TILE_ROOT_EDGE_PC / radius_pc))))
+
+
+def _tiles_intersecting_sphere(level, center_pc, radius_pc):
+    """Same as `galaxyViewport.tiles_intersecting_sphere`, duplicated for
+    the same reason as `_tile_level_for_view_radius`."""
+    edge = TILE_ROOT_EDGE_PC / (2 ** level)
+    origin = -TILE_ROOT_EDGE_PC / 2.0
+    span = 2 ** level
+    ranges = []
+    for axis in range(3):
+        first = math.floor((center_pc[axis] - radius_pc - origin) / edge)
+        last = math.floor((center_pc[axis] + radius_pc - origin) / edge)
+        ranges.append(range(max(0, first), min(span - 1, last) + 1))
+    found = []
+    for ix in ranges[0]:
+        for iy in ranges[1]:
+            for iz in ranges[2]:
+                index = (ix, iy, iz)
+                distance_sq = 0.0
+                for axis in range(3):
+                    lo = origin + index[axis] * edge
+                    nearest = min(max(center_pc[axis], lo), lo + edge)
+                    distance_sq += (center_pc[axis] - nearest) ** 2
+                if distance_sq <= radius_pc * radius_pc:
+                    found.append((distance_sq, f"{level}/{ix}/{iy}/{iz}"))
+    found.sort()
+    return [key for _distance, key in found]
+
+
+def _tile_containing(level, point_pc):
+    edge = TILE_ROOT_EDGE_PC / (2 ** level)
+    origin = -TILE_ROOT_EDGE_PC / 2.0
+    span = 2 ** level
+    index = [max(0, min(span - 1, math.floor((point_pc[axis] - origin) / edge))) for axis in range(3)]
+    return f"{level}/{index[0]}/{index[1]}/{index[2]}"
+
+
+def initial_tile_request(orbit_radius_pc, has_shape, center_pc=(0.0, 0.0, 0.0)):
+    """
+    The tiles (and density anchor) the map's first frame needs, computed
+    exactly the way `static/galaxymap3d.js`'s own `neededTiles` does for
+    every later camera position, so the browser's first live fetch finds
+    the first frame's tiles already cached.
+
+    Args:
+        orbit_radius_pc (float): The starting camera orbit radius
+            (`view_radius_bounds`' max).
+        has_shape (bool): Whether the galaxy has a density skeleton (no
+            density cloud without one).
+        center_pc (tuple): The starting camera target.
+
+    Returns:
+        tuple: `(tile_keys, density_key)` -- `density_key` is `None` when
+            no density cloud is wanted.
+    """
+    view_radius = orbit_radius_pc * FETCH_RADIUS_FACTOR
+    level = _tile_level_for_view_radius(view_radius)
+    keys = _tiles_intersecting_sphere(level, center_pc, view_radius)
+    if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
+        planned_level = _tile_level_for_view_radius(PLANNED_TILE_MAX_EDGE_PC)
+        planned_radius = min(view_radius, PLANNED_VIEW_RADIUS_PC)
+        keys += [key for key in _tiles_intersecting_sphere(planned_level, center_pc, planned_radius) if key not in keys]
+    density_key = None
+    if has_shape and view_radius > PLANNED_MAX_VIEW_RADIUS_PC:
+        density_key = _tile_containing(level, center_pc)
+    return keys, density_key
+
 def _json_script(data):
     """Same `<script type="application/json">`-safe escaping
     `lib/starmap.py`'s own `_json_script` uses -- see that function's
@@ -167,9 +272,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     rotate, scroll or the zoom buttons to zoom, click to center/select,
     double-click to center/select AND zoom in -- no right-click action),
     plus a `<script type="application/json">` block carrying the
-    zoom-range numbers (`view_radius_bounds`) and `initial_view`'s own
-    payload for the first frame -- everything after that first frame comes
-    from the client's own live `fetch()` calls to `galaxy_view.py`.
+    zoom-range numbers (`view_radius_bounds`), the tile settings the
+    client needs to pick tiles the same way `initial_tile_request` does,
+    and `initial_view`'s own payload for the first frame -- everything
+    after that first frame comes from the client's own live `fetch()`
+    calls to `galaxy_tiles.py`.
 
     Args:
         db_name (str): The current `?db=` value -- carried in the JSON
@@ -187,11 +294,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
                          (`initial_view["edge_pc"]`, passed separately
                          since `view_radius_bounds` needs it before
                          `initial_view` itself is fetched).
-        initial_view (dict): `apiclient.get_galaxy_view`'s own return
-            shape (`placed`/`planned`/`density`/`edge_pc`/`has_shape`),
-            fetched by `galaxy.py` for the galactic origin at
-            `view_radius_bounds`'s own `max_view_radius_pc` -- the
-            zoomed-all-the-way-out starting view.
+        initial_view (dict): `tilecache.fetch_tiles`' own return shape
+            (`stamp`/`tiles`/`density`/`edge_pc`/`has_shape`), fetched by
+            `galaxy.py` for `initial_tile_request`'s tiles -- the
+            zoomed-all-the-way-out starting view. The client seeds its
+            tile cache with it.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -201,7 +308,15 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
 
     scene_data = {
         "db": db_name,
-        "fetchPath": "galaxy_view.py",
+        "fetchPath": "galaxy_tiles.py",
+        "tileRootEdgePc": TILE_ROOT_EDGE_PC,
+        "tileMaxLevel": TILE_MAX_LEVEL,
+        "plannedTileMaxEdgePc": PLANNED_TILE_MAX_EDGE_PC,
+        "plannedViewRadiusPc": PLANNED_VIEW_RADIUS_PC,
+        "plannedMaxViewRadiusPc": PLANNED_MAX_VIEW_RADIUS_PC,
+        "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
+        "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
+        "hasShape": bool(initial_view.get("has_shape")),
         "edgePc": edge_pc,
         "edgeLy": edge_ly,
         "minViewRadiusPc": min_radius,

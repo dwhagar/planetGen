@@ -24,7 +24,10 @@ import pytest
 
 from stellarObjects.galaxyGeometry import (
     GOLDEN_RATIO,
+    _azimuth_half_width,
     _candidate_shell_range,
+    _slot_indices_in_theta_window,
+    _theta_for_index,
     slot_index_bounds_for_phi_range,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
@@ -339,3 +342,101 @@ def test_slot_index_bounds_round_trip_through_phi_for_index():
         phi = math.acos(1 - 2 * (i + 0.5) / n_k)
         i_min, i_max = slot_index_bounds_for_phi_range(phi, phi, n_k)
         assert i_min <= i <= i_max
+
+
+
+# ---------------------------------------------------------------------------
+# Azimuth pruning (`_slot_indices_in_theta_window`) -- far from the core a
+# shell's phi band wraps all the way around the galaxy, and walking all of
+# it is what made a 200 pc view 8 kpc out take ~140 s.
+# ---------------------------------------------------------------------------
+
+def _azimuth_gap(theta, center):
+    return abs((theta - center + math.pi) % (2 * math.pi) - math.pi)
+
+
+@pytest.mark.parametrize("i_min,band,theta_center,half_width", [
+    (0, 5000, 0.3, 0.01),
+    (123_456_789, 80_000, -3.1, 0.002),        # window straddles +/-pi
+    (400_000_000, 50_000, math.pi, 0.0005),    # outer-shell indices, tiny window
+    (10_000, 20_000, 1.0, 0.8),                # wide window
+    (5_000_000, 30_000, -1.7, 0.0),            # zero-width window (margin only)
+])
+def test_theta_window_keeps_every_slot_in_the_window_and_little_else(i_min, band, theta_center, half_width):
+    i_max = i_min + band - 1
+    got = list(_slot_indices_in_theta_window(i_min, i_max, theta_center, half_width))
+    assert len(got) == len(set(got)), "no slot index may be yielded twice"
+    got = set(got)
+    assert all(i_min <= i <= i_max for i in got)
+
+    expected = {
+        i for i in range(i_min, i_max + 1)
+        if _azimuth_gap(_theta_for_index(i), theta_center) <= half_width
+    }
+    assert expected <= got
+    # Nothing far outside the window (the margin is ~6e-6 rad).
+    assert all(_azimuth_gap(_theta_for_index(i), theta_center) <= half_width + 1e-4 for i in got)
+
+
+def test_theta_window_without_pruning_returns_the_whole_band():
+    assert list(_slot_indices_in_theta_window(100, 50_000, 0.0, math.pi)) == list(range(100, 50_001))
+    assert list(_slot_indices_in_theta_window(7, 20, 1.0, 0.001)) == list(range(7, 21))
+
+
+def test_azimuth_half_width_covers_every_direction_in_the_cap():
+    for phi_center, alpha in ((1.2, 0.05), (0.3, 0.1), (2.9, 0.2)):
+        half = _azimuth_half_width(phi_center, alpha)
+        # Points on the cap's edge, all the way round.
+        for step in range(360):
+            bearing = math.radians(step)
+            # Direction at angular distance alpha from (phi_center, 0) along `bearing`.
+            cos_phi = math.cos(phi_center) * math.cos(alpha) + math.sin(phi_center) * math.sin(alpha) * math.cos(bearing)
+            phi = math.acos(max(-1.0, min(1.0, cos_phi)))
+            dtheta = math.atan2(
+                math.sin(bearing) * math.sin(alpha) * math.sin(phi_center),
+                math.cos(alpha) - math.cos(phi_center) * cos_phi,
+            )
+            assert abs(dtheta) <= half + 1e-9
+
+
+def test_azimuth_half_width_is_unpruned_when_the_cap_reaches_a_pole():
+    assert _azimuth_half_width(0.05, 0.1) == math.pi
+    assert _azimuth_half_width(math.pi - 0.05, 0.1) == math.pi
+
+
+def _phi_band_reference(center, radius_pc, edge_pc):
+    """The enumeration before azimuth pruning: every slot in each candidate
+    shell's phi band, filtered by exact distance."""
+    p_norm = galactic_radius_pc(center)
+    phi_center = math.acos(max(-1.0, min(1.0, center[2] / p_norm)))
+    k_min, k_max = _candidate_shell_range(p_norm, radius_pc, edge_pc)
+    found = set()
+    for k in range(k_min, k_max + 1):
+        r_k = shell_radius_pc(k, edge_pc)
+        n_k = shell_sector_count(k)
+        cos_alpha = (p_norm * p_norm + r_k * r_k - radius_pc * radius_pc) / (2 * p_norm * r_k)
+        if cos_alpha <= -1:
+            i_min, i_max = 0, n_k - 1
+        else:
+            alpha = 0.0 if cos_alpha >= 1 else math.acos(cos_alpha)
+            i_min, i_max = slot_index_bounds_for_phi_range(
+                max(0.0, phi_center - alpha), min(math.pi, phi_center + alpha), n_k,
+            )
+        for i in range(i_min, i_max + 1):
+            if math.dist(sector_position_pc(k, i, edge_pc), center) <= radius_pc:
+                found.add((k, i))
+    return found
+
+
+@pytest.mark.parametrize("center,radius_pc", [
+    ((1500.0, 200.0, 10.0), 6.0),
+    ((-2500.0, 1e-3, 0.0), 5.0),      # azimuth window straddles +/-pi
+    ((-2500.0, -1e-3, 0.0), 5.0),
+    ((300.0, -900.0, 1800.0), 8.0),
+    ((0.5, -0.5, 2000.0), 6.0),       # near the pole: no azimuth pruning
+])
+def test_enumerate_far_from_core_matches_phi_band_scan(center, radius_pc):
+    expected = _phi_band_reference(center, radius_pc, EDGE_PC)
+    actual = {(shell, slot) for shell, slot, *_ in enumerate_sectors_within_radius(center, radius_pc, EDGE_PC)}
+    assert actual == expected
+    assert expected

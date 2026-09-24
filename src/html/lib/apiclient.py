@@ -350,6 +350,31 @@ def get_galaxy_view(db, cx, cy, cz, radius_pc):
     return _request("/galaxy/view", {"db": db, "cx": cx, "cy": cy, "cz": cz, "radius_pc": radius_pc})
 
 
+
+def get_galaxy_tiles(db, tile_keys, density_key=None):
+    """
+    Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`density`/
+    `edge_pc`/`has_shape` -- see `queryDb.galaxy_tiles`). Callers go
+    through `lib/tilecache.py`, which only asks for tiles it hasn't
+    already cached on disk.
+
+    Args:
+        db (str): The `?db=` value.
+        tile_keys (list[str]): `level/ix/iy/iz` keys.
+        density_key (str or None): A tile key to anchor a density cloud on.
+    """
+    _require_db(db)
+    return _request("/galaxy/tiles", {
+        "db": db, "tiles": ",".join(tile_keys), "density": density_key,
+    })
+
+
+def get_galaxy_stamp(db):
+    """Returns `GET /api/galaxy/stamp`'s `stamp` -- the token tile caches
+    key on (see `queryDb.galaxy_content_stamp`)."""
+    _require_db(db)
+    return _request("/galaxy/stamp", {"db": db})["stamp"]
+
 def get_phenomena(db, limit=None, offset=None):
     """Returns `GET /api/phenomena`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`) -- see `queryDb.list_phenomena`'s

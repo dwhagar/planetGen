@@ -42,13 +42,14 @@ no database or I/O; `queryDb.py` owns combining this with the database's
 own placed-sector rows.
 """
 
+import heapq
 import math
 import random
 
 from .galaxyDensity import predicted_star_count, relative_density
 from .galaxyGeometry import enumerate_sectors_within_radius, provisional_sector_designation
 
-PLANNED_RADIUS_CAP_PC = 200.0
+PLANNED_RADIUS_CAP_PC = 40.0
 """float: The largest view radius `planned_slots_in_view` will actually
 enumerate individual slot addresses for, however large a `radius_pc` its
 caller asks for. `enumerate_sectors_within_radius` is only cheap for a
@@ -60,7 +61,14 @@ Beyond this radius, callers get `density_sample_points`'s illustrative
 cloud instead -- exact addresses only become worth enumerating once the
 view has actually narrowed down to something close to a "handful to a
 few dozen real sectors" neighborhood, the scale this primitive was always
-designed for (see `galaxyGeometry`'s own module docstring)."""
+designed for (see `galaxyGeometry`'s own module docstring).
+
+Was 200 pc, which with 11.5 ly sectors meant enumerating ~770 thousand
+slots (and, before only the closest `PLANNED_MAX_RESULTS` were kept
+lazily, building a dict for every one of them) just to return the
+closest 4,000 -- ~400 MB and up to 140 s per request, which is what
+OOM-killed Apache when several camera moves' requests overlapped. 40 pc
+holds ~6,000 slots, already more than `PLANNED_MAX_RESULTS`."""
 
 PLANNED_MAX_RESULTS = 4000
 """int: Hard cap on how many planned-slot entries `planned_slots_in_view`
@@ -146,32 +154,253 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, edge_ly, shape,
             `relative_density` (both `None` when `shape` is `None`).
     """
     r = min(radius_pc, PLANNED_RADIUS_CAP_PC)
-    results = []
-    for shell_index, shell_slot_index, x, y, z, distance_pc in enumerate_sectors_within_radius(
-        center_pc, r, edge_pc,
-    ):
+    # heapq.nsmallest over a generator keeps only `cap` candidates alive at
+    # once, and the per-entry dict (with its designation string) is built
+    # only for the ones actually returned.
+    closest = heapq.nsmallest(
+        cap,
+        _qualifying_slots(
+            enumerate_sectors_within_radius(center_pc, r, edge_pc),
+            shape, expected_system_count_at_density_1, exclude_addresses,
+        ),
+        key=lambda slot: (slot[5], slot[0], slot[1]),
+    )
+    return [
+        _planned_entry(slot, edge_pc, edge_ly, distance_pc=slot[5])
+        for slot in closest
+    ]
+
+
+def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_addresses):
+    """Filters `enumerate_sectors_within_radius`-shaped tuples down to the
+    ones worth showing as "planned" (see `planned_slots_in_view`), yielding
+    `(shell_index, shell_slot_index, x, y, z, distance_pc, star_count,
+    density)` -- the last two `None` when `shape` is `None`."""
+    threshold = qualifying_threshold_star_count()
+    for shell_index, shell_slot_index, x, y, z, distance_pc in slots:
         if (shell_index, shell_slot_index) in exclude_addresses:
             continue
-
         if shape is not None:
             star_count = predicted_star_count((x, y, z), shape, expected_system_count_at_density_1)
-            if star_count < qualifying_threshold_star_count():
+            if star_count < threshold:
                 continue
             density = relative_density((x, y, z), shape)
         else:
             star_count = None
             density = None
+        yield (shell_index, shell_slot_index, x, y, z, distance_pc, star_count, density)
 
-        designation = provisional_sector_designation(shell_index, shell_slot_index, edge_pc, edge_ly)
-        results.append({
-            "shell_index": shell_index, "shell_slot_index": shell_slot_index,
-            "x": x, "y": y, "z": z, "distance_pc": distance_pc,
-            "designation": designation,
-            "predicted_star_count": star_count, "relative_density": density,
-        })
 
-    results.sort(key=lambda entry: entry["distance_pc"])
-    return results[:cap]
+def _planned_entry(slot, edge_pc, edge_ly, distance_pc=None):
+    """One planned-tier dict from a `_qualifying_slots` tuple."""
+    shell_index, shell_slot_index, x, y, z, _distance, star_count, density = slot
+    entry = {
+        "shell_index": shell_index, "shell_slot_index": shell_slot_index,
+        "x": x, "y": y, "z": z,
+        "designation": provisional_sector_designation(shell_index, shell_slot_index, edge_pc, edge_ly),
+        "predicted_star_count": star_count, "relative_density": density,
+    }
+    if distance_pc is not None:
+        entry["distance_pc"] = distance_pc
+    return entry
+
+
+# ---------------------------------------------------------------------
+# Cube tiles -- the map-tile model behind GET /api/galaxy/tiles.
+#
+# Instead of asking "everything within R of this point" on every camera
+# move (unbounded work, nothing reusable between moves), the 3D map asks
+# for fixed cubes of space, the way a web map asks for fixed image tiles.
+# Space is an octree: level 0 is one cube `TILE_ROOT_EDGE_PC` on a side,
+# centered on the galactic origin, and each level halves the edge.
+# A tile's key is `"level/ix/iy/iz"`, where `ix` counts cubes along x from
+# the root cube's -x face (same for y/z). A tile's contents depend only on
+# its key and the database, so the browser and the web layer can both
+# cache it (see `html/lib/tilecache.py` and `static/galaxymap3d.js`).
+#
+# Each tile's work is bounded by construction: placed sectors are capped
+# per tile (`queryDb.GALAXY_TILE_MAX_PLACED`), planned slots are only
+# enumerated for small tiles (`PLANNED_TILE_MAX_EDGE_PC`), and density
+# clouds are a fixed point count.
+# ---------------------------------------------------------------------
+
+TILE_ROOT_EDGE_PC = 65536.0
+"""float: Edge of the level-0 cube, parsecs -- comfortably larger than
+any galaxy this project generates (the default is 15,000 pc in radius),
+and a power of two so every level's edge is an exact float."""
+
+TILE_MAX_LEVEL = 12
+"""int: Finest tile level -- `TILE_ROOT_EDGE_PC / 2**12` = 16 pc."""
+
+PLANNED_TILE_MAX_EDGE_PC = 16.0
+"""float: Planned slots are only listed in tiles at most this big. A
+16 pc cube holds about 100 slots of the default 11.5 ly sector size; a
+bigger tile would mean far more dots than a view at that zoom can show."""
+
+PLANNED_MAX_SLOTS_PER_TILE = 250
+"""int: Safety net for a galaxy with a much smaller sector edge than the
+default: a tile that could hold more slots than this lists none, rather
+than enumerating an unbounded number."""
+
+DENSITY_TILE_SAMPLE_COUNT = 1600
+"""int: Points in one density cloud (`density_points_for_tile`). A density
+cloud covers twice its anchor tile's edge in radius (see that function),
+so it spreads over more space than the old per-view cloud and gets a few
+more points than `DENSITY_SAMPLE_COUNT` to stay about as dense on screen."""
+
+
+def tile_key(level, ix, iy, iz):
+    """The canonical `"level/ix/iy/iz"` string for a tile."""
+    return f"{level}/{ix}/{iy}/{iz}"
+
+
+def parse_tile_key(key):
+    """
+    Parses and validates a `"level/ix/iy/iz"` tile key.
+
+    Args:
+        key (str): The tile key.
+
+    Returns:
+        tuple: `(level, ix, iy, iz)`, all ints.
+
+    Raises:
+        ValueError: If `key` is malformed or out of range.
+    """
+    parts = str(key).split("/")
+    if len(parts) != 4:
+        raise ValueError(f"tile key {key!r} must look like level/ix/iy/iz")
+    try:
+        level, ix, iy, iz = (int(part) for part in parts)
+    except ValueError:
+        raise ValueError(f"tile key {key!r} must be four integers")
+    if not 0 <= level <= TILE_MAX_LEVEL:
+        raise ValueError(f"tile level must be 0..{TILE_MAX_LEVEL}, got {level}")
+    span = 2 ** level
+    if not all(0 <= index < span for index in (ix, iy, iz)):
+        raise ValueError(f"tile indices at level {level} must be 0..{span - 1}")
+    return level, ix, iy, iz
+
+
+def tile_edge_pc(level):
+    """Edge length of a level-`level` tile, parsecs."""
+    return TILE_ROOT_EDGE_PC / (2 ** level)
+
+
+def tile_bounds_pc(level, ix, iy, iz):
+    """
+    A tile's half-open box, `[lo, hi)` on each axis, parsecs.
+
+    Returns:
+        tuple: `((x_lo, y_lo, z_lo), (x_hi, y_hi, z_hi))`.
+    """
+    edge = tile_edge_pc(level)
+    origin = -TILE_ROOT_EDGE_PC / 2.0
+    lo = (origin + ix * edge, origin + iy * edge, origin + iz * edge)
+    hi = (lo[0] + edge, lo[1] + edge, lo[2] + edge)
+    return lo, hi
+
+
+def tile_level_for_view_radius(radius_pc):
+    """
+    The level whose tiles are the smallest still at least `radius_pc` on
+    a side, so a view sphere of that radius touches at most 3 tiles along
+    each axis (27 in all). `static/galaxymap3d.js` computes the same thing
+    client-side; this is the Python twin `html/galaxy.py` uses for the
+    first frame.
+    """
+    if radius_pc <= 0:
+        return TILE_MAX_LEVEL
+    level = math.floor(math.log2(TILE_ROOT_EDGE_PC / radius_pc))
+    return max(0, min(TILE_MAX_LEVEL, level))
+
+
+def tiles_intersecting_sphere(level, center_pc, radius_pc):
+    """
+    Every tile key at `level` whose box comes within `radius_pc` of
+    `center_pc` -- what a view of that radius needs.
+
+    Returns:
+        list[str]: Tile keys, nearest first.
+    """
+    edge = tile_edge_pc(level)
+    origin = -TILE_ROOT_EDGE_PC / 2.0
+    span = 2 ** level
+    ranges = []
+    for axis in range(3):
+        first = math.floor((center_pc[axis] - radius_pc - origin) / edge)
+        last = math.floor((center_pc[axis] + radius_pc - origin) / edge)
+        ranges.append(range(max(0, first), min(span - 1, last) + 1))
+
+    found = []
+    radius_sq = radius_pc * radius_pc
+    for ix in ranges[0]:
+        for iy in ranges[1]:
+            for iz in ranges[2]:
+                lo, hi = tile_bounds_pc(level, ix, iy, iz)
+                distance_sq = 0.0
+                for axis in range(3):
+                    nearest = min(max(center_pc[axis], lo[axis]), hi[axis])
+                    distance_sq += (center_pc[axis] - nearest) ** 2
+                if distance_sq <= radius_sq:
+                    found.append((distance_sq, tile_key(level, ix, iy, iz)))
+    found.sort()
+    return [key for _distance, key in found]
+
+
+def _in_box(point, lo, hi):
+    return all(lo[axis] <= point[axis] < hi[axis] for axis in range(3))
+
+
+def planned_slots_in_tile(level, ix, iy, iz, edge_pc, edge_ly, shape,
+                          expected_system_count_at_density_1, exclude_addresses):
+    """
+    Every planned slot (see `planned_slots_in_view` for what qualifies)
+    whose center lies in this tile's half-open box -- so each slot belongs
+    to exactly one tile per level. Empty for tiles bigger than
+    `PLANNED_TILE_MAX_EDGE_PC`, or when the sector edge is so small the
+    tile could hold more than `PLANNED_MAX_SLOTS_PER_TILE` slots.
+
+    Returns:
+        list[dict]: Same entries as `planned_slots_in_view`, minus
+            `distance_pc` (there's no view center), ordered by address.
+    """
+    tile_edge = tile_edge_pc(level)
+    if tile_edge > PLANNED_TILE_MAX_EDGE_PC:
+        return []
+    if (tile_edge / edge_pc + 1) ** 3 > PLANNED_MAX_SLOTS_PER_TILE:
+        return []
+
+    lo, hi = tile_bounds_pc(level, ix, iy, iz)
+    center = tuple((lo[axis] + hi[axis]) / 2.0 for axis in range(3))
+    circumradius = tile_edge * math.sqrt(3.0) / 2.0
+    in_tile = (
+        slot for slot in enumerate_sectors_within_radius(center, circumradius, edge_pc)
+        if _in_box(slot[2:5], lo, hi)
+    )
+    slots = sorted(
+        _qualifying_slots(in_tile, shape, expected_system_count_at_density_1, exclude_addresses),
+        key=lambda slot: (slot[0], slot[1]),
+    )
+    return [_planned_entry(slot, edge_pc, edge_ly) for slot in slots]
+
+
+def density_points_for_tile(level, ix, iy, iz, shape, count=DENSITY_TILE_SAMPLE_COUNT):
+    """
+    The illustrative density cloud (see `density_sample_points`) anchored
+    on one tile: sampled within twice the tile's edge of its center, which
+    covers any view of radius up to one tile edge centered anywhere inside
+    the tile. The map uses the tile holding its camera target at the
+    current zoom level (`tile_level_for_view_radius`), so the cloud only
+    changes when the target crosses into another tile or the zoom level
+    changes -- and each cloud is cacheable by its tile key.
+
+    Returns:
+        list[dict]: `density_sample_points`' entries.
+    """
+    lo, hi = tile_bounds_pc(level, ix, iy, iz)
+    center = tuple((lo[axis] + hi[axis]) / 2.0 for axis in range(3))
+    return density_sample_points(center, 2.0 * tile_edge_pc(level), shape, count=count)
 
 
 def _sample_point_in_sphere(rng, center_pc, radius_pc):
