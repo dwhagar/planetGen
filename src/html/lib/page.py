@@ -314,6 +314,7 @@ def _sidenav_html():
         items.append(("login.py", {}, "Login"))
     else:
         items.append(("admin.py", {}, "Admin"))
+        items.append(("adminstats.py", {"db": db_name} if db_name else {}, "Stats"))
         items.append(("logout.py", {}, "Logout"))
 
     return "".join(

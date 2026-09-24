@@ -27,7 +27,6 @@ sector's own detail at upload time (see `routes.py`'s
 `_sector_wiki_content`).
 """
 
-import math
 import os
 import sys
 
@@ -43,7 +42,7 @@ from apiclient import (
     get_wiki_config,
     upload_sector_to_wiki,
 )
-from fmt import esc, linkify_location, post_link
+from fmt import esc, format_distance_ly, linkify_location, post_link
 from galaxymap import sector_quadrant
 from page import form_params, incoming_cookie_header, nav_params, run
 from starmap import render_map_panel
@@ -56,15 +55,6 @@ _PHENOMENON_TYPE_LABELS = {
 }
 """dict: Same display labels `phenomena.py`'s own flat listing uses, for
 `queryDb.phenomena_near_sector`'s `type` values."""
-
-_LY_PER_MPC = 0.0032615637769
-"""float: Light-years per milliparsec -- a system's `position_*_mpc` is its
-offset from the sector's center, and the Contents table shows that in
-light-years next to each phenomenon's own `distance_ly`."""
-
-
-def _distance_text(distance_ly):
-    return f"{distance_ly:,.1f} ly" if distance_ly is not None else "&ndash;"
 
 
 def _wiki_section_html(db_name, sector_id, sector, wiki_config, wiki_message, wiki_error):
@@ -172,11 +162,7 @@ def handler():
             star_type = row["binary_type"]
         else:
             star_type = " / ".join(star["star_type"] for star in row["stars"]) if row["stars"] else ""
-        distance_ly = None
-        if row["position_x_mpc"] is not None:
-            distance_ly = _LY_PER_MPC * math.sqrt(
-                row["position_x_mpc"] ** 2 + row["position_y_mpc"] ** 2 + row["position_z_mpc"] ** 2
-            )
+        distance_ly = row.get("center_distance_ly")
         content_rows.append((distance_ly, (
             "<tr>"
             f'<td>{post_link("system.py", {"db": db_name, "id": row["id"]}, esc(row["name"]))}</td>'
@@ -184,7 +170,7 @@ def handler():
             f'<td>{esc(star_type or "")}</td>'
             f'<td>{esc(row["quadrant"])}</td>'
             f'<td>{linkify_location(db_name, row["location"], name_to_id)}</td>'
-            f'<td>{_distance_text(distance_ly)}</td>'
+            f'<td>{format_distance_ly(distance_ly)}</td>'
             "</tr>"
         )))
         if row["position_x_mpc"] is not None and row["stars"]:
@@ -227,7 +213,7 @@ def handler():
             f'<td>{esc(details)}</td>'
             "<td>&ndash;</td>"
             "<td>&ndash;</td>"
-            f'<td>{_distance_text(row["distance_ly"])}</td>'
+            f'<td>{format_distance_ly(row["distance_ly"])}</td>'
             "</tr>"
         )))
 

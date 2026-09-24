@@ -9,6 +9,7 @@ database needed -- every function takes plain data, the same shape
 Run with: pytest src/tests/test_galaxymap3d.py
 """
 import json
+import math
 import os
 import sys
 
@@ -19,11 +20,13 @@ sys.path.insert(0, _SRC_DIR)
 import pytest  # noqa: E402
 
 from galaxymap3d import (  # noqa: E402
+    CAMERA_FOV_DEG,
     CLICK_ZOOM_FACTOR_MAX,
     CLICK_ZOOM_FACTOR_MIN,
     FETCH_RADIUS_FACTOR,
     MIN_VIEW_RADIUS_FLOOR_PC,
     PLANNED_MAX_VIEW_RADIUS_PC,
+    galaxy_extent_pc,
     initial_tile_request,
     render_galaxy_map3d_panel,
     view_radius_bounds,
@@ -55,13 +58,22 @@ def _json_payload(html):
 
 def test_view_radius_bounds_without_a_shape_uses_the_default_galaxy_radius():
     min_radius, max_radius = view_radius_bounds(EDGE_PC, None)
-    assert max_radius == pytest.approx(GALAXY_RADIUS_PC * 1.05)
+    assert max_radius == pytest.approx(GALAXY_RADIUS_PC * 1.05 / math.tan(math.radians(CAMERA_FOV_DEG / 2)))
     assert min_radius == pytest.approx(EDGE_PC * 1.5)
 
 
 def test_view_radius_bounds_with_a_shape_uses_its_own_outer_shell_index():
     min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 99})
-    assert max_radius == pytest.approx((99 + 1) * EDGE_PC * 1.05)
+    assert max_radius == pytest.approx((99 + 1) * EDGE_PC * 1.05 / math.tan(math.radians(CAMERA_FOV_DEG / 2)))
+
+
+def test_view_radius_bounds_max_fits_the_whole_galaxy_in_view():
+    # At the zoomed-all-the-way-out radius, half the field of view must
+    # span at least the galaxy's own padded outer edge.
+    shape = {"outer_shell_index": 99}
+    _min_radius, max_radius = view_radius_bounds(EDGE_PC, shape)
+    visible_half_height = max_radius * math.tan(math.radians(CAMERA_FOV_DEG / 2))
+    assert visible_half_height >= galaxy_extent_pc(EDGE_PC, shape) - 1e-9
 
 
 def test_view_radius_bounds_min_has_an_absolute_floor():
@@ -95,8 +107,8 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["db"] == "mydb"
     assert data["fetchPath"] == "galaxy_tiles.py"
     assert data["hasShape"] is True
-    for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedViewRadiusPc",
-                  "plannedMaxViewRadiusPc", "fetchRadiusFactor", "maxTilesPerRequest"):
+    for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedMaxViewRadiusPc",
+                  "fetchRadiusFactor", "maxTilesPerRequest"):
         assert field in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
     assert data["edgeLy"] > 0
@@ -104,6 +116,8 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["clickZoomFactorMax"] == CLICK_ZOOM_FACTOR_MAX
     assert data["initialCenter"] == [0.0, 0.0, 0.0]
     assert data["initialRadiusPc"] == data["maxViewRadiusPc"]
+    assert data["fovDeg"] == CAMERA_FOV_DEG
+    assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_shell_index": 50}))
     assert data["initial"] == view
 
 
@@ -165,4 +179,17 @@ def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
 
 def test_initial_tile_request_has_no_density_without_a_shape():
     _keys, density_key = initial_tile_request(16000.0, False)
+    assert density_key is None
+
+
+def test_planned_tiles_cover_the_whole_view_not_a_smaller_ball():
+    # A zoomed-in view fetches planned tiles out to the full view radius,
+    # so the dots fill the screen instead of clustering into a ball around
+    # the target.
+    center = (8000.0, 3.0, -2.0)
+    orbit_radius = PLANNED_MAX_VIEW_RADIUS_PC / FETCH_RADIUS_FACTOR
+    keys, density_key = initial_tile_request(orbit_radius, True, center)
+    view_radius = orbit_radius * FETCH_RADIUS_FACTOR
+    planned_keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, center, view_radius)
+    assert set(planned_keys) <= set(keys)
     assert density_key is None
