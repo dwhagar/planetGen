@@ -45,7 +45,7 @@ _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from apiclient import get_galaxy_sectors, get_galaxy_shape
-from fmt import esc, post_link
+from fmt import esc, post_link, static_url
 from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
 from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from page import nav_params, run
@@ -172,7 +172,7 @@ def handler():
 </table></div>
 {pager_html}
 </section>
-<script type="module" src="static/galaxymap3d.js"></script>
+<script type="module" src="{static_url("galaxymap3d.js")}"></script>
 """
     return title, body
 

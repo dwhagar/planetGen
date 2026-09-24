@@ -24,6 +24,37 @@ See [`../install.sh`](../install.sh) for the full install script,
 [`html-interface.md`](html-interface.md#deploying) for the deployment
 walkthrough.
 
+## Static files, compression and security headers
+
+- **Modules.** The example vhost needs `a2enmod cgid wsgi headers
+  deflate`. `install.sh` enables `cgid headers deflate` itself; `deflate`
+  is new (it is on by default in a stock Debian/Ubuntu Apache, so this is
+  usually a no-op). Run `sudo a2enmod headers deflate && sudo systemctl
+  reload apache2` once on an existing server.
+- **Caching `static/`.** Every page links its CSS/JS/favicon as
+  `static/<file>?v=<release version>` (`src/html/lib/fmt.py`'s
+  `static_url`), and the map modules pass that same `?v=` on to the
+  modules they import. The vhost's `<Directory .../static>` block sends
+  `Cache-Control: public, max-age=31536000, immutable` for a request that
+  carries `?v=` and `Cache-Control: no-cache` (always revalidate) for one
+  that doesn't, so a release is picked up on the next page view without
+  anyone clearing their cache.
+- **Compression.** `AddOutputFilterByType DEFLATE` covers HTML, CSS,
+  JavaScript, JSON and SVG. `three.module.min.js` goes from about 740 KB
+  to about 190 KB on the wire.
+- **Security headers have one source per response.** The HTML pages get
+  `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`
+  and `Referrer-Policy` from `src/html/lib/page.py` (`SECURITY_HEADERS`),
+  and the API gets its own from `src/html/api/app.py`, so both work
+  without this vhost. The page CSP is `default-src 'self'; base-uri
+  'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'`.
+  Earlier versions of the example vhost also set three of these
+  site-wide with `Header always set ...`; **delete those three lines from
+  an existing `/etc/apache2/sites-available/planetgen.conf`** when you
+  update it. They only duplicated the application's own values. The one
+  header Apache still adds is `X-Content-Type-Options: nosniff` on
+  `static/`, which no application code serves.
+
 ## MySQL accounts
 
 One MySQL account (`PLANETGEN_MYSQL_*`, or `config.json`'s `mysql`

@@ -20,6 +20,9 @@
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", "SFMono-Regular", monospace;
 }
 
+/* Dark tokens, twice: once following the OS (unless the visitor picked
+   Light), once for an explicit Dark choice (static/theme.js sets
+   data-theme on <html>). Keep the two blocks identical. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #14151e;
@@ -35,6 +38,26 @@
     --error: #ff6b7a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14151e;
+  --bg-elevated: #1c1e2b;
+  --bg-subtle: #23253470;
+  --text: #e7e9f3;
+  --text-muted: #9a9fb5;
+  --border: #333650;
+  --accent: #8891f5;
+  --accent-contrast: #12132b;
+  --link: #9aa3ff;
+  --link-visited: #c39bff;
+  --error: #ff6b7a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 * {
@@ -139,6 +162,19 @@ textarea:focus-visible {
   width: 100%;
 }
 
+/* The theme switch (html/lib/page.py's THEME_TOGGLE_HTML) sits at the
+   bottom of the rail, apart from the page links. */
+.sidenav .theme-toggle {
+  margin-top: auto;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.78rem;
+}
+
+.sidenav .theme-toggle[hidden] {
+  display: none;
+}
+
 header {
   display: flex;
   flex-wrap: wrap;
@@ -161,6 +197,18 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
+}
+
+main > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+main img,
+main svg,
+main canvas {
+  max-width: 100%;
 }
 
 h2 {
@@ -1442,19 +1490,43 @@ code {
   padding: 0.35rem 0.5rem;
 }
 
+/* Phones: the rail becomes a wrapping row of links across the top of
+   the page, and the page gets a 1rem gutter each side. Wide tables and
+   code scroll inside their own box (.table-scroll/.code-view) instead of
+   widening the page. */
 @media (max-width: 40rem) {
   body {
-    padding-left: 1rem;
+    padding: 0 1rem 3rem;
   }
 
   .sidenav {
     position: static;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: center;
     width: auto;
     height: auto;
+    margin: 0 -1rem 1rem;
+    padding: 0.5rem;
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .sidenav .table-form {
+    display: inline-block;
+  }
+
+  .sidenav-item,
+  .link-btn.sidenav-item {
+    width: auto;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .sidenav .theme-toggle {
+    margin-top: 0;
+  }
+
+  header {
     margin-bottom: 1rem;
   }
 

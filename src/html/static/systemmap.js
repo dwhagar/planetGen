@@ -26,8 +26,15 @@
 // remain this map's actual true-position diagram, and a sphere that fails
 // to render (no WebGL) just leaves that marker's flat circle showing.
 
-import * as THREE from "./vendor/three.module.min.js";
-import { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
+// Sibling modules are imported with this module's own `?v=<version>`
+// query (html/lib/fmt.py's `static_url`), so they are cached and
+// refreshed with the page's script. A plain static `import "./x.js"`
+// would drop the query: an update could then leave a stale copy cached,
+// and a page that also loaded the same file by its versioned URL would
+// get a second, separate instance of it.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
+const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 
 function addField(dl, label, value) {
   if (!value && value !== 0) {
