@@ -7,7 +7,7 @@
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
-#   sudo a2enmod cgid wsgi headers
+#   sudo a2enmod cgid wsgi headers deflate
 #   sudo a2ensite planetgen
 #   sudo systemctl reload apache2
 #
@@ -17,8 +17,10 @@
 # supports mpm_prefork. `wsgi` (`libapache2-mod-wsgi-py3` on Debian/
 # Ubuntu) serves the API (`html/wsgi.py`) -- skip that module and the
 # WSGIScriptAlias block below if you only want the CGI browser. `headers`
-# is needed for the `Header always set ...` lines below regardless of
-# which of those two you use.
+# is needed for static/'s `Header ...` lines below (cache lifetime and
+# nosniff) and `deflate` for the compression block, regardless of which
+# of those two you use. Both are usually on already in a stock Debian/
+# Ubuntu Apache; a2enmod is a no-op then.
 #
 # Expected layout on the server (see the repo's set-permissions.sh, which
 # assumes this same layout):
@@ -51,15 +53,21 @@
     ServerName planetgen.example.com
     DocumentRoot /var/lib/planetGen/src/html
 
-    # Defense-in-depth response headers applied to every response from
-    # this vhost -- CGI pages, the API, and static/ alike. html/api/app.py
-    # and html/lib/page.py already set the same ones (plus a stricter,
-    # surface-specific Content-Security-Policy of their own) on their own
-    # responses; this is a floor underneath both, not the only place
-    # they're decided, so static/'s plain CSS/JS gets them too.
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-Frame-Options "DENY"
-    Header always set Referrer-Policy "no-referrer"
+    # Security headers (Content-Security-Policy, X-Frame-Options,
+    # X-Content-Type-Options, Referrer-Policy) come from the application,
+    # not from here: html/lib/page.py's SECURITY_HEADERS for every page,
+    # html/api/app.py for the API. That keeps one source per response and
+    # works the same without this file. Earlier versions of this example
+    # also set three of them vhost-wide with `Header always set`; remove
+    # those lines from an existing site config when you update it (they
+    # were duplicates, not a different policy). static/ below is the one
+    # place Apache adds any, since no application code serves it.
+
+    # Compress text responses (pages, API JSON, CSS/JS, the SVG favicon).
+    # three.js alone drops from about 740 KB to about 190 KB on the wire.
+    <IfModule mod_deflate.c>
+        AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
+    </IfModule>
 
     # Tell the CGI scripts which MySQL server/account to use. Only needed
     # if any differs from stellarObjects._db.MySQLConfig's own defaults
@@ -165,10 +173,26 @@
         Require all denied
     </Directory>
 
-    # static/ is plain CSS/JS -- served directly, never as CGI.
+    # static/ is plain CSS/JS/SVG -- served directly, never as CGI.
+    #
+    # Every page links its static files with `?v=<release version>`
+    # (html/lib/fmt.py's `static_url`), and the map scripts pass the same
+    # `?v=` on to the modules they import, so a release changes every URL.
+    # That lets browsers keep a versioned file for a year without asking
+    # again. A request without `?v=` (an old cached page, a hand-typed
+    # URL) is revalidated every time instead, so it can never go stale.
     <Directory /var/lib/planetGen/src/html/static>
         Options -ExecCGI -Indexes
         Require all granted
+        <IfModule mod_headers.c>
+            Header always set X-Content-Type-Options "nosniff"
+            <If "%{QUERY_STRING} =~ /(^|&)v=/">
+                Header set Cache-Control "public, max-age=31536000, immutable"
+            </If>
+            <Else>
+                Header set Cache-Control "no-cache"
+            </Else>
+        </IfModule>
     </Directory>
 
     # Mounts the Flask API (docs/api.md) at /api, handled by mod_wsgi via

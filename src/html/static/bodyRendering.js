@@ -12,7 +12,7 @@
 // Every export is a plain function/string constant -- no shared mutable
 // state, no THREE.js import of its own (the caller's own `THREE` module
 // instance is passed in explicitly) so this stays usable from either
-// file's own `import * as THREE from "./vendor/three.module.min.js"`
+// file's own versioned `import("./vendor/three.module.min.js?v=...")`
 // without risking two separate THREE instances ever existing in one page.
 
 // A halo glow rendered on a larger, back-face-only, additively-blended
