@@ -161,7 +161,7 @@ def test_migrate_v28_to_v29_drops_the_stored_page_text(mysql_config):
     try:
         conn.execute("ALTER TABLE star_systems ADD COLUMN wikitext_content LONGTEXT, ADD COLUMN markdown_content LONGTEXT")
         conn.execute("UPDATE star_systems SET wikitext_content = 'old', markdown_content = 'old'")
-        conn.execute("DELETE FROM schema_migrations WHERE version = 29")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (29, 30)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (28)")
         conn.commit()
     finally:
