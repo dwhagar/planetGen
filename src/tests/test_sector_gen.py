@@ -246,12 +246,13 @@ def test_generate_sector_does_not_generate_systems_past_the_first_placement_fail
 
 def test_generate_sector_real_capacity_overflow_returns_a_partial_sector():
     # End-to-end (no monkeypatching): a sector this size physically cannot
-    # hold 60 systems at real Hill-sphere spacing (see this project's own
+    # hold 120 systems at real Hill-sphere spacing (see this project's own
     # local-stellar-density constants), which used to raise ValueError and
-    # discard the whole sector. -planets keeps this fast (skips
+    # discard the whole sector. 120, not 60: a lucky draw occasionally fit
+    # all 60 (sampled fills run about 20-59). -planets keeps this fast (skips
     # planet/moon generation) without touching the real placement logic
     # this test actually cares about.
-    args = _real_sector_args(60, "RealCapacityOverflowSector", extra_argv=["-planets"])
+    args = _real_sector_args(120, "RealCapacityOverflowSector", extra_argv=["-planets"])
     _sector_name, sector = sectorGen.generate_sector(args)
 
-    assert 0 < len(sector.entries) < 60
+    assert 0 < len(sector.entries) < 120
