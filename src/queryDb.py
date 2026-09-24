@@ -38,11 +38,12 @@ import pymysql
 
 from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
 from stellarObjects._version import VersionAction, version_banner
-from stellarObjects.galaxyGeometry import provisional_sector_designation
+from stellarObjects.galaxyGeometry import provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import PLANNED_RADIUS_CAP_PC, density_sample_points, planned_slots_in_view
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import course_between, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
+from stellarObjects.sectorGeometry import lateral_neighbor_slots, radial_neighbor_slot
 from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, PLANET_CLASSES
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
@@ -815,6 +816,77 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     }
 
 
+def sector_neighbors(conn, sector):
+    """
+    Every immediately-surrounding sector address for a galaxy-placed
+    sector -- its exact same-shell (lateral) Voronoi neighbors
+    (`sectorGeometry.lateral_neighbor_slots`) plus its nearest inward and
+    outward radial neighbor (`sectorGeometry.radial_neighbor_slot`), each
+    tagged with whether a real `sectors` row already exists there. Drives
+    the Sector Map's (`html/lib/starmap.py`) neighboring-sector
+    indicators -- an existing neighbor's indicator links straight to it
+    (`sector.py`); a not-yet-generated one shows its address so it can be
+    fed to `generate.py galaxy --shell K --slot N`, the same convention
+    the Galaxy Map's own "planned" tier already uses
+    (`galaxyViewport.planned_slots_in_view`).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        sector (dict or Row): This sector's own row -- needs
+            `shell_index`, `shell_slot_index`, and `edge_mpc`.
+
+    Returns:
+        list[dict]: `shell_index`, `shell_slot_index`, `direction_pc`
+            (`[x, y, z]`, this neighbor's galaxy-frame center minus this
+            sector's own -- a direction, not clamped to the sector's own
+            cube), `exists` (bool), `sector_id`/`sector_name` (both `None`
+            when `exists` is `False`), and `designation`
+            (`provisional_sector_designation`, always present so a
+            not-yet-generated neighbor has a human-readable label even
+            with no name of its own). `[]` for a sector with no galaxy
+            placement.
+    """
+    shell_index, shell_slot_index, edge_mpc = sector["shell_index"], sector["shell_slot_index"], sector["edge_mpc"]
+    if shell_index is None or shell_slot_index is None or not edge_mpc:
+        return []
+
+    edge_pc = mpc_to_pc(edge_mpc)
+    edge_ly = pc_to_ly(edge_pc)
+    this_position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+
+    addresses = [(shell_index, slot) for slot in lateral_neighbor_slots(shell_index, shell_slot_index, edge_pc)]
+    for direction in (-1, 1):
+        radial_slot = radial_neighbor_slot(shell_index, shell_slot_index, edge_pc, direction)
+        if radial_slot is not None:
+            addresses.append((shell_index + direction, radial_slot))
+    if not addresses:
+        return []
+
+    clauses = " OR ".join(["(shell_index = ? AND shell_slot_index = ?)"] * len(addresses))
+    params = [value for address in addresses for value in address]
+    rows = conn.execute(
+        f"SELECT id, name, shell_index, shell_slot_index FROM sectors WHERE {clauses}", tuple(params),
+    ).fetchall()
+    existing = {(r["shell_index"], r["shell_slot_index"]): r for r in rows}
+
+    results = []
+    for addr_shell, addr_slot in addresses:
+        position = sector_position_pc(addr_shell, addr_slot, edge_pc)
+        direction_pc = [
+            position[0] - this_position[0], position[1] - this_position[1], position[2] - this_position[2],
+        ]
+        match = existing.get((addr_shell, addr_slot))
+        results.append({
+            "shell_index": addr_shell, "shell_slot_index": addr_slot,
+            "direction_pc": direction_pc,
+            "exists": match is not None,
+            "sector_id": match["id"] if match else None,
+            "sector_name": match["name"] if match else None,
+            "designation": provisional_sector_designation(addr_shell, addr_slot, edge_pc, edge_ly),
+        })
+    return results
+
+
 def sector_detail(conn, sector_id):
     """
     Returns one sector's full web-display detail: name, size, galaxy
@@ -841,10 +913,11 @@ def sector_detail(conn, sector_id):
             `position_z_mpc`, and `stars` -- 1 entry (single) or 2
             (primary then secondary), each `role`/`star_type`/
             `temperature_k`/`radius_km`/`luminosity_w`), `phenomena`
-            (see `phenomena_near_sector`), and `wiki_url` (`sectors.wiki_url`
-            -- `None` if this sector has never been uploaded to, or
-            manually linked to, a wiki page; see `schema.sql`'s "v22"
-            header note).
+            (see `phenomena_near_sector`), `neighbors` (see
+            `sector_neighbors`, `[]` for a sector with no galaxy
+            placement), and `wiki_url` (`sectors.wiki_url` -- `None` if
+            this sector has never been uploaded to, or manually linked
+            to, a wiki page; see `schema.sql`'s "v22" header note).
 
     Raises:
         ValueError: If no such sector exists.
@@ -890,6 +963,7 @@ def sector_detail(conn, sector_id):
         "system_count": len(systems),
         "systems": systems,
         "phenomena": phenomena_near_sector(conn, sector_id),
+        "neighbors": sector_neighbors(conn, sector),
         "wiki_url": sector["wiki_url"],
     }
 

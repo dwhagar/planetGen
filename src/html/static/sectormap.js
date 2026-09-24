@@ -65,8 +65,9 @@ function addField(dl, label, value) {
 }
 
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
-// `CLOUD_KIND_RECIPES` below); a star entry never does -- that alone is
-// enough to tell the two apart, unlike the old version's explicit
+// `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-
+// sector indicator carries `isNeighbor` -- that alone is enough to tell
+// all three apart, unlike the old version's explicit
 // `data-kind="phenomenon"` marker.
 function showObjectInfo(entry) {
   var panel = document.getElementById("starmap-info");
@@ -74,6 +75,11 @@ function showObjectInfo(entry) {
     return;
   }
   panel.textContent = "";
+
+  if (entry.isNeighbor) {
+    showNeighborInfo(panel, entry);
+    return;
+  }
 
   var heading = document.createElement("h3");
   heading.textContent = entry.name || "Unknown";
@@ -94,6 +100,82 @@ function showObjectInfo(entry) {
   addField(dl, "Location", entry.location);
   panel.appendChild(dl);
   panel.appendChild(navLink(entry, "View system →"));
+}
+
+// A neighboring sector's own address -- shared display convention with
+// `static/galaxymap3d.js`'s identically-named helpers for its own
+// "planned" (not-yet-generated) sector addresses, since this is the same
+// underlying concept one level in: a `(shell_index, shell_slot_index)`
+// address, generated or not.
+function formatAddress(shellIndex, slotIndex) {
+  return "shell " + shellIndex + " slot " + slotIndex;
+}
+
+function cliSnippet(shellIndex, slotIndex) {
+  return "generate.py galaxy --shell " + shellIndex + " --slot " + slotIndex;
+}
+
+function makeCopyButton(text) {
+  var button = document.createElement("button");
+  button.type = "button";
+  button.className = "btn";
+  button.textContent = "Copy CLI command";
+  button.addEventListener("click", function () {
+    var restore = button.textContent;
+    var onDone = function () {
+      button.textContent = "Copied!";
+      setTimeout(function () {
+        button.textContent = restore;
+      }, 1500);
+    };
+    var onFail = function () {
+      // Clipboard API unavailable (insecure context, permissions, older
+      // browser) -- fall back to a selectable readonly field the visitor
+      // can copy by hand, rather than silently doing nothing.
+      var input = document.createElement("input");
+      input.type = "text";
+      input.readOnly = true;
+      input.value = text;
+      input.className = "galaxymap3d-address-field";
+      button.insertAdjacentElement("afterend", input);
+      input.focus();
+      input.select();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onDone, onFail);
+    } else {
+      onFail();
+    }
+  });
+  return button;
+}
+
+// A neighboring sector that already exists just links straight to it
+// (same as a star/cloud entry); one that doesn't yet shows its address
+// and a copyable `generate.py galaxy --shell K --slot N` command instead
+// -- the same "not yet generated" info panel shape
+// `static/galaxymap3d.js`'s own `showPlannedInfo` already uses for its
+// "planned" tier, one galaxy-map zoom level up from this sector-level view.
+function showNeighborInfo(panel, entry) {
+  var heading = document.createElement("h3");
+  heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";
+  panel.appendChild(heading);
+
+  var dl = document.createElement("dl");
+  addField(dl, "Address", formatAddress(entry.shellIndex, entry.shellSlotIndex));
+  addField(dl, "Designation", entry.designation);
+  panel.appendChild(dl);
+
+  if (entry.exists) {
+    panel.appendChild(navLink(entry, "View sector →"));
+    return;
+  }
+
+  var code = document.createElement("code");
+  code.className = "galaxymap3d-cli-snippet";
+  code.textContent = cliSnippet(entry.shellIndex, entry.shellSlotIndex);
+  panel.appendChild(code);
+  panel.appendChild(makeCopyButton(cliSnippet(entry.shellIndex, entry.shellSlotIndex)));
 }
 
 // A real, focusable `<a>` carrying `data-nav-target`/`data-nav-params`
@@ -136,6 +218,30 @@ function makeRingTexture(color) {
   ctx.lineWidth = 3;
   ctx.strokeStyle = color;
   ctx.stroke();
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// A neighboring-sector indicator's own small filled dot -- same recipe
+// `static/galaxymap3d.js`'s own `makeDotTexture` uses for its "placed"/
+// "planned" sector dots, one galaxy-map zoom level up from this
+// sector-level view.
+function makeDotTexture(fillColor, strokeColor) {
+  var size = 64;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+  var r = size / 2;
+  ctx.beginPath();
+  ctx.arc(r, r, r - 3, 0, Math.PI * 2);
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  if (strokeColor) {
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+  }
   var texture = new THREE.CanvasTexture(canvasEl);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
@@ -432,6 +538,50 @@ function initStarmap(canvasEl, data) {
     entryByObject.set(bodies.core, cloud);
   });
 
+  // Neighboring-sector indicators: a small flat dot at the scene's own
+  // edge, in the real direction of that neighbor (see lib/starmap.py's
+  // own `_neighbor_indicator_data`) -- a plain billboard `THREE.Sprite`
+  // (not a real 3D body like a star/cloud above) suits these fine, the
+  // same reasoning the highlight ring and compass label below are
+  // sprites too: flat 2D markers with no "seen from any angle" concern.
+  // Bright accent color for an already-generated neighbor (clickable,
+  // navigable, like every other marker in this scene); a muted blue for
+  // one that isn't yet -- the same "planned" color
+  // `static/galaxymap3d.js`'s own dots use for the identical not-yet-
+  // generated concept one galaxy-map zoom level up.
+  var NEIGHBOR_EXISTS_COLOR = accentColor;
+  var NEIGHBOR_MISSING_FILL = "#7fa8d9";
+  var NEIGHBOR_MISSING_STROKE = "#3f5f80";
+  var neighborExistsTexture = null;
+  var neighborMissingTexture = null;
+
+  (data.neighbors || []).forEach(function (neighbor) {
+    if (!neighborExistsTexture) {
+      neighborExistsTexture = makeDotTexture(NEIGHBOR_EXISTS_COLOR, null);
+    }
+    if (!neighborMissingTexture) {
+      neighborMissingTexture = makeDotTexture(NEIGHBOR_MISSING_FILL, NEIGHBOR_MISSING_STROKE);
+    }
+    var marker = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: neighbor.exists ? neighborExistsTexture : neighborMissingTexture,
+        transparent: true, depthWrite: false,
+      })
+    );
+    marker.position.set(neighbor.x, neighbor.y, neighbor.z);
+    marker.scale.set(neighbor.r * 2, neighbor.r * 2, 1);
+    scene.add(marker);
+    interactiveGroup.add(marker);
+    entryByObject.set(marker, neighbor);
+
+    var labelText = neighbor.exists ? neighbor.name : neighbor.designation;
+    if (labelText) {
+      var label = makeTextSprite(labelText, neighbor.exists ? NEIGHBOR_EXISTS_COLOR : NEIGHBOR_MISSING_FILL);
+      label.position.set(neighbor.x, neighbor.y - neighbor.r * 2.4, neighbor.z);
+      scene.add(label);
+    }
+  });
+
   var highlightSprite = new THREE.Sprite(
     new THREE.SpriteMaterial({ map: makeRingTexture(accentColor), transparent: true, depthWrite: false })
   );
@@ -457,18 +607,25 @@ function initStarmap(canvasEl, data) {
   //
   // A canvas has no focusable children of its own the way the old CSS
   // version's real per-star `<div role="button">`s were, so this is what
-  // keeps every star/cloud reachable by keyboard/screen reader without
-  // needing 3D hit-testing or focus management inside the canvas itself
-  // -- a visually hidden button per entry, in the same list order the
-  // scene data arrived in.
+  // keeps every star/cloud/neighbor reachable by keyboard/screen reader
+  // without needing 3D hit-testing or focus management inside the canvas
+  // itself -- a visually hidden button per entry, in the same list order
+  // the scene data arrived in.
+  function entryLabel(entry) {
+    if (entry.isNeighbor) {
+      return entry.exists ? entry.name || "Unnamed sector" : "Not yet generated (" + entry.designation + ")";
+    }
+    return entry.name || "Unknown";
+  }
+
   if (viewport) {
     var list = document.createElement("ul");
     list.className = "starmap-sr-list sr-only";
-    (data.stars || []).concat(data.clouds || []).forEach(function (entry) {
+    (data.stars || []).concat(data.clouds || []).concat(data.neighbors || []).forEach(function (entry) {
       var item = document.createElement("li");
       var button = document.createElement("button");
       button.type = "button";
-      button.textContent = entry.name || "Unknown";
+      button.textContent = entryLabel(entry);
       button.addEventListener("click", function () {
         selectEntry(entry);
       });

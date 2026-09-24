@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.46.31] - 2026-09-24
+
+### Added
+- **Sector Map: clickable indicators for every immediately surrounding
+  sector.** A small marker sits just past the scene's own edge in the
+  real direction of each same-shell (lateral) Voronoi neighbor
+  (`sectorGeometry.lateral_neighbor_slots`, exact) and the nearest
+  inward/outward radial neighbor (`sectorGeometry.radial_neighbor_slot`,
+  nearest-by-distance). An already-generated neighbor's indicator links
+  straight to it; a not-yet-generated one shows its address and a
+  copyable `generate.py galaxy --shell K --slot N` command, the same
+  convention the Galaxy Map's own "planned" tier already uses.
+  `queryDb.sector_neighbors` (also folded into `sector_detail`'s own
+  `neighbors` key) drives this from the API side.
+
 ## [5.46.30] - 2026-09-24
 
 ### Changed

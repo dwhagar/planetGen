@@ -1308,7 +1308,10 @@ code {
    info panel/scale bar) unchanged; these three are its own additions:
    a hover tooltip with no .starmap-* equivalent (the flat SVG map uses a
    native <title>, the sector map has no per-object hover at all), and the
-   planned-sector info panel's copyable CLI snippet/fallback field. */
+   planned-sector info panel's copyable CLI snippet/fallback field --
+   the latter two also reused as-is by the Sector Map's own not-yet-
+   generated neighboring-sector indicators (html/static/sectormap.js),
+   the identical "copy a generate.py CLI command" concept one level in. */
 .galaxymap3d-tooltip {
   position: absolute;
   z-index: 3;

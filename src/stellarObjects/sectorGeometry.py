@@ -124,6 +124,12 @@ FIBONACCI_WINDOW = 3
 relevant scale (`sin(phi) * sqrt(pi * N)`) `_same_shell_candidate_offsets`
 includes, as a safety margin against the scale estimate being imprecise."""
 
+RADIAL_NEIGHBOR_SEARCH_RADIUS_FACTOR = 3.0
+"""float: `radial_neighbor_slot` searches within this multiple of
+`edge_pc` of this sector's own center for its nearest neighbor in the
+adjacent shell -- see that function's own docstring for why this is
+generous rather than tight."""
+
 BOUNDING_POLYGON_RADIUS_FACTOR = 25.0
 """float: Half-extent (as a multiple of `edge_pc`) of the initial square
 the local lateral cell's half-plane clip starts from -- generous enough
@@ -427,40 +433,29 @@ def _clip_polygon_by_halfplane(vertices, owners, a, b, c, new_owner):
     return new_vertices, new_owners
 
 
-def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
+def _lateral_cell_clip(shell_index, shell_slot_index, edge_pc):
     """
-    This sector's exact lateral (same-shell) Voronoi cell -- the polygon,
-    in cyclic order, of the exact 3D points where its same-shell
-    neighbors' bisector planes meet. See the module docstring for why this
-    is exact (not approximate) and why its vertex count varies per sector.
-
-    Args:
-        shell_index (int): This sector's shell index.
-        shell_slot_index (int): This sector's slot index within that shell.
-        edge_pc (float): The sector edge length, in parsecs.
+    The half-plane-clip computation shared by `local_lateral_cell` (which
+    turns its result into the cell's own cyclic vertex list) and
+    `lateral_neighbor_slots` (which only needs which same-shell sectors
+    are true Voronoi neighbors, not the cell's exact vertices) -- factored
+    out so the two can never disagree about which sectors are true
+    neighbors. See `local_lateral_cell`'s own docstring for what this
+    computes and why; this only stops short of turning `owners` into
+    actual vertex positions.
 
     Returns:
-        list: 3D `(x, y, z)` points (parsecs), in cyclic order around the
-             sector, one per lateral face.
+        tuple: `(position, local_x, local_y, local_z, vertices, owners,
+                owner_positions)` -- `position` this sector's own galaxy-
+               frame center, `local_x`/`local_y`/`local_z` its tangent-
+               plane basis, `vertices`/`owners` the clipped polygon and
+               each edge's owning neighbor slot (`None` for an edge still
+               belonging to the initial bounding square), and
+               `owner_positions` each real neighbor slot's own galaxy-
+               frame position.
 
     Raises:
-        RuntimeError: If a shell with enough sectors to bound a cell in
-                     principle (`shell_sector_count(shell_index) > 3`)
-                     still leaves the cell unbounded -- that would indicate
-                     a real gap in `_same_shell_neighbors`'s coverage, not
-                     a shape this module should silently guess at. Not
-                     expected in practice (see the module docstring's
-                     validation note); surfaced loudly rather than risking
-                     a silent wrong shape if it ever is. Shell 0's own 3
-                     sectors (2 same-shell neighbors each) are the one
-                     genuine exception: 2 bisector planes cannot bound a 2D
-                     region on their own regardless of search completeness
-                     (a 2D convex region needs at least 3 half-plane
-                     constraints), so that case falls back to the leftover
-                     artificial bounding-square edges instead of raising --
-                     physically sensible anyway, since shell 0's sectors
-                     really are unbounded wedges radiating from the
-                     galactic center, not full prisms (see `prism_vertices`).
+        RuntimeError: See `local_lateral_cell`.
     """
     position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
     local_x, local_y, local_z = cube_orientation(position)
@@ -504,6 +499,48 @@ def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
             f"a wider search for this address."
         )
 
+    return position, local_x, local_y, local_z, vertices, owners, owner_positions
+
+
+def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
+    """
+    This sector's exact lateral (same-shell) Voronoi cell -- the polygon,
+    in cyclic order, of the exact 3D points where its same-shell
+    neighbors' bisector planes meet. See the module docstring for why this
+    is exact (not approximate) and why its vertex count varies per sector.
+
+    Args:
+        shell_index (int): This sector's shell index.
+        shell_slot_index (int): This sector's slot index within that shell.
+        edge_pc (float): The sector edge length, in parsecs.
+
+    Returns:
+        list: 3D `(x, y, z)` points (parsecs), in cyclic order around the
+             sector, one per lateral face.
+
+    Raises:
+        RuntimeError: If a shell with enough sectors to bound a cell in
+                     principle (`shell_sector_count(shell_index) > 3`)
+                     still leaves the cell unbounded -- that would indicate
+                     a real gap in `_same_shell_neighbors`'s coverage, not
+                     a shape this module should silently guess at. Not
+                     expected in practice (see the module docstring's
+                     validation note); surfaced loudly rather than risking
+                     a silent wrong shape if it ever is. Shell 0's own 3
+                     sectors (2 same-shell neighbors each) are the one
+                     genuine exception: 2 bisector planes cannot bound a 2D
+                     region on their own regardless of search completeness
+                     (a 2D convex region needs at least 3 half-plane
+                     constraints), so that case falls back to the leftover
+                     artificial bounding-square edges instead of raising --
+                     physically sensible anyway, since shell 0's sectors
+                     really are unbounded wedges radiating from the
+                     galactic center, not full prisms (see `prism_vertices`).
+    """
+    position, local_x, local_y, local_z, vertices, owners, owner_positions = _lateral_cell_clip(
+        shell_index, shell_slot_index, edge_pc
+    )
+
     cell = []
     n = len(vertices)
     for i in range(n):
@@ -525,6 +562,85 @@ def local_lateral_cell(shell_index, shell_slot_index, edge_pc):
             vertex = _add(position, _add(_scale(local_x, u), _scale(local_y, v)))
         cell.append(vertex)
     return cell
+
+
+def lateral_neighbor_slots(shell_index, shell_slot_index, edge_pc):
+    """
+    This sector's exact same-shell Voronoi neighbors -- the slot indices
+    whose bisector plane with this sector contributes at least one edge to
+    `local_lateral_cell`'s own polygon (i.e. the true geometric same-shell
+    neighbors, not just the wider candidate set `_same_shell_neighbors`
+    returns before clipping). Shares `local_lateral_cell`'s own halfplane-
+    clip computation (`_lateral_cell_clip`) rather than duplicating it, so
+    the two can never disagree about which sectors are true neighbors.
+
+    Used by `queryDb.sector_neighbors` to drive the Sector Map's
+    neighboring-sector indicators (`html/lib/starmap.py`).
+
+    Args:
+        shell_index (int): This sector's shell index.
+        shell_slot_index (int): This sector's slot index within that shell.
+        edge_pc (float): The sector edge length, in parsecs.
+
+    Returns:
+        list[int]: Sorted, deduplicated same-shell neighbor slot indices.
+    """
+    _, _, _, _, _, owners, _ = _lateral_cell_clip(shell_index, shell_slot_index, edge_pc)
+    return sorted({slot for slot in owners if slot is not None})
+
+
+def radial_neighbor_slot(shell_index, shell_slot_index, edge_pc, direction):
+    """
+    The nearest sector slot in the adjacent shell `shell_index +
+    direction` to this sector's own center -- this sector's "outward"
+    (`direction=+1`, away from the galactic center) or "inward"
+    (`direction=-1`, toward it) radial neighbor. Unlike a lateral
+    neighbor, adjacent shells' own Voronoi tessellations don't share
+    vertices or exact face boundaries with each other at all (see the
+    module docstring's "Why radial matching only shares total coverage"
+    section) -- there is no well-defined *exact* radial neighbor the way
+    there is a lateral one, so this instead returns whichever of that
+    shell's sectors is physically closest, the practical answer for
+    "which sector is through this face" a user clicking a Sector Map
+    indicator (`queryDb.sector_neighbors`) actually wants.
+
+    Args:
+        shell_index (int): This sector's own shell index.
+        shell_slot_index (int): This sector's own slot index.
+        edge_pc (float): The sector edge length, in parsecs.
+        direction (int): `+1` for the next shell out, `-1` for the next
+                         shell in.
+
+    Returns:
+        int or None: The nearest slot index in shell `shell_index +
+                     direction`, or `None` if that shell doesn't exist
+                     (`shell_index + direction < 0`).
+    """
+    target_shell = shell_index + direction
+    if target_shell < 0:
+        return None
+
+    position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    # Same search-radius reasoning as `_same_shell_neighbors`'s own
+    # `CANDIDATE_SEARCH_RADIUS_FACTOR`: shells are spaced `edge_pc` apart
+    # (`galaxyGeometry.shell_radius_pc`), so a true radial neighbor's
+    # center sits roughly `edge_pc` from this one -- a generous multiple
+    # of that comfortably bounds the search without pulling in a shell
+    # further away than `target_shell` (`enumerate_sectors_within_radius`
+    # already prunes cheaply by shell, so this costs nothing extra to be
+    # generous about).
+    search_radius_pc = RADIAL_NEIGHBOR_SEARCH_RADIUS_FACTOR * edge_pc
+
+    best_slot, best_distance_sq = None, None
+    for candidate_shell, candidate_slot, x, y, z, distance_pc in enumerate_sectors_within_radius(
+        position, search_radius_pc, edge_pc
+    ):
+        if candidate_shell != target_shell:
+            continue
+        distance_sq = distance_pc * distance_pc
+        if best_distance_sq is None or distance_sq < best_distance_sq:
+            best_slot, best_distance_sq = candidate_slot, distance_sq
+    return best_slot
 
 
 def prism_vertices(shell_index, shell_slot_index, edge_pc):

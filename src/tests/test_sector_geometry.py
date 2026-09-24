@@ -27,8 +27,10 @@ from stellarObjects.galaxyGeometry import (
 )
 from stellarObjects.sectorGeometry import (
     cube_orientation,
+    lateral_neighbor_slots,
     local_lateral_cell,
     prism_vertices,
+    radial_neighbor_slot,
     _same_shell_neighbors,
     _circumcenter_3d,
 )
@@ -235,3 +237,66 @@ def test_local_lateral_cell_radially_adjacent_shells_share_outer_radius():
         assert galactic_radius_pc(v) == pytest.approx((shell_index + 1) * EDGE_PC)
     for v in inner_of_k_plus_1:
         assert galactic_radius_pc(v) == pytest.approx((shell_index + 1) * EDGE_PC)
+
+
+# ---------------------------------------------------------------------------
+# lateral_neighbor_slots / radial_neighbor_slot
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("shell_index,shell_slot_index", [
+    (1, 0), (1, 12), (5, 100), (50, 12000),
+])
+def test_lateral_neighbor_slots_matches_local_lateral_cell_owners(shell_index, shell_slot_index):
+    # lateral_neighbor_slots shares local_lateral_cell's own half-plane
+    # clip (_lateral_cell_clip) -- confirms it actually reports the same
+    # slots that own a real edge of that cell, computed independently via
+    # the cell's own vertex-sharing property (a slot whose bisector plane
+    # contributed an edge shares at least one exact vertex with this
+    # sector's own cell -- see test_local_lateral_cell_shares_exact_
+    # vertices_with_a_real_neighbor for why that sharing is exact).
+    cell = local_lateral_cell(shell_index, shell_slot_index, EDGE_PC)
+    neighbor_slots = lateral_neighbor_slots(shell_index, shell_slot_index, EDGE_PC)
+    assert neighbor_slots == sorted(set(neighbor_slots))  # sorted, deduplicated
+
+    for slot in neighbor_slots:
+        other_cell = local_lateral_cell(shell_index, slot, EDGE_PC)
+        shared = any(_dist(v, ov) < 1e-6 for v in cell for ov in other_cell)
+        assert shared, f"slot {slot} reported as a neighbor but shares no vertex with slot {shell_slot_index}"
+
+
+def test_lateral_neighbor_slots_is_symmetric():
+    # Voronoi adjacency is inherently symmetric (if A borders B, B borders
+    # A) -- a real, independent property of the two cells this exact
+    # computation should never violate.
+    shell_index, slot_a = 5, 100
+    neighbors_of_a = lateral_neighbor_slots(shell_index, slot_a, EDGE_PC)
+    assert neighbors_of_a
+    slot_b = neighbors_of_a[0]
+    neighbors_of_b = lateral_neighbor_slots(shell_index, slot_b, EDGE_PC)
+    assert slot_a in neighbors_of_b
+
+
+def test_radial_neighbor_slot_shell_zero_has_no_inward_neighbor():
+    # Shell 0 sits at the galactic center -- there is no shell -1.
+    assert radial_neighbor_slot(0, 0, EDGE_PC, -1) is None
+
+
+@pytest.mark.parametrize("shell_index,shell_slot_index", [
+    (0, 0), (1, 12), (5, 100), (50, 12000),
+])
+def test_radial_neighbor_slot_outward_is_a_valid_slot_in_the_next_shell(shell_index, shell_slot_index):
+    outward = radial_neighbor_slot(shell_index, shell_slot_index, EDGE_PC, 1)
+    assert outward is not None
+    assert 0 <= outward < shell_sector_count(shell_index + 1)
+
+
+def test_radial_neighbor_slot_is_close_to_this_sector_not_across_the_galaxy():
+    # A real radial neighbor's center should sit roughly one shell's
+    # worth of radial spacing away (see radial_neighbor_slot's own
+    # docstring) -- not some arbitrary, much farther slot a broken search
+    # radius let slip through.
+    shell_index, shell_slot_index = 50, 12000
+    position = sector_position_pc(shell_index, shell_slot_index, EDGE_PC)
+    outward_slot = radial_neighbor_slot(shell_index, shell_slot_index, EDGE_PC, 1)
+    outward_position = sector_position_pc(shell_index + 1, outward_slot, EDGE_PC)
+    assert _dist(position, outward_position) < 5.0 * EDGE_PC
