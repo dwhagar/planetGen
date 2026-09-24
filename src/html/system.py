@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib
 from apiclient import (
     ApiError, auth_me, get_system, get_system_sections, get_system_text, get_wiki_config, upload_system_to_wiki,
 )
-from fmt import esc, linkify_location, nearest_neighbors_location, post_link
+from fmt import esc, linkify_location, nearest_neighbors_location, post_link, static_url
 from mdconvert import markdown_to_html
 from page import form_params, incoming_cookie_header, nav_params, run
 from systemmap import render_system_map_panel
@@ -513,8 +513,8 @@ def handler():
 {system_html}
 {stars_html}
 {bodies_html}
-<script type="module" src="static/systemmap.js"></script>
-<script type="module" src="static/copycode.js"></script>
+<script type="module" src="{static_url("systemmap.js")}"></script>
+<script type="module" src="{static_url("copycode.js")}"></script>
 """
     return f"System: {system['name']}", body
 

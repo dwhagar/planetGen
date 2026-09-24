@@ -30,7 +30,7 @@ import traceback
 from urllib.parse import parse_qs
 
 from apiclient import ApiError, NotFoundError, auth_me
-from fmt import esc, post_link  # noqa: F401 -- post_link re-exported for `from page import post_link` callers
+from fmt import esc, post_link, static_url  # noqa: F401 -- post_link re-exported for `from page import post_link` callers
 
 # stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
 # at src/html/lib/ -- add src/ to sys.path the same way apiclient.py
@@ -196,18 +196,36 @@ def incoming_cookie_header():
     return os.environ.get("HTTP_COOKIE")
 
 
+# The Content-Security-Policy every HTML/JSON response from `html/` carries.
+# `default-src 'self'` covers scripts, styles, images, fonts and fetch():
+# the shell only loads same-origin `static/` files, the map pages build
+# their canvases/WebGL textures in memory (no data:/blob: URLs), and
+# nothing inline -- no `<script>` blocks, no `style="..."` attributes (JS
+# setting `element.style` is not affected by CSP). The rest are the
+# directives `default-src` does not fall back to: no `<base>` hijacking,
+# forms only post back to this site, no framing (the modern form of
+# X-Frame-Options, kept below for old browsers), and no plugins.
+CONTENT_SECURITY_POLICY = ("default-src 'self'; base-uri 'self'; form-action 'self'; "
+                           "frame-ancestors 'none'; object-src 'none'")
+
+# The one place the HTML pages' security headers are decided. Apache's
+# example vhost used to set the first three on every response too; it no
+# longer does for pages (see examples/apache/planetgen.conf.example), so
+# these work the same with or without that config. The JSON API sets its
+# own stricter set in html/api/app.py.
+SECURITY_HEADERS = (
+    ("X-Content-Type-Options", "nosniff"),
+    ("X-Frame-Options", "DENY"),
+    ("Referrer-Policy", "no-referrer"),
+    ("Content-Security-Policy", CONTENT_SECURITY_POLICY),
+)
+
+
 def _write_security_headers():
-    """
-    Written by both `send_headers` and `redirect` -- `'self'` in the CSP
-    is safe for every page this browser renders: `render()`'s shared shell
-    (see below) only ever loads `static/style.css` and each page's own
-    `static/*.js`, both same-origin, and no page here builds an inline
-    `<script>`/`<style>` block from request- or database-derived content.
-    """
-    sys.stdout.write("X-Content-Type-Options: nosniff\r\n")
-    sys.stdout.write("X-Frame-Options: DENY\r\n")
-    sys.stdout.write("Referrer-Policy: no-referrer\r\n")
-    sys.stdout.write("Content-Security-Policy: default-src 'self'\r\n")
+    """Written by `send_headers`, `send_json_headers` and `redirect` --
+    see `SECURITY_HEADERS`."""
+    for name, value in SECURITY_HEADERS:
+        sys.stdout.write(f"{name}: {value}\r\n")
 
 
 def send_headers(status="200 OK", set_cookie_headers=None):
@@ -371,10 +389,63 @@ def _sidenav_html():
     return "".join(
         post_link(action, params, label, css_class="sidenav-item")
         for action, params, label in items
-    )
+    ) + THEME_TOGGLE_HTML
 
 
-def render(title, body_html, status="200 OK", set_cookie_headers=None):
+# Light/dark/system switch at the bottom of the side nav. Starts `hidden`:
+# `static/theme.js` reveals and wires it, so a browser without JavaScript
+# never shows a button that does nothing (the page just follows the OS
+# theme). The label names the current setting; `aria-pressed` isn't used
+# because this is a three-way cycle, not an on/off switch.
+THEME_TOGGLE_HTML = ('<button type="button" class="link-btn sidenav-item theme-toggle" '
+                     'data-theme-toggle hidden>Theme: System</button>')
+
+# Browser UI colour (address bar etc.) per OS theme -- `--bg` from
+# static/style.css's light and dark token blocks. theme.js repoints both
+# at one colour when the visitor picks a theme explicitly.
+THEME_COLOR_LIGHT = "#f6f7fb"
+THEME_COLOR_DARK = "#14151e"
+
+
+def head_html(title, description=None):
+    """
+    The shared `<head>` contents (without the `<head>` tags themselves):
+    charset, viewport, title, description, theme colours, favicon, the
+    stylesheet, and the site-wide scripts. Split out of `render` so it
+    can be tested on its own.
+
+    `static/theme.js` is a small blocking script placed before the
+    stylesheet on purpose: it only reads localStorage and sets
+    `data-theme` on `<html>`, so the first paint already uses the chosen
+    theme instead of flashing the OS one first. Everything else is
+    `defer`/module.
+
+    Args:
+        title (str): The full, unescaped `<title>` text.
+        description (str, optional): Page-specific `<meta name=
+            "description">`; defaults to a site-wide one.
+
+    Returns:
+        str: HTML, every interpolated value escaped.
+    """
+    site_name = load_config()["site_name"]
+    if not description:
+        description = (f"{site_name}: a browsable, procedurally generated galaxy of sectors, "
+                       f"star systems, planets and phenomena.")
+    return f"""<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(title)}</title>
+<meta name="description" content="{esc(description)}">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="{THEME_COLOR_LIGHT}" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="{THEME_COLOR_DARK}" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="{static_url('favicon.svg')}">
+<script src="{static_url('theme.js')}"></script>
+<link rel="stylesheet" href="{static_url('style.css')}">
+<script src="{static_url('navform.js')}" defer></script>"""
+
+
+def render(title, body_html, status="200 OK", set_cookie_headers=None, description=None):
     """
     Sends headers and a complete HTML page (shared shell + `body_html`)
     to stdout.
@@ -390,18 +461,17 @@ def render(title, body_html, status="200 OK", set_cookie_headers=None):
         status (str): CGI status line -- `"200 OK"` unless the caller is
                       rendering an error page.
         set_cookie_headers (list[str], optional): See `send_headers`.
+        description (str, optional): `<meta name="description">` text for
+            this page (see `head_html`); a site-wide default otherwise.
     """
     safe_title = esc(title)
-    site_name = esc(load_config()["site_name"])
+    site_name = load_config()["site_name"]
     log.debug(f"Rendering page {title!r} ({len(body_html)} bytes of body HTML)")
     send_headers(status, set_cookie_headers=set_cookie_headers)
     sys.stdout.write(f"""<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>{safe_title} - {site_name}</title>
-<link rel="stylesheet" href="static/style.css">
-<script src="static/navform.js" defer></script>
+{head_html(f"{title} - {site_name}", description)}
 </head>
 <body>
 <nav class="sidenav" aria-label="Main">{_sidenav_html()}</nav>
