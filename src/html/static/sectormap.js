@@ -9,12 +9,19 @@
 // only thing read from the page -- every position/size/color/label for
 // every star and phenomenon cloud, plus the compass arrow, is data
 // `starmap.py` already computed; this file only ever turns that data
-// into sprites/lines and wires up drag-to-rotate, scroll/button-to-zoom,
-// and click/keyboard-for-info, the same interaction set the old CSS
-// version had (a real perspective camera now does the projection/
-// occlusion a browser's `preserve-3d` compositor used to, and a sprite
-// always faces the camera by construction, so there's no more manual
-// per-frame billboard counter-rotation to do).
+// into real 3D bodies/lines and wires up drag-to-rotate, scroll/button-
+// to-zoom, and click/keyboard-for-info, the same interaction set the old
+// CSS version had (a real perspective camera now does the projection/
+// occlusion a browser's `preserve-3d` compositor used to).
+//
+// Every star and phenomenon cloud (nebula/asteroid field/black hole/
+// neutron star) is a real textured, glowing `THREE.Mesh` sphere -- not a
+// flat camera-facing `THREE.Sprite` the way this file used to draw them
+// (a label and the highlight ring still are sprites, which suits them
+// fine: flat 2D content with no "seen from any angle" concern a body's
+// own true 3D shape has). `./bodyRendering.js` supplies the shared
+// glow-shell shader and star granulation texture, the same building
+// blocks `static/systemmap.js` uses for its own per-marker spheres.
 //
 // Built with plain DOM calls (never innerHTML/textContent-with-markup)
 // when filling the info panel, same discipline the old version had --
@@ -22,6 +29,7 @@
 // name can contain arbitrary characters via `--name`).
 
 import * as THREE from "./vendor/three.module.min.js";
+import { makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
@@ -108,33 +116,14 @@ function navLink(entry, label) {
   return link;
 }
 
-// --- Sprite textures ---------------------------------------------------
+// --- Body textures -------------------------------------------------------
 //
-// Every marker is a canvas-drawn circle turned into a `THREE.Sprite`: a
-// sprite always faces the camera (a real billboard, not the old CSS
-// version's per-frame counter-rotation trick), and a scene this size
-// (a sector holds "only a handful of systems" -- see spaceSector.py) is
-// nowhere near enough markers for a fresh canvas+texture per instance to
-// matter -- there's no shared texture atlas/instancing here because
-// there's no need for one at this scale.
-
-function makeStarTexture(fillColor, strokeColor) {
-  var size = 64;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = canvasEl.height = size;
-  var ctx = canvasEl.getContext("2d");
-  var r = size / 2;
-  ctx.beginPath();
-  ctx.arc(r, r, r - 3, 0, Math.PI * 2);
-  ctx.fillStyle = fillColor;
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = strokeColor;
-  ctx.stroke();
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
+// A scene this size (a sector holds "only a handful of systems" -- see
+// spaceSector.py) is nowhere near enough markers for a fresh canvas
+// texture + fresh sphere geometry/material per instance to matter -- no
+// shared texture atlas/instancing here because there's no need for one
+// at this scale, the same reasoning this file already applied to its old
+// sprite textures.
 
 function makeRingTexture(color) {
   var size = 64;
@@ -250,6 +239,60 @@ function textureForCloud(cloud) {
   return recipe ? recipe() : makeNebulaTexture("#c9a8e090", "#c9a8e030");
 }
 
+// Extra fresnel glow shell layered over each body's own core texture
+// above (see ./bodyRendering.js's own makeGlowMaterial) -- a true 3D
+// "brightest at the silhouette, from any angle" glow the flat radial
+// textures above can't give on their own once mapped onto a sphere
+// (their own gradient varies by latitude there, not by view angle).
+// power/strength/scale tuned per kind so each reads as "this kind of
+// object glows this much" -- a neutron star's tight, intense beam vs. a
+// quiescent black hole's dim, contained one.
+var CLOUD_GLOW_RECIPES = {
+  asteroidField: { color: "#b89a6e", power: 3.0, strength: 0.5, scale: 1.12 },
+  blackHoleAccreting: { color: "#ff9d4d", power: 1.8, strength: 1.6, scale: 1.4 },
+  blackHoleQuiescent: { color: "#4b2f66", power: 2.5, strength: 0.7, scale: 1.2 },
+  neutronStar: { color: "#8fc7ff", power: 1.2, strength: 2.4, scale: 1.45 },
+};
+
+function glowRecipeForCloud(cloud) {
+  if (cloud.kind === "nebula") {
+    // cloud.coreColor is an 8-digit RGBA hex (alpha baked in, see
+    // lib/starmap.py's own data["coreColor"]) -- stripped to a plain
+    // 6-digit color for the glow shader's own uniform, which controls
+    // opacity itself via glowStrength rather than a texture alpha
+    // channel.
+    var core = (cloud.coreColor || "#c9a8e090").slice(0, 7);
+    return { color: core, power: 2.2, strength: 1.3, scale: 1.3 };
+  }
+  return CLOUD_GLOW_RECIPES[cloud.kind] || CLOUD_GLOW_RECIPES.asteroidField;
+}
+
+// A real 3D body: a textured core sphere plus a fresnel glow shell
+// (./bodyRendering.js), replacing the flat always-facing-camera Sprite
+// this file used to draw for every star/cloud. `coreTexture` is
+// whatever this kind's own recipe already built above (a star's own
+// granulation via makeStarSurfaceTexture, or one of the existing
+// nebula/asteroid-field/compact-remnant textures reused unchanged);
+// `coreColorHex` tints it (0xffffff/no-op when the texture already has
+// its own baked-in color, as every one of these does). Returns
+// `{core, glow}` -- the caller adds `core` to the raycastable
+// interactiveGroup and `glow` directly to the scene (see this file's own
+// module docstring on why the glow shell is never a raycast target of
+// its own).
+function makeBodySpheres(radius, coreTexture, coreColorHex, glow) {
+  var coreMaterial = new THREE.MeshBasicMaterial({
+    map: coreTexture || null, color: coreColorHex, transparent: !!coreTexture,
+  });
+  var core = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), coreMaterial);
+  core.scale.setScalar(radius);
+
+  var glowMaterial = makeGlowMaterial(THREE, glow.color, glow.power, glow.strength);
+  var glowMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), glowMaterial);
+  glowMesh.scale.setScalar(radius * glow.scale);
+
+  return { core: core, glow: glowMesh };
+}
+
 function makeTextSprite(text, color) {
   var measuring = document.createElement("canvas").getContext("2d");
   var font = "600 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
@@ -363,22 +406,30 @@ function initStarmap(canvasEl, data) {
   scene.add(interactiveGroup);
   var entryByObject = new Map();
 
+  // A star's own glow: bright/wide, like static/systemmap.js's identical
+  // STAR_GLOW_POWER/_STRENGTH/_SCALE tuning for its own star spheres --
+  // shared visual language for "this is a star" across both maps.
+  var STAR_GLOW = { power: 1.5, strength: 2.2, scale: 1.4 };
+
   (data.stars || []).forEach(function (star) {
-    var texture = makeStarTexture(star.fill, star.stroke);
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
-    sprite.position.set(star.x, star.y, star.z);
-    sprite.scale.set(star.r * 2, star.r * 2, 1);
-    interactiveGroup.add(sprite);
-    entryByObject.set(sprite, star);
+    var bodies = makeBodySpheres(
+      star.r, makeStarSurfaceTexture(THREE, star.fill), 0xffffff,
+      { color: star.fill, power: STAR_GLOW.power, strength: STAR_GLOW.strength, scale: STAR_GLOW.scale },
+    );
+    bodies.core.position.set(star.x, star.y, star.z);
+    bodies.glow.position.set(star.x, star.y, star.z);
+    interactiveGroup.add(bodies.core);
+    scene.add(bodies.glow);
+    entryByObject.set(bodies.core, star);
   });
 
   (data.clouds || []).forEach(function (cloud) {
-    var texture = textureForCloud(cloud);
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
-    sprite.position.set(cloud.x, cloud.y, cloud.z);
-    sprite.scale.set(cloud.r * 2, cloud.r * 2, 1);
-    interactiveGroup.add(sprite);
-    entryByObject.set(sprite, cloud);
+    var bodies = makeBodySpheres(cloud.r, textureForCloud(cloud), 0xffffff, glowRecipeForCloud(cloud));
+    bodies.core.position.set(cloud.x, cloud.y, cloud.z);
+    bodies.glow.position.set(cloud.x, cloud.y, cloud.z);
+    interactiveGroup.add(bodies.core);
+    scene.add(bodies.glow);
+    entryByObject.set(bodies.core, cloud);
   });
 
   var highlightSprite = new THREE.Sprite(

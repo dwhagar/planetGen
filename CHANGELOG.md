@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.46.30] - 2026-09-24
+
+### Changed
+- **Sector Map: stars, nebulae, asteroid fields, black holes, and neutron
+  stars are now real, textured, glowing 3D spheres** instead of flat
+  camera-facing sprites, matching the System Map's own body rendering.
+  Each body is a textured core mesh (star granulation, nebula/asteroid/
+  compact-remnant textures reused unchanged as sphere surfaces) plus a
+  fresnel rim-glow shell sized and colored per body kind (bright corona
+  for stars/neutron stars/accreting black holes, a softer shell for
+  nebulae/asteroid fields). The glow shader and star granulation texture
+  are now shared with the System Map via a new `static/bodyRendering.js`
+  module rather than duplicated between the two files.
+
 ## [5.46.29] - 2026-09-24
 
 ### Changed

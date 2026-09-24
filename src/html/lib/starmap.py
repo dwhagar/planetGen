@@ -552,9 +552,10 @@ def _star_dot_radius(radius_km):
 def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None):
     """
     Builds one star's plain-dict scene entry -- `sectormap.js` draws it as
-    a billboarded sprite (a real WebGL billboard always faces the camera by
-    construction, unlike the old CSS version's `_dot_html`, which had to
-    counter-rotate a flat disc by hand every frame to fake the same thing).
+    a real, textured, glowing 3D sphere (`static/bodyRendering.js`'s
+    granulation texture, tinted to `fill` below), unlike the old CSS
+    version's `_dot_html`, which had to counter-rotate a flat disc by hand
+    every frame to fake a billboard.
     """
     dot_r = _star_dot_radius(star["radius_km"])
     if max_r is not None:
@@ -584,7 +585,7 @@ def _star_data(db_name, system, star, x_px, y_px, z_px, label_suffix, max_r=None
 # single sector -- a big emission nebula can dwarf the whole scene -- so
 # unlike a star dot's radius (always tiny next to the scene), this needs
 # its own generous cap: large enough to visibly engulf/overflow the frame
-# without an unbounded sprite size for a pathological radius_ly value.
+# without an unbounded sphere size for a pathological radius_ly value.
 _MAX_CLOUD_RADIUS_PX = 6 * (2 * _SCENE_HALF_PX)
 
 # Fill color (and base opacity, baked into the alpha channel below) per

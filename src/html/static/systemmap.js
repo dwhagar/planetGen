@@ -27,6 +27,7 @@
 // to render (no WebGL) just leaves that marker's flat circle showing.
 
 import * as THREE from "./vendor/three.module.min.js";
+import { makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
 
 function addField(dl, label, value) {
   if (!value && value !== 0) {
@@ -49,40 +50,12 @@ function classField(el) {
 }
 
 // --- Per-marker body spheres (the one 3D layer on this page) --------------
-
-var GLOW_VERTEX_SHADER = [
-  "varying vec3 vNormal;",
-  "varying vec3 vViewDir;",
-  "void main() {",
-  "  vNormal = normalize(normalMatrix * normal);",
-  "  vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);",
-  "  vViewDir = normalize(-viewPosition.xyz);",
-  "  gl_Position = projectionMatrix * viewPosition;",
-  "}",
-].join("\n");
-
-// A standard fresnel rim-glow: brightest where the surface normal points
-// away from the camera (the limb), near-zero head-on -- rendered on a
-// slightly larger, back-face-only, additively-blended sphere around the
-// body itself, the common cheap "planet atmosphere" trick (no real
-// scattering simulation, just a glow that reads as one). glowPower/
-// glowStrength are the same shell reused for a star's own corona too
-// (see configureBody) -- a lower glowPower spreads the glow in across
-// more of the disc instead of a thin limb-only rim, and a higher
-// glowStrength brightens it, together reading as "this is a light
-// source" rather than the same subtle atmosphere haze a planet gets.
-var GLOW_FRAGMENT_SHADER = [
-  "uniform vec3 glowColor;",
-  "uniform float glowPower;",
-  "uniform float glowStrength;",
-  "varying vec3 vNormal;",
-  "varying vec3 vViewDir;",
-  "void main() {",
-  "  float rim = 1.0 - max(dot(vNormal, vViewDir), 0.0);",
-  "  float intensity = pow(rim, glowPower) * glowStrength;",
-  "  gl_FragColor = vec4(glowColor, intensity);",
-  "}",
-].join("\n");
+//
+// The glow shader (GLOW_VERTEX_SHADER/GLOW_FRAGMENT_SHADER) and the star
+// granulation texture now live in ./bodyRendering.js, shared with
+// sectormap.js's own star/nebula/asteroid-field/black-hole/neutron-star
+// spheres -- imported above (makeGlowMaterial/makeStarSurfaceTexture)
+// rather than duplicated here.
 
 function hexToRgba(hex, alpha) {
   var c = new THREE.Color(hex);
@@ -145,48 +118,6 @@ function makeRingTexture(baseColorHex) {
   return texture;
 }
 
-// A star's photosphere reads as mottled granulation, not a clean flat
-// disc -- unlike makeBandTexture's height-only banding (correct for a
-// horizontally-banded gas giant), this varies in BOTH UV directions:
-// several layered sine "octaves" at different frequencies/phases/axes,
-// cross-modulated against each other, give an irregular blotchy pattern
-// (bright granulation cells and darker starspot-like patches) rather
-// than a regular grid a plain 2D sine product would produce. Built once
-// per star marker (cached as marker.starTexture, same convention
-// bandTexture/ringTexture already use), not per frame.
-function makeStarTexture(baseColorHex) {
-  var size = 128;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = canvasEl.height = size;
-  var ctx = canvasEl.getContext("2d");
-  var base = new THREE.Color(baseColorHex);
-  var imageData = ctx.createImageData(size, size);
-  for (var y = 0; y < size; y++) {
-    var v = y / size;
-    for (var x = 0; x < size; x++) {
-      var u = x / size;
-      var n =
-        0.5 +
-        0.22 * Math.sin(u * Math.PI * 18 + Math.sin(v * 11) * 2.0) +
-        0.18 * Math.sin(v * Math.PI * 14 + Math.cos(u * 9) * 2.4) +
-        0.12 * Math.sin((u + v) * Math.PI * 23) +
-        0.1 * Math.sin((u - v) * Math.PI * 27 + 1.3);
-      n = Math.max(0, Math.min(1, n));
-      // Kept bright overall (0.72-1.12x) -- a self-luminous surface, so
-      // this is texture/granulation, never allowed to read as "shadow".
-      var shade = 0.72 + 0.4 * n;
-      var idx = (y * size + x) * 4;
-      imageData.data[idx] = Math.min(255, Math.round(base.r * 255 * shade));
-      imageData.data[idx + 1] = Math.min(255, Math.round(base.g * 255 * shade));
-      imageData.data[idx + 2] = Math.min(255, Math.round(base.b * 255 * shade));
-      imageData.data[idx + 3] = 255;
-    }
-  }
-  ctx.putImageData(imageData, 0, 0);
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
 
 function parseSurfaceTempK(text) {
   var match = /(-?[\d.]+)/.exec(text || "");
@@ -292,19 +223,7 @@ function initSphereField(canvasEl) {
   var STAR_GLOW_STRENGTH = 2.2;
   var STAR_GLOW_SCALE = 1.45;
 
-  var glowMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      glowColor: { value: new THREE.Color(0xbcdfff) },
-      glowPower: { value: PLANET_GLOW_POWER },
-      glowStrength: { value: PLANET_GLOW_STRENGTH },
-    },
-    vertexShader: GLOW_VERTEX_SHADER,
-    fragmentShader: GLOW_FRAGMENT_SHADER,
-    side: THREE.BackSide,
-    blending: THREE.AdditiveBlending,
-    transparent: true,
-    depthWrite: false,
-  });
+  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
   bodyGroup.add(glow);
 
@@ -515,7 +434,7 @@ function gatherSphereMarkers(sceneEl) {
       marker.ringTexture = makeRingTexture(marker.color);
     }
     if (isStar) {
-      marker.starTexture = makeStarTexture(marker.color);
+      marker.starTexture = makeStarSurfaceTexture(THREE, marker.color);
     }
     el.classList.add("sysmap-sphere-active");
     markers.push(marker);
