@@ -44,10 +44,10 @@
 # "http://127.0.0.1/api", i.e. this same vhost) is where each CGI script
 # looks for it; no override needed for the common case of API and browser
 # sharing one vhost the way this example does. WSGIScriptAlias below
-# mounts html/wsgi.py's `application` at /api/, in its own daemon process
-# (WSGIDaemonProcess) rather than Apache's embedded/shared-process mode,
-# for the same isolation a real deployment wants regardless of where the
-# API's own source happens to live. Needs `a2enmod wsgi`.
+# mounts html/wsgi.py's `application` at / -- the API under /api/ and the
+# HTML pages that have moved off CGI everywhere else -- in its own daemon
+# process (WSGIDaemonProcess) rather than Apache's embedded/shared-process
+# mode. Needs `a2enmod wsgi alias` (alias is on by default).
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
@@ -117,10 +117,27 @@
     # defaults to "planetgen_control" if unset.
     # SetEnv PLANETGEN_CONTROL_DATABASE planetgen_control
 
+    # URL routing (the pages are moving from CGI to the Flask app, one
+    # at a time -- docs/html-interface.md, "Flask pages"):
+    #
+    #   /static/...   Apache serves the files directly (Alias below).
+    #   /<name>.py    a page still on CGI (ScriptAliasMatch below).
+    #   everything else -- /, /sectors, /systems, /api/..., and each page
+    #                 as it moves -- goes to the Flask app (html/wsgi.py,
+    #                 WSGIScriptAlias / further down).
+    #
+    # mod_wsgi runs its WSGIScriptAlias after mod_alias's Alias/
+    # ScriptAliasMatch, so these two win for the paths they match even
+    # though WSGIScriptAlias / matches every URL. The regex only matches a
+    # top-level `name.py` of lowercase letters and underscores (the CGI
+    # pages), never wsgi.py and never anything under lib/ or api/, which
+    # therefore fall through to Flask and get its 404 page.
+    Alias /static/ /var/lib/planetGen/src/html/static/
+    ScriptAliasMatch "^/((?!wsgi\.py$)[a-z_]+\.py)$" "/var/lib/planetGen/src/html/$1"
+
     <Directory /var/lib/planetGen/src/html>
         Options +ExecCGI -Indexes
         AddHandler cgi-script .py
-        DirectoryIndex index.py
         Require all granted
     </Directory>
 
@@ -208,7 +225,11 @@
     # OOM killer takes Apache down with it -- what happened on 2026-09-24
     # with the Galaxy Map's old unbounded view query.
     WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
-    WSGIScriptAlias /api /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
+    #
+    # Mounted at / (not /api): the same app serves the JSON API under /api
+    # and the moved HTML pages everywhere else. Replace an older
+    # `WSGIScriptAlias /api ...` line with this one; don't keep both.
+    WSGIScriptAlias / /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
     <Directory /var/lib/planetGen/src/html/api>
         Require all denied
     </Directory>
@@ -255,18 +276,20 @@
 #      the same process group too, without a second, conflicting
 #      declaration. `WSGIScriptAlias`/`<Directory api>`/`<Files
 #      "wsgi.py">` still need to be repeated in EACH vhost that mounts
-#      /api (mod_wsgi's own per-vhost mount, unlike the daemon process
+#      the app (mod_wsgi's own per-vhost mount, unlike the daemon process
 #      itself) -- copy those three from the :80 block above into the new
-#      :443 block, along with everything else in it (`<Directory html>`/
-#      `<Directory lib>`/`<Directory static>` etc.), then add:
+#      :443 block, along with everything else in it (`Alias /static/`,
+#      `ScriptAliasMatch`, `<Directory html>`/`<Directory lib>`/
+#      `<Directory static>` etc.), then add:
 #
 #        SSLEngine on
 #        SSLCertificateFile /etc/letsencrypt/live/planetgen.example.com/fullchain.pem
 #        SSLCertificateKeyFile /etc/letsencrypt/live/planetgen.example.com/privkey.pem
 #
-#   2. Replace the `:80` block's contents with just its own `/api` mount
-#      (`WSGIScriptAlias`/`<Directory api>`/`<Files "wsgi.py">`, kept
-#      as-is) plus a redirect for everything else:
+#   2. Replace the `:80` block's contents with just its own app mount
+#      (`WSGIScriptAlias /`/`<Directory api>`/`<Files "wsgi.py">`, kept
+#      as-is) plus a redirect for everything except /api (mod_rewrite
+#      runs before the mount, so only /api reaches the app on :80):
 #
 #        RewriteEngine On
 #        RewriteCond %{REQUEST_URI} !^/api

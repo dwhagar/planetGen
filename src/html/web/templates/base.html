@@ -1,0 +1,104 @@
+{#- html/web/templates/base.html -- the shell every Flask-served page extends.
+
+Context (from web.helpers.render_page and the context processor in
+web/__init__.py): title, section, breadcrumbs, description, site_name,
+site_version, sections, static_url(), page_url(), current_admin(),
+csrf_field().
+
+Blocks a page may fill: content (required), head (extra <link>/<script>
+tags, e.g. a map module), heading (to replace the default <h1>),
+subhead (badges or actions under the <h1>). -#}
+{%- macro section_links(label) -%}
+<nav class="site-sections" aria-label="{{ label }}">
+  <ul>
+    {%- for name, text in sections %}
+    <li><a href="{{ page_url(name) }}"{% if name == section %} aria-current="page"{% endif %}>{{ text }}</a></li>
+    {%- endfor %}
+  </ul>
+</nav>
+{%- endmacro -%}
+{%- macro search_form(id) -%}
+<form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
+  <label class="sr-only" for="{{ id }}">Search systems</label>
+  <input id="{{ id }}" type="search" name="q" placeholder="Search systems" autocomplete="off" enterkeyhint="search">
+  <button type="submit">Search</button>
+</form>
+{%- endmacro -%}
+{%- macro account_links() -%}
+{%- set admin = current_admin() -%}
+<nav class="site-account" aria-label="Account">
+<ul>
+  {%- if admin %}
+  <li><a href="{{ page_url('admin') }}"{% if section == 'admin' %} aria-current="page"{% endif %}>Admin</a></li>
+  <li><a href="{{ page_url('admin_stats') }}"{% if section == 'admin_stats' %} aria-current="page"{% endif %}>Stats</a></li>
+  <li><a href="{{ page_url('logout') }}">Logout</a></li>
+  {%- else %}
+  <li><a href="{{ page_url('login') }}"{% if section == 'login' %} aria-current="page"{% endif %}>Login</a></li>
+  {%- endif %}
+  <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
+</ul>
+</nav>
+{%- endmacro -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} - {{ site_name }}</title>
+{%- if description %}
+<meta name="description" content="{{ description }}">
+{%- endif %}
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14151e" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="{{ static_url('favicon.svg') }}">
+<script src="{{ static_url('theme.js') }}"></script>
+<link rel="stylesheet" href="{{ static_url('style.css') }}">
+{%- block head %}{% endblock %}
+</head>
+<body class="app">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-name" href="{{ url_for('web.index') }}"{% if request.endpoint == 'web.index' %} aria-current="page"{% endif %}>{{ site_name }}</a>
+    <div class="site-wide">
+      {{ section_links("Main") }}
+      {{ search_form("site-search-wide") }}
+      {{ account_links() }}
+    </div>
+    <details class="site-menu">
+      <summary>Menu</summary>
+      <div class="site-menu-panel">
+        {{ search_form("site-search-menu") }}
+        {{ section_links("Main") }}
+        {{ account_links() }}
+      </div>
+    </details>
+  </div>
+</header>
+<main id="main" class="app-main" tabindex="-1">
+  {%- if breadcrumbs %}
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="{{ url_for('web.index') }}">Home</a></li>
+      {%- for item in breadcrumbs %}
+      {%- if item.url and not loop.last %}
+      <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+      {%- else %}
+      <li><span aria-current="page">{{ item.label }}</span></li>
+      {%- endif %}
+      {%- endfor %}
+    </ol>
+  </nav>
+  {%- endif %}
+  {%- block heading %}
+  <h1 class="page-title">{{ title }}</h1>
+  {%- endblock %}
+  {%- block subhead %}{% endblock %}
+  {%- block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <p>{% if site_name != "planetGen" %}{{ site_name }} &middot; {% endif %}planetGen {{ site_version }}</p>
+</footer>
+</body>
+</html>

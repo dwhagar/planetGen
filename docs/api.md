@@ -659,7 +659,9 @@ from `src/wsgi.py`/`src/api/` so the API is served from the same
 checkout/deployment tree as the CGI browser instead of a second,
 separately-tracked location). The example vhost config in
 `examples/apache/` already mounts it out of the box -- a
-`WSGIScriptAlias` for `/api` pointing at `src/html/wsgi.py`, in its own
+`WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py` (the same app
+serves the API under `/api` and the HTML pages that have moved off CGI;
+see [`apache-deployment.md`](apache-deployment.md)), in its own
 `WSGIDaemonProcess`, plus the `<Directory>` block that denies direct
 requests into `html/api/` the same way it already does for `html/lib/`
 (see [`apache-deployment.md`](apache-deployment.md)) -- so the common

@@ -1,7 +1,9 @@
 # html/wsgi.py
 
 """
-mod_wsgi/gunicorn entry point for the read-only planetGen API.
+mod_wsgi/gunicorn entry point for the planetGen Flask app: the JSON API
+under `/api` and the HTML pages that have moved off CGI (`web/`, served
+at `/`, `/sectors`, ...).
 
 Points Apache's `WSGIScriptAlias` (or a `gunicorn wsgi:application`
 invocation) at this file's `application` object. See `docs/api.md` for
@@ -44,8 +46,15 @@ log.configure(log.NORMAL, console=False)
 
 def _restore_mount_prefix(wsgi_app):
     """
-    Undoes what `WSGIScriptAlias /api ...` does to each request before it
-    reaches Flask.
+    Undoes what a `WSGIScriptAlias /api ...` mount does to each request
+    before it reaches Flask.
+
+    The example vhost now mounts the app at `/` (`WSGIScriptAlias /
+    .../wsgi.py`, so the same app serves the HTML pages too). Under that
+    mount `SCRIPT_NAME` is empty and this is a no-op. It stays for a
+    server still using the older `/api` mount, which keeps working for
+    the API (the HTML pages need the `/` mount to be reachable at all).
+    The history below explains the `/api` case.
 
     mod_wsgi mounts this app the same way Apache's `ScriptAlias` mounts a
     CGI script: a request for `/api/health` arrives here with

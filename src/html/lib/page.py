@@ -279,7 +279,7 @@ def send_json_headers(status="200 OK"):
     sys.stdout.write("\r\n")
 
 
-def redirect(url, set_cookie_headers=None):
+def redirect(url, set_cookie_headers=None, status="302 Found"):
     """
     Writes a CGI 302 redirect response to stdout and nothing else -- must
     be called instead of (never alongside) `send_headers`/`render`, and
@@ -306,15 +306,41 @@ def redirect(url, set_cookie_headers=None):
                    responsibility `send_headers` already has for the
                    `Content-Type` header.
         set_cookie_headers (list[str], optional): See `send_headers`.
+        status (str): `"302 Found"` by default; `"301 Moved Permanently"`
+            for a page that has moved to the Flask app for good (the
+            `index.py`/`browse.py` shims).
     """
-    _log_response("302 Found", f"redirect to {url}")
+    _log_response(status, f"redirect to {url}")
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stdout.write("Status: 302 Found\r\n")
+    sys.stdout.write(f"Status: {status}\r\n")
     sys.stdout.write(f"Location: {url}\r\n")
     _write_security_headers()
     for cookie in set_cookie_headers or []:
         sys.stdout.write(f"Set-Cookie: {cookie}\r\n")
     sys.stdout.write("\r\n")
+
+
+def moved_permanently(path, keep=()):
+    """
+    The whole body of a CGI shim for a page that moved to the Flask app
+    (`html/web/`): a 301 to `path`, carrying over the named parameters
+    from the old request (GET query or POST body, via `nav_params`) as a
+    GET query. Only positive integer values are carried (every carried
+    parameter today is a page number); anything else, and `db`, is
+    dropped -- the Flask pages take the database from config.
+
+    Args:
+        path (str): The new site-absolute URL path, e.g. `"/"`.
+        keep (iterable of str): Parameter names to carry, e.g.
+            `("sectors_page",)`.
+    """
+    from urllib.parse import urlencode  # local: keeps this module's import block as the shell PR left it
+
+    start_request_log()
+    params = nav_params()
+    carried = [(name, params[name]) for name in keep
+               if params.get(name, "").isdigit() and int(params[name]) > 0]
+    redirect(f"{path}?{urlencode(carried)}" if carried else path, status="301 Moved Permanently")
 
 
 def _sidenav_html():
