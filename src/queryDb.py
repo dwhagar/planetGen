@@ -86,7 +86,9 @@ def open_readonly(config=None):
 def list_sectors(conn, limit=None, offset=None):
     """
     Returns every sector, with its edge length (converted to light-years)
-    and how many systems it contains.
+    and how many systems it contains, nearest the galactic core first
+    (`galactic_radius_pc`); sectors never placed in a galaxy have no
+    distance and come last, by name.
 
     Args:
         conn (stellarObjects._db.Connection): An open, read-only connection.
@@ -98,15 +100,17 @@ def list_sectors(conn, limit=None, offset=None):
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
-                           `edge_ly`, `system_count`.
+                           `edge_ly`, `system_count`,
+                           `galactic_radius_pc`/`galactic_radius_ly`
+                           (`None` if unplaced).
     """
     query = """
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.shell_index, sec.shell_slot_index, COUNT(ss.id) AS system_count
+               sec.galactic_radius_pc, sec.shell_index, sec.shell_slot_index, COUNT(ss.id) AS system_count
         FROM sectors sec
         LEFT JOIN star_systems ss ON ss.sector_id = sec.id
         GROUP BY sec.id
-        ORDER BY sec.name
+        ORDER BY sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id
         """
     params = []
     if limit is not None:
@@ -119,6 +123,10 @@ def list_sectors(conn, limit=None, offset=None):
             "id": r["id"], "name": r["name"], "edge_mpc": r["edge_mpc"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
             "system_count": r["system_count"],
             "center_x_pc": r["center_x_pc"], "center_y_pc": r["center_y_pc"], "center_z_pc": r["center_z_pc"],
+            "galactic_radius_pc": r["galactic_radius_pc"],
+            "galactic_radius_ly": (
+                pc_to_ly(r["galactic_radius_pc"]) if r["galactic_radius_pc"] is not None else None
+            ),
             "shell_index": r["shell_index"], "shell_slot_index": r["shell_slot_index"],
             "placed": r["center_x_pc"] is not None,
         }
@@ -900,6 +908,17 @@ def sector_neighbors(conn, sector):
     return results
 
 
+def _center_distance_ly(row):
+    """A `star_systems` row's distance from its sector's center, in
+    light-years (its `position_*_mpc` is already center-relative), or
+    `None` if it was never placed."""
+    if row["position_x_mpc"] is None:
+        return None
+    return milliparsecs_to_ly(
+        math.sqrt(row["position_x_mpc"] ** 2 + row["position_y_mpc"] ** 2 + row["position_z_mpc"] ** 2)
+    )
+
+
 def sector_detail(conn, sector_id):
     """
     Returns one sector's full web-display detail: name, size, galaxy
@@ -921,9 +940,11 @@ def sector_detail(conn, sector_id):
         dict: `id`, `name`, `edge_mpc`, `edge_ly`, `center_x_pc`/
             `center_y_pc`/`center_z_pc`, `shell_index`, `shell_slot_index`,
             `placed`, `system_count`, and `systems` (one entry per system
-            placed in this sector: `id`, `name`, `quadrant`, `location`,
+            placed in this sector, nearest the sector's center first,
+            then any with no position by name: `id`, `name`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `position_x_mpc`/`position_y_mpc`/
-            `position_z_mpc`, and `stars` -- 1 entry (single) or 2
+            `position_z_mpc`, `center_distance_ly` (`None` with no
+            position), and `stars` -- 1 entry (single) or 2
             (primary then secondary), each `role`/`star_type`/
             `temperature_k`/`radius_km`/`luminosity_w`), `phenomena`
             (see `phenomena_near_sector`), `neighbors` (see
@@ -945,7 +966,10 @@ def sector_detail(conn, sector_id):
                position_x_mpc, position_y_mpc, position_z_mpc
         FROM star_systems
         WHERE sector_id = ?
-        ORDER BY name
+        ORDER BY position_x_mpc IS NULL,
+                 position_x_mpc * position_x_mpc + position_y_mpc * position_y_mpc
+                     + position_z_mpc * position_z_mpc,
+                 name, id
         """,
         (sector_id,),
     ).fetchall()
@@ -963,6 +987,7 @@ def sector_detail(conn, sector_id):
             "is_binary": row["is_binary"], "binary_type": row["binary_type"],
             "position_x_mpc": row["position_x_mpc"], "position_y_mpc": row["position_y_mpc"],
             "position_z_mpc": row["position_z_mpc"],
+            "center_distance_ly": _center_distance_ly(row),
             "stars": [dict(star_row) for star_row in star_rows],
         })
 
@@ -970,7 +995,7 @@ def sector_detail(conn, sector_id):
         "id": sector["id"], "name": sector["name"], "edge_mpc": sector["edge_mpc"],
         "edge_ly": milliparsecs_to_ly(sector["edge_mpc"]),
         "center_x_pc": sector["center_x_pc"], "center_y_pc": sector["center_y_pc"],
-        "center_z_pc": sector["center_z_pc"],
+        "center_z_pc": sector["center_z_pc"], "galactic_radius_pc": sector["galactic_radius_pc"],
         "shell_index": sector["shell_index"], "shell_slot_index": sector["shell_slot_index"],
         "placed": sector["center_x_pc"] is not None,
         "system_count": len(systems),

@@ -433,11 +433,16 @@ as a visible, denser clump without swamping the disk's own point budget."""
 
 MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR = 40
 """int: `density_sample_points` draws at most `count *
-MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR` mixture-proposal candidates before
-falling back to `_sample_point_in_sphere` for whatever's still missing --
-see that function's own docstring for why a view far from where the
-mixture proposal actually places mass (rare, e.g. deep in the halo) needs
-a bounded fallback rather than an unbounded/empty result."""
+MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR` candidates from either sampler before
+falling back to plain uniform points for whatever's still missing -- see
+that function's own docstring."""
+
+DENSITY_PILOT_ATTEMPTS = 2000
+"""int: How many mixture-proposal candidates `density_sample_points`
+draws before judging whether that proposal can fill the view at all.
+A view small next to the galaxy (a few hundred parsecs out in the disk)
+keeps only a handful of galaxy-wide candidates, so it switches to
+`_sample_local_density_points` instead."""
 
 
 def _sample_disk_point_pc(rng, shape):
@@ -493,6 +498,43 @@ def _sample_bulge_point_pc(rng, shape):
     return (r * sin_phi * math.cos(theta), r * sin_phi * math.sin(theta), r * cos_phi)
 
 
+def _sample_local_density_points(rng, center_pc, radius_pc, shape, count, max_attempts):
+    """
+    Up to `count` points inside the view sphere, drawn by rejection
+    sampling against the real `relative_density`: uniform candidates,
+    each kept with probability `density / ceiling`. The ceiling is the
+    highest density among a first batch of `count` candidates, so a view
+    where density barely varies (deep in the disk) keeps nearly every
+    candidate, and one straddling the disk's edge keeps mostly the dense
+    side. Stops after `max_attempts` candidates.
+
+    Returns:
+        list[dict]: `density_sample_points`' entries.
+    """
+    probe = []
+    for _ in range(count):
+        point = _sample_point_in_sphere(rng, center_pc, radius_pc)
+        probe.append((point, relative_density(point, shape)))
+    ceiling = max(density for _point, density in probe)
+    if ceiling <= 0:
+        return []
+
+    points = []
+
+    def offer(point, density):
+        if rng.random() * ceiling < density:
+            points.append({"x": point[0], "y": point[1], "z": point[2], "relative_density": density})
+
+    for point, density in probe:
+        offer(point, density)
+    attempts = len(probe)
+    while len(points) < count and attempts < max_attempts:
+        attempts += 1
+        point = _sample_point_in_sphere(rng, center_pc, radius_pc)
+        offer(point, relative_density(point, shape))
+    return points[:count]
+
+
 def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUNT):
     """
     A coarse, illustrative point cloud of this galaxy's real predicted
@@ -515,6 +557,16 @@ def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUN
     real `relative_density` (which *does* include the spiral-arm term)
     still driving its brightness/color, so arm structure still shows
     through as contrast within that shape.
+
+    That proposal only works for a view big enough to catch a fair share
+    of the galaxy's mass. A zoomed-in view (a few hundred parsecs out in
+    the disk) keeps almost none of its candidates, so when a short pilot
+    run (`DENSITY_PILOT_ATTEMPTS`) projects it can't fill `count` within
+    budget, the view is sampled locally instead
+    (`_sample_local_density_points`): uniform candidates inside the view,
+    each kept in proportion to its real `relative_density`. That keeps a
+    zoomed-in cloud shaped like the disk around it (a slab thinning away
+    from the plane) rather than the uniform ball the old top-up drew.
 
     Deterministically seeded from `(center_pc, radius_pc)` (rounded to
     avoid reseeding on floating-point noise) rather than a fresh random
@@ -552,6 +604,11 @@ def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUN
     max_attempts = count * MAX_DENSITY_SAMPLE_ATTEMPTS_FACTOR
     while len(points) < count and attempts < max_attempts:
         attempts += 1
+        if attempts == DENSITY_PILOT_ATTEMPTS and len(points) * max_attempts < count * attempts:
+            # This view is too small for the galaxy-wide proposal; sample
+            # it locally instead (see the docstring).
+            points = _sample_local_density_points(rng, center_pc, radius_pc, shape, count, max_attempts)
+            break
         if rng.random() < BULGE_SAMPLE_FRACTION:
             x, y, z = _sample_bulge_point_pc(rng, shape)
         else:
@@ -561,12 +618,9 @@ def density_sample_points(center_pc, radius_pc, shape, count=DENSITY_SAMPLE_COUN
             continue
         points.append({"x": x, "y": y, "z": z, "relative_density": relative_density((x, y, z), shape)})
 
-    # Bounded fallback -- a view far from where the mixture proposal above
-    # actually places mass (rare: e.g. a camera panned deep into the
-    # halo) can exhaust max_attempts short of `count` accepted points;
-    # top up with the old uniform-in-view-sphere draw so the cloud never
-    # silently thins out, even though those extra points are less likely
-    # to land somewhere bright.
+    # Bounded fallback -- if neither sampler filled `count` within its
+    # budget (a view almost entirely in near-empty halo), top up with
+    # uniform points in the view so the cloud never silently thins out.
     while len(points) < count:
         x, y, z = _sample_point_in_sphere(rng, center_pc, radius_pc)
         points.append({"x": x, "y": y, "z": z, "relative_density": relative_density((x, y, z), shape)})
