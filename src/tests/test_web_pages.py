@@ -219,12 +219,6 @@ def test_page_past_the_end_shows_last_page(client, fake):
     assert "Showing 51&ndash;60 of 60" in html
 
 
-def test_search_box_forwards_to_cgi_search(client, fake):
-    resp = client.get("/search?q=Kepler 42")
-    assert resp.status_code == 302
-    assert resp.headers["Location"] == f"/search.py?db={DB}&system_q=Kepler+42"
-
-
 # --- Account menu, one login check per request -------------------------------------
 
 def test_login_link_and_no_auth_lookup_without_cookie(client, fake):

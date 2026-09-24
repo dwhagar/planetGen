@@ -246,48 +246,8 @@ def test_phenomena_page_renders(live_api, seeded_db):
     _assert_clean_html(result, "phenomena.py")
 
 
-def test_search_page_renders(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "search.py", query={"db": db_name})
-    assert result.status_code == 200
-    _assert_clean_html(result, "search.py")
-
-
-def test_search_page_pages_a_result_panel(live_api, mysql_config):
-    """A search result panel shows 50 rows a page with the shared pager,
-    and the pager's own link (sectors_page, plus the active filters)
-    brings back the next page's rows with the filter still applied."""
-    for i in range(60):
-        _db.save_sector(SpaceSector(f"Pager Sector {i:03d}", edge_ly=10.0), config=mysql_config)
-    _db.save_sector(SpaceSector("Unrelated", edge_ly=10.0), config=mysql_config)
-
-    def _panel(body):
-        # Just the Sectors result panel -- the name autocomplete list
-        # elsewhere on the page carries every sector name.
-        panel = body[body.index('id="search-sectors"'):]
-        return panel[:panel.index("</section>")]
-
-    page1 = run_page(live_api, "search.py", query={"db": mysql_config.database, "sector_q": "Pager"})
-    assert page1.status_code == 200
-    _assert_clean_html(page1, "search.py (page 1)")
-    panel1 = _panel(page1.body)
-    assert "Sectors (60)" in panel1
-    assert "Pager Sector 049" in panel1
-    assert "Pager Sector 050" not in panel1
-    assert "Showing 1&ndash;50 of 60" in panel1
-
-    page2 = run_page(
-        live_api, "search.py", method="POST",
-        body={"db": mysql_config.database, "sector_q": "Pager", "sectors_page": "2"},
-    )
-    assert page2.status_code == 200
-    _assert_clean_html(page2, "search.py (page 2)")
-    panel2 = _panel(page2.body)
-    assert "Pager Sector 050" in panel2
-    assert "Pager Sector 059" in panel2
-    assert "Pager Sector 049" not in panel2
-    assert "Unrelated" not in panel2
-    assert "Showing 51&ndash;60 of 60" in panel2
+# search.py is now a CGI shim that 301s to the Flask-served /search;
+# test_web_search.py covers the shim and the new page.
 
 
 def test_sector_page_pages_its_contents_table(live_api, mysql_config):
