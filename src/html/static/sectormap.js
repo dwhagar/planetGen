@@ -28,8 +28,15 @@
 // every star/system/phenomenon name is still database content (a system
 // name can contain arbitrary characters via `--name`).
 
-import * as THREE from "./vendor/three.module.min.js";
-import { makeGlowMaterial, makeStarSurfaceTexture } from "./bodyRendering.js";
+// Sibling modules are imported with this module's own `?v=<version>`
+// query (html/lib/fmt.py's `static_url`), so they are cached and
+// refreshed with the page's script. A plain static `import "./x.js"`
+// would drop the query: an update could then leave a stale copy cached,
+// and a page that also loaded the same file by its versioned URL would
+// get a second, separate instance of it.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
+const { makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
