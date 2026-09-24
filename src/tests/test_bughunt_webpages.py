@@ -208,35 +208,8 @@ def test_system_page_lists_bodies_and_shows_generated_code(live_api, mysql_confi
         assert marker in result.body.replace("&#x27;", "'")
 
 
-def test_galaxy_page_renders(live_api, seeded_db, tmp_path):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    cache_env = {"PLANETGEN_TILE_CACHE_DIR": str(tmp_path / "tiles")}
-    result = run_page(live_api, "galaxy.py", query={"db": db_name}, extra_env=cache_env)
-    assert result.status_code == 200
-    _assert_clean_html(result, "galaxy.py")
-    assert '"fetchPath": "galaxy_tiles.py"' in result.body
-
-
-def test_galaxy_tiles_endpoint_serves_and_caches_tiles(live_api, seeded_db, tmp_path):
-    import json
-
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    cache_env = {"PLANETGEN_TILE_CACHE_DIR": str(tmp_path / "tiles")}
-    query = {"db": db_name, "tiles": "12/2048/2048/2048,1/1/1/1", "density": "1/1/1/1"}
-
-    first = run_page(live_api, "galaxy_tiles.py", query=query, extra_env=cache_env)
-    assert first.status_code == 200, first.body + first.stderr
-    body = json.loads(first.body)
-    assert set(body["tiles"]) == {"12/2048/2048/2048", "1/1/1/1"}
-    assert body["cached"] == 0
-    assert len(body["stamp"]) == 16
-
-    second = json.loads(run_page(live_api, "galaxy_tiles.py", query=query, extra_env=cache_env).body)
-    assert second["cached"] == 3
-    assert second["tiles"] == body["tiles"]
-
-    bad = run_page(live_api, "galaxy_tiles.py", query={"db": db_name, "tiles": "99/0/0/0"}, extra_env=cache_env)
-    assert bad.status_code == 400
+# galaxy.py and galaxy_tiles.py are now CGI shims that 301 to the
+# Flask-served /galaxy and /galaxy/tiles; test_web_galaxy.py covers them.
 
 
 def test_phenomena_page_renders(live_api, seeded_db):

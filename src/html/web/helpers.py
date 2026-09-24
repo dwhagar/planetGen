@@ -53,7 +53,6 @@ from pagination import render_pagination
 
 LEGACY_PAGES = {
     # endpoint name: (CGI script, {page_url keyword: CGI parameter})
-    "galaxy": ("galaxy.py", {"quadrant": "quadrant", "page": "page"}),
     "sector": ("sector.py", {"sector_id": "id", "contents_page": "contents_page"}),
     "system": ("system.py", {"system_id": "id"}),
     "phenomena": ("phenomena.py", {"page": "page"}),
