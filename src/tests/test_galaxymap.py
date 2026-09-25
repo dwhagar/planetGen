@@ -3,8 +3,8 @@ html/lib/galaxymap.py regression tests -- this module used to also build
 the Galaxy Map's own flat SVG rendering (`render_galaxy_map_panel`),
 replaced by a real 3D scene (`html/lib/galaxymap3d.py`, tested in
 `test_galaxymap3d.py`) that `html/galaxy.py` renders directly now. What's
-left here is the plain Quadrant/Ring classification math
-(`sector_quadrant`/`sector_ring`/`ring_bounds_ly`) `galaxy.py`'s own data
+left here is the plain Quadrant/Zone classification math
+(`sector_quadrant`/`sector_zone`/`zone_bounds_ly`) `galaxy.py`'s own data
 tables and `sector.py`/`browse.py`'s "Quadrant N" links still depend on --
 previously untested in isolation (the old version of this file only ever
 exercised them indirectly, through the now-removed panel renderer).
@@ -22,11 +22,11 @@ import pytest  # noqa: E402
 
 from galaxymap import (  # noqa: E402
     QUADRANT_LABELS,
-    RING_SHELL_WIDTH,
-    RING_TARGET_LY,
-    ring_bounds_ly,
+    ZONE_RING_WIDTH,
+    ZONE_TARGET_LY,
     sector_quadrant,
-    sector_ring,
+    sector_zone,
+    zone_bounds_ly,
 )
 
 
@@ -55,51 +55,46 @@ def test_sector_quadrant_is_blind_to_z_by_construction():
     assert list(inspect.signature(sector_quadrant).parameters) == ["x_pc", "y_pc"]
 
 
-def test_sector_ring_groups_shell_index_into_fixed_width_bands():
-    assert sector_ring(0) == 0
-    assert sector_ring(RING_SHELL_WIDTH - 1) == 0
-    assert sector_ring(RING_SHELL_WIDTH) == 1
-    assert sector_ring(2 * RING_SHELL_WIDTH + 1) == 2
+def test_sector_zone_groups_ring_index_into_fixed_width_bands():
+    assert sector_zone(0) == 0
+    assert sector_zone(ZONE_RING_WIDTH - 1) == 0
+    assert sector_zone(ZONE_RING_WIDTH) == 1
+    assert sector_zone(2 * ZONE_RING_WIDTH + 1) == 2
 
 
-def test_ring_shell_width_is_at_least_one():
-    # RING_TARGET_LY / DEFAULT_SECTOR_EDGE_LY could round to 0 for a
+def test_zone_ring_width_is_at_least_one():
+    # ZONE_TARGET_LY / DEFAULT_SECTOR_EDGE_LY could round to 0 for a
     # pathologically large edge length -- max(1, ...) in the module
-    # guards against a ZeroDivisionError in sector_ring.
-    assert RING_SHELL_WIDTH >= 1
+    # guards against a ZeroDivisionError in sector_zone.
+    assert ZONE_RING_WIDTH >= 1
 
 
-def test_ring_bounds_ly_are_contiguous_and_span_ring_target_ly():
-    inner_0, outer_0 = ring_bounds_ly(0)
-    inner_1, outer_1 = ring_bounds_ly(1)
+def test_zone_bounds_ly_are_contiguous_and_span_zone_target_ly():
+    inner_0, outer_0 = zone_bounds_ly(0)
+    inner_1, outer_1 = zone_bounds_ly(1)
     assert inner_0 == 0.0
-    assert outer_0 == pytest.approx(inner_1)  # rings tile with no gap/overlap
-    assert outer_0 == pytest.approx(RING_SHELL_WIDTH * (outer_0 / RING_SHELL_WIDTH))
-    # Each ring's own width should land close to RING_TARGET_LY by
-    # construction (RING_SHELL_WIDTH is derived to make this so).
-    assert (outer_0 - inner_0) == pytest.approx(RING_TARGET_LY, rel=0.15)
+    assert outer_0 == pytest.approx(inner_1)  # zones tile with no gap/overlap
+    assert (outer_0 - inner_0) == pytest.approx(ZONE_TARGET_LY, rel=0.15)
 
 
-def test_ring_bounds_ly_scale_linearly_with_ring_index():
-    inner_5, outer_5 = ring_bounds_ly(5)
-    inner_1, outer_1 = ring_bounds_ly(1)
+def test_zone_bounds_ly_scale_linearly_with_zone_index():
+    inner_5, outer_5 = zone_bounds_ly(5)
+    inner_1, outer_1 = zone_bounds_ly(1)
     width = outer_1 - inner_1
     assert inner_5 == pytest.approx(5 * width)
     assert outer_5 == pytest.approx(6 * width)
 
 
-def test_sector_ring_and_ring_bounds_ly_agree_with_each_other():
-    # A shell_index's own ring, fed back into ring_bounds_ly, must bound
-    # that same shell's real radial position -- these two functions
-    # describe the same tiling from two directions and must stay
-    # consistent with each other.
-    from stellarObjects.galaxyGeometry import shell_radius_pc
+def test_sector_zone_and_zone_bounds_ly_agree_with_the_ring_grid():
+    # A ring's own zone, fed back into zone_bounds_ly, must contain that
+    # ring's whole radial extent -- zones are whole rings.
+    from stellarObjects.galaxyGeometry import ring_bounds_pc
     from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
     from stellarObjects.utils import ly_to_pc, pc_to_ly
 
     edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-    for shell_index in (0, 1, RING_SHELL_WIDTH, RING_SHELL_WIDTH * 3 + 2, 500):
-        ring = sector_ring(shell_index)
-        inner_ly, outer_ly = ring_bounds_ly(ring)
-        shell_radius_ly = pc_to_ly(shell_radius_pc(shell_index, edge_pc))
-        assert inner_ly <= shell_radius_ly <= outer_ly
+    for ring_index in (0, 1, ZONE_RING_WIDTH, ZONE_RING_WIDTH * 3 + 2, 500):
+        inner_ly, outer_ly = zone_bounds_ly(sector_zone(ring_index))
+        ring_inner_pc, ring_outer_pc = ring_bounds_pc(ring_index, edge_pc)
+        assert inner_ly == pytest.approx(pc_to_ly(ring_inner_pc)) or inner_ly < pc_to_ly(ring_inner_pc)
+        assert pc_to_ly(ring_outer_pc) <= outer_ly + 1e-6

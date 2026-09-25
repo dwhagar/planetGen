@@ -34,7 +34,7 @@ docstring for what each means):
 - **Planned**: real, not-yet-generated sector addresses this galaxy's own
   density model (when built) predicts would qualify -- small, dim,
   clickable, shows its designation/address (copyable straight into
-  `generate.py galaxy --shell K --slot N`) rather than navigating
+  `generate.py galaxy --ring I --layer J --slot K`) rather than navigating
   anywhere (there's nothing to navigate to yet).
 - **Density**: a coarse illustrative point cloud, for whatever part of
   the current view is too wide to enumerate individual planned
@@ -65,7 +65,7 @@ out:
   dolly -- the floor sits just past a couple of sector-widths (so
   approaching one specific sector never has to overshoot past clicking
   distance), the ceiling is far enough back that this galaxy's own real
-  outer edge (its stored skeleton's `outer_shell_index`, or a real
+  outer edge (its stored skeleton's `outer_ring_index`, or a real
   Milky-Way-scale radius as a starting-point default when no skeleton has
   been built yet) fits inside the camera's field of view.
 - Left/right-click zoom is **logarithmic**, not a flat step: the closer
@@ -168,7 +168,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
 def galaxy_extent_pc(edge_pc, galaxy_shape):
     """
     The galaxy's own outer edge, parsecs, padded by
-    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_shell_index`,
+    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_ring_index`,
     or `GALAXY_RADIUS_PC` when no skeleton has been built yet. The camera
     target is kept inside this radius (`galaxyRadiusPc`), and
     `view_radius_bounds` backs the camera off far enough to fit it.
@@ -181,8 +181,8 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
     Returns:
         float: The padded outer radius, parsecs.
     """
-    if galaxy_shape and galaxy_shape.get("outer_shell_index") is not None:
-        return (galaxy_shape["outer_shell_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
+    if galaxy_shape and galaxy_shape.get("outer_ring_index") is not None:
+        return (galaxy_shape["outer_ring_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
     return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
 
 

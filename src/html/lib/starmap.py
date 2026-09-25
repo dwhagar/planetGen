@@ -8,7 +8,7 @@ planet/interstellar comet), plus a small clickable indicator toward each
 immediately surrounding sector (`_neighbor_indicator_data`, see
 `queryDb.sector_neighbors`) -- linking straight to it if already
 generated, or showing its address (ready to feed into `generate.py galaxy
---shell K --slot N`) if not -- rendered as a real WebGL scene (`static/sectormap.js`,
+--ring I --layer J --slot K`) if not -- rendered as a real WebGL scene (`static/sectormap.js`,
 via three.js -- vendored at `static/vendor/three.module.min.js`, see that
 directory's `THIRD_PARTY_NOTICES.txt`) instead of the CSS
 `transform-style: preserve-3d` scene this module used to build directly as
@@ -23,7 +23,7 @@ run it.
 
 Every star's (x, y, z) -- rotated once, server-side, from its own
 sector-local axes into the galaxy frame when the sector has a galaxy
-placement (`_rotate_to_galaxy_frame`, so it agrees with the wedge outline/
+placement (`_rotate_to_galaxy_frame`, so it agrees with the cell outline/
 compass arrow below, both already galaxy-frame quantities) -- is expressed
 in the same fixed pixel-scale world units as before (`_SCENE_HALF_PX` per
 half the sector's own edge), so a change here needs no matching change to
@@ -33,11 +33,9 @@ flat CSS transform now.
 
 `_outline_data` still computes the scene's own bounding shape -- one of
 two, depending on whether the sector has a galaxy placement: a sector with
-`shell_index`/`shell_slot_index` set gets its real, approximate on-shell
-wedge (see `sector_wedge_vertices_pc` -- bounded by the shell's own radial
-thickness and roughly how much angular "real estate" this slot's
-Fibonacci placement owns among its neighbors); one without a placement
-falls back to a plain axis-aligned cube of edge `edge_mpc`. `sectormap.js`
+a grid address gets its real cylindrical cell (see
+`galaxyGeometry.sector_cell_vertices_pc` -- one ring wide, one layer tall,
+one slot's angle across); one without a placement falls back to a plain axis-aligned cube of edge `edge_mpc`. `sectormap.js`
 no longer draws this shape as a wireframe (dropped as visual clutter), but
 its extent still drives `_default_zoom`'s fallback framing for a sector
 with nothing else plotted in it (see that function's own docstring).
@@ -69,21 +67,20 @@ except ImportError:
     SOLAR_RADIUS_M = 6.957e8
 
 try:
-    from stellarObjects.galaxyGeometry import sector_position_pc, sector_wedge_vertices_pc
-    from stellarObjects.sectorGeometry import cube_orientation
+    from stellarObjects.galaxyGeometry import sector_cell_vertices_pc, sector_orientation, sector_position_pc
     from stellarObjects.utils import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
 except ImportError:
     # Same deployment gap as above -- without these, a sector with no
     # galaxy placement (or one this deployment can't reach the geometry
     # module for) just keeps the plain axis-aligned cube outline and no
-    # scale bar; see `_wedge_edges_px`/`_ly_per_px_at_zoom_1` below. Without
-    # `cube_orientation` specifically, star dots fall back to being
+    # scale bar; see `_cell_edges_px`/`_ly_per_px_at_zoom_1` below. Without
+    # `sector_orientation` specifically, star dots fall back to being
     # plotted in their own unrotated local axes (see `_rotate_to_galaxy_frame`).
     # Without `ly_to_milliparsecs`, nebula/asteroid-field clouds can't be
     # scaled/positioned at all and are omitted.
     sector_position_pc = None
-    sector_wedge_vertices_pc = None
-    cube_orientation = None
+    sector_cell_vertices_pc = None
+    sector_orientation = None
     mpc_to_pc = None
     pc_to_mpc = None
     milliparsecs_to_ly = None
@@ -98,12 +95,12 @@ _SCENE_HALF_PX = 160.0
 
 # A plain axis-aligned fallback cube's own corners, at distance
 # `_SCENE_HALF_PX` out along all three axes at once -- used by
-# `_default_zoom` as the fallback shape's extent when there's no wedge
+# `_default_zoom` as the fallback shape's extent when there's no cell
 # wireframe to measure instead.
 _CUBE_CORNER_RADIUS_PX = _SCENE_HALF_PX * math.sqrt(3)
 
 # Never start a sector further zoomed out than this, however large its
-# wedge/cube/plotted content gets (an extreme far-out placement could
+# cell/cube/plotted content gets (an extreme far-out placement could
 # otherwise compute an unusably tiny initial view) -- `sectormap.js`'s own
 # zoom-out control/scroll remains available past this floor regardless.
 _MIN_DEFAULT_ZOOM = 0.2
@@ -112,13 +109,13 @@ _MIN_DEFAULT_ZOOM = 0.2
 def _default_zoom(extent_radii_px):
     """
     Picks the zoom level the sector map should *open* at, so its real
-    content -- the wedge/cube outline, every plotted star/cloud -- actually
+    content -- the cell/cube outline, every plotted star/cloud -- actually
     fits in frame on first paint, instead of always starting at a flat
     `zoom = 1` regardless of how much bigger the real shape is.
 
-    A galaxy-placed sector's wedge wireframe is deliberately allowed to
-    extend well past `_SCENE_HALF_PX` (see `_wedge_edges_px`'s docstring --
-    the wedge's angular patch doesn't coincide with a cube's flat sides),
+    A galaxy-placed sector's cell outline is allowed to extend past
+    `_SCENE_HALF_PX` (see `_cell_edges_px`'s docstring -- a curved cell's
+    corners don't coincide with a cube's),
     and even the plain-cube fallback's own corners sit `_SCENE_HALF_PX *
     sqrt(3)` out -- both already past a "fits at zoom 1" frame.
     `sectormap.js`'s camera distance at zoom 1 is calibrated so a sphere of
@@ -129,7 +126,7 @@ def _default_zoom(extent_radii_px):
     Args:
         extent_radii_px (list[float]): Distance from the scene's own
                                        center, for every point that matters
-                                       (wedge/cube vertices, star/cloud
+                                       (cell/cube vertices, star/cloud
                                        positions) -- the empty-scene case
                                        (no systems, no clouds, cube
                                        fallback) still always has at least
@@ -187,13 +184,13 @@ _SPECTRAL_LETTER_RGB = {
     for letter, color_name in SPECTRAL_CLASS_COLORS.items()
 }
 
-# Which pairs of 8-point vertex-list indices form a cube (or wedge)'s 12
+# Which pairs of 8-point vertex-list indices form a cube (or cell)'s 12
 # edges -- indices are `4*a + 2*b + c` for whichever three binary choices
-# the 8 corners vary over (see `sector_wedge_vertices_pc`'s docstring for
-# the wedge's own r/phi/theta bits; `_cube_corners_px` uses the same
+# the 8 corners vary over (see `sector_cell_vertices_pc`'s docstring for
+# the cell's own r/z/theta bits; `_cube_corners_px` uses the same
 # convention for its x/y/z sign bits below), so two vertices share an edge
 # exactly when their indices differ in a single bit -- this is just a
-# cube's own edge topology, reused for the wedge's 8 corners regardless of
+# cube's own edge topology, reused for the cell's 8 corners regardless of
 # how curved its faces really are, and for the plain fallback cube's own
 # corners too.
 _EDGE_PAIRS = (
@@ -213,7 +210,7 @@ def _cube_corners_px(half_edge_px):
     index convention `_EDGE_PAIRS` expects (`4*x_bit + 2*y_bit + z_bit`) --
     the wireframe-cube replacement for the old CSS version's 6 filled,
     bordered `.cube-face` divs (see this module's own docstring for why a
-    wireframe reads just as clearly and lets both this and the wedge case
+    wireframe reads just as clearly and lets both this and the cell case
     share one edges-list shape).
     """
     return [
@@ -233,19 +230,15 @@ def _rotate_to_galaxy_frame(center_pc, local_vec):
     Re-expresses `local_vec` -- a star system's position relative to its
     sector's own center (`star_systems.position_x/y/z_mpc`, in whatever
     axes the sector's own local frame uses) -- along the galaxy frame's
-    axes instead, via `sectorGeometry.cube_orientation`'s fixed convention
-    (radial-outward local `+Z`, projected-galactic-north local `+X`; see
-    `docs/design/galaxy-coordinate-system.md`'s "Cube orientation"
-    section). This is the same convention `sectorGeometry.py` already
-    uses as the tangent-plane basis for this sector's own wedge vertices
-    -- computed once per sector there at generation time (baked into the
-    stored vertex positions), and once per render here, from the stored
-    `center_pc` alone, with no extra state of its own.
+    axes instead, via `galaxyGeometry.sector_orientation`'s fixed
+    convention (local `+X` radially outward from the galactic axis, `+Y`
+    along the ring, `+Z` galactic north), computed from the stored
+    `center_pc` alone.
 
     Without this, a star dot's local (x, y, z) was plotted as if it were
     already expressed in the galaxy frame -- consistent with itself, but
-    not with the wedge outline or the "Galactic Center" compass arrow
-    (`_wedge_edges_px`/`_compass_data`), which read the sector's *actual*
+    not with the cell outline or the "Galactic Center" compass arrow
+    (`_cell_edges_px`/`_compass_data`), which read the sector's *actual*
     galaxy-frame placement directly and always were correct. Rotating the
     star dots into that same frame is what makes all three agree.
 
@@ -266,10 +259,12 @@ def _rotate_to_galaxy_frame(center_pc, local_vec):
         tuple: `(x, y, z)`, re-expressed along the galaxy frame's axes,
               in `local_vec`'s original units.
     """
-    if center_pc is None or any(c is None for c in center_pc) or cube_orientation is None:
+    if center_pc is None or any(c is None for c in center_pc) or sector_orientation is None:
+        return local_vec
+    if math.hypot(center_pc[0], center_pc[1]) < 1e-9:
         return local_vec
 
-    axis_x, axis_y, axis_z = cube_orientation(center_pc)
+    axis_x, axis_y, axis_z = sector_orientation(center_pc)
     lx, ly, lz = local_vec
     return (
         lx * axis_x[0] + ly * axis_y[0] + lz * axis_z[0],
@@ -278,35 +273,30 @@ def _rotate_to_galaxy_frame(center_pc, local_vec):
     )
 
 
-def _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge):
+def _cell_edges_px(address, edge_mpc, half_edge):
     """
-    Computes the sector's approximate on-shell wedge (see
-    `sector_wedge_vertices_pc`) as 8 `(x, y, z)` scene-space unit points,
-    in the same coordinate convention `render_map_panel` uses for star
-    dots (sector-center-relative parsecs -> milliparsecs -> normalized by
-    `half_edge` -> scene units, with the y-axis flipped since +y is "up"
-    on screen but down in database/layout convention) -- so the wireframe
-    and the star dots it surrounds always share one consistent frame.
+    The sector's real cylindrical cell (`sector_cell_vertices_pc`) as 8
+    `(x, y, z)` scene-space points, in the same convention
+    `render_map_panel` uses for star dots (sector-center-relative parsecs
+    -> milliparsecs -> normalized by `half_edge` -> scene units, y flipped
+    since +y is "up" on screen) -- so the outline and the stars share one
+    frame. Not clamped: a core-ring cell is a pie wedge noticeably bigger
+    than the cube.
 
-    Unlike a star dot's normalized position, these are deliberately *not*
-    clamped to the +-1.05 the cube fallback uses: the whole point of this
-    shape is that it doesn't stay inside the sector's own edge_mpc cube,
-    since the shell's angular patch and the cube's flat sides don't
-    coincide (see `sector_wedge_vertices_pc`'s docstring).
+    Args:
+        address (tuple or None): `(ring_index, layer_index,
+            ring_slot_index)`; any `None` means no grid address.
 
     Returns:
-        list[tuple] or None: 8 `(x, y, z)` points, or `None` if this
-                             sector has no galaxy placement (no
-                             `shell_index`/`shell_slot_index`) or the
-                             geometry helpers aren't importable in this
-                             deployment -- either way, callers fall back
-                             to the plain cube.
+        list[tuple] or None: 8 points, or `None` for a sector with no grid
+            address, or when the geometry helpers aren't importable --
+            callers fall back to the plain cube.
     """
     if (
-        shell_index is None
-        or shell_slot_index is None
+        address is None
+        or any(value is None for value in address)
         or not edge_mpc
-        or sector_wedge_vertices_pc is None
+        or sector_cell_vertices_pc is None
         or sector_position_pc is None
         or mpc_to_pc is None
         or pc_to_mpc is None
@@ -314,8 +304,8 @@ def _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge):
         return None
 
     edge_pc = mpc_to_pc(edge_mpc)
-    center_pc = sector_position_pc(shell_index, shell_slot_index, edge_pc)
-    vertices_pc = sector_wedge_vertices_pc(shell_index, shell_slot_index, edge_pc)
+    center_pc = sector_position_pc(*address, edge_pc)
+    vertices_pc = sector_cell_vertices_pc(*address, edge_pc)
 
     points = []
     for vx, vy, vz in vertices_pc:
@@ -326,12 +316,12 @@ def _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge):
     return points
 
 
-def _outline_data(shell_index, shell_slot_index, edge_mpc, half_edge):
+def _outline_data(address, edge_mpc, half_edge):
     """
-    Builds the scene's outline as `{"kind": "wedge"|"cube", "edges": [...]}`
+    Builds the scene's outline as `{"kind": "cell"|"cube", "edges": [...]}`
     -- 12 `[point, point]` pairs either way (see `_EDGE_PAIRS`), from the
-    sector's real on-shell wedge vertices (`_wedge_edges_px`) when it has a
-    galaxy placement, or the plain axis-aligned fallback cube's own corners
+    sector's real grid cell (`_cell_edges_px`) when it has a grid address,
+    or the plain axis-aligned fallback cube's own corners
     (`_cube_corners_px`) otherwise.
 
     Returns:
@@ -340,9 +330,9 @@ def _outline_data(shell_index, shell_slot_index, edge_mpc, half_edge):
                                   its vertices -- for `_default_zoom`'s
                                   empty-scene fallback.
     """
-    wedge_vertices = _wedge_edges_px(shell_index, shell_slot_index, edge_mpc, half_edge)
-    if wedge_vertices is not None:
-        vertices, kind = wedge_vertices, "wedge"
+    cell_vertices = _cell_edges_px(address, edge_mpc, half_edge)
+    if cell_vertices is not None:
+        vertices, kind = cell_vertices, "cell"
     else:
         vertices, kind = _cube_corners_px(_SCENE_HALF_PX), "cube"
 
@@ -353,7 +343,7 @@ def _outline_data(shell_index, shell_slot_index, edge_mpc, half_edge):
 
 _COMPASS_ARROW_REACH = 1.15
 """How far the compass arrow reaches past `_SCENE_HALF_PX` -- past 1.0 so
-its tip clears a full-size cube/wedge instead of ending right at (or
+its tip clears a full-size cube/cell instead of ending right at (or
 inside) its own boundary."""
 
 
@@ -367,11 +357,11 @@ def _compass_data(center_pc):
     radial direction, `-normalize(center_pc)`) rather than fixed to a
     constant screen direction.
 
-    This arrow and `_outline_data`'s wedge outline are both computed
+    This arrow and `_outline_data`'s cell outline are both computed
     directly from galaxy-frame quantities (`sectors.center_x/y/z_pc`,
-    `sector_wedge_vertices_pc`), so they were always correct on their own
+    `sector_cell_vertices_pc`), so they were always correct on their own
     terms. Star dots are rotated into that same frame at render time
-    instead (`_rotate_to_galaxy_frame`), so this arrow, the wedge outline,
+    instead (`_rotate_to_galaxy_frame`), so this arrow, the cell outline,
     and the star dots it surrounds all agree on one frame.
 
     Args:
@@ -416,8 +406,8 @@ def _neighbor_indicator_data(db_name, neighbor):
     """
     Builds one neighboring-sector indicator's plain-dict scene entry --
     `sectormap.js` draws it as a small clickable marker just outside this
-    sector's own wedge/cube, in the real direction (already galaxy-frame,
-    same as the wedge outline and compass arrow -- see this module's own
+    sector's own cell/cube, in the real direction (already galaxy-frame,
+    same as the cell outline and compass arrow -- see this module's own
     docstring) of that neighbor's actual center, but placed at a fixed
     `_NEIGHBOR_INDICATOR_REACH` rather than that real (and highly
     variable -- a lateral neighbor sits about one sector-edge away, a
@@ -432,7 +422,7 @@ def _neighbor_indicator_data(db_name, neighbor):
 
     Returns:
         dict or None: The indicator's scene entry (`x`/`y`/`z`,
-            `shellIndex`/`shellSlotIndex`, `designation`, `exists`, and --
+            `ringIndex`/`layerIndex`/`ringSlotIndex`, `designation`, `exists`, and --
             only when `exists` -- `name`/`navTarget`/`navParams`), or
             `None` if this neighbor's own direction is (within
             floating-point tolerance) undefined -- not expected in
@@ -451,7 +441,8 @@ def _neighbor_indicator_data(db_name, neighbor):
         "x": ux * reach, "y": -uy * reach, "z": uz * reach,
         "r": _NEIGHBOR_INDICATOR_RADIUS_PX,
         "isNeighbor": True,
-        "shellIndex": neighbor["shell_index"], "shellSlotIndex": neighbor["shell_slot_index"],
+        "ringIndex": neighbor["ring_index"], "layerIndex": neighbor["layer_index"],
+        "ringSlotIndex": neighbor["ring_slot_index"],
         "designation": neighbor["designation"],
         "exists": neighbor["exists"],
     }
@@ -467,7 +458,7 @@ def _ly_per_px_at_zoom_1(half_edge):
     Light-years per world unit at zoom factor 1 -- an exact ratio derived
     straight from `half_edge` (half of `edge_mpc`, the sector's real,
     stored size) mapping to `_SCENE_HALF_PX` units, the same normalizing
-    divisor every star dot and wedge vertex on this map is already placed
+    divisor every star dot and cell vertex on this map is already placed
     by. `sectormap.js`'s scale-bar legend divides this by the live zoom
     factor and picks a round bar length from it, so the bar always
     reflects the sector's actual physical scale rather than an arbitrary
@@ -828,7 +819,7 @@ def _noscript_list_html(db_name, systems, phenomena, neighbors=None):
 
 
 def render_map_panel(
-    db_name, edge_mpc, shell_index, shell_slot_index, center_pc, systems, phenomena=None, neighbors=None,
+    db_name, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None,
 ):
     """
     Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
@@ -841,9 +832,9 @@ def render_map_panel(
     star -- and an info side panel the same script fills in when something
     is clicked.
 
-    The scene's own bounding shape -- the sector's approximate on-shell
-    wedge (see `_outline_data`/`sector_wedge_vertices_pc`) when this sector
-    has a galaxy placement (`shell_index`/`shell_slot_index` both set) and
+    The scene's own bounding shape -- the sector's cylindrical grid cell
+    (see `_outline_data`/`sector_cell_vertices_pc`) when this sector has a
+    grid address and
     the geometry helpers are importable, or the plain axis-aligned cube
     otherwise -- is no longer drawn as a wireframe (`sectormap.js` dropped
     it as visual clutter); it's still computed here purely to drive
@@ -861,9 +852,8 @@ def render_map_panel(
                           the sector's cubic center (see schema.sql's
                           `star_systems` comment), so half of this is the
                           normalizing divisor for each axis.
-        shell_index (int or None): The sector's `sectors.shell_index`.
-        shell_slot_index (int or None): The sector's
-                                        `sectors.shell_slot_index`.
+        address (tuple or None): The sector's `(ring_index, layer_index,
+            ring_slot_index)`; `None` (or any `None` inside) for none.
         center_pc (tuple or None): `(center_x_pc, center_y_pc,
                                    center_z_pc)` -- drives the "Galactic
                                    Center" compass arrow (`_compass_data`)
@@ -871,7 +861,7 @@ def render_map_panel(
                                    position into the galaxy frame
                                    (`_rotate_to_galaxy_frame`) before it's
                                    plotted, so star dots agree with the
-                                   arrow and the wedge outline on one
+                                   arrow and the cell outline on one
                                    frame; `None` for a sector with no
                                    galaxy placement, which omits the
                                    arrow and leaves positions unrotated.
@@ -910,13 +900,11 @@ def render_map_panel(
     # Every plotted star/cloud's distance from the scene's own center --
     # kept separate from the outline's own extent (see `_outline_data`)
     # rather than one combined list, so `_default_zoom` can fit *this*,
-    # real content on its own whenever there is any. A galaxy-placed
-    # sector far out on its shell can have a wedge wireframe many times
-    # wider than `_SCENE_HALF_PX` (deliberately allowed to extend well
-    # past it -- see `_wedge_edges_px`'s own docstring), and a combined
-    # extent list used to let that single huge shape force the *whole*
-    # default zoom down to its own floor (`_MIN_DEFAULT_ZOOM`) even when
-    # every actual star sat well within frame on its own. The wedge/cube
+    # real content on its own whenever there is any. A core-ring sector's
+    # pie-wedge cell can be wider than `_SCENE_HALF_PX` (see
+    # `_cell_edges_px`), and a combined extent list would let that shape
+    # force the whole default zoom down to its own floor
+    # (`_MIN_DEFAULT_ZOOM`) even when every star fits. The cell/cube
     # shape only ever decides the default zoom when there's no real
     # content to fit instead (see `default_zoom` below).
     extent_radii_px = []
@@ -981,7 +969,7 @@ def render_map_panel(
                 math.sqrt(x_px * x_px + y_px * y_px + z_px * z_px) + radius_px
             )
 
-    outline, shape_extent_radii_px = _outline_data(shell_index, shell_slot_index, edge_mpc, half_edge)
+    outline, shape_extent_radii_px = _outline_data(address, edge_mpc, half_edge)
 
     compass = _compass_data(center_pc)
     # Fit the real content (star systems/clouds) whenever there is any --

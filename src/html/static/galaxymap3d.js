@@ -111,12 +111,12 @@ function navLink(navTarget, navParams, label) {
   return link;
 }
 
-function formatAddress(shellIndex, slotIndex) {
-  return "shell " + shellIndex + " slot " + slotIndex;
+function formatAddress(ringIndex, layerIndex, slotIndex) {
+  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-function cliSnippet(shellIndex, slotIndex) {
-  return "generate.py galaxy --shell " + shellIndex + " --slot " + slotIndex;
+function cliSnippet(ringIndex, layerIndex, slotIndex) {
+  return "generate.py galaxy --ring " + ringIndex + " --layer " + layerIndex + " --slot " + slotIndex;
 }
 
 // --- Info panel ----------------------------------------------------------
@@ -138,7 +138,7 @@ function showPlacedInfo(entry) {
   addField(dl, "Systems", entry.system_count != null ? entry.system_count : 0);
   addField(dl, "Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null);
   addField(dl, "Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null);
-  addField(dl, "Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.shell_slot_index) : null);
+  addField(dl, "Address", entry.ring_index != null ? formatAddress(entry.ring_index, entry.layer_index, entry.ring_slot_index) : null);
   addField(dl, "Designation", entry.designation);
   panel.appendChild(dl);
   panel.appendChild(navLink("sector.py", { db: sceneData.db, id: entry.id }, "View sector →"));
@@ -192,7 +192,7 @@ function showPlannedInfo(entry) {
 
   var dl = document.createElement("dl");
   addField(dl, "Designation", entry.designation);
-  addField(dl, "Address", formatAddress(entry.shell_index, entry.shell_slot_index));
+  addField(dl, "Address", formatAddress(entry.ring_index, entry.layer_index, entry.ring_slot_index));
   if (entry.predicted_star_count != null) {
     addField(dl, "Predicted systems", Math.max(1, Math.round(entry.predicted_star_count)));
   }
@@ -200,9 +200,9 @@ function showPlannedInfo(entry) {
 
   var code = document.createElement("code");
   code.className = "galaxymap3d-cli-snippet";
-  code.textContent = cliSnippet(entry.shell_index, entry.shell_slot_index);
+  code.textContent = cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index);
   panel.appendChild(code);
-  panel.appendChild(makeCopyButton(cliSnippet(entry.shell_index, entry.shell_slot_index)));
+  panel.appendChild(makeCopyButton(cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index)));
 }
 
 // --- Sprite textures -------------------------------------------------------
@@ -648,7 +648,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   var PLACED_KEY_OF = function (e) { return "p" + e.id; };
-  var PLANNED_KEY_OF = function (e) { return e.shell_index + ":" + e.shell_slot_index; };
+  var PLANNED_KEY_OF = function (e) { return e.ring_index + ":" + e.layer_index + ":" + e.ring_slot_index; };
 
   // See pinnedEntry's own comment above selectEntry -- re-inserts the
   // pinned entry into a freshly-fetched tier list if the live query

@@ -234,7 +234,9 @@ def handler():
         else None
     )
     map_html = render_map_panel(
-        db_name, sector["edge_mpc"], sector["shell_index"], sector["shell_slot_index"], center_pc, map_systems,
+        db_name, sector["edge_mpc"],
+        (sector.get("ring_index"), sector.get("layer_index"), sector.get("ring_slot_index")),
+        center_pc, map_systems,
         phenomena=sector.get("phenomena"), neighbors=sector.get("neighbors"),
     )
 

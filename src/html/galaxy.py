@@ -23,7 +23,7 @@ Below the map, this page still keeps its own two data tables --
 independent of how the map is drawn, and still useful as a plain-text
 overview: every sector actually placed in the galaxy (`GET
 /api/galaxy/sectors`), grouped into four azimuthal Quadrants (I-IV) and
-concentric Rings (fixed-width `shell_index` bands, `lib/galaxymap.py`).
+concentric Zones (fixed-width bands of the grid's `ring_index`, `lib/galaxymap.py`).
 `?quadrant=I|II|III|IV` swaps the page's own table from a per-Quadrant
 summary (the full-galaxy default, since a flat list of every placed
 sector at once doesn't scale) to a full sector list for that one
@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from apiclient import get_galaxy_sectors, get_galaxy_shape
 from fmt import esc, post_link, static_url
-from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
+from galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from page import nav_params, run
 from pagination import page_slice, parse_page, render_pagination
@@ -72,7 +72,7 @@ def _display_ly(galactic_radius_pc):
 
 def _quadrant_summary_table(db_name, sectors):
     """Full-galaxy default view: one row per Quadrant (sector/system
-    counts, Ring span) rather than every placed sector at once -- the
+    counts, Zone span) rather than every placed sector at once -- the
     per-Quadrant drill-down (`?quadrant=`) is where an actual sector list
     shows up (`_quadrant_sector_table`)."""
     by_quadrant = {label: [] for label in QUADRANT_LABELS}
@@ -83,9 +83,9 @@ def _quadrant_summary_table(db_name, sectors):
     for label in QUADRANT_LABELS:
         members = by_quadrant[label]
         system_total = sum(s["system_count"] or 0 for s in members)
-        if members:
-            max_ring = max(sector_ring(s["shell_index"]) for s in members)
-            _inner, outer_ly = ring_bounds_ly(max_ring)
+        rings = [s["ring_index"] for s in members if s["ring_index"] is not None]
+        if rings:
+            _inner, outer_ly = zone_bounds_ly(sector_zone(max(rings)))
             span = f"out to ~{outer_ly:,.0f} ly"
         else:
             span = "&ndash;"
@@ -113,12 +113,12 @@ def _quadrant_sector_table(db_name, sectors, quadrant, page):
 
     rows = []
     for sector in page_members:
-        ring = sector_ring(sector["shell_index"])
+        zone = f"Zone {sector_zone(sector['ring_index'])}" if sector["ring_index"] is not None else "&ndash;"
         distance_ly = _display_ly(sector["galactic_radius_pc"])
         rows.append(
             "<tr>"
             f'<td>{post_link("sector.py", {"db": db_name, "id": sector["id"]}, esc(sector["name"]))}</td>'
-            f"<td>Ring {ring}</td>"
+            f"<td>{zone}</td>"
             f"<td>{distance_ly:,.1f} ly</td>"
             f'<td>{sector["system_count"] or 0}</td>'
             "</tr>"
@@ -145,7 +145,7 @@ def handler():
 
     if quadrant:
         table_title = f"Sectors in Quadrant {quadrant}"
-        table_head = "<tr><th>Name</th><th>Ring</th><th>Distance from core</th><th>Systems</th></tr>"
+        table_head = "<tr><th>Name</th><th>Zone</th><th>Distance from core</th><th>Systems</th></tr>"
         table_rows, pager_html = _quadrant_sector_table(db_name, sectors, quadrant, parse_page(params.get("page")))
     else:
         table_title = "Quadrants"

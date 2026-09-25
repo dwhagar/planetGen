@@ -529,10 +529,9 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
     system = StarSystem(system_config=cfg)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
 
-    empty_vertices = {"inner": [], "outer": []}
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
-        "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
+        "galactic_radius_pc": 0.0,
     })
 
     from stellarObjects.nebulaData import Nebula
@@ -661,7 +660,7 @@ def test_galaxy_sectors_excludes_unplaced_sectors(client, seeded_sector):
     assert response.get_json() == {"items": []}
 
 
-def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, shell_index=None, shell_slot_index=None):
+def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, address=None):
     sector = SpaceSector(name, edge_ly=edge_ly)
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
@@ -671,11 +670,9 @@ def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, shell_index=None,
     position = {
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.dist(center_pc, (0.0, 0.0, 0.0)),
-        "vertices_pc": {"inner": [], "outer": []},
     }
-    if shell_index is not None:
-        position["shell_index"] = shell_index
-        position["shell_slot_index"] = shell_slot_index
+    if address is not None:
+        position["ring_index"], position["layer_index"], position["ring_slot_index"] = address
     return _db.save_sector(sector, config=mysql_config, galaxy_position=position)
 
 
