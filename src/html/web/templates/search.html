@@ -1,0 +1,127 @@
+{#- The search page (views.search, data from web/searchpage.py). Every
+    filter is a GET parameter; tags and chip "x"s are plain links. -#}
+{% extends "base.html" %}
+{%- macro sector_cell(url) -%}
+{% if url %}<a href="{{ url }}">View</a>{% else %}Standalone{% endif %}
+{%- endmacro -%}
+{%- macro radius_cell(row) -%}
+{% if row.radius %}{{ row.radius }}{% else %}&mdash;{% endif %}
+{%- endmacro -%}
+{% block content %}
+<section class="panel" aria-labelledby="search-form-heading">
+  <h2 id="search-form-heading" class="sr-only">Search form</h2>
+  <form method="get" action="{{ url_for('web.search') }}" class="search-form" id="search-filters-form">
+    {%- for facet, values in state.tags.items() %}{% for value in values|sort %}
+    <input type="hidden" name="{{ facet }}" value="{{ value }}">
+    {%- endfor %}{% endfor %}
+    <div class="search-main">
+      <label class="search-field search-field-main">Name
+        <input type="search" name="q" value="{{ state.q }}" autocomplete="off" enterkeyhint="search"
+               placeholder="Any sector, system, star, planet, moon">
+      </label>
+      <button type="submit" class="btn">Search</button>
+    </div>
+    <details class="search-more"{% if state.advanced_open() %} open{% endif %}>
+      <summary>Search by object and size</summary>
+      <div class="search-fields">
+        {%- for key, label, list_key, placeholder in name_fields %}
+        <label class="search-field">{{ label }} name
+          <input type="text" name="{{ key }}" value="{{ state.texts[key] }}" list="dl-{{ list_key }}" autocomplete="off" placeholder="{{ placeholder }}">
+        </label>
+        {%- endfor %}
+      </div>
+      <div class="search-fields search-fields-size">
+        {%- for entity, label, placeholder in size_entities %}
+        <div class="search-field search-field-size" role="group" aria-label="{{ label }} radius, km">
+          <span>{{ label }} radius (km)</span>
+          <input type="number" name="{{ entity }}_min_radius_km" value="{{ state.texts[entity ~ '_min_radius_km'] }}" min="0" step="any" placeholder="e.g. 0" aria-label="Minimum {{ label|lower }} radius, km">
+          <span aria-hidden="true">&ndash;</span>
+          <input type="number" name="{{ entity }}_max_radius_km" value="{{ state.texts[entity ~ '_max_radius_km'] }}" min="0" step="any" placeholder="{{ placeholder }}" aria-label="Maximum {{ label|lower }} radius, km">
+        </div>
+        {%- endfor %}
+      </div>
+      <p class="hint">A field here searches only that kind of object and replaces the main name search for it.</p>
+    </details>
+    {%- for key, label, list_key, placeholder in name_fields %}
+    <datalist id="dl-{{ list_key }}">
+      {%- for name in autocomplete[list_key] %}<option value="{{ name }}"></option>{% endfor -%}
+    </datalist>
+    {%- endfor %}
+  </form>
+  {%- if chips %}
+  <div class="active-filters" aria-label="Active filters" role="group">
+    {%- for chip in chips %}
+    <span class="filter-chip">{{ chip.label }}<a href="{{ chip.url }}" aria-label="Remove filter {{ chip.label }}">&times;</a></span>
+    {%- endfor %}
+    <a class="clear-filters" href="{{ url_for('web.search') }}">Clear all</a>
+  </div>
+  {%- endif %}
+</section>
+
+{%- if panels is none %}
+<p class="hint">Enter a name above, or pick a tag below, to see matching results.</p>
+{%- elif not panels %}
+<p class="hint">No matching objects.</p>
+{%- else %}
+{%- for p in panels %}
+<section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">
+  <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ "{:,}".format(p.total) }})</span></h2>
+  <div class="table-scroll"><table>
+    {%- if p.panel == "sectors" %}
+    <thead><tr><th scope="col">Name</th><th scope="col">Cube Edge</th></tr></thead>
+    <tbody>
+      {%- for row in p.rows %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ "{:,.2f}".format(row.edge_mpc) }} mpc</td></tr>
+      {%- else %}<tr><td colspan="2"><em>None</em></td></tr>{% endfor %}
+    </tbody>
+    {%- elif p.panel == "systems" %}
+    <thead><tr><th scope="col">Name</th><th scope="col">Sector</th><th scope="col">Binary</th><th scope="col">Star type</th></tr></thead>
+    <tbody>
+      {%- for row in p.rows %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td><td>{{ "Yes" if row.is_binary else "No" }}</td><td>{{ row.star_summary }}</td></tr>
+      {%- else %}<tr><td colspan="4"><em>None</em></td></tr>{% endfor %}
+    </tbody>
+    {%- elif p.panel == "stars" %}
+    <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Type</th><th scope="col">Radius</th><th scope="col">System</th><th scope="col">Sector</th></tr></thead>
+    <tbody>
+      {%- for row in p.rows %}
+      <tr><td>{{ row.name }}</td><td>{{ row.role }}</td><td>{{ row.star_type }}</td><td>{{ radius_cell(row) }}</td><td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
+      {%- else %}<tr><td colspan="6"><em>None</em></td></tr>{% endfor %}
+    </tbody>
+    {%- elif p.panel in ("planets", "moons") %}
+    <thead><tr><th scope="col">Name</th><th scope="col">Class</th><th scope="col">Body</th><th scope="col">Radius</th><th scope="col">Life Chemistry</th>{% if p.panel == "moons" %}<th scope="col">Orbits</th>{% endif %}<th scope="col">System</th><th scope="col">Sector</th></tr></thead>
+    <tbody>
+      {%- for row in p.rows %}
+      <tr><td>{{ row.name }}</td><td>{{ row.planet_class or "—" }}</td><td>{{ row.body }}</td><td>{{ radius_cell(row) }}</td><td>{{ row.life_chemical or "—" }}</td>{% if p.panel == "moons" %}<td>{{ row.planet_name }}</td>{% endif %}<td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
+      {%- else %}<tr><td colspan="{{ 8 if p.panel == 'moons' else 7 }}"><em>None</em></td></tr>{% endfor %}
+    </tbody>
+    {%- else %}
+    <thead><tr><th scope="col">Density</th><th scope="col">Composition</th><th scope="col">System</th><th scope="col">Sector</th></tr></thead>
+    <tbody>
+      {%- for row in p.rows %}
+      <tr><td>{{ row.density|capitalize }}</td><td>{{ row.composition_summary }}</td><td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
+      {%- else %}<tr><td colspan="4"><em>None</em></td></tr>{% endfor %}
+    </tbody>
+    {%- endif %}
+  </table></div>
+  {{ p.pager }}
+</section>
+{%- endfor %}
+{%- endif %}
+
+<section class="panel" aria-labelledby="tags-heading">
+  <h2 id="tags-heading">Browse by Tag</h2>
+  {%- for group in tag_groups %}
+  <div class="tag-group">
+    <h3>{{ group.title }}</h3>
+    <div class="tag-list">
+      {%- for option in group.options %}
+      <a class="tag{% if option.active %} active{% endif %}" href="{{ option.url }}"{% if option.tooltip %} title="{{ option.tooltip }}"{% endif %}>{% if option.active %}<span class="sr-only">Selected: </span>{% endif %}{{ option.label }} <span class="tag-count">{{ option.count }}</span></a>
+      {%- endfor %}
+    </div>
+  </div>
+  {%- else %}
+  <p class="hint">Nothing has been generated yet.</p>
+  {%- endfor %}
+</section>
+{% endblock %}

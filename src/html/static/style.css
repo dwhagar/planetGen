@@ -1096,6 +1096,73 @@ a:focus-visible .navmap-point circle {
   flex: 1 1 6rem;
 }
 
+/* Flask search page (web/templates/search.html): the main name box,
+   the folded per-object fields, and link-style tags/chips. */
+.search-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.search-field-main {
+  flex: 1 1 16rem;
+}
+
+.search-field input[type="search"] {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
+.search-main .btn {
+  padding: 0.55rem 1.25rem;
+}
+
+.search-more > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.search-more[open] > summary {
+  margin-bottom: 1rem;
+}
+
+.search-more .search-field-size {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-more .search-field-size > span:first-child {
+  flex: 1 0 100%;
+}
+
+.search-more .hint {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.active-filters .clear-filters {
+  align-self: center;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
+.panel h2 .count {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .nav-route {
   padding-left: 1.5rem;
 }

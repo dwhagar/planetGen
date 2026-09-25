@@ -3,11 +3,8 @@
 """
 The routes of the Flask-served pages. First pages moved from CGI: the
 home page (was `index.py`/`browse.py`), `/sectors` and `/systems` (the
-two halves of `browse.py`), plus `/search` as a forwarder to the CGI
-search page until that page moves.
+two halves of `browse.py`), and `/search` (was `search.py`).
 """
-
-from urllib.parse import urlencode
 
 from flask import redirect, request
 
@@ -17,6 +14,7 @@ from galaxymap import sector_quadrant
 from pagination import fetch_page, parse_page
 
 from . import bp
+from . import searchpage
 from .helpers import crumb, db_name, page_url, pager, render_page, trusted_html
 
 
@@ -128,13 +126,29 @@ def systems():
 @bp.route("/search")
 def search():
     """
-    The header search box's target. Until the search page moves to Flask
-    this forwards to the CGI `search.py`, searching system names for
-    `?q=` (the most common thing to look up). The search page PR
-    replaces this view.
+    Faceted search (was `search.py`): `?q=` searches every kind of name
+    at once (the header search box), plus per-object name fields, size
+    ranges and click-to-filter tags, each a GET parameter, so any search
+    is a bookmarkable URL. See `web/searchpage.py`.
     """
-    params = [("db", db_name())]
-    query = (request.args.get("q") or "").strip()
-    if query:
-        params.append(("system_q", query))
-    return redirect(f"/search.py?{urlencode(params)}", code=302)
+    if searchpage.needs_canonical_redirect(request.args):
+        state = searchpage.SearchState.from_args(request.args)
+        return redirect(state.url(with_pages=True), code=302)
+    state = searchpage.SearchState.from_args(request.args)
+    data = apiclient.get_search(
+        db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=searchpage.PAGE_SIZE,
+        offsets=searchpage.api_offsets(state),
+    )
+    return render_page(
+        "search.html",
+        title="Search",
+        breadcrumbs=[crumb("Search")],
+        description="Search this generated galaxy by name, size and type.",
+        state=state,
+        name_fields=searchpage.NAME_FIELDS,
+        size_entities=searchpage.SIZE_ENTITIES,
+        autocomplete=data["autocomplete"],
+        tag_groups=searchpage.tag_groups(state, data["facets"]),
+        chips=searchpage.active_filters(state, data["facet_labels"]),
+        panels=searchpage.result_panels(state, data["results"]) if state.active() else None,
+    )
