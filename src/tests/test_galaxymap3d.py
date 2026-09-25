@@ -23,6 +23,7 @@ from galaxymap3d import (  # noqa: E402
     CAMERA_FOV_DEG,
     CLICK_ZOOM_FACTOR_MAX,
     CLICK_ZOOM_FACTOR_MIN,
+    DENSITY_SHAPE_FIELDS,
     FETCH_RADIUS_FACTOR,
     MIN_VIEW_RADIUS_FLOOR_PC,
     PLANNED_MAX_VIEW_RADIUS_PC,
@@ -132,6 +133,18 @@ def test_panel_omits_the_hint_when_a_shape_exists():
     assert "density skeleton hasn't been built yet" not in html
 
 
+def test_panel_embeds_the_density_shape_for_the_prisms():
+    shape = {field: float(i + 1) for i, field in enumerate(DENSITY_SHAPE_FIELDS)}
+    shape.update({"outer_shell_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
+    data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
+    assert data["densityShape"] == {field: shape[field] for field in DENSITY_SHAPE_FIELDS}
+
+
+def test_panel_has_no_density_shape_without_a_skeleton():
+    data = _json_payload(render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view()))
+    assert data["densityShape"] is None
+
+
 def test_panel_json_is_safely_escaped_against_script_breakout():
     # A database name is arbitrary operator-supplied text -- confirms the
     # same </script>-breakout mitigation lib/starmap.py's own
@@ -161,7 +174,7 @@ def test_panel_includes_real_placed_and_planned_data_from_the_initial_view():
 @pytest.mark.parametrize("orbit_radius", [16000.0, 900.0, 120.0, 30.0, 5.3])
 def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
     center = (321.0, -45.0, 6.0)
-    keys, density_key = initial_tile_request(orbit_radius, True, center)
+    keys = initial_tile_request(orbit_radius, center)
     view_radius = orbit_radius * FETCH_RADIUS_FACTOR
     level = tile_level_for_view_radius(view_radius)
     view_keys = tiles_intersecting_sphere(level, center, view_radius)
@@ -170,16 +183,9 @@ def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
         parse_tile_key(key)
     if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
         assert any(key.startswith(f"{TILE_MAX_LEVEL}/") for key in keys)
-        assert density_key is None
     else:
         assert all(key.startswith(f"{level}/") for key in keys)
-        assert density_key is not None and density_key.startswith(f"{level}/")
     assert len(keys) <= 128
-
-
-def test_initial_tile_request_has_no_density_without_a_shape():
-    _keys, density_key = initial_tile_request(16000.0, False)
-    assert density_key is None
 
 
 def test_planned_tiles_cover_the_whole_view_not_a_smaller_ball():
@@ -188,8 +194,7 @@ def test_planned_tiles_cover_the_whole_view_not_a_smaller_ball():
     # the target.
     center = (8000.0, 3.0, -2.0)
     orbit_radius = PLANNED_MAX_VIEW_RADIUS_PC / FETCH_RADIUS_FACTOR
-    keys, density_key = initial_tile_request(orbit_radius, True, center)
+    keys = initial_tile_request(orbit_radius, center)
     view_radius = orbit_radius * FETCH_RADIUS_FACTOR
     planned_keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, center, view_radius)
     assert set(planned_keys) <= set(keys)
-    assert density_key is None
