@@ -27,6 +27,7 @@ from stellarObjects.galaxyViewport import tile_keys_containing, tiles_intersecti
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from wikiClient import WikiClientPageExistsError, WikiPage
+import queryDb
 
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
 
@@ -704,6 +705,22 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     assert tiles[whole]["planned"] == []
     assert body["density"] is None
     assert body["has_shape"] is False
+
+
+def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
+    """A box holding more than `limit` placed sectors returns every Nth by
+    id, not the lowest ids -- a neighborhood is generated shell by shell,
+    so its lowest ids are only its core-facing half."""
+    ids = [_place_sector(mysql_config, f"Row {n}", (float(n), 0.0, 0.0)) for n in range(10)]
+    conn = _db.get_connection(mysql_config)
+    try:
+        sampled = queryDb.galaxy_sectors_in_box(conn, (-1.0, -1.0, -1.0), (20.0, 1.0, 1.0), limit=4)
+        everything = queryDb.galaxy_sectors_in_box(conn, (-1.0, -1.0, -1.0), (20.0, 1.0, 1.0), limit=10)
+    finally:
+        conn.close()
+    # ceil(10 / 4) = 3: rows 0, 3, 6, 9 -- spanning the whole run.
+    assert [s["id"] for s in sampled] == [ids[0], ids[3], ids[6], ids[9]]
+    assert [s["id"] for s in everything] == ids
 
 
 def test_galaxy_tiles_rejects_bad_requests(client, mysql_config):
