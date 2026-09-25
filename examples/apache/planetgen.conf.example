@@ -95,8 +95,10 @@
     #
     # The 3D Galaxy Map's tile cache (html/lib/tilecache.py). Defaults to
     # /var/cache/planetgen/tiles, which install.sh/update.sh create for
-    # Apache's user. If you move it here rather than in config.json's
-    # tile_cache.dir, create it with:
+    # Apache's user. The Galaxy Map (/galaxy) now runs in the WSGI daemon
+    # below, which these SetEnv lines don't reach (see the NOTE below):
+    # set tile_cache.dir in config.json instead. If you move it, create
+    # it with:
     #   sudo examples/apache/create-cache-dir.sh /path/to/tiles
     # SetEnv PLANETGEN_TILE_CACHE_DIR /var/cache/planetgen/tiles
     # SetEnv PLANETGEN_TILE_CACHE_MAX_MB 200

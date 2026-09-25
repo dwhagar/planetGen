@@ -1597,7 +1597,7 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
 def galaxy_placed_sectors(conn):
     """
     Every sector with a galaxy position, plus its live system count -- the
-    data `html/galaxy.py`'s Galaxy Map (`html/lib/galaxymap.py`) plots.
+    data the `/galaxy` Galaxy Map (`html/lib/galaxymap.py`) plots.
     Unplaced sectors (`center_x_pc IS NULL`) have nothing to plot and are
     excluded at the query itself.
 

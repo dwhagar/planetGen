@@ -340,7 +340,7 @@ def tile_level_for_view_radius(radius_pc):
     The level whose tiles are the smallest still at least `radius_pc` on
     a side, so a view sphere of that radius touches at most 3 tiles along
     each axis (27 in all). `static/galaxymap3d.js` computes the same thing
-    client-side; this is the Python twin `html/galaxy.py` uses for the
+    client-side; this is the Python twin the `/galaxy` page uses for the
     first frame.
     """
     if radius_pc <= 0:

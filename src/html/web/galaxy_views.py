@@ -18,7 +18,7 @@ own copy in `localStorage`, keyed as before, so a visitor's cached tiles
 survive the move.
 """
 
-from flask import jsonify, request
+from flask import jsonify, request, url_for
 
 import apiclient
 from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
@@ -104,7 +104,7 @@ def galaxy():
     initial_view = fetch_tiles(db, tile_keys, density_key)
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
-        fetch_path=request.script_root + "/galaxy/tiles",
+        fetch_path=url_for("web.galaxy_tiles"),
         sector_url=sector_url_template(),
     )
 
