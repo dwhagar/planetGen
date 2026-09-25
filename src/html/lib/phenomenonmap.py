@@ -83,6 +83,7 @@ _TYPE_COLORS = {
     "black_hole": "#1a1a1a", "neutron_star": "#cfe8ff",
     "supernova_remnant": "#e08a5c",
     "rogue_planet": "#7a8ba0", "interstellar_comet": "#a8d0e0",
+    "quasar": "#e8f0ff",
 }
 _DEFAULT_COLOR = "#9aa0ac"
 

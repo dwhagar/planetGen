@@ -361,6 +361,13 @@ var CLOUD_KIND_RECIPES = {
       [0, "#ffffff"], [0.2, "#e6fbffe0"], [0.5, "#8ff0e080"], [0.8, "rgba(0,0,0,0)"],
     ]);
   },
+  // A blinding white-blue point ringed by a hot violet accretion glow --
+  // brighter than anything else on the map, as a galaxy's nucleus is.
+  quasar: function () {
+    return makeSimpleRadialTexture(128, [
+      [0, "#ffffff"], [0.18, "#f2f6ffff"], [0.4, "#a9c4ffd0"], [0.6, "#b98cff70"], [0.85, "rgba(0,0,0,0)"],
+    ]);
+  },
 };
 
 function textureForCloud(cloud) {
@@ -387,6 +394,7 @@ var CLOUD_GLOW_RECIPES = {
   supernovaRemnant: { color: "#ff8a5c", power: 2.0, strength: 1.2, scale: 1.2 },
   roguePlanet: { color: "#7d6aa8", power: 2.5, strength: 0.8, scale: 1.25 },
   interstellarComet: { color: "#8ff0e0", power: 1.4, strength: 1.8, scale: 1.4 },
+  quasar: { color: "#c9d8ff", power: 1.0, strength: 3.0, scale: 1.7 },
 };
 
 function glowRecipeForCloud(cloud) {

@@ -759,6 +759,9 @@ def _cloud_data(db_name, phenomenon, x_px, y_px, z_px, radius_px):
     elif phenomenon_type == "interstellar_comet":
         data["kind"] = "interstellarComet"
         data["typeLabel"] = f'Interstellar Comet ({descriptor.capitalize()})' if descriptor else "Interstellar Comet"
+    elif phenomenon_type == "quasar":
+        data["kind"] = "quasar"
+        data["typeLabel"] = f'Quasar ({descriptor.capitalize()})' if descriptor else "Quasar"
     else:
         # Defensive fallback for a future phenomenon type this function
         # doesn't know about yet -- drawn the same as a default-colored
