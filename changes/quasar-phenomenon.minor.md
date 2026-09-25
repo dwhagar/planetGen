@@ -9,3 +9,9 @@
   detail page, and `generate.py phenomenon --type quasar` makes one on
   demand (`--sector-id` must be a shell-0 sector). New `quasars` table,
   schema v31; run `migrateDb.py` (update.sh does).
+
+### Fixed
+- **A black hole's accretion-disk temperature could render one kelvin
+  low.** Loading an anchored black hole back from the database truncated
+  its fractional disk temperature, so the rendered page could read e.g.
+  3,676,064 K instead of 3,676,065 K.

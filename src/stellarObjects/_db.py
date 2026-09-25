@@ -2944,20 +2944,25 @@ def _star_row_to_dict(row):
     """Maps a `stars` row to `Star.from_dict`'s expected dict shape,
     inverting every unit conversion `insert_star` applies.
 
-    `temperature` is cast back to `int` -- `Star.generate_star` always sets
-    it via `int(round(...))`, but SQLite's `REAL` column type hands every
-    numeric value back as a Python `float` regardless of what was stored,
-    and `f"{self.temperature} K"` (`get_table_properties`) renders `5800`
-    vs. `5800.0` differently -- the one place a plain round-trip through a
-    `REAL` column would otherwise silently break render fidelity.
+    `temperature` is cast back to `int` when it is a whole number --
+    `Star.generate_star` always sets it via `int(round(...))`, but a `REAL`/
+    `DOUBLE` column hands every numeric value back as a Python `float`, and
+    `f"{self.temperature} K"` (`get_table_properties`) renders `5800` vs.
+    `5800.0` differently. A fractional value is kept as-is: an anchored
+    `BlackHole`'s accretion-disk temperature is a float (`random.uniform`),
+    and truncating it would render e.g. 3,676,064.7 K as "3,676,064 K"
+    instead of the generated "3,676,065 K".
     """
+    temperature = row["temperature_k"]
+    if temperature is not None and float(temperature).is_integer():
+        temperature = int(temperature)
     return {
         "name": row["name"],
         "type": row["star_type"],
         "yerkes_class": row["yerkes_class"],
         "mass": row["mass_kg"],
         "radius": row["radius_km"],
-        "temperature": int(row["temperature_k"]),
+        "temperature": temperature,
         "luminosity": row["luminosity_w"],
         "age": row["age_gy"],
         "lifespan": row["lifespan_gy"],
