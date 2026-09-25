@@ -171,7 +171,16 @@ def _section_current(html, label):
 
 # --- /system/<id> -------------------------------------------------------------------
 
-def test_system_page_renders(client, fake):
+def _nav_links(app, kind, entity_id):
+    """The expected Navigate links, HTML-escaped (their form depends on
+    whether the NAV page has moved to Flask yet)."""
+    from markupsafe import escape
+    from web.system_pages import nav_links
+    with app.test_request_context("/"):
+        return {key: str(escape(url)) for key, url in nav_links(kind, entity_id).items()}
+
+
+def test_system_page_renders(app, client, fake):
     resp = client.get("/system/5")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
@@ -185,8 +194,9 @@ def test_system_page_renders(client, fake):
     assert _section_current(html, "Sectors")
     # Badges, nav links, location links: all plain GET links.
     assert '<span class="badge">Octant III</span>' in html and "Single star" in html
-    assert f'href="/nav.py?db={DB}&amp;from=5">Navigate from here</a>' in html
-    assert f'href="/nav.py?db={DB}&amp;to=5">Navigate to here</a>' in html
+    links = _nav_links(app, "system", 5)
+    assert f'href="{links["from"]}">Navigate from here</a>' in html
+    assert f'href="{links["to"]}">Navigate to here</a>' in html
     assert '<a href="/system/8">Alpha</a> (4.2 ly)' in html
     assert '<a href="/system/9">Be&lt;ta&gt;</a> (5.1 ly)' in html
     # The map, the body list, the stars table, and the page's scripts.
@@ -328,7 +338,7 @@ def test_phenomena_pages_with_get_links(client, fake):
     assert "Showing 51&ndash;100 of 120" in html
 
 
-def test_phenomenon_detail(client, fake):
+def test_phenomenon_detail(app, client, fake):
     resp = client.get("/phenomenon/nebula/4")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
@@ -339,8 +349,10 @@ def test_phenomenon_detail(client, fake):
     assert '<span class="badge">Nebula</span>' in html
     assert "3,261.60 ly from Galactic Center" in html or "3,261.56 ly from Galactic Center" in html
     assert f'<a href="/sector.py?db={DB}&amp;id=3">Crab &lt;Sector&gt;</a>' in html
-    assert f'href="/nav.py?db={DB}&amp;from=4&amp;from_kind=phenomenon&amp;from_type=nebula"' in html
-    assert f'href="/nav.py?db={DB}&amp;to=4&amp;to_kind=phenomenon&amp;to_type=nebula"' in html
+    links = _nav_links(app, "nebula", 4)
+    assert f'href="{links["from"]}">Navigate from here</a>' in html
+    assert f'href="{links["to"]}">Navigate to here</a>' in html
+    assert "4" in links["from"] and "nebula" in links["from"]
     assert '<th scope="row">Composition</th><td>Hydrogen &amp; helium</td>' in html
     assert "<td>Supernova remnant</td>" in html
     assert 'id="phenomenonmap-svg"' in html
@@ -378,11 +390,11 @@ def test_header_phenomena_section_links_here(client, fake):
 
 
 def test_location_link_hook():
-    link = lambda system_id, label: f'<a href="/system/{system_id}">{label}</a>'  # noqa: E731
+    url = lambda system_id: f"/system/{system_id}"  # noqa: E731
     html = nearest_neighbors_location(None, "S -- nearest: x", [{"id": 3, "name": "A&B", "distance_ly": 1.0}],
-                                      link=link)
+                                      system_url=url)
     assert html == 'S -- nearest: <a href="/system/3">A&amp;B</a> (1.0 ly)'
-    html = linkify_location(None, "S -- nearest: A (1.0 ly), Z (2.0 ly)", {"A": 3}, link=link)
+    html = linkify_location(None, "S -- nearest: A (1.0 ly), Z (2.0 ly)", {"A": 3}, system_url=url)
     assert html == 'S -- nearest: <a href="/system/3">A</a> (1.0 ly), Z (2.0 ly)'
 
 

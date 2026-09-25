@@ -18,8 +18,6 @@ every link is a plain GET link (`page_url`).
 """
 
 from flask import abort, redirect, request
-from markupsafe import escape
-
 import apiclient
 from fmt import nearest_neighbors_location, linkify_location
 from pagination import fetch_page, parse_page
@@ -60,10 +58,30 @@ page as text."""
 _LOCATION_MARKER = " -- nearest: "
 
 
-def _system_link(system_id, label_html):
-    """`fmt`'s location `link` hook: a plain GET link to a system page.
-    `label_html` is already escaped by `fmt`."""
-    return f'<a href="{escape(page_url("system", system_id=system_id))}">{label_html}</a>'
+def _system_url(system_id):
+    """`fmt`'s location `system_url` hook: a plain GET link."""
+    return page_url("system", system_id=system_id)
+
+
+def nav_links(kind, entity_id):
+    """
+    "Navigate from here" / "Navigate to here" URLs for a system
+    (`kind="system"`) or a phenomenon (`kind` = its type). Uses the NAV
+    page's own `nav_url`/`endpoint` (`/nav?from=<kind>:<id>`) once that
+    page is on Flask (`web/nav_page.py`); until then the old parameter
+    style for the CGI `nav.py`, which the Flask NAV page also redirects.
+    """
+    try:
+        from .nav_page import endpoint, nav_url
+    except ImportError:
+        if kind == "system":
+            return {"from": page_url("nav", from_id=entity_id), "to": page_url("nav", to_id=entity_id)}
+        return {
+            "from": page_url("nav", from_id=entity_id, from_kind="phenomenon", from_type=kind),
+            "to": page_url("nav", to_id=entity_id, to_kind="phenomenon", to_type=kind),
+        }
+    point = endpoint(kind, entity_id)
+    return {"from": nav_url(origin=point), "to": nav_url(destination=point)}
 
 
 def _location_html(system):
@@ -73,9 +91,9 @@ def _location_html(system):
         return None
     neighbors = system.get("nearest_neighbors")
     if neighbors:
-        return trusted_html(nearest_neighbors_location(None, system["location"], neighbors, link=_system_link))
+        return trusted_html(nearest_neighbors_location(None, system["location"], neighbors, system_url=_system_url))
     name_to_id = {row["name"]: row["id"] for row in system.get("sector_siblings") or []}
-    return trusted_html(linkify_location(None, system["location"], name_to_id, link=_system_link))
+    return trusted_html(linkify_location(None, system["location"], name_to_id, system_url=_system_url))
 
 
 def _system_crumbs(system):
@@ -150,14 +168,9 @@ def system(system_id):
     map_html = ""
     if detail["stars"]:
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"])
-    nav_links = None
-    if detail["sector_id"] is not None:
-        # NAV measures from a sector position, so a standalone system gets
-        # no links; nav.py itself works out whether cross-sector NAV applies.
-        nav_links = {
-            "from": page_url("nav", from_id=system_id),
-            "to": page_url("nav", to_id=system_id),
-        }
+    # NAV measures from a sector position, so a standalone system gets no
+    # links; the NAV page itself works out whether cross-sector NAV applies.
+    links = nav_links("system", system_id) if detail["sector_id"] is not None else None
 
     return render_page(
         "system.html",
@@ -167,7 +180,7 @@ def system(system_id):
         description=f"The {detail['name']} star system: its stars, planets, moons, belts and comets.",
         system=detail,
         badges=_badges(detail),
-        nav_links=nav_links,
+        nav_links=links,
         location_html=_location_html(detail),
         map_html=trusted_html(map_html),
         code_fmt=code_fmt,
@@ -381,10 +394,6 @@ def phenomenon(phenomenon_type, phenomenon_id):
 
     # Offered for every type: nav.py itself says when a phenomenon was
     # never placed in the galaxy.
-    nav_links = {
-        "from": page_url("nav", from_id=detail["id"], from_kind="phenomenon", from_type=phenomenon_type),
-        "to": page_url("nav", to_id=detail["id"], to_kind="phenomenon", to_type=phenomenon_type),
-    }
     map_html = render_phenomenon_map_panel(
         phenomenon_type, detail["name"], detail.get("radius_ly") or 0, include_scripts=False,
     )
@@ -397,7 +406,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         type_label=type_label,
         distance=distance,
         sector=sector,
-        nav_links=nav_links,
+        nav_links=nav_links(phenomenon_type, detail["id"]),
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
     )

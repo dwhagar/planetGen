@@ -168,13 +168,7 @@ _LOCATION_NEIGHBOR_MARKER = " -- nearest: "
 _LOCATION_NEIGHBOR_RE = re.compile(r'^(.*) (\([\d.]+ ly\))$')
 
 
-def _system_post_link(db_name):
-    """The CGI pages' default `link` for the two functions below: a
-    `post_link` form to `system.py`."""
-    return lambda system_id, label: post_link("system.py", {"db": db_name, "id": system_id}, label)
-
-
-def linkify_location(db_name, location, name_to_id, link=None):
+def linkify_location(db_name, location, name_to_id, system_url=None):
     """
     HTML-escapes a `star_systems.location` string and turns each nearest-
     neighbor name it lists into a link to that system's page.
@@ -197,10 +191,10 @@ def linkify_location(db_name, location, name_to_id, link=None):
         name_to_id (dict[str, int]): Every `star_systems.name` -> `id` in
                                      the same sector, for resolving each
                                      neighbor name to a link target.
-        link (callable, optional): `link(system_id, label_html)` returning
-            one system's link HTML. Defaults to a `post_link` form to
-            `system.py`; the Flask pages pass one building a plain
-            `<a href="/system/<id>">` (and may pass `db_name=None`).
+        system_url (callable, optional): `system_url(system_id)` -> URL.
+                       When given (the Flask pages), each neighbor is a
+                       plain `<a href>` to that URL and `db_name` is
+                       unused; otherwise a `post_link` to `system.py`.
 
     Returns:
         str: HTML-safe markup, neighbor names linked where resolvable.
@@ -210,7 +204,6 @@ def linkify_location(db_name, location, name_to_id, link=None):
     if _LOCATION_NEIGHBOR_MARKER not in location:
         return esc(location)
 
-    link = link or _system_post_link(db_name)
     prefix, neighbors_part = location.split(_LOCATION_NEIGHBOR_MARKER, 1)
     linked_entries = []
     for entry in neighbors_part.split(", "):
@@ -219,14 +212,18 @@ def linkify_location(db_name, location, name_to_id, link=None):
         system_id = name_to_id.get(name) if name is not None else None
         if match and system_id is not None:
             distance = match.group(2)
-            linked_entries.append(f'{link(system_id, esc(name))} {esc(distance)}')
+            if system_url is not None:
+                link = f'<a href="{esc(system_url(system_id))}">{esc(name)}</a>'
+            else:
+                link = post_link("system.py", {"db": db_name, "id": system_id}, esc(name))
+            linked_entries.append(f'{link} {esc(distance)}')
         else:
             linked_entries.append(esc(entry))
 
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(linked_entries)
 
 
-def nearest_neighbors_location(db_name, location, neighbors, link=None):
+def nearest_neighbors_location(db_name, location, neighbors, system_url=None):
     """
     The "Location:" text for a system page, built from live
     `queryDb.system_detail` `nearest_neighbors` data: the sector name
@@ -240,17 +237,20 @@ def nearest_neighbors_location(db_name, location, neighbors, link=None):
         location (str): The raw `star_systems.location` value (only its
                         sector-name prefix is used).
         neighbors (list[dict]): `{id, name, distance_ly}`, nearest first.
-        link (callable, optional): As for `linkify_location`.
+        system_url (callable, optional): As for `linkify_location`: when
+                       given, each neighbor is a plain `<a href>` to
+                       `system_url(id)` and `db_name` is unused.
 
     Returns:
         str: HTML-safe markup.
     """
-    link = link or _system_post_link(db_name)
     prefix = (location or "").split(_LOCATION_NEIGHBOR_MARKER, 1)[0]
-    entries = [
-        f'{link(n["id"], esc(n["name"]))} ({n["distance_ly"]:.1f} ly)'
-        for n in neighbors
-    ]
+    def _link(n):
+        if system_url is not None:
+            return f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a>'
+        return post_link("system.py", {"db": db_name, "id": n["id"]}, esc(n["name"]))
+
+    entries = [f'{_link(n)} ({n["distance_ly"]:.1f} ly)' for n in neighbors]
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
 
 
