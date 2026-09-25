@@ -1,0 +1,97 @@
+{#- The sector page (web/sector_page.py). -#}
+{% extends "base.html" %}
+{% block head %}
+<script type="module" src="{{ static_url('sectormap.js') }}"></script>
+{% endblock %}
+{% block subhead %}
+<p class="badges">
+  <span class="badge">Cube edge {{ edge_text }}</span>
+  <span class="badge">{{ system_count }} system{{ "" if system_count == 1 else "s" }}</span>
+  {%- if phenomenon_count %}
+  <span class="badge">{{ phenomenon_count }} {{ "phenomenon" if phenomenon_count == 1 else "phenomena" }}</span>
+  {%- endif %}
+  {%- if quadrant %}
+  <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">View on Galaxy Map (Quadrant {{ quadrant }})</a></span>
+  {%- endif %}
+</p>
+{% endblock %}
+{% block content %}
+{%- for message in messages %}
+<p class="hint" role="status">{{ message }}</p>
+{%- endfor %}
+{%- if sector.wiki_url %}
+<p class="wiki-link"><a href="{{ sector.wiki_url }}" target="_blank" rel="noopener noreferrer">View on Wiki</a></p>
+{%- elif admin and wiki_backends %}
+<section class="panel" aria-labelledby="wiki-heading">
+  <h2 id="wiki-heading">Upload to Wiki</h2>
+  {%- if errors.wiki %}
+  <p class="error" role="alert">{{ errors.wiki }}</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="upload_wiki">
+    <div class="search-fields">
+      <fieldset class="search-field">
+        <legend>Wiki</legend>
+        {%- for value, label in wiki_backends %}
+        <label><input type="radio" name="backend" value="{{ value }}"{% if loop.first %} checked{% endif %}> {{ label }}</label>
+        {%- endfor %}
+      </fieldset>
+      <label class="search-field">Path (Wiki.js only; MediaWiki uses the sector's name)
+        <input type="text" name="path" placeholder="e.g. sectors/{{ sector.name }}">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Upload</button>
+    </div>
+  </form>
+</section>
+{%- elif errors.wiki %}
+<p class="error" role="alert">{{ errors.wiki }}</p>
+{%- endif %}
+{%- if can_generate %}
+<section class="panel" aria-labelledby="admin-heading">
+  <h2 id="admin-heading">Admin</h2>
+  {%- if errors.neighborhood %}
+  <p class="error" role="alert">{{ errors.neighborhood }}</p>
+  {%- endif %}
+  {%- if sector.placed %}
+  <p class="hint">Fills in every not-yet-generated sector within a 100 ly sphere
+  around this one (already-generated sectors are skipped). That sphere can hold
+  thousands of candidate sectors, so this can take anywhere from a few minutes
+  to a few hours to finish; the page will not respond until it completes.</p>
+  <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="generate_neighborhood">
+    <button type="submit" class="btn">Generate more sectors around this one</button>
+  </form>
+  {%- else %}
+  <p class="hint">This sector has never been placed in a galaxy. Generating a
+  neighborhood around it requires a galaxy-placed sector (one generated with
+  <code>generate.py galaxy</code>, not <code>generate.py sector</code>).</p>
+  {%- endif %}
+</section>
+{%- endif %}
+{{ map_html }}
+<section class="panel" id="sector-contents" aria-labelledby="contents-heading">
+  <h2 id="contents-heading">Contents</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Details</th><th scope="col">Octant</th><th scope="col">Location</th><th scope="col">From center</th></tr></thead>
+    <tbody>
+      {%- for row in rows %}
+      <tr>
+        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>{{ row.type }}</td>
+        <td>{{ row.details }}</td>
+        <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.location is not none %}{{ row.location }}{% else %}&ndash;{% endif %}</td>
+        <td>{{ row.distance }}</td>
+      </tr>
+      {%- else %}
+      <tr><td colspan="6"><em>None</em></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ pager }}
+</section>
+{% endblock %}

@@ -1,0 +1,92 @@
+{#- The NAV page (web/nav_page.py). -#}
+{% extends "base.html" %}
+{% block subhead %}
+{%- if origin %}
+<p class="badges">
+  <span class="badge">From: <a href="{{ origin.url }}">{{ origin.name }}</a></span>
+  {%- if destination %}
+  <span class="badge">To: <a href="{{ destination.url }}">{{ destination.name }}</a></span>
+  {%- endif %}
+</p>
+{%- endif %}
+{% endblock %}
+{% block content %}
+{%- if error %}
+<section class="panel">
+  <p class="error" role="alert">{{ error }}</p>
+  {%- if start_over %}
+  <p><a href="{{ start_over }}">&larr; Choose another destination</a></p>
+  {%- endif %}
+</section>
+{%- endif %}
+
+{%- for picker in pickers or [] %}
+<section class="panel" aria-labelledby="picker-{{ loop.index }}">
+  <h2 id="picker-{{ loop.index }}">{{ picker.heading }}</h2>
+  {%- if picker.start_over %}
+  <p class="hint"><a href="{{ picker.start_over }}">&larr; Start over</a></p>
+  {%- endif %}
+  {%- if picker.options %}
+  <form method="get" action="{{ url_for('web.nav') }}" class="search-form">
+    {%- for name, value in picker.hidden %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <div class="search-fields">
+      <label class="search-field">{{ picker.label }}
+        <select name="{{ picker.field }}">
+          {%- for option in picker.options %}
+          <option value="{{ option.value }}">{{ option.label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">{{ picker.button }}</button>
+    </div>
+  </form>
+  {%- else %}
+  <p class="hint">{{ picker.empty }}</p>
+  {%- endif %}
+</section>
+{%- endfor %}
+
+{%- if direct %}
+<section class="panel" aria-labelledby="course-heading">
+  <div class="panel-header">
+    <h2 id="course-heading">Direct Course</h2>
+    <span class="hint"><a href="{{ reverse_url }}">Reverse course</a> &middot; <a href="{{ start_over }}">Another destination</a></span>
+  </div>
+  <p class="badges"><span class="badge">{{ scope_label }}</span></p>
+  <div class="table-scroll"><table>
+    <tbody>
+      <tr><td>Distance</td><td>{{ "{:,.2f}".format(direct.distance_ly) }} ly</td></tr>
+      <tr><td>Azimuth</td><td>{{ "{:.2f}".format(direct.azimuth_deg) }}&deg;</td></tr>
+      <tr><td>Altitude</td><td>{{ "{:+.2f}".format(direct.altitude_deg) }}&deg;</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Travel Time</h3>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Warp Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
+    <tbody>
+      {%- for leg in warp_times %}
+      <tr><td>Warp {{ leg.warp_factor }}</td><td>{{ "{:,.2f}".format(leg.velocity_multiple_of_c) }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{{ map_html }}
+<section class="panel" aria-labelledby="route-heading">
+  <h2 id="route-heading">Optimal Route</h2>
+  {%- if route %}
+  <p>{{ stops|length }} stop{{ "" if stops|length == 1 else "s" }}, {{ "{:,.2f}".format(route.distance_ly) }} ly total.</p>
+  <ol class="nav-route">
+    {%- for stop in stops %}
+    <li><a href="{{ stop.url }}">{{ stop.name }}</a></li>
+    {%- endfor %}
+  </ol>
+  {%- else %}
+  <p class="hint">No route via adjacent systems could be found between these two endpoints.</p>
+  {%- endif %}
+</section>
+{%- endif %}
+{% endblock %}

@@ -93,7 +93,7 @@ connectivity to that specific schema rather than the default one.
   publishing" below) (`queryDb.sector_detail`). Distinct from
   `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
-  ids-and-display-fields shape `../src/html/sector.py`'s systems table
+  ids-and-display-fields shape the sector page's (`/sector/<id>`) Contents table
   and Sector Map actually need.
 - `GET /api/systems?star_type=<prefix>&sector_id=<id|none>&limit=<n>&offset=<n>` —
   filtered, paginated system listing (`queryDb.list_systems`/
@@ -441,7 +441,7 @@ not a bearing relative to any particular ship heading.
   duration formatter used elsewhere in this project.
 - `origin_position`/`destination_position`: the `[x, y, z]` light-year
   positions `direct` was computed from, in `scope`'s frame (sector-local for
-  `"sector"`, absolute galaxy-frame for `"galaxy"`) — what `html/nav.py`'s
+  `"sector"`, absolute galaxy-frame for `"galaxy"`) — what the NAV page's (`/nav`)
   NAV Map plot (`html/lib/navmap.py`) draws.
 - `route`: the shortest path via adjacent systems (nodes: every system in
   scope, plus a phenomenon endpoint's own one-off node when `from`/`to` is
