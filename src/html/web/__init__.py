@@ -89,6 +89,7 @@ def _template_globals():
 errors.register(bp)
 
 from . import views  # noqa: E402,F401 -- registers the routes on bp
+from . import system_pages  # noqa: E402,F401 -- /system, /phenomena, /phenomenon
 
 
 def init_app(app, limiter=None):

@@ -54,10 +54,13 @@ def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
 
     # 4. Confirm the web page renders the same name and star type --
     # the actual thing a human visiting the site sees.
-    result = run_page(live_api, "system.py", query={"db": mysql_config.database, "id": str(system_id)})
-    assert result.status_code == 200
-    assert system_name in result.body
-    assert "K2V" in result.body
+    # The system page is served by the Flask app (`/system/<id>`), with
+    # the database taken from its config.
+    resp = _web_client(mysql_config).get(f"/system/{system_id}")
+    assert resp.status_code == 200
+    page_html = resp.get_data(as_text=True)
+    assert system_name in page_html
+    assert "K2V" in page_html
 
 
 def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_config, live_api):
@@ -90,6 +93,23 @@ def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     result = run_page(live_api, "sector.py", query={"db": mysql_config.database, "id": str(sector_id)})
     assert result.status_code == 200
     assert sector_name in result.body
+
+
+def _web_client(mysql_config):
+    """A test client for the Flask app (API + pages) on `mysql_config`."""
+    from api.app import create_app
+    from api.config import Config
+
+    class _Config(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+        SESSION_COOKIE_SECURE = False
+        SECRET_KEY = "test-secret"
+
+    app = create_app(_Config)
+    app.testing = True
+    return app.test_client()
 
 
 def _db_get_connection(mysql_config):

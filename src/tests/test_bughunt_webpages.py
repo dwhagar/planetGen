@@ -77,7 +77,8 @@ def _assert_clean_html(result, label):
 
 # index.py and browse.py are now CGI shims that 301 to the Flask-served
 # home page; test_web_pages.py covers the shims, the new pages, their
-# pagination and their error handling.
+# pagination and their error handling. system.py, phenomena.py and
+# phenomenon.py moved too: test_web_system_phen.py covers those.
 
 
 def test_sector_page_renders(live_api, seeded_db):
@@ -124,7 +125,6 @@ def test_sector_page_with_galaxy_placement_renders_neighbor_indicators(live_api,
     for entry in scene["neighbors"]:
         assert entry["exists"] is False  # nothing else was ever placed
         assert "designation" in entry and entry["designation"]
-
 
 
 def test_sector_page_lists_and_maps_every_phenomenon_type(live_api, mysql_config):
@@ -179,34 +179,6 @@ def test_sector_page_lists_and_maps_every_phenomenon_type(live_api, mysql_config
     kinds = {cloud["kind"] for cloud in scene["clouds"]}
     assert {"supernovaRemnant", "roguePlanet", "interstellarComet"} <= kinds
 
-def test_system_page_renders(live_api, seeded_db):
-    _config, db_name, _sector_id, system_ids = seeded_db
-    result = run_page(live_api, "system.py", query={"db": db_name, "id": str(system_ids[0])})
-    assert result.status_code == 200
-    _assert_clean_html(result, "system.py")
-
-
-def test_system_page_lists_bodies_and_shows_generated_code(live_api, mysql_config):
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.MOONS = True
-    cfg.BINARY_SYSTEM = False
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
-    query = {"db": mysql_config.database, "id": str(system_id)}
-
-    result = run_page(live_api, "system.py", query=query)
-    assert result.status_code == 200
-    _assert_clean_html(result, "system.py")
-    assert 'class="system-list system-list-root"' in result.body
-    assert "Habitable: " in result.body and "Inhabited: " in result.body
-    assert 'id="system-code"' not in result.body
-
-    for fmt, marker in (("wikitext", "[[Category:Star Systems]]"), ("markdown", "| Property | Value |")):
-        result = run_page(live_api, "system.py", query={**query, "code": fmt})
-        assert result.status_code == 200
-        assert 'id="system-code"' in result.body and "data-copy-target" in result.body
-        assert marker in result.body.replace("&#x27;", "'")
-
 
 def test_galaxy_page_renders(live_api, seeded_db, tmp_path):
     _config, db_name, _sector_id, _system_ids = seeded_db
@@ -237,13 +209,6 @@ def test_galaxy_tiles_endpoint_serves_and_caches_tiles(live_api, seeded_db, tmp_
 
     bad = run_page(live_api, "galaxy_tiles.py", query={"db": db_name, "tiles": "99/0/0/0"}, extra_env=cache_env)
     assert bad.status_code == 400
-
-
-def test_phenomena_page_renders(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "phenomena.py", query={"db": db_name})
-    assert result.status_code == 200
-    _assert_clean_html(result, "phenomena.py")
 
 
 def test_search_page_renders(live_api, seeded_db):
@@ -339,32 +304,12 @@ def test_login_page_renders_without_auth(live_api, seeded_db):
 
 # --- Missing/garbage params fail cleanly, never a raw traceback -------------
 
-def test_system_page_unknown_id_fails_cleanly(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "system.py", query={"db": db_name, "id": "999999999"})
-    assert result.status_code == 404
-    _assert_clean_html(result, "system.py (unknown id)")
-
-
-def test_system_page_non_numeric_id_fails_cleanly(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "system.py", query={"db": db_name, "id": "not-a-number"})
-    assert result.status_code >= 400
-    _assert_clean_html(result, "system.py (non-numeric id)")
-
 
 def test_sector_page_unknown_id_fails_cleanly(live_api, seeded_db):
     _config, db_name, _sector_id, _system_ids = seeded_db
     result = run_page(live_api, "sector.py", query={"db": db_name, "id": "999999999"})
     assert result.status_code == 404
     _assert_clean_html(result, "sector.py (unknown id)")
-
-
-def test_phenomenon_page_missing_params_fails_cleanly(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "phenomenon.py", query={"db": db_name})
-    assert result.status_code >= 400
-    _assert_clean_html(result, "phenomenon.py (no id/type)")
 
 
 # --- Auth gating: admin.py/changecreds.py redirect, never render content ----
@@ -394,20 +339,6 @@ def test_admin_page_unauthenticated_never_leaks_any_admin_data(live_api, seeded_
 
 
 # --- XSS-escaping: an HTML-metacharacter-bearing name renders escaped -------
-
-def test_system_page_escapes_html_metacharacters_in_system_name(live_api, mysql_config):
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.PLANETS = False
-    cfg.BINARY_SYSTEM = False
-    cfg.NAME = "<script>alert(1)</script>"
-    system = StarSystem(system_config=cfg)
-    system_id = _db.save_system(system, cfg, config=mysql_config)
-
-    result = run_page(live_api, "system.py", query={"db": mysql_config.database, "id": str(system_id)})
-    assert result.status_code == 200
-    assert "<script>alert(1)</script>" not in result.body
-    assert "&lt;script&gt;" in result.body
 
 
 def test_sector_page_escapes_html_metacharacters_in_sector_name(live_api, mysql_config):

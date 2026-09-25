@@ -1,6 +1,6 @@
 // html/static/copycode.js
 //
-// The system page's Copy button (html/system.py's `_code_html`): copies
+// The system page's Copy button (/system/<id>, web/templates/system.html): copies
 // the generated Wikitext/Markdown out of the read-only code box named by
 // the button's `data-copy-target`. A separate file because the site's
 // Content-Security-Policy (`default-src 'self'`) allows no inline script.
