@@ -379,6 +379,13 @@ def generate_planet_properties(planet, zone_override=None):
 
     if class_data["atmosphere"] is None:
         planet.atmosphere = "None"
+        # Clear any atmosphere a previous class left behind --
+        # `reconcile_zone_and_class` regenerates a body in place, so a body
+        # moved from an atmosphered class into an airless one would
+        # otherwise keep (and save) its old class's densities.
+        planet.atm_density = None
+        planet.atm_molar_density = None
+        planet.scale_height = None
     else:
         planet.atmosphere = class_data["atmosphere"]
         # Class-specific atmosphere-density/molar-density ranges if declared
@@ -524,9 +531,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     # the default range used for every other class.
     albedo_range = class_data.get("albedo_range", (0.12, 0.35))
     albedo = random.uniform(*albedo_range)
-    surface_temperature_no_atmosphere = (
-                                                (1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (
-                                                    1 / 4)
+    # Floored at the cosmic microwave background: starlight alone can put a
+    # body around a very dim star (or far out) below ~2.7 K, but nothing in
+    # space is colder than the background it sits in.
+    surface_temperature_no_atmosphere = max(
+        physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K,
+        ((1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4),
+    )
 
     if planet.atmosphere == "None":
         planet.surface_temperature = surface_temperature_no_atmosphere
@@ -576,7 +587,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         greenhouse_multiplier = random.uniform(*greenhouse_multiplier_range)
         greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
         surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
-        planet.surface_temperature = surface_temperature_atmosphere
+        planet.surface_temperature = max(physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K, surface_temperature_atmosphere)
         planet.atmospheric_pressure = atmospheric_pressure
 
         # Class M/P's forced pressure/temperature clamps are disabled.

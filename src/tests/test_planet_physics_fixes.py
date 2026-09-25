@@ -365,3 +365,49 @@ def test_class_p_is_colder_on_average_than_class_m():
     assert p_mean_temp < m_mean_temp, (
         f"Class P mean temp {p_mean_temp:.2f}K should be colder than Class M mean temp {m_mean_temp:.2f}K"
     )
+
+
+# ---------------------------------------------------------------------------
+# Airless reclassification and the cosmic-background temperature floor
+# ---------------------------------------------------------------------------
+
+def test_reclassifying_into_an_airless_class_clears_the_old_atmosphere(host_star):
+    """
+    `reconcile_zone_and_class` regenerates a body in place, so a body that
+    started in an atmosphered class and lands in an airless one (Class C)
+    used to keep its old atm_density/atm_molar_density/scale_height.
+    """
+    cfg = SystemConfig()
+    distance = plausibility.distance_for_zone(host_star, "e")
+    planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
+                    planet_class="M", zone_override="e", moon_count=0)
+    assert planet.atm_density is not None and planet.scale_height is not None
+
+    planet.planet_class = "C"
+    planet.radius = None
+    planet.mass = None
+    planetPhysics.generate_planet_properties(planet, zone_override="e")
+    planetPhysics.calculate_surface_gravity(planet)
+    planetPhysics.calculate_atmospheric_conditions(planet)
+
+    assert planet.atmosphere == "None"
+    assert planet.atm_density is None
+    assert planet.atm_molar_density is None
+    assert planet.scale_height is None
+    assert planet.atmospheric_pressure == 0.0
+
+
+@pytest.mark.parametrize("planet_class", ["C", "I"])
+def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, planet_class):
+    cfg = SystemConfig()
+    zone = "c"
+    distance = plausibility.distance_for_zone(host_star, zone)
+    planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
+                    planet_class=planet_class, zone_override=zone, moon_count=0)
+
+    class DimStar:
+        luminosity = host_star.luminosity * 1e-12
+
+    planet.star = DimStar()
+    planetPhysics.calculate_atmospheric_conditions(planet)
+    assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K

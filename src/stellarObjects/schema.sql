@@ -717,6 +717,16 @@
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
 --   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
+-- v30: no shape change -- a data cleanup of two generator bugs in
+--   `planets`/`moons`. A body `planetPhysics.reconcile_zone_and_class`
+--   moved into an airless class kept its old class's `atm_density`/
+--   `atm_molar_density`/`scale_height_km` (now cleared on reclassification,
+--   and NULLed on `atmosphere = 'None'` rows), and bodies around very dim
+--   stars could come out below the cosmic microwave background (now
+--   floored at `physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K`,
+--   2.725 K, and raised to it on existing rows). `_migrate_v29_to_v30` does
+--   both updates.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
