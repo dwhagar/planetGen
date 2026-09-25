@@ -171,6 +171,15 @@ def _section_current(html, label):
 
 # --- /system/<id> -------------------------------------------------------------------
 
+def _url(app, name, **params):
+    """`page_url` as it appears in the HTML (escaped). Used for links to
+    pages other groups are moving, whose URLs change when they land."""
+    from markupsafe import escape
+    from web.helpers import page_url
+    with app.test_request_context("/"):
+        return str(escape(page_url(name, **params)))
+
+
 def _nav_links(app, kind, entity_id):
     """The expected Navigate links, HTML-escaped (their form depends on
     whether the NAV page has moved to Flask yet)."""
@@ -189,7 +198,7 @@ def test_system_page_renders(app, client, fake):
     # Breadcrumbs: Home > Sectors > <sector, from the location prefix> > system.
     crumbs = re.search(r'<nav class="breadcrumbs" aria-label="Breadcrumb">(.*?)</nav>', html, re.S).group(1)
     assert '<a href="/sectors">Sectors</a>' in crumbs
-    assert f'<a href="/sector.py?db={DB}&amp;id=7">Voranthis &amp; Kelmoor</a>' in crumbs
+    assert f'<a href="{_url(app, "sector", sector_id=7)}">Voranthis &amp; Kelmoor</a>' in crumbs
     assert '<span aria-current="page">Kepler &lt;b&gt;42&lt;/b&gt;</span>' in crumbs
     assert _section_current(html, "Sectors")
     # Badges, nav links, location links: all plain GET links.
@@ -316,14 +325,14 @@ def test_upload_needs_admin_and_csrf(app, client, fake):
 
 # --- /phenomena and /phenomenon/<type>/<id> ------------------------------------------
 
-def test_phenomena_list(client, fake):
+def test_phenomena_list(app, client, fake):
     resp = client.get("/phenomena")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert _section_current(html, "Phenomena")
     assert "3 phenomena" in html
     assert '<a href="/phenomenon/nebula/0">Phenomenon 000</a>' in html
-    assert f'<a href="/sector.py?db={DB}&amp;id=3">Home &lt;Sector&gt;</a>' in html
+    assert f'<a href="{_url(app, "sector", sector_id=3)}">Home &lt;Sector&gt;</a>' in html
     assert "Emission nebula" in html and "12.50 ly" in html
     assert '<form method="post"' not in html
     assert ("get_phenomena", DB, 50, 0) in fake.calls
@@ -348,7 +357,7 @@ def test_phenomenon_detail(app, client, fake):
     assert _section_current(html, "Phenomena")
     assert '<span class="badge">Nebula</span>' in html
     assert "3,261.60 ly from Galactic Center" in html or "3,261.56 ly from Galactic Center" in html
-    assert f'<a href="/sector.py?db={DB}&amp;id=3">Crab &lt;Sector&gt;</a>' in html
+    assert f'<a href="{_url(app, "sector", sector_id=3)}">Crab &lt;Sector&gt;</a>' in html
     links = _nav_links(app, "nebula", 4)
     assert f'href="{links["from"]}">Navigate from here</a>' in html
     assert f'href="{links["to"]}">Navigate to here</a>' in html
@@ -456,6 +465,7 @@ def db_app(mysql_config, monkeypatch):
 def _save_system(mysql_config, name=None, moons=True):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = True
     cfg.MOONS = moons
     cfg.BINARY_SYSTEM = False
     if name:
@@ -495,7 +505,7 @@ def test_real_system_in_sector_links_neighbours(db_app, mysql_config):
         conn.close()
     html = db_app.test_client().get(f"/system/{ids[0]}").get_data(as_text=True)
     assert f'<a href="/system/{ids[1]}">' in html
-    assert f"id={sector_id}\">Web Sector</a>" in html
+    assert f'<a href="{_url(db_app, "sector", sector_id=sector_id)}">Web Sector</a>' in html
     assert "Navigate from here" in html
 
 
