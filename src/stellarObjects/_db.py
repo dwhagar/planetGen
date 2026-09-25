@@ -84,7 +84,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 30
+SCHEMA_VERSION = 31
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2653,7 +2653,7 @@ def replace_galaxy_ring_bands(ring_bands, config=None, conn=None):
         config (MySQLConfig, optional): Connection parameters. Defaults
             to `DEFAULT_MYSQL_CONFIG`. Ignored when `conn` is given.
         conn (Connection, optional): Write through this connection, inside
-            the caller's own transaction (the v30 migration does), instead
+            the caller's own transaction (the v31 migration does), instead
             of opening and committing a new one.
     """
     def _write(c):
@@ -4730,6 +4730,117 @@ def _migrate_v28_to_v29(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (29)")
 
 
+def _migrate_v29_to_v30(conn):
+    """
+    Cleans up two kinds of bad surface-condition values older generator
+    code saved on `planets`/`moons` -- see `schema.sql`'s "v30" header
+    note. No columns change, so a database `_ensure_schema` created fresh
+    has nothing to fix and every `UPDATE` here matches no rows.
+
+    - Airless bodies (`atmosphere = 'None'`) that kept a previous class's
+      `atm_density`/`atm_molar_density`/`scale_height_km` after
+      `planetPhysics.reconcile_zone_and_class` moved them into an airless
+      class: set back to NULL, like every other airless body.
+    - `surface_temperature_k` below the cosmic microwave background
+      (`physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K`): raised to it.
+
+    Deliberately leaves `star_systems.modified_at` alone, like the orbit
+    ticks do (see `schema.sql`'s "v27" note): nothing the Galaxy Map tile
+    cache draws depends on these values.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    floor_k = physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K
+    for table in ("planets", "moons"):
+        conn.execute(
+            f"UPDATE {table} SET atm_density = NULL, atm_molar_density = NULL, scale_height_km = NULL "
+            "WHERE atmosphere = 'None' AND (atm_density IS NOT NULL OR atm_molar_density IS NOT NULL "
+            "OR scale_height_km IS NOT NULL)"
+        )
+        conn.execute(
+            f"UPDATE {table} SET surface_temperature_k = ? WHERE surface_temperature_k < ?",
+            (floor_k, floor_k),
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (30)")
+
+
+V31_PLACED_CONTENT_TABLES = (
+    "supernova_remnants", "rogue_planets", "interstellar_comets", "nebulae", "asteroid_fields",
+    "black_holes", "neutron_stars", "star_systems",
+)
+"""tuple: The tables whose rows in a galaxy-placed sector v31 deletes, in
+an order that respects their foreign keys (supernova remnants point at
+black holes and neutron stars, so they go first)."""
+
+
+def _migrate_v30_to_v31(conn):
+    """
+    Moves galaxy placement from spherical shells to the cylindrical
+    ring/layer/slot grid -- see `schema.sql`'s "v31" header note. A
+    shell-addressed sector has no matching cell, so every galaxy-placed
+    sector is **deleted**, together with its star systems (their planets,
+    moons and stars go with them through `ON DELETE CASCADE`) and every
+    phenomenon filed under it; visiting the galaxy regenerates them.
+    Sectors that were never placed in the galaxy, and their contents, are
+    untouched. Then:
+
+    - `sector_vertices` is dropped (a cell's corners are closed-form).
+    - `sectors` swaps `shell_index`/`shell_slot_index` for `ring_index`/
+      `layer_index`/`ring_slot_index` plus their UNIQUE key.
+    - `galaxy_shell_band` is dropped; `galaxy_ring_band` (which
+      `_ensure_schema` already created) is filled from the stored galaxy
+      shape, if there is one, and `galaxy_shape.outer_shell_index` becomes
+      `outer_ring_index`.
+
+    Guarded on `sectors.shell_index`, so a database `_ensure_schema`
+    created fresh (already the new shape) makes this a no-op apart from
+    its bookkeeping row.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if _has_column(conn, "sectors", "shell_index"):
+        from .galaxySkeleton import build_ring_bands
+
+        placed = "SELECT id FROM sectors WHERE center_x_pc IS NOT NULL"
+        for table in V31_PLACED_CONTENT_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})")
+        conn.execute("DROP TABLE IF EXISTS sector_vertices")
+        conn.execute("DELETE FROM sectors WHERE center_x_pc IS NOT NULL")
+
+        if _has_index(conn, "sectors", "idx_sectors_shell_index"):
+            conn.execute("ALTER TABLE sectors DROP INDEX idx_sectors_shell_index")
+        for index_row in conn.execute(
+            "SHOW INDEX FROM sectors WHERE Column_name = 'shell_index' AND Key_name <> 'PRIMARY'"
+        ).fetchall():
+            if _has_index(conn, "sectors", index_row["Key_name"]):
+                conn.execute(f"ALTER TABLE sectors DROP INDEX `{index_row['Key_name']}`")
+        conn.execute(
+            "ALTER TABLE sectors DROP COLUMN shell_index, DROP COLUMN shell_slot_index, "
+            "ADD COLUMN ring_index INT, ADD COLUMN layer_index INT, ADD COLUMN ring_slot_index INT, "
+            "ADD UNIQUE KEY uq_sectors_address (ring_index, layer_index, ring_slot_index)"
+        )
+
+        conn.execute("DROP TABLE IF EXISTS galaxy_shell_band")
+        if _has_column(conn, "galaxy_shape", "outer_shell_index"):
+            conn.execute("ALTER TABLE galaxy_shape CHANGE COLUMN outer_shell_index outer_ring_index INT NOT NULL")
+        skeleton = get_galaxy_shape(conn)
+        if skeleton is not None:
+            bands, outer_ring_index, _confirmed = build_ring_bands(
+                skeleton.shape, skeleton.edge_pc, 1.0 / skeleton.expected_system_count_at_density_1,
+            )
+            replace_galaxy_ring_bands(bands, conn=conn)
+            conn.execute("UPDATE galaxy_shape SET outer_ring_index = ? WHERE id = 1", (outer_ring_index,))
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -4799,9 +4910,13 @@ def migrate_database(config=None):
     `neutron_stars`), `_migrate_v26_to_v27` (added for v27's
     `created_at`/`modified_at` row timestamps), and `_migrate_v27_to_v28`
     (added for v28's placement columns on `supernova_remnants`/
-    `rogue_planets`/`interstellar_comets`), and `_migrate_v28_to_v29`
+    `rogue_planets`/`interstellar_comets`), `_migrate_v28_to_v29`
     (dropping the stored wikitext/Markdown page text v29 renders on
-    demand instead) are the migration steps so far; see
+    demand instead), `_migrate_v29_to_v30` (clearing stale atmosphere
+    values on airless bodies and flooring surface temperatures at the
+    cosmic background), and `_migrate_v30_to_v31` (moving galaxy placement
+    to the cylindrical sector grid, which deletes every galaxy-placed
+    sector and its contents) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4901,6 +5016,14 @@ def migrate_database(config=None):
         if version < 29:
             _migrate_v28_to_v29(conn)
             version = 29
+
+        if version < 30:
+            _migrate_v29_to_v30(conn)
+            version = 30
+
+        if version < 31:
+            _migrate_v30_to_v31(conn)
+            version = 31
 
         conn.commit()
         return version

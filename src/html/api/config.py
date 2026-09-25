@@ -33,6 +33,7 @@ worker count.
 """
 
 import os
+import secrets
 
 from stellarObjects._db import MySQLConfig, control_mysql_config
 from stellarObjects.appconfig import load_config
@@ -100,6 +101,23 @@ def _session_cookie_secure(admin_cookie_insecure):
 _config_file = load_config()
 
 
+def _secret_key():
+    """
+    `PLANETGEN_SECRET_KEY`, else `config.json`'s `secret_key`, else a
+    random per-process key (`SECRET_KEY_IS_EPHEMERAL` is then True and
+    `create_app` logs a warning). Used to sign the Flask-served pages'
+    CSRF tokens (`html/web/csrf.py`); nothing else in the app signs
+    anything with it today.
+    """
+    configured = os.environ.get("PLANETGEN_SECRET_KEY") or _config_file.get("secret_key") or ""
+    if configured:
+        return configured, False
+    return secrets.token_hex(32), True
+
+
+_SECRET_KEY, _SECRET_KEY_IS_EPHEMERAL = _secret_key()
+
+
 class Config:
     MYSQL_CONFIG = MySQLConfig()
 
@@ -131,3 +149,13 @@ class Config:
     # deployment must never set PLANETGEN_ADMIN_COOKIE_INSECURE or
     # config.json's admin_cookie_insecure.
     SESSION_COOKIE_SECURE = _session_cookie_secure(_config_file["admin_cookie_insecure"])
+
+    # See `_secret_key` above.
+    SECRET_KEY = _SECRET_KEY
+    SECRET_KEY_IS_EPHEMERAL = _SECRET_KEY_IS_EPHEMERAL
+
+    # The one database the Flask-served pages (`html/web/`) show. Empty
+    # (the default) means `MYSQL_CONFIG.database`, i.e. `config.json`'s
+    # `mysql.database` or `PLANETGEN_MYSQL_DATABASE` -- see
+    # `web/helpers.db_name`. It never travels in a page URL.
+    WEB_DATABASE = ""

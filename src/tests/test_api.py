@@ -428,11 +428,19 @@ def test_system_sections_cover_every_body(client, mysql_config):
     cfg.COMETS = True
     cfg.ASTEROID_BELT = True
     cfg.BINARY_SYSTEM = False
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    # Generation is random: a system can still come out with no moons, belt
+    # or comet despite the flags above, so draw until one has every kind.
+    for _ in range(50):
+        system = StarSystem(system_config=cfg)
+        bodies = system.planets or []
+        if (any(getattr(b, "moons", None) for b in bodies)
+                and any(b.body_type == "a" for b in bodies) and system.comets):
+            break
+    system_id = _db.save_system(system, cfg, config=mysql_config)
 
     detail = client.get(f"/api/systems/{system_id}").get_json()
     sections = client.get(f"/api/systems/{system_id}/sections").get_json()
-    assert detail["planets"] and detail["planets"][0]["moons"] and detail["belts"] and detail["comets"]
+    assert any(p["moons"] for p in detail["planets"]) and detail["belts"] and detail["comets"]
 
     assert "This system contains" in sections["overview"] or "no stellar objects" in sections["overview"]
     assert set(sections["stars"]) == {str(s["id"]) for s in detail["stars"]}

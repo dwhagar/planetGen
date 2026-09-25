@@ -87,6 +87,134 @@ class ApiError(Exception):
         self.status_code = status_code
 
 
+# ---------------------------------------------------------------------
+# Transport: how a request actually reaches the API.
+#
+# CGI pages reach the API over HTTP (`_http_transport`, the default). The
+# Flask-served pages (`html/web/`) run *inside* the API's own process, so
+# they install an in-process transport with `set_transport` (see
+# `web/transport.py`) that dispatches straight through the app's own
+# routes -- no HTTP round trip to itself. Every typed wrapper below
+# (`get_sectors`, `auth_me`, ...) is unchanged either way.
+# ---------------------------------------------------------------------
+
+class TransportResponse:
+    """What a transport hands back for one request: the HTTP `status`
+    code, the response body as text, every `Set-Cookie` header verbatim,
+    and a `reason` phrase used as the error detail when the body has
+    none."""
+
+    __slots__ = ("status", "body", "set_cookie_headers", "reason")
+
+    def __init__(self, status, body, set_cookie_headers=(), reason=""):
+        self.status = status
+        self.body = body
+        self.set_cookie_headers = list(set_cookie_headers)
+        self.reason = reason
+
+
+class TransportUnreachable(Exception):
+    """Raised by a transport when the API could not be reached at all
+    (no HTTP status to report)."""
+
+
+_transport = None
+"""callable or None: The installed non-HTTP transport, see
+`set_transport`."""
+
+
+def set_transport(transport):
+    """
+    Installs a transport used for every API call instead of HTTP, or
+    removes it again with `None`.
+
+    Args:
+        transport (callable or None): `transport(method, target, data,
+            headers, timeout)`, where `target` is the path under `/api`
+            with any query string (`"/sectors?db=x&limit=50"`), `data` the
+            request body bytes (or `None`) and `headers` a dict. Returns a
+            `TransportResponse`, or `None` to decline the call (e.g. no
+            Flask request is active), in which case HTTP is used.
+    """
+    global _transport
+    _transport = transport
+
+
+def _http_transport(method, target, data, headers, timeout):
+    """The default transport: a real HTTP request to `API_BASE_URL`."""
+    request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return TransportResponse(
+                response.status, response.read().decode("utf-8"),
+                response.headers.get_all("Set-Cookie") or [], response.reason,
+            )
+    except urllib.error.HTTPError as exc:
+        try:
+            body = exc.read().decode("utf-8", errors="replace")
+        except Exception:
+            body = ""
+        return TransportResponse(exc.code, body, [], exc.reason)
+    except urllib.error.URLError as exc:
+        raise TransportUnreachable(exc.reason)
+
+
+def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_SECONDS):
+    """
+    Sends one request through the installed transport (HTTP unless
+    `set_transport` installed another that accepts the call) and maps
+    the outcome onto this module's exceptions.
+
+    Returns:
+        TransportResponse: For any 2xx/3xx status.
+
+    Raises:
+        NotFoundError: On a 404 response.
+        ApiError: On any other error status (with `.status_code` set), or
+            if the API can't be reached.
+    """
+    data = None
+    headers = {}
+    if json_body is not None:
+        data = json.dumps(json_body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    if cookie_header:
+        headers["Cookie"] = cookie_header
+
+    start = time.perf_counter()
+    response = None
+    where = f"{API_BASE_URL}{target}"
+    if _transport is not None:
+        response = _transport(method, target, data, headers, timeout)
+        if response is not None:
+            where = f"(in-process) /api{target}"
+    if response is None:
+        try:
+            response = _http_transport(method, target, data, headers, timeout)
+        except TransportUnreachable as exc:
+            _log_call(method, where, start, f"unreachable: {exc}")
+            raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc}")
+
+    if response.status >= 400:
+        detail = _error_detail(response)
+        _log_call(method, where, start, f"HTTP {response.status}: {detail}")
+        if response.status == 404:
+            raise NotFoundError(detail)
+        raise ApiError(f"planetGen API error ({response.status}): {detail}", status_code=response.status)
+    # Request bodies aren't logged: login and credential changes carry passwords.
+    _log_call(method, where, start, f"HTTP {response.status}, {len(response.body)} bytes, "
+                                    f"{len(response.set_cookie_headers)} Set-Cookie header(s), "
+                                    f"{'a' if json_body is not None else 'no'} JSON request body")
+    return response
+
+
+def _parse_json(raw_body):
+    try:
+        return json.loads(raw_body)
+    except ValueError as exc:
+        raise ApiError(f"planetGen API returned an unparseable response: {exc}")
+
+
 def _request(path, params=None):
     """
     Runs one `GET` against the API and returns the parsed JSON body.
@@ -108,62 +236,35 @@ def _request(path, params=None):
         ApiError: On any other non-2xx response, or if the API can't be
             reached/returns an unparseable body.
     """
-    url = f"{API_BASE_URL}{path}"
     query = _build_query(params)
-    if query:
-        url = f"{url}?{query}"
-
-    start = time.perf_counter()
-    try:
-        with urllib.request.urlopen(url, timeout=_TIMEOUT_SECONDS) as response:
-            body = response.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        detail = _error_detail(exc)
-        _log_call("GET", url, start, f"HTTP {exc.code}: {detail}")
-        if exc.code == 404:
-            raise NotFoundError(detail)
-        raise ApiError(f"planetGen API error ({exc.code}): {detail}", status_code=exc.code)
-    except urllib.error.URLError as exc:
-        _log_call("GET", url, start, f"unreachable: {exc.reason}")
-        raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc.reason}")
-    _log_call("GET", url, start, f"HTTP 200, {len(body)} bytes")
-
-    try:
-        return json.loads(body)
-    except ValueError as exc:
-        raise ApiError(f"planetGen API returned an unparseable response: {exc}")
+    target = f"{path}?{query}" if query else path
+    return _parse_json(_send("GET", target).body)
 
 
 def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIMEOUT_SECONDS):
     """
     Runs one JSON request against the API supporting any HTTP method and
     an optional request body/`Cookie` header -- the primitive every
-    `auth_*` function below builds on, kept separate from `_request`
-    (GET-only, no body/cookie support) rather than complicating that
-    function's simpler, far more common case.
+    `auth_*` function below builds on.
 
     Args:
         method (str): `"POST"`, `"DELETE"`, etc.
-        path (str): The path under `API_BASE_URL`, e.g. `"/auth/login"`.
+        path (str): The path under `API_BASE_URL`, e.g. `"/auth/login"`
+            (may carry its own query string).
         json_body (dict, optional): Sent as the request body
             (`Content-Type: application/json`) if given.
         cookie_header (str, optional): Forwarded as-is as the outgoing
-            `Cookie` header -- callers pass the CGI request's own
-            `HTTP_COOKIE` environment variable verbatim (see
-            `page.incoming_cookie_header`); this module never parses or
-            constructs cookie values itself, only relays them.
-        timeout (float): Seconds to wait for a response. Defaults to
-            `_TIMEOUT_SECONDS`, the same as every other request this
-            module makes; a caller whose endpoint can legitimately run
-            long (e.g. `generate_sector_neighborhood`'s own batch sector
-            generation) passes a larger value explicitly instead of this
-            module silently timing out a request that was still working.
+            `Cookie` header -- callers pass the browser's own `Cookie`
+            header verbatim (see `page.incoming_cookie_header`); this
+            module never parses or constructs cookie values itself.
+        timeout (float): Seconds to wait for a response over HTTP. A
+            caller whose endpoint can legitimately run long (e.g.
+            `generate_sector_neighborhood`) passes a larger value.
 
     Returns:
         tuple[dict or None, list[str]]: The parsed JSON body (`None` for
             an empty response), and every `Set-Cookie` response header
-            verbatim (for `page.py` to relay back to the browser as-is --
-            this module never parses those either).
+            verbatim (to relay back to the browser as-is).
 
     Raises:
         NotFoundError: On a 404 response.
@@ -171,42 +272,9 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
             -- see that class's docstring), or if the API can't be
             reached/returns an unparseable body.
     """
-    url = f"{API_BASE_URL}{path}"
-    data = None
-    headers = {}
-    if json_body is not None:
-        data = json.dumps(json_body).encode("utf-8")
-        headers["Content-Type"] = "application/json"
-    if cookie_header:
-        headers["Cookie"] = cookie_header
-
-    request = urllib.request.Request(url, data=data, headers=headers, method=method)
-    start = time.perf_counter()
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            raw_body = response.read().decode("utf-8")
-            set_cookie_headers = response.headers.get_all("Set-Cookie") or []
-    except urllib.error.HTTPError as exc:
-        detail = _error_detail(exc)
-        _log_call(method, url, start, f"HTTP {exc.code}: {detail}")
-        if exc.code == 404:
-            raise NotFoundError(detail)
-        raise ApiError(f"planetGen API error ({exc.code}): {detail}", status_code=exc.code)
-    except urllib.error.URLError as exc:
-        _log_call(method, url, start, f"unreachable: {exc.reason}")
-        raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc.reason}")
-    # Request bodies aren't logged: login and credential changes carry passwords.
-    _log_call(method, url, start, f"HTTP {response.status}, {len(raw_body)} bytes, "
-                                  f"{len(set_cookie_headers)} Set-Cookie header(s), "
-                                  f"{'a' if json_body is not None else 'no'} JSON request body")
-
-    parsed_body = None
-    if raw_body:
-        try:
-            parsed_body = json.loads(raw_body)
-        except ValueError as exc:
-            raise ApiError(f"planetGen API returned an unparseable response: {exc}")
-    return parsed_body, set_cookie_headers
+    response = _send(method, path, json_body=json_body, cookie_header=cookie_header, timeout=timeout)
+    parsed_body = _parse_json(response.body) if response.body else None
+    return parsed_body, response.set_cookie_headers
 
 
 def _log_call(method, url, start, outcome):
@@ -225,15 +293,17 @@ def _build_query(params):
     return urllib.parse.urlencode(pairs)
 
 
-def _error_detail(http_error):
+def _error_detail(response):
+    """The API's own `{"error": ...}` message from an error response,
+    else its raw body, else the status's reason phrase."""
+    body = response.body
     try:
-        body = http_error.read().decode("utf-8", errors="replace")
-    except Exception:
-        return http_error.reason
-    try:
-        return json.loads(body).get("error", body)
+        parsed = json.loads(body)
     except ValueError:
-        return body or http_error.reason
+        return body or response.reason
+    if isinstance(parsed, dict):
+        return parsed.get("error", body)
+    return body
 
 
 # ---------------------------------------------------------------------

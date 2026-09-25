@@ -70,6 +70,7 @@ def test_default_config_matches_example_shape():
         "control_database",
         "ratelimit",
         "admin_cookie_insecure",
+        "secret_key",
         "tile_cache",
         "wiki",
     }

@@ -717,7 +717,16 @@
 --   `WideBinaryPair.from_dict` re-derive which star is the heavier,
 --   matching generation). `_migrate_v28_to_v29` drops the two columns.
 --
--- v30: galaxy-placed sectors moved from spherical shells to a cylindrical
+-- v30: no shape change -- a data cleanup of two generator bugs in
+--   `planets`/`moons`. A body `planetPhysics.reconcile_zone_and_class`
+--   moved into an airless class kept its old class's `atm_density`/
+--   `atm_molar_density`/`scale_height_km` (now cleared on reclassification,
+--   and NULLed on `atmosphere = 'None'` rows), and bodies around very dim
+--   stars could come out below the cosmic microwave background (now
+--   floored at `physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K`,
+--   2.725 K, and raised to it on existing rows). `_migrate_v29_to_v30` does
+--   both updates.
+-- v31: galaxy-placed sectors moved from spherical shells to a cylindrical
 --   grid (see docs/design/galaxy-coordinate-system.md, "Cylindrical
 --   sector grid"). A sector's address is now `(ring_index, layer_index,
 --   ring_slot_index)`: ring = cylindrical radius band, layer = height band
@@ -732,7 +741,7 @@
 --   (`star_systems.position_x/y/z_mpc`) are now along the sector's
 --   cylindrical axes (local +X radial, +Y along the ring, +Z galactic
 --   north -- `galaxyGeometry.sector_orientation`). Shell-addressed sectors
---   can't be mapped onto the new cells, so `_migrate_v29_to_v30` deletes
+--   can't be mapped onto the new cells, so `_migrate_v30_to_v31` deletes
 --   every galaxy-placed sector together with its systems and phenomena
 --   and rebuilds the skeleton from the stored shape; visiting the galaxy
 --   regenerates them. Standalone (never placed) sectors are untouched.

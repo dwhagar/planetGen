@@ -1539,3 +1539,342 @@ code {
     font-size: 0.85rem;
   }
 }
+
+
+/* ==================================================================
+   Flask-served pages (html/web/templates/base.html)
+   ------------------------------------------------------------------
+   Pages served by the Flask app have `<body class="app">` and a top
+   header instead of the CGI pages' fixed left rail. Everything below is
+   scoped to `.app`, so CGI pages are unaffected. Page content reuses the
+   shared rules above (.panel, tables, .pagination, .badge, ...), so a
+   moved page looks the same as before, just inside the new shell.
+   ================================================================== */
+
+body.app {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app .skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.app .skip-link:focus {
+  top: 0.75rem;
+}
+
+/* --- Header ------------------------------------------------------- */
+
+.app .site-header {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.app .site-header-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app .site-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.app .site-name:visited {
+  color: var(--text);
+}
+
+.app .site-wide {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.app .site-sections ul,
+.app .site-account ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.app .site-sections a,
+.app .site-account a,
+.app .theme-toggle {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.app .site-sections a:hover,
+.app .site-account a:hover,
+.app .theme-toggle:hover {
+  background: var(--bg-subtle);
+  color: var(--link);
+  text-decoration: none;
+}
+
+.app .site-sections a[aria-current="page"],
+.app .site-account a[aria-current="page"] {
+  color: var(--accent);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .theme-toggle {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.app .theme-toggle[hidden] {
+  display: none;
+}
+
+.app .site-search {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 10rem;
+  max-width: 18rem;
+  margin-left: auto;
+}
+
+.app .site-search input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  padding: 0.4rem 0.65rem;
+}
+
+.app .site-search input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.app .site-search button {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+/* Narrow-screen menu: a native <details>, so it opens without JS. */
+.app .site-menu {
+  display: none;
+  margin-left: auto;
+}
+
+.app .site-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text);
+  user-select: none;
+}
+
+.app .site-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.app .site-menu > summary::after {
+  content: " \25BE";
+  color: var(--text-muted);
+}
+
+.app .site-menu[open] > summary::after {
+  content: " \25B4";
+}
+
+.app .site-menu-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.app .site-menu-panel .site-search {
+  flex: none;
+  max-width: none;
+  margin: 0;
+}
+
+.app .site-menu-panel ul {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.app .site-menu-panel .site-account {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.app .site-menu-panel .theme-toggle {
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 56rem) {
+  .app .site-wide {
+    display: none;
+  }
+
+  .app .site-menu {
+    display: block;
+  }
+}
+
+/* --- Main column -------------------------------------------------- */
+
+.app .app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+.app .app-main:focus {
+  outline: none;
+}
+
+.app .page-title {
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.75rem;
+}
+
+.app .breadcrumbs ol {
+  list-style: none;
+  margin: 0 0 0.35rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.app .breadcrumbs li + li::before {
+  content: "\203A";
+  margin-right: 0.35rem;
+  color: var(--text-muted);
+}
+
+.app .breadcrumbs [aria-current="page"] {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.app .site-footer {
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.app .site-footer p {
+  margin: 0;
+}
+
+/* Pager links are plain <a>s here, not post_link buttons. */
+.app a.page-link:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.app a.page-link:visited {
+  color: var(--link);
+}
+
+@media (max-width: 40rem) {
+  .app .site-header-inner {
+    padding: 0.5rem 1rem;
+  }
+
+  .app .app-main {
+    padding: 1rem 1rem 2.5rem;
+  }
+
+  .app .panel {
+    padding: 0.9rem 0.9rem;
+  }
+
+  /* Tables scroll sideways inside their panel rather than widening the
+     page or wrapping every cell to one word per line. */
+  .app .table-scroll {
+    margin: 0 -0.9rem;
+    padding: 0 0.9rem;
+  }
+
+  .app .table-scroll th,
+  .app .table-scroll td {
+    white-space: nowrap;
+  }
+
+  .app .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

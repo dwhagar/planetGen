@@ -27,6 +27,8 @@ Two ways a page feeds this, depending on where its rows come from:
     table rows is ever rendered.
 """
 
+from urllib.parse import urlencode
+
 from fmt import esc, post_link
 
 PAGE_SIZE = 50
@@ -118,7 +120,8 @@ def _page_numbers(page, last):
     return numbers
 
 
-def render_pagination(action, params, page_param, page, total, page_size=PAGE_SIZE, anchor=None, label="Pages"):
+def render_pagination(action, params, page_param, page, total, page_size=PAGE_SIZE, anchor=None, label="Pages",
+                      method="post"):
     """
     Builds the pager for one table.
 
@@ -137,6 +140,12 @@ def render_pagination(action, params, page_param, page, total, page_size=PAGE_SI
             the page doesn't jump back to the top.
         label (str): Accessible name for the `<nav>` landmark, e.g.
             `"Sector pages"` (several pagers can share one page).
+        method (str): `"post"` (the default, every CGI page) renders each
+            link as a `post_link` form button; `"get"` renders plain
+            `<a href="{action}?{params}&{page_param}=N#{anchor}">` links
+            instead, for the Flask pages (`html/web/`), whose URLs are
+            ordinary bookmarkable GET URLs. In GET mode `action` is the
+            page's own URL path (e.g. `url_for("web.index")`).
 
     Returns:
         str: A `<nav class="pagination">` block, or `""` when every row
@@ -151,6 +160,11 @@ def render_pagination(action, params, page_param, page, total, page_size=PAGE_SI
     target = f"{action}#{anchor}" if anchor else action
 
     def _link(number, text, css_class="page-link", attrs=""):
+        if method == "get":
+            query = urlencode([(key, value) for key, value in base + [(page_param, number)]
+                               if value is not None and value != ""])
+            href = f"{action}?{query}" + (f"#{anchor}" if anchor else "")
+            return f'<a class="{esc(css_class)}" href="{esc(href)}" {attrs}>{text}</a>'
         return post_link(target, base + [(page_param, number)], text, css_class=css_class, attrs=attrs)
 
     def _disabled(text):

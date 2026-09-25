@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block heading %}<h1 class="page-title">{{ site_name }}</h1>{% endblock %}
+{% block subhead %}
+<p class="badges">
+  <span class="badge">{{ "{:,}".format(sectors.total) }} sector{{ "" if sectors.total == 1 else "s" }}</span>
+  <span class="badge">{{ "{:,}".format(systems.total) }} standalone system{{ "" if systems.total == 1 else "s" }}</span>
+</p>
+{% endblock %}
+{% block content %}
+{% with show_more_link = true %}
+{% include "partials/sectors_panel.html" %}
+{% include "partials/systems_panel.html" %}
+{% endwith %}
+{% endblock %}
