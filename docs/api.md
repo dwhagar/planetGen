@@ -141,7 +141,7 @@ connectivity to that specific schema rather than the default one.
   galaxy placement), each with `id`, `name`, `x`/`y`/`z`
   (`center_x/y/z_pc`), `galactic_radius_pc`, `shell_index`, and
   `system_count` (`queryDb.galaxy_placed_sectors`) — the data
-  `../src/html/galaxy.py`'s Galaxy Map plots. Not paginated: bounded by
+  the Galaxy Map page (`/galaxy`, `../src/html/web/galaxy_views.py`) plots. Not paginated: bounded by
   how much of the galaxy has actually been generated (see `TODO.md`'s
   Phase 4 lazy-generation design), not by the addressable galaxy's own
   scale.

@@ -162,7 +162,7 @@ def test_sections_link_to_moved_and_legacy_pages(client, fake):
     html = client.get("/").get_data(as_text=True)
     assert _section_link(html, "Sectors").group(0).startswith('<a href="/sectors"')
     assert _section_link(html, "Systems").group(0).startswith('<a href="/systems"')
-    assert _section_link(html, "Galaxy").group(0).startswith(f'<a href="/galaxy.py?db={DB}"')
+    assert _section_link(html, "Galaxy").group(0).startswith('<a href="/galaxy"')
     assert _section_link(html, "Nav").group(0).startswith(f'<a href="/nav.py?db={DB}"')
 
 
@@ -195,7 +195,7 @@ def test_names_are_escaped(client, fake):
 def test_placed_sector_links_its_quadrant(client, fake):
     fake.sectors = [_sector(7, placed=True)]
     html = client.get("/").get_data(as_text=True)
-    assert f'href="/galaxy.py?db={DB}&amp;quadrant=I">Quadrant I</a>' in html
+    assert 'href="/galaxy?quadrant=I">Quadrant I</a>' in html
     assert "1,234.5 ly" in html
 
 
@@ -371,7 +371,7 @@ def test_page_url_resolves_moved_and_legacy_pages(app):
         assert page_url("sector", sector_id=5) == f"/sector.py?db={DB}&id=5"
         assert page_url("phenomenon", phenomenon_type="nebula", phenomenon_id=3) == \
             f"/phenomenon.py?db={DB}&type=nebula&id=3"
-        assert page_url("galaxy", _anchor="map") == f"/galaxy.py?db={DB}#map"
+        assert page_url("galaxy", _anchor="map") == "/galaxy#map"
         with pytest.raises(KeyError):
             page_url("no_such_page")
 

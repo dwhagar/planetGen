@@ -1,0 +1,52 @@
+{#- The Galaxy Map (web/galaxy_views.py's `galaxy`). Context: map_html
+    (Markup from lib/galaxymap3d.py), placed_count, quadrant, and either
+    summary_rows (no quadrant) or sector_rows + pager. -#}
+{% extends "base.html" %}
+{% block head %}
+<script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
+{% endblock %}
+{% block subhead %}
+<p class="badges"><span class="badge">{{ "{:,}".format(placed_count) }} placed sector{{ "" if placed_count == 1 else "s" }}</span></p>
+{% endblock %}
+{% block content %}
+{{ map_html }}
+<section class="panel" id="galaxy-table" aria-labelledby="galaxy-table-heading">
+  {%- if quadrant %}
+  <div class="panel-header">
+    <h2 id="galaxy-table-heading">Sectors in Quadrant {{ quadrant }}</h2>
+    <a href="{{ page_url('galaxy', _anchor='galaxy-table') }}">All Quadrants</a>
+  </div>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Ring</th><th scope="col">From core</th><th scope="col">Systems</th></tr></thead>
+    <tbody>
+      {%- for row in sector_rows %}
+      <tr>
+        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>Ring {{ row.ring }}</td>
+        <td>{{ "{:,.1f}".format(row.distance_ly) }} ly</td>
+        <td>{{ row.system_count }}</td>
+      </tr>
+      {%- else %}
+      <tr><td colspan="4"><em>No sectors placed in this Quadrant yet.</em></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ pager }}
+  {%- else %}
+  <h2 id="galaxy-table-heading">Quadrants</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Quadrant</th><th scope="col">Sectors</th><th scope="col">Systems</th><th scope="col">Extent</th></tr></thead>
+    <tbody>
+      {%- for row in summary_rows %}
+      <tr>
+        <td><a href="{{ row.url }}">Quadrant {{ row.label }}</a></td>
+        <td>{{ row.sector_count }}</td>
+        <td>{{ row.system_count }}</td>
+        <td>{{ row.extent if row.extent else "–" }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+</section>
+{% endblock %}

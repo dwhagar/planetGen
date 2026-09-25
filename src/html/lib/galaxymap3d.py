@@ -9,13 +9,13 @@ fixed-radius markers grew relative to the view as you zoomed in with no
 camera to shrink them the opposite way). This map's camera can travel
 anywhere in the galaxy instead, so most of what it draws is fetched live
 as the camera moves, one fixed cube of space ("tile") at a time
-(`html/galaxy_tiles.py`, this page's own client-side JS `fetch()` target
--- see that script's own docstring, and `stellarObjects.galaxyViewport`'s
+(`/galaxy/tiles`, `html/web/galaxy_views.py`, this page's own client-side
+JS `fetch()` target -- see that view's own docstring, and `stellarObjects.galaxyViewport`'s
 "Cube tiles" section) rather than server-rendered once. Tiles are cached
 on the server's disk (`lib/tilecache.py`) and in the visitor's browser.
 
 This module's job mirrors `lib/starmap.py`'s division of labor:
-`galaxy.py` (the page) fetches the first frame's tiles
+`/galaxy` (`html/web/galaxy_views.py`) fetches the first frame's tiles
 (`initial_tile_request` says which); this module only ever turns
 already-fetched plain data into the panel's HTML and its one starting
 JSON payload -- every *later* payload (`static/galaxymap3d.js`'s own live
@@ -30,7 +30,7 @@ docstring for what each means):
   by `system_count`, colored by real stellar density (`system_count /
   edge_ly ** 3`, relative to `physical_constants.LOCAL_STELLAR_DENSITY_LY3`
   -- see `render_galaxy_map3d_panel`'s own `referenceDensityPerLy3`),
-  navigates to `sector.py`.
+  links to its sector page.
 - **Planned**: real, not-yet-generated sector addresses this galaxy's own
   density model (when built) predicts would qualify -- small, dim,
   clickable, shows its designation/address (copyable straight into
@@ -147,7 +147,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     """
     `(min_view_radius_pc, max_view_radius_pc)` -- see the module
     docstring's own explanation of what these bound. A pure function of
-    already-fetched data (no I/O), so `galaxy.py` (the page) can call it
+    already-fetched data (no I/O), so the `/galaxy` page view can call it
     directly to pick the radius its own first tile request uses,
     before this module's own panel-rendering function ever runs.
 
@@ -289,7 +289,8 @@ def _json_script(data):
     )
 
 
-def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
+def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
+                              sector_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -300,14 +301,14 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     client needs to pick tiles the same way `initial_tile_request` does,
     and `initial_view`'s own payload for the first frame -- everything
     after that first frame comes from the client's own live `fetch()`
-    calls to `galaxy_tiles.py`.
+    calls to `fetch_path` (the Flask `/galaxy/tiles`).
 
     Args:
-        db_name (str): The current `?db=` value -- carried in the JSON
-                       payload so the client's own fetch calls (and any
-                       navigation to a clicked placed sector's `sector.py`)
-                       can build their URLs/params without needing it
-                       threaded through separately.
+        db_name (str): The database the page shows (from config, never
+                       the URL). Only names the browser's own
+                       `localStorage` tile cache (`storageKey`), so each
+                       database's tiles are kept apart; it is never sent
+                       back to the server.
         galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
             return shape, or `None` if `generate.py plan` has never been
             run -- when `None`, the panel shows a hint that planned-sector
@@ -320,9 +321,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
                          `initial_view` itself is fetched).
         initial_view (dict): `tilecache.fetch_tiles`' own return shape
             (`stamp`/`tiles`/`density`/`edge_pc`/`has_shape`), fetched by
-            `galaxy.py` for `initial_tile_request`'s tiles -- the
+            the `/galaxy` view for `initial_tile_request`'s tiles -- the
             zoomed-all-the-way-out starting view. The client seeds its
             tile cache with it.
+        fetch_path (str): The tile endpoint's URL (`/galaxy/tiles`).
+        sector_url (str, optional): A sector page URL with `{id}` where
+            the id goes, for the info panel's "View sector" link (a real
+            `<a href>`); without it the panel shows no link.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -331,8 +336,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     edge_ly = pc_to_ly(edge_pc)
 
     scene_data = {
-        "db": db_name,
-        "fetchPath": "galaxy_tiles.py",
+        "storageKey": db_name,
+        "fetchPath": fetch_path,
+        "sectorUrl": sector_url,
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "plannedTileMaxEdgePc": PLANNED_TILE_MAX_EDGE_PC,
@@ -374,7 +380,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     )
 
     return f"""
-<section class="panel">
+<section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
   <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a dot or

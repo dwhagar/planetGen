@@ -6,8 +6,8 @@
 // from a CDN). Unlike sectormap.js's scene (every star/cloud baked into
 // one JSON block at page load, camera always orbiting a fixed origin),
 // this camera's own orbit TARGET moves freely through the galaxy -- most
-// of what's drawn is fetched live from galaxy_tiles.py as the camera
-// moves, one fixed cube of space ("tile") at a time from galaxy_tiles.py,
+// of what's drawn is fetched live from /galaxy/tiles (the JSON's
+// fetchPath) as the camera moves, one fixed cube of space ("tile") at a time,
 // never baked into the page beyond the very first frame
 // (#galaxymap3d-data's own "initial" payload) -- see the "Cube tiles"
 // section below.
@@ -97,18 +97,20 @@ function addField(dl, label, value) {
   dl.appendChild(dd);
 }
 
-// A real, focusable <a> carrying data-nav-target/data-nav-params instead
-// of an href query string -- static/navform.js's document-level click
-// handler (loaded on every page) is what actually follows it. Same
-// convention sectormap.js's own navLink uses.
-function navLink(navTarget, navParams, label) {
+// A plain <a href> link (GET, bookmarkable, opens in a new tab).
+function pageLink(href, label) {
   var link = document.createElement("a");
-  link.href = "#";
+  link.href = href;
   link.className = "btn";
-  link.dataset.navTarget = navTarget;
-  link.dataset.navParams = JSON.stringify(navParams || {});
   link.textContent = label;
   return link;
+}
+
+// The sector page's URL: the server's template (sceneData.sectorUrl,
+// built with page_url so it follows the sector page wherever it lives)
+// with the id filled in.
+function sectorUrl(id) {
+  return String(sceneData.sectorUrl || "").replace("{id}", encodeURIComponent(id));
 }
 
 function formatAddress(shellIndex, slotIndex) {
@@ -141,7 +143,9 @@ function showPlacedInfo(entry) {
   addField(dl, "Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.shell_slot_index) : null);
   addField(dl, "Designation", entry.designation);
   panel.appendChild(dl);
-  panel.appendChild(navLink("sector.py", { db: sceneData.db, id: entry.id }, "View sector →"));
+  if (sceneData.sectorUrl && entry.id != null) {
+    panel.appendChild(pageLink(sectorUrl(entry.id), "View sector →"));
+  }
 }
 
 function makeCopyButton(text) {
@@ -780,7 +784,9 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var TILE_MEMORY_MAX = 2000;
   var DENSITY_MEMORY_MAX = 24;
-  var STORAGE_PREFIX = "planetgen:tile:" + data.db + ":";
+  // Keyed by database name, the same as before the page moved to
+  // /galaxy, so a visitor's stored tiles carry over.
+  var STORAGE_PREFIX = "planetgen:tile:" + data.storageKey + ":";
   // Where the stamp our stored tiles are at is kept, and the generation
   // (the label our stored tiles are filed under since they last all went
   // stale).
@@ -1125,7 +1131,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     activeAbort = controller;
     var params = new URLSearchParams({
-      db: data.db, tiles: missing.tiles.slice(0, MAX_TILES_PER_REQUEST).join(","),
+      tiles: missing.tiles.slice(0, MAX_TILES_PER_REQUEST).join(","),
     });
     if (missing.density) {
       params.set("density", missing.density);
@@ -1136,7 +1142,7 @@ function initGalaxyMap3d(canvasEl, data) {
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {
-          throw new Error("galaxy_tiles.py returned " + response.status);
+          throw new Error(data.fetchPath + " returned " + response.status);
         }
         return response.json();
       })

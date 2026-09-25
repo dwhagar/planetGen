@@ -593,7 +593,7 @@ def _route_for_json(route):
 def galaxy_sectors():
     """
     Every galaxy-placed sector (`sectors.center_x/y/z_pc` not NULL), with
-    its live system count -- the data `html/galaxy.py`'s Galaxy Map plots.
+    its live system count -- the data the Galaxy Map (`/galaxy`) plots.
     Not paginated: bounded by how much of the galaxy has actually been
     generated so far (see `docs/TODO.md`'s Phase 4 lazy-generation design),
     not by the addressable galaxy's own astronomical scale.
@@ -607,7 +607,7 @@ def galaxy_phenomena():
     Every galaxy-placed standalone phenomenon (`center_x/y/z_pc` not
     NULL, in any `queryDb._PHENOMENON_TABLES` table -- see `schema.sql`'s
     "v18"/"v21"/"v29" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
-    as small dots on the same `html/galaxy.py` Galaxy Map. Not paginated,
+    as small dots on the same `/galaxy` Galaxy Map. Not paginated,
     for the same reason `/api/galaxy/sectors` isn't.
     """
     return jsonify({"items": galaxy_placed_phenomena(get_db())})
@@ -618,7 +618,7 @@ def galaxy_shape():
     """
     The galaxy's stored density-skeleton shape (`generate.py plan`'s own
     output, `queryDb.galaxy_density_shape`) -- the real spiral/disk/bulge
-    model the Galaxy Map (`html/galaxy.py`) shades its "expected density"
+    model the Galaxy Map (`/galaxy`) shades its "expected density"
     cloud from, for whatever space hasn't actually been generated yet.
     `"shape"` is `null` when the skeleton has never been built (the map
     then falls back to its own generic illustrative gradient).
@@ -635,7 +635,7 @@ def galaxy_tiles_route():
     `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
     tiles" section. Each tile's work is bounded, so no request can scan an
     unbounded region (the removed `/galaxy/view` route could). Called by
-    `html/galaxy_tiles.py`, which caches every tile on disk and only forwards
+    `/galaxy/tiles` (`html/web/galaxy_views.py`), which caches every tile on disk and only forwards
     the ones it doesn't already have.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]

@@ -1455,6 +1455,13 @@ code {
    the latter two also reused as-is by the Sector Map's own not-yet-
    generated neighboring-sector indicators (html/static/sectormap.js),
    the identical "copy a generate.py CLI command" concept one level in. */
+/* The Galaxy Map is the page's whole point, so its viewport gets more of
+   a wide screen than the sector map's 22rem (still a square, still full
+   width on a phone). */
+.galaxymap3d-panel .starmap-viewport {
+  width: min(100%, 36rem);
+}
+
 .galaxymap3d-tooltip {
   position: absolute;
   z-index: 3;

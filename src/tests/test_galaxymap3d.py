@@ -1,6 +1,6 @@
 """
 html/lib/galaxymap3d.py regression tests -- the interactive 3D Galaxy
-Map's server-side panel builder (`galaxy.py` calls `view_radius_bounds`
+Map's server-side panel builder (the `/galaxy` view, `web/galaxy_views.py`, calls `view_radius_bounds`
 to pick its starting radius, `initial_tile_request` for the first
 frame's tiles, then `render_galaxy_map3d_panel` to build the page). No
 database needed -- every function takes plain data, the same shape
@@ -101,11 +101,14 @@ def test_panel_includes_the_canvas_and_controls():
 
 def test_panel_json_payload_has_every_field_the_client_reads():
     view = _empty_view(has_shape=True)
-    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, view)
+    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, view,
+                                     fetch_path="/galaxy/tiles", sector_url="/sector/{id}")
     data = _json_payload(html)
 
-    assert data["db"] == "mydb"
-    assert data["fetchPath"] == "galaxy_tiles.py"
+    assert data["storageKey"] == "mydb"
+    assert "db" not in data
+    assert data["fetchPath"] == "/galaxy/tiles"
+    assert data["sectorUrl"] == "/sector/{id}"
     assert data["hasShape"] is True
     for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedMaxViewRadiusPc",
                   "fetchRadiusFactor", "maxTilesPerRequest"):
@@ -139,7 +142,7 @@ def test_panel_json_is_safely_escaped_against_script_breakout():
     html = render_galaxy_map3d_panel("weird</script><script>alert(1)</script>db", None, EDGE_PC, _empty_view())
     assert "</script><script>alert" not in html
     data = _json_payload(html)
-    assert data["db"] == "weird</script><script>alert(1)</script>db"
+    assert data["storageKey"] == "weird</script><script>alert(1)</script>db"
 
 
 def test_panel_includes_real_placed_and_planned_data_from_the_initial_view():
