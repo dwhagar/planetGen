@@ -432,6 +432,16 @@ cube (its real generated position was never saved), seeded by the row's
 id. Rows with no placed sector stay unplaced. The full reasoning is in
 `schema.sql`'s "v28" header note.
 
+**Cylindrical sector grid (v31).** Galaxy-placed sectors moved from
+spherical shells to rings, layers and slots: `sectors.shell_index`/
+`shell_slot_index` became `ring_index`/`layer_index`/`ring_slot_index`,
+`sector_vertices` was dropped, `galaxy_shell_band` became
+`galaxy_ring_band`, and `galaxy_shape.outer_shell_index` became
+`outer_ring_index`. Old addresses have no matching cell, so
+`_migrate_v30_to_v31` deletes every galaxy-placed sector with its systems
+and phenomena (never-placed sectors stay) and rebuilds the ring bands from
+the stored shape. See `schema.sql`'s "v31" header note.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
@@ -529,49 +539,22 @@ One row per generated sector.
 | `edge_mpc` | DOUBLE | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
-| `shell_index`, `shell_slot_index` | INTEGER | nullable | This sector's stable address within the shell/Fibonacci-sphere radial tiling scheme (`galaxyGen.py`) — `shell_index` is the radial shell, `shell_slot_index` its placement index within that shell's deterministic ordering. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
+| `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v31, `stellarObjects/galaxyGeometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (11.5 ly wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
 | `wiki_url` | TEXT | nullable | Where this sector's summary page lives on a wiki (v22) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (`html/admin.py`'s manual-link admin section). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 `galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema
 history" above for why that addition needed a wholesale table rewrite
-rather than an incremental `ALTER TABLE`). This sector's vertices live in
-the separate `sector_vertices` table below, present iff this sector has
-been placed in a galaxy — neither SQLite nor MySQL can express "rows
-exist in another table" as a `CHECK` constraint, so that condition is
-enforced at the application level (`stellarObjects._db.insert_sector`)
-rather than by the schema itself. A `UNIQUE (shell_index, shell_slot_index)` constraint (v8)
-guarantees at most one sector per galaxy address — NULL-together rows
-(never placed in a galaxy) don't collide with each other or with a placed
-sector, ordinary SQL `NULL` semantics for `UNIQUE`. This is what turns a
-lazy-generation race (`galaxyGen.ensure_sector_generated`, see below) into
-a clear `IntegrityError` its caller recovers from, instead of a silent
+rather than an incremental `ALTER TABLE`). A cell's corners are
+closed-form (`galaxyGeometry.sector_cell_vertices_pc`), so none are
+stored (v31 dropped the old `sector_vertices` table). A
+`UNIQUE (ring_index, layer_index, ring_slot_index)` constraint
+(`uq_sectors_address`) guarantees at most one sector per galaxy address —
+NULL-together rows (never placed in a galaxy) don't collide with each
+other or with a placed sector, ordinary SQL `NULL` semantics for `UNIQUE`.
+This is what turns a lazy-generation race (`generate.ensure_sector_generated`)
+into a clear `IntegrityError` its caller recovers from, instead of a silent
 duplicate row at the same address.
-
-### `sector_vertices`
-
-This sector's own exact vertices — one row per vertex, a normalized child
-table rather than a JSON column (this schema has no JSON-blob columns
-anywhere; see `planet_reflection_spectrum` below for the same treatment
-applied to another variable-length list). Built from an exact local
-spherical Voronoi tessellation among a sector's same-shell neighbors,
-extruded radially between its shell's inner and outer bounding spheres
-(`stellarObjects/sectorGeometry.prism_vertices`) — genuinely gap-free
-laterally (against same-shell neighbors, not merely reduced — see that
-module's own docstring for why exact circumcenters make this possible) and
-area-matched (not vertex-matched) radially against the shells in front of
-and behind it. No rows exist for a sector never placed in a galaxy.
-
-| Column | Type | Null | Notes |
-|---|---|---|---|
-| `id` | BIGINT UNSIGNED | PK | |
-| `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | |
-| `ring` | VARCHAR(8) | NOT NULL | `'inner'` (on the shell's inner bounding sphere) or `'outer'` (its outer one). |
-| `vertex_index` | INT | NOT NULL | This vertex's cyclic position (0-based) within its own ring — pairing `(sector_id, vertex_index)` across the two rings gives the lateral edge each inner/outer vertex pair spans. Not a global ordering across rings. |
-| `x_pc`, `y_pc`, `z_pc` | DOUBLE | NOT NULL | Galaxy-frame Cartesian position, parsecs (same frame as `sectors.center_x/y/z_pc`). |
-
-`UNIQUE (sector_id, ring, vertex_index)`; indexed on `sector_id` for the
-"every vertex of this sector" query pattern.
 
 ### `galaxy_shape`
 
@@ -580,17 +563,18 @@ The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
 and density on demand, built by `galaxyPlan.py`. Deliberately **not** one
 row per sector: a sector's position (`stellarObjects.galaxyGeometry.
 sector_position_pc`), density (`stellarObjects.galaxyDensity.
-relative_density`), and vertices (`sectorGeometry.prism_vertices`) are all
-pure deterministic functions of its `(shell_index, shell_slot_index)`
+relative_density`), and corners (`galaxyGeometry.sector_cell_vertices_pc`)
+are all pure deterministic functions of its `(ring_index, layer_index,
+ring_slot_index)`
 address plus this handful of galaxy-wide numbers — cheaper to recompute
 on demand (sub-millisecond per sector) than to look up, so none of it is
 stored per address. What genuinely needs precomputing — where the galaxy
-has any content at all — lives in `galaxy_shell_band` below instead.
+has any content at all — lives in `galaxy_ring_band` below instead.
 Building or rebuilding the skeleton replaces this row (and every
-`galaxy_shell_band` row) wholesale; there is no partial update, since a
-full build is well under a minute even at real Milky-Way scale (the
-per-shell work is a closed-form calculation over ~4,100 shells, not a
-per-sector scan over billions of candidates).
+`galaxy_ring_band` row) wholesale; there is no partial update, since a
+full build takes about half a second even at real Milky-Way scale (a
+closed-form calculation over ~4,100 rings, not a per-sector scan over
+billions of candidates).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -599,37 +583,25 @@ per-sector scan over billions of candidates).
 | `arm_count` | INT | NOT NULL | Same source. |
 | `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs. |
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
-| `outer_shell_index` | INT | NOT NULL | The last shell index with any qualifying content — this galaxy's real edge, discovered by `galaxyPlan.py` (a run of consecutive empty shells beyond it), not an arbitrary radius. |
+| `outer_ring_index` | INT | NOT NULL | The last ring with any qualifying content — this galaxy's real edge, discovered by `generate.py plan` (a run of consecutive empty rings beyond it), not an arbitrary radius. Named `outer_shell_index` before v31. |
 
-### `galaxy_shell_band`
+### `galaxy_ring_band`
 
-One row per contiguous *candidate* slot-index band per shell (v8) — a
-safe, cheap-to-compute superset of where a shell's qualifying sectors
-could be (`stellarObjects.galaxySkeleton.find_shell_bands`), not an exact
-per-sector list: found via an exact upper bound over every possible spiral-
-arm azimuth at a given polar angle, so a slot inside the band isn't
-guaranteed to individually qualify, but a slot outside every band is
-guaranteed *not* to (the bound can only overstate density, never
-understate it). The exact per-slot answer — a single `relative_density`
-evaluation — is deferred to the moment that slot is actually visited
-(`galaxyGen.ensure_sector_generated`), not computed or stored here.
-Almost every shell has exactly one band (this density model is symmetric
-about and peaks at the galactic plane for any realistic parameter choice —
-verified directly across a full real-Milky-Way-scale build: ~4,100 rows
-total, all singletons), but nothing stops a shell from having more than
-one (`band_index` orders them), and a shell with no qualifying content at
-all simply has no rows here.
+One row per ring that can hold content (v31, replacing v8's
+`galaxy_shell_band`): the inclusive range of layers whose sector centers
+could clear the qualification threshold
+(`stellarObjects.galaxySkeleton.find_ring_band`). It comes from an exact
+upper bound over every spiral-arm angle, so a sector inside the band isn't
+guaranteed to qualify, but one outside it is guaranteed not to. The exact
+per-sector answer (one `relative_density` evaluation) is made when the
+address is visited (`generate.ensure_sector_generated`). The bound falls
+steadily with height, so each ring's band is one range centered on the
+plane. A ring with no qualifying content has no row.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `id` | BIGINT UNSIGNED | PK | |
-| `shell_index` | INT | NOT NULL | The shell this band belongs to. |
-| `band_index` | INT | NOT NULL | 0-based position of this band within its own shell (almost always just `0`). |
-| `slot_index_min`, `slot_index_max` | INT | NOT NULL | The candidate slot-index range, inclusive. |
-
-`UNIQUE (shell_index, band_index)`; indexed on `shell_index` for the
-"every band of this shell" query `ensure_sector_generated` makes on every
-visit to a not-yet-generated address.
+| `ring_index` | INT | PK | The ring this band belongs to. |
+| `layer_index_min`, `layer_index_max` | INT | NOT NULL | The candidate layer range, inclusive (symmetric about 0). |
 
 ### `orbit_simulation_state`
 
@@ -1202,10 +1174,10 @@ with only a reserved, currently-unused `sector_id` FK. `nebulae`/
 already-generated sector, alongside their own galaxy-frame
 `center_x/y/z_pc`/`galactic_radius_pc` — see this file's "v18" note above.
 
-`galaxy_shape`/`galaxy_shell_band` (v8) stand apart from the tree above —
+`galaxy_shape`/`galaxy_ring_band` stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the
 galaxy as a whole (its shape parameters, and which addresses could hold
-content), not any individual sector; `sectors.shell_index`/
-`shell_slot_index` is the address both an actual generated sector and a
-`galaxy_shell_band` row are independently expressed in, not an FK
+content), not any individual sector; `sectors.ring_index` is the ring
+both an actual generated sector and a `galaxy_ring_band` row are
+independently expressed in, not an FK
 relationship.

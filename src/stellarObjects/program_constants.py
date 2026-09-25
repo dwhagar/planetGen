@@ -1859,9 +1859,9 @@ GALAXY_RADIUS_PC = 15000.0
 """
 float: The Milky Way's real approximate radius, in parsecs (commonly cited
 ~15 kpc -- see docs/design/galaxy-coordinate-system.md section 2, whose own
-worked shell table uses this exact figure). Used by `galaxyGen.py`'s
+worked examples use this exact figure). Used by `generate.py galaxy`'s
 no-argument "random start" mode as the outer bound for picking a random
-shell address, so a bare `galaxyGen.py` run (no --shell/--center-sector)
+ring, so a bare `generate.py galaxy` run (no --ring/--center-sector)
 lands somewhere within a real Milky-Way-scale galaxy instead of an
 arbitrarily large or small one.
 """
@@ -1876,7 +1876,7 @@ every direction, per this feature's own request.
 
 RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000
 """
-int: Retry cap for picking a random, not-yet-occupied shell address before
+int: Retry cap for picking a random, not-yet-occupied sector address before
 `galaxyGen.py`'s random-start mode gives up -- generous, since even a
 fairly well-populated galaxy leaves overwhelmingly more addresses empty
 than occupied (see docs/design/galaxy-coordinate-system.md section 9's

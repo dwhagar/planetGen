@@ -137,7 +137,7 @@ Each run saves the whole generated sector — every system, star, planet, moon, 
 
 Every generated sector also seeds a realistically sparse population of `generate.py phenomenon`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems.
 
-Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `stellarObjects/spaceSector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cube instead.
+Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `stellarObjects/spaceSector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cell instead.
 
 ## Galaxy Generation
 
@@ -146,7 +146,7 @@ in real galaxy-frame 3D space (see
 [`docs/design/galaxy-coordinate-system.md`](docs/design/galaxy-coordinate-system.md)):
 
 ```bash
-python generate.py galaxy --shell K [options]
+python generate.py galaxy --ring I [--layer J] [--slot K] [options]
 python generate.py galaxy --center-sector ID --radius-pc R [options]
 python generate.py galaxy [options]
 ```
@@ -157,12 +157,18 @@ the same code path — the only difference is a real galaxy-frame position
 (and, in turn, the same sparse exotic-phenomena population every sector
 gets — see "Sector-Level Exotic Phenomena" above).
 
-Run with neither `--shell` nor `--center-sector` (i.e. no arguments at
+Sectors sit on a cylindrical grid: rings 11.5 ly wide around the galactic
+axis, layers 11.5 ly tall (layer 0 centered on the galactic plane), and each
+ring cut into wedge-shaped slots about 11.5 ly across. `--ring I` generates
+one whole layer of a ring (layer 0 unless `--layer J` is given), and adding
+`--slot K` generates just that one sector.
+
+Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
 all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-
 occupied sector address somewhere within a real Milky-Way-scale galaxy,
 generates it, and then generates every not-yet-generated sector within
 100 ly of it too, in every direction — a whole small starmap around a
-fresh, randomly chosen starting point in one run. `--max-shell` bounds how
+fresh, randomly chosen starting point in one run. `--max-ring` bounds how
 far out the random starting address can land (defaults to a real galaxy's
 own outer edge, ~15,000 pc), `--radius-pc` overrides the default 100 ly
 neighborhood radius, and `--min-start-density` requires the randomly
@@ -171,12 +177,12 @@ local (e.g. `--min-start-density 1.0` for at least as dense as the
 galaxy's own real local density) before accepting it, retrying otherwise
 — useful for skipping past the galaxy's own vast, sparse outskirts to
 start somewhere with more to look at. A high threshold combined with a
-large `--max-shell` can take many retries to satisfy, since a
+large `--max-ring` can take many retries to satisfy, since a
 volume-weighted random draw favors the sparser outskirts to begin with.
 
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
-row plus one row per shell) that `generate.py galaxy` consults to decide, per
+row plus one row per ring, naming the layers that can hold anything) that `generate.py galaxy` consults to decide, per
 address, whether anything exists there at all before generating it lazily
 on demand.
 

@@ -9,6 +9,64 @@ core design in sections 0-7 below now describes shipped behavior
 migration), extended by the addenda in sections 8 and 9, each separately
 marked "Status: implemented" where it lives.
 
+**Superseded in part (schema v31):** sector *addressing* no longer uses
+the spherical shells, Fibonacci slots and Voronoi prisms of sections 3, 8,
+9 and 10. Sectors now sit on the cylindrical grid described in the next
+section. The coordinate frame, units and phenomenon placement below are
+unchanged; the shell material is kept as history.
+
+## Cylindrical sector grid (current)
+
+Every galaxy-placed sector is one cell of a cylindrical grid around the
+galactic axis (`stellarObjects/galaxyGeometry.py`). With edge `e` (11.5 ly,
+about 3.526 pc):
+
+- **Ring `i`** (`sectors.ring_index`, `i >= 0`): cylindrical radius
+  `R` in `[i*e, (i+1)*e)`. Sector centers sit on the ring's centerline,
+  `(i + 1/2) * e`.
+- **Layer `j`** (`sectors.layer_index`, any integer): height `z` in
+  `[(j - 1/2)*e, (j + 1/2)*e)`, so layer 0 is centered on the galactic plane.
+- **Slot `k`** (`sectors.ring_slot_index`): one of `N_i` equal angular
+  wedges, counterclockwise from `+X`, where
+  `N_i = max(4, 4 * round(2*pi*(i + 1/2) / 4))`. Rounding to a multiple of
+  four keeps every Quadrant a whole number of sectors, and keeps each
+  slot's arc along the centerline within a few percent of `e` from ring 5
+  outward (ring 0's four cells are pie wedges meeting on the axis).
+
+The address `(ring, layer, slot)` is unique (`uq_sectors_address`), and a
+cell's center, corners and volume are closed-form, so nothing but the
+address and center is stored. `sector_address_at` maps any point back to
+its cell; `neighbor_addresses` lists the cells sharing a face (two slots
+along the ring, the layers above and below, and the one or two overlapping
+slots in each neighboring ring, offset like brick courses).
+
+**Local frame.** A sector's local axes (`sector_orientation`) are `+X`
+radially outward from the galactic axis, `+Y` toward increasing angle and
+`+Z` galactic north. Star-system offsets (`star_systems.position_*_mpc`)
+and phenomenon offsets use this frame, and generation samples them inside
+the real cell (`SectorCell`), not a cube.
+
+**Designations.** `provisional_sector_designation` packs
+`ring << 33 | (layer + 4096) << 20 | slot` and prints it as hex;
+`parse_sector_designation` reverses it. Layers run from -4096 to 4095.
+
+**Skeleton.** A sector center's highest possible density over angle is
+`bulge(r_3d) + disk(R) * f_z(z) * (1 + arm_amplitude)`, which falls
+steadily as `|z|` grows. So the layers of one ring that can hold content
+form one band centered on the plane, and `galaxy_ring_band` stores one
+`(ring_index, layer_index_min, layer_index_max)` row per ring
+(`galaxySkeleton.build_ring_bands`). At `generate.py plan`'s default
+Milky-Way shape that is about 4,074 rings, reaching layers +/-340 near the
+core, and it builds in about half a second.
+
+**Zones.** The Galaxy pages' 100 ly radial groups (formerly "Rings") are
+now called Zones: `ZONE_RING_WIDTH = round(100 / 11.5)` consecutive rings.
+
+**Migration.** Shell-addressed sectors have no matching cell, so
+`_migrate_v30_to_v31` deletes every galaxy-placed sector with its systems
+and phenomena and rebuilds the skeleton; sectors regenerate as they are
+visited. Never-placed sectors are untouched.
+
 **Scope:** the galaxy-scale coordinate system and the `sectors` schema
 changes it needs. Explicitly **out of scope**: `galaxyGen.py` itself,
 batch-generation performance, and any model of *where in the galaxy stars

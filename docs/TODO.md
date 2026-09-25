@@ -68,11 +68,11 @@ renumber when items are added or finished.
 
 3. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
    Investigate a representation driven by the real galaxy/sector geometry
-   (`stellarObjects/galaxyGeometry.py`: concentric Fibonacci-sphere shells
-   of Voronoi sector slots) instead of per-sector sprites plus an
-   illustrative density cloud. Idea to evaluate first: group neighboring
-   sectors and draw them as arc segments of shells (a band of shells by an
-   angular range), shaded by density, so the map shows the galaxy's
+   (`stellarObjects/galaxyGeometry.py`: the cylindrical ring/layer/slot
+   grid) instead of per-sector sprites plus an illustrative density
+   cloud. Idea to evaluate first: group neighboring sectors and draw them
+   as arc segments of rings (a band of rings and layers by an angular
+   range), shaded by density, so the map shows the galaxy's
    structure at every zoom without enumerating individual sectors. Done
    means a written comparison of options, then an implementation that
    loads quickly at full-galaxy zoom. (Today's density cloud also renders

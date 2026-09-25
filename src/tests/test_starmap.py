@@ -137,16 +137,16 @@ def test_render_map_panel_placed_on_axis_matches_unplaced():
     scene_unplaced = _scene_data(render_map_panel("db", 1000.0, None, None, [system]))
     scene_placed_on_axis = _scene_data(render_map_panel("db", 1000.0, (3, 0, 7), (0.0, 0.0, 999.0), [system]))
     # Only the star's own position should match; the placed scene also
-    # carries a wedge outline/compass arrow the unplaced one doesn't.
+    # carries a cell outline/compass arrow the unplaced one doesn't.
     assert _star_position(scene_placed_on_axis) == _star_position(scene_unplaced)
 
 
-def test_render_map_panel_outline_is_a_wedge_when_placed_and_a_cube_otherwise():
+def test_render_map_panel_outline_is_a_cell_when_placed_and_a_cube_otherwise():
     system = _make_system()
     scene_unplaced = _scene_data(render_map_panel("db", 1000.0, None, None, [system]))
     scene_placed = _scene_data(render_map_panel("db", 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system]))
     assert scene_unplaced["outline"]["kind"] == "cube"
-    assert scene_placed["outline"]["kind"] == "wedge"
+    assert scene_placed["outline"]["kind"] == "cell"
     # 12 edges, each a pair of 3D points, for either shape.
     for scene in (scene_unplaced, scene_placed):
         assert len(scene["outline"]["edges"]) == 12
