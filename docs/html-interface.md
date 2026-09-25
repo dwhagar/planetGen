@@ -70,11 +70,7 @@ account now.
 | `../src/html/phenomenon.py` | One phenomenon's detail/info page -- `GET /api/phenomena/<type>/<id>`, this project's first per-phenomenon page (previously a phenomenon had no page of its own, only a hover tooltip on the Sector Map). Reached from `phenomena.py`'s listing, or directly from a Sector Map marker (`lib/starmap.py`) -- the Galaxy Map (`galaxy.py`) doesn't plot phenomena of its own. |
 | `../src/html/search.py` | Faceted search: click-to-filter tag buttons for object type, star spectral/luminosity class, and planet class/body type/supported life chemistry -- with a separate, identically-shaped set of tags for moons, since planets and moons live in their own tables (schema v2) and a "Class D" tag only ever means one or the other -- built only from values actually present in the chosen database (`GET /api/search`, which owns the query logic; this page just renders it). Plus a name search (with HTML5 `<datalist>` autocomplete, no JavaScript) across sectors, star systems, stars, planets, and moons. Asteroid belts have no name of their own, so they're reachable only via the "Asteroid Belt" object-type tag. Every tag toggle/filter-removal/search submit is a POST form carrying every other currently active filter forward, same as every other page's own navigation (see "How it works" above). |
 | `../src/html/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), posted like every other link here, and changing a Search filter starts its results back at page 1. |
-| `../src/html/login.py` | Admin login form -- `POST /api/auth/login`, relaying the session cookie it sets back to the browser. Redirects to `changecreds.py` (still on the seeded `admin`/`password` default) or `admin.py` on success; re-renders the form with an inline error for a wrong username/password. See [`api.md`](api.md#authentication). |
-| `../src/html/changecreds.py` | Change the logged-in admin's username/password (`POST /api/auth/change-credentials`) -- reached both by `login.py`'s forced redirect (default credentials) and voluntarily (an already-"fresh" admin rotating credentials). Always requires the current password. |
-| `../src/html/admin.py` | Protected admin landing page: API key list/create/revoke (`GET`/`POST /api/auth/api-keys`, `DELETE /api/auth/api-keys/<id>`) -- keys are used as `Authorization: Bearer` credentials against the write endpoints (sector/system create/update/delete), not exercised as a web form here. The one exception is a small form to manually set/clear a sector's `wiki_url` (`PATCH /api/sectors/<id>`, by database name + sector id, via the session cookie). Redirects to `login.py`/`changecreds.py` if not authenticated / still on default credentials. |
-| `../src/html/adminstats.py` | Admin-only server health and database stats (`GET /api/admin/stats`, `GET /api/admin/duplicate-names`): API/MySQL health, galaxy tile cache usage, exact sector/system counts, schema version, last created/modified times, per-table sizes, and every name made unique (Alpha/Beta..., Little..., ...Kin) with links to each sector and system (planets and moons link to their system). Same login gate as `admin.py`; linked from it and from the sidenav's Stats item. |
-| `../src/html/logout.py` | Ends the current admin session (`POST /api/auth/logout`, called server-side) and redirects to `index.py`. A plain sidenav link, not a form -- nothing to confirm, no request body needed. |
+| `../src/html/login.py`, `logout.py`, `changecreds.py`, `admin.py`, `adminstats.py` | Moved to the Flask app as `/login`, `/logout`, `/account`, `/admin` and `/admin/stats` (see "Flask pages" below). Each script is now a CGI shim answering `301` to its new URL (`admin.py` keeps `keys_page`, `adminstats.py` keeps `names_page`); `logout.py` no longer logs anyone out. |
 | `../src/html/lib/apiclient.py` | The `GET /api/...` HTTP client (stdlib `urllib` only) every page above calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (`login.py`/`changecreds.py`/`admin.py`) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`lib/page.py`'s `run` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`) is where it looks for the API. Not web-accessible. |
 | `../src/html/lib/fmt.py` | HTML-escaping and small formatting helpers (`esc`, `linkify_location`, `format_density`, and `static_url`, the versioned `static/` URL every page uses) with nothing to do with fetching data -- what's left of the old `dbutil.py` once its database-access functions moved into `apiclient.py`/the API itself. Also `post_link` (a same-effect, no-JS-required replacement for `<a href="page.py?...">` that posts its params as hidden fields instead -- see "How it works" above) and `data_nav_params` (its JS-required counterpart for a marker embedded in an SVG map, since a `<form>` can't nest inside one -- paired with `static/navform.js`). Not web-accessible. |
 | `../src/html/lib/page.py` | Shared CGI response/HTML-shell helpers -- `query_params`/`form_params`/`form_multi_params` (GET/POST parsing) and `nav_params`/`nav_multi_params` (POST body when present, else the GET query string -- what every page reads a `post_link`-followed link's params back with), `incoming_cookie_header` (relays the browser's own `Cookie` header to the API, unparsed), `send_headers`/`render`/`redirect` (all three accept `set_cookie_headers` to relay the API's own `Set-Cookie` back), the sidenav's Search/Galaxy/Sectors/Systems/Nav/Phenomena/Login/Admin/Logout items (via `apiclient.auth_me` and `fmt.post_link`) plus the theme button, `head_html` (the shared `<head>`), and `SECURITY_HEADERS` (the one source of the pages' CSP and other security headers). See "The page shell" below. Not web-accessible. |
@@ -173,6 +169,11 @@ far:
 | `/sectors` | `browse.py#sectors` | The sectors table alone. |
 | `/systems` | `browse.py#standalone-systems` | The standalone systems table alone. |
 | `/search?q=...` | -- | The header search box. Forwards to `search.py` (system-name search) until the search page moves. |
+| `/login` | `login.py` | The admin login form (`?next=<local path>` to return to afterwards). |
+| `/logout` | `logout.py` | `GET` asks to confirm and changes nothing; the button `POST`s to end the session. |
+| `/account` | `changecreds.py` | Change the admin username and password. |
+| `/admin` | `admin.py` | API keys (list, create, revoke; `?keys_page=N`) and a sector's manual wiki link. |
+| `/admin/stats` | `adminstats.py` | Server health and database stats, and every name made unique (`?names_page=N`). |
 
 `index.py` and `browse.py` are now CGI shims that answer `301 Moved
 Permanently` to `/`, carrying `sectors_page`/`standalone_page` from the
@@ -296,6 +297,35 @@ is an HMAC (keyed with `secret_key` from `config.json`, see
 [`config.md`](config.md)) of a random value in the `pg_csrf` cookie
 (HttpOnly, SameSite=Strict); a missing or wrong token gets a 400 page
 and the view never runs.
+
+**The admin pages** (`web/admin_pages.py`). Sessions work as they did
+on CGI: `/login`, `/account` and `/logout` call `apiclient.auth_login`,
+`auth_change_credentials` and `auth_logout` in-process, and the
+`Set-Cookie` headers the API's `/api/auth/*` routes answer with are
+copied onto the page's response unchanged, so the session cookie keeps
+the API's HttpOnly/Secure/SameSite=Strict attributes, and `POST
+/api/auth/login`'s own per-address limit (10 a minute) still applies to
+the visitor (a limited login shows "Too many login attempts" with a
+429). The rules:
+
+- Every form that changes something (log in, log out, change
+  credentials, create or revoke an API key, set a sector's wiki link) is
+  a POST with `{{ csrf_field() }}`, answered with a 303 to a GET page. A
+  result the next page has to show (a new API key, shown once; a
+  message; an error) travels in `pg_flash`, a signed (`secret_key`),
+  HttpOnly, SameSite=Strict cookie that the next `/admin` view reads and
+  deletes, never in the URL. The one exception is a wrong password on
+  `/login` or `/account`: nothing changed, so the form is shown again
+  directly with the error and the username typed.
+- `GET /logout` never logs out: it shows a "Log out" button.
+- A visitor who isn't logged in is sent to `/login?next=<the page>`, and
+  an admin still on the seeded `admin`/`password` to `/account?next=...`.
+  `next` is followed only when it is a local path (starts with a single
+  `/`, no scheme, host, backslash, whitespace or control character);
+  anything else goes to `/admin`.
+- Admin responses are `Cache-Control: no-store`.
+- `/admin/stats` and the wiki-link form use the site's configured
+  database (no database picker or field any more).
 
 **Errors.** An `apiclient.NotFoundError` becomes a 404 page, an
 `apiclient.ApiError` a 502 page (without the API's detail), anything

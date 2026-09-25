@@ -10,8 +10,8 @@ API started on a background thread.
 
 Covers: every page renders 200 on a normal request; missing/garbage
 `id`/`db` params fail cleanly (404/502 with real HTML, never a raw
-Python traceback in the response body); `admin.py`/`changecreds.py`
-redirect an unauthenticated visitor to `login.py` rather than rendering
+Python traceback in the response body); the moved admin scripts
+(`admin.py`, `changecreds.py`, ...) only redirect, never rendering
 admin content; a system/sector name containing HTML metacharacters comes
 back escaped, not literal, on every page that renders it.
 """
@@ -331,10 +331,11 @@ def test_nav_page_renders(live_api, seeded_db):
     _assert_clean_html(result, "nav.py")
 
 
-def test_login_page_renders_without_auth(live_api, seeded_db):
+def test_login_page_moved_to_flask(live_api, seeded_db):
+    # login.py is a shim now; the form itself is covered by test_web_admin.py.
     result = run_page(live_api, "login.py")
-    assert result.status_code == 200
-    _assert_clean_html(result, "login.py")
+    assert result.status_code == 301
+    assert result.headers.get("Location") == "/login"
 
 
 # --- Missing/garbage params fail cleanly, never a raw traceback -------------
@@ -367,28 +368,20 @@ def test_phenomenon_page_missing_params_fails_cleanly(live_api, seeded_db):
     _assert_clean_html(result, "phenomenon.py (no id/type)")
 
 
-# --- Auth gating: admin.py/changecreds.py redirect, never render content ----
+# --- The admin pages moved to Flask (test_web_admin.py covers their gating) ----
+# Their CGI scripts are shims now: a redirect with no admin content at all.
 
-def test_admin_page_unauthenticated_redirects_to_login(live_api, seeded_db):
-    result = run_page(live_api, "admin.py")
-    assert result.status_code in (301, 302, 303, 307, 308)
-    assert "login.py" in result.headers.get("Location", "")
-    assert "Create Key" not in result.body and "API key" not in result.body.lower() or True
-    # The redirect body itself must be empty/minimal -- no admin content
-    # rendered before the redirect (Location header alone should decide).
-    assert len(result.body) < 500, f"admin.py redirect body unexpectedly large: {result.body[:300]!r}"
-
-
-def test_changecreds_page_unauthenticated_redirects_to_login(live_api, seeded_db):
-    result = run_page(live_api, "changecreds.py")
-    assert result.status_code in (301, 302, 303, 307, 308)
-    assert "login.py" in result.headers.get("Location", "")
-
-
-def test_admin_page_unauthenticated_never_leaks_any_admin_data(live_api, seeded_db):
-    """Even though it redirects, confirm no admin-only string (an API
-    key, a username) ever appears in the body sent alongside a redirect."""
-    result = run_page(live_api, "admin.py")
+@pytest.mark.parametrize("script,location", [
+    ("admin.py", "/admin"),
+    ("changecreds.py", "/account"),
+    ("adminstats.py", "/admin/stats"),
+    ("logout.py", "/logout"),
+])
+def test_admin_cgi_shims_redirect_without_content(live_api, seeded_db, script, location):
+    result = run_page(live_api, script)
+    assert result.status_code == 301
+    assert result.headers.get("Location") == location
+    assert len(result.body) < 500, f"{script} redirect body unexpectedly large: {result.body[:300]!r}"
     assert "api_key" not in result.body.lower()
     assert "revoke" not in result.body.lower()
 

@@ -1674,12 +1674,16 @@ body.app {
   align-items: stretch;
   flex: 1 1 10rem;
   max-width: 18rem;
+  min-width: 0;
   margin-left: auto;
 }
 
 .app .site-search input {
   flex: 1;
   min-width: 0;
+  /* Lets the box shrink below the input's default size, so the logged-in
+     header (Admin/Stats/Logout) still fits at desktop widths. */
+  width: 100%;
   font: inherit;
   font-size: 0.9rem;
   color: var(--text);
@@ -1779,6 +1783,18 @@ body.app {
   }
 
   .app .site-menu {
+    display: block;
+  }
+}
+
+/* Logged in, the header carries Admin/Stats/Logout too and needs about
+   72rem to fit on one line, so it folds into the menu sooner. */
+@media (max-width: 72rem) {
+  .app .site-header:has(.site-account a[href$="/logout"]) .site-wide {
+    display: none;
+  }
+
+  .app .site-header:has(.site-account a[href$="/logout"]) .site-menu {
     display: block;
   }
 }

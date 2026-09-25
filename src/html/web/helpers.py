@@ -59,11 +59,6 @@ LEGACY_PAGES = {
     "phenomena": ("phenomena.py", {"page": "page"}),
     "phenomenon": ("phenomenon.py", {"phenomenon_type": "type", "phenomenon_id": "id"}),
     "nav": ("nav.py", {"from_id": "from", "to_id": "to"}),
-    "login": ("login.py", {}),
-    "logout": ("logout.py", {}),
-    "account": ("changecreds.py", {}),
-    "admin": ("admin.py", {}),
-    "admin_stats": ("adminstats.py", {"names_page": "names_page"}),
 }
 """dict: Every page the Flask app links to that is still a CGI script.
 Links to them are plain GET links (`/<script>?db=<db>&...`): the CGI

@@ -1,0 +1,98 @@
+{%- extends "base.html" %}
+{%- macro tiles(pairs) -%}
+<div class="stat-tiles">
+  {%- for label, value in pairs %}
+  <div class="stat-tile"><span class="stat-value">{{ value }}</span><span class="stat-label">{{ label }}</span></div>
+  {%- endfor %}
+</div>
+{%- endmacro -%}
+{% block content %}
+<section class="panel" aria-labelledby="health-heading">
+  <h2 id="health-heading">Server health</h2>
+  <div class="table-scroll"><table>
+    <tbody>
+      <tr><th scope="row">Status</th><td><span class="badge">{{ health.status }}</span></td></tr>
+      {%- for label, value in health.rows %}
+      <tr><th scope="row">{{ label }}</th><td>{{ value }}</td></tr>
+      {%- endfor %}
+      <tr><th scope="row">Galaxy tile cache</th><td>{{ health.cache_text }}{% if health.cache_dir %}<code>{{ health.cache_dir }}</code>{% endif %}{{ health.cache_tail }}</td></tr>
+      {%- if health.database_error is not none %}
+      <tr><th scope="row">Database error</th><td><span class="error">{{ health.database_error }}</span></td></tr>
+      {%- endif %}
+    </tbody>
+  </table></div>
+</section>
+{%- if database.reachable %}
+<section class="panel" aria-labelledby="database-heading">
+  <h2 id="database-heading">Database <code>{{ database.name }}</code></h2>
+  {{ tiles(db_tiles) }}
+  <div class="table-scroll"><table>
+    <tbody>
+      {%- for label, value in db_rows %}
+      <tr><th scope="row">{{ label }}</th><td>{{ value }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+<section class="panel" id="duplicate-names" aria-labelledby="duplicate-names-heading">
+  <h2 id="duplicate-names-heading">Names made unique</h2>
+  <p class="hint">Names that came up more than once and were given a Greek
+  letter (Alpha, Beta, ...), a "little" prefix (a system named after a
+  sector) or a companion suffix (a planet or moon), with every sector,
+  system, planet and moon that now carries one.</p>
+  {{ tiles(name_tiles) }}
+  {%- if names.error %}
+  <p class="error">{{ names.error }}</p>
+  {%- elif not names["items"] %}
+  <p class="hint">No names have had to be made unique.</p>
+  {%- else %}
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Base name</th><th scope="col">Collided as</th><th scope="col">Now named</th></tr></thead>
+    <tbody>
+      {%- for item in names["items"] %}
+      <tr>
+        <td>{{ item.base_name }}</td>
+        <td>{{ item.levels }}</td>
+        <td>
+          {%- for row in item.rows %}
+          {%- if row.url %}<a href="{{ row.url }}">{{ row.name }}</a> <span class="hint">{{ row.kind }}</span>
+          {%- else %}{{ row.name }} <span class="hint">{{ row.kind }}</span> <a href="{{ row.system_url }}">{{ row.system_name }}</a>
+          {%- endif %}{% if not loop.last %}<br>{% endif %}
+          {%- else %}<span class="hint">no rows left</span>
+          {%- endfor %}
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ names.pager }}
+  {%- endif %}
+</section>
+<section class="panel" aria-labelledby="activity-heading">
+  <h2 id="activity-heading">Recent activity</h2>
+  <p class="hint">When each kind of top-level row was last created or changed.
+  A change to a star, planet or moon counts as a change to its system.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Table</th><th scope="col">Newest row created</th><th scope="col">Last modified</th></tr></thead>
+    <tbody>
+      {%- for row in database.timestamps %}
+      <tr><td><code>{{ row.table }}</code></td><td>{{ row.newest_created_at or "none" }}</td><td>{{ row.last_modified_at or "never" }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+<section class="panel" aria-labelledby="tables-heading">
+  <h2 id="tables-heading">Tables</h2>
+  <p class="hint">Row counts here are MySQL's own estimates and can lag behind;
+  the sector and system totals above are exact.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Table</th><th scope="col" class="num">Rows (approx.)</th><th scope="col" class="num">Data</th><th scope="col" class="num">Indexes</th></tr></thead>
+    <tbody>
+      {%- for table in tables %}
+      <tr><td><code>{{ table.name }}</code></td><td class="num">{{ table.rows }}</td><td class="num">{{ table.data }}</td><td class="num">{{ table.indexes }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
+{% endblock %}

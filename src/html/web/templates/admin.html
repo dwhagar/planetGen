@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Signed in</h2>
+  <p><strong>{{ admin.username }}</strong></p>
+  <ul>
+    <li><a href="{{ page_url('account') }}">Change username or password</a></li>
+    <li><a href="{{ page_url('admin_stats') }}">Server and database stats</a></li>
+    <li><a href="{{ page_url('logout') }}">Log out</a></li>
+  </ul>
+  {%- if message %}
+  <p class="hint" role="status">{{ message }}</p>
+  {%- endif %}
+</section>
+{%- if new_key %}
+<section class="panel" id="new-key">
+  <h2>New API key: {{ new_key.label }}</h2>
+  <p class="hint">Copy this now. It will not be shown again.</p>
+  <p class="api-key-value">{{ new_key.key }}</p>
+</section>
+{%- endif %}
+<section class="panel" id="api-keys" aria-labelledby="api-keys-heading">
+  <h2 id="api-keys-heading">API keys</h2>
+  <p class="hint">Used as an <code>Authorization: Bearer &lt;key&gt;</code>
+  header against the write endpoints documented in the API reference
+  (sector/system create, update, delete).</p>
+  {%- if error %}
+  <p class="error" role="alert">{{ error }}</p>
+  {%- endif %}
+  {%- if keys %}
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Label</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Status</th><th scope="col" aria-label="Action"></th></tr></thead>
+    <tbody>
+      {%- for key in keys %}
+      <tr>
+        <td>{{ key.label }}</td>
+        <td>{{ key.created_at }}</td>
+        <td>{{ key.last_used_at }}</td>
+        <td>{% if key.revoked_at %}<span class="badge">revoked {{ key.revoked_at }}</span>{% else %}<span class="badge">active</span>{% endif %}</td>
+        <td>
+          {%- if not key.revoked_at %}
+          <form method="post" action="{{ url_for('web.admin') }}" class="table-form">
+            {{ csrf_field() }}
+            <input type="hidden" name="action" value="revoke_key">
+            <input type="hidden" name="key_id" value="{{ key.id }}">
+            <input type="hidden" name="keys_page" value="{{ keys_page }}">
+            <button type="submit" class="btn" aria-label="Revoke {{ key.label }}">Revoke</button>
+          </form>
+          {%- endif %}
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ keys_pager }}
+  {%- else %}
+  <p class="hint">No API keys yet.</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="create_key">
+    <div class="search-fields">
+      <label class="search-field">Label
+        <input type="text" name="label" placeholder="e.g. galaxy-gen script" required maxlength="200">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Create key</button>
+    </div>
+  </form>
+</section>
+<section class="panel" id="sector-wiki-link" aria-labelledby="sector-wiki-link-heading">
+  <h2 id="sector-wiki-link-heading">Sector wiki link</h2>
+  <p class="hint">Set or clear a sector's wiki link in <code>{{ database }}</code>
+  (leave the URL blank to clear it): for a sector with a hand-written page
+  from outside this app, or to fix a link a sector's own "Upload to Wiki"
+  button set.</p>
+  {%- if wiki_message %}
+  <p class="hint" role="status">{{ wiki_message }}</p>
+  {%- endif %}
+  {%- if wiki_error %}
+  <p class="error" role="alert">{{ wiki_error }}</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="set_sector_wiki_url">
+    <div class="search-fields">
+      <label class="search-field">Sector ID
+        <input type="number" name="sector_id" min="1" required inputmode="numeric">
+      </label>
+      <label class="search-field">Wiki URL
+        <input type="text" inputmode="url" name="wiki_url" placeholder="https://wiki.example.com/Sector_Name">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Save link</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
