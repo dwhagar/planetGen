@@ -342,6 +342,9 @@ def generate_status():
     return _no_store(jsonify(body))
 
 
+generate_status.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/admin/generate/jobs/<job_id>")
 def generate_job(job_id):
     """One job and the last 256 KB of its output."""
