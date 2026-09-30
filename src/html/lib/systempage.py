@@ -52,138 +52,7 @@ def stars_html(stars):
 """
 
 
-def _body_row(row, is_moon, indent=""):
-    return (
-        "<tr>"
-        f'<td>{indent}{esc(row["name"])}</td>'
-        f'<td>{esc(row["planet_class"])}</td>'
-        f'<td>{"Gas Giant" if row["body_type"] == "g" else "Terrestrial"}</td>'
-        f'<td>{esc(row["zone"])}</td>'
-        # Not esc()'d -- see the same note in `stars_html`.
-        f'<td>{format_body_distance(row["distance_km"], is_moon)}</td>'
-        f'<td>{format_period(row["period_years"])}</td>'
-        f'<td>{round(row["gravity_g"], 3) if row["gravity_g"] is not None else ""} g</td>'
-        "</tr>"
-    )
-
-
-def _planet_rows(planet):
-    """One row for `planet` plus one indented row per moon -- moons never
-    have moons of their own, so this never needs to recurse further."""
-    rows = [_body_row(planet, is_moon=False)]
-    rows.extend(
-        _body_row(moon, is_moon=True, indent="&nbsp;&nbsp;&nbsp;&nbsp;└ ")
-        for moon in planet["moons"]
-    )
-    return rows
-
-
-def _planets_table_html(planets, heading="Planets &amp; Moons"):
-    planet_rows = []
-    for planet in planets:
-        planet_rows.extend(_planet_rows(planet))
-    if not planet_rows:
-        return ""
-    return f"""
-<section class="panel">
-<h2>{heading}</h2>
-<div class="table-scroll" tabindex="0"><table>
-  <thead><tr><th>Name</th><th>Class</th><th>Type</th><th>Zone</th><th>Distance</th><th>Period</th><th>Gravity</th></tr></thead>
-  <tbody>{''.join(planet_rows)}</tbody>
-</table></div>
-</section>
-"""
-
-
-def _belts_table_html(belts, heading="Asteroid Belts"):
-    if not belts:
-        return ""
-    belt_rows = "".join(
-        "<tr>"
-        f'<td>{esc(row["density"])}</td>'
-        f'<td>{format_distance_km(row["distance_km"])}</td>'
-        f'<td>{esc(row["composition_summary"])}</td>'
-        "</tr>"
-        for row in belts
-    )
-    return f"""
-<section class="panel">
-<h2>{heading}</h2>
-<div class="table-scroll" tabindex="0"><table>
-  <thead><tr><th>Density</th><th>Distance</th><th>Composition</th></tr></thead>
-  <tbody>{belt_rows}</tbody>
-</table></div>
-</section>
-"""
-
-
-def _comets_table_html(comets, heading="Comets"):
-    if not comets:
-        return ""
-    comet_rows = "".join(
-        "<tr>"
-        f'<td>{esc(row["name"])}</td>'
-        f'<td>{"Elliptical" if row["orbit_type"] == "elliptical" else "Parabolic"}</td>'
-        # Not esc()'d -- see the same note in `stars_html`.
-        f'<td>{format_body_distance(row["perihelion_distance_km"], is_moon=False)}</td>'
-        f'<td>{row["eccentricity"]:.3f}</td>'
-        f'<td>{format_period(row["orbital_period_years"]) if row["orbital_period_years"] is not None else "single apparition"}</td>'
-        f'<td>{"Active" if row["is_active"] else "Dormant"}</td>'
-        f'<td>{esc(row["composition_summary"])}</td>'
-        "</tr>"
-        for row in comets
-    )
-    return f"""
-<section class="panel">
-<h2>{heading}</h2>
-<div class="table-scroll" tabindex="0"><table>
-  <thead><tr><th>Name</th><th>Orbit</th><th>Perihelion</th><th>Eccentricity</th><th>Period</th><th>Activity</th><th>Composition</th></tr></thead>
-  <tbody>{comet_rows}</tbody>
-</table></div>
-</section>
-"""
-
-
-# TODO(web-pages #48): the Planets & Moons, Asteroid Belts and Comets
-# tables repeat the system list; remove them once the list rows carry their
-# columns (class, type, zone, distance, period, gravity) as stats.
-def bodies_html(planets, belts, comets, stars, binary_configuration):
-    """
-    Builds the "Planets & Moons"/"Asteroid Belts"/"Comets" section(s).
-
-    For a `'wide'` (S-type) binary, `planets`/`belts`/`comets` belong to
-    two different, independent stars (disambiguated by each row's own
-    `star_id`, matched against `stars`' own `id` -- see
-    `queryDb.system_detail`'s docstring) -- rendering them in one flat
-    table the way a single star's or a `'close'` (P-type) pair's bodies
-    already are would misrepresent which star each one actually orbits
-    (a `'close'` pair's planets genuinely have no single owning star --
-    they orbit the merged pair together -- so that case is unaffected).
-    Grouped into one labeled section per star instead, in the same order
-    `stars` already comes in (primary first).
-    """
-    if binary_configuration != "wide":
-        return _planets_table_html(planets) + _belts_table_html(belts) + _comets_table_html(comets)
-
-    sections = []
-    for star in stars:
-        star_planets = [p for p in planets if p["star_id"] == star["id"]]
-        star_belts = [b for b in belts if b["star_id"] == star["id"]]
-        star_comets = [c for c in comets if c["star_id"] == star["id"]]
-        label = f'{esc(star["name"])} ({esc(star["role"])})'
-        sections.append(_planets_table_html(star_planets, heading=f"Planets &amp; Moons — {label}"))
-        sections.append(_belts_table_html(star_belts, heading=f"Asteroid Belts — {label}"))
-        sections.append(_comets_table_html(star_comets, heading=f"Comets — {label}"))
-    return "".join(sections)
-
-
-_BODY_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas giant"}
-
-
-def _flag_html(label, value):
-    """One yes/no chip in a system-list row, e.g. "Habitable: Yes"."""
-    state = "yes" if value else "no"
-    return f'<span class="flag flag-{state}">{label}: {"Yes" if value else "No"}</span>'
+_BODY_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
 
 
 def _row_html(title, stats, markdown, children_html="", children_visible=False):
@@ -217,69 +86,118 @@ def _star_row_html(star, sections, children_html=""):
     )
 
 
-# TODO(system-list #2): a non-terrestrial planet is never habitable, and a
-# habitable one is always terrestrial, so show one type chip: "Gas Giant",
-# "Terrestrial" or "Habitable" (never Terrestrial and Habitable together).
-# Add a new chip, shown only when one of the planet's moons is habitable
-# (e.g. "Habitable moon"); queryDb._with_life_fields already marks each
-# moon. _body_row above (the table view) follows the same rule.
-# TODO(web-pages #48): moons are buried after the planet's description
-# inside its <details>; give them their own expandable group right under
-# the planet's row (a nested "N moons" <details>), no script needed.
+def _type_chip(body):
+    """One chip for what kind of world this is: "Habitable" (always
+    terrestrial), else "Terrestrial" or "Gas Giant", never two of them."""
+    if body["habitable"]:
+        return '<span class="flag flag-yes">Habitable</span>'
+    return f'<span class="stat">{_BODY_TYPE_LABELS.get(body["body_type"], "")}</span>'
+
+
+def _stat(text):
+    return f'<span class="stat">{text}</span>' if text else ""
+
+
+def _gravity_text(gravity_g):
+    return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
+
+
 def _planet_row_html(body, sections, is_moon=False):
+    """
+    A planet's (or moon's) row: its class, one type chip, a "Habitable
+    moon" chip when one of its moons is habitable, "Inhabited" when it is,
+    and the zone, distance, period and gravity the old Planets & Moons
+    table showed. A planet's moons follow in their own "N moons" group
+    right under its row, collapsed, needing no script.
+    """
+    moons = [] if is_moon else (body.get("moons") or [])
     stats = [
-        f'<span class="stat">Class {esc(body["planet_class"])}</span>' if body["planet_class"] else "",
-        f'<span class="stat">{_BODY_TYPE_LABELS.get(body["body_type"], "")}</span>',
-        _flag_html("Habitable", body["habitable"]),
-        _flag_html("Inhabited", body["inhabited"]),
+        _stat(f'Class {esc(body["planet_class"])}' if body["planet_class"] else ""),
+        _type_chip(body),
     ]
-    children_html = ""
-    if is_moon:
-        markdown = sections["moons"].get(str(body["id"]))
-    else:
-        markdown = sections["planets"].get(str(body["id"]))
-        moons = body.get("moons") or []
-        if moons:
-            stats.append(f'<span class="stat">{len(moons)} moon{"s" if len(moons) != 1 else ""}</span>')
-            children_html = '<ul class="system-list">' + "".join(
-                _planet_row_html(moon, sections, is_moon=True) for moon in moons
-            ) + "</ul>"
-    return _row_html(esc(body["name"]), stats, markdown, children_html)
+    if any(moon["habitable"] for moon in moons):
+        stats.append('<span class="flag flag-yes">Habitable moon</span>')
+    if body["inhabited"]:
+        stats.append('<span class="flag flag-yes">Inhabited</span>')
+    stats += [
+        _stat(esc(body.get("zone") or "")),
+        # Not esc()'d: built from floats and fixed unit literals.
+        _stat(format_body_distance(body["distance_km"], is_moon)),
+        _stat(format_period(body["period_years"]) if body.get("period_years") is not None else ""),
+        _stat(_gravity_text(body.get("gravity_g"))),
+    ]
+    section = sections["moons" if is_moon else "planets"]
+    after_html = ""
+    if moons:
+        label = f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'
+        moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True) for moon in moons)
+        after_html = (
+            f'<details class="moon-group"><summary>{label} of {esc(body["name"])}</summary>'
+            f'<ul class="system-list">{moon_rows}</ul></details>'
+        )
+    return _row_html(esc(body["name"]), stats, section.get(str(body["id"])), after_html, children_visible=True)
 
 
-# TODO(system-list #2): the list shows only "Asteroid Belt" and density;
-# add its distance from the star in the most meaningful unit (distances
-# #1).
 def _belt_row_html(belt, sections):
-    stats = [f'<span class="stat">{esc(belt["density"]).capitalize()}</span>'] if belt.get("density") else []
+    stats = [
+        _stat(esc(belt["density"]).capitalize() if belt.get("density") else ""),
+        _stat(format_distance_km(belt["distance_km"])),
+    ]
+    if belt.get("lower_limit_km") is not None and belt.get("upper_limit_km") is not None:
+        stats.append(_stat(
+            f'{format_distance_km(belt["lower_limit_km"])} to {format_distance_km(belt["upper_limit_km"])}'
+        ))
     return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])))
+
+
+def comet_orbit_key_km(comet):
+    """
+    Where a comet sorts among a star's planets and belts: its semi-major
+    axis, `perihelion_distance_km / (1 - eccentricity)`. A parabolic (or
+    hyperbolic) comet has no finite axis, so it sorts after every bound
+    body, by perihelion.
+
+    Returns:
+        tuple: `(0, axis_km)` for a bound orbit, `(1, perihelion_km)`
+               otherwise.
+    """
+    eccentricity = comet.get("eccentricity") or 0.0
+    perihelion_km = comet["perihelion_distance_km"] or 0.0
+    if comet.get("orbit_type") == "elliptical" and eccentricity < 1.0:
+        return (0, perihelion_km / (1.0 - eccentricity))
+    return (1, perihelion_km)
 
 
 def _comet_row_html(comet, sections):
     kind = "Elliptical" if comet["orbit_type"] == "elliptical" else "Parabolic"
     stats = [
-        f'<span class="stat">{kind} comet</span>',
-        f'<span class="stat">{"Active" if comet["is_active"] else "Dormant"}</span>',
+        _stat(f"{kind} comet"),
+        _stat("Active" if comet["is_active"] else "Dormant"),
+        _stat(f'Perihelion {format_distance_km(comet["perihelion_distance_km"])}'),
+        _stat(format_period(comet["orbital_period_years"]) if comet.get("orbital_period_years") is not None
+              else "Single apparition"),
     ]
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])))
 
 
-# TODO(web-pages #48): comets go in their relative order from the star too,
-# not appended last: sort them in with planets and belts by distance (a
-# comet by its semi-major axis, perihelion_distance_km / (1 -
-# eccentricity); parabolic ones last, by perihelion).
 def _orbiting_rows_html(planets, belts, comets, sections):
-    """A star's (or a close pair's) own bodies, in orbital order -- planets
-    and belts share one `orbital_index` space per star -- then comets."""
+    """
+    A star's (or a close pair's) own bodies in their order out from the
+    star: planets and belts by their shared `orbital_index`, and each comet
+    slotted in before the first planet or belt farther out than its
+    semi-major axis (`comet_orbit_key_km`); unbound comets last.
+    """
     ordered = sorted(
         [("planet", p) for p in planets] + [("belt", b) for b in belts],
         key=lambda item: item[1]["orbital_index"],
     )
-    rows = [
-        _planet_row_html(body, sections) if kind == "planet" else _belt_row_html(body, sections)
-        for kind, body in ordered
-    ]
-    rows.extend(_comet_row_html(comet, sections) for comet in comets)
+    pending = sorted(comets, key=comet_orbit_key_km)
+    rows = []
+    for kind, body in ordered:
+        while pending and comet_orbit_key_km(pending[0]) < (0, body["distance_km"] or 0.0):
+            rows.append(_comet_row_html(pending.pop(0), sections))
+        rows.append(_planet_row_html(body, sections) if kind == "planet" else _belt_row_html(body, sections))
+    rows.extend(_comet_row_html(comet, sections) for comet in pending)
     return "".join(rows)
 
 

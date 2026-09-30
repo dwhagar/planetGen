@@ -25,7 +25,7 @@ from fmt import (
 from pagination import fetch_page, parse_page
 from phenomenonmap import render_phenomenon_map_panel
 from systemmap import render_system_map_panel
-from systempage import bodies_html, stars_html, system_list_html
+from systempage import stars_html, system_list_html
 from tabledisplay import format_star_radius, to_plain_text
 
 from . import bp
@@ -184,10 +184,6 @@ def system(system_id):
         code_buttons=_code_buttons(system_id, code_fmt),
         system_list_html=trusted_html(system_list_html(detail, sections)),
         stars_html=trusted_html(stars_html(detail["stars"])),
-        bodies_html=trusted_html(bodies_html(
-            detail["planets"], detail["belts"], detail["comets"], detail["stars"],
-            detail.get("binary_configuration"),
-        )),
         wiki_options=wiki_options,
         wiki_status=wiki_status,
     )

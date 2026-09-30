@@ -1535,9 +1535,6 @@ def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
     return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
 
 
-# TODO(system-list #2): system_detail should also set a planet-level
-# "has_habitable_moon" flag from its moons' `habitable`, so the list can
-# show the new chip without re-walking the moons.
 # TODO(facilities #35): a colony on a terrestrial world makes it inhabited;
 # OR that into `inhabited` here.
 def _with_life_fields(body, stages):

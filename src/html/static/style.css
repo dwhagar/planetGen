@@ -462,6 +462,19 @@ tbody tr:last-child td {
   padding: 0.75rem 0.5rem 0.25rem 1.5rem;
 }
 
+/* A planet's moons: their own collapsed group right under its row. */
+.moon-group > summary {
+  padding: 0.3rem 0.5rem 0.3rem 1.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.moon-group > summary:hover {
+  background: var(--bg-subtle);
+}
+
 .body-detail:empty {
   display: none;
 }
