@@ -8,8 +8,11 @@
 # scripts, installable on any OS); everything Linux/Apache-specific lives
 # here instead:
 #
-#   1. Installs the Python package via a build-isolated `pip install`
-#      (not the deprecated `setup.py install`).
+#   1. Runs `scripts/install-python-deps.sh` to install the Python package
+#      and its libraries: a build-isolated `pip install` on an ordinary
+#      Python, or distribution (apt) packages on an externally managed one
+#      (PEP 668, e.g. Ubuntu 24.04+), with a venv only for libraries the
+#      distribution doesn't package.
 #   2. Runs `src/migrateDb.py` against the configured MySQL database
 #      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
 #      `SetEnv` directives once deployed), bringing it up to the current
@@ -75,77 +78,12 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
-echo "== 1/8: Installing the Python package =="
-# `pip install .` (a proper, build-isolated PEP 517 install), NOT the
-# legacy `python3 setup.py install` this used to run. setuptools itself
-# now prints "Please avoid running setup.py directly" for that direct
-# invocation, and it's not just a style complaint: that legacy code path
-# is where two separate production incidents happened back to back (see
-# docs/TODO.md's "Deployment bugs found in production"). Both had the same
-# root cause -- setuptools' own vendoring shim (`extern`) prefers a
-# *real*, already-installed copy of a dependency it vendors
-# (`importlib_metadata`, then `packaging`) over its own newer bundled
-# copy whenever a real one is importable, so this system's old
-# apt-provided copies of each one in turn silently shadowed the working
-# vendored copy and crashed on a missing/changed API
-# (`importlib_metadata.EntryPoints`, then
-# `packaging.version.canonicalize_version`'s `strip_trailing_zero`
-# kwarg) -- and chasing each one individually with another `pip install
-# --upgrade <whatever's shadowed this time>` only fixes the specific
-# dependency that happened to break today, not the next one. `pip
-# install .`'s build isolation builds this package in a throwaway
-# environment that can't see this system's site-packages at all (only
-# the stdlib and pip's own freshly fetched build dependencies), so the
-# shadowing can't happen there regardless of which dependency it would
-# have hit -- avoiding this whole class of bug instead of patching it
-# dependency-by-dependency. This also means the global `setuptools`
-# system install no longer needs to be upgraded at all for this step,
-# which is one less thing on this box's system-wide Python environment
-# for this script to touch.
-#
-# --force-reinstall (not a plain `pip install .`): unlike the old `setup.py
-# install`, which unconditionally redid the install every run, plain `pip
-# install .` skips reinstalling when pip thinks the same version is
-# already installed -- true on every run between version bumps in
-# `stellarObjects/_version.py`. Since this script's whole point (via
-# update.sh) is redeploying whatever was just `git pull`-ed regardless of
-# whether the version string changed, skipping would silently leave the
-# previous run's installed copy in place, shadowing the freshly pulled
-# source the same way this whole section is otherwise about avoiding.
-#
-# The `api` extra (Flask/Flask-Limiter, see setup.py's `extras_require`)
-# is included here, not left to a separate manual `pip install .[api]`
-# some other doc might mention: every page under src/html/ is a thin
-# HTTP client over GET /api/... now (see html/lib/apiclient.py's own
-# docstring), so the web interface this script exists to deploy simply
-# doesn't work without it -- confirmed in production as
-# "ModuleNotFoundError: No module named 'flask'" from mod_wsgi once the
-# vhost's own handler-conflict and sys.path bugs (see wsgi.py) were fixed
-# and this became the next thing standing between a fresh install and a
-# working /api/search. A CLI-only use of this package (just `sectorgen`/
-# `systemgen`, no web interface ever deployed) wouldn't need it, but
-# nothing reaches this script without wanting the web interface.
-#
-# --ignore-installed: pulling in Flask this way surfaced a second,
-# unrelated production failure -- Flask 3.x needs blinker>=1.9.0, but
-# Ubuntu 22.04 ships blinker 1.4 pre-installed the old `distutils`
-# way (no `RECORD` file, so pip can't tell which files are its to
-# remove). `--force-reinstall`/`--upgrade` both still need to *upgrade*
-# it, which means uninstalling that old copy first, which fails with
-# "Cannot uninstall blinker 1.4 ... distutils installed project" and
-# aborts the whole install before it ever reaches flask/flask-limiter/
-# planetGen itself (see pip's own install order in its output -- it
-# aborts alphabetically-ish partway through, well before the packages
-# that actually matter here). `--ignore-installed` sidesteps the
-# uninstall step entirely: pip just installs its own copy into
-# /usr/local's site-packages, which already comes before apt's
-# /usr/lib/python3/dist-packages on sys.path, so the newer pip-managed
-# copy shadows the old system one without ever touching it -- the
-# standard workaround for this well-known Debian/Ubuntu packaging class
-# of error, not specific to blinker (a future dependency bump could hit
-# the same wall with some other apt-provided package).
-"$PYTHON" -m pip install --upgrade pip
-"$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed "${SCRIPT_DIR}[api]"
+echo "== 1/8: Installing the Python package and its libraries =="
+# pip on an ordinary Python; distribution packages (plus a venv for
+# anything the distribution lacks) on an externally managed one (PEP 668,
+# e.g. Ubuntu 24.04+), where pip refuses to install. See that script for
+# the details of each path; it prints which one it took.
+PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 
 echo
 echo "== 2/8: Migrating the configured MySQL database to the current schema =="
