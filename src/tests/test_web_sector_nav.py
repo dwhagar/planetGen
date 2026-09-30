@@ -212,7 +212,7 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     crumbs = re.search(r'<nav class="breadcrumbs".*?</nav>', html, re.S).group(0)
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
     assert "Cube edge 10.00 ly" in html and "2 systems" in html and "1 phenomenon" in html
-    assert f'href="/galaxy.py?db={DB}&amp;quadrant=' in html
+    assert 'href="/galaxy?quadrant=' in html
     assert re.search(r'<script type="module" src="/static/sectormap.js\?v=[^"]+"></script>', html)
     # Contents: nearest first, systems and phenomena, plain links.
     contents = html[html.index('id="sector-contents"'):]
