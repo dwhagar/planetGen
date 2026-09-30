@@ -402,6 +402,10 @@ class Planet:
 
         return life_paragraphs
 
+    # TODO(distances #1): the distance text here duplicates
+    # tabledisplay.format_body_distance; use the shared unit-ladder helper
+    # (move it into stellarObjects/utils.py if the text output needs it
+    # without importing html.lib).
     def get_table_properties(self):
         """
         Builds the "Planet Data"/"Class Data" property dict -- the exact

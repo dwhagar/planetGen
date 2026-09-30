@@ -34,6 +34,11 @@ from .helpers import page_url, trusted_html
 
 # Mirrors queryDb.SEARCH_TAG_FACETS (this layer talks to the database only
 # through the API, so it doesn't import queryDb).
+# TODO(search #4): add a phenomenon-type facet (black hole, neutron star,
+# nebula, supernova remnant, rogue planet, comet, asteroid field, quasar)
+# and a Phenomena result panel in RESULT_PANELS, backed by new
+# queryDb._search_facet_*/_search_result_* functions over the phenomena
+# tables (mirror queryDb.SEARCH_TAG_FACETS).
 TAG_FACETS = (
     "type", "spectral", "luminosity",
     "class", "body", "life",
@@ -240,6 +245,7 @@ def tag_groups(state, facets):
     return groups
 
 
+# TODO(distances #1): use the unit-ladder helper instead of km-only.
 def _km(value):
     return f"{value:,.0f} km"
 

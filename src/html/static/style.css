@@ -1587,6 +1587,11 @@ body.app {
 
 /* --- Header ------------------------------------------------------- */
 
+/* TODO(site-header #3): header rules change with the new layout: a gear
+   menu at the right, a sections menu that appears only when the buttons
+   don't fit, and a search box hidden below 2x the button's width (a
+   container query on .site-wide can do both without JavaScript). The @media
+   56rem / 92rem .site-header-admin collapse goes away. */
 .app .site-header {
   display: block;
   position: sticky;

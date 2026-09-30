@@ -537,6 +537,10 @@ function resetInfo(panel) {
 
 var AU_KM = 149597870.7;
 
+// TODO(distances #1): mirror the Python unit ladder (km < AU < mpc < cpc <
+// ly < pc < kpc < Mpc < Gpc) in one small shared script (e.g.
+// static/distance.js) and use it here, in phenomenonmap.js formatSpan,
+// sectormap.js formatLy and galaxymap3d.js formatPcLy/formatPc.
 function formatDistanceKm(km) {
   if (km == null || !isFinite(km)) {
     return "unknown";

@@ -76,6 +76,10 @@ class AsteroidField:
         """
         reseed_rng()
         self.system_config = system_config
+        # TODO(phenomena #30): asteroid fields get a standardized
+        # designation instead of a name, e.g. "AF <class><size
+        # digit>-<sector designation>-<n>" (class from #31, size digit =
+        # floor(log10(radius in AU))).
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.density = random.choice(["dense", "sparse", "typical"])

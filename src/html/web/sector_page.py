@@ -88,6 +88,8 @@ def _map_system(row):
     }
 
 
+# TODO(distances #1): radii and distances in this page (and the cube edge
+# in sector()) are fixed ly; use the unit-ladder helper.
 def _contents(sector):
     """
     Every system and phenomenon as Contents rows, nearest the sector's
@@ -125,6 +127,10 @@ def _contents(sector):
             "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
             "type": PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]),
             "details": ", ".join(bit for bit in details if bit),
+            # TODO(phenomena #26): list the octant a phenomenon is in
+            # (spaceSector.classify_octant on its sector-relative
+            # position), and its three nearest star systems from the new
+            # stored table.
             "octant": None,
             "location": None,
         })

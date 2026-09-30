@@ -110,6 +110,9 @@
 {%- endif %}
 
 <section class="panel" aria-labelledby="tags-heading">
+  {# TODO(search #4): make each tag group collapsible (<details><summary>
+     with the group title and its active-tag count) so the page isn't
+     overwhelming; keep a group open when one of its tags is selected. #}
   <h2 id="tags-heading">Browse by Tag</h2>
   {%- for group in tag_groups %}
   <div class="tag-group">

@@ -62,6 +62,9 @@ class CompactRemnant(Star):
     Not instantiated directly -- always `BlackHole` or `NeutronStar`.
     """
 
+    # TODO(phenomena #30): black holes and neutron stars are named through
+    # the system-name registry, like star systems (quasars and rogue
+    # planets too).
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None):
         """
         Args:
@@ -190,6 +193,11 @@ class BlackHole(CompactRemnant):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         reseed_rng()
 
+        # TODO(phenomena #7): Boss wants "a smattering (rare) of medium
+        # sized black holes". Intermediate-mass ones already exist as 2% of
+        # black-hole rolls (100-1000 Msun); revisit the chance and range
+        # (IMBHs span ~1e2- 1e5 Msun) and whether they need their own rate
+        # or type.
         if random.random() < program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
             self.mass_solar = random.uniform(*program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "intermediate-mass",

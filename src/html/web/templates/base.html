@@ -24,6 +24,11 @@ subhead (badges or actions under the <h1>). -#}
   <button type="submit">Search</button>
 </form>
 {%- endmacro -%}
+{# TODO(site-header #3): the top bar is too dense. Account (password), the
+   theme toggle and the admin pages (Admin, Generate, Stats) plus Logout
+   move into one settings gear menu at the upper right. A visitor who isn't
+   logged in gets Theme and search under the gear (plus Login), and never
+   Stats. #}
 {%- macro account_links() -%}
 {%- set admin = current_admin() -%}
 <nav class="site-account" aria-label="Account">
@@ -59,6 +64,12 @@ subhead (badges or actions under the <h1>). -#}
 </head>
 <body class="app">
 <a class="skip-link" href="#main">Skip to content</a>
+{# TODO(site-header #3): Galaxy / Sectors / Systems / Phenomena / Nav stay
+   buttons only while there is room to print each comfortably; otherwise
+   they collapse into their own menu (separate from the gear). The search
+   box is hidden when its text entry would be less than twice the width of
+   the search button. Replaces today's single "Menu" and the
+   .site-header-admin collapse. #}
 <header class="site-header{% if current_admin() %} site-header-admin{% endif %}">
   <div class="site-header-inner">
     <a class="site-name" href="{{ url_for('web.index') }}"{% if request.endpoint == 'web.index' %} aria-current="page"{% endif %}>{{ site_name }}</a>

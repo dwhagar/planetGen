@@ -98,6 +98,12 @@ class RoguePlanet:
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
+        # TODO(phenomena #6): a linear-uniform draw over 0.0005-10 Mjup
+        # makes only ~0.5% of rogues terrestrial (< 0.05 Mjup), which is
+        # why none show up. Microlensing (Sumi et al. 2023, Mroz et al.
+        # 2017) says low- mass rogues outnumber giants; draw from a mass
+        # function (log-uniform or a power law dN/dM ~ M^-alpha) with its
+        # parameters in program_constants.
         mass_jupiter = random.uniform(*program_constants.ROGUE_PLANET_MASS_RANGE_JUPITER)
         self.mass_kg = mass_jupiter * physical_constants.JUPITER_MASS_TO_KG
 

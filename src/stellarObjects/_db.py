@@ -83,7 +83,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-# TODO(galaxy-map #5): bump to the next free schema version with a
+# TODO(galaxy-map #12): bump to the next free schema version with a
 # migration for the hybrid master-wedge slot rule
 # (galaxyGeometry.ring_sector_count). Like v32 and v33 it deletes every
 # galaxy-placed sector with its systems and phenomena (slot numbers change
@@ -1005,6 +1005,9 @@ def _regenerate_star_name():
     return generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
 
+# TODO(phenomena #30): nebulae, supernova remnants, neutron stars, black
+# holes, quasars and rogue planets reserve their names here too, so they
+# are unique alongside star systems.
 def reserve_system_name(conn, candidate_name):
     """
     Phase 1 of system name-uniqueness reservation -- resolves a
@@ -2082,6 +2085,12 @@ def _format_location_string(sector_name, neighbors):
     return f"{sector_name} -- nearest: " + ", ".join(parts)
 
 
+# TODO(phenomena #26): today only a text summary of the 3 nearest systems
+# is stored (star_systems.location), found within the sector only.
+# Precalculate and store the 3 nearest star systems for every system and
+# every phenomenon in a table (id, kind, rank, neighbor_system_id,
+# distance), searching across sector boundaries; recompute on generate and
+# on each correlative update (#32).
 def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
     """
     Computes `entry`'s `star_systems.location` string from the live
@@ -5192,6 +5201,9 @@ def get_orbit_update_elapsed_years(conn):
     return row["elapsed_seconds"] / physical_constants.SECONDS_PER_YEAR
 
 
+# TODO(orbits #32): quasars aren't in the phenomena loop below; decide
+# whether the nucleus moves. After phases advance, galactic positions must
+# follow (see updateOrbits.main).
 def advance_orbital_phases(conn, elapsed_years):
     """
     Advances every planet's and moon's `orbital_phase_deg` in place by the

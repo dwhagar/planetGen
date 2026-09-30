@@ -26,19 +26,19 @@
 // back plain typed arrays, so it runs under plain node for tests
 // (src/tests/test_galaxyprisms.py).
 
-// TODO(galaxy-map #6): the plan replacing the level of detail above
+// TODO(galaxy-map #13): the plan replacing the level of detail above
 // (galaxy-megablocks/report.md, approved 2026-09-30):
 //   - Block size from the screen, not a volume guess: m is the smallest
 //     power of 3 with m * edge >= BLOCK_MIN_PX (4) * pcPerPixel at the
 //     focus. One block then always covers at least a pixel's worth of
 //     sectors.
-//   - Blocks are drawn full size, making one continuous solid (#7), and
+//   - Blocks are drawn full size, making one continuous solid (#14), and
 //     only exposed blocks are listed. Whether a block exists depends only on
 //     its ring and layer (the density bound ignores angle), so interior
 //     blocks are skipped before any wedge is looked at.
-//   - A slice layer hides blocks above the cut (#7).
+//   - A slice layer hides blocks above the cut (#14).
 //   - Everything here must stay free of three.js, so it can run in a Web
-//     Worker (#10).
+//     Worker (#17).
 
 // How many prisms one view may draw, roughly.
 export var PRISM_BUDGET = 14000;
@@ -108,7 +108,7 @@ function densityUpperBound(r0, zMinAbs, shape) {
 // Slots in sector ring `ring`: round(2 * pi * (i + 1/2)) -- 3, 9, 16, 22,
 // ... -- so each slot's arc is about one edge long. The same on every
 // layer, so the columns line up through the whole stack.
-// TODO(galaxy-map #5): mirror galaxyGeometry.ring_sector_count's hybrid
+// TODO(galaxy-map #12): mirror galaxyGeometry.ring_sector_count's hybrid
 // master-wedge rule exactly, and add ringMasterCount(ring). The tests
 // compare the two tables ring by ring out to the default galaxy's edge.
 export function ringSectorCount(ring) {
@@ -169,7 +169,7 @@ export function cellCoordinates(b) {
   };
 }
 
-// TODO(galaxy-map #6): with #5's master-aligned rings, a block's wedges
+// TODO(galaxy-map #13): with #12's master-aligned rings, a block's wedges
 // become ringMasterCount(first member ring) / 2**p for the largest p that
 // keeps the wedge arc at least m edges. Every wedge side is then a real
 // slot wall in every member ring, so a block is an exact set of whole
@@ -225,7 +225,7 @@ export function groupSectorCount(prism, m) {
 // A group's prism is at least this many screen pixels across at the view's
 // focus: finer than that, single groups stop being something a viewer can
 // pick out or click, and the map turns to noise.
-// TODO(galaxy-map #6): becomes BLOCK_MIN_PX = 4, and sectorsPerPrism's
+// TODO(galaxy-map #13): becomes BLOCK_MIN_PX = 4, and sectorsPerPrism's
 // volume estimate goes away. Today it assumes the whole view ball is full,
 // so it overestimates the thin disk and leaves 70-290 px groups.
 export var MIN_PRISM_PX = 10;
@@ -288,7 +288,7 @@ export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, d
 // the group's address on the group grid and its bounds (see
 // groupSectorRanges for the sectors inside). densityCache (a Map,
 // optional) keeps per-prism densities between calls at the same size.
-// TODO(galaxy-map #6/#7): split into
+// TODO(galaxy-map #13/#14): split into
 //   blockExists(ring, slab, m)
 //     the density-bound test, memoized per (ring, slab);
 //   surfaceBlocksInView(center, viewRadius, m, slice)
@@ -296,7 +296,7 @@ export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, d
 //     all exist (the axis counts as filled), and only then lists that
 //     pair's wedges inside the view.
 // A slab above `slice` counts as empty, so the cut face is drawn.
-// TODO(galaxy-map #8): the interior skip is only valid for opaque blocks.
+// TODO(galaxy-map #15): the interior skip is only valid for opaque blocks.
 // A translucent (unfilled) block lets its neighbours show through. So:
 // - cull interior blocks only when every neighbour is filled;
 // - list unfilled interior blocks while they are within the view and the
@@ -393,7 +393,7 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
   return found;
 }
 
-// TODO(galaxy-map #3): also return the block's azimuthal mean density
+// TODO(galaxy-map #10): also return the block's azimuthal mean density
 // (bulge + disk, arm factor 1) so the page can shade by the arm factor
 // (density / mean) as well as by density. Following Boss's Method 3,
 // weight the samples by cell volume (r dr): outer samples in a wide block
@@ -421,7 +421,7 @@ function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
 // wound counter-clockwise seen from outside, so front-face culling shows
 // each prism's outside only.
 
-// TODO(galaxy-map #10): build this in a Web Worker, returning the typed
+// TODO(galaxy-map #17): build this in a Web Worker, returning the typed
 // arrays as transferables. Full-size blocks share faces with their
 // neighbours, so skip any face whose neighbour exists: the surface
 // listing only removes whole blocks, not hidden faces. If the vertex

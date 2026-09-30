@@ -21,6 +21,7 @@
   var AU_PER_LY = 63241.1;
   var LY_DISPLAY_THRESHOLD_AU = 1000; // above this many AU, show ly instead
 
+  // TODO(distances #1): use the shared unit-ladder formatter.
   function formatSpan(auValue) {
     if (auValue >= LY_DISPLAY_THRESHOLD_AU) {
       var lyValue = auValue / AU_PER_LY;
