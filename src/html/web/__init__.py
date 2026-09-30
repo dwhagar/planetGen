@@ -35,6 +35,7 @@ import os
 import sys
 
 from flask import Blueprint, request
+from markupsafe import Markup
 
 _HTML_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _LIB_DIR = os.path.join(_HTML_DIR, "lib")
@@ -44,7 +45,7 @@ _STATIC_DIR = os.path.join(_HTML_DIR, "static")
 if _LIB_DIR not in sys.path:
     sys.path.insert(0, _LIB_DIR)
 
-from fmt import STATIC_VERSION  # noqa: E402
+from fmt import STATIC_VERSION, utc_time_html  # noqa: E402
 from fmt import static_url as fmt_static_url  # noqa: E402
 from api.limiter import page_limit  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
@@ -111,6 +112,7 @@ def _template_globals():
         "page_url": page_url,
         "current_admin": current_admin,
         "csrf_field": csrf.csrf_field,
+        "utc_time": lambda value: Markup(utc_time_html(value)),
     }
 
 

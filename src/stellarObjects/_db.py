@@ -242,6 +242,11 @@ def _get_pool(config):
             charset="utf8mb4",
             cursorclass=pymysql.cursors.DictCursor,
             autocommit=False,
+            # TIMESTAMP columns are stored in UTC but read back in the
+            # session's zone; pinning it to UTC makes every time read the
+            # same whatever the server's own zone is (the pages convert to
+            # each viewer's zone in the browser).
+            init_command="SET time_zone = '+00:00'",
         )
     return _pools[key]
 

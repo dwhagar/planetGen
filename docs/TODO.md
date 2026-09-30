@@ -39,8 +39,7 @@ renumber when items are added or finished.
    a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
-- **Extend the cache (8)**, then do the System Map route (9). The
-   local-time change (22) is small and can go in any time.
+- **Extend the cache (8)**, then do the System Map route (9).
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work items 13-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 (the
@@ -336,31 +335,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
-
-22. [ ] **Show every timestamp in the viewer's own time zone.** Boss asked
-    for this on 2026-09-30. Today, times are shown in whatever zone they
-    were stored or formatted in.
-    - Server-rendered pages. Examples:
-      - `generate_page.py`'s job `created_text`, formatted with the
-        server's `time.localtime`;
-      - `admin_pages.py`'s API key `created_at` and the stats page's
-        "Last system change", "Newest system" and "Last sector change";
-      - `errors.py`'s error-page time.
-    - API responses, such as `api/auth.py`'s key `created_at`,
-      `last_used_at` and `revoked_at`. These should stay UTC ISO 8601 with
-      an explicit offset, since clients convert them.
-    - Job status in `static/generatejobs.js`, and any time the Galaxy Map
-      shows.
-
-    Approach: the server always emits UTC as `<time datetime="...Z">` with
-    a UTC fallback text, and one small script (like `theme.js`) rewrites
-    each one with `Intl.DateTimeFormat` in the browser's zone
-    (`Intl.DateTimeFormat().resolvedOptions().timeZone`), also showing the
-    zone's abbreviation. Pages still read correctly without JavaScript
-    (UTC, labelled). MySQL `DATETIME` columns carry no zone, so first
-    confirm the server session's `time_zone` is UTC or convert on read.
-    Done means no page shows a bare, zone-less time, and tests pin the UTC
-    markup.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 

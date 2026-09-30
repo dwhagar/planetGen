@@ -45,11 +45,12 @@ from flask import current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 import apiclient
+from fmt import utc_time_html
 import tilecache
 from pagination import fetch_page, page_slice, parse_page
 
 from . import bp
-from .helpers import crumb, current_admin, db_name, page_url, pager, render_page
+from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
 # Redirect targets
@@ -299,7 +300,7 @@ def _key_rows(keys):
         "id": key["id"],
         "label": key["label"],
         "created_at": key.get("created_at") or "",
-        "last_used_at": key.get("last_used_at") or "never",
+        "last_used_at": key.get("last_used_at"),
         "revoked_at": key.get("revoked_at"),
     } for key in keys]
 
@@ -488,6 +489,11 @@ def _health(stats, api_ms, cache):
     }
 
 
+def _time_or(value, missing):
+    """A stats time as local-time markup, or `missing` when there is none."""
+    return trusted_html(utc_time_html(value)) if value else missing
+
+
 def _schema_text(database):
     version = database["schema_version"]
     if database["schema_current"]:
@@ -560,9 +566,9 @@ def admin_stats():
             ],
             db_rows=[
                 ("Schema", _schema_text(database)),
-                ("Last system change", systems_stamp.get("last_modified_at") or "never"),
-                ("Newest system", systems_stamp.get("newest_created_at") or "none"),
-                ("Last sector change", stamps.get("sectors", {}).get("last_modified_at") or "never"),
+                ("Last system change", _time_or(systems_stamp.get("last_modified_at"), "never")),
+                ("Newest system", _time_or(systems_stamp.get("newest_created_at"), "none")),
+                ("Last sector change", _time_or(stamps.get("sectors", {}).get("last_modified_at"), "never")),
             ],
             name_tiles=[
                 ("Names made unique", format_count(collisions.get("distinct_base_names"))),

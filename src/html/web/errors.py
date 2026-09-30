@@ -48,7 +48,7 @@ def unexpected_error_message():
     """The one message a 500 page shows."""
     if debug_enabled():
         return (f"An unexpected error occurred. The traceback is in the debug log "
-                f"(process {os.getpid()}, {time.strftime('%Y-%m-%d %H:%M:%S')}).")
+                f"(process {os.getpid()}, {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}).")
     return "An unexpected error occurred."
 
 

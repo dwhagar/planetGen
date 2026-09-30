@@ -4,7 +4,7 @@ redraws the same parts from /admin/generate/status. -#}
 {%- macro job_status(job, output, cancel=True, link=True) -%}
 <p><strong data-job-title>{{ job.title }}</strong>
   <span class="badge job-{{ job.status }}" data-job-status>{{ job.status }}</span>
-  <span class="hint">started {{ job.created_text }}{% if job.admin %} by {{ job.admin }}{% endif %}</span></p>
+  <span class="hint">started {{ job.created_html }}{% if job.admin %} by {{ job.admin }}{% endif %}</span></p>
 <p data-job-step>
   {%- if job.step_label %}Step {{ job.step }} of {{ job.steps|length }}: {{ job.step_label }}{% endif -%}
 </p>
