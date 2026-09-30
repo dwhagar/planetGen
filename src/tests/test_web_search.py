@@ -112,7 +112,7 @@ def test_q_searches_every_name(client, fake):
     # Not-yet-moved pages are plain GET links.
     assert 'href="/sector/5"' in _panel(html, "sectors")
     stars = _panel(html, "stars")
-    assert f'href="/system.py?db={DB}&amp;id=7"' in stars
+    assert 'href="/system/7"' in stars
     assert "118,000 km" in stars
     assert "Standalone" in _panel(html, "systems")
     # Chip to remove the name search.

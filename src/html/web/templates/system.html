@@ -1,0 +1,83 @@
+{#- The system page (/system/<id>, web/system_pages.py). The body list,
+    the tables and the map are HTML from lib/systempage.py and
+    lib/systemmap.py (escaped there); everything else is escaped here. -#}
+{% extends "base.html" %}
+{% block head %}
+<script type="module" src="{{ static_url('systemmap.js') }}"></script>
+<script type="module" src="{{ static_url('copycode.js') }}"></script>
+{% endblock %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    {%- for badge in badges %}<span class="badge">{{ badge }}</span>{% endfor -%}
+  </p>
+  {%- if nav_links %}
+  <p class="page-actions">
+    <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
+    <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
+  </p>
+  {%- endif %}
+  {%- if location_html %}
+  <p class="location inline-links">Location: {{ location_html }}</p>
+  {%- endif %}
+</div>
+{% endblock %}
+{% block content %}
+{{ map_html }}
+{%- if wiki_status or wiki_options %}
+<section class="panel" id="wiki-upload" aria-labelledby="wiki-upload-heading">
+  <h2 id="wiki-upload-heading">Upload to Wiki</h2>
+  {%- if wiki_status %}
+  <p class="{{ 'error' if wiki_status[0] else 'hint' }}" role="status">{{ wiki_status[1] }}</p>
+  {%- endif %}
+  {%- if wiki_options %}
+  <form method="post" action="{{ page_url('system', system_id=system.id) }}" class="search-form">
+    {{ csrf_field() }}
+    <div class="search-fields">
+      <fieldset class="search-field wiki-backends">
+        <legend>Wiki</legend>
+        {%- for option in wiki_options %}
+        <label><input type="radio" name="backend" value="{{ option.value }}"{% if loop.first %} checked{% endif %}> {{ option.label }}</label>
+        {%- endfor %}
+      </fieldset>
+      <label class="search-field">Path (Wiki.js only; MediaWiki uses this system's name)
+        <input type="text" name="path" placeholder="e.g. systems/{{ system.name }}">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Upload</button>
+    </div>
+  </form>
+  {%- endif %}
+</section>
+{%- endif %}
+<section class="panel" id="system-panel" aria-labelledby="system-heading">
+  <div class="panel-header">
+    <h2 id="system-heading">System</h2>
+    <div class="view-toggle">
+      {%- for button in code_buttons %}
+      <a class="btn btn-small{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
+      {%- endfor %}
+    </div>
+  </div>
+  {%- if system.wikijs_url or system.mediawiki_url %}
+  <p class="hint">Published on the wiki:
+    {%- if system.wikijs_url %} <a href="{{ system.wikijs_url }}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>{% endif %}
+    {%- if system.wikijs_url and system.mediawiki_url %} &middot;{% endif %}
+    {%- if system.mediawiki_url %} <a href="{{ system.mediawiki_url }}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>{% endif %}
+  </p>
+  {%- endif %}
+  {%- if code_fmt %}
+  <div class="code-view">
+    <div class="code-view-header">
+      <span class="view-toggle-current">{{ code_label }}</span>
+      <button type="button" class="btn btn-small copy-btn" data-copy-target="system-code">Copy</button>
+    </div>
+    <textarea readonly rows="{{ code_rows }}" id="system-code" class="content-box" aria-label="{{ code_label }} source">{{ code_content }}</textarea>
+  </div>
+  {%- endif %}
+  {{ system_list_html }}
+</section>
+{{ stars_html }}
+{{ bodies_html }}
+{% endblock %}

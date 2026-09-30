@@ -77,55 +77,12 @@ def _assert_clean_html(result, label):
 # home page; test_web_pages.py covers the shims, the new pages, their
 # pagination and their error handling. sector.py and nav.py moved the
 # same way: test_web_sector_nav.py covers /sector/<id> and /nav.
-
-
-def test_system_page_renders(live_api, seeded_db):
-    _config, db_name, _sector_id, system_ids = seeded_db
-    result = run_page(live_api, "system.py", query={"db": db_name, "id": str(system_ids[0])})
-    assert result.status_code == 200
-    _assert_clean_html(result, "system.py")
-
-
-def test_system_page_lists_bodies_and_shows_generated_code(live_api, mysql_config):
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.MOONS = True
-    cfg.BINARY_SYSTEM = False
-    # The Habitable/Inhabited chips belong to planet rows, and a random
-    # system can come out with no planets at all (only belts), so draw
-    # until one has a planet.
-    system = StarSystem(system_config=cfg)
-    for _ in range(50):
-        if system.planets:
-            break
-        system = StarSystem(system_config=cfg)
-    assert system.planets
-    system_id = _db.save_system(system, cfg, config=mysql_config)
-    query = {"db": mysql_config.database, "id": str(system_id)}
-
-    result = run_page(live_api, "system.py", query=query)
-    assert result.status_code == 200
-    _assert_clean_html(result, "system.py")
-    assert 'class="system-list system-list-root"' in result.body
-    assert "Habitable: " in result.body and "Inhabited: " in result.body
-    assert 'id="system-code"' not in result.body
-
-    for fmt, marker in (("wikitext", "[[Category:Star Systems]]"), ("markdown", "| Property | Value |")):
-        result = run_page(live_api, "system.py", query={**query, "code": fmt})
-        assert result.status_code == 200
-        assert 'id="system-code"' in result.body and "data-copy-target" in result.body
-        assert marker in result.body.replace("&#x27;", "'")
+# system.py, phenomena.py and phenomenon.py moved too:
+# test_web_system_phen.py covers those.
 
 
 # galaxy.py and galaxy_tiles.py are now CGI shims that 301 to the
 # Flask-served /galaxy and /galaxy/tiles; test_web_galaxy.py covers them.
-
-
-def test_phenomena_page_renders(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "phenomena.py", query={"db": db_name})
-    assert result.status_code == 200
-    _assert_clean_html(result, "phenomena.py")
 
 
 # search.py is now a CGI shim that 301s to the Flask-served /search;
@@ -137,29 +94,6 @@ def test_login_page_moved_to_flask(live_api, seeded_db):
     result = run_page(live_api, "login.py")
     assert result.status_code == 301
     assert result.headers.get("Location") == "/login"
-
-
-# --- Missing/garbage params fail cleanly, never a raw traceback -------------
-
-def test_system_page_unknown_id_fails_cleanly(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "system.py", query={"db": db_name, "id": "999999999"})
-    assert result.status_code == 404
-    _assert_clean_html(result, "system.py (unknown id)")
-
-
-def test_system_page_non_numeric_id_fails_cleanly(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "system.py", query={"db": db_name, "id": "not-a-number"})
-    assert result.status_code >= 400
-    _assert_clean_html(result, "system.py (non-numeric id)")
-
-
-def test_phenomenon_page_missing_params_fails_cleanly(live_api, seeded_db):
-    _config, db_name, _sector_id, _system_ids = seeded_db
-    result = run_page(live_api, "phenomenon.py", query={"db": db_name})
-    assert result.status_code >= 400
-    _assert_clean_html(result, "phenomenon.py (no id/type)")
 
 
 # --- The admin pages moved to Flask (test_web_admin.py covers their gating) ----
@@ -178,21 +112,3 @@ def test_admin_cgi_shims_redirect_without_content(live_api, seeded_db, script, l
     assert len(result.body) < 500, f"{script} redirect body unexpectedly large: {result.body[:300]!r}"
     assert "api_key" not in result.body.lower()
     assert "revoke" not in result.body.lower()
-
-
-# --- XSS-escaping: an HTML-metacharacter-bearing name renders escaped -------
-
-def test_system_page_escapes_html_metacharacters_in_system_name(live_api, mysql_config):
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.PLANETS = False
-    cfg.BINARY_SYSTEM = False
-    cfg.NAME = "<script>alert(1)</script>"
-    system = StarSystem(system_config=cfg)
-    system_id = _db.save_system(system, cfg, config=mysql_config)
-
-    result = run_page(live_api, "system.py", query={"db": mysql_config.database, "id": str(system_id)})
-    assert result.status_code == 200
-    assert "<script>alert(1)</script>" not in result.body
-    assert "&lt;script&gt;" in result.body
-
