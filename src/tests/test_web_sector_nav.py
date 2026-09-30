@@ -15,6 +15,7 @@ import html as html_lib
 import json
 import re
 
+import markupsafe
 import pytest
 
 from api.app import create_app
@@ -693,7 +694,8 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
     finally:
         conn.close()
     for name in [system_name] + [entry.phenomenon.name for entry in entries]:
-        assert html_lib.escape(name) in contents
+        # The template escapes with Jinja (' -> &#39;), not html.escape (' -> &#x27;).
+        assert str(markupsafe.escape(name)) in contents
     for label in ("Supernova Remnant", "Rogue Planet", "Interstellar Comet", "Star System"):
         assert label in contents
     kinds = {cloud["kind"] for cloud in _scene(html)["clouds"]}
