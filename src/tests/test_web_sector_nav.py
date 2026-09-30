@@ -11,11 +11,11 @@ bottom use a real throwaway database through the in-process transport and
 are skipped without a MySQL test server.
 """
 
-import html as html_lib
 import json
 import re
 
 import pytest
+from markupsafe import escape
 
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
@@ -613,7 +613,7 @@ def test_real_sector_page_and_nav(db_client, mysql_config, monkeypatch):
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     for row in systems:
-        assert html_lib.escape(row["name"]) in html
+        assert escape(row["name"]) in html
     assert len(_scene(html)["stars"]) == 2
 
     html = db_client.get("/nav").get_data(as_text=True)
@@ -693,7 +693,7 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
     finally:
         conn.close()
     for name in [system_name] + [entry.phenomenon.name for entry in entries]:
-        assert html_lib.escape(name) in contents
+        assert escape(name) in contents
     for label in ("Supernova Remnant", "Rogue Planet", "Interstellar Comet", "Star System"):
         assert label in contents
     kinds = {cloud["kind"] for cloud in _scene(html)["clouds"]}
