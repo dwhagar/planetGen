@@ -21,6 +21,10 @@ def ensure_private_dir(path):
     safe to use: a real directory (not a symlink), owned by this
     process's effective user, and writable by nobody else.
 
+    On Windows (no `os.geteuid`, and mode bits that don't describe the
+    ACL) only the symlink check applies: its temp directory is the
+    user's own (`%LOCALAPPDATA%\\Temp`), not shared like `/tmp`.
+
     Returns:
         str: `path`, when it is safe to use.
 
@@ -35,6 +39,8 @@ def ensure_private_dir(path):
     info = os.lstat(path)
     if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
         raise OSError(f"{path} is not a directory (a symlink or a file); refusing it")
+    if not hasattr(os, "geteuid"):
+        return path
     if info.st_uid != os.geteuid():
         raise OSError(f"{path} is owned by uid {info.st_uid}, not this process (uid {os.geteuid()}); refusing it")
     if info.st_mode & (stat.S_IWGRP | stat.S_IWOTH):

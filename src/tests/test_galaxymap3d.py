@@ -45,7 +45,7 @@ EDGE_PC = 4.0
 
 
 def _empty_view(edge_pc=EDGE_PC, has_shape=False):
-    return {"stamp": "0123456789abcdef", "tiles": {}, "density": None, "edge_pc": edge_pc, "has_shape": has_shape}
+    return {"stamp": "0123456789abcdef", "tiles": {}, "edge_pc": edge_pc, "has_shape": has_shape}
 
 
 def _json_payload(html):

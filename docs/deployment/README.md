@@ -13,22 +13,12 @@ full steps for its platform.
 | Linux (Debian, Ubuntu) | [Apache](apache.md) | Apache2 | mod_wsgi (daemon mode) | `install.sh`, `update.sh` do everything but the vhost | Works | certbot `--apache` | The reference setup; least manual work |
 | Linux | [nginx](nginx.md) | nginx | gunicorn under systemd | `install.sh`, `update.sh`, plus a systemd unit and a site file | Works | certbot `--nginx` | Servers that already run nginx |
 | Linux | [Caddy](caddy.md) | Caddy | gunicorn under systemd | As for nginx | Works | Automatic | The shortest web server config |
-| Windows | [IIS](windows.md#option-1-iis--httpplatformhandler) | IIS + HttpPlatformHandler | waitress, started by IIS | By hand | Not reliable (see below) | IIS bindings | Windows Server shops already on IIS |
-| Windows | [Caddy](windows.md#option-2-caddy--waitress-as-a-service) | Caddy | waitress as a Windows service | By hand | Not reliable | Automatic | The simplest native Windows setup |
-| Windows | [Apache Lounge](windows.md#option-3-apache-apache-lounge--waitress-as-a-service) | Apache httpd for Windows | waitress as a Windows service | By hand | Not reliable | Certificate files | People who know the Linux Apache setup |
-| Windows | [WSL2](windows.md#wsl2-the-linux-guides-on-windows) | Any Linux option | Any Linux option | As on Linux | Works | As on Linux | Windows desktops that need the Generate page |
+| Windows | [IIS](windows.md#option-1-iis--httpplatformhandler) | IIS + HttpPlatformHandler | waitress, started by IIS | By hand | Works | IIS bindings | Windows Server shops already on IIS |
+| Windows | [Caddy](windows.md#option-2-caddy--waitress-as-a-service) | Caddy | waitress as a Windows service | By hand | Works | Automatic | The simplest native Windows setup |
+| Windows | [Apache Lounge](windows.md#option-3-apache-apache-lounge--waitress-as-a-service) | Apache httpd for Windows | waitress as a Windows service | By hand | Works | Certificate files | People who know the Linux Apache setup |
+| Windows | [WSL2](windows.md#wsl2-the-linux-guides-on-windows) | Any Linux option | Any Linux option | As on Linux | Works | As on Linux | Windows desktops that would rather run the Linux setup |
 | macOS | [macOS](macos.md) | Homebrew nginx | gunicorn under launchd | By hand | Works | certbot or your own certificate | A Mac you already have. macOS Server is discontinued |
 | A rented server | [VPS and PaaS](paas.md) | Any Linux option | Any Linux option | As on Linux | Works | As on Linux | Hosting you don't run at home |
-
-**Windows and the Generate page.** The admin Generate page starts
-background jobs with POSIX-only process calls (process groups and
-signals, in `src/html/web/jobs.py` and `src/jobRunner.py`). On native
-Windows, Cancel stops the job runner but not the generation step it
-started, and a finished or crashed job can show as still running (or the
-reverse, letting two jobs run at once). Everything else works. The
-workaround: generate from the command line (`python generate.py ...`) on
-Windows, or run planetGen in WSL2 or a Linux VM. This is
-[`TODO.md`](../TODO.md) item 55.
 
 ## What every setup has in common
 

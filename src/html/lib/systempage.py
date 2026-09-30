@@ -16,7 +16,7 @@ escapes its own input. So the page wraps what these return in
 `trusted_html`.
 """
 
-from fmt import esc
+from fmt import esc, format_distance_km
 from mdconvert import markdown_to_html
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -95,15 +95,13 @@ def _planets_table_html(planets, heading="Planets &amp; Moons"):
 """
 
 
-# TODO(distances #1): the belt distance is hard-coded as raw km; use the
-# unit-ladder helper.
 def _belts_table_html(belts, heading="Asteroid Belts"):
     if not belts:
         return ""
     belt_rows = "".join(
         "<tr>"
         f'<td>{esc(row["density"])}</td>'
-        f'<td>{row["distance_km"]:,.0f} km</td>'
+        f'<td>{format_distance_km(row["distance_km"])}</td>'
         f'<td>{esc(row["composition_summary"])}</td>'
         "</tr>"
         for row in belts

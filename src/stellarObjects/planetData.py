@@ -27,8 +27,8 @@ import secrets
 from .config import SystemConfig
 from . import physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_length_km,
-                    properties_to_string, to_paragraph, to_scientific_notation,
+from .utils import (format_body_radius_km, format_distance_au, format_distance_km,
+                    properties_to_string, to_paragraph,
                     years_to_time_string)
 
 
@@ -402,10 +402,6 @@ class Planet:
 
         return life_paragraphs
 
-    # TODO(distances #1): the distance text here duplicates
-    # tabledisplay.format_body_distance; use the shared unit-ladder helper
-    # (move it into stellarObjects/utils.py if the text output needs it
-    # without importing html.lib).
     def get_table_properties(self):
         """
         Builds the "Planet Data"/"Class Data" property dict -- the exact
@@ -421,25 +417,11 @@ class Planet:
                  `gravity`, each an already-formatted display string
                  (`class` may be `None`).
         """
-        if self.is_moon:
-            # Moons orbit their parent planet, so their distance is from the planet, not the star.
-            # This distance is typically much smaller and best represented in kilometers.
-            distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 4)} km" # Pass system_config
-        else:
-            # For planets, the distance is from the star. We check if this distance
-            # is large enough to warrant using light-years.
-            distance_ly = self.distance * physical_constants.AU_TO_LY
-            if distance_ly < program_constants.LY_THRESHOLD:
-                # For "normal" sized systems, display in AU.
-                # If less than 1 AU, also show in km for context.
-                distance_text = f"{to_scientific_notation(self.system_config, self.distance * physical_constants.AU_TO_KM, 1)} km ({self.distance:.3f} AU)" if self.distance < 1 else f"{self.distance:.3f} AU" # Pass system_config
-            else:
-                # For very large systems, display in light-years.
-                distance_text = f"{distance_ly:.4f} light-years"
-
-        # TODO(distances #1): planet and moon radii are always km in
-        # scientific notation, not only above 100,000 km.
-        radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config
+        # A moon's distance is from its planet, a planet's from its star;
+        # both go through the distance ladder. The radius is a body radius:
+        # always km in scientific notation.
+        distance_text = format_distance_au(self.distance)
+        radius_string = format_body_radius_km(self.system_config, self.radius)
 
         properties = {
             "class": self.planet_class,
@@ -456,7 +438,7 @@ class Planet:
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
             ) * physical_constants.AU_TO_KM
-            properties["moon_wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own moons"
+            properties["moon_wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own moons"
         return properties
 
     def _gas_giant_pressure_depth_text(self):

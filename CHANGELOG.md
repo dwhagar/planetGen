@@ -1,5 +1,88 @@
 # Changelog
 
+## [7.10.0] - 2026-09-30
+
+### Changed
+- **Every distance is shown in its most meaningful unit.** One helper,
+  `stellarObjects.utils.format_distance_m` (with `_km`, `_au`, `_ly` and
+  `_pc` wrappers, re-exported by `html/lib/fmt.py`), and its browser copy
+  `html/static/distance.js` pick the largest of km < AU < mpc < cpc < ly
+  < pc < kpc < Mpc < Gpc the value is at least 1 of. Parsec values add
+  ly in parentheses ("4.2 pc (13.7 ly)"), or AU below 0.01 ly ("2.4 mpc
+  (495 AU)"). The system, sector, galaxy and phenomenon pages, the
+  System, Sector and phenomenon map readouts, the wiki sector page and
+  the generated text (planet, star, binary, belt and heliosphere
+  distances) all use it.
+- **Planet, moon and star radii are always km in scientific notation**
+  (`utils.format_body_radius_km`), including a rogue planet's.
+- **The distance constants are exact:** AU = 149,597,870,700 m,
+  lightyear = 9,460,730,472,580,800 m, parsec = 3.085677581491367e16 m,
+  with every conversion derived from them. Stored values shift by about
+  one part in 70,000.
+
+### Removed
+- The unused `LY_THRESHOLD`, `HELIOSPHERE_DISPLAY_THRESHOLD_LY` and
+  `ROUND_HABITABLE_ZONE_AU(_SMALL)` display constants.
+
+## [7.9.2] - 2026-09-30
+
+### Fixed
+- **The admin Generate page's jobs work on native Windows.** Cancel now
+  writes a `cancel` file that the job runner checks while a step runs,
+  and stops the step's whole process tree (`os.killpg` on POSIX,
+  `taskkill /T /F` on Windows), so a cancelled generation step no longer
+  keeps writing to the database. Liveness uses `OpenProcess` and
+  `GetExitCodeProcess` on Windows (with a creation-time check against
+  reused pids), the runner starts detached in its own process group
+  (breaking away from IIS's job object where allowed), `state.json`
+  writes retry while the page has the file open, and the private
+  fallback directory check no longer needs `os.geteuid`. CI runs the job
+  tests on a Windows runner.
+
+## [7.9.1] - 2026-09-30
+
+### Fixed
+- **A binary's secondary star could outweigh its primary.** When the
+  secondary's own class pushes its mass above the primary's, the two
+  swap roles, so the primary is always the heavier star (TODO item 44).
+
+## [7.9.0] - 2026-09-30
+
+### Added
+
+- Galaxy Map: wedge lines run out from the galactic core in the plane, each
+  labelled with its bearing (degrees counterclockwise from +X, ring slot 0),
+  with a Wedges button to hide them.
+- Galaxy Map: the scale readout has three lines, what one screen pixel
+  spans, how big one block is, and a bar, each in sectors, pc and ly.
+
+### Changed
+
+- Galaxy Map: the density prisms are shaded by each prism's arm factor
+  (its density over the ring's mean) as well as its density, so the spiral
+  arms stand out at every zoom.
+- Galaxy Map: the density blocks fill their whole cells, so the galaxy is one
+  solid made of blocks with no gaps. A Slice button (on by default) cuts the
+  solid at the focus's layer, so the view looks down on its cut face;
+  turning it off shows the whole solid.
+
+### Removed
+
+- The server's leftover density point clouds: `/api/galaxy/tiles` and
+  `/galaxy/tiles` no longer take `density=` or return `density`, and
+  `galaxyViewport.density_sample_points` / `density_points_for_tile` are
+  gone. The map has drawn density itself since the prisms.
+
+## [7.8.0] - 2026-09-30
+
+### Changed
+
+- Warp travel times follow Boss's warp curve, which matches warp^(10/3) up to about warp 9 and then climbs toward warp 10 (warp 9.995 is about 12,200 c). The NAV warp table covers warp 1, 2, 4, 8, 9, 9.5, 9.9 and 9.995.
+
+### Added
+
+- Dimensional fold travel times (6F^4 / (10 - F) times c) at fold 4 to 8.5 on the NAV page and in `/api/nav`'s `fold_times`.
+
 ## [7.7.0] - 2026-09-30
 
 ### Security

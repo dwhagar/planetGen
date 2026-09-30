@@ -182,22 +182,22 @@ connectivity to that specific schema rather than the default one.
   `volume_pc3`, `vertices_pc` (8 corners), `edge_pc`, and `sector_id`
   (the generated sector there, or `null`). `400` for a bad or incomplete
   query.
-- `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
+- `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
   65,536 pc on a side centered on the galactic origin, each level halves
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "density":
-  {"key": ..., "points": [...]} | null, "edge_pc": ..., "has_shape": ...}`:
+  `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "edge_pc": ...,
+  "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
   predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated
-  slots, only for 16 pc tiles (empty otherwise); `density`, when a
-  `density` key is given, is an illustrative cloud of 1,600 points within
-  twice that tile's edge of its center. At most 128 keys per request; a
+  slots, only for 16 pc tiles (empty otherwise). Predicted density isn't
+  served: the page evaluates the galaxy's shape itself
+  (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":

@@ -301,8 +301,8 @@ def two_sector_galaxy(mysql_config):
         "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
     })
     sector_b_id = _db.save_sector(sector_b, config=mysql_config, galaxy_position={
-        "center_x_pc": 6.1320300975969335, "center_y_pc": 0.0, "center_z_pc": 0.0,  # ~20 ly
-        "galactic_radius_pc": 6.1320300975969335, "vertices_pc": empty_vertices,
+        "center_x_pc": 6.132027875711011, "center_y_pc": 0.0, "center_z_pc": 0.0,  # ~20 ly
+        "galactic_radius_pc": 6.132027875711011, "vertices_pc": empty_vertices,
     })
     sector_c_id = _db.save_sector(sector_c, config=mysql_config)  # no galaxy_position at all
 

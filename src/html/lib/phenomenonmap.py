@@ -40,7 +40,7 @@ except ImportError:
     # identical pattern for pc_to_ly.
     ly_to_au = None
 
-_LY_TO_AU_FALLBACK = 63241.1
+_LY_TO_AU_FALLBACK = 9460730472580800 / 149597870700
 
 
 def _to_au(radius_ly):

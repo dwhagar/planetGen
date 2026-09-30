@@ -35,18 +35,16 @@ renumber when items are added or finished.
 
 - **The known generation bugs (40-45) come first**; their tests are
    already written.
-- **Bug fixes (1-7)** come next, from Boss's notes of 2026-09-30. 1
-   (distance units) touches the most files; 2-4 are small web changes;
+- **Bug fixes (2-7)** come next, from Boss's notes of 2026-09-30. 2-4
+   are small web changes;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
    local-time change (22) is small and can go in any time.
-- **Galaxy Map (10-21):** Boss approved the plan in the
+- **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 10-18 in order. 10 and 11
-   ship on today's prisms. 12 is the one data-deleting step and waits for
-   Boss's go-ahead on the migration. 19-20 are follow-ups. 21 (wedge
-   lines) can go in any time.
+   slots, pixel-sized mega-blocks). Work items 12-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 is the
+   one data-deleting step. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
@@ -58,86 +56,15 @@ renumber when items are added or finished.
    names are small and can go in any time.
 - **Installers (50)**: PowerShell install and upgrade scripts, and the
    bash scripts made to run on macOS too.
-- **Windows jobs (55)** was added after the rest and numbered last to
-   avoid renumbering. It's a bug fix for native Windows hosting only;
-   work it whenever someone needs the Generate page there.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
-   security, physics, web-pages, installers, windows);
+   security, physics, web-pages, installers);
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
 
 ### Bug fixes (Boss's notes, 2026-09-30)
-
-1. [ ] **Show every distance in its most meaningful unit.** Boss: "If
-   it's under AU it's km, it goes: km < AU < mpc (milliparsec) < cpc
-   (centiparsec) < ly < pc < kpc < Mpc < Gpc. All radii, all distances,
-   all orbital distances, etc need to use this, so all distances should
-   get passed through a helper function before displayed."
-   - Add one helper (Python in `stellarObjects/utils.py`, re-exported by
-     `html/lib/fmt.py`; a matching `static/distance.js`) that picks the
-     largest unit the value is at least 1 of.
-   - **Parsec values carry a second unit in parentheses** (Boss,
-     2026-09-30: "I like having the ly in parenthesis alongside a
-     parsec"). Every value shown in mpc, cpc, pc, kpc, Mpc or Gpc gets one
-     parenthetical, picked by the same distance:
-     - lightyears when the distance is at least 0.01 ly: "4.2 pc
-       (13.7 ly)", "15.3 cpc (0.499 ly)";
-     - else AU when it is at least 0.01 AU: "2.4 mpc (495 AU)" (1 mpc is
-       about 0.0033 ly, so values under about 3.07 mpc land here);
-     - else km (Boss: "since those are what most people understand").
-       No parsec-family value is that small (1 mpc is about 206 AU), but
-       the helper applies the rule as written.
-     - Values shown in km, AU or ly get no parenthetical; the ly rung
-       stays on the ladder, so 1 to 3.26 ly still shows as plain ly.
-     - Thresholds as named constants next to the unit constants, e.g.
-       `DISTANCE_PAREN_MIN_LY = 0.01` and `DISTANCE_PAREN_MIN_AU = 0.01`.
-   - Boss confirmed the order and the constants on 2026-09-30 (use these
-     exact values, in meters, as named constants):
-
-     | Unit | Meters | Relation |
-     |---|---|---|
-     | km | 1e3 | |
-     | AU | 149,597,870,700 (exact IAU) | ≈ 1.496e8 km |
-     | milliparsec | pc × 1e-3 ≈ 3.0857e13 | ≈ 206.3 AU |
-     | centiparsec | pc × 1e-2 ≈ 3.0857e14 | ≈ 2,063 AU |
-     | lightyear | 9,460,730,472,580,800 (c × 365.25 days, exact) | ≈ 0.3066 pc |
-     | parsec | 3.085677581491367e16 (648000/π AU) | ≈ 3.26 ly |
-     | kiloparsec | pc × 1e3 | |
-     | Megaparsec | pc × 1e6 | |
-     | Gigaparsec | pc × 1e9 | |
-
-     `physical_constants` rounds them today (`AU_TO_KM = 1.496e8`,
-     `AU_TO_M`, `LY_TO_M = 9.461e15`, `LY_TO_AU = 63241.1`); replace them
-     with these exact values and derive every conversion from them (that
-     shifts stored-value tests slightly).
-   - **Radii are the exception** (Boss, 2026-09-30): planet, moon and
-     star radii are always shown in km in scientific notation
-     (`format_star_radius`, `planetData.Planet.get_table_properties`,
-     `starData.Star.get_table_properties` via `utils.format_length_km`,
-     which today only switches to scientific above a threshold). Other
-     radii (nebulae, asteroid fields, remnants) use the ladder.
-   - Today every page has its own formatter. Sites, each marked
-     `TODO(distances #1)`: `tabledisplay.format_body_distance` (moons
-     always km, planets AU/km/ly), `format_star_radius` and
-     `utils.format_length_km` (km only), `fmt.format_distance_ly`,
-     `planetData.Planet.get_table_properties`,
-     `asteroidData.AsteroidBelt.to_paragraph_list`,
-     `systempage._belts_table_html` and `systemmap._belt_ring_svg` (raw
-     km), `system_pages._ly`/`FIELD_SPECS`, `sector_page._contents`,
-     `searchpage._km`, and in JS `systemmap.js formatDistanceKm`,
-     `phenomenonmap.js formatSpan`, `sectormap.js formatLy`,
-     `galaxymap3d.js formatPcLy`/`formatPc`. Also `views._sector_rows`,
-     `galaxy_views._quadrant_summary_rows`, `starmap._cloud_data`,
-     `navmap._scale_bar_html`, `routes._sector_wiki_content`, and the ly
-     in `galaxy.html` and `nav.html`.
-
-   Done means no page or text output formats a distance itself, body
-   radii are always km in scientific notation, parsec values carry their
-   parenthetical, and tests pin one value in each unit and each boundary
-   (including 0.01 ly and 0.01 AU for the parenthetical).
 
 2. [ ] **Planet list: one type chip, a habitable-moon chip, belt
    distances.** Boss: "if a planet is not terrestrial it is not
@@ -150,7 +77,7 @@ renumber when items are added or finished.
      "Gas Giant", "Terrestrial" or "Habitable", never two of them.
    - New chip (e.g. "Habitable moon") when any moon is habitable;
      `queryDb._with_life_fields`/`system_detail` sets the flag.
-   - `systempage._belt_row_html`: add the belt's distance (#1).
+   - `systempage._belt_row_html`: add the belt's distance (`fmt.format_distance_km`).
 
 3. [ ] **A less dense top bar.** Boss: "Admin should be a menu dropdown
    with 'Admin', 'generate' and 'logout', if the search bar text entry
@@ -348,22 +275,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-10. [ ] **Make the spiral arms stand out in the expected-density shading.**
-   `prismIntensity` puts log density from 0.02 to 100 on one ramp, so the
-   arms (a 1.4 / 0.6 contrast at the default `arm_amplitude`) span only
-   about a tenth of it. Split each block's density into its azimuthal
-   mean (bulge + disk, no arms) and the arm factor (density / mean), and
-   let the arm factor drive about half the ramp. Mocked in
-   `galaxy-megablocks/spiral-contrast-compare.png`. Done means the arms read clearly at
-   full zoom-out and at 12 kpc, in both themes, and placed-sector dots
-   still stand out on top.
-
-11. [ ] **Scale readout in sectors, pc and ly.** Replace
-   `updateScaleBar`'s "≈ N pc (reference)" with three lines:
-   `1 px ≈ s sectors · pc · ly`, `1 block = m sectors across (m³) · pc ·
-   ly`, and a 70 px bar in the same three units. Done means the readout
-   updates on every zoom and resize, and is readable at 390 px.
-
 12. [ ] **Hybrid master-wedge slot rule (next schema version).** Boss chose it on
    2026-09-30. There are 3 master wedges at the center, doubling (6, 12,
    ..., 1,536) once each would hold at least 8 slots. Each ring's slot
@@ -403,16 +314,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    Done means tests check m against the scale, counts within a few percent
    of m³, surface listing against brute force, and the budget at every zoom.
 
-14. [ ] **Continuous blocks and a slice control.**
-   - Draw blocks full size (fill 1, keep the thin face edges).
-   - Add a Slice control, defaulting to "cut at the focus layer", with
-     "whole solid" as the alternative. A solid only shows its terraced
-     outside, and a zoomed-in camera sits inside it.
-   - The near cut stays for when the camera is below the cut.
-
-   Done means the arms show at full zoom-out, zoomed views look down on a
-   continuous floor, and the control works by keyboard.
-
 15. [ ] **One solid of blocks for filled and unfilled sectors; no more
    marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
    and out and find generated ("filled") sectors from the blocks alone.
@@ -422,7 +323,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      Filled and unfilled sectors are both shown only through the
      continuous solid of blocks (#13, #14).
    - **Color by density.** Every block is colored by the density of the
-     space it covers (#10). At m = 1, a filled sector is colored by its
+     space it covers (`prismShade`). At m = 1, a filled sector is colored by its
      real system density (`placedDensityColor`'s scale).
    - **Opacity by how full a block is.**
      - Unfilled space is 20% (densest) to 50% (sparsest) transparent,
@@ -493,20 +394,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    - DPR: `pcPerPixel` is per CSS pixel.
    - Reduced-motion users get instant zoom.
 
-20. [ ] **Remove the server's leftover density sampling.** The page draws
-   density itself since the prisms landed, but `queryDb.galaxy_tiles`
-   still accepts `density_key` and `galaxyViewport.density_points_for_tile`
-   / `density_sample_points` still exist, as does `tilecache`'s `density`
-   field. Done means they're gone with their tests, and the tile cache
-   still works.
-
-21. [ ] **Wedge lines from the center.** Boss: "Galaxy map should have
-   meaningful wedge lines from the center to make navigation easier."
-   Draw lines in the galactic plane from the core to the edge along
-   the master-wedge boundaries (#12), labelled by bearing from the
-   core so they match the course format (#33). A `LineSegments`
-   overlay next to the content groups in `initGalaxyMap3d`, with a
-   toggle. Can ship before #12 using today's ring-0 slot lines.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
@@ -801,9 +688,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
     but a belt after a planet must clear 5 Hill radii. Test:
     `test_planet_hill_sphere_clears_the_belt_inside_it`.
-44. [ ] **A binary's secondary can outweigh its primary.** The secondary's
-    mass is clamped into its random Yerkes class's range afterwards.
-    Test: `test_binary_secondary_is_never_heavier_than_primary`.
 
 ### More pages (Boss's notes, 2026-09-30)
 
@@ -853,7 +737,7 @@ Each has a `TODO(physics #N)` comment where the fix goes.
       Default taken: a comet sorts by its semi-major axis
       (`perihelion_distance_km / (1 - eccentricity)`), and parabolic
       ones (no finite axis) go last by perihelion. Each belt and comet
-      row shows its distance (#1).
+      row shows its distance (`fmt.format_distance_km`).
 
 49. [ ] **System Map names never overlap.** Boss: "we need to make sure
     names on the system map clickable interface do not overlap."
@@ -902,44 +786,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
       the docs thread) describe the server setup; this item is only the
       scripts, and the guides should point at them once they exist.
     - Each script carries a `TODO(installers #50)` comment at its top.
-
-### Windows hosting (`src/html/web/jobs.py`, `src/jobRunner.py`)
-
-55. [ ] **The admin Generate page's jobs don't work on native Windows.**
-    The site runs on Windows under waitress
-    (`docs/deployment/windows.md`), but the job code uses POSIX-only
-    calls: `start_new_session=True` (ignored on Windows) in
-    `jobs._spawn` and `jobRunner.main`, `os.killpg` (missing on Windows)
-    in `jobRunner._on_term`, `os.kill(pid, SIGTERM)` in `jobs.cancel_job`
-    (on Windows that is `TerminateProcess`, so the runner dies without
-    running its handler), and `/proc` or `os.kill(pid, 0)` in
-    `jobs._runner_alive` (on Windows signal 0 is `CTRL_C_EVENT`, not a
-    liveness check). Symptoms: Cancel kills the runner but the
-    `generate.py` step keeps running and writing to the database; a
-    finished or crashed job can show as "running" forever and block new
-    jobs, or a live one as "interrupted", letting a second job start.
-    Also `jobRunner._write_json`'s `os.replace` can fail with
-    `PermissionError` while the page reads `state.json`, and
-    `privatedir.ensure_private_dir` calls `os.geteuid` (missing on
-    Windows; only reached when the default jobs or tile directory can't
-    be created). Workaround today: generate from the command line, or
-    run planetGen in WSL2.
-    - Liveness: on Windows, `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)`
-      plus `GetExitCodeProcess() == STILL_ACTIVE` through `ctypes`; keep
-      `/proc` and `os.kill(pid, 0)` on POSIX.
-    - Cancel: write a `cancel` file into the job directory instead of
-      signalling; `jobRunner` polls for it while waiting on the step and
-      stops the step's whole tree (`os.killpg` on POSIX, `taskkill /T /F
-      /PID` or a Job Object on Windows), then records "cancelled" and
-      releases the lock as it does today.
-    - Spawn: on Windows pass `creationflags=CREATE_NEW_PROCESS_GROUP |
-      DETACHED_PROCESS | CREATE_NO_WINDOW` instead of `start_new_session`.
-    - Retry `os.replace` briefly on `PermissionError`; make
-      `ensure_private_dir` skip the owner check (or raise `OSError`) when
-      `os.geteuid` is missing.
-    - Done when `src/tests/test_web_generate.py`'s job tests pass on a
-      Windows runner (add one to CI), and the Windows guide's
-      "Limits on native Windows" section can be removed.
 
 ## Population and Politics
 
