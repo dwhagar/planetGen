@@ -83,7 +83,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 36
+SCHEMA_VERSION = 37
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1700,14 +1700,14 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     cur = conn.execute(
         """
         INSERT INTO rogue_planets (
-            sector_id, name, planet_type, mass_kg, radius_km, composition, has_internal_heat, has_moons,
+            sector_id, name, planet_type, mass_bin, mass_kg, radius_km, composition, has_internal_heat, has_moons,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, planet.name, planet.planet_type, planet.mass_kg, planet.radius_km,
+            sector_id, planet.name, planet.planet_type, planet.mass_bin, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
@@ -2262,8 +2262,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km,
             binary_secondary_mass_fraction,
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
-            system_flavor_text, schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            system_flavor_text, runaway_class, runaway_speed_kms, schema_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.name,
@@ -2273,7 +2273,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             *proxy_only_fields,
             *mutual_orbit_fields,
             *planetary_wobble_fields,
-            star_system.system_flavor_text, SCHEMA_VERSION,
+            star_system.system_flavor_text,
+            getattr(star_system, "runaway_class", None), getattr(star_system, "runaway_speed_kms", None),
+            SCHEMA_VERSION,
         ),
     )
     star_system_id = cur.lastrowid
@@ -3481,6 +3483,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         system.secondary_comets = []
 
     system.system_flavor_text = row["system_flavor_text"]
+    system.runaway_class = row["runaway_class"]
+    system.runaway_speed_kms = row["runaway_speed_kms"]
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
     system.hab_count, system.m_count = system.count_habitable()
     system.comet_count = system.count_comets()
@@ -5106,6 +5110,42 @@ def _migrate_v35_to_v36(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (36)")
 
 
+def _migrate_v36_to_v37(conn):
+    """
+    Adds `rogue_planets.mass_bin` and `star_systems.runaway_class`/
+    `runaway_speed_kms` -- see `schema.sql`'s "v37" header note -- and
+    fills `mass_bin` from each existing rogue's mass
+    (`roguePlanetData.infer_rogue_mass_bin`'s thresholds). Guarded per
+    column.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if not _has_column(conn, "rogue_planets", "mass_bin"):
+        conn.execute(
+            "ALTER TABLE rogue_planets ADD COLUMN mass_bin VARCHAR(16) NOT NULL DEFAULT 'terrestrial' AFTER planet_type"
+        )
+        earth = physical_constants.EARTH_MASS_TO_KG
+        bins = program_constants.ROGUE_PLANET_MASS_BINS
+        brown_dwarf_kg = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * physical_constants.JUPITER_MASS_TO_KG
+        conn.execute(
+            "UPDATE rogue_planets SET mass_bin = CASE "
+            "WHEN mass_kg >= ? THEN 'brown-dwarf' WHEN mass_kg < ? THEN 'terrestrial' "
+            "WHEN mass_kg < ? THEN 'sub-neptune' WHEN mass_kg < ? THEN 'saturn' ELSE 'jupiter' END, "
+            "modified_at = modified_at",
+            (brown_dwarf_kg, bins["terrestrial"][1] * earth, bins["sub-neptune"][1] * earth,
+             bins["saturn"][1] * earth),
+        )
+    if not _has_column(conn, "star_systems", "runaway_class"):
+        conn.execute(
+            "ALTER TABLE star_systems ADD COLUMN runaway_class VARCHAR(16) AFTER system_flavor_text, "
+            "ADD COLUMN runaway_speed_kms DOUBLE AFTER runaway_class"
+        )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (37)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -5172,6 +5212,7 @@ def _migration_steps():
         (34, _migrate_v33_to_v34),
         (35, _migrate_v34_to_v35),
         (36, _migrate_v35_to_v36),
+        (37, _migrate_v36_to_v37),
     ]
 
 

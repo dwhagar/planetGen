@@ -1163,7 +1163,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -1245,7 +1245,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -1341,7 +1341,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -1426,7 +1426,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -1520,7 +1520,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
         conn.commit()
 
@@ -1627,7 +1627,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
         conn.commit()
 
@@ -1693,7 +1693,7 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1787,7 +1787,7 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1891,7 +1891,7 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
 
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (20)")
         conn.commit()
 
@@ -1998,7 +1998,7 @@ def test_migrate_v26_to_v27_adds_and_backfills_row_timestamps(mysql_config, monk
                 "UPDATE star_systems SET sector_id = ?, created_at = ? WHERE id = ?",
                 (sector_id, created, system_id),
             )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (27, 28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (26)")
         conn.commit()
 
@@ -2104,7 +2104,7 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
 
         _drop_v28_placement_columns(conn)
         conn.execute("UPDATE black_holes SET sector_id = NULL WHERE id = ?", (bh_id,))
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (28, 29, 30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (28, 29, 30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (27)")
         conn.commit()
     finally:
@@ -2225,7 +2225,7 @@ def test_migrate_v29_to_v30_cleans_up_surface_conditions(mysql_config):
                 " scale_height_km = 8.0, surface_temperature_k = 0.4 WHERE id = ?",
                 (row["id"],),
             )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (30, 31, 32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (30, 31, 32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (29)")
         conn.commit()
     finally:
@@ -2295,7 +2295,7 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
         conn.execute("CREATE TABLE galaxy_shell_band (shell_index INT)")
         conn.execute("ALTER TABLE galaxy_shape CHANGE COLUMN outer_ring_index outer_shell_index INT NOT NULL")
         conn.execute("DELETE FROM galaxy_layer")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (32, 33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (32, 33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
         conn.commit()
     finally:
@@ -2367,7 +2367,7 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
                      "layer_index_min INT NOT NULL, layer_index_max INT NOT NULL)")
         conn.execute("INSERT INTO galaxy_ring_band VALUES (0, -1, 1)")
         conn.execute("DELETE FROM galaxy_layer")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (33, 34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (33, 34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (32)")
         conn.commit()
     finally:
@@ -2424,7 +2424,7 @@ def test_migrate_v33_to_v34_drops_the_planet_and_moon_name_registry(mysql_config
             "base_name VARCHAR(255) NOT NULL, occurrence_count INT NOT NULL, "
             "first_body_kind VARCHAR(8) NOT NULL, first_body_id BIGINT UNSIGNED NOT NULL, suffix_index INT)"
         )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (34, 35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (34, 35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (33)")
         conn.commit()
     finally:
@@ -2475,7 +2475,7 @@ def test_migrate_v34_to_v35_deletes_sectors_in_changed_rings_and_keeps_the_skele
             _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=changed_id)
             kept_rogue_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
         layers_before = _db.get_galaxy_layers(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (35, 36)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (35, 36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (34)")
         conn.commit()
     finally:
@@ -2507,7 +2507,7 @@ def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
             conn.execute("UPDATE black_holes SET mass_solar = ? WHERE id = ?", (mass, row_id))
         conn.execute("ALTER TABLE black_holes DROP CONSTRAINT chk_black_holes_mass_class")
         conn.execute("ALTER TABLE black_holes DROP COLUMN mass_class")
-        conn.execute("DELETE FROM schema_migrations WHERE version = 36")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (36, 37)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (35)")
         conn.commit()
     finally:
@@ -2523,3 +2523,50 @@ def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
         assert _db._has_constraint(conn, "black_holes", "chk_black_holes_mass_class")
     finally:
         conn.close()
+
+
+def test_migrate_v36_to_v37_adds_rogue_mass_bins_and_runaway_columns(mysql_config):
+    """v37 adds `rogue_planets.mass_bin` (filled from mass) and
+    `star_systems.runaway_class`/`runaway_speed_kms`."""
+    from stellarObjects.roguePlanetData import RoguePlanet
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            ids = [_db.insert_rogue_planet(conn, RoguePlanet(SystemConfig())) for _ in range(5)]
+        earth = pc.EARTH_MASS_TO_KG
+        masses = (1.0 * earth, 10.0 * earth, 100.0 * earth, 1000.0 * earth, 30 * pc.JUPITER_MASS_TO_KG)
+        for row_id, mass in zip(ids, masses):
+            conn.execute("UPDATE rogue_planets SET mass_kg = ? WHERE id = ?", (mass, row_id))
+        conn.execute("ALTER TABLE rogue_planets DROP COLUMN mass_bin")
+        conn.execute("ALTER TABLE star_systems DROP COLUMN runaway_class, DROP COLUMN runaway_speed_kms")
+        conn.execute("DELETE FROM schema_migrations WHERE version = 37")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (36)")
+        conn.commit()
+    finally:
+        conn.close()
+
+    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+
+    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    try:
+        bins = [conn.execute("SELECT mass_bin FROM rogue_planets WHERE id = ?", (i,)).fetchone()["mass_bin"]
+                for i in ids]
+        assert bins == ["terrestrial", "sub-neptune", "saturn", "jupiter", "brown-dwarf"]
+        assert _db._has_column(conn, "star_systems", "runaway_class")
+        assert _db._has_column(conn, "star_systems", "runaway_speed_kms")
+    finally:
+        conn.close()
+
+
+def test_runaway_flags_round_trip(mysql_config):
+    system = StarSystem(SystemConfig())
+    system.runaway_class, system.runaway_speed_kms = "runaway", 55.0
+    system_id = _db.save_system(system, SystemConfig(), config=mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        loaded = _db.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    assert (loaded.runaway_class, loaded.runaway_speed_kms) == ("runaway", 55.0)
+    assert StarSystem.from_dict(loaded.to_dict()).runaway_class == "runaway"

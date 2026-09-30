@@ -42,6 +42,7 @@ import pymysql
 
 from stellarObjects._db import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
                                 mysql_config_from_args)
+from stellarObjects import program_constants
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import neighbor_addresses, provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import (
@@ -956,7 +957,7 @@ def sector_detail(conn, sector_id):
     system_rows = conn.execute(
         """
         SELECT id, name, is_binary, quadrant, location, binary_type,
-               position_x_mpc, position_y_mpc, position_z_mpc
+               position_x_mpc, position_y_mpc, position_z_mpc, runaway_class, runaway_speed_kms
         FROM star_systems
         WHERE sector_id = ?
         ORDER BY position_x_mpc IS NULL,
@@ -981,8 +982,10 @@ def sector_detail(conn, sector_id):
             "position_x_mpc": row["position_x_mpc"], "position_y_mpc": row["position_y_mpc"],
             "position_z_mpc": row["position_z_mpc"],
             "center_distance_ly": _center_distance_ly(row),
+            "runaway_class": row["runaway_class"], "runaway_speed_kms": row["runaway_speed_kms"],
             "stars": [dict(star_row) for star_row in star_rows],
         })
+    star_count = sum(max(1, len(system["stars"])) for system in systems)
 
     return {
         "id": sector["id"], "name": sector["name"], "edge_mpc": sector["edge_mpc"],
@@ -993,11 +996,30 @@ def sector_detail(conn, sector_id):
         "ring_slot_index": sector["ring_slot_index"],
         "placed": sector["center_x_pc"] is not None,
         "system_count": len(systems),
+        "star_count": star_count,
+        "interstellar_debris_count": interstellar_debris_count(star_count),
         "systems": systems,
         "phenomena": phenomena_near_sector(conn, sector_id),
         "neighbors": sector_neighbors(conn, sector),
         "wiki_url": sector["wiki_url"],
     }
+
+
+def interstellar_debris_count(star_count):
+    """
+    About how many interstellar comets and planetesimals (meters to
+    kilometers across) drift through a sector holding `star_count` stars:
+    `INTERSTELLAR_DEBRIS_DENSITY_PC3` scales with stellar density like
+    every other interstellar object, so it's a fixed number per star
+    (~7e12). Far too many to be rows -- a figure for the sector page
+    ("about 10^13 interstellar comets and planetesimals"); the
+    `interstellar_comets` rows are only the notable ones.
+
+    Returns:
+        float: The estimated count (0 for an empty sector).
+    """
+    return (program_constants.INTERSTELLAR_DEBRIS_DENSITY_PC3
+            / program_constants.REFERENCE_STELLAR_DENSITY_PC3 * star_count)
 
 
 _PHENOMENON_TABLES = (

@@ -70,14 +70,27 @@ shared list, since these seven types share almost no metric names."""
 
 # Rogue planets have no single configured "chance" for planet_type the way
 # e.g. an accretion disk does -- it falls out of where
-# ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER sits within the uniform
-# ROGUE_PLANET_MASS_RANGE_JUPITER draw. Computed here (not hand-picked) so
-# it stays correct if either constant ever changes.
-_ROGUE_MASS_LO, _ROGUE_MASS_HI = prog_c.ROGUE_PLANET_MASS_RANGE_JUPITER
-_ROGUE_GAS_GIANT_FRACTION = (
-    (_ROGUE_MASS_HI - prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER)
-    / (_ROGUE_MASS_HI - _ROGUE_MASS_LO)
-)
+# ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER sits within the
+# ROGUE_PLANET_MASS_BINS draw (a bin by its per-star rate, then a
+# log-uniform mass inside it). Computed here (not hand-picked) so it stays
+# correct if any of those constants ever changes.
+def _rogue_gas_giant_fraction():
+    threshold_earth = (prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
+                       * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG)
+    total = sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
+    fraction = 0.0
+    for low, high, rate in prog_c.ROGUE_PLANET_MASS_BINS.values():
+        if threshold_earth <= low:
+            share = 1.0
+        elif threshold_earth >= high:
+            share = 0.0
+        else:
+            share = math.log(high / threshold_earth) / math.log(high / low)
+        fraction += rate / total * share
+    return fraction
+
+
+_ROGUE_GAS_GIANT_FRACTION = _rogue_gas_giant_fraction()
 
 CATEGORY_EXPECTATIONS = {
     "black-hole": {
@@ -387,9 +400,11 @@ def check_hard_invariants(record):
 
     elif phenomenon_type == "rogue-planet":
         mass_jupiter = record["mass_kg"] / pc.JUPITER_MASS_TO_KG
-        lo, hi = prog_c.ROGUE_PLANET_MASS_RANGE_JUPITER
-        if not (lo <= mass_jupiter <= hi):
-            issues.append(f"mass (in Jupiter masses)={mass_jupiter!r} outside {prog_c.ROGUE_PLANET_MASS_RANGE_JUPITER}")
+        mass_earth = record["mass_kg"] / pc.EARTH_MASS_TO_KG
+        lo = min(low for low, _high, _rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
+        hi = max(high for _low, high, _rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
+        if not (lo * (1 - 1e-9) <= mass_earth <= hi * (1 + 1e-9)):
+            issues.append(f"mass (in Earth masses)={mass_earth!r} outside the ROGUE_PLANET_MASS_BINS span ({lo}, {hi})")
         if record["planet_type"] not in ('t', 'g'):
             issues.append(f"planet_type={record['planet_type']!r} is not 't' or 'g'")
         elif record["planet_type"] == 'g' and mass_jupiter < prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:

@@ -1,9 +1,14 @@
 # Interstellar object rates
 
 Reference numbers for TODO items 5 (rates) and 6 (rogue planet masses),
-from the research Boss supplied on 2026-09-30. Nothing here is built yet;
-this is what the generator should move to. The figures are Boss's chosen
-reference. The ones that don't add up are flagged under "Checks".
+from the research Boss supplied on 2026-09-30. Built in schema v37
+(`program_constants.PHENOMENON_DENSITY_PC3`, `phenomenon_rate_per_star`,
+`ROGUE_PLANET_MASS_BINS`; `generate.generate_sector_phenomena` and
+`flag_fast_stars`), at the full rates Boss chose, with the table's
+hypervelocity figure replaced by 1e-10 (see "Checks"). Molecular clouds
+(filling factor) and the other nebula kinds wait for TODO item 27; until
+then the only generated nebulae are planetary ones. The figures are Boss's
+chosen reference. The ones that don't add up are flagged under "Checks".
 
 ## The model
 
@@ -42,8 +47,8 @@ Three types don't scale with `n_*` alone:
 | Jupiter-mass rogue planets (> 1 Mjup) | 0.035 | ≤ 0.25 | n_* | ~2.2 |
 | Rogue brown dwarfs (13-80 Mjup) | 0.025-0.035 (0.03) | ~0.21 | n_* | ~1.9 |
 | Runaway stars (> 30 km/s) | 2.1e-3 | 0.015 (1-2%) | n_* | ~0.13 |
-| Isolated neutron stars | 1e-3 | ~7e-3 | n_* | ~0.064 |
-| Isolated stellar black holes | 1e-4 | ~7e-4 | n_* | ~6e-3 |
+| Isolated neutron stars | 7e-4 (research 1e-3) | 5e-3 | n_* | ~0.045 |
+| Isolated stellar black holes | 1.4e-4 (research 1e-4) | 1e-3 | n_* | ~8e-3 |
 | Giant molecular clouds | 1e-6 to 1e-5 (5e-6) | n/a | ρ_gas^1.4 | ~3e-4 |
 | Planetary nebulae | 3e-8 | ~2e-7 | n_* | ~2e-6 |
 | Supernova remnants | 1e-8 to 1e-7 | n/a | n_* · ρ_gas | ~6e-7 |
@@ -98,7 +103,9 @@ Hence the bins.
 - Terrestrial (0.7 pc⁻³ = 5 per star), Jupiter-mass (0.035 = 0.25 per
   star), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
   stars and black holes (0.5-0.7% and 0.05-0.07% of stars, matching the
-  galaxy totals) are self-consistent.
+  galaxy totals) are self-consistent. The generator uses 0.5% and 0.1%
+  instead, the shares the mass-and-age star model leaves behind (star-fix
+  study, 2026-09-30), so isolated remnants and the star census agree.
 
 ## Generation cost
 
