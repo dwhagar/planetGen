@@ -41,7 +41,6 @@ def _save_sector(mysql_config, name, center_pc=None, positions=((0.0, 0.0, 0.0),
         galaxy_position = {
             "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
             "galactic_radius_pc": math.dist(center_pc, (0.0, 0.0, 0.0)),
-            "vertices_pc": {"inner": [], "outer": []},
         }
     return _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
