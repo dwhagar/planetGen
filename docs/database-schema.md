@@ -492,6 +492,15 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Letter classes (v38).** Nebulae (A-Q) and supernova remnants (R-W)
+get a class from `program_constants.NEBULA_CLASSES` with their contents
+(`dominant_species`, `density_cm3`, `temperature_k`, `extinction_av`),
+and asteroid fields a `field_class` such as `C3` (letter from composition
+and density, digit from size). `_migrate_v37_to_v38` infers classes for
+existing rows (old asteroid fields become the `mixed` family) and fills
+each class's typical contents. See
+`docs/design/nebula-and-asteroid-field-classes.md`.
+
 **Research-based interstellar rates (v37).** Phenomena are now drawn per
 star from Boss's research densities (`program_constants.
 PHENOMENON_DENSITY_PC3`, `docs/design/interstellar-object-rates.md`).
@@ -1092,7 +1101,9 @@ sector-context encounter through v17, unused (always NULL) by
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- a convenience "home" link, not this nebula's real geometry (its sphere may overlap several sectors, or none). NULL iff `center_x/y/z_pc` are NULL. `ON DELETE SET NULL` (not `CASCADE`, unlike v16/v17): deleting that sector doesn't delete a nebula that merely happens to be near it. |
 | `name` | TEXT | NOT NULL | |
-| `nebula_type` | TEXT | NOT NULL, CHECK IN ('emission','reflection','planetary','dark') | |
+| `nebula_class` | CHAR(1) | NOT NULL | Added in v38: letter class A-Q (`program_constants.NEBULA_CLASSES`). |
+| `nebula_type` | TEXT | NOT NULL, CHECK IN ('diffuse','emission','reflection','planetary','dark') | The class's family (`diffuse` added in v38). |
+| `dominant_species`, `density_cm3`, `temperature_k`, `extinction_av` | VARCHAR(255) / DOUBLE | NOT NULL | Added in v38: what the cloud holds, its particle density nH (cm⁻³), gas temperature (K) and optical extinction (magnitudes). |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
@@ -1112,7 +1123,9 @@ white dwarf).
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
-| `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | |
+| `remnant_class` | CHAR(1) | NOT NULL | Added in v38: letter class R-W (`program_constants.NEBULA_CLASSES`). |
+| `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | Fixed by the class since v38. |
+| `dominant_species`, `density_cm3`, `temperature_k`, `extinction_av` | VARCHAR(255) / DOUBLE | NOT NULL | Added in v38, as on `nebulae`. |
 | `age_years` | DOUBLE | NOT NULL | |
 | `radius_ly` | DOUBLE | NOT NULL | Derived from `age_years` via the Sedov-Taylor blast-wave relation (`radius ∝ age^(2/5)`). |
 | `progenitor_type` | TEXT | NOT NULL, CHECK IN ('Type Ia','core-collapse') | |
@@ -1205,6 +1218,8 @@ v18 gave it one.
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- see `nebulae`'s identical "v18" column note above. |
 | `name` | TEXT | NOT NULL | |
+| `field_class` | VARCHAR(4) | NOT NULL | Added in v38: letter from composition and density plus a size digit, floor(log10(radius in AU)), e.g. `C3` (`program_constants.ASTEROID_FIELD_COMPOSITIONS`). |
+| `composition_family` | VARCHAR(16) | NOT NULL | Added in v38: `carbonaceous`, `stony`, `metallic`, `icy`, `basaltic`, `mixed`, `dust` or `collisional`. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | Same three levels `asteroid_belts.density` uses. |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |

@@ -47,8 +47,8 @@ renumber when items are added or finished.
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
-   are schema changes.
+   and speeds (33-34), and facilities (35-36). 26, 27, 29, 30 and 35
+   are schema changes; 28 and 31 (classes) shipped in schema v38.
 - **More pages (46, 47, 49)**: the full systems list, the Sector Map
    wireframe and non-overlapping System Map names are small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
@@ -295,8 +295,8 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     need stars at the center of these or what kind of star, etc, so we
     can make them."
     - Rates come from `PHENOMENON_DENSITY_PC3` (v37; a per-volume rate suits objects this big).
-    - Each class brings its central object (table in
-      `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
+    - Each class brings its central object (`NEBULA_CLASSES[...]["center"]`,
+      table in `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
       emission nebulae, a B or A star for reflection, one hot central
       star becoming a white dwarf for planetary, none for molecular
       clouds (protostars at most), a neutron star or black hole for
@@ -309,26 +309,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - Sites: `generate.generate_sector_phenomena`,
       `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
       `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
-
-28. [ ] **Class nebulae and remnants A-Z by what's in them.** Boss:
-    "We also want Nebulae and Stellar remnants to be classed like
-    planets ... and we'll need to come up with What's IN the Nebulae.
-    ... develop a letter-class system similar to planets (A to Z) based
-    on contents of the nebulae."
-    - Draft classes A-W (I and O unused, X-Z reserved) are in
-      `docs/design/nebula-and-asteroid-field-classes.md`, built from
-      Boss's reference document: diffuse (A-B), H II (C-E), reflection
-      (F-G), planetary (H-L), molecular (M-Q), supernova remnants (R-W).
-    - Add `NEBULA_CLASSES` next to `PLANET_CLASSES` in
-      `program_constants` (description, contents, radius, nH,
-      temperature, extinction, central-object rule, frequency),
-      replacing `NEBULA_TYPES` and `SUPERNOVA_REMNANT_MORPHOLOGIES`.
-    - Store the class and contents (dominant species, density,
-      temperature, extinction) on `nebulae` and `supernova_remnants`;
-      show them on the phenomenon page and as a search facet (#4).
-    - **Question for Boss:** does "stellar remnants" also mean the
-      compact objects (white dwarfs, neutron stars, black holes)? The
-      draft classes supernova remnants only.
 
 29. [ ] **Record what sits inside a nebula.** Boss: "Add a DB field for
     if any stellar object (including systems) exist within a nebulae or
@@ -361,18 +341,8 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       `P/<system>-<n>` periodic comet, `C/<system>-<n>` long-period,
       `I/<sector designation>-<n>` interstellar comet, and
       `AF <class><size digit>-<sector designation>-<n>` asteroid field
-      (class from #31). Examples and the size rule are in the design
+      (`asteroid_fields.field_class`, schema v38). Examples are in the design
       doc. Needs a migration that renames existing rows.
-
-31. [ ] **Class asteroid fields A-Z.** Boss: "Asteroid fields should also
-    have classes (A to Z) based on composition and density and size."
-    Draft in the design doc: the letter comes from composition
-    (carbonaceous, stony, metallic, icy, basaltic, mixed, dust,
-    collisional family) and density (today's sparse/typical/dense), and
-    size is the digit in the designation (#30). `asteroidFieldData`,
-    `ASTEROID_FIELD_*` constants, `asteroid_fields` table, phenomenon
-    page. **Question for Boss:** should size be part of the letter
-    instead?
 
 ### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
 
