@@ -339,6 +339,26 @@ Unknown URLs get the HTML 404 page; `/api/...` keeps its JSON errors.
 `SECURITY_HEADERS` (the same CSP as the CGI pages), set in
 `api/app.py`; JSON keeps `default-src 'none'`.
 
+**Browser checks.** `src/tests/test_web_a11y.py` loads every GET route
+of the `web` blueprint (read from the app's `url_map`, so a newly moved
+page is covered automatically) in headless Chromium at 390px and 1280px,
+in the light and dark color schemes, against a small database generated
+by `generate.py`. Each page must have no serious or critical axe-core
+violations of the WCAG 2.1 A/AA rules, no horizontal page scroll (wide
+tables scroll inside `.table-scroll`), no console errors, failed
+requests or CSP violations, a skip link that is the first Tab stop, and
+an `aria-current="page"` marker; at 390px the header Menu is opened and
+checked too. A route parameter needs a sample value in the test's
+`sample_params` (the test says so when one is missing); a page that
+redirects anonymous visitors is checked as a logged-in admin. It needs
+`pip install -e ".[browser]"` plus `python -m playwright install
+chromium` (or `PLAYWRIGHT_BROWSERS_PATH` pointing at an existing
+Chromium) and the MySQL test server, and skips without them; CI runs it
+in its own `browser-a11y` job. `PLANETGEN_A11Y_SCREENSHOTS=<dir>` saves
+a screenshot of every page checked. axe-core is vendored in
+`src/tests/vendor/axe-core/` (MPL-2.0); to update it, copy `axe.min.js`
+and the license files from the npm package.
+
 ## Locating the database (and the API)
 
 Every page here needs the planetGen API (`../src/html/api/`, see
@@ -373,7 +393,9 @@ and how it relates to the `PLANETGEN_*` environment variables.
    database and account already created, is a separate prerequisite --
    see [`database-schema.md`](database-schema.md).
 2. From that directory, run `sudo ./install.sh` -- installs the Python
-   package, brings the configured MySQL database's schema up to date
+   package (with pip, or on an externally managed Python such as Ubuntu
+   24.04+'s, from apt packages plus a venv for anything apt lacks; see
+   [`apache-deployment.md`](apache-deployment.md#managed-python)), brings the configured MySQL database's schema up to date
    (a no-op if it's already current -- see
    [`database-schema.md`](database-schema.md)'s "Versioning"),
    pre-fetches the NLTK `words` corpus into a shared world-readable
