@@ -83,7 +83,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 35
+SCHEMA_VERSION = 36
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1501,15 +1501,15 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
     cur = conn.execute(
         """
         INSERT INTO black_holes (
-            star_id, sector_id, name, mass_solar, event_horizon_radius_km, spin,
+            star_id, sector_id, name, mass_class, mass_solar, event_horizon_radius_km, spin,
             has_accretion_disk, temperature_k, luminosity_w, age_gy,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            star_id, sector_id, black_hole.name, black_hole.mass_solar,
+            star_id, sector_id, black_hole.name, black_hole.mass_class, black_hole.mass_solar,
             black_hole.event_horizon_radius_km, black_hole.spin,
             int(black_hole.has_accretion_disk), black_hole.temperature,
             black_hole.luminosity, black_hole.age,
@@ -2995,6 +2995,7 @@ def _black_hole_row_to_dict(star_row, black_hole_row):
     data["event_horizon_radius_km"] = black_hole_row["event_horizon_radius_km"]
     data["spin"] = black_hole_row["spin"]
     data["has_accretion_disk"] = bool(black_hole_row["has_accretion_disk"])
+    data["mass_class"] = black_hole_row["mass_class"]
     return data
 
 
@@ -5077,6 +5078,34 @@ def _migrate_v34_to_v35(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (35)")
 
 
+def _migrate_v35_to_v36(conn):
+    """
+    Adds `black_holes.mass_class` -- see `schema.sql`'s "v36" header note
+    -- and fills it from each row's mass (`compactRemnant.
+    infer_black_hole_mass_class`'s thresholds). Guarded on the column, so
+    a database already at the new shape only gets its bookkeeping row.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if not _has_column(conn, "black_holes", "mass_class"):
+        conn.execute(
+            "ALTER TABLE black_holes ADD COLUMN mass_class VARCHAR(16) NOT NULL DEFAULT 'stellar' AFTER name, "
+            "ADD CONSTRAINT chk_black_holes_mass_class "
+            "CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive'))"
+        )
+        conn.execute(
+            "UPDATE black_holes SET mass_class = CASE "
+            "WHEN mass_solar >= ? THEN 'supermassive' WHEN mass_solar >= ? THEN 'intermediate' "
+            "ELSE 'stellar' END, modified_at = modified_at",
+            (program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0],
+             program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]),
+        )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (36)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -5142,6 +5171,7 @@ def _migration_steps():
         (33, _migrate_v32_to_v33),
         (34, _migrate_v33_to_v34),
         (35, _migrate_v34_to_v35),
+        (36, _migrate_v35_to_v36),
     ]
 
 
@@ -5210,7 +5240,8 @@ def migrate_database(config=None, on_step=None):
     sector standard and per-layer skeleton, which deletes them again), and
     `_migrate_v33_to_v34` (dropping the planet/moon name registry), and
     `_migrate_v34_to_v35` (the hybrid master-wedge slot rule, which deletes
-    galaxy-placed sectors once more) are the migration steps so far; see
+    galaxy-placed sectors once more), and `_migrate_v35_to_v36` (black
+    hole mass classes) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 

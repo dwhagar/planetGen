@@ -69,6 +69,45 @@ def test_black_hole_mass_and_spin_within_configured_ranges():
             assert bh.habitable_zone == (0.0, 0.0)
 
 
+def test_black_hole_mass_class_matches_its_mass(monkeypatch):
+    monkeypatch.setattr(program_constants, "BLACK_HOLE_INTERMEDIATE_MASS_CHANCE", 1.0)
+    bh = BlackHole(make_config())
+    low, high = program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
+    assert bh.mass_class == "intermediate" and low <= bh.mass_solar <= high
+    assert bh.type == "Intermediate-Mass Black Hole"
+
+    monkeypatch.setattr(program_constants, "BLACK_HOLE_INTERMEDIATE_MASS_CHANCE", 0.0)
+    bh = BlackHole(make_config())
+    assert bh.mass_class == "stellar" and bh.type == "Stellar-Mass Black Hole"
+
+
+def test_supermassive_black_hole_sits_still_and_glows_faintly():
+    bh = BlackHole(make_config(), mass_class="supermassive")
+    low, high = program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
+    assert bh.mass_class == "supermassive" and low <= bh.mass_solar <= high
+    assert bh.type == "Supermassive Black Hole"
+    assert bh.galactic_orbital_period_gy is None and bh.galactic_orbital_speed_kms is None
+    assert bh.has_accretion_disk
+    eddington = program_constants.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * bh.mass_solar
+    assert 0 < bh.luminosity <= program_constants.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE[1] * eddington
+    # Sphere of influence G*M/sigma^2: ~2 pc (~4e5 AU) for Sgr A*'s mass.
+    sigma = program_constants.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+    assert bh.system_perimeter == pytest.approx(physical_constants.G * bh.mass / sigma ** 2 / physical_constants.AU_TO_M)
+    text = " ".join(bh.to_paragraph_list())
+    assert "supermassive black hole at the heart of the galaxy" in text
+    rebuilt = BlackHole.from_dict(bh.to_dict(), make_config())
+    assert rebuilt.mass_class == "supermassive"
+    with pytest.raises(ValueError):
+        BlackHole(make_config(), mass_class="stellar")
+
+
+def test_black_hole_from_old_data_infers_its_mass_class():
+    data = BlackHole(make_config()).to_dict()
+    data.pop("mass_class")
+    data["mass_solar"] = 500.0
+    assert BlackHole.from_dict(data, make_config()).mass_class == "intermediate"
+
+
 def test_black_hole_schwarzschild_radius_matches_known_value():
     # A 10 Msun black hole's Schwarzschild radius is a commonly-cited
     # reference value (~29.5 km) -- verify the formula directly rather

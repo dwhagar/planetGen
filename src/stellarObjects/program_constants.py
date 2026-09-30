@@ -1428,12 +1428,36 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # compact objects between the heaviest neutron stars and the lightest
 # black holes (the "lower mass gap", Ozel et al. 2010, ApJ 725:1918;
 # Farr et al. 2011, ApJ 741:103). Modeled here as a simple uniform draw
-# over the well-populated range; PRIMORDIAL/INTERMEDIATE_MASS_CHANCE
-# occasionally instead draws from a speculative intermediate-mass tail
-# (no confirmed formation channel, included only for narrative variety).
+# over the well-populated range; INTERMEDIATE_MASS_CHANCE occasionally
+# instead draws an intermediate-mass black hole (IMBH), log-uniform over
+# ~1e2-1e5 Msun -- the range between stellar and supermassive black
+# holes (Greene, Strader & Ho 2020, ARA&A 58:257). Boss (2026-09-30)
+# wants them "a smattering (rare)": 2% of black holes, tweak here.
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
-BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (100.0, 1000.0)
+BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
 BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 0.02
+
+# A quiescent supermassive black hole sits at the center of every galaxy
+# whose nucleus isn't an active quasar (generate.add_galactic_nucleus).
+# Sagittarius A* is ~4.3e6 Msun (GRAVITY Collaboration 2019, A&A
+# 625:L10); quiescent nuclei in Milky-Way-like disks span roughly
+# 1e6-1e8 Msun, below the 1e8-1e10 of QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR.
+# Drawn log-uniform.
+BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR = (1e6, 1e8)
+
+# A quiescent nucleus accretes far below its Eddington limit: Sgr A*
+# shines at ~1e-9 of it (Genzel, Eisenhauer & Gillessen 2010, RvMP
+# 82:3121), low-luminosity nuclei up to ~1e-5. Drawn log-uniform; it
+# always keeps a (faint) accretion flow.
+BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE = (1e-9, 1e-6)
+
+# Bulge velocity dispersion for a supermassive black hole's sphere of
+# influence, r = G*M / sigma^2 (~2 pc for Sgr A* at ~100 km/s), which
+# stands in for the Hill sphere a stellar-mass one uses.
+BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS = 100.0
+
+BLACK_HOLE_MASS_CLASSES = ("stellar", "intermediate", "supermassive")
+"""tuple: `black_holes.mass_class` values (schema v36)."""
 
 # Dimensionless spin parameter a* = c*J/(G*M^2), physically bounded to
 # [0, 1) (a*=1 is the extremal Kerr limit). Population-synthesis and
