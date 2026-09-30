@@ -100,11 +100,12 @@ connectivity to that specific schema rather than the default one.
   and Sector Map actually need.
 - `GET /api/systems?star_type=<prefix>&sector_id=<id|none>&limit=<n>&offset=<n>` —
   filtered, paginated system listing (`queryDb.list_systems`/
-  `count_systems`), each with `id`, `name`, `sector_id`, `is_binary`, and
+  `count_systems`), each with `id`, `name`, `sector_id`, `sector_name`,
+  `quadrant` (its octant in the sector), `is_binary`, and
   `star_summary` (the single star's `star_type`, or a binary's
   `binary_type`). `star_type` is a literal prefix (`%` and `_` match only
   themselves). `sector_id=none` matches only standalone systems
-  (`sector_id IS NULL`, the `/systems` page's table) — distinct
+  (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
   from omitting `sector_id` entirely (no sector filter at all).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,

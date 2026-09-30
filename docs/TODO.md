@@ -50,8 +50,8 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
    are schema changes.
-- **More pages (46, 47, 49)**: the full systems list, the Sector Map
-   wireframe and non-overlapping System Map names are small and can go in any time.
+- **More pages (47, 49)**: the Sector Map wireframe and
+   non-overlapping System Map names are small and can go in any time.
 - **Installers (50)**: PowerShell install and upgrade scripts, and the
    bash scripts made to run on macOS too.
 - Each change site in the code carries a `TODO(<area> #N)` comment
@@ -644,15 +644,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     `test_planet_hill_sphere_clears_the_belt_inside_it`.
 
 ### More pages (Boss's notes, 2026-09-30)
-
-46. [ ] **A paginated list of every system on the Systems page.** Boss:
-    "the systems page should have a paginated list of all systems."
-    Today `/systems` (`views.systems`, `_systems_panel`) lists only
-    standalone systems (`sector_id="none"`). List every system, 50 rows
-    a page through the shared pager (`html/lib/pagination.py`), with
-    its sector and octant; keep the standalone list as its own panel or
-    a filter. `apiclient.get_systems` without `sector_id` already pages
-    all systems.
 
 47. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
     that we have defined arc segments let's add a wireframe to the
