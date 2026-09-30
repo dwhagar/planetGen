@@ -47,8 +47,9 @@ renumber when items are added or finished.
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27, 29, 30 and 35
-   are schema changes; 28 and 31 (classes) shipped in schema v38.
+   and speeds (33-34), and facilities (35-36). 26, 27, 30 and 35
+   are schema changes; 28 and 31 (classes) shipped in schema v38, 29
+   (containment) in v39.
 - **More pages (46, 47, 49)**: the full systems list, the Sector Map
    wireframe and non-overlapping System Map names are small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
@@ -310,24 +311,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
       `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
 
-29. [ ] **Record what sits inside a nebula.** Boss: "Add a DB field for
-    if any stellar object (including systems) exist within a nebulae or
-    similar (not asteroid fields, that wouldn't work) or stellar
-    remnants if necessary."
-    - A nullable `nebula_id` (the innermost containing nebula or
-      supernova remnant) on `star_systems`, `rogue_planets`,
-      `interstellar_comets`, `black_holes`, `neutron_stars`,
-      `asteroid_fields`, `nebulae` (nesting) and stand-alone facilities
-      (#35). Asteroid fields can sit inside a nebula but never contain
-      anything. Schema change with a migration.
-    - Containment is a 3D distance test against every nebula that
-      reaches the object's sector, set at generation, when a later
-      sector is generated inside an existing nebula, and by #32.
-    - Show "inside <nebula>" on system, phenomenon and sector pages.
-      Being inside also compresses a star's heliopause (down to ~0.2 AU
-      in a dense cloud), which should feed system text, habitability and
-      the navigation hand-off radius (#33).
-
 30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
     comets should be named using a method that tells something about
     them by their name in letters and numbers in a standardized way.
@@ -368,7 +351,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       the new sector. Boss (2026-09-30): "when a sector changes then we
       make sure the DB and all text is changed to point at the new
       sector location": `sector_id`, sector-relative positions, octant
-      (`quadrant`), `star_systems.location`, containing nebula (#29),
+      (`quadrant`), `star_systems.location`, containing nebula (`_db.refresh_containment`),
       and any stored or rendered text naming the old sector.
 
 ### Facilities (new)

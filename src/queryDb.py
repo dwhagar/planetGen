@@ -913,6 +913,36 @@ def _center_distance_ly(row):
     )
 
 
+def containing_cloud(conn, row):
+    """
+    The nebula or supernova remnant a row sits inside (schema v39), from
+    its `inside_nebula_id`/`inside_remnant_id`.
+
+    Args:
+        conn (Connection): An open connection.
+        row (Mapping): Any row carrying those two columns (a star system,
+            rogue planet, interstellar comet, black hole, neutron star,
+            asteroid field or nebula).
+
+    Returns:
+        dict or None: `{"type": "nebula" | "supernova_remnant", "id",
+            "name", "class"}`, or `None` in open space.
+    """
+    if row["inside_nebula_id"] is not None:
+        found = conn.execute("SELECT id, name, nebula_class AS class FROM nebulae WHERE id = ?",
+                             (row["inside_nebula_id"],)).fetchone()
+        kind = "nebula"
+    elif row["inside_remnant_id"] is not None:
+        found = conn.execute("SELECT id, name, remnant_class AS class FROM supernova_remnants WHERE id = ?",
+                             (row["inside_remnant_id"],)).fetchone()
+        kind = "supernova_remnant"
+    else:
+        return None
+    if found is None:
+        return None
+    return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"]}
+
+
 def sector_detail(conn, sector_id):
     """
     Returns one sector's full web-display detail: name, size, galaxy
@@ -957,7 +987,8 @@ def sector_detail(conn, sector_id):
     system_rows = conn.execute(
         """
         SELECT id, name, is_binary, quadrant, location, binary_type,
-               position_x_mpc, position_y_mpc, position_z_mpc, runaway_class, runaway_speed_kms
+               position_x_mpc, position_y_mpc, position_z_mpc, runaway_class, runaway_speed_kms,
+               inside_nebula_id, inside_remnant_id
         FROM star_systems
         WHERE sector_id = ?
         ORDER BY position_x_mpc IS NULL,
@@ -983,6 +1014,7 @@ def sector_detail(conn, sector_id):
             "position_z_mpc": row["position_z_mpc"],
             "center_distance_ly": _center_distance_ly(row),
             "runaway_class": row["runaway_class"], "runaway_speed_kms": row["runaway_speed_kms"],
+            "inside": containing_cloud(conn, row),
             "stars": [dict(star_row) for star_row in star_rows],
         })
     star_count = sum(max(1, len(system["stars"])) for system in systems)

@@ -83,7 +83,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 38
+SCHEMA_VERSION = 39
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1614,6 +1614,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
+    _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
 
 
@@ -1685,6 +1686,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
             *_placement_values(placement),
         ),
     )
+    _refresh_containment_around(conn, placement, remnant.radius_ly)
     return cur.lastrowid
 
 
@@ -1960,7 +1962,10 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             if phenomenon_type == "quasar" and sector_id is not None:
                 _check_quasar_sector(conn, sector_id)
             placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
-            return inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
+            row_id = inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
+            if sector_id is not None:
+                refresh_containment(conn, [sector_id])
+            return row_id
     finally:
         conn.close()
 
@@ -2334,6 +2339,173 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     return star_system_id
 
 
+# --- Containment (v39): what sits inside a nebula or supernova remnant ---
+
+CONTAINABLE_TABLES = (
+    "star_systems", "rogue_planets", "interstellar_comets", "black_holes",
+    "neutron_stars", "asteroid_fields", "nebulae",
+)
+"""tuple: Every table with `inside_nebula_id`/`inside_remnant_id` (schema
+v39). Asteroid fields can sit inside a cloud but never contain anything;
+nebulae nest (a small one inside a larger nebula or remnant)."""
+
+CONTAINER_TABLES = (("nebulae", "inside_nebula_id"), ("supernova_remnants", "inside_remnant_id"))
+"""tuple: `(container table, the column that points at it)`."""
+
+
+def _sector_half_diagonal_pc(edge_mpc):
+    """Half a sector cube's space diagonal, parsecs -- how far any point in
+    the sector can be from its center."""
+    return (edge_mpc / 1000.0) * math.sqrt(3) / 2
+
+
+def _placed_containers(conn, low, high, reach_pc=0.0):
+    """
+    Every placed nebula and supernova remnant whose sphere can reach the box
+    `low`-`high` (galaxy-frame parsecs, each an `(x, y, z)`), padded by
+    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`.
+    """
+    containers = []
+    for table, column in CONTAINER_TABLES:
+        max_row = conn.execute(f"SELECT MAX(radius_ly) AS r FROM {table} WHERE center_x_pc IS NOT NULL").fetchone()
+        if max_row["r"] is None:
+            continue
+        pad = ly_to_pc(max_row["r"]) + reach_pc
+        rows = conn.execute(
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly FROM {table}"
+            " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
+            (low[0] - pad, high[0] + pad, low[1] - pad, high[1] + pad, low[2] - pad, high[2] + pad),
+        ).fetchall()
+        for row in rows:
+            containers.append({
+                "column": column, "id": row["id"],
+                "center": (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]),
+                "radius_pc": ly_to_pc(row["radius_ly"]),
+            })
+    return containers
+
+
+def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
+    """
+    The smallest container in `containers` whose sphere holds `point_pc`
+    -- for a nebula (`own_radius_pc` > 0), only a container larger than it,
+    and never itself (`own`, a `(column, id)` pair).
+
+    Returns:
+        dict or None: The container, or `None` when the point is in open space.
+    """
+    best = None
+    for container in containers:
+        if own is not None and (container["column"], container["id"]) == own:
+            continue
+        if container["radius_pc"] <= own_radius_pc:
+            continue
+        if math.dist(point_pc, container["center"]) > container["radius_pc"]:
+            continue
+        if best is None or container["radius_pc"] < best["radius_pc"]:
+            best = container
+    return best
+
+
+def refresh_containment(conn, sector_ids):
+    """
+    Sets `inside_nebula_id`/`inside_remnant_id` (schema v39) on every star
+    system and phenomenon filed under `sector_ids`: a 3D distance test
+    against every nebula and supernova remnant that reaches those sectors,
+    keeping the innermost (smallest) container. Rows whose container
+    didn't change aren't written. Called for a newly generated sector, for
+    every sector a newly placed nebula or remnant reaches, and by the v39
+    migration.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
+    """
+    sector_ids = sorted(set(sector_ids))
+    for start in range(0, len(sector_ids), 500):
+        _refresh_containment_batch(conn, sector_ids[start:start + 500])
+
+
+def _refresh_containment_batch(conn, sector_ids):
+    marks = ", ".join("?" * len(sector_ids))
+    sectors = conn.execute(
+        f"SELECT id, center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors"
+        f" WHERE id IN ({marks}) AND center_x_pc IS NOT NULL",
+        tuple(sector_ids),
+    ).fetchall()
+    if not sectors:
+        return
+    centers = {row["id"]: (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]) for row in sectors}
+    reach = max(_sector_half_diagonal_pc(row["edge_mpc"]) for row in sectors)
+    low = tuple(min(c[i] for c in centers.values()) for i in range(3))
+    high = tuple(max(c[i] for c in centers.values()) for i in range(3))
+    containers = _placed_containers(conn, low, high, reach)
+    marks = ", ".join("?" * len(centers))
+    placed_ids = tuple(centers)
+
+    def apply(table, row, point, own_radius_pc=0.0, own=None):
+        best = innermost_container(point, containers, own_radius_pc, own) if point is not None else None
+        new = (best["id"] if best and best["column"] == "inside_nebula_id" else None,
+               best["id"] if best and best["column"] == "inside_remnant_id" else None)
+        if new != (row["inside_nebula_id"], row["inside_remnant_id"]):
+            conn.execute(
+                f"UPDATE {table} SET inside_nebula_id = ?, inside_remnant_id = ?, modified_at = modified_at"
+                " WHERE id = ?",
+                (*new, row["id"]),
+            )
+
+    for row in conn.execute(
+        f"SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc, inside_nebula_id, inside_remnant_id"
+        f" FROM star_systems WHERE sector_id IN ({marks})",
+        placed_ids,
+    ).fetchall():
+        point = None
+        if row["position_x_mpc"] is not None:
+            offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+            point = local_to_galaxy_pc(centers[row["sector_id"]], offset)
+        apply("star_systems", row, point)
+
+    for table in CONTAINABLE_TABLES[1:]:
+        radius = ", radius_ly" if table == "nebulae" else ""
+        for row in conn.execute(
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, inside_nebula_id, inside_remnant_id{radius}"
+            f" FROM {table} WHERE sector_id IN ({marks})",
+            placed_ids,
+        ).fetchall():
+            point = None if row["center_x_pc"] is None else (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            if table == "nebulae":
+                apply(table, row, point, ly_to_pc(row["radius_ly"]), ("inside_nebula_id", row["id"]))
+            else:
+                apply(table, row, point)
+
+
+def sectors_reached_by(conn, center_pc, radius_pc):
+    """The ids of every placed sector a sphere of `radius_pc` around
+    `center_pc` (galaxy-frame parsecs) overlaps."""
+    edge_row = conn.execute("SELECT MAX(edge_mpc) AS edge FROM sectors").fetchone()
+    if edge_row["edge"] is None:
+        return []
+    reach = radius_pc + _sector_half_diagonal_pc(edge_row["edge"])
+    rows = conn.execute(
+        "SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors"
+        " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
+        (center_pc[0] - reach, center_pc[0] + reach, center_pc[1] - reach, center_pc[1] + reach,
+         center_pc[2] - reach, center_pc[2] + reach),
+    ).fetchall()
+    return [
+        row["id"] for row in rows
+        if math.dist(center_pc, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])) <= reach
+    ]
+
+
+def _refresh_containment_around(conn, placement, radius_ly):
+    """After placing a nebula or remnant: refresh every sector it reaches."""
+    if placement is None or placement.get("center_x_pc") is None:
+        return
+    center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
+    refresh_containment(conn, sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
+
+
 def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     """
     Inserts a full `SpaceSector` -- the `sectors` row, every system it
@@ -2410,6 +2582,9 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
             raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
         placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
         inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
+
+    if galaxy_position is not None:
+        refresh_containment(conn, [sector_id])
 
     return sector_id
 
@@ -5243,6 +5418,41 @@ def _migrate_v37_to_v38(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (38)")
 
 
+def _migrate_v38_to_v39(conn):
+    """
+    Adds `inside_nebula_id`/`inside_remnant_id` to every containable table
+    (`CONTAINABLE_TABLES`) with their foreign keys -- see `schema.sql`'s
+    "v39" header note -- then fills them with `refresh_containment` for
+    every placed sector a nebula or supernova remnant reaches. Guarded per
+    table.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in CONTAINABLE_TABLES:
+        if _has_column(conn, table, "inside_nebula_id"):
+            continue
+        conn.execute(
+            f"ALTER TABLE {table} ADD COLUMN inside_nebula_id BIGINT UNSIGNED, "
+            "ADD COLUMN inside_remnant_id BIGINT UNSIGNED, "
+            f"ADD CONSTRAINT fk_{table}_inside_nebula FOREIGN KEY (inside_nebula_id) "
+            "REFERENCES nebulae(id) ON DELETE SET NULL, "
+            f"ADD CONSTRAINT fk_{table}_inside_remnant FOREIGN KEY (inside_remnant_id) "
+            "REFERENCES supernova_remnants(id) ON DELETE SET NULL"
+        )
+    reached = set()
+    for table, _column in CONTAINER_TABLES:
+        for row in conn.execute(
+            f"SELECT center_x_pc, center_y_pc, center_z_pc, radius_ly FROM {table} WHERE center_x_pc IS NOT NULL"
+        ).fetchall():
+            center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            reached.update(sectors_reached_by(conn, center, ly_to_pc(row["radius_ly"])))
+    refresh_containment(conn, reached)
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (39)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -5311,6 +5521,7 @@ def _migration_steps():
         (36, _migrate_v35_to_v36),
         (37, _migrate_v36_to_v37),
         (38, _migrate_v37_to_v38),
+        (39, _migrate_v38_to_v39),
     ]
 
 
