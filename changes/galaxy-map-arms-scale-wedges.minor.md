@@ -11,6 +11,10 @@
 - Galaxy Map: the density prisms are shaded by each prism's arm factor
   (its density over the ring's mean) as well as its density, so the spiral
   arms stand out at every zoom.
+- Galaxy Map: the density blocks fill their whole cells, so the galaxy is one
+  solid made of blocks with no gaps. A Slice button (on by default) cuts the
+  solid at the focus's layer, so the view looks down on its cut face;
+  turning it off shows the whole solid.
 
 ### Removed
 

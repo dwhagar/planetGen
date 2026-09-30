@@ -43,7 +43,7 @@ renumber when items are added or finished.
    local-time change (22) is small and can go in any time.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 12-18 in order. 12 is the
+   slots, pixel-sized mega-blocks). Work items 12-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 is the
    one data-deleting step. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
@@ -384,16 +384,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
    Done means tests check m against the scale, counts within a few percent
    of m³, surface listing against brute force, and the budget at every zoom.
-
-14. [ ] **Continuous blocks and a slice control.**
-   - Draw blocks full size (fill 1, keep the thin face edges).
-   - Add a Slice control, defaulting to "cut at the focus layer", with
-     "whole solid" as the alternative. A solid only shows its terraced
-     outside, and a zoomed-in camera sits inside it.
-   - The near cut stays for when the camera is below the cut.
-
-   Done means the arms show at full zoom-out, zoomed views look down on a
-   continuous floor, and the control works by keyboard.
 
 15. [ ] **One solid of blocks for filled and unfilled sectors; no more
    marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
