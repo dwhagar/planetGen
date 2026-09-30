@@ -126,3 +126,13 @@ def test_serialization_round_trip_keeps_the_system_name():
     assert restored.name == system.name
     assert restored.primary_star.name == system.primary_star.name
     assert [getattr(p, "name", None) for p in restored.planets] == [getattr(p, "name", None) for p in system.planets]
+
+
+def test_star_words_are_always_one_word(monkeypatch):
+    """Regression: STAR_NAMES' "El Nath" could come through as a two-word
+    star word, so a star's name no longer ended in its own word."""
+    from stellarObjects import bodyNames
+
+    draws = iter(["El Nath", "Vega"])
+    monkeypatch.setattr(bodyNames, "generate_phoneme_salad_name", lambda *args, **kwargs: next(draws))
+    assert bodyNames.generate_star_word() == "Vega"

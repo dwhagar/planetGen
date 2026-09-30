@@ -56,10 +56,13 @@ def moon_letters(index):
 
 def generate_star_word(exclude=()):
     """One generated single-word name for a binary's star, distinct from
-    every word in `exclude`."""
+    every word in `exclude`. `allow_split=False` only stops a long result
+    being split in two; a base name that already has a space (STAR_NAMES'
+    "El Nath") can still come through, so a draw with any whitespace is
+    rejected too."""
     while True:
         word = generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES, allow_split=False)
-        if word not in exclude:
+        if word not in exclude and not any(c.isspace() for c in word):
             return word
 
 
