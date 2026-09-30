@@ -5,8 +5,8 @@
 # missing, so running it again on a working server does nothing.
 # (Python libraries have their own script, install-python-deps.sh.)
 #
-# Expects PYTHON and SCRIPT_DIR (the repo root) to be set, and to run as
-# root.
+# Expects PYTHON (the venv's Python) and SCRIPT_DIR (the repo root) to be
+# set, and to run as root.
 
 # The NLTK 'words' corpus, in a shared, world-readable directory (not a
 # per-user home directory) so it works for every user that imports
@@ -69,13 +69,12 @@ ensure_apache_modules() {
         APACHE_NEEDS_RESTART=1
     fi
     check_mod_wsgi_python
+    check_vhost_python_home
 }
 
-# mod_wsgi embeds the Python it was built against, not whatever `python3`
-# is. The libraries (which live in that Python's own
-# site-packages) are set up for $PYTHON, so the two must be the same
-# version or Apache won't see them. Warns rather than fails: the fix is
-# a package choice for the admin.
+# mod_wsgi embeds the Python it was built against, and the venv (built
+# from the system python3) only works under that same Python version.
+# Warns rather than fails: the fix is a package choice for the admin.
 check_mod_wsgi_python() {
     local so=/usr/lib/apache2/modules/mod_wsgi.so built ours
     [[ -e "$so" ]] && command -v ldd >/dev/null 2>&1 || return 0
@@ -84,13 +83,43 @@ check_mod_wsgi_python() {
     if [[ -z "$built" ]]; then
         return 0
     elif [[ "$built" == "$ours" ]]; then
-        echo "mod_wsgi runs Python $built, the same as $PYTHON."
+        echo "mod_wsgi runs Python $built, the same as the venv."
     else
-        echo "warning: mod_wsgi is built for Python $built, but the libraries were" >&2
-        echo "  checked for $PYTHON (Python $ours). Apache won't see them. Either install" >&2
-        echo "  the libapache2-mod-wsgi-py3 that matches $PYTHON, or rerun with" >&2
-        echo "  PYTHON=/usr/bin/python$built." >&2
+        echo "warning: mod_wsgi is built for Python $built, but the venv is Python $ours." >&2
+        echo "  Apache can't load the venv. Install the libapache2-mod-wsgi-py3 that" >&2
+        echo "  matches, or rebuild the venv with that Python:" >&2
+        echo "    sudo PYTHON=/usr/bin/python$built ./install.sh" >&2
     fi
+}
+
+# The vhost is the admin's own file and is never edited here, so this
+# only says what to change: its WSGIDaemonProcess needs
+# python-home=<venv> for mod_wsgi to use the venv. (Until it has one,
+# src/html/wsgi.py adds the venv to sys.path itself, so the site keeps
+# working; python-home is the proper setup.)
+check_vhost_python_home() {
+    local venv="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}" conf
+    for conf in /etc/apache2/sites-available/*.conf; do
+        [[ -f "$conf" ]] && grep -q 'WSGIDaemonProcess[[:space:]]\+planetgen-api' "$conf" || continue
+        if grep 'WSGIDaemonProcess[[:space:]]\+planetgen-api' "$conf" | grep -q "python-home=$venv\b"; then
+            echo "$conf: WSGIDaemonProcess uses the venv (python-home=$venv)."
+        else
+            cat <<EOF
+
+------------------------------------------------------------------------
+NOTE: $conf should tell mod_wsgi to use planetGen's venv.
+Add python-home to its WSGIDaemonProcess line:
+
+    WSGIDaemonProcess planetgen-api python-home=$venv processes=1 threads=5 request-timeout=60
+
+(examples/apache/planetgen.conf.example has it), then:
+
+    sudo apache2ctl configtest && sudo systemctl restart apache2
+------------------------------------------------------------------------
+
+EOF
+        fi
+    done
 }
 
 # Imports the web app and the generator package with the interpreter the

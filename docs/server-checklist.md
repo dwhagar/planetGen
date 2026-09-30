@@ -25,14 +25,14 @@ Restarting Apache does not apply schema migrations. Only `migrateDb.py`
     curl -s https://HOST/api/health
 
 Pass: `"schema_version": 26, "schema_current": true`.
-If not: run `python3 src/migrateDb.py` with the same `PLANETGEN_MYSQL_*`
+If not: run `/opt/planetgen/venv/bin/python src/migrateDb.py` with the same `PLANETGEN_MYSQL_*`
 settings the site uses, then check again.
 
 If you use more than one database, check each one. `migrateDb.py` only
 migrates the one it is pointed at:
 
     curl -s "https://HOST/api/health?db=OTHER_DB_NAME"
-    python3 src/migrateDb.py --mysql-database OTHER_DB_NAME
+    /opt/planetgen/venv/bin/python src/migrateDb.py --mysql-database OTHER_DB_NAME
 
 ## 3. Are the spatial indexes there?
 
@@ -46,9 +46,11 @@ Pass: five rows: `sectors` (v25) plus `nebulae`, `asteroid_fields`,
 
     grep -n "WSGIDaemonProcess planetgen-api" /etc/apache2/sites-available/planetgen.conf
 
-Pass: the line includes `request-timeout=60` (see
-`examples/apache/planetgen.conf.example`). Without it, one runaway request
-can hold an API thread forever.
+Pass: the line includes `python-home=/opt/planetgen/venv` and
+`request-timeout=60` (see `examples/apache/planetgen.conf.example`).
+Without `python-home` the app falls back to adding the venv to its path
+itself; without `request-timeout`, one runaway request can hold an API
+thread forever.
 
 ## 5. Is the tile cache writable?
 

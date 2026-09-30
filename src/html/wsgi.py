@@ -27,6 +27,30 @@ interpreter's own implicit sys.path setup.
 import os
 import sys
 
+
+def _use_venv():
+    """
+    Makes planetGen's venv (/opt/planetgen/venv, or PLANETGEN_VENV_DIR in
+    the daemon's own environment) importable when mod_wsgi wasn't started
+    in it. The proper setup is `python-home=/opt/planetgen/venv` on the
+    vhost's WSGIDaemonProcess (examples/apache/planetgen.conf.example),
+    which makes it this interpreter's own environment and this a no-op.
+    A vhost from before the venv (install.sh/update.sh print the line to
+    add) would otherwise run the bare system Python, which has none of
+    the libraries. Also points the Generate page's jobs at the venv's
+    Python, since `sys.prefix` is the system one in that case.
+    """
+    venv = os.environ.get("PLANETGEN_VENV_DIR", "/opt/planetgen/venv")
+    if os.path.realpath(sys.prefix) == os.path.realpath(venv):
+        return
+    site_dir = os.path.join(venv, "lib", "python%d.%d" % sys.version_info[:2], "site-packages")
+    if os.path.isdir(site_dir) and site_dir not in sys.path:
+        sys.path.insert(0, site_dir)
+        os.environ.setdefault("PLANETGEN_PYTHON", os.path.join(venv, "bin", "python"))
+
+
+_use_venv()
+
 _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HTML_DIR))
 sys.path.insert(0, _HTML_DIR)
