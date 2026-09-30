@@ -1218,7 +1218,7 @@ def run_sector(args):
 
 LARGE_RING_WARNING_THRESHOLD = 2000
 """int: `--ring I` requires `--limit` or `--yes` when ring `I` holds more
-slots than this (see `ring_sector_count`) -- about ring 318, ~4,200 ly
+slots than this (see `ring_sector_count`) -- from ring 321, ~4,200 ly
 out. Anything larger takes a real, unbounded amount of time and disk, so
 it needs an explicit choice."""
 
