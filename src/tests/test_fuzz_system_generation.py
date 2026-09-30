@@ -645,13 +645,6 @@ def test_planet_hill_sphere_clears_the_belt_inside_it():
     assert not bad, f"(seed, belt outer edge AU, planet AU, planet r_H AU): {bad[:5]}"
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG: a binary's secondary is built with mass_override=primary.mass*U(0.1,0.8), but "
-    "Star.generate_star then clamps it into the (independently random) Yerkes class's mass range "
-    "-- e.g. a subgiant (IV, min 1.0 Msun) -- so the 'B' star can outweigh the primary; for a close "
-    "pair BinaryStarProxy silently swaps its own _primary/_secondary while StarSystem.primary_star "
-    "keeps the lighter star (repro: +binary_system -wide_binary, seed=141 under deterministic "
-    "entropy: M2V 0.44 Msun primary, F7IV 1.0 Msun secondary)"))
 def test_binary_secondary_is_never_heavier_than_primary():
     bad = []
     for seed in range(200):

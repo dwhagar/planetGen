@@ -58,10 +58,11 @@ def to_plain_text(formatted):
     return _SUP_HTML_RE.sub(lambda m: m.group(1).translate(_SUPERSCRIPT_DIGITS), formatted)
 
 try:
-    from stellarObjects import physical_constants, program_constants
+    from stellarObjects import physical_constants
     from stellarObjects.config import SystemConfig
     from stellarObjects.utils import (
-        format_length_km, format_relative_to_sol, to_scientific_notation, years_to_time_string,
+        format_body_radius_km, format_distance_km, format_relative_to_sol,
+        years_to_time_string,
     )
 
     _HTML_CONFIG = SystemConfig()
@@ -86,18 +87,12 @@ def format_star_luminosity(luminosity_w):
     return format_relative_to_sol(_HTML_CONFIG, luminosity_w, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
 
-# TODO(distances #1): body radii are the ladder's exception: planet, moon
-# and star radii are always km in scientific notation (Boss, 2026-09-30),
-# not only above RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD.
 def format_star_radius(radius_km):
+    """A planet, moon or star radius: always km in scientific notation
+    (Boss, 2026-09-30), unlike every other distance on the site."""
     if _HTML_CONFIG is None:
         return f"{radius_km} km"
-    return format_length_km(
-        _HTML_CONFIG, radius_km,
-        program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-        program_constants.ROUND_RADIUS_KM,
-        program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
-    )
+    return format_body_radius_km(_HTML_CONFIG, radius_km)
 
 
 def format_period(period_years):
@@ -106,16 +101,12 @@ def format_period(period_years):
     return years_to_time_string(period_years)
 
 
-# TODO(distances #1): replace the km / AU / light-years branches (and the
-# moons-always-in-km rule) with fmt.format_distance; format_star_radius
-# below goes through it too.
-def format_body_distance(distance_km, is_moon):
+def format_body_distance(distance_km, is_moon=False):
     """
-    Mirrors the `distance_text` branch in
-    `stellarObjects.planetData.Planet.get_table_properties` -- a moon's
-    distance (from its parent planet) is always shown in km; a top-level
-    planet's distance (from its star) is shown in AU (plus km for context
-    under 1 AU), or light-years above `program_constants.LY_THRESHOLD`.
+    A planet's distance from its star or a moon's from its planet, through
+    the distance ladder (`utils.format_distance_m`): km under 1 AU, then AU,
+    and so on up. `is_moon` is kept for callers; moons and planets now
+    follow the same ladder.
 
     Args:
         distance_km (float): `planets`/`moons`.`distance_km`.
@@ -126,14 +117,4 @@ def format_body_distance(distance_km, is_moon):
     """
     if _HTML_CONFIG is None:
         return f"{distance_km} km"
-
-    if is_moon:
-        return f"{to_scientific_notation(_HTML_CONFIG, distance_km, 4)} km"
-
-    distance_au = distance_km / physical_constants.AU_TO_KM
-    distance_ly = distance_au * physical_constants.AU_TO_LY
-    if distance_ly < program_constants.LY_THRESHOLD:
-        if distance_au < 1:
-            return f"{to_scientific_notation(_HTML_CONFIG, distance_km, 1)} km ({distance_au:.3f} AU)"
-        return f"{distance_au:.3f} AU"
-    return f"{distance_ly:.4f} light-years"
+    return format_distance_km(distance_km)

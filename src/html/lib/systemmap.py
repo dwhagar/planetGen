@@ -77,7 +77,7 @@ import colorsys
 import math
 import statistics
 
-from fmt import esc
+from fmt import esc, format_distance_km
 from starmap import _star_color, _SUN_RADIUS_KM
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -717,8 +717,6 @@ def _belt_band_px(belt, radius_px):
     return max(_BELT_MIN_BAND_PX, min(_BELT_MAX_BAND_PX, radius_px * spread_fraction))
 
 
-# TODO(distances #1): the belt label hard-codes "lower - upper km"; use the
-# unit-ladder helper (and on the star-radius labels in this file).
 def _belt_ring_svg(cx, cy, radius_px, band_px, belt):
     """A belt is a *range* of orbit radii, drawn as a full ring (a plain
     stroked circle, `stroke-width` = its own radial spread) around its own
@@ -731,7 +729,7 @@ def _belt_ring_svg(cx, cy, radius_px, band_px, belt):
         "id": belt["id"],
         "name": "Asteroid Belt",
         "density": belt["density"].capitalize(),
-        "distance": f'{belt["lower_limit_km"]:,.0f} - {belt["upper_limit_km"]:,.0f} km',
+        "distance": f'{format_distance_km(belt["lower_limit_km"])} - {format_distance_km(belt["upper_limit_km"])}',
         "composition": belt["composition_summary"],
     }
     label = f'Asteroid belt ({belt["density"]})'

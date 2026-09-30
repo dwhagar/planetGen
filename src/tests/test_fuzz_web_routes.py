@@ -676,7 +676,7 @@ _API_BAD_INPUT = [
     ("/api/search", {"star_min_radius_km": "5", "star_max_radius_km": "1"}), ("/api/search", {"limit": "0"}),
     ("/api/search", {"sectors_offset": "-1"}), ("/api/search", {"belts_offset": "x"}),
     ("/api/galaxy/tiles", {"tiles": ",".join(["0/0/0/0"] * 500)}), ("/api/galaxy/tiles", {"tiles": "garbage"}),
-    ("/api/galaxy/tiles", {"tiles": "0/0/0/0", "density": "nope"}), ("/api/sectors", {"db": "not_a_real_db"}),
+    ("/api/galaxy/tiles", {"tiles": "1/2/0/0"}), ("/api/sectors", {"db": "not_a_real_db"}),
     ("/api/sectors", {"db": "../../etc"}), ("/api/sectors", {"db": "planetgen`; DROP DATABASE x; --"}),
     ("/api/sectors", {"db": ""}), ("/api/sectors", {"db": "information_schema"}), ("/api/sectors", {"db": "mysql"}),
     ("/api/sectors", {"db": "planetgen_control"}), ("/api/sectors", {"db": "planetgen%"}),  # security #47

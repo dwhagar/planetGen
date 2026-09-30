@@ -3,7 +3,7 @@
 {% extends "base.html" %}
 {% block head %}
 <script src="{{ static_url('mapzoom.js') }}" defer></script>
-<script src="{{ static_url('phenomenonmap.js') }}" defer></script>
+<script type="module" src="{{ static_url('phenomenonmap.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <div class="page-subhead">

@@ -24,6 +24,28 @@ except ImportError:
     # html/lib module's own fallback for an optional stellarObjects import).
     LOCAL_STELLAR_DENSITY_LY3 = None
 
+try:
+    from stellarObjects.utils import (
+        format_distance_au as _ladder_au,
+        format_distance_km as _ladder_km,
+        format_distance_ly as _ladder_ly,
+        format_distance_pc as _ladder_pc,
+    )
+except ImportError:
+    # Without the planetGen package there is no ladder; plain units still
+    # read correctly.
+    def _ladder_km(km):
+        return f"{km:,.0f} km"
+
+    def _ladder_au(au):
+        return f"{au:,.3g} AU"
+
+    def _ladder_ly(ly):
+        return f"{ly:,.1f} ly"
+
+    def _ladder_pc(pc):
+        return f"{pc:,.2f} pc"
+
 
 def _read_package_version():
     """
@@ -165,25 +187,43 @@ def nearest_neighbors_location(location, neighbors, system_url):
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
 
 
-# TODO(distances #1): add one `format_distance(km)` helper here that picks
-# the most meaningful unit on the ladder km < AU < mpc < cpc < ly < pc <
-# kpc < Mpc < Gpc (the largest unit the value is at least 1 of), and pass
-# every distance, orbital distance and non-body radius through it before
-# display (planet, moon and star radii stay km in scientific notation).
-# A value in mpc/cpc/pc/kpc/Mpc/Gpc adds a parenthetical: ly when it is at
-# least 0.01 ly, else AU when at least 0.01 AU, else km, e.g. "4.2 pc
-# (13.7 ly)" and "2.4 mpc (495 AU)"; km, AU and ly values get none.
-# This function, tabledisplay.format_body_distance and the JS formatters
-# (systemmap.js formatDistanceKm, phenomenonmap.js formatSpan, sectormap.js
-# formatLy, galaxymap3d.js formatPcLy/formatPc) all become thin wrappers or
-# go away. See docs/TODO.md item 1.
+def format_distance_km(distance_km):
+    """
+    A distance (or a nebula, belt or field radius) for display, in the most
+    meaningful unit on the ladder km < AU < mpc < cpc < ly < pc < kpc < Mpc
+    < Gpc, with a parsec value's ly/AU/km parenthetical: the web face of
+    `stellarObjects.utils.format_distance_m`. Every page passes its
+    distances through this or its `_au`/`_ly`/`_pc` siblings. `None` (an
+    unplaced sector or system) gives an en dash.
+
+    Planet, moon and star radii are the exception: they are always km in
+    scientific notation (`tabledisplay.format_star_radius`).
+    """
+    if distance_km is None:
+        return "&ndash;"
+    return _ladder_km(distance_km)
+
+
+def format_distance_au(distance_au):
+    """`format_distance_km` for a value in AU."""
+    if distance_au is None:
+        return "&ndash;"
+    return _ladder_au(distance_au)
+
+
 def format_distance_ly(distance_ly):
-    """Formats a distance in light-years for a table cell, e.g.
-    `"26,012.4 ly"`, or an en dash when there is none (`None`, an unplaced
-    sector or system)."""
+    """`format_distance_km` for a value in light-years, e.g. a sector's or
+    system's distance from the galactic center ("8 kpc (26,093 ly)")."""
     if distance_ly is None:
         return "&ndash;"
-    return f"{distance_ly:,.1f} ly"
+    return _ladder_ly(distance_ly)
+
+
+def format_distance_pc(distance_pc):
+    """`format_distance_km` for a value in parsecs (galaxy geometry)."""
+    if distance_pc is None:
+        return "&ndash;"
+    return _ladder_pc(distance_pc)
 
 
 def format_density(edge_ly, system_count):

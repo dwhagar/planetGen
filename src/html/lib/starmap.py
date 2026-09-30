@@ -57,7 +57,7 @@ import colorsys
 import json
 import math
 
-from fmt import esc
+from fmt import esc, format_distance_ly
 
 try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -719,8 +719,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     data = {
         "x": x_px, "y": y_px, "z": z_px, "r": radius_px,
         "name": phenomenon["name"],
-        "radiusText": f'{phenomenon["radius_ly"]:,.2f} ly',
-        "distanceText": f'{phenomenon["distance_ly"]:,.1f} ly from sector center',
+        "radiusText": format_distance_ly(phenomenon["radius_ly"]) if phenomenon["radius_ly"] else None,
+        "distanceText": f'{format_distance_ly(phenomenon["distance_ly"])} from sector center',
         "href": link_url("phenomenon", phenomenon_type=phenomenon["type"], phenomenon_id=phenomenon["id"]),
     }
 

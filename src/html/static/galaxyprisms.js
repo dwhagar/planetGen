@@ -72,11 +72,17 @@ function sechSquared(x) {
 // Port of galaxyDensity.relative_density, same field names as the
 // GalaxyShape namedtuple.
 export function relativeDensity(x, y, z, shape) {
+  return densityParts(x, y, z, shape)[0];
+}
+
+// [density, the same with the arm factor held at 1]: the second is the
+// density's azimuthal mean around the ring (bulge + disk, no arms), since
+// the arm factor averages to 1 around any circle.
+function densityParts(x, y, z, shape) {
   var rCyl = Math.hypot(x, y);
   var r3d = Math.sqrt(x * x + y * y + z * z);
   var bulge = shape.bulge_amplitude * Math.exp(-r3d / shape.bulge_scale_radius_pc);
-  var diskRadial = Math.exp(-rCyl / shape.disk_scale_length_pc);
-  var fz = sechSquared(z / shape.disk_scale_height_pc);
+  var disk = Math.exp(-rCyl / shape.disk_scale_length_pc) * sechSquared(z / shape.disk_scale_height_pc);
   var armFactor = 1;
   if (rCyl > 1e-9) {
     var theta = Math.atan2(y, x);
@@ -84,7 +90,7 @@ export function relativeDensity(x, y, z, shape) {
       + Math.log(rCyl / shape.spiral_reference_radius_pc) / Math.tan(shape.pitch_angle_rad);
     armFactor = 1 + shape.arm_amplitude * Math.cos(shape.arm_count * (theta - thetaArm));
   }
-  return shape.k_norm * (bulge + diskRadial * fz * armFactor);
+  return [shape.k_norm * (bulge + disk * armFactor), shape.k_norm * (bulge + disk)];
 }
 
 // The most any point in the prism could have -- cheap enough to run on
@@ -129,6 +135,22 @@ export function ringSectorCount(ring) {
 
 // The same rule for a group grid's rings (kept under its old name).
 export var azimuthSegments = ringSectorCount;
+
+// The Galaxy Map's wedge lines: in-plane lines from the core out to the
+// edge, one per ring 0 slot boundary, as [{ bearingDeg, angleRad, r0 }]
+// (r0: the radius the line starts at, pc). Bearings are counterclockwise
+// from +X (the zero meridian, ring slot 0's leading edge).
+// TODO(galaxy-map #13): with #12's master wedges, return every master line
+// (3 at the core, doubling outward) with the radius its zone starts at.
+export function wedgeLines() {
+  var n = ringSectorCount(0);
+  var lines = [];
+  for (var k = 0; k < n; k++) {
+    var angle = (2 * Math.PI * k) / n;
+    lines.push({ bearingDeg: Math.round((360 * k) / n) % 360, angleRad: angle, r0: 0 });
+  }
+  return lines;
+}
 
 // The (ring, layer, slot) cell holding galaxy-frame point (x, y, z).
 export function sectorAddressAt(x, y, z, edgePc) {
@@ -388,30 +410,33 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
           }
         }
         var key = ring + "/" + seg + "/" + slab;
-        var density = densityCache ? densityCache.get(key) : undefined;
-        if (density === undefined) {
-          density = meanDensity(r0, r1, t0, t1, z0, z1, shape);
+        var sampled = densityCache ? densityCache.get(key) : undefined;
+        if (sampled === undefined) {
+          sampled = meanDensity(r0, r1, t0, t1, z0, z1, shape);
           if (densityCache) {
-            densityCache.set(key, density);
+            densityCache.set(key, sampled);
           }
         }
+        var density = sampled.density;
         if (sectorMin === null && density < PRISM_MIN_DENSITY) {
           continue;
         }
-        found.push({ ring: ring, seg: seg, slab: slab, r0: r0, r1: r1, t0: t0, t1: t1, z0: z0, z1: z1, density: density });
+        found.push({ ring: ring, seg: seg, slab: slab, r0: r0, r1: r1, t0: t0, t1: t1, z0: z0, z1: z1, density: density, meanDensity: sampled.mean });
       }
     }
   }
   return found;
 }
 
-// TODO(galaxy-map #10): also return the block's azimuthal mean density
-// (bulge + disk, arm factor 1) so the page can shade by the arm factor
-// (density / mean) as well as by density. Following Boss's Method 3,
-// weight the samples by cell volume (r dr): outer samples in a wide block
-// stand for more space than inner ones.
+// The prism's mean density and its azimuthal mean (bulge + disk, arm
+// factor 1), both over a few sample points weighted by the volume each
+// stands for (r dr): the outer samples of a wide prism cover more space
+// than the inner ones. The page shades by both: density / mean is the arm
+// factor, which picks out the spiral.
 function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
   var total = 0;
+  var totalMean = 0;
+  var weights = 0;
   for (var i = 0; i < SAMPLES_R; i++) {
     var r = r0 + ((i + 0.5) / SAMPLES_R) * (r1 - r0);
     for (var j = 0; j < SAMPLES_THETA; j++) {
@@ -419,11 +444,14 @@ function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
       var x = r * Math.cos(t);
       var y = r * Math.sin(t);
       for (var k = 0; k < SAMPLES_Z; k++) {
-        total += relativeDensity(x, y, z0 + ((k + 0.5) / SAMPLES_Z) * (z1 - z0), shape);
+        var parts = densityParts(x, y, z0 + ((k + 0.5) / SAMPLES_Z) * (z1 - z0), shape);
+        total += r * parts[0];
+        totalMean += r * parts[1];
+        weights += r;
       }
     }
   }
-  return total / (SAMPLES_R * SAMPLES_THETA * SAMPLES_Z);
+  return { density: total / weights, mean: totalMean / weights };
 }
 
 // --- Geometry --------------------------------------------------------------

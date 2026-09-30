@@ -35,6 +35,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { formatDistanceKm: formatLadderKm } = await import(`./distance.js${VERSION_QUERY}`);
 
 function addField(dl, label, value) {
   if (!value && value !== 0) {
@@ -535,23 +536,12 @@ function resetInfo(panel) {
 // pulley), not a literal spline curve fit, but the real minimum distance
 // a route that has to clear the body would need to cover.
 
-var AU_KM = 149597870.7;
-
-// TODO(distances #1): mirror the Python unit ladder (km < AU < mpc < cpc <
-// ly < pc < kpc < Mpc < Gpc) in one small shared script (e.g.
-// static/distance.js) and use it here, in phenomenonmap.js formatSpan,
-// sectormap.js formatLy and galaxymap3d.js formatPcLy/formatPc, with the
-// same parsec parenthetical (ly at 0.01 ly or more, else AU at 0.01 AU or
-// more, else km).
+// Distances go through the shared ladder (static/distance.js).
 function formatDistanceKm(km) {
   if (km == null || !isFinite(km)) {
     return "unknown";
   }
-  var au = km / AU_KM;
-  if (au >= 0.01) {
-    return au.toLocaleString(undefined, { maximumFractionDigits: 3 }) + " AU";
-  }
-  return Math.round(km).toLocaleString() + " km";
+  return formatLadderKm(km);
 }
 
 // The distance from point (px, py) to the nearest point on segment AB --

@@ -21,6 +21,7 @@ survive the move.
 from flask import jsonify, request, url_for
 
 import apiclient
+from fmt import format_distance_ly
 from galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from pagination import page_slice, parse_page
@@ -65,7 +66,7 @@ def _quadrant_summary_rows(sectors):
         rings = [s["ring_index"] for s in members if s["ring_index"] is not None]
         if rings:
             _inner, outer_ly = zone_bounds_ly(sector_zone(max(rings)))
-            extent = f"out to ~{outer_ly:,.0f} ly"
+            extent = f"out to ~{format_distance_ly(outer_ly)}"
         rows.append({
             "label": label,
             "url": page_url("galaxy", quadrant=label, _anchor="galaxy-table"),
@@ -87,6 +88,7 @@ def _quadrant_sector_rows(sectors, quadrant, page):
         "url": page_url("sector", sector_id=sector["id"]),
         "zone": sector_zone(sector["ring_index"]) if sector["ring_index"] is not None else None,
         "distance_ly": pc_to_ly(sector["galactic_radius_pc"]),
+        "distance": format_distance_ly(pc_to_ly(sector["galactic_radius_pc"])),
         "system_count": sector["system_count"] or 0,
     } for sector in page_members]
     return rows, page, len(members)
@@ -103,7 +105,7 @@ def galaxy():
     galaxy_shape = apiclient.get_galaxy_shape(db)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    initial_view = fetch_tiles(db, initial_tile_request(max_radius), None)
+    initial_view = fetch_tiles(db, initial_tile_request(max_radius))
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
@@ -145,16 +147,15 @@ def _json_error(message, status):
 @page_limit("galaxy_tiles")
 def galaxy_tiles():
     """
-    JSON for the map's script: `?tiles=<level/ix/iy/iz,...>`, optional
-    `&density=<key>` and `&stamp=<the browser cache's stamp>`. Returns
+    JSON for the map's script: `?tiles=<level/ix/iy/iz,...>` and optional
+    `&stamp=<the browser cache's stamp>`. Returns
     `tilecache.fetch_tiles`' payload; a malformed request is a 400, an
     API failure a 502, both as `{"error": ...}` JSON.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
-    density_key = request.args.get("density") or None
     known_stamp = request.args.get("stamp") or None
     try:
-        payload = fetch_tiles(db_name(), tile_keys, density_key, known_stamp)
+        payload = fetch_tiles(db_name(), tile_keys, known_stamp)
     except TileRequestError as exc:
         return _json_error(str(exc), 400)
     except apiclient.NotFoundError as exc:

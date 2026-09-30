@@ -13,13 +13,14 @@ A job is a directory under the jobs directory (`jobs_dir()`):
         20260930-124433-1a2b/
             job.json            what to run: id, title, steps (argv lists), env
             runner.pid          the runner's pid, written when it is spawned
+            cancel              written by Cancel; the runner stops when it sees it
             state.json          written by src/jobRunner.py as it goes
             progress.json       written by generate.py (stellarObjects.progressFile)
             output.log          every step's stdout and stderr
 
 `start_job` writes `job.json`, takes the lock and spawns
-`python3 src/jobRunner.py <job dir>` in its own session, detached from
-the web server (a mod_wsgi request timeout or a graceful Apache reload
+`python3 src/jobRunner.py <job dir>` in its own session (on Windows, a
+detached process in its own process group), detached from the web server (a mod_wsgi request timeout or a graceful Apache reload
 doesn't stop it). The page then only ever reads these files, so it works
 the same whichever server process answers the next request.
 
@@ -38,7 +39,6 @@ import os
 import re
 import secrets
 import shutil
-import signal
 import subprocess
 import sys
 import tempfile
@@ -67,6 +67,11 @@ deleted when a new job starts."""
 
 LOCK_NAME = "active"
 """str: Must match `jobRunner.LOCK_NAME`."""
+
+CANCEL_NAME = "cancel"
+"""str: Must match `jobRunner.CANCEL_NAME`."""
+
+WINDOWS = os.name == "nt"
 
 STARTING_GRACE_SECONDS = 15
 """int: How long a just-spawned job may go without a `state.json` before
@@ -182,14 +187,55 @@ def _job_dir(root, job_id):
     return os.path.join(root, job_id)
 
 
-# TODO(windows #55): Windows has no /proc, and os.kill(pid, 0) there sends
-# CTRL_C_EVENT rather than checking the pid: use OpenProcess +
-# GetExitCodeProcess on Windows.
-def _runner_alive(pid, job_id):
+def _windows_process_alive(pid, created_by=None):
+    """
+    Whether process `pid` is running, on Windows (`os.kill(pid, 0)` there
+    sends CTRL_C_EVENT instead of checking). With `created_by` (a Unix
+    time), a process created after it doesn't count: that pid was reused.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    kernel32.GetProcessTimes.argtypes = [wintypes.HANDLE] + [ctypes.POINTER(wintypes.FILETIME)] * 4
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    process_query_limited_information = 0x1000
+    still_active = 259
+    handle = kernel32.OpenProcess(process_query_limited_information, False, int(pid))
+    if not handle:
+        return False
+    try:
+        code = wintypes.DWORD()
+        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)) or code.value != still_active:
+            return False
+        if created_by is not None:
+            times = [wintypes.FILETIME() for _ in range(4)]
+            if kernel32.GetProcessTimes(handle, *(ctypes.byref(t) for t in times)):
+                ticks = (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
+                created = ticks / 1e7 - 11644473600  # 100 ns ticks since 1601 -> Unix time
+                if created > created_by:
+                    return False
+        return True
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def _runner_alive(pid, job_id, created_at=None):
     """Whether `pid` is still this job's runner. Reads the process's
-    command line where `/proc` exists, so a reused pid doesn't count."""
+    command line where `/proc` exists, and on Windows checks it was
+    created within `STARTING_GRACE_SECONDS` of the job (`created_at`),
+    so a reused pid doesn't count."""
     if not pid:
         return False
+    if WINDOWS:
+        try:
+            created_by = created_at + STARTING_GRACE_SECONDS if created_at else None
+            return _windows_process_alive(int(pid), created_by)
+        except (OSError, ValueError):
+            return False
     cmdline = f"/proc/{int(pid)}/cmdline"
     if os.path.isdir("/proc/self"):
         try:
@@ -239,11 +285,12 @@ def get_job(job_id, root=None):
     now = time.time()
     if status is None:
         pid = _runner_pid(path, state)
-        if now - job.get("created_at", 0) < STARTING_GRACE_SECONDS and (pid is None or _runner_alive(pid, job_id)):
+        if now - job.get("created_at", 0) < STARTING_GRACE_SECONDS and (
+                pid is None or _runner_alive(pid, job_id, job.get("created_at"))):
             status = "starting"
         else:
             status = "interrupted"
-    elif status == "running" and not _runner_alive(state.get("pid"), job_id):
+    elif status == "running" and not _runner_alive(state.get("pid"), job_id, job.get("created_at")):
         status = "interrupted"
 
     labels = [step["label"] for step in job.get("steps", [])]
@@ -424,14 +471,34 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     return job_id
 
 
-# TODO(windows #55): start_new_session is POSIX-only (ignored on Windows);
-# pass CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS there.
+def _detached_options():
+    """
+    Popen options that detach the runner from the web server, most
+    detached first: its own session on POSIX; on Windows (where
+    start_new_session is ignored) its own process group with no console,
+    first also broken away from the server's job object (IIS and some
+    service wrappers kill a job object's processes on a recycle), then
+    without that when the job object doesn't allow it.
+    """
+    if not WINDOWS:
+        return [{"start_new_session": True}]
+    flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
+    return [{"creationflags": flags | subprocess.CREATE_BREAKAWAY_FROM_JOB}, {"creationflags": flags}]
+
+
 def _spawn(path):
-    proc = subprocess.Popen(
-        [python_executable(), RUNNER_SCRIPT, path],
-        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        cwd=REPO_DIR, close_fds=True, start_new_session=True,
-    )
+    options = _detached_options()
+    for index, extra in enumerate(options):
+        try:
+            proc = subprocess.Popen(
+                [python_executable(), RUNNER_SCRIPT, path],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                cwd=REPO_DIR, close_fds=True, **extra,
+            )
+            break
+        except PermissionError:  # breakaway refused by the job object
+            if index == len(options) - 1:
+                raise
     with open(os.path.join(path, "runner.pid"), "w", encoding="utf-8") as f:
         f.write(str(proc.pid))
     # Reap it when it exits, so it doesn't linger as a zombie of the web
@@ -441,11 +508,15 @@ def _spawn(path):
 
 def cancel_job(job_id, root=None):
     """
-    Asks a running job to stop (SIGTERM to its runner, which stops the
-    current step and marks the job cancelled).
+    Asks a running job to stop: writes a `cancel` file into its
+    directory, which the runner checks for while a step runs. It then
+    stops the step and everything the step started, and marks the job
+    cancelled. (A file rather than a signal: on Windows `os.kill` is
+    TerminateProcess, which would kill the runner and leave its step
+    running and the lock taken.)
 
     Returns:
-        bool: Whether a running job was signalled.
+        bool: Whether a running job was asked to stop.
     """
     root = root or jobs_dir()
     job = get_job(job_id, root)
@@ -453,12 +524,11 @@ def cancel_job(job_id, root=None):
         return False
     path = _job_dir(root, job_id)
     pid = _runner_pid(path, _read_json(os.path.join(path, "state.json")))
-    if not _runner_alive(pid, job_id):
+    if not _runner_alive(pid, job_id, job.get("created_at")):
         return False
-    # TODO(windows #55): on Windows this is TerminateProcess: the runner dies
-    # without its handler, its step keeps running and the lock stays taken.
     try:
-        os.kill(int(pid), signal.SIGTERM)
+        with open(os.path.join(path, CANCEL_NAME), "w", encoding="utf-8") as f:
+            f.write(str(time.time()))
     except OSError:
         return False
     log.debug("Cancel requested for job %s (runner pid %s)", job_id, pid)

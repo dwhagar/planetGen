@@ -2,7 +2,9 @@
 
 Boss's design for nested navigation frames, recorded 2026-09-30 as the
 reference for `docs/TODO.md` item 33 (courses) and item 34 (warp and
-fold speeds). Nothing here is implemented yet; today's course is
+fold speeds). The travel speeds are implemented
+(`navigation.warp_speed_c` and `fold_speed_c`); the frames are not yet,
+and today's course is
 `stellarObjects/navigation.course_between` (azimuth and altitude on the
 galactic plane). The design below is Boss's text as given; the open
 questions are listed in the TODO item.
@@ -196,4 +198,28 @@ def compute_course(ship_pos_gal, target_pos_gal, frame_type, frame_center_gal, p
   $= w^{10/3} + \frac{1}{1 + e^{-9.3575(w - 9.5)}} \left( \frac{198.9}{(10 - w)^{0.75}} + 1721.7 - w^{10/3} \right)$
 - Dimensional fold factor $F$: speed in c $= \frac{6F^4}{10 - F}$
 
-The computed values are tabled in `docs/TODO.md` item 34.
+Every coefficient is a named constant in `program_constants` (`WARP_*`
+and `FOLD_*`), and `src/tests/test_navigation.py` pins these values
+(1 ly per 365.25 days at 1c; 1 kpc = 3,261.56 ly):
+
+| Warp | Speed (c) | ly/day | Days per ly | Days per kpc |
+|---:|---:|---:|---:|---:|
+| 1 | 1.0 | 0.003 | 365.25 | 1,191,286 |
+| 2 | 10.1 | 0.028 | 36.24 | 118,191 |
+| 4 | 101.6 | 0.278 | 3.60 | 11,726 |
+| 8 | 1,024.0 | 2.804 | 0.357 | 1,163 |
+| 9 | 1,520.1 | 4.162 | 0.240 | 784 |
+| 9.5 | 1,936.0 | 5.301 | 0.189 | 615 |
+| 9.9 | 2,822.7 | 7.728 | 0.129 | 422 |
+| 9.995 | 12,201.9 | 33.41 | 0.030 | 98 |
+
+| Fold | Speed (c) | ly/day | Days per ly | Days per kpc |
+|---:|---:|---:|---:|---:|
+| 4 | 256.0 | 0.701 | 1.43 | 4,653 |
+| 5 | 750.0 | 2.053 | 0.487 | 1,588 |
+| 6 | 1,944.0 | 5.322 | 0.188 | 613 |
+| 6.5 | 3,060.1 | 8.378 | 0.119 | 389 |
+| 7 | 4,802.0 | 13.15 | 0.076 | 248 |
+| 7.5 | 7,593.8 | 20.79 | 0.048 | 157 |
+| 8 | 12,288.0 | 33.64 | 0.030 | 97 |
+| 8.5 | 20,880.2 | 57.17 | 0.017 | 57 |
