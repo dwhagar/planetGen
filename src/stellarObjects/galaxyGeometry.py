@@ -451,3 +451,44 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
                 dist = math.dist((x, y, z_m), center)
                 if dist <= radius_pc + eps:
                     yield (ring_index, layer_index, slot_index, x, y, z_m, dist)
+
+
+def describe_sector_cell(ring_index, layer_index, slot_index, edge_pc):
+    """
+    Everything the grid knows about one cell, for display and the API
+    (`GET /api/galaxy/cell`): its address and designation, its center in
+    Cartesian `(x, y, z)`, cylindrical `(R, theta, z)` and spherical
+    `(r, theta, polar)` coordinates (angles in radians; polar measured
+    from galactic north), its bounds, mean arc length, volume and 8
+    corners (`sector_cell_vertices_pc`'s order). Parsecs throughout.
+
+    Raises:
+        ValueError: If `slot_index` is out of range for the ring.
+    """
+    _check_slot(ring_index, slot_index)
+    center = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
+    r_inner, r_outer = ring_bounds_pc(ring_index, edge_pc)
+    z_bottom, z_top = layer_bounds_pc(layer_index, edge_pc)
+    theta_start, theta_end = slot_angle_bounds(ring_index, slot_index)
+    r_center = ring_radius_pc(ring_index, edge_pc)
+    theta = (theta_start + theta_end) / 2
+    r_3d = galactic_radius_pc(center)
+    cell = SectorCell.for_ring(ring_index, edge_pc)
+    return {
+        "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
+        "designation": provisional_sector_designation(ring_index, layer_index, slot_index),
+        "cartesian_pc": list(center),
+        "cylindrical": {"r_pc": r_center, "theta_rad": theta, "z_pc": center[2]},
+        "spherical": {
+            "r_pc": r_3d, "theta_rad": theta,
+            "polar_rad": math.acos(center[2] / r_3d) if r_3d > 0 else 0.0,
+        },
+        "bounds": {
+            "r_inner_pc": r_inner, "r_outer_pc": r_outer,
+            "z_bottom_pc": z_bottom, "z_top_pc": z_top,
+            "theta_start_rad": theta_start, "theta_end_rad": theta_end,
+        },
+        "mean_arc_length_pc": r_center * (theta_end - theta_start),
+        "volume_pc3": cell.volume,
+        "vertices_pc": [list(v) for v in sector_cell_vertices_pc(ring_index, layer_index, slot_index, edge_pc)],
+    }

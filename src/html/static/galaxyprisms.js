@@ -1,21 +1,20 @@
 // html/static/galaxyprisms.js
 //
-// The 3D Galaxy Map's predicted-density shading (galaxymap3d.js), drawn
-// as cylindrical segment prisms instead of a cloud of spheres. Space is
-// cut in galactic cylindrical coordinates (r_cyl, theta, z): rings a
-// whole number of sector shells wide, each ring split into equal azimuth
-// wedges about as long as the ring is wide, and layers of the same height
-// stacked on the galactic plane (layer 0 straddles z = 0) -- the same grid
-// as the cylindrical sector plan's sectors, scaled up by a power of two.
-// One cell of that grid is one prism: an annular wedge with curved inner
-// and outer walls, flat top and bottom, and two flat radial sides.
+// The 3D Galaxy Map's sector grid and predicted-density shading
+// (galaxymap3d.js), drawn as cylindrical segment prisms. Space is cut the
+// way stellarObjects/galaxyGeometry.py cuts it into sectors: rings one
+// sector edge wide around the galactic axis, layers one edge tall (layer 0
+// straddles z = 0) and each ring split into wedges about one edge long.
+// One cell is one prism: an annular wedge with curved inner and outer
+// walls, flat top and bottom, and two flat radial sides.
 //
-// Level of detail: the cell size is a power-of-two number of shells
-// (edge_pc each), picked per view so the prisms in view stay within
-// PRISM_BUDGET -- a view of the whole galaxy uses rings hundreds of
-// parsecs wide, one zoomed in on a sector uses single shells. The grid
-// at any one size is fixed in space, so panning never shifts the prisms,
-// only adds and drops them at the edges.
+// Level of detail: zoomed out, one prism stands for a group ("mega
+// sector") of m x m x ~m whole sectors, m a power of three, picked per
+// view so a group is still big enough on screen to see and click
+// (MIN_PRISM_PX) and the prisms in view stay within PRISM_BUDGET. The
+// grid at any one size is fixed in space, so panning never shifts the
+// prisms, only adds and drops them at the edges; zoomed all the way in,
+// one prism is one sector.
 //
 // Density comes from the galaxy's own analytic model
 // (stellarObjects.galaxyDensity.relative_density), evaluated right here
@@ -80,20 +79,131 @@ function densityUpperBound(r0, zMinAbs, shape) {
   return shape.k_norm * (bulge + disk);
 }
 
-// Wedges in prism ring `ring`: the cylindrical sector plan's own rule for
-// sector ring i, 4 * round(2 * pi * (i + 1/2) / 4) -- always a multiple of
-// four, so wedge boundaries fall on the quadrant lines, and about as long
-// as the ring is wide. At one shell per prism this is exactly the sector
-// grid, so one prism is one sector.
-export function azimuthSegments(ring) {
+// --- The sector grid (mirrors stellarObjects/galaxyGeometry.py) -----------
+//
+// Ring i: cylindrical radius [i*e, (i+1)*e). Layer j: z in [(j-1/2)*e,
+// (j+1/2)*e), so layer 0 straddles the plane. Slot k: one of
+// ringSectorCount(i) equal wedges counterclockwise from +X. Every point in
+// space falls in exactly one cell.
+
+// Slots in sector ring `ring`: 4 * round(2 * pi * (i + 1/2) / 4), never
+// fewer than 4 -- a multiple of four, so wedge boundaries fall on the
+// quadrant lines, and each slot's arc is about one edge long.
+export function ringSectorCount(ring) {
   return 4 * Math.max(1, Math.round((2 * Math.PI * (ring + 0.5)) / 4));
 }
 
-// Shells per prism edge (a power of two) for a view of radius viewRadius
-// around center: the smallest size whose estimated prism count fits the
-// budget. The estimate is the part of the view ball inside the galaxy's
-// disk (and radius), divided by one prism's volume.
-export function shellsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape) {
+// The same rule for a group grid's rings (kept under its old name).
+export var azimuthSegments = ringSectorCount;
+
+// The (ring, layer, slot) cell holding galaxy-frame point (x, y, z).
+export function sectorAddressAt(x, y, z, edgePc) {
+  var ring = Math.floor(Math.hypot(x, y) / edgePc);
+  var layer = Math.floor(z / edgePc + 0.5);
+  var n = ringSectorCount(ring);
+  var theta = ((Math.atan2(y, x) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  var slot = Math.min(n - 1, Math.floor((theta * n) / (2 * Math.PI)));
+  return { ring: ring, layer: layer, slot: slot };
+}
+
+// One sector's cell as bounds: {r0, r1, t0, t1, z0, z1}.
+export function sectorCellBounds(ring, layer, slot, edgePc) {
+  var step = (2 * Math.PI) / ringSectorCount(ring);
+  return {
+    r0: ring * edgePc, r1: (ring + 1) * edgePc,
+    t0: slot * step, t1: (slot + 1) * step,
+    z0: (layer - 0.5) * edgePc, z1: (layer + 0.5) * edgePc,
+  };
+}
+
+// The 8 corners of a cell given as bounds, galaxy frame. Index is
+// 4*r_bit + 2*z_bit + theta_bit, as galaxyGeometry.sector_cell_vertices_pc.
+export function cellVertices(b) {
+  var out = [];
+  [b.r0, b.r1].forEach(function (r) {
+    [b.z0, b.z1].forEach(function (z) {
+      [b.t0, b.t1].forEach(function (t) {
+        out.push([r * Math.cos(t), r * Math.sin(t), z]);
+      });
+    });
+  });
+  return out;
+}
+
+// A cell's center (ring centerline, middle angle, mid height) in the three
+// coordinate systems the map shows: Cartesian (x, y, z), cylindrical
+// (R, theta, z) and spherical (r, theta, polar angle from galactic north).
+export function cellCoordinates(b) {
+  var r = (b.r0 + b.r1) / 2;
+  var t = (b.t0 + b.t1) / 2;
+  var z = (b.z0 + b.z1) / 2;
+  var x = r * Math.cos(t);
+  var y = r * Math.sin(t);
+  var rho = Math.sqrt(x * x + y * y + z * z);
+  return {
+    cartesian: [x, y, z],
+    cylindrical: [r, t, z],
+    spherical: [rho, t, rho > 0 ? Math.acos(z / rho) : 0],
+  };
+}
+
+// --- Groups of sectors ("mega sectors") -------------------------------------
+//
+// Zoomed out, one prism stands for a block of whole sectors: m rings by m
+// layers by the slots whose centers fall inside one wedge of the group
+// grid, where m (sectors per side) is a power of three. Odd sizes keep a
+// group's top and bottom on sector layer boundaries while group layer 0
+// still straddles the plane (a power of two would split layer 0 in half),
+// and group rings always start on a sector ring. The group grid uses the
+// sector grid's own rules, scaled by m, so a group is a cylindrical box
+// about m sectors on every side, and at m = 1 a group is one sector.
+
+// Sector address ranges a group covers: {ringFirst, ringLast, layerFirst,
+// layerLast} (inclusive). Its slots are those whose centers fall in
+// [t0, t1) of each member ring (see groupSectorCount).
+export function groupSectorRanges(ring, slab, m) {
+  var half = (m - 1) / 2;
+  return {
+    ringFirst: ring * m, ringLast: ring * m + m - 1,
+    layerFirst: slab * m - half, layerLast: slab * m + half,
+  };
+}
+
+// How many sectors a group holds: in each member ring, the slots whose
+// center angle lies in [t0, t1), times its m layers.
+export function groupSectorCount(prism, m) {
+  var ranges = groupSectorRanges(prism.ring, prism.slab, m);
+  var total = 0;
+  for (var i = ranges.ringFirst; i <= ranges.ringLast; i++) {
+    var n = ringSectorCount(i);
+    var step = (2 * Math.PI) / n;
+    var first = Math.ceil(prism.t0 / step - 0.5 - 1e-9);
+    var last = Math.ceil(prism.t1 / step - 0.5 - 1e-9) - 1;
+    total += Math.max(0, last - first + 1);
+  }
+  return total * m;
+}
+
+// A group's prism is at least this many screen pixels across at the view's
+// focus: finer than that, single groups stop being something a viewer can
+// pick out or click, and the map turns to noise.
+export var MIN_PRISM_PX = 10;
+
+function nextPowerOfThree(x) {
+  var m = 1;
+  while (m < x) {
+    m *= 3;
+  }
+  return m;
+}
+
+// Sectors per group side (a power of three) for a view of radius
+// viewRadius around center: large enough that one group is at least
+// MIN_PRISM_PX wide on screen (pcPerPixel is the scale at the focus; 0 or
+// missing skips that check), and large enough that the estimated prism
+// count fits the budget. The estimate is the part of the view ball inside
+// the galaxy's disk (and radius), divided by one prism's volume.
+export function sectorsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape, pcPerPixel) {
   var diskHalf = DISK_EXTENT_SCALE_HEIGHTS * shape.disk_scale_height_pc;
   var zLo = Math.max(center[2] - viewRadius, -diskHalf);
   var zHi = Math.min(center[2] + viewRadius, diskHalf);
@@ -102,36 +212,43 @@ export function shellsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape) 
   thickness = Math.max(thickness, Math.min(2 * viewRadius, 2 * DISK_EXTENT_SCALE_HEIGHTS * shape.bulge_scale_radius_pc));
   var across = Math.min(viewRadius, galaxyRadius || viewRadius);
   var volume = Math.min((4 / 3) * Math.PI * Math.pow(viewRadius, 3), Math.PI * across * across * thickness);
-  var needed = Math.cbrt(Math.max(volume, 0) / PRISM_BUDGET);
-  var shells = Math.max(1, needed / edgePc);
-  return Math.pow(2, Math.ceil(Math.log2(shells)));
+  var budgetEdge = Math.cbrt(Math.max(volume, 0) / PRISM_BUDGET);
+  var perceptualEdge = (pcPerPixel || 0) * MIN_PRISM_PX;
+  return nextPowerOfThree(Math.max(1, Math.max(budgetEdge, perceptualEdge) / edgePc));
 }
 
-// The prisms for a view: shellsPerPrism's size to start with, halved
-// while the result still uses under a third of the budget (the estimate
-// is rough -- a view over the whole galaxy holds far fewer prisms than
-// its disk area suggests, since the outer disk is too thin to draw).
-// densityCacheFor(shells) returns the density cache for that size.
-// Returns {shells, prisms}.
-export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, densityCacheFor) {
-  var shells = shellsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape);
-  var prisms = prismsInView(center, viewRadius, shells * edgePc, shape, galaxyRadius, densityCacheFor(shells));
-  for (var tries = 0; tries < 2 && shells > 1 && prisms.length < PRISM_BUDGET / 3; tries++) {
-    var finer = prismsInView(center, viewRadius, (shells / 2) * edgePc, shape, galaxyRadius, densityCacheFor(shells / 2));
+// The prisms for a view: sectorsPerPrism's size to start with, made
+// coarser while it overflows the budget, and finer (a third the size)
+// while that still fits the budget and stays MIN_PRISM_PX wide on screen
+// -- the estimate is rough, since the thin outer disk holds far fewer
+// prisms than its area suggests. densityCacheFor(m) returns the density
+// cache for that size. Returns {sectorsPerPrism, prisms}.
+export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, densityCacheFor, pcPerPixel) {
+  var m = sectorsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape, pcPerPixel);
+  var prisms = prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCacheFor(m));
+  for (var up = 0; up < 3 && prisms.length > PRISM_BUDGET; up++) {
+    m *= 3;
+    prisms = prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCacheFor(m));
+  }
+  var minEdge = (pcPerPixel || 0) * MIN_PRISM_PX;
+  for (var down = 0; down < 2 && m > 1 && (m / 3) * edgePc >= minEdge && prisms.length < PRISM_BUDGET / 27; down++) {
+    var finer = prismsInView(center, viewRadius, m / 3, edgePc, shape, galaxyRadius, densityCacheFor(m / 3));
     if (finer.length > PRISM_BUDGET) {
       break;
     }
-    shells /= 2;
+    m /= 3;
     prisms = finer;
   }
-  return { shells: shells, prisms: prisms };
+  return { sectorsPerPrism: m, prisms: prisms };
 }
 
-// Every prism of the given size overlapping the view ball, dense enough
-// to draw. Returns [{ring, seg, slab, r0, r1, t0, t1, z0, z1, density}].
-// densityCache (a Map, optional) keeps per-prism densities between calls
-// at the same size.
-export function prismsInView(center, viewRadius, size, shape, galaxyRadius, densityCache) {
+// Every group of m sectors a side overlapping the view ball, dense enough
+// to draw. Returns [{ring, seg, slab, r0, r1, t0, t1, z0, z1, density}]:
+// the group's address on the group grid and its bounds (see
+// groupSectorRanges for the sectors inside). densityCache (a Map,
+// optional) keeps per-prism densities between calls at the same size.
+export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCache) {
+  var size = m * edgePc;
   var cx = center[0];
   var cy = center[1];
   var cz = center[2];
@@ -146,7 +263,7 @@ export function prismsInView(center, viewRadius, size, shape, galaxyRadius, dens
   for (var ring = ringLo; ring <= ringHi; ring++) {
     var r0 = ring * size;
     var r1 = r0 + size;
-    var nSeg = azimuthSegments(ring);
+    var nSeg = ringSectorCount(ring);
     var dTheta = (2 * Math.PI) / nSeg;
     var segFirst = 0;
     var segCount = nSeg;

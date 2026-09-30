@@ -1277,3 +1277,33 @@ def test_create_sector_rejects_wiki_url(admin_client):
         "/api/sectors", json={"name": "Test", "edge_ly": 10.0, "wiki_url": "https://wiki.example.com/x"}
     )
     assert response.status_code == 400
+
+
+def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
+    """`GET /api/galaxy/cell` answers for any place in the galaxy, by
+    address or by a point inside the cell, with its coordinates and 8
+    corners, and names the generated sector there if one exists."""
+    from stellarObjects.galaxyGeometry import sector_position_pc
+    from stellarObjects.utils import ly_to_pc
+
+    edge_pc = ly_to_pc(11.5)
+    center = sector_position_pc(3, -1, 5, edge_pc)
+    sector_id = _place_sector(mysql_config, "Cell Sector", center, edge_ly=11.5, address=(3, -1, 5))
+
+    by_address = client.get("/api/galaxy/cell?ring=3&layer=-1&slot=5").get_json()
+    assert (by_address["ring_index"], by_address["layer_index"], by_address["ring_slot_index"]) == (3, -1, 5)
+    assert by_address["sector_id"] == sector_id
+    assert by_address["cartesian_pc"] == pytest.approx(list(center))
+    assert len(by_address["vertices_pc"]) == 8
+    assert by_address["mean_arc_length_pc"] == pytest.approx(edge_pc, rel=0.15)
+    assert by_address["spherical"]["polar_rad"] > math.pi / 2  # below the plane
+
+    by_point = client.get(f"/api/galaxy/cell?x={center[0] + 0.3}&y={center[1]}&z={center[2] - 0.2}").get_json()
+    assert by_point["designation"] == by_address["designation"]
+
+    empty = client.get("/api/galaxy/cell?x=9000&y=-120&z=4000").get_json()
+    assert empty["sector_id"] is None and len(empty["vertices_pc"]) == 8
+
+    assert client.get("/api/galaxy/cell?ring=0&layer=0&slot=4").status_code == 400
+    assert client.get("/api/galaxy/cell?ring=1").status_code == 400
+    assert client.get("/api/galaxy/cell?x=nan&y=0&z=0").status_code == 400

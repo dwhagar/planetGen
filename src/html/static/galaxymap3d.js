@@ -28,14 +28,16 @@
 //   - planned: real, not-yet-generated qualifying addresses -- small dim
 //              sprites, click selects (shows the copyable designation/
 //              CLI snippet) but never navigates.
-//   - density: the galaxy's predicted density, drawn as solid, lit
-//              cylindrical segment prisms (ring x wedge x layer cells of
-//              galactic cylindrical coordinates, a power-of-two number of
-//              sector widths across, sized to the current view -- see
-//              ./galaxyprisms.js). Computed right here from the galaxy's
-//              own analytic shape, not fetched. Not interactive. Each
-//              prism is colored and shrunk inside its cell by its mean
-//              density; the sector markers draw on top of them.
+//   - density: the galaxy's sector grid, drawn as solid, lit
+//              cylindrical segment prisms -- single sectors up close,
+//              groups of m x m x ~m whole sectors (m a power of three)
+//              further out, sized so a group stays visible on screen (see
+//              ./galaxyprisms.js). Density is computed right here from
+//              the galaxy's own analytic shape, not fetched. Each prism
+//              is colored and shrunk inside its cell by its mean density;
+//              clicking one (or empty space, which is the sector there)
+//              shows its address, coordinates and 8 corners. The sector
+//              markers draw on top of them.
 //
 // Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
 // below interpolates between lib/galaxymap3d.py's own
@@ -55,7 +57,10 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { buildPrismGeometry, prismsForView } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
+const {
+  buildPrismGeometry, cellCoordinates, cellVertices, groupSectorCount, groupSectorRanges, prismsForView,
+  sectorAddressAt, sectorCellBounds,
+} = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -196,6 +201,87 @@ function showPlannedInfo(entry) {
   code.textContent = cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index);
   panel.appendChild(code);
   panel.appendChild(makeCopyButton(cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index)));
+}
+
+var LY_PER_PC = 3.26156;
+
+function formatPcLy(pc) {
+  return pc.toFixed(1) + " pc (" + (pc * LY_PER_PC).toFixed(1) + " ly)";
+}
+
+function formatDeg(rad) {
+  return ((rad * 180) / Math.PI).toFixed(3) + "°";
+}
+
+// provisional_sector_designation's hex code: ring << 33 | (layer + 4096)
+// << 20 | slot (BigInt, since it runs past 32 bits).
+function sectorDesignation(ring, layer, slot) {
+  var packed = (BigInt(ring) << 33n) | (BigInt(layer + 4096) << 20n) | BigInt(slot);
+  return packed.toString(16).toUpperCase();
+}
+
+// One prism's info: a single sector (m == 1) or a group of sectors.
+// `cell` is {m, bounds, address} for a sector or {m, bounds, ring, slab,
+// density} for a group.
+function showCellInfo(cell) {
+  var panel = document.getElementById("galaxymap3d-info");
+  if (!panel) {
+    return;
+  }
+  panel.textContent = "";
+  var b = cell.bounds;
+  var single = cell.m === 1;
+
+  var heading = document.createElement("h3");
+  heading.textContent = single ? "Sector cell" : "Sector group (" + cell.m + " × " + cell.m + " sectors a side)";
+  panel.appendChild(heading);
+
+  var dl = document.createElement("dl");
+  if (single) {
+    var a = cell.address;
+    addField(dl, "Address", formatAddress(a.ring, a.layer, a.slot));
+    addField(dl, "Designation", sectorDesignation(a.ring, a.layer, a.slot));
+  } else {
+    var ranges = groupSectorRanges(cell.ring, cell.slab, cell.m);
+    addField(dl, "Rings", ranges.ringFirst + "–" + ranges.ringLast);
+    addField(dl, "Layers", ranges.layerFirst + "–" + ranges.layerLast);
+    addField(dl, "Sectors", groupSectorCount({ ring: cell.ring, slab: cell.slab, t0: b.t0, t1: b.t1 }, cell.m).toLocaleString());
+  }
+  if (cell.density != null) {
+    addField(dl, "Predicted density", cell.density.toFixed(2) + "× local average");
+  }
+  var coords = cellCoordinates(b);
+  var c = coords.cartesian;
+  addField(dl, "Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
+  addField(dl, "Cylindrical R, θ, z", coords.cylindrical[0].toFixed(1) + " pc, " + formatDeg(coords.cylindrical[1]) + ", " + coords.cylindrical[2].toFixed(1) + " pc");
+  addField(dl, "Spherical r, θ, φ", coords.spherical[0].toFixed(1) + " pc, " + formatDeg(coords.spherical[1]) + ", " + formatDeg(coords.spherical[2]));
+  addField(dl, "Radial width", formatPcLy(b.r1 - b.r0));
+  addField(dl, "Height", formatPcLy(b.z1 - b.z0));
+  addField(dl, "Mean arc length", formatPcLy(((b.r0 + b.r1) / 2) * (b.t1 - b.t0)));
+  panel.appendChild(dl);
+
+  var corners = document.createElement("details");
+  var summary = document.createElement("summary");
+  summary.textContent = "8 corners (x, y, z pc)";
+  corners.appendChild(summary);
+  var list = document.createElement("ol");
+  list.start = 0;
+  cellVertices(b).forEach(function (v) {
+    var item = document.createElement("li");
+    item.textContent = v.map(function (n) { return n.toFixed(2); }).join(", ");
+    list.appendChild(item);
+  });
+  corners.appendChild(list);
+  panel.appendChild(corners);
+
+  if (single) {
+    var snippet = cliSnippet(cell.address.ring, cell.address.layer, cell.address.slot);
+    var code = document.createElement("code");
+    code.className = "galaxymap3d-cli-snippet";
+    code.textContent = snippet;
+    panel.appendChild(code);
+    panel.appendChild(makeCopyButton(snippet));
+  }
 }
 
 // --- Sprite textures -------------------------------------------------------
@@ -672,14 +758,25 @@ function initGalaxyMap3d(canvasEl, data) {
   var prismDensityCaches = new Map();
   var PRISM_CACHE_SIZES = 4;
   var prismSetKey = "";
+  // What's drawn now, for picking: the cells, each vertex's cell index,
+  // and how many sectors a side each cell is.
+  var drawnCells = [];
+  var drawnOwners = null;
+  var drawnSectorsPerPrism = 1;
 
-  function prismDensityCache(shells) {
-    var cache = memoryGet(prismDensityCaches, shells);
+  function prismDensityCache(m) {
+    var cache = memoryGet(prismDensityCaches, m);
     if (!cache) {
       cache = new Map();
-      memorySet(prismDensityCaches, shells, cache, PRISM_CACHE_SIZES);
+      memorySet(prismDensityCaches, m, cache, PRISM_CACHE_SIZES);
     }
     return cache;
+  }
+
+  // Parsecs per screen pixel at the view's focus (the orbit target).
+  function pcPerPixelAtTarget() {
+    var heightPx = canvasEl.clientHeight || 1;
+    return (orbit.radius * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
   }
 
   function updatePrisms(viewRadius) {
@@ -688,12 +785,14 @@ function initGalaxyMap3d(canvasEl, data) {
       return;
     }
     var center = [target.x, target.y, target.z];
-    var key = center.join(",") + ":" + viewRadius;
+    var pcPerPixel = pcPerPixelAtTarget();
+    var key = center.join(",") + ":" + viewRadius + ":" + pcPerPixel.toPrecision(3);
     if (key === prismSetKey) {
       return;
     }
     prismSetKey = key;
-    var cells = prismsForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache).prisms;
+    var view = prismsForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, pcPerPixel);
+    var cells = view.prisms;
     var colorsOf = [];
     var centersOf = [];
     var prisms = cells.map(function (cell) {
@@ -713,6 +812,9 @@ function initGalaxyMap3d(canvasEl, data) {
       };
     });
     var built = buildPrismGeometry(prisms);
+    drawnCells = cells;
+    drawnOwners = built.owners;
+    drawnSectorsPerPrism = view.sectorsPerPrism;
 
     var colors = new Float32Array(built.owners.length * 3);
     var centers = new Float32Array(built.owners.length * 3);
@@ -1356,6 +1458,51 @@ function initGalaxyMap3d(canvasEl, data) {
     return null;
   }
 
+  // The prism under a screen point, as showCellInfo's cell, plus the
+  // prism's center to recenter on -- or null. Prisms hidden by the near
+  // cut (updateNearCut) are skipped.
+  function cellAtClientPoint(clientX, clientY) {
+    if (!prismMesh.visible || !drawnOwners) {
+      return null;
+    }
+    var ndc = ndcFromClientPoint(clientX, clientY);
+    if (!ndc) {
+      return null;
+    }
+    raycaster.setFromCamera(ndc, camera);
+    var hits = raycaster.intersectObject(prismMesh, false);
+    var nearCut = prismMaterial.uniforms.nearCut.value;
+    for (var i = 0; i < hits.length; i++) {
+      var face = hits[i].face;
+      if (!face) {
+        continue;
+      }
+      var cellData = drawnCells[drawnOwners[face.a]];
+      if (!cellData) {
+        continue;
+      }
+      var coords = cellCoordinates(cellData).cartesian;
+      var point = new THREE.Vector3(coords[0], coords[1], coords[2]);
+      if (point.distanceTo(camera.position) < nearCut) {
+        continue;
+      }
+      var m = drawnSectorsPerPrism;
+      var cell = { m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, slab: cellData.slab };
+      if (m === 1) {
+        cell.address = { ring: cellData.ring, layer: cellData.slab, slot: cellData.seg };
+      }
+      return { point: point, cell: cell };
+    }
+    return null;
+  }
+
+  // The sector cell holding a galaxy-frame point -- every point in space
+  // has one, whether or not anything was ever generated there.
+  function sectorCellAt(point) {
+    var a = sectorAddressAt(point.x, point.y, point.z, edgePc);
+    return { m: 1, address: a, bounds: sectorCellBounds(a.ring, a.layer, a.slot, edgePc), density: null };
+  }
+
   // Empty-space click target: where the click's ray meets the plane
   // through the current target parallel to the galactic disk -- so
   // clicking empty space over a spiral arm lands ON the arm, the point
@@ -1423,8 +1570,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // query returns, for as long as it stays selected.
   var pinnedEntry = null;
 
-  function selectEntry(point, entry) {
+  function selectEntry(point, entry, cell) {
     if (!entry) {
+      if (cell) {
+        var coords = cellCoordinates(cell.bounds).cartesian;
+        highlightPosition(coords[0], coords[1], coords[2], PLANNED_PX * 2);
+        showCellInfo(cell);
+      }
       return;
     }
     pinnedEntry = entry;
@@ -1444,11 +1596,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // it possible to walk the camera across the galaxy toward a small/
   // distant dot over several clicks without a bad click also zooming
   // into empty space you didn't mean to approach.
-  function centerOn(point, entry) {
+  function centerOn(point, entry, cell) {
     target.copy(point);
     applyCamera();
     updateScaleBar();
-    selectEntry(point, entry);
+    selectEntry(point, entry, cell);
     scheduleFetch(true);
   }
 
@@ -1470,8 +1622,12 @@ function initGalaxyMap3d(canvasEl, data) {
     if (hit) {
       return hit;
     }
+    var prismHit = cellAtClientPoint(clientX, clientY);
+    if (prismHit) {
+      return { point: prismHit.point, entry: null, cell: prismHit.cell };
+    }
     var depthPoint = depthPointAtClientPoint(clientX, clientY);
-    return depthPoint ? { point: depthPoint, entry: null } : null;
+    return depthPoint ? { point: depthPoint, entry: null, cell: galaxyShape ? sectorCellAt(depthPoint) : null } : null;
   }
 
   // Only a double-click's FIRST click recenters (event.detail counts the
@@ -1490,7 +1646,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     var resolved = resolveClickTarget(event.clientX, event.clientY);
     if (resolved) {
-      centerOn(resolved.point, resolved.entry);
+      centerOn(resolved.point, resolved.entry, resolved.cell);
       lastCenterClickAt = Date.now();
     }
   });
