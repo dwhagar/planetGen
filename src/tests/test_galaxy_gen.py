@@ -69,11 +69,14 @@ def _layers(outer_ring_index, top_layer):
     return [(layer, outer_ring_index) for layer in range(top_layer, -top_layer - 1, -1)]
 
 
+WIDE_GALAXY_TOP_LAYER = 50
+
+
 def _plan_wide_galaxy(mysql_config):
     """Seeds a skeleton whose outline (layers +/-50, out to ring 999) holds
     every address these tests generate with an explicit --num-systems --
     generation now refuses any address outside the stored outline."""
-    _seed_skeleton(mysql_config, layers=_layers(999, 50))
+    _seed_skeleton(mysql_config, layers=_layers(999, WIDE_GALAXY_TOP_LAYER))
 
 
 def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_value=1.0, layers=()):
@@ -790,6 +793,8 @@ def test_random_start_mode_generates_a_seed_sector_and_its_neighborhood(mysql_co
         (ring_index, layer_index, slot_index)
         for ring_index, layer_index, slot_index, _x, _y, _z, _dist in
         enumerate_sectors_within_radius(seed_center, radius_pc, EDGE_PC)
+        # A seed on the outline's top or bottom layer loses the cells past it.
+        if abs(layer_index) <= WIDE_GALAXY_TOP_LAYER
     }
     actual_addresses = {_address(row) for row in sectors}
     assert actual_addresses == expected_addresses
