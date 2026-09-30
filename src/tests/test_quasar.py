@@ -116,7 +116,7 @@ def test_core_sector_quasar_is_stored_at_the_galactic_center(mysql_config, monke
 
 def test_only_the_first_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch):
     n_0 = ring_sector_count(0)
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=[(1, 0), (0, 0), (-1, 0)])
     monkeypatch.setattr(program_constants, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
     monkeypatch.setattr(
         generate, "generate_sector",

@@ -41,7 +41,7 @@ from stellarObjects.galaxyViewport import (  # noqa: E402
 )
 from stellarObjects.program_constants import GALAXY_RADIUS_PC  # noqa: E402
 
-EDGE_PC = 3.526
+EDGE_PC = 4.0
 
 
 def _empty_view(edge_pc=EDGE_PC, has_shape=False):
@@ -137,7 +137,8 @@ def test_panel_embeds_the_density_shape_for_the_prisms():
     shape = {field: float(i + 1) for i, field in enumerate(DENSITY_SHAPE_FIELDS)}
     shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
     data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
-    assert data["densityShape"] == {field: shape[field] for field in DENSITY_SHAPE_FIELDS}
+    assert data["densityShape"] == dict({field: shape[field] for field in DENSITY_SHAPE_FIELDS},
+                                        sector_min_density=pytest.approx(1 / 9.0))
 
 
 def test_panel_has_no_density_shape_without_a_skeleton():

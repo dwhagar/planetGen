@@ -58,7 +58,7 @@ try:
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching every other page's identical pattern.
-    DEFAULT_SECTOR_EDGE_LY = 11.5
+    DEFAULT_SECTOR_EDGE_LY = 13.046  # 4 pc
     pc_to_ly = None
     def ly_to_pc(ly):
         return ly / 3.2616

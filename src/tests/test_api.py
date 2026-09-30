@@ -1286,9 +1286,12 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     from stellarObjects.galaxyGeometry import sector_position_pc
     from stellarObjects.utils import ly_to_pc
 
-    edge_pc = ly_to_pc(11.5)
+    from stellarObjects import program_constants
+
+    edge_pc = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
     center = sector_position_pc(3, -1, 5, edge_pc)
-    sector_id = _place_sector(mysql_config, "Cell Sector", center, edge_ly=11.5, address=(3, -1, 5))
+    sector_id = _place_sector(mysql_config, "Cell Sector", center, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY,
+                              address=(3, -1, 5))
 
     by_address = client.get("/api/galaxy/cell?ring=3&layer=-1&slot=5").get_json()
     assert (by_address["ring_index"], by_address["layer_index"], by_address["ring_slot_index"]) == (3, -1, 5)

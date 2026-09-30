@@ -157,9 +157,13 @@ the same code path — the only difference is a real galaxy-frame position
 (and, in turn, the same sparse exotic-phenomena population every sector
 gets — see "Sector-Level Exotic Phenomena" above).
 
-Sectors sit on a cylindrical grid: rings 11.5 ly wide around the galactic
-axis, layers 11.5 ly tall (layer 0 centered on the galactic plane), and each
-ring cut into wedge-shaped slots about 11.5 ly across. `--ring I` generates
+Sectors sit on a cylindrical grid with one standard sector size, 4 parsecs
+(about 13 ly): the galaxy is a stack of flat layers 4 pc tall (layer 0
+centered on the galactic plane), each cut into rings 4 pc wide around the
+galactic axis, and each ring cut into wedge-shaped slots about 4 pc across.
+A ring has the same slots on every layer, so sectors line up in vertical
+columns. Each layer reaches out only as far as the galaxy still expects at
+least one star per sector. `--ring I` generates
 one whole layer of a ring (layer 0 unless `--layer J` is given), and adding
 `--slot K` generates just that one sector.
 
@@ -182,7 +186,8 @@ volume-weighted random draw favors the sparser outskirts to begin with.
 
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
-row plus one row per ring, naming the layers that can hold anything) that `generate.py galaxy` consults to decide, per
+row plus one row per layer, from the top of the galaxy to the bottom, naming
+the last ring that layer reaches) that `generate.py galaxy` consults to decide, per
 address, whether anything exists there at all before generating it lazily
 on demand.
 

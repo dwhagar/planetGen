@@ -44,7 +44,7 @@ sections build on earlier ones):
    is this same per-sector logic exposed as a non-CLI, visit-triggered
    entry point against the galaxy skeleton section 4 builds.
 4. Galaxy density skeleton (`plan`) -- the compact `galaxy_shape`/
-   `galaxy_ring_band` summary `ensure_sector_generated` consults to
+   `galaxy_layer` summary (the galaxy's outline, one row per layer) `ensure_sector_generated` consults to
    decide, cheaply and exactly, whether a given address is worth
    generating at all, without ever enumerating the galaxy's ~10 billion
    candidate sector slots.
@@ -88,7 +88,7 @@ from stellarObjects.galaxyGeometry import (
     provisional_sector_designation, ring_bounds_pc, ring_sector_count, sector_position_pc,
 )
 from stellarObjects.galaxySkeleton import (
-    DEFAULT_EMPTY_STREAK_TO_STOP, DEFAULT_MAX_RING, build_ring_bands, expected_system_count_at_density_1,
+    DEFAULT_MAX_RING, build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.quasarData import Quasar
@@ -1085,14 +1085,14 @@ def run_sector(args):
 
 LARGE_RING_WARNING_THRESHOLD = 2000
 """int: `--ring I` requires `--limit` or `--yes` when ring `I` holds more
-slots than this (see `ring_sector_count`) -- about ring 318, ~3,700 ly
+slots than this (see `ring_sector_count`) -- about ring 318, ~4,200 ly
 out. Anything larger takes a real, unbounded amount of time and disk, so
 it needs an explicit choice."""
 
 RANDOM_START_MAX_HEIGHT_PC = 1000.0
 """float: How far above or below the plane random-start mode draws its
 seed sector, parsecs -- a generous thick-disk half-height. Draws outside
-the stored skeleton's band are simply retried."""
+the stored skeleton's layers are simply retried."""
 
 
 def add_galaxy_arguments(parser):
@@ -1249,18 +1249,18 @@ class _BatchDensity:
     deliberate, uniform override for the whole run.
 
     Otherwise `resolve` also applies `ensure_sector_generated`'s
-    qualification gate (the stored ring band, then the exact
+    qualification gate (the stored layer extent, then the exact
     `predicted_star_count`), returning `None` for an address that doesn't
     qualify, so batch runs never save all-but-certainly-empty sectors.
 
-    The skeleton is fetched once, on first use, and each ring's band is
-    cached -- neither changes mid-run.
+    The skeleton is fetched once, on first use, and each layer's outer
+    ring is cached -- neither changes mid-run.
     """
 
     def __init__(self, config):
         self._config = config
         self._skeleton = None
-        self._bands_cache = {}
+        self._layer_cache = {}
 
     def _get_skeleton(self):
         if self._skeleton is None:
@@ -1277,14 +1277,14 @@ class _BatchDensity:
                 )
         return self._skeleton
 
-    def _get_band(self, ring_index):
-        if ring_index not in self._bands_cache:
+    def _get_outer_ring(self, layer_index):
+        if layer_index not in self._layer_cache:
             conn = _db.get_connection(self._config)
             try:
-                self._bands_cache[ring_index] = _db.get_galaxy_ring_band(conn, ring_index)
+                self._layer_cache[layer_index] = _db.get_galaxy_layer_outer_ring(conn, layer_index)
             finally:
                 conn.close()
-        return self._bands_cache[ring_index]
+        return self._layer_cache[layer_index]
 
     def resolve(self, args, address, position_pc):
         """
@@ -1297,7 +1297,7 @@ class _BatchDensity:
         Returns:
             argparse.Namespace or None: `args` itself when a density/count
                 was given explicitly. Otherwise `None` if this address
-                doesn't qualify (outside its ring's stored band, or its own
+                doesn't qualify (outside its layer's stored extent, or its own
                 exact `predicted_star_count < 1.0`), else a fresh copy with
                 `.density` set to this position's own `relative_density`
                 and `.num_systems` cleared.
@@ -1306,8 +1306,8 @@ class _BatchDensity:
             return args
         skeleton = self._get_skeleton()
 
-        band = self._get_band(address[0])
-        if band is None or not (band[0] <= address[1] <= band[1]):
+        outer_ring = self._get_outer_ring(address[1])
+        if outer_ring is None or address[0] > outer_ring:
             return None
 
         star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
@@ -1323,10 +1323,11 @@ class _BatchDensity:
 def _edge_pc():
     """
     The sector edge length used for every grid computation, in parsecs --
-    `program_constants.DEFAULT_SECTOR_EDGE_LY` converted (sector edge
-    length is not an exposed CLI option for `galaxy`).
+    the one standard, `program_constants.DEFAULT_SECTOR_EDGE_PC` (not a
+    CLI option for `galaxy` or `plan`, so the grid and the skeleton always
+    agree).
     """
-    return ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+    return float(program_constants.DEFAULT_SECTOR_EDGE_PC)
 
 
 def generate_and_save_sector_at(args, address, position_pc, edge_pc):
@@ -1444,20 +1445,20 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
                 "'generate.py plan' first."
             )
 
-        band = _db.get_galaxy_ring_band(conn, ring_index)
+        outer_ring = _db.get_galaxy_layer_outer_ring(conn, layer_index)
     finally:
         conn.close()
 
     position_pc = sector_position_pc(ring_index, layer_index, ring_slot_index, skeleton.edge_pc)
-    if band is None or not (band[0] <= layer_index <= band[1]):
-        # Outside the ring's stored band -- galaxySkeleton.find_ring_band's
-        # bound is exact, so this is a certain "no".
+    if outer_ring is None or ring_index > outer_ring:
+        # Past the layer's stored outer ring -- galaxySkeleton's bound is
+        # exact, so this is a certain "no".
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
     density = relative_density(position_pc, skeleton.shape)
     star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
     if star_count < 1.0:
-        # Inside the band (a safe superset) but this slot's own angle
+        # Inside the layer (a safe superset) but this slot's own angle
         # didn't clear the exact threshold.
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
@@ -1551,7 +1552,7 @@ def run_ring_batch(args, edge_pc, progress):
         sector_args = batch_density.resolve(args, address, position_pc)
         if sector_args is None:
             log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside the ring's stored band)")
+                      f"outside its layer's stored extent)")
             skipped += 1
             progress.update(outer_task, advance=1)
             continue
@@ -1640,7 +1641,7 @@ def run_local_neighborhood(args, edge_pc, progress):
         sector_args = batch_density.resolve(args, address, (x, y, z))
         if sector_args is None:
             log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside the ring's stored band)")
+                      f"outside its layer's stored extent)")
             skipped += 1
             progress.update(outer_task, advance=1)
             continue
@@ -1859,7 +1860,7 @@ def run_single_slot(args, edge_pc, progress):
         log.error(
             f"{_format_address(address)} doesn't qualify -- it would hold no real content at this "
             f"galaxy's own predicted density (below the 1-star-per-sector threshold, or outside the "
-            f"ring's stored band)."
+            f"layer's stored extent)."
         )
         raise SystemExit(1)
 
@@ -1936,15 +1937,8 @@ def add_plan_arguments(parser):
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
                                   "Defaults to build_galaxy_shape's own default (2.82x disk scale length).")
 
-    parser.add_argument('--edge-ly', type=float, default=program_constants.DEFAULT_SECTOR_EDGE_LY,
-                        help=f"Sector edge length (ring width and layer height), light-years. Default: "
-                             f"{program_constants.DEFAULT_SECTOR_EDGE_LY}.")
-    parser.add_argument('--empty-streak-to-stop', type=int, default=DEFAULT_EMPTY_STREAK_TO_STOP,
-                        help=f"Consecutive empty rings before concluding the galaxy's edge has been "
-                             f"reached. Default: {DEFAULT_EMPTY_STREAK_TO_STOP}.")
     parser.add_argument('--max-ring', type=int, default=DEFAULT_MAX_RING,
-                        help=f"Hard cap on rings scanned, regardless of --empty-streak-to-stop. "
-                             f"Default: {DEFAULT_MAX_RING}.")
+                        help=f"Hard cap on how far out a layer is scanned. Default: {DEFAULT_MAX_RING}.")
     _db.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1960,8 +1954,6 @@ def validate_plan_args(args, parser):
     """
     if args.arm_amplitude < 0 or args.arm_amplitude >= 1:
         parser.error("--arm-amplitude must be in [0, 1).")
-    if args.empty_streak_to_stop < 1:
-        parser.error("--empty-streak-to-stop must be a positive integer.")
     if args.max_ring < 1:
         parser.error("--max-ring must be a positive integer.")
 
@@ -1970,22 +1962,24 @@ def build_skeleton(args):
     """
     Builds and persists the galaxy's skeleton: `galaxy_shape` (the shape
     parameters, calibration constant, edge length and outer ring -- one
-    singleton row) and `galaxy_ring_band` (one row per ring that can hold
-    content: its layer range, see `galaxySkeleton.find_ring_band`).
+    singleton row) and `galaxy_layer` (the galaxy's outline: one row per
+    layer, highest to lowest, holding the last ring that layer reaches --
+    see `galaxySkeleton.build_layer_extents`). The edge is always the
+    standard `program_constants.DEFAULT_SECTOR_EDGE_PC`.
 
     No sector content or individual addresses are stored -- that stays
     lazy (`ensure_sector_generated`). Re-running replaces the whole
-    skeleton; a full Milky-Way-scale build takes about half a second.
+    skeleton; a full Milky-Way-scale build takes a few milliseconds.
 
     Args:
         args (argparse.Namespace): Parsed arguments.
 
     Returns:
-        dict: `rings_scanned`, `outer_ring_index`, `total_bands`,
+        dict: `outer_ring_index`, `layer_count`, `top_layer_index`,
               `total_candidate_sectors`, `elapsed_s`, `edge_confirmed`.
     """
-    edge_pc = ly_to_pc(args.edge_ly)
-    e_value = expected_system_count_at_density_1(args.edge_ly)
+    edge_pc = _edge_pc()
+    e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
     threshold_rho = 1.0 / e_value
 
     shape = build_galaxy_shape(
@@ -2000,7 +1994,7 @@ def build_skeleton(args):
     )
 
     log.normal(
-        f"Building skeleton: disk_scale_length_pc={shape.disk_scale_length_pc} "
+        f"Building skeleton: edge_pc={edge_pc:g} disk_scale_length_pc={shape.disk_scale_length_pc} "
         f"disk_scale_height_pc={shape.disk_scale_height_pc} "
         f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc} "
         f"bulge_amplitude={shape.bulge_amplitude} arm_count={shape.arm_count} "
@@ -2008,26 +2002,23 @@ def build_skeleton(args):
     )
 
     t0 = time.perf_counter()
-    bands, outer_ring_index, edge_confirmed = build_ring_bands(
-        shape, edge_pc, threshold_rho,
-        empty_streak_to_stop=args.empty_streak_to_stop, max_ring=args.max_ring,
+    extents, outer_ring_index, edge_confirmed = build_layer_extents(
+        shape, edge_pc, threshold_rho, max_ring=args.max_ring,
     )
     elapsed = time.perf_counter() - t0
 
     mysql_config = _db.mysql_config_from_args(args)
-    _db.replace_galaxy_ring_bands(bands, config=mysql_config)
+    _db.replace_galaxy_layers(extents, config=mysql_config)
     _db.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_ring_index=outer_ring_index,
         expected_system_count_at_density_1=e_value, config=mysql_config,
     )
 
-    rings_scanned = (outer_ring_index + 1 + args.empty_streak_to_stop) if edge_confirmed else args.max_ring + 1
-    total_candidate_sectors = sum((hi - lo + 1) * ring_sector_count(ring) for ring, lo, hi in bands)
     return {
-        "rings_scanned": rings_scanned,
         "outer_ring_index": outer_ring_index,
-        "total_bands": len(bands),
-        "total_candidate_sectors": total_candidate_sectors,
+        "layer_count": len(extents),
+        "top_layer_index": extents[0][0] if extents else None,
+        "total_candidate_sectors": candidate_sector_count(extents),
         "elapsed_s": elapsed,
         "edge_confirmed": edge_confirmed,
     }
@@ -2042,17 +2033,19 @@ def run_plan(args):
             "plan"`).
     """
     summary = build_skeleton(args)
+    if summary["layer_count"]:
+        layers = f"{summary['layer_count']} layers ({summary['top_layer_index']} to {-summary['top_layer_index']})"
+    else:
+        layers = "no layers (nothing clears the one-star-per-sector threshold)"
     log.normal(
-        f"Skeleton built in {summary['elapsed_s']:.2f}s: scanned {summary['rings_scanned']} rings, "
-        f"outer edge = ring {summary['outer_ring_index']}, {summary['total_bands']} band(s) stored, "
-        f"~{summary['total_candidate_sectors']:,} candidate sectors."
+        f"Skeleton built in {summary['elapsed_s']:.2f}s: {layers}, outer edge = ring "
+        f"{summary['outer_ring_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
         log.normal(
-            f"WARNING: reached --max-ring ({args.max_ring}) without a run of "
-            f"{args.empty_streak_to_stop} consecutive empty rings -- the galaxy's true edge was not "
-            f"confirmed. Re-run with a larger --max-ring if these shape parameters really do produce "
-            f"a galaxy this large."
+            f"WARNING: the galactic plane still qualified at --max-ring ({args.max_ring}) -- the "
+            f"galaxy's true edge was not reached. Re-run with a larger --max-ring if these shape "
+            f"parameters really do produce a galaxy this large."
         )
 
 

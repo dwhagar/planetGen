@@ -15,6 +15,7 @@ import subprocess
 import pytest
 
 from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density
+from stellarObjects.galaxyGeometry import ring_sector_count
 
 NODE = shutil.which("node")
 MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static", "galaxyprisms.js")
@@ -22,7 +23,7 @@ MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", 
 pytestmark = pytest.mark.skipif(NODE is None, reason="node is not installed")
 
 SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)
-EDGE_PC = 3.526
+EDGE_PC = 4.0
 GALAXY_RADIUS_PC = 24000.0
 
 
@@ -185,4 +186,28 @@ console.log(JSON.stringify({positions: Array.from(g.positions), normals: Array.f
 def test_wedge_counts_follow_the_cylindrical_sector_rule():
     rings = list(range(0, 40)) + [100, 1234]
     got = _run(f"console.log(JSON.stringify({json.dumps(rings)}.map(i => P.azimuthSegments(i))));")
-    assert got == [4 * max(1, round(2 * math.pi * (i + 0.5) / 4)) for i in rings]
+    assert got == [ring_sector_count(i) for i in rings]
+
+
+@pytest.mark.parametrize("center, view_radius", [((0.0, 0.0, 1268.0), 30.0), ((15420.0, 0.0, 0.0), 30.0)])
+def test_one_sector_prisms_outline_exactly_the_skeletons_layers(center, view_radius):
+    # With the galaxy's sector threshold, a single-sector prism is drawn
+    # exactly when build_layer_extents' bound lets that sector exist.
+    from stellarObjects.galaxySkeleton import bound_relative_density_at, expected_system_count_at_density_1
+    from stellarObjects.utils import pc_to_ly
+
+    threshold = 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))
+    out = _run(f"""
+const s = Object.assign({{}}, shape, {{sector_min_density: {threshold}}});
+console.log(JSON.stringify(P.prismsInView({json.dumps(center)}, {view_radius}, 1, {EDGE_PC}, s, {GALAXY_RADIUS_PC}, new Map())));
+""")
+    drawn = {(p["ring"], p["slab"]) for p in out}
+    everything = _run(f"""
+const s = Object.assign({{}}, shape, {{sector_min_density: 1e-30}});
+console.log(JSON.stringify(P.prismsInView({json.dumps(center)}, {view_radius}, 1, {EDGE_PC}, s, {GALAXY_RADIUS_PC}, new Map())));
+""")
+    candidates = {(p["ring"], p["slab"]) for p in everything}
+    assert drawn and candidates - drawn  # the view straddles the galaxy's edge
+    for ring, layer in candidates:
+        qualifies = bound_relative_density_at(SHAPE, (ring + 0.5) * EDGE_PC, layer * EDGE_PC) >= threshold
+        assert ((ring, layer) in drawn) == qualifies

@@ -22,8 +22,8 @@
 --   - SECTOR-SCALE PLACEMENT (`_mpc` suffix): star_systems.position_x/y/z
 --     and sectors.edge -- where a system sits within its sector. Kept in
 --     milliparsecs rather than km specifically because this is the one
---     place km's numbers get unwieldy (an 11.5-ly sector edge is
---     ~1.09e14 km vs. ~3526 mpc) and because sector geometry has no other
+--     place km's numbers get unwieldy (a 4-pc sector edge is
+--     ~1.23e14 km vs. 4000 mpc) and because sector geometry has no other
 --     unit competing for consistency the way orbital distances do (every
 --     orbital-scale quantity already shares km with radius/volume, so
 --     there's no benefit standardizing sector geometry to km too).
@@ -454,7 +454,7 @@
 --   use of the `sector_id` column v16/v17 left "reserved for a future
 --   sector-context encounter" on both tables. A nebula/asteroid field is
 --   frequently far larger than a single sector's cube (an emission nebula
---   can span up to 200 ly; the default sector edge is 11.5 ly), so unlike
+--   can span up to 200 ly; the default sector edge is 4 pc, ~13 ly), so unlike
 --   `star_systems.position_x/y/z_mpc` (relative to one owning sector's own
 --   center) these are placed directly in the same galaxy-frame Cartesian
 --   space `sectors.center_x/y/z_pc` already uses (`docs/design/
@@ -754,6 +754,18 @@
 --   and rebuilds the skeleton from the stored shape; visiting the galaxy
 --   regenerates them. Standalone (never placed) sectors are untouched.
 --
+-- v33: one sector standard (see docs/design/galaxy-coordinate-system.md,
+--   "Sector size" and "Layers"). The edge is a whole number of parsecs,
+--   4 pc (~13.05 ly) by default, instead of 11.5 ly; ring `i` holds
+--   `round(2*pi*(i + 1/2))` slots (3, 9, 16, 22, ...) instead of a
+--   multiple of 4, identical on every layer so columns line up; and the
+--   skeleton is stored per layer instead of per ring: `galaxy_ring_band`
+--   becomes `galaxy_layer`, one row per layer from the highest to the
+--   lowest holding the last ring that layer reaches. Almost every address
+--   changes, so `_migrate_v32_to_v33` deletes every galaxy-placed sector
+--   with its systems and phenomena (as v32 did) and rebuilds the skeleton
+--   from the stored shape at the standard edge.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -868,11 +880,12 @@ CREATE TABLE IF NOT EXISTS sectors (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- galaxy_shape / galaxy_ring_band -- the galaxy-wide density "skeleton"
--- (v8, re-keyed to rings in v30 -- see the header comment's notes).
+-- galaxy_shape / galaxy_layer -- the galaxy-wide density "skeleton"
+-- (v8, re-keyed to rings in v32 and to layers in v33 -- see the header
+-- comment's notes).
 -- `galaxy_shape` is a singleton (`id` pinned to 1, enforced by the CHECK)
 -- -- there is exactly one galaxy. Building or rebuilding the skeleton
--- (`generate.py plan`) replaces this row and every `galaxy_ring_band` row
+-- (`generate.py plan`) replaces this row and every `galaxy_layer` row
 -- wholesale; neither
 -- table is ever partially updated.
 -- ---------------------------------------------------------------------
@@ -904,22 +917,22 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- fact, not worth re-deriving from edge_pc on every call.
     expected_system_count_at_density_1  DOUBLE NOT NULL,
 
-    -- The last ring with any qualifying content -- this galaxy's real
-    -- edge, found by `generate.py plan` (a run of consecutive empty rings
-    -- beyond it), not picked as an arbitrary radius. (v30; was
-    -- `outer_shell_index`.)
+    -- The last ring with any qualifying content (the plane's layer reaches
+    -- farthest) -- this galaxy's real edge, found by `generate.py plan`,
+    -- not picked as an arbitrary radius. (v32; was `outer_shell_index`.)
     outer_ring_index            INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- One row per ring that could hold content (v30; replaces v8's
--- `galaxy_shell_band`): the inclusive range of layers whose sector centers
--- can clear the qualification threshold for some angle
--- (`galaxySkeleton.find_ring_band`). Always symmetric about the plane. A
--- ring with no row has no content at all.
-CREATE TABLE IF NOT EXISTS galaxy_ring_band (
-    ring_index       INT NOT NULL PRIMARY KEY,
-    layer_index_min  INT NOT NULL,
-    layer_index_max  INT NOT NULL
+-- One row per layer that holds content (v33; replaces v32's
+-- `galaxy_ring_band`): the galaxy as a stack of circular slices, from the
+-- highest layer to the lowest. Each layer holds rings 0 through
+-- `outer_ring_index`, the last ring whose sector centers can clear the
+-- qualification threshold for some angle
+-- (`galaxySkeleton.build_layer_extents`). Always symmetric about the
+-- plane. A layer with no row has no content at all.
+CREATE TABLE IF NOT EXISTS galaxy_layer (
+    layer_index       INT NOT NULL PRIMARY KEY,
+    outer_ring_index  INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when

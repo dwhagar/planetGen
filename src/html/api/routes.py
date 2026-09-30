@@ -637,7 +637,7 @@ def galaxy_cell():
     `galaxyGeometry.describe_sector_cell` (center in Cartesian, cylindrical
     and spherical coordinates, bounds, 8 corners) plus `sector_id`, the
     generated sector there or `null`. Uses the stored skeleton's edge
-    length, else the default 11.5 ly.
+    length, else the standard 4 pc.
     """
     def number(name, cast):
         value = request.args.get(name)
@@ -650,7 +650,7 @@ def galaxy_cell():
 
     conn = get_db()
     skeleton = get_galaxy_shape(conn)
-    edge_pc = skeleton.edge_pc if skeleton else ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+    edge_pc = skeleton.edge_pc if skeleton else float(program_constants.DEFAULT_SECTOR_EDGE_PC)
     ring, layer, slot = number("ring", int), number("layer", int), number("slot", int)
     x, y, z = number("x", float), number("y", float), number("z", float)
     if None not in (ring, layer, slot):

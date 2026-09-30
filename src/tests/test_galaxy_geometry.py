@@ -18,7 +18,6 @@ import random
 import pytest
 
 from stellarObjects.galaxyGeometry import (
-    RING_SLOT_MULTIPLE,
     SectorCell,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
@@ -40,23 +39,23 @@ from stellarObjects.galaxyGeometry import (
     slot_angle_bounds,
 )
 
-EDGE_PC = 11.5 / 3.26156
+EDGE_PC = 4.0
 
 
 @pytest.mark.parametrize("ring_index, expected", [
-    (0, 4), (1, 8), (2, 16), (3, 20), (10, 64), (100, 632),
+    (0, 3), (1, 9), (2, 16), (3, 22), (10, 66), (100, 631),
 ])
-def test_ring_sector_count_rounds_centerline_circumference_to_a_multiple_of_4(ring_index, expected):
+def test_ring_sector_count_rounds_centerline_circumference_to_whole_edges(ring_index, expected):
     assert ring_sector_count(ring_index) == expected
 
 
-def test_ring_sector_count_is_always_a_positive_multiple_and_keeps_arcs_near_one_edge():
+def test_ring_sector_count_keeps_arcs_near_one_edge():
     for ring_index in range(0, 5000, 7):
         n = ring_sector_count(ring_index)
-        assert n >= RING_SLOT_MULTIPLE and n % RING_SLOT_MULTIPLE == 0
-        if ring_index >= 5:
-            arc_edges = 2 * math.pi * (ring_index + 0.5) / n
-            assert abs(arc_edges - 1.0) < 0.1
+        arc_edges = 2 * math.pi * (ring_index + 0.5) / n
+        assert abs(arc_edges - 1.0) < (0.05 if ring_index >= 1 else 0.05 + 0.01)
+        if ring_index >= 10:
+            assert abs(arc_edges - 1.0) < 0.01
 
 
 def test_ring_sector_count_rejects_negative_ring():
@@ -82,13 +81,13 @@ def test_slot_angle_bounds_tile_the_full_circle():
 
 def test_sector_position_pc_is_ring_centerline_slot_middle_layer_midplane():
     x, y, z = sector_position_pc(0, 2, 1, 2.0)
-    # Ring 0 has 4 slots; slot 1's middle is at 135 degrees, radius 1.
-    assert (x, y, z) == pytest.approx((-math.sqrt(0.5), math.sqrt(0.5), 4.0))
+    # Ring 0 has 3 slots; slot 1's middle is at 180 degrees, radius 1.
+    assert (x, y, z) == pytest.approx((-1.0, 0.0, 4.0))
 
 
 def test_sector_position_pc_rejects_out_of_range_slot():
     with pytest.raises(ValueError):
-        sector_position_pc(0, 0, 4, EDGE_PC)
+        sector_position_pc(0, 0, 3, EDGE_PC)
     with pytest.raises(ValueError):
         sector_position_pc(0, 0, -1, EDGE_PC)
 
@@ -207,9 +206,9 @@ def test_neighbor_addresses_match_brute_force_face_adjacency(address):
 
 
 def test_sector_zone_groups_rings_into_about_100_ly_bands():
-    assert sector_zone(0, 11.5) == 0
-    assert sector_zone(8, 11.5) == 0
-    assert sector_zone(9, 11.5) == 1
+    assert sector_zone(0, 13.05) == 0
+    assert sector_zone(7, 13.05) == 0
+    assert sector_zone(8, 13.05) == 1
     assert sector_zone(5, 200.0) == 5
 
 
@@ -218,7 +217,7 @@ def test_sector_quadrant_counts_counterclockwise_from_plus_x(x_pc, y_pc, expecte
     assert sector_quadrant(x_pc, y_pc) == expected
 
 
-@pytest.mark.parametrize("address", [(0, 0, 0), (0, -4096, 3), (4073, 340, 25000), (12, -7, 50), (1, 4095, 7)])
+@pytest.mark.parametrize("address", [(0, 0, 0), (0, -4096, 2), (3855, 317, 24000), (12, -7, 50), (1, 4095, 7)])
 def test_provisional_sector_designation_round_trips(address):
     code = provisional_sector_designation(*address)
     assert code == code.upper()
