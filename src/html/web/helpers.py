@@ -21,10 +21,7 @@ these:
 - `db_name()`: the one database this site shows, from config. Never read
   it from the request and never put it in a URL.
 - `page_url(name, **params)`: the URL of another page by its endpoint
-  name. Moved pages resolve through `url_for("web.<name>")`; pages still
-  served by CGI resolve through `LEGACY_PAGES` below. A page PR that moves
-  a page adds its route under the same endpoint name and deletes its
-  `LEGACY_PAGES` entry; every link to it then flips on its own.
+  name (`url_for("web.<name>")`).
 - `crumb(label, name=None, **params)`: one breadcrumb (the last one, the
   current page, takes no `name`).
 - `render_page(template, *, title, section=None, breadcrumbs=(), **ctx)`:
@@ -35,10 +32,8 @@ these:
   through this directly.
 - `current_admin()`: the logged-in admin (or `None`), looked up once per
   request.
-- `pager(...)`: `lib/pagination.render_pagination` in GET mode, as Markup.
+- `pager(...)`: `lib/pagination.render_pagination`, as Markup.
 """
-
-from urllib.parse import urlencode
 
 from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
@@ -47,19 +42,6 @@ import apiclient
 from api.authz import SESSION_COOKIE_NAME
 from pagination import render_pagination
 
-# ---------------------------------------------------------------------
-# Pages still served by CGI
-# ---------------------------------------------------------------------
-
-LEGACY_PAGES = {
-    # endpoint name: (CGI script, {page_url keyword: CGI parameter})
-}
-"""dict: Every page the Flask app links to that is still a CGI script.
-Links to them are plain GET links (`/<script>?db=<db>&...`): the CGI
-pages read their parameters with `page.nav_params()`, which falls back to
-the query string for a GET request. They are the one place the database
-name still appears in a URL, until each page moves. The page PRs delete
-entries here as they add the matching `web.<name>` route."""
 
 def db_name():
     """
@@ -73,7 +55,7 @@ def db_name():
 def page_url(name, _anchor=None, **params):
     """
     URL of another page, by endpoint name (`"index"`, `"sectors"`,
-    `"sector"`, ...), whether it has moved to Flask yet or not.
+    `"sector"`, ...).
 
     Args:
         name (str): The endpoint name without the `web.` prefix.
@@ -82,19 +64,11 @@ def page_url(name, _anchor=None, **params):
             query parameters. `None` values are dropped.
 
     Raises:
-        KeyError: For a name that is neither a route nor in
-            `LEGACY_PAGES` -- a typo should fail loudly in tests.
+        werkzeug.routing.BuildError: For a name that is not a route -- a
+            typo should fail loudly in tests.
     """
     params = {key: value for key, value in params.items() if value is not None}
-    endpoint = f"web.{name}"
-    if endpoint in current_app.view_functions:
-        return url_for(endpoint, _anchor=_anchor, **params)
-    script, translation = LEGACY_PAGES[name]
-    query = [("db", db_name())]
-    for key, value in params.items():
-        query.append((translation.get(key, key), value))
-    url = f"/{script}?{urlencode(query)}"
-    return f"{url}#{_anchor}" if _anchor else url
+    return url_for(f"web.{name}", _anchor=_anchor, **params)
 
 
 def crumb(label, name=None, _anchor=None, **params):
@@ -129,7 +103,7 @@ def pager(page_param, page, total, anchor=None, label="Pages", keep=None):
     """
     keep = {key: value for key, value in (keep or {}).items() if value not in (None, "", 1)}
     return Markup(render_pagination(
-        request.path, keep, page_param, page, total, anchor=anchor, label=label, method="get",
+        request.path, keep, page_param, page, total, anchor=anchor, label=label,
     ))
 
 

@@ -81,9 +81,9 @@ def _location_html(system):
         return None
     neighbors = system.get("nearest_neighbors")
     if neighbors:
-        return trusted_html(nearest_neighbors_location(None, system["location"], neighbors, system_url=_system_url))
+        return trusted_html(nearest_neighbors_location(system["location"], neighbors, _system_url))
     name_to_id = {row["name"]: row["id"] for row in system.get("sector_siblings") or []}
-    return trusted_html(linkify_location(None, system["location"], name_to_id, system_url=_system_url))
+    return trusted_html(linkify_location(system["location"], name_to_id, _system_url))
 
 
 def _system_crumbs(system):
@@ -398,7 +398,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
     # Offered for every type: nav.py itself says when a phenomenon was
     # never placed in the galaxy.
     map_html = render_phenomenon_map_panel(
-        phenomenon_type, detail["name"], detail.get("radius_ly") or 0, include_scripts=False,
+        phenomenon_type, detail["name"], detail.get("radius_ly") or 0,
     )
     return render_page(
         "phenomenon.html",

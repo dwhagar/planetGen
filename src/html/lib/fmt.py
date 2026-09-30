@@ -1,7 +1,7 @@
 # html/lib/fmt.py
 
 """
-Small, dependency-free formatting/escaping helpers shared by every script
+Small, dependency-free formatting/escaping helpers shared by every page
 in `html/` -- what's left of the old `dbutil.py` once its database-access
 functions moved out: every page now fetches its data from the planetGen
 API (`html/lib/apiclient.py`) instead of querying MySQL directly, so this
@@ -10,7 +10,6 @@ never a database row or connection.
 """
 
 import html
-import json
 import math
 import os
 import re
@@ -90,86 +89,11 @@ def esc(value):
     return html.escape(str(value), quote=True)
 
 
-def post_link(action, params, label, css_class="", attrs=""):
-    """
-    Builds a same-effect replacement for `<a href="{action}?{a query
-    string built from params}">{label}</a>` that carries `params` as
-    hidden POST fields instead -- so following it never puts them in the
-    browser's own address bar the way a plain link's target URL always
-    does. The submit button is styled (`static/style.css`'s `.link-btn`,
-    plus whatever `css_class` adds -- `.badge`/`.tag`/`.sidenav-item`/
-    etc. all already style a plain class, not specifically an `<a>`, so
-    they apply here unchanged) to be visually indistinguishable from the
-    `<a>` it replaces. The wrapping `<form>` reuses `.table-form`'s own
-    `display: inline` so it flows inline exactly like a link would, inside
-    a table cell, breadcrumb, or badge.
-
-    A page reads a followed link's `params` back via `page.nav_params()`/
-    `page.nav_multi_params()`, not `page.query_params()` -- see those
-    functions.
-
-    Args:
-        action (str): The bare target script, e.g. `"system.py"` -- never
-                      a query string; that's what `params` replaces.
-        params (dict or list[tuple]): `name: value` hidden fields -- every
-                       value is escaped here, so callers pass raw values.
-                       A `dict` covers every single-valued case (most
-                       callers); `search.py`'s own repeated tag-facet
-                       fields (several values under the same name, e.g.
-                       two `type` filters at once) need a list of `(name,
-                       value)` pairs instead, since a `dict` can't hold
-                       more than one value per key.
-        label (str): Pre-built label HTML (already escaped by the caller,
-                     same convention as every other f-string in `html/` --
-                     this may legitimately contain markup, e.g. a
-                     `<span class="tag-count">`).
-        css_class (str): Extra class(es) on the submit button, alongside
-                         the shared `link-btn` reset.
-        attrs (str): Extra raw HTML attributes on the submit button (e.g.
-                     a `title="..."` tooltip).
-
-    Returns:
-        str: A complete `<form>` element.
-    """
-    items = params.items() if isinstance(params, dict) else params
-    hidden = "".join(
-        f'<input type="hidden" name="{esc(str(k))}" value="{esc(str(v))}">'
-        for k, v in items
-    )
-    klass = esc(f"link-btn {css_class}".strip())
-    extra = f" {attrs}" if attrs else ""
-    return (
-        f'<form method="post" action="{esc(action)}" class="table-form">{hidden}'
-        f'<button type="submit" class="{klass}"{extra}>{label}</button></form>'
-    )
-
-
-def data_nav_params(params):
-    """
-    HTML-attribute-escaped JSON for a `data-nav-params` attribute --
-    `static/navform.js`'s delegated click handler reads this (alongside a
-    `data-nav-target`) off any element that still has to navigate via a
-    real `<a>`/clickable marker rather than `page.post_link`'s own
-    `<form>` (a `<form>` can't nest inside an SVG shape the way a Galaxy
-    Map/Sector Map/NAV Map marker does -- see `lib/galaxymap.py`/
-    `lib/starmap.py`/`lib/navmap.py`), and POSTs it instead of putting it
-    in the address bar the way following a plain `href` would.
-
-    Args:
-        params (dict): `name: value` hidden fields to post on click.
-
-    Returns:
-        str: Escaped JSON, safe to interpolate directly into a
-            double-quoted HTML attribute.
-    """
-    return esc(json.dumps(params, separators=(",", ":")))
-
-
 _LOCATION_NEIGHBOR_MARKER = " -- nearest: "
 _LOCATION_NEIGHBOR_RE = re.compile(r'^(.*) (\([\d.]+ ly\))$')
 
 
-def linkify_location(db_name, location, name_to_id, system_url=None):
+def linkify_location(location, name_to_id, system_url):
     """
     HTML-escapes a `star_systems.location` string and turns each nearest-
     neighbor name it lists into a link to that system's page.
@@ -186,16 +110,12 @@ def linkify_location(db_name, location, name_to_id, system_url=None):
     plain escaped text rather than guessed at.
 
     Args:
-        db_name (str): The current `?db=` value, for linking to each
-                       neighbor's own `system.py` page.
         location (str): The raw `star_systems.location` value.
         name_to_id (dict[str, int]): Every `star_systems.name` -> `id` in
                                      the same sector, for resolving each
                                      neighbor name to a link target.
-        system_url (callable, optional): `system_url(system_id)` -> URL.
-                       When given (the Flask pages), each neighbor is a
-                       plain `<a href>` to that URL and `db_name` is
-                       unused; otherwise a `post_link` to `system.py`.
+        system_url (callable): `system_url(system_id)` -> the URL each
+                       neighbor links to.
 
     Returns:
         str: HTML-safe markup, neighbor names linked where resolvable.
@@ -213,10 +133,7 @@ def linkify_location(db_name, location, name_to_id, system_url=None):
         system_id = name_to_id.get(name) if name is not None else None
         if match and system_id is not None:
             distance = match.group(2)
-            if system_url is not None:
-                link = f'<a href="{esc(system_url(system_id))}">{esc(name)}</a>'
-            else:
-                link = post_link("system.py", {"db": db_name, "id": system_id}, esc(name))
+            link = f'<a href="{esc(system_url(system_id))}">{esc(name)}</a>'
             linked_entries.append(f'{link} {esc(distance)}')
         else:
             linked_entries.append(esc(entry))
@@ -224,34 +141,27 @@ def linkify_location(db_name, location, name_to_id, system_url=None):
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(linked_entries)
 
 
-def nearest_neighbors_location(db_name, location, neighbors, system_url=None):
+def nearest_neighbors_location(location, neighbors, system_url):
     """
     The "Location:" text for a system page, built from live
     `queryDb.system_detail` `nearest_neighbors` data: the sector name
     (the stored `location` string's own prefix) followed by each nearest
-    neighbor as a link to its own `system.py` page with its distance.
+    neighbor as a link to its own system page with its distance.
     Every neighbor here has a real id, so every one is linked, unlike
     `linkify_location`, which can only link names that still match a row.
 
     Args:
-        db_name (str): The current `?db=` value.
         location (str): The raw `star_systems.location` value (only its
                         sector-name prefix is used).
         neighbors (list[dict]): `{id, name, distance_ly}`, nearest first.
-        system_url (callable, optional): As for `linkify_location`: when
-                       given, each neighbor is a plain `<a href>` to
-                       `system_url(id)` and `db_name` is unused.
+        system_url (callable): As for `linkify_location`.
 
     Returns:
         str: HTML-safe markup.
     """
     prefix = (location or "").split(_LOCATION_NEIGHBOR_MARKER, 1)[0]
-    def _link(n):
-        if system_url is not None:
-            return f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a>'
-        return post_link("system.py", {"db": db_name, "id": n["id"]}, esc(n["name"]))
-
-    entries = [f'{_link(n)} ({n["distance_ly"]:.1f} ly)' for n in neighbors]
+    entries = [f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a> ({n["distance_ly"]:.1f} ly)'
+               for n in neighbors]
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
 
 

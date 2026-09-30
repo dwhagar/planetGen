@@ -3,7 +3,7 @@
 """
 Property-based / brute-force tests for the text/HTML rendering layer:
 `html/lib/mdconvert.py`, `html/lib/fmt.py`, `html/lib/pagination.py`,
-`html/lib/tabledisplay.py`, the pure helpers in `html/lib/page.py`, and
+`html/lib/tabledisplay.py`, and
 `stellarObjects/systemRender.py`.
 
 Main invariants, checked structurally with `html.parser` rather than by
@@ -19,7 +19,6 @@ Same `sys.path` setup as `test_pagination.py`/`test_page_shell.py`. See
 """
 
 import html
-import io
 import json
 import math
 import os
@@ -37,10 +36,9 @@ sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import fmt  # noqa: E402
 import mdconvert  # noqa: E402
-import page  # noqa: E402
 import pagination  # noqa: E402
 import tabledisplay  # noqa: E402
-from stellarObjects import appconfig, systemRender  # noqa: E402
+from stellarObjects import systemRender  # noqa: E402
 from stellarObjects.config import SystemConfig  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled  # noqa: E402
@@ -448,120 +446,6 @@ def test_formatters_survive_non_finite_and_subnormal_values(value):
     for formatter in (tabledisplay.format_star_mass, tabledisplay.format_star_luminosity,
                       tabledisplay.format_star_radius, lambda v: tabledisplay.format_body_distance(v, True)):
         assert isinstance(formatter(value), str)
-
-
-# ---------------------------------------------------------------------------
-# page.py helpers
-# ---------------------------------------------------------------------------
-
-class _Stdout(io.StringIO):
-    def reconfigure(self, **kwargs):
-        pass
-
-
-def _capture(call):
-    out, real = _Stdout(), sys.stdout
-    sys.stdout = out
-    try:
-        call()
-    except SystemExit:
-        pass
-    finally:
-        sys.stdout = real
-    return out.getvalue()
-
-
-_SECRET = st.sampled_from(page._SECRET_FIELD_WORDS)
-
-
-@given(fields=st.dictionaries(hostile_text, st.lists(hostile_text, max_size=2), max_size=6),
-       secret_names=st.lists(st.tuples(hostile_text, _SECRET, hostile_text,
-                                       st.sampled_from([str.upper, str.lower, str.title, str])),
-                             max_size=4),
-       secret_value=st.text(min_size=8, max_size=20))
-def test_redact_fields_withholds_every_credential_like_field(fields, secret_names, secret_value):
-    fields = dict(fields)
-    for before, word, after, case in secret_names:
-        fields[before + case(word) + after] = [secret_value]
-    out = page._redact_fields(fields)
-    assert set(out) == set(fields)
-    for name, values in fields.items():
-        if any(word in name.lower() for word in page._SECRET_FIELD_WORDS):
-            assert out[name] == "<withheld>"
-            assert secret_value not in repr(out[name])
-        else:
-            assert out[name] == values
-
-
-def _env(**values):
-    base = {"REQUEST_METHOD": "GET", "QUERY_STRING": "", "CONTENT_LENGTH": "0"}
-    base.update(values)
-    return mock.patch.dict(os.environ, base)
-
-
-@given(query=hostile_text.map(lambda q: q.replace("\x00", "")))
-def test_query_params_never_raises(query):
-    with _env(QUERY_STRING=query):
-        params = page.query_params()
-        multi = page.nav_multi_params()
-    assert all(isinstance(k, str) and isinstance(v, str) for k, v in params.items())
-    assert set(params) == set(multi)
-
-
-@given(value=st.one_of(st.integers(-10**6, 10**6).map(str), st.sampled_from(["", "0", "-1", "+3", " 4", "1e3",
-                                                                            "0x10", "NaN", "٣", "7"])))
-def test_moved_permanently_carries_only_positive_ascii_integers(value):
-    from urllib.parse import quote
-    with _env(QUERY_STRING=f"sectors_page={quote(value)}&db=x"), \
-            mock.patch.object(page, "start_request_log", lambda: None):
-        out = _capture(lambda: page.moved_permanently("/new", keep=("sectors_page",)))
-    location = re.search(r"Location: (.*)\r\n", out).group(1)
-    assert out.startswith("Status: 301 Moved Permanently\r\n")
-    assert "db=" not in location
-    if location != "/new":
-        from urllib.parse import unquote
-        carried = unquote(location.split("sectors_page=", 1)[1])
-        assert int(carried) > 0  # (a non-ASCII decimal like "٣" is fine: int() and Flask accept it)
-
-
-@given(value=hostile_text.map(lambda v: v.replace("\x00", "")))
-@example(value="²")         # "²".isdigit() is True, int("²") raises ValueError
-@example(value="9" * 5000)  # past int()'s digit limit -> ValueError
-@example(value="١٢")
-def test_moved_permanently_never_raises_on_any_value(value):
-    from urllib.parse import quote, unquote
-    with _env(QUERY_STRING=f"sectors_page={quote(value)}"), \
-            mock.patch.object(page, "start_request_log", lambda: None):
-        out = _capture(lambda: page.moved_permanently("/new", keep=("sectors_page",)))
-    location = re.search(r"Location: (.*)\r\n", out).group(1)
-    assert location == "/new" or re.fullmatch(r"/new\?sectors_page=[1-9][0-9]{0,17}", location)
-    if location != "/new":
-        assert unquote(location.split("=", 1)[1]) == value
-
-
-@settings(max_examples=scaled(30))
-@given(title=hostile_text, description=st.one_of(st.none(), hostile_text), message=hostile_text,
-       db=hostile_text)
-def test_render_error_escapes_title_description_message_and_db(tmp_path_factory, title, description, message, db):
-    missing = str(tmp_path_factory.getbasetemp() / "no-config.json")
-    from urllib.parse import quote
-    with _env(QUERY_STRING=f"db={quote(db)}"), mock.patch.object(appconfig, "CONFIG_PATH", missing), \
-            mock.patch.object(page, "auth_me", return_value=None), \
-            mock.patch.object(page, "start_request_log", lambda: None), \
-            mock.patch.object(page, "_log_response", lambda *a, **k: None):
-        head = page.head_html(title, description)
-        out = _capture(lambda: page.render_error(message))
-    for markup in (head, out.split("\r\n\r\n", 1)[1]):
-        lowered = markup.lower()
-        # Only the shell's own two <script src=...> tags.
-        assert lowered.count("<script") == 2
-        parsed = _parse(markup)
-        for tag, attrs in parsed.tags:
-            assert not any(name.startswith("on") for name in attrs), (tag, attrs)
-            if tag == "script":
-                assert attrs["src"].startswith("static/")
-    assert html.unescape(re.search(r"<title>(.*?)</title>", head, re.S).group(1)) == title.replace("\r", "") \
-        or "\r" in title
 
 
 # ---------------------------------------------------------------------------

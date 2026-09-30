@@ -41,8 +41,7 @@ is then replaced by `{id}` for the script to fill in."""
 def sector_url_template():
     """
     The URL of a sector page with `{id}` where the id goes, for
-    `static/galaxymap3d.js`'s "View sector" link. Goes through `page_url`,
-    so it follows the sector page wherever it lives (CGI or Flask).
+    `static/galaxymap3d.js`'s "View sector" link, built with `page_url`.
     """
     return page_url("sector", sector_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
 

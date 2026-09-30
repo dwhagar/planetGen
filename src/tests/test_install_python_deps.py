@@ -42,3 +42,64 @@ def test_every_requirement_has_a_floor_and_apt_package():
     for spec, package in _script_requirements().items():
         assert re.fullmatch(r"[a-z0-9-]+>=[0-9.]+", spec), spec
         assert package.startswith("python3-"), package
+
+
+def _read(*parts):
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        return f.read()
+
+
+def _code(text):
+    """Shell source without its comment lines."""
+    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
+
+
+def test_update_checks_instead_of_reinstalling():
+    update = _code(_read("update.sh"))
+    assert "install-python-deps.sh\" --check" in update
+    assert "install.sh\"" not in update.replace("install-python-deps.sh\"", "")
+    assert "--force-reinstall" not in update
+    assert "--clear" not in update
+
+
+def test_install_and_update_share_the_deploy_checks():
+    for script in ("install.sh", "update.sh"):
+        code = _code(_read(script))
+        assert 'source "$SCRIPT_DIR/scripts/deploy-common.sh"' in code, script
+        for check in ("ensure_nltk_words", "ensure_apache_modules", "check_app_imports"):
+            assert check in code, (script, check)
+
+
+def _function(script, name):
+    body = script[script.index(f"{name}() {{"):]
+    return body[:body.index("\n}\n")]
+
+
+def test_no_virtual_environment():
+    """Boss's call: libraries go into the system Python, apt first."""
+    code = _code(_read("scripts", "install-python-deps.sh"))
+    assert "-m venv" not in code
+    assert "sys.path.insert" not in code  # no .pth written any more
+
+
+def test_pip_never_removes_apt_files():
+    """
+    pip must never uninstall or upgrade in place on a managed Python: for
+    an apt package with egg-info metadata (python3-pymysql) that deletes
+    apt's own files. It resolves with --dry-run --report and installs the
+    pinned result alongside with --ignore-installed --no-deps.
+    """
+    pip = _function(_code(_read("scripts", "install-python-deps.sh")), "pip_install_system")
+    assert "--dry-run" in pip and "--report" in pip
+    assert "--ignore-installed --no-deps" in pip
+    assert "--upgrade" not in pip
+    # The only uninstall is of copies outside apt's directory.
+    assert '"/usr/lib/python3/"' in pip
+
+
+def test_managed_paths_try_apt_first():
+    script = _code(_read("scripts", "install-python-deps.sh"))
+    for name in ("install_managed", "check_requirements"):
+        body = _function(script, name)
+        assert body.index("apt_install") < body.index("pip_install_system"), name
+        assert "remove_legacy_venv" in body, name

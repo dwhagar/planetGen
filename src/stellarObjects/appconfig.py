@@ -27,7 +27,7 @@ environment variable (so a single shared `config.json` can still be
 overridden per-process -- e.g. `planetgen-orbits@.service`'s per-instance
 `PLANETGEN_MYSQL_DATABASE=%i`), then `config.json`, then the built-in
 default below. Callers (`stellarObjects._db`, `html/api/config.py`,
-`html/lib/apiclient.py`, `html/lib/page.py`) each still read their own
+`html/lib/apiclient.py`) each still read their own
 `os.environ.get(VAR, ...)` for the middle two steps; this module only
 supplies the `config.json` layer.
 

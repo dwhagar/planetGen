@@ -341,9 +341,7 @@ def databases():
     Lists every MySQL schema on the configured server whose name matches
     this deployment's prefix (`stellarObjects._db.list_databases`), each
     with its size/last-modified stats plus a quick-glance sector/system
-    count -- the data `html/index.py`'s database picker needs, and (via
-    the sidenav's "Databases" link, shown on every page) whether that
-    picker has anything to offer at all. Every other endpoint's own
+    count. Every other endpoint's own
     `?db=` selects among these same names (see `get_db`).
     """
     base_config = current_app.config["MYSQL_CONFIG"]

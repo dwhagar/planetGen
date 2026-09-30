@@ -2,7 +2,7 @@
 
 """
 The Flask-served search page (`/search`, `web/searchpage.py`) and the
-`search.py` CGI shim that now redirects to it. Same fake data layer as
+old `search.py` URL that now redirects to it. Same fake data layer as
 `test_web_pages.py`; the tests at the bottom use a real database.
 """
 
@@ -19,7 +19,6 @@ from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
 
 from tests.test_web_pages import DB, FakeData, app, client, db_client  # noqa: F401 -- fixtures
-from tests.webpage_support import run_page  # noqa: E402
 
 _FACETS = {
     "type": [
@@ -189,27 +188,20 @@ def test_header_search_box_submits_to_search(client, fake):
     assert 'name="q" placeholder="Search names"' in html
 
 
-# --- CGI shim ---------------------------------------------------------------------------
+# --- Old CGI URL -----------------------------------------------------------------------
 
-def test_cgi_shim_redirects_get_with_every_filter():
-    result = run_page("http://127.0.0.1:9/api", "search.py", query=urlencode([
+def test_old_search_url_redirects_with_every_filter(client):
+    result = client.get("/search.py?" + urlencode([
         ("db", "x"), ("system_q", "Kepler 42"), ("spectral", "G"), ("spectral", "K"), ("sector_q", ""),
-        ("planet_min_radius_km", "100"), ("stars_page", "3"), ("junk", "1"),
+        ("planet_min_radius_km", "100"), ("stars_page", "3"),
     ]))
     assert result.status_code == 301
     assert result.headers["Location"] == \
-        "/search?system_q=Kepler+42&planet_min_radius_km=100&spectral=G&spectral=K&stars_page=3"
+        "/search?system_q=Kepler+42&spectral=G&spectral=K&planet_min_radius_km=100&stars_page=3"
 
 
-def test_cgi_shim_redirects_post():
-    result = run_page("http://127.0.0.1:9/api", "search.py", method="POST",
-                      body={"db": "x", "type": "belt", "belts_page": "2"})
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/search?type=belt&belts_page=2"
-
-
-def test_cgi_shim_without_params():
-    result = run_page("http://127.0.0.1:9/api", "search.py", query={"db": "x"})
+def test_old_search_url_without_params(client):
+    result = client.get("/search.py?db=x")
     assert result.status_code == 301
     assert result.headers["Location"] == "/search"
 

@@ -1,0 +1,160 @@
+# scripts/deploy-common.sh
+#
+# Checks shared by install.sh and update.sh, sourced by both so the two
+# can't drift apart. Each one looks first and only changes what is
+# missing, so running it again on a working server does nothing.
+# (Python libraries have their own script, install-python-deps.sh.)
+#
+# Expects PYTHON and SCRIPT_DIR (the repo root) to be set, and to run as
+# root.
+
+# The NLTK 'words' corpus, in a shared, world-readable directory (not a
+# per-user home directory) so it works for every user that imports
+# stellarObjects: a login shell running the generator, or Apache's
+# www-data running the web app. stellarObjects/names.py checks
+# nltk.data.find() before ever calling download(), so once this
+# directory (on nltk's default search path) has it, nothing downloads
+# again. See docs/TODO.md's "Deployment bugs found in production" for
+# the PermissionError on /var/www/nltk_data this avoids.
+ensure_nltk_words() {
+    local dir="$1"
+    mkdir -p "$dir"
+    if "$PYTHON" -c "import nltk, sys; nltk.data.find('corpora/words', paths=[sys.argv[1]])" "$dir" >/dev/null 2>&1; then
+        echo "NLTK 'words' corpus: present in $dir"
+    else
+        # A plain nltk.download() rather than `python -m nltk.downloader`,
+        # which prints a spurious "found in sys.modules" RuntimeWarning
+        # (nltk's __init__ already imported nltk.downloader).
+        "$PYTHON" -c "import nltk, sys; sys.exit(0 if nltk.download('words', download_dir=sys.argv[1]) else 1)" "$dir"
+        echo "NLTK 'words' corpus: installed in $dir"
+    fi
+    chmod -R a+rX "$dir"
+}
+
+# Apache's modules: headers (static/'s Cache-Control/nosniff lines in
+# examples/apache/planetgen.conf.example), deflate (its compression
+# block) and wsgi (runs the Flask app: every page and the API). mod_wsgi
+# comes from libapache2-mod-wsgi-py3, installed here when apt can.
+# Warns rather than fails when Apache itself isn't installed yet. Sets
+# APACHE_NEEDS_RESTART=1 when it enabled anything, so the caller can say
+# Apache needs a restart.
+ensure_apache_modules() {
+    if ! command -v a2enmod >/dev/null 2>&1; then
+        echo "warning: a2enmod not found -- is apache2 installed?" >&2
+        echo "  Try: sudo apt install apache2" >&2
+        return 0
+    fi
+    if [[ ! -e /etc/apache2/mods-available/wsgi.load ]] && command -v apt-get >/dev/null 2>&1; then
+        echo "mod_wsgi is not installed: installing libapache2-mod-wsgi-py3."
+        # The package enables the module itself, so a2query below finds
+        # it already on; Apache still has to be restarted to load it.
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libapache2-mod-wsgi-py3 \
+            && APACHE_NEEDS_RESTART=1 || true
+    fi
+    local mod enabled=()
+    for mod in headers deflate wsgi; do
+        if a2query -q -m "$mod" 2>/dev/null; then
+            echo "Apache module $mod: enabled"
+        elif a2enmod -q "$mod" >/dev/null 2>&1; then
+            echo "Apache module $mod: enabled now"
+            enabled+=("$mod")
+        else
+            echo "warning: could not enable Apache module $mod." >&2
+            if [[ "$mod" == wsgi ]]; then
+                echo "  Install it first: sudo apt install libapache2-mod-wsgi-py3 && sudo a2enmod wsgi" >&2
+            fi
+        fi
+    done
+    if (( ${#enabled[@]} )); then
+        APACHE_NEEDS_RESTART=1
+    fi
+    check_mod_wsgi_python
+}
+
+# mod_wsgi embeds the Python it was built against, not whatever `python3`
+# is. The libraries (which live in that Python's own
+# site-packages) are set up for $PYTHON, so the two must be the same
+# version or Apache won't see them. Warns rather than fails: the fix is
+# a package choice for the admin.
+check_mod_wsgi_python() {
+    local so=/usr/lib/apache2/modules/mod_wsgi.so built ours
+    [[ -e "$so" ]] && command -v ldd >/dev/null 2>&1 || return 0
+    built="$(ldd "$so" 2>/dev/null | grep -o 'libpython[0-9]*\.[0-9]*' | head -n1 | sed 's/libpython//')"
+    ours="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+    if [[ -z "$built" ]]; then
+        return 0
+    elif [[ "$built" == "$ours" ]]; then
+        echo "mod_wsgi runs Python $built, the same as $PYTHON."
+    else
+        echo "warning: mod_wsgi is built for Python $built, but the libraries were" >&2
+        echo "  checked for $PYTHON (Python $ours). Apache won't see them. Either install" >&2
+        echo "  the libapache2-mod-wsgi-py3 that matches $PYTHON, or rerun with" >&2
+        echo "  PYTHON=/usr/bin/python$built." >&2
+    fi
+}
+
+# Imports the web app and the generator package with the interpreter the
+# site runs under, as Apache's own user when that user exists, so a
+# library that's installed but unreadable to www-data (or the checkout's
+# own code failing to import) shows up here rather than as a 500.
+check_app_imports() {
+    local user="" runner=()
+    if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
+        # shellcheck source=../examples/apache/apache-identity.sh
+        source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
+        user="$(detect_apache_group 2>/dev/null | awk '{print $1}')"
+    fi
+    if [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
+        runner=(runuser -u "$user" --)
+    else
+        user=root
+    fi
+    if (cd / && "${runner[@]}" "$PYTHON" - "$SCRIPT_DIR" <<'EOF'
+import os
+import sys
+
+root = sys.argv[1]
+sys.path[:0] = [os.path.join(root, "src", "html"), os.path.join(root, "src")]
+import stellarObjects  # noqa: E402,F401
+from api.app import create_app  # noqa: E402,F401
+import web  # noqa: E402,F401
+EOF
+    ); then
+        echo "The web app and stellarObjects import cleanly as $user with $PYTHON."
+    else
+        echo "error: the web app does not import as $user with $PYTHON (see above)." >&2
+        return 1
+    fi
+}
+
+# Brings the configured database up to the current schema. When a
+# migration is pending, first asks whether to delete the galaxy data
+# instead: y wipes every generated sector and system (src/resetDb.py, the
+# same as the Generate page's Reset; admin logins are kept) and the empty
+# database is then brought to the current schema. Anything else, no
+# answer within 30 seconds, or no terminal to ask on (the maintenance
+# timer) keeps the data and migrates it. Nothing is asked when the
+# database is already current.
+migrate_or_reset_db() {
+    local status current target pending database answer=""
+    if ! status="$("$PYTHON" "$SCRIPT_DIR/src/migrateDb.py" --status)"; then
+        return 1
+    fi
+    read -r current target pending database <<< "$status"
+    if (( pending > 0 )); then
+        echo "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
+        if [[ -t 0 ]]; then
+            read -r -t 30 -p "Delete all galaxy data in '$database' instead of migrating it? [y/N] (default N in 30s): " answer \
+                || { echo; answer=""; }
+        else
+            echo "(No terminal to ask on: keeping the data and migrating it.)"
+        fi
+        if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+            echo "Deleting the galaxy data in '$database' (admin logins are kept)."
+            "$PYTHON" "$SCRIPT_DIR/src/resetDb.py" --yes
+        else
+            echo "Keeping the data and migrating it."
+        fi
+    fi
+    "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+}

@@ -1,7 +1,7 @@
 // html/static/theme.js
 //
 // Light / dark / system theme switch. Loaded as a plain blocking script in
-// the <head>, before style.css (html/lib/page.py's `head_html`), so the
+// the <head>, before style.css (html/web/templates/base.html), so the
 // saved choice is applied to <html data-theme="..."> before the first
 // paint and the page never flashes the OS theme first. A separate file
 // because the site's Content-Security-Policy allows no inline script.

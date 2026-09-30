@@ -7,12 +7,10 @@ the same -- a "Showing X-Y of Z" summary, then First/Prev, a window of
 numbered pages (with `...` gaps out to page 1 and the last page),
 Next/Last. At most `PAGE_SIZE` rows per page, site-wide.
 
-Pages carry a 1-based page *number* (e.g. `sectors_page=3`), not a raw
-row offset, as a `page.post_link` hidden field like every other
-navigational parameter here (see `lib/page.py`'s module docstring); each
-table on a page has its own page parameter, and every pager link carries
-the page's other parameters through unchanged, so paging one table never
-resets another.
+Pages carry a 1-based page *number* (e.g. `?sectors_page=3`), not a raw
+row offset; each table on a page has its own page parameter, and every
+pager link carries the page's other query parameters through unchanged,
+so paging one table never resets another.
 
 Two ways a page feeds this, depending on where its rows come from:
 
@@ -29,7 +27,7 @@ Two ways a page feeds this, depending on where its rows come from:
 
 from urllib.parse import urlencode
 
-from fmt import esc, post_link
+from fmt import esc
 
 PAGE_SIZE = 50
 MAX_PAGE = 10 ** 9
@@ -124,16 +122,16 @@ def _page_numbers(page, last):
     return numbers
 
 
-def render_pagination(action, params, page_param, page, total, page_size=PAGE_SIZE, anchor=None, label="Pages",
-                      method="post"):
+def render_pagination(action, params, page_param, page, total, page_size=PAGE_SIZE, anchor=None, label="Pages"):
     """
     Builds the pager for one table.
 
     Args:
-        action (str): The page's own script, e.g. `"browse.py"`.
-        params (dict or list[tuple]): Every parameter the page needs to
-            re-render as it is now (db, id, filters, other tables' page
-            numbers) -- `post_link`'s own `params` shape. `page_param`
+        action (str): The page's own URL path (e.g.
+            `url_for("web.index")`).
+        params (dict or list[tuple]): Every query parameter the page
+            needs to re-render as it is now (filters, other tables' page
+            numbers); a list of pairs for repeated names. `page_param`
             itself is added per link, so leave it out.
         page_param (str): This table's page parameter, e.g.
             `"sectors_page"`.
@@ -144,12 +142,6 @@ def render_pagination(action, params, page_param, page, total, page_size=PAGE_SI
             the page doesn't jump back to the top.
         label (str): Accessible name for the `<nav>` landmark, e.g.
             `"Sector pages"` (several pagers can share one page).
-        method (str): `"post"` (the default, every CGI page) renders each
-            link as a `post_link` form button; `"get"` renders plain
-            `<a href="{action}?{params}&{page_param}=N#{anchor}">` links
-            instead, for the Flask pages (`html/web/`), whose URLs are
-            ordinary bookmarkable GET URLs. In GET mode `action` is the
-            page's own URL path (e.g. `url_for("web.index")`).
 
     Returns:
         str: A `<nav class="pagination">` block, or `""` when every row
@@ -161,15 +153,12 @@ def render_pagination(action, params, page_param, page, total, page_size=PAGE_SI
     last = page_count(total, page_size)
     base = list(params.items()) if isinstance(params, dict) else list(params)
     base = [(key, value) for key, value in base if key != page_param]
-    target = f"{action}#{anchor}" if anchor else action
 
     def _link(number, text, css_class="page-link", attrs=""):
-        if method == "get":
-            query = urlencode([(key, value) for key, value in base + [(page_param, number)]
-                               if value is not None and value != ""])
-            href = f"{action}?{query}" + (f"#{anchor}" if anchor else "")
-            return f'<a class="{esc(css_class)}" href="{esc(href)}" {attrs}>{text}</a>'
-        return post_link(target, base + [(page_param, number)], text, css_class=css_class, attrs=attrs)
+        query = urlencode([(key, value) for key, value in base + [(page_param, number)]
+                           if value is not None and value != ""])
+        href = f"{action}?{query}" + (f"#{anchor}" if anchor else "")
+        return f'<a class="{esc(css_class)}" href="{esc(href)}" {attrs}>{text}</a>'
 
     def _disabled(text):
         return f'<span class="page-link disabled" aria-disabled="true">{text}</span>'

@@ -106,9 +106,8 @@ def _register_request_logging(app):
 def _register_security_headers(app):
     """
     Adds defense-in-depth response headers to every response. The HTML
-    pages (`html/web/`) get the CGI shell's own `page.SECURITY_HEADERS`
-    (the one source of the pages' CSP and the rest), so a page looks the
-    same to the browser whether CGI or Flask served it. Everything else
+    pages (`html/web/`) get `web.SECURITY_HEADERS` (the one source of
+    the pages' CSP and the rest). Everything else
     (API JSON, static files under the dev server) gets the same three
     basic headers with `Content-Security-Policy: default-src 'none'` --
     a JSON body never needs to load anything.

@@ -4,8 +4,7 @@
 The Flask-served HTML pages (`src/html/web/`).
 
 Most tests fake the data layer by monkeypatching the `apiclient`
-functions the views call (the same functions the CGI pages use), so they
-need no database. The tests at the bottom (marked by the `mysql_config`
+functions the views call, so they need no database. The tests at the bottom (marked by the `mysql_config`
 fixture) run against a real throwaway database through the in-process
 transport, and are skipped without a MySQL test server, like the rest of
 the suite.
@@ -24,9 +23,9 @@ import apiclient  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from web import csrf  # noqa: E402
-from web.helpers import LEGACY_PAGES, page_url  # noqa: E402
-
-from tests.webpage_support import run_page  # noqa: E402
+from web.helpers import page_url  # noqa: E402
+from werkzeug.routing import BuildError  # noqa: E402
+from web.old_urls import OLD_PAGES  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -119,7 +118,7 @@ def test_home_renders_both_tables_and_shell(client, fake):
     assert "<details class=\"site-menu\">" in html
     assert "Sector 002" in html and "System 001" in html
     assert "3 sectors" in html and "2 standalone systems" in html
-    # Not-yet-moved pages are plain GET links to the CGI scripts.
+    # Sector and system rows link to their pages.
     assert 'href="/sector/1"' in html
     assert 'href="/system/1001"' in html
     # The home page is no section; nothing in the main nav is current.
@@ -365,14 +364,8 @@ def test_page_url_resolves_moved_and_legacy_pages(app):
         assert page_url("sector", sector_id=5) == "/sector/5"
         assert page_url("phenomenon", phenomenon_type="nebula", phenomenon_id=3) == "/phenomenon/nebula/3"
         assert page_url("galaxy", _anchor="map") == "/galaxy#map"
-        with pytest.raises(KeyError):
+        with pytest.raises(BuildError):
             page_url("no_such_page")
-
-
-def test_legacy_pages_are_not_also_routes(app):
-    """A page PR that adds `web.<name>` must delete its LEGACY_PAGES entry."""
-    for name in LEGACY_PAGES:
-        assert f"web.{name}" not in app.view_functions, name
 
 
 # --- In-process transport ---------------------------------------------------------------
@@ -395,28 +388,43 @@ def test_in_process_transport_declines_outside_a_request(app, monkeypatch):
         apiclient.get_wiki_config()
 
 
-# --- CGI shims ------------------------------------------------------------------------
+# --- Old CGI URLs ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("script", ["index.py", "browse.py"])
-def test_cgi_shim_redirects_get(script):
-    result = run_page("http://127.0.0.1:9/api", script,
-                      query={"db": "x", "sectors_page": "2", "standalone_page": "junk"})
+def test_old_home_urls_redirect_keeping_page_numbers(client, script):
+    result = client.get(f"/{script}?db=x&sectors_page=2&standalone_page=4")
     assert result.status_code == 301
-    assert result.headers["Location"] == "/?sectors_page=2"
+    assert result.headers["Location"] == "/?sectors_page=2&standalone_page=4"
 
 
-@pytest.mark.parametrize("script", ["index.py", "browse.py"])
-def test_cgi_shim_redirects_post(script):
-    result = run_page("http://127.0.0.1:9/api", script, method="POST",
-                      body={"db": "x", "standalone_page": "4"})
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/?standalone_page=4"
-
-
-def test_cgi_shim_without_params_goes_home():
-    result = run_page("http://127.0.0.1:9/api", "browse.py")
+def test_old_url_without_params_goes_home(client):
+    result = client.get("/browse.py")
     assert result.status_code == 301
     assert result.headers["Location"] == "/"
+
+
+@pytest.mark.parametrize("script,location", [
+    ("sectors.py", None), ("wsgi.py", None), ("nope.py", None),
+    ("galaxy3d.py", "/galaxy"), ("galaxy_view.py", "/galaxy"),
+])
+def test_old_url_names(client, script, location):
+    result = client.get(f"/{script}")
+    if location is None:
+        assert result.status_code == 404
+        assert "text/html" in result.headers["Content-Type"]
+    else:
+        assert result.status_code == 301
+        assert result.headers["Location"] == location
+
+
+def test_every_old_page_points_at_a_route(app):
+    for name, endpoint in OLD_PAGES.items():
+        assert endpoint in app.view_functions, name
+
+
+def test_old_url_post_is_not_replayed(client):
+    """An old form POSTed to a `.py` URL is refused like any stale form."""
+    assert client.post("/login.py", data={"username": "a", "password": "b"}).status_code in (400, 405)
 
 
 # --- Real database, in-process ----------------------------------------------------------

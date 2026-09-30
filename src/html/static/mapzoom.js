@@ -154,9 +154,8 @@
       });
     }
 
-    // Drag-to-pan, plus the click-vs-drag gate every marker's own
-    // data-nav-target click (navform.js's document-level delegated
-    // listener) needs: a genuine drag must not also fire a navigation
+    // Drag-to-pan, plus the click-vs-drag gate every marker's link
+    // needs: a genuine drag must not also fire a navigation
     // click on whatever marker the pointer happened to release over.
     //
     // setPointerCapture is deliberately NOT called on pointerdown: per
@@ -164,9 +163,8 @@
     // pointerup *and the click event synthesized from it* both retarget
     // to the capturing element (svgEl) instead of whatever marker was
     // actually under the pointer -- which broke every single marker
-    // click (not just drags), since navform.js's delegated listener
-    // looks for data-nav-target on the click's own target/ancestors, and
-    // svgEl itself never carries it. Capturing only once a real drag is
+    // click (not just drags), since the marker's own link is what has to
+    // receive the click, and svgEl itself is not a link. Capturing only once a real drag is
     // detected (in pointermove, below) keeps a plain click's target
     // exactly as the browser's normal hit-test would have set it.
     var dragState = null;

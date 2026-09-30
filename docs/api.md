@@ -20,21 +20,18 @@ seeded default — see "Authentication" and "Write endpoints" below.
 Comparison against FastAPI/Django REST Framework: the persistence layer
 (`stellarObjects/_db.py`) is deliberately plain SQL over a small `pymysql`
 wrapper with no ORM, this API is read-heavy with no concurrency pressure yet,
-and it needs to deploy onto the same Apache2/VPS setup that already serves the
-interim `../src/html/` CGI browser (see [`apache-deployment.md`](apache-deployment.md)).
+and it needs to deploy onto a plain Apache2/VPS setup (see
+[`apache-deployment.md`](apache-deployment.md)).
 Flask has no opinion
 about the data layer (route handlers call straight into `queryDb.py`'s and
-`stellarObjects._db`'s existing functions), deploys via `mod_wsgi` in the
-same Apache process model the CGI scripts already use, and lives at
-`../src/html/api/` -- served from the same tree/DocumentRoot as the CGI
-browser rather than a separately-deployed package -- mounted at `/api/`
-alongside `../src/html/` on one vhost (see "Deploying behind Apache"
-below). `../src/html/` is now this API's own frontend (see that
-directory's docs), not a separate database consumer anymore. FastAPI's
+`stellarObjects._db`'s existing functions), deploys via `mod_wsgi`, and
+lives at `../src/html/api/`, mounted at `/api/` by the same Flask app that
+serves the HTML pages (`../src/html/web/`, see "Deploying behind Apache"
+below). Those pages are this API's own frontend, calling it in-process. FastAPI's
 headline advantages (async, auto-generated OpenAPI docs) still don't pay
 for themselves: this API is read-heavy and low-concurrency regardless of
-framework, and `../src/html/` is a plain server-rendered CGI client with
-no use for generated API-contract docs the way a JS single-page app
+framework, and the pages are plain server-rendered HTML with no use for
+generated API-contract docs the way a JS single-page app
 would. Worth revisiting if a richer JS frontend is ever built against
 this API instead.
 
@@ -47,9 +44,9 @@ read from (validated against the same prefix-filtered list
 `/api/databases` itself returns — an unrecognized name is a `404`, same
 as an unrecognized sector/system id); omitted, it falls back to
 `MYSQL_CONFIG`'s own configured default database (`config.py`). This is
-what lets one API process back `../src/html/`'s multi-database picker
-(`index.py`'s `?db=`) — see `stellarObjects._db.list_databases`/
-`resolve_database`. `/api/health` also honors `db=` — passing it checks
+what lets one API process serve several databases — see
+`stellarObjects._db.list_databases`/`resolve_database`. (The HTML pages
+always show the one configured database.) `/api/health` also honors `db=` — passing it checks
 connectivity to that specific schema rather than the default one.
 
 ### Read
@@ -63,7 +60,7 @@ connectivity to that specific schema rather than the default one.
   each with `name`, `size_bytes`, `modified_at`, and a quick-glance
   `sector_count`/`system_count` (`null` for a matching schema missing this
   project's own tables, e.g. mid-migration, rather than failing the whole
-  listing). `../src/html/index.py`'s database picker.
+  listing).
 - `GET /api/sectors?limit=<n>&offset=<n>` — every sector, paginated (see
   "Pagination" below), each with `id`, `name`, `edge_mpc`, `edge_ly`,
   `system_count`, and its galaxy placement (`center_x_pc`/`center_y_pc`/
@@ -100,7 +97,7 @@ connectivity to that specific schema rather than the default one.
   `count_systems`), each with `id`, `name`, `sector_id`, `is_binary`, and
   `star_summary` (the single star's `star_type`, or a binary's
   `binary_type`). `sector_id=none` matches only standalone systems
-  (`sector_id IS NULL`, `../src/html/browse.py`'s own table) — distinct
+  (`sector_id IS NULL`, the `/systems` page's table) — distinct
   from omitting `sector_id` entirely (no sector filter at all).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -223,7 +220,7 @@ connectivity to that specific schema rather than the default one.
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
-  The data `../src/html/phenomena.py`'s listing page shows.
+  The data the `/phenomena` page shows.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/
@@ -233,12 +230,12 @@ connectivity to that specific schema rather than the default one.
   `black_hole`/`neutron_star`/`supernova_remnant`/`rogue_planet`/
   `interstellar_comet`/`quasar`; an unrecognized type or
   a nonexistent id is
-  a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
+  a 404. The data the `/phenomenon/<type>/<id>` page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
   detail page of its own, only a hover tooltip on the Sector/Galaxy Map),
   now including a to-scale AU diagram (`../src/html/lib/phenomenonmap.py`).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
-  the faceted search behind `../src/html/search.py`: click-to-filter tags
+  the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
   type, supported life chemistry; asteroid belt density — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
@@ -663,47 +660,28 @@ content-schema migration.
 ## Deploying behind Apache (mod_wsgi)
 
 `src/html/wsgi.py` exposes the standard `application` object `mod_wsgi`
-expects, and now lives inside the same `html/` tree the vhost's
-`DocumentRoot` already points at (see "Why Flask" above -- moved there
-from `src/wsgi.py`/`src/api/` so the API is served from the same
-checkout/deployment tree as the CGI browser instead of a second,
-separately-tracked location). The example vhost config in
-`examples/apache/` already mounts it out of the box -- a
-`WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py` (the same app
-serves the API under `/api` and the HTML pages that have moved off CGI;
-see [`apache-deployment.md`](apache-deployment.md)), in its own
+expects, and lives inside the `html/` tree the vhost's `DocumentRoot`
+points at. The example vhost config in `examples/apache/` mounts it out
+of the box -- a `WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py`
+(the same app serves the API under `/api` and every HTML page; see
+[`apache-deployment.md`](apache-deployment.md)), in its own
 `WSGIDaemonProcess`, plus the `<Directory>` block that denies direct
 requests into `html/api/` the same way it already does for `html/lib/`
 (see [`apache-deployment.md`](apache-deployment.md)) -- so the common
 single-vhost case needs no changes, just copying/enabling that example as
 usual; replicate the same block into a custom vhost, or run it behind
 `gunicorn` + `mod_proxy`/`mod_proxy_http`, if `mod_wsgi` isn't available.
-No separate
-vhost/`ServerName` is needed either way: `../src/html/`'s own pages read
-`PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`, i.e. this same
-vhost) to find the API -- point it at wherever `gunicorn` ends up
-listening if using that instead.
-
-**If this vhost also redirects `:80` to HTTPS (including a `certbot
---apache`-generated redirect), that redirect must exclude `/api`.**
-Otherwise every CGI page's own loopback call to
-`PLANETGEN_API_BASE_URL`'s default `http://127.0.0.1/api` gets caught by
-the redirect too, and `urllib` follows it -- turning an instant local
-call into a real round trip out to the public hostname and back in on
-every single page load, confirmed in production as a cause of doubled
-Apache connection load and connection-exhaustion timeouts under
-concurrent traffic. See `examples/apache/planetgen.conf.example`'s own
-"HTTPS" section for the exact `RewriteCond`/`RewriteRule` exclusion and
-why.
+No separate vhost/`ServerName` is needed either way: the pages call the
+API in-process (`html/web/transport.py`), not over HTTP, so a `:80` to
+HTTPS redirect no longer needs to exclude `/api` (older versions of this
+document required that, for the CGI pages' loopback calls).
 
 Either way, set `PLANETGEN_MYSQL_*` in
 the process environment to point at the deployed MySQL database, ideally
 via a read-only account (see above) -- under `mod_wsgi` this means the
 Apache service's own process environment (e.g. `/etc/apache2/envvars`, or
 an `Environment=` line on the apache2 systemd unit), **not** the vhost's
-`SetEnv` directives: those work for the CGI browser (`mod_cgi`/`mod_cgid`
-copies them into each script's real process environment) but never reach
-`os.environ` under `mod_wsgi` -- `html/api/config.py` reads its config
+`SetEnv` directives: those never reach `os.environ` under `mod_wsgi` -- `html/api/config.py` reads its config
 from `os.environ` once, at process startup, and `SetEnv` values only ever
 show up in a request's `environ` dict, which doesn't exist yet at that
 point. Under `gunicorn`, its own service's environment file works the
@@ -724,6 +702,6 @@ See `docs/TODO.md`'s open items — in particular, sector-attached system
 creation (`POST /api/systems` is standalone-only today, per "Systems —
 request body" above) and editing a system's generated content (stars/
 planets/moons/belts) beyond a plain rename. The frontend gap that this
-section used to describe is closed: `../src/html/` (see
-[`html-interface.md`](html-interface.md)) is this API's own server-
-rendered frontend now.
+section used to describe is closed: the pages in `../src/html/web/` (see
+[`html-interface.md`](html-interface.md)) are this API's own server-
+rendered frontend.
