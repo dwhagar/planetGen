@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# TODO(installers #50): make this run on macOS (BSD tools, _www) and add a
-# Windows counterpart. See docs/TODO.md item 50.
 #
 # examples/apache/create-cache-dir.sh
 #
 # Creates the web interface's on-disk Galaxy Map tile cache (see
 # src/html/lib/tilecache.py), and the admin Generate page's jobs directory
 # (src/html/web/jobs.py), and gives them to Apache's worker user, so the
-# web interface can write to them. Safe to run again: an existing directory is
-# only re-owned. Called by install.sh, and by update.sh when there's
+# web interface can write to them (on macOS, _www). Runs on Linux and
+# macOS; install.ps1 does the same on Windows. Safe to run again: an
+# existing directory is only re-owned. Called by install.sh, and by update.sh when there's
 # nothing new to install.
 #
 # Usage:
@@ -35,7 +34,7 @@ fi
 CACHE_DIR="${1:-}"
 JOBS_DIR=""
 if [[ -z "$CACHE_DIR" ]]; then
-    PYTHON="$(command -v python3 || command -v python || true)"
+    PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
     if [[ -z "$PYTHON" ]]; then
         echo "error: no python3/python found on PATH." >&2
         exit 1

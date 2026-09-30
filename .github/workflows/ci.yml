@@ -151,6 +151,103 @@ jobs:
       - name: Run the Generate page and job tests
         run: pytest src/tests/test_web_generate.py -rs -p no:cacheprovider
 
+  macos-installers:
+    # install.sh and its helpers on macOS, under /bin/bash 3.2 as a Mac
+    # ships it: the venv from Homebrew's python3, the _www permissions,
+    # newsyslog, and gunicorn under launchd answering on 127.0.0.1:8000.
+    # No database here (--skip-database).
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every bash script parses under bash 3.2
+        run: |
+          /bin/bash --version | head -n1
+          for f in install.sh update.sh scripts/*.sh examples/apache/*.sh examples/maintenance/*.sh; do
+            /bin/bash -n "$f" || exit 1
+          done
+
+      - name: Homebrew's Python
+        run: brew list python@3.12 >/dev/null 2>&1 || brew install python@3.12
+
+      - name: install.sh into /var/lib/planetGen, as the macOS guide lays it out
+        run: |
+          sudo mkdir -p /var/lib
+          sudo cp -R "$GITHUB_WORKSPACE" /var/lib/planetGen
+          # PATH without Homebrew, so the helper scripts' `#!/usr/bin/env bash`
+          # finds /bin/bash (3.2) too, not Homebrew's bash 5.
+          sudo env PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/bash /var/lib/planetGen/install.sh --skip-database
+
+      - name: gunicorn answers under launchd
+        run: |
+          code=000
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/api/health || true)
+            [ "$code" != "000" ] && break
+            sleep 2
+          done
+          echo "GET /api/health: HTTP $code"
+          if [ "$code" = "000" ]; then sudo cat /usr/local/planetgen/log/gunicorn.log; exit 1; fi
+
+      - name: The update check installs nothing more
+        run: |
+          sudo env PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/bash /var/lib/planetGen/scripts/install-python-deps.sh --check | tee check.log
+          ! grep -E '^  (installed|upgraded|repaired|failed) ' check.log
+
+      - name: install-maintenance-timer.sh makes launchd daemons
+        run: |
+          sudo env PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/bash /var/lib/planetGen/examples/maintenance/install-maintenance-timer.sh ci_test
+          sudo launchctl print system/org.planetgen.orbits.ci_test | head -n 5
+          sudo launchctl print system/org.planetgen.update | head -n 5
+          grep -q '<string>ci_test</string>' /Library/LaunchDaemons/org.planetgen.orbits.ci_test.plist
+
+  windows-installers:
+    # install.ps1 under Windows PowerShell 5.1 (what Windows ships) with no
+    # database (-SkipDatabase), waitress answering from the venv it made,
+    # and install-maintenance-task.ps1's Task Scheduler tasks. The job
+    # runner itself is covered by windows-jobs above.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every PowerShell script parses
+        shell: pwsh
+        run: |
+          $failed = $false
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errors) | Out-Null
+            if ($errors) { $errors | ForEach-Object { Write-Host "$($_.Extent.File):$($_.Extent.StartLineNumber): $($_.Message)" }; $failed = $true }
+          }
+          if ($failed) { exit 1 }
+
+      - name: install.ps1
+        shell: powershell
+        run: .\install.ps1 -SkipDatabase -VenvDir "$env:RUNNER_TEMP\venv" -DataDir "$env:RUNNER_TEMP\pgdata" -ServiceAccount "NT AUTHORITY\NETWORK SERVICE"
+
+      - name: waitress answers from the venv
+        shell: pwsh
+        run: |
+          $env:NLTK_DATA = "$env:RUNNER_TEMP\pgdata\nltk_data"
+          $server = Start-Process -PassThru -NoNewWindow -WorkingDirectory src\html -FilePath "$env:RUNNER_TEMP\venv\Scripts\waitress-serve.exe" -ArgumentList "--listen=127.0.0.1:8000", "wsgi:application"
+          $code = 0
+          foreach ($i in 1..30) {
+            try { $code = (Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck http://127.0.0.1:8000/api/health).StatusCode; break } catch { Start-Sleep 2 }
+          }
+          Stop-Process -Id $server.Id -Force
+          Write-Host "GET /api/health: HTTP $code"
+          if ($code -eq 0) { exit 1 }
+
+      - name: install-maintenance-task.ps1 makes the scheduled tasks
+        shell: powershell
+        run: |
+          .\examples\maintenance\install-maintenance-task.ps1 -Database ci_test -VenvDir "$env:RUNNER_TEMP\venv" -DataDir "$env:RUNNER_TEMP\pgdata"
+          schtasks.exe /Query /TN "planetGen orbits (ci_test)"
+          if ($LASTEXITCODE) { exit 1 }
+          schtasks.exe /Query /TN "planetGen update"
+          if ($LASTEXITCODE) { exit 1 }
+          Get-Content "$env:RUNNER_TEMP\pgdata\tasks\orbits-ci_test.cmd"
+
   dependency-audit:
     runs-on: ubuntu-latest
     steps:

@@ -1,16 +1,82 @@
-# TODO(installers #50): these helpers assume Debian Apache (/etc/apache2,
-# a2enmod, www-data) and apt; add the macOS (Homebrew httpd, _www)
-# equivalents, and mirror them for the PowerShell scripts. See docs/TODO.md
-# item 50.
 # scripts/deploy-common.sh
 #
 # Checks shared by install.sh and update.sh, sourced by both so the two
 # can't drift apart. Each one looks first and only changes what is
 # missing, so running it again on a working server does nothing.
 # (Python libraries have their own script, install-python-deps.sh.)
+# scripts/deploy-common.ps1 is the Windows counterpart for install.ps1
+# and update.ps1: a change to a step here belongs there too.
+#
+# Two platforms: Linux with Debian's Apache and mod_wsgi
+# (docs/deployment/apache.md), and macOS with gunicorn under launchd and
+# Homebrew's nginx in front (docs/deployment/macos.md). Written for
+# macOS's bash 3.2 as well: no mapfile or associative arrays, and empty
+# arrays expanded as ${a[@]+"${a[@]}"}.
 #
 # Expects PYTHON and SCRIPT_DIR (the repo root) to be set, and to run as
 # root.
+
+MACOS_VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
+MACOS_LOG_DIR=/usr/local/planetgen/log
+GUNICORN_LABEL=org.planetgen.gunicorn
+GUNICORN_PLIST="/Library/LaunchDaemons/$GUNICORN_LABEL.plist"
+
+is_macos() {
+    [[ "$(uname -s)" == Darwin ]]
+}
+
+# The Python to set up the site with when PYTHON isn't given: on macOS
+# Homebrew's python3 (Apple Silicon, then Intel) rather than the Command
+# Line Tools' /usr/bin/python3; elsewhere python3 on the PATH.
+default_python() {
+    local candidate
+    if is_macos; then
+        for candidate in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+            if [[ -x "$candidate" ]]; then
+                echo "$candidate"
+                return
+            fi
+        done
+    fi
+    command -v python3 || command -v python || true
+}
+
+# After install-python-deps.sh: on macOS the site runs from the venv it
+# made, so every later step uses that Python.
+use_site_python() {
+    if is_macos; then
+        PYTHON="$MACOS_VENV/bin/python"
+    fi
+}
+
+# Copies an example launchd plist into /Library/LaunchDaemons with the
+# checkout and venv paths put in, when it isn't there already (an
+# existing one is the admin's; it's never overwritten), and loads it.
+# Args: example file, installed name, then extra sed expressions.
+install_launchd_plist() {
+    local example="$1" target="/Library/LaunchDaemons/$2" label="${2%.plist}"
+    shift 2
+    if [[ -f "$target" ]]; then
+        echo "launchd: $target present"
+        return 0
+    fi
+    sed -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" -e "s|/usr/local/planetgen/venv|$MACOS_VENV|g" "$@" \
+        "$example" > "$target"
+    chown root:wheel "$target"
+    chmod 644 "$target"
+    launchctl bootstrap system "$target" 2>/dev/null || launchctl load -w "$target" || true
+    echo "launchd: installed and loaded $target ($label)"
+}
+
+# macOS's counterpart of the Apache module check: gunicorn under launchd
+# (examples/macos/org.planetgen.gunicorn.plist), serving on 127.0.0.1:8000
+# for nginx. Installed and started the first time only. Its log
+# directory belongs to _www.
+ensure_gunicorn_daemon() {
+    mkdir -p "$MACOS_LOG_DIR"
+    chown _www:_www "$MACOS_LOG_DIR"
+    install_launchd_plist "$SCRIPT_DIR/examples/macos/$GUNICORN_LABEL.plist" "$GUNICORN_LABEL.plist"
+}
 
 # The NLTK 'words' corpus, in a shared, world-readable directory (not a
 # per-user home directory) so it works for every user that imports
@@ -110,10 +176,12 @@ check_app_imports() {
     fi
     if [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
         runner=(runuser -u "$user" --)
+    elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
+        runner=(sudo -u "$user" --)  # macOS has no runuser
     else
         user=root
     fi
-    if (cd / && "${runner[@]}" "$PYTHON" - "$SCRIPT_DIR" <<'EOF'
+    if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - "$SCRIPT_DIR" <<'EOF'
 import os
 import sys
 

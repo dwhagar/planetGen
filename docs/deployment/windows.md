@@ -15,9 +15,12 @@ guides unchanged.
 
 ## Limits on native Windows
 
-- **`install.sh`, `update.sh` and the systemd timers are Linux-only.**
-  The steps below do their work by hand. PowerShell versions are planned
-  ([`TODO.md`](../TODO.md) item 50).
+- **`install.sh`, `update.sh` and the systemd timers are for Linux and
+  macOS.** Windows has its own:
+  [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) and
+  [`install-maintenance-task.ps1`](../../examples/maintenance/install-maintenance-task.ps1)
+  (Task Scheduler). They do common steps 2 to 5 and 7 below, and the
+  update and the monthly tasks.
 - **gunicorn does not run on Windows** (it needs `fork`). All three
   setups use waitress, a pure-Python WSGI server that does.
 - Everything else works: the pages, the API, the Galaxy Map, admin
@@ -49,6 +52,26 @@ because `sys.executable` is `httpd.exe`. waitress behind `mod_proxy`
 avoids all of that.
 
 ## Common steps (all three)
+
+**The short way.** Install MySQL or MariaDB (step 1), Python and Git for
+Windows (step 2), clone the checkout, then in an elevated PowerShell:
+
+    cd C:\srv\planetGen
+    powershell -ExecutionPolicy Bypass -File .\install.ps1
+
+It makes the venv (with the libraries and waitress from
+`requirements-server.lock`, checked by hash), fetches the NLTK corpus and
+sets `NLTK_DATA`, writes `config.json` from
+`examples\windows\config.json.example` if there is none (with a new
+`secret_key`), creates the runtime folders, and sets the permissions of
+step 7. The database step runs once `config.json` has your `mysql.*`
+settings; until then it says so, and `update.ps1` does it later, with the
+same migrate-or-delete question as `update.sh`. `-VenvDir`, `-DataDir`
+and `-ServiceAccount` change the defaults below (`-ServiceAccount "IIS
+AppPool\planetgen"` for option 1). The permissions step waits until the
+account exists (`NT SERVICE\planetgen` appears with the service), so run
+`update.ps1` again after creating the service. Then continue with step 6
+and your option. The steps it automates are below for reference.
 
 Layout used below (short names, no spaces):
 
@@ -295,22 +318,33 @@ timeout=60` stands in for `request-timeout=60`. `mod_proxy_http` appends
 
 ## Updating (all options)
 
-`update.sh` doesn't run on Windows. By hand, elevated:
+Elevated, in the checkout:
 
-    cd C:\srv\planetGen
-    git pull
-    C:\srv\planetgen-venv\Scripts\python.exe -m pip install --upgrade "C:\srv\planetGen[api]" waitress
-    C:\srv\planetgen-venv\Scripts\python.exe -m pip uninstall -y planetGen
-    C:\srv\planetgen-venv\Scripts\python.exe src\migrateDb.py
+    powershell -ExecutionPolicy Bypass -File .\update.ps1
 
-then restart the app (per option above).
+It does what `update.sh` does on Linux: `git fetch` and `reset --hard` to
+the branch tip (`config.json` is untracked and survives), installs only
+libraries that are missing or too old, checks the corpus, runs the
+migration (asking first, y/N within 30 seconds, whether to delete the
+galaxy data instead), and re-applies the folders and permissions. Then
+restart the app (per option above; the script's last line says how).
 `python src\migrateDb.py --status` shows whether a migration is pending.
 New files inherit the checkout's permissions, so the service account
 still only has read access.
 
 ## Monthly orbit update (Task Scheduler)
 
-The counterpart of `planetgen-orbits@.timer`. Copy
+The counterpart of `planetgen-orbits@.timer`. Elevated:
+
+    powershell -ExecutionPolicy Bypass -File .\examples\maintenance\install-maintenance-task.ps1 -Database planetgen
+
+creates "planetGen orbits (planetgen)" at 03:30 on the 1st (one per
+`-Database` name) and "planetGen update" (`update.ps1`) at 03:00, both
+as SYSTEM and run as soon as possible after a missed start. Leave the
+update task out with `-SkipUpdateTask` if only a person should update
+the site. Logs go to `C:\ProgramData\planetgen\logs`.
+
+By hand instead: copy
 [`examples/windows/planetgen-orbits.cmd`](../../examples/windows/planetgen-orbits.cmd)
 to `C:\srv\`, then create one task per database:
 
@@ -319,8 +353,7 @@ to `C:\srv\`, then create one task per database:
 
 It reads the database credentials from `config.json`. In Task Scheduler,
 tick "Run task as soon as possible after a scheduled start is missed"
-(the equivalent of `Persistent=true`). The Linux update timer has no
-Windows counterpart: update by hand as above.
+(the equivalent of `Persistent=true`).
 
 ## Debug log
 

@@ -51,3 +51,8 @@ uv pip compile setup.py --extra api \
     --custom-compile-command "scripts/lock-requirements.sh" \
     ${UPGRADE[@]+"${UPGRADE[@]}"} \
     --output-file requirements.lock
+uv pip compile setup.py --extra api --extra server \
+    --universal --python-version 3.9 --generate-hashes \
+    --custom-compile-command "scripts/lock-requirements.sh" \
+    ${UPGRADE[@]+"${UPGRADE[@]}"} \
+    --output-file requirements-server.lock

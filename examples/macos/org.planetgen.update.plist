@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  examples/macos/org.planetgen.update.plist
+
+  launchd counterpart of examples/maintenance/planetgen-update.timer and
+  its service: runs update.sh (git pull, then checks that everything the
+  site needs is there, installing only what's missing, and migrates the
+  database) as root at 03:00 on the 1st of every month, half an hour
+  before the orbit update. Whatever is on the tracked branch gets
+  deployed with no human review in between; leave this out
+  (install-maintenance-timer.sh --skip-update-timer) if only a person
+  should update this site. update.sh can't ask anything here, so a
+  pending migration keeps the data and migrates it.
+
+  Installed by examples/maintenance/install-maintenance-timer.sh, which
+  puts in the checkout's path. By hand:
+      sudo cp org.planetgen.update.plist /Library/LaunchDaemons/
+      sudo chown root:wheel /Library/LaunchDaemons/org.planetgen.update.plist
+      sudo launchctl bootstrap system /Library/LaunchDaemons/org.planetgen.update.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>org.planetgen.update</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/var/lib/planetGen/update.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/var/lib/planetGen</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/usr/local/planetgen/log/update.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/planetgen/log/update.log</string>
+</dict>
+</plist>

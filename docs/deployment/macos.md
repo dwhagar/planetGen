@@ -6,9 +6,9 @@ server does, with Homebrew supplying MariaDB or MySQL, nginx and Python.
 gunicorn runs the app under launchd, the macOS service manager. The job
 runner behind the admin Generate page is POSIX code and works on macOS.
 
-`install.sh` and `update.sh` are Linux-only (apt, `a2enmod`, `runuser`),
-so their steps are done by hand below. Making them run on macOS is
-[`TODO.md`](../TODO.md) item 50.
+`install.sh`, `update.sh` and `install-maintenance-timer.sh` run on
+macOS too (under its bash 3.2). See [The short way](#the-short-way);
+the steps they automate are written out below for reference.
 
 Paths match the Linux guides where they can:
 
@@ -30,6 +30,24 @@ The site runs as `_www`, macOS's built-in web server account.
 | [`examples/macos/org.planetgen.gunicorn.plist`](../../examples/macos/org.planetgen.gunicorn.plist) | `/Library/LaunchDaemons/` |
 | [`examples/macos/planetgen-nginx.conf`](../../examples/macos/planetgen-nginx.conf) | `$(brew --prefix)/etc/nginx/servers/planetgen.conf` |
 | [`examples/macos/org.planetgen.orbits.planetgen.plist`](../../examples/macos/org.planetgen.orbits.planetgen.plist) | `/Library/LaunchDaemons/` |
+
+## The short way
+
+Install the Homebrew packages (step 1), create the database, clone the
+checkout to `/var/lib/planetGen`, write `config.json` (step 4), then:
+
+    sudo /var/lib/planetGen/install.sh
+
+It makes the venv at `/usr/local/planetgen/venv` from Homebrew's
+`python3` (3.10 or later) with the libraries and gunicorn from
+`requirements-server.lock` (checked by hash), fetches the NLTK corpus,
+runs the migration, applies the permissions of step 6 for `_www`, sets
+up `newsyslog` for the debug log, and installs and starts the gunicorn
+daemon of step 7. nginx (step 8) stays yours. `sudo ./update.sh` later
+pulls and checks everything the same way, and
+`sudo examples/maintenance/install-maintenance-timer.sh [database ...]`
+installs the monthly orbit update (and update.sh, unless
+`--skip-update-timer`) as launchd daemons.
 
 ## Install
 
@@ -140,7 +158,8 @@ proxy timeouts, and everything else to gunicorn. gunicorn listens on
 
 ## Keeping it running
 
-- **Update** (what `update.sh` does on Linux):
+- **Update:** `sudo /var/lib/planetGen/update.sh`, then the `SIGHUP`
+  below. By hand:
 
       cd /var/lib/planetGen && sudo git pull
       sudo /usr/local/planetgen/venv/bin/pip install --upgrade "/var/lib/planetGen[api]" gunicorn
@@ -151,16 +170,19 @@ proxy timeouts, and everything else to gunicorn. gunicorn listens on
 
   HUP loads the new code and leaves a running Generate job alone. A full
   restart is `sudo launchctl kickstart -k system/org.planetgen.gunicorn`.
-- **Monthly orbit update:** install
+- **Monthly orbit update:**
+  `sudo examples/maintenance/install-maintenance-timer.sh planetgen`
+  installs
   [`org.planetgen.orbits.planetgen.plist`](../../examples/macos/org.planetgen.orbits.planetgen.plist)
-  the same way (one copy per database, with the name changed). It runs
+  (one per database named) and
+  [`org.planetgen.update.plist`](../../examples/macos/org.planetgen.update.plist),
+  or install them by hand the same way as the gunicorn one. It runs
   at 03:30 on the 1st, like the Linux timer. A run missed while the Mac
   was switched off is skipped: launchd has no equivalent of systemd's
   `Persistent=true`.
-- **Debug log:** nothing rotates `/var/log/planetgen.log` on macOS. If you
-  leave debug on, add a `newsyslog` rule in
+- **Debug log:** `install.sh` writes this `newsyslog` rule to
   `/etc/newsyslog.d/planetgen.conf` (7 copies, rotate past 100 MB,
-  compressed):
+  compressed); by hand it is:
 
       /var/log/planetgen.log  _www:_www  660  7  102400  *  Z
 
