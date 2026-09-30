@@ -685,7 +685,13 @@ from stellarObjects.supernovaRemnantData import SupernovaRemnant
 
 
 def make_black_hole():
-    return BlackHole(SystemConfig())
+    # A stellar-mass one: an intermediate-mass black hole (2% of draws, up
+    # to 1e5 Msun) has a Hill sphere far wider than these test sectors, and
+    # generation simply skips a draw it can't place.
+    while True:
+        black_hole = BlackHole(SystemConfig())
+        if black_hole.mass_class == "stellar":
+            return black_hole
 
 
 def make_nebula():
