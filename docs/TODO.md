@@ -531,47 +531,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       (`quadrant`), `star_systems.location`, containing nebula (#29),
       and any stored or rendered text naming the old sector.
 
-### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
-
-33. [ ] **Courses in "bearing mark mark" format on nested reference
-    frames.** Boss: "Course projections should be in the format of:
-    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
-    Boss's design (summarized; the full text and pseudocode are in
-    `docs/design/navigation-frames.md`):
-    - North points toward the local dominant center of mass. Every
-      local frame is a rigid transform of the absolute galactic
-      Cartesian frame.
-    - Galactic Standard Frame: origin the galactic core, +Z galactic
-      north, +X a fixed zero meridian. Between sectors, bearing 000
-      points at the core.
-    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
-      North from the ship toward it, +Z the galactic +Z.
-    - System Local Frame: origin the central star/barycenter, North
-      from the ship toward it, +Z the star's net angular momentum
-      (the ecliptic normal).
-    - Math: D = target - ship; U = the plane's normal; N = (center -
-      ship) with its U part removed, normalized; E = N x U. Bearing =
-      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
-      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
-      fall back to a fixed reference vector. Boss's `compute_course`
-      pseudocode in the design doc is the reference.
-    - Hand-offs: star to sector barycenter past the heliopause (~120
-      AU); galactic frame when crossing a sector boundary (> 4 pc).
-    - Today `navigation.course_between` returns azimuth/altitude on the
-      galactic plane and `nav.html` shows them as separate rows.
-    - **Questions for Boss:**
-      - Marks from 0-359: the math gives -90 to +90. Default taken, from
-        your own note: write mark as elevation mod 360, so 000-090 is up
-        and 270-359 is down (270 = straight down), and nothing between
-        091 and 269 appears. OK?
-      - "0 mark 0 toward the galactic core" holds in the galactic frame;
-        inside a system or sector, 0 points at the star or sector
-        barycenter. Default taken: 0 mark 0 is toward the current
-        frame's center.
-      - The zero meridian "toward a reference quasar": here the quasar
-        sits at the galactic center, so it can't set +X. Default taken:
-        keep the galaxy's existing +X axis (ring slot 0).
-
 ### Facilities (new)
 
 35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I
@@ -623,14 +582,6 @@ Low priority; nobody is waiting on these.
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
 
-### Security hardening (left from the 2026-09-30 audit)
-
-The audit's findings were fixed in the security PR; these hardening
-ideas remain, none with a known exploit.
-
-39. [ ] **Hardening:** a per-username login backoff on top of the per-IP
-    limit.
-
 ### Known generation bugs (strict xfail tests)
 
 Each has a test marked `xfail(strict=True)` that starts passing, and so
@@ -644,10 +595,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
     `low_orbit` ignores the planet's radius. Test:
     `test_moons_orbit_outside_their_parents_body`.
-42. [ ] **A close binary's planets can orbit inside the binary.**
-    `StarSystem._generate_planets` has no floor at the stars' separation
-    (about 5% of close binaries). Test:
-    `test_circumbinary_bodies_orbit_outside_the_binary`.
 43. [ ] **A planet's Hill sphere can overlap the belt inside it.**
     `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
     but a belt after a planet must clear 5 Hill radii. Test:

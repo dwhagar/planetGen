@@ -227,8 +227,13 @@ def login():
         if exc.status_code == 401:
             return _login_page(next_url, error="Invalid username or password.", username=username)
         if exc.status_code == 429:
-            return _login_page(next_url, error="Too many login attempts. Wait a minute, then try again.",
-                               username=username, status=429)
+            message = _api_message(exc)
+            if "try again in" in message:
+                # loginbackoff's per-username lock, which names its wait.
+                error = message[0].upper() + message[1:].replace("; try", ". Try") + "."
+            else:
+                error = "Too many login attempts. Wait a minute, then try again."
+            return _login_page(next_url, error=error, username=username, status=429)
         if exc.status_code == 400:
             return _login_page(next_url, error=_api_message(exc), username=username)
         raise

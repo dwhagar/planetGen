@@ -1,5 +1,35 @@
 # Changelog
 
+## [7.14.1] - 2026-09-30
+
+### Security
+- **Failed logins are counted per username, not only per address.** After
+  10 failures for one username, from any mix of addresses, each further
+  failure locks that username for twice as long as the last (1 s, 2 s,
+  4 s, ... up to 15 minutes). A locked login is refused with a 429 and
+  `Retry-After` before the password is checked, and the login page says
+  how long to wait. Unknown usernames are counted the same way, so the
+  lock doesn't reveal which usernames exist; a successful login clears
+  the count (`src/html/api/loginbackoff.py`).
+
+## [7.14.0] - 2026-09-30
+
+### Changed
+
+- NAV courses read "bearing mark mark" (for example "045 mark 330") on Boss's nested reference frames: bearing 000 points at the sector's center for a course inside one sector and at the galactic core between sectors, and the mark is the elevation mod 360 (270 is straight down). The NAV page shows the course and its frame in place of the Azimuth and Altitude rows, and the NAV Map's compass arrow marks bearing 000.
+- `/api/nav`'s `direct` carries `bearing_deg`, `mark_deg`, `elevation_deg` and `frame` instead of `azimuth_deg` and `altitude_deg`.
+- The NAV page's distances and the NAV Map's scale bar use the shared distance ladder (for example "1.07 pc (3.5 ly)").
+
+## [7.13.1] - 2026-09-30
+
+### Fixed
+- **A close binary's planets could orbit inside the binary.** A close
+  pair's innermost planet or belt now starts at the Holman & Wiegert
+  (1999) circumbinary stability limit, about twice the stars'
+  separation. When a habitable world is required and the pair's whole
+  habitable zone lies inside that limit, the pair is made wide instead,
+  unless the binary type was forced (TODO item 42).
+
 ## [7.13.0] - 2026-09-30
 
 ### Changed

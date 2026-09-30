@@ -608,11 +608,6 @@ def test_moons_orbit_outside_their_parents_body():
     assert not bad, f"{len(bad)} moons inside their parent's body, e.g. {bad[:3]}"
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG: StarSystem._generate_planets starts a close (P-type) binary's first slot at "
-    "INITIAL_PLANET_DISTANCE_FACTOR * mass with no floor at the binary's own separation, so a "
-    "'circumbinary' planet/belt can orbit inside the two stars' orbit (repro: +binary_system "
-    "-wide_binary; ~5% of seeds)"))
 def test_circumbinary_bodies_orbit_outside_the_binary():
     bad = []
     for seed in range(60):

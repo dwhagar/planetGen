@@ -268,6 +268,9 @@ def make_app(mysql_config):
         SECRET_KEY = SECRET_KEY
         SECRET_KEY_IS_EPHEMERAL = False
         RATELIMIT_STORAGE_URI = "memory://"
+        # These tests fail logins for the admin on purpose, hundreds of
+        # times; tests/test_login_backoff.py covers the backoff itself.
+        LOGIN_BACKOFF_ENABLED = False
 
     application = create_app(FuzzConfig)
     application.test_client_class = RotatingAddressClient

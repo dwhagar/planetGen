@@ -33,6 +33,7 @@ from .utils import (
     calculate_reflex_offset,
     format_distance_au,
     disk_surface_density_scale,
+    holman_wiegert_circumbinary_a_crit_au,
     isolation_mass_kg,
     mmsn_surface_density_gcm2,
     mutual_hill_radius_au,
@@ -280,7 +281,18 @@ class StarSystem:
                 self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
                                              galactic_center_dist_ly=galactic_center_dist_ly,
                                              galactic_orbital_phase_deg=galactic_orbital_phase_deg) # self.star now points to the proxy
-            else:
+                # A close pair whose whole habitable zone lies inside its
+                # circumbinary stability limit can't host a habitable world;
+                # when one is required and the binary type wasn't forced,
+                # make the pair wide instead.
+                if (self.system_config.HABITABLE_WORLD is True and self.system_config.WIDE_BINARY is None
+                        and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1]):
+                    log.choice("Binary type", "wide", "HABITABLE_WORLD is required and this close pair's habitable "
+                               "zone lies inside its circumbinary stability limit")
+                    self.binary_type = "wide"
+                    self.star = self.primary_star
+
+            if self.binary_type == "wide":
                 # An S-type pair never merges into one effective star --
                 # self.star stays the primary Star itself (set above), and
                 # WideBinaryPair.__init__ sets primary_star.a_crit_au /
@@ -310,6 +322,7 @@ class StarSystem:
             with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
                 primary_ceiling_au = self._orbit_ceiling_au(self.star)
                 self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
+                self._clear_circumbinary_floor(self.planets)
                 self.validate_system(self.planets)
                 # validate_system only ever pushes a body's distance further
                 # OUTWARD to resolve a spacing collision with its inner
@@ -569,8 +582,46 @@ class StarSystem:
         probability = program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
         return random.random() < probability
 
-    # TODO(physics #42): a close binary's first slot needs a floor at the
-    # stars' own separation.
+    def _orbit_floor_au(self, star):
+        """
+        The innermost stable orbit around `star`, in AU: for a P-type
+        (close) binary's merged proxy, Holman & Wiegert's circumbinary
+        critical semi-major axis (`utils.holman_wiegert_circumbinary_a_crit_au`,
+        about 2-2.4 times the pair's separation), since anything closer is
+        inside, or torn apart by, the two stars' own orbit. 0 for any other
+        star.
+        """
+        separation_au = getattr(star, "binary_separation_au", None)
+        if separation_au is None:
+            return 0.0
+        masses = [s.mass for s in star.stars]
+        return holman_wiegert_circumbinary_a_crit_au(separation_au, min(masses) / sum(masses))
+
+    def _clear_circumbinary_floor(self, planets):
+        """
+        Pushes the innermost body of `planets` out past `_orbit_floor_au`
+        when an explicit slot or a forced habitable-zone placement put it
+        inside a close binary's stable limit; `validate_system`, which runs
+        next, then re-spaces everything beyond it. A planet moved this way
+        is reconciled to its new zone like any `validate_system` move.
+        """
+        if not planets:
+            return
+        floor_au = self._orbit_floor_au(self.star)
+        body = planets[0]
+        if body.body_type == 'a':
+            shift = floor_au - body.lower_limit
+            if shift > 0:
+                body.distance += shift
+                body.lower_limit += shift
+                body.upper_limit += shift
+        elif body.distance < floor_au:
+            body.distance = floor_au
+            self._reconcile_moved_planet(body)
+        else:
+            return
+        log.debug(f"Innermost body moved out to the circumbinary stability limit ({floor_au:.4g} AU)")
+
     def _generate_planets(self, star, habitable_zone, orbit_ceiling_au, apply_guarantees=True):
         """
         Builds a fresh, sequentially-placed list of planets/asteroid belts
@@ -674,7 +725,10 @@ class StarSystem:
                     if estimated_distance > orbit_ceiling_au:
                         break
                 else:
-                    estimated_distance = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
+                    # A close binary's first slot starts no closer than its
+                    # circumbinary stability limit (0 for any other star).
+                    estimated_distance = max(program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor,
+                                             self._orbit_floor_au(star))
 
                 hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
 
@@ -1352,6 +1406,11 @@ class StarSystem:
                   `habitable_zone`.
         """
         inner, outer = self.star.habitable_zone
+        # A close binary's habitable zone can start inside its circumbinary
+        # stability limit; only the stable part of the zone is usable.
+        floor_au = self._orbit_floor_au(self.star)
+        if floor_au < outer:
+            inner = max(inner, floor_au)
         return self._distance_within_zone_with_margin(inner, outer, planets=planets)
 
     def count_objects(self, planets=None):

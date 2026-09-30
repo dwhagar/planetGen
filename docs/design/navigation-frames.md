@@ -1,13 +1,30 @@
-# Navigation reference frames (planned)
+# Navigation reference frames
 
-Boss's design for nested navigation frames, recorded 2026-09-30 as the
-reference for `docs/TODO.md` item 33 (courses) and item 34 (warp and
-fold speeds). The travel speeds are implemented
-(`navigation.warp_speed_c` and `fold_speed_c`); the frames are not yet,
-and today's course is
-`stellarObjects/navigation.course_between` (azimuth and altitude on the
-galactic plane). The design below is Boss's text as given; the open
-questions are listed in the TODO item.
+Boss's design for nested navigation frames, recorded 2026-09-30 (TODO
+items 33 and 34). Implemented in `stellarObjects/navigation.py`:
+`course_between` is Boss's `compute_course` below, `format_course` writes
+"000 mark 000", and `warp_speed_c`/`fold_speed_c` are the travel speeds.
+
+Decisions Boss approved on 2026-09-30:
+
+- Mark is the elevation mod 360: 000-090 is up, 270-359 is down (270 is
+  straight down), and nothing between 091 and 269 appears.
+- 0 mark 0 points toward the current frame's center (the galactic core
+  between sectors, the sector's center inside one).
+- The quasar sits at the galactic center, so it can't set the zero
+  meridian; +X stays the galaxy's existing axis (ring slot 0). It is only
+  used as North's fallback when the ship sits on the frame's up axis.
+
+How NAV picks the frame (`queryDb.nav_between`): two systems in the same
+sector use the Sector Local Frame, centered on the sector's center (the
+origin of sector-local positions); anything else uses the Galactic
+Standard Frame. East is North x Up, as below, so with North toward the
+core and Up galactic north, East runs clockwise seen from above. NAV
+endpoints are whole systems and phenomena, so a course always leaves the
+heliopause and the System Local Frame is never chosen yet; `course_between`
+takes a center and up vector for when in-system navigation exists.
+
+The design below is Boss's text as given.
 
 Course projections are written as `0-359 mark 0-359`, with 0 mark 0
 pointing toward the galactic core.
