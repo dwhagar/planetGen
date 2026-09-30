@@ -411,3 +411,131 @@ def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
         assert conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"] == 0
     finally:
         conn.close()
+
+
+# --- One-off system (web/system_page.py) --------------------------------------------
+
+from web import system_page  # noqa: E402
+
+
+def _post_system(client, **form):
+    form.setdefault("csrf_token", _token(client))
+    return client.post("/admin/generate/system", data=form)
+
+
+def test_system_page_needs_an_admin(site, client):
+    token = _token(client)
+    site.admin = None
+    resp = client.get("/admin/generate/system")
+    assert resp.status_code == 302 and "login" in resp.headers["Location"]
+    assert client.post("/admin/generate/system", data={"csrf_token": token}).status_code == 403
+    assert client.post("/admin/generate/system/download",
+                       data={"csrf_token": token, "text": "x"}).status_code == 403
+
+
+def test_system_page_renders_every_option(site, client):
+    html = client.get("/admin/generate/system").get_data(as_text=True)
+    for name, _label in system_page.TRISTATE_FIELDS:
+        assert f'name="{name}"' in html
+    for name in ("name", "star_type", "age", "num_orbits", "flavor_chance_system", "flavor_chance_planet",
+                 "max_planet_flavor", "system_file", "format", "debug"):
+        assert f'name="{name}"' in html
+    # Linked from the Generate page.
+    assert 'href="/admin/generate/system"' in client.get("/admin/generate").get_data(as_text=True)
+
+
+def test_system_options_match_generate_py():
+    sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
+    import generate
+
+    assert [name for name, _label in system_page.TRISTATE_FIELDS] == [
+        name for name, _attr, _description in generate.TRISTATE_OPTIONS]
+    _parser, parsers = generate.build_parser()
+    spec = system_page.system_request({
+        "habitable_world": "yes", "comets": "no", "name": "-Odd Name", "star_type": "G2V", "age": "old",
+        "num_orbits": "4", "flavor_chance_system": "0.5", "flavor_chance_planet": "1",
+        "max_planet_flavor": "1", "format": "markdown",
+    })
+    args = parsers["system"].parse_args(spec["argv"] + ["--output", "x"])
+    assert args.habitable_world is True and args.comets is False and args.planets is None
+    assert args.name == "-Odd Name" and args.star_type == "G2V" and args.age == "old"
+    assert args.num_orbits == 4 and args.flavor_chance_system == 0.5 and args.flavor_chance_planet == 1.0
+    assert args.max_planet_flavor and args.markdown and args.output == "x"
+
+
+@pytest.mark.parametrize("form, message", [
+    ({"planets": "no", "moons": "yes"}, "No planets"),
+    ({"star_type": "G2V", "large_star": "yes"}, "star type"),
+    ({"intelligent_life": "yes", "habitable_world": "no"}, "Intelligent life"),
+    ({"num_orbits": "3", "planets": "no"}, "Orbital slots"),
+    ({"num_orbits": "-1"}, "at least 0"),
+    ({"flavor_chance_planet": "1.5"}, "at most 1"),
+    ({"habitable_world": "yes", "asteroid_belt": "yes", "large_star": "no"}, "large star"),
+    ({"system_file": "{nope"}, "valid JSON"),
+    ({"system_file": "[1]"}, "JSON object"),
+])
+def test_system_request_rejects_what_generate_py_rejects(form, message):
+    with pytest.raises(generate_page.FormError, match=message):
+        system_page.system_request(form)
+
+
+def test_system_page_generates_markdown_without_a_database(site, client):
+    resp = _post_system(client, name="Webtest Prime", habitable_world="yes", num_orbits="3", debug="1",
+                        system_file='{"slots": [{"type": "planet", "planet_class": "M"}, null, null]}')
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200, html
+    assert '<h2 id="system-result-heading">Webtest Prime</h2>' in html
+    assert "# Webtest Prime" in html  # the Markdown code box
+    assert '<div class="prose">' in html  # the rendered preview
+    assert 'title="Save as Webtest-Prime.md">Download</button>' in html
+    assert "Debug log" in html
+    assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)
+
+
+def test_system_page_wikitext(site, client):
+    html = _post_system(client, name="Wiki Star", format="wikitext").get_data(as_text=True)
+    assert "= Wiki Star =" in html
+    assert 'title="Save as Wiki-Star.wiki"' in html
+    assert '<div class="prose">' not in html
+
+
+def test_system_page_shows_a_bad_value(site, client):
+    resp = _post_system(client, planets="no", moons="yes")
+    assert resp.status_code == 400
+    assert "No planets can" in resp.get_data(as_text=True)
+
+
+def test_system_page_shows_generator_failures(site, client, monkeypatch):
+    monkeypatch.setattr(system_page.jobs, "GENERATE_SCRIPT", "-c")
+    monkeypatch.setattr(system_page.jobs, "python_executable", lambda: PY)
+    # `python -c system ...` runs the word "system" as code: a NameError.
+    resp = _post_system(client)
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 500
+    assert "The generator failed" in html and "NameError" in html
+
+
+def test_system_download(site, client):
+    resp = client.post("/admin/generate/system/download", data={
+        "csrf_token": _token(client), "text": "# A/B Star\r\n\r\nText", "format": "markdown", "title": "A/B Star"})
+    assert resp.status_code == 200
+    assert resp.headers["Content-Disposition"] == 'attachment; filename="A-B-Star.md"'
+    assert resp.mimetype == "text/markdown"
+    assert resp.get_data(as_text=True) == "# A/B Star\n\nText"
+
+
+def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
+    import subprocess
+
+    out = tmp_path / "system.md"
+    # An unreachable database: --output must never try to connect.
+    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1"}
+    proc = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--markdown", "--output", str(out),
+                           "--name=Output Test", "+habitable_world"],
+                          capture_output=True, text=True, timeout=120, env=env)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert out.read_text().startswith("# Output Test\n")
+    assert "not saved to the database" in proc.stdout
+    wiki = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
+                          capture_output=True, text=True, timeout=120, env=env)
+    assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")

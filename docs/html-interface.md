@@ -176,6 +176,7 @@ far:
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
+| `/admin/generate/system` | (new) | Admins only: one star system with every `generate.py system` option, shown as Markdown or wikitext and never saved (see below). |
 
 `index.py` and `browse.py` are now CGI shims that answer `301 Moved
 Permanently` to `/`, carrying `sectors_page`/`standalone_page` from the
@@ -294,6 +295,18 @@ bar (from `generate.py`'s `PLANETGEN_PROGRESS_FILE`, see
 (`static/generatejobs.js` polls `/admin/generate/status`), with a Cancel
 button. The last jobs are listed with their full output at
 `/admin/generate/jobs/<id>`.
+
+**The one-off system page** (`/admin/generate/system`,
+`web/system_page.py` + `templates/generate_system.html`, linked from the
+Generate page) offers every `generate.py system` option: the ten
+force/forbid choices, name, star type, age, orbital slots, the flavor
+overrides, a pasted `--system-file` JSON, Markdown or wikitext, and the
+`--debug` narration. It runs `generate.py system --output FILE` in a
+temporary directory and waits for it (a system takes about a second), so
+nothing touches the database. The result shows in a code box with Copy
+and Download buttons (Download posts the text back to
+`/admin/generate/system/download`, which returns it as a `.md`/`.wiki`
+file), plus a rendered preview for Markdown.
 
 A job is started as `python3 src/jobRunner.py <job dir>` in its own
 session, so it outlives the request and a graceful Apache reload. A full

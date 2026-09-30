@@ -1199,6 +1199,13 @@ a:focus-visible .navmap-point circle {
   filter: brightness(1.08);
 }
 
+a.btn,
+a.btn:visited {
+  display: inline-block;
+  color: var(--accent-contrast);
+  text-decoration: none;
+}
+
 .active-filters {
   display: flex;
   flex-wrap: wrap;
@@ -2005,6 +2012,21 @@ body.app {
 .generate-check {
   justify-content: flex-end;
   font-weight: 400;
+}
+
+/* One-off system page (web/templates/generate_system.html). */
+.system-format {
+  margin-top: 1rem;
+}
+
+.system-preview {
+  margin-top: 1rem;
+}
+
+.code-view-header .search-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 .field-hint {
