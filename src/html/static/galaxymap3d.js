@@ -70,6 +70,7 @@ const {
   buildPrismGeometry, cellCoordinates, cellVertices, groupSectorCount, groupSectorRanges, prismsForView,
   sectorAddressAt, sectorCellBounds, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
+const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -218,15 +219,6 @@ function showPlannedInfo(entry) {
   panel.appendChild(makeCopyButton(cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index)));
 }
 
-var LY_PER_PC = 3.26156;
-
-// TODO(distances #1): use the shared unit-ladder formatter (also for
-// formatPc further down). Boss kept this "pc (ly)" shape: the ladder adds
-// ly in parentheses to every parsec value of 0.01 ly or more.
-function formatPcLy(pc) {
-  return pc.toFixed(1) + " pc (" + (pc * LY_PER_PC).toFixed(1) + " ly)";
-}
-
 function formatDeg(rad) {
   return ((rad * 180) / Math.PI).toFixed(3) + "°";
 }
@@ -277,9 +269,9 @@ function showCellInfo(cell) {
   addField(dl, "Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
   addField(dl, "Cylindrical R, θ, z", coords.cylindrical[0].toFixed(1) + " pc, " + formatDeg(coords.cylindrical[1]) + ", " + coords.cylindrical[2].toFixed(1) + " pc");
   addField(dl, "Spherical r, θ, φ", coords.spherical[0].toFixed(1) + " pc, " + formatDeg(coords.spherical[1]) + ", " + formatDeg(coords.spherical[2]));
-  addField(dl, "Radial width", formatPcLy(b.r1 - b.r0));
-  addField(dl, "Height", formatPcLy(b.z1 - b.z0));
-  addField(dl, "Mean arc length", formatPcLy(((b.r0 + b.r1) / 2) * (b.t1 - b.t0)));
+  addField(dl, "Radial width", formatDistancePc(b.r1 - b.r0));
+  addField(dl, "Height", formatDistancePc(b.z1 - b.z0));
+  addField(dl, "Mean arc length", formatDistancePc(((b.r0 + b.r1) / 2) * (b.t1 - b.t0)));
   panel.appendChild(dl);
 
   var corners = document.createElement("details");
@@ -1933,12 +1925,6 @@ function initGalaxyMap3d(canvasEl, data) {
     return niceMantissa * magnitude;
   }
 
-  function formatPc(value) {
-    if (value >= 100) return Math.round(value).toLocaleString() + " pc";
-    if (value >= 1) return Math.round(value * 10) / 10 + " pc";
-    return Math.round(value * 1000) / 1000 + " pc";
-  }
-
   // Up to 3 significant figures, grouped: 0.0512, 3.4, 1,280.
   function formatCount(value) {
     if (!(value > 0)) return "0";
@@ -1946,15 +1932,13 @@ function initGalaxyMap3d(canvasEl, data) {
     return String(Number(value.toPrecision(value >= 1 ? 3 : 2)));
   }
 
-  function formatLy(pc) {
-    return formatCount(pc * LY_PER_PC) + " ly";
-  }
-
   function plural(count, word) {
     return count === 1 ? word : word + "s";
   }
 
-  // One line of the readout: "<lead> <sectors> · <pc> · <ly>".
+  // One line of the readout: "<lead> <sectors> · <distance>", the distance
+  // on the shared ladder (static/distance.js), which adds ly in
+  // parentheses to parsec values.
   function scaleLine(lead, pc, suffix) {
     var sectors = pc / edgePc;
     var line = document.createElement("span");
@@ -1962,7 +1946,7 @@ function initGalaxyMap3d(canvasEl, data) {
     // Wraps on a phone instead of running off the canvas.
     line.style.whiteSpace = "normal";
     line.textContent = lead + " " + formatCount(sectors) + " " + plural(sectors, "sector") + (suffix || "")
-      + " · " + formatPc(pc) + " · " + formatLy(pc);
+      + " · " + formatDistancePc(pc);
     return line;
   }
 
