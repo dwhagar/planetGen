@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# TODO(installers #50): systemd timers don't exist on macOS or Windows; add
+# a launchd plist and a Task Scheduler task. See docs/TODO.md item 50.
 #
 # examples/maintenance/install-maintenance-timer.sh
 #

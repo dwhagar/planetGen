@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# TODO(installers #50): write install.ps1 as this script's Windows
+# counterpart, and make this script run on macOS too (bash 3.2, Homebrew
+# instead of apt, launchd instead of systemd, Homebrew Apache paths and
+# _www). See docs/TODO.md item 50.
 #
 # install.sh
 #

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# TODO(installers #50): logrotate and usermod don't exist on macOS
+# (use newsyslog and dscl); add a Windows counterpart. See docs/TODO.md item
+# 50.
 #
 # examples/apache/setup-debug-log.sh
 #
