@@ -162,9 +162,9 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      - At large m the share is tiny (a handful of filled sectors among
        531,441), so give any filled content a minimum visible step, then
        scale it. A log of the count is one option.
-     - Boss's wording was "decrease the opacity by a factor proportional to
-       the number of filled sectors". This item reads it as "less
-       see-through", so filled regions stand out. Confirm before building.
+     - Boss confirmed on 2026-09-30: the more filled sectors a block
+       holds, the more solid it is, and fully solid once every sector is
+       generated.
    - **Individual filled sectors appear only at sector zoom (m = 1).**
      Coarser, they show only through their block's opacity.
    - **Picking moves to blocks.**
