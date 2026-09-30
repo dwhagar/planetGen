@@ -33,7 +33,8 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **Extend the cache (1)**, then do the System Map route (2).
+- **Extend the cache (1)**, then do the System Map route (2). The
+   local-time change (14) is small and can go in any time.
 - **Galaxy Map (3-13):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work items 3-11 in order. 3 and 4 ship
@@ -221,18 +222,45 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    field. Done means they're gone with their tests, and the tile cache
    still works.
 
+### Web interface (`src/html/web/`, `src/html/static/`)
+
+14. [ ] **Show every timestamp in the viewer's own time zone.** Boss asked
+    for this on 2026-09-30. Today, times are shown in whatever zone they
+    were stored or formatted in.
+    - Server-rendered pages. Examples:
+      - `generate_page.py`'s job `created_text`, formatted with the
+        server's `time.localtime`;
+      - `admin_pages.py`'s API key `created_at` and the stats page's
+        "Last system change", "Newest system" and "Last sector change";
+      - `errors.py`'s error-page time.
+    - API responses, such as `api/auth.py`'s key `created_at`,
+      `last_used_at` and `revoked_at`. These should stay UTC ISO 8601 with
+      an explicit offset, since clients convert them.
+    - Job status in `static/generatejobs.js`, and any time the Galaxy Map
+      shows.
+
+    Approach: the server always emits UTC as `<time datetime="...Z">` with
+    a UTC fallback text, and one small script (like `theme.js`) rewrites
+    each one with `Intl.DateTimeFormat` in the browser's zone
+    (`Intl.DateTimeFormat().resolvedOptions().timeZone`), also showing the
+    zone's abbreviation. Pages still read correctly without JavaScript
+    (UTC, labelled). MySQL `DATETIME` columns carry no zone, so first
+    confirm the server session's `time_zone` is UTC or convert on read.
+    Done means no page shows a bare, zone-less time, and tests pin the UTC
+    markup.
+
 ### Web API (`src/html/api/routes.py`)
 
 Low priority; nobody is waiting on these.
 
-14. [ ] **The API can't create a system inside an existing sector.**
+15. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-15. [ ] **The API can't edit a system's generated content.** `PATCH
+16. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -242,10 +270,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-16. [ ] Assign government ownership to star systems so that groups of
+17. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-17. [ ] Flag worlds with life for generated names of their dominant
+18. [ ] Flag worlds with life for generated names of their dominant
     species.
-18. [ ] A database of spacefaring species.
-19. [ ] Model younger and older civilizations: what differs with a
+19. [ ] A database of spacefaring species.
+20. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.
