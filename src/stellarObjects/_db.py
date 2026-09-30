@@ -56,7 +56,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import keplerMotion, log, physical_constants
+from . import keplerMotion, log, physical_constants, program_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField
@@ -85,7 +85,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 32
+SCHEMA_VERSION = 33
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2711,26 +2711,36 @@ def get_galaxy_shape(conn):
     )
 
 
-def replace_galaxy_ring_bands(ring_bands, config=None, conn=None):
+def replace_galaxy_layers(layer_extents, config=None, conn=None):
     """
-    Replaces every `galaxy_ring_band` row wholesale -- a full skeleton
-    build always produces the whole galaxy's set in one pass, so there is
-    no partial update (matches `save_galaxy_shape`).
+    Replaces the galaxy's stored outline wholesale: every `galaxy_layer`
+    row (each layer's radial bound) and every `galaxy_column` row (each
+    ring's stack bound, derived from the same extents) -- a full skeleton
+    build always produces the whole outline in one pass, so there is no
+    partial update (matches `save_galaxy_shape`).
 
     Args:
-        ring_bands (iterable): `(ring_index, layer_index_min,
-            layer_index_max)` tuples, any order.
+        layer_extents (iterable): `(layer_index, outer_ring_index)`
+            pairs, any order (`galaxySkeleton.build_layer_extents`).
         config (MySQLConfig, optional): Connection parameters. Defaults
             to `DEFAULT_MYSQL_CONFIG`. Ignored when `conn` is given.
         conn (Connection, optional): Write through this connection, inside
-            the caller's own transaction (the v32 migration does), instead
+            the caller's own transaction (the v33 migration does), instead
             of opening and committing a new one.
     """
+    from .galaxySkeleton import column_extents
+
+    layer_extents = list(layer_extents)
+
     def _write(c):
-        c.execute("DELETE FROM galaxy_ring_band")
+        c.execute("DELETE FROM galaxy_layer")
         c.executemany(
-            "INSERT INTO galaxy_ring_band (ring_index, layer_index_min, layer_index_max) VALUES (?, ?, ?)",
-            list(ring_bands),
+            "INSERT INTO galaxy_layer (layer_index, outer_ring_index) VALUES (?, ?)", layer_extents,
+        )
+        c.execute("DELETE FROM galaxy_column")
+        c.executemany(
+            "INSERT INTO galaxy_column (ring_index, layer_index_min, layer_index_max) VALUES (?, ?, ?)",
+            column_extents(layer_extents),
         )
 
     if conn is not None:
@@ -2744,19 +2754,65 @@ def replace_galaxy_ring_bands(ring_bands, config=None, conn=None):
         own.close()
 
 
-def get_galaxy_ring_band(conn, ring_index):
+def get_galaxy_layer_outer_ring(conn, layer_index):
     """
-    This ring's stored layer band, or `None` if the ring holds no content
-    (including if the skeleton was never built at all).
+    The last ring layer `layer_index` reaches, or `None` if the layer
+    holds no content (including if the skeleton was never built at all).
+    The layer holds rings 0 through this one.
+
+    Returns:
+        int or None: The layer's `outer_ring_index`.
+    """
+    row = conn.execute(
+        "SELECT outer_ring_index FROM galaxy_layer WHERE layer_index = ?", (layer_index,),
+    ).fetchone()
+    return row["outer_ring_index"] if row is not None else None
+
+
+def get_galaxy_column(conn, ring_index):
+    """
+    Ring `ring_index`'s stack bound: the lowest and highest layer its
+    column of sectors reaches, or `None` if no layer reaches that ring.
 
     Returns:
         tuple or None: `(layer_index_min, layer_index_max)`, inclusive.
     """
     row = conn.execute(
-        "SELECT layer_index_min, layer_index_max FROM galaxy_ring_band WHERE ring_index = ?",
-        (ring_index,),
+        "SELECT layer_index_min, layer_index_max FROM galaxy_column WHERE ring_index = ?", (ring_index,),
     ).fetchone()
     return (row["layer_index_min"], row["layer_index_max"]) if row is not None else None
+
+
+def get_galaxy_bounds(conn):
+    """
+    The galaxy's stored outline as a `galaxySkeleton.GalaxyBounds`, the
+    object every generation path checks an address against before
+    generating anything there.
+
+    Returns:
+        GalaxyBounds or None: `None` if the skeleton was never built (no
+            `galaxy_shape` row).
+    """
+    from .galaxySkeleton import GalaxyBounds
+
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None:
+        return None
+    return GalaxyBounds(get_galaxy_layers(conn), skeleton.edge_pc)
+
+
+def get_galaxy_layers(conn):
+    """
+    The galaxy's whole stored outline, highest layer first.
+
+    Returns:
+        list[tuple]: `(layer_index, outer_ring_index)` pairs; empty if the
+            skeleton was never built.
+    """
+    rows = conn.execute(
+        "SELECT layer_index, outer_ring_index FROM galaxy_layer ORDER BY layer_index DESC"
+    ).fetchall()
+    return [(row["layer_index"], row["outer_ring_index"]) for row in rows]
 
 
 def save_system(star_system: StarSystem, system_config: SystemConfig, config=None) -> int:
@@ -4881,10 +4937,9 @@ def _migrate_v31_to_v32(conn):
     - `sector_vertices` is dropped (a cell's corners are closed-form).
     - `sectors` swaps `shell_index`/`shell_slot_index` for `ring_index`/
       `layer_index`/`ring_slot_index` plus their UNIQUE key.
-    - `galaxy_shell_band` is dropped; `galaxy_ring_band` (which
-      `_ensure_schema` already created) is filled from the stored galaxy
-      shape, if there is one, and `galaxy_shape.outer_shell_index` becomes
-      `outer_ring_index`.
+    - `galaxy_shell_band` is dropped and `galaxy_shape.outer_shell_index`
+      becomes `outer_ring_index`; `_migrate_v32_to_v33` rebuilds the
+      skeleton.
 
     Guarded on `sectors.shell_index`, so a database `_ensure_schema`
     created fresh (already the new shape) makes this a no-op apart from
@@ -4896,8 +4951,6 @@ def _migrate_v31_to_v32(conn):
                            up to `SCHEMA_VERSION` has run).
     """
     if _has_column(conn, "sectors", "shell_index"):
-        from .galaxySkeleton import build_ring_bands
-
         placed = "SELECT id FROM sectors WHERE center_x_pc IS NOT NULL"
         for table in V32_PLACED_CONTENT_TABLES:
             conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})")
@@ -4920,15 +4973,62 @@ def _migrate_v31_to_v32(conn):
         conn.execute("DROP TABLE IF EXISTS galaxy_shell_band")
         if _has_column(conn, "galaxy_shape", "outer_shell_index"):
             conn.execute("ALTER TABLE galaxy_shape CHANGE COLUMN outer_shell_index outer_ring_index INT NOT NULL")
-        skeleton = get_galaxy_shape(conn)
-        if skeleton is not None:
-            bands, outer_ring_index, _confirmed = build_ring_bands(
-                skeleton.shape, skeleton.edge_pc, 1.0 / skeleton.expected_system_count_at_density_1,
-            )
-            replace_galaxy_ring_bands(bands, conn=conn)
-            conn.execute("UPDATE galaxy_shape SET outer_ring_index = ? WHERE id = 1", (outer_ring_index,))
+        # The skeleton itself is rebuilt by `_migrate_v32_to_v33`, which
+        # always runs right after this step.
 
     conn.execute("INSERT INTO schema_migrations (version) VALUES (32)")
+
+
+def _migrate_v32_to_v33(conn):
+    """
+    Moves the galaxy to the one sector standard -- see `schema.sql`'s
+    "v33" header note: a whole-parsec edge
+    (`program_constants.DEFAULT_SECTOR_EDGE_PC`), `round(2*pi*(i + 1/2))`
+    slots per ring, and a per-layer skeleton (`galaxy_layer`). Nearly
+    every cell's address and position changes, so, as in v32, every
+    galaxy-placed sector is **deleted** together with its star systems and
+    every phenomenon filed under it; visiting the galaxy regenerates them.
+    Sectors that were never placed in the galaxy are untouched.
+
+    Guarded on `galaxy_ring_band`, which only a real v32 database has: a
+    database `_ensure_schema` created fresh (already the new shape), or
+    one v32 just cleared of shell-addressed sectors, keeps its sectors.
+    `galaxy_ring_band` is dropped. If a galaxy shape is stored, the
+    skeleton is rebuilt from it at the standard edge (`galaxy_shape.
+    edge_pc`, `expected_system_count_at_density_1` and `outer_ring_index`
+    are rewritten and `galaxy_layer` is filled), so the galaxy keeps its
+    shape without re-running `generate.py plan`.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    from .galaxySkeleton import build_layer_extents, expected_system_count_at_density_1
+
+    has_ring_bands = conn.execute(
+        "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'galaxy_ring_band'"
+    ).fetchone() is not None
+    if has_ring_bands:
+        placed = "SELECT id FROM sectors WHERE center_x_pc IS NOT NULL"
+        for table in V32_PLACED_CONTENT_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})")
+        conn.execute("DELETE FROM sectors WHERE center_x_pc IS NOT NULL")
+        conn.execute("DROP TABLE galaxy_ring_band")
+
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is not None:
+        edge_pc = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
+        e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
+        extents, outer_ring_index, _confirmed = build_layer_extents(skeleton.shape, edge_pc, 1.0 / e_value)
+        replace_galaxy_layers(extents, conn=conn)
+        conn.execute(
+            "UPDATE galaxy_shape SET edge_pc = ?, expected_system_count_at_density_1 = ?, "
+            "outer_ring_index = ? WHERE id = 1",
+            (edge_pc, e_value, outer_ring_index),
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (33)")
 
 
 def touch_star_system(conn, star_system_id):
@@ -5007,7 +5107,9 @@ def migrate_database(config=None):
     cosmic background), `_migrate_v30_to_v31` (recording v31's new
     `quasars` table), and `_migrate_v31_to_v32` (moving galaxy placement
     to the cylindrical sector grid, which deletes every galaxy-placed
-    sector and its contents) are the migration steps so far; see
+    sector and its contents), and `_migrate_v32_to_v33` (the whole-parsec
+    sector standard and per-layer skeleton, which deletes them again) are
+    the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -5118,6 +5220,10 @@ def migrate_database(config=None):
         if version < 32:
             _migrate_v31_to_v32(conn)
             version = 32
+
+        if version < 33:
+            _migrate_v32_to_v33(conn)
+            version = 33
 
         conn.commit()
         return version

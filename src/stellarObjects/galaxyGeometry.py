@@ -15,11 +15,19 @@ the galactic origin (see `docs/design/galaxy-coordinate-system.md`,
   wedges, slot `k` spanning `theta` in `[2*pi*k/N, 2*pi*(k+1)/N)` from
   `+X`, counterclockwise.
 
-`w` and `h` are both the sector edge length (`edge_pc`, 11.5 ly by
-default), and `N` is chosen so the arc along a ring's centerline is also
-about one edge, so every cell is close to an `edge_pc` cube (within ~5%
-from ring 10 outward). `N` is always a multiple of `RING_SLOT_MULTIPLE`
-(4), so each galactic Quadrant holds whole sectors.
+`w` and `h` are both the sector edge length (`edge_pc`, a whole number of
+parsecs: `program_constants.DEFAULT_SECTOR_EDGE_PC`, 4 pc, by default),
+and `N` is chosen so the arc along a ring's centerline is also about one
+edge, so every cell is close to an `edge_pc` cube (within 5% from ring 1
+out, within 1% from ring 10 out).
+
+Ring and slot counts are the same on every layer, so the grid is a stack
+of identical circular slices: cell `(i, j, k)` sits directly above
+`(i, j - 1, k)` and every slot boundary is one vertical plane through the
+whole stack ("aligned prism" columns). A layer only holds the rings out to
+where the galaxy's density gives out (`galaxySkeleton.build_layer_extents`),
+so the slices shrink away from the plane, but any ring a layer has is cut
+exactly like that ring on every other layer.
 
 The cells tile space exactly -- no gaps, no overlaps -- and every lookup
 is closed-form: `sector_address_at` maps a point straight to its cell,
@@ -32,15 +40,10 @@ Pure geometry: no database, no I/O.
 
 import math
 
-RING_SLOT_MULTIPLE = 4
-"""int: Every ring's slot count is a multiple of this, so the four
-galactic Quadrants (`sector_quadrant`) each hold a whole number of
-sectors and a Quadrant boundary never splits one."""
-
 DESIGNATION_SLOT_BITS = 20
 """int: Low bits of a packed designation holding the slot -- enough for
 the ~411,000 slots of ring 65,535, far past any galaxy this project
-builds (the default Milky Way reaches ring ~4,100, ~26,000 slots)."""
+builds (the default Milky Way reaches ring ~3,900, ~24,000 slots)."""
 
 DESIGNATION_LAYER_BITS = 13
 """int: Bits above the slot holding the layer, biased by
@@ -54,19 +57,20 @@ def ring_sector_count(ring_index):
     """
     How many slots ring `ring_index` holds: `2*pi*(i + 1/2)` (the ring's
     centerline circumference in edge lengths) rounded to the nearest
-    multiple of `RING_SLOT_MULTIPLE`, never fewer than that. Independent
-    of `edge_pc`, which cancels out.
+    whole number, so each slot's centerline arc is as close to one edge
+    as a whole count allows -- 3, 9, 16, 22, ... (about 6 more per ring).
+    Independent of `edge_pc`, which cancels out, and of the layer, so
+    columns line up through every layer.
 
     Args:
         ring_index (int): `i >= 0`.
 
     Returns:
-        int: `N_i`, a positive multiple of `RING_SLOT_MULTIPLE`.
+        int: `N_i >= 3`.
     """
     if ring_index < 0:
         raise ValueError(f"ring_index must be >= 0, got {ring_index}")
-    circumference_edges = 2 * math.pi * (ring_index + 0.5)
-    return max(RING_SLOT_MULTIPLE, RING_SLOT_MULTIPLE * round(circumference_edges / RING_SLOT_MULTIPLE))
+    return max(1, round(2 * math.pi * (ring_index + 0.5)))
 
 
 def ring_radius_pc(ring_index, edge_pc):
@@ -196,7 +200,7 @@ def sector_cell_vertices_pc(ring_index, layer_index, slot_index, edge_pc):
     `4*r_bit + 2*z_bit + theta_bit` (each bit 0 for the low bound, 1 for
     the high one), so corners `i` and `i ^ 1`, `i ^ 2`, `i ^ 4` share an
     edge. The two curved faces (inner and outer ring surfaces) bow
-    slightly between their corners; at 11.5 ly the bow is under 0.2 ly
+    slightly between their corners; at 4 pc the bow is under 0.2 ly
     from ring 10 outward. Ring 0's cells are pie wedges, so their four
     inner corners all sit on the galactic axis.
     """

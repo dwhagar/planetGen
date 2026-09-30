@@ -28,7 +28,12 @@
 
 // How many prisms one view may draw, roughly.
 export var PRISM_BUDGET = 14000;
-// Prisms thinner than this relative density are skipped entirely.
+// Prisms thinner than this relative density are skipped entirely -- only
+// when the shape doesn't carry the galaxy's own sector threshold
+// (shape.sector_min_density, the density a sector needs to expect one
+// star). With it, a prism is drawn exactly when it holds at least one
+// sector the generator's skeleton would allow, so at one sector per prism
+// the map's outline is the galaxy's layers.
 export var PRISM_MIN_DENSITY = 0.02;
 // The disk counts as this many scale heights thick when estimating how
 // many prisms a view holds.
@@ -86,11 +91,11 @@ function densityUpperBound(r0, zMinAbs, shape) {
 // ringSectorCount(i) equal wedges counterclockwise from +X. Every point in
 // space falls in exactly one cell.
 
-// Slots in sector ring `ring`: 4 * round(2 * pi * (i + 1/2) / 4), never
-// fewer than 4 -- a multiple of four, so wedge boundaries fall on the
-// quadrant lines, and each slot's arc is about one edge long.
+// Slots in sector ring `ring`: round(2 * pi * (i + 1/2)) -- 3, 9, 16, 22,
+// ... -- so each slot's arc is about one edge long. The same on every
+// layer, so the columns line up through the whole stack.
 export function ringSectorCount(ring) {
-  return 4 * Math.max(1, Math.round((2 * Math.PI * (ring + 0.5)) / 4));
+  return Math.max(1, Math.round(2 * Math.PI * (ring + 0.5)));
 }
 
 // The same rule for a group grid's rings (kept under its old name).
@@ -259,6 +264,7 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
   var ringHi = Math.floor(Math.min(rc + viewRadius, rLimit) / size);
   var slabLo = Math.round((cz - viewRadius) / size);
   var slabHi = Math.round((cz + viewRadius) / size);
+  var sectorMin = shape.sector_min_density > 0 ? shape.sector_min_density : null;
   var found = [];
   for (var ring = ringLo; ring <= ringHi; ring++) {
     var r0 = ring * size;
@@ -295,9 +301,20 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
         if (Math.hypot(dxy, zMid - cz) > viewRadius + reach) {
           continue;
         }
-        var zMinAbs = z0 <= 0 && z1 >= 0 ? 0 : Math.min(Math.abs(z0), Math.abs(z1));
-        if (densityUpperBound(r0, zMinAbs, shape) < PRISM_MIN_DENSITY) {
-          continue;
+        if (sectorMin !== null) {
+          // The densest member sector center could be: the innermost
+          // member ring's centerline, the member layer nearest the plane.
+          var layers = groupSectorRanges(ring, slab, m);
+          var nearLayer = layers.layerFirst <= 0 && layers.layerLast >= 0
+            ? 0 : Math.min(Math.abs(layers.layerFirst), Math.abs(layers.layerLast));
+          if (densityUpperBound(r0 + edgePc / 2, nearLayer * edgePc, shape) < sectorMin) {
+            continue;
+          }
+        } else {
+          var zMinAbs = z0 <= 0 && z1 >= 0 ? 0 : Math.min(Math.abs(z0), Math.abs(z1));
+          if (densityUpperBound(r0, zMinAbs, shape) < PRISM_MIN_DENSITY) {
+            continue;
+          }
         }
         var key = ring + "/" + seg + "/" + slab;
         var density = densityCache ? densityCache.get(key) : undefined;
@@ -307,7 +324,7 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
             densityCache.set(key, density);
           }
         }
-        if (density < PRISM_MIN_DENSITY) {
+        if (sectorMin === null && density < PRISM_MIN_DENSITY) {
           continue;
         }
         found.push({ ring: ring, seg: seg, slab: slab, r0: r0, r1: r1, t0: t0, t1: t1, z0: z0, z1: z1, density: density });

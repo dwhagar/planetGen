@@ -110,7 +110,7 @@ except ImportError:
     def pc_to_ly(pc):
         return pc * 3.2616
 
-DEFAULT_SECTOR_EDGE_LY_FALLBACK = 11.5
+DEFAULT_SECTOR_EDGE_LY_FALLBACK = 13.046  # 4 pc
 """float: Used only if `stellarObjects.program_constants` itself isn't
 importable (see the top-of-file fallback above) -- matches that module's
 own `DEFAULT_SECTOR_EDGE_LY`."""
@@ -279,10 +279,18 @@ reads."""
 
 def _density_shape(galaxy_shape):
     """Just the density model's own fields from `apiclient.get_galaxy_shape`'s
-    dict, or `None` without a shape (or with one missing a field)."""
+    dict, or `None` without a shape (or with one missing a field), plus
+    `sector_min_density`: the relative density a sector needs to expect
+    one star (`1 / expected_system_count_at_density_1`), the same
+    threshold the generator's skeleton uses, so the prisms outline exactly
+    the galaxy's layers. Left out if the shape doesn't carry it."""
     if not galaxy_shape or any(galaxy_shape.get(field) is None for field in DENSITY_SHAPE_FIELDS):
         return None
-    return {field: galaxy_shape[field] for field in DENSITY_SHAPE_FIELDS}
+    shape = {field: galaxy_shape[field] for field in DENSITY_SHAPE_FIELDS}
+    expected = galaxy_shape.get("expected_system_count_at_density_1")
+    if expected:
+        shape["sector_min_density"] = 1.0 / expected
+    return shape
 
 
 def _json_script(data):

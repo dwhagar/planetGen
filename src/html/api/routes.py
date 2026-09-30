@@ -67,7 +67,7 @@ from queryDb import (
     systems_within_radius,
 )
 from stellarObjects import _db, program_constants
-from stellarObjects._db import MySQLConfig, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
+from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
 from stellarObjects.systemData import StarSystem
@@ -636,8 +636,9 @@ def galaxy_cell():
     `?x=&y=&z=` (parsecs, galaxy frame) by any point inside it. Returns
     `galaxyGeometry.describe_sector_cell` (center in Cartesian, cylindrical
     and spherical coordinates, bounds, 8 corners) plus `sector_id`, the
-    generated sector there or `null`. Uses the stored skeleton's edge
-    length, else the default 11.5 ly.
+    generated sector there or `null`, and `in_galaxy`: whether the cell lies
+    inside the planned galaxy's stored outline (`null` before any plan).
+    Uses the stored skeleton's edge length, else the standard 4 pc.
     """
     def number(name, cast):
         value = request.args.get(name)
@@ -650,7 +651,7 @@ def galaxy_cell():
 
     conn = get_db()
     skeleton = get_galaxy_shape(conn)
-    edge_pc = skeleton.edge_pc if skeleton else ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+    edge_pc = skeleton.edge_pc if skeleton else float(program_constants.DEFAULT_SECTOR_EDGE_PC)
     ring, layer, slot = number("ring", int), number("layer", int), number("slot", int)
     x, y, z = number("x", float), number("y", float), number("z", float)
     if None not in (ring, layer, slot):
@@ -667,6 +668,8 @@ def galaxy_cell():
         raise ApiError(str(err))
     cell["edge_pc"] = edge_pc
     cell["sector_id"] = get_sector_id_at(conn, *address)
+    bounds = get_galaxy_bounds(conn)
+    cell["in_galaxy"] = bounds.contains(address[0], address[1]) if bounds is not None else None
     return jsonify(cell)
 
 

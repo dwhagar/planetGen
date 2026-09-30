@@ -64,12 +64,27 @@ _SKELETON_SHAPE = build_galaxy_shape(
 )
 
 
-def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_value=1.0, bands=()):
+def _layers(outer_ring_index, top_layer):
+    """Layer extents `top_layer .. -top_layer`, each reaching `outer_ring_index`."""
+    return [(layer, outer_ring_index) for layer in range(top_layer, -top_layer - 1, -1)]
+
+
+WIDE_GALAXY_TOP_LAYER = 50
+
+
+def _plan_wide_galaxy(mysql_config):
+    """Seeds a skeleton whose outline (layers +/-50, out to ring 999) holds
+    every address these tests generate with an explicit --num-systems --
+    generation now refuses any address outside the stored outline."""
+    _seed_skeleton(mysql_config, layers=_layers(999, WIDE_GALAXY_TOP_LAYER))
+
+
+def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_value=1.0, layers=()):
     """
-    Directly writes a `galaxy_shape`/`galaxy_ring_band` skeleton, without
+    Directly writes a `galaxy_shape`/`galaxy_layer` skeleton, without
     running `generate.py plan`'s own scan -- these tests exercise
     `ensure_sector_generated`'s own logic against a skeleton it can
-    already read, not `find_ring_band`'s search (covered separately in
+    already read, not `build_layer_extents`' search (covered separately in
     `test_galaxy_skeleton.py`).
 
     Args:
@@ -77,12 +92,12 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_
         shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
         outer_ring_index (int): See `_db.save_galaxy_shape`.
         e_value (float): `expected_system_count_at_density_1`.
-        bands (iterable): `(ring_index, layer_index_min, layer_index_max)`
-            tuples -- see `_db.replace_galaxy_ring_bands`.
+        layers (iterable): `(layer_index, outer_ring_index)` pairs -- see
+            `_db.replace_galaxy_layers`.
     """
     _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_ring_index=outer_ring_index,
                            expected_system_count_at_density_1=e_value, config=mysql_config)
-    _db.replace_galaxy_ring_bands(list(bands), config=mysql_config)
+    _db.replace_galaxy_layers(list(layers), config=mysql_config)
 
 
 def _mysql_argv(mysql_config):
@@ -172,15 +187,16 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
 
 
 def test_ring_batch_mode_generates_every_slot_and_is_idempotent(mysql_config):
-    # Ring 0 holds exactly 4 slots -- small enough to run under
+    _plan_wide_galaxy(mysql_config)
+    # Ring 0 holds exactly 3 slots -- small enough to run under
     # LARGE_RING_WARNING_THRESHOLD with no --limit/--yes needed.
-    assert ring_sector_count(0) == 4
+    assert ring_sector_count(0) == 3
     _run_cli(["--ring", "0", "--num-systems", "1"] + _mysql_argv(mysql_config))
 
     sectors = _all_sectors(mysql_config)
-    assert len(sectors) == 4
+    assert len(sectors) == 3
     addresses = {_address(row) for row in sectors}
-    assert addresses == {(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3)}
+    assert addresses == {(0, 0, 0), (0, 0, 1), (0, 0, 2)}
     for row in sectors:
         assert row["center_x_pc"] is not None
         assert row["galactic_radius_pc"] == pytest.approx(
@@ -191,11 +207,12 @@ def test_ring_batch_mode_generates_every_slot_and_is_idempotent(mysql_config):
     # (get_occupied_addresses) rather than generating duplicates.
     _run_cli(["--ring", "0", "--num-systems", "1"] + _mysql_argv(mysql_config))
     sectors_after_rerun = _all_sectors(mysql_config)
-    assert len(sectors_after_rerun) == 4
+    assert len(sectors_after_rerun) == 3
     assert {row["id"] for row in sectors_after_rerun} == {row["id"] for row in sectors}
 
 
 def test_ring_batch_mode_limit_generates_only_first_n_missing_slots(mysql_config):
+    _plan_wide_galaxy(mysql_config)
     _run_cli(["--ring", "0", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
     sectors = _all_sectors(mysql_config)
     assert len(sectors) == 1
@@ -211,6 +228,7 @@ def test_ring_batch_mode_limit_generates_only_first_n_missing_slots(mysql_config
 
 
 def test_ring_batch_mode_honors_layer(mysql_config):
+    _plan_wide_galaxy(mysql_config)
     _run_cli(["--ring", "1", "--layer", "-2", "--num-systems", "1"] + _mysql_argv(mysql_config))
     addresses = {_address(row) for row in _all_sectors(mysql_config)}
     assert addresses == {(1, -2, slot) for slot in range(ring_sector_count(1))}
@@ -224,6 +242,7 @@ def test_layer_requires_ring():
 
 
 def test_local_neighborhood_mode_generates_expected_new_slots_and_skips_occupied(mysql_config):
+    _plan_wide_galaxy(mysql_config)
     # Seed with just one already galaxy-placed sector, ring 0 slot 0 --
     # --center-sector needs an already galaxy-placed sector to search a
     # neighborhood around (a 'generate.py sector'-standalone sector won't do, see
@@ -310,6 +329,7 @@ def test_ring_batch_mode_rejects_large_ring_without_limit_or_yes(mysql_config):
     2,000) -- a bare --ring 400 must be refused rather than silently
     attempting to generate all of them."""
     assert ring_sector_count(400) > galaxyGen.LARGE_RING_WARNING_THRESHOLD
+    _plan_wide_galaxy(mysql_config)
 
     with pytest.raises(SystemExit):
         _run_cli(["--ring", "400", "--num-systems", "1"] + _mysql_argv(mysql_config))
@@ -362,7 +382,7 @@ def test_slot_rejects_negative_index():
 
 def test_slot_mode_generates_exactly_the_one_requested_slot(mysql_config):
     ring_index = 0
-    _seed_skeleton(mysql_config, bands=[(ring_index, -3, 3)])
+    _seed_skeleton(mysql_config, layers=_layers(ring_index, 3))
 
     _run_cli(["--ring", str(ring_index), "--layer", "2", "--slot", "1"] + _mysql_argv(mysql_config))
 
@@ -381,7 +401,7 @@ def test_slot_mode_generates_exactly_the_one_requested_slot(mysql_config):
 def test_slot_mode_rejects_out_of_range_slot(mysql_config):
     ring_index = 0
     n_0 = ring_sector_count(ring_index)
-    _seed_skeleton(mysql_config, bands=[(ring_index, 0, 0)])
+    _seed_skeleton(mysql_config, layers=_layers(ring_index, 0))
 
     with pytest.raises(SystemExit):
         _run_cli(["--ring", str(ring_index), "--slot", str(n_0)] + _mysql_argv(mysql_config))
@@ -391,7 +411,7 @@ def test_slot_mode_rejects_out_of_range_slot(mysql_config):
 def test_slot_mode_rejects_a_non_qualifying_slot(mysql_config):
     # No stored band at all -- ensure_sector_generated's own "certain no"
     # path (see test_ensure_sector_generated_reports_no_content_outside_every_stored_band).
-    _seed_skeleton(mysql_config, bands=[])
+    _seed_skeleton(mysql_config, layers=[])
 
     with pytest.raises(SystemExit):
         _run_cli(["--ring", "5000", "--slot", "0"] + _mysql_argv(mysql_config))
@@ -400,7 +420,7 @@ def test_slot_mode_rejects_a_non_qualifying_slot(mysql_config):
 
 # ---------------------------------------------------------------------------
 # ensure_sector_generated -- the visit-triggered lazy-generation entry point
-# built on top of the 'generate.py plan' skeleton (galaxy_shape/galaxy_ring_band),
+# built on top of the 'generate.py plan' skeleton (galaxy_shape/galaxy_layer),
 # rather than an explicit --ring/--center-sector batch.
 # ---------------------------------------------------------------------------
 
@@ -412,7 +432,7 @@ def test_ensure_sector_generated_raises_without_a_skeleton(mysql_config):
 def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_config):
     # Ring 0 sits deep in this toy shape's own bulge -- every slot there
     # clears even a demanding threshold.
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     first = galaxyGen.ensure_sector_generated(0, 0, 0, config=mysql_config)
     assert first["created"] is True
@@ -429,10 +449,10 @@ def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_confi
 
 
 def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(mysql_config):
-    # A ring with NO stored band at all (e.g. beyond the galaxy's outer
-    # edge), or a layer above its band -- find_ring_band's own bound is
+    # A ring past its layer's stored outer ring (e.g. beyond the galaxy's
+    # edge), or a layer with no row at all -- the skeleton's bound is
     # exact, so this must be a certain "no", no live density check needed.
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     no_content = {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
     assert galaxyGen.ensure_sector_generated(5000, 0, 0, config=mysql_config) == no_content
@@ -452,7 +472,7 @@ def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql
     ring_index = 5
     n_k = ring_sector_count(ring_index)
 
-    # Ground truth, computed directly (not via find_ring_band) --
+    # Ground truth, computed directly (not via the skeleton) --
     # sort every layer-0 slot in this ring by its own exact relative_density.
     densities = sorted(
         ((relative_density(sector_position_pc(ring_index, 0, i, EDGE_PC), _SKELETON_SHAPE), i)
@@ -468,7 +488,7 @@ def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql
 
     # A deliberately over-wide band with a threshold picked so only some
     # of layer 0 genuinely qualifies.
-    _seed_skeleton(mysql_config, e_value=1.0 / threshold_rho, bands=[(ring_index, -5, 5)])
+    _seed_skeleton(mysql_config, e_value=1.0 / threshold_rho, layers=_layers(ring_index, 5))
 
     dense_result = galaxyGen.ensure_sector_generated(ring_index, 0, densest_slot, config=mysql_config)
     assert dense_result["qualifies"] is True
@@ -488,7 +508,7 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     what `args.density` it was actually called with, rather than relying
     on the Poisson-sampled system count to differ across a single run.
     """
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     captured = {}
 
@@ -522,7 +542,7 @@ def test_ring_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, 
     this per-sector path can take over).
     """
     n_0 = ring_sector_count(0)
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     captured = []
 
@@ -546,7 +566,7 @@ def test_ring_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_
     """An explicit --num-systems is still a uniform, intentional override
     for the whole batch -- _BatchDensity must not second-guess it."""
     n_0 = ring_sector_count(0)
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     captured = []
 
@@ -574,7 +594,7 @@ def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_co
     `ensure_sector_generated` recovers by returning that sector rather
     than propagating the error.
     """
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     # A sector generated at a different address, standing in for "the
     # concurrent winner's row" the mocked recovery re-check below returns
@@ -628,46 +648,11 @@ def test_sectors_table_rejects_duplicate_address(mysql_config):
 # it, then generate every sector within --radius-pc (default 100 ly) of it.
 # ---------------------------------------------------------------------------
 
-def _pin_random_start_to_the_plane(monkeypatch):
-    """Keeps every random-start draw on layer 0 (a height well inside
-    half an edge), so tests can reason about exactly which slots a draw
-    can land on."""
-    monkeypatch.setattr(galaxyGen, "RANDOM_START_MAX_HEIGHT_PC", EDGE_PC / 4)
-
-
-def test_pick_random_address_stays_within_bounds():
-    # No DB needed -- a pure function. Run many draws to catch an
-    # off-by-one at either boundary, not just the common case.
-    for _ in range(500):
-        ring_index, layer_index, slot_index = galaxyGen._pick_random_address(0, EDGE_PC)
-        assert ring_index == 0
-        assert 0 <= slot_index < ring_sector_count(0)
-        assert abs(layer_index * EDGE_PC) <= galaxyGen.RANDOM_START_MAX_HEIGHT_PC + EDGE_PC
-
-    max_ring_index = 10
-    seen = set()
-    # Area weighting gives ring 0 a 1/121 share -- 20,000 draws make
-    # missing it astronomically unlikely, so this reliably checks every
-    # ring is reachable.
-    for _ in range(20_000):
-        ring_index, _layer, slot_index = galaxyGen._pick_random_address(max_ring_index, EDGE_PC)
-        assert 0 <= ring_index <= max_ring_index
-        assert 0 <= slot_index < ring_sector_count(ring_index)
-        seen.add(ring_index)
-    assert seen == set(range(max_ring_index + 1))
-
-
-def test_pick_random_address_is_area_weighted_toward_outer_rings():
-    # Uniform by area over a disk of radius R has its median radius at
-    # R * sqrt(0.5) (~0.707 R), so the median ring index lands near that
-    # fraction of the range, and most draws fall in the outer half.
-    max_ring_index = 4073
-    samples = sorted(galaxyGen._pick_random_address(max_ring_index, EDGE_PC)[0] for _ in range(3000))
-    median = samples[len(samples) // 2]
-    assert median == pytest.approx(max_ring_index * 0.5 ** 0.5, rel=0.05)
-
-    outer_half_fraction = sum(1 for s in samples if s > max_ring_index / 2) / len(samples)
-    assert outer_half_fraction > 0.7
+def _plan_only_ring_0_of_the_plane(mysql_config):
+    """Seeds a skeleton whose whole outline is ring 0 of layer 0, so every
+    random-start draw (which only ever picks inside the outline) lands on
+    one of ring 0's three layer-0 slots."""
+    _seed_skeleton(mysql_config, layers=[(0, 0)])
 
 
 def test_process_args_with_no_arguments_resolves_to_random_start_mode():
@@ -787,10 +772,9 @@ def test_process_args_accepts_min_start_density_alone():
 
 
 def test_random_start_mode_generates_a_seed_sector_and_its_neighborhood(mysql_config, monkeypatch):
-    # --max-ring 0 plus a pinned height puts the randomly chosen seed in
-    # one of ring 0's 4 layer-0 slots -- a small --radius-pc keeps
-    # generation fast.
-    _pin_random_start_to_the_plane(monkeypatch)
+    # --max-ring 0 puts the randomly chosen seed in ring 0 of some layer
+    # inside the outline -- a small --radius-pc keeps generation fast.
+    _plan_wide_galaxy(mysql_config)
     radius_pc = 8.0
     _run_cli(
         ["--max-ring", "0", "--radius-pc", str(radius_pc), "--num-systems", "1"] + _mysql_argv(mysql_config)
@@ -802,13 +786,15 @@ def test_random_start_mode_generates_a_seed_sector_and_its_neighborhood(mysql_co
     # before run_local_neighborhood's own loop) -- every other row's
     # address must fall within radius_pc of its real galaxy-frame center.
     seed = min(sectors, key=lambda row: row["id"])
-    assert (seed["ring_index"], seed["layer_index"]) == (0, 0)
+    assert seed["ring_index"] == 0
 
     seed_center = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
     expected_addresses = {
         (ring_index, layer_index, slot_index)
         for ring_index, layer_index, slot_index, _x, _y, _z, _dist in
         enumerate_sectors_within_radius(seed_center, radius_pc, EDGE_PC)
+        # A seed on the outline's top or bottom layer loses the cells past it.
+        if abs(layer_index) <= WIDE_GALAXY_TOP_LAYER
     }
     actual_addresses = {_address(row) for row in sectors}
     assert actual_addresses == expected_addresses
@@ -825,19 +811,19 @@ def _occupy_ring_0_slots(mysql_config, slot_indices):
 
 
 def test_random_start_mode_retries_until_an_unoccupied_address_is_found(mysql_config, monkeypatch):
-    # Occupy 3 of ring 0's 4 layer-0 slots directly -- with every draw
+    # Occupy 2 of ring 0's 3 layer-0 slots directly -- with every draw
     # pinned there, the random pick must keep retrying (not immediately
     # fail) until it lands on the one remaining unoccupied slot.
-    _pin_random_start_to_the_plane(monkeypatch)
-    _occupy_ring_0_slots(mysql_config, (0, 1, 2))
-    assert len(_all_sectors(mysql_config)) == 3
+    _plan_only_ring_0_of_the_plane(mysql_config)
+    _occupy_ring_0_slots(mysql_config, (0, 1))
+    assert len(_all_sectors(mysql_config)) == 2
 
     _run_cli(["--max-ring", "0", "--radius-pc", "0.001", "--num-systems", "1"] + _mysql_argv(mysql_config))
 
     sectors = _all_sectors(mysql_config)
     addresses = {_address(row) for row in sectors}
-    assert (0, 0, 3) in addresses
-    assert len(sectors) == 4
+    assert (0, 0, 2) in addresses
+    assert len(sectors) == 3
 
 
 def test_random_start_mode_gives_up_after_max_attempts_when_fully_occupied(mysql_config, monkeypatch):
@@ -845,7 +831,7 @@ def test_random_start_mode_gives_up_after_max_attempts_when_fully_occupied(mysql
     # there -- random-start mode must eventually give up with a clear
     # error rather than looping forever or crashing obscurely. A tiny
     # attempts cap keeps this test fast.
-    _pin_random_start_to_the_plane(monkeypatch)
+    _plan_only_ring_0_of_the_plane(mysql_config)
     _occupy_ring_0_slots(mysql_config, range(ring_sector_count(0)))
 
     monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
@@ -861,8 +847,7 @@ def test_random_start_mode_respects_min_start_density(mysql_config, monkeypatch)
     that clears it is found. The threshold sits between ring 0's densest
     and sparsest layer-0 slot (the arms make them differ).
     """
-    _pin_random_start_to_the_plane(monkeypatch)
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _plan_only_ring_0_of_the_plane(mysql_config)
 
     densities = {
         slot: relative_density(sector_position_pc(0, 0, slot, EDGE_PC), _SKELETON_SHAPE)
@@ -891,7 +876,7 @@ def test_random_start_mode_gives_up_when_min_start_density_unattainable(mysql_co
     `log.error` (logged to the console, same as the fully-occupied case
     above) rather than `SystemExit`'s own args, so it's asserted against
     captured stdout instead of `pytest.raises(..., match=...)`."""
-    _seed_skeleton(mysql_config, bands=[(0, -1, 1)])
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
 
@@ -921,7 +906,7 @@ def _fake_args_for_direct_generation(mysql_config):
 # ---------------------------------------------------------------------------
 # End-to-end against a *real* 'generate.py plan' skeleton -- every test
 # above either hand-seeds a skeleton via _seed_skeleton (bypassing
-# find_ring_band's own scan entirely) or passes an explicit
+# build_layer_extents' own scan entirely) or passes an explicit
 # --num-systems/--density that makes _BatchDensity.resolve a no-op (see
 # its own docstring), so none of them exercise the actual "plan, then
 # galaxy with neither flag given" workflow an operator runs -- exactly the
@@ -948,13 +933,13 @@ structure, not a degenerate single-ring case."""
 def _build_real_skeleton(mysql_config, extra_argv=()):
     """
     Runs `generate.py plan`'s own `build_skeleton()` -- the real scan
-    (`galaxySkeleton.build_ring_bands`), not the hand-seeded
+    (`galaxySkeleton.build_layer_extents`), not the hand-seeded
     `_seed_skeleton` shortcut above -- against the fixture's throwaway
     database, and returns its summary dict (`outer_ring_index`, etc.).
     Calls `build_skeleton` directly rather than going through `main()`/
     `sys.argv` purely to get that return value back without parsing
     stdout; it still does the same real persisting
-    (`_db.replace_galaxy_ring_bands`/`_db.save_galaxy_shape`) `run_plan`
+    (`_db.replace_galaxy_layers`/`_db.save_galaxy_shape`) `run_plan`
     itself does.
     """
     parser = argparse.ArgumentParser(prefix_chars='-+')
@@ -1004,8 +989,8 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     1. Every candidate slot the run actually saved, and every one it
        didn't, agrees with an independent recomputation -- done here,
        against the real stored skeleton -- of whether that exact position
-       qualifies (`predicted_star_count >= 1.0` within a stored candidate
-       band). This is the exact regression: a batch/neighborhood run
+       qualifies (`predicted_star_count >= 1.0` within its layer's stored
+       extent). This is the exact regression: a batch/neighborhood run
        saving a sector regardless of qualification.
     2. The aggregate system count actually generated across the
        neighborhood is in the right statistical ballpark of what the
@@ -1017,8 +1002,6 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     summary = _build_real_skeleton(mysql_config)
     assert summary["outer_ring_index"] > 0, "the toy shape's own skeleton should find real content"
 
-    # The toy disk is only ~12 pc thick, so keep draws near the plane.
-    monkeypatch.setattr(galaxyGen, "RANDOM_START_MAX_HEIGHT_PC", 10.0)
     _run_cli([
         "--max-ring", "55", "--radius-pc", str(radius_pc), "-planets",
     ] + _mysql_argv(mysql_config))
@@ -1036,13 +1019,10 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     conn = _db.get_connection(mysql_config)
     try:
         skeleton = _db.get_galaxy_shape(conn)
-        bands_cache = {}
+        outer_rings = dict(_db.get_galaxy_layers(conn))
 
         def really_qualifies(ring_index, layer_index, position_pc):
-            if ring_index not in bands_cache:
-                bands_cache[ring_index] = _db.get_galaxy_ring_band(conn, ring_index)
-            band = bands_cache[ring_index]
-            if band is None or not (band[0] <= layer_index <= band[1]):
+            if layer_index not in outer_rings or ring_index > outer_rings[layer_index]:
                 return False
             return predicted_star_count(
                 position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1,
@@ -1088,17 +1068,17 @@ def test_ring_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysql
     Deterministic companion to the neighborhood test above (that one's
     outcome depends on where the random draw lands; this one doesn't): a
     ring chosen well beyond the real skeleton's own discovered outer edge
-    must generate exactly zero sectors, every slot skipped -- confirming
-    `generate.py galaxy --ring` actually prunes on the real plan rather
-    than (as the empty-sectors regression did) saving a sector for every
-    slot regardless of position.
+    is refused up front, before anything is generated -- even with an
+    explicit --num-systems, which once skipped every galaxy check.
     """
     summary = _build_real_skeleton(mysql_config)
     beyond_edge_ring = summary["outer_ring_index"] + 10
 
-    _run_cli([
-        "--ring", str(beyond_edge_ring), "--limit", "25", "-planets",
-    ] + _mysql_argv(mysql_config))
+    for extra in ([], ["--num-systems", "1"]):
+        with pytest.raises(SystemExit):
+            _run_cli([
+                "--ring", str(beyond_edge_ring), "--limit", "25", "-planets",
+            ] + extra + _mysql_argv(mysql_config))
 
     assert _all_sectors(mysql_config) == []
 
@@ -1254,6 +1234,7 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
     planet/moon content, is what this test cares about).
     """
     monkeypatch.setattr(galaxyGen, "_sample_poisson_count", lambda mean, rng=None: 1 if mean > 0 else 0)
+    _plan_wide_galaxy(mysql_config)
 
     for ring_index, layer_index in _BOUNDS_TEST_ADDRESSES:
         _run_cli(
@@ -1328,3 +1309,82 @@ def test_sector_cell_used_for_generation_matches_the_grid():
         assert ly_to_pc(cell.r_inner) == pytest.approx(r_lo)
         assert ly_to_pc(cell.r_outer) == pytest.approx(r_hi)
         assert ly_to_pc(cell.half_height * 2) == pytest.approx(EDGE_PC)
+
+
+# ---------------------------------------------------------------------------
+# Validation before generation: every galaxy path checks an address against
+# the stored outline first, and generates nothing outside it.
+# ---------------------------------------------------------------------------
+
+def test_galaxy_refuses_to_run_before_a_plan(mysql_config):
+    with pytest.raises(SystemExit):
+        _run_cli(["--ring", "0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert _all_sectors(mysql_config) == []
+
+
+@pytest.mark.parametrize("argv", [
+    ["--ring", "3", "--layer", "0"],               # past layer 0's outer ring (2)
+    ["--ring", "0", "--layer", "2"],               # above the top layer (1)
+    ["--ring", "0", "--layer", "-2"],              # below the bottom layer
+    ["--ring", "3", "--layer", "0", "--slot", "0"],
+    ["--ring", "0", "--layer", "2", "--slot", "0"],
+])
+def test_addresses_outside_the_outline_are_refused_before_generating(mysql_config, argv):
+    _seed_skeleton(mysql_config, layers=[(1, 1), (0, 2), (-1, 1)])
+    with pytest.raises(SystemExit):
+        _run_cli(argv + ["--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert _all_sectors(mysql_config) == []
+
+
+def test_neighborhood_is_trimmed_to_the_outline_even_with_explicit_num_systems(mysql_config):
+    # A two-layer, three-ring galaxy: a 12 pc sphere around ring 1 reaches
+    # well past it on every side, and only the cells inside get generated.
+    outline = [(0, 2), (-1, 1)]
+    _seed_skeleton(mysql_config, layers=outline)
+    galaxyGen.generate_and_save_sector_at(
+        _fake_args_for_direct_generation(mysql_config), (1, 0, 0), sector_position_pc(1, 0, 0, EDGE_PC), EDGE_PC,
+    )
+    center_id = _all_sectors(mysql_config)[0]["id"]
+    center = sector_position_pc(1, 0, 0, EDGE_PC)
+
+    _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1"]
+             + _mysql_argv(mysql_config))
+
+    limits = dict(outline)
+    sphere = {c[:3] for c in enumerate_sectors_within_radius(center, 12.0, EDGE_PC)}
+    inside = {a for a in sphere if a[1] in limits and a[0] <= limits[a[1]]}
+    assert inside != sphere, "test setup: the sphere must reach past the outline"
+    assert {_address(row) for row in _all_sectors(mysql_config)} == inside
+
+
+def test_neighborhood_around_a_sector_outside_the_outline_is_refused(mysql_config):
+    _seed_skeleton(mysql_config, layers=[(0, 2)])
+    far = (40, 0, 0)
+    galaxyGen.generate_and_save_sector_at(
+        _fake_args_for_direct_generation(mysql_config), far, sector_position_pc(*far, EDGE_PC), EDGE_PC,
+    )
+    center_id = _all_sectors(mysql_config)[0]["id"]
+
+    with pytest.raises(SystemExit):
+        _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1"]
+                 + _mysql_argv(mysql_config))
+    with pytest.raises(ValueError):
+        galaxyGen.generate_sector_neighborhood(center_id, radius_ly=10.0, config=mysql_config)
+    assert len(_all_sectors(mysql_config)) == 1
+
+
+def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config):
+    summary = _build_real_skeleton(mysql_config)
+    assert summary["layer_count"] > 0
+    _run_cli(["--radius-pc", "10", "--num-systems", "1", "-planets"] + _mysql_argv(mysql_config))
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        bounds = _db.get_galaxy_bounds(conn)
+    finally:
+        conn.close()
+    sectors = _all_sectors(mysql_config)
+    assert sectors
+    for row in sectors:
+        assert bounds.contains(row["ring_index"], row["layer_index"]), _address(row)
+

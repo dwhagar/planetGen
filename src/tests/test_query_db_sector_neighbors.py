@@ -26,7 +26,7 @@ from stellarObjects import _db
 from stellarObjects.galaxyGeometry import galactic_radius_pc, neighbor_addresses, sector_position_pc
 from stellarObjects.spaceSector import SpaceSector
 
-EDGE_PC = 3.526  # ~DEFAULT_SECTOR_EDGE_LY (11.5 ly) converted to parsecs.
+EDGE_PC = 4.0  # DEFAULT_SECTOR_EDGE_PC.
 ADDRESS = (5, 2, 17)
 
 

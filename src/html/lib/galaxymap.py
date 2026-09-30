@@ -33,7 +33,7 @@ except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching every other lib/ module's identical
     # pattern.
-    DEFAULT_SECTOR_EDGE_LY = 11.5
+    DEFAULT_SECTOR_EDGE_LY = 13.046  # 4 pc
 
 QUADRANT_LABELS = ("I", "II", "III", "IV")
 """tuple[str]: The four galaxy-scale Quadrants, in azimuthal order starting

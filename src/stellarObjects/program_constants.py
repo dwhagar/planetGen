@@ -14,6 +14,8 @@ constants. Nothing in this module has side effects; it is imported wherever
 these values or tables are needed.
 """
 
+from . import physical_constants as _physical_constants
+
 # --- Planet Generation Parameters ---
 
 # The average ratio of a gas giant's core mass to its total mass
@@ -193,11 +195,18 @@ asteroid belt distances switches from AU to LY for better readability.
 
 # --- Space Sector Generation Parameters ---
 
-# Cube edge length of a generated sector, in light-years (~1,521 ly^3 of
-# volume) -- a design choice, not a physical constant; see
-# `physical_constants.LOCAL_STELLAR_DENSITY_LY3` for how many systems that
-# volume would realistically contain.
-DEFAULT_SECTOR_EDGE_LY = 11.5
+# The standard sector edge length, in whole parsecs: the galaxy grid's
+# ring width, layer height and (near enough) slot arc, and the cube edge of
+# a standalone sector. A design choice, not a physical constant. 4 pc
+# (~13.05 ly, ~2,220 ly^3 of volume, ~6.3 systems at local density -- see
+# `physical_constants.LOCAL_STELLAR_DENSITY_LY3`) puts the default Milky
+# Way shape's one-star-per-sector edge at ~50,000 ly, the real disk's
+# radius; see `docs/design/galaxy-coordinate-system.md`, "Sector size".
+DEFAULT_SECTOR_EDGE_PC = 4
+
+# `DEFAULT_SECTOR_EDGE_PC` in light-years (~13.046), for the code that
+# sizes sectors in light-years.
+DEFAULT_SECTOR_EDGE_LY = DEFAULT_SECTOR_EDGE_PC * _physical_constants.AU_PER_PARSEC / _physical_constants.LY_TO_AU
 
 # Maximum offset (on each axis) from dead-center when placing a sector's
 # "home" system -- see `spaceSector.SpaceSector.add_home_system`.
@@ -1963,12 +1972,10 @@ dict: `PHENOMENON_TYPE_CHOICES` entry -> expected count per star system, for
 GALAXY_RADIUS_PC = 15000.0
 """
 float: The Milky Way's real approximate radius, in parsecs (commonly cited
-~15 kpc -- see docs/design/galaxy-coordinate-system.md section 2, whose own
-worked examples use this exact figure). Used by `generate.py galaxy`'s
-no-argument "random start" mode as the outer bound for picking a random
-ring, so a bare `generate.py galaxy` run (no --ring/--center-sector)
-lands somewhere within a real Milky-Way-scale galaxy instead of an
-arbitrarily large or small one.
+~15 kpc). Only a fallback for the Galaxy Map's camera range before any
+`generate.py plan` has run; once a galaxy is planned, its stored outline
+(`galaxy_layer`) is the only bound anything uses -- generation never picks
+or accepts an address outside it.
 """
 
 RANDOM_START_NEIGHBORHOOD_RADIUS_LY = 100.0

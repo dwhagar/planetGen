@@ -183,14 +183,21 @@ def test_apply_guarantees_false_ignores_slots_and_forced_habitable_world():
     )
     system.system_config = slotted_config
 
-    planets = system._generate_planets(
-        star, star.habitable_zone, system._orbit_ceiling_au(star), apply_guarantees=False
-    )
+    def only_the_slotted_planet(planets):
+        return len(planets) == 1 and planets[0].body_type != "a" and planets[0].planet_class == "J"
+
     # Neither the explicit SLOTS entry (which would force a Class J planet
     # into the first slot) nor the HABITABLE_WORLD guarantee applied --
     # apply_guarantees=False means this list is fully, independently random.
-    if planets:
-        assert not (planets[0].body_type != "a" and planets[0].planet_class == "J" and len(planets) == 1)
+    # A random list can be one lone Class J planet by chance, so only
+    # require that not every draw looks like the slotted one.
+    draws = [
+        system._generate_planets(
+            star, star.habitable_zone, system._orbit_ceiling_au(star), apply_guarantees=False
+        )
+        for _ in range(20)
+    ]
+    assert not all(only_the_slotted_planet(planets) for planets in draws)
 
 
 # ---------------------------------------------------------------------------
