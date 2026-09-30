@@ -49,7 +49,7 @@ WIKI_MESSAGES = {
     "exists": (True, "A page already exists at that location."),
     "invalid": (True, "The upload was rejected. Wiki.js needs a path; check the backend and path."),
     "unconfigured": (True, "That wiki is not configured for this site."),
-    "forbidden": (True, "Not allowed. Change the default admin username and password first."),
+    "forbidden": (True, "Not allowed. Change the admin username and password the installer set first."),
     "failed": (True, "The upload failed. The wiki could not be reached or returned an error."),
 }
 """dict: The upload outcome shown after the POST-redirect-GET. Only these

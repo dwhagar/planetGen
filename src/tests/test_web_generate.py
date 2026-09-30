@@ -96,8 +96,9 @@ def no_spawn(monkeypatch):
 def _token(client):
     client.get("/admin/generate")
     nonce = client.get_cookie(csrf.COOKIE_NAME).value
+    session = client.get_cookie(SESSION_COOKIE_NAME)
     with client.application.test_request_context():
-        return csrf._sign(nonce)
+        return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
 def _post(client, **form):

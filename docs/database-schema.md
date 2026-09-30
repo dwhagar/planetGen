@@ -510,8 +510,9 @@ Four tables, versioned independently via `control_schema_migrations`
   routes (`html/api/authz.audit`) after each one actually succeeds.
 
 `stellarObjects/adminAuth.py` is the only code that reads/writes these
-tables directly — `bootstrap_control_schema` creates the schema and seeds
-the default `admin`/`password` row (`migrateDb.py` calls this
+tables directly — `bootstrap_control_schema` creates the schema and,
+when `admin_users` is empty, seeds an `admin` row with a random first
+password that `migrateDb.py` prints once (`migrateDb.py` calls this
 automatically, alongside its usual content-schema migration), and every
 other function there implements one piece of the login/session/API-key/
 audit lifecycle `html/api/auth.py`'s routes expose.

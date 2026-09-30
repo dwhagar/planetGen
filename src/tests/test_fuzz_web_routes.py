@@ -60,6 +60,7 @@ from hypothesis import strategies as st
 
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
+from api.common import is_http_url
 from api.config import Config
 from stellarObjects import _db, adminAuth
 from stellarObjects._db import MySQLConfig
@@ -220,12 +221,11 @@ def fuzz_db(_mysql_server_available):
         nebula_cfg = SystemConfig()
         nebula_id = _db.save_phenomenon(Nebula(nebula_cfg), nebula_cfg, "nebula", config=config)
 
-        adminAuth.bootstrap_control_schema(config)
+        _username, first_password = adminAuth.bootstrap_control_schema(config)
         conn = _db.get_control_connection(config, ensure_schema=False)
         try:
-            admin = adminAuth.authenticate(conn, adminAuth.DEFAULT_ADMIN_USERNAME, adminAuth.DEFAULT_ADMIN_PASSWORD)
-            adminAuth.change_credentials(conn, admin["id"], adminAuth.DEFAULT_ADMIN_PASSWORD,
-                                         ADMIN_USERNAME, ADMIN_PASSWORD)
+            admin = adminAuth.authenticate(conn, adminAuth.DEFAULT_ADMIN_USERNAME, first_password)
+            adminAuth.change_credentials(conn, admin["id"], first_password, ADMIN_USERNAME, ADMIN_PASSWORD)
         finally:
             conn.close()
 
@@ -300,16 +300,25 @@ def admin_client(app):
     return client
 
 
-def csrf_pair(secret=SECRET_KEY):
-    """A valid `(nonce, token)` pair for the fuzz app's secret -- the
-    same HMAC `web.csrf` computes."""
+def csrf_pair(secret=SECRET_KEY, session=""):
+    """A valid `(nonce, token)` pair for the fuzz app's secret and the
+    admin session cookie value `session` (`""`: not logged in) -- the
+    same HMAC `web.csrf` computes, recomputed independently here."""
     nonce = "n" * 40
-    return nonce, hmac.new(secret.encode(), nonce.encode(), hashlib.sha256).hexdigest()
+    session_hash = hashlib.sha256(session.encode()).hexdigest()
+    return nonce, hmac.new(secret.encode(), f"{nonce}\n{session_hash}".encode(), hashlib.sha256).hexdigest()
+
+
+def session_of(client):
+    """`client`'s admin session cookie value (`""` when logged out)."""
+    cookie = client.get_cookie(SESSION_COOKIE_NAME)
+    return cookie.value if cookie else ""
 
 
 def with_csrf(client):
-    """Gives `client` the CSRF cookie; returns the matching token."""
-    nonce, token = csrf_pair()
+    """Gives `client` the CSRF cookie; returns the matching token for its
+    current login session (tokens are bound to it)."""
+    nonce, token = csrf_pair(session=session_of(client))
     client.set_cookie(csrf.COOKIE_NAME, nonce, domain="localhost")
     return token
 
@@ -496,6 +505,8 @@ def test_is_local_redirect_helper():
 @example(pairs=[("x", "1e200"), ("y", "0"), ("z", "0")])  # B6
 @example(pairs=[("ring", "1" + "0" * 160), ("layer", "0"), ("slot", "0")])  # B6
 @example(pairs=[("db", "nope")])  # B7
+@example(pairs=[("db", "planetgen_control"), ("star_type", "%")])  # security #47, #52
+@example(pairs=[("db", "planetgen%"), ("star_type", "_")])  # security #47, #52
 def test_get_routes_survive_hostile_query(app, fuzz_db, rule, pairs):
     path = build_path(rule, real_values(rule, fuzz_db))
     response = app.test_client().get(path, query_string=urlencode(pairs, doseq=True))
@@ -668,6 +679,7 @@ _API_BAD_INPUT = [
     ("/api/galaxy/tiles", {"tiles": "0/0/0/0", "density": "nope"}), ("/api/sectors", {"db": "not_a_real_db"}),
     ("/api/sectors", {"db": "../../etc"}), ("/api/sectors", {"db": "planetgen`; DROP DATABASE x; --"}),
     ("/api/sectors", {"db": ""}), ("/api/sectors", {"db": "information_schema"}), ("/api/sectors", {"db": "mysql"}),
+    ("/api/sectors", {"db": "planetgen_control"}), ("/api/sectors", {"db": "planetgen%"}),  # security #47
     ("/api/phenomena/nebula/999999", {}), ("/api/phenomena/NEBULA/1", {}), ("/api/phenomena/nebula%00/1", {}),
     ("/api/sectors/999999", {}), ("/api/systems/999999", {}), ("/api/systems/999999/text", {}),
     ("/api/systems/999999/sections", {}), ("/api/systems/999999/near", {"radius": "5"}),
@@ -688,6 +700,7 @@ def test_api_databases_never_lists_system_schemas(app):
     check_response(response, "/api/databases")
     names = {item["name"] for item in response.get_json()["items"]}
     assert not names & {"mysql", "information_schema", "performance_schema", "sys"}
+    assert _db.configured_control_database() not in names  # security #47
 
 
 @pytest.mark.parametrize("params,status", [
@@ -806,6 +819,8 @@ cookie_nonce = st.one_of(
 @example(body={}, token=csrf_pair()[1], nonce="n" * 39, in_header=False)  # right HMAC, nonce too short
 @example(body={}, token=csrf_pair()[1].upper(), nonce="n" * 40, in_header=True)
 @example(body={}, token=csrf_pair("other-secret")[1], nonce="n" * 40, in_header=False)
+@example(body={}, token=csrf_pair(session="another-admins-session")[1], nonce="n" * 40, in_header=False)  # #49
+@example(body={}, token=csrf_pair(session="another-admins-session")[1], nonce="n" * 40, in_header=True)  # #49
 def test_page_posts_without_valid_csrf_are_refused(app, admin_client, fuzz_db, rule, body, token, nonce, in_header):
     """No valid CSRF token -> 400 before the view runs, logged in or not,
     whatever the body and whatever the cookie."""
@@ -852,6 +867,42 @@ def test_valid_csrf_token_is_accepted(app):
     # A token in the header works like the field.
     client.set_cookie(csrf.COOKIE_NAME, "n" * 40, domain="localhost")
     assert client.post("/logout", headers={"X-CSRF-Token": token}).status_code == 303
+
+
+@settings(max_examples=scaled(10))
+@given(session=st.text(alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_", max_size=64))
+@example(session="")
+@example(session="n" * 40)  # the same value as the nonce
+def test_csrf_token_is_bound_to_the_login_session(app, session):
+    """Security #49: a token made for one admin session cookie (or for
+    none) is refused when sent with any other session cookie; the right
+    session's token is accepted."""
+    client = app.test_client()
+    client.set_cookie(csrf.COOKIE_NAME, "n" * 40, domain="localhost")
+    if session:
+        client.set_cookie(SESSION_COOKIE_NAME, session, domain="localhost")
+    for other in (session + "x", "" if session else "x", session.upper() if session != session.upper() else None):
+        if other is None:
+            continue
+        wrong = csrf_pair(session=other)[1]
+        response = client.post("/login", data={"username": "x", "password": "y", csrf.FIELD_NAME: wrong})
+        assert response.status_code == 400, other
+    right = csrf_pair(session=session)[1]
+    response = client.post("/login", data={"username": "nobody", "password": "wrong-password", csrf.FIELD_NAME: right})
+    check_response(response, "/login")
+    assert response.status_code == 200
+
+
+def test_csrf_token_from_before_login_is_refused_after(app):
+    """Logging in changes the session, so a form rendered before it (the
+    login form's token) no longer works; the pages rendered after it do."""
+    client = app.test_client()
+    anonymous = with_csrf(client)
+    login_api(client)
+    response = client.post("/logout", data={csrf.FIELD_NAME: anonymous})
+    assert response.status_code == 400
+    assert client.get("/api/auth/me").status_code == 200
+    assert client.post("/logout", data={csrf.FIELD_NAME: with_csrf(client)}).status_code == 303
 
 
 # B1 (fixed): web/csrf.py valid() raises TypeError on a non-ASCII csrf_token -> 500
@@ -1018,6 +1069,9 @@ admin_json_body = st.one_of(
 @example(body={"wiki_url": "https://x/" + "y" * 2048})  # B9
 @example(body={"label": "l" * 129})  # B9
 @example(body={"label": 1.0})  # A1
+@example(body={"wiki_url": "javascript:alert(document.cookie)"})  # security #46
+@example(body={"wiki_url": "data:text/html,<script>alert(1)</script>"})  # security #46
+@example(body={"wiki_url": "//evil.example/x"})  # security #46
 def test_admin_api_writes_with_garbage_bodies(admin_client, fuzz_db, method, path, body):
     """The admin's API writes against missing ids, or with bodies that
     can't be valid: a JSON 4xx, never a 5xx. (Garbage that happens to be
@@ -1034,6 +1088,10 @@ def test_admin_api_writes_with_garbage_bodies(admin_client, fuzz_db, method, pat
         assert admin_client.delete(f"/api/sectors/{response.get_json()['id']}").status_code == 200
     if method == "POST" and path == "/api/sectors":
         assert response.status_code in (201, 400)
+    if (isinstance(body, dict) and body.get("wiki_url") is not None
+            and not (isinstance(body["wiki_url"], str) and is_http_url(body["wiki_url"]))):
+        # Only an http(s) URL with a host is ever stored (security #46).
+        assert response.status_code >= 400, f"{method} {path} {body!r} -> {response.status_code}"
 
 
 def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
@@ -1093,9 +1151,9 @@ def test_default_credentials_admin_is_sent_to_account(fuzz_db, _mysql_server_ava
     config = MySQLConfig(database=db_name, **kwargs)
     try:
         _db.get_connection(config).close()
-        adminAuth.bootstrap_control_schema(config)
+        _username, first_password = adminAuth.bootstrap_control_schema(config)
         client = make_app(config).test_client()
-        login_api(client, adminAuth.DEFAULT_ADMIN_USERNAME, adminAuth.DEFAULT_ADMIN_PASSWORD)
+        login_api(client, adminAuth.DEFAULT_ADMIN_USERNAME, first_password)
         for rule in ADMIN_PAGE_RULES:
             if rule.rule == "/account":
                 continue
@@ -1211,6 +1269,8 @@ def test_login_post_next_never_redirects_off_site(app, target):
     check_response(response, "/login", sent=[target])
     assert response.status_code == 303, response.get_data(as_text=True)[:300]
     assert is_local_redirect(response.headers["Location"]), (target, response.headers["Location"])
+    # Now logged in: the form a browser sees carries a token for the new session.
+    creds[csrf.FIELD_NAME] = with_csrf(client)
     response = client.post("/login?" + urlencode({"next": target}), data=creds)
     assert response.status_code == 303
     assert is_local_redirect(response.headers["Location"]), (target, response.headers["Location"])

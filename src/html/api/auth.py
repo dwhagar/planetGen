@@ -34,8 +34,8 @@ MAX_API_KEY_LABEL_LENGTH = 128
 LOGIN_RATE_LIMIT = "10 per minute"
 """str: Applied to `POST /api/auth/login` on top of the app-wide default
 (`config.Config.RATELIMIT_DEFAULT`) -- the one endpoint in this API an
-attacker has any reason to hammer (the seeded default admin/password is
-public, in this very repository), so it gets its own tight per-IP limit
+attacker has any reason to hammer (password guessing against the one
+login form), so it gets its own tight per-IP limit
 regardless of how the global default is configured."""
 
 
@@ -133,9 +133,10 @@ def change_credentials():
     `{"current_password": str, "new_username": str, "new_password": str}`
     -- requires re-entering the current password regardless of whether
     `must_change_credentials` is set (see `adminAuth.change_credentials`).
-    On success, clears `must_change_credentials` and re-issues a fresh
-    session (the old one -- keyed by the pre-change username/password --
-    is invalidated, since the identity it names just changed).
+    On success, clears `must_change_credentials`, ends every session this
+    admin had (`adminAuth.change_credentials` deletes them, so any other
+    browser is logged out; API keys stay) and issues this caller a fresh
+    session cookie, so the browser that made the change stays logged in.
     """
     body = require_json_body()
     current_password = body.get("current_password") or ""
@@ -148,7 +149,6 @@ def change_credentials():
     except adminAuth.AuthError as exc:
         raise ApiError(str(exc), status_code=400)
 
-    adminAuth.end_session(conn, request.cookies.get(SESSION_COOKIE_NAME))
     updated = conn.execute("SELECT * FROM admin_users WHERE id = ?", (g.admin_user["id"],)).fetchone()
     raw_token = adminAuth.create_session(conn, updated["id"])
     resp = jsonify(_admin_public_dict(updated))

@@ -4,7 +4,7 @@
   <h2>Username and password</h2>
   <p>Signed in as <strong>{{ admin.username }}</strong>.</p>
   {%- if forced %}
-  <p class="hint">This account still uses the default username and password. Choose new ones before using the admin pages.</p>
+  <p class="hint">This account still uses the first password the installer printed. Choose a new username and password before using the admin pages.</p>
   {%- endif %}
   {%- if error %}
   <p class="error" role="alert">{{ error }}</p>

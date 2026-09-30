@@ -464,9 +464,9 @@ def test_real_database_home_and_paging(db_client, mysql_config, monkeypatch):
 
 
 def test_real_login_session_shows_admin_menu(db_client, mysql_config):
-    adminAuth.bootstrap_control_schema(mysql_config)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
     _db.get_connection(mysql_config).close()
-    resp = db_client.post("/api/auth/login", json={"username": "admin", "password": "password"})
+    resp = db_client.post("/api/auth/login", json={"username": "admin", "password": first_password})
     assert resp.status_code == 200
     html = db_client.get("/").get_data(as_text=True)
     assert ">Admin</a>" in html and ">Logout</a>" in html

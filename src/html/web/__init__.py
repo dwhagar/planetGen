@@ -46,6 +46,7 @@ if _LIB_DIR not in sys.path:
 
 from fmt import STATIC_VERSION  # noqa: E402
 from fmt import static_url as fmt_static_url  # noqa: E402
+from api.limiter import page_limit  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
 
 from . import csrf, errors, transport  # noqa: E402
@@ -62,7 +63,6 @@ from .helpers import SECTIONS, current_admin, page_url  # noqa: E402
 CONTENT_SECURITY_POLICY = ("default-src 'self'; base-uri 'self'; form-action 'self'; "
                            "frame-ancestors 'none'; object-src 'none'")
 
-# TODO(security #52): add Strict-Transport-Security on HTTPS requests.
 SECURITY_HEADERS = (
     ("X-Content-Type-Options", "nosniff"),
     ("X-Frame-Options", "DENY"),
@@ -73,12 +73,23 @@ SECURITY_HEADERS = (
 (`api/app.py` adds them to every `text/html` response). The JSON API sets
 its own stricter set there."""
 
+STRICT_TRANSPORT_SECURITY = ("Strict-Transport-Security", "max-age=31536000")
+"""tuple: Added to every response (pages and API alike) to a request that
+came in over HTTPS (`request.is_secure`), so a browser that has seen the
+site once never falls back to plain HTTP for a year. Never on a plain-HTTP
+response, where browsers ignore it anyway and a local `python
+src/html/wsgi.py` must keep working. No `includeSubDomains`: the site
+can't speak for other hosts under its domain."""
+
 STATIC_DIR = _STATIC_DIR
 """str: `src/html/static/`. `create_app` makes it the app's static folder
 so `/static/...` works under `python src/html/wsgi.py` and in tests; in
 production Apache serves `/static/` itself (examples/apache/)."""
 
 bp = Blueprint("web", __name__, template_folder="templates")
+# Every page shares one generous per-IP limit; /search, /galaxy and
+# /galaxy/tiles have their own (see api/limiter.py's page limits).
+page_limit("other")(bp)
 
 
 def static_url(filename):
@@ -121,18 +132,16 @@ def init_app(app, limiter=None):
 
     Args:
         app (flask.Flask): The app.
-        limiter (flask_limiter.Limiter, optional): When given, the pages
-            themselves are exempt from rate limiting (the old CGI pages never
-            are). The API calls they make in-process skip only the
-            default limits; see `api.limiter.is_in_process_call`.
+        limiter (flask_limiter.Limiter, optional): Unused; kept for
+            callers. The pages' per-IP limits are declared on `bp` and
+            its routes (`api.limiter.page_limit`, configured by
+            `RATELIMIT_PAGES`). The API calls they make in-process skip
+            only the API's default limits; see
+            `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
     app.before_request(csrf.protect)
     app.after_request(csrf.set_cookie)
-    if limiter is not None:
-        # TODO(security #41): per-IP limits on search, the Galaxy Map, its tiles
-        # and /api/health instead of exempting every page.
-        limiter.exempt(bp)
     transport.install()
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(

@@ -323,7 +323,7 @@ def _cell_edges_px(address, edge_mpc, half_edge):
     return points
 
 
-# TODO(web-pages #60): send the cell's arc edges as sampled points (from
+# TODO(web-pages #47): send the cell's arc edges as sampled points (from
 # the ring radii and slot angles) so sectormap.js can draw curved faces,
 # not only the 8 corners.
 def _outline_data(address, edge_mpc, half_edge):

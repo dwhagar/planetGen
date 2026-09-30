@@ -121,7 +121,7 @@ json_scalar = st.one_of(hostile_text, st.integers(min_value=-(2 ** 70), max_valu
 @example(username=ADMIN_USERNAME, password=" " + ADMIN_PASSWORD)
 @example(username=ADMIN_USERNAME, password="' OR '1'='1")
 @example(username="' OR '1'='1' -- ", password="' OR '1'='1")
-@example(username="admin", password="password")  # the seeded defaults, already rotated
+@example(username="admin", password="password")  # the old published default (#39: now random, and rotated here)
 @example(username=ADMIN_USERNAME + "' -- ", password="x")
 @example(username="%", password="x")
 @example(username="\x00", password="\x00")
@@ -135,6 +135,31 @@ def test_login_hostile_credentials_are_refused(app, username, password):
     error = response.get_json()["error"]
     # One generic answer: never says whether the username exists.
     assert error in ("invalid username or password", "username and password are required"), error
+
+
+@settings(max_examples=scaled(30))
+@given(username=hostile_text, password=hostile_text)
+@example(username="no-such-admin", password="x")
+@example(username="admin", password="password")  # #39: the old default user no longer exists here
+@example(username=ADMIN_USERNAME, password="wrong-password")
+@example(username=ADMIN_USERNAME + "x", password=ADMIN_PASSWORD)
+def test_login_costs_one_password_hash_check_whether_or_not_the_user_exists(app, username, password):
+    """Security #44: every refused login runs exactly one password hash
+    check -- a real user's hash, or a dummy one for an unknown username --
+    so the response time doesn't reveal which usernames exist."""
+    assume(not _is_real_password(password))
+    checked = []
+    real_verify = adminAuth.verify_password
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(adminAuth, "verify_password",
+                   lambda pw, pw_hash: checked.append(pw_hash) or real_verify(pw, pw_hash))
+        response = app.test_client().post("/api/auth/login", json={"username": username, "password": password})
+    check_response(response, "/api/auth/login", sent=[username, password])
+    assert response.status_code in (400, 401), response.status_code
+    if response.status_code == 401:
+        assert len(checked) == 1, checked
+    else:  # refused before any lookup (empty username or password)
+        assert checked == []
 
 
 @settings(max_examples=scaled(60))

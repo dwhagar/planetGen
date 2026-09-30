@@ -33,14 +33,14 @@ def client(mysql_config):
     return app.test_client()
 
 
-def _login(client, change_credentials=True):
+def _login(client, first_password, change_credentials=True):
     response = client.post("/api/auth/login", json={
-        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_password,
     })
     assert response.status_code == 200
     if change_credentials:
         response = client.post("/api/auth/change-credentials", json={
-            "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+            "current_password": first_password,
             "new_username": "stats-admin",
             "new_password": "a-strong-test-password-123",
         })
@@ -49,9 +49,9 @@ def _login(client, change_credentials=True):
 
 @pytest.fixture
 def admin_client(mysql_config, client):
-    adminAuth.bootstrap_control_schema(mysql_config)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
     _db.get_connection(mysql_config).close()
-    _login(client)
+    _login(client, first_password)
     return client
 
 
@@ -90,8 +90,8 @@ def test_admin_endpoints_require_a_fresh_admin(mysql_config, client):
     assert client.get("/api/admin/stats").status_code == 401
     assert client.get("/api/admin/duplicate-names").status_code == 401
 
-    adminAuth.bootstrap_control_schema(mysql_config)
-    _login(client, change_credentials=False)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
+    _login(client, first_password, change_credentials=False)
     assert client.get("/api/admin/stats").status_code == 403
     assert client.get("/api/admin/duplicate-names").status_code == 403
 

@@ -156,8 +156,9 @@ def _as_admin(client, fake):
 def _csrf(app, client):
     nonce = "n" * 43
     client.set_cookie(csrf.COOKIE_NAME, nonce)
+    session = client.get_cookie(SESSION_COOKIE_NAME)
     with app.app_context():
-        return csrf._sign(nonce)
+        return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
 def _section_current(html, label):
@@ -546,20 +547,21 @@ def test_real_admin_upload_without_wiki_config(db_app, mysql_config):
     """With no wiki configured, an admin sees no form, and a hand-made
     POST comes back as a fixed message: first "change your default
     credentials" (the API's own rule), then "not configured"."""
-    adminAuth.bootstrap_control_schema(mysql_config)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
     system_id = _save_system(mysql_config, moons=False)
     client = db_app.test_client()
-    assert client.post("/api/auth/login", json={"username": "admin", "password": "password"}).status_code == 200
+    assert client.post("/api/auth/login", json={"username": "admin", "password": first_password}).status_code == 200
     html = client.get(f"/system/{system_id}").get_data(as_text=True)
     assert 'id="wiki-upload"' not in html
     token = _csrf(db_app, client)
     resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
     assert resp.headers["Location"] == f"/system/{system_id}?wiki=forbidden#wiki-upload"
-    assert "Change the default admin username and password first." in client.get(resp.headers["Location"]).get_data(as_text=True)
+    assert "Change the admin username and password the installer set first." in client.get(resp.headers["Location"]).get_data(as_text=True)
 
     assert client.post("/api/auth/change-credentials", json={
-        "current_password": "password", "new_username": "boss", "new_password": "a-long-new-password-1",
+        "current_password": first_password, "new_username": "boss", "new_password": "a-long-new-password-1",
     }).status_code == 200
+    token = _csrf(db_app, client)  # the change re-issued the session; tokens are bound to it
     resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
     assert resp.status_code == 303
     assert resp.headers["Location"] == f"/system/{system_id}?wiki=unconfigured#wiki-upload"

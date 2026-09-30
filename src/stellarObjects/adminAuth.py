@@ -48,12 +48,17 @@ MAX_USERNAME_LENGTH = 64
 """int: `admin_users.username` is VARCHAR(64)."""
 
 DEFAULT_ADMIN_USERNAME = "admin"
-DEFAULT_ADMIN_PASSWORD = "password"
-"""str: The seeded bootstrap credentials `bootstrap_control_schema`
-inserts when `admin_users` is empty -- deliberately well-known/guessable,
-which is exactly why `admin_users.must_change_credentials` starts `TRUE`
-for this row and every write/admin endpoint refuses to work until it's
-changed (see `html/api/auth.py`'s `require_fresh_credentials`)."""
+"""str: The username `bootstrap_control_schema` seeds when `admin_users`
+is empty."""
+
+INITIAL_PASSWORD_BYTES = 16
+"""int: Entropy of the random first password `bootstrap_control_schema`
+seeds (`secrets.token_urlsafe(16)`: 22 characters, comfortably over
+`MIN_PASSWORD_LENGTH`). There is no published default password: the
+seeded one is printed once by `migrateDb.py` (install/update) and never
+stored anywhere but as its hash. `admin_users.must_change_credentials`
+still starts `TRUE` for this row, and every write/admin endpoint refuses
+to work until it's changed (see `html/api/authz.py`'s `require_admin`)."""
 
 
 class AuthError(Exception):
@@ -96,27 +101,24 @@ def _new_token():
 def validate_password_policy(password, username=None):
     """
     Raises `AuthError` if `password` fails the minimum policy: at least
-    `MIN_PASSWORD_LENGTH` characters, not the seeded default password,
-    and not (case-insensitively) equal to `username` -- the two weakest,
-    most-guessable choices an admin forced to change credentials could
-    otherwise pick right back.
+    `MIN_PASSWORD_LENGTH` characters and not (case-insensitively) equal
+    to `username` -- the weakest, most-guessable choices an admin could
+    otherwise pick.
     """
     if not isinstance(password, str) or len(password) < MIN_PASSWORD_LENGTH:
         raise AuthError(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
-    if password == DEFAULT_ADMIN_PASSWORD:
-        raise AuthError("password must not be the default password")
     if username and password.lower() == username.lower():
         raise AuthError("password must not match the username")
 
 
-# TODO(security #39): seed a random first password (printed once by the
-# installer) instead of the published admin/password pair.
 def bootstrap_control_schema(config=None):
     """
     Ensures the control schema's *database* (MySQL schema) itself exists,
     then ensures its tables (DDL -- needs a `CREATE`-capable account; see
-    `_db.get_control_connection`'s `ensure_schema` note) and seeds the
-    default `admin`/`password` row if `admin_users` is empty. Idempotent
+    `_db.get_control_connection`'s `ensure_schema` note) and, if
+    `admin_users` is empty, seeds an `admin` row with a random first
+    password (`INITIAL_PASSWORD_BYTES`) and `must_change_credentials`
+    set. Idempotent
     -- safe to call on every deploy (`migrateDb.py` calls this right
     after its own content-schema migration, using the same full-access
     account pointed at the control schema instead).
@@ -135,6 +137,15 @@ def bootstrap_control_schema(config=None):
         config (MySQLConfig, optional): Connection parameters for the
             control schema (typically `_db.control_mysql_config(...)`).
             Defaults to `_db.control_mysql_config()`.
+
+    Returns:
+        tuple[str, str] or None: `(username, password)` of the admin
+            this call just seeded -- the only time the plaintext exists
+            anywhere, so the caller must show it to the operator (see
+            `migrateDb.py`) -- or `None` when `admin_users` already had a
+            row and nothing was seeded. An older install's admin still on
+            the published `admin`/`password` login gets a random password
+            the same way (`_rotate_published_default_password`).
     """
     config = config or _db.control_mysql_config()
     unselected = _db.get_connection(
@@ -150,18 +161,71 @@ def bootstrap_control_schema(config=None):
     conn = _db.get_control_connection(config, ensure_schema=True)
     try:
         row = conn.execute("SELECT COUNT(*) AS n FROM admin_users").fetchone()
-        if row["n"] == 0:
-            conn.execute(
-                "INSERT INTO admin_users (username, password_hash, must_change_credentials) VALUES (?, ?, 1)",
-                (DEFAULT_ADMIN_USERNAME, hash_password(DEFAULT_ADMIN_PASSWORD)),
-            )
-            conn.commit()
+        if row["n"] != 0:
+            return _rotate_published_default_password(conn)
+        password = secrets.token_urlsafe(INITIAL_PASSWORD_BYTES)
+        conn.execute(
+            "INSERT INTO admin_users (username, password_hash, must_change_credentials) VALUES (?, ?, 1)",
+            (DEFAULT_ADMIN_USERNAME, hash_password(password)),
+        )
+        conn.commit()
+        return DEFAULT_ADMIN_USERNAME, password
     finally:
         conn.close()
 
 
-# TODO(security #44): check an unknown username against a dummy hash so
-# the response time doesn't reveal which usernames exist.
+_PUBLISHED_DEFAULT_PASSWORD = "password"
+"""str: The first password older installs seeded, published in the
+repository. Only ever checked against, never set."""
+
+
+def _rotate_published_default_password(conn):
+    """
+    An install from before random first passwords may still have its
+    seeded admin on the published `admin`/`password` login, waiting for
+    its forced change -- claimable by whoever logs in first. Gives any such
+    row (still `must_change_credentials`, still verifying against the
+    published password) a random password instead, ending its sessions.
+
+    Returns:
+        tuple[str, str] or None: `(username, new password)` for the
+            operator, as `bootstrap_control_schema` returns a new seed, or
+            `None` when no row needed it.
+    """
+    rows = conn.execute(
+        "SELECT id, username, password_hash FROM admin_users WHERE must_change_credentials = 1"
+    ).fetchall()
+    for row in rows:
+        if not verify_password(_PUBLISHED_DEFAULT_PASSWORD, row["password_hash"]):
+            continue
+        password = secrets.token_urlsafe(INITIAL_PASSWORD_BYTES)
+        conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (hash_password(password), row["id"]))
+        conn.execute("DELETE FROM admin_sessions WHERE admin_user_id = ?", (row["id"],))
+        conn.commit()
+        return row["username"], password
+    return None
+
+
+_dummy_password_hash = None
+"""str: A real `hash_password` hash of a random value, checked against
+when the submitted username doesn't exist so that path costs the same
+hash work as a wrong password (see `authenticate`). Computed at import
+when `werkzeug` is installed, else on first use."""
+
+
+def _get_dummy_password_hash():
+    global _dummy_password_hash
+    if _dummy_password_hash is None:
+        _dummy_password_hash = hash_password(secrets.token_urlsafe(16))
+    return _dummy_password_hash
+
+
+try:
+    _get_dummy_password_hash()
+except ImportError:  # no `api` extra: nothing here authenticates anyway
+    pass
+
+
 def authenticate(conn, username, password):
     """
     Verifies a username/password pair against `admin_users`, updating
@@ -177,10 +241,16 @@ def authenticate(conn, username, password):
 
     Raises:
         AuthError: On an unknown username or a wrong password -- same
-            message either way (see the class docstring).
+            message either way (see the class docstring), and the same
+            time: an unknown username is still checked against a dummy
+            hash, so the response time doesn't reveal which usernames
+            exist.
     """
     row = conn.execute("SELECT * FROM admin_users WHERE username = ?", (username,)).fetchone()
-    if row is None or not verify_password(password, row["password_hash"]):
+    if row is None:
+        verify_password(password, _get_dummy_password_hash())
+        raise AuthError("invalid username or password")
+    if not verify_password(password, row["password_hash"]):
         raise AuthError("invalid username or password")
     conn.execute("UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?", (row["id"],))
     conn.commit()
@@ -326,8 +396,6 @@ def revoke_api_key(conn, admin_user_id, key_id):
     return cur.rowcount > 0
 
 
-# TODO(security #45): end this admin's other sessions on a change (API
-# keys stay).
 def change_credentials(conn, admin_user_id, current_password, new_username, new_password):
     """
     Changes an admin's username and password together, clearing
@@ -336,6 +404,13 @@ def change_credentials(conn, admin_user_id, current_password, new_username, new_
     a session cookie/API key alone is never enough to rotate credentials,
     so a hijacked-but-not-fully-compromised session can't lock the real
     admin out.
+
+    Ends every one of this admin's sessions (`admin_sessions`) in the same
+    transaction, so a stolen or forgotten browser session stops working
+    the moment the password changes; the caller issues a fresh session
+    for the browser that made the change (`POST
+    /api/auth/change-credentials` does). API keys are kept: they're
+    separate, individually revocable credentials.
 
     Args:
         conn (Connection): Open control-schema connection.
@@ -374,6 +449,7 @@ def change_credentials(conn, admin_user_id, current_password, new_username, new_
         "UPDATE admin_users SET username = ?, password_hash = ?, must_change_credentials = 0 WHERE id = ?",
         (new_username, hash_password(new_password), admin_user_id),
     )
+    conn.execute("DELETE FROM admin_sessions WHERE admin_user_id = ?", (admin_user_id,))
     conn.commit()
 
 

@@ -13,7 +13,7 @@ one vhost.
 Every read endpoint is fully implemented and unauthenticated (read-only,
 no account needed). Every write endpoint (create/modify/delete a sector or
 system) requires an authenticated admin whose credentials aren't still the
-seeded default — see "Authentication" and "Write endpoints" below.
+seeded first login — see "Authentication" and "Write endpoints" below.
 
 ## Why Flask
 
@@ -53,10 +53,16 @@ connectivity to that specific schema rather than the default one.
 
 - `GET /api/health` — liveness/readiness check: confirms the process is up
   and the configured (or `db=`-selected) database can actually be opened.
-  Returns `{"status": "ok"}`, or `{"status": "error", "detail": "..."}`
-  with a `503` if the database can't be reached. Exempt from rate limiting.
+  Returns `{"status": "ok"}`, or `{"status": "error", "detail": "database
+  unavailable"}` with a `503` if the database can't be reached (the real
+  reason, which names the MySQL user and host, goes only to the server's
+  log). Rate-limited per client IP (`ratelimit.pages.health`, default 60 per
+  minute), not by the default limits; see "Rate limiting".
 - `GET /api/databases` — every MySQL schema on the configured server
-  matching this deployment's prefix (`stellarObjects._db.list_databases`),
+  whose name starts with this deployment's prefix (literally: `_` and `%`
+  in the prefix are not wildcards), except the control schema
+  (`control_database`, which holds admin logins and API keys and is never
+  listed or selectable with `db=`) (`stellarObjects._db.list_databases`),
   each with `name`, `size_bytes`, `modified_at`, and a quick-glance
   `sector_count`/`system_count` (`null` for a matching schema missing this
   project's own tables, e.g. mid-migration, rather than failing the whole
@@ -96,7 +102,8 @@ connectivity to that specific schema rather than the default one.
   filtered, paginated system listing (`queryDb.list_systems`/
   `count_systems`), each with `id`, `name`, `sector_id`, `is_binary`, and
   `star_summary` (the single star's `star_type`, or a binary's
-  `binary_type`). `sector_id=none` matches only standalone systems
+  `binary_type`). `star_type` is a literal prefix (`%` and `_` match only
+  themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's table) — distinct
   from omitting `sector_id` entirely (no sector filter at all).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
@@ -318,15 +325,18 @@ forced credential change. They back the admin stats page
   cookie (`pg_admin_session`; `HttpOnly`/`Secure`/`SameSite=Strict`).
   Returns `{"username", "must_change_credentials"}`. `401` for a wrong
   username or password (same message either way — this never reveals
-  whether a username exists). Rate-limited to 10/minute/IP.
+  whether a username exists; an unknown username costs the same password
+  hash check as a wrong password, so timing doesn't reveal it either).
+  Rate-limited to 10/minute/IP.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`
   `{"current_password", "new_username", "new_password"}` — always
   requires the current password, regardless of whether
   `must_change_credentials` is set. `new_password` must be at least 12
-  characters, not the seeded default password, and not equal to the
-  username. Re-issues a fresh session cookie on success.
+  characters and not equal to the username. On success every one of that
+  admin's sessions ends (other browsers are logged out) and the caller
+  gets a fresh session cookie; API keys keep working.
 - `GET /api/auth/api-keys` — the calling admin's own API keys (label/
   timestamps only, never the key or its hash).
 - `POST /api/auth/api-keys` `{"label"}` — creates a key, returning
@@ -369,9 +379,16 @@ non-numeric/non-positive `radius`, or a write endpoint's body failing
 validation — see below) is a `400`, an unmatched URL is a `404`, an
 unsupported HTTP method is a `405`, exceeding a rate limit is a `429`
 (`{"error": "rate limit exceeded", "detail": "..."}`, see "Rate limiting"),
-and an unexpected server-side failure is a `500` — the API never falls
-through to Flask's default HTML error page or leaks a stack trace to the
-client (the real detail still reaches Flask's own logger).
+a database that can't be opened is a `503` whose message is just
+`"database unavailable"`, and an unexpected server-side failure is a
+`500` — the API never falls through to Flask's default HTML error page or
+leaks a stack trace, a connection error or the database's user/host to
+the client (the real detail still reaches Flask's own logger).
+
+Every response also carries `X-Content-Type-Options: nosniff`,
+`X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` and
+`Content-Security-Policy: default-src 'none'`, and, when the request came
+in over HTTPS, `Strict-Transport-Security: max-age=31536000`.
 
 ## NAV
 
@@ -471,8 +488,8 @@ not a bearing relative to any particular ship heading.
 
 Every write route requires an authenticated admin (session cookie or
 `Authorization: Bearer <api-key>` — see "Authentication" above) whose
-`must_change_credentials` flag is clear — the seeded `admin`/`password`
-bootstrap admin can log in and call `/api/auth/change-credentials`, but
+`must_change_credentials` flag is clear — the seeded `admin` bootstrap
+admin (random first password, printed once by `migrateDb.py`) can log in and call `/api/auth/change-credentials`, but
 nothing else, until it changes its own credentials (`403` otherwise). A
 missing/invalid credential is `401`. Every write route runs against the
 same `PLANETGEN_MYSQL_*` database account every read route above uses —
@@ -506,7 +523,9 @@ when) after the write actually succeeds.
 - `edge_ly`: number, greater than 0 — the sector's cube edge, in
   light-years (matches `sectors.edge_mpc` after unit conversion; see
   `database-schema.md`).
-- `wiki_url` (`PATCH` only): non-empty string, or `null` to clear it back
+- `wiki_url` (`PATCH` only): an absolute `http://` or `https://` URL with
+  a host (at most 2048 characters; anything else, e.g. `javascript:` or
+  `data:`, is a `400`), or `null` to clear it back
   to "no page yet" — the manual "set the wiki link directly" admin
   affordance (the `/admin` page); the same column `POST
   /api/sectors/<id>/wiki` (below) writes automatically on a successful
@@ -626,7 +645,7 @@ supported via this API; regenerate via `DELETE` + `POST` instead.
 
 ## Rate limiting
 
-Every route (`/api/health` excepted) is rate-limited via
+Every route is rate-limited per client IP via
 [Flask-Limiter](https://flask-limiter.readthedocs.io/), on top of which
 every write endpoint applies its own stricter limit
 (`routes.WRITE_RATE_LIMIT`, currently 10/minute):
@@ -644,6 +663,12 @@ every write endpoint applies its own stricter limit
   worker otherwise tracks its own separate counters and the real,
   aggregate request rate can exceed the configured limit by roughly the
   worker count.
+- `/api/health` has its own limit instead of the default:
+  `ratelimit.pages.health` in `config.json`, default **60/minute** (so a
+  monitor can poll it freely but nobody can use it to hammer the database).
+  The HTML pages have per-IP limits of their own too (`ratelimit.pages`,
+  see [`html-interface.md`](html-interface.md#rate-limits)); the API calls
+  a page makes in-process count against neither.
 - Exceeding a limit returns `429` with a `Retry-After` header and
   `X-RateLimit-*` headers (`RATELIMIT_HEADERS_ENABLED`).
 
@@ -682,8 +707,29 @@ schema** (`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`),
 global to the deployment rather than per-galaxy-database — see
 `stellarObjects/control_schema.sql`'s header comment and
 [`database-schema.md`](database-schema.md). `migrateDb.py` creates and
-seeds it (the default `admin`/`password` login) alongside its usual
-content-schema migration.
+seeds it alongside its usual content-schema migration.
+
+### The first admin login
+
+There is no published default password. The first time `migrateDb.py`
+runs against an empty control schema (so on the first `install.sh`), it
+creates the user `admin` with a random password and prints both once, in
+a boxed block in the installer's output. Only the password's hash is
+stored, so nothing can show it again. Log in at `/login` with it; you are
+sent straight to `/account` to choose your own username and password, and
+every other admin page and write endpoint refuses to work until you do.
+
+#### Resetting the admin login
+
+If that password is lost (or every admin is locked out), delete the admin
+rows and let `migrateDb.py` seed a new one:
+
+    mysql -e 'DELETE FROM planetgen_control.admin_users'
+    python3 src/migrateDb.py        # or ./update.sh
+
+(use your `PLANETGEN_CONTROL_DATABASE` name if you changed it). Deleting
+the rows also deletes their sessions and API keys; the audit log keeps
+its entries. The new random password is printed as above.
 
 ## Deploying behind Apache (mod_wsgi)
 

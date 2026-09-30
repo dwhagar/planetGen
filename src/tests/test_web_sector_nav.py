@@ -190,8 +190,9 @@ def _log_in(client, fake, must_change=False):
 def _csrf(app, client):
     nonce = "n" * 43
     client.set_cookie(csrf.COOKIE_NAME, nonce)
+    session = client.get_cookie(SESSION_COOKIE_NAME)
     with app.app_context():
-        return csrf._sign(nonce)
+        return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
 def _scene(html):
@@ -272,6 +273,15 @@ def test_sector_wiki_link_when_set(client, fake):
     fake.sectors[5]["wiki_url"] = "https://wiki.example/s"
     html = client.get("/sector/5").get_data(as_text=True)
     assert '<a href="https://wiki.example/s" target="_blank" rel="noopener noreferrer">View on Wiki</a>' in html
+
+
+@pytest.mark.parametrize("wiki_url", ["javascript:alert(1)", "data:text/html,x", "//evil.example/x"])
+def test_sector_wiki_link_never_links_a_non_http_url(client, fake, wiki_url):
+    # One saved before the API checked it is left out of the page.
+    fake.sectors[5]["wiki_url"] = wiki_url
+    html = client.get("/sector/5").get_data(as_text=True)
+    assert "View on Wiki" not in html
+    assert f'href="{wiki_url}"' not in html
 
 
 def test_admin_sees_forms_with_csrf_token(client, fake):
@@ -705,12 +715,12 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
     around an unplaced sector fails with the API's own message, shown on
     the page next to the form (no redirect)."""
     sector_id, _systems = _two_system_sector(mysql_config)
-    adminAuth.bootstrap_control_schema(mysql_config)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
     resp = db_client.post("/api/auth/login", json={
-        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD})
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_password})
     assert resp.status_code == 200
     resp = db_client.post("/api/auth/change-credentials", json={
-        "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "current_password": first_password,
         "new_username": "sector-admin", "new_password": "a-strong-test-password-123"})
     assert resp.status_code == 200
 
