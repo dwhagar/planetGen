@@ -32,7 +32,7 @@ angles away from what they actually are).
 
 import math
 
-from fmt import esc
+from fmt import esc, format_distance_ly
 
 _SVG_SIZE = 360.0
 _CENTER = _SVG_SIZE / 2
@@ -144,7 +144,7 @@ def _scale_bar_html(px_per_ly):
         f'<line class="navmap-scale-tick" x1="{x0:.1f}" y1="{y - 4:.1f}" x2="{x0:.1f}" y2="{y + 4:.1f}"/>'
         f'<line class="navmap-scale-tick" x1="{x1:.1f}" y1="{y - 4:.1f}" x2="{x1:.1f}" y2="{y + 4:.1f}"/>'
         f'<text class="navmap-scale-label" x="{_CENTER:.1f}" y="{y - 8:.1f}" text-anchor="middle">'
-        f"{bar_ly:,.2f} ly</text>"
+        f"{esc(format_distance_ly(bar_ly))}</text>"
     )
 
 

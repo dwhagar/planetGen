@@ -40,6 +40,7 @@ from urllib.parse import urlencode
 from flask import redirect, request, url_for
 
 import apiclient
+from fmt import format_distance_ly
 from navmap import render_nav_map_panel
 from stellarObjects.navigation import format_course
 
@@ -332,7 +333,9 @@ def nav():
                                     has_route=route is not None)
     return render_page(
         "nav.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
-        direct=direct, course=format_course(direct["bearing_deg"], direct["mark_deg"]),
+        direct=direct, distance_text=format_distance_ly(direct["distance_ly"]),
+        route_distance_text=format_distance_ly(route["distance_ly"]) if route else None,
+        course=format_course(direct["bearing_deg"], direct["mark_deg"]),
         frame_label=FRAME_LABELS.get(direct["frame"], direct["frame"]), warp_times=result["warp_times"], fold_times=result["fold_times"],
         scope_label="Same sector" if result["scope"] == "sector" else "Cross-sector (galaxy)",
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],

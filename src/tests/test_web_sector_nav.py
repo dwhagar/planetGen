@@ -454,7 +454,7 @@ def test_nav_course_and_route(client, fake):
     assert 'To: <a href="/system/1002">Other</a>' in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
     assert [name for name in re.findall(r">([^<]+)</a>", route)] == ["Alpha", "Waypoint", "Other"]
-    assert "3 stops, 3.50 ly total." in html
+    assert "3 stops, 1.07 pc (3.5 ly) total." in html
     # The NAV map's points are plain links.
     assert '<a class="navmap-point navmap-hop" href="/system/1500">' in html
     assert "data-nav" not in html
