@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# TODO(installers #50): make this run on macOS (BSD chown/chmod, _www) and
+# add a Windows counterpart using icacls. See docs/TODO.md item 50.
 #
 # examples/apache/set-permissions.sh
 #

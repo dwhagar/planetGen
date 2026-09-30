@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# TODO(installers #50): also detect macOS Apache (Homebrew httpd, user _www)
+# and a Windows counterpart. See docs/TODO.md item 50.
 #
 # examples/apache/apache-identity.sh
 #

@@ -56,10 +56,12 @@ renumber when items are added or finished.
 - **More pages (46-49)**: the full systems list, the Sector Map
    wireframe, the system page layout and non-overlapping System Map
    names are small and can go in any time.
+- **Installers (50)**: PowerShell install and upgrade scripts, and the
+   bash scripts made to run on macOS too.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
-   security, physics, web-pages);
+   security, physics, web-pages, installers);
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
@@ -948,15 +950,47 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     - Check every scene: single star, close and wide binaries, and the
       moon-centered scenes, at 390 px and 1280 px.
 
+### Installers and platforms (Boss's notes, 2026-09-30)
+
+50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
+    also run on macOS.** Boss: "we need to write a powershell install and
+    upgrade scripts as well as make sure our bash shell scripts will also
+    work on macos as well as linux."
+    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
+      `install.sh` and `update.sh`: the same steps and the same prompts
+      (check-only upgrades, the migrate-or-delete database prompt with
+      its 30-second default, the migration progress bar), using a venv
+      or the Windows Python launcher instead of apt, Windows services or
+      Task Scheduler instead of systemd timers, and Apache on Windows
+      (or IIS) paths and permissions (`icacls`) instead of `www-data`
+      and `chown`.
+    - **macOS:** every bash script (`install.sh`, `update.sh`,
+      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
+      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
+      macOS too. Known gaps: macOS ships bash 3.2, so
+      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
+      (require Homebrew bash, or rewrite them); apt is assumed (use
+      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
+      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
+      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
+      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
+      `stat`, `readlink`, `date` and `timeout` wherever they appear.
+    - Keep the steps in step across the three platforms, so a change to
+      one installer lands in all of them.
+    - The Windows and macOS hosting guides (being written in `docs/` by
+      the docs thread) describe the server setup; this item is only the
+      scripts, and the guides should point at them once they exist.
+    - Each script carries a `TODO(installers #50)` comment at its top.
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-50. [ ] Assign government ownership to star systems so that groups of
+51. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-51. [ ] Flag worlds with life for generated names of their dominant
+52. [ ] Flag worlds with life for generated names of their dominant
     species.
-52. [ ] A database of spacefaring species.
-53. [ ] Model younger and older civilizations: what differs with a
+53. [ ] A database of spacefaring species.
+54. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

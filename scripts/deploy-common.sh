@@ -1,3 +1,7 @@
+# TODO(installers #50): these helpers assume Debian Apache (/etc/apache2,
+# a2enmod, www-data) and apt; add the macOS (Homebrew httpd, _www)
+# equivalents, and mirror them for the PowerShell scripts. See docs/TODO.md
+# item 50.
 # scripts/deploy-common.sh
 #
 # Checks shared by install.sh and update.sh, sourced by both so the two
