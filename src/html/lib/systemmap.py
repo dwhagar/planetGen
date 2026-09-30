@@ -940,13 +940,17 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     )
 
 
-def _wide_binary_star_attrs(system, star, suffix, is_primary, scene_target=None):
+def _star_label(system, star):
+    """A star's shown name: its own (a binary's stars are `<system> <word>`
+    -- see `bodyNames.py`), falling back to the system's."""
+    return star.get("name") or system["name"]
+
+
+def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
     """Shared `star_attrs` dict for `_star_scene_svg`'s own star marker, in
-    either of a wide (S-type) pair's two scenes -- "A"/"B" (see
-    `starmap.py`'s identical convention), not "Primary"/"Secondary", is
-    what actually gets shown as this star's own name."""
+    either of a wide (S-type) pair's two scenes."""
     attrs = {
-        "kind": "star", "name": f'{system["name"]}{suffix}',
+        "kind": "star", "name": _star_label(system, star),
         "role": "Primary" if is_primary else "Secondary",
         "type": star["star_type"], "temp": f'{int(star["temperature_k"])} K',
         "mass": to_plain_text(format_star_mass(star["mass_kg"])),
@@ -1020,7 +1024,7 @@ def _render_wide_binary_scenes(system, stars, planets, belts):
     companion_r = _star_radius_px(secondary["radius_km"])
     companion_radius_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
     companion_cx, companion_cy = _polar_to_px(_CENTER_PX, _CENTER_PX, companion_radius_px, bx, by)
-    companion_attrs = _wide_binary_star_attrs(system, secondary, " B", is_primary=False, scene_target=secondary_scene_id)
+    companion_attrs = _wide_binary_star_attrs(system, secondary, is_primary=False, scene_target=secondary_scene_id)
     # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
     # sets -- this marker represents the secondary at its real position
     # *relative to the primary*, not its own scene's origin, and that
@@ -1045,13 +1049,13 @@ def _render_wide_binary_scenes(system, stars, planets, belts):
     primary_scene = _star_scene_svg(
         "system", f'System map for {system["name"]}', False,
         primary, primary_planets, primary_belts,
-        _wide_binary_star_attrs(system, primary, " A", is_primary=True),
+        _wide_binary_star_attrs(system, primary, is_primary=True),
         extra_svg=companion_marker_svg, extra_obstacle=companion_obstacle,
     )
-    secondary_attrs = _wide_binary_star_attrs(system, secondary, " B", is_primary=False)
+    secondary_attrs = _wide_binary_star_attrs(system, secondary, is_primary=False)
     secondary_attrs["self"] = "true"
     secondary_scene = _star_scene_svg(
-        secondary_scene_id, f'Planets of {system["name"]} B', True,
+        secondary_scene_id, f'Planets of {_star_label(system, secondary)}', True,
         secondary, secondary_planets, secondary_belts, secondary_attrs,
     )
     return [primary_scene, secondary_scene]
@@ -1101,12 +1105,6 @@ def _render_system_scene(system, stars, planets, belts):
         star_markers.append({
             "type": "star", "cx": cx, "cy": cy, "r": _star_radius_px(star["radius_km"]),
             "star": star, "is_primary": is_primary,
-            # "A"/"B", not "Primary"/"Secondary" -- matches how the
-            # generator already names the stars themselves (the
-            # secondary's own stored name is "<system name> B"; see
-            # systemData.StarSystem.__init__), and reads as a real star
-            # name rather than an internal role label.
-            "suffix": (" A" if is_primary else " B") if is_binary else "",
         })
     _relax_markers(star_markers, _MARKER_GAP_PX)
     for marker in star_markers:
@@ -1157,7 +1155,7 @@ def _render_system_scene(system, stars, planets, belts):
         sx, sy = star_pos_km[star["id"]]
         star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star, {
             "kind": "star",
-            "name": f'{system["name"]}{marker["suffix"]}',
+            "name": _star_label(system, star),
             "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
             "type": star["star_type"], "temp": f'{int(star["temperature_k"])} K',
             "mass": to_plain_text(format_star_mass(star["mass_kg"])),

@@ -2,7 +2,7 @@
 
 """
 Tests for `src/dedupeNames.py` -- the one-off backfill script that cleans
-up sector/system/planet/moon name collisions in an existing database
+up sector/system name collisions in an existing database
 (v22, `stellarObjects/nameUniqueness.py`). Live generation (via
 `stellarObjects._db.py`'s `reserve_*_name`/`confirm_*_name`) already
 prevents any *new* duplicate, so these tests simulate a "legacy" database
@@ -46,7 +46,6 @@ def test_dedupe_fixes_a_legacy_sector_duplicate_and_is_idempotent(mysql_config):
     counts = dedupe_names(mysql_config)
     assert counts["sectors"] == 1
     assert counts["star_systems"] == 0
-    assert counts["planets_and_moons"] == 0
 
     conn = _db.get_connection(mysql_config)
     try:
@@ -68,7 +67,7 @@ def test_dedupe_fixes_a_legacy_system_vs_sector_collision(mysql_config):
             sector_id = _db.insert_sector(conn, SpaceSector(name="Venus"))
         with conn:
             system = StarSystem(system_config=SystemConfig())
-            system.star.name = "Venus"
+            system.name = "Venus"
             system_id = _db.insert_star_system(conn, system, system.system_config)
 
         # Revert the system's own cross-level resolution, simulating a
@@ -106,7 +105,7 @@ def test_dedupe_is_a_true_no_op_on_a_database_with_no_collisions(mysql_config):
             _db.insert_sector(conn, SpaceSector(name="Mercury"))
         with conn:
             system = StarSystem(system_config=SystemConfig())
-            system.star.name = "Uniquesys"
+            system.name = "Uniquesys"
             _db.insert_star_system(conn, system, system.system_config)
     finally:
         conn.close()

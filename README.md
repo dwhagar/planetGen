@@ -73,7 +73,7 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `--markdown`, `-m`: Formats the stored write-up in Markdown instead of the default wikitext.
 *   `--output`, `-o <file>`: Writes the system's page (wikitext, or Markdown with `--markdown`) to `file` instead of saving the system to the database; `-` writes it to stdout. The admin site's one-off system page (`/admin/generate/system`) does the same from the browser.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
-*   `--name <name>`: Specifies a name for the star system, overriding the default random generation.
+*   `--name <name>`: Specifies a name for the star system, overriding the default random generation. Everything in the system is named from it: planets are numbered in orbit order (`Sol I`, `Sol II`, ...), moons add a letter (`Sol IIIa`), and a binary's two stars each put their own word after the system name (`Sol Kelmoor`, `Sol Ostra`), with no A/B letters. A wide binary numbers each star's planets after that star (`Sol Kelmoor I`). Asteroid belts aren't numbered.
 *   `--age <young|old>`: Specifies the age of the star system (young or old).
 *   `--flavor-chance-system <float>`: Overrides the default system-level flavor text chance (0.0 to 1.0).
 *   `--flavor-chance-planet <float>`: Overrides the default planet-level flavor text chance (0.0 to 1.0).
@@ -128,7 +128,7 @@ Most of `system`'s options work here too, but apply *uniformly* to every system 
 Sector-specific options:
 
 *   `--num-systems <int>`: How many star systems the sector contains. Defaults to 10.
-*   `--name <name>`, `-n <name>`: Hard-sets the sector's own name, overriding the default random two-word name (e.g. `"Voranthis Kelmoor"`) generated the same phoneme-salad way as star/planet/moon names.
+*   `--name <name>`, `-n <name>`: Hard-sets the sector's own name, overriding the default random two-word name (e.g. `"Voranthis Kelmoor"`) generated the same phoneme-salad way as star names.
 *   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one the way a uniform `+habitable_world` would. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`, and cannot be combined with a uniform `-habitable_world`.
 *   `--mysql-host <host>`, `--mysql-port <port>`, `--mysql-user <user>`, `--mysql-password <password>`, `--mysql-database <database>`: Where the generated sector is saved. Each defaults to the matching `$PLANETGEN_MYSQL_*` environment variable, or a built-in default (`127.0.0.1:3306`, user/database `planetgen`) -- see [`docs/database-schema.md`](docs/database-schema.md).
 

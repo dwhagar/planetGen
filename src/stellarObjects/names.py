@@ -346,10 +346,9 @@ type's own base `_NAMES` list.
 
 # --- Name-Uniqueness Decoration Constants ---
 #
-# Used by `stellarObjects/nameUniqueness.py` to keep every sector, system,
-# planet, and moon name in a database distinct -- see that module's own
-# docstring for the full sector > system > planet/moon hierarchy these
-# feed into. Kept here, alongside every other naming word list, rather
+# Used by `stellarObjects/nameUniqueness.py` to keep every sector and
+# system name in a database distinct -- see that module's own docstring
+# for the sector > system hierarchy these feed into. Kept here, alongside every other naming word list, rather
 # than in `nameUniqueness.py` itself, so all of this project's naming
 # vocabulary lives in one place.
 
@@ -411,10 +410,8 @@ Sanskrit, Irish, Hawaiian, Turkish, Korean, Russian, Spanish/Italian
 again, German again, and Georgian) -- same transliteration convention as
 `DIMINUTIVE_PREFIXES` above.
 
-`nameUniqueness.resolve_companion` uses these, in order, as a *suffix* on
-a planet's or moon's own name whenever it collides with anything else
-that must stay unique against it -- another planet, a moon, a system, or
-a sector (planets/moons are the lowest level in the naming hierarchy, so
-they're always the side that gets decorated): "<name> Kin", then "<name>
-Ami" on a second hit for the same base name, and so on.
+Before v34, planets and moons whose names collided got one of these as a
+suffix ("<name> Kin"). They're named from their system now
+(`bodyNames.py`), so nothing adds these any more; `checkRenderParity.py`
+still reads them to recognize the old form in a pre-v29 database.
 """

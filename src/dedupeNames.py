@@ -2,36 +2,30 @@
 # src/dedupeNames.py
 
 """
-One-off backfill: scans an existing database for sector/system/planet/moon
-names that duplicate each other (within or across those four levels) and
-resolves them with the same Greek/Roman, diminutive, and companion-suffix
-decoration `stellarObjects/_db.py`'s `insert_sector`/`insert_star_system`/
-`insert_planet`/`insert_moon` already apply automatically to every *new*
-row (v22, see `stellarObjects/nameUniqueness.py`'s own module docstring
-for the full sector > system > planet/moon hierarchy) -- for a database
-that predates that feature, or already holds duplicate names from before
-it existed.
+One-off backfill: scans an existing database for sector/system names
+that duplicate each other (within or across those two levels) and
+resolves them with the same Greek/Roman and diminutive decoration
+`stellarObjects/_db.py`'s `insert_sector`/`insert_star_system` already
+apply automatically to every *new* row (v24, see
+`stellarObjects/nameUniqueness.py`'s own module docstring for the
+sector > system hierarchy) -- for a database that predates that feature,
+or already holds duplicate names from before it existed. Planets and
+moons are named from their system (`stellarObjects/bodyNames.py`, v34), so
+a renamed system's derived names follow it (`_db.rename_star_system`).
 
 Live generation already guarantees no new duplicate ever lands in the
 database going forward; this script is only for cleaning up whatever's
 already there. Processes one level at a time, top-down (sectors, then
-systems, then planets/moons together) -- exactly the order
-`nameUniqueness`'s own hierarchy needs, since a lower level's own
-cross-level check (a system against `sector_name_registry`, a planet/moon
-against both) has to see that higher level's *final*, already-resolved
-state. Reuses `_db.py`'s own `reserve_*_name`/`confirm_*_name` functions
+systems) -- exactly the order `nameUniqueness`'s own hierarchy needs,
+since a system's cross-level check against `sector_name_registry` has to
+see the sectors' *final*, already-resolved state. Reuses `_db.py`'s own `reserve_*_name`/`confirm_*_name` functions
 directly -- the same two-phase reservation `insert_sector`/etc. call --
 rather than a second, parallel implementation of the same rules.
 
 Idempotent: a base name whose registry `occurrence_count` already matches
 how many rows currently share it is left untouched, so re-running this
 script against a database it's already cleaned (with no new duplicates
-added by some other means in between) is a no-op. Planets and moons have
-no shared chronological signal across their two separate tables (neither
-has a `created_at` column the way `star_systems` does) to order a
-combined base-name group by -- this breaks ties by processing every
-planet before every moon, a deterministic but not necessarily
-historically faithful convention; see `_dedupe_bodies`.
+added by some other means in between) is a no-op.
 
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
@@ -81,9 +75,8 @@ def _already_resolved_count(conn, registry_table, base_name):
 def _dedupe_sectors(conn):
     """Resolves every sector-vs-sector duplicate, and (via `reserve_sector_name`'s
     own cross-level check) retroactively decorates any already-existing
-    system/planet/moon that happens to share a sector's base name. Must
-    run before `_dedupe_systems`/`_dedupe_bodies` -- see the module
-    docstring.
+    system that happens to share a sector's base name. Must run before
+    `_dedupe_systems` -- see the module docstring.
 
     Returns:
         int: How many `sectors` rows this call actually renamed.
@@ -103,10 +96,8 @@ def _dedupe_sectors(conn):
 
 def _dedupe_systems(conn):
     """Resolves every system-vs-system duplicate and every system-vs-sector
-    collision (diminutive prefix, system side only), plus (via
-    `reserve_system_name`'s own cross-level check) retroactively
-    decorates any already-existing planet/moon sharing a system's base
-    name. Must run after `_dedupe_sectors`, before `_dedupe_bodies`.
+    collision (diminutive prefix, system side only). Must run after
+    `_dedupe_sectors`.
 
     Returns:
         int: How many `star_systems` rows this call actually renamed.
@@ -118,51 +109,15 @@ def _dedupe_systems(conn):
         for row in group[already_done:]:
             new_name, name_base, diminutive_index = _db.reserve_system_name(conn, base)
             if new_name != row["name"]:
-                conn.execute("UPDATE star_systems SET name = ? WHERE id = ?", (new_name, row["id"]))
+                _db.rename_star_system(conn, row["id"], new_name)
                 renamed += 1
             _db.confirm_system_name(conn, name_base, row["id"], diminutive_index)
     return renamed
 
 
-def _dedupe_bodies(conn):
-    """Resolves every planet/moon duplicate -- against each other (one
-    shared namespace) and against any sector/system base name -- with a
-    companion suffix, always on the planet/moon side. Must run last (see
-    the module docstring).
-
-    Returns:
-        int: How many `planets`/`moons` rows (combined) this call
-            actually renamed.
-    """
-    planet_rows = [dict(row, kind="planet") for row in conn.execute("SELECT id, name, star_system_id FROM planets ORDER BY id").fetchall()]
-    moon_rows = [dict(row, kind="moon") for row in conn.execute("SELECT id, name, star_system_id FROM moons ORDER BY id").fetchall()]
-
-    groups = defaultdict(list)
-    for row in planet_rows + moon_rows:
-        groups[strip_decoration(row["name"])].append(row)
-    for base in groups:
-        # Planets before moons within the same base name -- see the
-        # module docstring's note on why there's no true chronological
-        # order to sort a combined planet+moon group by otherwise.
-        groups[base].sort(key=lambda r: (0 if r["kind"] == "planet" else 1, r["id"]))
-
-    renamed = 0
-    for base, group in groups.items():
-        already_done = _already_resolved_count(conn, "body_name_registry", base)
-        for row in group[already_done:]:
-            new_name, name_base, suffix_index = _db.reserve_body_name(conn, base, row["kind"])
-            if new_name != row["name"]:
-                table = "planets" if row["kind"] == "planet" else "moons"
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, row["id"]))
-                _db.touch_star_system(conn, row["star_system_id"])
-                renamed += 1
-            _db.confirm_body_name(conn, name_base, row["id"], row["kind"], suffix_index)
-    return renamed
-
-
 def dedupe_names(config=None):
     """
-    Runs the full sector -> system -> planet/moon dedup pass, in one
+    Runs the full sector -> system dedup pass, in one
     transaction (commits only if every step succeeds).
 
     Args:
@@ -170,7 +125,7 @@ def dedupe_names(config=None):
                                         to `DEFAULT_MYSQL_CONFIG`.
 
     Returns:
-        dict: `sectors`/`star_systems`/`planets_and_moons`, each the
+        dict: `sectors`/`star_systems`, each the
             count of rows this run actually renamed (`0` for every key
             means nothing needed fixing).
     """
@@ -179,11 +134,9 @@ def dedupe_names(config=None):
         with conn:
             sectors_renamed = _dedupe_sectors(conn)
             systems_renamed = _dedupe_systems(conn)
-            bodies_renamed = _dedupe_bodies(conn)
         return {
             "sectors": sectors_renamed,
             "star_systems": systems_renamed,
-            "planets_and_moons": bodies_renamed,
         }
     finally:
         conn.close()
@@ -191,10 +144,10 @@ def dedupe_names(config=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Scan the configured database for sector/system/planet/moon names that duplicate "
-                     "each other (within or across those four levels) and resolve them with the same "
-                     "Greek/Roman, diminutive, and companion-suffix decoration new generation runs "
-                     "already apply automatically (see stellarObjects/nameUniqueness.py).",
+        description="Scan the configured database for sector/system names that duplicate "
+                     "each other (within or across those two levels) and resolve them with the same "
+                     "Greek/Roman and diminutive decoration new generation runs already apply "
+                     "automatically (see stellarObjects/nameUniqueness.py).",
     )
     _db.add_mysql_connection_args(parser)
     args = parser.parse_args()
@@ -207,8 +160,8 @@ def main():
         print("No duplicate names found -- nothing to do.")
     else:
         print(
-            f"Renamed {counts['sectors']} sector(s), {counts['star_systems']} system(s), and "
-            f"{counts['planets_and_moons']} planet(s)/moon(s) to resolve name collisions."
+            f"Renamed {counts['sectors']} sector(s) and {counts['star_systems']} system(s) "
+            f"to resolve name collisions."
         )
 
 

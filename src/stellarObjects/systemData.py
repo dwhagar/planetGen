@@ -22,6 +22,7 @@ import math
 import random
 
 from .asteroidData import AsteroidBelt
+from .bodyNames import generate_star_word, name_bodies
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
@@ -240,7 +241,8 @@ class StarSystem:
             secondary_mass = self.primary_star.mass * secondary_mass_factor
             # Create secondary star, potentially with a different name or type if desired
             with log.timed_phase("secondary star generation"):
-                self.secondary_star = Star(self.system_config, name=f"{self.primary_star.name} B",
+                # Named properly by assign_names below, once the pair's star words exist.
+                self.secondary_star = Star(self.system_config, name=self.primary_star.name,
                                             mass_override=secondary_mass,
                                             galactic_center_dist_ly=galactic_center_dist_ly,
                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg)
@@ -394,12 +396,72 @@ class StarSystem:
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
 
+        # The system takes the name the star was generated (or configured)
+        # with; every star, planet and moon inside it is named from that --
+        # see bodyNames.py.
+        self._name = self.star.name
+        self.star_words = None
+        if self.binary_type is not None:
+            primary_word = generate_star_word()
+            self.star_words = (primary_word, generate_star_word(exclude=(primary_word,)))
+        self.assign_names()
+
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
         self.comet_count = self.count_comets()
-        log.debug(f"System {self.primary_star.name!r} finished: binary={self.binary_type or 'no'}, "
+        log.debug(f"System {self.name!r} finished: binary={self.binary_type or 'no'}, "
                   f"{self.planet_count} planets, {self.belt_count} belts, {self.moon_count} moons, "
                   f"{self.comet_count} comets, {self.hab_count} habitable")
+
+    @property
+    def name(self):
+        """The system's own name. A single star (or a close pair's proxy)
+        carries it, so it's read from `star`; a wide pair's `star` is its
+        primary, whose name adds its own word (see `bodyNames.py`), so
+        that system keeps its name separately."""
+        if self.binary_type == "wide" and getattr(self, "_name", None):
+            return self._name
+        return self.star.name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+        if self.binary_type != "wide":
+            self.star.name = value
+
+    def assign_names(self, name=None):
+        """
+        Names every star, planet and moon in this system from the system
+        name (see `bodyNames.py`'s module docstring for the scheme).
+
+        Args:
+            name (str, optional): A new system name to adopt first --
+                `_db.insert_star_system` passes the name uniqueness
+                reservation settled on, which may carry a decoration the
+                generated name didn't.
+        """
+        if name is not None:
+            self.name = name
+        system_name = self.name
+        if self.binary_type is None:
+            self.star.name = system_name
+            hosts = [(system_name, self.planets)]
+        else:
+            if getattr(self, "star_words", None) is None:
+                # A system reloaded from an export written before star words existed.
+                primary_word = generate_star_word()
+                self.star_words = (primary_word, generate_star_word(exclude=(primary_word,)))
+            primary_word, secondary_word = self.star_words
+            self.primary_star.name = f"{system_name} {primary_word}"
+            self.secondary_star.name = f"{system_name} {secondary_word}"
+            if self.binary_type == "close":
+                self.star.name = system_name
+                hosts = [(system_name, self.planets)]
+            else:
+                hosts = [(self.primary_star.name, self.planets),
+                         (self.secondary_star.name, self.secondary_planets)]
+        for prefix, bodies in hosts:
+            name_bodies(prefix, bodies)
 
     def _generate_comets(self, star):
         """
@@ -904,7 +966,7 @@ class StarSystem:
         `load_star_system`, persists such a system today).
 
         Returns:
-            dict: `schema_version`, `system_config`, `star`, `is_binary`,
+            dict: `schema_version`, `name`, `star_words`, `system_config`, `star`, `is_binary`,
                  `binary_type`, `secondary_star`, `wide_binary`, `planets`,
                  `secondary_planets`, `comets`, `secondary_comets`,
                  `system_flavor_text`.
@@ -912,6 +974,8 @@ class StarSystem:
         is_wide = self.binary_type == "wide"
         return {
             "schema_version": SERIALIZATION_SCHEMA_VERSION,
+            "name": self.name,
+            "star_words": list(self.star_words) if getattr(self, "star_words", None) else None,
             "system_config": self.system_config.to_dict(),
             "star": self.star.to_dict(),
             "is_binary": self.binary_type is not None,
@@ -1038,6 +1102,11 @@ class StarSystem:
         )
 
         system.system_flavor_text = data.get("system_flavor_text")
+        # Absent from an export written before bodyNames.py -- the star's
+        # own name was the system name then.
+        system._name = data.get("name") or star.name
+        star_words = data.get("star_words")
+        system.star_words = tuple(star_words) if star_words else None
 
         # Schema v20: absent on a pre-v20 save -- 0.0 (no wobble) is the
         # correct default there, same "was implicitly zero before this
@@ -1823,9 +1892,9 @@ class StarSystem:
 
         # Add level 1 header for the system name
         if self.system_config.MARKDOWN:
-            all_output_parts.append(f"# {self.star.name}\n\n")
+            all_output_parts.append(f"# {self.name}\n\n")
         else:
-            all_output_parts.append(f"= {self.star.name} =\n\n")
+            all_output_parts.append(f"= {self.name} =\n\n")
 
         combined_system_summary_paragraph = self.summary_paragraph()
 

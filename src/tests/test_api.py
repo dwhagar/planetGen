@@ -1116,6 +1116,114 @@ def test_update_and_delete_system(admin_client):
     assert admin_client.get(f"/api/systems/{system_id}").status_code == 404
 
 
+def _save_wide_binary_with_moons(mysql_config):
+    """Saves a wide binary whose primary has a planet with a moon, and
+    returns its system id -- retried, since generation is random."""
+    for _ in range(60):
+        cfg = SystemConfig()
+        cfg.PLANETS = True
+        cfg.MAX_PLANETS = True
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = True
+        system = StarSystem(system_config=cfg)
+        if any(p.body_type != "a" and p.moons for p in system.planets):
+            return _db.save_system(system, cfg, config=mysql_config)
+    raise AssertionError("could not generate a wide binary with a moon")
+
+
+def _names(mysql_config, table, system_id):
+    conn = _db.get_connection(mysql_config)
+    try:
+        return {row["id"]: row["name"] for row in conn.execute(
+            f"SELECT id, name FROM {table} WHERE star_system_id = ?", (system_id,)).fetchall()}
+    finally:
+        conn.close()
+
+
+def test_rename_system_carries_its_stars_planets_and_moons(admin_client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    old = admin_client.get(f"/api/systems/{system_id}").get_json()["name"]
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"name": "  Castor   Major "})
+    assert response.status_code == 200
+    assert response.get_json()["name"] == "Castor Major"
+    for table in ("stars", "planets", "moons"):
+        names = _names(mysql_config, table, system_id).values()
+        assert names and all(name.startswith("Castor Major ") for name in names), (table, names)
+        assert not any(name.startswith(old + " ") for name in names)
+
+
+def test_rename_star_planet_and_moon(admin_client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    stars = _names(mysql_config, "stars", system_id)
+    conn = _db.get_connection(mysql_config)
+    try:
+        primary_id = conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'primary'", (system_id,)).fetchone()["id"]
+        planet = conn.execute(
+            "SELECT p.id, p.name FROM planets p JOIN moons m ON m.planet_id = p.id "
+            "WHERE p.star_id = ? ORDER BY p.orbital_index LIMIT 1", (primary_id,)).fetchone()
+        moon_id = conn.execute("SELECT id FROM moons WHERE planet_id = ? LIMIT 1", (planet["id"],)).fetchone()["id"]
+    finally:
+        conn.close()
+    numeral = planet["name"][len(stars[primary_id]) + 1:]
+
+    # A binary's star is renamed on its own, and its planets and moons follow.
+    response = admin_client.patch(f"/api/stars/{primary_id}", json={"name": "Castor"})
+    assert response.status_code == 200
+    assert _names(mysql_config, "stars", system_id)[primary_id] == "Castor"
+    assert _names(mysql_config, "planets", system_id)[planet["id"]] == f"Castor {numeral}"
+    assert _names(mysql_config, "moons", system_id)[moon_id].startswith(f"Castor {numeral}")
+
+    # A planet renamed by hand keeps its moons' names.
+    response = admin_client.patch(f"/api/planets/{planet['id']}", json={"name": "New Terra"})
+    assert response.status_code == 200
+    assert _names(mysql_config, "planets", system_id)[planet["id"]] == "New Terra"
+    assert _names(mysql_config, "moons", system_id)[moon_id].startswith(f"Castor {numeral}")
+
+    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "Selene"})
+    assert response.status_code == 200
+    assert _names(mysql_config, "moons", system_id)[moon_id] == "Selene"
+
+    # Names already in use anywhere are refused.
+    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "New Terra"})
+    assert response.status_code == 409
+    assert "planet" in response.get_json()["error"]
+
+
+def test_rename_a_single_star_renames_its_system(admin_client, seeded_sector, mysql_config):
+    _config, _sector_id, system_ids = seeded_sector
+    star_id = next(iter(_names(mysql_config, "stars", system_ids[0])))
+
+    response = admin_client.patch(f"/api/stars/{star_id}", json={"name": "Sirius"})
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/systems/{system_ids[0]}").get_json()["name"] == "Sirius"
+    assert _names(mysql_config, "stars", system_ids[0])[star_id] == "Sirius"
+
+    # Renaming to its current name isn't a clash with itself...
+    assert admin_client.patch(f"/api/systems/{system_ids[0]}", json={"name": "Sirius"}).status_code == 200
+    # ...but another system's name is.
+    response = admin_client.patch(f"/api/systems/{system_ids[1]}", json={"name": "Sirius"})
+    assert response.status_code == 409
+    response = admin_client.patch(f"/api/systems/{system_ids[1]}", json={"name": "Test Sector"})
+    assert response.status_code == 409  # the sector's name
+
+
+def test_rename_requires_an_admin(client):
+    for kind in ("stars", "planets", "moons"):
+        assert client.patch(f"/api/{kind}/1", json={"name": "x"}).status_code == 401
+
+
+def test_rename_validation(admin_client):
+    assert admin_client.patch("/api/planets/999999999", json={"name": "Nope"}).status_code == 404
+    assert admin_client.patch("/api/moons/999999999", json={"name": "Nope"}).status_code == 404
+    assert admin_client.patch("/api/stars/999999999", json={"name": "Nope"}).status_code == 404
+    assert admin_client.patch("/api/planets/1", json={"name": "   "}).status_code == 400
+    assert admin_client.patch("/api/planets/1", json={"name": 7}).status_code == 400
+    assert admin_client.patch("/api/planets/1", json={"name": "x" * 256}).status_code == 400
+    assert admin_client.patch("/api/planets/1", json={"name": "ok", "mass": 1}).status_code == 400
+
+
 def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_client):
     # WRITE_RATE_LIMIT is 10/minute -- the 11th write in one minute must
     # be rejected with 429, well before the 50/hour global default would

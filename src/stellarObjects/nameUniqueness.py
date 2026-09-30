@@ -4,10 +4,11 @@
 Name-uniqueness decoration -- pure functions, no database access.
 
 Guarantees, across a whole database, that no two sectors share a name, no
-two star systems share a name, no sector/system pair shares a name, and
-no planet/moon shares a name with another planet, a moon, a system, or a
-sector. Enforced as one consistent hierarchy: **sector > system >
-planet/moon**.
+two star systems share a name, and no sector/system pair shares a name.
+Enforced as one consistent hierarchy: **sector > system**. Stars, planets
+and moons are named from their system (`bodyNames.py` -- `Voranthis II`,
+`Voranthis IIa`), so they're unique whenever the system is and never need
+a search of their own.
 
 - Two names at the *same* level colliding (sector-vs-sector or
   system-vs-system) is resolved by `resolve_greek_roman_collision`: the
@@ -22,29 +23,20 @@ planet/moon**.
   "small"/"little" word (`names.DIMINUTIVE_PREFIXES`) prefixed onto its
   name, advancing to the next word in the list on a repeat collision for
   the same base name.
-- A planet or moon colliding with anything -- another planet, a moon, a
-  system, or a sector -- is resolved by `resolve_companion`: the
-  planet's/moon's own name (always the lower level, regardless of which
-  side was generated first) gets a "friend"/"family"/"companion" word
-  (`names.COMPANION_SUFFIXES`) appended, again advancing to the next word
-  in the list on a repeat.
-
-`strip_decoration` is the inverse of all three -- recovering the
+`strip_decoration` is the inverse of both -- recovering the
 underlying base name from an already-decorated one, e.g. for the
 one-off backfill script (`src/dedupeNames.py`) to group existing rows.
 
 None of this module talks to the database or knows about `sectors`/
-`star_systems`/`planets`/`moons` -- see `stellarObjects/_db.py`'s
-`_reserve_sector_name`/`_reserve_system_name`/`_reserve_body_name` (and
-their `_confirm_*` counterparts) for where these functions actually get
-called, against the `sector_name_registry`/`system_name_registry`/
-`body_name_registry` tables that track each base name's own progress
+`star_systems` -- see `stellarObjects/_db.py`'s `reserve_sector_name`/
+`reserve_system_name` (and their `confirm_*` counterparts) for where
+these functions actually get called, against the `sector_name_registry`/
+`system_name_registry` tables that track each base name's own progress
 through these schemes.
 """
 
 from .names import (
-    COMPANION_SUFFIXES, DIMINUTIVE_PREFIXES, GREEK_LETTERS,
-    ROMAN_NUMERAL_VALUES, ROMAN_NUMERALS_BY_VALUE,
+    DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERAL_VALUES, ROMAN_NUMERALS_BY_VALUE,
 )
 
 GREEK_ROMAN_CAPACITY = len(GREEK_LETTERS) + len(ROMAN_NUMERAL_VALUES)
@@ -55,7 +47,6 @@ slots) before the caller must fall back to an entirely fresh base name."""
 _ROMAN_SUFFIX_TOKENS = set(ROMAN_NUMERALS_BY_VALUE.values())
 _GREEK_PREFIX_TOKENS = set(GREEK_LETTERS)
 _DIMINUTIVE_PREFIX_TOKENS = set(DIMINUTIVE_PREFIXES)
-_COMPANION_SUFFIX_TOKENS = set(COMPANION_SUFFIXES)
 
 
 def resolve_greek_roman_collision(base_name, existing_count):
@@ -149,51 +140,22 @@ def resolve_diminutive(diminutive_index):
     return DIMINUTIVE_PREFIXES[next_index], next_index
 
 
-def resolve_companion(suffix_index):
-    """
-    Collision resolution for a planet or moon against anything else that
-    must stay unique against it (another planet, a moon, a system, or a
-    sector) -- always decorates the planet's/moon's own name, the lowest
-    level in the hierarchy. Same shape as `resolve_diminutive`, over
-    `names.COMPANION_SUFFIXES` instead, appended as a *suffix* rather
-    than a prefix.
-
-    Args:
-        suffix_index (int or None): The index into
-            `names.COMPANION_SUFFIXES` already used for this base name's
-            prior collision(s), or `None` if this is the first one.
-
-    Returns:
-        tuple: `(suffix, next_index)` -- see `resolve_diminutive`'s own
-            `Returns` for the shape; `suffix` is appended after the name
-            rather than prepended before it.
-    """
-    next_index = 0 if suffix_index is None else suffix_index + 1
-    if next_index >= len(COMPANION_SUFFIXES):
-        return None, None
-    return COMPANION_SUFFIXES[next_index], next_index
-
-
 def strip_decoration(name):
     """
     Recovers the underlying base name from one that may carry any
     combination of this module's own decorations -- the inverse of
-    `resolve_greek_roman_collision`/`resolve_diminutive`/
-    `resolve_companion`. Used by `src/dedupeNames.py` to group already-
+    `resolve_greek_roman_collision`/`resolve_diminutive`. Used by `src/dedupeNames.py` to group already-
     stored names by what they'd collide on.
 
     Checks each decoration independently and unconditionally, in a fixed
-    order (trailing roman numeral, then trailing companion suffix, then
-    leading Greek letter, then leading diminutive prefix) -- safe for a
-    name from any of the four tables, since no real entity ever carries
-    more than one of these four vocabularies at once (planets/moons only
-    ever get a companion suffix; sectors/systems only ever get a Greek
-    prefix and, for systems only, also a diminutive prefix or a trailing
-    roman numeral) and the four word lists don't overlap.
+    order (trailing roman numeral, then leading Greek letter, then leading
+    diminutive prefix) -- sectors/systems only ever get a Greek prefix
+    and, for systems only, also a diminutive prefix or a trailing roman
+    numeral, and the three word lists don't overlap.
 
     Args:
-        name (str): A stored `sectors`/`star_systems`/`planets`/`moons`
-            name, decorated or not.
+        name (str): A stored `sectors`/`star_systems` name, decorated or
+            not.
 
     Returns:
         str: `name` with every decoration this module could have added
@@ -201,8 +163,6 @@ def strip_decoration(name):
     """
     tokens = name.split(" ")
     if tokens and tokens[-1] in _ROMAN_SUFFIX_TOKENS:
-        tokens = tokens[:-1]
-    if tokens and tokens[-1] in _COMPANION_SUFFIX_TOKENS:
         tokens = tokens[:-1]
     if tokens and tokens[0] in _GREEK_PREFIX_TOKENS:
         tokens = tokens[1:]

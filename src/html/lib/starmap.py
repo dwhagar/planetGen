@@ -615,13 +615,15 @@ def _star_dot_radius(radius_km):
     return max(_MIN_DOT_R, min(_MAX_DOT_R, dot_r))
 
 
-def _star_data(link_url, system, star, x_px, y_px, z_px, label_suffix, max_r=None):
+def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
     """
     Builds one star's plain-dict scene entry -- `sectormap.js` draws it as
     a real, textured, glowing 3D sphere (`static/bodyRendering.js`'s
     granulation texture, tinted to `fill` below), unlike the old CSS
     version's `_dot_html`, which had to counter-rotate a flat disc by hand
-    every frame to fake a billboard.
+    every frame to fake a billboard. Labeled with the star's own name (a
+    binary's stars are `<system> <word>` -- see `bodyNames.py`), falling
+    back to the system's.
     """
     dot_r = _star_dot_radius(star["radius_km"])
     if max_r is not None:
@@ -630,7 +632,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, label_suffix, max_r=Non
     return {
         "x": x_px, "y": y_px, "z": z_px, "r": dot_r,
         "fill": fill, "stroke": stroke,
-        "name": f'{system["name"]}{label_suffix}',
+        "name": star.get("name") or system["name"],
         "starType": star["star_type"],
         "temp": star["temp_display"],
         "quadrant": system["quadrant"],
@@ -922,18 +924,13 @@ def render_map_panel(
 
         stars = system["stars"]
         is_binary = len(stars) > 1
-        # "A"/"B", not "Primary"/"Secondary" -- matches how the generator
-        # already names the stars themselves (the secondary's own stored
-        # name is "<system name> B"; see systemData.StarSystem.__init__),
-        # and reads as a real star name rather than an internal role label.
-        primary_suffix = " A" if is_binary else ""
-        stars_data.append(_star_data(link_url, system, stars[0], x_px, y_px, z_px, primary_suffix))
+        stars_data.append(_star_data(link_url, system, stars[0], x_px, y_px, z_px))
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
             offset = primary_r * _BINARY_OFFSET_FRACTION
             stars_data.append(_star_data(
-                link_url, system, stars[1], x_px + offset, y_px + offset, z_px, " B",
+                link_url, system, stars[1], x_px + offset, y_px + offset, z_px,
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
 
