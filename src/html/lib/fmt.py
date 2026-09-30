@@ -168,7 +168,7 @@ _LOCATION_NEIGHBOR_MARKER = " -- nearest: "
 _LOCATION_NEIGHBOR_RE = re.compile(r'^(.*) (\([\d.]+ ly\))$')
 
 
-def linkify_location(db_name, location, name_to_id):
+def linkify_location(db_name, location, name_to_id, system_url=None):
     """
     HTML-escapes a `star_systems.location` string and turns each nearest-
     neighbor name it lists into a link to that system's page.
@@ -191,6 +191,10 @@ def linkify_location(db_name, location, name_to_id):
         name_to_id (dict[str, int]): Every `star_systems.name` -> `id` in
                                      the same sector, for resolving each
                                      neighbor name to a link target.
+        system_url (callable, optional): `system_url(system_id)` -> URL.
+                       When given (the Flask pages), each neighbor is a
+                       plain `<a href>` to that URL and `db_name` is
+                       unused; otherwise a `post_link` to `system.py`.
 
     Returns:
         str: HTML-safe markup, neighbor names linked where resolvable.
@@ -208,7 +212,10 @@ def linkify_location(db_name, location, name_to_id):
         system_id = name_to_id.get(name) if name is not None else None
         if match and system_id is not None:
             distance = match.group(2)
-            link = post_link("system.py", {"db": db_name, "id": system_id}, esc(name))
+            if system_url is not None:
+                link = f'<a href="{esc(system_url(system_id))}">{esc(name)}</a>'
+            else:
+                link = post_link("system.py", {"db": db_name, "id": system_id}, esc(name))
             linked_entries.append(f'{link} {esc(distance)}')
         else:
             linked_entries.append(esc(entry))
