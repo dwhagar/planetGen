@@ -1,0 +1,51 @@
+<!--
+  examples/windows/planetgen-waitress.xml
+
+  WinSW service definition: runs planetGen (every page and the API) under
+  waitress as the Windows service "planetgen", listening on
+  127.0.0.1:8000 for the proxy in front (Caddy, Apache or IIS with ARR;
+  docs/deployment/windows.md). gunicorn does not run on Windows; waitress
+  does.
+
+  waitress loads src\html\wsgi.py (the file Apache's mod_wsgi loads)
+  as the module "wsgi": the working directory and PYTHONPATH below point
+  at src\html. The arguments:
+    - threads=5: the same shape as the Apache daemon (1 process, 5 threads).
+    - no-clear-untrusted-proxy-headers: waitress deletes X-Forwarded-*
+      headers by default. planetGen reads them itself, through the
+      "proxy_fix" setting in config.json (docs/config.md), which the
+      Windows config.json example sets to trust one proxy.
+    - max-request-body-size: the API only takes small JSON bodies (1 MB).
+
+  Install (elevated PowerShell), with WinSW 2.x saved as
+  C:\srv\winsw\planetgen-waitress.exe next to this file:
+      C:\srv\winsw\planetgen-waitress.exe install
+  Then give it its own virtual account "NT SERVICE\planetgen" (no
+  password to manage; windows.md lists the folder permissions it needs)
+  and start it:
+      sc.exe config planetgen obj= "NT SERVICE\planetgen"
+      Start-Service planetgen
+-->
+<service>
+  <id>planetgen</id>
+  <name>planetGen (waitress)</name>
+  <description>planetGen web app: every page and the API, behind the local reverse proxy.</description>
+
+  <executable>C:\srv\planetgen-venv\Scripts\waitress-serve.exe</executable>
+  <arguments>--listen=127.0.0.1:8000 --threads=5 --no-clear-untrusted-proxy-headers --max-request-body-size=1048576 wsgi:application</arguments>
+  <workingdirectory>C:\srv\planetGen\src\html</workingdirectory>
+
+  <env name="PYTHONPATH" value="C:\srv\planetGen\src\html" />
+  <env name="NLTK_DATA" value="C:\ProgramData\planetgen\nltk_data" />
+  <!-- Optional PLANETGEN_* overrides (docs/config.md); config.json is the main file. -->
+
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <onfailure action="restart" delay="10 sec" />
+
+  <logpath>C:\ProgramData\planetgen\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+</service>

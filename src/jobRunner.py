@@ -37,6 +37,8 @@ LOCK_NAME = "active"
 """str: The jobs directory's lock file, holding the running job's id."""
 
 
+# TODO(windows #55): os.replace fails with PermissionError on Windows while
+# the page has state.json open; retry briefly.
 def _write_json(path, body):
     directory = os.path.dirname(path)
     fd, tmp = tempfile.mkstemp(prefix=".state-", dir=directory)
@@ -76,6 +78,9 @@ def run(job_dir):
 
     current = {"proc": None, "cancelled": False}
 
+    # TODO(windows #55): os.killpg doesn't exist on Windows, and nothing
+    # sends this handler SIGTERM there (jobs.cancel_job's os.kill is
+    # TerminateProcess). Cancel through a file in the job directory instead.
     def _on_term(signum, frame):
         current["cancelled"] = True
         proc = current["proc"]
@@ -110,6 +115,8 @@ def run(job_dir):
                 started = time.time()
                 # Its own process group, so Cancel stops the step's worker
                 # processes (`plan`'s multiprocessing pool) too.
+                # TODO(windows #55): start_new_session is ignored on Windows;
+                # use CREATE_NEW_PROCESS_GROUP there.
                 current["proc"] = subprocess.Popen(
                     step["argv"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                     cwd=job.get("cwd") or None, env=env, start_new_session=True,

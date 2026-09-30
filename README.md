@@ -30,7 +30,7 @@ run from the root of the project. This installs `nltk` (the 'words' corpus it ne
 
 Every generation run saves to a MySQL database (see [`docs/database-schema.md`](docs/database-schema.md)) — you'll need a MySQL server (8.0.16+, for `CHECK` constraint support) reachable from wherever you run `generate.py`, with a database/user already created. Point it at your database with the `$PLANETGEN_MYSQL_HOST`/`$PLANETGEN_MYSQL_PORT`/`$PLANETGEN_MYSQL_USER`/`$PLANETGEN_MYSQL_PASSWORD`/`$PLANETGEN_MYSQL_DATABASE` environment variables (or the equivalent `--mysql-*` flags every subcommand accepts) — tables are created automatically on first connection.
 
-Deploying the web interface to a Linux/Apache server is a separate, more involved process — see [Web Interface](#web-interface) below.
+Deploying the web interface to a server is a separate, more involved process — see [Web Interface](#web-interface) below and the [deployment guides](docs/deployment/README.md).
 
 ## Usage
 
@@ -270,21 +270,20 @@ class/body type, supported life chemistry) built from only the values
 actually present in the chosen database, plus an autocompleting name
 search across sectors, systems, stars, and planets/moons -- a search box
 is always in the page header. The site shows the one database configured
-in `config.json`. It's meant to be deployed to an Apache2 install (with
-mod_wsgi) on a Linux server; run `sudo ./install.sh` from the repo root
-on the server to do the whole install (Python package, the NLTK corpus
-Apache's own user needs, Apache modules, and directory permissions) in
-one step, and `sudo ./update.sh` later to pull and apply updates (plain
-`git pull` isn't enough on its own -- see `update.sh`'s own header
-comment). [`examples/apache/`](docs/apache-deployment.md) has an example
-virtual host config (default document root `/var/lib/planetGen/src/html`,
-mounting the app at `/` via `WSGIScriptAlias`) and
-the `set-permissions.sh` script it calls. Every deployment-level setting
+in `config.json`.
+
+**Deploying:** [`docs/deployment/`](docs/deployment/README.md) compares the
+supported platforms and has a guide and example configs for each: Apache2
+with mod_wsgi (the reference setup), nginx or Caddy with gunicorn on
+Linux, IIS, Caddy or Apache with waitress on Windows (plus WSL2), and
+Homebrew nginx with gunicorn on macOS. On Debian or Ubuntu, `sudo
+./install.sh` does the whole install except the web server's site file,
+and `sudo ./update.sh` pulls and applies updates (plain `git pull` isn't
+enough on its own). Every deployment-level setting
 (MySQL connection details, rate limits, site name/base URL, and more) can
 be set once in a `config.json` file at the repo root, instead of (or
-alongside) the `PLANETGEN_*` environment variables, kept outside
-`src/html/`'s served document root the same way `db/` already is -- see
-[`config.md`](docs/config.md). See
+alongside) the `PLANETGEN_*` environment variables, kept outside the
+served `src/html/` tree -- see [`config.md`](docs/config.md). See
 [`docs/html-interface.md`](docs/html-interface.md) for how the interface works and how to
 deploy or test it locally.
 

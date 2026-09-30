@@ -16,6 +16,7 @@ Run with: pytest tests/test_appconfig.py
 
 import copy
 import json
+import os
 
 from stellarObjects import appconfig
 
@@ -71,10 +72,12 @@ def test_default_config_matches_example_shape():
         "ratelimit",
         "admin_cookie_insecure",
         "secret_key",
+        "proxy_fix",
         "tile_cache",
         "jobs",
         "wiki",
     }
+    assert appconfig.DEFAULT_CONFIG["proxy_fix"] == {"x_for": 0, "x_proto": 0, "x_host": 0}
     assert set(appconfig.DEFAULT_CONFIG["jobs"].keys()) == {"dir", "keep", "python"}
     assert set(appconfig.DEFAULT_CONFIG["mysql"].keys()) == {
         "host", "port", "user", "password", "database", "database_prefix",
@@ -87,6 +90,13 @@ def test_default_config_matches_example_shape():
     assert set(appconfig.DEFAULT_CONFIG["wiki"].keys()) == {"wikijs", "mediawiki"}
     assert set(appconfig.DEFAULT_CONFIG["wiki"]["wikijs"].keys()) == {"base_url", "api_token"}
     assert set(appconfig.DEFAULT_CONFIG["wiki"]["mediawiki"].keys()) == {"base_url", "username", "password"}
+
+
+def test_config_json_example_holds_the_defaults():
+    # The committed template shows every field with its built-in value.
+    example = os.path.join(os.path.dirname(appconfig.CONFIG_PATH), "config.json.example")
+    with open(example, encoding="utf-8") as f:
+        assert json.load(f) == appconfig.DEFAULT_CONFIG
 
 
 def test_load_config_does_not_mutate_default_config(tmp_path, monkeypatch):

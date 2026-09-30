@@ -72,7 +72,7 @@
     #
     # The database account needs INSERT/UPDATE/DELETE grants as well as
     # SELECT if the write endpoints and admin pages are reachable. See
-    # docs/apache-deployment.md#mysql-accounts.
+    # docs/deployment/README.md#mysql-accounts.
     #
     # The 3D Galaxy Map's tile cache (html/lib/tilecache.py) defaults to
     # /var/cache/planetgen/tiles, which install.sh/update.sh create for

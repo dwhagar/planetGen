@@ -1,0 +1,55 @@
+# examples/caddy/Caddyfile
+#
+# Caddy in front of gunicorn (examples/systemd/planetgen-gunicorn.service)
+# on Linux (docs/deployment/caddy.md). The Caddy equivalent of
+# examples/apache/planetgen.conf.example and examples/nginx/planetgen.conf.
+# Put it at /etc/caddy/Caddyfile (or import it from there), set the site
+# address, then:
+#
+#     sudo usermod -aG www-data caddy     # read static/ and the gunicorn socket
+#     sudo -u caddy caddy validate --config /etc/caddy/Caddyfile
+#     sudo systemctl restart caddy        # a restart, so the group change applies
+#
+# Caddy gets and renews the TLS certificate itself and redirects HTTP to
+# HTTPS, as long as the name resolves to this host and ports 80 and 443
+# are reachable. It sets X-Forwarded-For, X-Forwarded-Proto and
+# X-Forwarded-Host on proxied requests (ignoring any a client sent). Set
+#     "proxy_fix": {"x_for": 1, "x_proto": 1, "x_host": 0}
+# in config.json so the app uses them for the client address and scheme
+# (docs/config.md).
+
+planetgen.example.com {
+	encode zstd gzip
+
+	log {
+		output file /var/log/caddy/planetgen_access.log
+	}
+
+	# Static files straight from src/html/static/, like Apache's
+	# Alias /static/. handle_path strips the /static prefix, so nothing
+	# outside that directory can be reached.
+	handle_path /static/* {
+		root * /var/lib/planetGen/src/html/static
+		header X-Content-Type-Options "nosniff"
+		@versioned query v=*
+		header @versioned Cache-Control "public, max-age=31536000, immutable"
+		@unversioned not query v=*
+		header @unversioned Cache-Control "no-cache"
+		file_server
+	}
+
+	# Everything else: the Flask app (pages and /api). The app sets its own
+	# security headers, including Strict-Transport-Security on HTTPS.
+	handle {
+		request_body {
+			max_size 1MB
+		}
+		reverse_proxy unix//run/planetgen/gunicorn.sock {
+			transport http {
+				dial_timeout 5s
+				# Matches mod_wsgi request-timeout=60.
+				response_header_timeout 60s
+			}
+		}
+	}
+}

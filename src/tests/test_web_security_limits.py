@@ -7,6 +7,8 @@ Security hardening of the Flask app that needs no database:
   page limits, configured by `RATELIMIT_PAGES`), with a 429 that is an
   HTML page for a page and JSON under `/api` and for `/galaxy/tiles`;
 - `Strict-Transport-Security` on every HTTPS response, never on HTTP;
+- behind a reverse proxy (`proxy_fix`), the client address and scheme
+  come from `X-Forwarded-For`/`X-Forwarded-Proto`, and never when it's off;
 - a database that can't be opened is reported as a bare "database
   unavailable" (the MySQL user/host/port only go to the log);
 - a sector's `wiki_url` must be an http(s) URL with a host.
@@ -22,7 +24,7 @@ import pytest
 
 from api.app import create_app
 from api.common import is_http_url
-from api.config import Config
+from api.config import Config, _proxy_fix
 from api.limiter import DEFAULT_PAGE_LIMITS
 from api.routes import DATABASE_UNAVAILABLE, SECTOR_UPDATE_FIELDS
 from stellarObjects._db import MySQLConfig
@@ -40,9 +42,11 @@ class _Config(Config):
     SECRET_KEY = "test-secret"
 
 
-def _app(pages=None, default=None):
+def _app(pages=None, default=None, proxy_fix=None):
     class TestConfig(_Config):
-        pass
+        PROXY_FIX = {"x_for": 0, "x_proto": 0, "x_host": 0}
+    if proxy_fix is not None:
+        TestConfig.PROXY_FIX = proxy_fix
     if pages is not None:
         TestConfig.RATELIMIT_PAGES = pages
     if default is not None:
@@ -130,6 +134,75 @@ def test_hsts_on_https_only(path):
     assert secure.headers.get("Strict-Transport-Security") == "max-age=31536000"
     plain = _get(client, path, ip="10.0.0.9")
     assert "Strict-Transport-Security" not in plain.headers
+
+
+# --- Reverse proxy (proxy_fix) -------------------------------------------------
+
+_PROXY = "127.0.0.1"  # every request below reaches the app from this "proxy"
+
+
+def _via_proxy(client, path, forwarded_for=None, proto=None):
+    headers = {}
+    if forwarded_for is not None:
+        headers["X-Forwarded-For"] = forwarded_for
+    if proto is not None:
+        headers["X-Forwarded-Proto"] = proto
+    return client.get(path, environ_base={"REMOTE_ADDR": _PROXY}, headers=headers)
+
+
+def test_proxy_fix_off_keys_limits_by_the_connection_address():
+    # Off (the default): X-Forwarded-For is ignored, so two "clients"
+    # behind the same proxy share one budget -- and a client can't pick
+    # its own address by sending the header.
+    client = _app({"search": "2 per minute"}).test_client()
+    assert _via_proxy(client, "/search?q=x", "203.0.113.1").status_code != 429
+    assert _via_proxy(client, "/search?q=x", "203.0.113.2").status_code != 429
+    assert _via_proxy(client, "/search?q=x", "203.0.113.3").status_code == 429
+
+
+def test_proxy_fix_keys_limits_by_the_forwarded_address():
+    client = _app({"search": "2 per minute"}, proxy_fix={"x_for": 1, "x_proto": 1, "x_host": 0}).test_client()
+    statuses = [_via_proxy(client, "/search?q=x", "203.0.113.1").status_code for _ in range(3)]
+    assert statuses[-1] == 429 and 429 not in statuses[:2]
+    # Another client behind the same proxy has its own budget.
+    assert _via_proxy(client, "/search?q=x", "203.0.113.2").status_code != 429
+    # With one trusted hop, only the address the proxy appended counts: a
+    # value the client put in front of it doesn't buy a new budget.
+    assert _via_proxy(client, "/search?q=x", "198.51.100.7, 203.0.113.1").status_code == 429
+
+
+def test_proxy_fix_forwarded_address_reaches_the_api_limits():
+    client = _app({"health": "1 per minute"}, proxy_fix={"x_for": 1, "x_proto": 0, "x_host": 0}).test_client()
+    assert _via_proxy(client, "/api/health", "203.0.113.1").status_code == 503
+    assert _via_proxy(client, "/api/health", "203.0.113.1").status_code == 429
+    assert _via_proxy(client, "/api/health", "203.0.113.2").status_code == 503
+
+
+@pytest.mark.parametrize("path", ["/api/health", "/sectors"])
+def test_proxy_fix_sends_hsts_when_the_proxy_says_https(path):
+    on = _app(proxy_fix={"x_for": 1, "x_proto": 1, "x_host": 0}).test_client()
+    assert _via_proxy(on, path, "203.0.113.1", "https").headers.get("Strict-Transport-Security") == "max-age=31536000"
+    assert "Strict-Transport-Security" not in _via_proxy(on, path, "203.0.113.2", "http").headers
+    off = _app().test_client()
+    assert "Strict-Transport-Security" not in _via_proxy(off, path, "203.0.113.3", "https").headers
+
+
+def test_proxy_fix_config_defaults_env_and_errors(monkeypatch):
+    for name in ("X_FOR", "X_PROTO", "X_HOST"):
+        monkeypatch.delenv(f"PLANETGEN_PROXY_FIX_{name}", raising=False)
+    assert DEFAULT_CONFIG["proxy_fix"] == {"x_for": 0, "x_proto": 0, "x_host": 0}
+    assert _proxy_fix(None) == {"x_for": 0, "x_proto": 0, "x_host": 0}
+    assert _proxy_fix({"x_for": 1, "x_proto": "1"}) == {"x_for": 1, "x_proto": 1, "x_host": 0}
+    # The environment wins over config.json.
+    monkeypatch.setenv("PLANETGEN_PROXY_FIX_X_FOR", "2")
+    monkeypatch.setenv("PLANETGEN_PROXY_FIX_X_HOST", "")
+    assert _proxy_fix({"x_for": 1, "x_host": 1}) == {"x_for": 2, "x_proto": 0, "x_host": 1}
+    for bad in ("yes", -1, True, 1.5):
+        with pytest.raises(ValueError, match="x_proto"):
+            _proxy_fix({"x_proto": bad})
+    monkeypatch.setenv("PLANETGEN_PROXY_FIX_X_FOR", "one")
+    with pytest.raises(ValueError, match="PLANETGEN_PROXY_FIX_X_FOR"):
+        _proxy_fix({})
 
 
 # --- Database errors ---------------------------------------------------------

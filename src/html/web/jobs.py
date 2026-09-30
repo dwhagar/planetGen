@@ -182,6 +182,9 @@ def _job_dir(root, job_id):
     return os.path.join(root, job_id)
 
 
+# TODO(windows #55): Windows has no /proc, and os.kill(pid, 0) there sends
+# CTRL_C_EVENT rather than checking the pid: use OpenProcess +
+# GetExitCodeProcess on Windows.
 def _runner_alive(pid, job_id):
     """Whether `pid` is still this job's runner. Reads the process's
     command line where `/proc` exists, so a reused pid doesn't count."""
@@ -421,6 +424,8 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     return job_id
 
 
+# TODO(windows #55): start_new_session is POSIX-only (ignored on Windows);
+# pass CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS there.
 def _spawn(path):
     proc = subprocess.Popen(
         [python_executable(), RUNNER_SCRIPT, path],
@@ -450,6 +455,8 @@ def cancel_job(job_id, root=None):
     pid = _runner_pid(path, _read_json(os.path.join(path, "state.json")))
     if not _runner_alive(pid, job_id):
         return False
+    # TODO(windows #55): on Windows this is TerminateProcess: the runner dies
+    # without its handler, its step keeps running and the lock stays taken.
     try:
         os.kill(int(pid), signal.SIGTERM)
     except OSError:

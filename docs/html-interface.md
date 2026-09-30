@@ -21,8 +21,9 @@ Flask API in [`../src/html/api/`](api.md), never touching the database
 directly itself, though the search page (`/search`, see "Flask pages"
 below) does provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a
-browser today, on nothing more than Apache2 with mod_wsgi and a system
-Python 3 (see "Locating the database" below).
+browser today, on nothing more than a web server (Apache2 with mod_wsgi,
+or nginx, Caddy or IIS in front of gunicorn or waitress) and Python 3
+(see "Locating the database" and "Deploying" below).
 
 ## How it works
 
@@ -37,12 +38,12 @@ a few pages import from `stellarObjects` (spectral-class colors, planet-
 class descriptions, unit formatters) -- importing any `stellarObjects`
 submodule runs that package's own `__init__.py`, which pulls in `names.py`
 and its NLTK corpus dependency. See
-[`api.md`](api.md#deploying-behind-apache-mod_wsgi) for the process
+[`api.md`](api.md#deploying) for the process
 itself, which needs `pymysql`/`DBUtils` and a database account.
 
 | File | Purpose |
 |---|---|
-| `../src/html/wsgi.py` | The mod_wsgi entry point: the Flask app serving the API under `/api` and every page. |
+| `../src/html/wsgi.py` | The WSGI entry point (loaded by mod_wsgi, gunicorn or waitress): the Flask app serving the API under `/api` and every page. |
 | `../src/html/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
 | `../src/html/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), a plain GET link, and changing a Search filter starts its results back at page 1. |
 | `../src/html/lib/apiclient.py` | The API client every page calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (the admin pages) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`web/errors.py` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). Inside the Flask app it runs in-process (`web/transport.py`); elsewhere it uses HTTP to `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`). Not web-accessible. |
@@ -56,7 +57,7 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/lib/tabledisplay.py` | Computes the same "Star Data"/"Planet Data" display strings once baked into the database's now-removed `table_*`/`binary_table_*` columns, but on demand from the raw numeric columns the system page already has -- reuses `stellarObjects.utils`'s formatters directly. Not web-accessible. |
 | `../src/html/lib/starmap.py` | Builds the sector page's "Sector Map" panel (`render_map_panel(link_url, ...)`, where `link_url` is `web.helpers.page_url`; every entry carries a plain `href`): computes every position/size/color/label the map needs (a wedge or fallback-cube outline, one entry per star -- billboarded, radius from `radius_km` square-root scaled against the Sun, color from `star_type`'s spectral letter (`SPECTRAL_CLASS_COLORS`) shaded by `luminosity_w` and nudged by where `temperature_k` falls in that spectral class's range, so "White Giant" reads white and "Blue Giant" reads blue regardless of temperature -- and one per nearby standalone phenomenon, sized by `radius_ly` (always 0 for the point-like types) and positioned directly in the galaxy frame, no rotation needed unlike a star system's sector-local position -- see `queryDb.phenomena_near_sector`) and serializes it as a `<script type="application/json">` block; `static/sectormap.js` is what actually renders it, this module builds no HTML scene of its own. Not web-accessible. |
 | `../src/html/lib/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so azimuth angles aren't visually distorted, plus a `+X` compass tick and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`lib/phenomenonmap.py`) -- the course panel's own Altitude figure already covers that axis. Not web-accessible. |
-| `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by Apache. |
+| `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by the web server. |
 | `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`web/templates/base.html`): applies the saved light/dark/system theme before the first paint and drives the header's theme button. See "The page shell" below. |
 | `../src/html/static/favicon.svg` | The site icon (a small ringed planet), linked from every page's `<head>`. |
 | `../src/html/static/vendor/` | Vendored third-party JS -- currently just `three.module.min.js` (three.js, bundled+minified from the `three` npm package), used by `sectormap.js`/`systemmap.js`. Vendored rather than loaded from a CDN so the pages' `Content-Security-Policy: default-src 'self'` needs no exception; see this directory's own `THIRD_PARTY_NOTICES.txt` for the license and how to rebuild it from a newer release. Served directly, same as `style.css`. |
@@ -108,9 +109,11 @@ The shared `<head>` has:
 Every `static/` URL, here and in the pages' own `<script>` tags, comes
 from `lib/fmt.py`'s `static_url(name)`, which appends `?v=<package
 version>` (read from `src/stellarObjects/_version.py`, which the release
-Action stamps). A release therefore changes every static URL, and Apache
-can let browsers cache them for a year (see
-[`apache-deployment.md`](apache-deployment.md#static-files-compression-and-security-headers)).
+Action stamps). A release therefore changes every static URL, and the
+web server can let browsers cache them for a year (see
+[`deployment/apache.md`](deployment/apache.md#static-files-compression-and-security-headers);
+every other guide in [`deployment/`](deployment/README.md) sets the same
+rule).
 The ES modules that import siblings (`sectormap.js`, `systemmap.js`,
 `galaxymap3d.js` -> `bodyRendering.js`, `vendor/three.module.min.js`) use
 `await import(...)` with their own `?v=` (from `import.meta.url`), so each
@@ -189,7 +192,7 @@ form).
 The Galaxy Map's disk tile cache (`lib/tilecache.py`) is written by the
 WSGI daemon. A tile cache location or size set only with `SetEnv
 PLANETGEN_TILE_CACHE_DIR`/`_MAX_MB` in the vhost does not reach it: put it
-in `config.json`'s `tile_cache` (or Apache's own environment) instead.
+in `config.json`'s `tile_cache` (or the app server's own environment) instead.
 
 ### The sector page
 
@@ -312,9 +315,13 @@ and Download buttons (Download posts the text back to
 file), plus a rendered preview for Markdown.
 
 A job is started as `python3 src/jobRunner.py <job dir>` in its own
-session, so it outlives the request and a graceful Apache reload. A full
-Apache stop or restart under systemd (which stops everything in the
-service's cgroup) does stop it; the page then shows it as interrupted.
+session, so it outlives the request and a graceful reload (Apache's, or
+gunicorn's). A full stop or restart of the service under systemd (which
+stops everything in the service's cgroup) does stop it; the page then
+shows it as interrupted. The session and signal calls are POSIX-only, so
+on native Windows the page doesn't work reliably (see
+[`deployment/windows.md`](deployment/windows.md#limits-on-native-windows)
+and `TODO.md` item 55).
 Jobs live under `jobs.dir` (`docs/config.md`). A visitor who isn't a
 logged-in admin is sent to the login page, and POSTs and status requests
 without an admin session get a 403.
@@ -446,7 +453,8 @@ the visitor (a limited login shows "Too many login attempts" with a
 **Errors.** An `apiclient.NotFoundError` becomes a 404 page, an
 `apiclient.ApiError` a 502 page (without the API's detail), anything
 else a 500 page saying only "An unexpected error occurred."; the
-traceback goes to Apache's error log and the debug log, never the page.
+traceback goes to the app server's error log (Apache's, under mod_wsgi)
+and the debug log, never the page.
 Unknown URLs get the HTML 404 page; `/api/...` keeps its JSON errors.
 
 **Headers.** Every HTML response carries `web.SECURITY_HEADERS` (see
@@ -519,6 +527,12 @@ and how it relates to the `PLANETGEN_*` environment variables.
 
 ## Deploying
 
+[`deployment/README.md`](deployment/README.md) compares every supported
+platform (Apache, nginx or Caddy on Linux; IIS, Caddy or Apache on
+Windows; macOS; a VPS) and links a guide for each. The steps below are
+the reference setup, Apache2 with mod_wsgi on Debian or Ubuntu
+([`deployment/apache.md`](deployment/apache.md)).
+
 1. Copy the repo (or at least `../src/html/`, `src/`,
    `install.sh`, `update.sh`, `setup.py`, and `examples/apache/`) to the
    server, e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout
@@ -530,7 +544,7 @@ and how it relates to the `PLANETGEN_*` environment variables.
    package (with pip, or on an externally managed Python such as Ubuntu
    24.04+'s, from apt packages, with system-wide pip only for anything apt
    lacks or ships too old; see
-   [`apache-deployment.md`](apache-deployment.md#managed-python)), brings the configured MySQL database's schema up to date
+   [`deployment/apache.md`](deployment/apache.md#managed-python)), brings the configured MySQL database's schema up to date
    (a no-op if it's already current -- see
    [`database-schema.md`](database-schema.md)'s "Versioning"),
    pre-fetches the NLTK `words` corpus into a shared world-readable
@@ -539,7 +553,7 @@ and how it relates to the `PLANETGEN_*` environment variables.
    enables Apache's wsgi, headers and deflate modules, and makes `../src/html/`
    `root:<apache group>` (readable, not writable, by Apache) and `config.json`
    mode 640 via `examples/apache/set-permissions.sh`. See
-   [`apache-deployment.md`](apache-deployment.md) for what each step does
+   [`deployment/apache.md`](deployment/apache.md) for what each step does
    and how to re-run pieces of it individually.
 3. `install.sh` prints one remaining manual step: copy
    `examples/apache/planetgen.conf.example` to
@@ -560,13 +574,13 @@ diverged) and then checks everything the site needs without
 reinstalling anything that's already there: the executable bits and
 permissions, each Python library (installing only one that's missing,
 too old or broken, see
-[`apache-deployment.md`](apache-deployment.md#managed-python)), the NLTK
+[`deployment/apache.md`](deployment/apache.md#managed-python)), the NLTK
 corpus, the schema migration, Apache's modules, the cache/jobs
 directories and the debug log, and finally that the web app imports as
 Apache's user. `install.sh` remains safe to run directly any time you
 want a full reinstall without pulling first.
 
-## Local testing without Apache
+## Local testing without a web server
 
 `python3 src/html/wsgi.py` serves the pages (and `/static/`) at
 `http://127.0.0.1:5000/` alongside the API. Set `admin_cookie_insecure`

@@ -10,7 +10,7 @@ schema together.
 [`src/stellarObjects/_db.py`](../src/stellarObjects/_db.py) (private — leading
 underscore, not part of the package's public generation API) writes
 already-generated `StarSystem`/`SpaceSector` objects straight into these
-tables (`sectorGen.py` calls it automatically on every run), and
+tables (`generate.py sector` calls it automatically on every run), and
 reconstructs them back into live objects from rows (`load_star_system`/
 `load_sector`/`load_system_config`), inverting every unit conversion the
 write path applies. `queryDb.py` is the "list what's stored" CLI (`TODO.md`
@@ -152,12 +152,12 @@ display-string column (superseded by computing display formatting on
 demand from the underlying data columns, e.g. `html/lib/tabledisplay.py`);
 v6/v7 gave every galaxy-placed sector exact vertices (`sector_vertices`,
 built from an exact local spherical Voronoi tessellation among its
-same-shell neighbors — see `stellarObjects/sectorGeometry.py`); v8 added
+same-shell neighbors — see `stellarObjects/galaxyGeometry.py`); v8 added
 the galaxy-wide density "skeleton" (`galaxy_shape`/`galaxy_layer`,
-built by `galaxyPlan.py` — see `stellarObjects/galaxyDensity.py`/
+built by `generate.py plan` — see `stellarObjects/galaxyDensity.py`/
 `galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`
 constraint on `sectors`, turning a concurrent lazy-generation race
-(`galaxyGen.ensure_sector_generated`) into a recoverable `IntegrityError`
+(`generate.ensure_sector_generated`) into a recoverable `IntegrityError`
 instead of a silent duplicate row; v9 added orbital motion —
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/
 `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, plus the
@@ -242,19 +242,19 @@ constituent of a `'wide'` pair. `asteroid_belts` gains `star_id`, the same
 (see that column's own row below) — a `'wide'` pair's two stars can now
 each have their own asteroid belts, not just their own planets.
 
-v16 added six tables for `phenomenonGen.py`'s separate, rarer exotic-
+v16 added six tables for `generate.py phenomenon`'s separate, rarer exotic-
 phenomenon generation mode (`stellarObjects/compactRemnant.py`/
 `nebulaData.py`/`supernovaRemnantData.py`/`roguePlanetData.py`) — never
-produced by `systemGen.py`/`sectorGen.py`'s normal generation odds, so no
+produced by `generate.py system`/`generate.py sector`'s normal generation odds, so no
 pre-existing table's shape changes. `black_holes`/`neutron_stars` are
 satellite tables extending a `stars` row (nullable `star_id`) when a
-compact remnant anchors a full `StarSystem` (`phenomenonGen.py
---anchor-system` — the owning `stars.yerkes_class` is then the literal
+compact remnant anchors a full `StarSystem` (`generate.py
+phenomenon --anchor-system` — the owning `stars.yerkes_class` is then the literal
 marker `'BH'`/`'NS'` rather than a real Yerkes class); `star_id` is NULL
 for a remnant generated standalone. `nebulae`/`supernova_remnants`/
 `rogue_planets`/`interstellar_comets` are always standalone, with a
 nullable `sector_id` reserved for a future sector-context encounter
-(unused by `phenomenonGen.py` today). `supernova_remnants` references at
+(unused by `generate.py phenomenon` today). `supernova_remnants` references at
 most one of `black_holes`/`neutron_stars` (`compact_remnant_kind`
 discriminator) for a core-collapse progenitor whose collapsed core is
 still detectable — always both NULL for a Type Ia progenitor, which
@@ -293,7 +293,7 @@ galaxy-frame Cartesian space `sectors.center_x/y/z_pc` already uses — a
 sphere (new `center_x/y/z_pc`/`galactic_radius_pc` columns, NULL together)
 that may overlap zero, one, or several sectors' cubes, not a single
 sector-relative offset. `sector_id` is now actually populated
-(`phenomenonGen.py --sector-id`) with the *nearest* already-generated
+(`generate.py phenomenon --sector-id`) with the *nearest* already-generated
 sector to the phenomenon's own center — a convenience "home" link for
 browsing (`ON DELETE SET NULL` now, not `CASCADE`: deleting that sector
 shouldn't delete a phenomenon merely linked to it), not the authoritative
@@ -337,9 +337,9 @@ own migration, every value is fully derivable from data already on
 existing rows, so it backfills real values rather than leaving them NULL.
 
 v21 gave every generated sector its own realistically sparse population of
-exotic phenomena (`sectorGen.generate_sector_phenomena`, sampled from
+exotic phenomena (`generate.generate_sector_phenomena`, sampled from
 `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`) instead of leaving
-all seven types reachable only through `phenomenonGen.py`'s separate,
+all seven types reachable only through `generate.py phenomenon`'s separate,
 on-demand CLI. `nebulae`/`supernova_remnants`/`rogue_planets`/
 `interstellar_comets`/`asteroid_fields` needed no schema change at all —
 `insert_sector` simply started populating their pre-existing `sector_id`
@@ -536,11 +536,11 @@ names made unique, orbit ticks' current wobble and comet positions).
 `src/checkRenderParity.py` compares the two on a database still at v28.
 `mediawiki_url`/`wikijs_url` (v22 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
-/api/systems/<id>/wiki` (`src/wikiClient/`, `html/system.py`'s "Upload to
+/api/systems/<id>/wiki` (`src/wikiClient/`, `web/system_pages.py`'s "Upload to
 Wiki" form) has actually uploaded it there — one system is one wiki page;
 individual stars/planets/moons are sections within that one page, not
 separate pages. Existence on a given wiki is never a separate stored
-flag — it's exactly "the matching URL column is not NULL"; `html/system.py`
+flag — it's exactly "the matching URL column is not NULL"; `web/system_pages.py`
 links to that page (opening in a new tab) whenever either is set. `sectors.wiki_url` is the
 per-sector equivalent (see that table's own column doc above) — a single
 column, since a sector's page is generated fresh at upload time rather
@@ -568,7 +568,7 @@ One row per generated sector.
 | `id` | INTEGER | PK | |
 | `name` | TEXT | NOT NULL | e.g. `"Voranthis Sector"` |
 | `edge_mpc` | DOUBLE | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
-| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`generate.py sector`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `stellarObjects/galaxyGeometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (one sector edge, 4 pc, wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
 | `wiki_url` | TEXT | nullable | Where this sector's summary page lives on a wiki (v22) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (`html/admin.py`'s manual-link admin section). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
@@ -591,7 +591,7 @@ duplicate row at the same address.
 
 The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
 `1`) holding everything needed to recompute any sector's exact position
-and density on demand, built by `galaxyPlan.py`. Deliberately **not** one
+and density on demand, built by `generate.py plan`. Deliberately **not** one
 row per sector: a sector's position (`stellarObjects.galaxyGeometry.
 sector_position_pc`), density (`stellarObjects.galaxyDensity.
 relative_density`), and corners (`galaxyGeometry.sector_cell_vertices_pc`)
@@ -690,7 +690,8 @@ sudo ../examples/maintenance/install-maintenance-timer.sh [database ...]
 ```
 
 `updateOrbits.py` mutates rows, so it needs the same read-write database
-account `sectorGen.py`/`systemGen.py` use, not `queryDb.py`'s read-only one.
+account `generate.py` and the web app use, not a `SELECT`-only one you may
+have made for `queryDb.py`.
 
 ### `system_configs`
 
@@ -1005,11 +1006,11 @@ plain component list (no concentration gradient), mirroring
 
 ### `black_holes` / `neutron_stars`
 
-Added in v16, for `phenomenonGen.py`'s separate, rarer exotic-phenomenon
+Added in v16, for `generate.py phenomenon`'s separate, rarer exotic-phenomenon
 generation mode (`stellarObjects/compactRemnant.py`). Satellite tables
 extending a `stars` row (the same "extra detail alongside an existing row"
 shape `asteroid_belt_composition` has to `asteroid_belts`) when a compact
-remnant anchors a full `StarSystem` (`phenomenonGen.py --anchor-system`)
+remnant anchors a full `StarSystem` (`generate.py phenomenon --anchor-system`)
 — the owning `stars.yerkes_class` is then the literal marker `'BH'`/`'NS'`
 rather than a real Yerkes class. `star_id` is NULL for a remnant generated
 standalone (no owning `StarSystem` at all).
@@ -1028,8 +1029,8 @@ standalone (no owning `StarSystem` at all).
 | `temperature_k`, `luminosity_w` | DOUBLE | NOT NULL | Both 0 unless `has_accretion_disk`. |
 | `age_gy` | DOUBLE | NOT NULL | Time since the core-collapse supernova. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. NULL when `star_id` is set (an anchored remnant's motion lives on its own `stars` row instead); populated only for a standalone black hole. See `stars`' identical columns below. |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | Added in v21. The sector this standalone black hole was generated as part of (`sectorGen.generate_sector_phenomena`) or placed near (`phenomenonGen.py --sector-id`), the same convention `nebulae.sector_id` uses. Always NULL when `star_id` is set. |
-| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v21. This black hole's own galaxy-frame center, the same shape `nebulae`'s identical columns use (see below) -- but here it's usually the *exact* position `SpaceSector.add_phenomenon`'s Hill-sphere-aware in-sector placement computed at generation time (never within a neighboring star system's or another compact remnant's own Hill sphere), converted to galaxy-frame coordinates, rather than `compute_phenomenon_placement`'s independent random jitter (still used for `phenomenonGen.py`'s own standalone `--sector-id`, which has no specific in-sector position to convert). |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | Added in v21. The sector this standalone black hole was generated as part of (`generate.generate_sector_phenomena`) or placed near (`generate.py phenomenon --sector-id`), the same convention `nebulae.sector_id` uses. Always NULL when `star_id` is set. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v21. This black hole's own galaxy-frame center, the same shape `nebulae`'s identical columns use (see below) -- but here it's usually the *exact* position `SpaceSector.add_phenomenon`'s Hill-sphere-aware in-sector placement computed at generation time (never within a neighboring star system's or another compact remnant's own Hill sphere), converted to galaxy-frame coordinates, rather than `compute_phenomenon_placement`'s independent random jitter (still used for `generate.py phenomenon`'s own standalone `--sector-id`, which has no specific in-sector position to convert). |
 
 **`neutron_stars`**
 
@@ -1052,7 +1053,7 @@ standalone (no owning `StarSystem` at all).
 Added in v16. Always standalone (nothing in this generator places a
 nebula within a `StarSystem`); `sector_id` was reserved for a future
 sector-context encounter through v17, unused (always NULL) by
-`phenomenonGen.py` until v18 gave it one.
+`generate.py phenomenon` until v18 gave it one.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -1063,7 +1064,7 @@ sector-context encounter through v17, unused (always NULL) by
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
-| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 (`phenomenonGen.py --sector-id`): this nebula's own galaxy-frame center, in the same Cartesian space `sectors.center_x/y/z_pc` uses -- a sphere (this + `radius_ly`), not a sector-relative offset, since a nebula (up to 200 ly across) is frequently far larger than one sector (default edge 4 pc, ~13 ly) and may overlap several. NULL together: never placed in the galaxy (still the default -- `--sector-id` is optional). See `queryDb.phenomena_near_sector`/`galaxy_placed_phenomena` for how this is read back, and `docs/design/galaxy-coordinate-system.md` for the coordinate system itself. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 (`generate.py phenomenon --sector-id`): this nebula's own galaxy-frame center, in the same Cartesian space `sectors.center_x/y/z_pc` uses -- a sphere (this + `radius_ly`), not a sector-relative offset, since a nebula (up to 200 ly across) is frequently far larger than one sector (default edge 4 pc, ~13 ly) and may overlap several. NULL together: never placed in the galaxy (still the default -- `--sector-id` is optional). See `queryDb.phenomena_near_sector`/`galaxy_placed_phenomena` for how this is read back, and `docs/design/galaxy-coordinate-system.md` for the coordinate system itself. |
 
 ### `supernova_remnants`
 
@@ -1077,7 +1078,7 @@ white dwarf).
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`sectorGen`) or placed near (`phenomenonGen.py --sector-id`); NULL for one generated standalone. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | |
 | `age_years` | DOUBLE | NOT NULL | |
@@ -1097,7 +1098,7 @@ from any star.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`sectorGen`) or placed near (`phenomenonGen.py --sector-id`); NULL for one generated standalone. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
@@ -1137,7 +1138,7 @@ unbound from any star.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`sectorGen`) or placed near (`phenomenonGen.py --sector-id`); NULL for one generated standalone. |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `nucleus_diameter_km`, `velocity_kms` | DOUBLE | NOT NULL | `velocity_kms` is hyperbolic excess speed relative to any star it passes — a separate, non-advancing descriptive stat from the `galactic_orbital_*` columns below (its own bulk galactic motion). |
 | `is_active` | BOOLEAN | NOT NULL | Whether it currently shows a coma/tail. |
@@ -1163,7 +1164,7 @@ above, mirroring `asteroid_belt_composition` minus a concentration level
 Added in v17, the seventh exotic phenomenon. Always standalone — a field
 drifting in open space, as opposed to `asteroid_belts`, which always
 orbits a star. `sector_id` was reserved for a future sector-context
-encounter through v17, unused (always NULL) by `phenomenonGen.py` until
+encounter through v17, unused (always NULL) by `generate.py phenomenon` until
 v18 gave it one.
 
 | Column | Type | Null | Notes |

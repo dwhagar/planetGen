@@ -626,7 +626,7 @@ def open_write(config=None):
     Opens a connection for a write-capable caller against an already-
     existing content database (`ensure_schema=False` -- same reasoning as
     `queryDb.open_readonly`: if the account passed in (see
-    `docs/apache-deployment.md`'s "MySQL accounts") lacks `CREATE`/`ALTER`
+    `docs/deployment/README.md`'s "MySQL accounts") lacks `CREATE`/`ALTER`
     grants, attempting `_ensure_schema`'s DDL here would fail every
     connection instead of just skipping a step a full-access account has
     already done once, via `migrateDb.py`).
@@ -646,7 +646,7 @@ def control_mysql_config(base_config=None):
     Builds a `MySQLConfig` pointed at the control schema (see
     `control_schema.sql`'s header comment), reusing `base_config`'s
     host/port/user/password -- typically the same account `open_write`
-    uses (`docs/apache-deployment.md`'s "MySQL accounts"), since the
+    uses (`docs/deployment/README.md`'s "MySQL accounts"), since the
     control schema needs the same `SELECT`/`INSERT`/`UPDATE`/`DELETE`
     grants, just on a different schema name.
 

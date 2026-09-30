@@ -1,13 +1,17 @@
 # html/wsgi.py
 
 """
-mod_wsgi/gunicorn entry point for the planetGen Flask app: the JSON API
-under `/api` and the HTML pages (`web/`, served at `/`, `/sectors`, ...).
+WSGI entry point for the planetGen Flask app: the JSON API under `/api`
+and the HTML pages (`web/`, served at `/`, `/sectors`, ...).
 
-Points Apache's `WSGIScriptAlias` (or a `gunicorn wsgi:application`
-invocation) at this file's `application` object. See `docs/api.md` and
-`examples/apache/` for the deployment. Also runnable directly (`python
-src/html/wsgi.py`) to start Flask's own dev server locally.
+Apache's `WSGIScriptAlias` points at this file's `application` object;
+gunicorn (`gunicorn --pythonpath .../src/html wsgi:application`) and
+waitress (`waitress-serve wsgi:application` run from `src/html`) load it
+the same way. Behind a separate reverse proxy (nginx, Caddy, IIS), set
+`config.json`'s `proxy_fix` so the app sees the client's address and
+scheme (`api/app.py`'s `_apply_proxy_fix`). See `docs/deployment/` for
+every platform. Also runnable directly (`python src/html/wsgi.py`) to
+start Flask's own dev server locally.
 
 This file lives alongside `api/` under `html/`, so a plain `python
 src/html/wsgi.py` invocation already makes `api` importable for free

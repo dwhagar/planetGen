@@ -1,32 +1,46 @@
 # Server checklist: confirm the site loads
 
-Run this after deploying to confirm the fixes for the "site won't load"
-outages are live: CGI pages logging `http/client.py` timeouts,
-"Truncated or oversized response headers", and Apache being OOM-killed
-after Galaxy Map traffic.
+Run this after deploying or updating, on any platform. It started as the
+check for the "site won't load" outages (request timeouts, oversized
+responses, the web server being killed for memory after Galaxy Map
+traffic), and covers the rest of a healthy install too.
 
 Replace `HOST` with your site's hostname, `DB_NAME` with your database,
-and `/var/lib/planetGen` with your checkout if it lives elsewhere.
+and `/var/lib/planetGen` with your checkout if it lives elsewhere
+(`C:\srv\planetGen` in the Windows guide).
+
+## Commands for your platform
+
+The steps below name these by their row:
+
+| | Apache + mod_wsgi | nginx or Caddy + gunicorn (Linux) | macOS (launchd) | Windows |
+|---|---|---|---|---|
+| **reload the app** | `sudo systemctl reload apache2` | `sudo systemctl reload planetgen-gunicorn` | `sudo launchctl kill SIGHUP system/org.planetgen.gunicorn` | IIS: `Restart-WebAppPool planetgen`; service: `Restart-Service planetgen` |
+| **app error log** | `/var/log/apache2/planetgen_error.log` | `journalctl -u planetgen-gunicorn` | `/usr/local/planetgen/log/gunicorn.log` | `C:\ProgramData\planetgen\logs` |
+| **app processes** | `ps -o rss,cmd -C apache2` | `ps -o rss,cmd -u www-data` | `ps -o rss,command -U _www` | Task Manager, `python.exe` / `waitress-serve.exe` |
+| **web user** | `www-data` | `www-data` | `_www` | the app pool or service account |
+| **request time limit** | `request-timeout=60` in `WSGIDaemonProcess` | nginx `proxy_read_timeout 60s`; Caddy `response_header_timeout 60s` | nginx `proxy_read_timeout 60s` | IIS `requestTimeout`; Caddy as Linux; Apache `ProxyPass ... timeout=60` |
 
 ## 1. Is the new code deployed?
 
     cd /var/lib/planetGen && git log -1 --oneline
     grep __version__ src/stellarObjects/_version.py
 
-Pass: version `5.47.0` or later. That release carries the tile-based Galaxy
-Map (the OOM fix) and schema v26.
+Pass: the version you meant to deploy (the **Version** badge at the top
+of `README.md` on `main`).
 
-## 2. Has the database actually been migrated?
+## 2. Has the database been migrated?
 
-Restarting Apache does not apply schema migrations. Only `migrateDb.py`
-(or `update.sh`/`install.sh`, which call it) does.
+Reloading or restarting the app does not apply schema migrations. Only
+`migrateDb.py` (or `update.sh`/`install.sh`, which call it) does.
 
-    sudo systemctl reload apache2
     curl -s https://HOST/api/health
 
-Pass: `"schema_version": 26, "schema_current": true`.
-If not: run `python3 src/migrateDb.py` with the same `PLANETGEN_MYSQL_*`
-settings the site uses, then check again.
+Pass: `"schema_current": true`. If not: run `python3 src/migrateDb.py`
+with the same database settings the site uses (`config.json`, or the
+same `PLANETGEN_MYSQL_*` variables), then check again.
+`python3 src/migrateDb.py --status` prints the current and target
+versions without changing anything.
 
 If you use more than one database, check each one. `migrateDb.py` only
 migrates the one it is pointed at:
@@ -39,46 +53,60 @@ migrates the one it is pointed at:
     mysql DB_NAME -e "SELECT table_name, index_name FROM information_schema.statistics
       WHERE table_schema = DATABASE() AND index_name LIKE 'idx_%_center' AND seq_in_index = 1"
 
-Pass: five rows: `sectors` (v25) plus `nebulae`, `asteroid_fields`,
-`black_holes` and `neutron_stars` (v26).
+Pass: nine rows: `sectors`, `black_holes`, `neutron_stars`, `nebulae`,
+`supernova_remnants`, `quasars`, `rogue_planets`, `interstellar_comets`
+and `asteroid_fields`.
 
-## 4. Is the Apache config current?
+## 4. Is the web server config current?
+
+Check the **request time limit** row for your platform. On Apache:
 
     grep -n "WSGIDaemonProcess planetgen-api" /etc/apache2/sites-available/planetgen.conf
 
-Pass: the line includes `request-timeout=60` (see
-`examples/apache/planetgen.conf.example`). Without it, one runaway request
-can hold an API thread forever.
+Pass: the 60-second limit is there (compare with your platform's example
+under `examples/`). Without it, one runaway request can hold an app
+thread for a long time.
+
+Behind nginx, Caddy, IIS or Apache's `mod_proxy` (every setup except
+Apache + mod_wsgi), also check that `config.json` has `proxy_fix` set
+(see [`deployment/README.md`](deployment/README.md#behind-a-reverse-proxy-proxy_fix)):
+
+    curl -sI https://HOST/ | grep -i strict-transport
+
+Pass: a `Strict-Transport-Security` header. Without `proxy_fix`, the app
+thinks every request is plain HTTP and every visitor shares one
+rate-limit budget.
 
 ## 5. Is the tile cache writable?
 
 The Galaxy Map caches tiles on disk, in `/var/cache/planetgen/tiles` by
 default (see `tile_cache` in [`config.md`](config.md)).
 
-    ls -ld /var/cache/planetgen/tiles
+    ls -ld /var/cache/planetgen/tiles /var/lib/planetgen/jobs
 
-Pass: the folder exists and is owned by (or writable by) Apache's user,
-usually `www-data`. It fills up after you open the Galaxy Map.
+Pass: both folders exist and are owned by the **web user**. The tile
+cache fills up after you open the Galaxy Map.
 
 ## 5a. Are the code and config.json locked down?
 
     ls -ld src/html src/html/wsgi.py config.json /var/log/planetgen.log
 
-Pass: `src/html` and `wsgi.py` are owned by `root` with Apache's group
-(`www-data`), not by Apache's user; `config.json` is `-rw-r-----
-root www-data` (mode 640: it holds the database password and
-`secret_key`); the debug log, if there is one, is `-rw-rw----` owned by
-Apache's user and group (mode 660), never world-writable. If not: `sudo
-./update.sh`, or `sudo examples/apache/set-permissions.sh` and `sudo
-examples/apache/setup-debug-log.sh`. Anyone who runs the generator from a
-shell without `sudo` must be in Apache's group to read `config.json` and
-append to the debug log.
+Pass: `src/html` and `wsgi.py` are owned by `root` with the web user's
+group (`www-data`, or `_www` on macOS), not by the web user; `config.json`
+is `-rw-r----- root www-data` (mode 640: it holds the database password
+and `secret_key`); the debug log, if there is one, is `-rw-rw----` owned
+by the web user and group (mode 660), never world-writable. If not, on
+Linux: `sudo ./update.sh`, or `sudo examples/apache/set-permissions.sh`
+and `sudo examples/apache/setup-debug-log.sh`. On macOS and Windows,
+repeat the permissions step of your guide. Anyone who runs the generator
+from a shell without `sudo` must be in the web user's group to read
+`config.json` and append to the debug log.
 
 ## 5b. Has the first admin login been changed?
 
 Log in at `https://HOST/login`. On a fresh install the username is
 `admin` and the password is the random one `migrateDb.py` printed once
-during `install.sh` (there is no default password).
+(there is no default password).
 
 Pass: after logging in you land on `/admin`, not the forced "Change
 Credentials" page. If you're sent to `/account`, choose a new username
@@ -94,9 +122,12 @@ Pass: each finishes in a few seconds at most.
 
 ## 7. Reproduce real use while watching the logs
 
-    sudo tail -f /var/log/apache2/planetgen_error.log | grep -E "Timeout|Truncated|http/client|MemoryError"
+Follow the **app error log** for your platform, for example on Apache:
 
-In a second terminal, watch the API's memory:
+    sudo tail -f /var/log/apache2/planetgen_error.log | grep -E "Timeout|Truncated|MemoryError|Traceback"
+
+In a second terminal, watch the app's memory with the **app processes**
+command, for example:
 
     watch -n 2 "ps -o rss,cmd -C apache2 | sort -n | tail -3"
 

@@ -1,23 +1,49 @@
-# Apache2 Deployment Files
+# Apache2 + mod_wsgi on Linux
 
-Deployment tooling for the web interface in [`../src/html/`](html-interface.md) --
-not itself part of the served site. The files it describes live in
-[`../examples/apache/`](../examples/apache/) (grouped there as example/
-template deployment config, alongside the example system files under
-`../examples/systems/`); nothing in that directory is copied to the web
-server's document root.
+The reference setup, and the one `install.sh` and `update.sh` are built
+for: Debian or Ubuntu, Apache2 with mod_wsgi running the Flask app in its
+own daemon process, and Apache serving `/static/` itself. For other web
+servers and operating systems, see the [deployment index](README.md).
+Apache + mod_wsgi needs no `proxy_fix` setting: Apache owns the client's
+connection, so the app already sees the real address and scheme.
 
-Most deployments just need `sudo ../install.sh` (first-time setup) or
-`sudo ../update.sh` (pulling a later update) from the repo root -- both
+## Steps
+
+1. Create the MySQL database and account ([`README.md`](README.md#mysql-accounts)).
+2. Clone the repo to `/var/lib/planetGen`, copy `config.json.example` to
+   `config.json` and fill in `mysql.*` and `secret_key`
+   ([`config.md`](../config.md)).
+3. `sudo ./install.sh` from the checkout. Note the admin password it
+   prints in step 2/8.
+4. Copy [`planetgen.conf.example`](../../examples/apache/planetgen.conf.example)
+   to `/etc/apache2/sites-available/planetgen.conf`, set `ServerName`,
+   then `sudo a2ensite planetgen && sudo systemctl reload apache2`.
+5. `sudo certbot --apache` for HTTPS (the admin pages need it), then log
+   in at `/login` and change the admin username and password.
+6. Optional: the monthly maintenance timers in
+   [`examples/maintenance/`](../../examples/maintenance/).
+7. Run the [server checklist](../server-checklist.md).
+
+Later updates: `sudo ./update.sh`, then `sudo systemctl reload apache2`.
+
+## Deployment files
+
+The files below live in
+[`examples/apache/`](../../examples/apache/); nothing in that directory
+is copied to the web server's document root.
+
+Most deployments just need `sudo ./install.sh` (first-time setup) or
+`sudo ./update.sh` (pulling a later update) from the repo root. Both
 call `set-permissions.sh` and `create-cache-dir.sh` (below) as steps. Use
 `set-permissions.sh` directly only to re-apply permissions on its own
 (e.g. after adding files or a new `config.json` by hand).
 
 | File | Purpose |
 |---|---|
-| [`planetgen.conf.example`](../examples/apache/planetgen.conf.example) | Example Apache2 virtual host: `DocumentRoot` at `/var/lib/planetGen/src/html`, a `WSGIScriptAlias` mounting the Flask app (the API under `/api` plus every page, via `../src/html/wsgi.py`, see [`api.md`](api.md#deploying-behind-apache-mod_wsgi) and [`html-interface.md`](html-interface.md#flask-pages)) at `/`, with `Alias /static/` for the static files, in its own `WSGIDaemonProcess` (not Apache's embedded/shared-process mode), and access rules (denying direct requests to `../src/html/lib/` and `../src/html/api/`). Copy to `/etc/apache2/sites-available/`, edit, and enable with `a2ensite` -- the one step `install.sh` deliberately leaves manual. |
-| [`set-permissions.sh`](../examples/apache/set-permissions.sh) | Detects the user/group Apache2 is actually configured to run as (from `/etc/apache2/envvars`, a running `apache2` process, or falling back to the Debian/Ubuntu default `www-data:www-data` if neither is found -- e.g. because apache2 isn't started yet), makes the deployed `../src/html/` code tree `root:<apache group>` (directories 750, files 640), so Apache's worker can read and import it but never change it -- a web process that could rewrite code the root-run `install.sh`/`update.sh` later import could make itself root -- and makes every `*.py` file anywhere under it (at any subdirectory depth, `../src/html/lib/` included) owner/group readable (and executable, a harmless leftover from the CGI pages; mod_wsgi only needs to read them). Nothing under `../src/html/` is written at runtime: the tile cache and the Generate jobs are the only Apache-owned directories (`create-cache-dir.sh`, below). When `config.json` exists it is set to `root:<apache group>`, mode 640, since it holds the database password and `secret_key` (see [`config.md`](config.md)); CLI users who run the generator without `sudo` must be in Apache's group to read it. Prints a count of how many `.py` files it fixed, so a wrong path is obvious rather than silently matching nothing. Its optional `db-dir` argument is a pre-MySQL-port leftover, owned by Apache's user as runtime data (harmless no-op if that directory doesn't exist -- the database is a MySQL server now, not local files; see [`database-schema.md`](database-schema.md)). Bash, not Python -- Linux-only deployment step, safe to re-run any time as root. |
-| [`create-cache-dir.sh`](../examples/apache/create-cache-dir.sh) | Creates the 3D Galaxy Map's on-disk tile cache (see [`config.md`](config.md)'s `tile_cache`: `PLANETGEN_TILE_CACHE_DIR`, else `tile_cache.dir`, else `/var/cache/planetgen/tiles`) and the admin Generate page's jobs directory (`PLANETGEN_JOBS_DIR`, else `jobs.dir`, else `/var/lib/planetgen/jobs`), and `chown`s them to Apache's user, detected the same way `set-permissions.sh` does (both source [`apache-identity.sh`](../examples/apache/apache-identity.sh)). It runs as root, so it imports nothing from the repo: it reads the paths with [`deploy-paths.py`](../examples/apache/deploy-paths.py), run as `python3 -I` (standard library only). Creates no tile cache when `tile_cache.max_mb` is `0`. Takes the directory as an argument when it's set only by a `SetEnv` in the vhost, which the script can't see. Safe to re-run any time as root. |
+| [`planetgen.conf.example`](../../examples/apache/planetgen.conf.example) | Example Apache2 virtual host: `DocumentRoot` at `/var/lib/planetGen/src/html`, a `WSGIScriptAlias` mounting the Flask app (the API under `/api` plus every page, via `src/html/wsgi.py`, see [`api.md`](../api.md#deploying) and [`html-interface.md`](../html-interface.md#flask-pages)) at `/`, with `Alias /static/` for the static files, in its own `WSGIDaemonProcess` (not Apache's embedded/shared-process mode), and access rules (denying direct requests to `src/html/lib/` and `src/html/api/`). Copy to `/etc/apache2/sites-available/`, edit, and enable with `a2ensite` -- the one step `install.sh` deliberately leaves manual. |
+| [`set-permissions.sh`](../../examples/apache/set-permissions.sh) | Detects the user/group Apache2 is actually configured to run as (from `/etc/apache2/envvars`, a running `apache2` process, or falling back to the Debian/Ubuntu default `www-data:www-data` if neither is found -- e.g. because apache2 isn't started yet), makes the deployed `src/html/` code tree `root:<apache group>` (directories 750, files 640), so Apache's worker can read and import it but never change it -- a web process that could rewrite code the root-run `install.sh`/`update.sh` later import could make itself root -- and makes every `*.py` file anywhere under it (at any subdirectory depth, `src/html/lib/` included) owner/group readable (and executable, a harmless leftover from the CGI pages; mod_wsgi only needs to read them). Nothing under `src/html/` is written at runtime: the tile cache and the Generate jobs are the only Apache-owned directories (`create-cache-dir.sh`, below). When `config.json` exists it is set to `root:<apache group>`, mode 640, since it holds the database password and `secret_key` (see [`config.md`](../config.md)); CLI users who run the generator without `sudo` must be in Apache's group to read it. Prints a count of how many `.py` files it fixed, so a wrong path is obvious rather than silently matching nothing. Its optional `db-dir` argument is a pre-MySQL-port leftover, owned by Apache's user as runtime data (harmless no-op if that directory doesn't exist -- the database is a MySQL server now, not local files; see [`database-schema.md`](../database-schema.md)). Bash, not Python -- Linux-only deployment step, safe to re-run any time as root. |
+| [`create-cache-dir.sh`](../../examples/apache/create-cache-dir.sh) | Creates the 3D Galaxy Map's on-disk tile cache (see [`config.md`](../config.md)'s `tile_cache`: `PLANETGEN_TILE_CACHE_DIR`, else `tile_cache.dir`, else `/var/cache/planetgen/tiles`) and the admin Generate page's jobs directory (`PLANETGEN_JOBS_DIR`, else `jobs.dir`, else `/var/lib/planetgen/jobs`), and `chown`s them to Apache's user, detected the same way `set-permissions.sh` does (both source [`apache-identity.sh`](../../examples/apache/apache-identity.sh)). It runs as root, so it imports nothing from the repo: it reads the paths with [`deploy-paths.py`](../../examples/apache/deploy-paths.py), run as `python3 -I` (standard library only). Creates no tile cache when `tile_cache.max_mb` is `0`. Takes the directory as an argument when it's set only by a `SetEnv` in the vhost, which the script can't see. Safe to re-run any time as root. |
+| [`setup-debug-log.sh`](../../examples/apache/setup-debug-log.sh) | With `debug` on, creates the debug log (`log_file`, default `/var/log/planetgen.log`) owned by Apache's user and group, mode 0660, and re-applies that to an existing one. Installs a logrotate config for it (`/etc/logrotate.d/planetgen`: daily or past 100 MB, 7 compressed copies) and an hourly size check. Safe to re-run any time as root. |
 
 ## Managed Python
 
@@ -25,7 +51,7 @@ Newer Debian and Ubuntu releases (Debian 12+, Ubuntu 23.04+, including
 Ubuntu 26.04 LTS) mark their system Python as *externally managed*
 (PEP 668: an `EXTERNALLY-MANAGED` file in the stdlib directory), and pip
 refuses to install into it. `install.sh`'s first step
-([`../scripts/install-python-deps.sh`](../scripts/install-python-deps.sh))
+([`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh))
 checks for that file and picks a path, printing which one it took:
 
 - **Not managed:** `pip install` of the package and its `api` extra, as
@@ -113,9 +139,9 @@ To see what the running site really uses, open the admin Stats page
 `sudo systemctl reload apache2` restarts the daemon so it picks up
 anything newly installed.
 
-See [`../install.sh`](../install.sh) for the full install script,
-[`../update.sh`](../update.sh) for pulling later updates, and
-[`html-interface.md`](html-interface.md#deploying) for the deployment
+See [`install.sh`](../../install.sh) for the full install script,
+[`update.sh`](../../update.sh) for pulling later updates, and
+[`html-interface.md`](../html-interface.md#deploying) for the deployment
 walkthrough.
 
 ## Static files, compression and security headers
@@ -159,14 +185,14 @@ mod_wsgi applies `WSGIScriptAlias` after mod_alias's `Alias`, so
 matches every URL. The old CGI page URLs (`/index.py`, `/sector.py?id=5`,
 ...) reach the app, which answers each with a 301 to the page that
 replaced it (see
-[`html-interface.md`](html-interface.md#flask-pages), "Old URLs"); any
+[`html-interface.md`](../html-interface.md#flask-pages), "Old URLs"); any
 other `.py` name gets the app's 404 page.
 
 ### Updating an existing server
 
 1. `sudo ./update.sh` (pulls, then checks and fills in only what's missing).
 2. Make sure `config.json` has a `secret_key` (it signs the pages' form
-   tokens; see [`config.md`](config.md)):
+   tokens; see [`config.md`](../config.md)):
    `python3 -c "import secrets; print(secrets.token_hex(32))"`, and that
    its `mysql.database` (or `PLANETGEN_MYSQL_DATABASE` in Apache's
    environment) names the database the site should show.
@@ -195,40 +221,9 @@ other `.py` name gets the app's 404 page.
    301 to `/` and `/sector/1`, `/static/style.css` is served, and `curl
    http://127.0.0.1/api/health` still answers.
 
-## MySQL accounts
+## MySQL accounts and the first admin login
 
-One MySQL account (`PLANETGEN_MYSQL_*`, or `config.json`'s `mysql`
-section -- see [`config.md`](config.md) for setting it once in a shared
-`config.json` instead of repeating it across every vhost/service file) is
-used everywhere: the generation CLIs, `install.sh`/`migrateDb.py` (which
-need full `CREATE`/`ALTER`/DML grants -- that's the account schema DDL
-runs against), and the deployed Flask API's reads *and* writes alike
-(sector/system create/update/delete, and everything under `/api/auth/`,
-need at least `INSERT`/`UPDATE`/`DELETE`/`SELECT`). There's no separate
-write-capable account to configure -- `WRITE_MYSQL_CONFIG` simply reuses
-`MYSQL_CONFIG` (see `html/api/config.py`). If a deployment still wants the
-*deployed* Apache/`mod_wsgi` process on a different, less-privileged
-account than the one `install.sh`/`migrateDb.py` run as, point its own
-`PLANETGEN_MYSQL_*` at that account separately in Apache's own
-environment (see the vhost example's comments) -- but remember it now needs write grants too if the API's
-write endpoints are reachable, not just `SELECT`.
-
-That same account also needs to create and seed the **control schema**
-(`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`, see
-[`database-schema.md`](database-schema.md#the-control-schema)) --
-`migrateDb.py` does this automatically, alongside its usual
-content-schema migration, every time it's run (i.e. every
-`install.sh`/`update.sh`). The first run seeds the admin login `admin`
-with a random password and prints it once in its output (there is no
-default password); log in at `/login` with it and change both the
-username and password. To start over if it's lost, see
-[`api.md`](api.md#resetting-the-admin-login).
-
-**The admin web UI (`/login`, `/admin`, `/admin/stats`, `/account`) requires
-HTTPS** — its session cookie is `Secure` by default and simply won't be
-sent by the browser over plain HTTP. Terminate TLS in front of this vhost
-(e.g. `certbot --apache`) before relying on it; see
-[`api.md`](api.md#deploying-behind-apache-mod_wsgi)'s note on
-`PLANETGEN_ADMIN_COOKIE_INSECURE` (or `config.json`'s
-`admin_cookie_insecure`, see [`config.md`](config.md)) for the
-local-development-only escape hatch.
+These apply to every platform and are in the deployment index:
+[MySQL accounts](README.md#mysql-accounts) and
+[the first admin login](README.md#the-first-admin-login). The admin pages
+need HTTPS: terminate TLS in this vhost (`certbot --apache`).

@@ -172,7 +172,7 @@ ServerName/TLS/logging are your call):
      admin pages stay locked until you do). Lost it? See "Resetting the
      admin login" in docs/api.md.
 
-See docs/apache-deployment.md and docs/html-interface.md for more detail.
+See docs/deployment/apache.md and docs/html-interface.md for more detail.
 ------------------------------------------------------------------------
 EOF
 else

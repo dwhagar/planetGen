@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  examples/macos/org.planetgen.gunicorn.plist
+
+  launchd daemon: runs planetGen under gunicorn at boot, as _www (macOS's
+  built-in web server user), listening on 127.0.0.1:8000 for Homebrew
+  nginx (planetgen-nginx.conf). The macOS counterpart of
+  examples/systemd/planetgen-gunicorn.service; see docs/deployment/macos.md.
+  gunicorn loads src/html/wsgi.py directly. config.json must set
+  "proxy_fix": {"x_for": 1, "x_proto": 1} so the app sees the client's
+  address and scheme, not nginx's (docs/config.md).
+
+  Install:
+      sudo cp org.planetgen.gunicorn.plist /Library/LaunchDaemons/
+      sudo chown root:wheel /Library/LaunchDaemons/org.planetgen.gunicorn.plist
+      sudo chmod 644 /Library/LaunchDaemons/org.planetgen.gunicorn.plist
+      sudo launchctl bootstrap system /Library/LaunchDaemons/org.planetgen.gunicorn.plist
+  Reload new code (SIGHUP; a running Generate job is left alone):
+      sudo launchctl kill SIGHUP system/org.planetgen.gunicorn
+  Restart:
+      sudo launchctl kickstart -k system/org.planetgen.gunicorn
+
+  The no-control-socket option below needs gunicorn 25.1+ (pip installs
+  the current release); remove it for an older gunicorn. On macOS it also
+  avoids the fork-safety crash gunicorn 25.1's control socket thread
+  causes (benoitc/gunicorn discussion #3526).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>org.planetgen.gunicorn</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/planetgen/venv/bin/gunicorn</string>
+        <string>--pythonpath</string>
+        <string>/var/lib/planetGen/src/html</string>
+        <string>--bind</string>
+        <string>127.0.0.1:8000</string>
+        <string>--workers</string>
+        <string>1</string>
+        <string>--worker-class</string>
+        <string>gthread</string>
+        <string>--threads</string>
+        <string>5</string>
+        <string>--timeout</string>
+        <string>60</string>
+        <string>--graceful-timeout</string>
+        <string>30</string>
+        <string>--no-control-socket</string>
+        <string>wsgi:application</string>
+    </array>
+
+    <key>UserName</key>
+    <string>_www</string>
+    <key>GroupName</key>
+    <string>_www</string>
+    <key>WorkingDirectory</key>
+    <string>/var/lib/planetGen</string>
+
+    <!-- Optional PLANETGEN_* overrides (docs/config.md) go in an
+         EnvironmentVariables dict here; config.json is the main file. -->
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>/usr/local/planetgen/log/gunicorn.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/planetgen/log/gunicorn.log</string>
+</dict>
+</plist>
