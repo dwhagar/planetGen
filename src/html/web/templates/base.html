@@ -31,6 +31,7 @@ subhead (badges or actions under the <h1>). -#}
   {%- if admin %}
   <li><a href="{{ page_url('admin') }}"{% if section == 'admin' %} aria-current="page"{% endif %}>Admin</a></li>
   <li><a href="{{ page_url('admin_stats') }}"{% if section == 'admin_stats' %} aria-current="page"{% endif %}>Stats</a></li>
+  <li><a href="{{ url_for('web.generate') }}"{% if section == 'admin_generate' %} aria-current="page"{% endif %}>Generate</a></li>
   <li><a href="{{ page_url('logout') }}">Logout</a></li>
   {%- else %}
   <li><a href="{{ page_url('login') }}"{% if section == 'login' %} aria-current="page"{% endif %}>Login</a></li>
@@ -58,7 +59,7 @@ subhead (badges or actions under the <h1>). -#}
 </head>
 <body class="app">
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header">
+<header class="site-header{% if current_admin() %} site-header-admin{% endif %}">
   <div class="site-header-inner">
     <a class="site-name" href="{{ url_for('web.index') }}"{% if request.endpoint == 'web.index' %} aria-current="page"{% endif %}>{{ site_name }}</a>
     <div class="site-wide">

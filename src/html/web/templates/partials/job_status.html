@@ -1,0 +1,33 @@
+{#- html/web/templates/partials/job_status.html -- one job's live status,
+used by generate.html and generate_job.html. static/generatejobs.js
+redraws the same parts from /admin/generate/status. -#}
+{%- macro job_status(job, output, cancel=True, link=True) -%}
+<p><strong data-job-title>{{ job.title }}</strong>
+  <span class="badge job-{{ job.status }}" data-job-status>{{ job.status }}</span>
+  <span class="hint">started {{ job.created_text }}{% if job.admin %} by {{ job.admin }}{% endif %}</span></p>
+<p data-job-step>
+  {%- if job.step_label %}Step {{ job.step }} of {{ job.steps|length }}: {{ job.step_label }}{% endif -%}
+</p>
+<p class="job-progress">
+  <progress data-job-progress max="{{ job.progress_total or 1 }}"
+    {%- if job.progress_total %} value="{{ job.progress_completed or 0 }}"{% elif job.finished %} value="1"{% endif %}
+    aria-labelledby="job-progress-text"></progress>
+  <span id="job-progress-text" data-job-progress-text>
+    {%- if job.progress_description %}{{ job.progress_description }}: {{ "{:,}".format(job.progress_completed|int) }}{% if job.progress_total %} of {{ "{:,}".format(job.progress_total|int) }}{% endif %}{% endif -%}
+  </span>
+  <span class="hint" data-job-elapsed>{{ job.elapsed_text }}</span>
+</p>
+<p class="error" role="alert" data-job-error{% if not job.error %} hidden{% endif %}>{{ job.error or "" }}</p>
+<pre class="job-log" data-job-log tabindex="0" aria-label="Job output">{{ output or "" }}</pre>
+{%- if cancel and not job.finished %}
+<form method="post" action="{{ url_for('web.generate') }}" class="table-form" data-job-cancel>
+  {{ csrf_field() }}
+  <input type="hidden" name="action" value="cancel">
+  <input type="hidden" name="job" value="{{ job.id }}">
+  <button type="submit" class="btn btn-danger">Cancel job</button>
+</form>
+{%- endif %}
+{%- if link %}
+<p><a href="{{ job.url }}">Full output</a></p>
+{%- endif %}
+{%- endmacro -%}
