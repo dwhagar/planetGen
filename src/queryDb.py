@@ -44,7 +44,10 @@ from stellarObjects._db import (add_mysql_connection_args, escape_like, get_conn
                                 mysql_config_from_args)
 from stellarObjects import program_constants
 from stellarObjects._version import VersionAction, __version__, version_banner
-from stellarObjects.galaxyGeometry import neighbor_addresses, provisional_sector_designation, sector_position_pc
+from stellarObjects.galaxyGeometry import (
+    galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, sector_position_pc,
+)
+from stellarObjects.spaceSector import classify_octant
 from stellarObjects.galaxyViewport import (
     parse_tile_key,
     planned_slots_in_tile,
@@ -1002,6 +1005,7 @@ def sector_detail(conn, sector_id):
         (sector_id,),
     ).fetchall()
 
+    nearest = nearest_systems(conn, "star_systems", [row["id"] for row in system_rows])
     systems = []
     for row in system_rows:
         star_rows = conn.execute(
@@ -1018,6 +1022,7 @@ def sector_detail(conn, sector_id):
             "center_distance_ly": _center_distance_ly(row),
             "runaway_class": row["runaway_class"], "runaway_speed_kms": row["runaway_speed_kms"],
             "inside": containing_cloud(conn, row),
+            "nearest": nearest.get(row["id"], []),
             "stars": [dict(star_row) for star_row in star_rows],
         })
     star_count = sum(max(1, len(system["stars"])) for system in systems)
@@ -1392,8 +1397,42 @@ def galaxy_placed_phenomena(conn):
     return _placed_phenomenon_rows(conn)
 
 
-# TODO(phenomena #26): return each phenomenon's octant and its stored
-# nearest three systems (joined from the new nearest-systems table).
+def nearest_systems(conn, object_table, object_ids):
+    """
+    The stored nearest star systems (`nearest_systems`, schema v41) of
+    several objects of one kind.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        object_table (str): `'star_systems'` or a phenomenon table.
+        object_ids (iterable): The objects' ids.
+
+    Returns:
+        dict: `{object_id: [{"id", "name", "distance_ly"}, ...]}`, nearest
+            first; an object with no stored neighbors is left out.
+    """
+    object_ids = sorted(set(object_ids))
+    found = {}
+    for start in range(0, len(object_ids), 500):
+        batch = object_ids[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        for row in conn.execute(
+            f"SELECT n.object_id, n.neighbor_system_id, n.distance_pc, ss.name"
+            f" FROM nearest_systems n JOIN star_systems ss ON ss.id = n.neighbor_system_id"
+            f" WHERE n.object_table = ? AND n.object_id IN ({marks})"
+            f" ORDER BY n.object_id, n.neighbor_rank",
+            (object_table, *batch),
+        ).fetchall():
+            found.setdefault(row["object_id"], []).append({
+                "id": row["neighbor_system_id"], "name": row["name"], "distance_ly": pc_to_ly(row["distance_pc"]),
+            })
+    return found
+
+
+_PHENOMENON_TYPE_TABLES = {type_label: table for table, type_label, _descriptor, _radius in _PHENOMENON_TABLES}
+"""dict: `_PHENOMENON_TABLES`' type label -> table."""
+
+
 def phenomena_near_sector(conn, sector_id):
     """
     Every galaxy-placed standalone phenomenon (any `_PHENOMENON_TABLES`
@@ -1440,8 +1479,10 @@ def phenomena_near_sector(conn, sector_id):
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
-            stars in). Empty if this sector has no galaxy placement of its
-            own.
+            stars in), `octant` (the sector octant its center sits in,
+            `star_systems.quadrant`'s labels) and `nearest` (its stored
+            nearest star systems, `nearest_systems`). Empty if this sector
+            has no galaxy placement of its own.
 
     Raises:
         ValueError: If no such sector exists.
@@ -1476,13 +1517,25 @@ def phenomena_near_sector(conn, sector_id):
         is_home = (phenomenon["type"], phenomenon["id"]) in home_keys
         if not is_home and distance_pc > half_diagonal_pc + ly_to_pc(phenomenon["radius_ly"]):
             continue
+        center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
+        octant, _magnitudes = classify_octant(
+            galaxy_to_local_pc(center, (phenomenon["x"], phenomenon["y"], phenomenon["z"])))
         matches.append({
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
             "class": phenomenon["class"],
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
+            "octant": octant,
         })
+    by_type = {}
+    for match in matches:
+        by_type.setdefault(match["type"], []).append(match["id"])
+    for kind, ids in by_type.items():
+        stored = nearest_systems(conn, _PHENOMENON_TYPE_TABLES[kind], ids)
+        for match in matches:
+            if match["type"] == kind:
+                match["nearest"] = stored.get(match["id"], [])
     matches.sort(key=lambda match: match["distance_ly"])
     return matches
 

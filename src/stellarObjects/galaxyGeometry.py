@@ -247,6 +247,14 @@ def local_to_galaxy_pc(center_pc, offset_pc):
     return tuple(center_pc[i] + ox * ax[i] + oy * ay[i] + oz * az[i] for i in range(3))
 
 
+def galaxy_to_local_pc(center_pc, point_pc):
+    """`local_to_galaxy_pc`'s inverse: an absolute galaxy-frame point as
+    an offset (parsecs) from the sector's center along its local axes."""
+    axes = sector_orientation(center_pc)
+    delta = tuple(point_pc[i] - center_pc[i] for i in range(3))
+    return tuple(sum(delta[i] * axis[i] for i in range(3)) for axis in axes)
+
+
 def sector_cell_vertices_pc(ring_index, layer_index, slot_index, edge_pc):
     """
     The 8 corners of one cell, galaxy frame, parsecs. List index is
