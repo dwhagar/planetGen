@@ -31,3 +31,15 @@
   another interpreter. The admin Stats page shows the web app's Python
   prefix and the directory it imports its libraries from. See
   `docs/apache-deployment.md`.
+
+### Added
+- **Migrate or delete the database on update.** When the database is
+  behind the current schema, `update.sh` (and `install.sh`) asks whether
+  to delete the galaxy data instead of migrating it: y/N, with a
+  30-second timeout that defaults to N (keep the data and migrate it).
+  The same happens with no terminal to ask on. Deleting wipes every
+  generated sector and system (`resetDb.py`) and keeps admin logins.
+- **Progress bar and ETA for database migrations.** `migrateDb.py` shows
+  each migration step as it runs, with the elapsed time and an estimate
+  of the time left. `migrateDb.py --status` reports the current and
+  target schema versions without changing anything.

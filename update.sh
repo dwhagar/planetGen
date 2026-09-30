@@ -26,7 +26,10 @@
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.
 #   4. `src/migrateDb.py`: brings the database up to the current schema
-#      (a no-op when it already is).
+#      (a no-op when it already is), with a progress bar. When a migration
+#      is pending, it first asks (y/N, 30 seconds, default N) whether to
+#      delete the galaxy data instead of migrating it; see
+#      migrate_or_reset_db in scripts/deploy-common.sh.
 #   5. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing).
 #   6. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
@@ -128,7 +131,7 @@ ensure_nltk_words "$NLTK_DATA_DIR"
 
 echo
 echo "== 4/8: Migrating the configured MySQL database to the current schema =="
-"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+migrate_or_reset_db
 
 echo
 echo "== 5/8: Checking Apache's modules =="

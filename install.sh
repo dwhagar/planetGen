@@ -13,7 +13,10 @@
 #      Python, or distribution (apt) packages on an externally managed one
 #      (PEP 668, e.g. Ubuntu 24.04+), with system-wide pip only for
 #      libraries the distribution lacks or ships too old. No venv.
-#   2. Runs `src/migrateDb.py` against the configured MySQL database
+#   2. Runs `src/migrateDb.py` (with a progress bar; when a migration is
+#      pending it first asks, y/N with a 30-second timeout defaulting to
+#      N, whether to delete the galaxy data instead) against the
+#      configured MySQL database
 #      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
 #      `SetEnv` directives once deployed), bringing it up to the current
 #      schema (`stellarObjects/schema.sql`) if it isn't already. A no-op
@@ -92,7 +95,7 @@ PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 
 echo
 echo "== 2/8: Migrating the configured MySQL database to the current schema =="
-"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+migrate_or_reset_db
 
 echo
 echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="

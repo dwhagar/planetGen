@@ -68,6 +68,23 @@ imports the web app as Apache's user, so a library www-data can't read
 shows up there rather than as a 500. `sudo ./install.sh` is still the
 full reinstall.
 
+### Migrating or deleting the database
+
+When the configured database is behind the current schema, `install.sh`
+and `update.sh` first ask:
+
+    Delete all galaxy data in 'planetgen' instead of migrating it? [y/N] (default N in 30s):
+
+`y` wipes every generated sector and system (the same as the Generate
+page's Reset; admin logins are kept) and then brings the empty database to
+the current schema. Anything else, no answer within 30 seconds, or no
+terminal to ask on (the maintenance timer) keeps the data and migrates it.
+Nothing is asked when the database is already current. The migration
+shows a progress bar with one tick per step, the elapsed time and an
+estimate of the time left. `python3 src/migrateDb.py --status` prints the
+current and target versions and how many steps are pending, without
+changing anything.
+
 ### Which Python and libraries Apache uses
 
 Nothing in the vhost names a Python or a library path, and nothing needs

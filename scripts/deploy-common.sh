@@ -126,3 +126,35 @@ EOF
         return 1
     fi
 }
+
+# Brings the configured database up to the current schema. When a
+# migration is pending, first asks whether to delete the galaxy data
+# instead: y wipes every generated sector and system (src/resetDb.py, the
+# same as the Generate page's Reset; admin logins are kept) and the empty
+# database is then brought to the current schema. Anything else, no
+# answer within 30 seconds, or no terminal to ask on (the maintenance
+# timer) keeps the data and migrates it. Nothing is asked when the
+# database is already current.
+migrate_or_reset_db() {
+    local status current target pending database answer=""
+    if ! status="$("$PYTHON" "$SCRIPT_DIR/src/migrateDb.py" --status)"; then
+        return 1
+    fi
+    read -r current target pending database <<< "$status"
+    if (( pending > 0 )); then
+        echo "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
+        if [[ -t 0 ]]; then
+            read -r -t 30 -p "Delete all galaxy data in '$database' instead of migrating it? [y/N] (default N in 30s): " answer \
+                || { echo; answer=""; }
+        else
+            echo "(No terminal to ask on: keeping the data and migrating it.)"
+        fi
+        if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+            echo "Deleting the galaxy data in '$database' (admin logins are kept)."
+            "$PYTHON" "$SCRIPT_DIR/src/resetDb.py" --yes
+        else
+            echo "Keeping the data and migrating it."
+        fi
+    fi
+    "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+}
