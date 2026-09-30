@@ -46,7 +46,7 @@ def full_sample():
 
 def test_phenomenon_types_is_nonempty():
     assert pp.PHENOMENON_TYPES
-    assert len(pp.PHENOMENON_TYPES) == 7
+    assert len(pp.PHENOMENON_TYPES) == 8
 
 
 @pytest.mark.parametrize("phenomenon_type", pp.PHENOMENON_TYPES)
@@ -108,6 +108,9 @@ _NEUTRON_STAR_LUMINOSITY_W = (
 
 _SUPERNOVA_AGE_YEARS = 1000.0
 
+_QUASAR_MASS_SOLAR = 1e9
+_QUASAR_LUMINOSITY_W = 0.25 * prog_c.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * _QUASAR_MASS_SOLAR
+
 
 def _base_record(phenomenon_type, **overrides):
     common = {
@@ -141,6 +144,20 @@ def _base_record(phenomenon_type, **overrides):
         "rogue-planet": {"mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g"},
         "comet": {"nucleus_diameter_km": 1.0, "velocity_kms": 40.0, "is_active": True},
         "asteroid-field": {"density": "typical", "radius_ly": 0.5},
+        "quasar": {
+            "black_hole_mass_solar": _QUASAR_MASS_SOLAR,
+            "event_horizon_radius_km": (
+                2 * pc.G * (_QUASAR_MASS_SOLAR * pc.SOLAR_MASS_TO_KG) / pc.SPEED_OF_LIGHT_M_S ** 2
+            ) / 1000,
+            "eddington_ratio": 0.25,
+            "luminosity_w": _QUASAR_LUMINOSITY_W,
+            "accretion_rate_solar_per_year": (
+                _QUASAR_LUMINOSITY_W / (prog_c.QUASAR_RADIATIVE_EFFICIENCY * pc.SPEED_OF_LIGHT_M_S ** 2)
+                * pc.SECONDS_PER_YEAR / pc.SOLAR_MASS_TO_KG
+            ),
+            "broad_line_region_light_days": 100.0,
+            "is_radio_loud": True, "jet_length_ly": 1e5, "active_age_years": 1e7,
+        },
     }
     record = {**common, **by_type[phenomenon_type]}
     record.update(overrides)
@@ -222,3 +239,21 @@ def test_check_hard_invariants_flags_comet_velocity_out_of_range():
 def test_check_hard_invariants_flags_asteroid_field_bad_density():
     issues = pp.check_hard_invariants(_base_record("asteroid-field", density="chunky"))
     assert any("density" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_quasar_luminosity_mismatch():
+    issues = pp.check_hard_invariants(_base_record("quasar", luminosity_w=1.0))
+    assert any("luminosity_w" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_radio_quiet_quasar_with_jets():
+    issues = pp.check_hard_invariants(_base_record("quasar", is_radio_loud=False))
+    assert any("jet_length_ly" in issue for issue in issues)
+
+
+def test_quasar_record_has_no_galactic_orbit():
+    # A quasar is the galactic center, so its record never carries orbit
+    # fields and the orbit checks don't apply to it.
+    record = pp.generate_sample("quasar", 1)[0]
+    assert "galactic_orbital_period_gy" not in record
+    assert pp.check_hard_invariants(record) == []

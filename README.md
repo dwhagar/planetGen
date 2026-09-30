@@ -16,7 +16,7 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 *   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
 *   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
 *   **Sector generation**: `generate.py sector` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below. Each system placed in a sector records a `location`: its sector's name plus distance (in light-years) to its 3 nearest neighboring systems.
-*   **Exotic stellar phenomena**: `generate.py phenomenon` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet, or standalone asteroid field on demand — kept separate from normal system generation odds (`generate.py system`/`sector` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below. Every standalone phenomenon still orbits the galactic center like a lone star does, advanced over time the same way by `updateOrbits.py`.
+*   **Exotic stellar phenomena**: `generate.py phenomenon` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet, standalone asteroid field, or quasar on demand — kept separate from normal system generation odds (`generate.py system`/`sector` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below. Every standalone phenomenon except a quasar still orbits the galactic center like a lone star does, advanced over time the same way by `updateOrbits.py`; a quasar is the galaxy's own active nucleus and sits at the center itself.
 
 ## Setup
 
@@ -135,7 +135,7 @@ Each run saves the whole generated sector — every system, star, planet, moon, 
 
 ### Sector-Level Exotic Phenomena
 
-Every generated sector also seeds a realistically sparse population of `generate.py phenomenon`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems.
+Every generated sector also seeds a realistically sparse population of `generate.py phenomenon`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems. Separately, a galaxy's nucleus is active 10% of the time (`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`): when it is, the first core sector (shell 0, slot 0) gets a quasar at the galactic center, so a galaxy never has more than one.
 
 Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `stellarObjects/spaceSector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cube instead.
 
@@ -187,10 +187,10 @@ independent of any one sector (see "Sector-Level Exotic Phenomena" above
 for the population every generated sector gets automatically):
 
 ```bash
-python generate.py phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field} [options]
+python generate.py phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field,quasar} [options]
 ```
 
-Omitting `--type` picks uniformly at random among all seven. `--anchor-system`
+Omitting `--type` picks uniformly at random among the first seven; a quasar is only made when asked for by name, and `--sector-id` only accepts a shell-0 (galactic core) sector for one, placing it at the galactic center. `--anchor-system`
 (black hole/neutron star only) builds a full star system around the
 compact remnant instead of describing it standalone — real pulsar planets
 exist (PSR B1257+12) — reusing all of `generate.py system`'s own orbit-placement

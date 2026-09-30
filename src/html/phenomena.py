@@ -36,6 +36,7 @@ _TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
+    "quasar": "Quasar",
 }
 
 
