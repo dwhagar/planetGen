@@ -32,6 +32,7 @@ from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_sto
 from .helpers import crumb, render_page, trusted_html
 
 from mdconvert import markdown_to_html
+from stellarObjects.generationLimits import MAX_NUM_ORBITS
 
 TRISTATE_FIELDS = (
     # (generate.py option name, label) -- the same ten, in the same order,
@@ -100,7 +101,7 @@ def system_request(form):
     age = _text(form, "age")
     if age not in ("", "young", "old"):
         raise FormError("Age must be young, old or left to the generator.")
-    num_orbits = _number(form, "num_orbits", "Orbital slots", int, minimum=0)
+    num_orbits = _number(form, "num_orbits", "Orbital slots", int, minimum=0, maximum=MAX_NUM_ORBITS)
     chance_system = _number(form, "flavor_chance_system", "System flavor chance", float, minimum=0.0, maximum=1.0)
     chance_planet = _number(form, "flavor_chance_planet", "Planet flavor chance", float, minimum=0.0, maximum=1.0)
     max_flavor = bool(form.get("max_planet_flavor"))
@@ -229,6 +230,7 @@ def _page(admin, form=None, result=None, error=None, status=200):
         tristate_choices=TRISTATE_CHOICES,
         formats=FORMATS,
         system_file_example=SYSTEM_FILE_EXAMPLE,
+        max_num_orbits=MAX_NUM_ORBITS,
         result=result,
         error=error,
         status=status,

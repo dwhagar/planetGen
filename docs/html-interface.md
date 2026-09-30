@@ -291,6 +291,11 @@ terminal on the server, as background jobs:
 | Plan the galaxy | `generate.py plan` with the galaxy shape fields. |
 | Reset | `src/resetDb.py --yes`. |
 
+The number fields have upper bounds, the same ones `generate.py` checks
+(`src/stellarObjects/generationLimits.py`): a radius of at most 200 pc,
+rings up to 100,000, and at most 500 orbital slots on the one-off system
+page.
+
 New galaxy and Reset delete every generated row, so both need the
 database name typed back. Every job writes the database this site shows,
 passed to the child as `PLANETGEN_MYSQL_*` environment variables (so the

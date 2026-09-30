@@ -83,7 +83,7 @@
       {{ plan_inputs() }}
     </details>
     <div class="search-fields">
-      {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1) }}
+      {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1, max=max_radius_pc) }}
       {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
                hint="1.0 is as dense as the Sun's neighborhood.") }}
       {{ confirm_field("new-galaxy-confirm") }}
@@ -107,19 +107,19 @@
       <p class="hint">{{ text }}</p>
       <div class="search-fields">
       {%- if mode == "random" %}
-        {{ field("radius_pc", "Radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1) }}
-        {{ field("max_ring", "Highest ring", placeholder="Milky Way size", step="1", min=0) }}
+        {{ field("radius_pc", "Radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1, max=max_radius_pc) }}
+        {{ field("max_ring", "Highest ring", placeholder="Milky Way size", step="1", min=0, max=max_ring) }}
         {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
       {%- elif mode == "ring" %}
-        {{ field("ring", "Ring", step="1", min=0) }}
+        {{ field("ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("layer", "Layer", placeholder="0", step="1") }}
-        {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1) }}
+        {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1, max=max_limit) }}
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_ring" value="1"> Allow a very large ring (over 2,000 slots) without a limit</span></label>
       {%- elif mode == "center" %}
         {{ field("center_sector", "Sector ID", step="1", min=1) }}
-        {{ field("center_radius_pc", "Radius (pc)", min=0.1) }}
+        {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc) }}
       {%- elif mode == "slot" %}
-        {{ field("slot_ring", "Ring", step="1", min=0) }}
+        {{ field("slot_ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("slot_layer", "Layer", placeholder="0", step="1") }}
         {{ field("slot", "Slot", step="1", min=0) }}
       {%- endif %}

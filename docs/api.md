@@ -573,7 +573,7 @@ it the same way `generate.py system` does, via `StarSystem(system_config=...)`:
 ```
 
 Accepted fields: `markdown`, `star_type`, `name`, `age` (`"young"`,
-`"old"`, or `null`), `num_orbits` (positive integer or `null`), and the
+`"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), and the
 tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
 `max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
 (`true`, `false`, or `null`) — `wide_binary` selects an S-type (wide) vs.

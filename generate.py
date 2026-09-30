@@ -77,7 +77,7 @@ from rich.progress import (
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, log, program_constants, progressFile
+from stellarObjects import _db, generationLimits, log, program_constants, progressFile
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
@@ -398,9 +398,17 @@ def validate_system_args(args, parser):
                 isinstance(file_star_type, str) and STAR_TYPE_PATTERN.fullmatch(file_star_type.upper())):
             parser.error(f"--system-file {args.system_file!r}: star_type {file_star_type!r} is not a "
                          f"spectral type (e.g. G2V).")
+        file_num_orbits = file_data.get("num_orbits")
+        if file_num_orbits is not None and not (
+                isinstance(file_num_orbits, int) and not isinstance(file_num_orbits, bool)
+                and 0 <= file_num_orbits <= generationLimits.MAX_NUM_ORBITS):
+            parser.error(f"--system-file {args.system_file!r}: num_orbits {file_num_orbits!r} must be a "
+                         f"whole number from 0 to {generationLimits.MAX_NUM_ORBITS}.")
 
     if args.num_orbits is not None and args.num_orbits < 0:
         parser.error("--num-orbits must be zero or a positive integer.")
+    if args.num_orbits is not None and args.num_orbits > generationLimits.MAX_NUM_ORBITS:
+        parser.error(f"--num-orbits must be at most {generationLimits.MAX_NUM_ORBITS}.")
 
     if args.num_orbits is not None and args.planets is False:
         parser.error("--num-orbits cannot be combined with -planets.")
@@ -1300,6 +1308,8 @@ def validate_galaxy_args(args, parser):
 
     if args.ring is not None and args.ring < 0:
         parser.error("--ring must be >= 0.")
+    if args.ring is not None and args.ring > generationLimits.MAX_GENERATE_RING:
+        parser.error(f"--ring must be at most {generationLimits.MAX_GENERATE_RING}.")
     if args.layer is not None and args.ring is None:
         parser.error("--layer requires --ring.")
     if args.ring is not None and args.layer is None:
@@ -1327,11 +1337,15 @@ def validate_galaxy_args(args, parser):
                      "--ring nor --center-sector), not --ring.")
     if args.radius_pc is not None and args.radius_pc <= 0:
         parser.error("--radius-pc must be a positive number.")
+    if args.radius_pc is not None and args.radius_pc > generationLimits.MAX_GENERATE_RADIUS_PC:
+        parser.error(f"--radius-pc must be at most {generationLimits.MAX_GENERATE_RADIUS_PC:g}.")
 
     if args.limit is not None and args.ring is None:
         parser.error("--limit only applies to --ring.")
     if args.limit is not None and args.limit < 1:
         parser.error("--limit must be a positive integer.")
+    if args.limit is not None and args.limit > generationLimits.MAX_GENERATE_LIMIT:
+        parser.error(f"--limit must be at most {generationLimits.MAX_GENERATE_LIMIT}.")
     if args.yes and args.ring is None:
         parser.error("--yes only applies to --ring.")
 
@@ -1339,6 +1353,8 @@ def validate_galaxy_args(args, parser):
         parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and args.max_ring < 0:
         parser.error("--max-ring must be >= 0.")
+    if args.max_ring is not None and args.max_ring > generationLimits.MAX_GENERATE_RING:
+        parser.error(f"--max-ring must be at most {generationLimits.MAX_GENERATE_RING}.")
 
     if args.min_start_density is not None and not random_start:
         parser.error("--min-start-density only applies to random-start mode (neither --ring nor "
@@ -2331,6 +2347,8 @@ def validate_phenomenon_args(args, parser):
         parser.error("--num-orbits requires --anchor-system.")
     if args.num_orbits is not None and args.num_orbits < 0:
         parser.error("--num-orbits must be zero or a positive integer.")
+    if args.num_orbits is not None and args.num_orbits > generationLimits.MAX_NUM_ORBITS:
+        parser.error(f"--num-orbits must be at most {generationLimits.MAX_NUM_ORBITS}.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
     if args.sector_id is not None and args.anchor_system:

@@ -229,6 +229,13 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "slot", "slot_ring": "x", "slot": "1"}, "Ring must be a whole number."),
     ({"mode": "random", "radius_pc": "nan"}, "Radius (pc) must be a finite number."),
     ({"mode": "bogus"}, "Choose what to generate."),
+    ({"mode": "random", "radius_pc": "200.5"}, "Radius (pc) must be at most 200."),
+    ({"mode": "random", "max_ring": "9" * 25}, "Highest ring must be at most 100000."),
+    ({"mode": "ring", "ring": "100001"}, "Ring must be at most 100000."),
+    ({"mode": "ring", "ring": "3", "limit": "1e30"}, "Limit must be a whole number."),
+    ({"mode": "ring", "ring": "3", "limit": "9999999"}, "Limit must be at most"),
+    ({"mode": "center", "center_sector": "9", "center_radius_pc": "1e9"}, "Radius (pc) must be at most 200."),
+    ({"mode": "slot", "slot_ring": "100001", "slot": "0"}, "Ring must be at most 100000."),
 ])
 def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
     resp = _post(client, action="galaxy", **form)
@@ -555,6 +562,7 @@ def test_system_options_match_generate_py():
     ({"intelligent_life": "yes", "habitable_world": "no"}, "Intelligent life"),
     ({"num_orbits": "3", "planets": "no"}, "Orbital slots"),
     ({"num_orbits": "-1"}, "at least 0"),
+    ({"num_orbits": "501"}, "at most 500"),
     ({"flavor_chance_planet": "1.5"}, "at most 1"),
     ({"habitable_world": "yes", "asteroid_belt": "yes", "large_star": "no"}, "large star"),
     ({"system_file": "{nope"}, "valid JSON"),
@@ -625,3 +633,67 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     wiki = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
                           capture_output=True, text=True, timeout=120, env=env)
     assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
+
+
+# --- Upper bounds (docs/TODO.md item 39) ----------------------------------
+
+from stellarObjects import generationLimits  # noqa: E402
+
+
+def _generate_py_args(monkeypatch, argv):
+    """`generate.process_args()` on `argv`: the Namespace (valid) or
+    raises SystemExit (a usage error)."""
+    import generate
+    monkeypatch.setattr(sys, "argv", ["generate.py"] + argv)
+    return generate.process_args()
+
+
+def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, monkeypatch):
+    """The page's bounds and generate.py's are the same constants: the
+    largest value the page accepts, generate.py accepts too."""
+    limits = generationLimits
+    forms = [
+        {"mode": "random", "radius_pc": str(limits.MAX_GENERATE_RADIUS_PC),
+         "max_ring": str(limits.MAX_GENERATE_RING)},
+        {"mode": "ring", "ring": str(limits.MAX_GENERATE_RING), "limit": str(limits.MAX_GENERATE_LIMIT)},
+        {"mode": "center", "center_sector": "9", "center_radius_pc": str(limits.MAX_GENERATE_RADIUS_PC)},
+    ]
+    for form in forms:
+        argv, _description = generate_page.galaxy_argv(form)
+        _generate_py_args(monkeypatch, ["galaxy"] + argv)
+    num_orbits = str(limits.MAX_NUM_ORBITS)
+    assert system_page.system_request({"num_orbits": num_orbits})
+    _generate_py_args(monkeypatch, ["system", "--num-orbits", num_orbits])
+
+
+@pytest.mark.parametrize("argv", [
+    ["galaxy", "--radius-pc", "200.1"],
+    ["galaxy", "--max-ring", "100001"],
+    ["galaxy", "--ring", "100001", "--limit", "1"],
+    ["galaxy", "--ring", "3", "--limit", str(generationLimits.MAX_GENERATE_LIMIT + 1)],
+    ["galaxy", "--center-sector", "9", "--radius-pc", "1e9"],
+    ["system", "--num-orbits", str(generationLimits.MAX_NUM_ORBITS + 1)],
+    ["phenomenon", "--anchor-system", "--num-orbits", "9" * 25],
+])
+def test_generate_py_rejects_values_past_the_bounds(argv, monkeypatch, capsys):
+    with pytest.raises(SystemExit) as exc:
+        _generate_py_args(monkeypatch, argv)
+    assert exc.value.code == 2
+    assert "must be at most" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("value", [generationLimits.MAX_NUM_ORBITS + 1, -1, 2.5, True, "3"])
+def test_generate_py_rejects_bad_orbits_in_a_system_file(value, tmp_path, monkeypatch, capsys):
+    path = tmp_path / "system.json"
+    path.write_text(json.dumps({"num_orbits": value}))
+    with pytest.raises(SystemExit):
+        _generate_py_args(monkeypatch, ["system", "--system-file", str(path)])
+    assert "num_orbits" in capsys.readouterr().err
+
+
+def test_page_inputs_carry_the_bounds(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert f'max="{generationLimits.MAX_GENERATE_RING}"' in html
+    assert f'max="{generationLimits.MAX_GENERATE_LIMIT}"' in html
+    html = client.get("/admin/generate/system").get_data(as_text=True)
+    assert f'max="{generationLimits.MAX_NUM_ORBITS}"' in html
