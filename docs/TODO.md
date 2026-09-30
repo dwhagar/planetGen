@@ -792,10 +792,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
     `low_orbit` ignores the planet's radius. Test:
     `test_moons_orbit_outside_their_parents_body`.
-42. [ ] **A close binary's planets can orbit inside the binary.**
-    `StarSystem._generate_planets` has no floor at the stars' separation
-    (about 5% of close binaries). Test:
-    `test_circumbinary_bodies_orbit_outside_the_binary`.
 43. [ ] **A planet's Hill sphere can overlap the belt inside it.**
     `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
     but a belt after a planet must clear 5 Hill radii. Test:
