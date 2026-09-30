@@ -107,6 +107,11 @@ def test_neighbor_slots_never_straddle_a_master_line():
                 assert other // per_inner == wedge
 
 
+def test_ring_sector_count_overflows_instead_of_looping_forever():
+    with pytest.raises(OverflowError):
+        ring_sector_count(int(1e308))
+
+
 def test_ring_sector_count_rejects_negative_ring():
     with pytest.raises(ValueError):
         ring_sector_count(-1)

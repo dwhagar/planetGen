@@ -113,6 +113,7 @@ function densityUpperBound(r0, zMinAbs, shape) {
 export function ringMasterCount(ring) {
   var c = 2 * Math.PI * (ring + 0.5);
   var master = 3;
+  if (!isFinite(c)) return NaN;
   while (c >= 2 * master * 8) master *= 2;
   return master;
 }
