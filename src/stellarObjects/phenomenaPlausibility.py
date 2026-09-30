@@ -45,11 +45,12 @@ from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
 from .nebulaData import Nebula
 from .plausibility import iqr_bounds
+from .quasarData import Quasar
 from .roguePlanetData import InterstellarComet, RoguePlanet
 from .supernovaRemnantData import SupernovaRemnant
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
-"""tuple: The seven phenomenon types this module can generate/check --
+"""tuple: The eight phenomenon types this module can generate/check --
 identical to `phenomenonGen.py`'s own `--type` choices."""
 
 STATISTICAL_METRICS_BY_TYPE = {
@@ -60,6 +61,7 @@ STATISTICAL_METRICS_BY_TYPE = {
     "rogue-planet": ("mass_kg", "radius_km"),
     "comet": ("nucleus_diameter_km", "velocity_kms"),
     "asteroid-field": ("radius_ly",),
+    "quasar": ("black_hole_mass_solar", "eddington_ratio", "luminosity_w", "broad_line_region_light_days"),
 }
 """dict: `phenomenon_type -> (metric_name, ...)` -- the continuous metrics
 `analyze` runs IQR outlier detection on for that type, mirroring
@@ -120,6 +122,12 @@ CATEGORY_EXPECTATIONS = {
     "asteroid-field": {
         "density": {"dense": 1 / 3, "sparse": 1 / 3, "typical": 1 / 3},
     },
+    "quasar": {
+        "is_radio_loud": {
+            True: prog_c.QUASAR_RADIO_LOUD_CHANCE,
+            False: 1 - prog_c.QUASAR_RADIO_LOUD_CHANCE,
+        },
+    },
 }
 """dict: `phenomenon_type -> {field: {value: expected_proportion, ...}}`,
 each inner dict's proportions summing to 1 -- the discrete-choice
@@ -159,6 +167,8 @@ def _build_phenomenon(phenomenon_type, system_config):
         return InterstellarComet(system_config)
     if phenomenon_type == "asteroid-field":
         return AsteroidField(system_config)
+    if phenomenon_type == "quasar":
+        return Quasar(system_config)
     raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
 
 
@@ -169,13 +179,16 @@ def _extract_record(phenomenon_type, obj):
     `analyze`) operates on, mirroring `plausibility._extract_record`'s
     identical role.
     """
-    record = {
-        "phenomenon_type": phenomenon_type,
-        "galactic_orbital_speed_kms": obj.galactic_orbital_speed_kms,
-        "galactic_orbital_period_gy": obj.galactic_orbital_period_gy,
-        "galactic_orbital_phase_deg": obj.galactic_orbital_phase_deg,
-        "galactic_min_update_interval_years": obj.galactic_min_update_interval_years,
-    }
+    record = {"phenomenon_type": phenomenon_type}
+    # Every type but a quasar orbits the galactic center; a quasar is the
+    # center, so it has no galactic_orbital_* fields at all.
+    if phenomenon_type != "quasar":
+        record.update({
+            "galactic_orbital_speed_kms": obj.galactic_orbital_speed_kms,
+            "galactic_orbital_period_gy": obj.galactic_orbital_period_gy,
+            "galactic_orbital_phase_deg": obj.galactic_orbital_phase_deg,
+            "galactic_min_update_interval_years": obj.galactic_min_update_interval_years,
+        })
 
     if phenomenon_type == "black-hole":
         record.update({
@@ -220,6 +233,18 @@ def _extract_record(phenomenon_type, obj):
         })
     elif phenomenon_type == "asteroid-field":
         record.update({"density": obj.density, "radius_ly": obj.radius_ly})
+    elif phenomenon_type == "quasar":
+        record.update({
+            "black_hole_mass_solar": obj.black_hole_mass_solar,
+            "event_horizon_radius_km": obj.event_horizon_radius_km,
+            "eddington_ratio": obj.eddington_ratio,
+            "luminosity_w": obj.luminosity_w,
+            "accretion_rate_solar_per_year": obj.accretion_rate_solar_per_year,
+            "broad_line_region_light_days": obj.broad_line_region_light_days,
+            "is_radio_loud": obj.is_radio_loud,
+            "jet_length_ly": obj.jet_length_ly,
+            "active_age_years": obj.active_age_years,
+        })
 
     return record
 
@@ -281,18 +306,19 @@ def check_hard_invariants(record):
     issues = []
     phenomenon_type = record["phenomenon_type"]
 
-    phase = record["galactic_orbital_phase_deg"]
-    if not (math.isfinite(phase) and 0 <= phase < 360):
-        issues.append(f"galactic_orbital_phase_deg={phase!r} is not finite and in [0, 360)")
-    period = record["galactic_orbital_period_gy"]
-    if not (math.isfinite(period) and period > 0):
-        issues.append(f"galactic_orbital_period_gy={period!r} is not a finite, positive value")
-    speed = record["galactic_orbital_speed_kms"]
-    if not (math.isfinite(speed) and speed > 0):
-        issues.append(f"galactic_orbital_speed_kms={speed!r} is not a finite, positive value")
-    guard = record["galactic_min_update_interval_years"]
-    if not (math.isfinite(guard) and guard > 0):
-        issues.append(f"galactic_min_update_interval_years={guard!r} is not a finite, positive value")
+    if phenomenon_type != "quasar":
+        phase = record["galactic_orbital_phase_deg"]
+        if not (math.isfinite(phase) and 0 <= phase < 360):
+            issues.append(f"galactic_orbital_phase_deg={phase!r} is not finite and in [0, 360)")
+        period = record["galactic_orbital_period_gy"]
+        if not (math.isfinite(period) and period > 0):
+            issues.append(f"galactic_orbital_period_gy={period!r} is not a finite, positive value")
+        speed = record["galactic_orbital_speed_kms"]
+        if not (math.isfinite(speed) and speed > 0):
+            issues.append(f"galactic_orbital_speed_kms={speed!r} is not a finite, positive value")
+        guard = record["galactic_min_update_interval_years"]
+        if not (math.isfinite(guard) and guard > 0):
+            issues.append(f"galactic_min_update_interval_years={guard!r} is not a finite, positive value")
 
     if phenomenon_type == "black-hole":
         mass = record["mass_solar"]
@@ -390,6 +416,36 @@ def check_hard_invariants(record):
             issues.append(f"radius_ly={record['radius_ly']!r} outside {prog_c.ASTEROID_FIELD_RADIUS_RANGE_LY}")
         if record["density"] not in ("dense", "sparse", "typical"):
             issues.append(f"density={record['density']!r} is not a recognized value")
+
+    elif phenomenon_type == "quasar":
+        mass = record["black_hole_mass_solar"]
+        lo, hi = prog_c.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR
+        if not (lo <= mass <= hi):
+            issues.append(f"black_hole_mass_solar={mass!r} outside {prog_c.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR}")
+        lo, hi = prog_c.QUASAR_EDDINGTON_RATIO_RANGE
+        if not (lo <= record["eddington_ratio"] <= hi):
+            issues.append(f"eddington_ratio={record['eddington_ratio']!r} outside {prog_c.QUASAR_EDDINGTON_RATIO_RANGE}")
+        expected_radius_km = (
+            2 * pc.G * (mass * pc.SOLAR_MASS_TO_KG) / pc.SPEED_OF_LIGHT_M_S ** 2
+        ) / 1000
+        _isclose_or_flag(issues, "event_horizon_radius_km", record["event_horizon_radius_km"], expected_radius_km)
+        expected_luminosity_w = record["eddington_ratio"] * prog_c.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * mass
+        _isclose_or_flag(issues, "luminosity_w", record["luminosity_w"], expected_luminosity_w)
+        expected_accretion = (
+            record["luminosity_w"] / (prog_c.QUASAR_RADIATIVE_EFFICIENCY * pc.SPEED_OF_LIGHT_M_S ** 2)
+            * pc.SECONDS_PER_YEAR / pc.SOLAR_MASS_TO_KG
+        )
+        _isclose_or_flag(issues, "accretion_rate_solar_per_year", record["accretion_rate_solar_per_year"],
+                         expected_accretion)
+        if record["is_radio_loud"] != (record["jet_length_ly"] is not None):
+            issues.append("jet_length_ly must be set exactly when is_radio_loud is True")
+        elif record["is_radio_loud"]:
+            lo, hi = prog_c.QUASAR_JET_LENGTH_RANGE_LY
+            if not (lo <= record["jet_length_ly"] <= hi):
+                issues.append(f"jet_length_ly={record['jet_length_ly']!r} outside {prog_c.QUASAR_JET_LENGTH_RANGE_LY}")
+        lo, hi = prog_c.QUASAR_ACTIVE_AGE_RANGE_YEARS
+        if not (lo <= record["active_age_years"] <= hi):
+            issues.append(f"active_age_years={record['active_age_years']!r} outside {prog_c.QUASAR_ACTIVE_AGE_RANGE_YEARS}")
 
     return issues
 
