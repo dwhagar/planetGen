@@ -35,8 +35,8 @@ renumber when items are added or finished.
 
 - **The known generation bugs (40-45) come first**; their tests are
    already written.
-- **Bug fixes (1-7)** come next, from Boss's notes of 2026-09-30. 1
-   (distance units) touches the most files; 2-4 are small web changes;
+- **Bug fixes (2-7)** come next, from Boss's notes of 2026-09-30. 2-4
+   are small web changes;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
@@ -71,74 +71,6 @@ renumber when items are added or finished.
 
 ### Bug fixes (Boss's notes, 2026-09-30)
 
-1. [ ] **Show every distance in its most meaningful unit.** Boss: "If
-   it's under AU it's km, it goes: km < AU < mpc (milliparsec) < cpc
-   (centiparsec) < ly < pc < kpc < Mpc < Gpc. All radii, all distances,
-   all orbital distances, etc need to use this, so all distances should
-   get passed through a helper function before displayed."
-   - Add one helper (Python in `stellarObjects/utils.py`, re-exported by
-     `html/lib/fmt.py`; a matching `static/distance.js`) that picks the
-     largest unit the value is at least 1 of.
-   - **Parsec values carry a second unit in parentheses** (Boss,
-     2026-09-30: "I like having the ly in parenthesis alongside a
-     parsec"). Every value shown in mpc, cpc, pc, kpc, Mpc or Gpc gets one
-     parenthetical, picked by the same distance:
-     - lightyears when the distance is at least 0.01 ly: "4.2 pc
-       (13.7 ly)", "15.3 cpc (0.499 ly)";
-     - else AU when it is at least 0.01 AU: "2.4 mpc (495 AU)" (1 mpc is
-       about 0.0033 ly, so values under about 3.07 mpc land here);
-     - else km (Boss: "since those are what most people understand").
-       No parsec-family value is that small (1 mpc is about 206 AU), but
-       the helper applies the rule as written.
-     - Values shown in km, AU or ly get no parenthetical; the ly rung
-       stays on the ladder, so 1 to 3.26 ly still shows as plain ly.
-     - Thresholds as named constants next to the unit constants, e.g.
-       `DISTANCE_PAREN_MIN_LY = 0.01` and `DISTANCE_PAREN_MIN_AU = 0.01`.
-   - Boss confirmed the order and the constants on 2026-09-30 (use these
-     exact values, in meters, as named constants):
-
-     | Unit | Meters | Relation |
-     |---|---|---|
-     | km | 1e3 | |
-     | AU | 149,597,870,700 (exact IAU) | ≈ 1.496e8 km |
-     | milliparsec | pc × 1e-3 ≈ 3.0857e13 | ≈ 206.3 AU |
-     | centiparsec | pc × 1e-2 ≈ 3.0857e14 | ≈ 2,063 AU |
-     | lightyear | 9,460,730,472,580,800 (c × 365.25 days, exact) | ≈ 0.3066 pc |
-     | parsec | 3.085677581491367e16 (648000/π AU) | ≈ 3.26 ly |
-     | kiloparsec | pc × 1e3 | |
-     | Megaparsec | pc × 1e6 | |
-     | Gigaparsec | pc × 1e9 | |
-
-     `physical_constants` rounds them today (`AU_TO_KM = 1.496e8`,
-     `AU_TO_M`, `LY_TO_M = 9.461e15`, `LY_TO_AU = 63241.1`); replace them
-     with these exact values and derive every conversion from them (that
-     shifts stored-value tests slightly).
-   - **Radii are the exception** (Boss, 2026-09-30): planet, moon and
-     star radii are always shown in km in scientific notation
-     (`format_star_radius`, `planetData.Planet.get_table_properties`,
-     `starData.Star.get_table_properties` via `utils.format_length_km`,
-     which today only switches to scientific above a threshold). Other
-     radii (nebulae, asteroid fields, remnants) use the ladder.
-   - Today every page has its own formatter. Sites, each marked
-     `TODO(distances #1)`: `tabledisplay.format_body_distance` (moons
-     always km, planets AU/km/ly), `format_star_radius` and
-     `utils.format_length_km` (km only), `fmt.format_distance_ly`,
-     `planetData.Planet.get_table_properties`,
-     `asteroidData.AsteroidBelt.to_paragraph_list`,
-     `systempage._belts_table_html` and `systemmap._belt_ring_svg` (raw
-     km), `system_pages._ly`/`FIELD_SPECS`, `sector_page._contents`,
-     `searchpage._km`, and in JS `systemmap.js formatDistanceKm`,
-     `phenomenonmap.js formatSpan`, `sectormap.js formatLy`,
-     `galaxymap3d.js formatPcLy`/`formatPc`. Also `views._sector_rows`,
-     `galaxy_views._quadrant_summary_rows`, `starmap._cloud_data`,
-     `navmap._scale_bar_html`, `routes._sector_wiki_content`, and the ly
-     in `galaxy.html` and `nav.html`.
-
-   Done means no page or text output formats a distance itself, body
-   radii are always km in scientific notation, parsec values carry their
-   parenthetical, and tests pin one value in each unit and each boundary
-   (including 0.01 ly and 0.01 AU for the parenthetical).
-
 2. [ ] **Planet list: one type chip, a habitable-moon chip, belt
    distances.** Boss: "if a planet is not terrestrial it is not
    habitable so no need to display both. Likewise, no need to say both
@@ -150,7 +82,7 @@ renumber when items are added or finished.
      "Gas Giant", "Terrestrial" or "Habitable", never two of them.
    - New chip (e.g. "Habitable moon") when any moon is habitable;
      `queryDb._with_life_fields`/`system_detail` sets the flag.
-   - `systempage._belt_row_html`: add the belt's distance (#1).
+   - `systempage._belt_row_html`: add the belt's distance (`fmt.format_distance_km`).
 
 3. [ ] **A less dense top bar.** Boss: "Admin should be a menu dropdown
    with 'Admin', 'generate' and 'logout', if the search bar text entry
@@ -935,7 +867,7 @@ Each has a `TODO(physics #N)` comment where the fix goes.
       Default taken: a comet sorts by its semi-major axis
       (`perihelion_distance_km / (1 - eccentricity)`), and parabolic
       ones (no finite axis) go last by perihelion. Each belt and comet
-      row shows its distance (#1).
+      row shows its distance (`fmt.format_distance_km`).
 
 49. [ ] **System Map names never overlap.** Boss: "we need to make sure
     names on the system map clickable interface do not overlap."

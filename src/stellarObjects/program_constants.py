@@ -187,12 +187,6 @@ list: A comprehensive list of various components that can be found in asteroids.
 These components are used to generate the composition of asteroid belts.
 """
 
-LY_THRESHOLD = 1.0
-"""
-float: The distance in Light-Years (LY) at which the display format for
-asteroid belt distances switches from AU to LY for better readability.
-"""
-
 # --- Space Sector Generation Parameters ---
 
 # The standard sector edge length, in whole parsecs: the galaxy grid's
@@ -286,9 +280,6 @@ SECTOR_LOCATION_DECIMAL_PLACES = 2
 
 # --- Display / Formatting Parameters ---
 HABITABLE_ZONE_BUFFER_AU = 0.2
-HELIOSPHERE_DISPLAY_THRESHOLD_LY = 0.1
-ROUND_HABITABLE_ZONE_AU = 2
-ROUND_HABITABLE_ZONE_AU_SMALL = 5
 ROUND_RADIUS_KM = 2
 SCIENTIFIC_NOTATION_DECIMAL_PLACES = 2
 ROUND_TEMPERATURE_NEAREST_HUNDRED = -2

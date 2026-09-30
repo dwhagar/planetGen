@@ -90,8 +90,6 @@ def _map_system(row):
     }
 
 
-# TODO(distances #1): radii and distances in this page (and the cube edge
-# in sector()) are fixed ly; use the unit-ladder helper.
 def _contents(sector):
     """
     Every system and phenomenon as Contents rows, nearest the sector's
@@ -122,7 +120,7 @@ def _contents(sector):
     for row in (sector.get("phenomena") or []):
         details = [(row["descriptor"] or "").replace("_", " ").capitalize()]
         if row["radius_ly"]:
-            details.append(f"{row['radius_ly']:,.2f} ly radius")
+            details.append(f"{format_distance_ly(row['radius_ly'])} radius")
         rows.append({
             "distance_ly": row["distance_ly"],
             "name": row["name"],
@@ -236,7 +234,7 @@ def sector(sector_id):
                     f"{'' if system_count == 1 else 's'}, its 3D sector map and nearby phenomena.",
         sector=detail,
         sector_id=sector_id,
-        edge_text=f"{detail['edge_ly']:,.2f} ly",
+        edge_text=format_distance_ly(detail['edge_ly']),
         system_count=system_count,
         phenomenon_count=phenomenon_count,
         quadrant=quadrant,

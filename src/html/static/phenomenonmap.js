@@ -15,22 +15,15 @@
 // to-scale drawing, not a clickable map), so mapzoom.js's own click-vs-
 // drag gate has nothing to protect here -- it's simply inert.
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatDistanceAu } = await import(`./distance.js${VERSION_QUERY}`);
+
 (function () {
   "use strict";
 
-  var AU_PER_LY = 63241.1;
-  var LY_DISPLAY_THRESHOLD_AU = 1000; // above this many AU, show ly instead
-
-  // TODO(distances #1): use the shared unit-ladder formatter.
+  // The viewBox is in AU; the readout goes through the shared ladder.
   function formatSpan(auValue) {
-    if (auValue >= LY_DISPLAY_THRESHOLD_AU) {
-      var lyValue = auValue / AU_PER_LY;
-      return (lyValue >= 10 ? lyValue.toFixed(1) : lyValue.toFixed(2)) + " ly";
-    }
-    if (auValue >= 10) {
-      return Math.round(auValue).toLocaleString() + " AU";
-    }
-    return auValue.toFixed(2) + " AU";
+    return formatDistanceAu(auValue);
   }
 
   function init() {

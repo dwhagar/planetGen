@@ -331,7 +331,7 @@ def test_phenomena_list(app, client, fake):
     assert "3 phenomena" in html
     assert '<a href="/phenomenon/nebula/0">Phenomenon 000</a>' in html
     assert f'<a href="{_url(app, "sector", sector_id=3)}">Home &lt;Sector&gt;</a>' in html
-    assert "Emission nebula" in html and "12.50 ly" in html
+    assert "Emission nebula" in html and "3.83 pc (12.5 ly)" in html
     assert '<form method="post"' not in html
     assert ("get_phenomena", DB, 50, 0) in fake.calls
 
@@ -354,7 +354,7 @@ def test_phenomenon_detail(app, client, fake):
     assert '<a href="/phenomena">Phenomena</a>' in html
     assert _section_current(html, "Phenomena")
     assert '<span class="badge">Nebula</span>' in html
-    assert "3,261.60 ly from Galactic Center" in html or "3,261.56 ly from Galactic Center" in html
+    assert "1 kpc (3,262 ly) from Galactic Center" in html
     assert f'<a href="{_url(app, "sector", sector_id=3)}">Crab &lt;Sector&gt;</a>' in html
     links = _nav_links(app, "nebula", 4)
     assert f'href="{links["from"]}">Navigate from here</a>' in html
@@ -365,7 +365,7 @@ def test_phenomenon_detail(app, client, fake):
     assert 'id="phenomenonmap-svg"' in html
     # The diagram's scripts come from the template with absolute URLs.
     assert re.search(r'<script src="/static/mapzoom.js\?v=[^"]+" defer></script>', html)
-    assert re.search(r'<script src="/static/phenomenonmap.js\?v=[^"]+" defer></script>', html)
+    assert re.search(r'<script type="module" src="/static/phenomenonmap.js\?v=[^"]+"></script>', html)
     assert 'src="static/' not in html
 
 
