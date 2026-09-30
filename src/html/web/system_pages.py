@@ -27,6 +27,7 @@ from systempage import bodies_html, stars_html, system_list_html
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
+from .nav_page import endpoint, nav_url
 
 try:
     from stellarObjects.utils import pc_to_ly
@@ -66,20 +67,9 @@ def _system_url(system_id):
 def nav_links(kind, entity_id):
     """
     "Navigate from here" / "Navigate to here" URLs for a system
-    (`kind="system"`) or a phenomenon (`kind` = its type). Uses the NAV
-    page's own `nav_url`/`endpoint` (`/nav?from=<kind>:<id>`) once that
-    page is on Flask (`web/nav_page.py`); until then the old parameter
-    style for the CGI `nav.py`, which the Flask NAV page also redirects.
+    (`kind="system"`) or a phenomenon (`kind` = its type):
+    `/nav?from=<kind>:<id>` and `/nav?to=<kind>:<id>` (`web/nav_page.py`).
     """
-    try:
-        from .nav_page import endpoint, nav_url
-    except ImportError:
-        if kind == "system":
-            return {"from": page_url("nav", from_id=entity_id), "to": page_url("nav", to_id=entity_id)}
-        return {
-            "from": page_url("nav", from_id=entity_id, from_kind="phenomenon", from_type=kind),
-            "to": page_url("nav", to_id=entity_id, to_kind="phenomenon", to_type=kind),
-        }
     point = endpoint(kind, entity_id)
     return {"from": nav_url(origin=point), "to": nav_url(destination=point)}
 

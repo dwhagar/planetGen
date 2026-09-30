@@ -181,8 +181,8 @@ def _url(app, name, **params):
 
 
 def _nav_links(app, kind, entity_id):
-    """The expected Navigate links, HTML-escaped (their form depends on
-    whether the NAV page has moved to Flask yet)."""
+    """The expected Navigate links (`/nav?from=`/`?to=<kind>:<id>`),
+    HTML-escaped."""
     from markupsafe import escape
     from web.system_pages import nav_links
     with app.test_request_context("/"):
@@ -204,6 +204,7 @@ def test_system_page_renders(app, client, fake):
     # Badges, nav links, location links: all plain GET links.
     assert '<span class="badge">Octant III</span>' in html and "Single star" in html
     links = _nav_links(app, "system", 5)
+    assert links["from"].startswith("/nav?from=system") and links["to"].startswith("/nav?to=system")
     assert f'href="{links["from"]}">Navigate from here</a>' in html
     assert f'href="{links["to"]}">Navigate to here</a>' in html
     assert '<a href="/system/8">Alpha</a> (4.2 ly)' in html
@@ -481,7 +482,16 @@ def _save_system(mysql_config, name=None, moons=True):
     cfg.BINARY_SYSTEM = False
     if name:
         cfg.NAME = name
-    return _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    # The body list's Habitable/Inhabited chips belong to planet rows, and
+    # about 1 in 20 random G2V systems has no planet (nothing, or only a
+    # belt), so draw until one has a planet.
+    system = StarSystem(system_config=cfg)
+    for _ in range(50):
+        if system.planet_count:
+            break
+        system = StarSystem(system_config=cfg)
+    assert system.planet_count
+    return _db.save_system(system, cfg, config=mysql_config)
 
 
 def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):

@@ -110,7 +110,7 @@ def test_q_searches_every_name(client, fake):
     assert 'name="q" value="Kepler"' in html
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
     # Not-yet-moved pages are plain GET links.
-    assert f'href="/sector.py?db={DB}&amp;id=5"' in _panel(html, "sectors")
+    assert 'href="/sector/5"' in _panel(html, "sectors")
     stars = _panel(html, "stars")
     assert 'href="/system/7"' in stars
     assert "118,000 km" in stars

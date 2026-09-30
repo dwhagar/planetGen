@@ -23,6 +23,11 @@
     "dir": "",
     "max_mb": 200
   },
+  "jobs": {
+    "dir": "",
+    "keep": 20,
+    "python": ""
+  },
   "wiki": {
     "wikijs": {
       "base_url": "",

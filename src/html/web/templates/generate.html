@@ -1,0 +1,179 @@
+{#- html/web/templates/generate.html -- /admin/generate (web/generate_page.py). -#}
+{% extends "base.html" %}
+{% from "partials/job_status.html" import job_status with context %}
+{%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None) -%}
+<label class="search-field">{{ label }}
+  <input type="{{ kind }}" name="{{ name }}" value="{{ form.get(name, value) if form else value }}"
+    {%- if kind == "number" %} step="{{ step }}" inputmode="decimal"{% endif %}
+    {%- if min is not none %} min="{{ min }}"{% endif %}
+    {%- if max is not none %} max="{{ max }}"{% endif %}
+    {%- if placeholder %} placeholder="{{ placeholder }}"{% endif %}
+    {%- if required %} required{% endif %}
+    {%- if kind == "text" %} autocomplete="off" autocapitalize="off" spellcheck="false"{% endif %}>
+  {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
+</label>
+{%- endmacro -%}
+{%- macro plan_inputs() -%}
+<div class="search-fields">
+  {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
+  {{ field(name, label, value=default, step="1" if kind is sameas int else "any", min=minimum) }}
+  {%- endfor %}
+</div>
+{%- endmacro -%}
+{%- macro confirm_field(id) -%}
+<label class="search-field">Type the database name to confirm
+  <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
+</label>
+{%- endmacro -%}
+{% block head %}
+<script type="module" src="{{ static_url('generatejobs.js') }}"></script>
+{% endblock %}
+{% block subhead %}
+<p class="badges">
+  <span class="badge">Database {{ database }}</span>
+  {%- if summary.error %}
+  <span class="badge">Database unavailable</span>
+  {%- else %}
+  <span class="badge">{% if summary.shape %}Planned, edge at ring {{ "{:,}".format(summary.shape.outer_ring_index) }}{% else %}Not planned yet{% endif %}</span>
+  <span class="badge">{{ "{:,}".format(summary.sectors or 0) }} sector{{ "" if summary.sectors == 1 else "s" }}</span>
+  {%- endif %}
+</p>
+{% endblock %}
+{% block content %}
+{%- if error %}
+<p class="error" role="alert">{{ error }}</p>
+{%- endif %}
+{%- if jobs_error %}
+<p class="error" role="alert">Jobs can't run on this server: {{ jobs_error }}</p>
+{%- endif %}
+
+<section class="panel" id="current-job" aria-labelledby="current-job-heading"
+  data-status-url="{{ url_for('web.generate_status') }}"{% if active %} data-job="{{ active.id }}"{% endif %}>
+  <h2 id="current-job-heading">Current job</h2>
+  <div data-job-body>
+  {%- if active %}
+  {{ job_status(active, active_log) }}
+  {%- else %}
+  <p class="hint">Nothing is running.</p>
+  {%- endif %}
+  </div>
+</section>
+
+{%- set busy = active is not none %}
+{%- if busy %}
+<p class="hint">The forms below unlock when the current job finishes.</p>
+{%- endif %}
+
+<section class="panel" id="new-galaxy" aria-labelledby="new-galaxy-heading">
+  <h2 id="new-galaxy-heading">New galaxy</h2>
+  <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code>, plans a new galaxy,
+  then generates a first neighborhood around a random populated spot. Admin logins and API keys are kept.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="new_galaxy">
+    <details class="search-more">
+      <summary>Galaxy shape</summary>
+      {{ plan_inputs() }}
+    </details>
+    <div class="search-fields">
+      {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1) }}
+      {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
+               hint="1.0 is as dense as the Sun's neighborhood.") }}
+      {{ confirm_field("new-galaxy-confirm") }}
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn btn-danger"{% if busy %} disabled{% endif %}>Delete and start a new galaxy</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="generate-sectors" aria-labelledby="generate-sectors-heading">
+  <h2 id="generate-sectors-heading">Generate sectors</h2>
+  <p class="hint">Adds sectors to the current galaxy. Plan the galaxy first.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="galaxy">
+    {%- set chosen = form.get("mode", "random") if form else "random" %}
+    {%- for mode, label, text in galaxy_modes %}
+    <fieldset class="generate-mode">
+      <legend><label><input type="radio" name="mode" value="{{ mode }}"{% if mode == chosen %} checked{% endif %}> {{ label }}</label></legend>
+      <p class="hint">{{ text }}</p>
+      <div class="search-fields">
+      {%- if mode == "random" %}
+        {{ field("radius_pc", "Radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1) }}
+        {{ field("max_ring", "Highest ring", placeholder="Milky Way size", step="1", min=0) }}
+        {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
+      {%- elif mode == "ring" %}
+        {{ field("ring", "Ring", step="1", min=0) }}
+        {{ field("layer", "Layer", placeholder="0", step="1") }}
+        {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1) }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="whole_ring" value="1"> Allow a very large ring (over 2,000 slots) without a limit</span></label>
+      {%- elif mode == "center" %}
+        {{ field("center_sector", "Sector ID", step="1", min=1) }}
+        {{ field("center_radius_pc", "Radius (pc)", min=0.1) }}
+      {%- elif mode == "slot" %}
+        {{ field("slot_ring", "Ring", step="1", min=0) }}
+        {{ field("slot_layer", "Layer", placeholder="0", step="1") }}
+        {{ field("slot", "Slot", step="1", min=0) }}
+      {%- endif %}
+      </div>
+    </fieldset>
+    {%- endfor %}
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Generate</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="plan" aria-labelledby="plan-heading">
+  <h2 id="plan-heading">Plan the galaxy</h2>
+  <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist.
+  Sectors already generated stay as they are.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="plan">
+    {{ plan_inputs() }}
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Plan</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="reset" aria-labelledby="reset-heading">
+  <h2 id="reset-heading">Reset</h2>
+  <p>Deletes every sector, system, phenomenon and the plan from <code>{{ database }}</code>. This can't be undone.
+  Admin logins and API keys are kept.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="reset">
+    <div class="search-fields">
+      {{ confirm_field("reset-confirm") }}
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn btn-danger"{% if busy %} disabled{% endif %}>Delete everything</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="recent-jobs" aria-labelledby="recent-jobs-heading">
+  <h2 id="recent-jobs-heading">Recent jobs</h2>
+  {%- if recent %}
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">By</th><th scope="col">Status</th><th scope="col" class="num">Time</th></tr></thead>
+    <tbody>
+      {%- for job in recent %}
+      <tr>
+        <td>{{ job.created_text }}</td>
+        <td><a href="{{ job.url }}">{{ job.title }}</a></td>
+        <td>{{ job.admin or "" }}</td>
+        <td><span class="badge job-{{ job.status }}">{{ job.status }}</span></td>
+        <td class="num">{{ job.elapsed_text }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- else %}
+  <p class="hint">No jobs yet.</p>
+  {%- endif %}
+</section>
+{% endblock %}

@@ -1,5 +1,39 @@
 # Changelog
 
+## [6.2.0] - 2026-09-30
+
+### Changed
+- **The sector page moved to `/sector/<id>`.** It is a Flask page now, with
+  the new header and breadcrumbs, bookmarkable Contents pages
+  (`?contents_page=N`) and no database in the URL. The Sector Map's info
+  panel buttons and its no-JavaScript list are plain links. The admin
+  forms (wiki upload, generate neighborhood) carry a CSRF token and, once
+  they succeed, redirect back to the page with a message, so reloading
+  never repeats them. `sector.py` answers 301 to the new address.
+- **The NAV page moved to `/nav`, and every step is a GET URL.** Endpoints
+  read as `<kind>:<id>`: `/nav?from=system:12&to=nebula:3`; the pickers
+  use `from_sector`/`to_sector`. The NAV Map's points and the route's
+  stops are plain links, and a "Reverse course" link swaps the endpoints.
+  `nav.py` answers 301 to the new address, translating its old
+  parameters, and the old `from_id`/`from_kind`/`from_type` style
+  redirects to the new one.
+
+## [6.1.0] - 2026-09-30
+
+### Added
+- **Generate, plan and reset the galaxy from the web interface.** A new
+  admin-only page, `/admin/generate` (the Generate link in the header),
+  runs `generate.py plan`, `generate.py galaxy` (every mode: random start,
+  whole ring, around a sector, one address) and `resetDb.py` as
+  background jobs, plus a one-click "New galaxy" that resets, plans and
+  generates a first neighborhood. Reset and New galaxy ask for the
+  database name to be typed back. The running job shows its step, a
+  progress bar, elapsed time and live output, and can be cancelled; the
+  last 20 jobs keep their full output. New `jobs` section in
+  `config.json` (`docs/config.md`).
+- `generate.py` writes its progress to `$PLANETGEN_PROGRESS_FILE` when
+  that is set (`stellarObjects/progressFile.py`).
+
 ## [6.0.0] - 2026-09-30
 
 ### Added
