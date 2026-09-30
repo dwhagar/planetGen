@@ -13,6 +13,8 @@ from fmt import format_density, format_distance_ly
 from galaxymap import sector_quadrant
 from pagination import fetch_page, parse_page
 
+from api.limiter import page_limit
+
 from . import bp
 from . import searchpage
 from .helpers import crumb, db_name, page_url, pager, render_page, trusted_html
@@ -110,7 +112,7 @@ def sectors():
     )
 
 
-# TODO(web-pages #59): list every system here, 50 a page through the shared
+# TODO(web-pages #46): list every system here, 50 a page through the shared
 # pager, with its sector and octant (apiclient.get_systems without
 # sector_id); keep standalone systems as their own panel or a filter.
 @bp.route("/systems")
@@ -127,6 +129,7 @@ def systems():
 
 
 @bp.route("/search")
+@page_limit("search")
 def search():
     """
     Faceted search (was `search.py`): `?q=` searches every kind of name

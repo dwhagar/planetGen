@@ -7,10 +7,19 @@ submit, no extra dependency).
 How it works: the first page that renders a form gives the browser a
 random nonce in the `pg_csrf` cookie (HttpOnly, SameSite=Strict, Secure
 unless `SESSION_COOKIE_SECURE` is off). The form carries
-`HMAC-SHA256(SECRET_KEY, nonce)` in a hidden `csrf_token` field. On any
-POST/PUT/PATCH/DELETE to a page (any path outside `/api`), `protect()` recomputes the HMAC
-from the cookie and compares it with the field in constant time; a
-missing or wrong token gets a 400 page and the view never runs.
+`HMAC-SHA256(SECRET_KEY, nonce + SHA-256(admin session cookie))` in a
+hidden `csrf_token` field. On any POST/PUT/PATCH/DELETE to a page (any
+path outside `/api`), `protect()` recomputes the HMAC from the two
+cookies and compares it with the field in constant time; a missing or
+wrong token gets a 400 page and the view never runs.
+
+The token is bound to the login session (`api.authz.SESSION_COOKIE_NAME`,
+empty when nobody is logged in, as on the login form): a token minted
+for one session, or before logging in, fails for any other session.
+Tokens are computed per render, so the pages a browser sees after
+logging in (or after `/account` re-issues its session) already carry
+tokens for the new session; a form left open in another tab from before
+that change fails once and works after a reload.
 
 An attacker's page can make the browser send the cookie (SameSite=Strict
 already stops that for cross-site requests), but it can neither read the
@@ -37,18 +46,28 @@ import secrets
 from flask import abort, current_app, g, request
 from markupsafe import Markup, escape
 
+from api.authz import SESSION_COOKIE_NAME
+
 COOKIE_NAME = "pg_csrf"
 FIELD_NAME = "csrf_token"
 UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
-# TODO(security #49): sign the nonce together with the login session
-# cookie.
-def _sign(nonce):
+def _session():
+    """This request's admin session cookie (`""` when not logged in)."""
+    return request.cookies.get(SESSION_COOKIE_NAME) or ""
+
+
+def _sign(nonce, session=""):
+    """The token for `nonce` bound to the admin session cookie value
+    `session` (`""` for none). Only a hash of the session goes into the
+    HMAC, so its length and characters don't matter."""
     key = current_app.config["SECRET_KEY"]
     if isinstance(key, str):
         key = key.encode("utf-8")
-    return hmac.new(key, nonce.encode("utf-8"), hashlib.sha256).hexdigest()
+    session_hash = hashlib.sha256(str(session or "").encode("utf-8", errors="surrogatepass")).hexdigest()
+    message = f"{nonce}\n{session_hash}".encode("utf-8", errors="surrogatepass")
+    return hmac.new(key, message, hashlib.sha256).hexdigest()
 
 
 def _nonce():
@@ -65,8 +84,9 @@ def _nonce():
 
 
 def csrf_token():
-    """The token value for this request's forms."""
-    return _sign(_nonce())
+    """The token value for this request's forms (bound to this request's
+    login session)."""
+    return _sign(_nonce(), _session())
 
 
 def csrf_field():
@@ -74,25 +94,27 @@ def csrf_field():
     return Markup(f'<input type="hidden" name="{FIELD_NAME}" value="{escape(csrf_token())}">')
 
 
-def valid(submitted, nonce):
-    """Whether `submitted` is the right token for `nonce`."""
+def valid(submitted, nonce, session=""):
+    """Whether `submitted` is the right token for `nonce` and the admin
+    session cookie value `session`."""
     if not submitted or not nonce:
         return False
     # Bytes, not str: compare_digest refuses a str with non-ASCII
     # characters (TypeError), and a submitted token can hold anything.
-    return hmac.compare_digest(str(submitted).encode("utf-8"), _sign(nonce).encode("ascii"))
+    return hmac.compare_digest(str(submitted).encode("utf-8", errors="surrogatepass"),
+                               _sign(nonce, session).encode("ascii"))
 
 
 def protect():
     """App-wide `before_request` hook: rejects an unsafe request to any
     page (anything outside `/api`) whose form token doesn't match its
-    cookie."""
+    cookie and login session."""
     if request.method not in UNSAFE_METHODS:
         return None
     if request.path == "/api" or request.path.startswith("/api/"):
         return None
     submitted = request.form.get(FIELD_NAME) or request.headers.get("X-CSRF-Token")
-    if not valid(submitted, request.cookies.get(COOKIE_NAME)):
+    if not valid(submitted, request.cookies.get(COOKIE_NAME), _session()):
         abort(400, description="This form has expired or was not sent from this site. "
                                "Go back, reload the page and try again.")
     return None

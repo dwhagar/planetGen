@@ -133,6 +133,10 @@ class Config:
     RATELIMIT_DEFAULT = os.environ.get("PLANETGEN_RATELIMIT_DEFAULT", _config_file["ratelimit"]["default"])
     RATELIMIT_STORAGE_URI = os.environ.get("PLANETGEN_RATELIMIT_STORAGE_URI", _config_file["ratelimit"]["storage_uri"])
     RATELIMIT_HEADERS_ENABLED = True
+    # Per-IP limits on the HTML pages and /api/health (`web/ratelimits.py`):
+    # `search`, `galaxy`, `galaxy_tiles`, `health`, and `other` for every
+    # other page. An empty value turns that limit off.
+    RATELIMIT_PAGES = dict(_config_file["ratelimit"].get("pages") or {})
 
     # See `_wiki_config` above -- read by `routes.py`'s
     # `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki` to build

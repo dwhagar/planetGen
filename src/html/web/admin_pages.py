@@ -22,7 +22,8 @@ Rules every view here follows:
   (checked app-wide by `csrf.protect`), answered with a 303 redirect to a
   GET page (POST-redirect-GET). What the POST did (a new API key, a
   message, an error) reaches that GET page through a one-shot signed
-  cookie (`_flash`), never the URL. The one exception is a form that
+  cookie (`_flash`, scoped to `/admin`, the only page that reads it),
+  never the URL. The one exception is a form that
   must be shown again with an inline error and the visitor's input
   (a wrong password on `/login` or `/account`): that answers the POST
   directly, and nothing changed.
@@ -142,6 +143,15 @@ FLASH_COOKIE = "pg_flash"
 _FLASH_MAX_AGE = 300
 
 
+def _flash_path():
+    """The flash cookie's `Path`: `/admin`, the only page that reads it
+    (`_take_flash`). Signed is not encrypted, and a flash can carry a new
+    API key's raw value, so the browser must not send it with every
+    request to the site (logs, other pages, a proxy's headers) -- only
+    back to `/admin` (and the pages under it), which consumes it."""
+    return url_for("web.admin")
+
+
 def _flash_serializer():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="planetgen-web-flash")
 
@@ -151,12 +161,12 @@ def _flash(response, **data):
     Attaches `data` (a new API key, a message, an error) to a redirect
     for the next GET to show once. Signed with `SECRET_KEY` so it can't
     be forged, HttpOnly, SameSite=Strict, Secure like the session cookie,
-    and gone after five minutes or the next page view, whichever is
-    first.
+    sent back only to `/admin` (`_flash_path`), and gone after five
+    minutes or the next `/admin` view, whichever is first.
     """
     response.set_cookie(
         FLASH_COOKIE, _flash_serializer().dumps(data),
-        max_age=_FLASH_MAX_AGE, httponly=True, samesite="Strict", path="/",
+        max_age=_FLASH_MAX_AGE, httponly=True, samesite="Strict", path=_flash_path(),
         secure=current_app.config.get("SESSION_COOKIE_SECURE", True),
     )
     return response
@@ -179,7 +189,7 @@ def _render(template, flashed=False, **kwargs):
     page consumed one."""
     response = _no_store(render_page(template, **kwargs))
     if flashed and request.cookies.get(FLASH_COOKIE):
-        response.delete_cookie(FLASH_COOKIE, path="/", samesite="Strict", httponly=True,
+        response.delete_cookie(FLASH_COOKIE, path=_flash_path(), samesite="Strict", httponly=True,
                                secure=current_app.config.get("SESSION_COOKIE_SECURE", True))
     return response
 
@@ -305,8 +315,6 @@ def _admin_action(cookie_header):
             if not label:
                 return {"error": "Label is required."}, "api-keys"
             new_key = apiclient.auth_create_api_key(cookie_header, label)
-            # TODO(security #50): don't carry the raw key in the flash cookie (scope it
-            # to /admin or keep it server-side for one read).
             return {"new_key": {"label": new_key["label"], "key": new_key["key"]}}, "new-key"
         if action == "revoke_key":
             try:

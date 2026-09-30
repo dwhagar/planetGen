@@ -43,6 +43,7 @@ import tempfile
 import time
 
 from apiclient import get_galaxy_changes, get_galaxy_tiles
+from privatedir import ensure_private_dir
 from stellarObjects.appconfig import load_config
 from stellarObjects.galaxyViewport import parse_tile_key, tile_key
 
@@ -118,12 +119,15 @@ def cache_dir():
         return None
     candidates = [configured]
     if configured == DEFAULT_CACHE_DIR:
-        # TODO(security #42): create this fallback privately or refuse one not
-        # owned by this user.
+        # Private: one another local user created or can write to is
+        # refused (they could plant tiles, or read the cache).
         candidates.append(os.path.join(tempfile.gettempdir(), "planetgen-tiles"))
-    for candidate in candidates:
+    for index, candidate in enumerate(candidates):
         try:
-            os.makedirs(candidate, mode=0o750, exist_ok=True)
+            if index == 0:
+                os.makedirs(candidate, mode=0o750, exist_ok=True)
+            else:
+                ensure_private_dir(candidate)
         except OSError:
             continue
         if os.access(candidate, os.W_OK | os.X_OK):

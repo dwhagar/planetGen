@@ -15,7 +15,14 @@
   "control_database": "planetgen_control",
   "ratelimit": {
     "default": "200 per day;50 per hour",
-    "storage_uri": "memory://"
+    "storage_uri": "memory://",
+    "pages": {
+      "search": "30 per minute",
+      "galaxy": "60 per minute",
+      "galaxy_tiles": "600 per minute",
+      "health": "60 per minute",
+      "other": "300 per minute"
+    }
   },
   "admin_cookie_insecure": false,
   "secret_key": "",

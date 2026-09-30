@@ -33,9 +33,8 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **Security fixes (39-52) come first**, as one PR (Boss asked for the
-   security review next); then the known generation bugs (53-58), whose
-   tests are already written.
+- **The known generation bugs (40-45) come first**; their tests are
+   already written.
 - **Bug fixes (1-7)** come next, from Boss's notes of 2026-09-30. 1
    (distance units) touches the most files; 2-4 are small web changes;
    5-7 change generation constants and need the frequency research
@@ -54,7 +53,7 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
    are schema changes.
-- **More pages (59-62)**: the full systems list, the Sector Map
+- **More pages (46-49)**: the full systems list, the Sector Map
    wireframe, the system page layout and non-overlapping System Map
    names are small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
@@ -760,61 +759,16 @@ Low priority; nobody is waiting on these.
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
 
-### Security (from the 2026-09-30 audit)
+### Security hardening (left from the 2026-09-30 audit)
 
-Found by the full security review; the fixes are the next PR after the
-test-suite revamp. Each item has a `TODO(security #N)` comment where the
-fix goes. Boss's decisions are noted where one was needed.
+The audit's findings were fixed in the security PR; these hardening
+ideas remain, none with a known exploit.
 
-39. [ ] **The seeded `admin`/`password` login can be claimed by the first
-   visitor.** `adminAuth.bootstrap_control_schema` seeds a published
-   password, and `/account` (or `POST /api/auth/change-credentials`)
-   works before the forced change, so whoever logs in first can take the
-   account and wipe the database from `/admin/generate`. Decided: the
-   installer generates a random first password and prints it once; keep
-   `must_change_credentials`.
-40. [ ] **A web-user compromise can become root through the installer.**
-   `examples/apache/set-permissions.sh` gives the Apache user ownership
-   of the code tree, and `create-cache-dir.sh` (run as root by
-   `install.sh` and `update.sh`) imports Python from directories that
-   user can write. Done means the code tree is `root:<apache group>`
-   read-only for Apache, only the runtime directories are Apache-owned,
-   and the root helper runs Python with `-I` or as the Apache user.
-41. [ ] **The HTML pages have no rate limit.** `limiter.exempt(bp)` in
-   `src/html/web/__init__.py` lets anyone flood `/search`, `/galaxy`,
-   `/galaxy/tiles` and `/api/health` and tie up every WSGI thread.
-   Decided: per-IP limits on search, the Galaxy Map and its tiles, and
-   health.
-42. [ ] **The `/tmp` fallback for the jobs and tile-cache directories can be
-   hijacked by another local user** (`web/jobs.py`, `lib/tilecache.py`
-   reuse an existing directory without checking its owner). Create it
-   privately or refuse one not owned by the app.
-43. [ ] **The debug log is mode 0666** (`examples/apache/setup-debug-log.sh`
-   and its logrotate `create`). Decided: 0660 for the Apache group.
-44. [ ] **Login time reveals which usernames exist** (`adminAuth` skips the
-   password hash for an unknown user). Check against a dummy hash.
-45. [ ] **Changing credentials leaves other sessions logged in.** Decided:
-   end every other session of that admin on a change; API keys stay.
-46. [ ] **A sector's wiki link accepts any scheme** (`javascript:`,
-   `data:`). Accept only `http`/`https` URLs with a host, in the API and
-   the `/admin` form.
-47. [ ] **`/api/databases` lists the control schema** and `?db=` accepts
-   it. Leave the configured control database out of `list_databases` and
-   escape `_`/`%` in its `LIKE` prefix.
-48. [ ] **Public endpoints return raw database errors** (`/api/health`
-   and the read routes' 503 bodies show the DB user and host). Return a
-   generic message and log the detail.
-49. [ ] **The CSRF token is not tied to the login session**
-   (`web/csrf.py`). Sign the nonce together with the session cookie.
-50. [ ] **A new API key's value rides in the flash cookie** for up to 5
-   minutes, sent with every request. Scope that cookie to `/admin` or keep
-   the key server-side for one read.
-51. [ ] **Nothing sets `config.json`'s permissions**, so it is often
-   world-readable with the DB password and `secret_key`. Have the
-   installer set `root:<apache group>` and `640`.
-52. [ ] **Hardening:** add HSTS on HTTPS; consider a hashed lock file for
-   Python dependencies; per-username login backoff; escape `%`/`_` in
-   the `star_type` filter; upper bounds on admin generation inputs.
+39. [ ] **Hardening:** consider a hashed lock file for Python
+    dependencies (`setup.py` and `scripts/install-python-deps.sh` only set
+    lower bounds); a per-username login backoff on top of the per-IP
+    limit; and upper bounds on admin generation inputs (`radius_pc`,
+    `limit`, `max_ring`, `num_orbits`, the API's `radius_ly`).
 
 ### Known generation bugs (strict xfail tests)
 
@@ -822,25 +776,25 @@ Each has a test marked `xfail(strict=True)` that starts passing, and so
 fails the run, once the bug is fixed; remove the marker in the same PR.
 Each has a `TODO(physics #N)` comment where the fix goes.
 
-53. [ ] **Moons orbit outside their planet's Hill sphere.**
+40. [ ] **Moons orbit outside their planet's Hill sphere.**
     `planetPhysics.generate_moons` sets `high_orbit` to 5 Hill radii
     (the comment says 1/5). Test:
     `test_fuzz_system_generation.py::test_moons_orbit_inside_their_parents_hill_sphere`.
-54. [ ] **Moons can orbit inside their planet.** `generate_moons`'
+41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
     `low_orbit` ignores the planet's radius. Test:
     `test_moons_orbit_outside_their_parents_body`.
-55. [ ] **A close binary's planets can orbit inside the binary.**
+42. [ ] **A close binary's planets can orbit inside the binary.**
     `StarSystem._generate_planets` has no floor at the stars' separation
     (about 5% of close binaries). Test:
     `test_circumbinary_bodies_orbit_outside_the_binary`.
-56. [ ] **A planet's Hill sphere can overlap the belt inside it.**
+43. [ ] **A planet's Hill sphere can overlap the belt inside it.**
     `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
     but a belt after a planet must clear 5 Hill radii. Test:
     `test_planet_hill_sphere_clears_the_belt_inside_it`.
-57. [ ] **A binary's secondary can outweigh its primary.** The secondary's
+44. [ ] **A binary's secondary can outweigh its primary.** The secondary's
     mass is clamped into its random Yerkes class's range afterwards.
     Test: `test_binary_secondary_is_never_heavier_than_primary`.
-58. [ ] **Sector growth ignores black holes and neutron stars.**
+45. [ ] **Sector growth ignores black holes and neutron stars.**
     `SpaceSector._fine_tune_position` checks only `self.entries`, not
     `_massive_neighbors()`, so `grow_from_seed` can place systems inside
     a remnant's Hill sphere. Test:
@@ -848,7 +802,7 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 
 ### More pages (Boss's notes, 2026-09-30)
 
-59. [ ] **A paginated list of every system on the Systems page.** Boss:
+46. [ ] **A paginated list of every system on the Systems page.** Boss:
     "the systems page should have a paginated list of all systems."
     Today `/systems` (`views.systems`, `_systems_panel`) lists only
     standalone systems (`sector_id="none"`). List every system, 50 rows
@@ -857,7 +811,7 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     a filter. `apiclient.get_systems` without `sector_id` already pages
     all systems.
 
-60. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
+47. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
     that we have defined arc segments let's add a wireframe to the
     sector map." The server still sends the cell outline
     (`starmap._outline_data`, "outline" in the scene data, from
@@ -868,7 +822,7 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
 
-61. [ ] **System page: one ordered list of everything in orbit, with
+48. [ ] **System page: one ordered list of everything in orbit, with
     expandable moons, stars table first.** Boss: "on the star system
     page we list planets and moons twice, have moons expandable under
     the initial planet list so we can get rid of the 2nd table at the
@@ -896,7 +850,7 @@ Each has a `TODO(physics #N)` comment where the fix goes.
       ones (no finite axis) go last by perihelion. Each belt and comet
       row shows its distance (#1).
 
-62. [ ] **System Map names never overlap.** Boss: "we need to make sure
+49. [ ] **System Map names never overlap.** Boss: "we need to make sure
     names on the system map clickable interface do not overlap."
     - Today `systemmap._label_sides_2d` places each label (4 directions,
       then a pushed "below"/"above" with a leader line, else dropped)
@@ -917,10 +871,10 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-63. [ ] Assign government ownership to star systems so that groups of
+50. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-64. [ ] Flag worlds with life for generated names of their dominant
+51. [ ] Flag worlds with life for generated names of their dominant
     species.
-65. [ ] A database of spacefaring species.
-66. [ ] Model younger and older civilizations: what differs with a
+52. [ ] A database of spacefaring species.
+53. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

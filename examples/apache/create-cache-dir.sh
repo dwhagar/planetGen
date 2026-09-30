@@ -31,25 +31,28 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 CACHE_DIR="${1:-}"
+JOBS_DIR=""
 if [[ -z "$CACHE_DIR" ]]; then
     PYTHON="$(command -v python3 || command -v python || true)"
     if [[ -z "$PYTHON" ]]; then
         echo "error: no python3/python found on PATH." >&2
         exit 1
     fi
-    CACHE_DIR="$("$PYTHON" - "$REPO_DIR" <<'PY'
-import os
-import sys
-
-repo = sys.argv[1]
-sys.path[:0] = [os.path.join(repo, "src", "html", "lib"), os.path.join(repo, "src")]
-# TODO(security #40): this runs as root; don't import from directories the
-# Apache user can write (run Python with -I or as the Apache user).
-import tilecache
-
-print(tilecache.configured_cache_dir() or "")
-PY
-)"
+    # This runs as root, so nothing is imported from the repo (src/html is
+    # readable by Apache's user, and root must never run code that user
+    # could have planted): deploy-paths.py reads config.json with the
+    # standard library alone, and -I keeps the script's directory, the
+    # current directory, user site-packages and PYTHON* variables off
+    # sys.path. It prints the tile cache directory (empty when the disk
+    # cache is off) and the jobs directory, one per line.
+    {
+        IFS= read -r CACHE_DIR || true
+        IFS= read -r JOBS_DIR || true
+    } < <(cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" "$REPO_DIR")
+    if [[ -z "$JOBS_DIR" ]]; then
+        echo "error: could not read the jobs directory from config.json (see above)." >&2
+        exit 1
+    fi
 fi
 
 # shellcheck source=examples/apache/apache-identity.sh
@@ -72,18 +75,6 @@ fi
 # /var/lib/planetgen/jobs. Only when no tile cache directory was given as
 # the argument, since that argument names the tile cache alone.
 if [[ -z "${1:-}" ]]; then
-    PYTHON="$(command -v python3 || command -v python || true)"
-    JOBS_DIR="$("$PYTHON" - "$REPO_DIR" <<'PY'
-import os
-import sys
-
-repo = sys.argv[1]
-sys.path[:0] = [os.path.join(repo, "src", "html"), os.path.join(repo, "src")]
-from stellarObjects.appconfig import load_config
-
-print(os.environ.get("PLANETGEN_JOBS_DIR") or load_config()["jobs"].get("dir") or "/var/lib/planetgen/jobs")
-PY
-)"
     mkdir -p "$JOBS_DIR"
     chown "$APACHE_USER:$APACHE_GROUP" "$JOBS_DIR"
     chmod 750 "$JOBS_DIR"

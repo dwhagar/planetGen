@@ -87,7 +87,10 @@ carries the security headers (`web.SECURITY_HEADERS`, added in
 `api/app.py`: a `Content-Security-Policy` of `default-src 'self';
 base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src
 'none'`, plus `X-Frame-Options`, `X-Content-Type-Options` and
-`Referrer-Policy`). The shared `<head>` has:
+`Referrer-Policy`), and a request that came in over HTTPS also gets
+`Strict-Transport-Security: max-age=31536000` (`web.STRICT_TRANSPORT_SECURITY`;
+never on plain HTTP, so a local `python src/html/wsgi.py` still works).
+The shared `<head>` has:
 
 - `<meta name="viewport" content="width=device-width, initial-scale=1">`,
   so phones use the narrow layout (`@media (max-width: 40rem)` in
@@ -396,14 +399,18 @@ Flask request (a script) the functions use HTTP.
 These in-process calls are exempt from the API's app-wide default rate
 limit (a page view is not API abuse); a route's own limit (login,
 writes) still applies to the visitor's address. Page views themselves
-are not rate-limited.
+have their own per-IP limits; see "Rate limits" below.
 
 **Forms.** Any POST/PUT/PATCH/DELETE to a path outside `/api` must carry
 the CSRF token: put `{{ csrf_field() }}` inside the `<form>`. The token
 is an HMAC (keyed with `secret_key` from `config.json`, see
 [`config.md`](config.md)) of a random value in the `pg_csrf` cookie
-(HttpOnly, SameSite=Strict); a missing or wrong token gets a 400 page
-and the view never runs.
+(HttpOnly, SameSite=Strict) together with a hash of the admin session
+cookie (empty when not logged in), so a token only works for the login
+session it was rendered for; a missing or wrong token gets a 400 page
+and the view never runs. Logging in, logging out or changing credentials
+changes the session, so a form left open from before then fails once
+and works after a reload.
 
 **The admin pages** (`web/admin_pages.py`). `/login`, `/account` and `/logout` call `apiclient.auth_login`,
 `auth_change_credentials` and `auth_logout` in-process, and the
@@ -419,13 +426,16 @@ the visitor (a limited login shows "Too many login attempts" with a
   a POST with `{{ csrf_field() }}`, answered with a 303 to a GET page. A
   result the next page has to show (a new API key, shown once; a
   message; an error) travels in `pg_flash`, a signed (`secret_key`),
-  HttpOnly, SameSite=Strict cookie that the next `/admin` view reads and
-  deletes, never in the URL. The one exception is a wrong password on
+  HttpOnly, SameSite=Strict cookie with `Path=/admin` (so a new key's
+  value is never sent with requests to the rest of the site) that the
+  next `/admin` view reads and deletes, never in the URL. The one exception is a wrong password on
   `/login` or `/account`: nothing changed, so the form is shown again
   directly with the error and the username typed.
 - `GET /logout` never logs out: it shows a "Log out" button.
 - A visitor who isn't logged in is sent to `/login?next=<the page>`, and
-  an admin still on the seeded `admin`/`password` to `/account?next=...`.
+  an admin still on the seeded first login (random password printed once
+  by the installer, see [`api.md`](api.md#the-first-admin-login)) to
+  `/account?next=...`.
   `next` is followed only when it is a local path (starts with a single
   `/`, no scheme, host, backslash, whitespace or control character);
   anything else goes to `/admin`.
@@ -463,6 +473,30 @@ in its own `browser-a11y` job. `PLANETGEN_A11Y_SCREENSHOTS=<dir>` saves
 a screenshot of every page checked. axe-core is vendored in
 `src/tests/vendor/axe-core/` (MPL-2.0); to update it, copy `axe.min.js`
 and the license files from the npm package.
+
+### Rate limits
+
+Every page view does real work on one of a fixed number of WSGI threads,
+so the pages are rate-limited per client IP (`api/limiter.py`'s
+`page_limit`, set from `config.json`'s `ratelimit.pages`, see
+[`config.md`](config.md)):
+
+| Name | Covers | Default |
+|---|---|---|
+| `search` | `/search` | 30 per minute |
+| `galaxy` | `/galaxy` (the Galaxy Map page) | 60 per minute |
+| `galaxy_tiles` | `/galaxy/tiles` (fetched as the map's camera moves) | 600 per minute |
+| `health` | `/api/health` | 60 per minute |
+| `other` | every other page, all counted together | 300 per minute |
+
+An empty value turns that limit off. These replace the API's default
+limits (`ratelimit.default`) for the pages, and the API calls a page makes
+in-process are not counted against either. Over a limit, a page answers
+`429` with the site's HTML error page ("Too many requests"), while
+`/galaxy/tiles` (read by the map's script) and everything under `/api/`
+answer JSON; both carry `Retry-After`. With more than one WSGI process,
+`ratelimit.storage_uri` needs a shared backend for the counts to add up
+(see [`api.md`](api.md#rate-limiting)).
 
 ## Locating the database (and the API)
 
@@ -502,8 +536,9 @@ and how it relates to the `PLANETGEN_*` environment variables.
    pre-fetches the NLTK `words` corpus into a shared world-readable
    location (so it works under Apache's `www-data`, not just whatever
    user happens to run the CLI tools), makes the shell scripts executable,
-   enables Apache's wsgi, headers and deflate modules, and sets `../src/html/` ownership for
-   Apache via `examples/apache/set-permissions.sh`. See
+   enables Apache's wsgi, headers and deflate modules, and makes `../src/html/`
+   `root:<apache group>` (readable, not writable, by Apache) and `config.json`
+   mode 640 via `examples/apache/set-permissions.sh`. See
    [`apache-deployment.md`](apache-deployment.md) for what each step does
    and how to re-run pieces of it individually.
 3. `install.sh` prints one remaining manual step: copy

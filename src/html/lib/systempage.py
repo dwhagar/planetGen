@@ -146,7 +146,7 @@ def _comets_table_html(comets, heading="Comets"):
 """
 
 
-# TODO(web-pages #61): the Planets & Moons, Asteroid Belts and Comets
+# TODO(web-pages #48): the Planets & Moons, Asteroid Belts and Comets
 # tables repeat the system list; remove them once the list rows carry their
 # columns (class, type, zone, distance, period, gravity) as stats.
 def bodies_html(planets, belts, comets, stars, binary_configuration):
@@ -225,7 +225,7 @@ def _star_row_html(star, sections, children_html=""):
 # Add a new chip, shown only when one of the planet's moons is habitable
 # (e.g. "Habitable moon"); queryDb._with_life_fields already marks each
 # moon. _body_row above (the table view) follows the same rule.
-# TODO(web-pages #61): moons are buried after the planet's description
+# TODO(web-pages #48): moons are buried after the planet's description
 # inside its <details>; give them their own expandable group right under
 # the planet's row (a nested "N moons" <details>), no script needed.
 def _planet_row_html(body, sections, is_moon=False):
@@ -266,7 +266,7 @@ def _comet_row_html(comet, sections):
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])))
 
 
-# TODO(web-pages #61): comets go in their relative order from the star too,
+# TODO(web-pages #48): comets go in their relative order from the star too,
 # not appended last: sort them in with planets and belts by distance (a
 # comet by its semi-major axis, perihelion_distance_km / (1 -
 # eccentricity); parabolic ones last, by perihelion).

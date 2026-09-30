@@ -31,6 +31,7 @@ import math
 import os
 import sys
 
+import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
 # generate.py lives at the repo root, two levels above src/html/api/ (this
@@ -77,8 +78,8 @@ from stellarObjects.utils import ly_to_milliparsecs, ly_to_pc
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
-from .common import ApiError, require_json_body
-from .limiter import limiter
+from .common import ApiError, is_http_url, require_json_body
+from .limiter import limiter, page_limit
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -127,7 +128,13 @@ def _resolve_requested_db_config():
     Raises:
         ApiError: 404, if `db` is given but doesn't match a listed schema.
     """
-    base_config = current_app.config["MYSQL_CONFIG"]
+    return _resolve_database_param(current_app.config["MYSQL_CONFIG"])
+
+
+def _resolve_database_param(base_config):
+    """`base_config`, or the `?db=` schema on its server (404 when it
+    isn't one `list_databases` offers; 503, detail logged, when the
+    server can't be asked)."""
     requested = request.args.get("db")
     if requested is None:
         return base_config
@@ -135,6 +142,9 @@ def _resolve_requested_db_config():
         return resolve_database(base_config, requested)
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
+    except pymysql.MySQLError as exc:
+        _log_database_error(exc)
+        raise ApiError(DATABASE_UNAVAILABLE, status_code=503)
 
 
 def get_db():
@@ -158,13 +168,31 @@ def get_db():
     `ApiError` handler turns it into the usual JSON error response for
     every other route, and `/health`'s own `except Exception` catches it
     directly.
+
+    The response only says `DATABASE_UNAVAILABLE`: `open_readonly`'s
+    message names the MySQL user, host and port, which are no business of
+    a public client. The detail goes to the app's log.
     """
     if "db" not in g:
         try:
             g.db = open_readonly(_resolve_requested_db_config())
         except SystemExit as exc:
-            raise ApiError(str(exc), status_code=503)
+            _log_database_error(exc)
+            raise ApiError(DATABASE_UNAVAILABLE, status_code=503)
     return g.db
+
+
+DATABASE_UNAVAILABLE = "database unavailable"
+"""str: The whole error message a client sees when the database can't be
+opened or queried (a 503); the real reason is only logged."""
+
+
+def _log_database_error(exc):
+    """Logs why the database couldn't be used, for the operator only."""
+    detail = str(exc) or type(exc).__name__
+    # app.logger reaches Apache's error log and, when it's on, the debug
+    # log (which listens on the root logger).
+    current_app.logger.error("Database unavailable on %s %s: %s", request.method, request.path, detail)
 
 
 def close_db(exception=None):
@@ -267,9 +295,7 @@ def _parse_size_range(query_args, prefix):
 
 
 @bp.route("/health")
-@limiter.exempt
-# TODO(security #48): return a generic "database unavailable" here and in
-# the read routes' 503s, and log the detail.
+@page_limit("health")
 def health():
     """
     Liveness/readiness check for monitoring -- confirms the process is up
@@ -303,9 +329,11 @@ def health():
     except ApiError as exc:
         if exc.status_code != 503:
             raise  # e.g. an unknown `?db=` (404) -- the request's fault, not an outage
-        return jsonify({"status": "error", "detail": exc.message}), 503
+        # Already logged by get_db.
+        return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
     except Exception as exc:
-        return jsonify({"status": "error", "detail": str(exc)}), 503
+        _log_database_error(exc)
+        return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
 
     # A separate try/except from the reachability check above: a database
     # that answers `SELECT 1` fine but has never had `schema.sql`/
@@ -880,8 +908,9 @@ SECTOR_UPDATE_FIELDS = {
     # doesn't accept this (a brand-new, just-generated sector has never
     # been uploaded anywhere), so it's added only to `update_sector`'s own
     # allowed-fields set, not to SECTOR_FIELDS itself.
-    # TODO(security #46): accept only http/https URLs with a host.
-    "wiki_url": ((str, type(None)), lambda v: v is None or (bool(v.strip()) and len(v) <= MAX_WIKI_URL_LENGTH)),
+    # Only an absolute http/https URL with a host: the sector page links
+    # to it, so `javascript:`/`data:` URLs are refused (`is_http_url`).
+    "wiki_url": ((str, type(None)), lambda v: v is None or (len(v) <= MAX_WIKI_URL_LENGTH and is_http_url(v))),
 }
 """dict: `SECTOR_FIELDS` plus `update_sector`-only fields -- see
 `_validate_sector_fields`'s `allowed` parameter."""
@@ -929,14 +958,7 @@ def _resolve_requested_write_db_config():
     configured default database) needs the write-capable account's
     credentials, not the `SELECT`-only one.
     """
-    base_config = current_app.config["WRITE_MYSQL_CONFIG"]
-    requested = request.args.get("db")
-    if requested is None:
-        return base_config
-    try:
-        return resolve_database(base_config, requested)
-    except ValueError as exc:
-        raise ApiError(str(exc), status_code=404)
+    return _resolve_database_param(current_app.config["WRITE_MYSQL_CONFIG"])
 
 
 def _write_conn():

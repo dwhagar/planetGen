@@ -445,7 +445,7 @@ def _label_candidate_rect(cx, cy, marker_r, half_w, direction, gap):
     return (right - half_w * 2, cy - _LABEL_HALF_HEIGHT_PX, right, cy + _LABEL_HALF_HEIGHT_PX)
 
 
-# TODO(web-pages #62): names must never overlap. Widths here are estimated
+# TODO(web-pages #49): names must never overlap. Widths here are estimated
 # (_label_half_width_px) and real text can run wider, so labels can still
 # collide. Make sure every star label and marker is in the collision set,
 # and have systemmap.js measure the real text (getBBox) after load and

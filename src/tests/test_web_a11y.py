@@ -54,6 +54,7 @@ from werkzeug.serving import make_server  # noqa: E402
 from api.app import create_app  # noqa: E402
 from api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from api.config import Config  # noqa: E402
+from api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from stellarObjects._db import MySQLConfig  # noqa: E402
 
@@ -181,6 +182,9 @@ def site_app(site_db):
         WEB_DATABASE = ""
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "a11y-test-secret"
+        # One browser loads every page, and the Galaxy Map's tiles, from
+        # one address: the per-IP page limits aren't under test here.
+        RATELIMIT_PAGES = PAGE_LIMITS_OFF
 
     app = create_app(SiteConfig)
     app.testing = True

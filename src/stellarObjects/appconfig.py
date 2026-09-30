@@ -68,6 +68,15 @@ DEFAULT_CONFIG = {
     "ratelimit": {
         "default": "200 per day;50 per hour",
         "storage_uri": "memory://",
+        # Per-client-IP limits on the HTML pages (html/web/ratelimits.py)
+        # and /api/health. An empty string turns that one limit off.
+        "pages": {
+            "search": "30 per minute",
+            "galaxy": "60 per minute",
+            "galaxy_tiles": "600 per minute",
+            "health": "60 per minute",
+            "other": "300 per minute",
+        },
     },
     "admin_cookie_insecure": False,
     "secret_key": "",

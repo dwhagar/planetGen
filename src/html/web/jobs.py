@@ -45,6 +45,7 @@ import tempfile
 import threading
 import time
 
+from privatedir import ensure_private_dir
 from stellarObjects import log
 from stellarObjects.appconfig import load_config
 
@@ -96,11 +97,12 @@ def configured_jobs_dir():
     return os.environ.get("PLANETGEN_JOBS_DIR") or _config().get("dir") or DEFAULT_JOBS_DIR
 
 
-# TODO(security #42): the /tmp fallback must be created privately (or
-# refused when not owned by this user), not reused as found.
 def jobs_dir():
     """
-    The writable jobs directory, created if needed.
+    The writable jobs directory, created if needed. When the default
+    directory can't be created, falls back to a private `planetgen-jobs`
+    in the system temp directory (see `privatedir.ensure_private_dir`:
+    one another local user created or can write to is refused).
 
     Raises:
         OSError: When no candidate directory is writable.
@@ -109,10 +111,15 @@ def jobs_dir():
     candidates = [configured]
     if configured == DEFAULT_JOBS_DIR:
         candidates.append(os.path.join(tempfile.gettempdir(), "planetgen-jobs"))
-    for candidate in candidates:
+    for index, candidate in enumerate(candidates):
         try:
-            os.makedirs(candidate, mode=0o750, exist_ok=True)
-        except OSError:
+            if index == 0:
+                os.makedirs(candidate, mode=0o750, exist_ok=True)
+            else:
+                ensure_private_dir(candidate)
+        except OSError as exc:
+            if index > 0:
+                log.debug("jobs: not using %s: %s", candidate, exc)
             continue
         if os.access(candidate, os.W_OK | os.X_OK):
             return candidate

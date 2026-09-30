@@ -40,7 +40,8 @@ import re
 
 import pymysql
 
-from stellarObjects._db import add_mysql_connection_args, get_connection, get_galaxy_shape, mysql_config_from_args
+from stellarObjects._db import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
+                                mysql_config_from_args)
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import neighbor_addresses, provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import (
@@ -183,8 +184,8 @@ def _systems_filter_clause(star_type_prefix, sector_id):
 
     if star_type_prefix is not None:
         join_sql = " JOIN stars s ON s.star_system_id = ss.id"
-        conditions.append("s.star_type LIKE ?")
-        params.append(f"{star_type_prefix}%")
+        conditions.append("s.star_type LIKE ? ESCAPE '\\\\'")
+        params.append(f"{escape_like(star_type_prefix)}%")
 
     if sector_id is NO_SECTOR:
         conditions.append("ss.sector_id IS NULL")

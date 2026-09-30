@@ -8,6 +8,8 @@ and a control-schema connection; only one direction would create an
 import cycle otherwise).
 """
 
+from urllib.parse import urlsplit
+
 from flask import current_app, g, request
 
 from stellarObjects._db import get_control_connection
@@ -69,3 +71,24 @@ def close_control_db(exception=None):
     db = g.pop("control_db", None)
     if db is not None:
         db.close()
+
+
+def is_http_url(value):
+    """
+    True when `value` is an absolute `http://` or `https://` URL with a
+    host -- the only kind of link a sector's `wiki_url` may hold, since
+    the sector page renders it as an `<a href>` (a `javascript:` or
+    `data:` URL there would run in the viewer's session).
+    """
+    if not isinstance(value, str) or value != value.strip():
+        return False
+    if any(ord(ch) < 0x21 or ord(ch) == 0x7f for ch in value):
+        # Whitespace or control characters inside a URL, which browsers
+        # strip or reinterpret (e.g. "java\tscript:").
+        return False
+    try:
+        parts = urlsplit(value)
+        port = parts.port  # noqa: F841 -- raises ValueError on a bad port
+    except ValueError:
+        return False
+    return parts.scheme.lower() in ("http", "https") and bool(parts.hostname)
