@@ -9,7 +9,7 @@
 {% block content %}
 <section class="panel" aria-labelledby="health-heading">
   <h2 id="health-heading">Server health</h2>
-  <div class="table-scroll"><table>
+  <div class="table-scroll" tabindex="0"><table>
     <tbody>
       <tr><th scope="row">Status</th><td><span class="badge">{{ health.status }}</span></td></tr>
       {%- for label, value in health.rows %}
@@ -26,7 +26,7 @@
 <section class="panel" aria-labelledby="database-heading">
   <h2 id="database-heading">Database <code>{{ database.name }}</code></h2>
   {{ tiles(db_tiles) }}
-  <div class="table-scroll"><table>
+  <div class="table-scroll" tabindex="0"><table>
     <tbody>
       {%- for label, value in db_rows %}
       <tr><th scope="row">{{ label }}</th><td>{{ value }}</td></tr>
@@ -53,7 +53,7 @@
       <tr>
         <td>{{ item.base_name }}</td>
         <td>{{ item.levels }}</td>
-        <td>
+        <td class="inline-links">
           {%- for row in item.rows %}
           {%- if row.url %}<a href="{{ row.url }}">{{ row.name }}</a> <span class="hint">{{ row.kind }}</span>
           {%- else %}{{ row.name }} <span class="hint">{{ row.kind }}</span> <a href="{{ row.system_url }}">{{ row.system_name }}</a>
@@ -72,7 +72,7 @@
   <h2 id="activity-heading">Recent activity</h2>
   <p class="hint">When each kind of top-level row was last created or changed.
   A change to a star, planet or moon counts as a change to its system.</p>
-  <div class="table-scroll"><table>
+  <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Table</th><th scope="col">Newest row created</th><th scope="col">Last modified</th></tr></thead>
     <tbody>
       {%- for row in database.timestamps %}
@@ -85,7 +85,7 @@
   <h2 id="tables-heading">Tables</h2>
   <p class="hint">Row counts here are MySQL's own estimates and can lag behind;
   the sector and system totals above are exact.</p>
-  <div class="table-scroll"><table>
+  <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Table</th><th scope="col" class="num">Rows (approx.)</th><th scope="col" class="num">Data</th><th scope="col" class="num">Indexes</th></tr></thead>
     <tbody>
       {%- for table in tables %}

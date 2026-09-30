@@ -10,10 +10,10 @@
     <input type="hidden" name="next" value="{{ next_url }}">
     <div class="search-fields">
       <label class="search-field">Username
-        <input type="text" name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required{% if not username %} autofocus{% endif %}>
+        <input type="text" name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required>
       </label>
       <label class="search-field">Password
-        <input type="password" name="password" autocomplete="current-password" required{% if username %} autofocus{% endif %}>
+        <input type="password" name="password" autocomplete="current-password" required>
       </label>
     </div>
     <div class="search-actions">
