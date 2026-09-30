@@ -68,15 +68,14 @@ class FakeData:
         self.dbs.add(db)
         return {"stamp": STAMP, "state": "s", "full": since is None, "tiles": []}
 
-    def get_galaxy_tiles(self, db, tile_keys, density_key=None):
+    def get_galaxy_tiles(self, db, tile_keys):
         self.dbs.add(db)
         if self.fail_tiles:
             raise self.fail_tiles
-        self.tile_calls.append((list(tile_keys), density_key))
+        self.tile_calls.append(list(tile_keys))
         return {
             "tiles": {key: {"placed": [{"id": 1, "name": "T", "x": 1.0, "y": 0.0, "z": 0.0}], "planned": []}
                       for key in tile_keys},
-            "density": {"key": density_key, "points": [{"x": 1.0, "y": 2.0, "z": 3.0}]} if density_key else None,
             "edge_pc": 3.526, "has_shape": True,
         }
 
@@ -218,7 +217,7 @@ def test_galaxy_api_failure_is_a_502_page(client, fake, monkeypatch):
 # --- /galaxy/tiles -----------------------------------------------------------------------
 
 def test_tiles_endpoint_serves_and_caches(client, fake):
-    query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1&density=1/1/1/1"
+    query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1"
     first = client.get(query)
     assert first.status_code == 200
     assert first.mimetype == "application/json"
@@ -230,7 +229,7 @@ def test_tiles_endpoint_serves_and_caches(client, fake):
     assert "history" in body  # no stamp sent: the browser gets the history
 
     second = client.get(query + f"&stamp={STAMP}").get_json()
-    assert second["cached"] == 3
+    assert second["cached"] == 2
     assert second["tiles"] == body["tiles"]
     assert "history" not in second
     assert len(fake.tile_calls) == 1
@@ -324,10 +323,10 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     listing = db_client.get(f"/galaxy?quadrant={quadrant}").get_data(as_text=True)
     assert "Real &lt;Placed&gt;" in listing
 
-    query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1&density=1/1/1/1"
+    query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1"
     first = db_client.get(query).get_json()
     assert set(first["tiles"]) == {"12/2048/2048/2048", "1/1/1/1"}
     assert len(first["stamp"]) == 16
     second = db_client.get(query).get_json()
-    assert second["cached"] == 3
+    assert second["cached"] == 2
     assert any(names for _root, _dirs, names in os.walk(tmp_path / "tiles"))

@@ -41,12 +41,10 @@ renumber when items are added or finished.
    is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
    local-time change (22) is small and can go in any time.
-- **Galaxy Map (10-21):** Boss approved the plan in the
+- **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 10-18 in order. 10 and 11
-   ship on today's prisms. 12 is the one data-deleting step and waits for
-   Boss's go-ahead on the migration. 19-20 are follow-ups. 21 (wedge
-   lines) can go in any time.
+   slots, pixel-sized mega-blocks). Work items 12-18 in order. 12 is the
+   one data-deleting step. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
@@ -348,22 +346,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-10. [ ] **Make the spiral arms stand out in the expected-density shading.**
-   `prismIntensity` puts log density from 0.02 to 100 on one ramp, so the
-   arms (a 1.4 / 0.6 contrast at the default `arm_amplitude`) span only
-   about a tenth of it. Split each block's density into its azimuthal
-   mean (bulge + disk, no arms) and the arm factor (density / mean), and
-   let the arm factor drive about half the ramp. Mocked in
-   `galaxy-megablocks/spiral-contrast-compare.png`. Done means the arms read clearly at
-   full zoom-out and at 12 kpc, in both themes, and placed-sector dots
-   still stand out on top.
-
-11. [ ] **Scale readout in sectors, pc and ly.** Replace
-   `updateScaleBar`'s "≈ N pc (reference)" with three lines:
-   `1 px ≈ s sectors · pc · ly`, `1 block = m sectors across (m³) · pc ·
-   ly`, and a 70 px bar in the same three units. Done means the readout
-   updates on every zoom and resize, and is readable at 390 px.
-
 12. [ ] **Hybrid master-wedge slot rule (next schema version).** Boss chose it on
    2026-09-30. There are 3 master wedges at the center, doubling (6, 12,
    ..., 1,536) once each would hold at least 8 slots. Each ring's slot
@@ -422,7 +404,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      Filled and unfilled sectors are both shown only through the
      continuous solid of blocks (#13, #14).
    - **Color by density.** Every block is colored by the density of the
-     space it covers (#10). At m = 1, a filled sector is colored by its
+     space it covers (`prismShade`). At m = 1, a filled sector is colored by its
      real system density (`placedDensityColor`'s scale).
    - **Opacity by how full a block is.**
      - Unfilled space is 20% (densest) to 50% (sparsest) transparent,
@@ -493,20 +475,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    - DPR: `pcPerPixel` is per CSS pixel.
    - Reduced-motion users get instant zoom.
 
-20. [ ] **Remove the server's leftover density sampling.** The page draws
-   density itself since the prisms landed, but `queryDb.galaxy_tiles`
-   still accepts `density_key` and `galaxyViewport.density_points_for_tile`
-   / `density_sample_points` still exist, as does `tilecache`'s `density`
-   field. Done means they're gone with their tests, and the tile cache
-   still works.
-
-21. [ ] **Wedge lines from the center.** Boss: "Galaxy map should have
-   meaningful wedge lines from the center to make navigation easier."
-   Draw lines in the galactic plane from the core to the edge along
-   the master-wedge boundaries (#12), labelled by bearing from the
-   core so they match the course format (#33). A `LineSegments`
-   overlay next to the content groups in `initGalaxyMap3d`, with a
-   toggle. Can ship before #12 using today's ring-0 slot lines.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 

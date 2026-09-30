@@ -427,7 +427,7 @@ function placedRelativeDensity(entry, referenceDensityPerLy3) {
 // at a glance, exactly like it already was before density coloring.
 // TODO(galaxy-map #15): the sprites go away. This colour scale lives on as a
 // filled sector's block colour at m = 1 (its real system density). Coarser
-// blocks take the space's density colour (#10), and their filled share only
+// blocks take the space's density colour (prismShade), and their filled share only
 // sets their opacity.
 function placedDensityColor(entry, referenceDensityPerLy3) {
   var relative = placedRelativeDensity(entry, referenceDensityPerLy3);

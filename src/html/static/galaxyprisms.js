@@ -128,6 +128,8 @@ export var azimuthSegments = ringSectorCount;
 // edge, one per ring 0 slot boundary, as [{ bearingDeg, angleRad, r0 }]
 // (r0: the radius the line starts at, pc). Bearings are counterclockwise
 // from +X (the zero meridian, ring slot 0's leading edge).
+// TODO(galaxy-map #13): with #12's master wedges, return every master line
+// (3 at the core, doubling outward) with the radius its zone starts at.
 export function wedgeLines() {
   var n = ringSectorCount(0);
   var lines = [];
