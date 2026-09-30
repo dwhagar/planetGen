@@ -77,7 +77,7 @@ from rich.progress import (
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, generationLimits, log, program_constants, progressFile
+from stellarObjects import _db, generationLimits, log, physical_constants, program_constants, progressFile
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
@@ -602,26 +602,24 @@ def run_system(args):
 # 2. Sector generation
 # ===========================================================================
 
-_PHENOMENON_FACTORIES = {
-    "black-hole": lambda config, galactic_center_dist_ly: BlackHole(
-        config, galactic_center_dist_ly=galactic_center_dist_ly),
-    "neutron-star": lambda config, galactic_center_dist_ly: NeutronStar(
-        config, galactic_center_dist_ly=galactic_center_dist_ly),
-    "nebula": lambda config, galactic_center_dist_ly: Nebula(config),
-    "supernova-remnant": lambda config, galactic_center_dist_ly: SupernovaRemnant(config),
-    "rogue-planet": lambda config, galactic_center_dist_ly: RoguePlanet(config),
-    "comet": lambda config, galactic_center_dist_ly: InterstellarComet(config),
-    "asteroid-field": lambda config, galactic_center_dist_ly: AsteroidField(config),
-}
-"""dict: `program_constants.PHENOMENON_TYPE_CHOICES` entry -> a
-`(config, galactic_center_dist_ly)` factory building one fresh instance of
-that phenomenon type -- `generate_sector_phenomena`'s per-type dispatch.
-Only `"black-hole"`/`"neutron-star"` actually consult
-`galactic_center_dist_ly` (threaded into their own Hill-sphere/galactic-
-orbit calculations, exactly like every star in the sector already gets via
-`generate_sector`'s own `galactic_center_dist_ly` parameter); every other
-phenomenon type has no galaxy-frame-distance-dependent physics of its own,
-so it's accepted and ignored, keeping every factory the same shape."""
+SECTOR_PHENOMENON_KINDS = (
+    ("black-hole", "black-hole",
+     lambda config, dist_ly: BlackHole(config, galactic_center_dist_ly=dist_ly)),
+    ("neutron-star", "neutron-star",
+     lambda config, dist_ly: NeutronStar(config, galactic_center_dist_ly=dist_ly)),
+    ("planetary-nebula", "nebula", lambda config, dist_ly: Nebula(config, nebula_type="planetary")),
+    ("supernova-remnant", "supernova-remnant", lambda config, dist_ly: SupernovaRemnant(config)),
+    ("rogue-planet", "rogue-planet", lambda config, dist_ly: RoguePlanet(config)),
+    ("brown-dwarf", "rogue-planet", lambda config, dist_ly: RoguePlanet(config, mass_bin="brown-dwarf")),
+    ("comet", "comet", lambda config, dist_ly: InterstellarComet(config)),
+    ("asteroid-field", "asteroid-field", lambda config, dist_ly: AsteroidField(config)),
+)
+"""tuple: `(program_constants.PHENOMENON_DENSITY_PC3 key, phenomenon type,
+factory)` for each kind `generate_sector_phenomena` rolls. A factory takes
+`(config, galactic_center_dist_ly)`; only black holes and neutron stars
+use the distance (their Hill sphere and galactic orbit). Runaway and
+hypervelocity stars are flags on ordinary systems (`flag_fast_stars`), and
+molecular clouds wait for TODO item 27."""
 
 
 def add_shared_generation_options(parser):
@@ -876,29 +874,29 @@ def iter_sector_configs(args):
         yield config
 
 
-# TODO(phenomena #5): nebulae and supernova remnants are volumes light-
-# years across, so a per-star-system rate is the wrong model for them;
-# consider a per-volume rate (per pc^3, scaled by galaxy density) so they
-# appear at all.
 # TODO(phenomena #27): nebulae and supernova remnants must actually be
-# generated (rates from #5) and bring the central object their class needs:
+# generated (rates from PHENOMENON_DENSITY_PC3) and bring the central object their class needs:
 # O/B stars for H II regions, a B or A star for reflection, one hot central
 # star for a planetary nebula, none for molecular clouds, a neutron star or
 # black hole for core-collapse remnants. They span many sectors, so later
 # sectors generated inside one must see it (#29).
+def sector_star_count(sector):
+    """How many stars `sector`'s systems hold (a binary counts two) --
+    what every per-star phenomenon rate multiplies."""
+    return sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
+
+
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
     """
-    Populates an already-built `sector` with a realistically sparse
-    population of exotic stellar phenomena (see section 5's own seven
-    generated types), sampled independently per type from
-    `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` -- each type's own
-    expected count per star system, scaled by however many star systems
-    this sector actually ended up with (see that constant's own docstring
-    for where each rate comes from). The Poisson draw
-    (`spaceSector._sample_poisson_count`) is the same mechanism
-    `--density`'s own system count already uses, so a denser sector gets
-    proportionally more phenomena too, and most sectors -- realistically --
-    get none at all.
+    Populates an already-built `sector` with its exotic phenomena, each
+    kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
+    draw (`spaceSector._sample_poisson_count`, the same mechanism
+    `--density`'s own system count uses) whose mean is the kind's rate
+    per star (`program_constants.phenomenon_rate_per_star`, from Boss's
+    research density at the solar neighborhood) times the sector's star
+    count. A star count already tracks the local stellar density, so a
+    denser sector gets proportionally more. A local-density sector gets
+    about 58 rogue planets and 2 brown dwarfs; rarer kinds mostly none.
 
     Black holes and neutron stars are real, stellar-mass gravitating
     bodies, so they're added via `SpaceSector.add_phenomenon`'s
@@ -930,15 +928,15 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
              rather than crashing the whole sector's generation over a
              single rare phenomenon that didn't fit.
     """
-    system_count = len(sector.entries)
+    star_count = sector_star_count(sector)
     new_entries = []
 
-    for phenomenon_type, rate_per_system in program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM.items():
-        count = _sample_poisson_count(rate_per_system * system_count)
+    for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
+        count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
         for _ in range(count):
             phenomenon_config = SystemConfig()
             phenomenon_config.MARKDOWN = args.markdown
-            phenomenon = _PHENOMENON_FACTORIES[phenomenon_type](phenomenon_config, galactic_center_dist_ly)
+            phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
             try:
                 new_entries.append(sector.add_phenomenon(phenomenon, phenomenon_type))
             except ValueError:
@@ -950,6 +948,50 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
                 continue
 
     return new_entries
+
+
+def _log_uniform(low, high):
+    return math.exp(random.uniform(math.log(low), math.log(high)))
+
+
+def flag_fast_stars(sector, galactic_center_dist_ly=None):
+    """
+    Marks some of `sector`'s systems as runaway or hypervelocity stars
+    (`StarSystem.runaway_class` and `runaway_speed_kms`, schema v37): an
+    ordinary generated system moving unusually fast, not a separate
+    phenomenon. Each system rolls a hypervelocity chance first -- the
+    "hypervelocity-star" rate per star scaled by
+    `(HVS_REFERENCE_RADIUS_PC / r)^2`, since the central black hole ejects
+    them -- then the runaway chance (about 1.5%).
+
+    Args:
+        sector (SpaceSector): The populated sector, changed in place.
+        galactic_center_dist_ly (float, optional): The sector's distance
+            from the galactic center; `None` uses
+            `physical_constants.GALACTIC_CENTER_DISTANCE_LY`.
+
+    Returns:
+        int: How many systems were flagged.
+    """
+    if galactic_center_dist_ly is None:
+        galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+    radius_pc = max(ly_to_pc(galactic_center_dist_ly), 1.0)
+    hvs_chance = min(1.0, program_constants.phenomenon_rate_per_star("hypervelocity-star")
+                     * (program_constants.HVS_REFERENCE_RADIUS_PC / radius_pc) ** 2)
+    runaway_chance = program_constants.phenomenon_rate_per_star("runaway-star")
+    flagged = 0
+    for entry in sector.entries:
+        system = entry.star_system
+        if random.random() < hvs_chance:
+            system.runaway_class = "hypervelocity"
+            system.runaway_speed_kms = _log_uniform(*program_constants.HYPERVELOCITY_STAR_SPEED_RANGE_KMS)
+        elif random.random() < runaway_chance:
+            system.runaway_class = "runaway"
+            system.runaway_speed_kms = _log_uniform(*program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS)
+        else:
+            continue
+        flagged += 1
+    return flagged
 
 
 NUCLEUS_ADDRESS = (0, 0, 0)
@@ -1101,6 +1143,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
 
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+        flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly)
 
     if density_driven and not sector.entries and not sector.phenomena:
         # Guaranteed non-empty: a qualifying sector's own Poisson draws

@@ -132,7 +132,7 @@ def test_phenomenon_detail_unknown_type_is_404_not_500(client, mysql_config):
 
 def test_phenomenon_detail_returns_saved_rogue_planet(client, mysql_config):
     """rogue_planet/interstellar_comet (generated via
-    program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM's own "rogue-planet"/
+    program_constants.PHENOMENON_DENSITY_PC3's own "rogue-planet"/
     "comet" rates -- confirmed present in the database the whole time) are
     valid _PHENOMENON_TYPE_TO_TABLE detail types, same as every other
     phenomenon -- neither has any galaxy-frame placement columns of its

@@ -63,7 +63,7 @@ class Nebula:
     shared back-reference, threaded into `from_dict` rather than
     serialized redundantly)."""
 
-    def __init__(self, system_config: SystemConfig, name=None):
+    def __init__(self, system_config: SystemConfig, name=None, nebula_type=None):
         """
         Initializes a Nebula object.
 
@@ -71,6 +71,9 @@ class Nebula:
             system_config (SystemConfig): The shared SystemConfig object
                 (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
             name (str, optional): An explicit name. Random if omitted.
+            nebula_type (str, optional): One of `NEBULA_TYPES`' keys
+                (sector generation asks for `"planetary"`, the one type
+                with a point rate). Random if omitted.
         """
         reseed_rng()
         self.system_config = system_config
@@ -82,9 +85,14 @@ class Nebula:
         # extinction); #27 adds the central star the class needs.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
-        self.nebula_type = random.choice(list(program_constants.NEBULA_TYPES.keys()))
-        log.choice("Nebula type", self.nebula_type,
-                   f"uniform draw among {list(program_constants.NEBULA_TYPES.keys())}")
+        if nebula_type is not None:
+            if nebula_type not in program_constants.NEBULA_TYPES:
+                raise ValueError(f"nebula_type must be one of {list(program_constants.NEBULA_TYPES)}, got {nebula_type!r}")
+            self.nebula_type = nebula_type
+        else:
+            self.nebula_type = random.choice(list(program_constants.NEBULA_TYPES.keys()))
+            log.choice("Nebula type", self.nebula_type,
+                       f"uniform draw among {list(program_constants.NEBULA_TYPES.keys())}")
         type_data = program_constants.NEBULA_TYPES[self.nebula_type]
         self.radius_ly = random.uniform(*type_data["radius_range_ly"])
         self.composition = type_data["composition"]

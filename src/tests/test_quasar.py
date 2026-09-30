@@ -69,7 +69,7 @@ def test_space_sector_serialization_keeps_a_quasar():
 def test_random_phenomenon_choice_never_picks_a_quasar():
     assert "quasar" in program_constants.PHENOMENON_TYPE_CHOICES
     assert "quasar" not in program_constants.RANDOM_PHENOMENON_TYPE_CHOICES
-    assert "quasar" not in program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM
+    assert "quasar" not in program_constants.PHENOMENON_DENSITY_PC3
 
 
 def test_add_galactic_nucleus_respects_the_chance(monkeypatch):

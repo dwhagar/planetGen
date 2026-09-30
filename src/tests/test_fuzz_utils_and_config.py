@@ -830,7 +830,7 @@ def test_conversion_constants_are_mutually_consistent():
 def test_probability_tables_are_well_formed():
     pg = program_constants
     for name in ("SPECTRAL_PROBABILITIES_LARGE_STAR", "SPECTRAL_PROBABILITIES_NORMAL", "PLANET_CLASS_PROBABILITIES",
-                 "PHENOMENON_RATE_PER_STAR_SYSTEM"):
+                 "PHENOMENON_DENSITY_PC3", "PHENOMENON_RATE_SCALE"):
         weights = getattr(pg, name)
         assert weights and all(w >= 0 for w in weights.values()), name
         assert sum(weights.values()) > 0, name
