@@ -596,6 +596,10 @@ function routeAroundCircle(ax, ay, bx, by, r) {
   return tA + tB + r * arcAngle;
 }
 
+// TODO(web-pages #62): after the map loads and after each zoom step,
+// measure every .sysmap-label with getBBox() and move or hide any that
+// overlaps another label or a marker; the server placement stays the
+// no-script fallback.
 function measurableLabel(el) {
   return el.dataset.name || "Unknown";
 }
