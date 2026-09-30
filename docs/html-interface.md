@@ -494,7 +494,8 @@ and how it relates to the `PLANETGEN_*` environment variables.
    see [`database-schema.md`](database-schema.md).
 2. From that directory, run `sudo ./install.sh` -- installs the Python
    package (with pip, or on an externally managed Python such as Ubuntu
-   24.04+'s, from apt packages plus a venv for anything apt lacks; see
+   24.04+'s, from apt packages, with system-wide pip only for anything apt
+   lacks or ships too old; see
    [`apache-deployment.md`](apache-deployment.md#managed-python)), brings the configured MySQL database's schema up to date
    (a no-op if it's already current -- see
    [`database-schema.md`](database-schema.md)'s "Versioning"),
@@ -520,13 +521,15 @@ isn't enough -- pulling a changed file rewrites it with whatever mode is
 tracked in the repo, silently undoing any executable bit `install.sh`
 previously fixed. `update.sh` pulls (refusing to run over uncommitted
 local changes, and failing loudly rather than merging if history has
-diverged) and then re-runs `install.sh`, so permissions are guaranteed
-correct again afterward. Every `install.sh` step is idempotent (the
-schema migration and corpus fetch both skip themselves if already
-current/present, `chmod +x`/`a2enmod`/permission-setting are all safe to
-repeat), and `install.sh` itself
-remains safe to run directly any time you want to re-apply everything
-without pulling first.
+diverged) and then checks everything the site needs without
+reinstalling anything that's already there: the executable bits and
+permissions, each Python library (installing only one that's missing,
+too old or broken, see
+[`apache-deployment.md`](apache-deployment.md#managed-python)), the NLTK
+corpus, the schema migration, Apache's modules, the cache/jobs
+directories and the debug log, and finally that the web app imports as
+Apache's user. `install.sh` remains safe to run directly any time you
+want a full reinstall without pulling first.
 
 ## Local testing without Apache
 
