@@ -648,15 +648,18 @@ def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
 @pytest.mark.parametrize("radius,consequence", [
     ("nan", "was a raw ValueError: cannot convert float NaN to integer"),
     ("inf", "was a raw OverflowError from math.ceil(-inf)"),
-    ("1e300", "was a hang enumerating ~1e300 rings before trimming to the galaxy's outline"),
-    ("1e308", "the largest finite radius"),
+    ("1e300", "was a hang enumerating ~1e300 rings; now past the radius bound"),
+    ("1e308", "the largest finite radius; now past the radius bound"),
+    (repr(generationLimits.MAX_GENERATE_RADIUS_PC), "the largest allowed radius, wider than the test galaxy"),
 ])
 def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, radius, consequence):
     """A radius beyond the whole galaxy just means "every sector in it":
     the enumeration must be trimmed to the galaxy up front, not walk the
-    whole sphere. Generating the ~150 sectors of the test galaxy for real
-    would take a while and prove nothing extra, so each one is stubbed
-    and only the addresses asked for are checked."""
+    whole sphere. A radius past `generationLimits.MAX_GENERATE_RADIUS_PC`
+    is a usage error before anything is generated. Generating the ~150
+    sectors of the test galaxy for real would take a while and prove
+    nothing extra, so each one is stubbed and only the addresses asked
+    for are checked."""
     _plan_flat_galaxy(mysql_config)
     center = _placed_sector_id(mysql_config)
     asked = []
@@ -669,6 +672,8 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, radius, conseq
     assert len(asked) == len(set(asked)) <= cells
     assert all(0 <= ring <= _OUTER_RING and -1 <= layer <= 1 for ring, layer, _slot in asked)
     if radius in ("1e300", "1e308"):
+        assert asked == []
+    elif radius not in ("nan", "inf"):
         assert len(asked) == cells - 1  # every sector but the (already generated) center
 
 
