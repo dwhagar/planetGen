@@ -84,6 +84,19 @@ bp = Blueprint("api", __name__, url_prefix="/api")
 
 DEFAULT_PAGE_LIMIT = 100
 MAX_PAGE_LIMIT = 500
+MAX_PAGE_OFFSET = 2 ** 63 - 1
+"""int: The largest `offset` MySQL's LIMIT/OFFSET takes as a plain
+integer; past it the query itself fails, so it's a 400 instead."""
+MAX_NAME_LENGTH = 255
+"""int: `sectors.name`/`star_systems.name` are VARCHAR(255)."""
+MAX_WIKI_URL_LENGTH = 2048
+"""int: `sectors.wiki_url` is VARCHAR(2048)."""
+MAX_SECTOR_EDGE_LY = 1e9
+"""float: An upper bound on a sector's `edge_ly` -- far beyond any real
+sector, well short of overflowing the unit conversion."""
+MAX_NEIGHBORHOOD_RADIUS_LY = 1e6
+"""float: An upper bound on generate-neighborhood's `radius_ly` (the
+galaxy is ~1e5 ly across), so no request can ask for an unbounded run."""
 
 WRITE_RATE_LIMIT = "10 per minute"
 """str: Applied to every write route, on top of the app-wide default
@@ -204,6 +217,8 @@ def _paginate(query_args):
             raise ApiError(f"offset must be an integer, got {raw_offset!r}")
         if offset < 0:
             raise ApiError("offset must be at least 0")
+        if offset > MAX_PAGE_OFFSET:
+            raise ApiError(f"offset must be at most {MAX_PAGE_OFFSET}")
 
     return limit, offset
 
@@ -236,6 +251,8 @@ def _parse_size_range(query_args, prefix):
             value = float(raw)
         except ValueError:
             raise ApiError(f"{name} must be a number, got {raw!r}")
+        if not math.isfinite(value):
+            raise ApiError(f"{name} must be a finite number, got {raw!r}")
         if value < 0:
             raise ApiError(f"{name} must be at least 0")
         return value
@@ -251,6 +268,8 @@ def _parse_size_range(query_args, prefix):
 
 @bp.route("/health")
 @limiter.exempt
+# TODO(security #48): return a generic "database unavailable" here and in
+# the read routes' 503s, and log the detail.
 def health():
     """
     Liveness/readiness check for monitoring -- confirms the process is up
@@ -281,6 +300,10 @@ def health():
     """
     try:
         get_db().execute("SELECT 1")
+    except ApiError as exc:
+        if exc.status_code != 503:
+            raise  # e.g. an unknown `?db=` (404) -- the request's fault, not an outage
+        return jsonify({"status": "error", "detail": exc.message}), 503
     except Exception as exc:
         return jsonify({"status": "error", "detail": str(exc)}), 503
 
@@ -327,21 +350,27 @@ def databases():
     entries = list_databases(base_config)
     items = []
     for entry in entries:
-        conn = open_readonly(MySQLConfig(
-            host=base_config.host, port=base_config.port,
-            user=base_config.user, password=base_config.password, database=entry["name"],
-        ))
+        conn = None
         try:
+            # Opened inside the try: a listed schema can still fail to open
+            # (dropped since the listing, no grant), and `open_readonly`
+            # signals that with SystemExit, which would otherwise escape
+            # Flask altogether.
+            conn = open_readonly(MySQLConfig(
+                host=base_config.host, port=base_config.port,
+                user=base_config.user, password=base_config.password, database=entry["name"],
+            ))
             sector_count = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
             system_count = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
-        except Exception:
+        except (Exception, SystemExit):
             # A schema matching the configured prefix but missing this
             # project's own tables (e.g. mid-migration, or a stray
             # unrelated database sharing the prefix) shouldn't take down
             # the whole listing -- report it with unknown counts instead.
             sector_count = system_count = None
         finally:
-            conn.close()
+            if conn is not None:
+                conn.close()
         items.append({**entry, "sector_count": sector_count, "system_count": system_count})
     return jsonify({"items": items})
 
@@ -458,8 +487,8 @@ def systems_near(system_id):
         radius = float(raw_radius)
     except ValueError:
         raise ApiError(f"radius must be a number, got {raw_radius!r}")
-    if radius <= 0:
-        raise ApiError("radius must be greater than 0")
+    if not math.isfinite(radius) or radius <= 0:
+        raise ApiError("radius must be a finite number greater than 0")
 
     try:
         matches = systems_within_radius(get_db(), system_id, radius)
@@ -652,16 +681,23 @@ def galaxy_cell():
     edge_pc = skeleton.edge_pc if skeleton else float(program_constants.DEFAULT_SECTOR_EDGE_PC)
     ring, layer, slot = number("ring", int), number("layer", int), number("slot", int)
     x, y, z = number("x", float), number("y", float), number("z", float)
+    # An address astronomically far out overflows the float geometry
+    # (OverflowError) -- a bad request, not a server error.
     if None not in (ring, layer, slot):
         address = (ring, layer, slot)
     elif None not in (x, y, z) and all(math.isfinite(v) for v in (x, y, z)):
-        address = sector_address_at((x, y, z), edge_pc)
+        try:
+            address = sector_address_at((x, y, z), edge_pc)
+        except OverflowError:
+            raise ApiError("x, y and z are too far out")
     else:
         raise ApiError("give ring, layer and slot, or x, y and z")
     if address[0] < 0:
         raise ApiError("ring must be >= 0")
     try:
         cell = describe_sector_cell(*address, edge_pc)
+    except OverflowError:
+        raise ApiError("that cell is too far out")
     except ValueError as err:
         raise ApiError(str(err))
     cell["edge_pc"] = edge_pc
@@ -827,8 +863,10 @@ def wiki_config():
 
 SECTOR_FIELDS = {
     # field name -> (expected Python type(s), validator)
-    "name": (str, lambda v: bool(v.strip())),
-    "edge_ly": ((int, float), lambda v: v > 0),
+    "name": (str, lambda v: bool(v.strip()) and len(v) <= MAX_NAME_LENGTH),
+    # `0 < v <= MAX`, not `v > 0`: NaN, infinity and absurd sizes (which
+    # overflow the unit conversion) are all refused.
+    "edge_ly": ((int, float), lambda v: 0 < v <= MAX_SECTOR_EDGE_LY),
 }
 """dict: The `sectors` JSON object shape both `create_sector` and
 `update_sector` validate against -- see docs/api.md's "Sectors" write
@@ -842,7 +880,8 @@ SECTOR_UPDATE_FIELDS = {
     # doesn't accept this (a brand-new, just-generated sector has never
     # been uploaded anywhere), so it's added only to `update_sector`'s own
     # allowed-fields set, not to SECTOR_FIELDS itself.
-    "wiki_url": ((str, type(None)), lambda v: v is None or bool(v.strip())),
+    # TODO(security #46): accept only http/https URLs with a host.
+    "wiki_url": ((str, type(None)), lambda v: v is None or (bool(v.strip()) and len(v) <= MAX_WIKI_URL_LENGTH)),
 }
 """dict: `SECTOR_FIELDS` plus `update_sector`-only fields -- see
 `_validate_sector_fields`'s `allowed` parameter."""
@@ -1020,10 +1059,15 @@ def generate_sector_neighborhood_route(sector_id):
     a production deployment's own reverse-proxy/gateway timeout (Apache,
     etc.) may still need raising for this one route to ever complete over
     HTTP at all."""
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if body is None:
+        body = {}
+    if not isinstance(body, dict):
+        raise ApiError("request body must be a JSON object")
     radius_ly = body.get("radius_ly")
     if radius_ly is not None and (
-        not isinstance(radius_ly, (int, float)) or isinstance(radius_ly, bool) or radius_ly <= 0
+        not isinstance(radius_ly, (int, float)) or isinstance(radius_ly, bool)
+        or not 0 < radius_ly <= MAX_NEIGHBORHOOD_RADIUS_LY
     ):
         raise ApiError(f"'radius_ly' is invalid: {radius_ly!r}")
 
@@ -1085,6 +1129,8 @@ def _validate_system_config_body(body):
     for field in ("star_type", "name"):
         if field in body and body[field] is not None and not isinstance(body[field], str):
             raise ApiError(f"'{field}' must be a string or null")
+    if isinstance(body.get("name"), str) and len(body["name"]) > MAX_NAME_LENGTH:
+        raise ApiError(f"'name' must be at most {MAX_NAME_LENGTH} characters")
     if "age" in body and body["age"] not in (None, "young", "old"):
         raise ApiError("'age' must be 'young', 'old', or null")
     if "num_orbits" in body:
@@ -1131,7 +1177,7 @@ def create_system():
     return jsonify({"id": system_id}), 201
 
 
-NAME_MAX_LENGTH = 255
+NAME_MAX_LENGTH = MAX_NAME_LENGTH
 """int: Every `name` column is `VARCHAR(255)` (see `schema.sql`)."""
 
 _NAME_CLASH_LABELS = {

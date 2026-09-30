@@ -24,7 +24,7 @@ import secrets
 from . import log, physical_constants, program_constants
 from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
-                    orbital_position_au, reseed_rng, sample_bounded_bell)
+                    finite_domain, orbital_position_au, reseed_rng, sample_bounded_bell)
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -192,6 +192,7 @@ def _validate_mass(planet):
 # TODO(facilities #35): orbital facilities (around a star or a planet) get
 # their period and speed from here and utils.circular_orbital_speed_kms
 # from the host's approximate mass, the same way planets and moons do.
+@finite_domain()
 def calculate_orbital_period_years(distance_au, primary_mass_kg):
     """
     Kepler's third law: T(years) = sqrt(a(AU)^3 / M_primary(Msun)).
@@ -308,6 +309,10 @@ def generate_planet_properties(planet, zone_override=None):
             raise ValueError("No valid planet class for the given mass in this zone")
         planet.planet_class = secrets.choice(possible_classes)
         _validate_mass(planet)
+        # Everything downstream needs a radius, so draw one for the class,
+        # the same as the class+mass branch below.
+        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is not None and planet.mass is None:
         # Class and radius given, validate
@@ -473,6 +478,7 @@ def calculate_surface_gravity(planet):
     planet.gravity = surface_gravity_g
 
 
+@finite_domain()
 def _atmosphere_retention_factor(gravity_g):
     """
     A gravity-based atmosphere-retention scaling factor, normalized to 1.0
@@ -910,6 +916,8 @@ def generate_moons(planet, moon_count=None):
     if not possible_classes:
         return
 
+    # TODO(physics #53, #54): high_orbit is 5 Hill radii (moons land outside
+    # the Hill sphere) and low_orbit ignores the planet's own radius.
     low_orbit = planet.scale_height * 15 if planet.scale_height else 100
     high_orbit = planet.min_orbit_distance * physical_constants.AU_TO_KM
     total_orbit_distance = low_orbit

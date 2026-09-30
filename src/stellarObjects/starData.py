@@ -29,8 +29,15 @@ from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
                     format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, get_star_evolutionary_profile,
-                    properties_to_string, reseed_rng, to_scientific_notation)
+                    finite_domain, properties_to_string, reseed_rng, to_scientific_notation)
 
+STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
+"""A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
+digit, Yerkes class. Always matched with `fullmatch` -- a prefix match
+accepted 'G2Vjunk' as G2V and parsed 'G10V' as a G1 hypergiant ('0')."""
+
+
+@finite_domain()
 def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     """
     Draws a progenitor mass (in solar masses) for an evolved-class star
@@ -564,6 +571,7 @@ class Star:
         return calculate_galactic_orbit(galactic_center_dist_ly)
 
     @staticmethod
+    @finite_domain()
     def _calculate_heliosphere_radius_static(mass, luminosity, radius_km, star_type, yerkes_class):
         """
         Estimates the radius of the star's heliosphere (astrosphere).
@@ -978,7 +986,7 @@ class Star:
             # --- GENERATE STAR FROM SPECIFIED TYPE ---
 
             # 1. Parse and validate the specified star type string.
-            match = re.match(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)", self.system_config.STAR_TYPE.upper())
+            match = STAR_TYPE_PATTERN.fullmatch(self.system_config.STAR_TYPE.upper())
             if not match:
                 raise ValueError("Invalid star type format. Expected format is e.g., G2V.")
             spectral_class, subclass_str, yerkes_class_str = match.groups()

@@ -242,6 +242,8 @@ class StarSystem:
             # Create secondary star, potentially with a different name or type if desired
             with log.timed_phase("secondary star generation"):
                 # Named properly by assign_names below, once the pair's star words exist.
+                # TODO(physics #57): the class's mass range clamp can make the secondary
+                # heavier than the primary.
                 self.secondary_star = Star(self.system_config, name=self.primary_star.name,
                                             mass_override=secondary_mass,
                                             galactic_center_dist_ly=galactic_center_dist_ly,
@@ -555,6 +557,8 @@ class StarSystem:
         probability = program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
         return random.random() < probability
 
+    # TODO(physics #55): a close binary's first slot needs a floor at the
+    # stars' own separation.
     def _generate_planets(self, star, habitable_zone, orbit_ceiling_au, apply_guarantees=True):
         """
         Builds a fresh, sequentially-placed list of planets/asteroid belts
@@ -1560,6 +1564,8 @@ class StarSystem:
         max_objects = math.ceil(oligarch_count * program_constants.GIANT_IMPACT_SURVIVAL_FRACTION)
         return min(max_objects, program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS)
 
+    # TODO(physics #56): a planet after a belt must clear the belt by its own
+    # Hill radius too, not just 0.05 AU.
     def validate_system(self, planets=None):
         """
         Validates and adjusts the distances of stellar objects to prevent orbital overlap.

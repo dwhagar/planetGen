@@ -118,6 +118,8 @@ def cache_dir():
         return None
     candidates = [configured]
     if configured == DEFAULT_CACHE_DIR:
+        # TODO(security #42): create this fallback privately or refuse one not
+        # owned by this user.
         candidates.append(os.path.join(tempfile.gettempdir(), "planetgen-tiles"))
     for candidate in candidates:
         try:

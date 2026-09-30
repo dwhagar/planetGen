@@ -91,7 +91,10 @@ setup(
         # matplotlib/numpy are for tests/galaxy_shape_visualizer_cli.py
         # alone (renders the density model as an actual image) -- no
         # other test or application code touches either.
-        'test': ['pytest>=7.4.0', 'matplotlib>=3.8.0', 'numpy>=1.26.0'],
+        'test': ['pytest>=7.4.0', 'matplotlib>=3.8.0', 'numpy>=1.26.0',
+                 # tests/test_fuzz_*.py (property-based brute-force tests;
+                 # see tests/fuzz_support.py).
+                 'hypothesis>=6.100.0'],
         'api': ['flask>=3.0.3', 'flask-limiter>=3.7.0'],
         # tests/test_web_a11y.py alone (headless-browser layout and
         # accessibility checks of the Flask pages); it skips without it.

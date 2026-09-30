@@ -62,6 +62,7 @@ from .helpers import SECTIONS, current_admin, page_url  # noqa: E402
 CONTENT_SECURITY_POLICY = ("default-src 'self'; base-uri 'self'; form-action 'self'; "
                            "frame-ancestors 'none'; object-src 'none'")
 
+# TODO(security #52): add Strict-Transport-Security on HTTPS requests.
 SECURITY_HEADERS = (
     ("X-Content-Type-Options", "nosniff"),
     ("X-Frame-Options", "DENY"),
@@ -129,6 +130,8 @@ def init_app(app, limiter=None):
     app.before_request(csrf.protect)
     app.after_request(csrf.set_cookie)
     if limiter is not None:
+        # TODO(security #41): per-IP limits on search, the Galaxy Map, its tiles
+        # and /api/health instead of exempting every page.
         limiter.exempt(bp)
     transport.install()
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):

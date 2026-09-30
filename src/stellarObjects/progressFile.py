@@ -58,10 +58,26 @@ def report(completed, total=None, description=None, force=False):
         "updated_at": now,
     }
     try:
+        # Serialized up front, so a value json can't encode fails before
+        # any temp file exists.
+        text = json.dumps(body)
         directory = os.path.dirname(os.path.abspath(path))
+    except (TypeError, ValueError):
+        return
+    tmp = None
+    try:
         fd, tmp = tempfile.mkstemp(prefix=".progress-", dir=directory)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(body, f)
+            f.write(text)
         os.replace(tmp, path)
-    except OSError:
+        tmp = None
+    except (OSError, ValueError):
         pass
+    finally:
+        # Only still set if the write or the rename failed (e.g. `path` is
+        # a directory) -- don't leave the half-done temp file behind.
+        if tmp is not None:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass

@@ -99,7 +99,7 @@ def _legacy_redirect(args):
         raw = (args.get(f"{prefix}_id") or args.get(prefix) or "").strip()
         if not raw:
             continue
-        if raw.isdigit():
+        if raw.isdecimal():  # not isdigit(): "²" is a digit int() can't read
             kind = args.get(f"{prefix}_type") if args.get(f"{prefix}_kind") == "phenomenon" else None
             raw = endpoint(kind or "system", raw)
         params.append((prefix, raw))

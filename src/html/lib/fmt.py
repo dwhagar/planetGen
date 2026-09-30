@@ -10,6 +10,7 @@ never a database row or connection.
 """
 
 import html
+import math
 import os
 import re
 from urllib.parse import quote
@@ -201,7 +202,12 @@ def format_density(edge_ly, system_count):
     if not edge_ly:
         return "n/a"
 
-    density_ly3 = system_count / (edge_ly ** 3)
+    # Divided one factor at a time rather than by `edge_ly ** 3`, which
+    # raises OverflowError for a huge edge and underflows to 0.0
+    # (ZeroDivisionError) for a tiny one; an infinite result is n/a too.
+    density_ly3 = system_count / edge_ly / edge_ly / edge_ly
+    if math.isinf(density_ly3):
+        return "n/a"
     text = f"{density_ly3:.5f} systems/ly&sup3;"
     if LOCAL_STELLAR_DENSITY_LY3:
         relative_pct = (density_ly3 / LOCAL_STELLAR_DENSITY_LY3) * 100

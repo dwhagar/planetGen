@@ -10,16 +10,75 @@ functions support various aspects of the celestial body generation process,
 from calculating physical properties to creating unique and plausible names.
 """
 
+import functools
+import inspect
 import math
 import random
 import secrets
 
 from .config import SystemConfig
 from .names import (
-    BAD_CONSONANTS, DICTIONARY_WORDS, NSFW_WORDS, SECTOR_NAMES, SECTOR_PREFIXES,
-    SECTOR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
+    BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS,
+    NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
+    UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
 )
 from . import physical_constants, program_constants
+
+def _numeric_leaves(value):
+    if isinstance(value, (tuple, list)):
+        for item in value:
+            yield from _numeric_leaves(item)
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+        yield value
+
+
+def finite_domain(*, allow_inf=(), clamped=()):
+    """
+    Decorator giving a numeric physics helper one explicit contract: it
+    returns finite numbers or raises `ValueError` -- never a
+    `ZeroDivisionError`/`OverflowError` from an out-of-range input, and
+    never a silent NaN/inf that would otherwise surface far away (in a
+    stored row, a rendered page).
+
+    * Every float argument must be finite, except those named in
+      `allow_inf` (which may be +/-inf, e.g. `vis_viva_speed_kms`'s
+      parabolic `semi_major_axis_au = math.inf`) and those named in
+      `clamped` (which the helper clamps into a valid range itself, so any
+      non-NaN value is fine; NaN still surfaces through the result check).
+    * A `ZeroDivisionError`/`OverflowError` raised inside (a zero or
+      subnormal divisor, a power overflowing) becomes a `ValueError`.
+    * A non-finite number anywhere in the result becomes a `ValueError`.
+
+    Plain unit conversions and formatting helpers deliberately don't use
+    this: they pass non-finite values through unchanged.
+    """
+    allow_inf = frozenset(allow_inf)
+    clamped = frozenset(clamped)
+
+    def decorate(func):
+        params = list(inspect.signature(func).parameters)
+        where = func.__name__
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for name, value in (*zip(params, args), *kwargs.items()):
+                if isinstance(value, float) and not math.isfinite(value):
+                    if name in clamped or (name in allow_inf and math.isinf(value)):
+                        continue
+                    raise ValueError(f"{where}: {name} must be a finite number, got {value!r}")
+            try:
+                result = func(*args, **kwargs)
+            except (ZeroDivisionError, OverflowError) as exc:
+                raise ValueError(f"{where}: input out of range ({exc})") from exc
+            for leaf in _numeric_leaves(result):
+                if not math.isfinite(leaf):
+                    raise ValueError(f"{where}: result out of range ({leaf!r}) for {args!r}")
+            return result
+
+        return wrapper
+
+    return decorate
+
 
 def reseed_rng():
     """
@@ -319,12 +378,19 @@ def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     """
     if number == 0:
         return "0"
-    exponent = int(math.floor(math.log10(abs(number))))
-    coefficient = number / 10**exponent
+    if not math.isfinite(number):
+        # NaN/inf have no exponent; shown as-is rather than raising.
+        return str(number)
+    # Python's own `e` formatting rounds the mantissa *before* picking the
+    # exponent, so 9.999 comes out as 1.00e+01 (not "10.00 x 10^0"), and
+    # it's exact for subnormals (5e-324), where dividing by 10**exponent
+    # underflowed to a division by zero.
+    mantissa, exponent_text = f"{number:.{precision}e}".split("e")
+    exponent = int(exponent_text)
     if system_config.MARKDOWN:
-        return f"{coefficient:.{precision}f} × 10<sup>{exponent}</sup>"
+        return f"{mantissa} × 10<sup>{exponent}</sup>"
     else:
-        output = f"Exp|{coefficient:.{precision}f}|{exponent:d}"
+        output = f"Exp|{mantissa}|{exponent:d}"
         return "{{" + output + "}}"
 
 def format_age_string(age_gy, precision=2):
@@ -417,6 +483,7 @@ def calculate_object_mass(object_class, object_radius, planet_classes, planet_de
     return volume_km3, mass
 
 
+@finite_domain(clamped=("mode_fraction",))
 def sample_bounded_bell(min_val, max_val, mode_fraction, spread_divisor=3.0, max_attempts=1000):
     """
     Draws a random value in [min_val, max_val] from a bounded bell-curve
@@ -476,6 +543,7 @@ def sample_bounded_bell(min_val, max_val, mode_fraction, spread_divisor=3.0, max
     return min(max(mean, min_val), max_val)
 
 
+@finite_domain()
 def calculate_habitable_zone(luminosity):
     """
     Calculates the inner and outer boundaries of the habitable zone for a star.
@@ -497,6 +565,7 @@ def calculate_habitable_zone(luminosity):
     return (inner_radius, outer_radius)
 
 
+@finite_domain()
 def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     """
     Calculates the Hill sphere radius for a celestial body.
@@ -517,6 +586,7 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
 
 
+@finite_domain(clamped=("companion_mass_fraction", "eccentricity"))
 def holman_wiegert_critical_semimajor_axis(binary_separation_au, companion_mass_fraction, eccentricity):
     """
     Holman, M. & Wiegert, P. (1999), AJ 117:621, "Long-Term Stability of
@@ -567,6 +637,7 @@ def holman_wiegert_critical_semimajor_axis(binary_separation_au, companion_mass_
     return ratio * binary_separation_au
 
 
+@finite_domain()
 def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, central_mass_kg):
     """
     Gladman (1993), Icarus 106:247, "Dynamical stability of the outer solar
@@ -639,6 +710,7 @@ def sample_wide_binary_eccentricity():
     return program_constants.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(random.random())
 
 
+@finite_domain()
 def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_mass_kg):
     """
     Calculates the *mutual* Hill radius of two bodies that orbit the same
@@ -674,6 +746,7 @@ def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_m
     return avg_distance_m * ((mass1_kg + mass2_kg) / (3 * central_mass_kg)) ** (1 / 3)
 
 
+@finite_domain()
 def snow_line_au(luminosity_w):
     """
     The snow line (ice condensation point, ~170K) for a star of a given
@@ -692,6 +765,7 @@ def snow_line_au(luminosity_w):
     return physical_constants.SNOW_LINE_AU_AT_1_LSUN * math.sqrt(solar_lum)
 
 
+@finite_domain()
 def disk_surface_density_scale(star_mass_kg):
     """
     How much a star's own protoplanetary disk's solid surface density
@@ -711,6 +785,7 @@ def disk_surface_density_scale(star_mass_kg):
     return solar_masses ** program_constants.DISK_MASS_STELLAR_MASS_EXPONENT
 
 
+@finite_domain()
 def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
     """
     The Minimum Mass Solar Nebula's solid surface density at a given
@@ -741,6 +816,7 @@ def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
     return density
 
 
+@finite_domain()
 def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
     """
     The oligarchic-growth isolation mass (Lissauer 1993; Kokubo & Ida
@@ -776,6 +852,8 @@ def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
     return base ** (3 / 2) / (3 * star_mass_kg) ** 0.5
 
 
+# -inf is just "not positive" (the documented (0.0, 0.0)); +inf fails the result check.
+@finite_domain(allow_inf=("distance_ly",))
 def calculate_galactic_orbit(distance_ly):
     """
     Estimates a star system's circular orbital speed and orbital period
@@ -879,6 +957,7 @@ def format_galactic_orbit(speed_kms, period_gy):
     return f"{speed_kms:,.1f} km/s ({format_age_string(period_gy)} per orbit)"
 
 
+@finite_domain()
 def circular_orbital_speed_kms(distance_au, period_years):
     """
     Tangential speed of a circular orbit, given its radius and period:
@@ -903,6 +982,7 @@ def circular_orbital_speed_kms(distance_au, period_years):
     return circumference_km / period_seconds
 
 
+@finite_domain()
 def orbital_position_au(distance_au, inclination_deg, ascending_node_deg, phase_deg):
     """
     Converts a circular orbit's elements -- radius, inclination, ascending
@@ -1005,6 +1085,7 @@ def calculate_reflex_offset(parent_mass_kg, children):
     return offset_x, offset_y, offset_z
 
 
+@finite_domain()
 def minimum_update_interval_years(period_years):
     """
     The shortest `elapsed_years` worth advancing a body's
@@ -1081,6 +1162,10 @@ def split_into_syllables(name):
     return syllables
 
 
+_NSFW_PLAIN_WORDS = tuple(w for w in NSFW_WORDS if w and "'" not in w and " " not in w)
+_NSFW_SPACED_WORDS = tuple(w for w in NSFW_WORDS if w and ("'" in w or " " in w))
+
+
 def is_name_valid(name):
     """
     Checks if a generated name is valid based on multiple criteria.
@@ -1089,7 +1174,9 @@ def is_name_valid(name):
     does not contain any offensive terms, and follows basic phonetic rules.
     The validation checks are as follows:
     - The name should not exist in the NLTK dictionary of words.
-    - The name should not contain any substring from the NSFW (Not Safe For Work) word list.
+    - The name should not contain any substring from the NSFW (Not Safe For Work) word list,
+      also checked with its apostrophes and spaces removed.
+    - No word of the name may be a `nameUniqueness` decoration word (`_DECORATION_WORDS`).
     - The name should not contain more than two consecutive vowels.
     - The name should not contain more than two consecutive consonants.
     - The name should not contain any of the defined bad consonant clusters.
@@ -1106,8 +1193,23 @@ def is_name_valid(name):
     name_lower = name.lower()
     if name_lower in DICTIONARY_WORDS:
         return False
-    for word in NSFW_WORDS:
-        if word in name_lower:
+    if any(token in _DECORATION_WORDS for token in name_lower.split()):
+        # A word that is also a nameUniqueness decoration ("Liten",
+        # "Ohana", ...) would be stripped off an undecorated name by
+        # `nameUniqueness.strip_decoration`, grouping it with another base.
+        return False
+    # Checked with apostrophes/spaces removed too: an apostrophe spliced in
+    # by a phoneme chunk ("pak'i", "k'ike") must not hide an offensive word.
+    # A word with no apostrophe or space that appears in any variant also
+    # appears in the fully squeezed one, so only the few words that carry
+    # one of those need every variant (keeps this hot check one pass).
+    squeezed = name_lower.replace("'", "")
+    fully_squeezed = squeezed.replace(" ", "")
+    if any(word in fully_squeezed for word in _NSFW_PLAIN_WORDS):
+        return False
+    if _NSFW_SPACED_WORDS:
+        variants = (name_lower, squeezed, name_lower.replace(" ", ""))
+        if any(word in variant for word in _NSFW_SPACED_WORDS for variant in variants):
             return False
     
     vowel_count = 0
@@ -1130,6 +1232,15 @@ def is_name_valid(name):
             return False
 
     return True
+
+
+_DECORATION_WORDS = frozenset(
+    word.lower() for word in (*GREEK_LETTERS, *DIMINUTIVE_PREFIXES, *COMPANION_SUFFIXES,
+                              *ROMAN_NUMERALS_BY_VALUE.values())
+)
+"""Every word `nameUniqueness` decorates a name with (lowercase) -- see
+`is_name_valid`/`generate_phoneme_salad_name`, which keep generated words
+from ever being one of them."""
 
 
 def split_long_word(name):
@@ -1157,6 +1268,10 @@ def split_long_word(name):
              valid split point).
     """
     if len(name) > WORD_SIZE_MEAN:
+        if " " in name:
+            # Already more than one word (a base name like "El Nath");
+            # splitting again could put a second space beside the first.
+            return name
         split_point = len(name) // 2
         while split_point < len(name) and (name[split_point - 1] == "'" or name[split_point] == "'"):
             split_point += 1
@@ -1309,6 +1424,10 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
         if is_name_valid(name):
             if allow_split:
                 name = split_long_word(name)
+                if any(part.lower() in _DECORATION_WORDS for part in name.split()):
+                    # A split half that is itself a decoration word
+                    # ("Xxxxx Ohana") -- see `_DECORATION_WORDS`.
+                    continue
             name = name[0].upper() + name[1:]
             if "'" in name:
                 # Two apostrophes can land adjacent here (e.g. a base name like

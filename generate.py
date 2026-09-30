@@ -94,6 +94,7 @@ from stellarObjects.nebulaData import Nebula
 from stellarObjects.quasarData import Quasar
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
+from stellarObjects.starData import STAR_TYPE_PATTERN
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import render_star_system
@@ -224,6 +225,33 @@ class TristateAction(argparse.Action):
         setattr(namespace, self.dest, option_string.startswith('+'))
 
 
+def finite_float(text):
+    """
+    `argparse` type for every float option: a plain `float`, but NaN and
+    +/-inf (`nan`, `inf`, `1e309`) are rejected at parse time. Every
+    validator below uses `x <= 0`-style checks, which NaN (every
+    comparison False) slips straight through -- `--density nan` used to
+    hang forever in `_sample_poisson_count`, `--radius-pc inf` crashed in
+    `math.ceil`, and NaN/inf shape parameters reached MySQL.
+    """
+    try:
+        value = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid float value: {text!r}") from None
+    if not math.isfinite(value):
+        raise argparse.ArgumentTypeError(f"must be a finite number, got {text!r}")
+    return value
+
+
+def _validate_star_type(args, parser):
+    """--star-type must be a whole spectral type (e.g. G2V), checked here
+    rather than surfacing as a traceback from `Star.generate_star`."""
+    if args.star_type and not STAR_TYPE_PATTERN.fullmatch(args.star_type.upper()):
+        parser.error(f"--star-type {args.star_type!r} is not a spectral type: expected a class letter "
+                     f"(OBAFGKM), a subclass digit (0-9) and a Yerkes class (0, IA+, IA, IAB, IB, II, "
+                     f"III, IV, V, VI, VII or D), e.g. G2V.")
+
+
 def add_logging_arguments(parser):
     """
     Adds the logging options every subcommand shares to `parser`:
@@ -321,11 +349,11 @@ def add_system_arguments(parser):
                         help="Specify the age of the star system (young or old).")
 
     # Override Flavor Chance System
-    parser.add_argument('--flavor-chance-system', type=float,
+    parser.add_argument('--flavor-chance-system', type=finite_float,
                         help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
 
     # Override Flavor Chance Planet
-    parser.add_argument('--flavor-chance-planet', type=float,
+    parser.add_argument('--flavor-chance-planet', type=finite_float,
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
 
     # Max Planet Flavor
@@ -350,8 +378,26 @@ def validate_system_args(args, parser):
     if args.star_type and args.large_star:
         parser.error("--star-type cannot be combined with +large_star.")
 
+    _validate_star_type(args, parser)
+
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
+
+    if args.system_file:
+        # Read once here so a missing/unreadable/non-JSON/non-object file
+        # is a usage error, not a traceback from build_system_config.
+        try:
+            file_data = load_system_file(args.system_file)
+        except (OSError, ValueError) as exc:
+            parser.error(f"--system-file {args.system_file!r} could not be read as JSON: {exc}")
+        if not isinstance(file_data, dict):
+            parser.error(f"--system-file {args.system_file!r} must contain a JSON object, "
+                         f"not {type(file_data).__name__}.")
+        file_star_type = file_data.get("star_type")
+        if file_star_type is not None and not (
+                isinstance(file_star_type, str) and STAR_TYPE_PATTERN.fullmatch(file_star_type.upper())):
+            parser.error(f"--system-file {args.system_file!r}: star_type {file_star_type!r} is not a "
+                         f"spectral type (e.g. G2V).")
 
     if args.num_orbits is not None and args.num_orbits < 0:
         parser.error("--num-orbits must be zero or a positive integer.")
@@ -600,7 +646,7 @@ def add_shared_generation_options(parser):
     parser.add_argument('--num-systems', type=int, default=None,
                         help="The exact number of star systems to generate in the sector. Cannot be "
                              "combined with --density. Defaults to 10 if neither is given.")
-    parser.add_argument('--density', type=float, default=None,
+    parser.add_argument('--density', type=finite_float, default=None,
                         help="Scale the number of systems generated per sector by this multiplier on "
                              "real local stellar density (1.0 = a realistic sector this size; 2.0 = "
                              "twice as dense; 0.5 = half). The actual count is randomly sampled per "
@@ -616,9 +662,9 @@ def add_shared_generation_options(parser):
                         help="Force every system's star to a specific type (e.g., G2V).")
     parser.add_argument('--age', type=str, choices=['young', 'old'],
                         help="Specify the age of every star in the sector (young or old).")
-    parser.add_argument('--flavor-chance-system', type=float,
+    parser.add_argument('--flavor-chance-system', type=finite_float,
                         help="Override the default FLAVOR_CHANCE_SYSTEM constant.")
-    parser.add_argument('--flavor-chance-planet', type=float,
+    parser.add_argument('--flavor-chance-planet', type=finite_float,
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
@@ -680,6 +726,8 @@ def validate_shared_generation_args(args, parser):
 
     if args.star_type and args.large_star:
         parser.error("--star-type cannot be combined with +large_star.")
+
+    _validate_star_type(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
@@ -769,38 +817,55 @@ def build_sector_configs(args):
             `--density`-driven count, which isn't resolved until generation
             time.
     """
-    configs = [build_system_config(args) for _ in range(args.num_systems)]
+    return list(iter_sector_configs(args))
 
-    if args.min_habitable > len(configs):
+
+def iter_sector_configs(args):
+    """
+    `build_sector_configs`, lazily: yields the same `args.num_systems`
+    configs one at a time, so a huge count (`--num-systems 1000000000`,
+    or a huge `--density` draw) never builds them all up front --
+    `generate_sector` stops pulling once the sector is full. Every config
+    comes from the same `args`, so they share one `HABITABLE_WORLD`
+    value; the `--min-habitable` indices are therefore chosen (and any
+    conflict reported) before the first config is yielded.
+
+    Raises:
+        SystemExit: As `build_sector_configs`.
+    """
+    count = args.num_systems
+    if args.min_habitable > count:
         log.error(
             f"Error: --min-habitable ({args.min_habitable}) exceeds this sector's generated system "
-            f"count ({len(configs)}); with --density, the count is randomly sampled per sector and can "
+            f"count ({count}); with --density, the count is randomly sampled per sector and can "
             f"land below --min-habitable. Try a smaller --min-habitable, a higher --density, or "
             f"--num-systems for an exact count instead."
         )
         raise SystemExit(1)
+    if count <= 0:
+        return
 
-    if args.min_habitable > 0:
-        already_habitable = [i for i, cfg in enumerate(configs) if cfg.HABITABLE_WORLD is True]
-        still_needed = args.min_habitable - len(already_habitable)
-        if still_needed > 0:
-            candidates = [i for i in range(len(configs)) if i not in already_habitable]
-            for i in random.sample(candidates, k=still_needed):
-                configs[i].HABITABLE_WORLD = True
-                # Mirrors build_system_config's own habitable-world +
-                # asteroid-belt normalization, reapplied here since it ran before
-                # this override existed.
-                if configs[i].ASTEROID_BELT is True:
-                    if configs[i].LARGE_STAR is False:
-                        log.error(
-                            "Error: --min-habitable requires forcing a habitable world onto a system that also "
-                            "has +asteroid_belt forced sector-wide; that combination needs a large star, but "
-                            "-large_star was also forced sector-wide."
-                        )
-                        raise SystemExit(1)
-                    configs[i].LARGE_STAR = True
+    first = build_system_config(args)
+    forced = set()
+    if args.min_habitable > 0 and first.HABITABLE_WORLD is not True:
+        forced = set(random.sample(range(count), k=args.min_habitable))
+        # Mirrors build_system_config's own habitable-world + asteroid-belt
+        # normalization, reapplied here since it ran before this override.
+        if first.ASTEROID_BELT is True and first.LARGE_STAR is False:
+            log.error(
+                "Error: --min-habitable requires forcing a habitable world onto a system that also "
+                "has +asteroid_belt forced sector-wide; that combination needs a large star, but "
+                "-large_star was also forced sector-wide."
+            )
+            raise SystemExit(1)
 
-    return configs
+    for i in range(count):
+        config = first if i == 0 else build_system_config(args)
+        if i in forced:
+            config.HABITABLE_WORLD = True
+            if config.ASTEROID_BELT is True:
+                config.LARGE_STAR = True
+        yield config
 
 
 # TODO(phenomena #5): nebulae and supernova remnants are volumes light-
@@ -1000,17 +1065,18 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
     density_driven = args.density is not None
     if density_driven:
         args = copy.copy(args)
-        args.num_systems = _sample_poisson_count(sector.expected_system_count() * args.density)
+        # An astronomical --density (1e308) can overflow the mean to inf;
+        # any count that large just fills the sector (see "Capacity").
+        mean = min(sector.expected_system_count() * args.density, sys.float_info.max)
+        args.num_systems = _sample_poisson_count(mean)
 
-    with log.timed_phase("build_sector_configs"):
-        configs = build_sector_configs(args)
-
-    for i, cfg in enumerate(configs):
-        with log.timed_phase(f"generate system {i + 1}/{len(configs)}"):
+    total = args.num_systems
+    for i, cfg in enumerate(iter_sector_configs(args)):
+        with log.timed_phase(f"generate system {i + 1}/{total}"):
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
 
         try:
-            with log.timed_phase(f"place system {i + 1}/{len(configs)}"):
+            with log.timed_phase(f"place system {i + 1}/{total}"):
                 sector.add_system(system, system_config=cfg)
         except ValueError:
             # No room left for another system's Hill sphere in this
@@ -1018,11 +1084,11 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
             # docstring note. Every following config would almost
             # certainly fail the same way (this sector only gets fuller
             # from here), so stop generating and placing altogether
-            # rather than pay for `len(configs) - i - 1` more full
+            # rather than pay for `total - i - 1` more full
             # StarSystem generations just to discard them too.
             log.normal(
                 f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
-                f"{len(configs)} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
+                f"{total} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
                 f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
                 f"rather than the full requested count."
             )
@@ -1195,7 +1261,7 @@ def add_galaxy_arguments(parser):
     parser.add_argument('--yes', action='store_true',
                         help="With --ring: skip the confirmation normally required before generating a "
                              "ring whose slot count exceeds LARGE_RING_WARNING_THRESHOLD.")
-    parser.add_argument('--radius-pc', type=float,
+    parser.add_argument('--radius-pc', type=finite_float,
                         help="With --center-sector: the neighborhood search radius, in parsecs. With "
                              "neither --ring nor --center-sector (random-start mode): overrides the "
                              "default 100 ly neighborhood radius around the randomly chosen starting "
@@ -1204,7 +1270,7 @@ def add_galaxy_arguments(parser):
                         help="With neither --ring nor --center-sector (random-start mode): the highest "
                              "ring the randomly chosen starting sector may land in. Default: anywhere "
                              "inside the galaxy's stored outline.")
-    parser.add_argument('--min-start-density', type=float,
+    parser.add_argument('--min-start-density', type=finite_float,
                         help="With neither --ring nor --center-sector (random-start mode): require the "
                              "randomly chosen starting sector's own real relative_density (the same "
                              "'expected' figure printed alongside each saved sector) to be at least this "
@@ -1651,6 +1717,14 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
     addresses in the sphere were left out for lying outside it -- the
     sphere is trimmed to the galaxy before anything is generated.
     """
+    if bounds:
+        # Nothing in the galaxy lies farther from `center` than this, so a
+        # larger radius only enumerates (and discards) empty space --
+        # `--radius-pc 1e300` used to walk ~1e300 rings before trimming.
+        top_layer = max(abs(layer) for layer in bounds.outer_ring)
+        reach_pc = (math.hypot(center[0], center[1]) + abs(center[2])
+                    + (bounds.outer_ring_index + top_layer + 2) * edge_pc)
+        radius_pc = min(radius_pc, reach_pc)
     candidates = []
     outside = 0
     for candidate in enumerate_sectors_within_radius(center, radius_pc, edge_pc):
@@ -2017,22 +2091,22 @@ def add_plan_arguments(parser):
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     shape_group = parser.add_argument_group("galaxy shape (galaxyDensity.GalaxyShape)")
-    shape_group.add_argument('--disk-scale-length-pc', type=float, default=2800.0,
+    shape_group.add_argument('--disk-scale-length-pc', type=finite_float, default=2800.0,
                              help="Exponential disk radial scale length, parsecs. Default: 2800 "
                                   "(real Milky Way scale).")
-    shape_group.add_argument('--disk-scale-height-pc', type=float, default=350.0,
+    shape_group.add_argument('--disk-scale-height-pc', type=finite_float, default=350.0,
                              help="Disk vertical scale height, parsecs. Default: 350.")
-    shape_group.add_argument('--bulge-scale-radius-pc', type=float, default=200.0,
+    shape_group.add_argument('--bulge-scale-radius-pc', type=finite_float, default=200.0,
                              help="Bulge exponential scale radius, parsecs. Default: 200.")
-    shape_group.add_argument('--bulge-amplitude', type=float, default=1.0,
+    shape_group.add_argument('--bulge-amplitude', type=finite_float, default=1.0,
                              help="Bulge amplitude, relative to the disk term. Default: 1.0.")
     shape_group.add_argument('--arm-count', type=int, default=2,
                              help="Number of spiral arms. Default: 2 (grand-design).")
-    shape_group.add_argument('--pitch-angle-deg', type=float, default=15.0,
+    shape_group.add_argument('--pitch-angle-deg', type=finite_float, default=15.0,
                              help="Spiral arm pitch angle, degrees. Default: 15.")
-    shape_group.add_argument('--arm-amplitude', type=float, default=0.4,
+    shape_group.add_argument('--arm-amplitude', type=finite_float, default=0.4,
                              help="Arm/inter-arm density contrast amplitude, in [0, 1). Default: 0.4.")
-    shape_group.add_argument('--calibration-radius-pc', type=float, default=None,
+    shape_group.add_argument('--calibration-radius-pc', type=finite_float, default=None,
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
                                   "Defaults to build_galaxy_shape's own default (2.82x disk scale length).")
 
@@ -2055,6 +2129,32 @@ def validate_plan_args(args, parser):
         parser.error("--arm-amplitude must be in [0, 1).")
     if args.max_ring < 1:
         parser.error("--max-ring must be a positive integer.")
+    for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):
+        if getattr(args, option) <= 0:
+            parser.error(f"--{option.replace('_', '-')} must be a positive number.")
+    if args.arm_count < 1:
+        parser.error("--arm-count must be a positive integer.")
+    if not 0 < abs(args.pitch_angle_deg) <= 90:
+        parser.error("--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude.")
+    if args.calibration_radius_pc is not None and args.calibration_radius_pc <= 0:
+        parser.error("--calibration-radius-pc must be a positive number.")
+    # Anything else that still can't be normalized (e.g. a calibration
+    # radius so far out the density there underflows to zero).
+    try:
+        shape = build_galaxy_shape(
+            disk_scale_length_pc=args.disk_scale_length_pc,
+            disk_scale_height_pc=args.disk_scale_height_pc,
+            bulge_scale_radius_pc=args.bulge_scale_radius_pc,
+            bulge_amplitude=args.bulge_amplitude,
+            arm_count=args.arm_count,
+            pitch_angle_rad=math.radians(args.pitch_angle_deg),
+            arm_amplitude=args.arm_amplitude,
+            calibration_radius_pc=args.calibration_radius_pc,
+        )
+    except (ArithmeticError, ValueError) as exc:
+        parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
+    if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):
+        parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
 
 
 def build_skeleton(args):
@@ -2293,6 +2393,17 @@ def run_phenomenon(args):
     """
     phenomenon_type = args.type or random.choice(program_constants.RANDOM_PHENOMENON_TYPE_CHOICES)
 
+    if args.sector_id is not None:
+        # Checked before generating anything, as a clean one-line error.
+        conn = _db.get_connection(_db.mysql_config_from_args(args))
+        try:
+            _db.get_sector_galaxy_position(conn, args.sector_id)
+        except ValueError as exc:
+            log.error(f"Error: --sector-id {args.sector_id}: {exc}")
+            raise SystemExit(1) from exc
+        finally:
+            conn.close()
+
     system_config = SystemConfig()
     system_config.MARKDOWN = args.markdown
     if args.num_orbits is not None:
@@ -2390,6 +2501,10 @@ def process_args():
 
     validate_logging_args(args, command_parser)
 
+    port = getattr(args, "mysql_port", None)
+    if port is not None and not 1 <= port <= 65535:
+        command_parser.error("--mysql-port must be between 1 and 65535.")
+
     if args.command == 'system':
         validate_system_args(args, command_parser)
     elif args.command == 'sector':
@@ -2431,7 +2546,10 @@ def main():
         level = log.DEBUG
     else:
         level = log.NORMAL
-    log.configure(level, debug_file=(args.debug or None))
+    try:
+        log.configure(level, debug_file=(args.debug or None))
+    except OSError as exc:
+        _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
     log.debug("Command: %s, options: %s", args.command,
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
 
@@ -2440,7 +2558,25 @@ def main():
     log.debug(f"Seeded the random number generator with {seed} (cryptographically random; no --seed "
               f"option exists to reproduce this run).")
 
-    _COMMAND_HANDLERS[args.command](args)
+    try:
+        _COMMAND_HANDLERS[args.command](args)
+    except pymysql.err.MySQLError as exc:
+        _fatal(f"database error: {exc}")
+    except OSError as exc:
+        # e.g. an unwritable --output path.
+        where = f" ({exc.filename})" if getattr(exc, "filename", None) else ""
+        _fatal(f"{exc.strerror or exc}{where}")
+
+
+def _fatal(message, logger_ready=True):
+    """A one-line error and exit status 1, instead of a traceback. Goes
+    through `log.error` (shown even under --quiet/--silent) once the
+    logger is configured, else straight to stderr."""
+    if logger_ready:
+        log.error(f"Error: {message}")
+    else:
+        print(f"generate.py: error: {message}", file=sys.stderr)
+    raise SystemExit(1)
 
 
 if __name__ == "__main__":

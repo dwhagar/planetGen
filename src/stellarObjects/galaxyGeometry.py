@@ -269,17 +269,20 @@ class SectorCell:
 
     def contains(self, point):
         """Whether a sector-local point lies inside the cell (boundary
-        inclusive)."""
+        inclusive, with a rounding allowance of about a trillionth of the
+        cell's size, so every point `sample` draws counts as inside even
+        when it lands exactly on a face)."""
         lx, ly, lz = point
-        if abs(lz) > self.half_height:
+        tolerance = 1e-12 * max(1.0, self.r_outer)
+        if abs(lz) > self.half_height + tolerance:
             return False
         px = self.r_center + lx
         r = math.hypot(px, ly)
-        if r < self.r_inner or r > self.r_outer:
+        if r < self.r_inner - tolerance or r > self.r_outer + tolerance:
             return False
-        if r == 0.0:
+        if r <= tolerance:
             return True
-        return abs(math.atan2(ly, px)) <= self.half_angle
+        return abs(math.atan2(ly, px)) <= self.half_angle + 1e-12
 
     def sample(self, rng):
         """A uniformly random sector-local point inside the cell."""
@@ -372,8 +375,13 @@ def provisional_sector_designation(ring_index, layer_index, slot_index):
     `"FE81000A2B"`. `parse_sector_designation` undoes it.
 
     Raises:
-        ValueError: If the layer or slot doesn't fit its bit field.
+        ValueError: If the ring is negative, the slot is out of range for
+            the ring (`parse_sector_designation` would reject the result),
+            or the layer or slot doesn't fit its bit field.
     """
+    if ring_index < 0:
+        raise ValueError(f"ring_index must be >= 0, got {ring_index}")
+    _check_slot(ring_index, slot_index)
     biased_layer = layer_index + DESIGNATION_LAYER_BIAS
     if not (0 <= biased_layer < (1 << DESIGNATION_LAYER_BITS)):
         raise ValueError(f"layer_index {layer_index} out of designation range")

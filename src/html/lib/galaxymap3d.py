@@ -214,8 +214,10 @@ MAX_TILES_PER_REQUEST = 128
 def _tile_level_for_view_radius(radius_pc):
     """Same as `galaxyViewport.tile_level_for_view_radius` (duplicated
     so this module keeps working under its ImportError fallback)."""
-    if radius_pc <= 0:
+    if not radius_pc > 0:  # also NaN
         return TILE_MAX_LEVEL
+    if math.isinf(radius_pc):
+        return 0
     return max(0, min(TILE_MAX_LEVEL, math.floor(math.log2(TILE_ROOT_EDGE_PC / radius_pc))))
 
 

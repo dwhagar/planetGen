@@ -28,6 +28,9 @@ from .limiter import limiter
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
+MAX_API_KEY_LABEL_LENGTH = 128
+"""int: `admin_api_keys.label` is VARCHAR(128)."""
+
 LOGIN_RATE_LIMIT = "10 per minute"
 """str: Applied to `POST /api/auth/login` on top of the app-wide default
 (`config.Config.RATELIMIT_DEFAULT`) -- the one endpoint in this API an
@@ -85,10 +88,11 @@ def login():
     given username exists.
     """
     body = require_json_body()
-    username = (body.get("username") or "").strip()
-    password = body.get("password") or ""
-    if not username or not isinstance(password, str) or not password:
+    username = body.get("username")
+    password = body.get("password")
+    if not isinstance(username, str) or not isinstance(password, str) or not username.strip() or not password:
         raise ApiError("username and password are required")
+    username = username.strip()
 
     conn = get_control_db()
     try:
@@ -181,9 +185,12 @@ def create_api_key():
     loses it has no way to recover it and must revoke and create another.
     """
     body = require_json_body()
-    label = (body.get("label") or "").strip()
-    if not label:
+    label = body.get("label")
+    if not isinstance(label, str) or not label.strip():
         raise ApiError("'label' is required")
+    label = label.strip()
+    if len(label) > MAX_API_KEY_LABEL_LENGTH:
+        raise ApiError(f"'label' must be at most {MAX_API_KEY_LABEL_LENGTH} characters")
 
     key_id, raw_key = adminAuth.create_api_key(get_control_db(), g.admin_user["id"], label)
     return jsonify({"id": key_id, "label": label, "key": raw_key}), 201

@@ -22,7 +22,7 @@ from . import physical_constants, program_constants
 from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (format_age_string, calculate_habitable_zone,
+from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
                     format_galactic_orbit, format_relative_to_sol,
                     minimum_update_interval_years, orbital_position_au,
@@ -419,6 +419,7 @@ class BinaryStarProxy(Star):
         return paragraphs
 
     @staticmethod
+    @finite_domain()
     def _calculate_system_perimeter_static(mass, galactic_center_dist_ly=None):
         """
         Calculates the system perimeter (Hill sphere relative to the galaxy)
