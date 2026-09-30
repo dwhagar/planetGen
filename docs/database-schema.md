@@ -472,6 +472,18 @@ colliding names a companion suffix like `"Kin"`) is dropped by
 `_migrate_v33_to_v34`. Existing rows keep their names until regenerated.
 See `stellarObjects/bodyNames.py`.
 
+**Hybrid master-wedge slots (v35).** Ring `i` now holds the multiple of
+its master wedge count (3 at the center, doubling once each master wedge
+would hold 8 slots) nearest `2*pi*(i + 1/2)`: 3, 9, 15, 21, 27, 36, ...
+(`galaxyGeometry.ring_sector_count`/`ring_master_count`). Slot boundaries
+then line up on the master lines from the center out, which the Galaxy
+Map's mega-blocks cut on. No column changes, but a stored
+`ring_slot_index` changes meaning in all but 15 of 3,856 rings, so
+`_migrate_v34_to_v35` deletes every sector in a changed ring with its
+systems and phenomena; the skeleton (`galaxy_layer`, `galaxy_column`) is
+keyed by ring and layer and stays. See `schema.sql`'s "v35" header note
+and `docs/design/galaxy-coordinate-system.md`.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
