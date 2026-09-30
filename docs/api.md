@@ -328,7 +328,14 @@ forced credential change. They back the admin stats page
   username or password (same message either way — this never reveals
   whether a username exists; an unknown username costs the same password
   hash check as a wrong password, so timing doesn't reveal it either).
-  Rate-limited to 10/minute/IP.
+  Rate-limited to 10/minute/IP. Failed logins are also counted per
+  username, whatever address they come from: after 10, each further
+  failure locks that username for twice as long as the last (1 s, 2 s,
+  4 s, ... up to 15 minutes), and a login for a locked username is a
+  `429` with `{"error", "retry_after"}` and a `Retry-After` header,
+  before the password is checked. Unknown usernames are counted the same
+  way. A successful login, or an hour without failures, clears the count.
+  The count is kept in memory per worker process.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`
@@ -394,7 +401,7 @@ in over HTTPS, `Strict-Transport-Security: max-age=31536000`.
 ## NAV
 
 `GET /api/nav?from=<system_id>&to=<system_id>` returns a direct course
-(distance, azimuth, altitude, warp and fold travel times) plus an optimal route via
+(distance, bearing and mark, warp and fold travel times) plus an optimal route via
 adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
 graph with Dijkstra shortest-path) between two endpoints -- each either a
 star system (the default) or a standalone phenomenon (nebula/asteroid
@@ -430,11 +437,15 @@ every intermediate hop is always a system.
   placement) is a `404` (unknown id) or a `400` with `"NAV requires both
   endpoints to share a sector, or both to have a galaxy placement"`.
 
-**Course convention.** Azimuth and altitude are both galactic-plane-relative
-(see `stellarObjects/navigation.py`'s module docstring): azimuth is the
-angle in the galactic X-Y plane measured counterclockwise from +X (0-360°),
-altitude is elevation above (+) or below (-) that plane (-90° to +90°) —
-not a bearing relative to any particular ship heading.
+**Course convention.** Courses use Boss's nested reference frames
+(`docs/design/navigation-frames.md`, `stellarObjects/navigation.py`):
+`bearing_deg` is 0-360 with 0 pointing from `from` toward the frame's
+center (flattened onto the galactic plane) and 90 to the East (North x Up);
+`elevation_deg` is -90 to +90 above or below the galactic plane, and
+`mark_deg` is that elevation mod 360 (0-90 up, 270-360 down). `frame` is
+`"sector"` for `scope: "sector"` (center: the sector's center) or
+`"galactic"` for `scope: "galaxy"` (center: the galactic core). The NAV
+page shows this as "000 mark 000", rounded to whole degrees.
 
 **Response:**
 
@@ -443,8 +454,10 @@ not a bearing relative to any particular ship heading.
   "scope": "sector",
   "direct": {
     "distance_ly": 4.0,
-    "azimuth_deg": 0.0,
-    "altitude_deg": 0.0
+    "bearing_deg": 0.0,
+    "mark_deg": 0.0,
+    "elevation_deg": 0.0,
+    "frame": "sector"
   },
   "warp_times": [
     {"warp_factor": 1, "velocity_multiple_of_c": 1.0, "years": 4.0, "formatted": "4 years"},
