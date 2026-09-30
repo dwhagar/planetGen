@@ -315,13 +315,17 @@ and Download buttons (Download posts the text back to
 file), plus a rendered preview for Markdown.
 
 A job is started as `python3 src/jobRunner.py <job dir>` in its own
-session, so it outlives the request and a graceful reload (Apache's, or
+session (on Windows, a detached process in its own process group,
+broken away from the server's job object where the server allows it),
+so it outlives the request and a graceful reload (Apache's, or
 gunicorn's). A full stop or restart of the service under systemd (which
-stops everything in the service's cgroup) does stop it; the page then
-shows it as interrupted. The session and signal calls are POSIX-only, so
-on native Windows the page doesn't work reliably (see
-[`deployment/windows.md`](deployment/windows.md#limits-on-native-windows)
-and `TODO.md` item 55).
+stops everything in the service's cgroup), or an IIS app pool recycle
+that doesn't allow breakaway, does stop it; the page then shows it as
+interrupted. Cancel writes a `cancel` file into the job's directory; the
+runner sees it within a quarter second and stops the running step's
+whole process tree (`os.killpg` on POSIX, `taskkill /T /F` on Windows).
+Liveness comes from `/proc` on Linux, `os.kill(pid, 0)` on other POSIX
+systems, and `OpenProcess`/`GetExitCodeProcess` on Windows.
 Jobs live under `jobs.dir` (`docs/config.md`). A visitor who isn't a
 logged-in admin is sent to the login page, and POSTs and status requests
 without an admin session get a 403.

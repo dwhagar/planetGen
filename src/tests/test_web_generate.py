@@ -359,6 +359,85 @@ def test_cancel_stops_the_running_step(site, client, jobs_root):
     assert "cancelled" in html and "Cancel job" not in html
 
 
+def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path):
+    """Cancel stops the step's whole process tree (a `plan` pool's
+    workers), not just the step: a grandchild that would write a file
+    after a few seconds never gets to."""
+    marker = tmp_path / "grandchild-survived"
+    grandchild = f"import time; time.sleep(3); open({str(marker)!r}, 'w').close()"
+    job_id = jobs.start_job("galaxy", "Tree", [
+        _step("Spawns", (
+            "import subprocess, sys, time; "
+            f"subprocess.Popen([sys.executable, '-c', {grandchild!r}]); "
+            "print('spawned', flush=True); time.sleep(60)"
+        )),
+    ])
+    deadline = time.time() + 20
+    while "spawned" not in (jobs.log_tail(job_id) or ""):
+        assert time.time() < deadline
+        time.sleep(0.05)
+    assert jobs.cancel_job(job_id)
+    assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
+    time.sleep(4)
+    assert not marker.exists()
+
+
+def test_cancel_is_a_file_the_runner_reads(jobs_root):
+    job_id = jobs.start_job("reset", "Never starts", [_step("x", "print('ran')")], spawn=False)
+    path = os.path.join(jobs_root, job_id)
+    with open(os.path.join(path, jobs.CANCEL_NAME), "w") as f:
+        f.write("now")
+    import jobRunner
+    assert jobRunner.CANCEL_NAME == jobs.CANCEL_NAME
+    assert jobRunner.run(path) == 1
+    job = jobs.get_job(job_id)
+    assert job["status"] == "cancelled"
+    assert "ran" not in (jobs.log_tail(job_id) or "")
+    assert jobs.active_job() is None
+
+
+def test_cancel_of_a_finished_job_does_nothing(jobs_root):
+    job_id = jobs.start_job("reset", "Quick", [_step("x", "pass")])
+    _wait_finished(job_id, jobs_root)
+    assert jobs.cancel_job(job_id) is False
+    assert not os.path.exists(os.path.join(jobs_root, job_id, jobs.CANCEL_NAME))
+
+
+def test_state_file_write_retries_while_the_page_reads_it(tmp_path, monkeypatch):
+    """Windows refuses to replace a file another process has open; the
+    runner waits for the reader to close it instead of failing."""
+    import jobRunner
+    real_replace = os.replace
+    failures = []
+
+    def flaky_replace(src, dst):
+        if len(failures) < 3:
+            failures.append(dst)
+            raise PermissionError(13, "in use", dst)
+        real_replace(src, dst)
+
+    monkeypatch.setattr(jobRunner.os, "replace", flaky_replace)
+    target = tmp_path / "state.json"
+    jobRunner._write_json(str(target), {"status": "running"})
+    assert json.loads(target.read_text()) == {"status": "running"}
+    assert len(failures) == 3
+    assert sorted(os.listdir(tmp_path)) == ["state.json"]  # no temp files left
+
+
+def test_runner_liveness_on_this_platform(jobs_root):
+    """The page's liveness check sees this process as alive and a pid
+    that has exited as dead (on Windows through OpenProcess, where
+    os.kill(pid, 0) would send CTRL_C_EVENT instead)."""
+    import subprocess
+    proc = subprocess.Popen([PY, "-c", "pass"])
+    proc.wait()
+    assert not jobs._runner_alive(proc.pid, "20260101-000000-abcd", time.time())
+    if jobs.WINDOWS:
+        assert jobs._runner_alive(os.getpid(), "any", time.time())
+        # A process created after the job's grace window is a reused pid.
+        assert not jobs._runner_alive(os.getpid(), "any", 0.0 + 1)
+
+
 def test_old_jobs_are_pruned(jobs_root, monkeypatch):
     monkeypatch.setattr(jobs, "keep_count", lambda: 2)
     ids = []

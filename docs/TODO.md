@@ -56,13 +56,10 @@ renumber when items are added or finished.
    names are small and can go in any time.
 - **Installers (50)**: PowerShell install and upgrade scripts, and the
    bash scripts made to run on macOS too.
-- **Windows jobs (55)** was added after the rest and numbered last to
-   avoid renumbering. It's a bug fix for native Windows hosting only;
-   work it whenever someone needs the Generate page there.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
-   security, physics, web-pages, installers, windows);
+   security, physics, web-pages, installers);
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
@@ -898,44 +895,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
       the docs thread) describe the server setup; this item is only the
       scripts, and the guides should point at them once they exist.
     - Each script carries a `TODO(installers #50)` comment at its top.
-
-### Windows hosting (`src/html/web/jobs.py`, `src/jobRunner.py`)
-
-55. [ ] **The admin Generate page's jobs don't work on native Windows.**
-    The site runs on Windows under waitress
-    (`docs/deployment/windows.md`), but the job code uses POSIX-only
-    calls: `start_new_session=True` (ignored on Windows) in
-    `jobs._spawn` and `jobRunner.main`, `os.killpg` (missing on Windows)
-    in `jobRunner._on_term`, `os.kill(pid, SIGTERM)` in `jobs.cancel_job`
-    (on Windows that is `TerminateProcess`, so the runner dies without
-    running its handler), and `/proc` or `os.kill(pid, 0)` in
-    `jobs._runner_alive` (on Windows signal 0 is `CTRL_C_EVENT`, not a
-    liveness check). Symptoms: Cancel kills the runner but the
-    `generate.py` step keeps running and writing to the database; a
-    finished or crashed job can show as "running" forever and block new
-    jobs, or a live one as "interrupted", letting a second job start.
-    Also `jobRunner._write_json`'s `os.replace` can fail with
-    `PermissionError` while the page reads `state.json`, and
-    `privatedir.ensure_private_dir` calls `os.geteuid` (missing on
-    Windows; only reached when the default jobs or tile directory can't
-    be created). Workaround today: generate from the command line, or
-    run planetGen in WSL2.
-    - Liveness: on Windows, `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)`
-      plus `GetExitCodeProcess() == STILL_ACTIVE` through `ctypes`; keep
-      `/proc` and `os.kill(pid, 0)` on POSIX.
-    - Cancel: write a `cancel` file into the job directory instead of
-      signalling; `jobRunner` polls for it while waiting on the step and
-      stops the step's whole tree (`os.killpg` on POSIX, `taskkill /T /F
-      /PID` or a Job Object on Windows), then records "cancelled" and
-      releases the lock as it does today.
-    - Spawn: on Windows pass `creationflags=CREATE_NEW_PROCESS_GROUP |
-      DETACHED_PROCESS | CREATE_NO_WINDOW` instead of `start_new_session`.
-    - Retry `os.replace` briefly on `PermissionError`; make
-      `ensure_private_dir` skip the owner check (or raise `OSError`) when
-      `os.geteuid` is missing.
-    - Done when `src/tests/test_web_generate.py`'s job tests pass on a
-      Windows runner (add one to CI), and the Windows guide's
-      "Limits on native Windows" section can be removed.
 
 ## Population and Politics
 
