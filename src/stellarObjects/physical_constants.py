@@ -19,12 +19,21 @@ import math
 # --- Physical Constants ---
 EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
 EARTH_GRAVITY = 9.807  # Standard Earth gravity in m/s^2
-# TODO(distances #1): use Boss's exact constants for the distance ladder
-# (in meters): AU = 149597870700 (exact IAU), lightyear = 9460730472580800
-# (c x 365.25 days), parsec = 3.085677581491367e16 (648000/pi AU), and
-# milli-, centi-, kilo-, Mega- and Gigaparsec as pc x 1e-3 ... 1e9. Derive
-# AU_TO_KM, AU_TO_M, LY_TO_M, LY_TO_AU and AU_PER_PARSEC from them.
-AU_TO_KM = 1.496e8  # Astronomical Unit to kilometers conversion factor
+# --- Distance ladder (Boss's exact values, in meters) ---
+# Every displayed distance goes through `utils.format_distance`, which picks
+# the largest of these units the value is at least 1 of: km < AU < mpc <
+# cpc < ly < pc < kpc < Mpc < Gpc. Every other length conversion below is
+# derived from these, so none of them is rounded on its own.
+KM_M = 1e3
+AU_M = 149_597_870_700  # IAU 2012, exact
+LIGHTYEAR_M = 9_460_730_472_580_800  # c x 365.25 days, exact
+PARSEC_M = 3.085677581491367e16  # 648000/pi AU
+MILLIPARSEC_M = PARSEC_M * 1e-3
+CENTIPARSEC_M = PARSEC_M * 1e-2
+KILOPARSEC_M = PARSEC_M * 1e3
+MEGAPARSEC_M = PARSEC_M * 1e6
+GIGAPARSEC_M = PARSEC_M * 1e9
+AU_TO_KM = AU_M / KM_M  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
 SPEED_OF_LIGHT_M_S = 2.998e8  # Speed of light in a vacuum, m/s -- used for Schwarzschild radius (compactRemnant.BlackHole)
 R = 8.314  # Ideal gas constant in J/(mol·K)
@@ -81,8 +90,8 @@ SNOW_LINE_AU_AT_1_LSUN = 2.7
 GALACTIC_ROTATION_FLAT_VELOCITY_KMS = 220.0  # Asymptotic circular velocity, km/s -- the IAU (1985) standard local-standard-of-rest value, still within the range of modern estimates (~220-236 km/s)
 GALACTIC_ROTATION_CORE_RADIUS_PC = 3000  # Turnover radius of the rotation curve (rise -> plateau), in parsecs -- approximates the real Milky Way's bulge/inner-disk transition
 
-LY_TO_M = 9.461e+15  # Light-year to meters conversion factor
-AU_TO_M = 1.496e+11  # Astronomical Unit to meters conversion factor
+LY_TO_M = LIGHTYEAR_M  # Light-year to meters conversion factor
+AU_TO_M = AU_M  # Astronomical Unit to meters conversion factor
 ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (N/m^2)
 SOLAR_RADIUS_M = 6.957e8  # Radius of the Sun in meters
 SOLAR_ESCAPE_VELOCITY = 617.7 * 1000  # Sun's escape velocity in m/s
@@ -219,18 +228,18 @@ ADIABATIC_INDEX_H2_HE = 1.4
 HYDROGEN_METALLIZATION_PRESSURE_PA = 1e11
 
 # Renamed AU_TO_LIGHT_YEAR to LY_TO_AU for clarity and consistency.
-LY_TO_AU = 63241.1
+LY_TO_AU = LIGHTYEAR_M / AU_M
 """
 float: Conversion factor from Light-Years (LY) to Astronomical Units (AU).
-1 Light-Year is approximately 63241.1 AU.
+1 Light-Year is about 63241.08 AU.
 """
 AU_TO_LY = 1 / LY_TO_AU
 """
 float: Conversion factor from Astronomical Units (AU) to Light-Years (LY).
-1 AU is approximately 1/63241.1 Light-Years.
+1 AU is about 1/63241.08 Light-Years.
 """
 
-AU_PER_PARSEC = 206264.80625
+AU_PER_PARSEC = PARSEC_M / AU_M
 """
 float: The IAU-defined parsec, in Astronomical Units (AU). Used only as the
 conversion path for the database persistence layer's sector-position

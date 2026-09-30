@@ -1,6 +1,6 @@
 # Windows
 
-planetGen runs natively on Windows with some limits. Three setups are
+planetGen runs natively on Windows with a few limits. Three setups are
 described here, picked for being maintained, documented, and able to run
 unattended as services:
 
@@ -20,23 +20,9 @@ guides unchanged.
   ([`TODO.md`](../TODO.md) item 50).
 - **gunicorn does not run on Windows** (it needs `fork`). All three
   setups use waitress, a pure-Python WSGI server that does.
-- **The admin Generate page does not work reliably.** Its background
-  jobs use POSIX-only process calls: `start_new_session` when starting
-  the job runner and each step, `os.killpg` and SIGTERM to cancel, and
-  `/proc` or `os.kill(pid, 0)` to check whether a job is still running.
-  On Windows, Cancel kills the job runner but leaves the generation step
-  running and writing to the database; a finished or crashed job can
-  show as still running, which blocks new jobs, or the reverse, letting
-  two run at once. An IIS app pool recycle or a service restart also
-  ends a running job. Nothing in the web server setup fixes this. The
-  code fix is tracked as [`TODO.md`](../TODO.md) item 55.
-  **Workaround:** on native Windows, generate from the command line
-  (`python generate.py ...` in the checkout, see the
-  [README](../../README.md#usage)) and don't use the Generate page. If you
-  need the Generate page, use [WSL2](#wsl2-the-linux-guides-on-windows)
-  or a Linux VM.
 - Everything else works: the pages, the API, the Galaxy Map, admin
-  login, and the account and stats pages (the stats page shows no memory
+  login, the Generate page's background jobs (CI runs their tests on
+  Windows), and the account and stats pages (the stats page shows no memory
   or load figures, which come from Linux-only sources).
 
 ## Which setup
@@ -347,7 +333,7 @@ you are done, or delete the file while the service is stopped.
 
 WSL2 runs a real Linux kernel, so the Linux guides ([Apache](apache.md),
 [nginx](nginx.md) or [Caddy](caddy.md)) work unchanged, including the
-Generate page and the systemd timers.
+systemd timers.
 
 1. `wsl --install -d Ubuntu`, then enable systemd in Ubuntu's
    `/etc/wsl.conf` (current Ubuntu images already have it):

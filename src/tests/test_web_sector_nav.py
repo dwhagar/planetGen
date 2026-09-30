@@ -131,6 +131,7 @@ class FakeData:
             "scope": "sector",
             "direct": {"distance_ly": 3.25, "azimuth_deg": 45.0, "altitude_deg": -2.5},
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
+            "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "4 days"}],
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
             "route": {"path": [from_id if from_kind == "system" else f"phenomenon:{from_type}:{from_id}",
                                1500, to_id],
@@ -211,7 +212,7 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert re.search(r'<a href="/sectors" aria-current="page">Sectors</a>', html)
     crumbs = re.search(r'<nav class="breadcrumbs".*?</nav>', html, re.S).group(0)
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
-    assert "Cube edge 10.00 ly" in html and "2 systems" in html and "1 phenomenon" in html
+    assert "Cube edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
     assert 'href="/galaxy?quadrant=' in html
     assert re.search(r'<script type="module" src="/static/sectormap.js\?v=[^"]+"></script>', html)
     # Contents: nearest first, systems and phenomena, plain links.
@@ -219,7 +220,7 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert contents.index("Other") < contents.index("Alpha") < contents.index("Veil")
     assert '<a href="/system/1001">Alpha</a>' in contents
     assert '<a href="/phenomenon/nebula/3">Veil</a>' in contents
-    assert "Emission, 2.50 ly radius" in contents
+    assert "Emission, 2.5 ly radius" in contents
     # Location's neighbor names link too.
     assert 'nearest: <a href="/system/1002">Other</a> (1.0 ly)' in contents
     # Anonymous visitors get no forms at all.

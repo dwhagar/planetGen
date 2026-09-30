@@ -187,12 +187,6 @@ list: A comprehensive list of various components that can be found in asteroids.
 These components are used to generate the composition of asteroid belts.
 """
 
-LY_THRESHOLD = 1.0
-"""
-float: The distance in Light-Years (LY) at which the display format for
-asteroid belt distances switches from AU to LY for better readability.
-"""
-
 # --- Space Sector Generation Parameters ---
 
 # The standard sector edge length, in whole parsecs: the galaxy grid's
@@ -286,9 +280,6 @@ SECTOR_LOCATION_DECIMAL_PLACES = 2
 
 # --- Display / Formatting Parameters ---
 HABITABLE_ZONE_BUFFER_AU = 0.2
-HELIOSPHERE_DISPLAY_THRESHOLD_LY = 0.1
-ROUND_HABITABLE_ZONE_AU = 2
-ROUND_HABITABLE_ZONE_AU_SMALL = 5
 ROUND_RADIUS_KM = 2
 SCIENTIFIC_NOTATION_DECIMAL_PLACES = 2
 ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
@@ -2048,24 +2039,84 @@ storage-analysis addendum: ~320 billion addressable sector slots total).
 
 # --- Navigation Parameters ---
 
-# TODO(nav #34): replace the plain w^(10/3) warp curve with Boss's formula,
-# speed in c = w^(10/3) + 1/(1+e^(-9.3575(w-9.5))) * (198.9/(10-w)^0.75 +
-# 1721.7 - w^(10/3)), and add dimensional fold, speed in c = 6F^4/(10-F).
-# Keep 9.3575, 9.5, 198.9, 0.75 and 1721.7 as named constants. Table of
-# values in docs/TODO.md item 34.
-WARP_FACTORS_FOR_NAV = (1, 3, 6, 9)
+WARP_FACTORS_FOR_NAV = (1, 2, 4, 8, 9, 9.5, 9.9, 9.995)
 """
 The warp factors NAV output reports travel time at (see
-`stellarObjects.navigation.warp_travel_times`) -- 1 (baseline), 3 and 6
-(common "cruise" references in the genre this package draws its flavor
-text from), and 9 (historically depicted as a practical top speed).
+`stellarObjects.navigation.warp_travel_times`) -- the rows of Boss's warp
+table (docs/design/navigation-frames.md, "Travel speeds"), from warp 1
+(exactly c) up to 9.995, where the curve climbs steeply toward its
+asymptote at warp 10.
 """
 
 WARP_VELOCITY_EXPONENT = 10 / 3
 """
-The exponent in `velocity = warp_factor ** WARP_VELOCITY_EXPONENT` (in
-multiples of light-speed) -- i.e. "warp factor to the 3.33..." -- used by
-`stellarObjects.navigation.warp_travel_times`.
+The exponent of the warp curve's base term, `warp_factor **
+WARP_VELOCITY_EXPONENT` (in multiples of light-speed) -- "warp factor to
+the 3.33...". Below about warp 9 the whole curve is effectively this term;
+see `stellarObjects.navigation.warp_speed_c` for the full formula.
+"""
+
+WARP_TRANSITION_STEEPNESS = 9.3575
+"""
+The logistic steepness `k` in the warp curve's blend term, `1 / (1 +
+e^(-k (w - WARP_TRANSITION_MIDPOINT)))`, which hands the curve over from
+the plain `w^(10/3)` term to the asymptotic high-warp term around
+`WARP_TRANSITION_MIDPOINT`.
+"""
+
+WARP_TRANSITION_MIDPOINT = 9.5
+"""
+The warp factor where the warp curve's blend term is exactly one half
+(see `WARP_TRANSITION_STEEPNESS`).
+"""
+
+WARP_ASYMPTOTE_COEFFICIENT = 198.9
+"""
+The numerator of the warp curve's asymptotic term, `198.9 / (10 - w) **
+WARP_ASYMPTOTE_EXPONENT`, which grows without bound as `w` nears
+`WARP_FACTOR_LIMIT`.
+"""
+
+WARP_ASYMPTOTE_EXPONENT = 0.75
+"""
+The exponent on `(10 - w)` in the warp curve's asymptotic term (see
+`WARP_ASYMPTOTE_COEFFICIENT`).
+"""
+
+WARP_HIGH_WARP_OFFSET = 1721.7
+"""
+The constant added to the asymptotic term inside the warp curve's blend,
+in multiples of light-speed: `(198.9 / (10 - w)^0.75 + 1721.7 - w^(10/3))`.
+"""
+
+WARP_FACTOR_LIMIT = 10
+"""
+The unreachable top of the warp scale: the asymptotic term divides by
+`(WARP_FACTOR_LIMIT - w)`, so a warp factor must be below this.
+"""
+
+FOLD_FACTORS_FOR_NAV = (4, 5, 6, 6.5, 7, 7.5, 8, 8.5)
+"""
+The dimensional fold factors NAV output reports travel time at (see
+`stellarObjects.navigation.fold_travel_times`) -- the rows of Boss's fold
+table.
+"""
+
+FOLD_SPEED_COEFFICIENT = 6
+"""
+The coefficient in the dimensional fold curve, speed in c = `6 F^4 / (10 -
+F)` (see `stellarObjects.navigation.fold_speed_c`).
+"""
+
+FOLD_SPEED_EXPONENT = 4
+"""
+The exponent on the fold factor `F` in the dimensional fold curve.
+"""
+
+FOLD_FACTOR_LIMIT = 10
+"""
+The unreachable top of the fold scale: the fold curve divides by
+`(FOLD_FACTOR_LIMIT - F)`, so a fold factor must be below this.
 """
 
 NAV_COURSE_DECIMAL_PLACES = 2

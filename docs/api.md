@@ -182,22 +182,22 @@ connectivity to that specific schema rather than the default one.
   `volume_pc3`, `vertices_pc` (8 corners), `edge_pc`, and `sector_id`
   (the generated sector there, or `null`). `400` for a bad or incomplete
   query.
-- `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
+- `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
   65,536 pc on a side centered on the galactic origin, each level halves
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "density":
-  {"key": ..., "points": [...]} | null, "edge_pc": ..., "has_shape": ...}`:
+  `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "edge_pc": ...,
+  "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
   predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated
-  slots, only for 16 pc tiles (empty otherwise); `density`, when a
-  `density` key is given, is an illustrative cloud of 1,600 points within
-  twice that tile's edge of its center. At most 128 keys per request; a
+  slots, only for 16 pc tiles (empty otherwise). Predicted density isn't
+  served: the page evaluates the galaxy's shape itself
+  (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
@@ -393,7 +393,7 @@ in over HTTPS, `Strict-Transport-Security: max-age=31536000`.
 ## NAV
 
 `GET /api/nav?from=<system_id>&to=<system_id>` returns a direct course
-(distance, azimuth, altitude, warp travel times) plus an optimal route via
+(distance, azimuth, altitude, warp and fold travel times) plus an optimal route via
 adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
 graph with Dijkstra shortest-path) between two endpoints -- each either a
 star system (the default) or a standalone phenomenon (nebula/asteroid
@@ -446,10 +446,15 @@ not a bearing relative to any particular ship heading.
     "altitude_deg": 0.0
   },
   "warp_times": [
-    {"warp_factor": 1, "velocity_multiple_of_c": 1.0, "years": 4.0, "formatted": "4 years and 1 day"},
-    {"warp_factor": 3, "velocity_multiple_of_c": 38.94, "years": 0.1, "formatted": "37 days 12 hours and 27 minutes"},
-    {"warp_factor": 6, "velocity_multiple_of_c": 392.5, "years": 0.01, "formatted": "3 days 17 hours and 20 minutes"},
-    {"warp_factor": 9, "velocity_multiple_of_c": 1516.38, "years": 0.003, "formatted": "23 hours and 7 minutes"}
+    {"warp_factor": 1, "velocity_multiple_of_c": 1.0, "years": 4.0, "formatted": "4 years"},
+    {"warp_factor": 2, "velocity_multiple_of_c": 10.079, "years": 0.397, "formatted": "144 days 22 hours and 47 minutes"},
+    "... warp 4, 8, 9, 9.5 and 9.9 ...",
+    {"warp_factor": 9.995, "velocity_multiple_of_c": 12201.937, "years": 0.0003, "formatted": "2 hours and 52 minutes"}
+  ],
+  "fold_times": [
+    {"fold_factor": 4, "velocity_multiple_of_c": 256.0, "years": 0.016, "formatted": "5 days 16 hours and 58 minutes"},
+    "... fold 5, 6, 6.5, 7, 7.5 and 8 ...",
+    {"fold_factor": 8.5, "velocity_multiple_of_c": 20880.25, "years": 0.0002, "formatted": "1 hour and 41 minutes"}
   ],
   "origin_position": [0.0, 0.0, 0.0],
   "destination_position": [4.0, 0.0, 0.0],
@@ -464,9 +469,14 @@ not a bearing relative to any particular ship heading.
 - `scope`: `"sector"` (same-sector, sector-local positions) or `"galaxy"`
   (cross-sector, absolute galaxy-frame positions).
 - `direct`: straight-line course from `from` to `to`.
-- `warp_times`: travel time for `direct.distance_ly` at warp 1, 3, 6, and 9
-  (`velocity_multiple_of_c = warp_factor ** (10/3)`), formatted via the same
-  duration formatter used elsewhere in this project.
+- `warp_times`: travel time for `direct.distance_ly` at warp 1, 2, 4, 8, 9,
+  9.5, 9.9 and 9.995 (`program_constants.WARP_FACTORS_FOR_NAV`), on the warp
+  curve `w^(10/3) + 1 / (1 + e^(-9.3575 (w - 9.5))) * (198.9 / (10 - w)^0.75
+  + 1721.7 - w^(10/3))` in multiples of c (`navigation.warp_speed_c`),
+  formatted via the same duration formatter used elsewhere in this project.
+- `fold_times`: the same for dimensional fold 4, 5, 6, 6.5, 7, 7.5, 8 and
+  8.5 (`FOLD_FACTORS_FOR_NAV`), at `6 F^4 / (10 - F)` times c
+  (`navigation.fold_speed_c`).
 - `origin_position`/`destination_position`: the `[x, y, z]` light-year
   positions `direct` was computed from, in `scope`'s frame (sector-local for
   `"sector"`, absolute galaxy-frame for `"galaxy"`) — what the NAV page's (`/nav`)
@@ -588,8 +598,10 @@ impossible `num_orbits`/class combination) is reported as a `400`, not a
 `/api/moons/<id>` each accept only `{"name": str}`. Runs of whitespace
 collapse to one space; a blank name, one over 255 characters, or any other
 field is a `400`, and an unknown id is a `404`. A name any other sector,
-system, star, planet or moon already has is a `409`
-(`{"error": "a planet is already named 'New Terra'"}`). Success returns
+system or star already has is a `409`
+(`{"error": "a star is already named 'Sirius'"}`). Planet and moon names
+aren't checked: they come from their star's name, so only uniquely named
+objects are searched. Success returns
 `{"status": "ok", "id", "name"}` (plus `star_system_id` for a star,
 planet or moon).
 

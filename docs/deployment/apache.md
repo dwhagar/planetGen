@@ -76,6 +76,17 @@ checks for that file and picks a path, printing which one it took:
   `planetgen-venv.pth`. Both are removed on the next `install.sh` or
   `update.sh`, and what they held goes system-wide.
 
+Whatever pip installs on either path comes from
+[`requirements.lock`](../../requirements.lock): exact versions of every
+library and its dependencies, each with the sha256 hashes of its files,
+installed with `--require-hashes`. A new release on PyPI, or a file
+replaced under an existing version, never reaches the server until the
+lock is regenerated with `scripts/lock-requirements.sh` (after changing
+`setup.py`, or with `--upgrade` to take new releases) and committed.
+Libraries already installed that satisfy what needs them, apt's
+included, are kept as they are. apt packages are covered by apt's own
+signatures instead.
+
 planetGen itself runs straight from the checkout (every entry point adds
 `src/` to `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing
 in for pip's console script on every host, so the CLI always runs the

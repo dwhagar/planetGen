@@ -74,7 +74,7 @@ from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_a
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
-from stellarObjects.utils import ly_to_milliparsecs, ly_to_pc
+from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
@@ -616,6 +616,7 @@ def nav():
         "scope": result["scope"],
         "direct": result["direct"]._asdict(),
         "warp_times": [leg._asdict() for leg in result["warp_times"]],
+        "fold_times": [leg._asdict() for leg in result["fold_times"]],
         "origin_position": result["origin_position"],
         "destination_position": result["destination_position"],
         "route": _route_for_json(result["route"]),
@@ -739,8 +740,7 @@ def galaxy_cell():
 def galaxy_tiles_route():
     """
     The 3D Galaxy Map's cube tiles -- `tiles` is a comma-separated list of
-    `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`), `density` an
-    optional single key to anchor a density cloud on. See
+    `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`). See
     `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
     tiles" section. Each tile's work is bounded, so no request can scan an
     unbounded region (the removed `/galaxy/view` route could). Called by
@@ -748,11 +748,10 @@ def galaxy_tiles_route():
     the ones it doesn't already have.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
-    density_key = request.args.get("density") or None
     if len(tile_keys) > MAX_TILES_PER_REQUEST:
         raise ApiError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
     try:
-        return jsonify(galaxy_tiles(get_db(), tile_keys, density_key))
+        return jsonify(galaxy_tiles(get_db(), tile_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
 
@@ -1204,7 +1203,6 @@ NAME_MAX_LENGTH = MAX_NAME_LENGTH
 
 _NAME_CLASH_LABELS = {
     "sectors": "a sector", "star_systems": "a star system", "stars": "a star",
-    "planets": "a planet", "moons": "a moon",
 }
 
 
@@ -1231,8 +1229,9 @@ def _rename_body():
 
 
 def _require_unique_name(conn, name, exclude):
-    """Raises a 409 when a sector, system, star, planet or moon other than
-    the rows in `exclude` (`(table, id)` pairs) is already called `name`."""
+    """Raises a 409 when a sector, system or star other than the rows in
+    `exclude` (`(table, id)` pairs) is already called `name`. Planet and
+    moon names aren't checked (`_db.name_in_use`)."""
     clash = _db.name_in_use(conn, name, exclude=exclude)
     if clash is not None:
         raise ApiError(f"{_NAME_CLASH_LABELS[clash]} is already named {name!r}", status_code=409)
@@ -1257,7 +1256,7 @@ def _system_rename_exclusions(conn, system_id):
 def update_system(system_id):
     """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system, and
     every star, planet and moon still named after it
-    (`_db.rename_star_system`). 409 if anything else already has the
+    (`_db.rename_star_system`). 409 if a sector, system or star already has the
     name."""
     name = _rename_body()
 
@@ -1282,7 +1281,7 @@ def rename_star(star_id):
     """`PATCH /api/stars/<id>` `{"name": str}` -- renames a star. A single
     star shares its system's name, so this renames the system too; a
     binary's star is renamed on its own, with the planets and moons named
-    after it (`_db.rename_star`). 409 if anything else already has the
+    after it (`_db.rename_star`). 409 if a sector, system or star already has the
     name."""
     name = _rename_body()
 
@@ -1329,7 +1328,7 @@ def _rename_planet_or_moon(table, kind, body_id):
 @require_admin(fresh=True)
 def rename_planet(planet_id):
     """`PATCH /api/planets/<id>` `{"name": str}` -- renames one planet. Its
-    moons keep their names. 409 if anything else already has the name."""
+    moons keep their names. 409 if a sector, system or star already has the name."""
     return _rename_planet_or_moon("planets", "planet", planet_id)
 
 
@@ -1338,7 +1337,7 @@ def rename_planet(planet_id):
 @require_admin(fresh=True)
 def rename_moon(moon_id):
     """`PATCH /api/moons/<id>` `{"name": str}` -- renames one moon. 409 if
-    anything else already has the name."""
+    a sector, system or star already has the name."""
     return _rename_planet_or_moon("moons", "moon", moon_id)
 
 
@@ -1540,7 +1539,7 @@ def _sector_wiki_content(sector):
     ) or "| *(none)* | | | | |"
     markdown_content = (
         f'# {sector["name"]}\n\n'
-        f'**Cube edge:** {sector["edge_ly"]:,.2f} ly  \n'
+        f'**Cube edge:** {format_distance_ly(sector["edge_ly"])}  \n'
         f'**Systems:** {sector["system_count"]}\n\n'
         "## Systems\n\n"
         "| Name | Octant | Binary | Star type | Location |\n"
@@ -1555,7 +1554,7 @@ def _sector_wiki_content(sector):
     ) or "| ''(none)'' ||  ||  ||  || "
     wikitext_content = (
         f'= {sector["name"]} =\n\n'
-        f"'''Cube edge:''' {sector['edge_ly']:,.2f} ly\n\n"
+        f"'''Cube edge:''' {format_distance_ly(sector['edge_ly'])}\n\n"
         f"'''Systems:''' {sector['system_count']}\n\n"
         "== Systems ==\n\n"
         '{| class="wikitable"\n'

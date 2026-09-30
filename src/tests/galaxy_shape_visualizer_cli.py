@@ -7,8 +7,8 @@ Diagnostic tool: renders this galaxy's real density model
 person can eyeball whether a set of shape parameters (`generate.py
 plan`'s own args) actually looks like a recognizable spiral galaxy --
 face-on and edge-on -- rather than only ever judging it through
-`relative_density` numbers or a live web page's own scatter of
-illustrative points (`stellarObjects.galaxyViewport.density_sample_points`).
+`relative_density` numbers or the Galaxy Map's own density
+prisms (`static/galaxyprisms.js`).
 
 Not a pytest test (no `test_` prefix, so pytest never collects it --
 matching this project's existing `climate_tuning_cli.py`/

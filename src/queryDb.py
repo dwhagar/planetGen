@@ -45,14 +45,13 @@ from stellarObjects._db import (add_mysql_connection_args, escape_like, get_conn
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import neighbor_addresses, provisional_sector_designation, sector_position_pc
 from stellarObjects.galaxyViewport import (
-    density_points_for_tile,
     parse_tile_key,
     planned_slots_in_tile,
     tile_bounds_pc,
     tile_keys_containing,
 )
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
-from stellarObjects.navigation import course_between, warp_travel_times
+from stellarObjects.navigation import course_between, fold_travel_times, warp_travel_times
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
 from stellarObjects.evolution import life_stage_from_paragraphs
 from stellarObjects.program_constants import (
@@ -704,7 +703,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
-    hole/neutron star) -- a direct course (distance/azimuth/altitude/warp
+    hole/neutron star) -- a direct course (distance/azimuth/altitude/warp and fold
     travel times, from `stellarObjects.navigation`) plus an optimal route
     via adjacent systems (`stellarObjects.navGraph`), or raises if NAV
     doesn't apply to this pair.
@@ -742,7 +741,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
             `navigation.Course`), `warp_times` (a list of
-            `navigation.WarpLeg`, for `direct.distance_ly`),
+            `navigation.WarpLeg`, for `direct.distance_ly`), `fold_times`
+            (a list of `navigation.FoldLeg`, same distance),
             `origin_position`/`destination_position` (the `(x, y, z)`
             light-year positions `direct` was computed from, in `scope`'s
             frame -- sector-local for `"sector"`, galaxy-frame for
@@ -827,6 +827,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         "scope": scope,
         "direct": direct,
         "warp_times": warp_travel_times(direct.distance_ly),
+        "fold_times": fold_travel_times(direct.distance_ly),
         "origin_position": origin_position,
         "destination_position": destination_position,
         "route": route,
@@ -1864,10 +1865,10 @@ def _placed_sector_entry(r, system_count):
 # sector (a zoomed-out view), return per-block totals here instead: GROUP
 # BY ring_index DIV m, layer bucket, master-wedge bucket, for the m the
 # client asks for, served from the same tile cache.
-def galaxy_tiles(conn, tile_keys, density_key=None):
+def galaxy_tiles(conn, tile_keys):
     """
-    The contents of each requested cube tile, plus optionally one density
-    cloud -- the interactive 3D Galaxy Map's data source. Every part of
+    The contents of each requested cube tile -- the interactive 3D Galaxy
+    Map's data source. Every part of
     the result depends only on its tile key and the database's contents
     (see `galaxy_content_stamp`), so callers can cache each part by key.
 
@@ -1876,15 +1877,12 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
         tile_keys (list[str]): `"level/ix/iy/iz"` keys (see
             `galaxyViewport.parse_tile_key`), at most
             `MAX_TILES_PER_REQUEST`.
-        density_key (str or None): A tile key to anchor a density cloud on
-            (`galaxyViewport.density_points_for_tile`), or `None` for none.
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...]}}`, see
             `galaxy_sectors_in_box`/`galaxyViewport.planned_slots_in_tile`),
-            `density` (`{"key": density_key, "points": [...]}`, or `None`
-            when no `density_key` was given; `points` is empty when the
-            galaxy has no shape yet), `edge_pc`, `has_shape`.
+            `edge_pc`, `has_shape`. Predicted density isn't served: the
+            page evaluates the shape itself (`static/galaxyprisms.js`).
 
     Raises:
         ValueError: On a malformed key or too many keys.
@@ -1892,11 +1890,6 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     parsed = [(key, parse_tile_key(key)) for key in dict.fromkeys(tile_keys)]
     if len(parsed) > MAX_TILES_PER_REQUEST:
         raise ValueError(f"at most {MAX_TILES_PER_REQUEST} tiles per request, got {len(parsed)}")
-    # TODO(galaxy-map #20): the page computes density itself
-    # (static/galaxyprisms.js), so `density_key` and this sampling are dead
-    # weight; drop them with galaxyViewport.density_points_for_tile and
-    # tilecache's "density" field.
-    density_tile = parse_tile_key(density_key) if density_key else None
 
     skeleton = get_galaxy_shape(conn)
     if skeleton is not None:
@@ -1920,12 +1913,7 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
         )
         tiles[key] = {"placed": placed, "planned": planned}
 
-    density = None
-    if density_tile is not None:
-        points = density_points_for_tile(*density_tile, shape) if shape is not None else []
-        density = {"key": density_key, "points": points}
-
-    return {"tiles": tiles, "density": density, "edge_pc": edge_pc, "has_shape": shape is not None}
+    return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 
 
 GALAXY_CHANGES_MAX_SECTORS = 1000

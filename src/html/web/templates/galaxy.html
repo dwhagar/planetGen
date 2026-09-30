@@ -23,7 +23,7 @@
       <tr>
         <td><a href="{{ row.url }}">{{ row.name }}</a></td>
         <td>{% if row.zone is not none %}Zone {{ row.zone }}{% else %}&ndash;{% endif %}</td>
-        <td>{{ "{:,.1f}".format(row.distance_ly) }} ly</td>
+        <td>{{ row.distance }}</td>
         <td>{{ row.system_count }}</td>
       </tr>
       {%- else %}

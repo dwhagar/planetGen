@@ -39,10 +39,11 @@ from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (circular_orbital_speed_kms, holman_wiegert_critical_semimajor_axis,
+from .utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
+                    holman_wiegert_critical_semimajor_axis,
                     minimum_update_interval_years, orbital_position_au,
                     properties_to_string, sample_wide_binary_eccentricity,
-                    sample_wide_binary_separation_au, to_scientific_notation,
+                    sample_wide_binary_separation_au,
                     years_to_time_string)
 
 
@@ -251,15 +252,10 @@ class WideBinaryPair:
                  `primary_limit`, `secondary_limit`, each an
                  already-formatted display string.
         """
-        separation_km = self.separation_au * physical_constants.AU_TO_KM
-        separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
-        periapsis_km_scientific = to_scientific_notation(self.system_config, self.periapsis_au * physical_constants.AU_TO_KM)
-        apoapsis_km_scientific = to_scientific_notation(self.system_config, self.apoapsis_au * physical_constants.AU_TO_KM)
-
         separation_string = (
-            f"{separation_km_scientific} km ({self.separation_au:,.1f} AU), "
-            f"ranging from {periapsis_km_scientific} km ({self.periapsis_au:,.1f} AU) at periapsis "
-            f"to {apoapsis_km_scientific} km ({self.apoapsis_au:,.1f} AU) at apoapsis"
+            f"{format_distance_au(self.separation_au)}, "
+            f"ranging from {format_distance_au(self.periapsis_au)} at periapsis "
+            f"to {format_distance_au(self.apoapsis_au)} at apoapsis"
         )
         mutual_orbit_string = (
             f"{self.speed_kms:,.2f} km/s "
@@ -272,8 +268,8 @@ class WideBinaryPair:
             self.secondary_position_x_au ** 2 + self.secondary_position_y_au ** 2 + self.secondary_position_z_au ** 2
         ) * physical_constants.AU_TO_KM
         wobble_string = (
-            f"{self.primary.name}: {to_scientific_notation(self.system_config, primary_offset_km)} km, "
-            f"{self.secondary.name}: {to_scientific_notation(self.system_config, secondary_offset_km)} km "
+            f"{self.primary.name}: {format_distance_km(primary_offset_km)}, "
+            f"{self.secondary.name}: {format_distance_km(secondary_offset_km)} "
             f"from the barycenter"
         )
 
