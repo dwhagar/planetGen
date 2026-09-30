@@ -40,6 +40,7 @@ PHENOMENON_TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
+    "quasar": "Quasar",
 }
 """dict: Display labels for `queryDb.phenomena_near_sector`'s `type`
 values (the same ones the phenomena list uses)."""

@@ -195,6 +195,7 @@ from .asteroidFieldData import AsteroidField
 from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
 from .nebulaData import Nebula
+from .quasarData import Quasar
 from .roguePlanetData import InterstellarComet, RoguePlanet
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
@@ -212,6 +213,7 @@ _PHENOMENON_CLASSES_BY_TYPE = {
     "rogue-planet": RoguePlanet,
     "comet": InterstellarComet,
     "asteroid-field": AsteroidField,
+    "quasar": Quasar,
 }
 """dict: `program_constants.PHENOMENON_TYPE_CHOICES` entry -> the class that
 generates it -- used by `SpaceSector.from_dict` to reconstruct

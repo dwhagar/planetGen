@@ -18,8 +18,8 @@ distance from whatever it orbits.
 This is a read-only browser, and the frontend half of `TODO.md`'s Phase 5
 web application: every page here is a thin server-rendered client of the
 Flask API in [`../src/html/api/`](api.md), never touching the database
-directly itself, though [`../src/html/search.py`](#how-it-works) does
-provide a faceted/name search (built on `GET /api/search`, same as every
+directly itself, though the search page (`/search`, see "Flask pages"
+below) does provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a
 browser today, on nothing more than Apache2, a system Python 3, and the
 API process (see "Locating the database" below).
@@ -66,9 +66,9 @@ account now.
 | `../src/html/sector.py` | Shim: 301 to `/sector/<id>` (keeping `contents_page`); the sector page is a Flask page now (see "Flask pages" below). |
 | `../src/html/system.py` | One system rendered natively as an expandable "System" list: the overview (a binary pair's data, the system summary), then its stars, planets (moons nested under each; a 'wide' pair's bodies nested under their own star), asteroid belts and comets. Each row shows compact stats (class, terrestrial/gas giant, Habitable yes/no, Inhabited yes/no, moon count) and opens onto that body's own generated description (`GET /api/systems/<id>/sections`). Wikitext and Markdown buttons (`code=wikitext|markdown`) show the full generated page (`GET /api/systems/<id>/text`) in a code box with a Copy button (`static/copycode.js`) -- nothing is stored, both are rendered from the database on demand. Links to the wiki page(s) once uploaded (`wikijs_url`/`mediawiki_url`, opening in a new tab). Also shows the stars/bodies tables. Also renders the interactive "System Map" panel (`lib/systemmap.py` + `static/systemmap.js`) whenever the system has stars -- a true top-down plot of every body's *real* position (real angle from `position_x/y_km`, log-scaled distance from whatever it orbits) with one clickable marker per body, colored by planet class and sized by `radius_km`; a binary pair's two stars (and, for a 'wide' pair, each star's own independent planets) are placed at their real mass-weighted offsets from the system's shared barycenter (`binary_mutual_position_x/y/z_km`). Clicking a planet with moons zooms into that planet's own moon system, and any body with `life_chemical` set gets a small green "supports life" badge (surfaced in the info panel's "Life Chemistry" field too). Links to `nav.py` (a "Navigate from here" button) whenever the system is assigned to a sector. An admin session gets an "Upload to Wiki" form (`POST /api/systems/<id>/wiki`) offering whichever backend(s) are configured and not yet uploaded to. |
 | `../src/html/nav.py` | Shim: 301 to `/nav`, translating the old `from`/`to` (+ `_kind`/`_type`) and `from_sector`/`to_sector` parameters to the new scheme (see "Flask pages" below). |
-| `../src/html/phenomena.py` | Flat, paginated list of every exotic phenomenon (nebula/asteroid field/black hole/neutron star/supernova remnant/rogue planet/interstellar comet) across every sector, regardless of galaxy placement -- `GET /api/phenomena`. Each row links to `phenomenon.py`. |
+| `../src/html/phenomena.py` | Flat, paginated list of every exotic phenomenon (nebula/asteroid field/black hole/neutron star/supernova remnant/rogue planet/interstellar comet/quasar) across every sector, regardless of galaxy placement -- `GET /api/phenomena`. Each row links to `phenomenon.py`. |
 | `../src/html/phenomenon.py` | One phenomenon's detail/info page -- `GET /api/phenomena/<type>/<id>`, this project's first per-phenomenon page (previously a phenomenon had no page of its own, only a hover tooltip on the Sector Map). Reached from `phenomena.py`'s listing, or directly from a Sector Map marker (`lib/starmap.py`) -- the Galaxy Map (`galaxy.py`) doesn't plot phenomena of its own. |
-| `../src/html/search.py` | Faceted search: click-to-filter tag buttons for object type, star spectral/luminosity class, and planet class/body type/supported life chemistry -- with a separate, identically-shaped set of tags for moons, since planets and moons live in their own tables (schema v2) and a "Class D" tag only ever means one or the other -- built only from values actually present in the chosen database (`GET /api/search`, which owns the query logic; this page just renders it). Plus a name search (with HTML5 `<datalist>` autocomplete, no JavaScript) across sectors, star systems, stars, planets, and moons. Asteroid belts have no name of their own, so they're reachable only via the "Asteroid Belt" object-type tag. Every tag toggle/filter-removal/search submit is a POST form carrying every other currently active filter forward, same as every other page's own navigation (see "How it works" above). |
+| `../src/html/search.py` | Shim: 301 to `/search` (the Flask-served search page, see "Flask pages" below), carrying every search parameter (name fields, size ranges, repeated tag facets, `<panel>_page`) from the old GET query or POST body and dropping `db`. |
 | `../src/html/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), posted like every other link here, and changing a Search filter starts its results back at page 1. |
 | `../src/html/login.py` | Admin login form -- `POST /api/auth/login`, relaying the session cookie it sets back to the browser. Redirects to `changecreds.py` (still on the seeded `admin`/`password` default) or `admin.py` on success; re-renders the form with an inline error for a wrong username/password. See [`api.md`](api.md#authentication). |
 | `../src/html/changecreds.py` | Change the logged-in admin's username/password (`POST /api/auth/change-credentials`) -- reached both by `login.py`'s forced redirect (default credentials) and voluntarily (an already-"fresh" admin rotating credentials). Always requires the current password. |
@@ -174,7 +174,7 @@ far:
 | `/systems` | `browse.py#standalone-systems` | The standalone systems table alone. |
 | `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems and nearby phenomena, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
-| `/search?q=...` | -- | The header search box. Forwards to `search.py` (system-name search) until the search page moves. |
+| `/search` | `search.py` | Faceted search (see below). |
 
 `index.py` and `browse.py` are now CGI shims that answer `301 Moved
 Permanently` to `/`, carrying `sectors_page`/`standalone_page` from the
@@ -218,7 +218,7 @@ step can be bookmarked or shared:
 
 An endpoint is `<kind>:<id>`: `system:<id>`, or a phenomenon's type and
 id (`nebula`, `asteroid_field`, `black_hole`, `neutron_star`,
-`supernova_remnant`, `rogue_planet`, `interstellar_comet`). A bare number
+`supernova_remnant`, `rogue_planet`, `interstellar_comet`, `quasar`). A bare number
 means a system. A malformed or unknown endpoint is a 404; two endpoints
 that exist but cannot be navigated between (`GET /api/nav` answers 400)
 get a message on the page. Build links with `web.nav_page.nav_url(origin,
@@ -228,6 +228,26 @@ destination)` and `endpoint(kind, id)`, or in a template
 `phenomenon` and `from_type`/`to_type`) answer 301 to the canonical URL.
 A phenomenon is never listed in the pickers; it becomes an endpoint only
 through a link from its own page.
+
+**The search page** (`/search`, `web/searchpage.py` + `templates/search.html`,
+data from `GET /api/search` in-process) takes every filter as a GET
+parameter, so a search is a bookmarkable URL:
+
+| Parameter | Meaning |
+|---|---|
+| `q` | The main name search, and what the header search box sends. Searches sector, system, star, planet and moon names at once. With an Object Type tag active it searches only those object types (not sectors and systems). |
+| `sector_q`, `system_q`, `star_q`, `planet_q`, `moon_q` | A name search for one kind of object; replaces `q` for that kind. Under "Search by object and size", each with a `<datalist>` of existing names. |
+| `star_min_radius_km`, `star_max_radius_km` (and `planet_`, `moon_`) | A size range; a bound that isn't a number is ignored. |
+| `type`, `spectral`, `luminosity`, `class`, `body`, `life`, `moon_class`, `moon_body`, `moon_life`, `density` | Tag facets, repeated once per selected value (`spectral=G&spectral=K`). |
+| `sectors_page`, `systems_page`, `stars_page`, `planets_page`, `moons_page`, `belts_page` | Each result panel's page; each pager keeps the search and the other panels' pages. |
+
+Tags, "remove filter" chips and "Clear all" are plain links to the same
+search with one thing changed. Results come right under the form, the tag
+browser below them. The search form sends every field, filled or not, so
+a URL with empty (or unknown) parameters is redirected (302) to the same
+search without them. `search.py` is a CGI shim that 301s to `/search`,
+carrying every one of these parameters from the old GET query or POST
+body (repeated facets included) and dropping `db`.
 
 What changes for a visitor:
 

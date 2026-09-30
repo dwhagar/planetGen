@@ -1763,15 +1763,120 @@ SYSTEM_COMET_COUNT_RANGE = (1, 3)
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 
+# --- Quasars (quasarData.Quasar) ---
+#
+# A quasar is not a free-floating object: it is a galaxy's own central
+# supermassive black hole caught in a phase of near-Eddington accretion,
+# its accretion disk outshining every star in the host galaxy combined.
+# There is exactly one such nucleus per galaxy, at its dynamical center,
+# so the generator only ever places a quasar there (see
+# `generate.add_galactic_nucleus`), never scattered
+# through ordinary sectors the way `PHENOMENON_RATE_PER_STAR_SYSTEM`'s
+# types are.
+
+QUASAR_ACTIVE_NUCLEUS_CHANCE = 0.1
+"""
+float: The chance a generated galaxy's nucleus is active -- i.e. that the
+one sector that hosts the galactic center gets a quasar at all. Real
+quasar activity is rarer still in today's universe (quasars peaked around
+redshift ~2, some 10 billion years ago -- Richards et al. 2006, AJ
+131:2766 -- and the Milky Way's own Sagittarius A* is quiescent), so this
+is a deliberately generous "rare but possible" setting rather than a
+derived rate.
+"""
+
+QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR = (1e8, 1e10)
+"""
+tuple: Central black hole mass range, in solar masses, sampled
+log-uniformly -- the span of virial mass estimates across the SDSS quasar
+catalog (Shen et al. 2011, ApJS 194:45). Below ~1e8 a black hole can't
+reach quasar luminosity even at its Eddington limit.
+"""
+
+QUASAR_EDDINGTON_RATIO_RANGE = (0.1, 1.0)
+"""
+tuple: Bolometric luminosity as a fraction of the Eddington limit, sampled
+log-uniformly -- luminous quasars cluster between ~0.1 and 1 with a
+median near 0.25 (Kollmeier et al. 2006, ApJ 648:128).
+"""
+
+EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS = 1.26e31
+"""
+float: The Eddington luminosity per solar mass of accretor, in watts
+(`4 pi G M m_p c / sigma_T` for ionized hydrogen, ~1.26e38 erg/s per
+solar mass).
+"""
+
+QUASAR_RADIATIVE_EFFICIENCY = 0.1
+"""
+float: Fraction of accreted rest-mass energy radiated away, `L = eta *
+Mdot * c^2` -- the standard ~10% thin-disk value (Soltan 1982, MNRAS
+200:115; Yu & Tremaine 2002, MNRAS 335:965).
+"""
+
+QUASAR_RADIO_LOUD_CHANCE = 0.1
+"""
+float: The chance a quasar is radio-loud (launches relativistic jets) --
+roughly 10% of optically selected quasars are (Ivezic et al. 2002, AJ
+124:2364).
+"""
+
+QUASAR_JET_LENGTH_RANGE_LY = (3e4, 3e6)
+"""
+tuple: Jet/radio-lobe extent range for a radio-loud quasar, in
+light-years, sampled log-uniformly -- from ~10 kpc to the ~1 Mpc of giant
+radio sources. Far larger than the host galaxy, which is why it is
+described rather than drawn at map scale.
+"""
+
+QUASAR_ACTIVE_AGE_RANGE_YEARS = (1e6, 1e8)
+"""
+tuple: How long this episode of quasar activity has been running, in
+years, sampled log-uniformly -- quasar lifetimes are constrained to
+~1e6-1e8 years (Martini 2004, "QSO Lifetimes", Carnegie Obs. Astrophys.
+Ser. 1).
+"""
+
+QUASAR_BOLOMETRIC_CORRECTION_5100 = 9.26
+"""
+float: Bolometric luminosity divided by the 5100-angstrom monochromatic
+luminosity (`L_bol / lambda L_5100`) for a typical quasar spectrum
+(Richards et al. 2006, ApJS 166:470).
+"""
+
+QUASAR_BLR_RADIUS_LIGHT_DAYS_AT_1E44 = 33.65
+QUASAR_BLR_RADIUS_LUMINOSITY_SLOPE = 0.533
+"""
+Broad-line-region radius-luminosity relation from reverberation mapping,
+`R_BLR = 33.65 light-days * (lambda L_5100 / 1e44 erg/s)^0.533` (Bentz et
+al. 2013, ApJ 767:149).
+"""
+
+MILKY_WAY_STELLAR_LUMINOSITY_W = 2.5e10 * 3.828e26
+"""
+float: The combined starlight of a Milky-Way-sized galaxy, in watts
+(~2.5e10 solar luminosities -- Licquia, Newman & Brinchmann 2015, ApJ
+809:96), which a quasar's description compares itself against.
+"""
+
 # --- Phenomenon Generation Mode (phenomenonGen.py) ---
 
 PHENOMENON_TYPE_CHOICES = (
     "black-hole", "neutron-star", "nebula", "supernova-remnant",
-    "rogue-planet", "comet", "asteroid-field",
+    "rogue-planet", "comet", "asteroid-field", "quasar",
 )
 """
-tuple: The valid `--type` values `phenomenonGen.py` accepts; omitting
-`--type` picks uniformly at random among these.
+tuple: The valid `--type` values `phenomenonGen.py` accepts. Omitting
+`--type` picks uniformly at random among `RANDOM_PHENOMENON_TYPE_CHOICES`.
+"""
+
+RANDOM_PHENOMENON_TYPE_CHOICES = tuple(
+    choice for choice in PHENOMENON_TYPE_CHOICES if choice != "quasar"
+)
+"""
+tuple: `PHENOMENON_TYPE_CHOICES` minus `"quasar"`, which only exists at a
+galaxy's center (see `QUASAR_ACTIVE_NUCLEUS_CHANCE`) and so is only ever
+generated when asked for by name.
 """
 
 # --- Sector-Level Exotic Phenomena (sectorGen.py/galaxyGen.py) ---

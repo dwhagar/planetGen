@@ -1030,6 +1030,11 @@ _PHENOMENON_TABLES = (
      "(CASE WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
     ("interstellar_comets", "interstellar_comet",
      "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0"),
+    # v31: a galaxy's active nucleus, always at the galactic center
+    # (schema.sql's "v31" header note). Its jets can reach far past the
+    # galaxy, but the engine itself is light-days across, so it's a point.
+    ("quasars", "quasar",
+     "(CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END)", "0"),
 )
 """tuple: `(table_name, type_label, descriptor_expr, radius_expr)` for
 every standalone phenomenon table -- all seven have galaxy-frame placement

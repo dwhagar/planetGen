@@ -18,7 +18,7 @@ URL scheme (all GET, so every step is bookmarkable):
 An endpoint is `<kind>:<id>`: `system:<id>` for a star system, or
 `<phenomenon type>:<id>` (`nebula`, `asteroid_field`, `black_hole`,
 `neutron_star`, `supernova_remnant`, `rogue_planet`,
-`interstellar_comet`) for a phenomenon. A bare number means a system.
+`interstellar_comet`, `quasar`) for a phenomenon. A bare number means a system.
 `to` may be given without `from` ("navigate to here"): the origin picker
 then carries it along, so choosing an origin lands on the course.
 
