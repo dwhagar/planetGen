@@ -221,7 +221,8 @@ function showPlannedInfo(entry) {
 var LY_PER_PC = 3.26156;
 
 // TODO(distances #1): use the shared unit-ladder formatter (also for
-// formatPc further down).
+// formatPc further down). Boss kept this "pc (ly)" shape: the ladder adds
+// ly in parentheses to every parsec value of 0.01 ly or more.
 function formatPcLy(pc) {
   return pc.toFixed(1) + " pc (" + (pc * LY_PER_PC).toFixed(1) + " ly)";
 }
