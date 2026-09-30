@@ -67,7 +67,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  buildPrismGeometry, cellCoordinates, cellVertices, groupSectorCount, groupSectorRanges, prismsForView,
+  blockSectorCount, blockSectorRanges, blocksForView, buildPrismGeometry, cellCoordinates, cellVertices,
   sectorAddressAt, sectorCellBounds, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
@@ -247,7 +247,7 @@ function showCellInfo(cell) {
   var single = cell.m === 1;
 
   var heading = document.createElement("h3");
-  heading.textContent = single ? "Sector cell" : "Sector group (" + cell.m + " × " + cell.m + " sectors a side)";
+  heading.textContent = single ? "Sector cell" : "Sector block (" + cell.m + " sectors a side)";
   panel.appendChild(heading);
 
   var dl = document.createElement("dl");
@@ -256,10 +256,12 @@ function showCellInfo(cell) {
     addField(dl, "Address", formatAddress(a.ring, a.layer, a.slot));
     addField(dl, "Designation", sectorDesignation(a.ring, a.layer, a.slot));
   } else {
-    var ranges = groupSectorRanges(cell.ring, cell.slab, cell.m);
+    var ranges = blockSectorRanges(cell.ring, cell.slab, cell.m);
     addField(dl, "Rings", ranges.ringFirst + "–" + ranges.ringLast);
     addField(dl, "Layers", ranges.layerFirst + "–" + ranges.layerLast);
-    addField(dl, "Sectors", groupSectorCount({ ring: cell.ring, slab: cell.slab, t0: b.t0, t1: b.t1 }, cell.m).toLocaleString());
+    if (cell.shape) {
+      addField(dl, "Sectors", blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape).toLocaleString());
+    }
   }
   if (cell.density != null) {
     addField(dl, "Predicted density", cell.density.toFixed(2) + "× local average");
@@ -550,42 +552,77 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Wedge lines ---------------------------------------------------------
   //
-  // Lines in the galactic plane from the core out past the edge, each
-  // labelled with its bearing (degrees counterclockwise from +X, the zero
-  // meridian), so a view can be placed around the galaxy at a glance.
-  // Drawn over everything (no depth test) and never picked. The Wedge
-  // lines button hides them.
+  // The master lines of the sector grid (galaxyprisms.wedgeLines): lines in
+  // the galactic plane out past the edge, 3 from the core, then 6, 12, ...
+  // each starting where its zone does. The coarsest are labelled with their
+  // bearing (degrees counterclockwise from +X, the zero meridian), so a
+  // view can be placed around the galaxy at a glance. Each zone's lines
+  // show only while they are at least WEDGE_MIN_GAP_PX apart on screen
+  // (updateWedgeLevels). Drawn over everything (no depth test) and never
+  // picked. The Wedges button hides them.
   var wedgeColor = new THREE.Color(cssVar("--text", "#e6e8f0"));
   var wedgeGroup = new THREE.Group();
   wedgeGroup.renderOrder = 2;
   scene.add(wedgeGroup);
   var WEDGE_LABEL_PX = 16;
+  // Zones with more master lines than this (15 degrees apart) go unlabelled.
+  var WEDGE_LABEL_MAX_MASTERS = 24;
+  var WEDGE_MIN_GAP_PX = 24;
   var wedgeLabels = [];
+  // [{masters, r0, objects: [LineSegments, label sprites...]}], coarsest first.
+  var wedgeLevels = [];
   (function buildWedgeLines() {
-    var lines = wedgeLines();
     var reach = GALAXY_RADIUS * 1.02;
-    var points = new Float32Array(lines.length * 6);
-    lines.forEach(function (line, n) {
-      var cos = Math.cos(line.angleRad);
-      var sin = Math.sin(line.angleRad);
-      points.set([line.r0 * cos, line.r0 * sin, 0, reach * cos, reach * sin, 0], 6 * n);
-      var label = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: makeLabelTexture(String(line.bearingDeg).padStart(3, "0"), "#" + wedgeColor.getHexString()),
-        transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: false,
-      }));
-      label.position.set(reach * 1.06 * cos, reach * 1.06 * sin, 0);
-      label.renderOrder = 2;
-      wedgeLabels.push(label);
-      wedgeGroup.add(label);
+    var byMasters = new Map();
+    wedgeLines(data.edgePc || 1, GALAXY_RADIUS).forEach(function (line) {
+      if (!byMasters.has(line.masters)) {
+        byMasters.set(line.masters, []);
+      }
+      byMasters.get(line.masters).push(line);
     });
-    var geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
-    var segments = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
+    var material = new THREE.LineBasicMaterial({
       color: wedgeColor, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false,
-    }));
-    segments.renderOrder = 2;
-    wedgeGroup.add(segments);
+    });
+    byMasters.forEach(function (lines, masters) {
+      var level = { masters: masters, r0: lines[0].r0, objects: [] };
+      var points = new Float32Array(lines.length * 6);
+      lines.forEach(function (line, n) {
+        var cos = Math.cos(line.angleRad);
+        var sin = Math.sin(line.angleRad);
+        points.set([line.r0 * cos, line.r0 * sin, 0, reach * cos, reach * sin, 0], 6 * n);
+        if (masters > WEDGE_LABEL_MAX_MASTERS) {
+          return;
+        }
+        var label = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: makeLabelTexture(String(line.bearingDeg).padStart(3, "0"), "#" + wedgeColor.getHexString()),
+          transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: false,
+        }));
+        label.position.set(reach * 1.06 * cos, reach * 1.06 * sin, 0);
+        label.renderOrder = 2;
+        wedgeLabels.push(label);
+        level.objects.push(label);
+      });
+      var geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
+      var segments = new THREE.LineSegments(geometry, material);
+      segments.renderOrder = 2;
+      level.objects.push(segments);
+      level.objects.forEach(function (object) { wedgeGroup.add(object); });
+      wedgeLevels.push(level);
+    });
   })();
+
+  // Shows each zone's lines while neighbours in that zone are at least
+  // WEDGE_MIN_GAP_PX apart where the view reaches farthest out: the
+  // focus's radius plus half the screen's height, or the zone's start.
+  function updateWedgeLevels(pcPerPixel) {
+    var reachR = Math.min(GALAXY_RADIUS, Math.hypot(target.x, target.y) + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
+    wedgeLevels.forEach(function (level) {
+      var gapPx = (2 * Math.PI * Math.max(level.r0, reachR)) / level.masters / pcPerPixel;
+      var show = level.masters === wedgeLevels[0].masters || gapPx >= WEDGE_MIN_GAP_PX;
+      level.objects.forEach(function (object) { object.visible = show; });
+    });
+  }
 
   // Keeps the labels WEDGE_LABEL_PX tall on screen: a sprite without size
   // attenuation spans scale / tan(fov / 2) half-heights of the view.
@@ -937,15 +974,22 @@ function initGalaxyMap3d(canvasEl, data) {
     var center = [target.x, target.y, target.z];
     var pcPerPixel = pcPerPixelAtTarget();
     lastPrismViewRadius = viewRadius;
-    var key = center.join(",") + ":" + viewRadius + ":" + pcPerPixel.toPrecision(3) + ":" + sliceAtFocus;
+    // The camera's height only decides which top and bottom faces face it,
+    // so it is keyed coarsely: a rebuild every 16 pixels' worth.
+    var viewerBand = Math.round(camera.position.z / (16 * pcPerPixel));
+    var key = center.join(",") + ":" + viewRadius + ":" + pcPerPixel.toPrecision(3) + ":" + sliceAtFocus + ":" + viewerBand;
     if (key === prismSetKey) {
       return;
     }
     prismSetKey = key;
-    var view = prismsForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, pcPerPixel);
-    var cells = sliceAtFocus
-      ? view.prisms.filter(function (cell) { return cell.z0 <= target.z; })
-      : view.prisms;
+    updateWedgeLevels(pcPerPixel);
+    // Only the solid's surface is listed, so the slice goes in here (its
+    // cut face is surface), not as a filter afterwards.
+    var view = blocksForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, {
+      pcPerPixel: pcPerPixel, sliceZ: sliceAtFocus ? target.z : null, viewerZ: camera.position.z,
+      minPx: data.blockMinPx, budget: data.blockBudget,
+    });
+    var cells = view.blocks;
     var colorsOf = [];
     var centersOf = [];
     var prisms = cells.map(function (cell) {
@@ -961,7 +1005,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var built = buildPrismGeometry(prisms);
     drawnCells = cells;
     drawnOwners = built.owners;
-    drawnSectorsPerPrism = view.sectorsPerPrism;
+    drawnSectorsPerPrism = view.m;
 
     var colors = new Float32Array(built.owners.length * 3);
     var centers = new Float32Array(built.owners.length * 3);
@@ -1647,7 +1691,10 @@ function initGalaxyMap3d(canvasEl, data) {
         continue;
       }
       var m = drawnSectorsPerPrism;
-      var cell = { m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, slab: cellData.slab };
+      var cell = {
+        m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, seg: cellData.seg, slab: cellData.slab,
+        edgePc: edgePc, shape: galaxyShape,
+      };
       if (m === 1) {
         cell.address = { ring: cellData.ring, layer: cellData.slab, slot: cellData.seg };
       }

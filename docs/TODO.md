@@ -43,7 +43,7 @@ renumber when items are added or finished.
    local-time change (22) is small and can go in any time.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 13-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 (the
+   slots, pixel-sized mega-blocks). Work items 15-18 in order (13, pixel-sized blocks, and 14, the solid and its slice, have shipped). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
@@ -238,22 +238,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-13. [ ] **Mega-blocks sized from the pixel scale.**
-   - Replace `sectorsPerPrism` and `prismsForView` with
-     `blockSizeForScale`: the smallest power of 3 with `m * edge >=
-     BLOCK_MIN_PX * pcPerPixel`, with BLOCK_MIN_PX = 4.
-   - Block rings and layers are the sector grid scaled by m (odd m keeps
-     layer 0 on the plane).
-   - Block wedges are the innermost member ring's master wedges divided by
-     a power of 2. This makes every block an exact set of whole sectors, so
-     `groupSectorCount` stops binning by center angle.
-   - Existence depends only on ring and layer, so list exposed (surface)
-     blocks only, never the whole view volume. Keep a budget guard that
-     steps m up by 3.
-
-   Done means tests check m against the scale, counts within a few percent
-   of m³, surface listing against brute force, and the budget at every zoom.
-
 15. [ ] **One solid of blocks for filled and unfilled sectors; no more
    marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
    and out and find generated ("filled") sectors from the blocks alone.
@@ -289,7 +273,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
        placed lists, or totalled by the server for coarse views.
      - Translucent blocks drawn after opaque ones, sorted back to front.
      - Interior culling (#13) only where all neighbours are opaque.
-     - A block's total sector count (`groupSectorCount`, exact with #12).
+     - A block's total sector count (`blockSectorCount`).
 
    Done means filled sectors can be found by zooming alone at every zoom,
    there are no marker sprites left, colors follow density, and the frame
