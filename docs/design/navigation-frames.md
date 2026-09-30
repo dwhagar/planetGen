@@ -1,7 +1,7 @@
 # Navigation reference frames (planned)
 
 Boss's design for nested navigation frames, recorded 2026-09-30 as the
-reference for `docs/TODO.md` item 28 (courses) and item 29 (warp and
+reference for `docs/TODO.md` item 33 (courses) and item 34 (warp and
 fold speeds). Nothing here is implemented yet; today's course is
 `stellarObjects/navigation.course_between` (azimuth and altitude on the
 galactic plane). The design below is Boss's text as given; the open
@@ -196,4 +196,4 @@ def compute_course(ship_pos_gal, target_pos_gal, frame_type, frame_center_gal, p
   $= w^{10/3} + \frac{1}{1 + e^{-9.3575(w - 9.5)}} \left( \frac{198.9}{(10 - w)^{0.75}} + 1721.7 - w^{10/3} \right)$
 - Dimensional fold factor $F$: speed in c $= \frac{6F^4}{10 - F}$
 
-The computed values are tabled in `docs/TODO.md` item 29.
+The computed values are tabled in `docs/TODO.md` item 34.

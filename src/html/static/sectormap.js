@@ -169,6 +169,9 @@ function makeCopyButton(text) {
 // entire shell (marked not recommended). Each posts to the admin Generate
 // page (generate_page.py) as a background job. Visitors see only the
 // address and designation.
+// TODO(phenomena #27): draw nebulae and supernova remnants that reach this
+// sector as translucent volumes, even when their center is in another
+// sector.
 function showNeighborInfo(panel, entry) {
   var heading = document.createElement("h3");
   heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";

@@ -73,6 +73,8 @@ class SupernovaRemnant:
         """
         reseed_rng()
         self.system_config = system_config
+        # TODO(phenomena #30): name remnants through the system-name
+        # registry, like star systems.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.morphology = random.choice(program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES)
@@ -94,6 +96,10 @@ class SupernovaRemnant:
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
 
+        # TODO(phenomena #27): core-collapse remnants keep a neutron star
+        # (most) or black hole, offset from the center by its birth kick (a
+        # few hundred km/s times the age); thermonuclear (Type Ia, class W)
+        # remnants have none.
         self.compact_remnant = None
         if not is_type_ia and random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
             if random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE:

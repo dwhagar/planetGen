@@ -189,7 +189,7 @@ def _validate_mass(planet):
         raise ValueError("Invalid mass for planet class")
 
 
-# TODO(facilities #30): orbital facilities (around a star or a planet) get
+# TODO(facilities #35): orbital facilities (around a star or a planet) get
 # their period and speed from here and utils.circular_orbital_speed_kms
 # from the host's approximate mass, the same way planets and moons do.
 def calculate_orbital_period_years(distance_au, primary_mass_kg):

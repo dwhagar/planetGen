@@ -1004,6 +1004,8 @@ CREATE TABLE IF NOT EXISTS system_config_slots (
 -- ---------------------------------------------------------------------
 -- star_systems
 -- ---------------------------------------------------------------------
+-- TODO(phenomena #29): add a nullable nebula_id for the nebula or supernova
+-- remnant the system sits inside.
 CREATE TABLE IF NOT EXISTS star_systems (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id              BIGINT UNSIGNED,
@@ -1643,6 +1645,13 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 -- (v21 on) sectorGen.py's own per-sector generation -- see this file's
 -- "v18"/"v21" header notes.
 -- ---------------------------------------------------------------------
+-- TODO(phenomena #28): add nebula_class plus contents columns (dominant
+-- species, density_cm3, temperature_k, extinction_av); the same on
+-- supernova_remnants.
+-- TODO(phenomena #29): add a nullable nebula_id (innermost containing
+-- nebula or supernova remnant) here, for nesting, and on star_systems,
+-- rogue_planets, interstellar_comets, black_holes, neutron_stars,
+-- asteroid_fields and stand-alone facilities.
 CREATE TABLE IF NOT EXISTS nebulae (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     -- v18: the nearest already-generated sector to center_x/y/z_pc below --
@@ -1915,6 +1924,9 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
 -- exactly (same per-component/concentration shape -- both are generated
 -- via the same shared `asteroidData.generate_asteroid_composition`).
 -- ---------------------------------------------------------------------
+-- TODO(phenomena #31): add asteroid_field_class (A-Z) and the designation
+-- (#30). Asteroid fields can sit inside a nebula (nebula_id, #29) but never
+-- contain anything.
 CREATE TABLE IF NOT EXISTS asteroid_fields (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     -- v18: the nearest already-generated sector to center_x/y/z_pc below --
@@ -2002,12 +2014,13 @@ CREATE TABLE IF NOT EXISTS sector_name_registry (
         FOREIGN KEY (first_sector_id) REFERENCES sectors(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- TODO(facilities #30): add facilities (starbases, colonies, outposts):
+-- TODO(facilities #35): add facilities (starbases, colonies, outposts):
 -- terrestrial, orbital and stand-alone (parked in space). One facilities
 -- table with kind, name and exactly one host (planet, moon, asteroid belt,
 -- asteroid field, star system orbit, or a free position), plus orbit
 -- columns (distance_km, period_years, orbital_speed_kms, phase) for orbital
--- ones. See docs/TODO.md item 30 for the placement rules.
+-- ones. Moons can host terrestrial and orbital facilities too. See
+-- docs/TODO.md item 35 for the placement rules.
 CREATE TABLE IF NOT EXISTS system_name_registry (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     base_name              VARCHAR(255) NOT NULL,

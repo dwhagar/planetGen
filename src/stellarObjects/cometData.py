@@ -161,6 +161,11 @@ class Comet:
         """
         reseed_rng()
         self.system_config = system_config
+        # TODO(phenomena #30): comets get a standardized designation
+        # instead of a name: "P/<system>-<n>" for periodic (under 200
+        # years), "C/<system>-<n>" for long-period; interstellar comets
+        # (roguePlanetData.InterstellarComet) use "I/<sector
+        # designation>-<n>".
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.primary_mass_solar = primary_mass_solar
 

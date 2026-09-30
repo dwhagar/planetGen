@@ -1005,6 +1005,9 @@ def _regenerate_star_name():
     return generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
 
+# TODO(phenomena #30): nebulae, supernova remnants, neutron stars, black
+# holes, quasars and rogue planets reserve their names here too, so they
+# are unique alongside star systems.
 def reserve_system_name(conn, candidate_name):
     """
     Phase 1 of system name-uniqueness reservation -- resolves a
@@ -2087,7 +2090,7 @@ def _format_location_string(sector_name, neighbors):
 # Precalculate and store the 3 nearest star systems for every system and
 # every phenomenon in a table (id, kind, rank, neighbor_system_id,
 # distance), searching across sector boundaries; recompute on generate and
-# on each correlative update (#27).
+# on each correlative update (#32).
 def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
     """
     Computes `entry`'s `star_systems.location` string from the live
@@ -5198,7 +5201,7 @@ def get_orbit_update_elapsed_years(conn):
     return row["elapsed_seconds"] / physical_constants.SECONDS_PER_YEAR
 
 
-# TODO(orbits #27): quasars aren't in the phenomena loop below; decide
+# TODO(orbits #32): quasars aren't in the phenomena loop below; decide
 # whether the nucleus moves. After phases advance, galactic positions must
 # follow (see updateOrbits.main).
 def advance_orbital_phases(conn, elapsed_years):

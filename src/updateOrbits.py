@@ -141,14 +141,16 @@ call rather than sharing `advance_orbital_phases`' set-based `UPDATE`s) ->
 human-readable label for this script's own summary line."""
 
 
-# TODO(orbits #27): check this "correlative update" still works on schema
+# TODO(orbits #32): check this "correlative update" still works on schema
 # v34 end to end. It advances phases (planets, moons, stars, binaries,
 # phenomena galactic phase, comets) but never moves anything's galactic
 # position: sectors.center_*_pc, star_systems.position_*_mpc, phenomena
 # center_*_pc and sector membership stay put. Move every system and
 # phenomenon along its galactic orbit, update its galactic location (and
-# its sector when it crosses a boundary), then recalculate the nearest
-# systems (#26) and store them.
+# its sector when it crosses a boundary: sector_id, octant, location text
+# and every stored or rendered text naming the old sector all follow), then
+# recalculate the nearest systems (#26) and containing nebula (#29) and
+# store them.
 def main():
     parser = argparse.ArgumentParser(
         description="Advance every planet's, moon's, star's, binary system's, and standalone exotic "

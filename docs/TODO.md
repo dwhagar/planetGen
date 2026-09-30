@@ -45,10 +45,12 @@ renumber when items are added or finished.
    ship on today's prisms. 12 is the one data-deleting step and waits for
    Boss's go-ahead on the migration. 19-20 are follow-ups. 21 (wedge
    lines) can go in any time.
-- **Features (23-31)** from the same notes: generate buttons (23-24),
-   phenomena views and stored nearest systems (25-26), the correlative
-   update (27), navigation frames and speeds (28-29), and facilities
-   (30-31). 26 and 30 are schema changes.
+- **Features (23-36)** from the same notes: generate buttons (23-24),
+   phenomena views and stored nearest systems (25-26), nebulae and
+   remnants: placement, classes, containment and naming, plus asteroid
+   field classes (27-31), the correlative update (32), navigation frames
+   and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
+   are schema changes.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities);
@@ -114,13 +116,16 @@ renumber when items are added or finished.
    - `templates/base.html` (`account_links`, the header), `style.css`
      (`.site-header`, the 56rem/92rem collapses), `helpers.SECTIONS`,
      `theme.js` (the toggle moves into the gear menu).
-   - Default taken: one gear menu holds Account (password), Theme,
-     Admin, Generate, Stats and Logout; there is no separate Admin
-     dropdown. A container query on the header can hide the search box
-     and collapse the sections without JavaScript.
-   - **Questions for Boss:** should Stats stay in the gear menu (it
-     wasn't in the list)? For a visitor who isn't logged in, does the
-     gear hold just Theme and Login?
+   - Boss confirmed on 2026-09-30: a visitor who isn't logged in gets
+     the pages (Galaxy, Sectors, Systems, Phenomena, Nav) and, under the
+     gear, Theme and search. No Stats unless logged in. ("Admion" was a
+     typo for Admin.)
+   - Default taken: for a logged-in admin the gear menu holds Account
+     (password), Theme, Admin, Generate, Stats and Logout; there is no
+     separate Admin dropdown. A container query on the header can hide
+     the search box and collapse the sections without JavaScript.
+   - **Question for Boss:** a visitor still needs a way to log in; a
+     Login entry in the gear menu is the default.
 
 4. [ ] **Tag search: collapsible groups and phenomena.** Boss: "Search
    by tag should have collapsible zones for each group of tags so it
@@ -382,7 +387,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    meaningful wedge lines from the center to make navigation easier."
    Draw lines in the galactic plane from the core to the edge along
    the master-wedge boundaries (#12), labelled by bearing from the
-   core so they match the course format (#28). A `LineSegments`
+   core so they match the course format (#33). A `LineSegments`
    overlay next to the content groups in `initGalaxyMap3d`, with a
    toggle. Can ship before #12 using today's ring-0 slot lines.
 
@@ -415,15 +420,16 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
-23. [ ] **Generate a column.** Add a `generate.py galaxy` column mode:
-    every sector of one (ring, slot) column, all layers between
-    `galaxy_column`'s `layer_index_min`/`max` for that ring. Today's
-    modes are ring batch (one ring at one layer), one slot, local
-    neighborhood and random start (`add_galaxy_arguments`, `run_galaxy`).
-    **Question for Boss:** by "the entire shell", do you mean today's
-    ring batch (the whole ring at this sector's layer), or the whole
-    ring through every layer (a cylindrical shell)? Default taken: the
-    ring at this layer, which already exists.
+23. [ ] **Generate a column and a shell.** Boss defined them on
+    2026-09-30: "For the shell I mean a ring through every layer and a
+    column through the ring." Add two `generate.py galaxy` modes:
+    - Column: every sector of one (ring, slot), all layers between
+      `galaxy_column`'s `layer_index_min`/`max` for that ring.
+    - Shell: every slot of one ring through every layer (a cylindrical
+      shell). Far larger than today's ring batch (one ring at one
+      layer), so it keeps the `--limit`/`--yes` guard.
+    Today's modes are ring batch, one slot, local neighborhood and
+    random start (`add_galaxy_arguments`, `run_galaxy`).
 
 24. [ ] **Generate buttons on unfilled sectors.** Boss: "Sector map
     clicking on an unfilled sector should no longer give a command line
@@ -435,11 +441,11 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       `showPlannedInfo`/`showCellInfo`: drop the snippet; for an admin,
       show the four buttons (shell marked not recommended). Visitors see
       the address and designation only.
-    - `generate_page.GALAXY_MODES`/`galaxy_argv`: add column (and shell
-      if it's new, #23); the buttons post a CSRF-protected form that
+    - `generate_page.GALAXY_MODES`/`galaxy_argv`: add column and shell
+      (#23); the buttons post a CSRF-protected form that
       starts the job with the address filled in.
 
-### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`)
+### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
     stars should be not a 3D map but rather a rendered representation of
@@ -462,8 +468,9 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       radio-loud.
     - `prefers-reduced-motion` gets a still frame; pages still read
       without JavaScript.
-    - **Question for Boss:** nebulae and supernova remnants weren't
-      named. Keep today's map for them?
+    - Nebulae and supernova remnants: Boss (2026-09-30) wants them
+      generated and placed on the maps (#27); their own view keeps a
+      map until a render is designed for them.
 
 26. [ ] **Octant and nearest systems for phenomena, stored.** Boss:
     "Phenomena in the sector list should also list the octant they are
@@ -480,13 +487,98 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       within the sector only). Add a `nearest_systems` table (object
       kind and id, rank 1-3, neighbor system, distance) for every system
       and phenomenon, searched across sector boundaries, filled at
-      generation and by #27. Schema change with a migration.
+      generation and by #32. Schema change with a migration.
     - Show them on the sector page, system page and phenomenon page;
       `queryDb.phenomena_near_sector` returns them.
 
+27. [ ] **Generate nebulae and supernova remnants, with the stars they
+    need, and put them on the maps.** Boss (2026-09-30): "Nebulae and
+    Remnants should be generated and placed on the map. Research if we
+    need stars at the center of these or what kind of star, etc, so we
+    can make them."
+    - Rates come from #5 (a per-volume rate suits objects this big).
+    - Each class brings its central object (table in
+      `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
+      emission nebulae, a B or A star for reflection, one hot central
+      star becoming a white dwarf for planetary, none for molecular
+      clouds (protostars at most), a neutron star or black hole for
+      core-collapse remnants and none for thermonuclear ones. The
+      generator creates that star system inside the nebula, or places
+      the nebula around a qualifying existing star.
+    - Nebulae are up to 200 ly in radius, so one spans many 13 ly
+      sectors: every sector it reaches lists it, the Sector Map draws
+      its extent, and the Galaxy Map shows it.
+    - Sites: `generate.generate_sector_phenomena`,
+      `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
+      `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
+
+28. [ ] **Class nebulae and remnants A-Z by what's in them.** Boss:
+    "We also want Nebulae and Stellar remnants to be classed like
+    planets ... and we'll need to come up with What's IN the Nebulae.
+    ... develop a letter-class system similar to planets (A to Z) based
+    on contents of the nebulae."
+    - Draft classes A-W (I and O unused, X-Z reserved) are in
+      `docs/design/nebula-and-asteroid-field-classes.md`, built from
+      Boss's reference document: diffuse (A-B), H II (C-E), reflection
+      (F-G), planetary (H-L), molecular (M-Q), supernova remnants (R-W).
+    - Add `NEBULA_CLASSES` next to `PLANET_CLASSES` in
+      `program_constants` (description, contents, radius, nH,
+      temperature, extinction, central-object rule, frequency),
+      replacing `NEBULA_TYPES` and `SUPERNOVA_REMNANT_MORPHOLOGIES`.
+    - Store the class and contents (dominant species, density,
+      temperature, extinction) on `nebulae` and `supernova_remnants`;
+      show them on the phenomenon page and as a search facet (#4).
+    - **Question for Boss:** does "stellar remnants" also mean the
+      compact objects (white dwarfs, neutron stars, black holes)? The
+      draft classes supernova remnants only.
+
+29. [ ] **Record what sits inside a nebula.** Boss: "Add a DB field for
+    if any stellar object (including systems) exist within a nebulae or
+    similar (not asteroid fields, that wouldn't work) or stellar
+    remnants if necessary."
+    - A nullable `nebula_id` (the innermost containing nebula or
+      supernova remnant) on `star_systems`, `rogue_planets`,
+      `interstellar_comets`, `black_holes`, `neutron_stars`,
+      `asteroid_fields`, `nebulae` (nesting) and stand-alone facilities
+      (#35). Asteroid fields can sit inside a nebula but never contain
+      anything. Schema change with a migration.
+    - Containment is a 3D distance test against every nebula that
+      reaches the object's sector, set at generation, when a later
+      sector is generated inside an existing nebula, and by #32.
+    - Show "inside <nebula>" on system, phenomenon and sector pages.
+      Being inside also compresses a star's heliopause (down to ~0.2 AU
+      in a dense cloud), which should feed system text, habitability and
+      the navigation hand-off radius (#33).
+
+30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
+    comets should be named using a method that tells something about
+    them by their name in letters and numbers in a standardized way.
+    Nebulae should get names the same as star systems do, as do neutron
+    stars, quasars, black holes, etc."
+    - Nebulae, remnants, neutron stars, black holes, quasars and rogue
+      planets go through the system-name registry
+      (`_db.reserve_system_name`/`confirm_system_name`) instead of an
+      unregistered `generate_phoneme_salad_name`.
+    - Comets and asteroid fields get designations. Draft (IAU-style):
+      `P/<system>-<n>` periodic comet, `C/<system>-<n>` long-period,
+      `I/<sector designation>-<n>` interstellar comet, and
+      `AF <class><size digit>-<sector designation>-<n>` asteroid field
+      (class from #31). Examples and the size rule are in the design
+      doc. Needs a migration that renames existing rows.
+
+31. [ ] **Class asteroid fields A-Z.** Boss: "Asteroid fields should also
+    have classes (A to Z) based on composition and density and size."
+    Draft in the design doc: the letter comes from composition
+    (carbonaceous, stony, metallic, icy, basaltic, mixed, dust,
+    collisional family) and density (today's sparse/typical/dense), and
+    size is the digit in the designation (#30). `asteroidFieldData`,
+    `ASTEROID_FIELD_*` constants, `asteroid_fields` table, phenomenon
+    page. **Question for Boss:** should size be part of the letter
+    instead?
+
 ### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
 
-27. [ ] **Check and finish the correlative update.** Boss: "We need to
+32. [ ] **Check and finish the correlative update.** Boss: "We need to
     double check our 'correlative update' to move everything (planets,
     moons, stars, phenomena, etc) in their orbital path, we had a script
     for it but let's make sure it's working for the current version.
@@ -504,14 +596,16 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       them along their galactic orbits, then recompute the nearest
       systems (#26).
     - Quasars aren't in the phenomena loop.
-    - **Question for Boss:** when a system's galactic orbit carries it
-      out of its sector, should it move to the new sector (sector
-      contents change over time), or should sectors move with the
-      galaxy's rotation so membership stays fixed?
+    - When an object's orbit carries it out of its sector it moves to
+      the new sector. Boss (2026-09-30): "when a sector changes then we
+      make sure the DB and all text is changed to point at the new
+      sector location": `sector_id`, sector-relative positions, octant
+      (`quadrant`), `star_systems.location`, containing nebula (#29),
+      and any stored or rendered text naming the old sector.
 
 ### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
 
-28. [ ] **Courses in "bearing mark mark" format on nested reference
+33. [ ] **Courses in "bearing mark mark" format on nested reference
     frames.** Boss: "Course projections should be in the format of:
     0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
     Boss's design (summarized; the full text and pseudocode are in
@@ -550,7 +644,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
         sits at the galactic center, so it can't set +X. Default taken:
         keep the galaxy's existing +X axis (ring slot 0).
 
-29. [ ] **Warp and fold speeds.** Replace `WARP_VELOCITY_EXPONENT`
+34. [ ] **Warp and fold speeds.** Replace `WARP_VELOCITY_EXPONENT`
     (plain w^(10/3)) and `WARP_FACTORS_FOR_NAV` with Boss's curves, and
     add fold travel times to the nav page:
     - Warp (w): speed in c = w^(10/3) + 1 / (1 + e^(-9.3575(w - 9.5)))
@@ -586,7 +680,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 ### Facilities (new)
 
-30. [ ] **Starbases, colonies and outposts in the database.** Boss: "I
+35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I
     am going to have starbases, colonies, outposts, that kind of thing.
     Terrestrial facilities, orbital facilities, and stand-alone
     facilities (those parked in space)." Add them to the database and
@@ -603,14 +697,13 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - Orbits (around a star or a planet) get distance, period and speed
       from the host's approximate mass, the same way everything else
       does (`planetPhysics.calculate_orbital_period_years`,
-      `utils.circular_orbital_speed_kms`), and move with #27.
+      `utils.circular_orbital_speed_kms`), and move with #32.
     - Schema: one `facilities` table (kind, name, exactly one host,
       orbit columns), migration, API routes in `html/api/routes.py`.
-    - **Question for Boss:** can moons host facilities? Default taken:
-      a terrestrial moon follows the terrestrial-world rules and a
-      moon can have orbital facilities.
+    - Moons can host terrestrial and orbital facilities (Boss,
+      2026-09-30).
 
-31. [ ] **Place facilities from the web interface.** Boss: "The web
+36. [ ] **Place facilities from the web interface.** Boss: "The web
     interface should have a way to select within a star system where a
     facility goes in orbit around the star or around the planet, which
     will have calculated distances and orbital speeds the same way
@@ -624,14 +717,14 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 Low priority; nobody is waiting on these.
 
-32. [ ] **The API can't create a system inside an existing sector.**
+37. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-33. [ ] **The API can't edit a system's generated content.** `PATCH
+38. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -641,10 +734,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-34. [ ] Assign government ownership to star systems so that groups of
+39. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-35. [ ] Flag worlds with life for generated names of their dominant
+40. [ ] Flag worlds with life for generated names of their dominant
     species.
-36. [ ] A database of spacefaring species.
-37. [ ] Model younger and older civilizations: what differs with a
+41. [ ] A database of spacefaring species.
+42. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

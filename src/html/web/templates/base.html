@@ -26,8 +26,9 @@ subhead (badges or actions under the <h1>). -#}
 {%- endmacro -%}
 {# TODO(site-header #3): the top bar is too dense. Account (password), the
    theme toggle and the admin pages (Admin, Generate, Stats) plus Logout
-   move into one settings gear menu at the upper right. What a visitor who
-   isn't logged in sees there is a question in docs/TODO.md item 3. #}
+   move into one settings gear menu at the upper right. A visitor who isn't
+   logged in gets Theme and search under the gear (plus Login), and never
+   Stats. #}
 {%- macro account_links() -%}
 {%- set admin = current_admin() -%}
 <nav class="site-account" aria-label="Account">

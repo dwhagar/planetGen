@@ -135,7 +135,7 @@ def _wiki_upload_options(system, wiki_config):
             if wiki_config.get(value) and not uploaded[value]]
 
 
-# TODO(facilities #31): an admin gets a way, on this page, to add a
+# TODO(facilities #36): an admin gets a way, on this page, to add a
 # facility and pick where it goes within the system: in orbit around the
 # star or around a planet (distance chosen, orbital speed calculated from
 # the host's approximate mass like everything else), on a terrestrial world
