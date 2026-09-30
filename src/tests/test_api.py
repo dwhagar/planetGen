@@ -1280,10 +1280,13 @@ def test_rename_star_planet_and_moon(admin_client, mysql_config):
     assert response.status_code == 200
     assert _names(mysql_config, "moons", system_id)[moon_id] == "Selene"
 
-    # Names already in use anywhere are refused.
+    # Only uniquely named objects (sectors, systems, stars) are checked:
+    # another body's name is allowed, a star's is refused.
     response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "New Terra"})
+    assert response.status_code == 200
+    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "Castor"})
     assert response.status_code == 409
-    assert "planet" in response.get_json()["error"]
+    assert "star" in response.get_json()["error"]
 
 
 def test_rename_a_single_star_renames_its_system(admin_client, seeded_sector, mysql_config):
