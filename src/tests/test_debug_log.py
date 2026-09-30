@@ -9,15 +9,12 @@ import logging
 import os
 import random
 import re
-import subprocess
 import sys
 
 import pytest
 
 from stellarObjects import appconfig, log
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_HTML_LIB_DIR = os.path.join(_SRC_DIR, "html", "lib")
 
 ROLL_CHANCE = 0.25
 
@@ -171,28 +168,3 @@ def test_unwritable_log_file_does_not_break_the_program(tmp_path, monkeypatch, c
     captured = capsys.readouterr()
     assert "still works" in captured.out
     assert "can't be opened" in captured.err
-
-
-def test_web_page_error_goes_to_the_log_not_the_page(tmp_path):
-    path = tmp_path / "planetgen.log"
-    env = dict(os.environ, PLANETGEN_DEBUG="1", PLANETGEN_LOG_FILE=str(path), REQUEST_METHOD="GET",
-               QUERY_STRING="db=galaxy&password=hunter2", SCRIPT_FILENAME="/srv/html/broken.py",
-               REMOTE_ADDR="203.0.113.9")
-    code = (
-        "import sys; sys.path[:0] = [sys.argv[1], sys.argv[2]]\n"
-        "import page\n"
-        "def handler():\n"
-        "    raise ZeroDivisionError('division by zero in a page')\n"
-        "page.run(handler)\n"
-    )
-    result = subprocess.run([sys.executable, "-c", code, _HTML_LIB_DIR, _SRC_DIR], env=env,
-                            capture_output=True, text=True, timeout=60)
-    assert "Status: 500" in result.stdout
-    assert "ZeroDivisionError" not in result.stdout
-    assert "The traceback is in the debug log" in result.stdout
-    text = path.read_text()
-    assert "web/broken.py[" in text
-    assert "Request: GET" in text and "203.0.113.9" in text
-    assert "ZeroDivisionError: division by zero in a page" in text
-    assert "Response: 500 Internal Server Error" in text
-    assert "hunter2" not in text

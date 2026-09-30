@@ -1,8 +1,7 @@
 # html/web/errors.py
 
 """
-HTML error pages for the Flask-served pages, with the same safety rules
-as the CGI shell's `page.run`:
+HTML error pages for the Flask-served pages, with these safety rules:
 
 - an `apiclient.NotFoundError` (a bad id, no such database) is a 404,
 - an `apiclient.ApiError` (the API failed) is a 502,
@@ -46,7 +45,7 @@ def render_error(status, message):
 
 
 def unexpected_error_message():
-    """The one message a 500 page shows (matches `page.py`)."""
+    """The one message a 500 page shows."""
     if debug_enabled():
         return (f"An unexpected error occurred. The traceback is in the debug log "
                 f"(process {os.getpid()}, {time.strftime('%Y-%m-%d %H:%M:%S')}).")

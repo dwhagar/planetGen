@@ -3,8 +3,8 @@
 # scripts/install-python-deps.sh
 #
 # Step 1 of install.sh: makes planetGen and the libraries it needs
-# importable by the system Python, the one Apache's CGI scripts
-# (`#!/usr/bin/env python3`) and mod_wsgi run under. Picks one of two paths
+# importable by the system Python, the one mod_wsgi (and the CLI tools)
+# run under. Picks one of two paths
 # and prints which one it took:
 #
 #   unmanaged  The interpreter lets pip install into it. Same pip install

@@ -4,7 +4,7 @@
 The admin pages on the Flask app (`src/html/web/admin_pages.py`):
 `/login`, `/logout`, `/account`, `/admin` and `/admin/stats`, which
 replaced `login.py`, `logout.py`, `changecreds.py`, `admin.py` and
-`adminstats.py`.
+`adminstats.py` (those old URLs now redirect here).
 
 Most tests fake the data layer by monkeypatching the `apiclient`
 functions the views call (the pattern of `test_web_pages.py`). The tests
@@ -26,9 +26,6 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from web import admin_pages, csrf  # noqa: E402
-from web.helpers import LEGACY_PAGES  # noqa: E402
-
-from tests.webpage_support import run_page  # noqa: E402
 
 DB = "planetgen_web_test"
 NONCE = "n" * 43
@@ -182,10 +179,9 @@ def _redirect(resp):
 
 # --- Routing -------------------------------------------------------------------------
 
-def test_admin_pages_are_routes_not_legacy(app):
+def test_admin_pages_are_routes(app):
     for name in ("login", "logout", "account", "admin", "admin_stats"):
         assert f"web.{name}" in app.view_functions
-        assert name not in LEGACY_PAGES
 
 
 def test_header_links_point_at_new_urls(client, fake):
@@ -577,27 +573,26 @@ def test_admin_stats_database_unreachable(client, fake, monkeypatch):
     assert "Names made unique" not in html
 
 
-# --- CGI shims ---------------------------------------------------------------------------
+# --- Old CGI URLs ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("script,query,location", [
-    ("login.py", {"db": "x"}, "/login"),
-    ("logout.py", {}, "/logout"),
-    ("changecreds.py", {}, "/account"),
-    ("admin.py", {"keys_page": "3"}, "/admin?keys_page=3"),
-    ("adminstats.py", {"db": "x", "names_page": "2"}, "/admin/stats?names_page=2"),
+@pytest.mark.parametrize("url,location", [
+    ("/login.py?db=x", "/login"),
+    ("/logout.py", "/logout"),
+    ("/changecreds.py", "/account"),
+    ("/admin.py?keys_page=3", "/admin?keys_page=3"),
+    ("/adminstats.py?db=x&names_page=2", "/admin/stats?names_page=2"),
 ])
-def test_cgi_shims_redirect(script, query, location):
-    result = run_page("http://127.0.0.1:9/api", script, query=query)
+def test_old_admin_urls_redirect(client, url, location):
+    result = client.get(url)
     assert result.status_code == 301
     assert result.headers["Location"] == location
 
 
-def test_cgi_logout_shim_does_not_log_out_on_post():
-    """A POST to the old logout.py only redirects; it never reaches the API."""
-    result = run_page("http://127.0.0.1:9/api", "logout.py", method="POST", body={"x": "1"},
-                      cookie=f"{SESSION_COOKIE_NAME}=abc")
+def test_old_logout_url_does_not_log_out(client):
+    """A GET of the old logout.py only redirects; it never reaches the API."""
+    client.set_cookie(SESSION_COOKIE_NAME, "abc")
+    result = client.get("/logout.py")
     assert result.status_code == 301
-    assert result.headers["Location"] == "/logout"
     assert "Set-Cookie" not in result.headers
 
 

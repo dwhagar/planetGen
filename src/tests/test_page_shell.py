@@ -1,13 +1,13 @@
 # tests/test_page_shell.py
 
 """
-The shared CGI page shell (`html/lib/page.py`'s `head_html`/`render`/
-`SECURITY_HEADERS`) and the versioned static URLs (`html/lib/fmt.py`'s
-`static_url`). Same `sys.path` setup as `test_pagination.py`; `auth_me`
-is replaced so `render` never needs a running API.
+Site-wide page pieces: the versioned static URLs (`html/lib/fmt.py`'s
+`static_url`), the pages' security headers (`web.SECURITY_HEADERS`), and
+the stylesheet's theme tokens. The page shell itself (`base.html`) is
+covered by `test_web_pages.py`. Same `sys.path` setup as
+`test_pagination.py`.
 """
 
-import io
 import os
 import re
 import sys
@@ -16,31 +16,10 @@ _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _HTML_DIR = os.path.join(_SRC_DIR, "html")
 sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
-import pytest  # noqa: E402
-
 import fmt  # noqa: E402
-import page  # noqa: E402
+import web  # noqa: E402
 from mdconvert import markdown_to_html  # noqa: E402
 from stellarObjects._version import __version__  # noqa: E402
-
-
-class _Stdout(io.StringIO):
-    def reconfigure(self, **kwargs):
-        pass
-
-
-def _capture(call):
-    """Runs `call` with stdout swapped for a buffer (inside the test body:
-    pytest's own capture resets sys.stdout between fixture setup and the
-    test call) and returns what it wrote."""
-    out = _Stdout()
-    real = sys.stdout
-    sys.stdout = out
-    try:
-        call()
-    finally:
-        sys.stdout = real
-    return out.getvalue()
 
 
 # --- static_url ---------------------------------------------------------------
@@ -64,9 +43,11 @@ def test_no_page_links_an_unversioned_static_file():
     static_url; a bare "static/x" URL would be cached for a year by the
     Apache example without ever being refreshed."""
     offenders = []
-    for folder in (_HTML_DIR, os.path.join(_HTML_DIR, "lib")):
+    web_dir = os.path.join(_HTML_DIR, "web")
+    for folder in (os.path.join(_HTML_DIR, "lib"), web_dir, os.path.join(web_dir, "templates"),
+                   os.path.join(web_dir, "templates", "partials")):
         for name in os.listdir(folder):
-            if name.endswith(".py"):
+            if name.endswith((".py", ".html")):
                 text = open(os.path.join(folder, name), encoding="utf-8").read()
                 offenders += [f"{name}: {m}" for m in re.findall(r'(?:src|href)="static/[^"]*"', text)]
     assert offenders == []
@@ -85,36 +66,11 @@ def test_js_modules_import_siblings_with_their_own_version():
                 assert spec.endswith("${VERSION_QUERY}"), (name, spec)
 
 
-# --- head and security headers ------------------------------------------------
-
-def test_head_has_viewport_description_theme_colors_and_favicon():
-    head = page.head_html("Sector: A & B - planetGen")
-    assert '<meta name="viewport" content="width=device-width, initial-scale=1">' in head
-    assert "<title>Sector: A &amp; B - planetGen</title>" in head
-    assert '<meta name="description" content="' in head
-    assert f'content="{page.THEME_COLOR_LIGHT}" media="(prefers-color-scheme: light)"' in head
-    assert f'content="{page.THEME_COLOR_DARK}" media="(prefers-color-scheme: dark)"' in head
-    assert f'<link rel="icon" type="image/svg+xml" href="static/favicon.svg?v={__version__}">' in head
-
-
-def test_head_description_is_escaped():
-    head = page.head_html("t", description='Say "hi" <b>')
-    assert '<meta name="description" content="Say &quot;hi&quot; &lt;b&gt;">' in head
-
-
-def test_head_loads_theme_script_blocking_before_the_stylesheet():
-    head = page.head_html("t")
-    theme = f'<script src="static/theme.js?v={__version__}"></script>'
-    css = f'<link rel="stylesheet" href="static/style.css?v={__version__}">'
-    assert theme in head and css in head
-    assert head.index(theme) < head.index(css)
-    assert f'<script src="static/navform.js?v={__version__}" defer></script>' in head
-    assert "<script>" not in head  # nothing inline: the CSP forbids it
-
+# --- security headers -----------------------------------------------------------
 
 def test_csp_has_the_hardening_directives():
     directives = {d.strip().split(" ", 1)[0]: d.strip().split(" ", 1)[1]
-                  for d in page.CONTENT_SECURITY_POLICY.split(";")}
+                  for d in web.CONTENT_SECURITY_POLICY.split(";")}
     assert directives == {
         "default-src": "'self'",
         "base-uri": "'self'",
@@ -122,32 +78,7 @@ def test_csp_has_the_hardening_directives():
         "frame-ancestors": "'none'",
         "object-src": "'none'",
     }
-
-
-@pytest.mark.parametrize("send", [
-    lambda: page.send_headers(),
-    lambda: page.send_json_headers(),
-    lambda: page.redirect("login.py"),
-])
-def test_every_response_kind_carries_the_security_headers(send):
-    headers = _capture(send).split("\r\n\r\n", 1)[0]
-    for name, value in page.SECURITY_HEADERS:
-        assert f"\r\n{name}: {value}" in headers
-        assert headers.count(f"{name}:") == 1
-
-
-def test_render_includes_head_and_hidden_theme_toggle(monkeypatch):
-    monkeypatch.setattr(page, "auth_me", lambda cookie: None)
-    monkeypatch.setenv("REQUEST_METHOD", "GET")
-    monkeypatch.setenv("QUERY_STRING", "db=planetgen")
-    body = _capture(lambda: page.render("Hello", "<p>body</p>", description="A test page")).split("\r\n\r\n", 1)[1]
-    assert body.startswith("<!doctype html>")
-    assert '<meta name="description" content="A test page">' in body
-    assert "width=device-width" in body
-    nav = body[body.index('<nav class="sidenav"'):body.index("</nav>")]
-    assert page.THEME_TOGGLE_HTML in nav
-    assert "data-theme-toggle hidden" in page.THEME_TOGGLE_HTML
-    assert 'type="button"' in page.THEME_TOGGLE_HTML
+    assert ("Content-Security-Policy", web.CONTENT_SECURITY_POLICY) in web.SECURITY_HEADERS
 
 
 # --- stylesheet and static files ----------------------------------------------
@@ -166,9 +97,11 @@ def test_explicit_dark_theme_matches_the_os_dark_theme():
     os_dark = _tokens(_block(css, ':root:not([data-theme="light"]) {'))
     explicit = _tokens(_block(css, ':root[data-theme="dark"] {'))
     assert os_dark and os_dark == explicit
-    # Same colours the <meta name="theme-color"> tags use.
-    assert os_dark["--bg"] == page.THEME_COLOR_DARK
-    assert _tokens(_block(css, ":root {"))["--bg"] == page.THEME_COLOR_LIGHT
+    # Same colours base.html's <meta name="theme-color"> tags use.
+    base = open(os.path.join(_HTML_DIR, "web", "templates", "base.html"), encoding="utf-8").read()
+    assert f'content="{os_dark["--bg"]}" media="(prefers-color-scheme: dark)"' in base
+    light = _tokens(_block(css, ":root {"))["--bg"]
+    assert f'content="{light}" media="(prefers-color-scheme: light)"' in base
 
 
 def test_favicon_and_theme_script_exist():

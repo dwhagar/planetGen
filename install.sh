@@ -23,20 +23,20 @@
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
 #      `sectorgen`/`systemgen`, or Apache's own locked-down `www-data`
-#      running the `src/html/` CGI scripts. `stellarObjects/names.py` checks
+#      running the `src/html/` web app. `stellarObjects/names.py` checks
 #      `nltk.data.find()` before ever calling `download()`, so once this
 #      step has populated a directory nltk's default search path already
 #      covers, nothing later attempts a download of its own. See
 #      `docs/TODO.md`'s "Deployment bugs found in production" section for the
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
 #      this fixes.
-#   4. Makes the `src/html/` CGI scripts executable, independent of whatever
+#   4. Makes the repo's shell scripts (and `src/html/`'s Python files) executable, independent of whatever
 #      executable bit git happened to preserve on checkout (also see
 #      `docs/TODO.md` -- a `core.fileMode=false` git config on the authoring
 #      machine silently dropped this once already, and nothing about a
 #      git checkout should be trusted to carry it reliably).
-#   5. Enables Apache's CGI, headers and deflate modules (`a2enmod cgid headers
-#      deflate`).
+#   5. Enables Apache's headers and deflate modules (`a2enmod headers
+#      deflate`) and, when it is installed, mod_wsgi (`a2enmod wsgi`).
 #   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `src/html/`/`db/` directories for Apache's worker
 #      user/group.
@@ -104,7 +104,7 @@ mkdir -p "$NLTK_DATA_DIR"
 chmod -R a+rX "$NLTK_DATA_DIR"
 
 echo
-echo "== 4/8: Making the CGI scripts and shell scripts executable =="
+echo "== 4/8: Making the web app's Python files and the shell scripts executable =="
 # No -maxdepth: every *.py under src/html/, at any subdirectory depth
 # (src/html/lib/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
@@ -122,15 +122,19 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
-echo "== 5/8: Enabling Apache's CGI, headers and deflate modules =="
+echo "== 5/8: Enabling Apache's wsgi, headers and deflate modules =="
 if command -v a2enmod >/dev/null 2>&1; then
-    # cgid: runs the src/html/ CGI scripts. headers: static/'s
-    # Cache-Control/nosniff lines in examples/apache/planetgen.conf.example.
-    # deflate: that file's compression block. All three are needed
-    # regardless of whether the optional `wsgi` module (the Flask API) is
-    # enabled too, so unlike `wsgi` these are automated here rather than
-    # left to the manual site-config step below.
-    a2enmod cgid headers deflate
+    # headers: static/'s Cache-Control/nosniff lines in
+    # examples/apache/planetgen.conf.example. deflate: that file's
+    # compression block. wsgi: runs the Flask app (every page and the
+    # API), from the libapache2-mod-wsgi-py3 package -- warned about
+    # rather than fatal when that package isn't installed yet. No CGI
+    # module is needed any more.
+    a2enmod headers deflate
+    if ! a2enmod wsgi; then
+        echo "warning: could not enable mod_wsgi -- install it first:" >&2
+        echo "  sudo apt install libapache2-mod-wsgi-py3 && sudo a2enmod wsgi" >&2
+    fi
 else
     echo "warning: a2enmod not found -- is apache2 installed?" >&2
     echo "  Try: sudo apt install apache2" >&2
@@ -175,35 +179,29 @@ else
     echo "not touching it; reload Apache yourself if this update needs it:"
     echo "  sudo systemctl reload apache2)"
 
-    # A site file created before examples/apache/planetgen.conf.example
-    # grew the `<Files "wsgi.py"> SetHandler wsgi-script </Files>`
-    # override (see that file's own comment, and docs/TODO.md's
-    # "Deployment bugs found in production") never picks up that fix on
-    # its own -- install.sh/update.sh deliberately never overwrite an
-    # existing site file (ServerName/TLS/logging are the admin's own
-    # edits), so a checkout that fixed this in-repo can still be serving
-    # every /api/* request (search.py's own API calls included) through
-    # mod_cgi(d) trying to exec() wsgi.py instead of mod_wsgi, forever,
-    # until someone notices and manually re-diffs the two files. Only
-    # warn when the site file actually mounts the API at all
-    # (`WSGIScriptAlias`) -- a CGI-browser-only deployment has neither
-    # directive and isn't missing anything.
-    if grep -q 'WSGIScriptAlias' /etc/apache2/sites-available/planetgen.conf 2>/dev/null \
-        && ! grep -q 'SetHandler wsgi-script' /etc/apache2/sites-available/planetgen.conf 2>/dev/null; then
+    # install.sh/update.sh deliberately never overwrite an existing site
+    # file (ServerName/TLS/logging are the admin's own edits), so a site
+    # file from before the CGI pages were removed keeps its CGI rules
+    # until someone edits it. They do no harm, but they keep old
+    # `/<name>.py` bookmarks from reaching the app's 301 to the page
+    # that replaced them (Apache answers 404 itself instead).
+    if grep -q 'ScriptAliasMatch' /etc/apache2/sites-available/planetgen.conf 2>/dev/null; then
         cat <<'EOF'
 
 ------------------------------------------------------------------------
-WARNING: /etc/apache2/sites-available/planetgen.conf mounts the API
-(WSGIScriptAlias) but has no `<Files "wsgi.py"> SetHandler wsgi-script
-</Files>` block. Without it, <Directory>'s `AddHandler cgi-script .py`
-wins over WSGIScriptAlias for every /api/* request (and a direct
-/wsgi.py one): Apache tries to exec() wsgi.py as a CGI script instead of
-loading it via mod_wsgi, which fails with "AH01215: (8)Exec format
-error" and returns Apache's own generic 500 page for every API call --
-including every html/ page (search.py in particular) that calls the API
-on your behalf. Diff your site file against
-examples/apache/planetgen.conf.example and add the missing <Files>
-block, then:
+NOTE: /etc/apache2/sites-available/planetgen.conf still has the old CGI
+rules. Every page is served by the Flask app now; the CGI scripts are
+gone. Remove from that file:
+
+    ScriptAliasMatch "^/((?!wsgi\.py$)[a-z_]+\.py)$" ...
+    Options +ExecCGI            (in <Directory .../src/html>; keep -Indexes)
+    AddHandler cgi-script .py   (same block)
+    <Files "wsgi.py"> SetHandler wsgi-script </Files>   (only once the
+                                AddHandler line above is gone)
+
+and any SetEnv PLANETGEN_* lines (they only ever reached the CGI
+pages). Keep Alias /static/ and WSGIScriptAlias /. Compare with
+examples/apache/planetgen.conf.example, then:
 
     sudo apache2ctl configtest && sudo systemctl reload apache2
 ------------------------------------------------------------------------

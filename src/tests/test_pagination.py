@@ -84,54 +84,53 @@ def test_page_numbers_window_with_gaps():
 
 
 def test_render_pagination_is_empty_when_everything_fits():
-    assert render_pagination("browse.py", {"db": "x"}, "page", 1, 50) == ""
+    assert render_pagination("/", {}, "page", 1, 50) == ""
 
 
-def _posted_pages(html, page_param="sectors_page"):
-    return [int(v) for v in re.findall(rf'name="{page_param}" value="(\d+)"', html)]
+def _linked_pages(html, page_param="sectors_page"):
+    return [int(v) for v in re.findall(rf'[?&;]{page_param}=(\d+)', html)]
 
 
 def test_render_pagination_middle_page():
     html = render_pagination(
-        "browse.py", {"db": "galaxy", "sectors_page": 10, "standalone_page": 3}, "sectors_page", 10, 1000,
+        "/", {"sectors_page": 10, "standalone_page": 3}, "sectors_page", 10, 1000,
         anchor="sectors", label="Sector pages",
     )
     assert html.startswith('<nav class="pagination" aria-label="Sector pages">')
     assert "Showing 451&ndash;500 of 1,000" in html
-    # First, Prev, the window, Next, Last -- each posting its own page number.
-    assert _posted_pages(html) == [1, 9, 1, 8, 9, 11, 12, 20, 11, 20]
+    # First, Prev, the window, Next, Last -- each linking its own page number.
+    assert _linked_pages(html) == [1, 9, 1, 8, 9, 11, 12, 20, 11, 20]
     assert '<span class="page-link current" aria-current="page">10</span>' in html
     assert html.count("&hellip;") == 2
     # Every link keeps the other table's page and lands on the table.
-    assert html.count('name="standalone_page" value="3"') == 10
-    assert html.count('name="db" value="galaxy"') == 10
-    assert 'action="browse.py#sectors"' in html
+    assert html.count("standalone_page=3") == 10
+    assert html.count("#sectors\"") == 10
 
 
 def test_render_pagination_disables_controls_at_either_end():
-    first = render_pagination("phenomena.py", {"db": "x"}, "page", 1, 120)
+    first = render_pagination("/phenomena", {}, "page", 1, 120)
     assert first.count('aria-disabled="true"') == 2
     assert "&laquo; First</span>" in first and "&lsaquo; Prev</span>" in first
     assert "Showing 1&ndash;50 of 120" in first
 
-    last = render_pagination("phenomena.py", {"db": "x"}, "page", 3, 120)
+    last = render_pagination("/phenomena", {}, "page", 3, 120)
     assert last.count('aria-disabled="true"') == 2
     assert "Next &rsaquo;</span>" in last and "Last &raquo;</span>" in last
     assert "Showing 101&ndash;120 of 120" in last
 
 
 def test_render_pagination_keeps_repeated_params():
-    params = [("db", "x"), ("class", "M"), ("class", "K"), ("stars_page", 2)]
-    html = render_pagination("search.py", params, "stars_page", 2, 200)
-    assert html.count('name="class" value="M"') == html.count('name="class" value="K"') > 0
-    assert _posted_pages(html, "stars_page") == [1, 1, 1, 3, 4, 3, 4]
+    params = [("class", "M"), ("class", "K"), ("stars_page", 2)]
+    html = render_pagination("/search", params, "stars_page", 2, 200)
+    assert html.count("class=M") == html.count("class=K") > 0
+    assert _linked_pages(html, "stars_page") == [1, 1, 1, 3, 4, 3, 4]
 
 
-def test_render_pagination_get_mode_uses_plain_links():
-    """GET mode (the Flask pages): plain <a href> links back to the page's
-    own path, carrying the other params and the anchor -- no forms."""
+def test_render_pagination_uses_plain_links():
+    """Plain <a href> links back to the page's own path, carrying the
+    other params and the anchor -- no forms."""
     html = render_pagination(
-        "/", {"standalone_page": 2}, "sectors_page", 2, 180, anchor="sectors", method="get",
+        "/", {"standalone_page": 2}, "sectors_page", 2, 180, anchor="sectors",
     )
     assert "<form" not in html
     assert 'href="/?standalone_page=2&amp;sectors_page=1#sectors"' in html
@@ -140,12 +139,7 @@ def test_render_pagination_get_mode_uses_plain_links():
     assert 'aria-current="page">2<' in html
 
 
-def test_render_pagination_get_mode_escapes_params():
-    html = render_pagination("/", {"q": '"><script>'}, "page", 1, 120, method="get")
+def test_render_pagination_escapes_params():
+    html = render_pagination("/", {"q": '"><script>'}, "page", 1, 120)
     assert "<script>" not in html
     assert "q=%22%3E%3Cscript%3E" in html
-
-
-def test_render_pagination_default_is_still_post():
-    html = render_pagination("browse.py", {"db": "x"}, "page", 1, 120)
-    assert '<form method="post" action="browse.py' in html

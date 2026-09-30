@@ -2,15 +2,12 @@
 
 """
 mod_wsgi/gunicorn entry point for the planetGen Flask app: the JSON API
-under `/api` and the HTML pages that have moved off CGI (`web/`, served
-at `/`, `/sectors`, ...).
+under `/api` and the HTML pages (`web/`, served at `/`, `/sectors`, ...).
 
 Points Apache's `WSGIScriptAlias` (or a `gunicorn wsgi:application`
-invocation) at this file's `application` object. See `docs/api.md` for
-the full deployment story alongside the existing `examples/apache/` vhost
-that serves the `html/` CGI browser this file now lives alongside. Also
-runnable directly (`python src/html/wsgi.py`) to start Flask's own dev
-server locally.
+invocation) at this file's `application` object. See `docs/api.md` and
+`examples/apache/` for the deployment. Also runnable directly (`python
+src/html/wsgi.py`) to start Flask's own dev server locally.
 
 This file lives alongside `api/` under `html/`, so a plain `python
 src/html/wsgi.py` invocation already makes `api` importable for free
@@ -22,8 +19,7 @@ own machinery, which does *not* reliably add this file's directory to
 `WSGIScriptAlias` here raised `ModuleNotFoundError: No module named
 'api'` on this very `from api.app import create_app` line). Both `html/`
 (for `api`) and `src/` (for `queryDb`/`stellarObjects`, which
-`api/routes.py`/`api/config.py` import -- src layout, same as every CGI
-script under this directory reaches for them, see e.g. `nav.py`) are
+`api/routes.py`/`api/config.py` import -- src layout) are
 therefore added explicitly below, rather than leaning on either
 interpreter's own implicit sys.path setup.
 """

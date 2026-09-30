@@ -5,7 +5,7 @@
 # Pulls the latest planetGen changes from git, then:
 #   - If the pull actually brought new commits, re-runs `install.sh` so
 #     everything it covers (the Python package, the NLTK corpus, Apache's
-#     CGI module, permissions, the tile cache directory) stays correct afterward -- a `git pull` on
+#     modules, permissions, the tile cache directory) stays correct afterward -- a `git pull` on
 #     its own isn't enough: pulling a changed file rewrites it with
 #     whatever mode is tracked in the repo (non-executable, historically
 #     -- see `docs/TODO.md`'s "Deployment bugs found in production"

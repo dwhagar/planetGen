@@ -110,7 +110,7 @@ def _contents(sector):
             "type": "Binary Star System" if row["is_binary"] else "Star System",
             "details": _system_star_type(row),
             "octant": row["quadrant"],
-            "location": trusted_html(linkify_location(None, row["location"], name_to_id, system_url=system_url)),
+            "location": trusted_html(linkify_location(row["location"], name_to_id, system_url)),
         })
         if row["position_x_mpc"] is not None and row["stars"]:
             map_systems.append(_map_system(row))

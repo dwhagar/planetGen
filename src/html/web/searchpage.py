@@ -318,7 +318,7 @@ def result_panels(state, results):
             "rows": _rows(panel, result["rows"]),
             "pager": trusted_html(render_pagination(
                 action, base, f"{panel}_page", pages[panel], result["total"], page_size=result["limit"],
-                anchor=f"search-{panel}", label=f"{heading} result pages", method="get",
+                anchor=f"search-{panel}", label=f"{heading} result pages",
             )),
         })
     return panels

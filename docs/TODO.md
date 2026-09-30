@@ -21,9 +21,9 @@ planet, moon and belt) stored in MySQL and browsed through a web
 interface served from Apache. The original roadmap phases are all done:
 object-graph serialization, the relational schema and migrations, CLI
 tools writing to the database, lazy galaxy-scale generation from a
-density skeleton, and the Flask API (`src/html/api/`) behind a thin CGI
-frontend (`src/html/`) with Galaxy, Sector and System maps, search, NAV,
-admin auth and wiki publishing.
+density skeleton, and the Flask API (`src/html/api/`) with server-rendered
+pages served by the same app (`src/html/web/`): Galaxy, Sector and System
+maps, search, NAV, admin auth and wiki publishing.
 
 ## Open items
 
@@ -41,7 +41,7 @@ renumber when items are added or finished.
 ### Performance
 
 1. [ ] **Add a cache so pages don't hit the database on every request.**
-   Every CGI page calls the Flask API through `html/lib/apiclient.py`,
+   Every page calls the Flask API through `html/lib/apiclient.py`,
    and every API route queries MySQL fresh, including results that rarely
    change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
    detail). The 3D Galaxy Map already has one: its cube tiles are cached
@@ -64,7 +64,7 @@ renumber when items are added or finished.
    close binary. Done means the drawn path and reported distance agree
    and both respect those clearances.
 
-### Galaxy Map (`src/html/galaxy.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
+### Galaxy Map (`src/html/web/galaxy_views.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
 
 3. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
    Investigate a representation driven by the real galaxy/sector geometry

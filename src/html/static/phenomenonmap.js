@@ -11,7 +11,7 @@
 // directly -- this diagram's own SVG user units ARE astronomical units,
 // one-to-one -- so the live viewBox width itself already IS the current
 // "how many AU across" figure, no extra scale-factor lookup needed. No
-// data-nav-target markers live inside this diagram (it's a passive
+// linked markers live inside this diagram (it's a passive
 // to-scale drawing, not a clickable map), so mapzoom.js's own click-vs-
 // drag gate has nothing to protect here -- it's simply inert.
 

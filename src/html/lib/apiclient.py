@@ -1,8 +1,9 @@
 # html/lib/apiclient.py
 
 """
-JSON HTTP client for the planetGen Flask API (`html/api/`), used by every
-CGI script in `html/` instead of querying the database directly.
+Client for the planetGen Flask API (`html/api/`), used by every page in
+`html/web/` instead of querying the database directly (in-process there,
+see `web/transport.py`; over HTTP anywhere else).
 
 This is the concrete result of moving the interim web browser onto the
 API: every page here used to open its own read-only MySQL connection
@@ -34,7 +35,7 @@ import urllib.request
 
 # stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
 # at src/html/lib/, two levels down from src/ -- add src/ to sys.path the
-# same way every other html/ script already does (see e.g. nav.py) so
+# so
 # `stellarObjects.appconfig` is importable here too.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -43,13 +44,13 @@ from stellarObjects.appconfig import load_config  # noqa: E402
 
 API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL") or load_config()["api_base_url"]
 """str: Base URL of the planetGen API's `/api` mount point. Defaults to
-the same host this CGI script itself runs on (see
-`examples/apache/planetgen.conf.example`'s `WSGIScriptAlias /api`) --
+the same host (see `examples/apache/planetgen.conf.example`) -- only used
+by the HTTP transport, not by the Flask pages' in-process one --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
 for local testing), or `config.json`'s `api_base_url` (see
 `docs/config.md`), when the API is deployed at a different host/port,
 e.g. `http://127.0.0.1:5000/api` for `python src/html/wsgi.py`'s own dev
-server running alongside a locally-invoked CGI script."""
+server."""
 
 _TIMEOUT_SECONDS = 30
 """int: Was 15 -- confirmed too tight for GET /api/search specifically
@@ -66,8 +67,7 @@ raising this shared constant costs them nothing in the common case."""
 
 class NotFoundError(Exception):
     """Raised for a 404 response (an invalid `db`, sector/system id, etc.)
-    -- callers turn this into a 404 page, same as before this module
-    existed (`html/lib/page.run` already handles it)."""
+    -- callers turn this into a 404 page (`web/errors.py`)."""
 
 
 class ApiError(Exception):
@@ -90,8 +90,7 @@ class ApiError(Exception):
 # ---------------------------------------------------------------------
 # Transport: how a request actually reaches the API.
 #
-# CGI pages reach the API over HTTP (`_http_transport`, the default). The
-# Flask-served pages (`html/web/`) run *inside* the API's own process, so
+# The default is HTTP (`_http_transport`). The Flask-served pages (`html/web/`) run *inside* the API's own process, so
 # they install an in-process transport with `set_transport` (see
 # `web/transport.py`) that dispatches straight through the app's own
 # routes -- no HTTP round trip to itself. Every typed wrapper below
@@ -255,7 +254,7 @@ def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIM
             (`Content-Type: application/json`) if given.
         cookie_header (str, optional): Forwarded as-is as the outgoing
             `Cookie` header -- callers pass the browser's own `Cookie`
-            header verbatim (see `page.incoming_cookie_header`); this
+            header verbatim (`request.headers.get("Cookie")`); this
             module never parses or constructs cookie values itself.
         timeout (float): Seconds to wait for a response over HTTP. A
             caller whose endpoint can legitimately run long (e.g.
@@ -307,7 +306,7 @@ def _error_detail(response):
 
 
 # ---------------------------------------------------------------------
-# Typed wrappers -- one per endpoint a CGI page needs, so a page never
+# Typed wrappers -- one per endpoint a page needs, so a page never
 # builds a `/api/...` path/query string by hand.
 # ---------------------------------------------------------------------
 
@@ -315,14 +314,10 @@ def _require_db(db):
     """
     Every wrapper below except `list_databases` (which lists across the
     whole server, not one chosen schema) takes a `db` -- typically a
-    page's own `db` (from `nav_params()`), forwarded straight through.
+    page's `web.helpers.db_name()`, forwarded straight through.
     Omitting it wouldn't error (the API falls back to its own configured
-    default database, see `api/routes.py`'s `get_db`), but every one of
-    these pages carries `db` in every link it renders (`page.post_link`'s
-    hidden `db` field, e.g. on a `sector.py`/`system.py` link), so a
-    missing `db` here would quietly build a page entirely out of a
-    different database than the one every link on it claims to be
-    showing. Raised eagerly instead, matching the old direct-database
+    default database, see `api/routes.py`'s `get_db`), but a missing `db`
+    is a bug in the caller, so it is raised eagerly instead, matching the old direct-database
     `dbutil.resolve_db_name`'s own "No database specified." check.
 
     Raises:
@@ -519,9 +514,9 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
 # ---------------------------------------------------------------------
 # Admin auth -- see `docs/api.md`'s "Authentication" section. Every
 # function below takes/returns the incoming/outgoing `Cookie`/`Set-Cookie`
-# headers verbatim (see `_auth_request`'s docstring) -- `login.py`/
-# `changecreds.py`/`admin.py` are the only callers, and relay them to/from
-# the browser via `page.py`'s own cookie helpers.
+# headers verbatim (see `_auth_request`'s docstring) -- the admin pages
+# (`web/admin_pages.py`) are the only callers, and relay them to/from the
+# browser.
 # ---------------------------------------------------------------------
 
 def auth_login(username, password):

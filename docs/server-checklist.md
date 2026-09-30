@@ -65,8 +65,7 @@ usually `www-data`. It fills up after you open the Galaxy Map.
     time curl -s -o /dev/null "https://HOST/api/galaxy/stamp"
     time curl -s -o /dev/null "https://HOST/api/galaxy/tiles?tiles=0/0/0/0"
 
-Pass: each finishes in a few seconds at most. CGI pages give up at 30
-seconds, which is when they log the `http/client.py` traceback.
+Pass: each finishes in a few seconds at most.
 
 ## 7. Reproduce real use while watching the logs
 
