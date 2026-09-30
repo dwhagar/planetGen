@@ -93,7 +93,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    ly`, and a 70 px bar in the same three units. Done means the readout
    updates on every zoom and resize, and is readable at 390 px.
 
-5. [ ] **Hybrid master-wedge slot rule (schema v34).** Boss chose it on
+5. [ ] **Hybrid master-wedge slot rule (next schema version).** Boss chose it on
    2026-09-30. There are 3 master wedges at the center, doubling (6, 12,
    ..., 1,536) once each would hold at least 8 slots. Each ring's slot
    count is the multiple of its zone's master count nearest
@@ -106,7 +106,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    - `_overlapping_slots` and `neighbor_addresses` become simple integer
      ratios across aligned boundaries.
    - Update `docs/design/galaxy-coordinate-system.md`.
-   - Slot counts change in all but 15 of 3,856 rings, so `_migrate_v33_to_v34`
+   - Slot counts change in all but 15 of 3,856 rings, so the next migration
      deletes galaxy-placed sectors, systems and phenomena, as v32 and v33 did.
      `galaxy_layer` and `galaxy_column` are stored by ring and layer and stay
      valid.

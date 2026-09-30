@@ -68,8 +68,8 @@ DESIGNATION_LAYER_BIAS = 1 << (DESIGNATION_LAYER_BITS - 1)
 # - keep galaxyprisms.js's ringSectorCount identical, and pin both with the
 #   same table in the tests;
 # - DESIGNATION_SLOT_BITS (20) is still ample (max ~25k slots);
-# - every stored slot index changes meaning, so this ships with the v34
-#   migration (_db.py), never alone.
+# - every stored slot index changes meaning, so this ships with the next
+#   schema version's migration (_db.py), never alone.
 def ring_sector_count(ring_index):
     """
     How many slots ring `ring_index` holds: `2*pi*(i + 1/2)` (the ring's
