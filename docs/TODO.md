@@ -660,10 +660,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
     `low_orbit` ignores the planet's radius. Test:
     `test_moons_orbit_outside_their_parents_body`.
-43. [ ] **A planet's Hill sphere can overlap the belt inside it.**
-    `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
-    but a belt after a planet must clear 5 Hill radii. Test:
-    `test_planet_hill_sphere_clears_the_belt_inside_it`.
 
 ### More pages (Boss's notes, 2026-09-30)
 

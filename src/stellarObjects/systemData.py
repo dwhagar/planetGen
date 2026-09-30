@@ -1635,8 +1635,6 @@ class StarSystem:
         max_objects = math.ceil(oligarch_count * program_constants.GIANT_IMPACT_SURVIVAL_FRACTION)
         return min(max_objects, program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS)
 
-    # TODO(physics #43): a planet after a belt must clear the belt by its own
-    # Hill radius too, not just 0.05 AU.
     def validate_system(self, planets=None):
         """
         Validates and adjusts the distances of stellar objects to prevent orbital overlap.
@@ -1655,9 +1653,11 @@ class StarSystem:
         one's own individual Hill radius alone -- see
         `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
         why. A belt has no mass/Hill-radius concept of its own, so any
-        correction involving one still falls back to the fixed
-        `MIN_ASTEROID_BELT_SEPARATION` or the single real planet's own
-        `min_orbit_distance`, whichever case applies.
+        correction involving one uses the single real planet's own
+        `min_orbit_distance` (5 Hill radii) on whichever side of the belt
+        the planet is (`_min_distance_past_belt_au` for a planet after a
+        belt), or the fixed `MIN_ASTEROID_BELT_SEPARATION` between two
+        belts.
         If an adjustment is made to a planet (as opposed to an asteroid belt,
         which carries no class/climate of its own), `_reconcile_moved_planet`
         re-derives its zone from the corrected distance and, if its
@@ -1722,9 +1722,16 @@ class StarSystem:
                     planet.lower_limit += last_planet.min_orbit_distance + additional_correction
             else:
                 if last_planet.body_type == 'a':
-                    if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
-                        planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        self._reconcile_moved_planet(planet)
+                    # Same bounded retry as the planet-planet case below: a
+                    # reclassification changes the mass the Hill sphere
+                    # depends on.
+                    for _ in range(3):
+                        min_distance = self._min_distance_past_belt_au(planet, last_planet)
+                        if planet.distance >= min_distance:
+                            break
+                        planet.distance = min_distance
+                        if not self._reconcile_moved_planet(planet):
+                            break
                 else:
                     # Bounded, not a single shot: reclassifying `planet`
                     # (inside `_reconcile_moved_planet`) can change its own
@@ -1741,6 +1748,24 @@ class StarSystem:
                         planet.distance = min_distance
                         if not self._reconcile_moved_planet(planet):
                             break
+
+    @staticmethod
+    def _min_distance_past_belt_au(planet, belt):
+        """
+        The closest `planet` can sit outside `belt`: its own Hill sphere
+        must clear the belt's outer edge by the same 5 Hill radii
+        (`min_orbit_distance`) a belt placed after a planet must keep, plus
+        `MIN_ASTEROID_BELT_SEPARATION`.
+
+        The Hill radius scales linearly with distance (`r_H = x * c`, with
+        `c = (m / 3M)^(1/3)`), so this solves `x - 5*c*x >= edge + gap` in
+        closed form: `x >= (edge + gap) / (1 - 5c)`. `5c` is clamped to 0.9
+        so a body heavy enough to make that unsolvable still gets a large
+        but finite distance.
+        """
+        c = (planet.hill_radius / physical_constants.AU_TO_KM) / planet.distance
+        k = min(5 * c, 0.9)
+        return (belt.upper_limit + program_constants.MIN_ASTEROID_BELT_SEPARATION) / (1 - k)
 
     def _mutual_min_distance_au(self, planet, last_planet):
         """
@@ -1846,6 +1871,9 @@ class StarSystem:
         """
         reclassified = planetPhysics.reconcile_zone_and_class(planet, planet.star.mass)
         if not reclassified:
+            # The Hill sphere grows with distance, so a moved planet's own
+            # clearance (and the next body's spacing) must follow it.
+            planetPhysics.update_hill_sphere(planet)
             planetPhysics.calculate_atmospheric_conditions(planet)
             planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
             planetPhysics.update_orbital_position(planet)
