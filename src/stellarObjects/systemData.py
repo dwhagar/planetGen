@@ -242,13 +242,24 @@ class StarSystem:
             # Create secondary star, potentially with a different name or type if desired
             with log.timed_phase("secondary star generation"):
                 # Named properly by assign_names below, once the pair's star words exist.
-                # TODO(physics #44): the class's mass range clamp can make the secondary
-                # heavier than the primary.
                 self.secondary_star = Star(self.system_config, name=self.primary_star.name,
                                             mass_override=secondary_mass,
                                             galactic_center_dist_ly=galactic_center_dist_ly,
                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg)
             self.system_config.LARGE_STAR = original_large_star
+            # Star.generate_star clamps mass_override into the secondary's own
+            # (independently drawn) Yerkes class's mass range, so a subgiant or
+            # giant secondary can come out heavier than the primary. The primary
+            # is by definition the heavier star, so swap the pair's roles then;
+            # names come later from assign_names, so nothing else needs moving.
+            if self.secondary_star.mass > self.primary_star.mass:
+                log.choice("Binary primary", "swapped",
+                           f"secondary {self.secondary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun "
+                           f"outweighs primary {self.primary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun "
+                           f"after its class's mass clamp")
+                self.primary_star, self.secondary_star = self.secondary_star, self.primary_star
+                self.star = self.primary_star
+                self.stars = [self.primary_star]
             self.stars.append(self.secondary_star)
 
             # WIDE_BINARY picks which of the two real binary configurations

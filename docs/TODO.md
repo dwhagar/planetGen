@@ -800,9 +800,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
     but a belt after a planet must clear 5 Hill radii. Test:
     `test_planet_hill_sphere_clears_the_belt_inside_it`.
-44. [ ] **A binary's secondary can outweigh its primary.** The secondary's
-    mass is clamped into its random Yerkes class's range afterwards.
-    Test: `test_binary_secondary_is_never_heavier_than_primary`.
 
 ### More pages (Boss's notes, 2026-09-30)
 
