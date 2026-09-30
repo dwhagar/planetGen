@@ -10,28 +10,29 @@ links only (the NAV page, `/nav`).
 
 Deliberately modeled on `galaxymap.py`'s flat 2D SVG rather than
 `starmap.py`'s rotatable 3D CSS scene: like a galaxy Quadrant, this map is
-blind to height (altitude) by design. `stellarObjects.navigation`'s own
-azimuth convention (see that module's docstring) is already defined purely
-within the galactic X-Y plane, and the numeric Altitude figure the NAV page's
-course panel already reports covers the third axis -- a route's
+blind to height by design. Both NAV frames (`stellarObjects.navigation`'s
+Galactic and Sector frames) keep galactic +Z as up, so a course's bearing
+lives in this X-Y plane, and the mark the NAV page's course panel reports
+covers the third axis -- a route's
 hops are typically nowhere near coplanar with the direct line in practice,
-so this map is honest about showing an azimuth-plane projection rather
+so this map is honest about showing a galactic-plane projection rather
 than faking a 3D perspective a flat, static SVG (no drag-to-rotate script,
 unlike starmap.py) can't render usefully anyway. A small arrow marks the
-scene's own +X direction (azimuth 0 degrees) so the plotted picture and
-the course panel's azimuth figure read as the same thing.
+origin's bearing 000 (toward the frame's center: the galactic core or the
+sector's center) so the plotted picture and the course panel's bearing
+read as the same thing.
 
 Auto-scaled to whatever positions it's given -- there's no fixed "sector
 size" to normalize against the way starmap.py's per-sector `edge_mpc`
 gives it -- so the map's own extent is the bounding box of every point
 plotted, padded, with one uniform light-years-per-pixel ratio on both axes
-(never stretched independently, which would visually distort azimuth
+(never stretched independently, which would visually distort bearing
 angles away from what they actually are).
 """
 
 import math
 
-from fmt import esc
+from fmt import esc, format_distance_ly
 
 _SVG_SIZE = 360.0
 _CENTER = _SVG_SIZE / 2
@@ -66,7 +67,7 @@ def _project_all(points, px_per_ly, center_x, center_y):
     projected = []
     for x, y in points:
         # +Y is "up" in this project's galactic-plane convention (matching
-        # navigation.py's azimuth math and galaxymap.py's own projection);
+        # navigation.py's frames and galaxymap.py's own projection);
         # SVG's y axis grows downward, so the sign flips here once, at the
         # one place a light-year position becomes a screen coordinate.
         svg_x = _CENTER + (x - center_x) * px_per_ly
@@ -94,7 +95,7 @@ def _scale(points):
 
     # A single span (the larger of the two axes) keeps the scale uniform --
     # a tall, narrow bounding box still gets a square map rather than a
-    # stretched one that would distort azimuth angles.
+    # stretched one that would distort bearing angles.
     span = max(max_x - min_x, max_y - min_y, _MIN_SPAN_LY)
     padded_span = span * (1.0 + 2 * _PADDING_FRACTION)
     px_per_ly = (_MAP_RADIUS_PX * 2) / padded_span
@@ -104,19 +105,27 @@ def _scale(points):
     return px_per_ly, center_x, center_y
 
 
-def _compass_html():
-    """An arrow from the map's center toward +X, labeled with the azimuth
-    it marks -- ties this map's orientation to the course panel's own
-    azimuth figure (`navigation.course_between`'s "counterclockwise from
-    +X" convention) rather than leaving the plot's rotation ambiguous."""
+def _compass_html(origin_xy, frame_center_xy):
+    """An arrow from the map's center along the origin's bearing 000 --
+    from the origin toward the frame's center, flattened onto the galactic
+    plane (`navigation.course_between`) -- so the plot's orientation reads
+    the same as the course panel's bearing. Falls back to +X, as
+    `course_between` does, when the origin sits right over the center."""
+    dx = frame_center_xy[0] - origin_xy[0]
+    dy = frame_center_xy[1] - origin_xy[1]
+    length = math.hypot(dx, dy)
+    if length <= 1e-9 * max(math.hypot(*frame_center_xy), math.hypot(*origin_xy), 1.0):
+        dx, dy, length = 1.0, 0.0, 1.0
     reach = _MAP_RADIUS_PX * _COMPASS_REACH_FRACTION
-    tip_x = _CENTER + reach
-    tip_y = _CENTER
+    # SVG's y axis grows downward, hence the sign flip on dy.
+    tip_x = _CENTER + reach * dx / length
+    tip_y = _CENTER - reach * dy / length
+    anchor = "end" if dx >= 0 else "start"
     return (
         f'<line class="navmap-compass" x1="{_CENTER:.1f}" y1="{_CENTER:.1f}" '
         f'x2="{tip_x:.1f}" y2="{tip_y:.1f}"/>'
-        f'<text class="navmap-compass-label" x="{tip_x - 4:.1f}" y="{tip_y - 6:.1f}" '
-        'text-anchor="end">+X (azimuth 0&deg;)</text>'
+        f'<text class="navmap-compass-label" x="{tip_x:.1f}" y="{tip_y - 6:.1f}" '
+        f'text-anchor="{anchor}">Bearing 000</text>'
     )
 
 
@@ -135,7 +144,7 @@ def _scale_bar_html(px_per_ly):
         f'<line class="navmap-scale-tick" x1="{x0:.1f}" y1="{y - 4:.1f}" x2="{x0:.1f}" y2="{y + 4:.1f}"/>'
         f'<line class="navmap-scale-tick" x1="{x1:.1f}" y1="{y - 4:.1f}" x2="{x1:.1f}" y2="{y + 4:.1f}"/>'
         f'<text class="navmap-scale-label" x="{_CENTER:.1f}" y="{y - 8:.1f}" text-anchor="middle">'
-        f"{bar_ly:,.2f} ly</text>"
+        f"{esc(format_distance_ly(bar_ly))}</text>"
     )
 
 
@@ -157,7 +166,7 @@ def _point_html(link_url, waypoint, svg_x, svg_y, css_class, radius):
     )
 
 
-def render_nav_map_panel(link_url, waypoints, has_route):
+def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0, 0.0)):
     """
     Builds the "NAV Map" panel: a flat, top-down SVG plot of an origin, a
     destination, and (when `has_route` is true) the optimal route's
@@ -198,6 +207,11 @@ def render_nav_map_panel(link_url, waypoints, has_route):
                           (always drawn, even with no route: same-system
                           NAV and an unreachable pair both still have a
                           direct course).
+        frame_center (tuple): The course frame's center, in the same
+                          frame as the waypoints' positions -- the compass
+                          arrow points from the origin toward it. Defaults
+                          to `(0, 0, 0)`, the center of both NAV frames
+                          (sector-local and galaxy-frame).
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -228,7 +242,7 @@ def render_nav_map_panel(link_url, waypoints, has_route):
 
     body = (
         f"{direct_line}{route_line}{''.join(points_html)}"
-        f"{_compass_html()}{_scale_bar_html(px_per_ly)}"
+        f"{_compass_html(points_xy[0], frame_center[:2])}{_scale_bar_html(px_per_ly)}"
     )
 
     svg = (
@@ -248,7 +262,7 @@ def render_nav_map_panel(link_url, waypoints, has_route):
 <section class="panel">
 <div class="panel-header">
   <h2>NAV Map</h2>
-  <span class="hint">Top-down (galactic X-Y plane, altitude not shown -- see Altitude above) &middot; dashed line &asymp; direct course &middot; {route_hint}</span>
+  <span class="hint">Top-down (galactic X-Y plane, height not shown -- see the course's mark above) &middot; dashed line &asymp; direct course &middot; {route_hint}</span>
 </div>
 <div class="navmap-viewport">
 {svg}
