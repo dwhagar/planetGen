@@ -1,5 +1,34 @@
 # Changelog
 
+## [5.59.0] - 2026-09-30
+
+### Added
+- **Browser checks for every Flask page.** A new test
+  (`src/tests/test_web_a11y.py`, and its own `browser-a11y` CI job) loads
+  each page in headless Chromium at phone and desktop widths, in light and
+  dark, and fails on serious or critical axe-core (WCAG 2.1 AA)
+  violations, horizontal page scroll, console or CSP errors, or a missing
+  skip link or `aria-current` marker. The page list comes from the app's
+  routes, so pages moved off CGI later are checked automatically.
+  axe-core 4.13.0 is vendored under `src/tests/vendor/axe-core/`; the new
+  `browser` extra installs Playwright.
+
+### Fixed
+- **The current section in the header was below WCAG AA contrast** in the
+  light theme (4.45:1); it now uses the link colour.
+
+## [5.58.0] - 2026-09-30
+
+### Changed
+- **`install.sh` now works on an externally managed Python (PEP 668),
+  such as Ubuntu 26.04 LTS's.** Where pip used to fail with
+  "externally-managed-environment", the installer now detects the
+  `EXTERNALLY-MANAGED` marker and installs the libraries as apt packages
+  instead, pip-installing only what the distribution lacks (or packages too
+  old) into a venv at `/opt/planetgen/venv`. On an unmanaged Python it still
+  uses pip exactly as before. It prints which path it took; see
+  `docs/apache-deployment.md`'s "Managed Python".
+
 ## [5.57.0] - 2026-09-30
 
 ### Changed

@@ -19,6 +19,32 @@ call `set-permissions.sh` and `create-cache-dir.sh` (below) as steps. Use
 | [`set-permissions.sh`](../examples/apache/set-permissions.sh) | Detects the user/group Apache2 is actually configured to run as (from `/etc/apache2/envvars`, a running `apache2` process, or falling back to the Debian/Ubuntu default `www-data:www-data` if neither is found -- e.g. because apache2 isn't started yet), `chown`s the deployed `../src/html/` directory to that user:group, and makes every `*.py` file anywhere under it (at any subdirectory depth, `../src/html/lib/` included) executable. Prints a count of how many `.py` files it fixed, so a wrong path is obvious rather than silently matching nothing. Its optional `db-dir` argument is a pre-MySQL-port leftover (harmless no-op if that directory doesn't exist -- the database is a MySQL server now, not local files; see [`database-schema.md`](database-schema.md)). Bash, not Python -- Linux-only deployment step, safe to re-run any time as root. |
 | [`create-cache-dir.sh`](../examples/apache/create-cache-dir.sh) | Creates the 3D Galaxy Map's on-disk tile cache (see [`config.md`](config.md)'s `tile_cache`: `PLANETGEN_TILE_CACHE_DIR`, else `tile_cache.dir`, else `/var/cache/planetgen/tiles`) and `chown`s it to Apache's user, detected the same way `set-permissions.sh` does (both source [`apache-identity.sh`](../examples/apache/apache-identity.sh)). Does nothing when `tile_cache.max_mb` is `0`. Takes the directory as an argument when it's set only by a `SetEnv` in the vhost, which the script can't see. Safe to re-run any time as root. |
 
+## Managed Python
+
+Newer Debian and Ubuntu releases (Debian 12+, Ubuntu 23.04+, including
+Ubuntu 26.04 LTS) mark their system Python as *externally managed*
+(PEP 668: an `EXTERNALLY-MANAGED` file in the stdlib directory), and pip
+refuses to install into it. `install.sh`'s first step
+([`../scripts/install-python-deps.sh`](../scripts/install-python-deps.sh))
+checks for that file and picks a path, printing which one it took:
+
+- **Not managed:** `pip install` of the package and its `api` extra, as
+  before.
+- **Managed:** the libraries come from apt (`python3-flask`,
+  `python3-nltk`, `python3-pymysql`, `python3-dbutils`,
+  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`). Any the
+  distribution doesn't package, or packages below the version `setup.py`
+  asks for, are pip-installed into a venv at `/opt/planetgen/venv`
+  (`PLANETGEN_VENV_DIR`), and a `planetgen-venv.pth` file in the system
+  site-packages puts that venv first on the system Python's `sys.path` so
+  Apache's CGI scripts and mod_wsgi see it without any vhost change. The
+  `.pth` is removed again once apt provides everything. planetGen itself
+  runs straight from the checkout (every entry point adds `src/` to
+  `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing in for
+  pip's console script.
+
+`PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
+
 See [`../install.sh`](../install.sh) for the full install script,
 [`../update.sh`](../update.sh) for pulling later updates, and
 [`html-interface.md`](html-interface.md#deploying) for the deployment
