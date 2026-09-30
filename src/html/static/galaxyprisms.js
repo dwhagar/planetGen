@@ -8,13 +8,13 @@
 // One cell is one prism: an annular wedge with curved inner and outer
 // walls, flat top and bottom, and two flat radial sides.
 //
-// Level of detail: zoomed out, one prism stands for a group ("mega
-// sector") of m x m x ~m whole sectors, m a power of three, picked per
-// view so a group is still big enough on screen to see and click
-// (MIN_PRISM_PX) and the prisms in view stay within PRISM_BUDGET. The
-// grid at any one size is fixed in space, so panning never shifts the
-// prisms, only adds and drops them at the edges; zoomed all the way in,
-// one prism is one sector.
+// Level of detail: zoomed out, one prism stands for a block ("mega
+// sector") of m x m x ~m whole sectors, m a power of three, picked from
+// the screen scale so a block is still BLOCK_MIN_PX wide at the focus
+// (blockSizeForScale). The block grid at any one size is fixed in space,
+// so panning never shifts the blocks, only adds and drops them at the
+// edges; zoomed all the way in, one block is one sector. Drawn full size,
+// the blocks make one solid, so only its surface is listed.
 //
 // Density comes from the galaxy's own analytic model
 // (stellarObjects.galaxyDensity.relative_density), evaluated right here
@@ -26,22 +26,9 @@
 // back plain typed arrays, so it runs under plain node for tests
 // (src/tests/test_galaxyprisms.py).
 
-// TODO(galaxy-map #13): the plan replacing the level of detail above
-// (galaxy-megablocks/report.md, approved 2026-09-30):
-//   - Block size from the screen, not a volume guess: m is the smallest
-//     power of 3 with m * edge >= BLOCK_MIN_PX (4) * pcPerPixel at the
-//     focus. One block then always covers at least a pixel's worth of
-//     sectors.
-//   - Blocks are drawn full size, making one continuous solid (#14), and
-//     only exposed blocks are listed. Whether a block exists depends only on
-//     its ring and layer (the density bound ignores angle), so interior
-//     blocks are skipped before any wedge is looked at.
-//   - A slice layer hides blocks above the cut (#14).
-//   - Everything here must stay free of three.js, so it can run in a Web
-//     Worker (#17).
+// TODO(galaxy-map #17): everything here must stay free of three.js, so it
+// can run in a Web Worker.
 
-// How many prisms one view may draw, roughly.
-export var PRISM_BUDGET = 14000;
 // Prisms thinner than this relative density are skipped entirely -- only
 // when the shape doesn't carry the galaxy's own sector threshold
 // (shape.sector_min_density, the density a sector needs to expect one
@@ -49,9 +36,6 @@ export var PRISM_BUDGET = 14000;
 // sector the generator's skeleton would allow, so at one sector per prism
 // the map's outline is the galaxy's layers.
 export var PRISM_MIN_DENSITY = 0.02;
-// The disk counts as this many scale heights thick when estimating how
-// many prisms a view holds.
-var DISK_EXTENT_SCALE_HEIGHTS = 3;
 // Curved walls get one segment per this many radians of arc.
 var ARC_SEGMENT_RAD = 0.12;
 var MAX_ARC_SEGMENTS = 24;
@@ -136,18 +120,30 @@ export function ringSectorCount(ring) {
 // The same rule for a group grid's rings (kept under its old name).
 export var azimuthSegments = ringSectorCount;
 
-// The Galaxy Map's wedge lines: in-plane lines from the core out to the
-// edge, one per ring 0 slot boundary, as [{ bearingDeg, angleRad, r0 }]
-// (r0: the radius the line starts at, pc). Bearings are counterclockwise
-// from +X (the zero meridian, ring slot 0's leading edge).
-// TODO(galaxy-map #13): with #12's master wedges, return every master line
-// (3 at the core, doubling outward) with the radius its zone starts at.
-export function wedgeLines() {
-  var n = ringSectorCount(0);
+// The Galaxy Map's wedge lines: every master line (see ringMasterCount),
+// in-plane from the ring its zone starts at out to galaxyRadius, as
+// [{ bearingDeg, angleRad, r0, masters }]. r0 is the radius the line starts
+// at (pc) and masters the master count of the zone it starts in (3 for the
+// lines through the core, then 6, 12, ...), so the page can show coarser
+// lines first. Bearings are counterclockwise from +X (the zero meridian,
+// every ring's slot 0 leading edge), rounded to 0.01 degree.
+export function wedgeLines(edgePc, galaxyRadius) {
+  var lastRing = Math.max(0, Math.ceil(galaxyRadius / edgePc));
   var lines = [];
-  for (var k = 0; k < n; k++) {
-    var angle = (2 * Math.PI * k) / n;
-    lines.push({ bearingDeg: Math.round((360 * k) / n) % 360, angleRad: angle, r0: 0 });
+  var previous = 0;
+  for (var ring = 0; ring <= lastRing; ring++) {
+    var masters = ringMasterCount(ring);
+    if (masters === previous) continue;
+    for (var k = 0; k < masters; k++) {
+      // Lines of a coarser zone already run through here.
+      if (previous && (k * previous) % masters === 0) continue;
+      var angle = (2 * Math.PI * k) / masters;
+      lines.push({
+        bearingDeg: Math.round((36000 * k) / masters) / 100,
+        angleRad: angle, r0: ring * edgePc, masters: masters,
+      });
+    }
+    previous = masters;
   }
   return lines;
 }
@@ -203,37 +199,89 @@ export function cellCoordinates(b) {
   };
 }
 
-// TODO(galaxy-map #13): with #12's master-aligned rings, a block's wedges
-// become ringMasterCount(first member ring) / 2**p for the largest p that
-// keeps the wedge arc at least m edges. Every wedge side is then a real
-// slot wall in every member ring, so a block is an exact set of whole
-// sectors and groupSectorCount can count slots per master wedge instead
-// of binning by center angle.
-// Edge cases:
-// - A block that spans a zone boundary must use the innermost ring's
-//   (smaller) master count; the outer zone's masters are multiples of it.
-// - Ring 0's block has 3 wedges at most; blocks at the axis have no inner
-//   wall.
-// - A block that crosses the galaxy's outline counts only the sectors the
-//   skeleton allows (galaxy_layer bounds), not all of them.
-// - m larger than the galaxy: cap m at the size where the whole disk is a
-//   handful of blocks.
-
-// --- Groups of sectors ("mega sectors") -------------------------------------
+// --- Mega-blocks -------------------------------------------------------------
 //
-// Zoomed out, one prism stands for a block of whole sectors: m rings by m
-// layers by the slots whose centers fall inside one wedge of the group
-// grid, where m (sectors per side) is a power of three. Odd sizes keep a
-// group's top and bottom on sector layer boundaries while group layer 0
-// still straddles the plane (a power of two would split layer 0 in half),
-// and group rings always start on a sector ring. The group grid uses the
-// sector grid's own rules, scaled by m, so a group is a cylindrical box
-// about m sectors on every side, and at m = 1 a group is one sector.
+// Zoomed out, one prism stands for a block of whole sectors, m a side,
+// where m is a power of three. The block grid is the sector grid scaled by
+// m: block ring I covers sector rings I*m .. I*m + m - 1, and block layer S
+// covers sector layers S*m - (m-1)/2 .. S*m + (m-1)/2, so its top and bottom
+// sit on sector layer walls and block layer 0 still straddles the plane
+// (an even m would split sector layer 0). At m = 1 a block is one sector.
+//
+// Block wedges follow the master wedges of the block's innermost ring
+// (ringMasterCount; a member ring in a later zone has twice as many, so
+// its master lines include these). blockWedgeCount aims for
+// round(2 * pi * (I + 1/2)) wedges, so a block is about m edges long, and
+// takes the nearest count that is a divisor or a multiple of the master
+// count, as long as that is within BLOCK_WEDGE_TOLERANCE of the aim:
+// - A divisor (large m, out in the disk): every wedge side is a master
+//   line, so a slot wall in every member ring, and the block is exactly
+//   the sectors inside its outline.
+// - A multiple: each master wedge split into equal parts. The split lines
+//   don't follow slot walls.
+// - Neither close enough: the aim itself, not aligned.
+// A sector belongs to the block its slot's center falls in, which for an
+// aligned block is simply the sectors inside it, so every sector is in
+// exactly one block. Blocks hold m^3 sectors give or take 20% (a third
+// at m = 3, where a block holds only a few slots per ring).
 
-// Sector address ranges a group covers: {ringFirst, ringLast, layerFirst,
-// layerLast} (inclusive). Its slots are those whose centers fall in
-// [t0, t1) of each member ring (see groupSectorCount).
-export function groupSectorRanges(ring, slab, m) {
+// A block is at least this many CSS pixels across at the view's focus.
+// Finer than that, single blocks stop being something a viewer can pick
+// out or click. The page passes its own (data.blockMinPx, from
+// lib/galaxymap3d.py); this is the default.
+export var BLOCK_MIN_PX = 4;
+// The most blocks one view draws (default; the page passes
+// data.blockBudget). Past it, blocks get three times bigger.
+export var BLOCK_BUDGET = 60000;
+// How far off round(2 * pi * (I + 1/2)) a master-aligned wedge count may
+// be before blockWedgeCount gives up on alignment. Tighter keeps blocks
+// closer to m^3 sectors but aligns fewer of them: at 1.2, 87% of block
+// rings are aligned at m = 27 and 96% at m = 81.
+var BLOCK_WEDGE_TOLERANCE = 1.2;
+// Density caches (see blocksInView) are cleared past this many entries.
+var DENSITY_CACHE_MAX = 200000;
+
+function isPowerOfThree(m) {
+  while (m > 1 && m % 3 === 0) m /= 3;
+  return m === 1;
+}
+
+// Sectors per block side for a view with pcPerPixel parsecs per CSS pixel
+// at its focus: the smallest power of 3 with m * edge >= minPx *
+// pcPerPixel, so one block always covers at least a pixel's worth of
+// sectors. Capped where the whole disk is a handful of block rings
+// (galaxyRadius / 3 across), since bigger blocks only lose the shape.
+export function blockSizeForScale(pcPerPixel, edgePc, minPx, galaxyRadius) {
+  var need = ((minPx || BLOCK_MIN_PX) * (pcPerPixel || 0)) / edgePc;
+  var cap = galaxyRadius > 0 ? galaxyRadius / (3 * edgePc) : Infinity;
+  var m = 1;
+  while (m < need && m * 3 <= cap) {
+    m *= 3;
+  }
+  return m;
+}
+
+// Wedges in block ring `ring` for blocks m sectors a side (see above).
+export function blockWedgeCount(ring, m) {
+  if (m === 1) return ringSectorCount(ring);
+  var masters = ringMasterCount(ring * m);
+  var target = Math.max(3, Math.round(2 * Math.PI * (ring + 0.5)));
+  var best = masters * Math.max(1, Math.round(target / masters));
+  // Master counts are 3 * 2^n, so their divisors are 2^j and 3 * 2^j.
+  for (var d = 1; d < masters; d *= 2) {
+    [d, 3 * d].forEach(function (w) {
+      if (w < masters && Math.abs(Math.log(w / target)) < Math.abs(Math.log(best / target))) {
+        best = w;
+      }
+    });
+  }
+  return Math.abs(Math.log(best / target)) <= Math.log(BLOCK_WEDGE_TOLERANCE) ? best : target;
+}
+
+// Sector address ranges a block covers: {ringFirst, ringLast, layerFirst,
+// layerLast} (inclusive). Its slots are those whose centers fall in its
+// wedge in each member ring (see blockSlotRange).
+export function blockSectorRanges(ring, slab, m) {
   var half = (m - 1) / 2;
   return {
     ringFirst: ring * m, ringLast: ring * m + m - 1,
@@ -241,95 +289,110 @@ export function groupSectorRanges(ring, slab, m) {
   };
 }
 
-// How many sectors a group holds: in each member ring, the slots whose
-// center angle lies in [t0, t1), times its m layers.
-export function groupSectorCount(prism, m) {
-  var ranges = groupSectorRanges(prism.ring, prism.slab, m);
+// The slots of sector ring `sectorRing` inside wedge `seg` of block ring
+// `ring`: {first, last} (inclusive; last < first when none). `wedges`
+// (optional) is blockWedgeCount(ring, m), when the caller has it.
+export function blockSlotRange(ring, seg, m, sectorRing, wedges) {
+  wedges = wedges || blockWedgeCount(ring, m);
+  var n = ringSectorCount(sectorRing);
+  // Slot k's center is at (k + 1/2) / n of a turn; it is in the wedge when
+  // seg / wedges <= (k + 1/2) / n < (seg + 1) / wedges. Integer math, so
+  // wedge sides on slot walls never round the wrong way.
+  var first = Math.ceil((2 * seg * n - wedges) / (2 * wedges));
+  var last = Math.ceil((2 * (seg + 1) * n - wedges) / (2 * wedges)) - 1;
+  return { first: Math.max(0, first), last: Math.min(n - 1, last) };
+}
+
+// Whether sector (ring, layer) can exist: the galaxy's density bound at
+// its ring centerline and layer center reaches shape.sector_min_density
+// (the skeleton's rule, stellarObjects.galaxySkeleton). Without a
+// threshold in the shape, everything counts.
+export function sectorAllowed(ring, layer, edgePc, shape) {
+  if (!(shape.sector_min_density > 0)) return true;
+  return densityUpperBound((ring + 0.5) * edgePc, Math.abs(layer) * edgePc, shape) >= shape.sector_min_density;
+}
+
+// How many sectors the block holds: in each member ring, the slots in its
+// wedge, times the member layers the skeleton allows there.
+export function blockSectorCount(ring, seg, slab, m, edgePc, shape) {
+  var ranges = blockSectorRanges(ring, slab, m);
+  var wedges = blockWedgeCount(ring, m);
   var total = 0;
   for (var i = ranges.ringFirst; i <= ranges.ringLast; i++) {
-    var n = ringSectorCount(i);
-    var step = (2 * Math.PI) / n;
-    var first = Math.ceil(prism.t0 / step - 0.5 - 1e-9);
-    var last = Math.ceil(prism.t1 / step - 0.5 - 1e-9) - 1;
-    total += Math.max(0, last - first + 1);
-  }
-  return total * m;
-}
-
-// A group's prism is at least this many screen pixels across at the view's
-// focus: finer than that, single groups stop being something a viewer can
-// pick out or click, and the map turns to noise.
-// TODO(galaxy-map #13): becomes BLOCK_MIN_PX = 4, and sectorsPerPrism's
-// volume estimate goes away. Today it assumes the whole view ball is full,
-// so it overestimates the thin disk and leaves 70-290 px groups.
-export var MIN_PRISM_PX = 10;
-
-function nextPowerOfThree(x) {
-  var m = 1;
-  while (m < x) {
-    m *= 3;
-  }
-  return m;
-}
-
-// Sectors per group side (a power of three) for a view of radius
-// viewRadius around center: large enough that one group is at least
-// MIN_PRISM_PX wide on screen (pcPerPixel is the scale at the focus; 0 or
-// missing skips that check), and large enough that the estimated prism
-// count fits the budget. The estimate is the part of the view ball inside
-// the galaxy's disk (and radius), divided by one prism's volume.
-export function sectorsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape, pcPerPixel) {
-  var diskHalf = DISK_EXTENT_SCALE_HEIGHTS * shape.disk_scale_height_pc;
-  var zLo = Math.max(center[2] - viewRadius, -diskHalf);
-  var zHi = Math.min(center[2] + viewRadius, diskHalf);
-  var thickness = Math.max(zHi - zLo, 0);
-  // The core's bulge is round, not flat.
-  thickness = Math.max(thickness, Math.min(2 * viewRadius, 2 * DISK_EXTENT_SCALE_HEIGHTS * shape.bulge_scale_radius_pc));
-  var across = Math.min(viewRadius, galaxyRadius || viewRadius);
-  var volume = Math.min((4 / 3) * Math.PI * Math.pow(viewRadius, 3), Math.PI * across * across * thickness);
-  var budgetEdge = Math.cbrt(Math.max(volume, 0) / PRISM_BUDGET);
-  var perceptualEdge = (pcPerPixel || 0) * MIN_PRISM_PX;
-  return nextPowerOfThree(Math.max(1, Math.max(budgetEdge, perceptualEdge) / edgePc));
-}
-
-// The prisms for a view: sectorsPerPrism's size to start with, made
-// coarser while it overflows the budget, and finer (a third the size)
-// while that still fits the budget and stays MIN_PRISM_PX wide on screen
-// -- the estimate is rough, since the thin outer disk holds far fewer
-// prisms than its area suggests. densityCacheFor(m) returns the density
-// cache for that size. Returns {sectorsPerPrism, prisms}.
-export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, densityCacheFor, pcPerPixel) {
-  var m = sectorsPerPrism(center, viewRadius, edgePc, galaxyRadius, shape, pcPerPixel);
-  var prisms = prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCacheFor(m));
-  for (var up = 0; up < 3 && prisms.length > PRISM_BUDGET; up++) {
-    m *= 3;
-    prisms = prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCacheFor(m));
-  }
-  var minEdge = (pcPerPixel || 0) * MIN_PRISM_PX;
-  for (var down = 0; down < 2 && m > 1 && (m / 3) * edgePc >= minEdge && prisms.length < PRISM_BUDGET / 27; down++) {
-    var finer = prismsInView(center, viewRadius, m / 3, edgePc, shape, galaxyRadius, densityCacheFor(m / 3));
-    if (finer.length > PRISM_BUDGET) {
-      break;
+    var slots = blockSlotRange(ring, seg, m, i, wedges);
+    var perLayer = Math.max(0, slots.last - slots.first + 1);
+    if (!perLayer) continue;
+    for (var j = ranges.layerFirst; j <= ranges.layerLast; j++) {
+      if (!shape || sectorAllowed(i, j, edgePc, shape)) total += perLayer;
     }
-    m /= 3;
-    prisms = finer;
   }
-  return { sectorsPerPrism: m, prisms: prisms };
+  return total;
 }
 
-// Every group of m sectors a side overlapping the view ball, dense enough
-// to draw. Returns [{ring, seg, slab, r0, r1, t0, t1, z0, z1, density}]:
-// the group's address on the group grid and its bounds (see
-// groupSectorRanges for the sectors inside). densityCache (a Map,
-// optional) keeps per-prism densities between calls at the same size.
-// TODO(galaxy-map #13/#14): split into
-//   blockExists(ring, slab, m)
-//     the density-bound test, memoized per (ring, slab);
-//   surfaceBlocksInView(center, viewRadius, m, slice)
-//     walks (ring, slab) pairs, skips any whose four ring/layer neighbours
-//     all exist (the axis counts as filled), and only then lists that
-//     pair's wedges inside the view.
-// A slab above `slice` counts as empty, so the cut face is drawn.
+// Whether a block has anything to draw. The density bound ignores angle,
+// so this depends only on the block's ring and layer. With the galaxy's
+// sector threshold (shape.sector_min_density) it is exactly "holds at
+// least one sector the skeleton allows": the densest member is the
+// innermost ring's centerline on the member layer nearest the plane.
+// Without one, blocks thinner than PRISM_MIN_DENSITY everywhere are
+// skipped. Nothing at or past galaxyRadius exists.
+export function blockExists(ring, slab, m, edgePc, shape, galaxyRadius) {
+  var size = m * edgePc;
+  if (ring < 0 || (galaxyRadius > 0 && ring * size >= galaxyRadius)) return false;
+  var layers = blockSectorRanges(ring, slab, m);
+  var nearLayer = layers.layerFirst <= 0 && layers.layerLast >= 0
+    ? 0 : Math.min(Math.abs(layers.layerFirst), Math.abs(layers.layerLast));
+  if (shape.sector_min_density > 0) {
+    return sectorAllowed(ring * m, nearLayer, edgePc, shape);
+  }
+  var z0 = (slab - 0.5) * size;
+  var z1 = z0 + size;
+  var zMinAbs = z0 <= 0 && z1 >= 0 ? 0 : Math.min(Math.abs(z0), Math.abs(z1));
+  return densityUpperBound(ring * size, zMinAbs, shape) >= PRISM_MIN_DENSITY;
+}
+
+// The blocks for a view: blockSizeForScale's size, made three times
+// coarser while the surface listing overflows the budget. densityCacheFor(m)
+// returns the density cache for that size. Options:
+// - pcPerPixel: parsecs per CSS pixel at the focus;
+// - sliceZ: a galaxy-frame z, or null for the whole solid; every block
+//   layer above the one holding it is hidden;
+// - viewerZ: the camera's z (see blocksInView);
+// - minPx (BLOCK_MIN_PX) and budget (BLOCK_BUDGET).
+// Returns {m, slice, blocks} (slice: the block layer cut at, or null).
+export function blocksForView(center, viewRadius, edgePc, galaxyRadius, shape, densityCacheFor, options) {
+  options = options || {};
+  var budget = options.budget > 0 ? options.budget : BLOCK_BUDGET;
+  var m = blockSizeForScale(options.pcPerPixel, edgePc, options.minPx, galaxyRadius);
+  var maxM = blockSizeForScale(Infinity, edgePc, options.minPx, galaxyRadius);
+  for (;;) {
+    var slice = options.sliceZ == null ? null : Math.round(options.sliceZ / (m * edgePc));
+    var blocks = blocksInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCacheFor(m), {
+      slice: slice, viewerZ: options.viewerZ, limit: m < maxM ? budget : Infinity,
+    });
+    if (blocks) {
+      return { m: m, slice: slice, blocks: blocks };
+    }
+    m *= 3;
+  }
+}
+
+// Blocks m sectors a side overlapping the view ball. Returns [{ring, seg,
+// slab, r0, r1, t0, t1, z0, z1, density, meanDensity}]: the block's
+// address on the block grid and its bounds (see blockSectorRanges for the
+// sectors inside), or null once more than options.limit are found.
+// Options:
+// - surfaceOnly (default true): list only blocks with a missing ring or
+//   layer neighbour (the axis counts as filled), since the blocks make one
+//   solid and nothing inside it shows. Existence depends only on ring and
+//   layer, so interior pairs are skipped before any wedge is looked at.
+// - slice: a block layer; every layer above it counts as empty, so the
+//   cut face is drawn.
+// - viewerZ: the camera's z. A missing neighbour below a block exposes
+//   only its bottom face, which faces away from a camera above that face
+//   (and the same for tops), so blocks exposed only that way are dropped.
+// densityCache (a Map, optional) keeps per-block densities between calls
+// at the same size.
 // TODO(galaxy-map #15): the interior skip is only valid for opaque blocks.
 // A translucent (unfilled) block lets its neighbours show through. So:
 // - cull interior blocks only when every neighbour is filled;
@@ -338,14 +401,15 @@ export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, d
 // - otherwise, at large m, draw the unfilled volume as a thinner shell
 //   (the outline, plus the slice face).
 // Each listed block gets `filled` (the count of its generated sectors,
-// from the tiles' placed lists) and `total` (groupSectorCount) alongside
+// from the tiles' placed lists) and `total` (blockSectorCount) alongside
 // `density`, so the page can set its opacity from filled / total.
-// Edge cases:
-// - the view ball reaching past the galaxy's edge;
-// - a view centred on the axis (every wedge in view);
-// - the slice exactly on a block boundary.
-// The density cache is capped (it grew without bound in the mock).
-export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCache) {
+export function blocksInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCache, options) {
+  if (!isPowerOfThree(m)) throw new Error("blocks are a power of 3 sectors a side");
+  options = options || {};
+  var surfaceOnly = options.surfaceOnly !== false;
+  var viewerZ = options.viewerZ == null ? null : options.viewerZ;
+  var slice = options.slice == null ? Infinity : options.slice;
+  var limit = options.limit == null ? Infinity : options.limit;
   var size = m * edgePc;
   var cx = center[0];
   var cy = center[1];
@@ -356,14 +420,31 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
   var ringLo = Math.max(0, Math.floor((rc - viewRadius) / size));
   var ringHi = Math.floor(Math.min(rc + viewRadius, rLimit) / size);
   var slabLo = Math.round((cz - viewRadius) / size);
-  var slabHi = Math.round((cz + viewRadius) / size);
-  var sectorMin = shape.sector_min_density > 0 ? shape.sector_min_density : null;
+  var slabHi = Math.min(slice, Math.round((cz + viewRadius) / size));
+  if (densityCache && densityCache.size > DENSITY_CACHE_MAX) {
+    densityCache.clear();
+  }
+  var existsMemo = new Map();
+  function exists(ring, slab) {
+    if (ring < 0) return true; // the axis
+    if (slab > slice) return false;
+    var key = ring + "/" + slab;
+    var value = existsMemo.get(key);
+    if (value === undefined) {
+      value = blockExists(ring, slab, m, edgePc, shape, galaxyRadius);
+      existsMemo.set(key, value);
+    }
+    return value;
+  }
   var found = [];
   for (var ring = ringLo; ring <= ringHi; ring++) {
     var r0 = ring * size;
     var r1 = r0 + size;
-    var nSeg = ringSectorCount(ring);
+    var rMid = r0 + size / 2;
+    var nSeg = blockWedgeCount(ring, m);
     var dTheta = (2 * Math.PI) / nSeg;
+    // Half a block's diagonal, generously.
+    var reach = 0.5 * Math.hypot(size, rMid * dTheta, size);
     var segFirst = 0;
     var segCount = nSeg;
     if (rc > viewRadius) {
@@ -373,41 +454,26 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
         segCount = Math.min(nSeg, Math.floor((thetaC + halfWidth) / dTheta) - segFirst + 1);
       }
     }
-    var rMid = r0 + size / 2;
-    for (var k = 0; k < segCount; k++) {
-      var seg = (((segFirst + k) % nSeg) + nSeg) % nSeg;
-      var t0 = seg * dTheta;
-      var t1 = t0 + dTheta;
-      var tMid = t0 + dTheta / 2;
-      var mx = rMid * Math.cos(tMid);
-      var my = rMid * Math.sin(tMid);
-      // Half the prism's diagonal, generously.
-      var reach = 0.5 * Math.hypot(size, rMid * dTheta, size);
-      var dxy = Math.hypot(mx - cx, my - cy);
-      if (dxy > viewRadius + reach) {
+    for (var slab = slabLo; slab <= slabHi; slab++) {
+      var zMid = slab * size;
+      if (Math.abs(zMid - cz) > viewRadius + reach || !exists(ring, slab)) {
         continue;
       }
-      for (var slab = slabLo; slab <= slabHi; slab++) {
-        var z0 = (slab - 0.5) * size;
-        var z1 = z0 + size;
-        var zMid = slab * size;
+      var z0 = zMid - size / 2;
+      var z1 = z0 + size;
+      if (surfaceOnly && exists(ring - 1, slab) && exists(ring + 1, slab)
+          && (exists(ring, slab - 1) || (viewerZ !== null && viewerZ >= z0))
+          && (exists(ring, slab + 1) || (viewerZ !== null && viewerZ <= z1))) {
+        continue;
+      }
+      for (var k = 0; k < segCount; k++) {
+        var seg = (((segFirst + k) % nSeg) + nSeg) % nSeg;
+        var t0 = seg * dTheta;
+        var t1 = t0 + dTheta;
+        var tMid = t0 + dTheta / 2;
+        var dxy = Math.hypot(rMid * Math.cos(tMid) - cx, rMid * Math.sin(tMid) - cy);
         if (Math.hypot(dxy, zMid - cz) > viewRadius + reach) {
           continue;
-        }
-        if (sectorMin !== null) {
-          // The densest member sector center could be: the innermost
-          // member ring's centerline, the member layer nearest the plane.
-          var layers = groupSectorRanges(ring, slab, m);
-          var nearLayer = layers.layerFirst <= 0 && layers.layerLast >= 0
-            ? 0 : Math.min(Math.abs(layers.layerFirst), Math.abs(layers.layerLast));
-          if (densityUpperBound(r0 + edgePc / 2, nearLayer * edgePc, shape) < sectorMin) {
-            continue;
-          }
-        } else {
-          var zMinAbs = z0 <= 0 && z1 >= 0 ? 0 : Math.min(Math.abs(z0), Math.abs(z1));
-          if (densityUpperBound(r0, zMinAbs, shape) < PRISM_MIN_DENSITY) {
-            continue;
-          }
         }
         var key = ring + "/" + seg + "/" + slab;
         var sampled = densityCache ? densityCache.get(key) : undefined;
@@ -417,11 +483,10 @@ export function prismsInView(center, viewRadius, m, edgePc, shape, galaxyRadius,
             densityCache.set(key, sampled);
           }
         }
-        var density = sampled.density;
-        if (sectorMin === null && density < PRISM_MIN_DENSITY) {
-          continue;
+        if (found.length >= limit) {
+          return null;
         }
-        found.push({ ring: ring, seg: seg, slab: slab, r0: r0, r1: r1, t0: t0, t1: t1, z0: z0, z1: z1, density: density, meanDensity: sampled.mean });
+        found.push({ ring: ring, seg: seg, slab: slab, r0: r0, r1: r1, t0: t0, t1: t1, z0: z0, z1: z1, density: sampled.density, meanDensity: sampled.mean });
       }
     }
   }
