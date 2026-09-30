@@ -74,6 +74,26 @@ shared list, since these seven types share almost no metric names."""
 # ROGUE_PLANET_MASS_BINS draw (a bin by its per-star rate, then a
 # log-uniform mass inside it). Computed here (not hand-picked) so it stays
 # correct if any of those constants ever changes.
+
+_AU_PER_LY = 63241.077
+"""float: Astronomical units per light-year (for asteroid field size digits)."""
+
+_NEBULA_CLASS_SHARES = {
+    letter: data["frequency"] / sum(
+        d["frequency"] for d in prog_c.NEBULA_CLASSES.values() if d["family"] != "supernova-remnant")
+    for letter, data in prog_c.NEBULA_CLASSES.items() if data["family"] != "supernova-remnant"
+}
+"""dict: Each nebula class's expected share of randomly generated nebulae."""
+
+
+def _check_contents(issues, record, class_data):
+    """Flags density, temperature or extinction outside the class's ranges."""
+    for key, range_key in (("density_cm3", "density_range_cm3"), ("temperature_k", "temperature_range_k"),
+                           ("extinction_av", "extinction_range_av")):
+        lo, hi = class_data[range_key]
+        if not (lo * (1 - 1e-9) <= record[key] <= hi * (1 + 1e-9)):
+            issues.append(f"{key}={record[key]!r} outside {(lo, hi)}")
+
 def _rogue_gas_giant_fraction():
     threshold_earth = (prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
                        * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG)
@@ -111,10 +131,9 @@ CATEGORY_EXPECTATIONS = {
         },
     },
     "nebula": {
-        "nebula_type": {t: 1 / len(prog_c.NEBULA_TYPES) for t in prog_c.NEBULA_TYPES},
+        "nebula_class": _NEBULA_CLASS_SHARES,
     },
     "supernova-remnant": {
-        "morphology": {m: 1 / len(prog_c.SUPERNOVA_REMNANT_MORPHOLOGIES) for m in prog_c.SUPERNOVA_REMNANT_MORPHOLOGIES},
         "progenitor_type": {
             "Type Ia": prog_c.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE,
             "core-collapse": 1 - prog_c.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE,
@@ -223,10 +242,19 @@ def _extract_record(phenomenon_type, obj):
             "luminosity_w": obj.luminosity,
         })
     elif phenomenon_type == "nebula":
-        record.update({"nebula_type": obj.nebula_type, "radius_ly": obj.radius_ly})
+        record.update({"nebula_class": obj.nebula_class, "nebula_type": obj.nebula_type,
+                       "radius_ly": obj.radius_ly, "density_cm3": obj.density_cm3,
+                       "temperature_k": obj.temperature_k, "extinction_av": obj.extinction_av})
     elif phenomenon_type == "supernova-remnant":
         record.update({
+            "remnant_class": obj.remnant_class,
             "morphology": obj.morphology,
+            "compact_remnant_kind": (None if obj.compact_remnant is None
+                                     else "black_hole" if isinstance(obj.compact_remnant, BlackHole)
+                                     else "neutron_star"),
+            "density_cm3": obj.density_cm3,
+            "temperature_k": obj.temperature_k,
+            "extinction_av": obj.extinction_av,
             "age_years": obj.age_years,
             "radius_ly": obj.radius_ly,
             "progenitor_type": obj.progenitor_type,
@@ -245,7 +273,8 @@ def _extract_record(phenomenon_type, obj):
             "is_active": obj.is_active,
         })
     elif phenomenon_type == "asteroid-field":
-        record.update({"density": obj.density, "radius_ly": obj.radius_ly})
+        record.update({"density": obj.density, "radius_ly": obj.radius_ly,
+                       "field_class": obj.field_class, "composition_family": obj.composition_family})
     elif phenomenon_type == "quasar":
         record.update({
             "black_hole_mass_solar": obj.black_hole_mass_solar,
@@ -374,13 +403,16 @@ def check_hard_invariants(record):
         _isclose_or_flag(issues, "luminosity_w", record["luminosity_w"], expected_luminosity_w)
 
     elif phenomenon_type == "nebula":
-        type_data = prog_c.NEBULA_TYPES.get(record["nebula_type"])
-        if type_data is None:
-            issues.append(f"nebula_type={record['nebula_type']!r} is not a recognized value")
+        class_data = prog_c.NEBULA_CLASSES.get(record["nebula_class"])
+        if class_data is None or class_data["family"] == "supernova-remnant":
+            issues.append(f"nebula_class={record['nebula_class']!r} is not a nebula class")
         else:
-            lo, hi = type_data["radius_range_ly"]
+            if record["nebula_type"] != class_data["family"]:
+                issues.append(f"nebula_type={record['nebula_type']!r} is not class {record['nebula_class']}'s family")
+            lo, hi = class_data["radius_range_ly"]
             if not (lo <= record["radius_ly"] <= hi):
-                issues.append(f"radius_ly={record['radius_ly']!r} outside {record['nebula_type']}'s own {(lo, hi)}")
+                issues.append(f"radius_ly={record['radius_ly']!r} outside class {record['nebula_class']}'s own {(lo, hi)}")
+            _check_contents(issues, record, class_data)
 
     elif phenomenon_type == "supernova-remnant":
         if record["morphology"] not in prog_c.SUPERNOVA_REMNANT_MORPHOLOGIES:
@@ -397,6 +429,20 @@ def check_hard_invariants(record):
             issues.append(f"progenitor_type={record['progenitor_type']!r} is not a recognized value")
         if record["progenitor_type"] == "Type Ia" and record["has_compact_remnant"]:
             issues.append("a Type Ia progenitor should never leave a compact remnant behind")
+        class_data = prog_c.NEBULA_CLASSES.get(record["remnant_class"])
+        if class_data is None or class_data["family"] != "supernova-remnant":
+            issues.append(f"remnant_class={record['remnant_class']!r} is not a remnant class")
+        else:
+            if record["morphology"] != class_data["morphology"]:
+                issues.append(f"morphology={record['morphology']!r} is not class {record['remnant_class']}'s")
+            if record["compact_remnant_kind"] not in class_data["compact"]:
+                issues.append(f"class {record['remnant_class']} can't hold a {record['compact_remnant_kind']!r}")
+            if (record["progenitor_type"] == "Type Ia") != (record["remnant_class"] == "W"):
+                issues.append("class W and a Type Ia progenitor must go together")
+            lo, hi = class_data["age_range_years"]
+            if not (lo <= record["age_years"] <= hi):
+                issues.append(f"age_years={record['age_years']!r} outside class {record['remnant_class']}'s own {(lo, hi)}")
+            _check_contents(issues, record, class_data)
 
     elif phenomenon_type == "rogue-planet":
         mass_jupiter = record["mass_kg"] / pc.JUPITER_MASS_TO_KG
@@ -431,6 +477,16 @@ def check_hard_invariants(record):
             issues.append(f"radius_ly={record['radius_ly']!r} outside {prog_c.ASTEROID_FIELD_RADIUS_RANGE_LY}")
         if record["density"] not in ("dense", "sparse", "typical"):
             issues.append(f"density={record['density']!r} is not a recognized value")
+        family = prog_c.ASTEROID_FIELD_COMPOSITIONS.get(record["composition_family"])
+        if family is None:
+            issues.append(f"composition_family={record['composition_family']!r} is not a recognized value")
+        elif record["density"] in family["letters"]:
+            radius_au = record["radius_ly"] * _AU_PER_LY
+            digit_lo, digit_hi = prog_c.ASTEROID_FIELD_SIZE_DIGIT_RANGE
+            digit = max(digit_lo, min(digit_hi, math.floor(math.log10(radius_au))))
+            expected = f"{family['letters'][record['density']]}{digit}"
+            if record["field_class"] != expected:
+                issues.append(f"field_class={record['field_class']!r}, expected {expected!r}")
 
     elif phenomenon_type == "quasar":
         mass = record["black_hole_mass_solar"]

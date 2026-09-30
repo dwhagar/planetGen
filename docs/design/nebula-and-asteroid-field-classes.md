@@ -3,10 +3,12 @@
 A draft for `docs/TODO.md` items 27-31, recorded 2026-09-30 from Boss's
 notes and the reference document Boss shared ("Astrophysical
 Architectures and Speculative Mechanics of Nebulae, Stellar Remnants, and
-Interstellar Collisions"). Nothing here is implemented. The letter
-assignments are a **first draft for Boss to reshape**; the physical ranges
-come from that document and standard references, and should be checked
-against sources before they become constants.
+Interstellar Collisions"). The classes (items 28 and 31) are built in
+schema v38: `program_constants.NEBULA_CLASSES` (A-W, with contents and
+ranges) and `ASTEROID_FIELD_COMPOSITIONS` (letters plus a size digit).
+Placement and central objects (27), containment (29) and naming (30) are
+not built yet. The physical ranges come from that document and standard
+references.
 
 Boss's asks, in Boss's words:
 
@@ -56,7 +58,7 @@ planetary nebula, sees an ordinary dark starry sky.
 | Supernova remnant, core collapse | A neutron star (most) or black hole, as `SupernovaRemnant.compact_remnant` already does, offset from the center by its birth kick (a few hundred km/s times the remnant's age). |
 | Supernova remnant, thermonuclear (Type Ia) | No compact object; sometimes a runaway surviving companion star. |
 
-## Draft nebula and remnant classes (item 28)
+## Nebula and remnant classes (item 28, built in v38)
 
 One letter per class, like `PLANET_CLASSES`. I and O are left unused so
 they aren't mistaken for 1 and 0; X-Z are reserved. Today's
@@ -93,10 +95,8 @@ Each class carries, like a planet class: description, composition,
 radius range, density range, temperature range, extinction, central
 object rule, and a relative frequency.
 
-**Open question for Boss:** "stellar remnants" could also mean the
-compact objects themselves (white dwarfs, neutron stars, black holes).
-This draft classes supernova remnants (the nebulae); say if the compact
-objects need letters too.
+Boss (2026-09-30): "stellar remnants" means supernova remnants only; the
+compact objects keep their own tables and need no letters.
 
 ## Objects inside a nebula (item 29)
 
@@ -138,7 +138,7 @@ objects need letters too.
     class is the letter from item 31 and size is floor(log10(radius in
     AU)) (a 0.001-1 ly field is 1-4). Example: `AF E3-4F2A1-02`.
 
-## Draft asteroid field classes (item 31)
+## Asteroid field classes (item 31, built in v38)
 
 Letter from composition and density (today's `sparse`/`typical`/`dense`);
 size goes in the designation digit above. Composition families follow
@@ -157,6 +157,6 @@ primitive, V basaltic).
 | U | collisional family (fragments of one parent body) | any |
 | V-Z | reserved | |
 
-**Open question for Boss:** size could instead be part of the letter
-(fewer composition splits); the draft keeps it as the digit so the class
-stays readable.
+Boss (2026-09-30): size is "a digit and part of the class", so a full
+class reads `C3` (`asteroid_fields.field_class`). The icy family's
+components come from the cometary ices list.

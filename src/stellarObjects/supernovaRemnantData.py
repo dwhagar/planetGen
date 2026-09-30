@@ -21,10 +21,43 @@ import random
 from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from .nebulaData import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
+from .utils import (format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
+
+
+def remnant_classes_for(progenitor_type, compact_remnant_kind):
+    """
+    The remnant classes (R-W) a remnant with this progenitor and compact
+    core can be: a Type Ia remnant is always W; a core-collapse one is any
+    class whose `compact` rule allows its core (T and U need a pulsar).
+    """
+    if progenitor_type == "Type Ia":
+        return ("W",)
+    return tuple(
+        letter for letter in REMNANT_CLASS_LETTERS
+        if letter != "W" and compact_remnant_kind in program_constants.NEBULA_CLASSES[letter]["compact"]
+    )
+
+
+def infer_remnant_class(morphology, progenitor_type, age_years):
+    """
+    The class a remnant saved before classes existed (schema v38) most
+    likely belongs to, from its stored shape, progenitor and age.
+    """
+    if progenitor_type == "Type Ia":
+        return "W"
+    if morphology == "plerion":
+        return "T"
+    if morphology == "composite":
+        return "U"
+    for letter in ("R", "V"):
+        low, high = program_constants.NEBULA_CLASSES[letter]["age_range_years"]
+        if low <= age_years <= high:
+            return letter
+    return "S"
 
 
 class SupernovaRemnant:
@@ -33,8 +66,14 @@ class SupernovaRemnant:
 
     Attributes:
         name (str): A generated or explicitly given name for the remnant.
-        morphology (str): One of `program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES`
+        remnant_class (str): A remnant letter class R-W
+            (`program_constants.NEBULA_CLASSES`).
+        morphology (str): The class's shape, one of
+            `program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES`
             (`"shell"`, `"plerion"`, or `"composite"`).
+        dominant_species (str), density_cm3 (float), temperature_k
+            (float), extinction_av (float): What fills the remnant, the
+            same contents `Nebula` carries.
         age_years (float): Time since the supernova, in years.
         radius_ly (float): The remnant's current radius, in light-years,
             derived from `age_years` via the Sedov-Taylor blast-wave
@@ -48,7 +87,8 @@ class SupernovaRemnant:
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "morphology", "age_years", "radius_ly", "progenitor_type",
+        "name", "remnant_class", "morphology", "age_years", "radius_ly", "progenitor_type",
+        "dominant_species", "density_cm3", "temperature_k", "extinction_av",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
@@ -76,15 +116,6 @@ class SupernovaRemnant:
         # TODO(phenomena #30): name remnants through the system-name
         # registry, like star systems.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
-
-        self.morphology = random.choice(program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES)
-        log.choice("Supernova remnant morphology", self.morphology,
-                   f"uniform draw among {program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES}")
-        self.age_years = random.uniform(*program_constants.SUPERNOVA_REMNANT_AGE_RANGE_YEARS)
-        self.radius_ly = (
-            program_constants.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
-            * (self.age_years ** program_constants.SEDOV_TAYLOR_TIME_EXPONENT)
-        )
 
         is_type_ia = random.random() < program_constants.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
         self.progenitor_type = "Type Ia" if is_type_ia else "core-collapse"
@@ -115,6 +146,23 @@ class SupernovaRemnant:
         elif not is_type_ia:
             log.debug("Core-collapse compact remnant: none visible/detectable "
                        "(roll failed SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE)")
+
+        kind = None
+        if isinstance(self.compact_remnant, BlackHole):
+            kind = "black_hole"
+        elif isinstance(self.compact_remnant, NeutronStar):
+            kind = "neutron_star"
+        self.remnant_class = choose_weighted_class(
+            remnant_classes_for(self.progenitor_type, kind), "Supernova remnant class")
+        class_data = program_constants.NEBULA_CLASSES[self.remnant_class]
+        self.morphology = class_data["morphology"]
+        self.age_years = random.uniform(*class_data["age_range_years"])
+        self.radius_ly = (
+            program_constants.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
+            * (self.age_years ** program_constants.SEDOV_TAYLOR_TIME_EXPONENT)
+        )
+        (self.dominant_species, self.density_cm3, self.temperature_k,
+         self.extinction_av) = draw_class_contents(self.remnant_class)
 
     def to_dict(self):
         """
@@ -156,6 +204,13 @@ class SupernovaRemnant:
         """
         remnant = object.__new__(cls)
         remnant.system_config = system_config
+        data = dict(data)
+        if data.get("remnant_class") is None:
+            # Saved before classes existed (schema v38).
+            data["remnant_class"] = infer_remnant_class(
+                data["morphology"], data["progenitor_type"], data["age_years"])
+            (data["dominant_species"], data["density_cm3"], data["temperature_k"],
+             data["extinction_av"]) = typical_class_contents(data["remnant_class"])
         fields_from_dict(remnant, data, cls.SERIALIZABLE_FIELDS)
 
         kind = data.get("compact_remnant_kind")
@@ -180,16 +235,21 @@ class SupernovaRemnant:
                   describing the supernova remnant.
         """
         header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Supernova Remnant) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
+        header = f"{header_level} {self.name} (Class {self.remnant_class} Supernova Remnant) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
 
         description = (
             f"{self.name} is a {self.morphology} supernova remnant, the expanding wreckage of a "
-            f"{self.progenitor_type} supernova approximately {self.age_years:,.0f} years ago. It now spans "
-            f"roughly {self.radius_ly:.2f} light-years across, and still orbits the galactic center at "
+            f"{self.progenitor_type} supernova approximately {self.age_years:,.0f} years ago. It now reaches "
+            f"about {format_distance_ly(self.radius_ly)} from its center, and still orbits the galactic center at "
             f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )
 
-        paragraphs = [header, description]
+        class_name = program_constants.NEBULA_CLASSES[self.remnant_class]["name"]
+        paragraphs = [header, description, (
+            f"It is a class {self.remnant_class} remnant ({class_name.lower()}): mostly "
+            f"{self.dominant_species}, at about {self.density_cm3:,.3g} particles per cubic centimeter "
+            f"and {self.temperature_k:,.3g} K."
+        )]
 
         if self.compact_remnant is not None:
             kind_label = "black hole" if isinstance(self.compact_remnant, BlackHole) else "neutron star"
