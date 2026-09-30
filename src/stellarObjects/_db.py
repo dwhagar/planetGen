@@ -67,7 +67,9 @@ from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
-from .galaxyGeometry import SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation
+from .galaxyGeometry import (
+    SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation, sector_address_at,
+)
 from .bodyNames import rename_prefix
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
@@ -80,8 +82,8 @@ from .quasarData import Quasar
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 from .utils import (
-    generate_phoneme_salad_name, generate_sector_name, ly_to_milliparsecs, ly_to_pc,
-    milliparsecs_to_ly, mpc_to_pc,
+    calculate_galactic_orbit, generate_phoneme_salad_name, generate_sector_name, ly_to_milliparsecs, ly_to_pc,
+    milliparsecs_to_ly, mpc_to_pc, pc_to_ly,
 )
 from .wideBinary import WideBinaryPair
 
@@ -2890,9 +2892,13 @@ def refresh_nearest_systems(conn, sector_ids):
     Args:
         conn (Connection): Part of the caller's transaction.
         sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
+
+    Returns:
+        set: The `(table, id)` of every object whose list changed.
     """
     sector_ids = sorted(set(sector_ids))
     half_diagonal = _edge_pc(conn) * math.sqrt(3) / 2
+    all_changed = set()
     for start in range(0, len(sector_ids), 200):
         centers = _sector_centers(conn, sector_ids[start:start + 200])
         if not centers:
@@ -2911,6 +2917,8 @@ def refresh_nearest_systems(conn, sector_ids):
                 changed[key] = neighbors
                 sectors[key] = sector_id
         _write_nearest(conn, changed, sectors)
+        all_changed.update(changed)
+    return all_changed
 
 
 def _add_sector_to_nearest(conn, sector_id):
@@ -3124,6 +3132,246 @@ def delete_facility(conn, facility_id):
     if row["star_system_id"] is not None:
         touch_star_system(conn, row["star_system_id"])
     return True
+
+
+# ---------------------------------------------------------------------------
+# Galactic motion (TODO item 32): the correlative update moves every placed
+# star system, phenomenon and stand-alone facility along its galactic orbit,
+# refiles it under whichever generated sector it drifted into, then refreshes
+# containment, octants, nearest systems and location text.
+# ---------------------------------------------------------------------------
+
+def _rotate_about_axis(point, angle_rad):
+    """`point` turned counterclockwise (seen from galactic north) about the
+    galactic axis -- the direction galactic phase increases."""
+    x, y, z = point
+    cos_a, sin_a = math.cos(angle_rad), math.sin(angle_rad)
+    return (x * cos_a - y * sin_a, x * sin_a + y * cos_a, z)
+
+
+def _galactic_turn(elapsed_years, period_gy):
+    """The angle (radians) an orbit of `period_gy` sweeps in `elapsed_years`."""
+    if not period_gy or period_gy <= 0 or elapsed_years <= 0:
+        return 0.0
+    return 2 * math.pi * elapsed_years / (period_gy * 1e9)
+
+
+class _SectorIndex:
+    """Every placed grid sector by address, for refiling moved objects."""
+
+    def __init__(self, conn):
+        self.edge_pc = _edge_pc(conn)
+        self.by_address = {}
+        self.info = {}
+        for row in conn.execute(
+            "SELECT id, name, ring_index, layer_index, ring_slot_index, center_x_pc, center_y_pc, center_z_pc"
+            " FROM sectors WHERE center_x_pc IS NOT NULL"
+        ).fetchall():
+            center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            self.info[row["id"]] = (row["name"], center)
+            if row["ring_index"] is not None:
+                self.by_address[(row["ring_index"], row["layer_index"], row["ring_slot_index"])] = row["id"]
+
+    def sector_at(self, point, current):
+        """The generated sector holding `point`, or `current` when the
+        cell it drifted into hasn't been generated (it stays filed where
+        it was until that sector exists)."""
+        if self.edge_pc <= 0:
+            return current
+        return self.by_address.get(sector_address_at(point, self.edge_pc), current)
+
+
+def advance_galactic_positions(conn, elapsed_years):
+    """
+    Moves every placed star system, standalone phenomenon and stand-alone
+    facility along its galactic orbit by `elapsed_years`, the same turn
+    its galactic phase advances by (`advance_orbital_phases`): a system by
+    its close pair's or primary star's period, a phenomenon by its own,
+    a facility by the rotation curve at its radius
+    (`utils.calculate_galactic_orbit`). Sectors are fixed cells, so an
+    object that drifts into another generated sector is refiled there
+    (`sector_id`, its sector-relative position, and later its octant,
+    location text, containment and nearest systems -- see
+    `refresh_after_motion`). A pure move keeps `modified_at`; a change of
+    sector bumps it.
+
+    Returns:
+        dict: `moved` and `refiled` counts, and `sectors` -- the ids of
+            every sector something moved in or out of.
+    """
+    index = _SectorIndex(conn)
+    moved = refiled = 0
+    touched = set()
+
+    systems = conn.execute(
+        """
+        SELECT ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+               COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy
+        FROM star_systems ss
+        LEFT JOIN stars s ON s.star_system_id = ss.id AND s.role IN ('single', 'primary')
+        WHERE ss.position_x_mpc IS NOT NULL AND ss.sector_id IS NOT NULL
+        """
+    ).fetchall()
+    updates, refile_updates = [], []
+    for row in systems:
+        if row["sector_id"] not in index.info:
+            continue
+        angle = _galactic_turn(elapsed_years, row["period_gy"])
+        if angle == 0.0:
+            continue
+        _name, center = index.info[row["sector_id"]]
+        offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+        point = _rotate_about_axis(local_to_galaxy_pc(center, offset), angle)
+        sector_id = index.sector_at(point, row["sector_id"])
+        local_mpc = tuple(c * 1000.0 for c in galaxy_to_local_pc(index.info[sector_id][1], point))
+        quadrant, _magnitudes = classify_octant(local_mpc)
+        moved += 1
+        if sector_id != row["sector_id"]:
+            refiled += 1
+            touched.update((sector_id, row["sector_id"]))
+            refile_updates.append((sector_id, *local_mpc, quadrant, row["id"]))
+        else:
+            updates.append((*local_mpc, quadrant, row["id"]))
+    if updates:
+        conn.executemany(
+            "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, quadrant = ?,"
+            " modified_at = modified_at WHERE id = ?", updates)
+    if refile_updates:
+        conn.executemany(
+            "UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?,"
+            " quadrant = ? WHERE id = ?", refile_updates)
+        _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
+
+    for table in PLACED_PHENOMENON_TABLES:
+        if table == "quasars":
+            continue  # the galaxy's nucleus sits at the center and doesn't orbit it
+        updates, refile_updates = [], []
+        for row in conn.execute(
+            f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy"
+            f" FROM {table} WHERE center_x_pc IS NOT NULL"
+        ).fetchall():
+            angle = _galactic_turn(elapsed_years, row["galactic_orbital_period_gy"])
+            if angle == 0.0:
+                continue
+            point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
+            radius = math.sqrt(sum(c * c for c in point))
+            moved += 1
+            sector_id = index.sector_at(point, row["sector_id"]) if row["sector_id"] is not None else None
+            if sector_id != row["sector_id"]:
+                refiled += 1
+                touched.update((sector_id, row["sector_id"]))
+                refile_updates.append((sector_id, *point, radius, row["id"]))
+            else:
+                updates.append((*point, radius, row["id"]))
+        if updates:
+            conn.executemany(
+                f"UPDATE {table} SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
+                f" modified_at = modified_at WHERE id = ?", updates)
+        if refile_updates:
+            conn.executemany(
+                f"UPDATE {table} SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
+                f" galactic_radius_pc = ? WHERE id = ?", refile_updates)
+            _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
+
+    updates, refile_updates = [], []
+    for row in conn.execute(
+        "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc FROM facilities"
+        " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
+    ).fetchall():
+        _speed, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
+        angle = _galactic_turn(elapsed_years, period_gy)
+        if angle == 0.0:
+            continue
+        point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
+        moved += 1
+        sector_id = index.sector_at(point, row["sector_id"])
+        if sector_id != row["sector_id"]:
+            refiled += 1
+            touched.update((sector_id, row["sector_id"]))
+            refile_updates.append((sector_id, *point, row["galactic_radius_pc"], row["id"]))
+        else:
+            updates.append((*point, row["id"]))
+    if updates:
+        conn.executemany("UPDATE facilities SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
+                         " modified_at = modified_at WHERE id = ?", updates)
+    if refile_updates:
+        conn.executemany("UPDATE facilities SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
+                         " galactic_radius_pc = ? WHERE id = ?", refile_updates)
+
+    touched.discard(None)
+    for sector_id in touched:
+        touch_sector(conn, sector_id)
+    return {"moved": moved, "refiled": refiled, "sectors": touched}
+
+
+def _refile_nearest_rows(conn, table, moves):
+    """Files an object's stored `nearest_systems` rows under its new
+    sector (`moves` is `(sector_id, object_id)` pairs); an object that
+    left every sector loses them, since the table needs a sector."""
+    kept = [(sector_id, table, object_id) for sector_id, object_id in moves if sector_id is not None]
+    dropped = [(table, object_id) for sector_id, object_id in moves if sector_id is None]
+    if kept:
+        conn.executemany("UPDATE nearest_systems SET sector_id = ? WHERE object_table = ? AND object_id = ?", kept)
+    if dropped:
+        conn.executemany("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", dropped)
+
+
+def advance_facility_orbits(conn, elapsed_years):
+    """Advances every orbital facility's `orbit_phase_deg` by its period,
+    the way `advance_orbital_phases` does for moons. Returns the count."""
+    if elapsed_years <= 0:
+        return 0
+    return conn.execute(
+        "UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + 360.0 * ? / orbit_period_years, 360.0),"
+        " modified_at = modified_at WHERE placement = 'orbital' AND orbit_period_years > 0",
+        (elapsed_years,),
+    ).rowcount
+
+
+def refresh_after_motion(conn, refiled_sectors=()):
+    """
+    Brings everything that depends on where things are up to date after
+    `advance_galactic_positions`: containment (`refresh_containment`),
+    each phenomenon's octant and every object's nearest systems
+    (`refresh_nearest_systems`) for every placed sector, then the
+    `star_systems.location` text of every system whose nearest systems
+    changed or that sits in a sector something moved in or out of, built
+    from its sector's name and the stored nearest systems.
+
+    Returns:
+        int: How many location texts were rewritten.
+    """
+    placed = [row["id"] for row in conn.execute("SELECT id FROM sectors WHERE center_x_pc IS NOT NULL").fetchall()]
+    refresh_containment(conn, placed)
+    changed = refresh_nearest_systems(conn, placed)
+    system_ids = {object_id for table, object_id in changed if table == "star_systems"}
+    refiled_sectors = sorted(set(refiled_sectors) - {None})
+    for start in range(0, len(refiled_sectors), 500):
+        batch = refiled_sectors[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        system_ids.update(row["id"] for row in conn.execute(
+            f"SELECT id FROM star_systems WHERE sector_id IN ({marks})", tuple(batch)).fetchall())
+    system_ids = sorted(system_ids)
+    rewritten = 0
+    for start in range(0, len(system_ids), 500):
+        batch = system_ids[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        names = {row["id"]: row["name"] for row in conn.execute(
+            f"SELECT ss.id, sec.name FROM star_systems ss JOIN sectors sec ON sec.id = ss.sector_id"
+            f" WHERE ss.id IN ({marks})", tuple(batch)).fetchall()}
+        neighbors = {}
+        for row in conn.execute(
+            f"SELECT n.object_id, n.distance_pc, ss.name FROM nearest_systems n"
+            f" JOIN star_systems ss ON ss.id = n.neighbor_system_id"
+            f" WHERE n.object_table = 'star_systems' AND n.object_id IN ({marks})"
+            f" ORDER BY n.object_id, n.neighbor_rank", tuple(batch)).fetchall():
+            neighbors.setdefault(row["object_id"], []).append((row["name"], pc_to_ly(row["distance_pc"])))
+        updates = [(_format_location_string(names[system_id], neighbors.get(system_id, [])), system_id)
+                   for system_id in batch if system_id in names]
+        if updates:
+            conn.executemany("UPDATE star_systems SET location = ?, modified_at = modified_at WHERE id = ?", updates)
+            rewritten += len(updates)
+    return rewritten
 
 
 def sectors_reached_by(conn, center_pc, radius_pc):
@@ -6449,9 +6697,9 @@ def get_orbit_update_elapsed_years(conn):
     return row["elapsed_seconds"] / physical_constants.SECONDS_PER_YEAR
 
 
-# TODO(orbits #32): quasars aren't in the phenomena loop below; decide
-# whether the nucleus moves. After phases advance, galactic positions must
-# follow (see updateOrbits.main).
+# Quasars have no galactic orbit: the nucleus sits at the center. Galactic
+# positions follow the phases in `advance_galactic_positions`
+# (updateOrbits.main runs both).
 def advance_orbital_phases(conn, elapsed_years):
     """
     Advances every planet's and moon's `orbital_phase_deg` in place by the
