@@ -1204,7 +1204,6 @@ NAME_MAX_LENGTH = MAX_NAME_LENGTH
 
 _NAME_CLASH_LABELS = {
     "sectors": "a sector", "star_systems": "a star system", "stars": "a star",
-    "planets": "a planet", "moons": "a moon",
 }
 
 
@@ -1231,8 +1230,9 @@ def _rename_body():
 
 
 def _require_unique_name(conn, name, exclude):
-    """Raises a 409 when a sector, system, star, planet or moon other than
-    the rows in `exclude` (`(table, id)` pairs) is already called `name`."""
+    """Raises a 409 when a sector, system or star other than the rows in
+    `exclude` (`(table, id)` pairs) is already called `name`. Planet and
+    moon names aren't checked (`_db.name_in_use`)."""
     clash = _db.name_in_use(conn, name, exclude=exclude)
     if clash is not None:
         raise ApiError(f"{_NAME_CLASH_LABELS[clash]} is already named {name!r}", status_code=409)
@@ -1257,7 +1257,7 @@ def _system_rename_exclusions(conn, system_id):
 def update_system(system_id):
     """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system, and
     every star, planet and moon still named after it
-    (`_db.rename_star_system`). 409 if anything else already has the
+    (`_db.rename_star_system`). 409 if a sector, system or star already has the
     name."""
     name = _rename_body()
 
@@ -1282,7 +1282,7 @@ def rename_star(star_id):
     """`PATCH /api/stars/<id>` `{"name": str}` -- renames a star. A single
     star shares its system's name, so this renames the system too; a
     binary's star is renamed on its own, with the planets and moons named
-    after it (`_db.rename_star`). 409 if anything else already has the
+    after it (`_db.rename_star`). 409 if a sector, system or star already has the
     name."""
     name = _rename_body()
 
@@ -1329,7 +1329,7 @@ def _rename_planet_or_moon(table, kind, body_id):
 @require_admin(fresh=True)
 def rename_planet(planet_id):
     """`PATCH /api/planets/<id>` `{"name": str}` -- renames one planet. Its
-    moons keep their names. 409 if anything else already has the name."""
+    moons keep their names. 409 if a sector, system or star already has the name."""
     return _rename_planet_or_moon("planets", "planet", planet_id)
 
 
@@ -1338,7 +1338,7 @@ def rename_planet(planet_id):
 @require_admin(fresh=True)
 def rename_moon(moon_id):
     """`PATCH /api/moons/<id>` `{"name": str}` -- renames one moon. 409 if
-    anything else already has the name."""
+    a sector, system or star already has the name."""
     return _rename_planet_or_moon("moons", "moon", moon_id)
 
 
