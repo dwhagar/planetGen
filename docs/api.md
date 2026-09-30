@@ -285,6 +285,17 @@ connectivity to that specific schema rather than the default one.
   `PLANETGEN_WIKIJS_*`/`PLANETGEN_MEDIAWIKI_*` env vars — see
   `docs/config.md`) and so is offered as an upload target at all. Never
   exposes any of those credentials, only the two booleans.
+- `GET /api/facilities/<id>` — one facility (see "Facilities" below).
+- `GET /api/systems/<id>/facilities` — `{"items": [...]}`, every facility
+  on a star, planet, moon or asteroid belt in that system.
+- `GET /api/sectors/<id>/facilities` — `{"items": [...]}`, the
+  stand-alone facilities parked in that sector and those on its asteroid
+  fields.
+- `GET /api/facilities/orbit?host_type=star|planet|moon&host_id=<id>[&distance_km=<km>]`
+  — the orbit an orbital facility would get there, without saving:
+  `{"distance_km", "period_years", "orbital_speed_kms"}`. Without
+  `distance_km` it orbits at 3 host radii. `400` for a distance inside the
+  host, `404` for an unknown host.
 
 ### Write (admin auth required — see "Authentication" and "Write endpoints")
 
@@ -303,6 +314,9 @@ connectivity to that specific schema rather than the default one.
 - `DELETE /api/systems/<id>` — remove a system.
 - `POST /api/systems/<id>/wiki` — publish a system's already-generated
   page to a wiki (see "Wiki publishing" below).
+- `POST /api/facilities` — add a starbase, colony or outpost (see
+  "Facilities" below).
+- `DELETE /api/facilities/<id>` — remove a facility.
 
 ### Admin stats (admin auth required)
 
@@ -643,6 +657,28 @@ letter (`Voranthis IIa`). Renames keep that in step:
   planets and moons named after it.
 - **Planet or moon:** just that body. A renamed planet's moons keep their
   names.
+
+### Facilities
+
+`POST /api/facilities` takes `name`, `kind`, `placement`, `host_type` and
+`host_id` (all required), plus `distance_km` and `phase_deg` for an orbital
+facility, `offset_ly` (`[x, y, z]` light-years from the sector's center,
+along its own axes; the center if left out) for a stand-alone one, and an
+optional `description`. It returns `{"id"}` with a `201`.
+
+| `placement` | `host_type` | Kinds |
+|---|---|---|
+| `terrestrial` | `planet`, `moon` (terrestrial only) | `colony`, `outpost` |
+| `orbital` | `star`, `planet`, `moon` | `outpost`, `station`, `starbase` |
+| `asteroid` | `asteroid_belt` | `outpost`, `mining-colony` |
+| `asteroid` | `asteroid_field` | `outpost` |
+| `standalone` | `space` (`host_id` is a sector) | `outpost`, `station`, `starbase` |
+
+Anything else is a `400` naming the rule, and an unknown host is a `404`.
+An orbital facility's period and speed come from its host's mass the way a
+moon's do (a close binary's pair is orbited as one); a gas giant takes
+orbital facilities only. A facility reads back with every column of its
+`facilities` row plus `host_id` and `host_name`.
 
 ### Wiki publishing — request body
 

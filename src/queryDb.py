@@ -919,6 +919,78 @@ def _center_distance_ly(row):
     )
 
 
+_FACILITY_SELECT = """
+    SELECT f.*,
+           COALESCE(st.name, p.name, m.name, af.name, sec.name) AS host_name
+    FROM facilities f
+    LEFT JOIN stars st ON st.id = f.star_id
+    LEFT JOIN planets p ON p.id = f.planet_id
+    LEFT JOIN moons m ON m.id = f.moon_id
+    LEFT JOIN asteroid_fields af ON af.id = f.asteroid_field_id
+    LEFT JOIN sectors sec ON sec.id = f.sector_id
+"""
+
+
+def _facility_dict(row):
+    """One `facilities` row (plus `host_name`, `None` for an asteroid
+    belt, which has no name) as the API returns it."""
+    facility = {key: row[key] for key in (
+        "id", "name", "kind", "placement", "host_type", "star_system_id", "star_id", "planet_id", "moon_id",
+        "asteroid_belt_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
+        "orbit_distance_km", "orbit_period_years", "orbital_speed_kms", "orbit_phase_deg", "description",
+        "host_name",
+    )}
+    host_columns = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
+                    "asteroid_field": "asteroid_field_id", "space": "sector_id"}
+    facility["host_id"] = row[host_columns[row["host_type"]]]
+    return facility
+
+
+def facility_detail(conn, facility_id):
+    """One facility (schema v42), or `None`."""
+    row = conn.execute(_FACILITY_SELECT + " WHERE f.id = ?", (facility_id,)).fetchone()
+    return None if row is None else _facility_dict(row)
+
+
+def facilities_for_system(conn, system_id):
+    """Every facility on a host inside one star system (its stars,
+    planets, moons and belts), by name."""
+    rows = conn.execute(_FACILITY_SELECT + " WHERE f.star_system_id = ? ORDER BY f.name, f.id",
+                        (system_id,)).fetchall()
+    return [_facility_dict(row) for row in rows]
+
+
+def facilities_in_sector(conn, sector_id):
+    """The facilities a sector holds outside its systems: stand-alone ones
+    parked in it, and those on its asteroid fields."""
+    rows = conn.execute(
+        _FACILITY_SELECT + " WHERE f.sector_id = ? OR af.sector_id = ? ORDER BY f.name, f.id",
+        (sector_id, sector_id),
+    ).fetchall()
+    return [_facility_dict(row) for row in rows]
+
+
+def colonized_body_ids(conn, system_id):
+    """
+    The planets and moons in one system with a colony on them -- a colony
+    makes its world inhabited (schema v42).
+
+    Returns:
+        dict: `{"planets": set of ids, "moons": set of ids}`.
+    """
+    found = {"planets": set(), "moons": set()}
+    for row in conn.execute(
+        "SELECT planet_id, moon_id FROM facilities WHERE star_system_id = ? AND kind = 'colony'"
+        " AND placement = 'terrestrial'",
+        (system_id,),
+    ).fetchall():
+        if row["planet_id"] is not None:
+            found["planets"].add(row["planet_id"])
+        if row["moon_id"] is not None:
+            found["moons"].add(row["moon_id"])
+    return found
+
+
 def containing_cloud(conn, row):
     """
     The nebula or supernova remnant a row sits inside (schema v39), from
@@ -1667,8 +1739,8 @@ def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
     return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
 
 
-# TODO(facilities #35): a colony on a terrestrial world makes it inhabited;
-# OR that into `inhabited` here.
+# TODO(facilities #36): a colony on a terrestrial world makes it inhabited;
+# OR `colonized_body_ids` into `inhabited` here.
 def _with_life_fields(body, stages):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`

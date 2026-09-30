@@ -492,6 +492,16 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Facilities (v42).** `facilities` holds starbases, colonies and outposts,
+each on one host named by `host_type`: a star, planet, moon, asteroid belt,
+asteroid field, or open space in a sector (`sector_id` plus a galaxy-frame
+center). `star_system_id` is set for every in-system host. An orbital
+facility stores its circular orbit (`orbit_distance_km`,
+`orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg`). Every host
+key cascades. `program_constants.FACILITY_RULES` decides which kinds go
+where, checked by `_db.add_facility` (MySQL refuses a CHECK on a cascading
+column). `_migrate_v41_to_v42` creates the table.
+
 **Octants and nearest systems (v41).** Every placeable phenomenon
 table gains `quadrant`, the sector octant its center sits in (the labels
 `star_systems.quadrant` uses, in the `sector_orientation` frame).
