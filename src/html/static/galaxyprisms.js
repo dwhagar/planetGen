@@ -304,7 +304,8 @@ export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, d
 // - otherwise, at large m, draw the unfilled volume as a thinner shell
 //   (the outline, plus the slice face).
 // Each listed block gets `filled` (the count of its generated sectors,
-// from the tiles) alongside `density`.
+// from the tiles' placed lists) and `total` (groupSectorCount) alongside
+// `density`, so the page can set its opacity from filled / total.
 // Edge cases:
 // - the view ball reaching past the galaxy's edge;
 // - a view centred on the axis (every wedge in view);

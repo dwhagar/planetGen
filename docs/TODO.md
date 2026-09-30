@@ -142,39 +142,46 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    Done means the arms show at full zoom-out, zoomed views look down on a
    continuous floor, and the control works by keyboard.
 
-8. [ ] **Unfilled space see-through, filled sectors solid, all colored by
-   density.** Boss asked for this on 2026-09-30.
-   - Unfilled (not yet generated) sectors and mega-blocks are drawn
-     translucent, 20% transparent where densest and 50% where sparsest,
-     scaled by density. Filled (generated) sectors show through them.
-   - Every filled sector, and every mega-block holding generated sectors,
-     is drawn opaque. Its colour comes from its own density:
-     - a sector from its real system density (`placedDensityColor`'s
-       scale);
-     - a mega-block from the density of the space it covers (#3's shading).
+8. [ ] **One solid of blocks for filled and unfilled sectors; no more
+   marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
+   and out and find generated ("filled") sectors from the blocks alone.
+   - **Remove the dots.** Drop the placed-sector sprites (the halo and
+     core dots) and the planned-sector dots from `galaxymap3d.js`: the
+     textures, `syncTier`, `withPinned`, marker scaling, and marker picking.
+     Filled and unfilled sectors are both shown only through the
+     continuous solid of blocks (#6, #7).
+   - **Color by density.** Every block is colored by the density of the
+     space it covers (#3). At m = 1, a filled sector is colored by its
+     real system density (`placedDensityColor`'s scale).
+   - **Opacity by how full a block is.**
+     - Unfilled space is 20% (densest) to 50% (sparsest) transparent,
+       scaled by density.
+     - A block holding filled sectors grows more solid in proportion to
+       its filled share (filled ÷ total sectors), reaching fully opaque when
+       every sector is filled.
+     - At large m the share is tiny (a handful of filled sectors among
+       531,441), so give any filled content a minimum visible step, then
+       scale it. A log of the count is one option.
+     - Boss's wording was "decrease the opacity by a factor proportional to
+       the number of filled sectors". This item reads it as "less
+       see-through", so filled regions stand out. Confirm before building.
+   - **Individual filled sectors appear only at sector zoom (m = 1).**
+     Coarser, they show only through their block's opacity.
+   - **Picking moves to blocks.**
+     - Clicking a block shows its info (#9).
+     - At m = 1, a filled block links to its sector page, and an unfilled
+       one shows today's designation and CLI snippet.
+     - Double-clicking a block with filled sectors zooms in toward them.
+   - **What it needs:**
+     - Per-block filled counts, counted in the browser from the tiles'
+       placed lists, or totalled by the server for coarse views.
+     - Translucent blocks drawn after opaque ones, sorted back to front.
+     - Interior culling (#6) only where all neighbours are opaque.
+     - A block's total sector count (`groupSectorCount`, exact with #5).
 
-   What this needs:
-   - Per-block filled counts. The tiles already list placed sectors, so
-     count them per block in the browser, or have the server add
-     per-block totals to the tiles (it knows `sectors.ring_index`,
-     `layer_index` and `ring_slot_index`).
-   - A block's filled share could also scale its opacity between "all
-     unfilled" and "solid".
-   - Translucency breaks two tricks from #6 and #7:
-     - Surface-only listing: interior blocks now show through. Keep the
-       culling for opaque (filled) blocks only.
-     - Face-sharing: hidden faces of translucent blocks must go, or they
-       double up.
-   - Draw opaque blocks first, then the translucent ones back to front
-     (sorted per rebuild by distance to the camera) with depthWrite off.
-     Or split them into two meshes: an opaque one, and a translucent one
-     that is sorted per block.
-   - Keep the slice (#7). Translucency is how filled sectors inside the
-     solid become visible without cutting.
-
-   Done means generated sectors are visible through unfilled space at
-   every zoom, colours follow density on both, and the frame rate holds
-   at the #6 block budget.
+   Done means filled sectors can be found by zooming alone at every zoom,
+   there are no marker sprites left, colors follow density, and the frame
+   rate holds at the #6 block budget.
 
 9. [ ] **Block info on click.** Clicking a block shows its sector ring,
    layer and slot ranges and its exact sector count (and how many are

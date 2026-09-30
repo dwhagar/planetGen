@@ -26,6 +26,10 @@
 // way this map's own former flat SVG projection (a legacy "+y is down on
 // screen" convention) needed one.
 //
+// TODO(galaxy-map #8): after #8 there is one tier, the block solid. The
+// placed and planned sprite tiers below are replaced by filled and unfilled
+// blocks, and this header should be rewritten to match.
+//
 // Three content tiers (each tile's placed/planned lists, plus density
 // shading computed in the browser):
 //   - placed:  real, already-generated sectors -- bright sprites, sized
@@ -396,11 +400,10 @@ function placedRelativeDensity(entry, referenceDensityPerLy3) {
 // cloud's cooler dim-to-accent one) so a real, already-generated
 // sector's own marker stays visually distinct from illustrative shading
 // at a glance, exactly like it already was before density coloring.
-// TODO(galaxy-map #8): once blocks hold filled sectors, a filled sector
-// drawn as a block (m = 1) takes this same colour (its real system
-// density), and a filled mega-block takes the space's density colour
-// (#3). Keep the two scales visually distinct from the unfilled
-// translucent ramp, so "generated" reads at a glance.
+// TODO(galaxy-map #8): the sprites go away. This colour scale lives on as a
+// filled sector's block colour at m = 1 (its real system density). Coarser
+// blocks take the space's density colour (#3), and their filled share only
+// sets their opacity.
 function placedDensityColor(entry, referenceDensityPerLy3) {
   var relative = placedRelativeDensity(entry, referenceDensityPerLy3);
   var t = relative == null ? 0.5 : Math.max(0, Math.min(1, Math.log2(relative + 1) / 3));
@@ -548,14 +551,15 @@ function initGalaxyMap3d(canvasEl, data) {
   // ahead instead of a wall of the nearest prisms. The logdepthbuf chunks match the renderer's
   // logarithmic depth buffer.
   // TODO(galaxy-map #8): split this into two materials:
-  //   - an opaque one for filled blocks (any generated sector inside);
-  //   - a translucent one for unfilled space, with transparent: true,
-  //     depthWrite: false and opacity from a per-vertex attribute
-  //     (0.5 at the sparsest density drawn, 0.8 at the densest, i.e. 50% to
-  //     20% transparent).
-  // Draw the translucent mesh after the opaque one and after the placed
-  // sprites' depth pass, with its blocks sorted back to front on every
-  // rebuild. The face-edge lines stay on both.
+  //   - an opaque one for fully filled blocks;
+  //   - a translucent one for everything else (transparent: true,
+  //     depthWrite: false), with a per-vertex opacity:
+  //       base = 0.5 (sparsest) .. 0.8 (densest)  -- 50% to 20% transparent
+  //       opacity = base + (1 - base) * fill
+  //       fill = the filled share, with a minimum visible step for any filled
+  //              content (see TODO.md #8)
+  // Draw the opaque mesh first, then the translucent one sorted back to
+  // front on every rebuild. The face-edge lines stay on both.
   var prismMaterial = new THREE.ShaderMaterial({
     uniforms: { nearCut: { value: 0 } },
     vertexShader: [
@@ -610,10 +614,14 @@ function initGalaxyMap3d(canvasEl, data) {
     highlightSprite.visible = true;
   }
 
-  // TODO(galaxy-map #8): with translucent unfilled blocks, these sprites
-  // could draw with depthTest on, so the solid can hide sectors that sit
-  // behind filled blocks. Check that clicks still land (picking goes by
-  // screen distance, not depth).
+  // TODO(galaxy-map #8): remove the placed and planned sprite tiers (this
+  // factory, makePlannedSprite, their textures, updateMarkerScales,
+  // syncTier and withPinned). Filled sectors are found through the block
+  // solid instead: a mixed block is more solid in proportion to its filled
+  // share, and single filled sectors appear as their own blocks only at
+  // m = 1. Picking then goes by blocks alone (cellAtClientPoint), and
+  // entryAtClientPoint and the pinned-entry logic go too. Keep the tiles'
+  // placed lists, since they feed the per-block filled counts.
   function makePlacedSprite(entry) {
     var group = new THREE.Group();
     var color = placedDensityColor(entry, data.referenceDensityPerLy3);
