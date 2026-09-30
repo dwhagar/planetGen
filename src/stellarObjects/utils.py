@@ -770,6 +770,40 @@ def holman_wiegert_critical_semimajor_axis(binary_separation_au, companion_mass_
     return ratio * binary_separation_au
 
 
+
+@finite_domain(clamped=("secondary_mass_fraction", "eccentricity"))
+def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_fraction, eccentricity=0.0):
+    """
+    Holman, M. & Wiegert, P. (1999), AJ 117:621 -- the empirical fit for a
+    P-type (circumbinary) orbit's critical semi-major axis: the SMALLEST
+    orbit around both stars of a close pair that stays long-term stable.
+
+        a_crit / a_bin = 1.60 + 5.10*e - 2.22*e^2 + 4.12*mu - 4.27*e*mu
+                         - 5.09*mu^2 + 4.61*e^2*mu^2
+
+    `mu` is the lighter star's fraction of the pair's total mass. Inputs
+    are clamped to `program_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE`/
+    `HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE` (the fit's tested grid)
+    rather than extrapolated. A circular equal-mass pair gives about
+    2.39 * a_bin.
+
+    Args:
+        binary_separation_au (float): The pair's own separation, in AU.
+        secondary_mass_fraction (float): `mu`, as defined above.
+        eccentricity (float): The pair's orbital eccentricity.
+
+    Returns:
+        float: The innermost stable circumbinary orbit, in AU.
+    """
+    mu_min, mu_max = program_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE
+    e_min, e_max = program_constants.HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE
+    mu = min(max(secondary_mass_fraction, mu_min), mu_max)
+    e = min(max(eccentricity, e_min), e_max)
+
+    ratio = (1.60 + 5.10 * e - 2.22 * e ** 2 + 4.12 * mu - 4.27 * e * mu
+             - 5.09 * mu ** 2 + 4.61 * e ** 2 * mu ** 2)
+    return ratio * binary_separation_au
+
 @finite_domain()
 def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, central_mass_kg):
     """
