@@ -851,7 +851,15 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
     planet.planet_class = None
     planet.radius = None
     planet.mass = None
+    # The caller already decided where this body sits (validate_system
+    # pushed it clear of its inner neighbor), so keep that distance:
+    # generate_planet_properties redraws an ecosphere class with a
+    # "zone_position_mode" anywhere in the habitable zone, which could
+    # drop it back inside the neighbor it was just moved past (an
+    # asteroid belt's span, in a giant star's wide habitable zone).
+    distance_before = planet.distance
     generate_planet_properties(planet, zone_override=new_zone)
+    planet.distance = distance_before
     planet.period = calculate_orbital_period_years(planet.distance, primary_mass_kg)
     calculate_surface_gravity(planet)
     calculate_atmospheric_conditions(planet, distance_override)
