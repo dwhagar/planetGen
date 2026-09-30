@@ -126,6 +126,20 @@ def _choose_weighted_planet_class(valid_classes):
     return chosen
 
 
+def _habitable_classes_barred(planet, zone):
+    """
+    Whether a randomly chosen class for `planet` must skip the habitable
+    classes: the system disallows habitable worlds and this is the
+    ecosphere, or its star is younger than `LIFE_MIN_STAR_AGE_GY` (too
+    young for a crust and oceans, let alone life). An explicitly requested
+    class is only held to the first rule (`_validate_no_habitable_world`).
+    """
+    if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
+        return True
+    star_age = getattr(getattr(planet, "star", None), "age", None)
+    return star_age is not None and star_age < program_constants.LIFE_MIN_STAR_AGE_GY
+
+
 def _validate_no_habitable_world(planet, zone):
     """
     Raises if the system disallows habitable worlds and this planet's
@@ -274,7 +288,7 @@ def generate_planet_properties(planet, zone_override=None):
     if planet.planet_class is None and planet.radius is None and planet.mass is None:
         # Fully random generation
         valid_classes = [c for c, data in program_constants.PLANET_CLASSES.items() if data[zone]]
-        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
+        if _habitable_classes_barred(planet, zone):
             valid_classes = [c for c in valid_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
 
         planet.planet_class = _choose_weighted_planet_class(valid_classes)
@@ -292,7 +306,7 @@ def generate_planet_properties(planet, zone_override=None):
         # Radius given, determine possible classes
         possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
                             if data[zone] and data["radius_range"][0] <= planet.radius <= data["radius_range"][1]]
-        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
+        if _habitable_classes_barred(planet, zone):
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius in this zone")
@@ -303,7 +317,7 @@ def generate_planet_properties(planet, zone_override=None):
         # Mass given, determine possible classes
         possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
                             if planet_mass_ranges[c][0] <= planet.mass <= planet_mass_ranges[c][1] and data[zone]]
-        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
+        if _habitable_classes_barred(planet, zone):
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given mass in this zone")
@@ -336,7 +350,7 @@ def generate_planet_properties(planet, zone_override=None):
             min_radius, max_radius = data["radius_range"]
             if min_mass <= planet.mass <= max_mass and min_radius <= planet.radius <= max_radius and data[zone]:
                 possible_classes.append(c)
-        if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
+        if _habitable_classes_barred(planet, zone):
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius/mass in this zone")
@@ -965,7 +979,7 @@ def generate_moons(planet, moon_count=None):
     # planet generates moons of its own zone's habitable classes any
     # differently. A gas giant now placed in 'e' with HABITABLE_WORLD=False
     # must not roll a habitable-class moon.
-    if planet.system_config.HABITABLE_WORLD is False and planet.zone == 'e':
+    if _habitable_classes_barred(planet, planet.zone):
         possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
     if not possible_classes:
         return
