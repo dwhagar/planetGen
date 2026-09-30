@@ -1878,6 +1878,10 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     parsed = [(key, parse_tile_key(key)) for key in dict.fromkeys(tile_keys)]
     if len(parsed) > MAX_TILES_PER_REQUEST:
         raise ValueError(f"at most {MAX_TILES_PER_REQUEST} tiles per request, got {len(parsed)}")
+    # TODO(galaxy-map #12): the page computes density itself
+    # (static/galaxyprisms.js), so `density_key` and this sampling are dead
+    # weight; drop them with galaxyViewport.density_points_for_tile and
+    # tilecache's "density" field.
     density_tile = parse_tile_key(density_key) if density_key else None
 
     skeleton = get_galaxy_shape(conn)

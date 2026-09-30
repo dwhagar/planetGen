@@ -1,4 +1,9 @@
 // html/static/galaxymap3d.js
+// TODO(galaxy-map #10): the renderer stays three.js (vendored r186).
+// Babylon.js and deck.gl need a bundler or ship several MB; regl or raw
+// WebGPU would mean rewriting picking, sprites and lighting. The slow part
+// is the JavaScript block listing, not drawing. When the map outgrows
+// WebGL, try three's own WebGPURenderer first.
 //
 // Renders the interactive 3D Galaxy Map (lib/galaxymap3d.py) as a real
 // WebGL scene (three.js, vendored at ./vendor/three.module.min.js -- see
@@ -227,6 +232,10 @@ function sectorDesignation(ring, layer, slot) {
 // One prism's info: a single sector (m == 1) or a group of sectors.
 // `cell` is {m, bounds, address} for a sector or {m, bounds, ring, slab,
 // density} for a group.
+// TODO(galaxy-map #8): for a block (m > 1), show its sector ring, layer
+// and slot ranges (exact once #5's aligned wedges land) and its exact
+// sector count. Later, when tiles carry per-block totals, also show how
+// many of them are generated (#11). At m = 1 keep today's sector panel.
 function showCellInfo(cell) {
   var panel = document.getElementById("galaxymap3d-info");
   if (!panel) {
@@ -733,6 +742,10 @@ function initGalaxyMap3d(canvasEl, data) {
   var PRISM_AMBIENT = 0.35;
   // Each prism's share of its cell, per side, for the thinnest and the
   // densest prism drawn.
+  // TODO(galaxy-map #7): mega-blocks are drawn full size (fill 1), making
+  // one continuous solid, so these and the per-prism shrink in
+  // updatePrisms go. The shader's thin face edges stay, so block
+  // boundaries still read.
   var PRISM_FILL_MIN = 0.3;
   var PRISM_FILL_MAX = 0.92;
   // Prism shading runs over a much wider density range than the markers'
@@ -745,6 +758,20 @@ function initGalaxyMap3d(canvasEl, data) {
   var PRISM_ACCENT = new THREE.Color(accentColor);
   var PRISM_HOT = new THREE.Color(0xeef0ff);
 
+  // TODO(galaxy-map #3): make the spiral visible. On this single log ramp
+  // (0.02 to 100) the arm/inter-arm contrast (1.4 / 0.6 at the default
+  // arm_amplitude) is only about 10% of the range. Instead, shade by
+  //   t = 0.45 * prismIntensity(density) + 0.55 * armT
+  //   armT = clamp((density / mean - (1 - A)) / (2A))
+  // where mean is the block's azimuthal mean from galaxyprisms.js and A is
+  // shape.arm_amplitude (mocked in galaxy-megablocks/
+  // spiral-contrast-compare.png).
+  // Edge cases:
+  // - arm_amplitude 0 or arm_count 0: fall back to density alone;
+  // - the bulge dilutes arms near the core, which is fine;
+  // - check the light theme's accent;
+  // - planned (unfilled) sector dots should pick up the same arm tint
+  //   when zoomed in.
   function prismIntensity(relativeDensity) {
     var t = Math.log(Math.max(relativeDensity, 1e-9) / PRISM_DENSITY_LOW) / Math.log(PRISM_DENSITY_HIGH / PRISM_DENSITY_LOW);
     return Math.max(0, Math.min(1, t));
@@ -777,12 +804,28 @@ function initGalaxyMap3d(canvasEl, data) {
     return cache;
   }
 
+  // TODO(galaxy-map #11): this is per CSS pixel. The block size (#6)
+  // should stay per CSS pixel (it is about what a person can see and
+  // click), but say so in the readout's code.
   // Parsecs per screen pixel at the view's focus (the orbit target).
   function pcPerPixelAtTarget() {
     var heightPx = canvasEl.clientHeight || 1;
     return (orbit.radius * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
   }
 
+  // TODO(galaxy-map #9): smooth zooming.
+  //   - Hand the block listing and geometry to a worker, and keep a small
+  //     cache of built meshes keyed by (m, slice, focus cell) for the
+  //     current m and one step finer and coarser.
+  //   - Once the current view is drawn, prerender the neighbours during
+  //     idle time (requestIdleCallback, with a setTimeout fallback).
+  //   - On a zoom that changes m, crossfade the old and new meshes over a
+  //     few frames instead of swapping.
+  // Edge cases:
+  // - Cancel stale worker jobs when the camera moves again.
+  // - Cap memory (drop the farthest cached mesh).
+  // - The first frame must not wait on the worker: draw today's
+  //   synchronous result once.
   function updatePrisms(viewRadius) {
     if (!galaxyShape) {
       prismMesh.visible = false;
@@ -847,6 +890,10 @@ function initGalaxyMap3d(canvasEl, data) {
     prismMesh.visible = prisms.length > 0;
   }
 
+  // TODO(galaxy-map #7): with a solid of full-size blocks the camera is
+  // often inside it. The slice (hide block layers above the focus layer,
+  // on by default) is the main answer; this near cut stays for views
+  // where the camera is below the cut.
   function updateNearCut() {
     prismMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
   }
@@ -946,6 +993,10 @@ function initGalaxyMap3d(canvasEl, data) {
     return found.map(function (f) { return f.key; });
   }
 
+  // TODO(galaxy-map #9): also compute the tiles for the next zoom step in
+  // and out (tile level +/- 1 around the same target) and fetch them at low
+  // priority after the current view's tiles, so zooming never waits on the
+  // network. Never let the prefetch abort a real fetch.
   function neededTiles() {
     var viewRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, orbit.radius * FETCH_RADIUS_FACTOR));
     var level = tileLevelForRadius(viewRadius);
@@ -1394,6 +1445,10 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointerup", endDrag);
   canvasEl.addEventListener("pointercancel", endDrag);
 
+  // TODO(galaxy-map #9): animate zoom steps (wheel, buttons,
+  // double-click) over ~150 ms toward the new radius instead of jumping,
+  // so the prerendered neighbour level can fade in. Respect
+  // prefers-reduced-motion by jumping as today.
   canvasEl.addEventListener(
     "wheel",
     function (event) {
@@ -1677,6 +1732,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // docstring) -- the browser's own default context menu is left alone,
   // rather than preventDefault()-ing it for nothing.
 
+  // TODO(galaxy-map #7): wire the Slice control (lib/galaxymap3d.py)
+  // here. It toggles between cutting at the focus layer and the whole
+  // solid, resets prismSetKey, and redraws.
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
     controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
@@ -1766,6 +1824,13 @@ function initGalaxyMap3d(canvasEl, data) {
     return Math.round(value * 1000) / 1000 + " pc";
   }
 
+  // TODO(galaxy-map #4): replace the single "≈ N pc (reference)" line with
+  // three:
+  //   1 px ≈ s sectors · pc · ly           (s = pcPerScreenPx / edgePc)
+  //   1 block = m sectors across (m³) · pc · ly
+  //   70 px ≈ sectors · pc · ly            (a nice-rounded bar)
+  // m is drawnSectorsPerPrism, so refresh it after updatePrisms too, not
+  // only on resize. Format large counts with toLocaleString.
   function updateScaleBar() {
     if (!scaleEl) {
       return;

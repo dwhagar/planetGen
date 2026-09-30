@@ -408,6 +408,8 @@ def planned_slots_in_tile(level, ix, iy, iz, edge_pc, shape,
     return [_planned_entry(slot) for slot in slots]
 
 
+# TODO(galaxy-map #12): unused by the Galaxy Map since the prisms; remove
+# with density_sample_points and its helpers below.
 def density_points_for_tile(level, ix, iy, iz, shape, count=DENSITY_TILE_SAMPLE_COUNT):
     """
     The illustrative density cloud (see `density_sample_points`) anchored

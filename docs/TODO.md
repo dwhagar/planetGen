@@ -33,10 +33,14 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **Extend the cache (1)**, then do the System Map route (2) and the
-   phenomena schema work (3).
-- **Do the Galaxy Map rework (4) last** of the active work: it's the
-   largest change and builds on the cache.
+- **Extend the cache (1)**, then do the System Map route (2).
+- **Galaxy Map (3-12):** Boss approved the plan in the
+   project's `galaxy-megablocks/report.md` (hybrid master-wedge
+   slots, pixel-sized mega-blocks). Work items 3-10 in order. 3 and 4 ship
+   on today's prisms. 5 is the one data-deleting step and waits for Boss's
+   go-ahead on the migration. 11-12 are follow-ups. Each change site
+   in the code carries a `TODO(galaxy-map #N)` comment naming its item
+   here; grep for `TODO(galaxy-map` to see them all.
 
 ### Performance
 
@@ -64,35 +68,138 @@ renumber when items are added or finished.
    close binary. Done means the drawn path and reported distance agree
    and both respect those clearances.
 
-### Galaxy Map (`src/html/web/galaxy_views.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
+### Galaxy Map and the sector standard (`static/galaxyprisms.js`, `static/galaxymap3d.js`, `lib/galaxymap3d.py`, `stellarObjects/galaxyGeometry.py`)
 
-3. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
-   Investigate a representation driven by the real galaxy/sector geometry
-   (`stellarObjects/galaxyGeometry.py`: the cylindrical ring/layer/slot
-   grid) instead of per-sector sprites plus an illustrative density
-   cloud. Idea to evaluate first: group neighboring sectors and draw them
-   as arc segments of rings (a band of rings and layers by an angular
-   range), shaded by density, so the map shows the galaxy's
-   structure at every zoom without enumerating individual sectors. Done
-   means a written comparison of options, then an implementation that
-   loads quickly at full-galaxy zoom. (Today's density cloud also renders
-   black: its `InstancedMesh` material sets `vertexColors: true` with no
-   per-vertex `color` attribute, which zeroes the per-instance colors.
-   Turning that off alone saturates it to white, so it needs retuning or
-   replacing as part of this.)
+Today the map draws the analytic density as shrunk prisms, m sectors a
+side (m a power of 3), sized by a volume budget that badly overestimates
+the thin disk. The result is 70-290 px cubes with gaps, and the spiral
+barely shows. The plan (report above, with renders) replaces that with a
+continuous solid of mega-blocks sized from the screen's pixel scale.
+
+3. [ ] **Make the spiral arms stand out in the expected-density shading.**
+   `prismIntensity` puts log density from 0.02 to 100 on one ramp, so the
+   arms (a 1.4 / 0.6 contrast at the default `arm_amplitude`) span only
+   about a tenth of it. Split each block's density into its azimuthal
+   mean (bulge + disk, no arms) and the arm factor (density / mean), and
+   let the arm factor drive about half the ramp. Mocked in
+   `galaxy-megablocks/spiral-contrast-compare.png`. Done means the arms read clearly at
+   full zoom-out and at 12 kpc, in both themes, and placed-sector dots
+   still stand out on top.
+
+4. [ ] **Scale readout in sectors, pc and ly.** Replace
+   `updateScaleBar`'s "≈ N pc (reference)" with three lines:
+   `1 px ≈ s sectors · pc · ly`, `1 block = m sectors across (m³) · pc ·
+   ly`, and a 70 px bar in the same three units. Done means the readout
+   updates on every zoom and resize, and is readable at 390 px.
+
+5. [ ] **Hybrid master-wedge slot rule (schema v34).** Boss chose it on
+   2026-09-30. There are 3 master wedges at the center, doubling (6, 12,
+   ..., 1,536) once each would hold at least 8 slots. Each ring's slot
+   count is the multiple of its zone's master count nearest
+   `2*pi*(i + 1/2)`. Sector arcs stay within ±6% of the edge (±2% today),
+   the total count is unchanged, and every master line runs from where it
+   starts out to the edge.
+   - Change `galaxyGeometry.ring_sector_count` and its mirror in
+     `galaxyprisms.js` together.
+   - Add a `ring_master_count` helper.
+   - `_overlapping_slots` and `neighbor_addresses` become simple integer
+     ratios across aligned boundaries.
+   - Update `docs/design/galaxy-coordinate-system.md`.
+   - Slot counts change in all but 15 of 3,856 rings, so `_migrate_v33_to_v34`
+     deletes galaxy-placed sectors, systems and phenomena, as v32 and v33 did.
+     `galaxy_layer` and `galaxy_column` are stored by ring and layer and stay
+     valid.
+
+   **Needs Boss's explicit OK before merging**, then `update.sh` and a
+   regenerate. Done means tests pin the first rings (3, 9, 15, 21, 27,
+   36, ...), check that every master line is a slot boundary in every
+   ring outward, and check that arcs stay in 0.94-1.06.
+
+6. [ ] **Mega-blocks sized from the pixel scale.**
+   - Replace `sectorsPerPrism` and `prismsForView` with
+     `blockSizeForScale`: the smallest power of 3 with `m * edge >=
+     BLOCK_MIN_PX * pcPerPixel`, with BLOCK_MIN_PX = 4.
+   - Block rings and layers are the sector grid scaled by m (odd m keeps
+     layer 0 on the plane).
+   - Block wedges are the innermost member ring's master wedges divided by
+     a power of 2. This makes every block an exact set of whole sectors, so
+     `groupSectorCount` stops binning by center angle.
+   - Existence depends only on ring and layer, so list exposed (surface)
+     blocks only, never the whole view volume. Keep a budget guard that
+     steps m up by 3.
+
+   Done means tests check m against the scale, counts within a few percent
+   of m³, surface listing against brute force, and the budget at every zoom.
+
+7. [ ] **Continuous blocks and a slice control.**
+   - Draw blocks full size (fill 1, keep the thin face edges).
+   - Add a Slice control, defaulting to "cut at the focus layer", with
+     "whole solid" as the alternative. A solid only shows its terraced
+     outside, and a zoomed-in camera sits inside it.
+   - The near cut stays for when the camera is below the cut.
+
+   Done means the arms show at full zoom-out, zoomed views look down on a
+   continuous floor, and the control works by keyboard.
+
+8. [ ] **Block info on click.** Clicking a block shows its sector ring,
+   layer and slot ranges and its exact sector count (and how many are
+   generated once tiles carry that). A click at m = 1 keeps today's sector
+   panel (designation, CLI snippet, 8 corners).
+
+9. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
+   rebuilds the whole prism set on the main thread, then waits on tiles.
+   - Move block listing and geometry into a Web Worker. `galaxyprisms.js`
+     already has no three.js import. Hand back transferable typed arrays.
+   - Keep the geometry for the current m and the next finer and coarser
+     m ready ahead of time, keyed by (m, slice, center cell).
+   - Prefetch the tiles the next zoom step will need.
+   - Animate wheel and button zoom over a few frames, and crossfade between
+     block sizes instead of popping.
+
+   Done means no dropped frames while zooming on a mid-range laptop, and
+   no visible wait at any zoom step already visited.
+
+10. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
+   - Babylon.js is several MB, and deck.gl needs a bundler.
+   - regl and raw WebGPU would mean rewriting picking, sprites and
+     lighting by hand.
+   - The CSP (`default-src 'self'`) and the no-build-step vendoring rule
+     favor one vendored file.
+   - The bottleneck is JavaScript listing work, not the renderer.
+
+   three r186 already has InstancedMesh, BatchedMesh and a
+   WebGPURenderer to move to later. Done means the rendering choice is
+   written into `docs/html-interface.md`.
+
+11. [ ] **Follow-ups (edge cases).**
+   - Distance-based detail (bigger blocks farther from the camera), which
+     the aligned wedges from 5 make seamless.
+   - An option to color blocks by the share of their sectors already
+     generated.
+   - A translucent mode.
+   - Phone performance at 390 px.
+   - DPR: `pcPerPixel` is per CSS pixel.
+   - Reduced-motion users get instant zoom.
+
+12. [ ] **Remove the server's leftover density sampling.** The page draws
+   density itself since the prisms landed, but `queryDb.galaxy_tiles`
+   still accepts `density_key` and `galaxyViewport.density_points_for_tile`
+   / `density_sample_points` still exist, as does `tilecache`'s `density`
+   field. Done means they're gone with their tests, and the tile cache
+   still works.
 
 ### Web API (`src/html/api/routes.py`)
 
 Low priority; nobody is waiting on these.
 
-4. [ ] **The API can't create a system inside an existing sector.**
+13. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-5. [ ] **The API can't edit a system's generated content.** `PATCH
+14. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -102,10 +209,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-6. [ ] Assign government ownership to star systems so that groups of
+15. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-7. [ ] Flag worlds with life for generated names of their dominant
+16. [ ] Flag worlds with life for generated names of their dominant
     species.
-8. [ ] A database of spacefaring species.
-9. [ ] Model younger and older civilizations: what differs with a
+17. [ ] A database of spacefaring species.
+18. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.
