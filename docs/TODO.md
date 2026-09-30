@@ -881,11 +881,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 44. [ ] **A binary's secondary can outweigh its primary.** The secondary's
     mass is clamped into its random Yerkes class's range afterwards.
     Test: `test_binary_secondary_is_never_heavier_than_primary`.
-45. [ ] **Sector growth ignores black holes and neutron stars.**
-    `SpaceSector._fine_tune_position` checks only `self.entries`, not
-    `_massive_neighbors()`, so `grow_from_seed` can place systems inside
-    a remnant's Hill sphere. Test:
-    `test_fuzz_sector_placement.py::test_growth_respects_massive_phenomena`.
 
 ### More pages (Boss's notes, 2026-09-30)
 
