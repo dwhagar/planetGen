@@ -132,9 +132,14 @@ def _base_record(phenomenon_type, **overrides):
             "surface_temperature_k": _NEUTRON_STAR_SURFACE_TEMPERATURE_K,
             "luminosity_w": _NEUTRON_STAR_LUMINOSITY_W,
         },
-        "nebula": {"nebula_type": "emission", "radius_ly": 50.0},
+        "nebula": {
+            "nebula_class": "D", "nebula_type": "emission", "radius_ly": 50.0,
+            "density_cm3": 100.0, "temperature_k": 10000.0, "extinction_av": 0.5,
+        },
         "supernova-remnant": {
-            "morphology": "shell", "age_years": _SUPERNOVA_AGE_YEARS,
+            "remnant_class": "S", "morphology": "shell", "compact_remnant_kind": "neutron_star",
+            "density_cm3": 1.0, "temperature_k": 3e6, "extinction_av": 0.05,
+            "age_years": _SUPERNOVA_AGE_YEARS,
             "radius_ly": (
                 prog_c.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
                 * (_SUPERNOVA_AGE_YEARS ** prog_c.SEDOV_TAYLOR_TIME_EXPONENT)
@@ -143,7 +148,8 @@ def _base_record(phenomenon_type, **overrides):
         },
         "rogue-planet": {"mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g"},
         "comet": {"nucleus_diameter_km": 1.0, "velocity_kms": 40.0, "is_active": True},
-        "asteroid-field": {"density": "typical", "radius_ly": 0.5},
+        "asteroid-field": {"density": "typical", "radius_ly": 0.5, "field_class": "B4",
+                           "composition_family": "carbonaceous"},
         "quasar": {
             "black_hole_mass_solar": _QUASAR_MASS_SOLAR,
             "event_horizon_radius_km": (
@@ -210,8 +216,26 @@ def test_check_hard_invariants_flags_neutron_star_luminosity_mismatch():
 
 
 def test_check_hard_invariants_flags_nebula_radius_outside_its_type_range():
-    issues = pp.check_hard_invariants(_base_record("nebula", nebula_type="planetary", radius_ly=50.0))
+    issues = pp.check_hard_invariants(
+        _base_record("nebula", nebula_class="H", nebula_type="planetary", radius_ly=50.0,
+                     density_cm3=1e4, temperature_k=15000.0, extinction_av=0.1))
     assert any("radius_ly" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_nebula_contents_outside_its_class():
+    issues = pp.check_hard_invariants(_base_record("nebula", temperature_k=20.0))
+    assert any("temperature_k" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_remnant_class_that_cant_hold_its_core():
+    issues = pp.check_hard_invariants(
+        _base_record("supernova-remnant", remnant_class="T", morphology="plerion", compact_remnant_kind="black_hole"))
+    assert any("can't hold" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_asteroid_field_class_mismatch():
+    issues = pp.check_hard_invariants(_base_record("asteroid-field", field_class="C4"))
+    assert any("field_class" in issue for issue in issues)
 
 
 def test_check_hard_invariants_flags_supernova_remnant_sedov_taylor_mismatch():

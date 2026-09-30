@@ -1,5 +1,30 @@
 # Changelog
 
+## [7.19.0] - 2026-09-30
+
+### Added
+
+- **Schema v38: letter classes for nebulae, supernova remnants and
+  asteroid fields.** Nebulae are classed A-Q and supernova remnants R-W
+  (`program_constants.NEBULA_CLASSES`), each with what fills it: dominant
+  species, particle density, temperature and optical extinction. A
+  remnant's class follows its progenitor and core (a Type Ia remnant is
+  always W; a pulsar wind nebula needs a pulsar). Asteroid fields get a
+  class made of a composition-and-density letter and a size digit, like
+  `C3`, with composition drawn from real asteroid families
+  (`ASTEROID_FIELD_COMPOSITIONS`). Nebulae gain a `diffuse` family.
+  Existing rows get the class they most likely are.
+
+## [7.18.1] - 2026-09-30
+
+### Fixed
+- **Moons could orbit outside their planet's Hill sphere, or inside the
+  planet itself.** Moons now orbit between the planet's surface (plus
+  room for the largest moon it can hold and its atmosphere) and the
+  prograde stability limit of about half the Hill radius (Domingos,
+  Winter & Yokoyama 2006). A planet whose class is regenerated after a
+  move drops the moons that no longer fit (TODO items 40 and 41).
+
 ## [7.18.0] - 2026-09-30
 
 ### Changed

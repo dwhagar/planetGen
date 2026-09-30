@@ -19,6 +19,7 @@ rarer exotic-phenomenon mode, never by `StarSystem._generate_planets`'s
 normal per-slot rolls.
 """
 
+import math
 import random
 
 from .asteroidData import format_composition_summary, generate_asteroid_composition
@@ -26,7 +27,51 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name, reseed_rng
+from .utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name, reseed_rng
+
+
+AU_PER_LY = 63241.077
+"""float: Astronomical units in one light-year, for the size digit."""
+
+
+def asteroid_field_size_digit(radius_ly):
+    """The size digit of a field's class: floor(log10(radius in AU)),
+    clamped to `ASTEROID_FIELD_SIZE_DIGIT_RANGE` (1-4)."""
+    low, high = program_constants.ASTEROID_FIELD_SIZE_DIGIT_RANGE
+    return max(low, min(high, math.floor(math.log10(radius_ly * AU_PER_LY))))
+
+
+def asteroid_field_class(composition_family, density, radius_ly):
+    """
+    A field's full class, letter plus size digit (e.g. `"C3"`).
+
+    Args:
+        composition_family (str): An `ASTEROID_FIELD_COMPOSITIONS` key.
+        density (str): `"sparse"`, `"typical"` or `"dense"`.
+        radius_ly (float): The field's radius, light-years.
+    """
+    letter = program_constants.ASTEROID_FIELD_COMPOSITIONS[composition_family]["letters"][density]
+    return f"{letter}{asteroid_field_size_digit(radius_ly)}"
+
+
+def composition_family_for_letter(letter):
+    """The composition family a class letter belongs to."""
+    for family, data in program_constants.ASTEROID_FIELD_COMPOSITIONS.items():
+        if letter in data["letters"].values():
+            return family
+    raise ValueError(f"unknown asteroid field class letter {letter!r}")
+
+
+def _family_composition(composition_family):
+    """A (component, concentration) list like
+    `generate_asteroid_composition`'s, sampled from the family's own
+    components (or all asteroid components for a mixed family)."""
+    components = program_constants.ASTEROID_FIELD_COMPOSITIONS[composition_family]["components"]
+    if components is None:
+        return generate_asteroid_composition()
+    concentrations = ["high", "moderate", "small", "trace"]
+    chosen = random.sample(components, k=min(len(concentrations), len(components)))
+    return list(zip(chosen, concentrations))
 
 
 class AsteroidField:
@@ -36,6 +81,11 @@ class AsteroidField:
 
     Attributes:
         name (str): A generated or explicitly given name for the field.
+        field_class (str): The class, a letter from composition and
+            density plus a size digit (e.g. `"C3"`;
+            `program_constants.ASTEROID_FIELD_COMPOSITIONS`).
+        composition_family (str): The family the letter comes from
+            (`"carbonaceous"`, `"stony"`, `"metallic"`, ...).
         density (str): The density of the field ('dense', 'sparse', 'typical'
             -- the same three levels `AsteroidBelt.density` uses).
         composition (list): A list of (component, concentration) tuples,
@@ -55,7 +105,7 @@ class AsteroidField:
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "density", "radius_ly",
+        "name", "field_class", "composition_family", "density", "radius_ly",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
@@ -77,15 +127,23 @@ class AsteroidField:
         reseed_rng()
         self.system_config = system_config
         # TODO(phenomena #30): asteroid fields get a standardized
-        # designation instead of a name, e.g. "AF <class><size
-        # digit>-<sector designation>-<n>" (class from #31, size digit =
-        # floor(log10(radius in AU))).
+        # designation instead of a name: "AF <field_class>-<sector
+        # designation>-<n>", e.g. "AF C3-4F2A1-02".
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.density = random.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid field density", self.density, "uniform draw among dense/sparse/typical")
-        self.composition = generate_asteroid_composition()
+        families = list(program_constants.ASTEROID_FIELD_COMPOSITIONS)
+        self.composition_family = random.choices(
+            families,
+            weights=[program_constants.ASTEROID_FIELD_COMPOSITIONS[f]["frequency"] for f in families],
+            k=1,
+        )[0]
+        log.choice("Asteroid field composition", self.composition_family,
+                   "weighted draw by ASTEROID_FIELD_COMPOSITIONS frequency")
+        self.composition = _family_composition(self.composition_family)
         self.radius_ly = random.uniform(*program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY)
+        self.field_class = asteroid_field_class(self.composition_family, self.density, self.radius_ly)
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
@@ -122,6 +180,12 @@ class AsteroidField:
         """
         field = object.__new__(cls)
         field.system_config = system_config
+        data = dict(data)
+        if data.get("field_class") is None:
+            # Saved before classes existed (schema v38): a random mineral
+            # mix is honestly "mixed".
+            data["composition_family"] = "mixed"
+            data["field_class"] = asteroid_field_class("mixed", data["density"], data["radius_ly"])
         fields_from_dict(field, data, cls.SERIALIZABLE_FIELDS)
         field.composition = [tuple(pair) for pair in data["composition"]]
         return field
@@ -148,11 +212,13 @@ class AsteroidField:
                   describing the asteroid field.
         """
         header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Asteroid Field) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
+        header = f"{header_level} {self.name} (Class {self.field_class} Asteroid Field) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
 
+        family_description = program_constants.ASTEROID_FIELD_COMPOSITIONS[self.composition_family]["description"]
         description = (
-            f"{self.name} is a {self.density} field of asteroid debris drifting in open interstellar space, "
-            f"spanning roughly {self.radius_ly:.3f} light-years across, composed of {self.get_composition_summary()}. "
+            f"{self.name} is a class {self.field_class} field: a {self.density} {self.composition_family} "
+            f"field of asteroid debris ({family_description}) drifting in open interstellar space, "
+            f"about {format_distance_ly(self.radius_ly)} in radius, composed of {self.get_composition_summary()}. "
             f"Though bound to no star, it still orbits the galactic center at "
             f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )

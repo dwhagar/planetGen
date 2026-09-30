@@ -17,6 +17,11 @@ these values or tables are needed.
 from . import physical_constants as _physical_constants
 
 # --- Planet Generation Parameters ---
+# Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
+# around extrasolar giant planets" -- a prograde moon on a circular orbit
+# stays bound out to about 0.4895 of its planet's Hill radius; beyond that
+# the star strips it (planetPhysics.generate_moons' outer limit).
+MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
 
 # The average ratio of a gas giant's core mass to its total mass
 GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
@@ -1522,58 +1527,181 @@ NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K = (5e4, 3e6)
 # (Population I/II), not primordial, remnants.
 COMPACT_REMNANT_AGE_RANGE_GY = (0.001, 10.0)
 
-# --- Nebulae (nebulaData.Nebula) ---
+# --- Nebulae and supernova remnants (nebulaData.Nebula,
+# supernovaRemnantData.SupernovaRemnant) ---
 #
-# Four standard ISM nebula classes (Osterbrock & Ferland 2006,
-# "Astrophysics of Gaseous Nebulae and Active Galactic Nuclei", 2nd ed.):
-# emission nebulae are ionized by nearby hot young stars (H II regions),
-# reflection nebulae merely scatter a nearby star's light off dust,
-# planetary nebulae are the expelled envelope of a dying low/intermediate
-# -mass star, and dark nebulae are dense molecular clouds seen in
-# silhouette against background starlight. Each entry's `radius_range_ly`
-# and `formation_cause` reflect real, characteristic scales/origins for
-# that class.
-# TODO(phenomena #28): replace these four types with NEBULA_CLASSES, a
-# letter-class table like PLANET_CLASSES (A-W draft in
-# docs/design/nebula-and-asteroid-field-classes.md: diffuse, H II,
-# reflection, planetary, molecular and supernova-remnant classes), each
-# with contents, radius, nH, temperature, extinction, central-object rule
-# (#27) and frequency.
-NEBULA_TYPES = {
+# Nebulae fall into five families (Osterbrock & Ferland 2006, "Astrophysics
+# of Gaseous Nebulae and Active Galactic Nuclei", 2nd ed.): diffuse
+# interstellar gas, emission (H II) regions ionized by hot young stars,
+# reflection nebulae scattering a nearby star's light off dust, planetary
+# nebulae expelled by a dying low/intermediate-mass star, and dark
+# (molecular) clouds seen in silhouette. `nebulae.nebula_type` stores the
+# family; the class letter below says what is actually in the cloud.
+NEBULA_FAMILIES = {
+    "diffuse": {
+        "composition": "thin, warm interstellar gas, mostly hydrogen and helium",
+        "formation_cause": "the galaxy's general interstellar medium, stirred and heated by starlight and old supernova blasts",
+    },
     "emission": {
-        "radius_range_ly": (10.0, 200.0),
         "composition": "ionized hydrogen (H II) glowing under ultraviolet radiation from nearby hot young stars",
         "formation_cause": "ultraviolet radiation from newly-formed O and B class stars ionizing the surrounding hydrogen cloud",
     },
     "reflection": {
-        "radius_range_ly": (1.0, 20.0),
         "composition": "fine interstellar dust scattering the blue light of an adjacent bright star",
         "formation_cause": "a bright star passing through or forming within a dense dust cloud, illuminating it by reflection rather than ionization",
     },
     "planetary": {
-        "radius_range_ly": (0.1, 3.0),
         "composition": "ionized gas shells of hydrogen, helium, oxygen, and nitrogen expelled by a dying star",
         "formation_cause": "a low-to-intermediate-mass star shedding its outer envelope at the end of its asymptotic giant branch phase, exposing a hot white dwarf core",
     },
     "dark": {
-        "radius_range_ly": (1.0, 50.0),
         "composition": "dense molecular hydrogen and cold dust grains, opaque to visible light",
         "formation_cause": "a cold, dense molecular cloud that has not yet collapsed to form stars, visible only in silhouette against background starlight",
     },
 }
 
-# --- Supernova Remnants (supernovaRemnantData.SupernovaRemnant) ---
+# Nebula and supernova remnant classes, one letter each like
+# PLANET_CLASSES (TODO item 28; reasoning, sources and the family tables in
+# docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
+# they aren't read as 1 and 0; X-Z are reserved. A-Q are nebulae, R-W are
+# supernova remnants ("stellar remnants" means supernova remnants only,
+# Boss 2026-09-30; compact objects keep their own tables).
 #
-# Three standard morphological classes (Vink 2012, A&A Rev 20:49,
-# "Supernova remnants: the X-ray perspective"): a shell (limb-
-# brightened ring of shocked ejecta/ISM), a plerion/"crab-like" remnant
-# (centrally-filled by a pulsar wind nebula, e.g. the Crab Nebula), and
-# a composite remnant showing both a shell and a central pulsar wind
-# nebula.
-# TODO(phenomena #28): these become supernova-remnant classes R-W in
-# NEBULA_CLASSES (young ejecta-dominated, shell, plerion, composite, old
-# radiative, thermonuclear).
+# Each class: `name`, `family` (a NEBULA_FAMILIES key, or
+# "supernova-remnant"), `species` (dominant contents), `density_range_cm3`
+# (particle density nH, log-uniform), `temperature_range_k` (log-uniform),
+# `extinction_range_av` (optical extinction in magnitudes, log-uniform
+# unless the low end is 0), `center` (the central-object rule item 27
+# builds on), and `frequency` (relative weight within its family group).
+# Nebulae also carry `radius_range_ly`; a remnant's radius comes from its
+# age (Sedov-Taylor, below), so remnants carry `morphology` (the Vink 2012
+# shell/plerion/composite shape), `age_range_years` and `compact` (which
+# compact remnants the class allows: "neutron_star", "black_hole", None).
+NEBULA_CLASSES = {
+    "A": {"name": "Diffuse neutral cloud", "family": "diffuse",
+          "species": "neutral hydrogen and helium with trace ions",
+          "radius_range_ly": (10.0, 150.0), "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (6000.0, 10000.0), "extinction_range_av": (0.0, 0.1),
+          "center": "none", "frequency": 3.0},
+    "B": {"name": "Diffuse ionized gas", "family": "diffuse",
+          "species": "ionized hydrogen and free electrons",
+          "radius_range_ly": (20.0, 200.0), "density_range_cm3": (0.1, 1.0),
+          "temperature_range_k": (8000.0, 10000.0), "extinction_range_av": (0.0, 0.1),
+          "center": "none nearby", "frequency": 2.0},
+    "C": {"name": "Compact H II region", "family": "emission",
+          "species": "ionized gas still inside its dusty birth cloud",
+          "radius_range_ly": (0.3, 3.0), "density_range_cm3": (1e3, 1e4),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (1.0, 10.0),
+          "center": "one young O or early-B star", "frequency": 1.0},
+    "D": {"name": "Classical H II region", "family": "emission",
+          "species": "H+, e-, O2+, N+ and S+",
+          "radius_range_ly": (10.0, 100.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a small O/B cluster", "frequency": 2.0},
+    "E": {"name": "Giant H II complex", "family": "emission",
+          "species": "H+, e-, O2+, N+ and S+ in many nested shells",
+          "radius_range_ly": (50.0, 200.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a young massive cluster", "frequency": 0.5},
+    "F": {"name": "Reflection nebula", "family": "reflection",
+          "species": "silicate grains, PAHs, carbon soot and ices in neutral gas",
+          "radius_range_ly": (1.0, 20.0), "density_range_cm3": (1e2, 1e3),
+          "temperature_range_k": (10.0, 100.0), "extinction_range_av": (0.5, 3.0),
+          "center": "a B or A star", "frequency": 2.0},
+    "G": {"name": "Emission-reflection nebula", "family": "emission",
+          "species": "ionized core inside a dusty rim",
+          "radius_range_ly": (2.0, 20.0), "density_range_cm3": (1e2, 1e3),
+          "temperature_range_k": (50.0, 10000.0), "extinction_range_av": (0.5, 3.0),
+          "center": "an early-B star", "frequency": 1.0},
+    "H": {"name": "Young planetary nebula", "family": "planetary",
+          "species": "ionized hydrogen, carbon, nitrogen, oxygen and neon",
+          "radius_range_ly": (0.1, 0.5), "density_range_cm3": (1e4, 1e5),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a hot central star", "frequency": 1.0},
+    "J": {"name": "Evolved planetary nebula", "family": "planetary",
+          "species": "thinning ionized hydrogen, carbon, nitrogen, oxygen and neon",
+          "radius_range_ly": (0.5, 3.0), "density_range_cm3": (1e2, 1e3),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a white dwarf", "frequency": 2.0},
+    "K": {"name": "Carbon-rich planetary nebula", "family": "planetary",
+          "species": "ionized gas with carbon-rich dust and PAHs",
+          "radius_range_ly": (0.1, 2.0), "density_range_cm3": (1e2, 1e4),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a central star from a 1.5-3 Msun progenitor", "frequency": 1.0},
+    "L": {"name": "Nitrogen-rich bipolar planetary nebula", "family": "planetary",
+          "species": "nitrogen- and helium-enriched gas in bipolar lobes",
+          "radius_range_ly": (0.2, 3.0), "density_range_cm3": (1e2, 1e4),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a central star from a 3-8 Msun progenitor, often binary", "frequency": 1.0},
+    "M": {"name": "Giant molecular cloud", "family": "dark",
+          "species": "H2, He, CO, PAHs, silicates",
+          "radius_range_ly": (20.0, 150.0), "density_range_cm3": (1e2, 1e6),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (10.0, 100.0),
+          "center": "none; embedded young clusters possible", "frequency": 1.0},
+    "N": {"name": "Dark cloud", "family": "dark",
+          "species": "H2, CO, cold dust",
+          "radius_range_ly": (1.0, 50.0), "density_range_cm3": (1e3, 1e5),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (5.0, 50.0),
+          "center": "none", "frequency": 3.0},
+    "P": {"name": "Bok globule", "family": "dark",
+          "species": "H2, CO, organics and dust",
+          "radius_range_ly": (0.3, 3.0), "density_range_cm3": (1e4, 1e5),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (5.0, 50.0),
+          "center": "none or one protostar", "frequency": 2.0},
+    "Q": {"name": "Star-forming core", "family": "dark",
+          "species": "H2 with outflows, Herbig-Haro jets and masers",
+          "radius_range_ly": (0.1, 1.0), "density_range_cm3": (1e5, 1e6),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (10.0, 100.0),
+          "center": "embedded protostars", "frequency": 1.0},
+    "R": {"name": "Young ejecta-dominated remnant", "family": "supernova-remnant",
+          "species": "Fe, Si, S and O ejecta",
+          "morphology": "shell", "age_range_years": (50.0, 3000.0),
+          "compact": ("neutron_star", "black_hole", None),
+          "density_range_cm3": (0.1, 100.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "a neutron star or black hole", "frequency": 1.0},
+    "S": {"name": "Shell remnant", "family": "supernova-remnant",
+          "species": "shocked interstellar gas and ejecta",
+          "morphology": "shell", "age_range_years": (50.0, 100000.0),
+          "compact": ("neutron_star", "black_hole", None),
+          "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "a neutron star, black hole or nothing", "frequency": 3.0},
+    "T": {"name": "Pulsar wind nebula (plerion)", "family": "supernova-remnant",
+          "species": "relativistic electrons in a magnetic field",
+          "morphology": "plerion", "age_range_years": (50.0, 20000.0),
+          "compact": ("neutron_star",),
+          "density_range_cm3": (0.01, 1.0),
+          "temperature_range_k": (1e4, 1e6), "extinction_range_av": (0.0, 0.1),
+          "center": "a pulsar (required)", "frequency": 1.0},
+    "U": {"name": "Composite remnant", "family": "supernova-remnant",
+          "species": "a shocked shell around a pulsar wind nebula",
+          "morphology": "composite", "age_range_years": (1000.0, 30000.0),
+          "compact": ("neutron_star",),
+          "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "a pulsar", "frequency": 1.0},
+    "V": {"name": "Old radiative remnant", "family": "supernova-remnant",
+          "species": "a cooling shell merging with the interstellar medium",
+          "morphology": "shell", "age_range_years": (20000.0, 100000.0),
+          "compact": ("neutron_star", "black_hole", None),
+          "density_range_cm3": (1.0, 100.0),
+          "temperature_range_k": (1e4, 1e6), "extinction_range_av": (0.0, 0.1),
+          "center": "a neutron star far off-center, or nothing", "frequency": 2.0},
+    "W": {"name": "Thermonuclear remnant", "family": "supernova-remnant",
+          "species": "iron-rich ejecta with no hydrogen",
+          "morphology": "shell", "age_range_years": (50.0, 100000.0),
+          "compact": (None,),
+          "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "nothing (a Type Ia supernova leaves no core)", "frequency": 1.0},
+}
+
 SUPERNOVA_REMNANT_MORPHOLOGIES = ("shell", "plerion", "composite")
+"""tuple: The remnant shapes `supernova_remnants.morphology` allows (Vink
+2012, A&A Rev 20:49): a limb-brightened shell, a plerion (filled by a
+pulsar wind nebula, like the Crab), or a composite of both. Each remnant
+class in `NEBULA_CLASSES` fixes its own."""
 
 # Sedov-Taylor phase expansion coefficient and exponent: R(t) = C *
 # t^(2/5), the self-similar blast-wave solution for a remnant that has
@@ -1829,13 +1957,83 @@ SYSTEM_COMET_COUNT_RANGE = (1, 3)
 # scale (~30-50 AU, ~0.0005-0.0008 ly) -- a field with no central star to
 # hold it together can plausibly be spread far wider by galactic tidal
 # shear over billions of years -- while the upper bound stays below a
-# planetary nebula's own radius range (NEBULA_TYPES["planetary"], 0.1-3
+# planetary nebula's own radius range (NEBULA_CLASSES "H"-"L", 0.1-3
 # ly) so the two remain visually/narratively distinct phenomena.
-# TODO(phenomena #31): add ASTEROID_FIELD_CLASSES, letters A-Z from
-# composition and density (draft in
-# docs/design/nebula-and-asteroid-field-classes.md); size goes in the
-# designation digit (#30).
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
+
+# Asteroid field classes (TODO item 31, Boss 2026-09-30: "a digit and part
+# of the class"). The letter comes from composition and density, following
+# asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
+# V basaltic; Bus & Binzel 2002, Icarus 158:146; DeMeo et al. 2009, Icarus
+# 202:160); the digit is the field's size, floor(log10(radius in AU)), so a
+# 0.001-1 ly field is 1-4. A full class reads like "C3". V-Z are reserved.
+#
+# Each composition family: `letters` keyed by density (`sparse`, `typical`,
+# `dense`), `components` (what its bodies are made of, sampled for the
+# composition text), `description`, and `frequency` (relative weight).
+ASTEROID_FIELD_COMPOSITIONS = {
+    "carbonaceous": {
+        "letters": {"sparse": "A", "typical": "B", "dense": "C"},
+        "components": ["carbon", "serpentine", "magnetite", "silicon carbide", "sulfur",
+                       "phosphorus", "olivine", "troilite"],
+        "description": "dark carbon-rich bodies with hydrated clays",
+        "frequency": 30.0,
+    },
+    "stony": {
+        "letters": {"sparse": "D", "typical": "E", "dense": "F"},
+        "components": ["olivine", "pyroxene", "plagioclase feldspars", "silicon", "magnesium",
+                       "troilite", "iron", "silicon dioxide"],
+        "description": "silicate rock with flecks of metal",
+        "frequency": 20.0,
+    },
+    "metallic": {
+        "letters": {"sparse": "G", "typical": "H", "dense": "J"},
+        "components": ["iron", "nickel", "kamacite", "taenite", "schreibersite", "cohenite",
+                       "iridium", "platinum", "osmiridium"],
+        "description": "iron-nickel cores of shattered bodies",
+        "frequency": 8.0,
+    },
+    "icy": {
+        "letters": {"sparse": "K", "typical": "L", "dense": "M"},
+        "components": ["water ice", "carbon dioxide ice", "ammonia ice", "amorphous carbon",
+                       "complex organic compounds", "silicate dust", "serpentine"],
+        "description": "volatile-rich primitive bodies, ices bound in dark crusts",
+        "frequency": 20.0,
+    },
+    "basaltic": {
+        "letters": {"sparse": "N", "typical": "N", "dense": "P"},
+        "components": ["pyroxene", "plagioclase feldspars", "olivine", "ilmenite", "chromite",
+                       "magnesium", "calcium"],
+        "description": "basalt from a differentiated body's crust",
+        "frequency": 4.0,
+    },
+    "mixed": {
+        "letters": {"sparse": "Q", "typical": "R", "dense": "S"},
+        "components": None,
+        "description": "a mix of rock, metal and carbonaceous bodies",
+        "frequency": 10.0,
+    },
+    "dust": {
+        "letters": {"sparse": "T", "typical": "T", "dense": "T"},
+        "components": ["silicon dioxide", "carbon", "olivine", "pyroxene", "magnetite"],
+        "description": "mostly dust and gravel, with few large bodies",
+        "frequency": 5.0,
+    },
+    "collisional": {
+        "letters": {"sparse": "U", "typical": "U", "dense": "U"},
+        "components": None,
+        "description": "fragments of one parent body broken apart in a collision",
+        "frequency": 3.0,
+    },
+}
+"""dict: See the comment above. The icy family borrows cometary ices
+(`COMET_COMPOSITION`); `components` None means sample from all of
+`ASTEROID_COMPONENTS` (a mixed field, or a collisional family whose
+parent body could have been anything)."""
+
+ASTEROID_FIELD_SIZE_DIGIT_RANGE = (1, 4)
+"""tuple: The size digit's clamp -- floor(log10(radius in AU)) over
+`ASTEROID_FIELD_RADIUS_RANGE_LY` (63 AU to 63,241 AU)."""
 
 # --- Quasars (quasarData.Quasar) ---
 #
