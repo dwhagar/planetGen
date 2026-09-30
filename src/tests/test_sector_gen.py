@@ -86,8 +86,8 @@ def test_research_rates_per_star():
     """Boss's research densities at 0.14 stars per pc^3."""
     assert _rate("rogue-planet") == pytest.approx(6.5)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
-    assert _rate("neutron-star") == pytest.approx(1e-3 / 0.14)
-    assert _rate("black-hole") == pytest.approx(1e-4 / 0.14)
+    assert _rate("neutron-star") == pytest.approx(0.005)
+    assert _rate("black-hole") == pytest.approx(0.001)
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0
     assert _rate("runaway-star") == pytest.approx(0.015)

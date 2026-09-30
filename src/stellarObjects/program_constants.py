@@ -1988,9 +1988,12 @@ PHENOMENON_DENSITY_PC3 = {
     "hypervelocity-star": 1e-10,
     # ~1e9 isolated neutron stars and ~1e8 black holes galaxy-wide
     # (Sartore et al. 2010, A&A 510:A23; Olejak et al. 2020, A&A 638:A94;
-    # Sahu et al. 2022, ApJ 933:83).
-    "neutron-star": 1e-3,
-    "black-hole": 1e-4,
+    # Sahu et al. 2022, ApJ 933:83). Tuned to the star model's own remnant
+    # shares (docs: galaxy-studies star-fix spec, 2026-09-30): a Kroupa IMF
+    # with a 10 Gy thin disk leaves ~0.5% of stars as neutron stars and
+    # ~0.1% as black holes, i.e. 0.005 and 0.001 per star at n*0 = 0.14.
+    "neutron-star": 7e-4,
+    "black-hole": 1.4e-4,
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531), really placed by filling factor inside the arms
     # (GMC_ARM_FILLING_FACTOR); TODO item 27 generates them.
