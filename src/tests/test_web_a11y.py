@@ -27,9 +27,7 @@ from that database (`SAMPLE_PARAMS` below); a new page with a parameter
 name not listed there fails with a message saying to add it. A page that
 answers anonymous visitors with a redirect is retried as a logged-in
 admin; one that still redirects (a forwarder such as `/search` while the
-search page is on CGI) is skipped, as is a route that answers with
-something other than HTML (the JSON `/galaxy/tiles` the galaxy map's
-script fetches).
+search page is on CGI) is skipped.
 
 Needs Playwright for Python with Chromium (`pip install playwright` and
 `python -m playwright install chromium`, or `PLAYWRIGHT_BROWSERS_PATH`
@@ -89,13 +87,16 @@ document.addEventListener("securitypolicyviolation", function (e) {
 class _EndpointCatalog:
     """The GET endpoints of the `web` blueprint, read once at collection
     time from an app built with the default config (building the app
-    touches no database)."""
+    touches no database). A view marked `json_only = True` (data for a
+    page's script, not a page) is left out."""
 
     @staticmethod
     def endpoints():
         app = create_app(Config)
         found = {}
         for rule in app.url_map.iter_rules():
+            if getattr(app.view_functions[rule.endpoint], "json_only", False):
+                continue
             if rule.endpoint.startswith("web.") and "GET" in rule.methods:
                 found.setdefault(rule.endpoint, rule)
         return sorted(found)
@@ -153,7 +154,7 @@ def site_db(_mysql_server_available):
         try:
             target = mysql_argv(config)
             run_cli("plan", ["--quiet"] + target)
-            run_cli("galaxy", ["--ring", "0", "--num-systems", "4", "+planets", "--yes", "--quiet"] + target)
+            run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "+planets", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
@@ -216,7 +217,34 @@ def base_url(site_app):
 # --- Sample URL parameters ------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def sample_params(site_app):
+def sample_job(tmp_path_factory):
+    """One finished Generate job (`/admin/generate/jobs/<job_id>`), in a
+    throwaway jobs directory."""
+    from web import jobs
+
+    root = str(tmp_path_factory.mktemp("jobs"))
+    previous = os.environ.get("PLANETGEN_JOBS_DIR")
+    os.environ["PLANETGEN_JOBS_DIR"] = root
+    job_id = jobs.start_job("reset", "Reset the galaxy", [{"label": "Reset the galaxy", "argv": ["true"]}],
+                            admin="admin", spawn=False)
+    path = os.path.join(root, job_id)
+    with open(os.path.join(path, "output.log"), "w", encoding="utf-8") as f:
+        f.write("=== Step 1 of 1: Reset the galaxy ===\nWiped 31 table(s).\n")
+    with open(os.path.join(path, "state.json"), "w", encoding="utf-8") as f:
+        f.write('{"status": "succeeded", "pid": 1, "step": 1, "started_at": 1759236000, '
+                '"finished_at": 1759236002, "exit_code": 0, "error": null}')
+    os.remove(os.path.join(root, jobs.LOCK_NAME))
+    try:
+        yield job_id
+    finally:
+        if previous is None:
+            os.environ.pop("PLANETGEN_JOBS_DIR", None)
+        else:
+            os.environ["PLANETGEN_JOBS_DIR"] = previous
+
+
+@pytest.fixture(scope="module")
+def sample_params(site_app, sample_job):
     """
     A value for every URL parameter a page route may take, drawn from the
     generated database through the JSON API. Add an entry here when a
@@ -243,6 +271,7 @@ def sample_params(site_app):
         "phenomenon_id": phenomenon["id"],
         "quadrant": "I",
         "page": 1,
+        "job_id": sample_job,
     }
 
 
@@ -266,11 +295,7 @@ def page_targets(site_app, sample_params, admin_token):
     admin.set_cookie(SESSION_COOKIE_NAME, admin_token)
     for endpoint in PAGE_ENDPOINTS:
         path = _page_url(site_app, endpoint, sample_params)
-        response = anonymous.get(path)
-        status = response.status_code
-        if status == 200 and response.mimetype != "text/html":
-            targets[endpoint] = (None, f"{path} is not an HTML page ({response.mimetype})")
-            continue
+        status = anonymous.get(path).status_code
         if status == 200:
             targets[endpoint] = (path, False)
             continue

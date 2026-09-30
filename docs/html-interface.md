@@ -175,6 +175,7 @@ far:
 | `/galaxy` | `galaxy.py` | The 3D Galaxy Map plus the Quadrant summary; `?quadrant=I\|II\|III\|IV` lists that Quadrant's placed sectors nearest the core first (`?page=N`). The info panel's "View sector" is a plain link. |
 | `/galaxy/tiles?tiles=...` | `galaxy_tiles.py` | JSON for the map's script: the requested cube tiles (`tiles=level/ix/iy/iz,...`), an optional density cloud (`density=level/ix/iy/iz`) and, given the browser cache's `stamp`, the changed tiles since. Through `lib/tilecache.py`'s disk cache; 400 on a malformed request, 502 on an API failure, both `{"error": ...}`. `Cache-Control: no-store`. |
 | `/search` | `search.py` | Faceted search (see below). |
+| `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
 
 `index.py` and `browse.py` are now CGI shims that answer `301 Moved
 Permanently` to `/`, carrying `sectors_page`/`standalone_page` from the
@@ -224,14 +225,45 @@ What changes for a visitor:
   until each page moves.
 - **New header** instead of the side rail: site name, the sections
   (Galaxy, Sectors, Systems, Phenomena, Nav) with `aria-current="page"`
-  on the current one, a search box, and Login or Admin/Stats/Logout plus
-  the theme button. Below 56rem the sections, search and account links
-  fold into a native `<details>` "Menu" (works without JavaScript). A
+  on the current one, a search box, and Login or Admin/Stats/Generate/Logout
+  plus the theme button. Below 56rem (92rem for a logged-in admin, whose
+  header has more links) the sections, search and account links fold into
+  a native `<details>` "Menu" (works without JavaScript). A
   "Skip to content" link comes first, and every page but the home page
   has a breadcrumb trail.
 - **Faster**: no Python process start per page, and no HTTP call from
   the page back to the API (see below). Visitors without a session
   cookie cost no login lookup at all.
+
+**The Generate page** (`/admin/generate`, `web/generate_page.py` +
+`templates/generate.html`) runs the galaxy tools an admin used to run in a
+terminal on the server, as background jobs:
+
+| Form | Runs |
+|---|---|
+| New galaxy | `src/resetDb.py --yes`, then `generate.py plan`, then `generate.py galaxy` around a random start. |
+| Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), or one address (`--ring --layer --slot`). |
+| Plan the galaxy | `generate.py plan` with the galaxy shape fields. |
+| Reset | `src/resetDb.py --yes`. |
+
+New galaxy and Reset delete every generated row, so both need the
+database name typed back. Every job writes the database this site shows,
+passed to the child as `PLANETGEN_MYSQL_*` environment variables (so the
+MySQL account needs the generator's grants, including `DROP` for
+`TRUNCATE`). One job runs at a time; the page shows its step, a progress
+bar (from `generate.py`'s `PLANETGEN_PROGRESS_FILE`, see
+`stellarObjects/progressFile.py`), elapsed time and live output
+(`static/generatejobs.js` polls `/admin/generate/status`), with a Cancel
+button. The last jobs are listed with their full output at
+`/admin/generate/jobs/<id>`.
+
+A job is started as `python3 src/jobRunner.py <job dir>` in its own
+session, so it outlives the request and a graceful Apache reload. A full
+Apache stop or restart under systemd (which stops everything in the
+service's cgroup) does stop it; the page then shows it as interrupted.
+Jobs live under `jobs.dir` (`docs/config.md`). A visitor who isn't a
+logged-in admin is sent to the login page, and POSTs and status requests
+without an admin session get a 403.
 
 ### How a Flask page is built
 

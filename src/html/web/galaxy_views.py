@@ -164,3 +164,6 @@ def galaxy_tiles():
     # cache hand one visitor's stale answer to another.
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+galaxy_tiles.json_only = True  # not a page: tests/test_web_a11y.py skips it

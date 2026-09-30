@@ -3,8 +3,9 @@
 # examples/apache/create-cache-dir.sh
 #
 # Creates the web interface's on-disk Galaxy Map tile cache (see
-# src/html/lib/tilecache.py) and gives it to Apache's worker user, so the
-# CGI scripts can write to it. Safe to run again: an existing directory is
+# src/html/lib/tilecache.py), and the admin Generate page's jobs directory
+# (src/html/web/jobs.py), and gives them to Apache's worker user, so the
+# web interface can write to them. Safe to run again: an existing directory is
 # only re-owned. Called by install.sh, and by update.sh when there's
 # nothing new to install.
 #
@@ -47,10 +48,6 @@ import tilecache
 print(tilecache.configured_cache_dir() or "")
 PY
 )"
-    if [[ -z "$CACHE_DIR" ]]; then
-        echo "Tile cache is off (tile_cache.max_mb is 0) -- nothing to create."
-        exit 0
-    fi
 fi
 
 # shellcheck source=examples/apache/apache-identity.sh
@@ -59,7 +56,34 @@ read -r APACHE_USER APACHE_GROUP < <(detect_apache_group)
 
 # Parents (e.g. /var/cache/planetgen) stay root-owned and world-traversable;
 # only the cache directory itself belongs to Apache.
-mkdir -p "$CACHE_DIR"
-chown -R "$APACHE_USER:$APACHE_GROUP" "$CACHE_DIR"
-chmod 750 "$CACHE_DIR"
-echo "Tile cache: $CACHE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+if [[ -z "$CACHE_DIR" ]]; then
+    echo "Tile cache is off (tile_cache.max_mb is 0) -- nothing to create."
+else
+    mkdir -p "$CACHE_DIR"
+    chown -R "$APACHE_USER:$APACHE_GROUP" "$CACHE_DIR"
+    chmod 750 "$CACHE_DIR"
+    echo "Tile cache: $CACHE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+fi
+
+# The admin Generate page's background jobs (src/html/web/jobs.py):
+# PLANETGEN_JOBS_DIR, else config.json's jobs.dir, else
+# /var/lib/planetgen/jobs. Only when no tile cache directory was given as
+# the argument, since that argument names the tile cache alone.
+if [[ -z "${1:-}" ]]; then
+    PYTHON="$(command -v python3 || command -v python || true)"
+    JOBS_DIR="$("$PYTHON" - "$REPO_DIR" <<'PY'
+import os
+import sys
+
+repo = sys.argv[1]
+sys.path[:0] = [os.path.join(repo, "src", "html"), os.path.join(repo, "src")]
+from stellarObjects.appconfig import load_config
+
+print(os.environ.get("PLANETGEN_JOBS_DIR") or load_config()["jobs"].get("dir") or "/var/lib/planetgen/jobs")
+PY
+)"
+    mkdir -p "$JOBS_DIR"
+    chown "$APACHE_USER:$APACHE_GROUP" "$JOBS_DIR"
+    chmod 750 "$JOBS_DIR"
+    echo "Generate jobs: $JOBS_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+fi

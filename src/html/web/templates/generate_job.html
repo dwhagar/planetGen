@@ -1,0 +1,15 @@
+{#- html/web/templates/generate_job.html -- /admin/generate/jobs/<id>. -#}
+{% extends "base.html" %}
+{% from "partials/job_status.html" import job_status with context %}
+{% block head %}
+<script type="module" src="{{ static_url('generatejobs.js') }}"></script>
+{% endblock %}
+{% block content %}
+<section class="panel" id="current-job" data-status-url="{{ url_for('web.generate_status') }}"
+  data-job="{{ job.id }}" data-job-pinned{% if job.finished %} data-job-finished{% endif %}>
+  <div data-job-body>
+  {{ job_status(job, output, link=False) }}
+  </div>
+</section>
+<p><a href="{{ url_for('web.generate') }}">Back to Generate</a></p>
+{% endblock %}
