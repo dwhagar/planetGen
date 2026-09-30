@@ -499,7 +499,8 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert body["scope"] == "sector"
     assert body["direct"]["distance_ly"] > 0
     assert set(body["direct"]) == {"distance_ly", "azimuth_deg", "altitude_deg"}
-    assert [leg["warp_factor"] for leg in body["warp_times"]] == [1, 3, 6, 9]
+    assert [leg["warp_factor"] for leg in body["warp_times"]] == [1, 2, 4, 8, 9, 9.5, 9.9, 9.995]
+    assert [leg["fold_factor"] for leg in body["fold_times"]] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
     assert body["route"]["path"] == [system_ids[0], system_ids[1]]
     assert len(body["origin_position"]) == 3
     assert len(body["destination_position"]) == 3
