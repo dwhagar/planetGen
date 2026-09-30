@@ -233,6 +233,7 @@ TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
+    "quasar": "Quasar",
 }
 """dict: Every phenomenon type (`queryDb._PHENOMENON_TABLES`) and its label."""
 
@@ -356,6 +357,18 @@ FIELD_SPECS = {
         ("is_active", "Active", _bool_text),
         ("composition_summary", "Composition", str),
         _SPEED, _PERIOD,
+    ],
+    # No galactic-orbit rows: a quasar sits at the galactic center.
+    "quasar": [
+        ("black_hole_mass_solar", "Black Hole Mass", lambda v: f"{v:.2e} solar masses"),
+        ("event_horizon_radius_km", "Event Horizon Radius", lambda v: f"{v:.2e} km"),
+        ("luminosity_w", "Luminosity", lambda v: f"{v:.2e} W"),
+        ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),
+        ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{v:,.2f} solar masses/year"),
+        ("broad_line_region_light_days", "Broad-Line Region Radius", lambda v: f"{v:,.0f} light-days"),
+        ("is_radio_loud", "Radio-Loud (Jets)", _bool_text),
+        ("jet_length_ly", "Jet Length", lambda v: f"{v:,.0f} ly"),
+        ("active_age_years", "Active For", lambda v: f"{v:,.0f} years"),
     ],
 }
 """dict: (column, label, formatter) per type. A formatter returns plain

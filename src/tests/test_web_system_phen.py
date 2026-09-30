@@ -371,6 +371,17 @@ def test_phenomenon_detail(app, client, fake):
     assert 'src="static/' not in html
 
 
+def test_quasar_detail(client, fake):
+    fake.phenomenon = {"id": 1, "name": "Core Q", "black_hole_mass_solar": 2.5e9, "eddington_ratio": 0.42,
+                       "is_radio_loud": 1, "jet_length_ly": 150000.0, "galactic_radius_pc": 0.0,
+                       "sector_id": None}
+    html = client.get("/phenomenon/quasar/1").get_data(as_text=True)
+    assert '<span class="badge">Quasar</span>' in html
+    assert "<h2 id=\"phenomenon-data-heading\">Quasar Data</h2>" in html
+    assert "2.50e+09 solar masses" in html and "<td>42%</td>" in html and "150,000 ly" in html
+    assert "Galactic Orbital" not in html
+
+
 def test_phenomenon_unknown_type_is_404(client, fake):
     assert client.get("/phenomenon/quasar_x/4").status_code == 404
     assert not [c for c in fake.calls if c[0] == "get_phenomenon"]

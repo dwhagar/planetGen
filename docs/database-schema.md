@@ -432,6 +432,15 @@ cube (its real generated position was never saved), seeded by the row's
 id. Rows with no placed sector stay unplaced. The full reasoning is in
 `schema.sql`'s "v28" header note.
 
+**Quasars (v31).** A new `quasars` table holds a galaxy's active nucleus
+(`quasarData.Quasar`). A quasar is only ever generated at the galactic
+center, by the first shell-0 sector (`generate.add_galactic_nucleus`,
+rolled against `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`), so a
+placed row always sits at (0, 0, 0) and a galaxy has at most one. It has
+the usual placement columns and row timestamps, but no galactic-orbit
+columns: it is the point everything else orbits. A brand-new table needs
+no `ALTER TABLE`, so `_migrate_v30_to_v31` only records the version.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
@@ -1080,6 +1089,29 @@ from any star.
 | `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
+
+### `quasars`
+
+Added in v31. A galaxy's active nucleus: its central supermassive black
+hole, accreting near its Eddington limit. See `schema.sql`'s "v31" header
+note.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The shell-0 sector that generated it (or `phenomenon --sector-id`, which only accepts a shell-0 sector); NULL for one generated standalone. |
+| `name` | TEXT | NOT NULL | |
+| `black_hole_mass_solar` | DOUBLE | NOT NULL | Log-uniform 1e8-1e10. |
+| `event_horizon_radius_km` | DOUBLE | NOT NULL | Schwarzschild radius. |
+| `eddington_ratio` | DOUBLE | NOT NULL | Log-uniform 0.1-1. |
+| `luminosity_w` | DOUBLE | NOT NULL | `eddington_ratio` x the Eddington limit for its mass. |
+| `accretion_rate_solar_per_year` | DOUBLE | NOT NULL | `luminosity_w / (0.1 c^2)`. |
+| `broad_line_region_light_days` | DOUBLE | NOT NULL | From the reverberation-mapped radius-luminosity relation. |
+| `is_radio_loud` | BOOLEAN | NOT NULL | ~10% launch relativistic jets. |
+| `jet_length_ly` | DOUBLE | nullable | Set exactly when `is_radio_loud`. |
+| `active_age_years` | DOUBLE | NOT NULL | How long this episode of activity has run. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Always the galactic center (all 0) when placed; NULL together when never placed. |
+| `created_at`, `modified_at` | TIMESTAMP | NOT NULL | Row timestamps, as v27 gave every other phenomenon table. |
 
 ### `interstellar_comets`
 
