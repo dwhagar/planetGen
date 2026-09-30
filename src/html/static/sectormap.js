@@ -525,6 +525,11 @@ function initStarmap(canvasEl, data) {
 
   var accentColor = cssVar("--accent", "#4f5fe8");
 
+  // TODO(web-pages #47): draw the sector's arc-segment wireframe again from
+  // data.outline (removed in 16d7eed as clutter): sample the inner and
+  // outer ring faces as arcs instead of 12 straight corner-to-corner edges,
+  // keep it thin and low-contrast in both themes, and consider faint
+  // neighboring ring/slot/layer boundaries.
   if (data.compass) {
     var tip = data.compass.tip;
     var arrowGeometry = new THREE.BufferGeometry().setFromPoints([

@@ -445,6 +445,11 @@ def _label_candidate_rect(cx, cy, marker_r, half_w, direction, gap):
     return (right - half_w * 2, cy - _LABEL_HALF_HEIGHT_PX, right, cy + _LABEL_HALF_HEIGHT_PX)
 
 
+# TODO(web-pages #49): names must never overlap. Widths here are estimated
+# (_label_half_width_px) and real text can run wider, so labels can still
+# collide. Make sure every star label and marker is in the collision set,
+# and have systemmap.js measure the real text (getBBox) after load and
+# each zoom step and nudge or hide any label that still overlaps.
 def _label_sides_2d(entries, seed_rects=None):
     """
     Given `[(cx, cy, marker_r, name), ...]`, returns one

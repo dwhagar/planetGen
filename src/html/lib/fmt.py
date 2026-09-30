@@ -168,7 +168,8 @@ def nearest_neighbors_location(location, neighbors, system_url):
 # TODO(distances #1): add one `format_distance(km)` helper here that picks
 # the most meaningful unit on the ladder km < AU < mpc < cpc < ly < pc <
 # kpc < Mpc < Gpc (the largest unit the value is at least 1 of), and pass
-# every radius, distance and orbital distance through it before display.
+# every distance, orbital distance and non-body radius through it before
+# display (planet, moon and star radii stay km in scientific notation).
 # This function, tabledisplay.format_body_distance and the JS formatters
 # (systemmap.js formatDistanceKm, phenomenonmap.js formatSpan, sectormap.js
 # formatLy, galaxymap3d.js formatPcLy/formatPc) all become thin wrappers or

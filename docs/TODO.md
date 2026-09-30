@@ -53,9 +53,13 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
    are schema changes.
+- **More pages (46-49)**: the full systems list, the Sector Map
+   wireframe, the system page layout and non-overlapping System Map
+   names are small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
-   search, phenomena, galaxy-map, sector-map, orbits, nav, facilities);
+   search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
+   security, physics, web-pages);
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
@@ -69,9 +73,32 @@ renumber when items are added or finished.
    get passed through a helper function before displayed."
    - Add one helper (Python in `stellarObjects/utils.py`, re-exported by
      `html/lib/fmt.py`; a matching `static/distance.js`) that picks the
-     largest unit the value is at least 1 of. Steps: 1 AU = 1.496e8 km,
-     1 mpc = 206.3 AU, 1 cpc = 2,062.6 AU, 1 ly = 30.66 cpc, 1 pc = 3.26
-     ly, then factors of 1,000.
+     largest unit the value is at least 1 of.
+   - Boss confirmed the order and the constants on 2026-09-30 (use these
+     exact values, in meters, as named constants):
+
+     | Unit | Meters | Relation |
+     |---|---|---|
+     | km | 1e3 | |
+     | AU | 149,597,870,700 (exact IAU) | ≈ 1.496e8 km |
+     | milliparsec | pc × 1e-3 ≈ 3.0857e13 | ≈ 206.3 AU |
+     | centiparsec | pc × 1e-2 ≈ 3.0857e14 | ≈ 2,063 AU |
+     | lightyear | 9,460,730,472,580,800 (c × 365.25 days, exact) | ≈ 0.3066 pc |
+     | parsec | 3.085677581491367e16 (648000/π AU) | ≈ 3.26 ly |
+     | kiloparsec | pc × 1e3 | |
+     | Megaparsec | pc × 1e6 | |
+     | Gigaparsec | pc × 1e9 | |
+
+     `physical_constants` rounds them today (`AU_TO_KM = 1.496e8`,
+     `AU_TO_M`, `LY_TO_M = 9.461e15`, `LY_TO_AU = 63241.1`); replace them
+     with these exact values and derive every conversion from them (that
+     shifts stored-value tests slightly).
+   - **Radii are the exception** (Boss, 2026-09-30): planet, moon and
+     star radii are always shown in km in scientific notation
+     (`format_star_radius`, `planetData.Planet.get_table_properties`,
+     `starData.Star.get_table_properties` via `utils.format_length_km`,
+     which today only switches to scientific above a threshold). Other
+     radii (nebulae, asteroid fields, remnants) use the ladder.
    - Today every page has its own formatter. Sites, each marked
      `TODO(distances #1)`: `tabledisplay.format_body_distance` (moons
      always km, planets AU/km/ly), `format_star_radius` and
@@ -90,8 +117,9 @@ renumber when items are added or finished.
      and 3.26 ly (above that it's pc). Is that intended, or should ly
      stay alongside pc (e.g. "4.2 pc (13.7 ly)")?
 
-   Done means no page or text output formats a distance itself, and
-   tests pin one value in each unit and each boundary.
+   Done means no page or text output formats a distance itself, body
+   radii are always km in scientific notation, and tests pin one value in
+   each unit and each boundary.
 
 2. [ ] **Planet list: one type chip, a habitable-moon chip, belt
    distances.** Boss: "if a planet is not terrestrial it is not
@@ -772,15 +800,81 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     a remnant's Hill sphere. Test:
     `test_fuzz_sector_placement.py::test_growth_respects_massive_phenomena`.
 
+### More pages (Boss's notes, 2026-09-30)
+
+46. [ ] **A paginated list of every system on the Systems page.** Boss:
+    "the systems page should have a paginated list of all systems."
+    Today `/systems` (`views.systems`, `_systems_panel`) lists only
+    standalone systems (`sector_id="none"`). List every system, 50 rows
+    a page through the shared pager (`html/lib/pagination.py`), with
+    its sector and octant; keep the standalone list as its own panel or
+    a filter. `apiclient.get_systems` without `sector_id` already pages
+    all systems.
+
+47. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
+    that we have defined arc segments let's add a wireframe to the
+    sector map." The server still sends the cell outline
+    (`starmap._outline_data`, "outline" in the scene data, from
+    `sector_cell_vertices_pc`); `sectormap.js` stopped drawing it in
+    16d7eed as clutter. Bring it back as the sector's real arc segment:
+    the inner and outer ring faces drawn as sampled arcs rather than the
+    12 straight edges between 8 corners, thin and low-contrast so the
+    stars stay the focus, in both themes. Consider faint outlines of
+    the neighboring cells (ring, slot and layer boundaries) too.
+
+48. [ ] **System page: one ordered list of everything in orbit, with
+    expandable moons, stars table first.** Boss: "on the star system
+    page we list planets and moons twice, have moons expandable under
+    the initial planet list so we can get rid of the 2nd table at the
+    end of the page. Move the star table to the top of the tables under
+    the clickable map interface."
+    - Moons: in `systempage._planet_row_html` a planet's moons sit inside
+      its `<details>`, after its whole description. Give them their own
+      expandable group right under the planet's row (e.g. a nested
+      "N moons" `<details>`), still working without script.
+    - Remove the Planets & Moons table (`bodies_html` /
+      `_planets_table_html`, rendered last in `system.html`). Its columns
+      (class, type, zone, distance, period, gravity) move into each
+      row's compact stats so nothing is lost; item 2's chip rules apply
+      there.
+    - Move `stars_html` (the stars table) up to be the first table,
+      directly under `map_html`.
+    - Belts and comets (Boss, 2026-09-30): "Asteroid belts and comets
+      should be placed in the interactive list of objects in orbit
+      around the star in their relative order from the star." Remove
+      the Asteroid Belts and Comets tables too. `_orbiting_rows_html`
+      already orders belts with planets by `orbital_index`, but appends
+      every comet at the end; sort comets in by distance instead.
+      Default taken: a comet sorts by its semi-major axis
+      (`perihelion_distance_km / (1 - eccentricity)`), and parabolic
+      ones (no finite axis) go last by perihelion. Each belt and comet
+      row shows its distance (#1).
+
+49. [ ] **System Map names never overlap.** Boss: "we need to make sure
+    names on the system map clickable interface do not overlap."
+    - Today `systemmap._label_sides_2d` places each label (4 directions,
+      then a pushed "below"/"above" with a leader line, else dropped)
+      against the others (plus seeded star-label rects) using an
+      estimated width (`_label_half_width_px`: character count times a
+      fixed width). Real text can run wider than the estimate, so
+      labels can still collide.
+    - Fix: make sure every star label and marker is in the collision
+      set; measure the real text in the browser
+      (`getBBox()` in `systemmap.js` after load and after each zoom
+      step in `mapzoom.js`) and nudge or hide labels that still
+      overlap, keeping the server placement as the no-script fallback.
+    - Check every scene: single star, close and wide binaries, and the
+      moon-centered scenes, at 390 px and 1280 px.
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-46. [ ] Assign government ownership to star systems so that groups of
+50. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-47. [ ] Flag worlds with life for generated names of their dominant
+51. [ ] Flag worlds with life for generated names of their dominant
     species.
-48. [ ] A database of spacefaring species.
-49. [ ] Model younger and older civilizations: what differs with a
+52. [ ] A database of spacefaring species.
+53. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

@@ -19,6 +19,11 @@ import math
 # --- Physical Constants ---
 EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
 EARTH_GRAVITY = 9.807  # Standard Earth gravity in m/s^2
+# TODO(distances #1): use Boss's exact constants for the distance ladder
+# (in meters): AU = 149597870700 (exact IAU), lightyear = 9460730472580800
+# (c x 365.25 days), parsec = 3.085677581491367e16 (648000/pi AU), and
+# milli-, centi-, kilo-, Mega- and Gigaparsec as pc x 1e-3 ... 1e9. Derive
+# AU_TO_KM, AU_TO_M, LY_TO_M, LY_TO_AU and AU_PER_PARSEC from them.
 AU_TO_KM = 1.496e8  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
 SPEED_OF_LIGHT_M_S = 2.998e8  # Speed of light in a vacuum, m/s -- used for Schwarzschild radius (compactRemnant.BlackHole)

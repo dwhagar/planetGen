@@ -86,6 +86,9 @@ def format_star_luminosity(luminosity_w):
     return format_relative_to_sol(_HTML_CONFIG, luminosity_w, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
 
+# TODO(distances #1): body radii are the ladder's exception: planet, moon
+# and star radii are always km in scientific notation (Boss, 2026-09-30),
+# not only above RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD.
 def format_star_radius(radius_km):
     if _HTML_CONFIG is None:
         return f"{radius_km} km"
