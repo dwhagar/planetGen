@@ -72,8 +72,10 @@ def test_default_config_matches_example_shape():
         "admin_cookie_insecure",
         "secret_key",
         "tile_cache",
+        "jobs",
         "wiki",
     }
+    assert set(appconfig.DEFAULT_CONFIG["jobs"].keys()) == {"dir", "keep", "python"}
     assert set(appconfig.DEFAULT_CONFIG["mysql"].keys()) == {
         "host", "port", "user", "password", "database", "database_prefix",
     }
