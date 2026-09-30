@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# TODO(installers #50): make this run on macOS (BSD tools, _www) and add a
+# Windows counterpart. See docs/TODO.md item 50.
 #
 # examples/apache/create-cache-dir.sh
 #

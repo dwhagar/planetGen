@@ -321,7 +321,7 @@ stops everything in the service's cgroup) does stop it; the page then
 shows it as interrupted. The session and signal calls are POSIX-only, so
 on native Windows the page doesn't work reliably (see
 [`deployment/windows.md`](deployment/windows.md#limits-on-native-windows)
-and `TODO.md` item 54).
+and `TODO.md` item 55).
 Jobs live under `jobs.dir` (`docs/config.md`). A visitor who isn't a
 logged-in admin is sent to the login page, and POSTs and status requests
 without an admin session get a 403.

@@ -170,6 +170,9 @@ def nearest_neighbors_location(location, neighbors, system_url):
 # kpc < Mpc < Gpc (the largest unit the value is at least 1 of), and pass
 # every distance, orbital distance and non-body radius through it before
 # display (planet, moon and star radii stay km in scientific notation).
+# A value in mpc/cpc/pc/kpc/Mpc/Gpc adds a parenthetical: ly when it is at
+# least 0.01 ly, else AU when at least 0.01 AU, else km, e.g. "4.2 pc
+# (13.7 ly)" and "2.4 mpc (495 AU)"; km, AU and ly values get none.
 # This function, tabledisplay.format_body_distance and the JS formatters
 # (systemmap.js formatDistanceKm, phenomenonmap.js formatSpan, sectormap.js
 # formatLy, galaxymap3d.js formatPcLy/formatPc) all become thin wrappers or

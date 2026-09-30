@@ -37,8 +37,8 @@ renumber when items are added or finished.
    already written.
 - **Bug fixes (1-7)** come next, from Boss's notes of 2026-09-30. 1
    (distance units) touches the most files; 2-4 are small web changes;
-   5-7 change generation constants and need the frequency research
-   first.
+   5-7 change generation constants; the frequency research for 5 and 6
+   is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
    local-time change (22) is small and can go in any time.
 - **Galaxy Map (10-21):** Boss approved the plan in the
@@ -56,13 +56,15 @@ renumber when items are added or finished.
 - **More pages (46-49)**: the full systems list, the Sector Map
    wireframe, the system page layout and non-overlapping System Map
    names are small and can go in any time.
-- **Windows jobs (54)** was added after the rest and numbered last to
+- **Installers (50)**: PowerShell install and upgrade scripts, and the
+   bash scripts made to run on macOS too.
+- **Windows jobs (55)** was added after the rest and numbered last to
    avoid renumbering. It's a bug fix for native Windows hosting only;
    work it whenever someone needs the Generate page there.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
-   security, physics, web-pages, windows);
+   security, physics, web-pages, installers, windows);
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
@@ -77,6 +79,21 @@ renumber when items are added or finished.
    - Add one helper (Python in `stellarObjects/utils.py`, re-exported by
      `html/lib/fmt.py`; a matching `static/distance.js`) that picks the
      largest unit the value is at least 1 of.
+   - **Parsec values carry a second unit in parentheses** (Boss,
+     2026-09-30: "I like having the ly in parenthesis alongside a
+     parsec"). Every value shown in mpc, cpc, pc, kpc, Mpc or Gpc gets one
+     parenthetical, picked by the same distance:
+     - lightyears when the distance is at least 0.01 ly: "4.2 pc
+       (13.7 ly)", "15.3 cpc (0.499 ly)";
+     - else AU when it is at least 0.01 AU: "2.4 mpc (495 AU)" (1 mpc is
+       about 0.0033 ly, so values under about 3.07 mpc land here);
+     - else km (Boss: "since those are what most people understand").
+       No parsec-family value is that small (1 mpc is about 206 AU), but
+       the helper applies the rule as written.
+     - Values shown in km, AU or ly get no parenthetical; the ly rung
+       stays on the ladder, so 1 to 3.26 ly still shows as plain ly.
+     - Thresholds as named constants next to the unit constants, e.g.
+       `DISTANCE_PAREN_MIN_LY = 0.01` and `DISTANCE_PAREN_MIN_AU = 0.01`.
    - Boss confirmed the order and the constants on 2026-09-30 (use these
      exact values, in meters, as named constants):
 
@@ -116,13 +133,11 @@ renumber when items are added or finished.
      `galaxy_views._quadrant_summary_rows`, `starmap._cloud_data`,
      `navmap._scale_bar_html`, `routes._sector_wiki_content`, and the ly
      in `galaxy.html` and `nav.html`.
-   - **Question for Boss:** on that ladder ly only ever shows between 1
-     and 3.26 ly (above that it's pc). Is that intended, or should ly
-     stay alongside pc (e.g. "4.2 pc (13.7 ly)")?
 
    Done means no page or text output formats a distance itself, body
-   radii are always km in scientific notation, and tests pin one value in
-   each unit and each boundary.
+   radii are always km in scientific notation, parsec values carry their
+   parenthetical, and tests pin one value in each unit and each boundary
+   (including 0.01 ly and 0.01 AU for the parenthetical).
 
 2. [ ] **Planet list: one type chip, a habitable-moon chip, belt
    distances.** Boss: "if a planet is not terrestrial it is not
@@ -178,40 +193,109 @@ renumber when items are added or finished.
    comets, look up actual stats for how common each stellar object is
    and adjust probability tables adding to constants if necessary so
    it's tweakable."
+   - Boss supplied the research on 2026-09-30 and asked to reorganize the
+     rates from it. Numbers, scaling functions, checks, measured cost and
+     references: `docs/design/interstellar-object-rates.md`.
    - Today (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`, per
      star system, Poisson per sector in `generate.generate_sector_phenomena`):
      rogue planet 0.1, comet 0.05, asteroid field 0.05, neutron star
-     5e-3, black hole 5e-4, nebula 2.5e-7, supernova remnant 1e-8. With a
-     handful of systems per sector, a nebula is expected about once in
-     millions of sectors.
-   - Figures to check against sources before using (from memory, not
-     yet verified): unbound interstellar objects like 'Oumuamua run
-     about 0.1-0.2 per AU³ (Do, Tucker & Tonry 2018), so "a comet" here
-     means a notable one, and the rate is a design choice; rogue planets
-     may outnumber stars (Sumi et al. 2023 estimate ~20 per star, mostly
-     small; Mroz et al. 2017 ≤0.25 Jupiter-mass per star); neutron stars
-     ~1e9 and stellar black holes ~1e8 in the Milky Way; ~8,000 H II
-     regions, 10,000-25,000 planetary nebulae and ~1,000-2,000 standing
-     supernova remnants.
-   - Nebulae and supernova remnants are light-years across, so a
-     per-volume rate (scaled by galaxy density) suits them better than a
-     per-system one; decide what rate makes them findable.
-   - **Question for Boss:** the real rogue-planet count is larger than
-     the star count, so "most common are asteroid fields and comets"
-     means capping rogues well below reality. OK to rank the rates as
-     comets > asteroid fields > rogue planets > neutron stars > black
-     holes > nebulae > supernova remnants, all as constants?
+     5e-3, black hole 5e-4, nebula 2.5e-7, supernova remnant 1e-8.
+   - The model: each type has a local density `n_i` (per pc³) at the
+     solar neighborhood's `n_*0 = 0.14` stars per pc³, scaled by the
+     sector's own stellar density: `n_i = n_i0 * n_* / 0.14`. That is a
+     fixed rate per star, so the existing per-sector Poisson draw stays;
+     only the rates change.
 
-6. [ ] **Rogue planets: terrestrial ones, and fewer overall.** Boss: "I
+     | Type | n_i0 (pc⁻³) | Per star | Scales with |
+     |---|---|---|---|
+     | Comets and debris | 1e12 (1e11-1e14) | ~7e12 | n_* |
+     | Terrestrial rogue planets | 0.7 (0.5-1.4) | 5 (2-10) | n_* |
+     | Jupiter-mass rogue planets | 0.035 | ≤ 0.25 | n_* |
+     | Rogue brown dwarfs | 0.03 | ~0.21 | n_* |
+     | Runaway stars | 2.1e-3 | 0.015 | n_* |
+     | Isolated neutron stars | 1e-3 | ~7e-3 | n_* |
+     | Isolated black holes | 1e-4 | ~7e-4 | n_* |
+     | Giant molecular clouds | 5e-6 | n/a | ρ_gas^1.4, filling 1-2% of arms |
+     | Planetary nebulae | 3e-8 | ~2e-7 | n_* |
+     | Supernova remnants | 1e-8 | n/a | n_* · ρ_gas |
+     | Hypervelocity stars | 1e-10 at 8 kpc (research says 5e-9) | n/a | r_GC⁻² |
+     | Isolated asteroid fields | ~0 | 0 | none (they disperse) |
+
+   - Constants to add in `program_constants` (replacing
+     `PHENOMENON_RATE_PER_STAR_SYSTEM`), each with its source in a
+     comment: `REFERENCE_STELLAR_DENSITY_PC3 = 0.14`;
+     `PHENOMENON_DENSITY_PC3` keyed by type (`"rogue-planet"` is the sum
+     of the item 6 bins, `"brown-dwarf"`, `"runaway-star"`,
+     `"hypervelocity-star"`, `"neutron-star"`, `"black-hole"`,
+     `"molecular-cloud"`, `"planetary-nebula"`, `"supernova-remnant"`,
+     `"comet"`, `"asteroid-field"`); `GMC_ARM_FILLING_FACTOR = 0.015`;
+     `GMC_GAS_DENSITY_EXPONENT = 1.4`; `HVS_REFERENCE_RADIUS_PC = 8000`;
+     `INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12`; and one
+     `PHENOMENON_RATE_SCALE` per type (default 1.0) to dial any type up
+     or down without touching the research value.
+   - Generation cost (measured, see the design doc): at these rates a
+     local-density 4 pc sector gets about 50-60 rogue rows on top of
+     roughly 650 body rows, about 8-10% more rows and under 1% more
+     generation time. Cost is not the problem; the sector's look is.
+     Rogues would outnumber systems about five to one in the Contents
+     table and on the Sector Map.
+   - Recommended way to apply them:
+     - Rogue planets, brown dwarfs, neutron stars, black holes: rows,
+       per-star rate times the sector's star count, Poisson, no cap.
+     - Comets: the real density (~6e13 per sector) can't be rows. Show
+       it as a computed sector figure ("about 10^13 interstellar comets
+       and planetesimals"), and keep the `comet` rows as notable comets
+       at a design rate (default 0.007 per pc³, which is today's 0.05
+       per star); `INTERSTELLAR_DEBRIS_DENSITY_PC3` feeds the figure.
+     - Isolated asteroid fields: rate 0 (Boss's research: a free
+       asteroid field disperses in 1e6-1e7 years). Keep the type and
+       table for hand-made fields and facilities (#31, #35); none get
+       generated.
+     - Runaway and hypervelocity stars: a flag and speed on an ordinary
+       generated system (1.5% of systems; HVS by `r_GC⁻²`), not a new
+       phenomenon table.
+     - Brown dwarfs: a new rogue-body kind (a rogue planet row above
+       13 Mjup, or its own table); schema change.
+     - Nebulae and remnants: real point rates make them essentially
+       never appear (a planetary nebula ~2e-6 per sector). Molecular
+       clouds place by filling factor (about 1-2% of arm sectors sit
+       inside one), with #27 generating the stars inside; planetary
+       nebulae and remnants keep their real rates.
+   - The research's comet separation column, hypervelocity density and
+     remnant density don't add up; see "Checks" in the design doc.
+   - **Question for Boss:** show rogue planets at the full research rate
+     (about 45 per sector, five to one against systems), or scale them
+     down for readability with `PHENOMENON_RATE_SCALE["rogue-planet"]`
+     (0.1 gives about 5 per sector)? Default: full rate, with rogues
+     grouped into one collapsible row in the sector's Contents table.
+   - Regenerate the galaxy after this ships to see the new mix.
+
+6. [ ] **Rogue planets: terrestrial ones, and fewer giants.** Boss: "I
    see no terrestrial planets as rogue planets, is that intentional?
    Research and revise probabilities for appearance of rogue planets
    (there are a lot of them right now) and what type."
    - Not intentional. `roguePlanetData.RoguePlanet.__init__` draws mass
      linear-uniformly over 0.0005-10 Mjup, so only ~0.5% land under the
      0.05 Mjup gas-giant threshold. Microlensing says low-mass rogues
-     outnumber giants; use a mass function (log-uniform or a power law)
-     with its constants next to `ROGUE_PLANET_MASS_RANGE_JUPITER`.
-   - The rate itself is set in #5.
+     outnumber giants several to one; terrestrial rogues must stay
+     present.
+   - Boss's research (2026-09-30): terrestrial rogues 2-10 per star
+     (Johnson et al. 2020; OGLE-2016-BLG-1928, 0.3-2 M⊕, Mróz et al.
+     2020); Jupiter-mass rogues at most 0.25 per star (Mróz et al. 2017,
+     superseding Sumi et al. 2011's 1.8). Sub-Neptunes are expected to
+     dominate with terrestrials (Barclay et al. 2023) but have no rate.
+   - Draw a mass bin by its per-star rate, then a log-uniform mass inside
+     the bin. Constant to add next to `ROGUE_PLANET_MASS_RANGE_JUPITER`
+     (which it replaces): `ROGUE_PLANET_MASS_BINS`, each bin
+     `(min_mass_earth, max_mass_earth, per_star_rate)`:
+     - terrestrial 0.1-2 M⊕, 5 per star;
+     - sub-Neptune 2-20 M⊕, 1 per star (default, not from the research);
+     - Saturn-class 20 M⊕-1 Mjup, 0.25 per star (default, not from the
+       research);
+     - Jupiter-mass 1-13 Mjup, 0.25 per star.
+     Above 13 Mjup is a brown dwarf (#5). A single power law can't fit
+     both ends (the design doc shows why).
+   - The bins' summed per-star rate is the rogue-planet rate in #5.
    - Update `phenomenaPlausibility` (it recomputes the expected
      terrestrial share from the same draw).
 
@@ -869,9 +953,41 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     - Check every scene: single star, close and wide binaries, and the
       moon-centered scenes, at 390 px and 1280 px.
 
+### Installers and platforms (Boss's notes, 2026-09-30)
+
+50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
+    also run on macOS.** Boss: "we need to write a powershell install and
+    upgrade scripts as well as make sure our bash shell scripts will also
+    work on macos as well as linux."
+    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
+      `install.sh` and `update.sh`: the same steps and the same prompts
+      (check-only upgrades, the migrate-or-delete database prompt with
+      its 30-second default, the migration progress bar), using a venv
+      or the Windows Python launcher instead of apt, Windows services or
+      Task Scheduler instead of systemd timers, and Apache on Windows
+      (or IIS) paths and permissions (`icacls`) instead of `www-data`
+      and `chown`.
+    - **macOS:** every bash script (`install.sh`, `update.sh`,
+      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
+      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
+      macOS too. Known gaps: macOS ships bash 3.2, so
+      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
+      (require Homebrew bash, or rewrite them); apt is assumed (use
+      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
+      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
+      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
+      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
+      `stat`, `readlink`, `date` and `timeout` wherever they appear.
+    - Keep the steps in step across the three platforms, so a change to
+      one installer lands in all of them.
+    - The Windows and macOS hosting guides (being written in `docs/` by
+      the docs thread) describe the server setup; this item is only the
+      scripts, and the guides should point at them once they exist.
+    - Each script carries a `TODO(installers #50)` comment at its top.
+
 ### Windows hosting (`src/html/web/jobs.py`, `src/jobRunner.py`)
 
-54. [ ] **The admin Generate page's jobs don't work on native Windows.**
+55. [ ] **The admin Generate page's jobs don't work on native Windows.**
     The site runs on Windows under waitress
     (`docs/deployment/windows.md`), but the job code uses POSIX-only
     calls: `start_new_session=True` (ignored on Windows) in
@@ -912,10 +1028,10 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-50. [ ] Assign government ownership to star systems so that groups of
+51. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-51. [ ] Flag worlds with life for generated names of their dominant
+52. [ ] Flag worlds with life for generated names of their dominant
     species.
-52. [ ] A database of spacefaring species.
-53. [ ] Model younger and older civilizations: what differs with a
+53. [ ] A database of spacefaring species.
+54. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

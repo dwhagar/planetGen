@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# TODO(installers #50): write update.ps1 as this script's Windows
+# counterpart (same check-only upgrade and migrate-or-delete prompt), and
+# make this script run on macOS too. See docs/TODO.md item 50.
 #
 # update.sh
 #

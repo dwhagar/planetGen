@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# TODO(installers #50): macOS ships bash 3.2, where declare -A and mapfile
+# below fail; rewrite them (or require Homebrew bash) and use Homebrew or a
+# venv instead of apt on macOS. See docs/TODO.md item 50.
 #
 # scripts/install-python-deps.sh
 #
