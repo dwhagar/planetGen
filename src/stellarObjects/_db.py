@@ -83,6 +83,17 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
+# TODO(galaxy-map #5): bump to the next free schema version with a
+# migration for the hybrid master-wedge slot rule
+# (galaxyGeometry.ring_sector_count). Like v32 and v33 it deletes every
+# galaxy-placed sector with its systems and phenomena (slot numbers change
+# meaning in nearly every ring); sectors never placed in the galaxy are
+# untouched. `galaxy_layer` and `galaxy_column` are keyed by ring and
+# layer, so the skeleton survives, but its candidate counts must be
+# recomputed. Guard it so a database created fresh at the new version
+# keeps its sectors, bump the tile cache stamp so browsers drop every
+# cached tile, and note it in schema.sql's header. Needs Boss's explicit
+# OK before merge.
 SCHEMA_VERSION = 34
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header

@@ -6,6 +6,15 @@ must stay within budget and cover the view, and its geometry must be
 well formed.
 """
 
+# TODO(galaxy-map #5/#6/#7): add tests for
+#   - ringSectorCount matching galaxyGeometry.ring_sector_count out to ring
+#     4,000, with master lines on slot boundaries;
+#   - blockSizeForScale against pcPerPixel;
+#   - block sector counts within a few percent of m³, exact with aligned
+#     wedges;
+#   - surfaceBlocksInView against a brute-force exposed-block check;
+#   - the slice hiding the right layers;
+#   - the budget holding at every zoom.
 import json
 import math
 import os
