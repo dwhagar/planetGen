@@ -53,11 +53,6 @@ from pagination import render_pagination
 
 LEGACY_PAGES = {
     # endpoint name: (CGI script, {page_url keyword: CGI parameter})
-    "login": ("login.py", {}),
-    "logout": ("logout.py", {}),
-    "account": ("changecreds.py", {}),
-    "admin": ("admin.py", {}),
-    "admin_stats": ("adminstats.py", {"names_page": "names_page"}),
 }
 """dict: Every page the Flask app links to that is still a CGI script.
 Links to them are plain GET links (`/<script>?db=<db>&...`): the CGI
