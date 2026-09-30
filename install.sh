@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# TODO(installers #50): write install.ps1 as this script's Windows
-# counterpart, and make this script run on macOS too (bash 3.2, Homebrew
-# instead of apt, launchd instead of systemd, Homebrew Apache paths and
-# _www). See docs/TODO.md item 50.
 #
 # install.sh
 #
-# One-shot Linux installer for deploying planetGen's web interface on an
-# Apache2 server. `setup.py` stays scoped to the Python side only (the
+# One-shot installer for deploying planetGen's web interface: on Linux
+# behind an Apache2 server with mod_wsgi (docs/deployment/apache.md), and
+# on macOS under gunicorn and launchd with Homebrew's nginx in front
+# (docs/deployment/macos.md). install.ps1 is the Windows counterpart;
+# the three follow the same steps, so a change to one belongs in all. `setup.py` stays scoped to the Python side only (the
 # `stellarObjects` package plus the `sectorgen`/`systemgen` console
 # scripts, installable on any OS); everything Linux/Apache-specific lives
 # here instead:
@@ -44,8 +43,9 @@
 #      git checkout should be trusted to carry it reliably).
 #   5. Enables Apache's headers, deflate and wsgi modules, installing
 #      mod_wsgi (libapache2-mod-wsgi-py3) first if apt can and it's
-#      missing. Steps 3 and 5 come from scripts/deploy-common.sh, which
-#      update.sh shares.
+#      missing. On macOS, installs and starts the gunicorn launchd daemon
+#      (examples/macos/org.planetgen.gunicorn.plist) instead. Steps 3 and
+#      5 come from scripts/deploy-common.sh, which update.sh shares.
 #   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `src/html/`/`db/` directories for Apache's worker
 #      user/group, and config.json to root:<apache group>, mode 640.
@@ -64,12 +64,26 @@
 #      silently create or overwrite.
 #
 # Usage:
-#   sudo ./install.sh
+#   sudo ./install.sh [--skip-database]
 #
-# Linux only (apt/a2enmod/systemd conventions) -- same scope as
-# examples/apache/set-permissions.sh, which this script calls.
+# --skip-database leaves out step 2, for a host whose database isn't set
+# up yet (and for CI); run `sudo ./update.sh` once it is.
+#
+# On macOS, step 1 makes a virtual environment from Homebrew's python3
+# (brew install python@3.12 first; Homebrew itself won't run as root, so
+# this never calls it), steps 6-8 use _www, and the debug log rotates
+# with newsyslog. Runs under macOS's bash 3.2.
 
 set -euo pipefail
+
+SKIP_DATABASE=0
+case "${1:-}" in
+    "") ;;
+    --skip-database) SKIP_DATABASE=1 ;;
+    *)
+        echo "error: unknown argument '$1' (expected nothing or --skip-database)." >&2
+        exit 1 ;;
+esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HTML_DIR="$SCRIPT_DIR/src/html"
@@ -82,14 +96,14 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
+# shellcheck source=scripts/deploy-common.sh
+source "$SCRIPT_DIR/scripts/deploy-common.sh"
+
+PYTHON="${PYTHON:-$(default_python)}"
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1
 fi
-
-# shellcheck source=scripts/deploy-common.sh
-source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 echo "== 1/8: Installing the Python package and its libraries =="
 # pip on an ordinary Python; distribution packages (plus system-wide pip
@@ -97,10 +111,15 @@ echo "== 1/8: Installing the Python package and its libraries =="
 # managed one (PEP 668, e.g. Ubuntu 24.04+). See that script for
 # the details of each path; it prints which one it took.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
+use_site_python
 
 echo
 echo "== 2/8: Migrating the configured MySQL database to the current schema =="
-migrate_or_reset_db
+if (( SKIP_DATABASE )); then
+    echo "Skipped (--skip-database). Run sudo ./update.sh once the database is set up."
+else
+    migrate_or_reset_db
+fi
 
 echo
 echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
@@ -126,30 +145,57 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
-echo "== 5/8: Enabling Apache's wsgi, headers and deflate modules =="
+echo "== 5/8: Enabling Apache's wsgi, headers and deflate modules (macOS: the gunicorn daemon) =="
 # Installs mod_wsgi (libapache2-mod-wsgi-py3) if it's missing, and
 # enables whichever of the three aren't already (scripts/deploy-common.sh).
 APACHE_NEEDS_RESTART=0
-ensure_apache_modules
+if is_macos; then
+    ensure_gunicorn_daemon
+else
+    ensure_apache_modules
+fi
 
 echo
 echo "== 6/8: Setting directory ownership/permissions for Apache =="
 # Also sets config.json (DB password, secret_key) to root:<apache group>, 640.
-"$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 echo
 echo "== 7/8: Creating the Galaxy Map tile cache directory =="
-"$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 
 echo
 echo "== 8/8: Setting up the debug log and its rotation =="
-"$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
 
 echo
 echo "Checking that the web app imports:"
 check_app_imports
 
-if [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
+if is_macos; then
+    cat <<EOF
+
+------------------------------------------------------------------------
+Install steps complete. gunicorn serves the site on 127.0.0.1:8000
+(check: curl -s http://127.0.0.1:8000/api/health). What remains is the
+web server in front, never set up automatically:
+
+  1. Copy the nginx example and edit server_name and the certificate paths:
+
+       cp "$SCRIPT_DIR/examples/macos/planetgen-nginx.conf" "\$(brew --prefix)/etc/nginx/servers/planetgen.conf"
+
+  2. Set "proxy_fix": {"x_for": 1, "x_proto": 1, "x_host": 0} in
+     config.json, and "user _www _www;" at the top of nginx.conf, then:
+
+       sudo nginx -t && sudo brew services start nginx
+
+  3. Log in at https://<server_name>/login with the admin username and
+     password printed once in step 2/8 above, and change both.
+
+See docs/deployment/macos.md for the details.
+------------------------------------------------------------------------
+EOF
+elif [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
     cat <<EOF
 
 ------------------------------------------------------------------------

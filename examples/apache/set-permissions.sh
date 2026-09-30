@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# TODO(installers #50): make this run on macOS (BSD chown/chmod, _www) and
-# add a Windows counterpart using icacls. See docs/TODO.md item 50.
 #
 # examples/apache/set-permissions.sh
 #
-# Detects the user/group Apache2 actually runs as and sets ownership and
-# permissions on the deployed planetGen web directory accordingly.
-# Linux-only (reads /etc/apache2 and uses `ps`), deliberately bash rather
-# than Python -- this is a one-shot root-privileged deployment step, not
-# part of the portable application.
+# Detects the user/group Apache2 actually runs as (on macOS, _www, which
+# gunicorn runs as) and sets ownership and permissions on the deployed
+# planetGen web directory accordingly. Runs on Linux and macOS (only
+# chown, chmod and find flags both have); install.ps1's
+# Set-PlanetGenPermissions does the same with icacls on Windows.
+# Deliberately bash rather than Python -- this is a one-shot
+# root-privileged deployment step, not part of the portable application.
 #
 # Usage:
 #   sudo examples/apache/set-permissions.sh [html-dir] [db-dir]
@@ -91,7 +91,7 @@ apply_permissions() {
     # broken.
     find "$dir" -type f -name '*.py' -exec chmod 750 {} +
     local py_count
-    py_count="$(find "$dir" -type f -name '*.py' | wc -l)"
+    py_count="$(find "$dir" -type f -name '*.py' | wc -l | tr -d ' ')"  # BSD wc pads
     echo "  $dir: owned by $owner:$APACHE_GROUP, made $py_count .py file(s) executable (owner+group)"
 }
 

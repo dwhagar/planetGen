@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# TODO(installers #50): write update.ps1 as this script's Windows
-# counterpart (same check-only upgrade and migrate-or-delete prompt), and
-# make this script run on macOS too. See docs/TODO.md item 50.
 #
 # update.sh
 #
@@ -34,7 +31,8 @@
 #      delete the galaxy data instead of migrating it; see
 #      migrate_or_reset_db in scripts/deploy-common.sh.
 #   5. Apache's headers, deflate and wsgi modules: enabled only if not
-#      already (mod_wsgi installed first if it's missing).
+#      already (mod_wsgi installed first if it's missing). On macOS, the
+#      gunicorn launchd daemon instead: installed only if it's missing.
 #   6. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
 #      since a pull leaves new and changed files owned by root.
 #   7. The tile cache and Generate jobs directories
@@ -59,7 +57,10 @@
 # runs `git clean`, so untracked files -- most importantly `config.json`,
 # which is gitignored precisely so it survives this -- are left alone.
 #
-# Linux only -- same scope as install.sh/examples/apache/set-permissions.sh.
+# Runs on Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd,
+# in the venv install-python-deps.sh makes; docs/deployment/macos.md),
+# under macOS's bash 3.2 too. update.ps1 is the Windows counterpart and
+# follows the same steps.
 
 set -euo pipefail
 
@@ -81,7 +82,10 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
 fi
 
-PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
+# shellcheck source=scripts/deploy-common.sh
+source "$SCRIPT_DIR/scripts/deploy-common.sh"
+
+PYTHON="${PYTHON:-$(default_python)}"
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1
@@ -121,12 +125,14 @@ fi
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 
+# Again, now that the pull may have changed it.
 # shellcheck source=scripts/deploy-common.sh
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 echo
 echo "== 2/8: Checking the Python libraries =="
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
+use_site_python
 
 echo
 echo "== 3/8: Checking the NLTK 'words' corpus =="
@@ -137,25 +143,36 @@ echo "== 4/8: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
 
 echo
-echo "== 5/8: Checking Apache's modules =="
+echo "== 5/8: Checking Apache's modules (macOS: the gunicorn daemon) =="
 APACHE_NEEDS_RESTART=0
-ensure_apache_modules
+if is_macos; then
+    ensure_gunicorn_daemon
+else
+    ensure_apache_modules
+fi
 
 echo
 echo "== 6/8: Setting directory ownership/permissions for Apache =="
-"$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 echo
 echo "== 7/8: Checking the cache, jobs and debug log locations =="
-"$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
-"$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
 
 echo
 echo "== 8/8: Checking that the web app imports =="
 check_app_imports
 
 echo
-if (( APACHE_NEEDS_RESTART )); then
+if is_macos; then
+    if [[ "$before" != "$after" ]]; then
+        echo "Done. Reload gunicorn so the site runs the new code (a running Generate job is left alone):"
+        echo "  sudo launchctl kill SIGHUP system/$GUNICORN_LABEL"
+    else
+        echo "Done. Nothing new was pulled."
+    fi
+elif (( APACHE_NEEDS_RESTART )); then
     echo "Done. An Apache module was just enabled: restart Apache to load it:"
     echo "  sudo systemctl restart apache2"
 elif [[ "$before" != "$after" ]]; then

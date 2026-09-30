@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
-# TODO(installers #50): also detect macOS Apache (Homebrew httpd, user _www)
-# and a Windows counterpart. See docs/TODO.md item 50.
 #
 # examples/apache/apache-identity.sh
 #
-# Defines `detect_apache_group`, which prints the user and group Apache2's
-# workers run as ("www-data www-data" on Debian/Ubuntu). Sourced by
-# set-permissions.sh and create-cache-dir.sh rather than run directly.
+# Defines `detect_apache_group`, which prints the user and group the web
+# app runs as: Apache2's workers on Linux ("www-data www-data" on
+# Debian/Ubuntu), and "_www _www" on macOS, where gunicorn runs as
+# macOS's built-in web server account (docs/deployment/macos.md; Homebrew's
+# httpd and nginx use it too). Sourced by set-permissions.sh,
+# create-cache-dir.sh and setup-debug-log.sh rather than run directly.
+# Windows' counterpart is the -ServiceAccount parameter of install.ps1.
 
 detect_apache_group() {
+    if [[ "$(uname -s)" == Darwin ]]; then
+        echo "_www _www"
+        return 0
+    fi
+
     # Debian/Ubuntu's apache2 package always defines APACHE_RUN_USER/
     # APACHE_RUN_GROUP in /etc/apache2/envvars (default www-data) -- this
     # is the authoritative source, since it's what apachectl itself reads

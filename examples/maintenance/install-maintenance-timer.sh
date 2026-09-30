@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# TODO(installers #50): systemd timers don't exist on macOS or Windows; add
-# a launchd plist and a Task Scheduler task. See docs/TODO.md item 50.
 #
 # examples/maintenance/install-maintenance-timer.sh
 #
@@ -38,9 +36,17 @@
 #   3. `systemctl daemon-reload`, then `enable --now` planetgen-update.timer
 #      (unless skipped) and each requested database's orbit timer instance.
 #
-# Linux only (systemd) -- same scope as install.sh/update.sh, which don't
-# call this themselves since maintenance runs on its own schedule, not on
-# every deploy.
+# On macOS, the same schedule as launchd daemons instead:
+# /Library/LaunchDaemons/org.planetgen.orbits.<database>.plist per
+# database (examples/macos/org.planetgen.orbits.planetgen.plist) and
+# org.planetgen.update.plist (unless --skip-update-timer), with the
+# checkout's path put in. No credentials file there: the orbit update
+# reads config.json. An existing plist is left alone. On Windows,
+# examples/maintenance/install-maintenance-task.ps1 makes Task Scheduler
+# tasks.
+#
+# install.sh/update.sh don't call this themselves since maintenance runs
+# on its own schedule, not on every deploy.
 
 set -euo pipefail
 
@@ -69,9 +75,38 @@ if ! command -v systemctl >/dev/null 2>&1; then
     exit 1
 fi
 
-databases=("${args[@]}")
+databases=(${args[@]+"${args[@]}"})
 if [[ ${#databases[@]} -eq 0 ]]; then
     databases=("${PLANETGEN_MYSQL_DATABASE:-planetgen}")
+fi
+
+if [[ "$(uname -s)" == Darwin ]]; then
+    REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+    MACOS_DIR="$REPO_DIR/examples/macos"
+    PYTHON="${PYTHON:-python3}"
+    SCRIPT_DIR="$REPO_DIR"  # what deploy-common.sh's helpers expect
+    # shellcheck source=../../scripts/deploy-common.sh
+    source "$REPO_DIR/scripts/deploy-common.sh"
+    mkdir -p "$MACOS_LOG_DIR"
+    chown _www:_www "$MACOS_LOG_DIR"
+    echo "== Installing launchd daemons =="
+    if [[ "$install_update_timer" -eq 1 ]]; then
+        install_launchd_plist "$MACOS_DIR/org.planetgen.update.plist" org.planetgen.update.plist
+        echo "  org.planetgen.update runs update.sh at 03:00 on the 1st of each month"
+    else
+        echo "  --skip-update-timer given -- not installing org.planetgen.update"
+    fi
+    for db in "${databases[@]}"; do
+        install_launchd_plist "$MACOS_DIR/org.planetgen.orbits.planetgen.plist" "org.planetgen.orbits.$db.plist" \
+            -e "s|org\.planetgen\.orbits\.planetgen|org.planetgen.orbits.$db|" \
+            -e "s|<string>planetgen</string>|<string>$db</string>|"
+        echo "  org.planetgen.orbits.$db updates orbits at 03:30 on the 1st of each month"
+    done
+    echo
+    echo "Done. Check them with: sudo launchctl print system/org.planetgen.orbits.${databases[0]}"
+    echo "Run one now with:      sudo launchctl kickstart system/org.planetgen.orbits.${databases[0]}"
+    echo "Logs: $MACOS_LOG_DIR"
+    exit 0
 fi
 
 echo "== 1/3: Installing systemd unit files =="
