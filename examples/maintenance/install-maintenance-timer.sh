@@ -68,7 +68,7 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if ! command -v systemctl >/dev/null 2>&1; then
+if [[ "$(uname -s)" != Darwin ]] && ! command -v systemctl >/dev/null 2>&1; then
     echo "error: systemctl not found -- this script is for systemd-based" >&2
     echo "  systems (Ubuntu/Debian's default). Use docs/database-schema.md's" >&2
     echo "  plain crontab example instead if this host has no systemd." >&2
