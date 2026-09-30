@@ -231,8 +231,11 @@ pip_install_system() {
             # An older copy pip itself installed (outside apt's
             # directory) is pip's to replace, and would otherwise leave its
             # metadata behind next to the new one.
-            local owned=()
-            read_lines owned < <("$PYTHON" - "${pins[@]%%==*}" <<'EOF'
+            # (A temp file, not <(... <<EOF): bash 3.2 can't parse a
+            # heredoc inside a command or process substitution.)
+            local owned=() owned_file
+            owned_file="$(mktemp)"
+            "$PYTHON" - "${pins[@]%%==*}" > "$owned_file" <<'EOF'
 import sys
 from importlib import metadata
 
@@ -244,7 +247,8 @@ for name in sys.argv[1:]:
     if not where.startswith("/usr/lib/python3/"):
         print(name)
 EOF
-            )
+            read_lines owned < "$owned_file"
+            rm -f "$owned_file"
             if (( ${#owned[@]} )); then
                 "$PYTHON" -m pip uninstall -y ${flags[@]+"${flags[@]}"} "${owned[@]}" || true
             fi
@@ -361,12 +365,9 @@ not_ok() {
 # without anything being reinstalled. Rewritten only when it differs.
 write_wrapper() {
     local want
-    want="$(cat <<EOF
-#!/bin/sh
-# Written by planetGen's scripts/install-python-deps.sh.
-exec "$PYTHON" "$SCRIPT_DIR/generate.py" "\$@"
-EOF
-)"
+    want="$(printf '%s\n' '#!/bin/sh' \
+        "# Written by planetGen's scripts/install-python-deps.sh." \
+        "exec \"$PYTHON\" \"$SCRIPT_DIR/generate.py\" \"\$@\"")"
     if [[ "$(cat "$WRAPPER" 2>/dev/null || true)" != "$want" ]]; then
         printf '%s\n' "$want" > "$WRAPPER"
         echo "Wrote $WRAPPER (runs $SCRIPT_DIR/generate.py)."

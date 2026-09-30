@@ -56,7 +56,10 @@ fi
 # root, so -I keeps the current directory, user site-packages and PYTHON*
 # variables off sys.path (appconfig.py itself lives outside src/html, in
 # the root-owned part of the checkout).
-read -r DEBUG_ON LOG_FILE < <(cd / && "$PYTHON" -I - "$REPO_DIR" <<'PY'
+# (Through a temp file: bash 3.2, macOS's, can't parse a heredoc inside
+# a process substitution.)
+SETTINGS="$(mktemp)"
+(cd / && "$PYTHON" -I - "$REPO_DIR" > "$SETTINGS") <<'PY'
 import importlib.util
 import os
 import sys
@@ -68,7 +71,8 @@ spec.loader.exec_module(appconfig)
 config = appconfig.load_config()
 print(1 if appconfig.debug_enabled(config) else 0, appconfig.log_file_path(config))
 PY
-)
+read -r DEBUG_ON LOG_FILE < "$SETTINGS"
+rm -f "$SETTINGS"
 
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
