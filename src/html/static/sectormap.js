@@ -163,6 +163,12 @@ function makeCopyButton(text) {
 // -- the same "not yet generated" info panel shape
 // `static/galaxymap3d.js`'s own `showPlannedInfo` already uses for its
 // "planned" tier, one galaxy-map zoom level up from this sector-level view.
+// TODO(sector-map #24): clicking an unfilled sector no longer shows a
+// command line. When an admin is logged in, show buttons instead: Generate
+// this sector, Generate neighborhood, Generate column, and Generate the
+// entire shell (marked not recommended). Each posts to the admin Generate
+// page (generate_page.py) as a background job. Visitors see only the
+// address and designation.
 function showNeighborInfo(panel, entry) {
   var heading = document.createElement("h3");
   heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";
@@ -804,6 +810,7 @@ function initStarmap(canvasEl, data) {
     return niceMantissa * magnitude;
   }
 
+  // TODO(distances #1): use the shared unit-ladder formatter.
   function formatLy(value) {
     if (value >= 100) return Math.round(value) + " ly";
     if (value >= 1) return Math.round(value * 10) / 10 + " ly";

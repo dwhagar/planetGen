@@ -53,7 +53,7 @@ DESIGNATION_LAYER_BIAS = 1 << (DESIGNATION_LAYER_BITS - 1)
 """int: Added to a layer index before packing (layers -4096..4095)."""
 
 
-# TODO(galaxy-map #5): replace this rule with the hybrid master-wedge rule
+# TODO(galaxy-map #12): replace this rule with the hybrid master-wedge rule
 # Boss chose on 2026-09-30, so slot boundaries line up from the center out.
 #   master(i) = 3 * 2**max(0, floor(log2(c / (3 * 8)))), c = 2*pi*(i + 1/2)
 #   ring_sector_count(i) = max(master(i), master(i) * round(c / master(i)))
@@ -289,7 +289,7 @@ class SectorCell:
         return (r * math.cos(theta) - self.r_center, r * math.sin(theta), z)
 
 
-# TODO(galaxy-map #5): with master-aligned rings, a slot of one ring never
+# TODO(galaxy-map #12): with master-aligned rings, a slot of one ring never
 # straddles a master line of its neighbor, so this can map through the
 # shared master wedge (slot // per_master) and stay exact. Keep the general
 # integer form as the fallback and test both agree for every ring pair

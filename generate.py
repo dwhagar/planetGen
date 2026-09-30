@@ -803,6 +803,10 @@ def build_sector_configs(args):
     return configs
 
 
+# TODO(phenomena #5): nebulae and supernova remnants are volumes light-
+# years across, so a per-star-system rate is the wrong model for them;
+# consider a per-volume rate (per pc^3, scaled by galaxy density) so they
+# appear at all.
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
     """
     Populates an already-built `sector` with a realistically sparse
@@ -874,6 +878,11 @@ NUCLEUS_ADDRESS = (0, 0, 0)
 for an active nucleus (see `add_galactic_nucleus`)."""
 
 
+# TODO(phenomena #7): every galaxy gets a supermassive black hole at (or
+# near) its center. Today only the 10% of galaxies whose nucleus is an
+# active quasar get one; the other 90% have nothing there. Place a
+# quiescent SMBH (Sagittarius A* is ~4.3e6 Msun) when the quasar roll
+# fails.
 def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     """
     Rolls whether the galaxy's nucleus is active and, if so, adds a
@@ -1141,6 +1150,11 @@ slots than this (see `ring_sector_count`) -- about ring 318, ~4,200 ly
 out. Anything larger takes a real, unbounded amount of time and disk, so
 it needs an explicit choice."""
 
+# TODO(sector-map #23): add a "column" mode: generate every sector of one
+# (ring, slot) column, all layers between galaxy_column's
+# layer_index_min/max for that ring (--ring R --slot S --column). Also a
+# "shell" mode if that's different from --ring (question in docs/TODO.md
+# item 23).
 def add_galaxy_arguments(parser):
     """
     Adds the `galaxy` subcommand's own mode/placement options -- on top

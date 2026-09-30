@@ -135,6 +135,12 @@ def _wiki_upload_options(system, wiki_config):
             if wiki_config.get(value) and not uploaded[value]]
 
 
+# TODO(facilities #31): an admin gets a way, on this page, to add a
+# facility and pick where it goes within the system: in orbit around the
+# star or around a planet (distance chosen, orbital speed calculated from
+# the host's approximate mass like everything else), on a terrestrial world
+# (a colony), in an asteroid belt; list facilities on this page and draw
+# them on the system map (lib/systemmap.py).
 @bp.route("/system/<int:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. POST is the admin "Upload to Wiki" form."""
@@ -262,6 +268,9 @@ def phenomena():
     )
 
 
+# TODO(distances #1): phenomenon radius, event horizon, jet length and
+# distance from the galactic center are fixed ly or km here and in
+# FIELD_SPECS below; pass them through the unit-ladder helper.
 def _ly(value):
     return f"{value:,.2f} ly"
 
@@ -378,6 +387,8 @@ def phenomenon_fields(phenomenon_type, detail):
     return fields
 
 
+# TODO(phenomena #25): pick the per-type view here (render, 3D render or
+# none) instead of always calling render_phenomenon_map_panel.
 @bp.route("/phenomenon/<phenomenon_type>/<int:phenomenon_id>")
 def phenomenon(phenomenon_type, phenomenon_id):
     """One phenomenon: its data table and AU-scale diagram."""

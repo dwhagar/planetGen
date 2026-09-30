@@ -88,6 +88,15 @@ _TYPE_COLORS = {
 _DEFAULT_COLOR = "#9aa0ac"
 
 
+# TODO(phenomena #25): replace the flat circle-or-dot map per type:
+# - neutron star: not a map but a rendered neutron star pulsing in rough
+#   time with its spin_period_ms (slowed to be visible), with its beams or
+#   a surface feature showing that it spins;
+# - comet and rogue planet: a rendered representation of the body;
+# - asteroid field: no render at all;
+# - black hole: a 3D render of its accretion disk around it;
+# - quasar: a 3D render of what it might look like (disk, and jets when
+#   radio-loud). Honor prefers-reduced-motion (a still frame).
 def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
     """
     Builds the "Diagram" panel: a flat, zoomable SVG showing one

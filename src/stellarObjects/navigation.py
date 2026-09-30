@@ -79,6 +79,18 @@ Attributes:
 """
 
 
+# TODO(nav #28): courses become "bearing mark mark-angle", both 0-359, with
+# 0 mark 0 toward the frame's center. Rework on Boss's nested reference
+# frames (docs/design/navigation-frames.md has the model and pseudocode):
+# - Galactic Standard Frame between sectors: North = the galactic core.
+# - Sector Local Frame: North = the sector's barycenter, up = galactic +Z.
+# - System Local Frame: North = the central star/barycenter, up = the
+#   system's angular momentum (ecliptic normal). Hand-off: star -> sector
+#   past the heliopause (~120 AU); sector -> galactic when the course
+#   crosses a sector boundary (> 4 pc). compute_course(ship, target, frame,
+#   center, up) builds the N/E/U basis (N = center direction flattened onto
+#   the plane, E = N x U) and returns bearing = atan2(D.E, D.N) mod 360 and
+#   mark = atan2(D.U, horizontal).
 def course_between(origin, destination):
     """
     Computes the course from `origin` to `destination`: straight-line
@@ -113,6 +125,8 @@ def course_between(origin, destination):
     return Course(distance_ly=distance, azimuth_deg=azimuth, altitude_deg=altitude)
 
 
+# TODO(nav #29): use the new warp speed function and add fold travel times
+# (fold_travel_times or one travel_times(kind, factors)).
 def warp_travel_times(distance_ly, warp_factors=program_constants.WARP_FACTORS_FOR_NAV):
     """
     Computes travel time across `distance_ly` at each of `warp_factors`,

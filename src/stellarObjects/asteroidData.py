@@ -190,6 +190,8 @@ class AsteroidBelt:
         """
         return format_composition_summary(self.composition)
 
+    # TODO(distances #1): write the belt's inner-outer range with the
+    # shared unit-ladder helper instead of AU-or-ly.
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs for the asteroid belt,

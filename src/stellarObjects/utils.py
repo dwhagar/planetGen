@@ -111,6 +111,9 @@ def get_star_evolutionary_profile(star):
     return {**base_info, "supported_evolutionary_scales": reachable_scales}
 
 
+# TODO(distances #1): the shared unit-ladder formatter (km < AU < mpc < cpc
+# < ly < pc < kpc < Mpc < Gpc) belongs next to this so both the text output
+# and html/lib/fmt.py can use it; star radii stop being km-only.
 def format_length_km(system_config: SystemConfig, value_km, threshold, round_digits, scientific_precision=None):
     """
     Formats a length in kilometers, switching between a comma-grouped plain

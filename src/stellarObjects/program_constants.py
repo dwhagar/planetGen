@@ -1587,6 +1587,9 @@ SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE = 0.15
 # (Strigari et al. 2012, MNRAS 423:1856, order-of-magnitude population
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
+# TODO(phenomena #6): add the rogue-planet mass-function constants here
+# (shape, slope) and a tweakable rogue-planet rate in
+# PHENOMENON_RATE_PER_STAR_SYSTEM.
 ROGUE_PLANET_MASS_RANGE_JUPITER = (0.0005, 10.0)
 
 # Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
@@ -1911,6 +1914,13 @@ generated when asked for by name.
 # size is usually devoid of black holes, neutron stars, and visible
 # nebulae, exactly as it is of Alpha-Centauri-close neighbors (see
 # spaceSector.py's own module docstring).
+# TODO(phenomena #5): revise these from real statistics. Boss: "The most
+# common interstellar objects should be asteroid field and comets, look up
+# actual stats for how common each stellar object is". Today rogue planets
+# (0.1) outnumber everything and nebulae (2.5e-7 per system) are
+# effectively never generated, so none show on the Phenomena page or in
+# search. Keep every rate here as a named, tweakable constant. See
+# docs/TODO.md item 5 for the numbers to check.
 PHENOMENON_RATE_PER_STAR_SYSTEM = {
     # ~100 million stellar-mass black holes in the Milky Way is a commonly
     # cited estimate (e.g. Lamberts et al. 2018, MNRAS 480:2704,
@@ -1997,6 +2007,11 @@ storage-analysis addendum: ~320 billion addressable sector slots total).
 
 # --- Navigation Parameters ---
 
+# TODO(nav #29): replace the plain w^(10/3) warp curve with Boss's formula,
+# speed in c = w^(10/3) + 1/(1+e^(-9.3575(w-9.5))) * (198.9/(10-w)^0.75 +
+# 1721.7 - w^(10/3)), and add dimensional fold, speed in c = 6F^4/(10-F).
+# Keep 9.3575, 9.5, 198.9, 0.75 and 1721.7 as named constants. Table of
+# values in docs/TODO.md item 29.
 WARP_FACTORS_FOR_NAV = (1, 3, 6, 9)
 """
 The warp factors NAV output reports travel time at (see

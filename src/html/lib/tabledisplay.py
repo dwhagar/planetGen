@@ -103,6 +103,9 @@ def format_period(period_years):
     return years_to_time_string(period_years)
 
 
+# TODO(distances #1): replace the km / AU / light-years branches (and the
+# moons-always-in-km rule) with fmt.format_distance; format_star_radius
+# below goes through it too.
 def format_body_distance(distance_km, is_moon):
     """
     Mirrors the `distance_text` branch in

@@ -164,6 +164,14 @@ def nearest_neighbors_location(location, neighbors, system_url):
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
 
 
+# TODO(distances #1): add one `format_distance(km)` helper here that picks
+# the most meaningful unit on the ladder km < AU < mpc < cpc < ly < pc <
+# kpc < Mpc < Gpc (the largest unit the value is at least 1 of), and pass
+# every radius, distance and orbital distance through it before display.
+# This function, tabledisplay.format_body_distance and the JS formatters
+# (systemmap.js formatDistanceKm, phenomenonmap.js formatSpan, sectormap.js
+# formatLy, galaxymap3d.js formatPcLy/formatPc) all become thin wrappers or
+# go away. See docs/TODO.md item 1.
 def format_distance_ly(distance_ly):
     """Formats a distance in light-years for a table cell, e.g.
     `"26,012.4 ly"`, or an en dash when there is none (`None`, an unplaced

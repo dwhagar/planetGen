@@ -1315,6 +1315,8 @@ def galaxy_placed_phenomena(conn):
     return _placed_phenomenon_rows(conn)
 
 
+# TODO(phenomena #26): return each phenomenon's octant and its stored
+# nearest three systems (joined from the new nearest-systems table).
 def phenomena_near_sector(conn, sector_id):
     """
     Every galaxy-placed standalone phenomenon (any `_PHENOMENON_TABLES`
@@ -1532,6 +1534,11 @@ def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
     return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
 
 
+# TODO(system-list #2): system_detail should also set a planet-level
+# "has_habitable_moon" flag from its moons' `habitable`, so the list can
+# show the new chip without re-walking the moons.
+# TODO(facilities #30): a colony on a terrestrial world makes it inhabited;
+# OR that into `inhabited` here.
 def _with_life_fields(body, stages):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
@@ -1850,7 +1857,7 @@ def _placed_sector_entry(r, system_count):
     }
 
 
-# TODO(galaxy-map #8): the map needs filled-sector counts per mega-block.
+# TODO(galaxy-map #15): the map needs filled-sector counts per mega-block.
 # Tiles already carry every placed sector's (ring, layer, slot), so the
 # browser can count them itself. Once tiles are too coarse to list every
 # sector (a zoomed-out view), return per-block totals here instead: GROUP
@@ -1884,7 +1891,7 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     parsed = [(key, parse_tile_key(key)) for key in dict.fromkeys(tile_keys)]
     if len(parsed) > MAX_TILES_PER_REQUEST:
         raise ValueError(f"at most {MAX_TILES_PER_REQUEST} tiles per request, got {len(parsed)}")
-    # TODO(galaxy-map #13): the page computes density itself
+    # TODO(galaxy-map #20): the page computes density itself
     # (static/galaxyprisms.js), so `density_key` and this sampling are dead
     # weight; drop them with galaxyViewport.density_points_for_tile and
     # tilecache's "density" field.

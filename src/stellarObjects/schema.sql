@@ -1988,6 +1988,9 @@ CREATE TABLE IF NOT EXISTS asteroid_field_composition (
 -- genuinely free again once nothing live still uses any decorated form
 -- of it descended from that row.
 -- ---------------------------------------------------------------------
+-- TODO(phenomena #26): add a nearest_systems table (object kind + id, rank
+-- 1-3, neighbor star_system_id, distance) with a migration, and a quadrant
+-- column on the phenomena tables (or compute it on read).
 CREATE TABLE IF NOT EXISTS sector_name_registry (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     base_name         VARCHAR(255) NOT NULL,
@@ -1999,6 +2002,12 @@ CREATE TABLE IF NOT EXISTS sector_name_registry (
         FOREIGN KEY (first_sector_id) REFERENCES sectors(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- TODO(facilities #30): add facilities (starbases, colonies, outposts):
+-- terrestrial, orbital and stand-alone (parked in space). One facilities
+-- table with kind, name and exactly one host (planet, moon, asteroid belt,
+-- asteroid field, star system orbit, or a free position), plus orbit
+-- columns (distance_km, period_years, orbital_speed_kms, phase) for orbital
+-- ones. See docs/TODO.md item 30 for the placement rules.
 CREATE TABLE IF NOT EXISTS system_name_registry (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     base_name              VARCHAR(255) NOT NULL,
