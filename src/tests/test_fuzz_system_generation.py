@@ -295,7 +295,8 @@ def assert_flags_honored(system, cfg):
     if cfg.NUM_ORBITS is not None and cfg.PLANETS is not False:
         assert len(system.planets) <= max(cfg.NUM_ORBITS, 0) + 2
     if cfg.NAME:
-        assert system.primary_star.name == cfg.NAME
+        # A wide pair's stars add their own word after the system name.
+        assert system.name == cfg.NAME
 
 
 def assert_binary_geometry(system):
