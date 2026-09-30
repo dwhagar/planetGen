@@ -17,12 +17,12 @@
     <a href="{{ page_url('galaxy', _anchor='galaxy-table') }}">All Quadrants</a>
   </div>
   <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Ring</th><th scope="col">From core</th><th scope="col">Systems</th></tr></thead>
+    <thead><tr><th scope="col">Name</th><th scope="col">Zone</th><th scope="col">From core</th><th scope="col">Systems</th></tr></thead>
     <tbody>
       {%- for row in sector_rows %}
       <tr>
         <td><a href="{{ row.url }}">{{ row.name }}</a></td>
-        <td>Ring {{ row.ring }}</td>
+        <td>{% if row.zone is not none %}Zone {{ row.zone }}{% else %}&ndash;{% endif %}</td>
         <td>{{ "{:,.1f}".format(row.distance_ly) }} ly</td>
         <td>{{ row.system_count }}</td>
       </tr>

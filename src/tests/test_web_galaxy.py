@@ -43,7 +43,7 @@ def _placed(i, x=100.0, y=50.0, name=None, radius=None):
     return {
         "id": i, "name": name or f"Placed {i:03d}", "x": x, "y": y, "z": 0.0,
         "galactic_radius_pc": radius if radius is not None else 1000.0 + i,
-        "shell_index": 10 + i, "shell_slot_index": 0, "system_count": i % 4,
+        "ring_index": 10 + i, "layer_index": 0, "ring_slot_index": 0, "system_count": i % 4,
     }
 
 
@@ -52,7 +52,7 @@ class FakeData:
 
     def __init__(self):
         self.sectors = [_placed(1), _placed(2, x=-100.0), _placed(3, x=-100.0, y=-50.0)]
-        self.shape = {"edge_pc": 3.526, "outer_shell_index": 400}
+        self.shape = {"edge_pc": 3.526, "outer_ring_index": 400}
         self.dbs = set()
         self.tile_calls = []
         self.fail_tiles = None
@@ -301,18 +301,17 @@ def db_client(mysql_config, tmp_path, monkeypatch):
     return application.test_client()
 
 
-def _place_sector(mysql_config, name, shell_index=5, shell_slot_index=100):
+def _place_sector(mysql_config, name, address=(5, 1, 20)):
     from stellarObjects.galaxyGeometry import galactic_radius_pc, sector_position_pc
 
-    position = sector_position_pc(shell_index, shell_slot_index, 3.526)
+    position = sector_position_pc(*address, 3.526)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
             return _db.insert_sector(conn, SpaceSector(name=name), galaxy_position={
                 "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
                 "galactic_radius_pc": galactic_radius_pc(position),
-                "shell_index": shell_index, "shell_slot_index": shell_slot_index,
-                "vertices_pc": {"inner": [], "outer": []},
+                "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
             })
     finally:
         conn.close()

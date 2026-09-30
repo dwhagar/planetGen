@@ -21,7 +21,7 @@ survive the move.
 from flask import jsonify, request, url_for
 
 import apiclient
-from galaxymap import QUADRANT_LABELS, ring_bounds_ly, sector_quadrant, sector_ring
+from galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from pagination import page_slice, parse_page
 from stellarObjects import log
@@ -53,7 +53,7 @@ def _parse_quadrant(raw):
 
 
 def _quadrant_summary_rows(sectors):
-    """One row per Quadrant: placed sectors, total systems, Ring extent."""
+    """One row per Quadrant: placed sectors, total systems, Zone extent."""
     by_quadrant = {label: [] for label in QUADRANT_LABELS}
     for sector in sectors:
         by_quadrant[sector_quadrant(sector["x"], sector["y"])].append(sector)
@@ -61,8 +61,9 @@ def _quadrant_summary_rows(sectors):
     for label in QUADRANT_LABELS:
         members = by_quadrant[label]
         extent = None
-        if members:
-            _inner, outer_ly = ring_bounds_ly(max(sector_ring(s["shell_index"]) for s in members))
+        rings = [s["ring_index"] for s in members if s["ring_index"] is not None]
+        if rings:
+            _inner, outer_ly = zone_bounds_ly(sector_zone(max(rings)))
             extent = f"out to ~{outer_ly:,.0f} ly"
         rows.append({
             "label": label,
@@ -83,7 +84,7 @@ def _quadrant_sector_rows(sectors, quadrant, page):
     rows = [{
         "name": sector["name"],
         "url": page_url("sector", sector_id=sector["id"]),
-        "ring": sector_ring(sector["shell_index"]),
+        "zone": sector_zone(sector["ring_index"]) if sector["ring_index"] is not None else None,
         "distance_ly": pc_to_ly(sector["galactic_radius_pc"]),
         "system_count": sector["system_count"] or 0,
     } for sector in page_members]
