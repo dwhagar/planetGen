@@ -323,37 +323,35 @@ def _tile_filename(prefix, key):
     return f"{prefix}{level}_{ix}_{iy}_{iz}.json"
 
 
-def validate_request(tile_keys, density_key):
+def validate_request(tile_keys):
     """
     Canonicalizes and validates a tile request.
 
     Returns:
-        tuple: `(tile_keys, density_key)` with duplicates removed and keys
-            in canonical form.
+        list[str]: The tile keys with duplicates removed, in canonical
+            form.
 
     Raises:
         TileRequestError: On a malformed key or too many keys.
     """
     try:
         keys = list(dict.fromkeys(tile_key(*parse_tile_key(key)) for key in tile_keys))
-        density = tile_key(*parse_tile_key(density_key)) if density_key else None
     except ValueError as exc:
         raise TileRequestError(str(exc))
     if len(keys) > MAX_TILES_PER_REQUEST:
         raise TileRequestError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
-    return keys, density
+    return keys
 
 
-def fetch_tiles(db, tile_keys, density_key=None, known_stamp=None):
+def fetch_tiles(db, tile_keys, known_stamp=None):
     """
-    The requested tiles (and optional density cloud), from the disk cache
+    The requested tiles, from the disk cache
     where possible and from `GET /api/galaxy/tiles` for the rest, caching
     whatever the API returns.
 
     Args:
         db (str): The `?db=` value.
         tile_keys (list[str]): `level/ix/iy/iz` keys.
-        density_key (str or None): A tile key to anchor a density cloud on.
         known_stamp (str or None): The stamp the browser's own cache is
             at, when it has one.
 
@@ -362,15 +360,14 @@ def fetch_tiles(db, tile_keys, density_key=None, known_stamp=None):
             keys its own cache by the generation), `history` (only when
             `known_stamp` isn't current: the changed tiles the browser
             hasn't seen, see `_stale_since`), `tiles` (`{key: {"placed",
-            "planned"}}`), `density` (`{"key", "points"}` or `None`),
-            `edge_pc`, `has_shape`, and `cached` (how many of the
+            "planned"}}`), `edge_pc`, `has_shape`, and `cached` (how many of the
             requested parts came from disk -- for diagnostics).
 
     Raises:
         TileRequestError: On a malformed request.
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
-    tile_keys, density_key = validate_request(tile_keys, density_key)
+    tile_keys = validate_request(tile_keys)
     root = cache_dir()
     info = current_stamp(db, root)
     stamp = info["stamp"]
@@ -378,7 +375,6 @@ def fetch_tiles(db, tile_keys, density_key=None, known_stamp=None):
     generation_dir = os.path.join(_db_dir(root, db), generation) if root and generation else None
 
     tiles = {}
-    density = None
     meta = None
     if generation_dir:
         meta = _read_json(os.path.join(generation_dir, "meta.json"))
@@ -386,22 +382,14 @@ def fetch_tiles(db, tile_keys, density_key=None, known_stamp=None):
             cached = _read_json(os.path.join(generation_dir, _tile_filename("t", key)))
             if isinstance(cached, dict):
                 tiles[key] = cached
-        if density_key:
-            cached = _read_json(os.path.join(generation_dir, _tile_filename("d", density_key)))
-            if isinstance(cached, list):
-                density = {"key": density_key, "points": cached}
 
-    cached_count = len(tiles) + (1 if density is not None else 0)
+    cached_count = len(tiles)
     missing = [key for key in tile_keys if key not in tiles]
-    need_density = bool(density_key) and density is None
 
-    if missing or need_density or not isinstance(meta, dict):
-        fetched = get_galaxy_tiles(db, missing, density_key if need_density else None)
+    if missing or not isinstance(meta, dict):
+        fetched = get_galaxy_tiles(db, missing)
         meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
         fetched_tiles = {key: _round_floats(value) for key, value in (fetched.get("tiles") or {}).items()}
-        fetched_density = fetched.get("density")
-        if fetched_density is not None:
-            fetched_density = {"key": density_key, "points": _round_floats(fetched_density.get("points") or [])}
 
         # Another request may have found changes while this one was
         # fetching; what it fetched could be from before them.
@@ -410,20 +398,15 @@ def fetch_tiles(db, tile_keys, density_key=None, known_stamp=None):
             for key, value in fetched_tiles.items():
                 if key in missing:
                     _write_json(os.path.join(generation_dir, _tile_filename("t", key)), value)
-            if fetched_density is not None:
-                _write_json(os.path.join(generation_dir, _tile_filename("d", density_key)), fetched_density["points"])
             if random.random() < PRUNE_PROBABILITY:
                 prune(root)
 
         tiles.update(fetched_tiles)
-        if fetched_density is not None:
-            density = fetched_density
 
     result = {
         "stamp": stamp,
         "generation": generation,
         "tiles": {key: tiles[key] for key in tile_keys if key in tiles},
-        "density": density,
         "edge_pc": meta.get("edge_pc"),
         "has_shape": bool(meta.get("has_shape")),
         "cached": cached_count,

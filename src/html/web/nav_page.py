@@ -323,7 +323,7 @@ def nav():
                                     has_route=route is not None)
     return render_page(
         "nav.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
-        direct=result["direct"], warp_times=result["warp_times"],
+        direct=result["direct"], warp_times=result["warp_times"], fold_times=result["fold_times"],
         scope_label="Same sector" if result["scope"] == "sector" else "Cross-sector (galaxy)",
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
         map_html=trusted_html(map_html),

@@ -131,6 +131,7 @@ class FakeData:
             "scope": "sector",
             "direct": {"distance_ly": 3.25, "azimuth_deg": 45.0, "altitude_deg": -2.5},
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
+            "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "4 days"}],
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
             "route": {"path": [from_id if from_kind == "system" else f"phenomenon:{from_type}:{from_id}",
                                1500, to_id],

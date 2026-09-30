@@ -428,22 +428,19 @@ def get_galaxy_shape(db):
     return _request("/galaxy/shape", {"db": db})["shape"]
 
 
-def get_galaxy_tiles(db, tile_keys, density_key=None):
+def get_galaxy_tiles(db, tile_keys):
     """
-    Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`density`/
-    `edge_pc`/`has_shape` -- see `queryDb.galaxy_tiles`). Callers go
+    Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
+    `has_shape` -- see `queryDb.galaxy_tiles`). Callers go
     through `lib/tilecache.py`, which only asks for tiles it hasn't
     already cached on disk.
 
     Args:
         db (str): The `?db=` value.
         tile_keys (list[str]): `level/ix/iy/iz` keys.
-        density_key (str or None): A tile key to anchor a density cloud on.
     """
     _require_db(db)
-    return _request("/galaxy/tiles", {
-        "db": db, "tiles": ",".join(tile_keys), "density": density_key,
-    })
+    return _request("/galaxy/tiles", {"db": db, "tiles": ",".join(tile_keys)})
 
 
 def get_galaxy_changes(db, since=None):

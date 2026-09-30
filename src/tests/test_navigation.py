@@ -19,7 +19,9 @@ from stellarObjects import _db
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
-from stellarObjects.navigation import course_between, warp_travel_times
+from stellarObjects.navigation import (
+    course_between, fold_speed_c, fold_travel_times, warp_speed_c, warp_travel_times,
+)
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
@@ -56,25 +58,87 @@ def test_course_between_coincident_points_is_defined():
     assert course == (0.0, 0.0, 0.0)
 
 
+# Boss's tables (docs/design/navigation-frames.md, "Travel speeds"): factor,
+# speed in c (1 decimal), and days per kpc (1 kpc = 3,261.56 ly, 1 ly per
+# 365.25 days at 1c; the table rounded with a slightly longer kpc, so the
+# day counts match to 1e-5).
+WARP_TABLE = [
+    (1, 1.0, 1_191_286),
+    (2, 10.1, 118_191),
+    (4, 101.6, 11_726),
+    (8, 1024.0, 1_163),
+    (9, 1520.1, 784),
+    (9.5, 1936.0, 615),
+    (9.9, 2822.7, 422),
+    (9.995, 12201.9, 98),
+]
+FOLD_TABLE = [
+    (4, 256.0, 4_653),
+    (5, 750.0, 1_588),
+    (6, 1944.0, 613),
+    (6.5, 3060.1, 389),
+    (7, 4802.0, 248),
+    (7.5, 7593.8, 157),
+    (8, 12288.0, 97),
+    (8.5, 20880.2, 57),
+]
+_LY_PER_KPC = 3261.56
+_DAYS_PER_YEAR = 365.25
+
+
+@pytest.mark.parametrize("warp_factor,speed_c,days_per_kpc", WARP_TABLE)
+def test_warp_speed_matches_boss_table(warp_factor, speed_c, days_per_kpc):
+    speed = warp_speed_c(warp_factor)
+    assert round(speed, 1) == speed_c
+    assert _LY_PER_KPC / speed * _DAYS_PER_YEAR == pytest.approx(days_per_kpc, rel=1e-5, abs=0.5)
+
+
+@pytest.mark.parametrize("fold_factor,speed_c,days_per_kpc", FOLD_TABLE)
+def test_fold_speed_matches_boss_table(fold_factor, speed_c, days_per_kpc):
+    speed = fold_speed_c(fold_factor)
+    assert round(speed, 1) == speed_c
+    assert _LY_PER_KPC / speed * _DAYS_PER_YEAR == pytest.approx(days_per_kpc, rel=1e-5, abs=0.5)
+
+
+@pytest.mark.parametrize("speed_c", [warp_speed_c, fold_speed_c])
+@pytest.mark.parametrize("factor", [0, -1, 10, 10.5])
+def test_speed_curves_reject_factors_outside_0_to_10(speed_c, factor):
+    with pytest.raises(ValueError):
+        speed_c(factor)
+
+
+def test_warp_curve_always_increases():
+    factors = [0.5 + i * 0.01 for i in range(950)]
+    speeds = [warp_speed_c(w) for w in factors]
+    assert all(b > a for a, b in zip(speeds, speeds[1:]))
+
+
 def test_warp_travel_times_default_factors_and_formula():
     legs = warp_travel_times(10.0)
-    assert [leg.warp_factor for leg in legs] == [1, 3, 6, 9]
+    assert [leg.warp_factor for leg in legs] == [row[0] for row in WARP_TABLE]
 
     for leg in legs:
-        expected_velocity = leg.warp_factor ** (10 / 3)
-        assert leg.velocity_multiple_of_c == pytest.approx(expected_velocity)
-        assert leg.years == pytest.approx(10.0 / expected_velocity)
+        assert leg.velocity_multiple_of_c == pytest.approx(warp_speed_c(leg.warp_factor))
+        assert leg.years == pytest.approx(10.0 / leg.velocity_multiple_of_c)
         assert leg.formatted  # non-empty human-readable string
 
-    # Warp 1 is always exactly c -- 10 ly takes 10 years.
+    # Warp 1 is c -- 10 ly takes 10 years.
     assert legs[0].years == pytest.approx(10.0)
     # Higher warp factors must always be faster (less travel time).
-    assert legs[0].years > legs[1].years > legs[2].years > legs[3].years
+    assert all(a.years > b.years for a, b in zip(legs, legs[1:]))
 
 
 def test_warp_travel_times_custom_factors():
     legs = warp_travel_times(1.0, warp_factors=(2, 4))
     assert [leg.warp_factor for leg in legs] == [2, 4]
+
+
+def test_fold_travel_times_default_factors():
+    legs = fold_travel_times(3261.56)
+    assert [leg.fold_factor for leg in legs] == [row[0] for row in FOLD_TABLE]
+    for leg, (_factor, _speed, days_per_kpc) in zip(legs, FOLD_TABLE):
+        assert leg.years * _DAYS_PER_YEAR == pytest.approx(days_per_kpc, rel=1e-5, abs=0.5)
+        assert leg.formatted
 
 
 # ---------------------------------------------------------------------
@@ -220,7 +284,8 @@ def test_nav_between_same_sector(two_sector_galaxy):
     assert result["route"]["path"][0] == ids["a"][0]
     assert result["route"]["path"][-1] == ids["a"][2]
     assert result["route"]["distance_ly"] == pytest.approx(4.0)
-    assert [leg.warp_factor for leg in result["warp_times"]] == [1, 3, 6, 9]
+    assert [leg.warp_factor for leg in result["warp_times"]] == [row[0] for row in WARP_TABLE]
+    assert [leg.fold_factor for leg in result["fold_times"]] == [row[0] for row in FOLD_TABLE]
 
     assert result["origin_position"] == pytest.approx((0.0, 0.0, 0.0))
     assert result["destination_position"] == pytest.approx((4.0, 0.0, 0.0))

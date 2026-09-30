@@ -152,3 +152,8 @@ jobs:
         # wholesale) so a real, relevant finding still fails this job, and
         # so this line itself needs revisiting once a fix ships.
         run: pip install pip-audit && pip-audit --ignore-vuln PYSEC-2026-3740
+
+      - name: Scan the locked dependencies for known vulnerabilities
+        # requirements.lock is what servers install (scripts/
+        # install-python-deps.sh, --require-hashes); same ignore as above.
+        run: pip-audit --require-hashes -r requirements.lock --ignore-vuln PYSEC-2026-3740

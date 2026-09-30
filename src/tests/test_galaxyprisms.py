@@ -165,6 +165,27 @@ console.log(JSON.stringify(prisms.length));
     assert out == 0
 
 
+def test_prisms_carry_their_azimuthal_mean_for_arm_shading():
+    """Each prism's `meanDensity` is its density with the arm factor held at
+    1, so density / mean is the arm factor the page shades the spiral by:
+    within 1 +/- arm_amplitude, and spanning most of that range around a
+    ring. With no arms the two are equal."""
+    out = _run(f"""
+const armed = P.prismsInView([8000, 0, 0], 4000, 27, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map());
+const flat = P.prismsInView([8000, 0, 0], 4000, 27, {EDGE_PC}, {{...shape, arm_amplitude: 0}}, {GALAXY_RADIUS_PC}, new Map());
+console.log(JSON.stringify({{
+  armed: armed.map(p => [p.ring, p.density, p.meanDensity]),
+  flat: flat.map(p => [p.density, p.meanDensity]),
+}}));
+""")
+    amplitude = SHAPE.arm_amplitude
+    ratios = [density / mean for ring, density, mean in out["armed"] if ring * 27 * EDGE_PC > 2000]
+    assert ratios
+    assert all(1 - amplitude - 1e-9 <= r <= 1 + amplitude + 1e-9 for r in ratios)
+    assert max(ratios) - min(ratios) > amplitude
+    assert out["flat"] and all(d == pytest.approx(m, rel=1e-12) for d, m in out["flat"])
+
+
 def test_geometry_is_closed_and_faces_outward():
     out = _run("""
 const prisms = [
