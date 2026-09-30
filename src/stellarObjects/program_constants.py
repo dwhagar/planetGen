@@ -17,6 +17,11 @@ these values or tables are needed.
 from . import physical_constants as _physical_constants
 
 # --- Planet Generation Parameters ---
+# Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
+# around extrasolar giant planets" -- a prograde moon on a circular orbit
+# stays bound out to about 0.4895 of its planet's Hill radius; beyond that
+# the star strips it (planetPhysics.generate_moons' outer limit).
+MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
 
 # The average ratio of a gas giant's core mass to its total mass
 GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)

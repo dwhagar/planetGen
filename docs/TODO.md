@@ -33,9 +33,7 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **The known generation bugs (40-45) come first**; their tests are
-   already written.
-- **Bug fixes (4-7)** come next, from Boss's notes of 2026-09-30. 4 is
+- **Bug fixes (4-7)** come first, from Boss's notes of 2026-09-30. 4 is
    a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
@@ -453,20 +451,6 @@ Low priority; nobody is waiting on these.
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
-
-### Known generation bugs (strict xfail tests)
-
-Each has a test marked `xfail(strict=True)` that starts passing, and so
-fails the run, once the bug is fixed; remove the marker in the same PR.
-Each has a `TODO(physics #N)` comment where the fix goes.
-
-40. [ ] **Moons orbit outside their planet's Hill sphere.**
-    `planetPhysics.generate_moons` sets `high_orbit` to 5 Hill radii
-    (the comment says 1/5). Test:
-    `test_fuzz_system_generation.py::test_moons_orbit_inside_their_parents_hill_sphere`.
-41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
-    `low_orbit` ignores the planet's radius. Test:
-    `test_moons_orbit_outside_their_parents_body`.
 
 ### More pages (Boss's notes, 2026-09-30)
 
