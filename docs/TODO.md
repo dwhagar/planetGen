@@ -35,8 +35,8 @@ renumber when items are added or finished.
 
 - **The known generation bugs (40-45) come first**; their tests are
    already written.
-- **Bug fixes (2-7)** come next, from Boss's notes of 2026-09-30. 2-4
-   are small web changes;
+- **Bug fixes (4-7)** come next, from Boss's notes of 2026-09-30. 4 is
+   a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
@@ -51,9 +51,8 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
    are schema changes.
-- **More pages (46-49)**: the full systems list, the Sector Map
-   wireframe, the system page layout and non-overlapping System Map
-   names are small and can go in any time.
+- **More pages (46, 47, 49)**: the full systems list, the Sector Map
+   wireframe and non-overlapping System Map names are small and can go in any time.
 - **Installers (50)**: PowerShell install and upgrade scripts, and the
    bash scripts made to run on macOS too.
 - Each change site in the code carries a `TODO(<area> #N)` comment
@@ -65,42 +64,6 @@ renumber when items are added or finished.
    can start on that default.
 
 ### Bug fixes (Boss's notes, 2026-09-30)
-
-2. [ ] **Planet list: one type chip, a habitable-moon chip, belt
-   distances.** Boss: "if a planet is not terrestrial it is not
-   habitable so no need to display both. Likewise, no need to say both
-   terrestrial and habitable, but add a new field for all planets that
-   appears only if one of the moons is habitable. Asteroid belts in the
-   list should display with their distance from the star (see above) in
-   a meaningful unit."
-   - `systempage._planet_row_html` (list) and `_body_row` (table): show
-     "Gas Giant", "Terrestrial" or "Habitable", never two of them.
-   - New chip (e.g. "Habitable moon") when any moon is habitable;
-     `queryDb._with_life_fields`/`system_detail` sets the flag.
-   - `systempage._belt_row_html`: add the belt's distance (`fmt.format_distance_km`).
-
-3. [ ] **A less dense top bar.** Boss: "Admin should be a menu dropdown
-   with 'Admin', 'generate' and 'logout', if the search bar text entry
-   is less than twice the size of the search button, don't display it.
-   Galaxy, Sectors, and such should also appear in their own separate
-   menu. In fact, settings like password, theme, and admin pages should
-   all be under a 'settings' gear icon in upper right,
-   galaxy/sectors/systems/phenomena/nav should be in a different menu
-   only if there isn't enough room to comfortably print each as a
-   button, and then the above laid out search bar logic."
-   - `templates/base.html` (`account_links`, the header), `style.css`
-     (`.site-header`, the 56rem/92rem collapses), `helpers.SECTIONS`,
-     `theme.js` (the toggle moves into the gear menu).
-   - Boss confirmed on 2026-09-30: a visitor who isn't logged in gets
-     the pages (Galaxy, Sectors, Systems, Phenomena, Nav) and, under the
-     gear, Theme and search. No Stats unless logged in. ("Admion" was a
-     typo for Admin.)
-   - Default taken: for a logged-in admin the gear menu holds Account
-     (password), Theme, Admin, Generate, Stats and Logout; there is no
-     separate Admin dropdown. A container query on the header can hide
-     the search box and collapse the sections without JavaScript.
-   - **Question for Boss:** a visitor still needs a way to log in; a
-     Login entry in the gear menu is the default.
 
 4. [ ] **Tag search: collapsible groups and phenomena.** Boss: "Search
    by tag should have collapsible zones for each group of tags so it
@@ -750,34 +713,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     12 straight edges between 8 corners, thin and low-contrast so the
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
-
-48. [ ] **System page: one ordered list of everything in orbit, with
-    expandable moons, stars table first.** Boss: "on the star system
-    page we list planets and moons twice, have moons expandable under
-    the initial planet list so we can get rid of the 2nd table at the
-    end of the page. Move the star table to the top of the tables under
-    the clickable map interface."
-    - Moons: in `systempage._planet_row_html` a planet's moons sit inside
-      its `<details>`, after its whole description. Give them their own
-      expandable group right under the planet's row (e.g. a nested
-      "N moons" `<details>`), still working without script.
-    - Remove the Planets & Moons table (`bodies_html` /
-      `_planets_table_html`, rendered last in `system.html`). Its columns
-      (class, type, zone, distance, period, gravity) move into each
-      row's compact stats so nothing is lost; item 2's chip rules apply
-      there.
-    - Move `stars_html` (the stars table) up to be the first table,
-      directly under `map_html`.
-    - Belts and comets (Boss, 2026-09-30): "Asteroid belts and comets
-      should be placed in the interactive list of objects in orbit
-      around the star in their relative order from the star." Remove
-      the Asteroid Belts and Comets tables too. `_orbiting_rows_html`
-      already orders belts with planets by `orbital_index`, but appends
-      every comet at the end; sort comets in by distance instead.
-      Default taken: a comet sorts by its semi-major axis
-      (`perihelion_distance_km / (1 - eccentricity)`), and parabolic
-      ones (no finite axis) go last by perihelion. Each belt and comet
-      row shows its distance (`fmt.format_distance_km`).
 
 49. [ ] **System Map names never overlap.** Boss: "we need to make sure
     names on the system map clickable interface do not overlap."

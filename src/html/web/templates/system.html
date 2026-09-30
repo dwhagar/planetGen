@@ -1,5 +1,5 @@
 {#- The system page (/system/<id>, web/system_pages.py). The body list,
-    the tables and the map are HTML from lib/systempage.py and
+    the stars table and the map are HTML from lib/systempage.py and
     lib/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
 {% block head %}
@@ -24,6 +24,7 @@
 {% endblock %}
 {% block content %}
 {{ map_html }}
+{{ stars_html }}
 {%- if wiki_status or wiki_options %}
 <section class="panel" id="wiki-upload" aria-labelledby="wiki-upload-heading">
   <h2 id="wiki-upload-heading">Upload to Wiki</h2>
@@ -78,8 +79,4 @@
   {%- endif %}
   {{ system_list_html }}
 </section>
-{# TODO(web-pages #48): move the stars table up to be the first table, right
-   under map_html, and drop bodies_html (all three tables). #}
-{{ stars_html }}
-{{ bodies_html }}
 {% endblock %}
