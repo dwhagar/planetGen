@@ -168,6 +168,16 @@ connectivity to that specific schema rather than the default one.
   has never been built. The Galaxy Map shades its "expected density"
   cloud from this real model (falling back to a generic illustrative
   gradient when `null`) instead of a placeholder.
+- `GET /api/galaxy/cell?ring=<i>&layer=<j>&slot=<k>` (or `?x=&y=&z=`,
+  parsecs, for the cell holding that point) — one cell of the cylindrical
+  sector grid, whether or not anything was generated there
+  (`galaxyGeometry.describe_sector_cell`): `ring_index`/`layer_index`/
+  `ring_slot_index`, `designation`, `cartesian_pc`, `cylindrical`
+  (`r_pc`, `theta_rad`, `z_pc`), `spherical` (`r_pc`, `theta_rad`,
+  `polar_rad` from galactic north), `bounds`, `mean_arc_length_pc`,
+  `volume_pc3`, `vertices_pc` (8 corners), `edge_pc`, and `sector_id`
+  (the generated sector there, or `null`). `400` for a bad or incomplete
+  query.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube

@@ -1,3 +1,15 @@
+### Added
+- **The Galaxy Map draws the sector grid itself.** Its prisms are the real
+  cylindrical sector cells: one prism is one sector up close, and further
+  out one prism stands for a block of whole sectors (3, 9, 27, ... a side),
+  chosen so a block stays at least about 10 pixels across on screen and the
+  view stays fast. Clicking a prism, or any empty spot, shows that sector or
+  block: its address or ring and layer range, how many sectors it holds, its
+  center in Cartesian, cylindrical and spherical coordinates, its size and
+  its 8 corners, plus the command to generate a single sector.
+- `GET /api/galaxy/cell?ring=&layer=&slot=` (or `?x=&y=&z=`) describes any
+  sector cell in the galaxy, generated or not, the same way.
+
 ### Changed
 - **Galaxy sectors now sit on a cylindrical grid instead of spherical
   shells.** Each galaxy-placed sector is one cell of rings 11.5 ly wide

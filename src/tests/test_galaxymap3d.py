@@ -135,7 +135,7 @@ def test_panel_omits_the_hint_when_a_shape_exists():
 
 def test_panel_embeds_the_density_shape_for_the_prisms():
     shape = {field: float(i + 1) for i, field in enumerate(DENSITY_SHAPE_FIELDS)}
-    shape.update({"outer_shell_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
+    shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
     data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
     assert data["densityShape"] == {field: shape[field] for field in DENSITY_SHAPE_FIELDS}
 
