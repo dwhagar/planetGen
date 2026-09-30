@@ -100,6 +100,14 @@ MAX_SYSTEM_GENERATION_ATTEMPTS = 8
 
 # --- Binary System Generation Parameters ---
 
+# Holman & Wiegert (1999), AJ 117:621 -- their P-type (circumbinary) fit,
+# for a planet orbiting both stars of a close pair
+# (utils.holman_wiegert_circumbinary_a_crit_au), was tested over mu (the
+# lighter star's mass fraction) in [0.1, 0.5] and e in [0.0, 0.7]; inputs
+# are clamped to this range rather than extrapolated.
+HOLMAN_WIEGERT_P_TYPE_MU_RANGE = (0.1, 0.5)
+HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
+
 # Probability an S-type (wide) binary is chosen over a P-type (close) one
 # when BINARY_SYSTEM is True and WIDE_BINARY is left at None. A plain
 # coin-flip, not an attempt to model true field-star multiplicity

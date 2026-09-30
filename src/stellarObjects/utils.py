@@ -651,7 +651,7 @@ def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_f
                          - 5.09*mu^2 + 4.61*e^2*mu^2
 
     `mu` is the lighter star's fraction of the pair's total mass. Inputs
-    are clamped to `physical_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE`/
+    are clamped to `program_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE`/
     `HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE` (the fit's tested grid)
     rather than extrapolated. A circular equal-mass pair gives about
     2.39 * a_bin.
@@ -664,8 +664,8 @@ def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_f
     Returns:
         float: The innermost stable circumbinary orbit, in AU.
     """
-    mu_min, mu_max = physical_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE
-    e_min, e_max = physical_constants.HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE
+    mu_min, mu_max = program_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE
+    e_min, e_max = program_constants.HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE
     mu = min(max(secondary_mass_fraction, mu_min), mu_max)
     e = min(max(eccentricity, e_min), e_max)
 

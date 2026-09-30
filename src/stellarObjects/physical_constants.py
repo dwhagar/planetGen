@@ -423,12 +423,6 @@ MOON_TIDAL_LOVE_NUMBER_K2 = 0.03
 HOLMAN_WIEGERT_MU_RANGE = (0.1, 0.9)
 HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 
-# The same paper's P-type (circumbinary) fit, for a planet orbiting both
-# stars of a close pair (utils.holman_wiegert_circumbinary_a_crit_au): tested
-# over mu (the lighter star's mass fraction) in [0.1, 0.5] and e in [0.0, 0.7].
-HOLMAN_WIEGERT_P_TYPE_MU_RANGE = (0.1, 0.5)
-HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
-
 # Gladman (1993), "Dynamical stability of the outer solar system and the
 # delivery of comets," Icarus 106, 247 -- for two coplanar, circular-orbit
 # planets sharing one central mass, a mutual separation of at least
