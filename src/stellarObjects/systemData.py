@@ -1878,6 +1878,11 @@ class StarSystem:
             planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
             planetPhysics.update_orbital_position(planet)
 
+        if reclassified:
+            # A new class brings a new radius and mass, and so a new range
+            # of stable moon orbits.
+            planetPhysics.drop_unstable_moons(planet)
+
         for moon in planet.moons:
             moon_reclassified = planetPhysics.reconcile_zone_and_class(
                 moon, planet.mass, distance_override=planet.distance
@@ -1902,6 +1907,9 @@ class StarSystem:
             planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
                 planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
             )
+        elif reclassified:
+            # drop_unstable_moons may have removed every moon.
+            planet.reflex_offset_x = planet.reflex_offset_y = planet.reflex_offset_z = 0.0
 
         return reclassified
 

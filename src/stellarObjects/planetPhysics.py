@@ -886,6 +886,50 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
     return True
 
 
+def moon_orbit_bounds_km(planet):
+    """
+    The range of orbits, in km from `planet`'s center, where a moon of it
+    can sit.
+
+    Innermost: clear of the planet's body and the largest moon it could
+    have (`planet.radius / 10**(1/3)`, so no moon touches it; this is also
+    past the rigid-body Roche limit of ~1.26 planet radii for similar
+    densities), plus 15 atmospheric scale heights (or 100 km with no
+    atmosphere) of drag-free margin. Outermost: the prograde stability
+    limit, `MOON_PROGRADE_STABLE_HILL_FRACTION` of the Hill radius; past it
+    the star strips the moon.
+
+    Returns:
+        tuple: `(low_km, high_km)`; `low_km >= high_km` means no room.
+    """
+    max_moon_radius = planet.radius / (10 ** (1 / 3))
+    atmosphere_margin_km = planet.scale_height * 15 if planet.scale_height else 100
+    low_km = planet.radius + max_moon_radius + atmosphere_margin_km
+    high_km = planet.hill_radius * program_constants.MOON_PROGRADE_STABLE_HILL_FRACTION
+    return low_km, high_km
+
+
+def drop_unstable_moons(planet):
+    """
+    Removes the moons of `planet` that no longer fit after its class (and
+    so its radius and mass) was regenerated: one orbiting outside
+    `moon_orbit_bounds_km`, or one larger than the planet could hold
+    (`planet.radius / 10**(1/3)`). A real planet that lost mass this way
+    would lose those moons to the star or to a collision.
+
+    Returns:
+        int: How many moons were dropped.
+    """
+    low_km, high_km = moon_orbit_bounds_km(planet)
+    max_moon_radius = planet.radius / (10 ** (1 / 3))
+    kept = [moon for moon in planet.moons
+            if low_km <= moon.distance * physical_constants.AU_TO_KM <= high_km
+            and moon.radius <= max_moon_radius]
+    dropped = len(planet.moons) - len(kept)
+    planet.moons[:] = kept
+    return dropped
+
+
 def generate_moons(planet, moon_count=None):
     """
     Generates a system of moons for the given planet.
@@ -926,10 +970,7 @@ def generate_moons(planet, moon_count=None):
     if not possible_classes:
         return
 
-    # TODO(physics #40, #41): high_orbit is 5 Hill radii (moons land outside
-    # the Hill sphere) and low_orbit ignores the planet's own radius.
-    low_orbit = planet.scale_height * 15 if planet.scale_height else 100
-    high_orbit = planet.min_orbit_distance * physical_constants.AU_TO_KM
+    low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
 
     # Deferred import: planetData imports this module at load time, so Planet
@@ -946,9 +987,9 @@ def generate_moons(planet, moon_count=None):
                                                                         program_constants.PLANET_CLASSES[moon_class]['radius_range'][
                                                                             1] else max_moon_radius
         # Log-uniform, not linear-uniform: [total_orbit_distance, high_orbit]
-        # can span many orders of magnitude (high_orbit reaches out to 1/5 of
-        # the planet's own Hill radius, which for a large planet is tens to
-        # hundreds of millions of km -- far beyond where any real large moon
+        # can span many orders of magnitude (high_orbit reaches out to about
+        # half the planet's own Hill radius, which for a large planet is tens
+        # of millions of km -- far beyond where any real large moon
         # actually orbits, e.g. our Moon at ~384,400 km), and a plain
         # random.uniform over that range spends almost all its density in the
         # single largest order of magnitude, so nearly every moon landed
