@@ -494,7 +494,8 @@ and how it relates to the `PLANETGEN_*` environment variables.
    see [`database-schema.md`](database-schema.md).
 2. From that directory, run `sudo ./install.sh` -- installs the Python
    package (with pip, or on an externally managed Python such as Ubuntu
-   24.04+'s, from apt packages plus a venv for anything apt lacks; see
+   24.04+'s, from apt packages, with system-wide pip only for anything apt
+   lacks or ships too old; see
    [`apache-deployment.md`](apache-deployment.md#managed-python)), brings the configured MySQL database's schema up to date
    (a no-op if it's already current -- see
    [`database-schema.md`](database-schema.md)'s "Versioning"),

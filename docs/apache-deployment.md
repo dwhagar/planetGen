@@ -30,43 +30,50 @@ checks for that file and picks a path, printing which one it took:
 
 - **Not managed:** `pip install` of the package and its `api` extra, as
   before.
-- **Managed:** the libraries come from apt (`python3-flask`,
+- **Managed:** everything goes into the system Python, no virtual
+  environment. Each library comes from apt (`python3-flask`,
   `python3-nltk`, `python3-pymysql`, `python3-dbutils`,
-  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`). Any the
-  distribution doesn't package, or packages below the version `setup.py`
-  asks for, are pip-installed into a venv at `/opt/planetgen/venv`
-  (`PLANETGEN_VENV_DIR`), and a `planetgen-venv.pth` file in the system
-  site-packages puts that venv first on the system Python's `sys.path` so
-  mod_wsgi sees it without any vhost change. The
-  `.pth` is removed again once apt provides everything. planetGen itself
-  runs straight from the checkout (every entry point adds `src/` to
-  `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing in for
-  pip's console script. (The wrapper is written on the unmanaged path
-  too, so the CLI always runs the checkout's code.)
+  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`) when the
+  distribution packages it at or above the version `setup.py` asks for.
+  Only a library apt lacks, or ships too old, is pip-installed
+  system-wide into `/usr/local/lib/python3.X/dist-packages`, which comes
+  before apt's `/usr/lib/python3/dist-packages` on `sys.path`. The same
+  goes for any dependency of it that has to be newer than apt's (Flask
+  3.1 needs a newer Werkzeug than Ubuntu 24.04 ships, for example). pip
+  never removes or overwrites apt's files: it resolves first and then
+  installs exactly those versions alongside (`--ignore-installed
+  --no-deps`). A plain `pip install --upgrade --break-system-packages`
+  deletes apt's copy of some packages (python3-pymysql, for one) and
+  leaves dpkg broken. The report lists each library with where it came
+  from, and for each pip one, why apt couldn't provide it. Servers set up
+  by earlier versions had a venv at `/opt/planetgen/venv` with a
+  `planetgen-venv.pth`. Both are removed on the next `install.sh` or
+  `update.sh`, and what they held goes system-wide.
+
+planetGen itself runs straight from the checkout (every entry point adds
+`src/` to `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing
+in for pip's console script on every host, so the CLI always runs the
+checkout's code.
 
 `PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
 
 `update.sh` reinstalls nothing. It runs the same script with `--check`,
-which imports each library with the system Python (the venv `.pth`
-included) and compares its version with `setup.py`'s floor, then
-installs only what is missing, too old or fails to import, the same way
-`install.sh` would on that host: apt and then the venv (kept, not
-rebuilt) on a managed Python, pip on an ordinary one. It prints one line
-per library (`present`, `installed`, `upgraded`, `repaired` or `failed`)
-and stops the update if anything is still unusable. Its last step imports
-the web app as Apache's user, so a library www-data can't read shows up
-there rather than as a 500. `sudo ./install.sh` is still the full
-reinstall.
+which imports each library with the system Python and compares its
+version with `setup.py`'s floor. It then installs only what is missing,
+too old or fails to import, the same way `install.sh` would on that host:
+apt first, then system-wide pip. It prints one line per library
+(`present`, `installed`, `upgraded`, `repaired` or `failed`, and its
+source) and stops the update if anything is still unusable. Its last step
+imports the web app as Apache's user, so a library www-data can't read
+shows up there rather than as a 500. `sudo ./install.sh` is still the
+full reinstall.
 
 ### Which Python and libraries Apache uses
 
-Nothing in the vhost points at the venv, and nothing needs to. mod_wsgi
-embeds the system Python it was built against, and that Python reads
-`planetgen-venv.pth` from its own site-packages at startup, so the venv
-comes first on `sys.path` in the `planetgen-api` daemon exactly as it
-does for `python3` in a shell. Don't add `python-home=/opt/planetgen/venv`
-to `WSGIDaemonProcess`: the venv holds only the libraries apt lacks, and
-the apt ones can drop out of the path.
+Nothing in the vhost names a Python or a library path, and nothing needs
+to. mod_wsgi embeds the system Python it was built against, and that
+Python finds the libraries in its own system site-packages, exactly as
+`python3` does in a shell. Leave `python-home` off `WSGIDaemonProcess`.
 
 The one thing that has to line up is the Python version: mod_wsgi
 (`libapache2-mod-wsgi-py3`) must be built for the same Python that
@@ -84,10 +91,10 @@ the scripts with that Python (`sudo PYTHON=/usr/bin/python3.12
 To see what the running site really uses, open the admin Stats page
 (`/admin/stats`): **Python** shows the daemon's version and prefix, and
 **Libraries from** shows the directory it imports Flask from
-(`/opt/planetgen/venv/lib/python3.X/site-packages` when the venv
-fallback is in use, `/usr/lib/python3/dist-packages` when apt provides
-everything). After an update, `sudo systemctl reload apache2` restarts
-the daemon so it picks up anything newly installed.
+(`/usr/lib/python3/dist-packages` for apt's Flask,
+`/usr/local/lib/python3.X/dist-packages` for pip's). After an update,
+`sudo systemctl reload apache2` restarts the daemon so it picks up
+anything newly installed.
 
 See [`../install.sh`](../install.sh) for the full install script,
 [`../update.sh`](../update.sh) for pulling later updates, and

@@ -72,7 +72,7 @@ ensure_apache_modules() {
 }
 
 # mod_wsgi embeds the Python it was built against, not whatever `python3`
-# is. The libraries (and the venv .pth, which lives in that Python's own
+# is. The libraries (which live in that Python's own
 # site-packages) are set up for $PYTHON, so the two must be the same
 # version or Apache won't see them. Warns rather than fails: the fix is
 # a package choice for the admin.

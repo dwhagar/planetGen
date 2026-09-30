@@ -20,8 +20,8 @@
 #      comparing its version with setup.py's floor:
 #      `scripts/install-python-deps.sh --check`. Only a library that is
 #      missing, too old or broken gets installed, the same way install.sh
-#      would on this host (apt and then the venv on an externally managed
-#      Python, pip on an ordinary one). planetGen itself is never
+#      would on this host (apt first and then system-wide pip on an
+#      externally managed Python, pip on an ordinary one). planetGen itself is never
 #      reinstalled: the web app, the maintenance scripts and the
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.

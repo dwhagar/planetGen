@@ -11,8 +11,8 @@
 #   1. Runs `scripts/install-python-deps.sh` to install the Python package
 #      and its libraries: a build-isolated `pip install` on an ordinary
 #      Python, or distribution (apt) packages on an externally managed one
-#      (PEP 668, e.g. Ubuntu 24.04+), with a venv only for libraries the
-#      distribution doesn't package.
+#      (PEP 668, e.g. Ubuntu 24.04+), with system-wide pip only for
+#      libraries the distribution lacks or ships too old. No venv.
 #   2. Runs `src/migrateDb.py` against the configured MySQL database
 #      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
 #      `SetEnv` directives once deployed), bringing it up to the current
@@ -84,9 +84,9 @@ fi
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 echo "== 1/8: Installing the Python package and its libraries =="
-# pip on an ordinary Python; distribution packages (plus a venv for
-# anything the distribution lacks) on an externally managed one (PEP 668,
-# e.g. Ubuntu 24.04+), where pip refuses to install. See that script for
+# pip on an ordinary Python; distribution packages (plus system-wide pip
+# for anything the distribution lacks or ships too old) on an externally
+# managed one (PEP 668, e.g. Ubuntu 24.04+). See that script for
 # the details of each path; it prints which one it took.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 

@@ -70,10 +70,36 @@ def test_install_and_update_share_the_deploy_checks():
             assert check in code, (script, check)
 
 
-def test_check_mode_keeps_the_venv():
-    script = _read("scripts", "install-python-deps.sh")
-    check = script[script.index("check_requirements() {"):]
-    check = check[:check.index("\n}\n")]
-    assert "venv_install keep" in check
-    assert "venv_install clear" not in check
-    assert "--force-reinstall" not in check
+def _function(script, name):
+    body = script[script.index(f"{name}() {{"):]
+    return body[:body.index("\n}\n")]
+
+
+def test_no_virtual_environment():
+    """Boss's call: libraries go into the system Python, apt first."""
+    code = _code(_read("scripts", "install-python-deps.sh"))
+    assert "-m venv" not in code
+    assert "sys.path.insert" not in code  # no .pth written any more
+
+
+def test_pip_never_removes_apt_files():
+    """
+    pip must never uninstall or upgrade in place on a managed Python: for
+    an apt package with egg-info metadata (python3-pymysql) that deletes
+    apt's own files. It resolves with --dry-run --report and installs the
+    pinned result alongside with --ignore-installed --no-deps.
+    """
+    pip = _function(_code(_read("scripts", "install-python-deps.sh")), "pip_install_system")
+    assert "--dry-run" in pip and "--report" in pip
+    assert "--ignore-installed --no-deps" in pip
+    assert "--upgrade" not in pip
+    # The only uninstall is of copies outside apt's directory.
+    assert '"/usr/lib/python3/"' in pip
+
+
+def test_managed_paths_try_apt_first():
+    script = _code(_read("scripts", "install-python-deps.sh"))
+    for name in ("install_managed", "check_requirements"):
+        body = _function(script, name)
+        assert body.index("apt_install") < body.index("pip_install_system"), name
+        assert "remove_legacy_venv" in body, name

@@ -47,9 +47,9 @@ def _memory_info():
 
 
 def _libraries_dir():
-    """Where this process imports Flask from: the venv's site-packages when
-    the planetgen-venv.pth fallback is in effect, else the distribution's
-    (or pip's) own directory. Shows which libraries mod_wsgi really uses."""
+    """Where this process imports Flask from: apt's
+    /usr/lib/python3/dist-packages, or /usr/local/.../dist-packages when
+    pip installed it. Shows which libraries mod_wsgi really uses."""
     flask = sys.modules.get("flask")
     path = getattr(flask, "__file__", None)
     return os.path.dirname(os.path.dirname(path)) if path else None
