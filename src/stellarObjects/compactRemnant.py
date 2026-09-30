@@ -50,6 +50,21 @@ from .utils import (calculate_habitable_zone, format_age_string, format_galactic
                     properties_to_string, reseed_rng, to_scientific_notation)
 
 
+def _log_uniform(low, high):
+    """A value drawn uniformly in log space between `low` and `high`."""
+    return math.exp(random.uniform(math.log(low), math.log(high)))
+
+
+def infer_black_hole_mass_class(mass_solar):
+    """The mass class a black hole of `mass_solar` falls in, for rows
+    saved before `mass_class` was stored (schema v36)."""
+    if mass_solar >= program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0]:
+        return "supermassive"
+    if mass_solar >= program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]:
+        return "intermediate"
+    return "stellar"
+
+
 class CompactRemnant(Star):
     """
     Shared base for `BlackHole`/`NeutronStar` -- both are `Star` subclasses
@@ -178,7 +193,7 @@ class BlackHole(CompactRemnant):
     """
 
     SERIALIZABLE_FIELDS = Star.SERIALIZABLE_FIELDS + [
-        "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk",
+        "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk", "mass_class",
     ]
     """Extends `Star.SERIALIZABLE_FIELDS` (minus `yerkes_class`'s normal
     meaning, repurposed here as the literal marker `"BH"` so `stars.
@@ -189,21 +204,31 @@ class BlackHole(CompactRemnant):
     need no special-casing)."""
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
-                 galactic_orbital_phase_deg=None):
+                 galactic_orbital_phase_deg=None, mass_class=None):
+        """
+        Args:
+            mass_class (str, optional): `"supermassive"` for a galaxy's
+                quiescent central black hole (`generate.add_galactic_nucleus`
+                -- it sits at the center, so it has no galactic orbit).
+                `None` (the default) rolls stellar-mass, or intermediate-mass
+                with `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`.
+        """
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         reseed_rng()
 
-        # TODO(phenomena #7): Boss wants "a smattering (rare) of medium
-        # sized black holes". Intermediate-mass ones already exist as 2% of
-        # black-hole rolls (100-1000 Msun); revisit the chance and range
-        # (IMBHs span ~1e2- 1e5 Msun) and whether they need their own rate
-        # or type.
-        if random.random() < program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
-            self.mass_solar = random.uniform(*program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
+        if mass_class not in (None, "supermassive"):
+            raise ValueError(f"mass_class must be None or 'supermassive', got {mass_class!r}")
+        if mass_class == "supermassive":
+            self.mass_class = "supermassive"
+            self.mass_solar = _log_uniform(*program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
+        elif random.random() < program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
+            self.mass_class = "intermediate"
+            self.mass_solar = _log_uniform(*program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "intermediate-mass",
                        f"roll passed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
                        f"({program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
         else:
+            self.mass_class = "stellar"
             self.mass_solar = random.uniform(*program_constants.BLACK_HOLE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "stellar-mass",
                        f"roll failed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
@@ -221,32 +246,62 @@ class BlackHole(CompactRemnant):
         self.radius = self.event_horizon_radius_km
 
         self.spin = random.uniform(*program_constants.BLACK_HOLE_SPIN_RANGE)
-        self.has_accretion_disk = random.random() < program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE
-        log.choice("Accretion disk", self.has_accretion_disk,
-                   f"roll against BLACK_HOLE_ACCRETION_DISK_CHANCE "
-                   f"({program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE})")
-
-        if self.has_accretion_disk:
-            # Eddington luminosity, L_edd = 1.26e31 * (M/Msun) W (standard
-            # formula for the maximum luminosity a spherically-accreting
-            # mass can sustain) -- an active disk is modeled as some
-            # sub-Eddington fraction of this, and the inner-disk
-            # temperature as a representative soft-X-ray value, both
-            # order-of-magnitude flavor rather than a full accretion-disk
-            # model (e.g. Shakura & Sunyaev 1973).
-            eddington_luminosity_w = 1.26e31 * self.mass_solar
-            self.luminosity = random.uniform(0.0001, 0.05) * eddington_luminosity_w
+        if self.mass_class == "supermassive":
+            # Always some accretion flow, far below Eddington (Sgr A*).
+            self.has_accretion_disk = True
+            eddington_ratio = _log_uniform(*program_constants.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE)
+            self.luminosity = (
+                eddington_ratio * program_constants.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * self.mass_solar
+            )
             self.temperature = random.uniform(1e5, 1e7)
         else:
-            self.luminosity = 0.0
-            self.temperature = 0.0
+            self.has_accretion_disk = random.random() < program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE
+            log.choice("Accretion disk", self.has_accretion_disk,
+                       f"roll against BLACK_HOLE_ACCRETION_DISK_CHANCE "
+                       f"({program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE})")
 
-        mass_class = "Intermediate-Mass" if self.mass_solar >= program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0] else "Stellar-Mass"
-        self.type = f"{mass_class} Black Hole"
+            if self.has_accretion_disk:
+                # Eddington luminosity, L_edd = 1.26e31 * (M/Msun) W (standard
+                # formula for the maximum luminosity a spherically-accreting
+                # mass can sustain) -- an active disk is modeled as some
+                # sub-Eddington fraction of this, and the inner-disk
+                # temperature as a representative soft-X-ray value, both
+                # order-of-magnitude flavor rather than a full accretion-disk
+                # model (e.g. Shakura & Sunyaev 1973).
+                eddington_luminosity_w = 1.26e31 * self.mass_solar
+                self.luminosity = random.uniform(0.0001, 0.05) * eddington_luminosity_w
+                self.temperature = random.uniform(1e5, 1e7)
+            else:
+                self.luminosity = 0.0
+                self.temperature = 0.0
+
+        self.type = f"{self.mass_class_label} Black Hole"
         self.yerkes_class = "BH"
 
         self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
         self._finish_init(galactic_orbital_phase_deg)
+        if self.mass_class == "supermassive":
+            # The galaxy's center: nothing to orbit, and its reach is its
+            # sphere of influence (G*M / sigma^2), not a galactic Hill sphere.
+            (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+             self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = None, None, None, None
+            sigma_m_s = program_constants.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+            self.system_perimeter = physical_constants.G * self.mass / sigma_m_s ** 2 / physical_constants.AU_TO_M
+
+    @property
+    def mass_class_label(self):
+        """`"Stellar-Mass"`, `"Intermediate-Mass"` or `"Supermassive"`."""
+        return {"stellar": "Stellar-Mass", "intermediate": "Intermediate-Mass",
+                "supermassive": "Supermassive"}[self.mass_class]
+
+    @classmethod
+    def from_dict(cls, data, system_config):
+        """`CompactRemnant.from_dict`, with `mass_class` inferred from the
+        mass for data saved before it existed (schema v36)."""
+        black_hole = super().from_dict(data, system_config)
+        if getattr(black_hole, "mass_class", None) is None:
+            black_hole.mass_class = infer_black_hole_mass_class(black_hole.mass_solar)
+        return black_hole
 
     def get_table_properties(self):
         """
@@ -264,7 +319,10 @@ class BlackHole(CompactRemnant):
             program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
             program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
-        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
+        orbit_string = (
+            "None (the galaxy's center)" if self.galactic_orbital_period_gy is None
+            else format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
+        )
         properties = {
             "type": self.type,
             "mass": mass_string,
@@ -300,10 +358,21 @@ class BlackHole(CompactRemnant):
         paragraphs.append(properties_to_string(self.system_config, properties, "Black Hole Data", markdown_key_map=markdown_key_map))
 
         age_str = format_age_string(self.age)
-        sentence = (
-            f"{self.name} is the collapsed core of a massive star, formed in a supernova approximately "
-            f"{age_str} ago. Nothing, not even light, can escape from within its event horizon."
-        )
+        if self.mass_class == "supermassive":
+            paragraphs.append(
+                f"{self.name} is the supermassive black hole at the heart of the galaxy, around which every "
+                f"star in it ultimately orbits. Its nucleus is quiescent: a thin, hot accretion flow feeds it at a "
+                f"tiny fraction of its Eddington limit, glowing at roughly {self.temperature:,.0f} K."
+            )
+            return paragraphs
+        if self.mass_class == "intermediate":
+            origin = (
+                f"{self.name} is an intermediate-mass black hole, heavier than any single star could leave "
+                f"behind -- likely grown in a dense star cluster approximately {age_str} ago."
+            )
+        else:
+            origin = f"{self.name} is the collapsed core of a massive star, formed in a supernova approximately {age_str} ago."
+        sentence = f"{origin} Nothing, not even light, can escape from within its event horizon."
         if self.has_accretion_disk:
             sentence += (
                 f" A faint accretion disk of infalling matter still surrounds it, its inner edge glowing at "
@@ -402,7 +471,10 @@ class NeutronStar(CompactRemnant):
             program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
             program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
-        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
+        orbit_string = (
+            "None (the galaxy's center)" if self.galactic_orbital_period_gy is None
+            else format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
+        )
         properties = {
             "type": self.type,
             "mass": mass_string,

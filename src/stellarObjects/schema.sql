@@ -787,6 +787,14 @@
 --   phenomena, as v32 and v33 did.
 --   `galaxy_layer`/`galaxy_column` are keyed by ring and layer and stay.
 --
+-- v36: every galaxy gets a central supermassive black hole: when the
+--   nucleus roll comes up quiescent (no quasar), generate.
+--   add_galactic_nucleus places a `black_holes` row at the galactic
+--   center. `black_holes.mass_class` ('stellar', 'intermediate',
+--   'supermassive') records which kind a row is; `_migrate_v35_to_v36`
+--   fills it from each existing row's mass. Intermediate-mass black holes
+--   now span 1e2-1e5 Msun (log-uniform).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1554,6 +1562,10 @@ CREATE TABLE IF NOT EXISTS black_holes (
     -- --sector-id, exactly like before v21).
     sector_id                 BIGINT UNSIGNED,
     name                      VARCHAR(255) NOT NULL,
+    -- v36: 'stellar', 'intermediate' (IMBH, ~1e2-1e5 Msun) or
+    -- 'supermassive' (a galaxy's quiescent central black hole, placed by
+    -- generate.add_galactic_nucleus; no galactic orbit).
+    mass_class                VARCHAR(16) NOT NULL DEFAULT 'stellar',
     mass_solar                DOUBLE NOT NULL,
     event_horizon_radius_km   DOUBLE NOT NULL,
     spin                      DOUBLE NOT NULL,
@@ -1581,6 +1593,7 @@ CREATE TABLE IF NOT EXISTS black_holes (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
     CONSTRAINT chk_black_holes_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND

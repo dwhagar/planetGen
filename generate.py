@@ -949,23 +949,19 @@ NUCLEUS_ADDRESS = (0, 0, 0)
 for an active nucleus (see `add_galactic_nucleus`)."""
 
 
-# TODO(phenomena #7): every galaxy gets a supermassive black hole at (or
-# near) its center. Today only the 10% of galaxies whose nucleus is an
-# active quasar get one; the other 90% have nothing there. Place a
-# quiescent SMBH (Sagittarius A* is ~4.3e6 Msun) when the quasar roll
-# fails.
 def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     """
-    Rolls whether the galaxy's nucleus is active and, if so, adds a
-    `Quasar` to `sector` at the galactic center.
+    Adds the galaxy's central supermassive black hole to `sector` at the
+    galactic center: an active `Quasar` with
+    `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`, otherwise a quiescent
+    supermassive `BlackHole` (like Sagittarius A*), so every galaxy has one.
 
-    A quasar is a galaxy's central supermassive black hole, so there is
-    only ever one, and only at the origin. `generate_and_save_sector_at`
-    calls this for exactly one sector per galaxy, `NUCLEUS_ADDRESS`
-    (ring 0, layer 0, slot 0 -- every ring-0, layer-0 cell has the
-    galactic axis as its inner edge and the plane through its middle, so
-    each touches the origin, and picking one keeps it to a single roll),
-    with `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`.
+    There is only ever one nucleus, and only at the origin.
+    `generate_and_save_sector_at` calls this for exactly one sector per
+    galaxy, `NUCLEUS_ADDRESS` (ring 0, layer 0, slot 0 -- every ring-0,
+    layer-0 cell has the galactic axis as its inner edge and the plane
+    through its middle, so each touches the origin, and picking one keeps
+    it to a single roll).
 
     The sector's local +X axis points radially out from the galactic axis
     to the sector's own center, and a layer-0 center sits on the plane
@@ -981,15 +977,16 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
             the galactic center, in light-years.
 
     Returns:
-        SectorPhenomenonEntry or None: The quasar's entry, or `None` if
-            the nucleus came up quiescent.
+        SectorPhenomenonEntry: The quasar's or the black hole's entry.
     """
-    if random.random() >= program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
-        log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (no quasar)")
-        return None
-    quasar_config = SystemConfig()
-    quasar_config.MARKDOWN = args.markdown
-    return sector.add_phenomenon(Quasar(quasar_config), "quasar", position=(-galactic_center_dist_ly, 0.0, 0.0))
+    nucleus_config = SystemConfig()
+    nucleus_config.MARKDOWN = args.markdown
+    position = (-galactic_center_dist_ly, 0.0, 0.0)
+    if random.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
+        return sector.add_phenomenon(Quasar(nucleus_config), "quasar", position=position)
+    log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
+    black_hole = BlackHole(nucleus_config, mass_class="supermassive")
+    return sector.add_phenomenon(black_hole, "black-hole", position=position)
 
 
 def generate_sector(args, galactic_center_dist_ly=None, cell=None):
