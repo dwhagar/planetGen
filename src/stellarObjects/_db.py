@@ -56,7 +56,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import keplerMotion, log, physical_constants
+from . import keplerMotion, log, physical_constants, program_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField
@@ -65,6 +65,7 @@ from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
+from .galaxyGeometry import SectorCell, local_to_galaxy_pc
 from .names import (
     MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES, PLANET_PREFIXES,
     PLANET_SUFFIXES, STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES,
@@ -73,9 +74,9 @@ from .nameUniqueness import resolve_companion, resolve_diminutive, resolve_greek
 from .nebulaData import Nebula
 from .planetData import Planet
 from .roguePlanetData import InterstellarComet, RoguePlanet
-from .sectorGeometry import cube_orientation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
+from .quasarData import Quasar
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 from .utils import (
@@ -84,7 +85,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 29
+SCHEMA_VERSION = 33
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1834,6 +1835,72 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     return field_id
 
 
+GALACTIC_CENTER_PLACEMENT = {
+    "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 0.0,
+}
+"""dict: The galactic origin, in `_placement_values`' shape -- where every
+placed quasar sits."""
+
+
+def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
+    """
+    Inserts a `quasars` row (see `schema.sql`'s "v31" header note).
+
+    A quasar is a galaxy's nucleus, so any placement at all is snapped to
+    the galactic center (`GALACTIC_CENTER_PLACEMENT`): `insert_sector`'s
+    converted in-sector offset already lands there up to rounding, and
+    `save_phenomenon`'s `--sector-id` jitter would otherwise scatter it.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        quasar (Quasar): The quasar to persist.
+        sector_id (int, optional): The core sector it belongs to.
+        placement (dict, optional): Any non-`None` value places it at the
+            galactic center; `None` leaves it unplaced.
+
+    Returns:
+        int: The new `quasars.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO quasars (
+            sector_id, name, black_hole_mass_solar, event_horizon_radius_km, eddington_ratio,
+            luminosity_w, accretion_rate_solar_per_year, broad_line_region_light_days,
+            is_radio_loud, jet_length_ly, active_age_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            sector_id, quasar.name, quasar.black_hole_mass_solar, quasar.event_horizon_radius_km,
+            quasar.eddington_ratio, quasar.luminosity_w, quasar.accretion_rate_solar_per_year,
+            quasar.broad_line_region_light_days, int(quasar.is_radio_loud), quasar.jet_length_ly,
+            quasar.active_age_years,
+            *_placement_values(GALACTIC_CENTER_PLACEMENT if placement is not None else None),
+        ),
+    )
+    return cur.lastrowid
+
+
+def _check_quasar_sector(conn, sector_id):
+    """
+    Refuses to place a quasar "at" a sector that doesn't host the galactic
+    nucleus (every ring-0, layer-0 cell touches the origin), or into a
+    galaxy that already has one -- a galaxy has a single nucleus.
+
+    Raises:
+        ValueError: If either rule would be broken.
+    """
+    row = conn.execute("SELECT ring_index, layer_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None or row["ring_index"] != 0 or row["layer_index"] != 0:
+        raise ValueError(
+            f"a quasar can only be placed in a ring-0, layer-0 sector (the galactic core); "
+            f"sector {sector_id} is not one"
+        )
+    existing = conn.execute("SELECT id FROM quasars WHERE center_x_pc IS NOT NULL LIMIT 1").fetchone()
+    if existing is not None:
+        raise ValueError(f"this galaxy already has a quasar at its center (quasars.id={existing['id']})")
+
+
 _PHENOMENON_INSERTERS = {
     "black-hole": insert_black_hole,
     "neutron-star": insert_neutron_star,
@@ -1842,6 +1909,7 @@ _PHENOMENON_INSERTERS = {
     "supernova-remnant": insert_supernova_remnant,
     "rogue-planet": insert_rogue_planet,
     "comet": insert_interstellar_comet,
+    "quasar": insert_quasar,
 }
 """dict: `program_constants.PHENOMENON_TYPE_CHOICES` value -> the
 `insert_*` function for its table. Every one takes `sector_id=` and
@@ -1905,6 +1973,8 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             inserter = _PHENOMENON_INSERTERS.get(phenomenon_type)
             if inserter is None:
                 raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
+            if phenomenon_type == "quasar" and sector_id is not None:
+                _check_quasar_sector(conn, sector_id)
             placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
             return inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
     finally:
@@ -2292,22 +2362,11 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
             `None` (the default) for a sector never placed in a galaxy --
             `sectorGen.py`'s own standalone CLI keeps producing these.
             When given, must have keys `center_x_pc`, `center_y_pc`,
-            `center_z_pc`, `galactic_radius_pc`, `vertices_pc` (all
-            required together -- the schema's CHECK constraint enforces
-            the first four on every other path, but this function trusts
-            the caller rather than re-deriving `galactic_radius_pc`
-            itself; `vertices_pc` isn't part of that CHECK since it lives
-            in a separate table SQLite can't cross-reference in a CHECK,
-            but is expected NULL-together with the other four all the
-            same), and optionally `shell_index`/`shell_slot_index` (each
-            independently optional -- `None`/omitted leaves that one
-            column NULL, per `schema.sql`'s note that they aren't implied
-            by a center point the way the other five are). `vertices_pc`
-            is a `{"inner": [...], "outer": [...]}` dict, each a list of
-            `(x, y, z)` tuples -- variable length, not fixed at 8 (see
-            `sectorGeometry.prism_vertices`) -- written as one
-            `sector_vertices` row per vertex, ordinary columns throughout,
-            never serialized.
+            `center_z_pc`, `galactic_radius_pc` (all required together --
+            the schema's CHECK constraint enforces that), and optionally
+            `ring_index`/`layer_index`/`ring_slot_index`, the sector's
+            cell in the cylindrical grid (`None`/omitted leaves them NULL
+            -- a hand-placed position with no grid address).
 
     Returns:
         int: The new `sectors.id`.
@@ -2325,26 +2384,18 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
             """
             INSERT INTO sectors (
                 name, edge_mpc, center_x_pc, center_y_pc, center_z_pc,
-                galactic_radius_pc, shell_index, shell_slot_index
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                galactic_radius_pc, ring_index, layer_index, ring_slot_index
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 sector.name, ly_to_milliparsecs(sector.edge_ly),
                 galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
                 galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"],
-                galaxy_position.get("shell_index"), galaxy_position.get("shell_slot_index"),
+                galaxy_position.get("ring_index"), galaxy_position.get("layer_index"),
+                galaxy_position.get("ring_slot_index"),
             ),
         )
         sector_id = cur.lastrowid
-        for ring in ("inner", "outer"):
-            conn.executemany(
-                "INSERT INTO sector_vertices (sector_id, ring, vertex_index, x_pc, y_pc, z_pc) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
-                (
-                    (sector_id, ring, i, x, y, z)
-                    for i, (x, y, z) in enumerate(galaxy_position["vertices_pc"][ring])
-                ),
-            )
     else:
         cur = conn.execute(
             "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
@@ -2384,10 +2435,8 @@ def get_sector_galaxy_position(conn, sector_id):
 
     Returns:
         dict or None: A dict with keys `center_x_pc`, `center_y_pc`,
-            `center_z_pc`, `galactic_radius_pc`, `shell_index`,
-            `shell_slot_index`, `vertices_pc` (rebuilt from `sector_vertices`
-            rows into a `{"inner": [...], "outer": [...]}` dict of
-            `[x, y, z]` lists, ordered by `vertex_index`), or `None` if
+            `center_z_pc`, `galactic_radius_pc`, `ring_index`,
+            `layer_index`, `ring_slot_index`, or `None` if
             this sector has never been placed in a galaxy (the four
             galaxy-position columns NULL).
 
@@ -2397,7 +2446,7 @@ def get_sector_galaxy_position(conn, sector_id):
     row = conn.execute(
         """
         SELECT center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
-               shell_index, shell_slot_index
+               ring_index, layer_index, ring_slot_index
         FROM sectors WHERE id = ?
         """,
         (sector_id,),
@@ -2407,19 +2456,7 @@ def get_sector_galaxy_position(conn, sector_id):
     if row["center_x_pc"] is None:
         return None
 
-    result = dict(row)
-    vertex_rows = conn.execute(
-        """
-        SELECT ring, x_pc, y_pc, z_pc FROM sector_vertices
-        WHERE sector_id = ? ORDER BY ring, vertex_index
-        """,
-        (sector_id,),
-    ).fetchall()
-    vertices_pc = {"inner": [], "outer": []}
-    for vrow in vertex_rows:
-        vertices_pc[vrow["ring"]].append([vrow["x_pc"], vrow["y_pc"], vrow["z_pc"]])
-    result["vertices_pc"] = vertices_pc
-    return result
+    return dict(row)
 
 
 def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
@@ -2431,22 +2468,13 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
     galaxy-frame center in parsecs, given the owning sector's own stored
     `galaxy_position` -- see `schema.sql`'s "v21" header note.
 
-    `offset_ly` is expressed along the sector's own local cube axes (the
-    same frame `SpaceSector.add_system` samples a star system's position
-    in -- see `spaceSector.py`'s module docstring), which are generally
-    NOT aligned with the galaxy's global X/Y/Z: a sector's cube is rotated
-    so its own local +Z points radially outward from the galactic center
-    (`sectorGeometry.cube_orientation`, per
-    `docs/design/galaxy-coordinate-system.md` section 3's "Cube
-    orientation"). So `offset_ly` is rotated into the galaxy frame via
-    that same `cube_orientation` before being added to the sector's own
-    center -- the identical transform `html/lib/starmap.py`'s
-    `_rotate_to_galaxy_frame` applies to a star system's position at
-    render time. Skipping this rotation (as an earlier version of this
-    function did, treating `offset_ly`'s components as already
-    galaxy-frame) let a phenomenon's stored center land outside its own
-    sector's real cube whenever that cube wasn't coincidentally
-    axis-aligned -- true of nearly every sector in the galaxy.
+    `offset_ly` is expressed along the sector's own local axes (local +X
+    radially outward from the galactic axis, +Y along the ring, +Z
+    galactic north -- `galaxyGeometry.sector_orientation`), the same frame
+    `SpaceSector.add_system` places a star system's position in, so it is
+    rotated into the galaxy frame before being added to the sector's
+    center -- the identical transform `html/lib/starmap.py` applies to a
+    star system's position at render time.
 
     Unlike `compute_phenomenon_placement` (an independent random jitter,
     for `phenomenonGen.py`'s own standalone `--sector-id` use, where no
@@ -2474,12 +2502,7 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
     center_pc = (
         galaxy_position["center_x_pc"], galaxy_position["center_y_pc"], galaxy_position["center_z_pc"],
     )
-    local_x, local_y, local_z = cube_orientation(center_pc)
-    offset_x_pc, offset_y_pc, offset_z_pc = (ly_to_pc(coordinate) for coordinate in offset_ly)
-
-    x = center_pc[0] + offset_x_pc * local_x[0] + offset_y_pc * local_y[0] + offset_z_pc * local_z[0]
-    y = center_pc[1] + offset_x_pc * local_x[1] + offset_y_pc * local_y[1] + offset_z_pc * local_z[1]
-    z = center_pc[2] + offset_x_pc * local_x[2] + offset_y_pc * local_y[2] + offset_z_pc * local_z[2]
+    x, y, z = local_to_galaxy_pc(center_pc, tuple(ly_to_pc(coordinate) for coordinate in offset_ly))
     return {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
@@ -2494,11 +2517,10 @@ def compute_phenomenon_placement(conn, sector_id):
     sphere rather than a sector-relative offset the way `star_systems`
     does.
 
-    The center is `sector_id`'s own stored galaxy position
-    (`get_sector_galaxy_position`) plus a uniform random jitter within that
-    sector's own cube half-extent on each axis (`+/- edge_pc / 2`) -- so the
-    phenomenon's center always falls inside (or very near) that sector's
-    own cube, regardless of the phenomenon's own `radius_ly` (which may be
+    The center is a uniformly random point inside `sector_id`'s own grid
+    cell (`galaxyGeometry.SectorCell`; a sector with no grid address falls
+    back to a `+/- edge_pc / 2` cube around its center) -- so the
+    phenomenon's center always falls inside that sector, regardless of the phenomenon's own `radius_ly` (which may be
     far larger than the sector itself, and is free to spill into
     neighboring sectors -- see `queryDb.phenomena_near_sector`, which finds
     those by real distance, not by this row's `sector_id`).
@@ -2523,71 +2545,65 @@ def compute_phenomenon_placement(conn, sector_id):
     edge_row = conn.execute("SELECT edge_mpc FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     edge_pc = mpc_to_pc(edge_row["edge_mpc"])
 
-    center_x = position["center_x_pc"] + random.uniform(-edge_pc / 2, edge_pc / 2)
-    center_y = position["center_y_pc"] + random.uniform(-edge_pc / 2, edge_pc / 2)
-    center_z = position["center_z_pc"] + random.uniform(-edge_pc / 2, edge_pc / 2)
+    center_pc = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
+    if position["ring_index"] is not None:
+        offset_pc = SectorCell.for_ring(position["ring_index"], edge_pc).sample(random)
+        center_x, center_y, center_z = local_to_galaxy_pc(center_pc, offset_pc)
+    else:
+        center_x, center_y, center_z = (c + random.uniform(-edge_pc / 2, edge_pc / 2) for c in center_pc)
     return {
         "center_x_pc": center_x, "center_y_pc": center_y, "center_z_pc": center_z,
         "galactic_radius_pc": math.sqrt(center_x ** 2 + center_y ** 2 + center_z ** 2),
     }
 
 
-def get_occupied_shell_slots(conn, shell_indices):
+def get_occupied_addresses(conn, ring_indices):
     """
-    Returns every already-occupied `(shell_index, shell_slot_index)`
-    address among the given shell indices -- used by `galaxyGen.py` (both
-    batch and local-neighborhood modes) to skip addresses a sector already
-    exists at, in one query per batch of candidate shells rather than one
-    query per candidate slot.
+    Returns every already-occupied `(ring_index, layer_index,
+    ring_slot_index)` address among the given rings -- used by
+    `generate.py galaxy`'s batch and neighborhood modes to skip addresses a
+    sector already exists at, in one query rather than one per candidate.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
-        shell_indices (iterable): Shell indices to check.
+        ring_indices (iterable): Ring indices to check.
 
     Returns:
-        set: `(shell_index, shell_slot_index)` tuples already present in
-            `sectors`. Empty if `shell_indices` is empty.
+        set: Address tuples already present in `sectors`. Empty if
+            `ring_indices` is empty.
     """
-    shell_indices = list(shell_indices)
-    if not shell_indices:
+    ring_indices = sorted(set(ring_indices))
+    if not ring_indices:
         return set()
 
-    placeholders = ", ".join("?" for _ in shell_indices)
+    placeholders = ", ".join("?" for _ in ring_indices)
     rows = conn.execute(
-        f"SELECT shell_index, shell_slot_index FROM sectors "
-        f"WHERE shell_index IN ({placeholders}) AND shell_slot_index IS NOT NULL",
-        tuple(shell_indices),
+        f"SELECT ring_index, layer_index, ring_slot_index FROM sectors "
+        f"WHERE ring_index IN ({placeholders}) AND ring_slot_index IS NOT NULL",
+        tuple(ring_indices),
     ).fetchall()
-    return {(row["shell_index"], row["shell_slot_index"]) for row in rows}
+    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in rows}
 
 
-def get_sector_id_at(conn, shell_index, shell_slot_index):
+def get_sector_id_at(conn, ring_index, layer_index, ring_slot_index):
     """
-    Looks up the `sectors.id` already generated at a specific galaxy
-    address, if any -- the single-address counterpart to
-    `get_occupied_shell_slots`'s batch-of-a-shell query, used by
-    `galaxyGen.ensure_sector_generated` to check (and, on an `INSERT`
-    race, re-check) one address at a time.
-
-    Args:
-        conn (Connection): An open, schema-initialized connection.
-        shell_index (int): The shell index to look up.
-        shell_slot_index (int): The slot index within that shell.
+    Looks up the `sectors.id` already generated at one grid address, if
+    any -- used by `generate.ensure_sector_generated` to check (and, on an
+    `INSERT` race, re-check) one address at a time.
 
     Returns:
-        int or None: The existing `sectors.id`, or `None` if no sector has
-            been generated at this address yet.
+        int or None: The existing `sectors.id`, or `None`.
     """
     row = conn.execute(
-        "SELECT id FROM sectors WHERE shell_index = ? AND shell_slot_index = ?",
-        (shell_index, shell_slot_index),
+        "SELECT id FROM sectors WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?",
+        (ring_index, layer_index, ring_slot_index),
     ).fetchone()
     return row["id"] if row is not None else None
 
 
 GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
-    ["shape", "edge_pc", "outer_shell_index", "expected_system_count_at_density_1"],
+    ["shape", "edge_pc", "outer_ring_index", "expected_system_count_at_density_1"],
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
@@ -2595,7 +2611,7 @@ note). `shape` is a `galaxyDensity.GalaxyShape`; the other three fields
 are `galaxy_shape`'s own remaining columns."""
 
 
-def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
+def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                        expected_system_count_at_density_1, config=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
@@ -2607,8 +2623,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
         shape (galaxyDensity.GalaxyShape): The galaxy's shape parameters.
         edge_pc (float): The sector edge length this skeleton was built
                          at, parsecs.
-        outer_shell_index (int): The last shell index with any qualifying
-            content (`galaxyPlan.py`'s own discovered galaxy edge).
+        outer_ring_index (int): The last ring with any qualifying
+            content (`generate.py plan`'s own discovered galaxy edge).
         expected_system_count_at_density_1 (float): See
             `galaxySkeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -2624,7 +2640,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     bulge_scale_radius_pc, bulge_amplitude, arm_count,
                     pitch_angle_rad, arm_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_shell_index
+                    expected_system_count_at_density_1, outer_ring_index
                 ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
@@ -2639,14 +2655,14 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
                     k_norm = VALUES(k_norm),
                     edge_pc = VALUES(edge_pc),
                     expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
-                    outer_shell_index = VALUES(outer_shell_index)
+                    outer_ring_index = VALUES(outer_ring_index)
                 """,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
                     shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
                     shape.pitch_angle_rad, shape.arm_amplitude, shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_shell_index,
+                    expected_system_count_at_density_1, outer_ring_index,
                 ),
             )
     finally:
@@ -2670,7 +2686,7 @@ def get_galaxy_shape(conn):
         SELECT disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,
                bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,
                spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm,
-               edge_pc, expected_system_count_at_density_1, outer_shell_index
+               edge_pc, expected_system_count_at_density_1, outer_ring_index
         FROM galaxy_shape WHERE id = 1
         """
     ).fetchone()
@@ -2690,60 +2706,113 @@ def get_galaxy_shape(conn):
         k_norm=row["k_norm"],
     )
     return GalaxySkeletonInfo(
-        shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
+        shape=shape, edge_pc=row["edge_pc"], outer_ring_index=row["outer_ring_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
     )
 
 
-def replace_galaxy_shell_bands(shell_bands, config=None):
+def replace_galaxy_layers(layer_extents, config=None, conn=None):
     """
-    Replaces every `galaxy_shell_band` row wholesale -- `galaxyPlan.py`'s
-    own full-galaxy skeleton build is the only writer, and it always
-    produces a complete, coherent set for the whole galaxy in one pass, so
-    there is no notion of an incremental/partial update here (matches
-    `save_galaxy_shape`'s own "replace the one true answer" behavior).
+    Replaces the galaxy's stored outline wholesale: every `galaxy_layer`
+    row (each layer's radial bound) and every `galaxy_column` row (each
+    ring's stack bound, derived from the same extents) -- a full skeleton
+    build always produces the whole outline in one pass, so there is no
+    partial update (matches `save_galaxy_shape`).
 
     Args:
-        shell_bands (iterable): `(shell_index, band_index, slot_index_min,
-            slot_index_max)` tuples, any order -- `band_index` is the
-            0-based position of that band within its own shell (almost
-            always just `0`; see `galaxySkeleton.find_shell_bands`).
+        layer_extents (iterable): `(layer_index, outer_ring_index)`
+            pairs, any order (`galaxySkeleton.build_layer_extents`).
         config (MySQLConfig, optional): Connection parameters. Defaults
-                                        to `DEFAULT_MYSQL_CONFIG`.
+            to `DEFAULT_MYSQL_CONFIG`. Ignored when `conn` is given.
+        conn (Connection, optional): Write through this connection, inside
+            the caller's own transaction (the v33 migration does), instead
+            of opening and committing a new one.
     """
-    conn = get_connection(config)
+    from .galaxySkeleton import column_extents
+
+    layer_extents = list(layer_extents)
+
+    def _write(c):
+        c.execute("DELETE FROM galaxy_layer")
+        c.executemany(
+            "INSERT INTO galaxy_layer (layer_index, outer_ring_index) VALUES (?, ?)", layer_extents,
+        )
+        c.execute("DELETE FROM galaxy_column")
+        c.executemany(
+            "INSERT INTO galaxy_column (ring_index, layer_index_min, layer_index_max) VALUES (?, ?, ?)",
+            column_extents(layer_extents),
+        )
+
+    if conn is not None:
+        _write(conn)
+        return
+    own = get_connection(config)
     try:
-        with conn:
-            conn.execute("DELETE FROM galaxy_shell_band")
-            conn.executemany(
-                "INSERT INTO galaxy_shell_band (shell_index, band_index, slot_index_min, slot_index_max) "
-                "VALUES (?, ?, ?, ?)",
-                shell_bands,
-            )
+        with own:
+            _write(own)
     finally:
-        conn.close()
+        own.close()
 
 
-def get_galaxy_shell_bands(conn, shell_index):
+def get_galaxy_layer_outer_ring(conn, layer_index):
     """
-    This shell's stored candidate band(s), in `band_index` order.
-
-    Args:
-        conn (Connection): An open, schema-initialized connection.
-        shell_index (int): The shell index to look up.
+    The last ring layer `layer_index` reaches, or `None` if the layer
+    holds no content (including if the skeleton was never built at all).
+    The layer holds rings 0 through this one.
 
     Returns:
-        list: `(slot_index_min, slot_index_max)` tuples, in ascending
-              `band_index` order -- empty if this shell has no stored
-              qualifying content (including if the skeleton was never
-              built at all).
+        int or None: The layer's `outer_ring_index`.
+    """
+    row = conn.execute(
+        "SELECT outer_ring_index FROM galaxy_layer WHERE layer_index = ?", (layer_index,),
+    ).fetchone()
+    return row["outer_ring_index"] if row is not None else None
+
+
+def get_galaxy_column(conn, ring_index):
+    """
+    Ring `ring_index`'s stack bound: the lowest and highest layer its
+    column of sectors reaches, or `None` if no layer reaches that ring.
+
+    Returns:
+        tuple or None: `(layer_index_min, layer_index_max)`, inclusive.
+    """
+    row = conn.execute(
+        "SELECT layer_index_min, layer_index_max FROM galaxy_column WHERE ring_index = ?", (ring_index,),
+    ).fetchone()
+    return (row["layer_index_min"], row["layer_index_max"]) if row is not None else None
+
+
+def get_galaxy_bounds(conn):
+    """
+    The galaxy's stored outline as a `galaxySkeleton.GalaxyBounds`, the
+    object every generation path checks an address against before
+    generating anything there.
+
+    Returns:
+        GalaxyBounds or None: `None` if the skeleton was never built (no
+            `galaxy_shape` row).
+    """
+    from .galaxySkeleton import GalaxyBounds
+
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None:
+        return None
+    return GalaxyBounds(get_galaxy_layers(conn), skeleton.edge_pc)
+
+
+def get_galaxy_layers(conn):
+    """
+    The galaxy's whole stored outline, highest layer first.
+
+    Returns:
+        list[tuple]: `(layer_index, outer_ring_index)` pairs; empty if the
+            skeleton was never built.
     """
     rows = conn.execute(
-        "SELECT slot_index_min, slot_index_max FROM galaxy_shell_band "
-        "WHERE shell_index = ? ORDER BY band_index",
-        (shell_index,),
+        "SELECT layer_index, outer_ring_index FROM galaxy_layer ORDER BY layer_index DESC"
     ).fetchall()
-    return [(row["slot_index_min"], row["slot_index_max"]) for row in rows]
+    return [(row["layer_index"], row["outer_ring_index"]) for row in rows]
 
 
 def save_system(star_system: StarSystem, system_config: SystemConfig, config=None) -> int:
@@ -2875,20 +2944,25 @@ def _star_row_to_dict(row):
     """Maps a `stars` row to `Star.from_dict`'s expected dict shape,
     inverting every unit conversion `insert_star` applies.
 
-    `temperature` is cast back to `int` -- `Star.generate_star` always sets
-    it via `int(round(...))`, but SQLite's `REAL` column type hands every
-    numeric value back as a Python `float` regardless of what was stored,
-    and `f"{self.temperature} K"` (`get_table_properties`) renders `5800`
-    vs. `5800.0` differently -- the one place a plain round-trip through a
-    `REAL` column would otherwise silently break render fidelity.
+    `temperature` is cast back to `int` when it is a whole number --
+    `Star.generate_star` always sets it via `int(round(...))`, but a `REAL`/
+    `DOUBLE` column hands every numeric value back as a Python `float`, and
+    `f"{self.temperature} K"` (`get_table_properties`) renders `5800` vs.
+    `5800.0` differently. A fractional value is kept as-is: an anchored
+    `BlackHole`'s accretion-disk temperature is a float (`random.uniform`),
+    and truncating it would render e.g. 3,676,064.7 K as "3,676,064 K"
+    instead of the generated "3,676,065 K".
     """
+    temperature = row["temperature_k"]
+    if temperature is not None and float(temperature).is_integer():
+        temperature = int(temperature)
     return {
         "name": row["name"],
         "type": row["star_type"],
         "yerkes_class": row["yerkes_class"],
         "mass": row["mass_kg"],
         "radius": row["radius_km"],
-        "temperature": int(row["temperature_k"]),
+        "temperature": temperature,
         "luminosity": row["luminosity_w"],
         "age": row["age_gy"],
         "lifespan": row["lifespan_gy"],
@@ -4469,7 +4543,7 @@ def _migrate_v25_to_v26(conn):
 TIMESTAMPED_TABLES = (
     "sectors", "star_systems",
     "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
-    "rogue_planets", "interstellar_comets", "asteroid_fields",
+    "rogue_planets", "interstellar_comets", "asteroid_fields", "quasars",
 )
 """tuple: The top-level tables carrying v27's `created_at`/`modified_at`
 row timestamps -- see `schema.sql`'s "v27" header note. Child rows
@@ -4787,6 +4861,176 @@ def _migrate_v28_to_v29(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (29)")
 
 
+def _migrate_v29_to_v30(conn):
+    """
+    Cleans up two kinds of bad surface-condition values older generator
+    code saved on `planets`/`moons` -- see `schema.sql`'s "v30" header
+    note. No columns change, so a database `_ensure_schema` created fresh
+    has nothing to fix and every `UPDATE` here matches no rows.
+
+    - Airless bodies (`atmosphere = 'None'`) that kept a previous class's
+      `atm_density`/`atm_molar_density`/`scale_height_km` after
+      `planetPhysics.reconcile_zone_and_class` moved them into an airless
+      class: set back to NULL, like every other airless body.
+    - `surface_temperature_k` below the cosmic microwave background
+      (`physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K`): raised to it.
+
+    Deliberately leaves `star_systems.modified_at` alone, like the orbit
+    ticks do (see `schema.sql`'s "v27" note): nothing the Galaxy Map tile
+    cache draws depends on these values.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    floor_k = physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K
+    for table in ("planets", "moons"):
+        conn.execute(
+            f"UPDATE {table} SET atm_density = NULL, atm_molar_density = NULL, scale_height_km = NULL "
+            "WHERE atmosphere = 'None' AND (atm_density IS NOT NULL OR atm_molar_density IS NOT NULL "
+            "OR scale_height_km IS NOT NULL)"
+        )
+        conn.execute(
+            f"UPDATE {table} SET surface_temperature_k = ? WHERE surface_temperature_k < ?",
+            (floor_k, floor_k),
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (30)")
+
+
+def _migrate_v30_to_v31(conn):
+    """
+    Records schema v31 -- the new `quasars` table (see `schema.sql`'s
+    "v31" header note). Like `_migrate_v15_to_v16`, a brand-new table
+    needs no `ALTER TABLE`: `_ensure_schema` already created it, so this
+    step only keeps the bookkeeping counter accurate.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
+
+
+V32_PLACED_CONTENT_TABLES = (
+    "quasars", "supernova_remnants", "rogue_planets", "interstellar_comets", "nebulae", "asteroid_fields",
+    "black_holes", "neutron_stars", "star_systems",
+)
+"""tuple: The tables whose rows in a galaxy-placed sector v32 deletes, in
+an order that respects their foreign keys (supernova remnants point at
+black holes and neutron stars, so they go first)."""
+
+
+def _migrate_v31_to_v32(conn):
+    """
+    Moves galaxy placement from spherical shells to the cylindrical
+    ring/layer/slot grid -- see `schema.sql`'s "v32" header note. A
+    shell-addressed sector has no matching cell, so every galaxy-placed
+    sector is **deleted**, together with its star systems (their planets,
+    moons and stars go with them through `ON DELETE CASCADE`) and every
+    phenomenon filed under it; visiting the galaxy regenerates them.
+    Sectors that were never placed in the galaxy, and their contents, are
+    untouched. Then:
+
+    - `sector_vertices` is dropped (a cell's corners are closed-form).
+    - `sectors` swaps `shell_index`/`shell_slot_index` for `ring_index`/
+      `layer_index`/`ring_slot_index` plus their UNIQUE key.
+    - `galaxy_shell_band` is dropped and `galaxy_shape.outer_shell_index`
+      becomes `outer_ring_index`; `_migrate_v32_to_v33` rebuilds the
+      skeleton.
+
+    Guarded on `sectors.shell_index`, so a database `_ensure_schema`
+    created fresh (already the new shape) makes this a no-op apart from
+    its bookkeeping row.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if _has_column(conn, "sectors", "shell_index"):
+        placed = "SELECT id FROM sectors WHERE center_x_pc IS NOT NULL"
+        for table in V32_PLACED_CONTENT_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})")
+        conn.execute("DROP TABLE IF EXISTS sector_vertices")
+        conn.execute("DELETE FROM sectors WHERE center_x_pc IS NOT NULL")
+
+        if _has_index(conn, "sectors", "idx_sectors_shell_index"):
+            conn.execute("ALTER TABLE sectors DROP INDEX idx_sectors_shell_index")
+        for index_row in conn.execute(
+            "SHOW INDEX FROM sectors WHERE Column_name = 'shell_index' AND Key_name <> 'PRIMARY'"
+        ).fetchall():
+            if _has_index(conn, "sectors", index_row["Key_name"]):
+                conn.execute(f"ALTER TABLE sectors DROP INDEX `{index_row['Key_name']}`")
+        conn.execute(
+            "ALTER TABLE sectors DROP COLUMN shell_index, DROP COLUMN shell_slot_index, "
+            "ADD COLUMN ring_index INT, ADD COLUMN layer_index INT, ADD COLUMN ring_slot_index INT, "
+            "ADD UNIQUE KEY uq_sectors_address (ring_index, layer_index, ring_slot_index)"
+        )
+
+        conn.execute("DROP TABLE IF EXISTS galaxy_shell_band")
+        if _has_column(conn, "galaxy_shape", "outer_shell_index"):
+            conn.execute("ALTER TABLE galaxy_shape CHANGE COLUMN outer_shell_index outer_ring_index INT NOT NULL")
+        # The skeleton itself is rebuilt by `_migrate_v32_to_v33`, which
+        # always runs right after this step.
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (32)")
+
+
+def _migrate_v32_to_v33(conn):
+    """
+    Moves the galaxy to the one sector standard -- see `schema.sql`'s
+    "v33" header note: a whole-parsec edge
+    (`program_constants.DEFAULT_SECTOR_EDGE_PC`), `round(2*pi*(i + 1/2))`
+    slots per ring, and a per-layer skeleton (`galaxy_layer`). Nearly
+    every cell's address and position changes, so, as in v32, every
+    galaxy-placed sector is **deleted** together with its star systems and
+    every phenomenon filed under it; visiting the galaxy regenerates them.
+    Sectors that were never placed in the galaxy are untouched.
+
+    Guarded on `galaxy_ring_band`, which only a real v32 database has: a
+    database `_ensure_schema` created fresh (already the new shape), or
+    one v32 just cleared of shell-addressed sectors, keeps its sectors.
+    `galaxy_ring_band` is dropped. If a galaxy shape is stored, the
+    skeleton is rebuilt from it at the standard edge (`galaxy_shape.
+    edge_pc`, `expected_system_count_at_density_1` and `outer_ring_index`
+    are rewritten and `galaxy_layer` is filled), so the galaxy keeps its
+    shape without re-running `generate.py plan`.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    from .galaxySkeleton import build_layer_extents, expected_system_count_at_density_1
+
+    has_ring_bands = conn.execute(
+        "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'galaxy_ring_band'"
+    ).fetchone() is not None
+    if has_ring_bands:
+        placed = "SELECT id FROM sectors WHERE center_x_pc IS NOT NULL"
+        for table in V32_PLACED_CONTENT_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})")
+        conn.execute("DELETE FROM sectors WHERE center_x_pc IS NOT NULL")
+        conn.execute("DROP TABLE galaxy_ring_band")
+
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is not None:
+        edge_pc = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
+        e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
+        extents, outer_ring_index, _confirmed = build_layer_extents(skeleton.shape, edge_pc, 1.0 / e_value)
+        replace_galaxy_layers(extents, conn=conn)
+        conn.execute(
+            "UPDATE galaxy_shape SET edge_pc = ?, expected_system_count_at_density_1 = ?, "
+            "outer_ring_index = ? WHERE id = 1",
+            (edge_pc, e_value, outer_ring_index),
+        )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (33)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -4856,9 +5100,16 @@ def migrate_database(config=None):
     `neutron_stars`), `_migrate_v26_to_v27` (added for v27's
     `created_at`/`modified_at` row timestamps), and `_migrate_v27_to_v28`
     (added for v28's placement columns on `supernova_remnants`/
-    `rogue_planets`/`interstellar_comets`), and `_migrate_v28_to_v29`
+    `rogue_planets`/`interstellar_comets`), `_migrate_v28_to_v29`
     (dropping the stored wikitext/Markdown page text v29 renders on
-    demand instead) are the migration steps so far; see
+    demand instead), `_migrate_v29_to_v30` (clearing stale atmosphere
+    values on airless bodies and flooring surface temperatures at the
+    cosmic background), `_migrate_v30_to_v31` (recording v31's new
+    `quasars` table), and `_migrate_v31_to_v32` (moving galaxy placement
+    to the cylindrical sector grid, which deletes every galaxy-placed
+    sector and its contents), and `_migrate_v32_to_v33` (the whole-parsec
+    sector standard and per-layer skeleton, which deletes them again) are
+    the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 
@@ -4958,6 +5209,21 @@ def migrate_database(config=None):
         if version < 29:
             _migrate_v28_to_v29(conn)
             version = 29
+
+        if version < 30:
+            _migrate_v29_to_v30(conn)
+            version = 30
+
+        if version < 31:
+            _migrate_v30_to_v31(conn)
+            version = 31
+        if version < 32:
+            _migrate_v31_to_v32(conn)
+            version = 32
+
+        if version < 33:
+            _migrate_v32_to_v33(conn)
+            version = 33
 
         conn.commit()
         return version

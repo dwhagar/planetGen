@@ -125,6 +125,13 @@ a:visited {
   color: var(--link-visited);
 }
 
+/* Links set inside running text (a table cell or line mixing links and
+   plain words) need more than color to stand out (WCAG 1.4.1; axe's
+   link-in-text-block): underline them. */
+.inline-links a {
+  text-decoration: underline;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
@@ -1096,6 +1103,73 @@ a:focus-visible .navmap-point circle {
   flex: 1 1 6rem;
 }
 
+/* Flask search page (web/templates/search.html): the main name box,
+   the folded per-object fields, and link-style tags/chips. */
+.search-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.search-field-main {
+  flex: 1 1 16rem;
+}
+
+.search-field input[type="search"] {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  min-width: 0;
+}
+
+.search-main .btn {
+  padding: 0.55rem 1.25rem;
+}
+
+.search-more > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--link);
+}
+
+.search-more[open] > summary {
+  margin-bottom: 1rem;
+}
+
+.search-more .search-field-size {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-more .search-field-size > span:first-child {
+  flex: 1 0 100%;
+}
+
+.search-more .hint {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.active-filters .clear-filters {
+  align-self: center;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
+.panel h2 .count {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .nav-route {
   padding-left: 1.5rem;
 }
@@ -1123,6 +1197,13 @@ a:focus-visible .navmap-point circle {
 
 .btn:hover {
   filter: brightness(1.08);
+}
+
+a.btn,
+a.btn:visited {
+  display: inline-block;
+  color: var(--accent-contrast);
+  text-decoration: none;
 }
 
 .active-filters {
@@ -1169,6 +1250,49 @@ a:focus-visible .navmap-point circle {
 .table-form .btn {
   padding: 0.3rem 0.7rem;
   font-size: 0.85rem;
+}
+
+/* Flask pages: GET links styled as buttons (system/phenomenon pages'
+   "Navigate from here" and Wikitext/Markdown toggles). */
+a.btn,
+a.btn:visited {
+  display: inline-block;
+  color: var(--accent-contrast);
+  text-decoration: none;
+}
+
+a.btn:hover {
+  text-decoration: none;
+}
+
+a.btn.btn-active,
+a.btn.btn-active:visited {
+  color: var(--text);
+}
+
+.btn-small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.page-subhead .location {
+  margin: 0;
+}
+
+.wiki-backends {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
 }
 
 .api-key-value {
@@ -1455,6 +1579,13 @@ code {
    the latter two also reused as-is by the Sector Map's own not-yet-
    generated neighboring-sector indicators (html/static/sectormap.js),
    the identical "copy a generate.py CLI command" concept one level in. */
+/* The Galaxy Map is the page's whole point, so its viewport gets more of
+   a wide screen than the sector map's 22rem (still a square, still full
+   width on a phone). */
+.galaxymap3d-panel .starmap-viewport {
+  width: min(100%, 36rem);
+}
+
 .galaxymap3d-tooltip {
   position: absolute;
   z-index: 3;
@@ -1538,4 +1669,454 @@ code {
     padding: 0.4rem 0.5rem;
     font-size: 0.85rem;
   }
+}
+
+
+/* ==================================================================
+   Flask-served pages (html/web/templates/base.html)
+   ------------------------------------------------------------------
+   Pages served by the Flask app have `<body class="app">` and a top
+   header instead of the CGI pages' fixed left rail. Everything below is
+   scoped to `.app`, so CGI pages are unaffected. Page content reuses the
+   shared rules above (.panel, tables, .pagination, .badge, ...), so a
+   moved page looks the same as before, just inside the new shell.
+   ================================================================== */
+
+body.app {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app .skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.app .skip-link:focus {
+  top: 0.75rem;
+}
+
+/* --- Header ------------------------------------------------------- */
+
+.app .site-header {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.app .site-header-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app .site-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.app .site-name:visited {
+  color: var(--text);
+}
+
+.app .site-wide {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.app .site-sections ul,
+.app .site-account ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.app .site-sections a,
+.app .site-account a,
+.app .theme-toggle {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.app .site-sections a:hover,
+.app .site-account a:hover,
+.app .theme-toggle:hover {
+  background: var(--bg-subtle);
+  color: var(--link);
+  text-decoration: none;
+}
+
+.app .site-sections a[aria-current="page"],
+.app .site-account a[aria-current="page"] {
+  /* --link, not --accent: --accent on --bg-subtle is 4.45:1 in the light
+     theme, under WCAG AA's 4.5:1 for text. */
+  color: var(--link);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .theme-toggle {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.app .theme-toggle[hidden] {
+  display: none;
+}
+
+.app .site-search {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 10rem;
+  max-width: 18rem;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.app .site-search input {
+  flex: 1;
+  min-width: 0;
+  /* Lets the box shrink below the input's default size, so the logged-in
+     header (Admin/Stats/Logout) still fits at desktop widths. */
+  width: 100%;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  padding: 0.4rem 0.65rem;
+}
+
+.app .site-search input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.app .site-search button {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+/* Narrow-screen menu: a native <details>, so it opens without JS. */
+.app .site-menu {
+  display: none;
+  margin-left: auto;
+}
+
+.app .site-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text);
+  user-select: none;
+}
+
+.app .site-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.app .site-menu > summary::after {
+  content: " \25BE";
+  color: var(--text-muted);
+}
+
+.app .site-menu[open] > summary::after {
+  content: " \25B4";
+}
+
+.app .site-menu-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.app .site-menu-panel .site-search {
+  flex: none;
+  max-width: none;
+  margin: 0;
+}
+
+.app .site-menu-panel ul {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.app .site-menu-panel .site-account {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.app .site-menu-panel .theme-toggle {
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 56rem) {
+  .app .site-wide {
+    display: none;
+  }
+
+  .app .site-menu {
+    display: block;
+  }
+}
+
+/* A logged-in admin's header carries four more links (Admin, Stats,
+   Generate, Logout), so it switches to the menu at a wider width rather
+   than overflowing the page sideways. */
+@media (max-width: 92rem) {
+  .app .site-header-admin .site-wide {
+    display: none;
+  }
+
+  .app .site-header-admin .site-menu {
+    display: block;
+  }
+}
+
+/* --- Main column -------------------------------------------------- */
+
+.app .app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3rem;
+}
+
+.app .app-main:focus {
+  outline: none;
+}
+
+.app .page-title {
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.75rem;
+}
+
+.app .breadcrumbs ol {
+  list-style: none;
+  margin: 0 0 0.35rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.app .breadcrumbs li + li::before {
+  content: "\203A";
+  margin-right: 0.35rem;
+  color: var(--text-muted);
+}
+
+.app .breadcrumbs [aria-current="page"] {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.app .site-footer {
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.app .site-footer p {
+  margin: 0;
+}
+
+/* Pager links are plain <a>s here, not post_link buttons. */
+.app a.page-link:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.app a.page-link:visited {
+  color: var(--link);
+}
+
+@media (max-width: 40rem) {
+  .app .site-header-inner {
+    padding: 0.5rem 1rem;
+  }
+
+  .app .app-main {
+    padding: 1rem 1rem 2.5rem;
+  }
+
+  .app .panel {
+    padding: 0.9rem 0.9rem;
+  }
+
+  /* Tables scroll sideways inside their panel rather than widening the
+     page or wrapping every cell to one word per line. */
+  .app .table-scroll {
+    margin: 0 -0.9rem;
+    padding: 0 0.9rem;
+  }
+
+  .app .table-scroll th,
+  .app .table-scroll td {
+    white-space: nowrap;
+  }
+
+  .app .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Admin Generate page (web/templates/generate.html): the live job panel,
+   the mode choices and the destructive buttons. */
+.btn.btn-danger {
+  background: var(--error);
+  border-color: var(--error);
+  color: var(--bg-elevated);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generate-mode {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem 0.25rem;
+  margin: 0 0 0.75rem;
+  min-width: 0;
+}
+
+.generate-mode legend {
+  font-weight: 600;
+  padding: 0 0.3rem;
+}
+
+.generate-mode .hint {
+  margin: 0 0 0.5rem;
+}
+
+.generate-mode .search-fields {
+  margin-bottom: 0.5rem;
+}
+
+.generate-check {
+  justify-content: flex-end;
+  font-weight: 400;
+}
+
+/* One-off system page (web/templates/generate_system.html). */
+.system-format {
+  margin-top: 1rem;
+}
+
+.system-preview {
+  margin-top: 1rem;
+}
+
+.code-view-header .search-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.field-hint {
+  font-weight: 400;
+  font-style: italic;
+}
+
+.job-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+}
+
+.job-progress progress {
+  flex: 1 1 12rem;
+  min-width: 0;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.job-log {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  max-height: 24rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.badge.job-failed,
+.badge.job-interrupted {
+  color: var(--error);
+  border-color: var(--error);
 }

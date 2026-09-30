@@ -70,9 +70,15 @@ DEFAULT_CONFIG = {
         "storage_uri": "memory://",
     },
     "admin_cookie_insecure": False,
+    "secret_key": "",
     "tile_cache": {
         "dir": "",
         "max_mb": 200,
+    },
+    "jobs": {
+        "dir": "",
+        "keep": 20,
+        "python": "",
     },
     "wiki": {
         # Either, both, or neither backend may be configured at once -- a

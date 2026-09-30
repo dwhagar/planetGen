@@ -125,3 +125,27 @@ def test_render_pagination_keeps_repeated_params():
     html = render_pagination("search.py", params, "stars_page", 2, 200)
     assert html.count('name="class" value="M"') == html.count('name="class" value="K"') > 0
     assert _posted_pages(html, "stars_page") == [1, 1, 1, 3, 4, 3, 4]
+
+
+def test_render_pagination_get_mode_uses_plain_links():
+    """GET mode (the Flask pages): plain <a href> links back to the page's
+    own path, carrying the other params and the anchor -- no forms."""
+    html = render_pagination(
+        "/", {"standalone_page": 2}, "sectors_page", 2, 180, anchor="sectors", method="get",
+    )
+    assert "<form" not in html
+    assert 'href="/?standalone_page=2&amp;sectors_page=1#sectors"' in html
+    assert 'href="/?standalone_page=2&amp;sectors_page=3#sectors"' in html
+    assert 'href="/?standalone_page=2&amp;sectors_page=4#sectors"' in html  # Last
+    assert 'aria-current="page">2<' in html
+
+
+def test_render_pagination_get_mode_escapes_params():
+    html = render_pagination("/", {"q": '"><script>'}, "page", 1, 120, method="get")
+    assert "<script>" not in html
+    assert "q=%22%3E%3Cscript%3E" in html
+
+
+def test_render_pagination_default_is_still_post():
+    html = render_pagination("browse.py", {"db": "x"}, "page", 1, 120)
+    assert '<form method="post" action="browse.py' in html

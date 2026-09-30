@@ -9,6 +9,126 @@ core design in sections 0-7 below now describes shipped behavior
 migration), extended by the addenda in sections 8 and 9, each separately
 marked "Status: implemented" where it lives.
 
+**Superseded in part (schema v32):** sector *addressing* no longer uses
+the spherical shells, Fibonacci slots and Voronoi prisms of sections 3, 8,
+9 and 10. Sectors now sit on the cylindrical grid described in the next
+section. The coordinate frame, units and phenomenon placement below are
+unchanged; the shell material is kept as history.
+
+## Cylindrical sector grid (current)
+
+Every galaxy-placed sector is one cell of a cylindrical grid around the
+galactic axis (`stellarObjects/galaxyGeometry.py`). The galaxy is a stack
+of flat circular slices (layers); each slice is cut into concentric rings,
+and each ring into wedges. With edge `e`:
+
+- **Ring `i`** (`sectors.ring_index`, `i >= 0`): cylindrical radius
+  `R` in `[i*e, (i+1)*e)`. Sector centers sit on the ring's centerline,
+  `(i + 1/2) * e`.
+- **Layer `j`** (`sectors.layer_index`, any integer): height `z` in
+  `[(j - 1/2)*e, (j + 1/2)*e)`, so layer 0 is centered on the galactic plane.
+- **Slot `k`** (`sectors.ring_slot_index`): one of `N_i` equal angular
+  wedges, counterclockwise from `+X`, where `N_i = round(2*pi*(i + 1/2))`
+  (3, 9, 16, 22, ...; about six more per ring). Each slot's arc along the
+  centerline is then within 5% of `e` from ring 1 out and within 1% from
+  ring 10 out; ring 0's three cells are pie wedges meeting on the axis.
+
+**Aligned columns.** `N_i` depends only on the ring, never on the layer,
+so every layer cuts ring `i` identically: cell `(i, j, k)` sits directly
+above `(i, j - 1, k)`, and every slot boundary is one vertical plane
+through the whole stack. (This is the "direct vertical columns" scheme,
+not a staggered brick pattern.) A layer that reaches fewer rings simply
+stops sooner; any ring it has matches that ring on every other layer.
+
+### Sector size
+
+`e` is a whole number of parsecs, `program_constants.DEFAULT_SECTOR_EDGE_PC`
+= **4 pc (13.05 ly)**, used by the generator, the skeleton, the Galaxy
+pages and the Galaxy Map alike (`generate.py plan` has no edge option).
+It replaced 11.5 ly (3.53 pc) in v33.
+
+The edge sets where the galaxy ends, because a sector only exists where it
+expects at least one star (`predicted_star_count >= 1`), and a bigger cell
+holds more stars at the same density. At the default Milky-Way shape:
+
+| Edge | Stars per sector at local density | Radius reached | Layers | Candidate sectors |
+|---|---|---|---|---|
+| 11.5 ly (old) | 4.3 | 46,900 ly | 681 | 14.9 billion |
+| 2 pc | 0.8 | 31,300 ly | 893 | 28.2 billion |
+| 3 pc | 2.7 | 42,400 ly | 743 | 18.6 billion |
+| **4 pc** | **6.3** | **50,300 ly** | **635** | **12.3 billion** |
+| 5 pc | 12.3 | 56,400 ly | 557 | 8.6 billion |
+
+4 pc puts the edge at about 50,000 ly, the real Milky Way disk's radius,
+and is an even number of parsecs. 2 pc is too small: at local density a
+sector averages under one star, so ordinary solar-neighborhood space would
+not qualify.
+
+### Layers
+
+The layers run from the highest layer that holds content to the lowest,
+symmetric about the plane (`+317 .. -317` at the default shape), and each
+layer runs from ring 0 out to the last ring that still qualifies, where it
+ends. The model's density is exponential and never reaches zero, so
+"qualifies" means a sector there could expect at least one star.
+
+A sector center's highest possible density over angle is
+`bulge(r_3d) + disk(R) * f_z(z) * (1 + arm_amplitude)`, which falls
+strictly as `R` grows and as `|z|` grows. So each layer's rings are one
+unbroken run from ring 0, and each layer reaches no farther than the one
+below it (toward the plane). `galaxy_layer` stores one
+`(layer_index, outer_ring_index)` row per layer
+(`galaxySkeleton.build_layer_extents`), highest first; it builds in a few
+milliseconds. A sector inside its layer's extent may still fall short (an
+inter-arm trough); that exact check is one density call when it is
+visited.
+
+The Galaxy Map's prisms use the same threshold, so at one sector per prism
+the map's outline is exactly these layers.
+
+### Bounds and validation
+
+`generate.py plan` stores the outline twice: `galaxy_layer` (each
+layer's radial bound) and `galaxy_column` (each ring's stack bound, the
+highest and lowest layer it reaches). Generation validates against these
+bounds before it generates, rather than checking afterwards. Every
+`generate.py galaxy` mode (a ring, one slot, a neighborhood around a
+sector, a random start) and visit-time generation first ask
+`GalaxyBounds.contains`. An address outside is refused with the reason,
+even when `--density` or `--num-systems` is given, and a neighborhood near
+the edge leaves out the sectors past it. A random start draws a uniformly
+random sector from inside the outline (`GalaxyBounds.random_address`), so
+it always lands inside the galaxy.
+
+---
+
+The address `(ring, layer, slot)` is unique (`uq_sectors_address`), and a
+cell's center, corners and volume are closed-form, so nothing but the
+address and center is stored. `sector_address_at` maps any point back to
+its cell; `neighbor_addresses` lists the cells sharing a face (two slots
+along the ring, the layers above and below, and the one or two overlapping
+slots in each neighboring ring, offset like brick courses).
+
+**Local frame.** A sector's local axes (`sector_orientation`) are `+X`
+radially outward from the galactic axis, `+Y` toward increasing angle and
+`+Z` galactic north. Star-system offsets (`star_systems.position_*_mpc`)
+and phenomenon offsets use this frame, and generation samples them inside
+the real cell (`SectorCell`), not a cube.
+
+**Designations.** `provisional_sector_designation` packs
+`ring << 33 | (layer + 4096) << 20 | slot` and prints it as hex;
+`parse_sector_designation` reverses it. Layers run from -4096 to 4095.
+
+**Zones.** The Galaxy pages' 100 ly radial groups (formerly "Rings") are
+called Zones: `ZONE_RING_WIDTH = round(100 / 13.05)` = 8 consecutive rings.
+
+**Migration.** Shell-addressed sectors had no matching cell, so
+`_migrate_v31_to_v32` deleted every galaxy-placed sector with its systems
+and phenomena. v33's new edge and slot counts move almost every cell
+again, so `_migrate_v32_to_v33` does the same and rebuilds the skeleton
+from the stored shape at 4 pc; sectors regenerate as they are visited.
+Never-placed sectors are untouched.
+
 **Scope:** the galaxy-scale coordinate system and the `sectors` schema
 changes it needs. Explicitly **out of scope**: `galaxyGen.py` itself,
 batch-generation performance, and any model of *where in the galaxy stars

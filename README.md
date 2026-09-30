@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 5.53.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 7.0.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -16,7 +16,7 @@ A procedural planet and star system generator, designed for the Molten Aether FF
 *   **Flavor text**: Randomly-selected descriptive "sensor readings" flavor text can be appended to systems and planets, with limits and chances controllable via `--flavor-chance-system`, `--flavor-chance-planet`, and `--max-planet-flavor`.
 *   **Dual output formatting**: Every generated system can be rendered as either MediaWiki wikitext templates (default, ready to paste into the wiki) or Markdown (`--markdown`).
 *   **Sector generation**: `generate.py sector` generates a whole sector of independently-random star systems in one pass, with an optional guaranteed minimum number of habitable systems (`--min-habitable`) — see [Sector Generation](#sector-generation) below. Each system placed in a sector records a `location`: its sector's name plus distance (in light-years) to its 3 nearest neighboring systems.
-*   **Exotic stellar phenomena**: `generate.py phenomenon` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet, or standalone asteroid field on demand — kept separate from normal system generation odds (`generate.py system`/`sector` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below. Every standalone phenomenon still orbits the galactic center like a lone star does, advanced over time the same way by `updateOrbits.py`.
+*   **Exotic stellar phenomena**: `generate.py phenomenon` generates a single black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet, standalone asteroid field, or quasar on demand — kept separate from normal system generation odds (`generate.py system`/`sector` never produce one) — see [Exotic Phenomena Generation](#exotic-phenomena-generation) below. Every standalone phenomenon except a quasar still orbits the galactic center like a lone star does, advanced over time the same way by `updateOrbits.py`; a quasar is the galaxy's own active nucleus and sits at the center itself.
 
 ## Setup
 
@@ -71,6 +71,7 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `--system-file`, `-f <path>`: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.
 *   `--num-orbits <int>`: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.
 *   `--markdown`, `-m`: Formats the stored write-up in Markdown instead of the default wikitext.
+*   `--output`, `-o <file>`: Writes the system's page (wikitext, or Markdown with `--markdown`) to `file` instead of saving the system to the database; `-` writes it to stdout. The admin site's one-off system page (`/admin/generate/system`) does the same from the browser.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
 *   `--name <name>`: Specifies a name for the star system, overriding the default random generation.
 *   `--age <young|old>`: Specifies the age of the star system (young or old).
@@ -135,9 +136,9 @@ Each run saves the whole generated sector — every system, star, planet, moon, 
 
 ### Sector-Level Exotic Phenomena
 
-Every generated sector also seeds a realistically sparse population of `generate.py phenomenon`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems.
+Every generated sector also seeds a realistically sparse population of `generate.py phenomenon`'s own seven exotic phenomenon types (black holes, neutron stars, nebulae, supernova remnants, rogue planets, interstellar comets, standalone asteroid fields) — sampled independently per type via a Poisson draw whose mean is a real (or, where flagged, deliberately conservative) astrophysical rate per star system, scaled by however many systems the sector actually ended up with (see `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM` for where each rate comes from and its citations). At this generator's own sector scale, most of these rates are low enough that a typical sector shows none at all — which is realistic; real space this size is usually devoid of black holes, neutron stars, and visible nebulae, exactly as it's usually devoid of Alpha-Centauri-close star systems. Separately, a galaxy's nucleus is active 10% of the time (`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`): when it is, the core sector at ring 0, layer 0, slot 0 gets a quasar at the galactic center, so a galaxy never has more than one.
 
-Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `stellarObjects/spaceSector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cube instead.
+Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `stellarObjects/spaceSector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cell instead.
 
 ## Galaxy Generation
 
@@ -146,7 +147,7 @@ in real galaxy-frame 3D space (see
 [`docs/design/galaxy-coordinate-system.md`](docs/design/galaxy-coordinate-system.md)):
 
 ```bash
-python generate.py galaxy --shell K [options]
+python generate.py galaxy --ring I [--layer J] [--slot K] [options]
 python generate.py galaxy --center-sector ID --radius-pc R [options]
 python generate.py galaxy [options]
 ```
@@ -157,28 +158,46 @@ the same code path — the only difference is a real galaxy-frame position
 (and, in turn, the same sparse exotic-phenomena population every sector
 gets — see "Sector-Level Exotic Phenomena" above).
 
-Run with neither `--shell` nor `--center-sector` (i.e. no arguments at
+Sectors sit on a cylindrical grid with one standard sector size, 4 parsecs
+(about 13 ly): the galaxy is a stack of flat layers 4 pc tall (layer 0
+centered on the galactic plane), each cut into rings 4 pc wide around the
+galactic axis, and each ring cut into wedge-shaped slots about 4 pc across.
+A ring has the same slots on every layer, so sectors line up in vertical
+columns. Each layer reaches out only as far as the galaxy still expects at
+least one star per sector. `--ring I` generates
+one whole layer of a ring (layer 0 unless `--layer J` is given), and adding
+`--slot K` generates just that one sector.
+
+Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
 all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-
-occupied sector address somewhere within a real Milky-Way-scale galaxy,
+occupied sector address inside the galaxy's planned outline (every layer
+out to its stored edge, from the top of the galaxy to the bottom),
 generates it, and then generates every not-yet-generated sector within
 100 ly of it too, in every direction — a whole small starmap around a
-fresh, randomly chosen starting point in one run. `--max-shell` bounds how
-far out the random starting address can land (defaults to a real galaxy's
-own outer edge, ~15,000 pc), `--radius-pc` overrides the default 100 ly
+fresh, randomly chosen starting point in one run. `--max-ring` bounds how
+far out the random starting address can land (defaults to the galaxy's
+own edge from `generate.py plan`), `--radius-pc` overrides the default 100 ly
 neighborhood radius, and `--min-start-density` requires the randomly
 chosen starting sector's own real density to be at least that many times
 local (e.g. `--min-start-density 1.0` for at least as dense as the
 galaxy's own real local density) before accepting it, retrying otherwise
 — useful for skipping past the galaxy's own vast, sparse outskirts to
 start somewhere with more to look at. A high threshold combined with a
-large `--max-shell` can take many retries to satisfy, since a
+large `--max-ring` can take many retries to satisfy, since a
 volume-weighted random draw favors the sparser outskirts to begin with.
 
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
-row plus one row per shell) that `generate.py galaxy` consults to decide, per
+row plus one row per layer, from the top of the galaxy to the bottom, naming
+the last ring that layer reaches) that `generate.py galaxy` consults to decide, per
 address, whether anything exists there at all before generating it lazily
-on demand.
+on demand. It also stores each ring's column bound (the highest and lowest
+layer that ring reaches). Every `generate.py galaxy` mode checks its
+address against this outline before generating anything, even when
+`--density` or `--num-systems` is given, so nothing is ever placed outside
+the galaxy: an address outside it is refused with the reason, and a
+neighborhood near the edge simply leaves out the sectors past it.
+`generate.py galaxy` refuses to run until `generate.py plan` has been run.
 
 ## Exotic Phenomena Generation
 
@@ -187,10 +206,10 @@ independent of any one sector (see "Sector-Level Exotic Phenomena" above
 for the population every generated sector gets automatically):
 
 ```bash
-python generate.py phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field} [options]
+python generate.py phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field,quasar} [options]
 ```
 
-Omitting `--type` picks uniformly at random among all seven. `--anchor-system`
+Omitting `--type` picks uniformly at random among the first seven; a quasar is only made when asked for by name, and `--sector-id` only accepts a ring-0, layer-0 (galactic core) sector for one, placing it at the galactic center. `--anchor-system`
 (black hole/neutron star only) builds a full star system around the
 compact remnant instead of describing it standalone — real pulsar planets
 exist (PSR B1257+12) — reusing all of `generate.py system`'s own orbit-placement

@@ -67,8 +67,8 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/sectors?limit=<n>&offset=<n>` — every sector, paginated (see
   "Pagination" below), each with `id`, `name`, `edge_mpc`, `edge_ly`,
   `system_count`, and its galaxy placement (`center_x_pc`/`center_y_pc`/
-  `center_z_pc`/`galactic_radius_pc`/`galactic_radius_ly`/`shell_index`/
-  `shell_slot_index`, all
+  `center_z_pc`/`galactic_radius_pc`/`galactic_radius_ly`/`ring_index`/
+  `layer_index`/`ring_slot_index` (the cylindrical grid address), all
   `null` together for an unplaced sector, plus a `placed` bool), nearest
   the galactic core first, then unplaced sectors by name
   (`queryDb.list_sectors`/`count_sectors`).
@@ -82,9 +82,9 @@ connectivity to that specific schema rather than the default one.
   could plausibly reach into this sector's cube, plus every placed one
   generated as part of this sector, nearest its center first — `id`,
   `type` (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
-  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`), `name`,
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`/`"quasar"`), `name`,
   `descriptor`, `radius_ly` (always 0 for a black hole/neutron star/rogue
-  planet/interstellar comet — point-like at this scale), `distance_ly`,
+  planet/interstellar comet/quasar — point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
   relative to this sector's own — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
@@ -93,7 +93,7 @@ connectivity to that specific schema rather than the default one.
   publishing" below) (`queryDb.sector_detail`). Distinct from
   `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
-  ids-and-display-fields shape `../src/html/sector.py`'s systems table
+  ids-and-display-fields shape the sector page's (`/sector/<id>`) Contents table
   and Sector Map actually need.
 - `GET /api/systems?star_type=<prefix>&sector_id=<id|none>&limit=<n>&offset=<n>` —
   filtered, paginated system listing (`queryDb.list_systems`/
@@ -139,9 +139,9 @@ connectivity to that specific schema rather than the default one.
   between two systems (`queryDb.nav_between`) — see "NAV" below.
 - `GET /api/galaxy/sectors` — every galaxy-placed sector (non-`null`
   galaxy placement), each with `id`, `name`, `x`/`y`/`z`
-  (`center_x/y/z_pc`), `galactic_radius_pc`, `shell_index`, and
+  (`center_x/y/z_pc`), `galactic_radius_pc`, `ring_index`, and
   `system_count` (`queryDb.galaxy_placed_sectors`) — the data
-  `../src/html/galaxy.py`'s Galaxy Map plots. Not paginated: bounded by
+  the Galaxy Map page (`/galaxy`, `../src/html/web/galaxy_views.py`) plots. Not paginated: bounded by
   how much of the galaxy has actually been generated (see `TODO.md`'s
   Phase 4 lazy-generation design), not by the addressable galaxy's own
   scale.
@@ -163,32 +163,21 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/shape` — `{"shape": ...}`, the galaxy's stored
   density-skeleton shape (`generate.py plan`'s output): every
   `stellarObjects.galaxyDensity.GalaxyShape` field plus `edge_pc`,
-  `outer_shell_index`, and `expected_system_count_at_density_1`
+  `outer_ring_index`, and `expected_system_count_at_density_1`
   (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
   has never been built. The Galaxy Map shades its "expected density"
   cloud from this real model (falling back to a generic illustrative
   gradient when `null`) instead of a placeholder.
-- `GET /api/galaxy/view?cx=<pc>&cy=<pc>&cz=<pc>&radius_pc=<pc>` —
-  `{"placed": [...], "planned": [...], "density": [...], "edge_pc": ...,
-  "has_shape": ...}` (`queryDb.galaxy_view`), the interactive 3D Galaxy
-  Map's (`../src/html/galaxy.py`) own live-viewport query, scoped to a
-  moving camera rather than the whole galaxy in one shot the way
-  `/api/galaxy/sectors` is: `placed` is that same per-sector shape (plus
-  `shell_slot_index`, `designation`, `distance_pc`, and `edge_ly` — this
-  sector's own real edge length, `null` if it predates per-sector edge
-  tracking, lets a client compute its true stellar density,
-  `system_count / edge_ly ** 3`) but only within `radius_pc` of `(cx, cy,
-  cz)`, closest-first, capped at 2,000; `planned`
-  is every real, not-yet-generated `(shell_index, shell_slot_index)`
-  address this galaxy's own density model predicts would qualify, within
-  the same radius up to its own 40 pc cap (`shell_index`,
-  `shell_slot_index`, `x`/`y`/`z`, `distance_pc`, `designation`,
-  `predicted_star_count`, `relative_density` — `None` for the last two if
-  no skeleton has been built), capped at 4,000; `density` is a coarse,
-  illustrative point cloud (`x`/`y`/`z`, `relative_density`) for whatever
-  part of the view that 40 pc cap couldn't cover with exact addresses,
-  empty when it didn't need to. `radius_pc` is silently clamped to 20,000.
-  Kept for API clients; the Galaxy Map itself now uses `/api/galaxy/tiles`.
+- `GET /api/galaxy/cell?ring=<i>&layer=<j>&slot=<k>` (or `?x=&y=&z=`,
+  parsecs, for the cell holding that point) — one cell of the cylindrical
+  sector grid, whether or not anything was generated there
+  (`galaxyGeometry.describe_sector_cell`): `ring_index`/`layer_index`/
+  `ring_slot_index`, `designation`, `cartesian_pc`, `cylindrical`
+  (`r_pc`, `theta_rad`, `z_pc`), `spherical` (`r_pc`, `theta_rad`,
+  `polar_rad` from galactic north), `bounds`, `mean_arc_length_pc`,
+  `volume_pc3`, `vertices_pc` (8 corners), `edge_pc`, and `sector_id`
+  (the generated sector there, or `null`). `400` for a bad or incomplete
+  query.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
@@ -198,7 +187,9 @@ connectivity to that specific schema rather than the default one.
   `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "density":
   {"key": ..., "points": [...]} | null, "edge_pc": ..., "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
-  box (the `/api/galaxy/view` shape minus `distance_pc`), lowest id first,
+  box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
+  `designation` and `edge_ly`, this sector's real edge length, `null` if it
+  predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated
   slots, only for 16 pc tiles (empty otherwise); `density`, when a
   `density` key is given, is an illustrative cloud of 1,600 points within
@@ -225,7 +216,7 @@ connectivity to that specific schema rather than the default one.
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,
   `total`, `limit`, `offset`). Each item has `id`, `type`
   (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
-  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`), `name`,
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`/`"quasar"`), `name`,
   `descriptor`, `radius_ly` (same shape as `/api/galaxy/phenomena`'s own
   items), plus `sector_id`/`sector_name` (both `null` if never linked to a
   sector) and `placed` (bool, whether it has a galaxy position at all) —
@@ -240,7 +231,7 @@ connectivity to that specific schema rather than the default one.
   `age_years`), plus `type` and `sector_name` — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
   `black_hole`/`neutron_star`/`supernova_remnant`/`rogue_planet`/
-  `interstellar_comet`; an unrecognized type or
+  `interstellar_comet`/`quasar`; an unrecognized type or
   a nonexistent id is
   a 404. The data `../src/html/phenomenon.py`'s detail page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
@@ -298,7 +289,7 @@ connectivity to that specific schema rather than the default one.
 
 Both take `?db=` like the read endpoints, and need an admin past the
 forced credential change. They back the admin stats page
-(`../src/html/adminstats.py`).
+(`/admin/stats`, `../src/html/web/admin_pages.py`).
 
 - `GET /api/admin/stats` — health and statistics for one database:
   `api` (version, Python version, process uptime, load average, memory),
@@ -389,14 +380,14 @@ adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
 graph with Dijkstra shortest-path) between two endpoints -- each either a
 star system (the default) or a standalone phenomenon (nebula/asteroid
 field/black hole/neutron star/supernova remnant/rogue planet/interstellar
-comet).
+comet/quasar).
 
 **Phenomenon endpoints.** Pass `from_kind=phenomenon&from_type=<type>`
 (and/or the `to_*` equivalents) to route to/from a phenomenon instead of a
 system -- `from`/`to` then names that phenomenon's own row id, and
 `from_type`/`to_type` is one of `nebula`, `asteroid_field`, `black_hole`,
-`neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`
-(an unrecognized type or a nonexistent id is a `404`). A phenomenon
+`neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`,
+`quasar` (an unrecognized type or a nonexistent id is a `404`). A phenomenon
 endpoint's own `route.path`/`route.positions` id is a
 `"phenomenon:<type>:<id>"` string (a plain int id, same as always, for a
 system) -- only `route.path[0]`/`route.path[-1]` can ever be a phenomenon;
@@ -460,7 +451,7 @@ not a bearing relative to any particular ship heading.
   duration formatter used elsewhere in this project.
 - `origin_position`/`destination_position`: the `[x, y, z]` light-year
   positions `direct` was computed from, in `scope`'s frame (sector-local for
-  `"sector"`, absolute galaxy-frame for `"galaxy"`) — what `html/nav.py`'s
+  `"sector"`, absolute galaxy-frame for `"galaxy"`) — what the NAV page's (`/nav`)
   NAV Map plot (`html/lib/navmap.py`) draws.
 - `route`: the shortest path via adjacent systems (nodes: every system in
   scope, plus a phenomenon endpoint's own one-off node when `from`/`to` is
@@ -516,7 +507,7 @@ when) after the write actually succeeds.
   `database-schema.md`).
 - `wiki_url` (`PATCH` only): non-empty string, or `null` to clear it back
   to "no page yet" — the manual "set the wiki link directly" admin
-  affordance (`../src/html/admin.py`); the same column `POST
+  affordance (the `/admin` page); the same column `POST
   /api/sectors/<id>/wiki` (below) writes automatically on a successful
   upload. Rejected as an unrecognized field on `POST` — a brand-new
   sector has never been uploaded anywhere.
@@ -678,7 +669,9 @@ from `src/wsgi.py`/`src/api/` so the API is served from the same
 checkout/deployment tree as the CGI browser instead of a second,
 separately-tracked location). The example vhost config in
 `examples/apache/` already mounts it out of the box -- a
-`WSGIScriptAlias` for `/api` pointing at `src/html/wsgi.py`, in its own
+`WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py` (the same app
+serves the API under `/api` and the HTML pages that have moved off CGI;
+see [`apache-deployment.md`](apache-deployment.md)), in its own
 `WSGIDaemonProcess`, plus the `<Directory>` block that denies direct
 requests into `html/api/` the same way it already does for `html/lib/`
 (see [`apache-deployment.md`](apache-deployment.md)) -- so the common
@@ -720,7 +713,7 @@ limiting").
 
 **The admin session cookie requires HTTPS.** It's set `Secure` by default
 (`config.SESSION_COOKIE_SECURE`) -- the browser never sends it over plain
-HTTP, so `login.py`/`admin.py` won't work behind a vhost that's HTTP-only.
+HTTP, so `/login` and `/admin` won't work behind a vhost that's HTTP-only.
 Terminate TLS in front of this vhost (e.g. `certbot --apache`) before
 using the admin pages; only set `PLANETGEN_ADMIN_COOKIE_INSECURE=1` for
 local development without TLS in front, never in production.

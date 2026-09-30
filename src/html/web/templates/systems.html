@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block subhead %}
+<p class="badges"><span class="badge">{{ "{:,}".format(systems.total) }} standalone system{{ "" if systems.total == 1 else "s" }}</span></p>
+{% endblock %}
+{% block content %}
+{% include "partials/systems_panel.html" %}
+{% endblock %}

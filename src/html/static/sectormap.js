@@ -112,14 +112,14 @@ function showObjectInfo(entry) {
 // A neighboring sector's own address -- shared display convention with
 // `static/galaxymap3d.js`'s identically-named helpers for its own
 // "planned" (not-yet-generated) sector addresses, since this is the same
-// underlying concept one level in: a `(shell_index, shell_slot_index)`
+// underlying concept one level in: a `(ring_index, layer_index, ring_slot_index)`
 // address, generated or not.
-function formatAddress(shellIndex, slotIndex) {
-  return "shell " + shellIndex + " slot " + slotIndex;
+function formatAddress(ringIndex, layerIndex, slotIndex) {
+  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-function cliSnippet(shellIndex, slotIndex) {
-  return "generate.py galaxy --shell " + shellIndex + " --slot " + slotIndex;
+function cliSnippet(ringIndex, layerIndex, slotIndex) {
+  return "generate.py galaxy --ring " + ringIndex + " --layer " + layerIndex + " --slot " + slotIndex;
 }
 
 function makeCopyButton(text) {
@@ -159,7 +159,7 @@ function makeCopyButton(text) {
 
 // A neighboring sector that already exists just links straight to it
 // (same as a star/cloud entry); one that doesn't yet shows its address
-// and a copyable `generate.py galaxy --shell K --slot N` command instead
+// and a copyable `generate.py galaxy --ring I --layer J --slot K` command instead
 // -- the same "not yet generated" info panel shape
 // `static/galaxymap3d.js`'s own `showPlannedInfo` already uses for its
 // "planned" tier, one galaxy-map zoom level up from this sector-level view.
@@ -169,7 +169,7 @@ function showNeighborInfo(panel, entry) {
   panel.appendChild(heading);
 
   var dl = document.createElement("dl");
-  addField(dl, "Address", formatAddress(entry.shellIndex, entry.shellSlotIndex));
+  addField(dl, "Address", formatAddress(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex));
   addField(dl, "Designation", entry.designation);
   panel.appendChild(dl);
 
@@ -180,27 +180,17 @@ function showNeighborInfo(panel, entry) {
 
   var code = document.createElement("code");
   code.className = "galaxymap3d-cli-snippet";
-  code.textContent = cliSnippet(entry.shellIndex, entry.shellSlotIndex);
+  code.textContent = cliSnippet(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex);
   panel.appendChild(code);
-  panel.appendChild(makeCopyButton(cliSnippet(entry.shellIndex, entry.shellSlotIndex)));
+  panel.appendChild(makeCopyButton(cliSnippet(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex)));
 }
 
-// A real, focusable `<a>` carrying `data-nav-target`/`data-nav-params`
-// instead of an `href` query string -- `static/navform.js`'s document-
-// level click handler (loaded on every page, see `lib/page.py`'s
-// `render`) is what actually follows it, by posting a throwaway hidden
-// form, the same convention every other in-app link now uses
-// (`lib/fmt.py`'s `post_link` builds the non-JS-required `<form>` version
-// of the same idea; a `<form>` can't be dynamically inserted into this
-// panel's own DOM update flow as conveniently as a plain `<a>` can, so
-// this stays in the `data-nav-target` camp like the map's own SVG-era
-// markers already had to for the same "can't nest a form" reason).
+// A plain `<a href>` to the entry's own page (`href`, built server-side by
+// lib/starmap.py), so Back, open-in-new-tab and copy-link all work.
 function navLink(entry, label) {
   var link = document.createElement("a");
-  link.href = "#";
+  link.href = entry.href || "#";
   link.className = "btn";
-  link.dataset.navTarget = entry.navTarget;
-  link.dataset.navParams = JSON.stringify(entry.navParams || {});
   link.textContent = label;
   return link;
 }
@@ -361,6 +351,13 @@ var CLOUD_KIND_RECIPES = {
       [0, "#ffffff"], [0.2, "#e6fbffe0"], [0.5, "#8ff0e080"], [0.8, "rgba(0,0,0,0)"],
     ]);
   },
+  // A blinding white-blue point ringed by a hot violet accretion glow --
+  // brighter than anything else on the map, as a galaxy's nucleus is.
+  quasar: function () {
+    return makeSimpleRadialTexture(128, [
+      [0, "#ffffff"], [0.18, "#f2f6ffff"], [0.4, "#a9c4ffd0"], [0.6, "#b98cff70"], [0.85, "rgba(0,0,0,0)"],
+    ]);
+  },
 };
 
 function textureForCloud(cloud) {
@@ -387,6 +384,7 @@ var CLOUD_GLOW_RECIPES = {
   supernovaRemnant: { color: "#ff8a5c", power: 2.0, strength: 1.2, scale: 1.2 },
   roguePlanet: { color: "#7d6aa8", power: 2.5, strength: 0.8, scale: 1.25 },
   interstellarComet: { color: "#8ff0e0", power: 1.4, strength: 1.8, scale: 1.4 },
+  quasar: { color: "#c9d8ff", power: 1.0, strength: 3.0, scale: 1.7 },
 };
 
 function glowRecipeForCloud(cloud) {

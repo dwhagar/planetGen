@@ -1,0 +1,22 @@
+{#- The Standalone Systems table. Expects `systems` from
+    views._systems_panel and `show_more_link` (bool). -#}
+<section class="panel" id="standalone-systems" aria-labelledby="standalone-heading">
+  <div class="panel-header">
+    <h2 id="standalone-heading">{% if show_more_link %}<a href="{{ url_for('web.systems') }}">Standalone Systems</a>{% else %}Standalone Systems{% endif %}</h2>
+  </div>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Binary</th><th scope="col">Star type</th></tr></thead>
+    <tbody>
+      {%- for row in systems.rows %}
+      <tr>
+        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>{{ "Yes" if row.is_binary else "No" }}</td>
+        <td>{{ row.star_summary }}</td>
+      </tr>
+      {%- else %}
+      <tr><td colspan="3"><em>None</em></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ systems.pager }}
+</section>

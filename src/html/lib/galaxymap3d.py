@@ -9,36 +9,38 @@ fixed-radius markers grew relative to the view as you zoomed in with no
 camera to shrink them the opposite way). This map's camera can travel
 anywhere in the galaxy instead, so most of what it draws is fetched live
 as the camera moves, one fixed cube of space ("tile") at a time
-(`html/galaxy_tiles.py`, this page's own client-side JS `fetch()` target
--- see that script's own docstring, and `stellarObjects.galaxyViewport`'s
+(`/galaxy/tiles`, `html/web/galaxy_views.py`, this page's own client-side
+JS `fetch()` target -- see that view's own docstring, and `stellarObjects.galaxyViewport`'s
 "Cube tiles" section) rather than server-rendered once. Tiles are cached
 on the server's disk (`lib/tilecache.py`) and in the visitor's browser.
 
 This module's job mirrors `lib/starmap.py`'s division of labor:
-`galaxy.py` (the page) fetches the first frame's tiles
+`/galaxy` (`html/web/galaxy_views.py`) fetches the first frame's tiles
 (`initial_tile_request` says which); this module only ever turns
 already-fetched plain data into the panel's HTML and its one starting
 JSON payload -- every *later* payload (`static/galaxymap3d.js`'s own live
 tile fetches as the camera moves) never passes through this module at
 all.
 
-Three content tiers, matching each tile's `placed`/`planned` lists and
-the separate density cloud (see `stellarObjects.galaxyViewport`'s module
-docstring for what each means):
+Three content tiers: each tile's `placed`/`planned` lists (see
+`stellarObjects.galaxyViewport`'s module docstring), plus density
+shading the browser computes itself:
 
 - **Placed**: real, already-generated sectors -- bright, clickable, sized
   by `system_count`, colored by real stellar density (`system_count /
   edge_ly ** 3`, relative to `physical_constants.LOCAL_STELLAR_DENSITY_LY3`
   -- see `render_galaxy_map3d_panel`'s own `referenceDensityPerLy3`),
-  navigates to `sector.py`.
+  links to its sector page.
 - **Planned**: real, not-yet-generated sector addresses this galaxy's own
   density model (when built) predicts would qualify -- small, dim,
   clickable, shows its designation/address (copyable straight into
-  `generate.py galaxy --shell K --slot N`) rather than navigating
+  `generate.py galaxy --ring I --layer J --slot K`) rather than navigating
   anywhere (there's nothing to navigate to yet).
-- **Density**: a coarse illustrative point cloud, for whatever part of
-  the current view is too wide to enumerate individual planned
-  addresses -- not clickable, carries no info of its own.
+- **Density**: the galaxy's predicted density as shaded cylindrical
+  segment prisms (`static/galaxyprisms.js`), sized to the view and
+  computed in the browser from the galaxy's shape parameters, which the
+  panel embeds as `densityShape` -- not clickable, carries no info of its
+  own.
 
 Unlike `lib/starmap.py` (every dot's size/color/position is computed
 once, server-side, and the client only ever draws exactly what it's
@@ -65,7 +67,7 @@ out:
   dolly -- the floor sits just past a couple of sector-widths (so
   approaching one specific sector never has to overshoot past clicking
   distance), the ceiling is far enough back that this galaxy's own real
-  outer edge (its stored skeleton's `outer_shell_index`, or a real
+  outer edge (its stored skeleton's `outer_ring_index`, or a real
   Milky-Way-scale radius as a starting-point default when no skeleton has
   been built yet) fits inside the camera's field of view.
 - Left/right-click zoom is **logarithmic**, not a flat step: the closer
@@ -108,7 +110,7 @@ except ImportError:
     def pc_to_ly(pc):
         return pc * 3.2616
 
-DEFAULT_SECTOR_EDGE_LY_FALLBACK = 11.5
+DEFAULT_SECTOR_EDGE_LY_FALLBACK = 13.046  # 4 pc
 """float: Used only if `stellarObjects.program_constants` itself isn't
 importable (see the top-of-file fallback above) -- matches that module's
 own `DEFAULT_SECTOR_EDGE_LY`."""
@@ -147,8 +149,8 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     """
     `(min_view_radius_pc, max_view_radius_pc)` -- see the module
     docstring's own explanation of what these bound. A pure function of
-    already-fetched data (no I/O), so `galaxy.py` (the page) can call it
-    directly to pick the radius its own first `get_galaxy_view` call uses,
+    already-fetched data (no I/O), so the `/galaxy` page view can call it
+    directly to pick the radius its own first tile request uses,
     before this module's own panel-rendering function ever runs.
 
     Args:
@@ -168,7 +170,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
 def galaxy_extent_pc(edge_pc, galaxy_shape):
     """
     The galaxy's own outer edge, parsecs, padded by
-    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_shell_index`,
+    `MAX_VIEW_RADIUS_MARGIN`: its stored skeleton's `outer_ring_index`,
     or `GALAXY_RADIUS_PC` when no skeleton has been built yet. The camera
     target is kept inside this radius (`galaxyRadiusPc`), and
     `view_radius_bounds` backs the camera off far enough to fit it.
@@ -181,8 +183,8 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
     Returns:
         float: The padded outer radius, parsecs.
     """
-    if galaxy_shape and galaxy_shape.get("outer_shell_index") is not None:
-        return (galaxy_shape["outer_shell_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
+    if galaxy_shape and galaxy_shape.get("outer_ring_index") is not None:
+        return (galaxy_shape["outer_ring_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
     return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
 
 
@@ -199,7 +201,7 @@ target while the view reached out to 200 pc, which drew a lone ball of
 dots in empty space (near the galactic plane every slot qualifies, so
 the ball was solid). A 32 pc view holds about 3,000 slots at the default
 sector size, from up to ~125 of the smallest (`PLANNED_TILE_MAX_EDGE_PC`)
-tiles. The density cloud takes over for wider views."""
+tiles. Wider views show only the density prisms."""
 
 MAX_TILES_PER_REQUEST = 128
 """int: Mirrors `queryDb.MAX_TILES_PER_REQUEST`."""
@@ -240,31 +242,20 @@ def _tiles_intersecting_sphere(level, center_pc, radius_pc):
     return [key for _distance, key in found]
 
 
-def _tile_containing(level, point_pc):
-    edge = TILE_ROOT_EDGE_PC / (2 ** level)
-    origin = -TILE_ROOT_EDGE_PC / 2.0
-    span = 2 ** level
-    index = [max(0, min(span - 1, math.floor((point_pc[axis] - origin) / edge))) for axis in range(3)]
-    return f"{level}/{index[0]}/{index[1]}/{index[2]}"
-
-
-def initial_tile_request(orbit_radius_pc, has_shape, center_pc=(0.0, 0.0, 0.0)):
+def initial_tile_request(orbit_radius_pc, center_pc=(0.0, 0.0, 0.0)):
     """
-    The tiles (and density anchor) the map's first frame needs, computed
-    exactly the way `static/galaxymap3d.js`'s own `neededTiles` does for
-    every later camera position, so the browser's first live fetch finds
-    the first frame's tiles already cached.
+    The tiles the map's first frame needs, computed exactly the way
+    `static/galaxymap3d.js`'s own `neededTiles` does for every later
+    camera position, so the browser's first live fetch finds the first
+    frame's tiles already cached.
 
     Args:
         orbit_radius_pc (float): The starting camera orbit radius
             (`view_radius_bounds`' max).
-        has_shape (bool): Whether the galaxy has a density skeleton (no
-            density cloud without one).
         center_pc (tuple): The starting camera target.
 
     Returns:
-        tuple: `(tile_keys, density_key)` -- `density_key` is `None` when
-            no density cloud is wanted.
+        list: Tile keys, nearest first.
     """
     view_radius = orbit_radius_pc * FETCH_RADIUS_FACTOR
     level = _tile_level_for_view_radius(view_radius)
@@ -272,10 +263,35 @@ def initial_tile_request(orbit_radius_pc, has_shape, center_pc=(0.0, 0.0, 0.0)):
     if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
         planned_level = _tile_level_for_view_radius(PLANNED_TILE_MAX_EDGE_PC)
         keys += [key for key in _tiles_intersecting_sphere(planned_level, center_pc, view_radius) if key not in keys]
-    density_key = None
-    if has_shape and view_radius > PLANNED_MAX_VIEW_RADIUS_PC:
-        density_key = _tile_containing(level, center_pc)
-    return keys, density_key
+    return keys
+
+
+DENSITY_SHAPE_FIELDS = (
+    "disk_scale_length_pc", "disk_scale_height_pc",
+    "bulge_scale_radius_pc", "bulge_amplitude",
+    "arm_count", "pitch_angle_rad", "arm_amplitude",
+    "spiral_reference_radius_pc", "spiral_reference_angle_rad",
+    "k_norm",
+)
+"""The `GalaxyShape` fields `static/galaxyprisms.js`'s `relativeDensity`
+reads."""
+
+
+def _density_shape(galaxy_shape):
+    """Just the density model's own fields from `apiclient.get_galaxy_shape`'s
+    dict, or `None` without a shape (or with one missing a field), plus
+    `sector_min_density`: the relative density a sector needs to expect
+    one star (`1 / expected_system_count_at_density_1`), the same
+    threshold the generator's skeleton uses, so the prisms outline exactly
+    the galaxy's layers. Left out if the shape doesn't carry it."""
+    if not galaxy_shape or any(galaxy_shape.get(field) is None for field in DENSITY_SHAPE_FIELDS):
+        return None
+    shape = {field: galaxy_shape[field] for field in DENSITY_SHAPE_FIELDS}
+    expected = galaxy_shape.get("expected_system_count_at_density_1")
+    if expected:
+        shape["sector_min_density"] = 1.0 / expected
+    return shape
+
 
 def _json_script(data):
     """Same `<script type="application/json">`-safe escaping
@@ -289,7 +305,8 @@ def _json_script(data):
     )
 
 
-def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
+def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
+                              sector_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -300,19 +317,19 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     client needs to pick tiles the same way `initial_tile_request` does,
     and `initial_view`'s own payload for the first frame -- everything
     after that first frame comes from the client's own live `fetch()`
-    calls to `galaxy_tiles.py`.
+    calls to `fetch_path` (the Flask `/galaxy/tiles`).
 
     Args:
-        db_name (str): The current `?db=` value -- carried in the JSON
-                       payload so the client's own fetch calls (and any
-                       navigation to a clicked placed sector's `sector.py`)
-                       can build their URLs/params without needing it
-                       threaded through separately.
+        db_name (str): The database the page shows (from config, never
+                       the URL). Only names the browser's own
+                       `localStorage` tile cache (`storageKey`), so each
+                       database's tiles are kept apart; it is never sent
+                       back to the server.
         galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
             return shape, or `None` if `generate.py plan` has never been
             run -- when `None`, the panel shows a hint that planned-sector
             qualification/density shading isn't real yet (see
-            `queryDb.galaxy_view`'s own `has_shape` field, which
+            `queryDb.galaxy_tiles`'s own `has_shape` field, which
             `initial_view` already carries through).
         edge_pc (float): The sector edge length, parsecs
                          (`initial_view["edge_pc"]`, passed separately
@@ -320,9 +337,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
                          `initial_view` itself is fetched).
         initial_view (dict): `tilecache.fetch_tiles`' own return shape
             (`stamp`/`tiles`/`density`/`edge_pc`/`has_shape`), fetched by
-            `galaxy.py` for `initial_tile_request`'s tiles -- the
+            the `/galaxy` view for `initial_tile_request`'s tiles -- the
             zoomed-all-the-way-out starting view. The client seeds its
             tile cache with it.
+        fetch_path (str): The tile endpoint's URL (`/galaxy/tiles`).
+        sector_url (str, optional): A sector page URL with `{id}` where
+            the id goes, for the info panel's "View sector" link (a real
+            `<a href>`); without it the panel shows no link.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -331,8 +352,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
     edge_ly = pc_to_ly(edge_pc)
 
     scene_data = {
-        "db": db_name,
-        "fetchPath": "galaxy_tiles.py",
+        "storageKey": db_name,
+        "fetchPath": fetch_path,
+        "sectorUrl": sector_url,
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "plannedTileMaxEdgePc": PLANNED_TILE_MAX_EDGE_PC,
@@ -340,6 +362,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
         "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
         "hasShape": bool(initial_view.get("has_shape")),
+        # The galaxy's density model parameters -- static/galaxyprisms.js
+        # evaluates stellarObjects.galaxyDensity.relative_density from
+        # these itself to shade the density prisms.
+        "densityShape": _density_shape(galaxy_shape),
         "edgePc": edge_pc,
         "edgeLy": edge_ly,
         "fovDeg": CAMERA_FOV_DEG,
@@ -368,20 +394,19 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view):
         else (
             '<p class="hint">The galaxy\'s density skeleton hasn\'t been built yet '
             "(<code>generate.py plan</code>) -- every enumerable sector address is shown as "
-            "\"planned\" regardless of predicted density, and no illustrative density cloud is "
-            "shown for the wider view.</p>"
+            "\"planned\" regardless of predicted density, and no density shading is shown.</p>"
         )
     )
 
     return f"""
-<section class="panel">
+<section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
   <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a dot or
   empty space to center the view there and select it &middot; double-click to do the same AND zoom in (bigger
   steps while zoomed out, finer near a single sector) &middot; generated-sector dots colored by their own real
   stellar density (dim &rarr; bright, relative to the real local average) &middot; small dim dots &asymp; real,
-  not-yet-generated sector addresses &middot; faint spheres &asymp; illustrative predicted density</span>
+  not-yet-generated sector addresses &middot; shaded prisms &asymp; predicted density (brighter = denser)</span>
 </div>
 {shape_hint}
 <div class="starmap-layout">

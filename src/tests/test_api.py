@@ -429,11 +429,19 @@ def test_system_sections_cover_every_body(client, mysql_config):
     cfg.COMETS = True
     cfg.ASTEROID_BELT = True
     cfg.BINARY_SYSTEM = False
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    # Generation is random: a system can still come out with no moons, belt
+    # or comet despite the flags above, so draw until one has every kind.
+    for _ in range(50):
+        system = StarSystem(system_config=cfg)
+        bodies = system.planets or []
+        if (any(getattr(b, "moons", None) for b in bodies)
+                and any(b.body_type == "a" for b in bodies) and system.comets):
+            break
+    system_id = _db.save_system(system, cfg, config=mysql_config)
 
     detail = client.get(f"/api/systems/{system_id}").get_json()
     sections = client.get(f"/api/systems/{system_id}/sections").get_json()
-    assert detail["planets"] and detail["planets"][0]["moons"] and detail["belts"] and detail["comets"]
+    assert any(p["moons"] for p in detail["planets"]) and detail["belts"] and detail["comets"]
 
     assert "This system contains" in sections["overview"] or "no stellar objects" in sections["overview"]
     assert set(sections["stars"]) == {str(s["id"]) for s in detail["stars"]}
@@ -522,10 +530,9 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
     system = StarSystem(system_config=cfg)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
 
-    empty_vertices = {"inner": [], "outer": []}
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
-        "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
+        "galactic_radius_pc": 0.0,
     })
 
     from stellarObjects.nebulaData import Nebula
@@ -654,37 +661,7 @@ def test_galaxy_sectors_excludes_unplaced_sectors(client, seeded_sector):
     assert response.get_json() == {"items": []}
 
 
-def test_galaxy_view_placed_sector_includes_edge_ly(client, mysql_config):
-    """`GET /api/galaxy/view`'s own "placed" tier (queryDb.
-    galaxy_sectors_in_view) exposes each placed sector's own real
-    edge_ly -- added so static/galaxymap3d.js can color a sector marker
-    by its own true stellar density (system_count / edge_ly ** 3)
-    relative to the real local average, rather than raw system count
-    alone."""
-    sector = SpaceSector("Density Test Sector", edge_ly=10.0)
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.PLANETS = False
-    cfg.BINARY_SYSTEM = False
-    system = StarSystem(system_config=cfg)
-    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
-
-    empty_vertices = {"inner": [], "outer": []}
-    _db.save_sector(sector, config=mysql_config, galaxy_position={
-        "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
-        "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
-    })
-
-    response = client.get("/api/galaxy/view?cx=0&cy=0&cz=0&radius_pc=1000")
-    assert response.status_code == 200
-    placed = response.get_json()["placed"]
-    assert len(placed) == 1
-    assert placed[0]["edge_ly"] == pytest.approx(10.0)
-    assert placed[0]["system_count"] == 1
-
-
-
-def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, shell_index=None, shell_slot_index=None):
+def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, address=None):
     sector = SpaceSector(name, edge_ly=edge_ly)
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
@@ -694,11 +671,9 @@ def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, shell_index=None,
     position = {
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.dist(center_pc, (0.0, 0.0, 0.0)),
-        "vertices_pc": {"inner": [], "outer": []},
     }
-    if shell_index is not None:
-        position["shell_index"] = shell_index
-        position["shell_slot_index"] = shell_slot_index
+    if address is not None:
+        position["ring_index"], position["layer_index"], position["ring_slot_index"] = address
     return _db.save_sector(sector, config=mysql_config, galaxy_position=position)
 
 
@@ -731,7 +706,7 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
 
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
     """A box holding more than `limit` placed sectors returns every Nth by
-    id, not the lowest ids -- a neighborhood is generated shell by shell,
+    id, not the lowest ids -- a neighborhood is generated outward from the core,
     so its lowest ids are only its core-facing half."""
     ids = [_place_sector(mysql_config, f"Row {n}", (float(n), 0.0, 0.0)) for n in range(10)]
     conn = _db.get_connection(mysql_config)
@@ -1319,3 +1294,36 @@ def test_create_sector_rejects_wiki_url(admin_client):
         "/api/sectors", json={"name": "Test", "edge_ly": 10.0, "wiki_url": "https://wiki.example.com/x"}
     )
     assert response.status_code == 400
+
+
+def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
+    """`GET /api/galaxy/cell` answers for any place in the galaxy, by
+    address or by a point inside the cell, with its coordinates and 8
+    corners, and names the generated sector there if one exists."""
+    from stellarObjects.galaxyGeometry import sector_position_pc
+    from stellarObjects.utils import ly_to_pc
+
+    from stellarObjects import program_constants
+
+    edge_pc = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
+    center = sector_position_pc(3, -1, 5, edge_pc)
+    sector_id = _place_sector(mysql_config, "Cell Sector", center, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY,
+                              address=(3, -1, 5))
+
+    by_address = client.get("/api/galaxy/cell?ring=3&layer=-1&slot=5").get_json()
+    assert (by_address["ring_index"], by_address["layer_index"], by_address["ring_slot_index"]) == (3, -1, 5)
+    assert by_address["sector_id"] == sector_id
+    assert by_address["cartesian_pc"] == pytest.approx(list(center))
+    assert len(by_address["vertices_pc"]) == 8
+    assert by_address["mean_arc_length_pc"] == pytest.approx(edge_pc, rel=0.15)
+    assert by_address["spherical"]["polar_rad"] > math.pi / 2  # below the plane
+
+    by_point = client.get(f"/api/galaxy/cell?x={center[0] + 0.3}&y={center[1]}&z={center[2] - 0.2}").get_json()
+    assert by_point["designation"] == by_address["designation"]
+
+    empty = client.get("/api/galaxy/cell?x=9000&y=-120&z=4000").get_json()
+    assert empty["sector_id"] is None and len(empty["vertices_pc"]) == 8
+
+    assert client.get("/api/galaxy/cell?ring=0&layer=0&slot=4").status_code == 400
+    assert client.get("/api/galaxy/cell?ring=1").status_code == 400
+    assert client.get("/api/galaxy/cell?x=nan&y=0&z=0").status_code == 400

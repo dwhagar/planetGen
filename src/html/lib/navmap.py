@@ -6,14 +6,14 @@ NAV request's origin, destination, and (when one was found) the optimal
 route's intermediate hops -- the "actual plotted image/diagram of the two
 points" `docs/api.md`/`docs/TODO.md` flagged as still open once
 `queryDb.nav_between` started returning course/route data as numbers and
-links only (`html/nav.py`).
+links only (the NAV page, `/nav`).
 
 Deliberately modeled on `galaxymap.py`'s flat 2D SVG rather than
 `starmap.py`'s rotatable 3D CSS scene: like a galaxy Quadrant, this map is
 blind to height (altitude) by design. `stellarObjects.navigation`'s own
 azimuth convention (see that module's docstring) is already defined purely
-within the galactic X-Y plane, and the numeric Altitude figure `html/
-nav.py`'s course panel already reports covers the third axis -- a route's
+within the galactic X-Y plane, and the numeric Altitude figure the NAV page's
+course panel already reports covers the third axis -- a route's
 hops are typically nowhere near coplanar with the direct line in practice,
 so this map is honest about showing an azimuth-plane projection rather
 than faking a 3D perspective a flat, static SVG (no drag-to-rotate script,
@@ -31,7 +31,7 @@ angles away from what they actually are).
 
 import math
 
-from fmt import data_nav_params, esc
+from fmt import esc
 
 _SVG_SIZE = 360.0
 _CENTER = _SVG_SIZE / 2
@@ -139,27 +139,25 @@ def _scale_bar_html(px_per_ly):
     )
 
 
-def _point_html(db_name, waypoint, svg_x, svg_y, css_class, radius):
+def _point_html(link_url, waypoint, svg_x, svg_y, css_class, radius):
     # A route's own intermediate hops are always real systems (see
     # queryDb.nav_between's docstring), but the origin/destination
-    # themselves can each be a standalone phenomenon instead -- routed to
-    # phenomenon.py, with its own type/id params, rather than system.py.
+    # themselves can each be a standalone phenomenon instead -- linked to
+    # its phenomenon page rather than a system page.
     if waypoint.get("kind") == "phenomenon":
-        nav_target = "phenomenon.py"
-        nav_params = data_nav_params({"db": db_name, "type": waypoint["type"], "id": waypoint["id"]})
+        url = link_url("phenomenon", phenomenon_type=waypoint["type"], phenomenon_id=waypoint["id"])
     else:
-        nav_target = "system.py"
-        nav_params = data_nav_params({"db": db_name, "id": waypoint["id"]})
+        url = link_url("system", system_id=waypoint["id"])
     return (
-        f'<a class="navmap-point {css_class}" href="#" data-nav-target="{nav_target}" '
-        f'data-nav-params="{nav_params}"><title>{esc(waypoint["name"])}</title>'
+        f'<a class="navmap-point {css_class}" href="{esc(url)}">'
+        f'<title>{esc(waypoint["name"])}</title>'
         f'<circle cx="{svg_x:.1f}" cy="{svg_y:.1f}" r="{radius:.1f}"/>'
         f'<text x="{svg_x:.1f}" y="{svg_y - radius - 5:.1f}" text-anchor="middle">'
         f'{esc(waypoint["name"])}</text></a>'
     )
 
 
-def render_nav_map_panel(db_name, waypoints, has_route):
+def render_nav_map_panel(link_url, waypoints, has_route):
     """
     Builds the "NAV Map" panel: a flat, top-down SVG plot of an origin, a
     destination, and (when `has_route` is true) the optimal route's
@@ -167,9 +165,13 @@ def render_nav_map_panel(db_name, waypoints, has_route):
     docstring on why altitude/z is left out).
 
     Args:
-        db_name (str): The current `?db=` value, used to build each
-                       point's link back to `system.py` (or, for a
-                       phenomenon origin/destination, `phenomenon.py`).
+        link_url (callable): `link_url(name, **params)` -> URL (the
+                       Flask NAV page passes `web.helpers.page_url`);
+                       called as `link_url("system", system_id=...)` or,
+                       for a phenomenon origin/destination,
+                       `link_url("phenomenon", phenomenon_type=...,
+                       phenomenon_id=...)`, for each point's plain
+                       `<a href>` link.
         waypoints (list[dict]): Ordered origin-to-destination, each with
                                 `id`, `name`, `position` (an `(x, y, z)`
                                 light-year tuple in `nav_between`'s scope
@@ -218,11 +220,11 @@ def render_nav_map_panel(db_name, waypoints, has_route):
     points_html = []
     for waypoint, (svg_x, svg_y) in zip(waypoints, projected):
         if waypoint["role"] == "origin":
-            points_html.append(_point_html(db_name, waypoint, svg_x, svg_y, "navmap-origin", _ORIGIN_R))
+            points_html.append(_point_html(link_url, waypoint, svg_x, svg_y, "navmap-origin", _ORIGIN_R))
         elif waypoint["role"] == "destination":
-            points_html.append(_point_html(db_name, waypoint, svg_x, svg_y, "navmap-destination", _DEST_R))
+            points_html.append(_point_html(link_url, waypoint, svg_x, svg_y, "navmap-destination", _DEST_R))
         else:
-            points_html.append(_point_html(db_name, waypoint, svg_x, svg_y, "navmap-hop", _HOP_R))
+            points_html.append(_point_html(link_url, waypoint, svg_x, svg_y, "navmap-hop", _HOP_R))
 
     body = (
         f"{direct_line}{route_line}{''.join(points_html)}"

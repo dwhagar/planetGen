@@ -27,6 +27,7 @@ separate, write-capable database account -- see `docs/api.md`'s
 "Write endpoints" section and `stellarObjects/adminAuth.py`.
 """
 
+import math
 import os
 import sys
 
@@ -54,7 +55,6 @@ from queryDb import (
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
     galaxy_tiles,
-    galaxy_view,
     list_phenomena,
     list_sectors,
     list_systems,
@@ -66,13 +66,14 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db
-from stellarObjects._db import MySQLConfig, list_databases, resolve_database
+from stellarObjects import _db, program_constants
+from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
+from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
-from stellarObjects.utils import ly_to_milliparsecs
+from stellarObjects.utils import ly_to_milliparsecs, ly_to_pc
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
@@ -594,7 +595,7 @@ def _route_for_json(route):
 def galaxy_sectors():
     """
     Every galaxy-placed sector (`sectors.center_x/y/z_pc` not NULL), with
-    its live system count -- the data `html/galaxy.py`'s Galaxy Map plots.
+    its live system count -- the data the Galaxy Map (`/galaxy`) plots.
     Not paginated: bounded by how much of the galaxy has actually been
     generated so far (see `docs/TODO.md`'s Phase 4 lazy-generation design),
     not by the addressable galaxy's own astronomical scale.
@@ -608,7 +609,7 @@ def galaxy_phenomena():
     Every galaxy-placed standalone phenomenon (`center_x/y/z_pc` not
     NULL, in any `queryDb._PHENOMENON_TABLES` table -- see `schema.sql`'s
     "v18"/"v21"/"v29" header notes) -- the phenomenon counterpart to `/api/galaxy/sectors`, plotted
-    as small dots on the same `html/galaxy.py` Galaxy Map. Not paginated,
+    as small dots on the same `/galaxy` Galaxy Map. Not paginated,
     for the same reason `/api/galaxy/sectors` isn't.
     """
     return jsonify({"items": galaxy_placed_phenomena(get_db())})
@@ -619,7 +620,7 @@ def galaxy_shape():
     """
     The galaxy's stored density-skeleton shape (`generate.py plan`'s own
     output, `queryDb.galaxy_density_shape`) -- the real spiral/disk/bulge
-    model the Galaxy Map (`html/galaxy.py`) shades its "expected density"
+    model the Galaxy Map (`/galaxy`) shades its "expected density"
     cloud from, for whatever space hasn't actually been generated yet.
     `"shape"` is `null` when the skeleton has never been built (the map
     then falls back to its own generic illustrative gradient).
@@ -627,45 +628,49 @@ def galaxy_shape():
     return jsonify({"shape": galaxy_density_shape(get_db())})
 
 
-MAX_GALAXY_VIEW_RADIUS_PC = 20000.0
-"""float: Silently clamps an oversized `radius_pc` on `/galaxy/view` --
-covers this project's own default Milky-Way-scale galaxy radius
-(`program_constants.GALAXY_RADIUS_PC`, 15,000 pc) with headroom, while
-still bounding how large a bounding-box scan `queryDb.
-galaxy_sectors_in_view` ever has to run for one request. `planned`/
-`density` are separately capped inside `queryDb.galaxy_view` itself
-(`galaxyViewport.PLANNED_RADIUS_CAP_PC`/`DENSITY_SAMPLE_COUNT`) regardless
-of this clamp."""
-
-
-@bp.route("/galaxy/view")
-def galaxy_view_route():
+@bp.route("/galaxy/cell")
+def galaxy_cell():
     """
-    The interactive 3D Galaxy Map's live viewport query -- everywhere the
-    flat overview map's `/galaxy/sectors` returns the whole galaxy's own
-    placed sectors in one shot, this instead returns just what's near
-    `cx`/`cy`/`cz` (galaxy-frame parsecs) within `radius_pc`, across all
-    three content tiers `queryDb.galaxy_view` combines (placed/planned/
-    density -- see that function's own docstring). Called repeatedly
-    (debounced) as the 3D map's camera moves, via `html/galaxy_view.py`
-    (the browser-facing CGI proxy for this route -- the browser itself
-    never calls this API directly, same as every other page in `html/`).
+    One sector cell of the cylindrical grid, whether or not anything was
+    ever generated there: `?ring=I&layer=J&slot=K` names it by address,
+    `?x=&y=&z=` (parsecs, galaxy frame) by any point inside it. Returns
+    `galaxyGeometry.describe_sector_cell` (center in Cartesian, cylindrical
+    and spherical coordinates, bounds, 8 corners) plus `sector_id`, the
+    generated sector there or `null`, and `in_galaxy`: whether the cell lies
+    inside the planned galaxy's stored outline (`null` before any plan).
+    Uses the stored skeleton's edge length, else the standard 4 pc.
     """
+    def number(name, cast):
+        value = request.args.get(name)
+        if value is None:
+            return None
+        try:
+            return cast(value)
+        except ValueError:
+            raise ApiError(f"{name} must be a number")
+
+    conn = get_db()
+    skeleton = get_galaxy_shape(conn)
+    edge_pc = skeleton.edge_pc if skeleton else float(program_constants.DEFAULT_SECTOR_EDGE_PC)
+    ring, layer, slot = number("ring", int), number("layer", int), number("slot", int)
+    x, y, z = number("x", float), number("y", float), number("z", float)
+    if None not in (ring, layer, slot):
+        address = (ring, layer, slot)
+    elif None not in (x, y, z) and all(math.isfinite(v) for v in (x, y, z)):
+        address = sector_address_at((x, y, z), edge_pc)
+    else:
+        raise ApiError("give ring, layer and slot, or x, y and z")
+    if address[0] < 0:
+        raise ApiError("ring must be >= 0")
     try:
-        cx = float(request.args["cx"])
-        cy = float(request.args["cy"])
-        cz = float(request.args["cz"])
-        radius_pc = float(request.args["radius_pc"])
-    except KeyError as exc:
-        raise ApiError(f"{exc.args[0]} query parameter is required")
-    except ValueError:
-        raise ApiError("cx/cy/cz/radius_pc must all be numbers")
-    if radius_pc <= 0:
-        raise ApiError("radius_pc must be greater than 0")
-    radius_pc = min(radius_pc, MAX_GALAXY_VIEW_RADIUS_PC)
-
-    return jsonify(galaxy_view(get_db(), cx, cy, cz, radius_pc))
-
+        cell = describe_sector_cell(*address, edge_pc)
+    except ValueError as err:
+        raise ApiError(str(err))
+    cell["edge_pc"] = edge_pc
+    cell["sector_id"] = get_sector_id_at(conn, *address)
+    bounds = get_galaxy_bounds(conn)
+    cell["in_galaxy"] = bounds.contains(address[0], address[1]) if bounds is not None else None
+    return jsonify(cell)
 
 
 @bp.route("/galaxy/tiles")
@@ -675,9 +680,9 @@ def galaxy_tiles_route():
     `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`), `density` an
     optional single key to anchor a density cloud on. See
     `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
-    tiles" section. Each tile's work is bounded, so unlike `/galaxy/view`
-    no request can scan an unbounded region. Called by `html/
-    galaxy_tiles.py`, which caches every tile on disk and only forwards
+    tiles" section. Each tile's work is bounded, so no request can scan an
+    unbounded region (the removed `/galaxy/view` route could). Called by
+    `/galaxy/tiles` (`html/web/galaxy_views.py`), which caches every tile on disk and only forwards
     the ones it doesn't already have.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]

@@ -83,11 +83,12 @@ _TYPE_COLORS = {
     "black_hole": "#1a1a1a", "neutron_star": "#cfe8ff",
     "supernova_remnant": "#e08a5c",
     "rogue_planet": "#7a8ba0", "interstellar_comet": "#a8d0e0",
+    "quasar": "#e8f0ff",
 }
 _DEFAULT_COLOR = "#9aa0ac"
 
 
-def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
+def render_phenomenon_map_panel(phenomenon_type, name, radius_ly, include_scripts=True):
     """
     Builds the "Diagram" panel: a flat, zoomable SVG showing one
     phenomenon's own real extent at AU scale (or a fixed illustrative dot
@@ -104,6 +105,11 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
             (`html/phenomenon.py`'s caller passes `detail.get("radius_ly")
             or 0`, since `black_holes`/`neutron_stars` have no such column
             of their own at all).
+        include_scripts (bool): Whether to append the panel's own
+            `<script>` tags (relative `static/...` URLs, for the CGI
+            pages). The Flask page (`/phenomenon/<type>/<id>`) passes
+            `False` and loads the same two scripts from its template's
+            `head` block with absolute URLs.
 
     Returns:
         str: A complete `<section class="panel">` block, including its own
@@ -163,6 +169,9 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
 </div>
 </div>
 </section>
-<script src="{static_url("mapzoom.js")}"></script>
+""" + (SCRIPTS_HTML if include_scripts else "")
+
+
+SCRIPTS_HTML = f"""<script src="{static_url("mapzoom.js")}"></script>
 <script src="{static_url("phenomenonmap.js")}"></script>
 """

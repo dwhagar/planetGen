@@ -21,13 +21,27 @@ from .limiter import limiter
 from .routes import bp, close_db
 
 
+def _is_api_request():
+    """True for a request to the JSON API (`/api/...`); everything else
+    is one of the HTML pages (`html/web/`)."""
+    return request.path == "/api" or request.path.startswith("/api/")
+
+
 def create_app(config_object=Config):
-    app = Flask(__name__)
+    # The HTML pages (html/web/), imported here rather than at the top so
+    # `import api.app` stays cheap for callers that never build an app.
+    import web
+
+    # /static/ is src/html/static/ -- Apache serves it directly in
+    # production (examples/apache/); this only matters for the dev server
+    # (`python src/html/wsgi.py`) and tests.
+    app = Flask(__name__, static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
     limiter.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    web.init_app(app, limiter=limiter)
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)
     _register_error_handlers(app)
@@ -77,15 +91,22 @@ def _register_request_logging(app):
 
 def _register_security_headers(app):
     """
-    Adds a handful of defense-in-depth response headers this JSON-only API
-    has no legitimate reason to omit -- `default-src 'none'` in particular
-    is safe here specifically because every response is `application/
-    json` (see `routes.py`), never HTML/JS that would need to load
-    anything of its own.
+    Adds defense-in-depth response headers to every response. The HTML
+    pages (`html/web/`) get the CGI shell's own `page.SECURITY_HEADERS`
+    (the one source of the pages' CSP and the rest), so a page looks the
+    same to the browser whether CGI or Flask served it. Everything else
+    (API JSON, static files under the dev server) gets the same three
+    basic headers with `Content-Security-Policy: default-src 'none'` --
+    a JSON body never needs to load anything.
     """
+    from web import SECURITY_HEADERS
 
     @app.after_request
     def _add_headers(response):
+        if response.mimetype == "text/html":
+            for name, value in SECURITY_HEADERS:
+                response.headers.setdefault(name, value)
+            return response
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
@@ -116,8 +137,11 @@ def _warn_if_unshared_ratelimit_storage(app):
 
 def _register_error_handlers(app):
     """
-    Forces every error response -- not just the ones routes.py already
-    handles explicitly -- through the same `{"error": "..."}` JSON shape.
+    Forces every error response for `/api/...` -- not just the ones
+    routes.py already handles explicitly -- through the same `{"error":
+    "..."}` JSON shape. Any other path is one of the HTML pages
+    (`html/web/`), which get an HTML error page instead
+    (`web.errors.render_error`) -- equally free of tracebacks.
     Without this, an unmatched URL or an uncaught exception falls through
     to Flask's default HTML error page, which is the wrong content type
     for a JSON-only API and leaks a stack trace to the client in
@@ -129,13 +153,25 @@ def _register_error_handlers(app):
         log.debug(f"API error {exc.status_code} on {request.method} {request.path}: {exc.message}")
         return jsonify({"error": exc.message}), exc.status_code
 
+    from web.errors import render_error, unexpected_error_message
+
+    @app.errorhandler(400)
+    def _handle_bad_request(exc):
+        if _is_api_request():
+            return jsonify({"error": exc.description or "bad request"}), 400
+        return render_error(400, exc.description or "Bad request.")
+
     @app.errorhandler(404)
     def _handle_not_found(exc):
-        return jsonify({"error": "not found"}), 404
+        if _is_api_request():
+            return jsonify({"error": "not found"}), 404
+        return render_error(404, "There is no page at this address.")
 
     @app.errorhandler(405)
     def _handle_method_not_allowed(exc):
-        return jsonify({"error": "method not allowed"}), 405
+        if _is_api_request():
+            return jsonify({"error": "method not allowed"}), 405
+        return render_error(405, "This page can't be used that way.")
 
     @app.errorhandler(500)
     def _handle_internal_error(exc):
@@ -146,8 +182,12 @@ def _register_error_handlers(app):
         # The real detail still reaches Flask's own logger.
         # With the debug log on, this also lands there (app.logger
         # propagates to the root logger, which the debug log listens on).
-        app.logger.exception("Unhandled exception in API request")
-        return jsonify({"error": "internal server error"}), 500
+        if _is_api_request():
+            app.logger.exception("Unhandled exception in API request")
+            return jsonify({"error": "internal server error"}), 500
+        app.logger.exception("Unhandled exception while building a page")
+        log.exception(f"Unhandled exception while building {request.path}")
+        return render_error(500, unexpected_error_message())
 
     @app.errorhandler(429)
     def _handle_rate_limit_exceeded(exc):
@@ -158,6 +198,8 @@ def _register_error_handlers(app):
         # own routing exceptions, without importing Flask-Limiter's
         # exception type here just to reference it once.
         log.debug(f"Rate limit exceeded by {request.remote_addr} on {request.path}: {exc.description}")
+        if not _is_api_request():
+            return render_error(429, "Too many requests. Please wait a minute and try again.")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429
 
 

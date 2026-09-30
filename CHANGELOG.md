@@ -1,5 +1,320 @@
 # Changelog
 
+## [7.0.0] - 2026-09-30
+
+### Changed
+- **One sector standard: 4 parsecs.** Every sector, in the galaxy or
+  standalone, is now 4 pc (about 13.05 ly) on a side instead of 11.5 ly. At
+  the default Milky Way shape the galaxy then reaches about 50,000 ly, the
+  real disk's radius. See `docs/design/galaxy-coordinate-system.md`,
+  "Sector size".
+- **The galaxy is a stack of aligned layers.** Ring `i` now holds
+  `round(2π(i + ½))` slots (3, 9, 16, 22, …) instead of a multiple of 4,
+  the same on every layer, so sectors line up in vertical columns. The
+  skeleton is stored per layer: each layer, from the top of the galaxy to
+  the bottom, runs from ring 0 out to the last ring that still expects a
+  star per sector (`galaxy_layer`, replacing `galaxy_ring_band`).
+- **Generation never lands outside the galaxy.** `generate.py plan` also
+  stores each ring's column bound (`galaxy_column`: the highest and lowest
+  layer it reaches), and every `generate.py galaxy` mode checks its address
+  against the stored outline before generating anything. Explicit
+  `--density` or `--num-systems` no longer skip that check; an address
+  outside is refused with the reason, and a neighborhood near the edge
+  leaves out the sectors past it. `generate.py galaxy` now refuses to run
+  before `generate.py plan`.
+- **Random starts are drawn from the real outline.** A random start picks a
+  uniformly random sector inside the planned galaxy instead of from a fixed
+  15,000 pc disk 2,000 pc tall, so the starting neighborhood can no longer
+  land outside the galaxy. `--max-ring` defaults to the galaxy's own edge.
+- The Galaxy Map's prisms use the generator's own one-star-per-sector
+  threshold, so fully zoomed in their outline is exactly the galaxy's
+  layers.
+- `generate.py plan` no longer takes `--edge-ly` or `--empty-streak-to-stop`;
+  the edge is always the standard, and the build takes a few milliseconds.
+
+### Removed
+- **Upgrading deletes every galaxy-placed sector again.** Schema v33's
+  migration deletes each placed sector with its systems and phenomena, since
+  nearly every address moves, and rebuilds the skeleton from the stored
+  shape at 4 pc. Sectors that were never placed in the galaxy are kept.
+  Regenerate the galaxy afterwards (`generate.py galaxy`), and take a
+  backup first if you want the old data.
+
+## [6.6.0] - 2026-09-30
+
+### Changed
+- **System and phenomenon pages moved to the new site.** A star system is
+  now at `/system/<id>`, the phenomena list at `/phenomena` (paged with
+  `?page=N`), and one phenomenon at `/phenomenon/<type>/<id>`. These are
+  plain, bookmarkable URLs with no database name in them, and every link
+  on them (neighbouring systems, sector, Navigate from/to here, the
+  Wikitext/Markdown views with `?code=...`) is an ordinary link, so Back,
+  reload and open-in-new-tab work. The pages use the new header and
+  breadcrumbs, and the system map, body list, code views with the Copy
+  button and phenomenon diagram work as before. Old `system.py`,
+  `phenomena.py` and `phenomenon.py` links redirect to the new addresses.
+- The admin "Upload to Wiki" form on a system page is now CSRF-protected
+  and redirects back to the page afterwards with a fixed status message,
+  so reloading never uploads twice. It also says so when the default
+  admin credentials must be changed first.
+
+## [6.5.0] - 2026-09-30
+
+### Changed
+- **The admin pages moved to the Flask app:** `/login`, `/logout`,
+  `/account` (change username/password), `/admin` (API keys, a sector's
+  wiki link; `?keys_page=N`) and `/admin/stats` (server and database
+  stats; `?names_page=N`), replacing `login.py`, `logout.py`,
+  `changecreds.py`, `admin.py` and `adminstats.py`, which now answer a
+  `301` to their new URL. Sessions and the login rate limit work as
+  before: the API's own session cookie is relayed unchanged.
+- Visiting an admin page while logged out goes to `/login?next=<page>`
+  and back there after login (only ever to a page on this site).
+- `/admin/stats` and the wiki-link form use the site's configured
+  database; the database picker and field are gone.
+
+### Security
+- Every admin form (log in, log out, change credentials, create or
+  revoke a key, set a wiki link) is a POST with a CSRF token, answered
+  with a redirect. A new API key reaches the page after the redirect in
+  a signed, HttpOnly, SameSite=Strict one-time cookie, never the URL.
+- Logging out is a POST: `GET /logout` only shows a "Log out" button,
+  so a link or prefetch can't end a session.
+- Admin pages are sent with `Cache-Control: no-store`.
+
+## [6.4.0] - 2026-09-30
+
+### Changed
+- **The Galaxy Map moved to the Flask app at `/galaxy`.** It is a plain,
+  bookmarkable GET URL with no database name in it
+  (`/galaxy?quadrant=II&page=2` for one Quadrant's sector list), under
+  the new header with the Galaxy section marked and breadcrumbs. The
+  map's "View sector" button and every table row are real `<a href>`
+  links. The map's script fetches its tiles from `/galaxy/tiles` (JSON,
+  no database in the URL). Tiles are still cached on the server's disk,
+  now by the WSGI process, and in the browser's `localStorage` under the
+  same keys as before, so nothing already cached is lost. The map's
+  viewport is larger on wide screens.
+- `galaxy.py` and `galaxy_tiles.py` now answer 301 to `/galaxy` and
+  `/galaxy/tiles`, keeping their parameters, so old links, bookmarks and
+  open tabs still work. A tile cache directory set only with `SetEnv
+  PLANETGEN_TILE_CACHE_DIR` in the vhost no longer applies (the WSGI
+  daemon doesn't see `SetEnv`); set `tile_cache.dir` in `config.json`
+  instead.
+
+## [6.3.0] - 2026-09-30
+
+### Added
+- **One-off star systems from the admin site.** A new page,
+  `/admin/generate/system` (linked from Generate), offers every
+  `generate.py system` option, including a pasted system file and the
+  debug narration, and shows the result as Markdown or wikitext with Copy,
+  Download and a rendered preview. Nothing is saved to the database.
+- **`generate.py system --output FILE`** (`-o`, `-` for stdout) writes
+  the system's page instead of saving the system to the database.
+
+## [6.2.0] - 2026-09-30
+
+### Changed
+- **The sector page moved to `/sector/<id>`.** It is a Flask page now, with
+  the new header and breadcrumbs, bookmarkable Contents pages
+  (`?contents_page=N`) and no database in the URL. The Sector Map's info
+  panel buttons and its no-JavaScript list are plain links. The admin
+  forms (wiki upload, generate neighborhood) carry a CSRF token and, once
+  they succeed, redirect back to the page with a message, so reloading
+  never repeats them. `sector.py` answers 301 to the new address.
+- **The NAV page moved to `/nav`, and every step is a GET URL.** Endpoints
+  read as `<kind>:<id>`: `/nav?from=system:12&to=nebula:3`; the pickers
+  use `from_sector`/`to_sector`. The NAV Map's points and the route's
+  stops are plain links, and a "Reverse course" link swaps the endpoints.
+  `nav.py` answers 301 to the new address, translating its old
+  parameters, and the old `from_id`/`from_kind`/`from_type` style
+  redirects to the new one.
+
+## [6.1.0] - 2026-09-30
+
+### Added
+- **Generate, plan and reset the galaxy from the web interface.** A new
+  admin-only page, `/admin/generate` (the Generate link in the header),
+  runs `generate.py plan`, `generate.py galaxy` (every mode: random start,
+  whole ring, around a sector, one address) and `resetDb.py` as
+  background jobs, plus a one-click "New galaxy" that resets, plans and
+  generates a first neighborhood. Reset and New galaxy ask for the
+  database name to be typed back. The running job shows its step, a
+  progress bar, elapsed time and live output, and can be cancelled; the
+  last 20 jobs keep their full output. New `jobs` section in
+  `config.json` (`docs/config.md`).
+- `generate.py` writes its progress to `$PLANETGEN_PROGRESS_FILE` when
+  that is set (`stellarObjects/progressFile.py`).
+
+## [6.0.0] - 2026-09-30
+
+### Added
+- **The Galaxy Map draws the sector grid itself.** Its prisms are the real
+  cylindrical sector cells: one prism is one sector up close, and further
+  out one prism stands for a block of whole sectors (3, 9, 27, ... a side),
+  chosen so a block stays at least about 10 pixels across on screen and the
+  view stays fast. Clicking a prism, or any empty spot, shows that sector or
+  block: its address or ring and layer range, how many sectors it holds, its
+  center in Cartesian, cylindrical and spherical coordinates, its size and
+  its 8 corners, plus the command to generate a single sector.
+- `GET /api/galaxy/cell?ring=&layer=&slot=` (or `?x=&y=&z=`) describes any
+  sector cell in the galaxy, generated or not, the same way.
+
+### Changed
+- **Galaxy sectors now sit on a cylindrical grid instead of spherical
+  shells.** Each galaxy-placed sector is one cell of rings 11.5 ly wide
+  around the galactic axis, layers 11.5 ly tall (layer 0 centered on the
+  galactic plane) and wedge-shaped slots about 11.5 ly across, so sectors
+  follow the flat disk instead of a ball. A sector's address is
+  `(ring, layer, slot)`; systems and phenomena are placed inside the real
+  cell, with local axes pointing outward, along the ring and north. See
+  `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid".
+- `generate.py galaxy` takes `--ring I [--layer J] [--slot K]` in place of
+  `--shell K [--slot N]`, and `--max-ring` in place of `--max-shell`.
+  `generate.py plan` builds one band of layers per ring and takes
+  `--max-ring`; `--workers` and `--chunk-size` are gone, since the build
+  now takes about half a second. The Galaxy Map's copied commands use the
+  new flags.
+- The Galaxy page's 100 ly radial groups are now called Zones.
+- Designations encode ring, layer and slot, so every sector gets a new one.
+
+### Removed
+- **Upgrading deletes every galaxy-placed sector.** Schema v32's migration
+  deletes each placed sector together with its systems and phenomena, since
+  shell addresses have no matching cell, and rebuilds the skeleton from the
+  stored shape. Sectors that were never placed in the galaxy are kept.
+  Regenerate the galaxy afterwards (for example `generate.py plan`, then
+  `generate.py galaxy`), and take a backup first if you want the old data.
+- The `sector_vertices` and `galaxy_shell_band` tables.
+
+## [5.59.0] - 2026-09-30
+
+### Added
+- **Browser checks for every Flask page.** A new test
+  (`src/tests/test_web_a11y.py`, and its own `browser-a11y` CI job) loads
+  each page in headless Chromium at phone and desktop widths, in light and
+  dark, and fails on serious or critical axe-core (WCAG 2.1 AA)
+  violations, horizontal page scroll, console or CSP errors, or a missing
+  skip link or `aria-current` marker. The page list comes from the app's
+  routes, so pages moved off CGI later are checked automatically.
+  axe-core 4.13.0 is vendored under `src/tests/vendor/axe-core/`; the new
+  `browser` extra installs Playwright.
+
+### Fixed
+- **The current section in the header was below WCAG AA contrast** in the
+  light theme (4.45:1); it now uses the link colour.
+
+## [5.58.0] - 2026-09-30
+
+### Changed
+- **`install.sh` now works on an externally managed Python (PEP 668),
+  such as Ubuntu 26.04 LTS's.** Where pip used to fail with
+  "externally-managed-environment", the installer now detects the
+  `EXTERNALLY-MANAGED` marker and installs the libraries as apt packages
+  instead, pip-installing only what the distribution lacks (or packages too
+  old) into a venv at `/opt/planetgen/venv`. On an unmanaged Python it still
+  uses pip exactly as before. It prints which path it took; see
+  `docs/apache-deployment.md`'s "Managed Python".
+
+## [5.57.0] - 2026-09-30
+
+### Changed
+- **The search page moved to `/search` (Flask), with bookmarkable GET
+  URLs.** Every filter is a query parameter: `q` (the header search box)
+  searches sector, system, star, planet and moon names at once; the
+  per-object name fields (`sector_q`, ...), size ranges
+  (`planet_min_radius_km`, ...), repeated tag facets
+  (`spectral=G&spectral=K`) and each result panel's page
+  (`stars_page=2`) follow it. Tags and "remove filter" chips are plain
+  links, the per-object fields fold into a "Search by object and size"
+  section, and results now appear above the tag browser. A submitted
+  form's empty fields are dropped by a redirect to the short URL.
+  `search.py` is now a shim that 301-redirects to `/search`, keeping every
+  search parameter from an old link, bookmark or form post.
+
+## [5.56.0] - 2026-09-30
+
+### Added
+- **Quasars.** A galaxy's nucleus can now be active: 10% of the time
+  (`QUASAR_ACTIVE_NUCLEUS_CHANCE`) the first core sector gets a quasar at
+  the exact galactic center, so a galaxy has at most one. Each has a
+  supermassive black hole (1e8-1e10 solar masses), a luminosity set by
+  its Eddington ratio, the matching accretion rate and broad-line-region
+  size, and ~10% are radio-loud with jets. It shows on the Sector Map,
+  in the sector's Contents table, in the phenomena list and on its own
+  detail page, and `generate.py phenomenon --type quasar` makes one on
+  demand (`--sector-id` must be a shell-0 sector). New `quasars` table,
+  schema v31; run `migrateDb.py` (update.sh does).
+
+### Fixed
+- **A black hole's accretion-disk temperature could render one kelvin
+  low.** Loading an anchored black hole back from the database truncated
+  its fractional disk temperature, so the rendered page could read e.g.
+  3,676,064 K instead of 3,676,065 K.
+
+## [5.55.0] - 2026-09-27
+
+### Changed
+- **The 3D Galaxy Map shades predicted density with cylindrical segment
+  prisms instead of spheres.** Space is cut into rings, wedges and layers
+  on the same grid as cylindrical sectors, a power-of-two number of
+  sector widths across so the prisms scale with the view (one prism is
+  one sector at full zoom). Each prism is solid and lit, colored and
+  sized inside its cell by its mean density. The density is computed in
+  the browser from the galaxy's own shape (`static/galaxyprisms.js`), so
+  the map no longer asks the server for a density point cloud.
+
+## [5.54.0] - 2026-09-24
+
+### Added
+- **The home page is now served by the Flask app, with a new header.**
+  `/` shows every sector and standalone system (each table paged on its
+  own with `?sectors_page=N`/`?standalone_page=N`), and `/sectors` and
+  `/systems` show one table each. These are plain, bookmarkable GET URLs
+  with no database name in them (the database comes from `config.json`'s
+  `mysql.database`). The new header has the sections (Galaxy, Sectors,
+  Systems, Phenomena, Nav) with the current one marked, a search box,
+  Login or Admin/Stats/Logout and the theme button. On phones these fold
+  into a Menu that works without JavaScript. There is also a "Skip to
+  content" link and breadcrumbs. The pages are Jinja2 templates in
+  `src/html/web/` (autoescaped), served without a process start or an
+  HTTP call back to the API. The other pages still run as CGI and move
+  over in later releases; see `docs/html-interface.md`, "Flask pages".
+- `secret_key` in `config.json` (or `PLANETGEN_SECRET_KEY`), used to sign
+  CSRF tokens for the Flask pages' forms.
+
+### Changed
+- `index.py` and `browse.py` now answer 301 to `/`, keeping their page
+  numbers, so old links and bookmarks still work.
+- The example Apache vhost mounts the Flask app at `/` instead of `/api`,
+  serves `/static/` with `Alias` and runs the remaining CGI pages through
+  `ScriptAliasMatch`. **Existing servers need their vhost updated**: see
+  `docs/apache-deployment.md`, "Updating an existing server".
+- The API's app-wide default rate limit no longer counts the calls pages
+  make in-process. Login and write limits still apply.
+- Unknown URLs outside `/api` get an HTML 404 page instead of JSON.
+
+## [5.53.2] - 2026-09-24
+
+### Fixed
+- **Airless planets and moons could keep an atmosphere they no longer
+  had.** A body moved into an airless class after changing zones kept its
+  old class's atmosphere density, molar density and scale height. Those
+  values are now cleared when it's reclassified.
+- **Bodies around very dim stars could be colder than space itself.**
+  Surface temperatures are now floored at the cosmic microwave background
+  (2.725 K).
+- Schema v30 cleans up both problems in rows already saved: stale
+  atmosphere values on airless bodies go back to empty, and temperatures
+  below 2.725 K are raised to it. Run `migrateDb.py` (update.sh does).
+
+## [5.53.1] - 2026-09-24
+
+### Fixed
+- Removed the old `/galaxy/view` Galaxy Map endpoint (`html/galaxy_view.py`, `GET /api/galaxy/view`). The map has used cube tiles since 5.47.0, but a browser holding a cached copy of the old map script kept calling it, and its unbounded query timed out and tied up the API. Such a request now gets a quick 404 instead.
+- The Galaxy Map page now loads its script as `static/galaxymap3d.js?v=<version>`, so each release reaches browsers on their next page view instead of a stale cached copy.
+
 ## [5.53.0] - 2026-09-24
 
 ### Added
