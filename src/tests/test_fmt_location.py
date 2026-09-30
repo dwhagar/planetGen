@@ -15,6 +15,10 @@ sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 from fmt import linkify_location, nearest_neighbors_location  # noqa: E402
 
 
+def _url(system_id):
+    return f"/system/{system_id}"
+
+
 def test_every_live_neighbor_is_linked_even_when_the_stored_name_is_stale():
     # The stored string names "Alpha Prime", but that system was saved as
     # "Alpha Prime II" (name uniqueness) -- the live neighbor list still
@@ -24,15 +28,13 @@ def test_every_live_neighbor_is_linked_even_when_the_stored_name_is_stale():
         {"id": 7, "name": "Alpha Prime II", "distance_ly": 4.21},
         {"id": 9, "name": "Beta", "distance_ly": 5.08},
     ]
-    html = nearest_neighbors_location("db", location, neighbors)
+    html = nearest_neighbors_location(location, neighbors, _url)
     assert html.startswith("Voranthis Kelmoor -- nearest: ")
-    assert html.count('action="system.py"') == 2
-    assert "Alpha Prime II" in html and "(4.2 ly)" in html
-    assert "Beta" in html and "(5.1 ly)" in html
-    assert 'name="id" value="7"' in html and 'name="id" value="9"' in html
+    assert '<a href="/system/7">Alpha Prime II</a> (4.2 ly)' in html
+    assert '<a href="/system/9">Beta</a> (5.1 ly)' in html
 
 
 def test_stale_stored_name_is_left_unlinked_by_the_string_fallback():
     location = "Voranthis Kelmoor -- nearest: Alpha Prime (4.2 ly)"
-    html = linkify_location("db", location, {"Alpha Prime II": 7})
-    assert "system.py" not in html
+    html = linkify_location(location, {"Alpha Prime II": 7}, _url)
+    assert "<a " not in html

@@ -1,53 +1,43 @@
 # examples/apache/planetgen.conf.example
 #
-# Example Apache2 virtual host for the planetGen database browser
-# (docs/html-interface.md documents the application itself) and the
-# read-only JSON API (docs/api.md) that now lives alongside it under the
-# same DocumentRoot. Copy this file to
+# Example Apache2 virtual host for the planetGen web interface
+# (docs/html-interface.md documents the application itself) and the JSON
+# API (docs/api.md). One Flask app (html/wsgi.py) serves both; Apache
+# serves only static/ itself. Copy this file to
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
-#   sudo a2enmod cgid wsgi headers deflate
+#   sudo a2enmod wsgi headers deflate
 #   sudo a2ensite planetgen
 #   sudo systemctl reload apache2
 #
-# `cgid` (the threaded MPM-safe CGI module) is preferred over the older
-# `cgi` module; either works, but `cgid` is required if apache2 is running
-# mpm_event or mpm_worker (the Ubuntu default), since plain `mod_cgi` only
-# supports mpm_prefork. `wsgi` (`libapache2-mod-wsgi-py3` on Debian/
-# Ubuntu) serves the API (`html/wsgi.py`) -- skip that module and the
-# WSGIScriptAlias block below if you only want the CGI browser. `headers`
-# is needed for static/'s `Header ...` lines below (cache lifetime and
-# nosniff) and `deflate` for the compression block, regardless of which
-# of those two you use. Both are usually on already in a stock Debian/
-# Ubuntu Apache; a2enmod is a no-op then.
+# `wsgi` (`libapache2-mod-wsgi-py3` on Debian/Ubuntu) runs the app.
+# `headers` is needed for static/'s `Header ...` lines below (cache
+# lifetime and nosniff) and `deflate` for the compression block. Both are
+# usually on already in a stock Debian/Ubuntu Apache; a2enmod is a no-op
+# then. No CGI module is needed any more (`a2dismod cgid` if nothing else
+# on the server uses it).
 #
 # Expected layout on the server (see the repo's set-permissions.sh, which
 # assumes this same layout):
 #
 #   /var/lib/planetGen/
 #     src/html/  -- this vhost's DocumentRoot (the repo's src/html/
-#                   directory), api/ included (moved there from src/api/
-#                   so the API deploys from the same tree instead of a
-#                   second location)
+#                   directory): wsgi.py, the app's api/, web/ and lib/
+#                   packages, and static/
 #     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
-#                   particular), so src/html/'s scripts can import the
-#                   planetGen package without a separate `pip install`
+#                   particular), so the app can import the planetGen
+#                   package without a separate `pip install`
 #
-# The database itself is a MySQL server, not a local file under this
-# layout (TODO.md Phase 5) -- point the CGI scripts and the API at it with
-# the PLANETGEN_MYSQL_* SetEnv directives below.
+# The database itself is a MySQL server (TODO.md Phase 5). The app reads
+# its settings from config.json (docs/config.md) or PLANETGEN_* variables
+# in Apache's own process environment -- see the NOTE below.
 #
-# /api/ (mod_wsgi): every page under html/ now fetches its data from the
-# planetGen API (docs/api.md) instead of querying MySQL directly (see
-# docs/html-interface.md) -- PLANETGEN_API_BASE_URL (default
-# "http://127.0.0.1/api", i.e. this same vhost) is where each CGI script
-# looks for it; no override needed for the common case of API and browser
-# sharing one vhost the way this example does. WSGIScriptAlias below
-# mounts html/wsgi.py's `application` at / -- the API under /api/ and the
-# HTML pages that have moved off CGI everywhere else -- in its own daemon
+# WSGIScriptAlias below mounts html/wsgi.py's `application` at / -- the
+# API under /api/ and every page everywhere else -- in its own daemon
 # process (WSGIDaemonProcess) rather than Apache's embedded/shared-process
-# mode. Needs `a2enmod wsgi alias` (alias is on by default).
+# mode. The pages call the API in-process, not over HTTP. Needs `a2enmod
+# wsgi alias` (alias is on by default).
 
 <VirtualHost *:80>
     ServerName planetgen.example.com
@@ -55,13 +45,14 @@
 
     # Security headers (Content-Security-Policy, X-Frame-Options,
     # X-Content-Type-Options, Referrer-Policy) come from the application,
-    # not from here: html/lib/page.py's SECURITY_HEADERS for every page,
-    # html/api/app.py for the API. That keeps one source per response and
-    # works the same without this file. Earlier versions of this example
-    # also set three of them vhost-wide with `Header always set`; remove
-    # those lines from an existing site config when you update it (they
-    # were duplicates, not a different policy). static/ below is the one
-    # place Apache adds any, since no application code serves it.
+    # not from here: html/web/__init__.py's SECURITY_HEADERS for every
+    # page, html/api/app.py for the API. That keeps one source per
+    # response and works the same without this file. Earlier versions of
+    # this example also set three of them vhost-wide with `Header always
+    # set`; remove those lines from an existing site config when you
+    # update it (they were duplicates, not a different policy). static/
+    # below is the one place Apache adds any, since no application code
+    # serves it.
 
     # Compress text responses (pages, API JSON, CSS/JS, the SVG favicon).
     # three.js alone drops from about 740 KB to about 190 KB on the wire.
@@ -69,113 +60,57 @@
         AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
     </IfModule>
 
-    # Tell the CGI scripts which MySQL server/account to use. Only needed
-    # if any differs from stellarObjects._db.MySQLConfig's own defaults
-    # (127.0.0.1:3306, user/database "planetgen"). Use a SELECT-only
-    # database account here -- neither the web interface nor the API's
-    # read endpoints ever write (see docs/api.md's "Write endpoints" --
-    # those are stubs today regardless of account).
+    # Settings (MySQL server/account, control schema, tile cache, ...)
+    # come from config.json (docs/config.md) or PLANETGEN_* variables in
+    # Apache's own process environment (e.g. /etc/apache2/envvars, or an
+    # `Environment=` line on the apache2 systemd unit). NOT SetEnv:
+    # mod_wsgi only exposes SetEnv values through the per-request WSGI
+    # `environ`, never `os.environ`, and html/api/config.py reads
+    # PLANETGEN_* from `os.environ` once, at process startup. Earlier
+    # versions of this example had SetEnv lines here for the CGI pages;
+    # remove them from an existing site config.
     #
-    # This only configures the CGI browser above, NOT the mod_wsgi API
-    # below: mod_cgi(d) copies SetEnv values into each CGI script's real
-    # process environment, but mod_wsgi only exposes them through the
-    # per-request WSGI `environ` dict, never `os.environ` -- and
-    # html/api/config.py reads PLANETGEN_MYSQL_* from `os.environ` once,
-    # at process startup, before any request (and its `environ` dict) has
-    # ever existed. To point the API at a different database, export the
-    # same variables in the Apache service's own process environment
-    # instead (e.g. `/etc/apache2/envvars`, or an `Environment=` line on
-    # the apache2 systemd unit) -- every mod_wsgi interpreter inherits
-    # that, unlike SetEnv.
-    # SetEnv PLANETGEN_MYSQL_HOST db.example.com
-    # SetEnv PLANETGEN_MYSQL_PORT 3306
-    # SetEnv PLANETGEN_MYSQL_USER planetgen_readonly
-    # SetEnv PLANETGEN_MYSQL_PASSWORD changeme
-    # SetEnv PLANETGEN_MYSQL_DATABASE_PREFIX planetgen
+    # The database account needs INSERT/UPDATE/DELETE grants as well as
+    # SELECT if the write endpoints and admin pages are reachable. See
+    # docs/apache-deployment.md#mysql-accounts.
     #
-    # The 3D Galaxy Map's tile cache (html/lib/tilecache.py). Defaults to
+    # The 3D Galaxy Map's tile cache (html/lib/tilecache.py) defaults to
     # /var/cache/planetgen/tiles, which install.sh/update.sh create for
-    # Apache's user. The Galaxy Map (/galaxy) now runs in the WSGI daemon
-    # below, which these SetEnv lines don't reach (see the NOTE below):
-    # set tile_cache.dir in config.json instead. If you move it, create
-    # it with:
+    # Apache's user; set tile_cache.dir in config.json to move it, and
+    # create the new directory with:
     #   sudo examples/apache/create-cache-dir.sh /path/to/tiles
-    # SetEnv PLANETGEN_TILE_CACHE_DIR /var/cache/planetgen/tiles
-    # SetEnv PLANETGEN_TILE_CACHE_MAX_MB 200
-    #
-    # NOTE: none of the SetEnv lines on this page reach the mod_wsgi API
-    # below (see the WSGIScriptAlias block's own comment) -- set every
-    # PLANETGEN_* variable (including the two below) in Apache's own
-    # process environment instead (e.g. /etc/apache2/envvars) for the API
-    # to see it at all.
-    #
-    # No separate write-capable account -- the API's write endpoints
-    # (sector/system create/update/delete, and everything under
-    # /api/auth/) reuse PLANETGEN_MYSQL_* above, so it needs INSERT/
-    # UPDATE/DELETE grants too if those endpoints are reachable, not just
-    # SELECT. See docs/apache-deployment.md#mysql-accounts.
-    #
-    # The control schema (admin logins/sessions/API keys/audit log) --
-    # defaults to "planetgen_control" if unset.
-    # SetEnv PLANETGEN_CONTROL_DATABASE planetgen_control
 
-    # URL routing (the pages are moving from CGI to the Flask app, one
-    # at a time -- docs/html-interface.md, "Flask pages"):
+    # URL routing:
     #
     #   /static/...   Apache serves the files directly (Alias below).
-    #   /<name>.py    a page still on CGI (ScriptAliasMatch below).
-    #   everything else -- /, /sectors, /systems, /api/..., and each page
-    #                 as it moves -- goes to the Flask app (html/wsgi.py,
-    #                 WSGIScriptAlias / further down).
+    #   everything else -- /, /sectors, /system/<id>, /api/..., and the
+    #                 old /<name>.py page URLs (which the app answers with
+    #                 a 301 to the page that replaced them) -- goes to the
+    #                 Flask app (html/wsgi.py, WSGIScriptAlias / further
+    #                 down).
     #
-    # mod_wsgi runs its WSGIScriptAlias after mod_alias's Alias/
-    # ScriptAliasMatch, so these two win for the paths they match even
-    # though WSGIScriptAlias / matches every URL. The regex only matches a
-    # top-level `name.py` of lowercase letters and underscores (the CGI
-    # pages), never wsgi.py and never anything under lib/ or api/, which
-    # therefore fall through to Flask and get its 404 page.
+    # mod_wsgi runs its WSGIScriptAlias after mod_alias's Alias, so
+    # /static/ wins for the paths it matches even though WSGIScriptAlias /
+    # matches every URL. Nothing under html/ is executed or served
+    # directly apart from static/.
     Alias /static/ /var/lib/planetGen/src/html/static/
-    ScriptAliasMatch "^/((?!wsgi\.py$)[a-z_]+\.py)$" "/var/lib/planetGen/src/html/$1"
 
     <Directory /var/lib/planetGen/src/html>
-        Options +ExecCGI -Indexes
-        AddHandler cgi-script .py
+        Options -Indexes
         Require all granted
     </Directory>
 
-    # html/wsgi.py isn't a CGI script -- it's imported by mod_wsgi, never
-    # executed as one -- but <Directory html> above's `AddHandler
-    # cgi-script .py` still applies to it too, since it's a .py file
-    # directly inside that same directory. In production this handler
-    # conflict won, not WSGIScriptAlias below: every /api/* request (and
-    # a direct /wsgi.py request) got routed through mod_cgid instead of
-    # mod_wsgi, which tried to exec() wsgi.py as a script and failed with
-    # "AH01215: (8)Exec format error: exec of '.../wsgi.py' failed" (it
-    # has no #! shebang line, since it's not meant to run standalone under
-    # CGI). SetHandler forces the handler unconditionally, unlike
-    # AddHandler, which only sets it when one hasn't already been chosen
-    # -- overriding the CGI handler here regardless of processing order.
-    #
-    # A previous version of this block instead did `Require all denied`
-    # here, meant to block a direct (non-aliased) request for /wsgi.py
-    # from falling through to the CGI handler -- but <Files> matches the
-    # final resolved filename regardless of whether the URL got there via
-    # WSGIScriptAlias or a plain path, so that denied every /api/*
-    # request too, not just direct ones.
-    <Files "wsgi.py">
-        SetHandler wsgi-script
-    </Files>
-
-    # html/lib/ holds shared Python modules imported by the CGI scripts,
-    # not pages of their own -- deny it outright rather than relying on
-    # the .py handler alone (belt-and-suspenders: a misconfigured handler
-    # would otherwise let it execute, or a future non-.py file in there
-    # could be served as plain text).
+    # html/lib/ and html/api/ hold only importable Python source, never
+    # requested directly -- deny them outright (belt-and-suspenders: every
+    # URL outside /static/ goes to the app anyway).
     <Directory /var/lib/planetGen/src/html/lib>
         Require all denied
     </Directory>
+    <Directory /var/lib/planetGen/src/html/api>
+        Require all denied
+    </Directory>
 
-    # static/ is plain CSS/JS/SVG -- served directly, never as CGI.
+    # static/ is plain CSS/JS/SVG -- served directly.
     #
     # Every page links its static files with `?v=<release version>`
     # (html/lib/fmt.py's `static_url`), and the map scripts pass the same
@@ -184,7 +119,7 @@
     # again. A request without `?v=` (an old cached page, a hand-typed
     # URL) is revalidated every time instead, so it can never go stale.
     <Directory /var/lib/planetGen/src/html/static>
-        Options -ExecCGI -Indexes
+        Options -Indexes
         Require all granted
         <IfModule mod_headers.c>
             Header always set X-Content-Type-Options "nosniff"
@@ -197,22 +132,13 @@
         </IfModule>
     </Directory>
 
-    # Mounts the Flask API (docs/api.md) at /api, handled by mod_wsgi via
-    # html/wsgi.py rather than the CGI handler above -- relies on the
-    # `<Files "wsgi.py"> SetHandler wsgi-script` override above to win out
-    # over <Directory html>'s CGI handler (see that block's own comment).
-    # Runs in its own daemon process (WSGIDaemonProcess), not
-    # Apache's embedded/shared-process mode, for real isolation from the
-    # CGI browser's own requests. html/api/ itself holds only importable
-    # Python source (never requested directly), so it gets the same
-    # deny-all belt-and-suspenders treatment as html/lib/ above.
+    # The Flask app (html/wsgi.py) runs in its own daemon process
+    # (WSGIDaemonProcess), not Apache's embedded/shared-process mode.
     # WSGIDaemonProcess must come before WSGIScriptAlias: mod_wsgi
     # validates that a WSGIScriptAlias's process-group=... already names a
     # declared daemon process at the point it parses that line, not by the
-    # end of the file -- declaring the group after (or via a directive
-    # later in the file) fails apache2ctl configtest with "WSGI process
-    # group not yet configured", even though the block reads fine top to
-    # bottom otherwise.
+    # end of the file -- declaring the group after fails apache2ctl
+    # configtest with "WSGI process group not yet configured".
     #
     # Keep `processes=1` unless PLANETGEN_RATELIMIT_STORAGE_URI (see
     # html/api/config.py) is also set to a shared backend (e.g.
@@ -222,19 +148,16 @@
     # alone shares this one process's memory, so it stays accurate.
     #
     # request-timeout=60 restarts the daemon if requests run far longer
-    # than any page waits for them (the CGI pages give up after 30 s), so
-    # a runaway request can't hold threads and memory until the kernel's
-    # OOM killer takes Apache down with it -- what happened on 2026-09-24
-    # with the Galaxy Map's old unbounded view query.
+    # than any page waits for them, so a runaway request can't hold
+    # threads and memory until the kernel's OOM killer takes Apache down
+    # with it -- what happened on 2026-09-24 with the Galaxy Map's old
+    # unbounded view query.
     WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
     #
     # Mounted at / (not /api): the same app serves the JSON API under /api
-    # and the moved HTML pages everywhere else. Replace an older
-    # `WSGIScriptAlias /api ...` line with this one; don't keep both.
+    # and the pages everywhere else. Replace an older `WSGIScriptAlias
+    # /api ...` line with this one; don't keep both.
     WSGIScriptAlias / /var/lib/planetGen/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}
-    <Directory /var/lib/planetGen/src/html/api>
-        Require all denied
-    </Directory>
 
     ErrorLog ${APACHE_LOG_DIR}/planetgen_error.log
     CustomLog ${APACHE_LOG_DIR}/planetgen_access.log combined
@@ -244,57 +167,30 @@
 # The `:80` VirtualHost above serves plain HTTP; a production deployment
 # should terminate TLS in front of it rather than serve real traffic this
 # way. Simplest path: `certbot --apache`, which rewrites the `:80` block
-# into a redirect and generates the `:443` block below for you -- but
-# read the warning below regardless of whether you do this by hand or let
-# certbot do it, since certbot's own rewrite has the exact same trap.
-#
-# *** Whatever redirects :80 to :443 MUST exclude /api. ***
-#
-# `html/lib/apiclient.py` (every CGI page's own HTTP client for the API)
-# defaults to PLANETGEN_API_BASE_URL=http://127.0.0.1/api -- a plain-HTTP
-# loopback call made on EVERY page load (every page calls it at least
-# twice: its own data, plus /api/auth/me for the nav bar's login state).
-# A blanket "redirect everything on :80 to https" rule (including
-# certbot's own default rewrite) catches that loopback call too: Python's
-# urllib follows the redirect, turning what should be an instant local
-# call into a real round trip out through DNS/TLS/anything in front of
-# this box to the public hostname and back in. Confirmed in production as
-# the cause of doubled Apache connection load per page view (one
-# held-open browser-facing CGI request plus one self-inflicted extra
-# inbound HTTPS request per API call) and the resulting connection
-# exhaustion/timeouts under even modest concurrent traffic -- with
-# refused connections that never show up in the error log, because Apache
-# never accepted them in the first place. If you used `certbot --apache`,
-# check the :80 block it generated and add the same exclusion described
-# below by hand; certbot has no way to know this project's own API calls
-# itself over loopback.
+# into a redirect and generates the `:443` block for you.
 #
 # To do it by hand:
 #
 #   1. WSGIDaemonProcess is a server-wide declaration, not per-vhost --
 #      move the `WSGIDaemonProcess planetgen-api ...` line above BOTH
-#      VirtualHost blocks (rather than leaving it inside :80's, as the
-#      block above has it today) so the :443 block below can reference
-#      the same process group too, without a second, conflicting
-#      declaration. `WSGIScriptAlias`/`<Directory api>`/`<Files
-#      "wsgi.py">` still need to be repeated in EACH vhost that mounts
-#      the app (mod_wsgi's own per-vhost mount, unlike the daemon process
-#      itself) -- copy those three from the :80 block above into the new
-#      :443 block, along with everything else in it (`Alias /static/`,
-#      `ScriptAliasMatch`, `<Directory html>`/`<Directory lib>`/
-#      `<Directory static>` etc.), then add:
+#      VirtualHost blocks so the :443 block can reference the same
+#      process group without a second, conflicting declaration. Copy
+#      everything else from the :80 block above into a new
+#      `<VirtualHost *:443>` block (`Alias /static/`, the <Directory>
+#      blocks, `WSGIScriptAlias /`, ...), then add:
 #
 #        SSLEngine on
 #        SSLCertificateFile /etc/letsencrypt/live/planetgen.example.com/fullchain.pem
 #        SSLCertificateKeyFile /etc/letsencrypt/live/planetgen.example.com/privkey.pem
 #
-#   2. Replace the `:80` block's contents with just its own app mount
-#      (`WSGIScriptAlias /`/`<Directory api>`/`<Files "wsgi.py">`, kept
-#      as-is) plus a redirect for everything except /api (mod_rewrite
-#      runs before the mount, so only /api reaches the app on :80):
+#   2. Replace the `:80` block's contents with a redirect:
 #
 #        RewriteEngine On
-#        RewriteCond %{REQUEST_URI} !^/api
 #        RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [R=permanent,L]
+#
+#      Older versions of this example excluded /api from that redirect,
+#      because the CGI pages called the API over plain-HTTP loopback. The
+#      pages now call it in-process, so the exclusion is no longer needed
+#      (it does no harm if you keep it).
 #
 # Needs `a2enmod ssl rewrite` in addition to the modules enabled above.

@@ -2,8 +2,8 @@
 
 """
 The Flask-served Galaxy Map (`/galaxy`) and its tile JSON
-(`/galaxy/tiles`), `html/web/galaxy_views.py`, plus the `galaxy.py`/
-`galaxy_tiles.py` CGI shims that redirect there.
+(`/galaxy/tiles`), `html/web/galaxy_views.py`, plus the old `galaxy.py`/
+`galaxy_tiles.py` URLs that redirect there.
 
 Most tests fake the data layer (the `apiclient` functions the view calls,
 and the two `tilecache` uses for tiles), the same way
@@ -27,7 +27,6 @@ from stellarObjects import _db  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from web.helpers import page_url  # noqa: E402
 
-from tests.webpage_support import run_page  # noqa: E402
 
 DB = "planetgen_galaxy_test"
 STAMP = "00000000000000aa"
@@ -259,24 +258,16 @@ def test_tiles_endpoint_api_failure_is_json(client, fake):
     assert "secret detail" not in resp.get_data(as_text=True)
 
 
-# --- CGI shims ---------------------------------------------------------------------------
+# --- Old CGI URLs ---------------------------------------------------------------------------
 
-def test_galaxy_shim_redirects_get():
-    result = run_page("http://127.0.0.1:9/api", "galaxy.py", query={"db": "x", "quadrant": "ii", "page": "3"})
+def test_old_galaxy_url_redirects(client):
+    result = client.get("/galaxy.py?db=x&quadrant=II&page=3")
     assert result.status_code == 301
     assert result.headers["Location"] == "/galaxy?quadrant=II&page=3"
 
 
-def test_galaxy_shim_redirects_post_and_drops_junk():
-    result = run_page("http://127.0.0.1:9/api", "galaxy.py", method="POST",
-                      body={"db": "x", "quadrant": "<x>", "page": "2"})
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/galaxy"
-
-
-def test_galaxy_tiles_shim_redirects():
-    result = run_page("http://127.0.0.1:9/api", "galaxy_tiles.py",
-                      query={"db": "x", "tiles": "1/1/1/1,2/2/2/2", "stamp": STAMP})
+def test_old_galaxy_tiles_url_redirects(client):
+    result = client.get("/galaxy_tiles.py", query_string={"db": "x", "tiles": "1/1/1/1,2/2/2/2", "stamp": STAMP})
     assert result.status_code == 301
     assert result.headers["Location"] == f"/galaxy/tiles?tiles=1%2F1%2F1%2F1%2C2%2F2%2F2%2F2&stamp={STAMP}"
 

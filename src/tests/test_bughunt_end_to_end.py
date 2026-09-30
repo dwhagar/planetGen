@@ -15,7 +15,7 @@ literally.
 """
 
 from tests.bughunt_support import mysql_argv, run_cli
-from tests.webpage_support import live_api, run_page  # noqa: F401
+from tests.webpage_support import live_api  # noqa: F401
 
 
 def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_config, live_api):

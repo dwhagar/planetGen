@@ -30,7 +30,7 @@ A supernova remnant has its own real `radius_ly`, which is all this
 diagram needs, so it renders here exactly like a nebula/asteroid field.
 """
 
-from fmt import esc, static_url
+from fmt import esc
 
 try:
     from stellarObjects.utils import ly_to_au
@@ -88,7 +88,7 @@ _TYPE_COLORS = {
 _DEFAULT_COLOR = "#9aa0ac"
 
 
-def render_phenomenon_map_panel(phenomenon_type, name, radius_ly, include_scripts=True):
+def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
     """
     Builds the "Diagram" panel: a flat, zoomable SVG showing one
     phenomenon's own real extent at AU scale (or a fixed illustrative dot
@@ -102,20 +102,14 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly, include_script
         name (str): The phenomenon's own name, for the SVG's `aria-label`.
         radius_ly (float): The phenomenon's own real radius, in
             light-years -- `0`/`None` for a point-like compact remnant
-            (`html/phenomenon.py`'s caller passes `detail.get("radius_ly")
+            (the phenomenon page passes `detail.get("radius_ly")
             or 0`, since `black_holes`/`neutron_stars` have no such column
             of their own at all).
-        include_scripts (bool): Whether to append the panel's own
-            `<script>` tags (relative `static/...` URLs, for the CGI
-            pages). The Flask page (`/phenomenon/<type>/<id>`) passes
-            `False` and loads the same two scripts from its template's
-            `head` block with absolute URLs.
 
     Returns:
-        str: A complete `<section class="panel">` block, including its own
-            `static/mapzoom.js`/`static/phenomenonmap.js` `<script>` tags
-            (same self-contained convention `galaxymap.py`'s own panel
-            uses).
+        str: A complete `<section class="panel">` block. The page loads
+            `static/mapzoom.js`/`static/phenomenonmap.js` itself (the
+            phenomenon template's `head` block).
     """
     color = _TYPE_COLORS.get(phenomenon_type, _DEFAULT_COLOR)
     radius_au = _to_au(radius_ly) if radius_ly else 0.0
@@ -169,9 +163,4 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly, include_script
 </div>
 </div>
 </section>
-""" + (SCRIPTS_HTML if include_scripts else "")
-
-
-SCRIPTS_HTML = f"""<script src="{static_url("mapzoom.js")}"></script>
-<script src="{static_url("phenomenonmap.js")}"></script>
 """

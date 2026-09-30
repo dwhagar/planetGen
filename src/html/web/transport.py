@@ -3,8 +3,7 @@
 """
 In-process transport for `lib/apiclient.py`.
 
-The Flask-served pages call the same `apiclient` functions the CGI pages
-use (`get_sectors(db, ...)`, `auth_me(cookie_header)`, ...). Inside the
+The Flask-served pages call `apiclient` functions (`get_sectors(db, ...)`, `auth_me(cookie_header)`, ...). Inside the
 Flask app those calls must not go out over HTTP to the very process
 making them, so `install()` (called once from `web.init_app`) gives
 `apiclient` this transport: each call is dispatched straight through the
@@ -14,8 +13,8 @@ check and JSON serialization an HTTP call would, without a socket.
 Details that matter:
 
 - Only used while a Flask request is active. Outside one (a CLI, a test
-  calling `apiclient` directly, a CGI process) it declines and
-  `apiclient` falls back to HTTP, so CGI pages are unaffected.
+  calling `apiclient` directly) it declines and `apiclient` falls back
+  to HTTP.
 - Each call runs in its own application context, so the API's
   request-scoped database connections (`g.db`, `g.control_db`) are
   opened and closed per call exactly as they are for a real request, and

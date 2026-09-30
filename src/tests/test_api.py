@@ -108,9 +108,7 @@ def default_admin_client(mysql_config, client):
     Flask's test client keeps its own cookie jar across requests made on
     the same `client` instance, so the session cookie `POST /api/auth/login`
     sets is carried automatically into every later request this fixture's
-    caller makes -- no manual cookie plumbing needed in tests, unlike the
-    real CGI admin pages (`html/login.py` etc.), which do that relay by
-    hand precisely because a CGI script has no persistent client object.
+    caller makes -- no manual cookie plumbing needed in tests.
     """
     adminAuth.bootstrap_control_schema(mysql_config)
     # The write endpoints intentionally run with ensure_schema=False (see
@@ -895,16 +893,12 @@ def test_login_success_sets_cookie_and_reports_must_change_credentials(default_a
 def test_login_sets_cookie_scoped_to_root_path_not_api(mysql_config, client):
     """
     Regression test: the session cookie's `Path` attribute must be `/`,
-    not `/api`. The documented Apache deployment (docs/apache-
-    deployment.md, examples/apache/planetgen.conf.example) serves the CGI
-    admin pages (admin.py, login.py, etc.) at the site root under the
-    same `DocumentRoot` the API is mounted under at `/api` -- per RFC 6265
-    path matching, a cookie scoped to `/api` is never attached by the
-    browser to a request for `/admin.py`, so a `Path=/api` cookie would
-    lock a user out of every admin page immediately after a successful
-    login. Flask's own test client can't reproduce that failure directly
-    (it only ever talks to `/api/...` routes here, never `/admin.py`), so
-    this asserts the cookie's scope directly instead.
+    not `/api`. The admin pages (`/admin`, `/account`, ...) live at the
+    site root -- per RFC 6265 path matching, a cookie scoped to `/api` is
+    never attached by the browser to a request for `/admin`, so a
+    `Path=/api` cookie would lock a user out of every admin page
+    immediately after a successful login. This asserts the cookie's scope
+    directly.
     """
     adminAuth.bootstrap_control_schema(mysql_config)
     response = client.post("/api/auth/login", json={

@@ -30,9 +30,9 @@
 #     traverse and list them but other local users can't.
 #   - Regular files: 640 (owner rw, group r, others none).
 #   - Every `*.py` file anywhere under html-dir, at any subdirectory
-#     depth (`html/*.py`, `html/lib/*.py`, ...): 750 (adds execute, since
-#     Apache must be able to execute the CGI scripts, and `lib/`'s own
-#     modules need at least read access to be importable). Reported with
+#     depth (`html/wsgi.py`, `html/lib/*.py`, ...): 750 (owner+group
+#     read, so mod_wsgi's daemon can import them; the execute bit is a
+#     leftover from the old CGI pages and harmless). Reported with
 #     a count at the end so a wrong `html-dir` path is obvious rather
 #     than silently matching zero files.
 #   - html/lib is included in the general file/directory pass like any

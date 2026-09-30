@@ -26,8 +26,8 @@ in-process API transport. A route's URL parameters take sample values
 from that database (`SAMPLE_PARAMS` below); a new page with a parameter
 name not listed there fails with a message saying to add it. A page that
 answers anonymous visitors with a redirect is retried as a logged-in
-admin; one that still redirects (a forwarder such as `/search` while the
-search page is on CGI) is skipped.
+admin; one that still redirects (a forwarder such as the old `/<name>.py`
+URLs) is skipped.
 
 Needs Playwright for Python with Chromium (`pip install playwright` and
 `python -m playwright install chromium`, or `PLAYWRIGHT_BROWSERS_PATH`
@@ -272,6 +272,7 @@ def sample_params(site_app, sample_job):
         "quadrant": "I",
         "page": 1,
         "job_id": sample_job,
+        "name": "index",  # web.old_page: /index.py, an old CGI URL
     }
 
 

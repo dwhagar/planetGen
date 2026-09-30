@@ -2,8 +2,8 @@
 
 """
 The Flask-served sector page (`/sector/<id>`, `web/sector_page.py`) and
-NAV page (`/nav`, `web/nav_page.py`), plus the `sector.py`/`nav.py` CGI
-shims that now redirect to them.
+NAV page (`/nav`, `web/nav_page.py`), plus the old `sector.py`/`nav.py`
+URLs that now redirect to them.
 
 Most tests fake the data layer by monkeypatching the `apiclient`
 functions the views call (see `test_web_pages.py`). The tests at the
@@ -31,7 +31,6 @@ from web import csrf  # noqa: E402
 from web.helpers import page_url  # noqa: E402
 from web.nav_page import endpoint, nav_url  # noqa: E402
 
-from tests.webpage_support import run_page  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -520,24 +519,17 @@ def test_nav_url_helpers(app):
             "/nav?from=system:1&to=nebula:2"
 
 
-# --- CGI shims -------------------------------------------------------------------------------
+# --- Old CGI URLs ---------------------------------------------------------------------------
 
-_NO_API = "http://127.0.0.1:9/api"
-
-
-def test_sector_shim_redirects_get_and_post():
-    result = run_page(_NO_API, "sector.py", query={"db": "x", "id": "5", "contents_page": "2"})
+def test_old_sector_url_redirects(client):
+    result = client.get("/sector.py?db=x&id=5&contents_page=2")
     assert result.status_code == 301
     assert result.headers["Location"] == "/sector/5?contents_page=2"
-    result = run_page(_NO_API, "sector.py", method="POST",
-                      body={"db": "x", "id": "7", "action": "generate_neighborhood"})
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/sector/7"
 
 
 @pytest.mark.parametrize("sector_id", ["", "abc", "0"])
-def test_sector_shim_without_valid_id_goes_to_sectors(sector_id):
-    result = run_page(_NO_API, "sector.py", query={"db": "x", "id": sector_id})
+def test_old_sector_url_without_valid_id_goes_to_sectors(client, sector_id):
+    result = client.get(f"/sector.py?db=x&id={sector_id}")
     assert result.status_code == 301
     assert result.headers["Location"] == "/sectors"
 
@@ -551,12 +543,10 @@ def test_sector_shim_without_valid_id_goes_to_sectors(sector_id):
     ({"db": "x", "from": "12", "to_sector": "9"}, "/nav?from=system:12&to_sector=9"),
     ({"db": "x", "from": "junk", "from_sector": "<x>"}, "/nav"),
 ])
-def test_nav_shim_translates_parameters(params, location):
-    for method in ("GET", "POST"):
-        kwargs = {"query": params} if method == "GET" else {"method": "POST", "body": params}
-        result = run_page(_NO_API, "nav.py", **kwargs)
-        assert result.status_code == 301
-        assert result.headers["Location"] == location
+def test_old_nav_url_translates_parameters(client, params, location):
+    result = client.get("/nav.py", query_string=params)
+    assert result.status_code == 301
+    assert result.headers["Location"] == location
 
 
 # --- Real database, in-process ------------------------------------------------------------

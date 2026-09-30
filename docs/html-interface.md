@@ -21,80 +21,51 @@ Flask API in [`../src/html/api/`](api.md), never touching the database
 directly itself, though the search page (`/search`, see "Flask pages"
 below) does provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a
-browser today, on nothing more than Apache2, a system Python 3, and the
-API process (see "Locating the database" below).
+browser today, on nothing more than Apache2 with mod_wsgi and a system
+Python 3 (see "Locating the database" below).
 
 ## How it works
 
-Every page here is a plain [CGI](https://en.wikipedia.org/wiki/Common_Gateway_Interface)
-script (`#!/usr/bin/env python3`, executed fresh by Apache on every
-request) that fetches its data from `GET /api/...` (`../src/html/lib/apiclient.py`,
-stdlib `urllib` only -- no Flask/FastAPI, no database driver, nothing
-beyond the standard library) and renders it as HTML. Every navigational
-link between these pages (`db`, a sector/system/phenomenon id, a search
-filter, and the like) is a same-origin `POST` form instead of a plain
-`<a href="page.py?...">` (`../src/html/lib/fmt.py`'s `post_link`, styled
-to look exactly like a normal link -- `.link-btn` in `static/style.css`),
-so none of it shows up in the browser's own address bar the way a GET
-link's target URL always would; `lib/page.py`'s `nav_params`/
-`nav_multi_params` are what a page reads these back with. This makes
-every page un-bookmarkable and un-shareable by URL (a deliberate
-trade-off -- see `lib/page.py`'s own module docstring) and, for the small
-number of markers that still need a real, clickable `<a>` because a
-`<form>` can't nest inside an SVG shape (the Galaxy Map's/Sector Map's/
-NAV Map's own plotted dots), requires JavaScript (`static/navform.js`) --
-every one of those markers also has a plain, no-JS-required row in a
-table below its own map, so a marker click is never the only way to reach
-something. `nltk` (from
+Every page is served by the same Flask app as the JSON API
+(`../src/html/wsgi.py`; the pages live in `../src/html/web/`, see "Flask
+pages" below). A page fetches its data through `../src/html/lib/apiclient.py`,
+which inside the app dispatches straight through the API's own routes
+(no HTTP round trip), and renders it with a Jinja2 template. Links are
+plain GET `<a href>`s, so every page is bookmarkable. `nltk` (from
 generation) is still needed for a handful of display-formatting constants
 a few pages import from `stellarObjects` (spectral-class colors, planet-
 class descriptions, unit formatters) -- importing any `stellarObjects`
 submodule runs that package's own `__init__.py`, which pulls in `names.py`
-and its NLTK corpus dependency, even though nothing under `html/` talks
-to MySQL anymore. That keeps `html/`'s own deployment to "copy the files,
-set permissions, enable a vhost, point it at a running API" -- see
-[`api.md`](api.md#deploying-behind-apache-mod_wsgi) for the API process
-itself, which is what actually needs `pymysql`/`DBUtils` and a database
-account now.
+and its NLTK corpus dependency. See
+[`api.md`](api.md#deploying-behind-apache-mod_wsgi) for the process
+itself, which needs `pymysql`/`DBUtils` and a database account.
 
 | File | Purpose |
 |---|---|
-| `../src/html/index.py` | Shim: 301 to `/`, the Flask-served home page (see "Flask pages" below). |
-| `../src/html/browse.py` | Shim: 301 to `/` (keeping `sectors_page`/`standalone_page`); the sector and standalone-system lists are Flask pages now (`/`, `/sectors`, `/systems`, see "Flask pages" below). |
-| `../src/html/galaxy.py` | Shim: 301 to `/galaxy`, the Flask-served Galaxy Map (see "Flask pages" below), keeping `quadrant` (`I`-`IV`) and `page` from the old GET query or POST body. |
-| `../src/html/galaxy_tiles.py` | Shim: 301 to `/galaxy/tiles` (see "Flask pages" below), keeping `tiles`, `density` and `stamp`, for a Galaxy Map tab still open from before the move. |
-| `../src/html/sector.py` | Shim: 301 to `/sector/<id>` (keeping `contents_page`); the sector page is a Flask page now (see "Flask pages" below). |
-| `../src/html/system.py` | Moved to `/system/<id>` (see "Flask pages"); a 301 shim until the cleanup PR. The page's HTML builders are in `lib/systempage.py`, the view in `web/system_pages.py`. |
-| `../src/html/nav.py` | Shim: 301 to `/nav`, translating the old `from`/`to` (+ `_kind`/`_type`) and `from_sector`/`to_sector` parameters to the new scheme (see "Flask pages" below). |
-| `../src/html/phenomena.py` | Moved to `/phenomena` (see "Flask pages"); a 301 shim keeping `page`. |
-| `../src/html/phenomenon.py` | Moved to `/phenomenon/<type>/<id>` (see "Flask pages"); a 301 shim. |
-| `../src/html/search.py` | Shim: 301 to `/search` (the Flask-served search page, see "Flask pages" below), carrying every search parameter (name fields, size ranges, repeated tag facets, `<panel>_page`) from the old GET query or POST body and dropping `db`. |
-| `../src/html/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), posted like every other link here, and changing a Search filter starts its results back at page 1. |
-| `../src/html/login.py`, `logout.py`, `changecreds.py`, `admin.py`, `adminstats.py` | Moved to the Flask app as `/login`, `/logout`, `/account`, `/admin` and `/admin/stats` (see "Flask pages" below). Each script is now a CGI shim answering `301` to its new URL (`admin.py` keeps `keys_page`, `adminstats.py` keeps `names_page`); `logout.py` no longer logs anyone out. |
-| `../src/html/lib/apiclient.py` | The `GET /api/...` HTTP client (stdlib `urllib` only) every page above calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (`login.py`/`changecreds.py`/`admin.py`) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`lib/page.py`'s `run` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`) is where it looks for the API. Not web-accessible. |
-| `../src/html/lib/fmt.py` | HTML-escaping and small formatting helpers (`esc`, `linkify_location`/`nearest_neighbors_location` -- which take a `system_url(system_id)` hook, so the Flask pages emit plain `<a href>` links while CGI callers keep `post_link` -- `format_density`, and `static_url`, the versioned `static/` URL every page uses) with nothing to do with fetching data -- what's left of the old `dbutil.py` once its database-access functions moved into `apiclient.py`/the API itself. Also `post_link` (a same-effect, no-JS-required replacement for `<a href="page.py?...">` that posts its params as hidden fields instead -- see "How it works" above) and `data_nav_params` (its JS-required counterpart for a marker embedded in an SVG map, since a `<form>` can't nest inside one -- paired with `static/navform.js`). Not web-accessible. |
-| `../src/html/lib/page.py` | Shared CGI response/HTML-shell helpers -- `query_params`/`form_params`/`form_multi_params` (GET/POST parsing) and `nav_params`/`nav_multi_params` (POST body when present, else the GET query string -- what every page reads a `post_link`-followed link's params back with), `incoming_cookie_header` (relays the browser's own `Cookie` header to the API, unparsed), `send_headers`/`render`/`redirect` (all three accept `set_cookie_headers` to relay the API's own `Set-Cookie` back), the sidenav's Search/Galaxy/Sectors/Systems/Nav/Phenomena/Login/Admin/Logout items (via `apiclient.auth_me` and `fmt.post_link`) plus the theme button, `head_html` (the shared `<head>`), and `SECURITY_HEADERS` (the one source of the pages' CSP and other security headers). See "The page shell" below. Not web-accessible. |
+| `../src/html/wsgi.py` | The mod_wsgi entry point: the Flask app serving the API under `/api` and every page. |
+| `../src/html/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
+| `../src/html/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), a plain GET link, and changing a Search filter starts its results back at page 1. |
+| `../src/html/lib/apiclient.py` | The API client every page calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (the admin pages) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`web/errors.py` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). Inside the Flask app it runs in-process (`web/transport.py`); elsewhere it uses HTTP to `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`). Not web-accessible. |
+| `../src/html/lib/fmt.py` | HTML-escaping and small formatting helpers (`esc`, `linkify_location`/`nearest_neighbors_location` -- which take a `system_url(system_id)` hook for the neighbour links -- `format_density`, and `static_url`, the versioned `static/` URL every page uses) with nothing to do with fetching data. Not web-accessible. |
 | `../src/html/lib/mdconvert.py` | A small, purpose-built Markdown-to-HTML converter for the narrow Markdown subset `StarSystem.__str__` actually generates (headers, pipe tables, paragraphs, `<sup>` exponents) -- not a general-purpose parser. Not web-accessible. |
-| `../src/html/lib/galaxymap.py` | Quadrant/Zone classification (`sector_quadrant`/`sector_zone`/`zone_bounds_ly`) shared by `galaxy.py`'s own data tables and the sector/sectors pages' "Quadrant N" links back into it -- what's left after this module's former flat-SVG map rendering was superseded by a real 3D scene (`lib/galaxymap3d.py`). Not web-accessible. |
+| `../src/html/lib/galaxymap.py` | Quadrant/Zone classification (`sector_quadrant`/`sector_zone`/`zone_bounds_ly`) shared by the `/galaxy` page's data tables and the sector/sectors pages' "Quadrant N" links back into it -- what's left after this module's former flat-SVG map rendering was superseded by a real 3D scene (`lib/galaxymap3d.py`). Not web-accessible. |
 | `../src/html/lib/tilecache.py` | The web layer's on-disk cache (written by the WSGI process serving `/galaxy` and `/galaxy/tiles`) of 3D Galaxy Map tiles: `fetch_tiles` serves each requested tile from `<cache dir>/<db>/<generation>/` when present and asks `GET /api/galaxy/tiles` only for the rest. Every 60 s at most it asks `GET /api/galaxy/changes` which tiles changed (from the rows' `modified_at`) and deletes only those, or starts a new generation when the answer is `full`. The changed keys are passed on to the browser's cache too. Size-capped (`tile_cache.max_mb`, oldest files pruned first); location from `PLANETGEN_TILE_CACHE_DIR`/`tile_cache.dir` (see `config.md`). Fails open: an unwritable directory or bad file just means an API call. Not web-accessible. |
 | `../src/html/lib/galaxymap3d.py` | Builds the `/galaxy` page's "Galaxy Map" panel: the canvas/controls/info-panel markup, plus the one starting JSON payload (zoom-range numbers, tile settings, and the zoomed-all-the-way-out view's cube tiles, which `initial_tile_request` picks the same way the client does for every later view) `static/galaxymap3d.js` reads on first paint -- every later payload, as the camera moves, is fetched by that script directly and never passes through this module. `view_radius_bounds` (the zoom floor/ceiling: a couple of sector-widths up to this galaxy's own real outer edge) is a pure function the `/galaxy` view also calls directly, before this module's own panel-rendering function runs. The panel's JSON names the tile URL (`fetchPath`, `/galaxy/tiles`) and a sector-page URL template (`sectorUrl`, from `page_url`) for the info panel's real "View sector" `<a href>`; it carries no database name except `storageKey`, which only namespaces the browser's `localStorage`. Not web-accessible. |
-| `../src/html/lib/systemmap.py` | Builds `system.py`'s "System Map" panel: a fixed-size, square true-position plot (real angle from `position_x/y_km`, a shared log-radial scale from anchor -- star, or barycenter for a merged/'close' binary pair -- to body) with one colored/sized marker per body, plus a full ring (not a directional band) for each asteroid belt -- distinct from `starmap.py`'s draggable 3D cube, since this only ever needs a flat top-down projection. A once-only pairwise-repulsion pass (`_relax_markers`) nudges apart any two markers real placement happened to put too close together, real position first, decluttering only where needed. Clicking a planet with moons swaps to a "zoom into this planet's moons" scene (`static/systemmap.js` toggles which `<svg>` scene is visible); clicking anything else fills the info side panel, same click-for-info pattern as `starmap.py`/`sectormap.js`. Adds a small green badge to any body with `life_chemical` set. Also hands over each planet/moon marker's resolved class color (`_class_color`) plus its `atmosphere`/`composition`/`surface_temperature_k` (whether it has a real atmosphere at all, not just the description text) as `data-*`, plus a star's own spectral-type color (`_star_color`, same `data-color` attribute), for `static/systemmap.js`'s own per-marker live sphere rendering. Not web-accessible. |
+| `../src/html/lib/systemmap.py` | Builds the system page's "System Map" panel: a fixed-size, square true-position plot (real angle from `position_x/y_km`, a shared log-radial scale from anchor -- star, or barycenter for a merged/'close' binary pair -- to body) with one colored/sized marker per body, plus a full ring (not a directional band) for each asteroid belt -- distinct from `starmap.py`'s draggable 3D cube, since this only ever needs a flat top-down projection. A once-only pairwise-repulsion pass (`_relax_markers`) nudges apart any two markers real placement happened to put too close together, real position first, decluttering only where needed. Clicking a planet with moons swaps to a "zoom into this planet's moons" scene (`static/systemmap.js` toggles which `<svg>` scene is visible); clicking anything else fills the info side panel, same click-for-info pattern as `starmap.py`/`sectormap.js`. Adds a small green badge to any body with `life_chemical` set. Also hands over each planet/moon marker's resolved class color (`_class_color`) plus its `atmosphere`/`composition`/`surface_temperature_k` (whether it has a real atmosphere at all, not just the description text) as `data-*`, plus a star's own spectral-type color (`_star_color`, same `data-color` attribute), for `static/systemmap.js`'s own per-marker live sphere rendering. Not web-accessible. |
 | `../src/html/lib/systempage.py` | The system page's Python-built HTML (moved from the old `system.py`): the expandable body list (`system_list_html`) and the Stars/Planets & Moons/Asteroid Belts/Comets tables (`stars_html`, `bodies_html`). Escapes every database value itself; `web/system_pages.py` passes the result through `trusted_html`. Not web-accessible. |
-| `../src/html/lib/tabledisplay.py` | Computes the same "Star Data"/"Planet Data" display strings once baked into the database's now-removed `table_*`/`binary_table_*` columns, but on demand from the raw numeric columns `system.py` already has -- reuses `stellarObjects.utils`'s formatters directly. Not web-accessible. |
+| `../src/html/lib/tabledisplay.py` | Computes the same "Star Data"/"Planet Data" display strings once baked into the database's now-removed `table_*`/`binary_table_*` columns, but on demand from the raw numeric columns the system page already has -- reuses `stellarObjects.utils`'s formatters directly. Not web-accessible. |
 | `../src/html/lib/starmap.py` | Builds the sector page's "Sector Map" panel (`render_map_panel(link_url, ...)`, where `link_url` is `web.helpers.page_url`; every entry carries a plain `href`): computes every position/size/color/label the map needs (a wedge or fallback-cube outline, one entry per star -- billboarded, radius from `radius_km` square-root scaled against the Sun, color from `star_type`'s spectral letter (`SPECTRAL_CLASS_COLORS`) shaded by `luminosity_w` and nudged by where `temperature_k` falls in that spectral class's range, so "White Giant" reads white and "Blue Giant" reads blue regardless of temperature -- and one per nearby standalone phenomenon, sized by `radius_ly` (always 0 for the point-like types) and positioned directly in the galaxy frame, no rotation needed unlike a star system's sector-local position -- see `queryDb.phenomena_near_sector`) and serializes it as a `<script type="application/json">` block; `static/sectormap.js` is what actually renders it, this module builds no HTML scene of its own. Not web-accessible. |
 | `../src/html/lib/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so azimuth angles aren't visually distorted, plus a `+X` compass tick and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`lib/phenomenonmap.py`) -- the course panel's own Altitude figure already covers that axis. Not web-accessible. |
-| `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly (not through CGI). |
-| `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`lib/page.py`'s `head_html`): applies the saved light/dark/system theme before the first paint and drives the side nav's theme button. See "The page shell" below. |
+| `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by Apache. |
+| `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`web/templates/base.html`): applies the saved light/dark/system theme before the first paint and drives the header's theme button. See "The page shell" below. |
 | `../src/html/static/favicon.svg` | The site icon (a small ringed planet), linked from every page's `<head>`. |
-| `../src/html/static/vendor/` | Vendored third-party JS -- currently just `three.module.min.js` (three.js, bundled+minified from the `three` npm package), used by `sectormap.js`/`systemmap.js`. Vendored rather than loaded from a CDN so `lib/page.py`'s `Content-Security-Policy: default-src 'self'` needs no exception; see this directory's own `THIRD_PARTY_NOTICES.txt` for the license and how to rebuild it from a newer release. Served directly, same as `style.css`. |
-| `../src/html/static/sectormap.js` | Renders `lib/starmap.py`'s `#starmap-data` JSON as a real WebGL scene (three.js, vendored at `static/vendor/` -- see that directory's `THIRD_PARTY_NOTICES.txt`): a perspective camera, GPU-billboarded sprites (always face the camera by construction, no manual per-frame counter-rotation needed) for stars/nebulae/asteroid fields/black holes/neutron stars, and a wireframe outline for the sector's wedge or fallback cube. Hand-rolled drag-to-rotate/scroll-or-button-to-zoom/click-for-info (a raycast against the sprites, not DOM hit-testing) plus a hidden, keyboard/screen-reader-focusable button list (a canvas has no focusable children of its own the way the old per-star `<div role="button">`s were) so every star/cloud stays reachable without a mouse. Clicking (or activating a fallback-list button) fills the info side panel and, for a "View system"/"View phenomenon" link, navigates via `data-nav-target`/`data-nav-params` (`static/navform.js`, whose global click handler also intercepts this dynamically-built link, same as any other in `html/`) instead of a plain `href`, so `db`/an id never shows up in the address bar. Served directly, same as `style.css`. |
+| `../src/html/static/vendor/` | Vendored third-party JS -- currently just `three.module.min.js` (three.js, bundled+minified from the `three` npm package), used by `sectormap.js`/`systemmap.js`. Vendored rather than loaded from a CDN so the pages' `Content-Security-Policy: default-src 'self'` needs no exception; see this directory's own `THIRD_PARTY_NOTICES.txt` for the license and how to rebuild it from a newer release. Served directly, same as `style.css`. |
+| `../src/html/static/sectormap.js` | Renders `lib/starmap.py`'s `#starmap-data` JSON as a real WebGL scene (three.js, vendored at `static/vendor/` -- see that directory's `THIRD_PARTY_NOTICES.txt`): a perspective camera, GPU-billboarded sprites (always face the camera by construction, no manual per-frame counter-rotation needed) for stars/nebulae/asteroid fields/black holes/neutron stars, and a wireframe outline for the sector's wedge or fallback cube. Hand-rolled drag-to-rotate/scroll-or-button-to-zoom/click-for-info (a raycast against the sprites, not DOM hit-testing) plus a hidden, keyboard/screen-reader-focusable button list (a canvas has no focusable children of its own the way the old per-star `<div role="button">`s were) so every star/cloud stays reachable without a mouse. Clicking (or activating a fallback-list button) fills the info side panel, with a plain "View system"/"View phenomenon" link. Served directly, same as `style.css`. |
 | `../src/html/static/galaxymap3d.js` | Renders `lib/galaxymap3d.py`'s `#galaxymap3d-data` JSON as a real WebGL scene (three.js, vendored at `static/vendor/`) -- unlike `sectormap.js`'s camera (always orbiting a fixed origin, every star baked into one page load), this camera's own orbit target moves freely through the galaxy, so most of what it draws is fetched live from `/galaxy/tiles` (plain GET, no database in the URL) (debounced, on every camera move), one fixed cube of space at a time, rather than server-rendered once. Tiles are kept in memory and in the browser's `localStorage`, keyed by the database's content stamp (under `planetgen:tile:<db>:`, the same keys as before the page moved), so panning back over seen space or reloading the page doesn't refetch them. Drag to rotate, scroll to zoom; left-click zooms in on whatever's under the cursor (a placed sector, a real address, or empty space -- via a raycast against a depth sphere at the camera's own current distance), right-click zooms out -- both by a logarithmic step (`clickZoomFactor`, interpolated between `lib/galaxymap3d.py`'s own `clickZoomFactorMin`/`Max` by the camera's current distance in log space) rather than a flat factor, so a handful of clicks still crosses the whole galaxy while a click near one sector stays fine enough not to overshoot it. Placed/planned sectors are diffed against what's already drawn (`syncTier`) rather than rebuilt on every fetch, so already-visible content doesn't flicker as the camera moves; the illustrative density tier is a single `THREE.Points` cloud instead of individual sprites. A real perspective camera means dot size naturally scales with distance for free -- no manual per-zoom counter-scaling needed the way a flat SVG `viewBox` zoom would. Clicking a not-yet-generated address's dot shows its designation/predicted count and a "Copy CLI command" button (`generate.py galaxy --ring I --layer J --slot K`, clipboard API with a selectable-field fallback). Served directly, same as `style.css`. |
 | `../src/html/static/systemmap.js` | Toggles which System Map `<svg>` scene is visible (the whole-system view, or one per planet's own moon system) and fills the info side panel -- including "Atmosphere"/"Surface composition"/"Surface temperature"/"Life Chemistry" fields -- from a clicked marker's `data-*` attributes. Every visible scene's star/planet/moon markers also get their own live-rendered 3D sphere on `#sysmap-spheres-canvas` (the same vendored three.js build `sectormap.js` uses): one shared WebGL context, redrawn each frame via a scissored sub-viewport per marker (never one `<canvas>`/context per body -- browsers cap concurrent WebGL contexts), each sized and positioned to exactly cover that marker's own `<circle>` and colored by its `data-color`, banded with a tilted ring for a gas giant (`data-bodytype`), and wrapped in a fresnel-glow atmosphere shell (tinted by `data-surfacetemp`) when `data-hasatmosphere` is set -- the one genuinely 3D layer on this otherwise flat-SVG page, drawn behind the SVG so each marker's own stroke/label/life-badge still shows on top. An appearance layer only (no position data, and no cross-page link of its own to navigate) -- a marker whose sphere renders keeps its flat circle's fill transparent (`sysmap-sphere-active`) but never changes its actual plotted position. Served directly, same as `style.css`. |
 | `../src/html/static/copycode.js` | The system page's Copy button: copies the generated Wikitext/Markdown out of the code box named by the button's `data-copy-target` (clipboard API, falling back to a selection copy on a plain-HTTP deployment). A separate file because the Content-Security-Policy allows no inline script; the box stays selectable by hand without it. Served directly, same as `style.css`. |
-| `../src/html/static/navform.js` | Loaded on every page (`lib/page.py`'s `render`). Lets a `data-nav-target`/`data-nav-params` element (a Galaxy Map/Sector Map/NAV Map marker, or the Sector Map's own dynamically-built info-panel link -- see `lib/fmt.py`'s `data_nav_params`) navigate by posting a throwaway hidden form, since a `<form>` can't nest inside the SVG/canvas those are drawn in -- everywhere else in `html/`, `lib/fmt.py`'s `post_link` builds a real, no-JS-required `<form>` instead. Served directly, same as `style.css`. |
 
-This project recommends (but doesn't enforce in code) pointing the API
-(not `html/` itself anymore -- see "How it works" above) at a MySQL
+This project recommends (but doesn't enforce in code) pointing the app at a MySQL
 account with `SELECT`-only grants, so it can't write to a database even
 if a query were buggy -- see `queryDb.py`'s module docstring for the same
 convention, and [`api.md`](api.md) for where that account is configured.
@@ -111,26 +82,25 @@ rendered page.
 
 ## The page shell
 
-Every page goes through `lib/page.py`'s `render`, which writes the
-security headers (`SECURITY_HEADERS`: a `Content-Security-Policy` of
-`default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors
-'none'; object-src 'none'`, plus `X-Frame-Options`, `X-Content-Type-
-Options` and `Referrer-Policy`) and then the shared `<head>` from
-`head_html`:
+Every page extends `web/templates/base.html`, and every HTML response
+carries the security headers (`web.SECURITY_HEADERS`, added in
+`api/app.py`: a `Content-Security-Policy` of `default-src 'self';
+base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src
+'none'`, plus `X-Frame-Options`, `X-Content-Type-Options` and
+`Referrer-Policy`). The shared `<head>` has:
 
 - `<meta name="viewport" content="width=device-width, initial-scale=1">`,
   so phones use the narrow layout (`@media (max-width: 40rem)` in
-  `style.css`: the side rail becomes a wrapping row of links at the top,
-  and wide tables scroll inside their own `.table-scroll` box instead of
-  widening the page).
-- A `<meta name="description">` (a site-wide default, or `render(...,
+  `style.css`: wide tables scroll inside their own `.table-scroll` box
+  instead of widening the page).
+- A `<meta name="description">` (a site-wide default, or `render_page(...,
   description=...)`), `<meta name="color-scheme">`, and two `<meta
   name="theme-color">` tags, one per OS colour scheme.
 - The favicon, `static/favicon.svg`.
 - `static/theme.js`, a small blocking script placed before the
   stylesheet: it applies the visitor's saved theme before the first
   paint (see below).
-- `static/style.css` and `static/navform.js`.
+- `static/style.css`.
 
 Every `static/` URL, here and in the pages' own `<script>` tags, comes
 from `lib/fmt.py`'s `static_url(name)`, which appends `?v=<package
@@ -143,8 +113,8 @@ The ES modules that import siblings (`sectormap.js`, `systemmap.js`,
 `await import(...)` with their own `?v=` (from `import.meta.url`), so each
 module has exactly one URL per page and is never loaded twice.
 
-**Theme switch.** The last item in the side nav is a "Theme: System /
-Light / Dark" button. `static/theme.js` reveals it (it renders `hidden`,
+**Theme switch.** The header has a "Theme: System / Light / Dark"
+button. `static/theme.js` reveals it (it renders `hidden`,
 so a browser without JavaScript never sees a dead button), cycles
 system -> light -> dark, sets `data-theme` on `<html>` (none for
 "system", so `style.css` follows `prefers-color-scheme`), points the
@@ -156,13 +126,13 @@ dark tokens appear twice (OS dark and explicit dark) and must be kept
 identical. The map canvases read their colours when they start, so they
 follow a theme change on the next page view.
 
-## Flask pages (the pages are moving off CGI)
+## Flask pages
 
-The site is moving from one CGI script per page to HTML pages served by
-the same Flask app as the API (`../src/html/web/`, registered by
-`api/app.py`'s `create_app`). Pages move one at a time; until a page
-moves, its CGI script keeps working exactly as described above. Moved so
-far:
+Every page is served by the same Flask app as the API
+(`../src/html/web/`, registered by `api/app.py`'s `create_app`). The
+pages used to be one CGI script each; the "Replaces" column names the
+old script, whose URL now answers with a 301 to the new page (see "Old
+URLs" below).
 
 | URL | Replaces | Shows |
 |---|---|---|
@@ -185,12 +155,6 @@ far:
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
 | `/admin/generate/system` | (new) | Admins only: one star system with every `generate.py system` option, shown as Markdown or wikitext and never saved (see below). |
 
-`system.py`, `phenomena.py` and `phenomenon.py` are shims too: they
-301 to `/system/<id>` (keeping `code=`), `/phenomena` (keeping `page`)
-and `/phenomenon/<type>/<id>`; a missing or malformed id goes to
-`/systems` or `/phenomena`. Links from pages still on CGI (sector map
-markers, search results, nav hops) keep working through them.
-
 **System page wiki upload.** For an admin (`current_admin()`), the
 system page asks `GET /api/wiki-config` and offers an "Upload to Wiki"
 form for each configured backend not yet uploaded to. The form POSTs to
@@ -204,20 +168,25 @@ answers `303 See Other` back to `/system/<id>?wiki=<outcome>#wiki-upload`
 each (and only to an admin), never text from the query string or the
 API. A POST from a visitor who is not an admin gets a 403 page.
 
-`index.py` and `browse.py` are now CGI shims that answer `301 Moved
-Permanently` to `/`, carrying `sectors_page`/`standalone_page` from the
-old GET query or POST body (`lib/page.py`'s `moved_permanently`). The
-cleanup PR removes them.
-Likewise `galaxy.py` answers 301 to `/galaxy` (keeping `quadrant` and
-`page`) and `galaxy_tiles.py` to `/galaxy/tiles` (keeping `tiles`,
-`density`, `stamp`).
+**Old URLs.** `web/old_urls.py` answers a GET of an old CGI page's URL
+(`/<name>.py`) with `301 Moved Permanently` to the page that replaced it,
+so old links and bookmarks still land somewhere sensible. The query
+string is carried over minus `db` and empty values (the new pages kept
+the old parameter names: `sectors_page`, `quadrant`, `page`, the search
+filters, ...). `/sector.py?id=N` goes to `/sector/N` (keeping
+`contents_page`), `/system.py?id=N` to `/system/N` (keeping `code`),
+`/phenomenon.py?type=T&id=N` to `/phenomenon/T/N`, each falling back to
+its list page without a valid id; `/nav.py`'s old `from=12&from_kind=
+phenomenon&from_type=nebula` becomes `from=nebula:12`. `galaxy3d.py` and
+`galaxy_view.py` (older Galaxy Map scripts) go to `/galaxy`. Any other
+`.py` name, `wsgi.py` included, gets the 404 page. An old form POSTed to
+a `.py` URL is not replayed (it fails the CSRF check like any stale
+form).
 
-The Galaxy Map's disk tile cache (`lib/tilecache.py`) is now written by
-the WSGI daemon (same Apache user as the CGI scripts, so the existing
-`/var/cache/planetgen/tiles` keeps working). A tile cache location or
-size set only with `SetEnv PLANETGEN_TILE_CACHE_DIR`/`_MAX_MB` in the
-vhost does not reach it: put it in `config.json`'s `tile_cache` (or
-Apache's own environment) instead.
+The Galaxy Map's disk tile cache (`lib/tilecache.py`) is written by the
+WSGI daemon. A tile cache location or size set only with `SetEnv
+PLANETGEN_TILE_CACHE_DIR`/`_MAX_MB` in the vhost does not reach it: put it
+in `config.json`'s `tile_cache` (or Apache's own environment) instead.
 
 ### The sector page
 
@@ -283,22 +252,17 @@ Tags, "remove filter" chips and "Clear all" are plain links to the same
 search with one thing changed. Results come right under the form, the tag
 browser below them. The search form sends every field, filled or not, so
 a URL with empty (or unknown) parameters is redirected (302) to the same
-search without them. `search.py` is a CGI shim that 301s to `/search`,
-carrying every one of these parameters from the old GET query or POST
-body (repeated facets included) and dropping `db`.
+search without them.
 
-What changes for a visitor:
+For a visitor:
 
-- **Plain GET links and bookmarkable URLs.** Links between moved pages
-  are ordinary `<a href>`s (no hidden POST forms), so Back, reload,
-  open-in-new-tab, bookmarks and sharing all work.
+- **Plain GET links and bookmarkable URLs.** Links between pages are
+  ordinary `<a href>`s, so Back, reload, open-in-new-tab, bookmarks and
+  sharing all work.
 - **No database in the URL.** The pages show one database, taken from
   config (`mysql.database` / `PLANETGEN_MYSQL_DATABASE`), never from the
-  request. Links from a moved page to a page still on CGI are plain GET
-  links such as `/sector.py?db=planetgen&id=5` (the CGI pages read a GET
-  query through `nav_params()`); that is the one place `db` still shows,
-  until each page moves.
-- **New header** instead of the side rail: site name, the sections
+  request.
+- **A header** with the site name, the sections
   (Galaxy, Sectors, Systems, Phenomena, Nav) with `aria-current="page"`
   on the current one, a search box, and Login or Admin/Stats/Generate/Logout
   plus the theme button. Below 56rem (92rem for a logged-in admin, whose
@@ -306,9 +270,9 @@ What changes for a visitor:
   a native `<details>` "Menu" (works without JavaScript). A
   "Skip to content" link comes first, and every page but the home page
   has a breadcrumb trail.
-- **Faster**: no Python process start per page, and no HTTP call from
-  the page back to the API (see below). Visitors without a session
-  cookie cost no login lookup at all.
+- **Fast**: no Python process start per page, and no HTTP call from the
+  page back to the API (see below). Visitors without a session cookie
+  cost no login lookup at all.
 
 **The Generate page** (`/admin/generate`, `web/generate_page.py` +
 `templates/generate.html`) runs the galaxy tools an admin used to run in a
@@ -359,10 +323,11 @@ src/html/web/
   __init__.py     blueprint `web`, template globals, init_app()
   views.py        the routes
   helpers.py      db_name, page_url, crumb, render_page, trusted_html,
-                  pager, current_admin, LEGACY_PAGES
+                  pager, current_admin
   transport.py    in-process transport for lib/apiclient.py
   csrf.py         CSRF tokens for POST forms
   errors.py       HTML 404/502/500 pages
+  old_urls.py     301s from the old /<name>.py URLs
   templates/      base.html + one template per page (+ partials/)
 ```
 
@@ -403,16 +368,15 @@ The helpers (all in `web/helpers.py`):
   `sectors`, `systems`, `phenomena`, `nav`) and gets `aria-current`.
 - `crumb(label, name=None, **params)`: one breadcrumb. "Home" is added
   in front automatically; the last crumb (no `name`) is the current page.
-- `page_url(name, **params)`: the URL of any page by endpoint name,
-  moved or not. Moved pages go through `url_for("web.<name>")`; pages
-  still on CGI through `LEGACY_PAGES`.
+- `page_url(name, **params)`: the URL of any page by endpoint name
+  (`url_for("web.<name>")`).
 - `db_name()`: the one database. Never read `db` from the request.
 - `trusted_html(html)`: passes HTML built by a `lib/` renderer (the star
   and system maps, `fmt.format_density`, ...) through unescaped. Those
   renderers escape their own inputs; never wrap request or database text
   in it directly.
 - `pager(page_param, page, total, anchor=None, label="Pages", keep=None)`:
-  the shared pager (`lib/pagination.render_pagination`, GET mode) linking
+  the shared pager (`lib/pagination.render_pagination`) linking
   back to the current path with `?<page_param>=N`; `keep` carries other
   query parameters (another table's page number).
 - `current_admin()`: the logged-in admin or `None`, one lookup per
@@ -422,24 +386,17 @@ The helpers (all in `web/helpers.py`):
   `csrf_field()`, `site_name`, and blocks `head` (extra `<script>`/
   `<link>`, e.g. a map module), `heading`, `subhead` and `content`.
 
-**Moving a page** (what each page PR does): add its route to `views.py`
-under the endpoint name its `LEGACY_PAGES` entry uses (`sector`,
-`system`, `galaxy`, ...), add its template, delete the `LEGACY_PAGES`
-entry (every link to the page then switches to the new URL; a test fails
-if a name is both a route and a legacy entry), and turn the old `.py`
-script into a shim calling `page.moved_permanently(new_path, keep)`.
-
-**Data in-process.** Views call the same `lib/apiclient.py` functions as
-the CGI pages (`get_sector(db, id)`, `auth_me(cookie_header)`, ...).
+**Data in-process.** Views call `lib/apiclient.py` functions
+(`get_sector(db, id)`, `auth_me(cookie_header)`, ...).
 Inside a Flask request, `web/transport.py` dispatches each call straight
 through the app's own `/api` routes (same validation, auth and JSON as
 over HTTP, in a fresh app context so database connections open and
 close per call) instead of making an HTTP request to itself. Outside a
-Flask request (a CGI page, a script) the functions use HTTP as before.
+Flask request (a script) the functions use HTTP.
 These in-process calls are exempt from the API's app-wide default rate
 limit (a page view is not API abuse); a route's own limit (login,
 writes) still applies to the visitor's address. Page views themselves
-are not rate-limited, as the CGI pages never were.
+are not rate-limited.
 
 **Forms.** Any POST/PUT/PATCH/DELETE to a path outside `/api` must carry
 the CSRF token: put `{{ csrf_field() }}` inside the `<form>`. The token
@@ -448,8 +405,7 @@ is an HMAC (keyed with `secret_key` from `config.json`, see
 (HttpOnly, SameSite=Strict); a missing or wrong token gets a 400 page
 and the view never runs.
 
-**The admin pages** (`web/admin_pages.py`). Sessions work as they did
-on CGI: `/login`, `/account` and `/logout` call `apiclient.auth_login`,
+**The admin pages** (`web/admin_pages.py`). `/login`, `/account` and `/logout` call `apiclient.auth_login`,
 `auth_change_credentials` and `auth_logout` in-process, and the
 `Set-Cookie` headers the API's `/api/auth/*` routes answer with are
 copied onto the page's response unchanged, so the session cookie keeps
@@ -483,13 +439,13 @@ else a 500 page saying only "An unexpected error occurred."; the
 traceback goes to Apache's error log and the debug log, never the page.
 Unknown URLs get the HTML 404 page; `/api/...` keeps its JSON errors.
 
-**Headers.** Every HTML response carries `lib/page.py`'s
-`SECURITY_HEADERS` (the same CSP as the CGI pages), set in
-`api/app.py`; JSON keeps `default-src 'none'`.
+**Headers.** Every HTML response carries `web.SECURITY_HEADERS` (see
+"The page shell" above), set in `api/app.py`; JSON keeps `default-src
+'none'`.
 
 **Browser checks.** `src/tests/test_web_a11y.py` loads every GET route
-of the `web` blueprint (read from the app's `url_map`, so a newly moved
-page is covered automatically) in headless Chromium at 390px and 1280px,
+of the `web` blueprint (read from the app's `url_map`, so a new page is
+covered automatically) in headless Chromium at 390px and 1280px,
 in the light and dark color schemes, against a small database generated
 by `generate.py`. Each page must have no serious or critical axe-core
 violations of the WCAG 2.1 A/AA rules, no horizontal page scroll (wide
@@ -498,7 +454,8 @@ requests or CSP violations, a skip link that is the first Tab stop, and
 an `aria-current="page"` marker; at 390px the header Menu is opened and
 checked too. A route parameter needs a sample value in the test's
 `sample_params` (the test says so when one is missing); a page that
-redirects anonymous visitors is checked as a logged-in admin. It needs
+redirects anonymous visitors is checked as a logged-in admin (the old
+`/<name>.py` routes only redirect, so they are skipped). It needs
 `pip install -e ".[browser]"` plus `python -m playwright install
 chromium` (or `PLAYWRIGHT_BROWSERS_PATH` pointing at an existing
 Chromium) and the MySQL test server, and skips without them; CI runs it
@@ -509,19 +466,14 @@ and the license files from the npm package.
 
 ## Locating the database (and the API)
 
-Every page here needs the planetGen API (`../src/html/api/`, see
-[`api.md`](api.md)) reachable to work at all now -- set
-`PLANETGEN_API_BASE_URL` (or `config.json`'s `api_base_url`; default
-`http://127.0.0.1/api`, i.e. the same host this CGI script itself runs on)
-if it's deployed somewhere else, e.g. `http://127.0.0.1:5000/api` for
-`python src/html/wsgi.py`'s own local dev server. The *database*
-server/account, and which schemas the picker (`index.py`/`?db=`) offers,
-are entirely the API's own configuration now
-(`PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE_PREFIX`, or
-`config.json`'s `mysql` section, via
-`stellarObjects._db.MySQLConfig`/`list_databases`) -- see
-[`api.md`](api.md#running-locally) for those; `html/` itself no longer
-reads any `PLANETGEN_MYSQL_*` variable at all.
+The pages reach the API in-process, so nothing needs pointing at it for
+a normal deployment. `PLANETGEN_API_BASE_URL` (or `config.json`'s
+`api_base_url`; default `http://127.0.0.1/api`) only matters to
+`lib/apiclient.py` used outside the app (a script). The *database*
+server/account is the app's own configuration
+(`PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE`, or
+`config.json`'s `mysql` section, via `stellarObjects._db.MySQLConfig`) --
+see [`api.md`](api.md#running-locally) for those.
 
 Separately from all of the above, a `config.json`
 file at the repo root (a sibling of `../src/html/`, not a file inside `../src/html/`
@@ -548,8 +500,8 @@ and how it relates to the `PLANETGEN_*` environment variables.
    [`database-schema.md`](database-schema.md)'s "Versioning"),
    pre-fetches the NLTK `words` corpus into a shared world-readable
    location (so it works under Apache's `www-data`, not just whatever
-   user happens to run the CLI tools), makes the CGI scripts executable,
-   enables Apache's CGI, headers and deflate modules, and sets `../src/html/` ownership for
+   user happens to run the CLI tools), makes the shell scripts executable,
+   enables Apache's wsgi, headers and deflate modules, and sets `../src/html/` ownership for
    Apache via `examples/apache/set-permissions.sh`. See
    [`apache-deployment.md`](apache-deployment.md) for what each step does
    and how to re-run pieces of it individually.
@@ -578,22 +530,6 @@ without pulling first.
 
 ## Local testing without Apache
 
-Every script is a normal CGI program: it reads `QUERY_STRING` (or, for a
-`POST` -- what every in-app navigational link now sends, see "How it
-works" above -- `CONTENT_LENGTH` bytes of `application/x-www-form-
-urlencoded` body from stdin) from the environment and writes an HTTP
-response (status + headers + body) to stdout. `nav_params`/
-`nav_multi_params` fall back to `QUERY_STRING` whenever the request isn't
-a POST at all, so a plain `QUERY_STRING`-only smoke test still works
-exactly as before. That makes these scripts runnable directly for a quick
-smoke test without standing up Apache at all -- start the API separately
-first (see [`api.md`](api.md#running-locally)), then, from the repo root:
-
-```bash
-PLANETGEN_API_BASE_URL=http://127.0.0.1:5000/api QUERY_STRING="db=planetgen&id=1" python3 src/html/system.py
-```
-
-The Flask pages need no CGI at all: `python3 src/html/wsgi.py` serves
-them (and `/static/`) at `http://127.0.0.1:5000/` alongside the API. Set
-`admin_cookie_insecure` in `config.json` to log in over plain HTTP
-there.
+`python3 src/html/wsgi.py` serves the pages (and `/static/`) at
+`http://127.0.0.1:5000/` alongside the API. Set `admin_cookie_insecure`
+in `config.json` to log in over plain HTTP there.

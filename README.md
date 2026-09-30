@@ -257,32 +257,28 @@ their own) — see `docs/database-schema.md`'s "v18"/"v21" notes.
 
 ## Web Interface
 
-Two pieces work together: a Flask JSON API
-([`src/html/api/`](docs/api.md), needs `pymysql`/`DBUtils` and MySQL
-access) and, in front of it, [`src/html/`](docs/html-interface.md) — a
-thin browser of plain Python CGI scripts (stdlib only, no framework, never
-touching MySQL itself) that fetches everything it shows from that API.
-Pick a database (schema), drill into its sectors and star systems, view
+One Flask app serves a JSON API ([`src/html/api/`](docs/api.md), needs
+`pymysql`/`DBUtils` and MySQL access) and, on top of it, the web pages
+([`src/html/web/`](docs/html-interface.md)), which fetch everything they
+show from that API in-process. Drill into sectors and star systems, view
 sector/system/galaxy visualizations (an interactive 3D "Sector Map", a
 scaled "System Map" orbit diagram, and a galaxy-scale "Galaxy Map"), copy
 the rendered wikitext/Markdown page saved for each system, or jump
-straight to an object via `search.py`'s faceted search: click-to-filter
+straight to an object via the `/search` page's faceted search: click-to-filter
 tag buttons (object type, star spectral/luminosity class, planet
 class/body type, supported life chemistry) built from only the values
 actually present in the chosen database, plus an autocompleting name
-search across sectors, systems, stars, and planets/moons -- a Search link
-to it is always available in the page header once a database is selected.
-If the configured MySQL server has exactly one matching database, the
-landing page skips the picker and goes straight to browsing it. It's
-meant to be deployed to an Apache2 install on a Linux server, with the API
-and browser sharing one vhost; run `sudo ./install.sh` from the repo root
+search across sectors, systems, stars, and planets/moons -- a search box
+is always in the page header. The site shows the one database configured
+in `config.json`. It's meant to be deployed to an Apache2 install (with
+mod_wsgi) on a Linux server; run `sudo ./install.sh` from the repo root
 on the server to do the whole install (Python package, the NLTK corpus
-Apache's own user needs, CGI/mod_wsgi setup, and directory permissions) in
+Apache's own user needs, Apache modules, and directory permissions) in
 one step, and `sudo ./update.sh` later to pull and apply updates (plain
 `git pull` isn't enough on its own -- see `update.sh`'s own header
 comment). [`examples/apache/`](docs/apache-deployment.md) has an example
 virtual host config (default document root `/var/lib/planetGen/src/html`,
-mounting the API at `/api` via `WSGIScriptAlias` on the same vhost) and
+mounting the app at `/` via `WSGIScriptAlias`) and
 the `set-permissions.sh` script it calls. Every deployment-level setting
 (MySQL connection details, rate limits, site name/base URL, and more) can
 be set once in a `config.json` file at the repo root, instead of (or

@@ -2,8 +2,8 @@
 
 """
 The Flask-served system and phenomenon pages (`web/system_pages.py`):
-`/system/<id>`, `/phenomena` and `/phenomenon/<type>/<id>`, plus the CGI
-shims their old scripts became.
+`/system/<id>`, `/phenomena` and `/phenomenon/<type>/<id>`, plus the old
+CGI URLs that redirect there.
 
 Most tests fake the data layer (the `apiclient` functions the views
 call), like `test_web_pages.py`; the ones at the bottom run against a
@@ -27,12 +27,8 @@ from stellarObjects.config import SystemConfig  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
 from web import csrf  # noqa: E402
-from web.helpers import LEGACY_PAGES  # noqa: E402
-
-from tests.webpage_support import run_page  # noqa: E402
 
 DB = "planetgen_web_test"
-NO_API = "http://127.0.0.1:9/api"
 
 
 class _FakeConfig(Config):
@@ -399,9 +395,8 @@ def test_black_hole_skips_missing_optional_rows(client, fake):
 
 # --- Links elsewhere now point here --------------------------------------------------
 
-def test_moved_pages_are_not_legacy(app):
+def test_moved_pages_are_routes(app):
     for name in ("system", "phenomena", "phenomenon"):
-        assert name not in LEGACY_PAGES
         assert f"web.{name}" in app.view_functions
 
 
@@ -412,47 +407,29 @@ def test_header_phenomena_section_links_here(client, fake):
 
 def test_location_link_hook():
     url = lambda system_id: f"/system/{system_id}"  # noqa: E731
-    html = nearest_neighbors_location(None, "S -- nearest: x", [{"id": 3, "name": "A&B", "distance_ly": 1.0}],
-                                      system_url=url)
+    html = nearest_neighbors_location("S -- nearest: x", [{"id": 3, "name": "A&B", "distance_ly": 1.0}], url)
     assert html == 'S -- nearest: <a href="/system/3">A&amp;B</a> (1.0 ly)'
-    html = linkify_location(None, "S -- nearest: A (1.0 ly), Z (2.0 ly)", {"A": 3}, system_url=url)
+    html = linkify_location("S -- nearest: A (1.0 ly), Z (2.0 ly)", {"A": 3}, url)
     assert html == 'S -- nearest: <a href="/system/3">A</a> (1.0 ly), Z (2.0 ly)'
 
 
-# --- CGI shims -----------------------------------------------------------------------
+# --- Old CGI URLs ---------------------------------------------------------------------
 
-@pytest.mark.parametrize("method,params,location", [
-    ("GET", {"db": "x", "id": "12"}, "/system/12"),
-    ("POST", {"db": "x", "id": "12", "code": "markdown"}, "/system/12?code=markdown"),
-    ("GET", {"db": "x", "id": "12", "code": "<x>"}, "/system/12"),
-    ("GET", {"db": "x", "id": "../admin"}, "/systems"),
-    ("GET", {}, "/systems"),
+@pytest.mark.parametrize("url,location", [
+    ("/system.py?db=x&id=12", "/system/12"),
+    ("/system.py?db=x&id=12&code=markdown", "/system/12?code=markdown"),
+    ("/system.py?db=x&id=../admin", "/systems"),
+    ("/system.py", "/systems"),
+    ("/phenomenon.py?db=x&type=black_hole&id=3", "/phenomenon/black_hole/3"),
+    ("/phenomenon.py?db=x&type=../x&id=3", "/phenomena"),
+    ("/phenomenon.py?db=x", "/phenomena"),
+    ("/phenomena.py?db=x&page=3", "/phenomena?page=3"),
+    ("/phenomena.py", "/phenomena"),
 ])
-def test_system_shim(method, params, location):
-    kwargs = {"query": params} if method == "GET" else {"body": params, "method": "POST"}
-    result = run_page(NO_API, "system.py", **kwargs)
+def test_old_system_and_phenomenon_urls_redirect(client, url, location):
+    result = client.get(url)
     assert result.status_code == 301
     assert result.headers["Location"] == location
-
-
-@pytest.mark.parametrize("method,params,location", [
-    ("GET", {"db": "x", "type": "black_hole", "id": "3"}, "/phenomenon/black_hole/3"),
-    ("POST", {"db": "x", "type": "nebula", "id": "9"}, "/phenomenon/nebula/9"),
-    ("GET", {"db": "x", "type": "../x", "id": "3"}, "/phenomena"),
-    ("GET", {"db": "x"}, "/phenomena"),
-])
-def test_phenomenon_shim(method, params, location):
-    kwargs = {"query": params} if method == "GET" else {"body": params, "method": "POST"}
-    result = run_page(NO_API, "phenomenon.py", **kwargs)
-    assert result.status_code == 301
-    assert result.headers["Location"] == location
-
-
-def test_phenomena_shim_keeps_page():
-    result = run_page(NO_API, "phenomena.py", method="POST", body={"db": "x", "page": "3"})
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/phenomena?page=3"
-    assert run_page(NO_API, "phenomena.py").headers["Location"] == "/phenomena"
 
 
 # --- Real database, in-process ---------------------------------------------------------

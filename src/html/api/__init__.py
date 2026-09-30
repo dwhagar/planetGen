@@ -13,17 +13,13 @@ exist as stubs -- routed and validated, but not yet wired up to the
 database; see `docs/api.md`'s "Write endpoints" section for what's still
 needed before they do anything real.
 
-Lives under `html/` (moved here from `src/api/`) so it's served from the
-same tree/DocumentRoot as the interim CGI browser -- see `html/wsgi.py`
-for the mod_wsgi entry point that imports this package, and
-`examples/apache/planetgen.conf.example` for the vhost `<Directory>`
-block that denies direct requests into this package the same way it
-already does for `html/lib/`.
-
-`../` (the interim browser, one directory up from this package) is this
-API's own frontend now: every CGI page there fetches its data from
-`GET /api/...` instead of querying MySQL directly (`html/lib/apiclient.py`)
--- see `docs/api.md` for how to run this and `docs/html-interface.md` for
-that side of it. `docs/TODO.md`'s "Open items" section covers what's still
+Lives under `html/` (moved here from `src/api/`) next to the HTML pages
+(`html/web/`), which the same Flask app serves -- see `html/wsgi.py` for
+the mod_wsgi entry point that imports this package, and
+`examples/apache/planetgen.conf.example` for the vhost. The pages fetch
+their data from these routes in-process (`html/lib/apiclient.py`,
+`html/web/transport.py`) instead of querying MySQL directly -- see
+`docs/api.md` for how to run this and `docs/html-interface.md` for that
+side of it. `docs/TODO.md`'s "Open items" section covers what's still
 open (the write endpoints above, mainly).
 """
