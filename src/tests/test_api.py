@@ -498,7 +498,8 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     body = response.get_json()
     assert body["scope"] == "sector"
     assert body["direct"]["distance_ly"] > 0
-    assert set(body["direct"]) == {"distance_ly", "azimuth_deg", "altitude_deg"}
+    assert set(body["direct"]) == {"distance_ly", "bearing_deg", "mark_deg", "elevation_deg", "frame"}
+    assert body["direct"]["frame"] == "sector"
     assert [leg["warp_factor"] for leg in body["warp_times"]] == [1, 2, 4, 8, 9, 9.5, 9.9, 9.995]
     assert [leg["fold_factor"] for leg in body["fold_times"]] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
     assert body["route"]["path"] == [system_ids[0], system_ids[1]]

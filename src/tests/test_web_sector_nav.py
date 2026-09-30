@@ -129,7 +129,8 @@ class FakeData:
             raise self.nav_error
         return {
             "scope": "sector",
-            "direct": {"distance_ly": 3.25, "azimuth_deg": 45.0, "altitude_deg": -2.5},
+            "direct": {"distance_ly": 3.25, "bearing_deg": 45.2, "mark_deg": 357.5,
+                       "elevation_deg": -2.5, "frame": "sector"},
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
             "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "4 days"}],
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
@@ -447,7 +448,8 @@ def test_nav_course_and_route(client, fake):
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert ("get_nav", DB, 1001, 1002, "system", "system", None, None) in fake.calls
-    assert "3.25 ly" in html and "45.00&deg;" in html and "-2.50&deg;" in html and "3 years" in html
+    assert "3.25 ly" in html and "045 mark 358" in html and "3 years" in html
+    assert "Sector Local Frame" in html and "Fold 4" in html and "4 days" in html
     assert "Same sector" in html
     assert 'To: <a href="/system/1002">Other</a>' in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)

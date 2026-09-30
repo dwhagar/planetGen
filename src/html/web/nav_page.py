@@ -41,6 +41,7 @@ from flask import redirect, request, url_for
 
 import apiclient
 from navmap import render_nav_map_panel
+from stellarObjects.navigation import format_course
 
 from . import bp
 from .sector_page import PHENOMENON_TYPE_LABELS
@@ -49,6 +50,13 @@ from .helpers import crumb, db_name, page_url, render_page, trusted_html
 SECTOR_PICKER_LIMIT = 500
 """int: How many sectors the pickers offer: `GET /api/sectors`'s own
 maximum page size (`docs/api.md`, "Pagination")."""
+
+FRAME_LABELS = {
+    "galactic": "Galactic Standard Frame: 000 mark 000 points at the galactic core",
+    "sector": "Sector Local Frame: 000 mark 000 points at the sector's center",
+    "system": "System Local Frame: 000 mark 000 points at the star",
+}
+"""dict: Each `navigation.Course.frame` value's line on the course panel."""
 
 _ENDPOINT_RE = re.compile(r"^(?:([a-z_]+):)?(\d+)$")
 
@@ -319,11 +327,13 @@ def nav():
     destination = _resolve(to_kind, to_id)
     route = result["route"]
     names = _route_names(route, {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+    direct = result["direct"]
     map_html = render_nav_map_panel(page_url, _waypoints(origin, destination, result, names),
                                     has_route=route is not None)
     return render_page(
         "nav.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
-        direct=result["direct"], warp_times=result["warp_times"], fold_times=result["fold_times"],
+        direct=direct, course=format_course(direct["bearing_deg"], direct["mark_deg"]),
+        frame_label=FRAME_LABELS.get(direct["frame"], direct["frame"]), warp_times=result["warp_times"], fold_times=result["fold_times"],
         scope_label="Same sector" if result["scope"] == "sector" else "Cross-sector (galaxy)",
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
         map_html=trusted_html(map_html),

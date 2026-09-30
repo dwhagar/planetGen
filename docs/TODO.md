@@ -720,47 +720,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       (`quadrant`), `star_systems.location`, containing nebula (#29),
       and any stored or rendered text naming the old sector.
 
-### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
-
-33. [ ] **Courses in "bearing mark mark" format on nested reference
-    frames.** Boss: "Course projections should be in the format of:
-    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
-    Boss's design (summarized; the full text and pseudocode are in
-    `docs/design/navigation-frames.md`):
-    - North points toward the local dominant center of mass. Every
-      local frame is a rigid transform of the absolute galactic
-      Cartesian frame.
-    - Galactic Standard Frame: origin the galactic core, +Z galactic
-      north, +X a fixed zero meridian. Between sectors, bearing 000
-      points at the core.
-    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
-      North from the ship toward it, +Z the galactic +Z.
-    - System Local Frame: origin the central star/barycenter, North
-      from the ship toward it, +Z the star's net angular momentum
-      (the ecliptic normal).
-    - Math: D = target - ship; U = the plane's normal; N = (center -
-      ship) with its U part removed, normalized; E = N x U. Bearing =
-      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
-      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
-      fall back to a fixed reference vector. Boss's `compute_course`
-      pseudocode in the design doc is the reference.
-    - Hand-offs: star to sector barycenter past the heliopause (~120
-      AU); galactic frame when crossing a sector boundary (> 4 pc).
-    - Today `navigation.course_between` returns azimuth/altitude on the
-      galactic plane and `nav.html` shows them as separate rows.
-    - **Questions for Boss:**
-      - Marks from 0-359: the math gives -90 to +90. Default taken, from
-        your own note: write mark as elevation mod 360, so 000-090 is up
-        and 270-359 is down (270 = straight down), and nothing between
-        091 and 269 appears. OK?
-      - "0 mark 0 toward the galactic core" holds in the galactic frame;
-        inside a system or sector, 0 points at the star or sector
-        barycenter. Default taken: 0 mark 0 is toward the current
-        frame's center.
-      - The zero meridian "toward a reference quasar": here the quasar
-        sits at the galactic center, so it can't set +X. Default taken:
-        keep the galaxy's existing +X axis (ring slot 0).
-
 ### Facilities (new)
 
 35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I

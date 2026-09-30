@@ -20,7 +20,7 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import (
-    course_between, fold_speed_c, fold_travel_times, warp_speed_c, warp_travel_times,
+    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_speed_c, format_course, fold_travel_times, warp_speed_c, warp_travel_times,
 )
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
@@ -31,31 +31,90 @@ from stellarObjects.systemData import StarSystem
 # stellarObjects.navigation -- pure math, no database.
 # ---------------------------------------------------------------------
 
-def test_course_between_planar_triangle():
-    course = course_between((0, 0, 0), (3, 4, 0))
-    assert course.distance_ly == pytest.approx(5.0)
-    assert course.azimuth_deg == pytest.approx(math.degrees(math.atan2(4, 3)))
-    assert course.altitude_deg == pytest.approx(0.0)
+def test_course_toward_the_center_is_0_mark_0():
+    # Ship out on +X, target at the galactic core: dead ahead is North.
+    course = course_between((1000, 0, 0), (0, 0, 0))
+    assert course.distance_ly == pytest.approx(1000.0)
+    assert course.bearing_deg == pytest.approx(0.0)
+    assert course.mark_deg == pytest.approx(0.0)
+    assert course.frame == FRAME_GALACTIC
+    assert format_course(course.bearing_deg, course.mark_deg) == "000 mark 000"
 
 
-def test_course_between_azimuth_wraps_to_0_360():
-    # Destination behind and to the left -> azimuth in the third quadrant,
-    # not a negative angle.
-    course = course_between((0, 0, 0), (-1, -1, 0))
-    assert 180 < course.azimuth_deg < 270
+def test_course_bearing_is_measured_from_the_center_not_plus_x():
+    # The same displacement (+Y) reads differently depending on where the
+    # ship sits relative to the center: North is always toward it.
+    from_plus_x = course_between((10, 0, 0), (10, 5, 0))
+    from_plus_y = course_between((0, 10, 0), (0, 15, 0))
+    assert from_plus_y.bearing_deg == pytest.approx(180.0)  # straight away from center
+    # East = North x Up: with North = -X and Up = +Z, East is +Y.
+    assert from_plus_x.bearing_deg == pytest.approx(90.0)
+    assert course_between((10, 0, 0), (10, -5, 0)).bearing_deg == pytest.approx(270.0)
 
 
-def test_course_between_straight_up_and_down():
-    up = course_between((0, 0, 0), (0, 0, 10))
-    assert up.altitude_deg == pytest.approx(90.0)
+def test_course_bearing_ignores_height_above_the_plane():
+    # North is the ship-to-center vector flattened onto the plane, so a
+    # ship far above the plane still has North pointing at the axis.
+    course = course_between((10, 0, 50), (0, 0, 50))
+    assert course.bearing_deg == pytest.approx(0.0)
+    assert course.mark_deg == pytest.approx(0.0)
 
-    down = course_between((0, 0, 0), (0, 0, -10))
-    assert down.altitude_deg == pytest.approx(-90.0)
+
+def test_course_mark_is_elevation_mod_360():
+    up = course_between((10, 0, 0), (10, 0, 10))
+    assert up.elevation_deg == pytest.approx(90.0)
+    assert up.mark_deg == pytest.approx(90.0)
+
+    down = course_between((10, 0, 0), (10, 0, -10))
+    assert down.elevation_deg == pytest.approx(-90.0)
+    assert down.mark_deg == pytest.approx(270.0)
+
+    shallow = course_between((10, 0, 0), (0, 0, -10))
+    assert shallow.elevation_deg == pytest.approx(-45.0)
+    assert shallow.mark_deg == pytest.approx(315.0)
+    assert format_course(shallow.bearing_deg, shallow.mark_deg) == "000 mark 315"
+
+
+def test_course_frame_center_and_up_vector():
+    # A sector frame centered elsewhere, and a system frame whose ecliptic
+    # is tilted so "up" is +X: North still points at the center.
+    sector = course_between((0, 0, 0), (5, 0, 0), frame=FRAME_SECTOR, center=(5, 0, 0))
+    assert (sector.bearing_deg, sector.mark_deg, sector.frame) == (pytest.approx(0.0), pytest.approx(0.0), FRAME_SECTOR)
+
+    tilted = course_between((0, 0, 10), (0, 0, 0), frame=FRAME_SYSTEM, center=(0, 0, 0), up=(2, 0, 0))
+    assert tilted.bearing_deg == pytest.approx(0.0)
+    assert tilted.mark_deg == pytest.approx(0.0)
+    above = course_between((0, 0, 10), (5, 0, 10), frame=FRAME_SYSTEM, up=(1, 0, 0))
+    assert above.elevation_deg == pytest.approx(90.0)
+
+
+def test_course_over_the_pole_falls_back_to_plus_x():
+    # Directly over the center, North is undefined: +X stands in.
+    course = course_between((0, 0, 10), (5, 0, 10))
+    assert course.bearing_deg == pytest.approx(0.0)
+    # Up along +X: +Y stands in instead.
+    course = course_between((10, 0, 0), (10, 5, 0), up=(1, 0, 0))
+    assert course.bearing_deg == pytest.approx(0.0)
+
+
+def test_course_rejects_a_zero_up_vector():
+    with pytest.raises(ValueError):
+        course_between((1, 0, 0), (2, 0, 0), up=(0, 0, 0))
 
 
 def test_course_between_coincident_points_is_defined():
     course = course_between((5, 5, 5), (5, 5, 5))
-    assert course == (0.0, 0.0, 0.0)
+    assert course == (0.0, 0.0, 0.0, 0.0, FRAME_GALACTIC)
+
+
+@pytest.mark.parametrize("bearing,mark,text", [
+    (0.0, 0.0, "000 mark 000"),
+    (45.4, 330.0, "045 mark 330"),
+    (359.6, 359.7, "000 mark 000"),
+    (7.0, 90.0, "007 mark 090"),
+])
+def test_format_course(bearing, mark, text):
+    assert format_course(bearing, mark) == text
 
 
 # Boss's tables (docs/design/navigation-frames.md, "Travel speeds"): factor,
@@ -281,6 +340,7 @@ def test_nav_between_same_sector(two_sector_galaxy):
 
     assert result["scope"] == "sector"
     assert result["direct"].distance_ly == pytest.approx(4.0)
+    assert result["direct"].frame == FRAME_SECTOR
     assert result["route"]["path"][0] == ids["a"][0]
     assert result["route"]["path"][-1] == ids["a"][2]
     assert result["route"]["distance_ly"] == pytest.approx(4.0)
@@ -306,6 +366,7 @@ def test_nav_between_cross_sector_galaxy_scope(two_sector_galaxy):
     # Sector A's system 0 sits at galaxy x=0; sector B's system 0 sits at
     # galaxy x=~19 (20 ly center - 1 ly local offset).
     assert result["direct"].distance_ly == pytest.approx(19.0, abs=1e-6)
+    assert result["direct"].frame == FRAME_GALACTIC
     assert result["route"] is not None
     assert result["route"]["path"][0] == ids["a"][0]
     assert result["route"]["path"][-1] == ids["b"][0]

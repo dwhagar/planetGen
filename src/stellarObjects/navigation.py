@@ -4,37 +4,43 @@
 Navigation
 ==========
 
-Pure math for the NAV feature: the course (distance, azimuth, altitude)
+Pure math for the NAV feature: the course (distance, bearing, mark)
 between two absolute 3D positions, and warp and fold travel times along that
 distance. This module has no idea where a position came from -- it doesn't
 know about sectors, systems, or the database -- callers (the NAV DB query
-layer, `stellarObjects.navigation` DB layer to come in a later task) are
-responsible for resolving two systems down to a comparable pair of `(x, y,
-z)` positions in the same frame before calling in here. That keeps this
-module usable for both same-sector course-plotting (sector-local positions,
-light-years) and cross-sector/galactic course-plotting (galaxy-frame
-positions, also converted to light-years by the caller) without needing to
-know which case it's in.
+layer, `queryDb.nav_between`) are responsible for resolving two endpoints
+down to a comparable pair of `(x, y, z)` light-year positions in the same
+frame, and naming that frame's center, before calling in here.
 
-Course convention (galactic-plane-relative)
+Course convention (nested reference frames)
 --------------------------------------------
-Azimuth and altitude are both measured relative to the galactic plane (the
-shared X-Y plane every position in this package's coordinate system --
-sector-local and galaxy-frame alike -- is defined against; see
-`docs/design/galaxy-coordinate-system.md`), not relative to whatever
-direction a ship happens to be facing:
+Boss's design, `docs/design/navigation-frames.md`. A course reads
+"bearing mark mark", both 000-359, where North (bearing 000) points from
+the ship toward the current frame's center, flattened onto the frame's
+reference plane:
 
-    - Azimuth: the angle of the destination's direction projected onto the
-      X-Y plane, measured counterclockwise from the +X axis (`atan2(dy,
-      dx)`), 0-360 degrees.
-    - Altitude: the angle of elevation of the destination above (positive)
-      or below (negative) the X-Y plane (`asin(dz / distance)`), -90 to +90
-      degrees.
+    - Galactic Standard Frame (`FRAME_GALACTIC`): center the galactic core
+      (galaxy-frame `(0, 0, 0)`), up galactic +Z. Used between sectors.
+    - Sector Local Frame (`FRAME_SECTOR`): center the sector cell's center
+      (sector-local `(0, 0, 0)`), up galactic +Z. Used inside one sector.
+    - System Local Frame (`FRAME_SYSTEM`): center the central star, up the
+      system's angular momentum (ecliptic normal). Used inside a system's
+      heliopause. NAV endpoints today are whole systems and phenomena, so
+      every course leaves the heliopause and this frame is never chosen;
+      `compute_course` supports it for in-system navigation.
 
-This is the same "azimuth, mark altitude" framing as a horizon-relative
-bearing on a planet's surface, just anchored to the galaxy's own plane
-instead of a local horizon -- appropriate since these coordinates already
-share one absolute frame across every sector.
+With D = target - ship, U the frame's unit up vector, N the ship-to-center
+vector with its U part removed (normalized), and E = N x U:
+
+    - Bearing = atan2(D.E, D.N), 0-360 degrees, 000 = North, 090 = East.
+    - Elevation = atan2(D.U, sqrt((D.N)^2 + (D.E)^2)), -90 to +90 degrees.
+    - Mark = elevation mod 360: 000-090 is up, 270-359 is down (270 is
+      straight down); nothing between 091 and 269 appears.
+
+"0 mark 0" therefore points straight at the frame's center. When the ship
+sits on the frame's up axis through the center (North undefined), North
+falls back to the frame's +X (the galaxy's existing zero meridian, ring
+slot 0), or +Y if the up vector is itself +X.
 
 Travel times
 ------------
@@ -57,18 +63,33 @@ from collections import namedtuple
 from . import program_constants
 from .utils import years_to_time_string
 
-Course = namedtuple("Course", ["distance_ly", "azimuth_deg", "altitude_deg"])
+FRAME_GALACTIC = "galactic"
+"""str: The Galactic Standard Frame (North = the galactic core)."""
+
+FRAME_SECTOR = "sector"
+"""str: The Sector Local Frame (North = the sector's center)."""
+
+FRAME_SYSTEM = "system"
+"""str: The System Local Frame (North = the central star)."""
+
+_UP = (0.0, 0.0, 1.0)
+_ORIGIN = (0.0, 0.0, 0.0)
+
+Course = namedtuple("Course", ["distance_ly", "bearing_deg", "mark_deg", "elevation_deg", "frame"])
 """
-The course from one position to another.
+The course from one position to another, in one reference frame.
 
 Attributes:
     distance_ly (float): Straight-line distance, in light-years.
-    azimuth_deg (float): 0-360 degrees, counterclockwise from +X in the
-                         galactic (X-Y) plane. Undefined (0.0) when the two
-                         positions coincide.
-    altitude_deg (float): -90 to +90 degrees, elevation above/below the
-                          galactic plane. Undefined (0.0) when the two
-                          positions coincide.
+    bearing_deg (float): 0-360 degrees, 0 toward the frame's center
+                         (flattened onto its plane), 90 to the East.
+    mark_deg (float): `elevation_deg` mod 360 (0-90 up, 270-360 down).
+    elevation_deg (float): -90 to +90 degrees above/below the frame's
+                           plane.
+    frame (str): `FRAME_GALACTIC`, `FRAME_SECTOR` or `FRAME_SYSTEM`.
+
+Bearing, mark and elevation are all `0.0` when the two positions coincide
+(direction is undefined at zero distance).
 """
 
 FoldLeg = namedtuple("FoldLeg", ["fold_factor", "velocity_multiple_of_c", "years", "formatted"])
@@ -91,50 +112,99 @@ Attributes:
 """
 
 
-# TODO(nav #33): courses become "bearing mark mark-angle", both 0-359, with
-# 0 mark 0 toward the frame's center. Rework on Boss's nested reference
-# frames (docs/design/navigation-frames.md has the model and pseudocode):
-# - Galactic Standard Frame between sectors: North = the galactic core.
-# - Sector Local Frame: North = the sector's barycenter, up = galactic +Z.
-# - System Local Frame: North = the central star/barycenter, up = the
-#   system's angular momentum (ecliptic normal). Hand-off: star -> sector
-#   past the heliopause (~120 AU); sector -> galactic when the course
-#   crosses a sector boundary (> 4 pc). compute_course(ship, target, frame,
-#   center, up) builds the N/E/U basis (N = center direction flattened onto
-#   the plane, E = N x U) and returns bearing = atan2(D.E, D.N) mod 360 and
-#   mark = atan2(D.U, horizontal).
-def course_between(origin, destination):
-    """
-    Computes the course from `origin` to `destination`: straight-line
-    distance plus galactic-plane-relative azimuth and altitude. See the
-    module docstring's "Course convention" section.
+def _sub(a, b):
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
-    Both positions must already be in the same frame and the same unit
-    (whichever the caller is working in -- sector-local or galaxy-frame,
-    light-years either way) -- this function does no unit conversion or
-    frame combination of its own.
+
+def _dot(a, b):
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _cross(a, b):
+    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+
+
+def _scale(v, k):
+    return (v[0] * k, v[1] * k, v[2] * k)
+
+
+def _norm(v):
+    return math.sqrt(_dot(v, v))
+
+
+def _flatten(v, up):
+    """`v` with its component along the unit vector `up` removed."""
+    return _sub(v, _scale(up, _dot(v, up)))
+
+
+def course_between(origin, destination, frame=FRAME_GALACTIC, center=_ORIGIN, up=_UP):
+    """
+    Computes the course from `origin` to `destination` in one reference
+    frame (see the module docstring's "Course convention" section) --
+    Boss's `compute_course`.
+
+    All three positions must be in the same coordinate system and unit
+    (light-years); this function does no unit conversion or frame
+    combination of its own.
 
     Args:
-        origin (tuple): The starting `(x, y, z)` position.
-        destination (tuple): The destination `(x, y, z)` position.
+        origin (tuple): The ship's `(x, y, z)` position.
+        destination (tuple): The target's `(x, y, z)` position.
+        frame (str): The frame's name, carried into the result. Defaults
+            to `FRAME_GALACTIC`.
+        center (tuple): The frame's center, which bearing 000 points at.
+            Defaults to `(0, 0, 0)`.
+        up (tuple): The frame's up vector (any nonzero length). Defaults
+            to +Z.
 
     Returns:
-        Course: The distance/azimuth/altitude from `origin` to
-               `destination`. Azimuth and altitude are both `0.0` if the
-               two positions coincide (direction is undefined at zero
-               distance).
+        Course: The distance, bearing, mark and elevation.
+
+    Raises:
+        ValueError: If `up` is the zero vector.
     """
-    dx = destination[0] - origin[0]
-    dy = destination[1] - origin[1]
-    dz = destination[2] - origin[2]
-    distance = math.sqrt(dx * dx + dy * dy + dz * dz)
+    up_length = _norm(up)
+    if up_length == 0:
+        raise ValueError("a frame's up vector can't be zero")
+    u_hat = _scale(up, 1 / up_length)
 
+    displacement = _sub(destination, origin)
+    distance = _norm(displacement)
     if distance == 0:
-        return Course(distance_ly=0.0, azimuth_deg=0.0, altitude_deg=0.0)
+        return Course(distance_ly=0.0, bearing_deg=0.0, mark_deg=0.0, elevation_deg=0.0, frame=frame)
 
-    azimuth = math.degrees(math.atan2(dy, dx)) % 360
-    altitude = math.degrees(math.asin(dz / distance))
-    return Course(distance_ly=distance, azimuth_deg=azimuth, altitude_deg=altitude)
+    north = _flatten(_sub(center, origin), u_hat)
+    # Relative to the ship-to-center distance, so a ship a few light-years
+    # from the axis of a galaxy-sized frame still counts as off-axis.
+    if _norm(north) <= 1e-9 * max(_norm(_sub(center, origin)), 1.0):
+        fallback = (0.0, 1.0, 0.0) if abs(u_hat[0]) > 0.9 else (1.0, 0.0, 0.0)
+        north = _flatten(fallback, u_hat)
+    n_hat = _scale(north, 1 / _norm(north))
+    e_hat = _cross(n_hat, u_hat)
+
+    d_north = _dot(displacement, n_hat)
+    d_east = _dot(displacement, e_hat)
+    d_up = _dot(displacement, u_hat)
+
+    bearing = math.degrees(math.atan2(d_east, d_north)) % 360.0
+    elevation = math.degrees(math.atan2(d_up, math.hypot(d_north, d_east)))
+    return Course(distance_ly=distance, bearing_deg=bearing, mark_deg=elevation % 360.0,
+                  elevation_deg=elevation, frame=frame)
+
+
+def format_course(bearing_deg, mark_deg):
+    """
+    A course as "000 mark 000": each angle rounded to a whole degree,
+    wrapped so 359.6 reads 000, zero-padded to three digits.
+
+    Args:
+        bearing_deg (float): 0-360 degrees.
+        mark_deg (float): 0-360 degrees (`Course.mark_deg`).
+
+    Returns:
+        str: e.g. "045 mark 330".
+    """
+    return f"{round(bearing_deg) % 360:03d} mark {round(mark_deg) % 360:03d}"
 
 
 def warp_speed_c(warp_factor):
