@@ -189,7 +189,16 @@ def test_system_page_lists_bodies_and_shows_generated_code(live_api, mysql_confi
     cfg.STAR_TYPE = "G2V"
     cfg.MOONS = True
     cfg.BINARY_SYSTEM = False
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    # The Habitable/Inhabited chips belong to planet rows, and a random
+    # system can come out with no planets at all (only belts), so draw
+    # until one has a planet.
+    system = StarSystem(system_config=cfg)
+    for _ in range(50):
+        if system.planets:
+            break
+        system = StarSystem(system_config=cfg)
+    assert system.planets
+    system_id = _db.save_system(system, cfg, config=mysql_config)
     query = {"db": mysql_config.database, "id": str(system_id)}
 
     result = run_page(live_api, "system.py", query=query)
