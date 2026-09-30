@@ -172,7 +172,9 @@ def get_star_evolutionary_profile(star):
 
 # TODO(distances #1): the shared unit-ladder formatter (km < AU < mpc < cpc
 # < ly < pc < kpc < Mpc < Gpc) belongs next to this so both the text output
-# and html/lib/fmt.py can use it; star radii stop being km-only.
+# and html/lib/fmt.py can use it; star radii stop being km-only. Parsec
+# units get a parenthetical: ly at 0.01 ly or more, else AU at 0.01 AU or
+# more, else km ("4.2 pc (13.7 ly)"); see docs/TODO.md item 1.
 def format_length_km(system_config: SystemConfig, value_km, threshold, round_digits, scientific_precision=None):
     """
     Formats a length in kilometers, switching between a comma-grouped plain

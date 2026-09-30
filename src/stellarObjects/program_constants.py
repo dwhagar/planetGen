@@ -1596,9 +1596,11 @@ SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE = 0.15
 # (Strigari et al. 2012, MNRAS 423:1856, order-of-magnitude population
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
-# TODO(phenomena #6): add the rogue-planet mass-function constants here
-# (shape, slope) and a tweakable rogue-planet rate in
-# PHENOMENON_RATE_PER_STAR_SYSTEM.
+# TODO(phenomena #6): replace this range with ROGUE_PLANET_MASS_BINS
+# (min M_earth, max M_earth, per-star rate): terrestrial 0.1-2 at 5,
+# sub-Neptune 2-20 at 1, Saturn-class 20-318 at 0.25, Jupiter-mass
+# 1-13 Mjup at 0.25 (Mroz et al. 2017 upper limit). Their sum is the
+# rogue-planet rate. See docs/design/interstellar-object-rates.md.
 ROGUE_PLANET_MASS_RANGE_JUPITER = (0.0005, 10.0)
 
 # Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
@@ -1927,13 +1929,15 @@ generated when asked for by name.
 # size is usually devoid of black holes, neutron stars, and visible
 # nebulae, exactly as it is of Alpha-Centauri-close neighbors (see
 # spaceSector.py's own module docstring).
-# TODO(phenomena #5): revise these from real statistics. Boss: "The most
-# common interstellar objects should be asteroid field and comets, look up
-# actual stats for how common each stellar object is". Today rogue planets
-# (0.1) outnumber everything and nebulae (2.5e-7 per system) are
-# effectively never generated, so none show on the Phenomena page or in
-# search. Keep every rate here as a named, tweakable constant. See
-# docs/TODO.md item 5 for the numbers to check.
+# TODO(phenomena #5): replace with PHENOMENON_DENSITY_PC3 (per pc^3 at
+# REFERENCE_STELLAR_DENSITY_PC3 = 0.14, scaled by the sector's own
+# stellar density) from Boss's 2026-09-30 research: terrestrial rogues
+# 0.7, Jupiter-mass rogues 0.035, brown dwarfs 0.03, runaway stars 2.1e-3,
+# neutron stars 1e-3, black holes 1e-4, planetary nebulae 3e-8, remnants
+# 1e-8, isolated asteroid fields 0; molecular clouds by filling factor,
+# hypervelocity stars by r_GC^-2, comets as notable ones at a design rate.
+# Add a PHENOMENON_RATE_SCALE per type (default 1.0). See docs/TODO.md
+# item 5 and docs/design/interstellar-object-rates.md.
 PHENOMENON_RATE_PER_STAR_SYSTEM = {
     # ~100 million stellar-mass black holes in the Milky Way is a commonly
     # cited estimate (e.g. Lamberts et al. 2018, MNRAS 480:2704,
