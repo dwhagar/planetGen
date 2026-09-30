@@ -22,7 +22,7 @@
 {{ map_html }}
 <section class="panel" aria-labelledby="phenomenon-data-heading">
   <h2 id="phenomenon-data-heading">{{ type_label }} Data</h2>
-  <div class="table-scroll"><table>
+  <div class="table-scroll" tabindex="0"><table>
     <tbody>
       {%- for label, text in fields %}
       <tr><th scope="row">{{ label }}</th><td>{{ text }}</td></tr>

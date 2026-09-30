@@ -44,7 +44,7 @@ def stars_html(stars):
     return f"""
 <section class="panel">
 <h2>Stars</h2>
-<div class="table-scroll"><table>
+<div class="table-scroll" tabindex="0"><table>
   <thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
 </table></div>
@@ -87,7 +87,7 @@ def _planets_table_html(planets, heading="Planets &amp; Moons"):
     return f"""
 <section class="panel">
 <h2>{heading}</h2>
-<div class="table-scroll"><table>
+<div class="table-scroll" tabindex="0"><table>
   <thead><tr><th>Name</th><th>Class</th><th>Type</th><th>Zone</th><th>Distance</th><th>Period</th><th>Gravity</th></tr></thead>
   <tbody>{''.join(planet_rows)}</tbody>
 </table></div>
@@ -109,7 +109,7 @@ def _belts_table_html(belts, heading="Asteroid Belts"):
     return f"""
 <section class="panel">
 <h2>{heading}</h2>
-<div class="table-scroll"><table>
+<div class="table-scroll" tabindex="0"><table>
   <thead><tr><th>Density</th><th>Distance</th><th>Composition</th></tr></thead>
   <tbody>{belt_rows}</tbody>
 </table></div>
@@ -136,7 +136,7 @@ def _comets_table_html(comets, heading="Comets"):
     return f"""
 <section class="panel">
 <h2>{heading}</h2>
-<div class="table-scroll"><table>
+<div class="table-scroll" tabindex="0"><table>
   <thead><tr><th>Name</th><th>Orbit</th><th>Perihelion</th><th>Eccentricity</th><th>Period</th><th>Activity</th><th>Composition</th></tr></thead>
   <tbody>{comet_rows}</tbody>
 </table></div>
