@@ -27,7 +27,9 @@ from that database (`SAMPLE_PARAMS` below); a new page with a parameter
 name not listed there fails with a message saying to add it. A page that
 answers anonymous visitors with a redirect is retried as a logged-in
 admin; one that still redirects (a forwarder such as `/search` while the
-search page is on CGI) is skipped.
+search page is on CGI) is skipped, as is a route that answers with
+something other than HTML (the JSON `/galaxy/tiles` the galaxy map's
+script fetches).
 
 Needs Playwright for Python with Chromium (`pip install playwright` and
 `python -m playwright install chromium`, or `PLAYWRIGHT_BROWSERS_PATH`
@@ -264,7 +266,11 @@ def page_targets(site_app, sample_params, admin_token):
     admin.set_cookie(SESSION_COOKIE_NAME, admin_token)
     for endpoint in PAGE_ENDPOINTS:
         path = _page_url(site_app, endpoint, sample_params)
-        status = anonymous.get(path).status_code
+        response = anonymous.get(path)
+        status = response.status_code
+        if status == 200 and response.mimetype != "text/html":
+            targets[endpoint] = (None, f"{path} is not an HTML page ({response.mimetype})")
+            continue
         if status == 200:
             targets[endpoint] = (path, False)
             continue
