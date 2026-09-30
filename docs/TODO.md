@@ -853,9 +853,8 @@ ideas remain, none with a known exploit.
 
 39. [ ] **Hardening:** consider a hashed lock file for Python
     dependencies (`setup.py` and `scripts/install-python-deps.sh` only set
-    lower bounds); a per-username login backoff on top of the per-IP
-    limit; and upper bounds on admin generation inputs (`radius_pc`,
-    `limit`, `max_ring`, `num_orbits`, the API's `radius_ly`).
+    lower bounds), and a per-username login backoff on top of the per-IP
+    limit.
 
 ### Known generation bugs (strict xfail tests)
 

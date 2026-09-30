@@ -33,6 +33,9 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from stellarObjects import log
+from stellarObjects.generationLimits import (
+    MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
+)
 
 from . import bp, jobs
 from .helpers import crumb, current_admin, db_name, page_url, render_page
@@ -110,10 +113,10 @@ def plan_argv(form):
 def random_start_argv(form):
     """`generate.py galaxy` arguments for a random start."""
     argv = []
-    radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1)
+    radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
     if radius is not None:
         argv += ["--radius-pc", str(radius)]
-    max_ring = _number(form, "max_ring", "Highest ring", int, minimum=0)
+    max_ring = _number(form, "max_ring", "Highest ring", int, minimum=0, maximum=MAX_GENERATE_RING)
     if max_ring is not None:
         argv += ["--max-ring", str(max_ring)]
     density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.001)
@@ -133,10 +136,10 @@ def galaxy_argv(form):
     if mode == "random":
         return random_start_argv(form), "around a random start"
     if mode == "ring":
-        ring = _number(form, "ring", "Ring", int, required=True, minimum=0)
+        ring = _number(form, "ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         layer = _number(form, "layer", "Layer", int)
         argv = ["--ring", str(ring), "--layer", str(layer or 0)]
-        limit = _number(form, "limit", "Limit", int, minimum=1)
+        limit = _number(form, "limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
         if limit is not None:
             argv += ["--limit", str(limit)]
         elif form.get("whole_ring"):
@@ -144,10 +147,11 @@ def galaxy_argv(form):
         return argv, f"in ring {ring} layer {layer or 0}"
     if mode == "center":
         sector_id = _number(form, "center_sector", "Sector ID", int, required=True, minimum=1)
-        radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1)
+        radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
+                         maximum=MAX_GENERATE_RADIUS_PC)
         return ["--center-sector", str(sector_id), "--radius-pc", str(radius)], f"around sector {sector_id}"
     if mode == "slot":
-        ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0)
+        ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         layer = _number(form, "slot_layer", "Layer", int) or 0
         slot = _number(form, "slot", "Slot", int, required=True, minimum=0)
         return (["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)],
@@ -287,6 +291,9 @@ def _page(admin, error=None, status=200, form=None):
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
         galaxy_modes=GALAXY_MODES,
+        max_radius_pc=MAX_GENERATE_RADIUS_PC,
+        max_ring=MAX_GENERATE_RING,
+        max_limit=MAX_GENERATE_LIMIT,
         error=error,
         form=form or {},
         status=status,

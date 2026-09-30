@@ -37,7 +37,7 @@
           {%- endfor %}
         </select>
       </label>
-      {{ field("num_orbits", "Orbital slots", kind="number", step="1", min=0, placeholder="random",
+      {{ field("num_orbits", "Orbital slots", kind="number", step="1", min=0, max=max_num_orbits, placeholder="random",
                hint="Planets and asteroid belts combined.") }}
     </div>
     <fieldset class="generate-mode">
