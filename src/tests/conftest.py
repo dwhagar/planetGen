@@ -196,3 +196,18 @@ def mediawiki_config():
 # Registers and loads the hypothesis profiles for every `test_fuzz_*.py`
 # file (see tests/fuzz_support.py) before any of them is collected.
 from tests import fuzz_support  # noqa: E402,F401
+
+
+@pytest.fixture(autouse=True)
+def _reset_login_backoff():
+    """The per-username login backoff (`api/loginbackoff.py`) is one
+    process-wide instance, so one test's failed logins would otherwise
+    lock the same username in every later test."""
+    try:
+        from api.loginbackoff import backoff
+    except ImportError:  # the API's dependencies aren't installed
+        yield
+        return
+    backoff.clear()
+    yield
+    backoff.clear()

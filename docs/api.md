@@ -327,7 +327,14 @@ forced credential change. They back the admin stats page
   username or password (same message either way — this never reveals
   whether a username exists; an unknown username costs the same password
   hash check as a wrong password, so timing doesn't reveal it either).
-  Rate-limited to 10/minute/IP.
+  Rate-limited to 10/minute/IP. Failed logins are also counted per
+  username, whatever address they come from: after 10, each further
+  failure locks that username for twice as long as the last (1 s, 2 s,
+  4 s, ... up to 15 minutes), and a login for a locked username is a
+  `429` with `{"error", "retry_after"}` and a `Retry-After` header,
+  before the password is checked. Unknown usernames are counted the same
+  way. A successful login, or an hour without failures, clears the count.
+  The count is kept in memory per worker process.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`

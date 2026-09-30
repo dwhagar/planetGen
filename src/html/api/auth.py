@@ -25,6 +25,7 @@ from stellarObjects import adminAuth
 from .authz import SESSION_COOKIE_NAME, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .limiter import limiter
+from .loginbackoff import backoff
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -36,7 +37,10 @@ LOGIN_RATE_LIMIT = "10 per minute"
 (`config.Config.RATELIMIT_DEFAULT`) -- the one endpoint in this API an
 attacker has any reason to hammer (password guessing against the one
 login form), so it gets its own tight per-IP limit
-regardless of how the global default is configured."""
+regardless of how the global default is configured. Failed logins are
+also counted per username (`loginbackoff.py`), which locks a username
+for a growing time after `loginbackoff.FREE_FAILURES` failures whatever
+addresses they came from."""
 
 
 def _admin_public_dict(admin):
@@ -77,6 +81,18 @@ def _clear_session_cookie(resp):
     resp.delete_cookie(SESSION_COOKIE_NAME, path="/")
 
 
+def _too_many_failures(wait):
+    """The 429 for a username locked by `loginbackoff`: the wait in the
+    body (`retry_after`) and the standard `Retry-After` header."""
+    resp = jsonify({
+        "error": f"too many failed logins for this username; try again in {wait} second{'' if wait == 1 else 's'}",
+        "retry_after": wait,
+    })
+    resp.status_code = 429
+    resp.headers["Retry-After"] = str(wait)
+    return resp
+
+
 @bp.route("/login", methods=["POST"])
 @limiter.limit(LOGIN_RATE_LIMIT)
 def login():
@@ -85,7 +101,9 @@ def login():
     the session cookie and returns `{"username", "must_change_credentials"}`.
     A wrong username or password both get the same generic 401 (see
     `adminAuth.authenticate`) -- this endpoint never reveals whether a
-    given username exists.
+    given username exists. A username locked by too many failures
+    (`loginbackoff.py`) gets a 429 with `retry_after` and `Retry-After`,
+    known or not.
     """
     body = require_json_body()
     username = body.get("username")
@@ -94,11 +112,22 @@ def login():
         raise ApiError("username and password are required")
     username = username.strip()
 
+    # Checked before the password, so a guess made during a lock never
+    # learns anything, right or wrong.
+    use_backoff = current_app.config.get("LOGIN_BACKOFF_ENABLED", True)
+    wait = backoff.retry_after(username) if use_backoff else 0
+    if wait:
+        return _too_many_failures(wait)
+
     conn = get_control_db()
     try:
         admin = adminAuth.authenticate(conn, username, password)
     except adminAuth.AuthError as exc:
+        if use_backoff:
+            backoff.record_failure(username)
         raise ApiError(str(exc), status_code=401)
+    if use_backoff:
+        backoff.record_success(username)
 
     raw_token = adminAuth.create_session(conn, admin["id"])
     resp = jsonify(_admin_public_dict(admin))

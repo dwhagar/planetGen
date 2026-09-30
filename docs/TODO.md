@@ -598,14 +598,6 @@ Low priority; nobody is waiting on these.
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
 
-### Security hardening (left from the 2026-09-30 audit)
-
-The audit's findings were fixed in the security PR; these hardening
-ideas remain, none with a known exploit.
-
-39. [ ] **Hardening:** a per-username login backoff on top of the per-IP
-    limit.
-
 ### Known generation bugs (strict xfail tests)
 
 Each has a test marked `xfail(strict=True)` that starts passing, and so

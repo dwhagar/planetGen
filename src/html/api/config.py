@@ -186,6 +186,10 @@ class Config:
     # `search`, `galaxy`, `galaxy_tiles`, `health`, and `other` for every
     # other page. An empty value turns that limit off.
     RATELIMIT_PAGES = dict(_config_file["ratelimit"].get("pages") or {})
+    # Per-username login backoff (`loginbackoff.py`). Always on in a real
+    # deployment; only a test harness that fails many logins on purpose
+    # turns it off.
+    LOGIN_BACKOFF_ENABLED = True
 
     # See `_wiki_config` above -- read by `routes.py`'s
     # `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki` to build
