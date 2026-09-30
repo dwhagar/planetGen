@@ -96,6 +96,25 @@ def _migrate_with_progress(config):
     return version
 
 
+def print_initial_admin_login(username, password):
+    """
+    Shows the first admin login `adminAuth.bootstrap_control_schema` just
+    seeded. This is the only time the password exists in plain text (only
+    its hash is stored), so it goes to the console once, on the run that
+    created it, and never again.
+    """
+    print()
+    print("=" * 72)
+    print("New admin login password (shown only this once):")
+    print(f"    username: {username}")
+    print(f"    password: {password}")
+    print("Log in at /login now and change both; the admin pages stay locked")
+    print("until you do. If you lose this password, see docs/api.md")
+    print("(\"Resetting the admin login\").")
+    print("=" * 72)
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Bring the configured MySQL database's schema_migrations bookkeeping up to date, "
@@ -134,16 +153,18 @@ def main():
     # The control schema (admin_users/admin_sessions/admin_api_keys/
     # admin_audit_log) is a separate schema from the content database just
     # migrated above (see control_schema.sql's header comment) -- ensured/
-    # seeded here too so a fresh deploy's default admin/password login
-    # exists without a separate manual step. Reuses this same account's
-    # host/user/password (the full-access account this script already
-    # runs as, same as install.sh's existing step 2) against the control
-    # schema's own name instead of the content database's.
+    # seeded here too so a fresh deploy's first admin login exists without
+    # a separate manual step. Reuses this same account's host/user/password
+    # (the full-access account this script already runs as, same as
+    # install.sh's existing step 2) against the control schema's own name
+    # instead of the content database's.
     try:
-        adminAuth.bootstrap_control_schema(control_mysql_config(config))
+        seeded = adminAuth.bootstrap_control_schema(control_mysql_config(config))
     except Exception as exc:
         print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
         sys.exit(1)
+    if seeded is not None:
+        print_initial_admin_login(*seeded)
     print("Control schema (admin logins) is up to date.")
 
 

@@ -157,13 +157,34 @@ def client(app):
 
 @pytest.fixture
 def token(app):
+    """A CSRF token for a visitor who isn't logged in (the login form)."""
     with app.app_context():
         return csrf._sign(NONCE)
 
 
+LOGGED_IN_SESSION = "token-value"
+
+
+@pytest.fixture
+def admin_token(app):
+    """A CSRF token for the session `_logged_in` sets: tokens are bound
+    to the login session (security #49)."""
+    with app.app_context():
+        return csrf._sign(NONCE, LOGGED_IN_SESSION)
+
+
 def _logged_in(client, fake, must_change=False):
     fake.admin = {"username": "boss", "must_change_credentials": must_change}
-    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+    client.set_cookie(SESSION_COOKIE_NAME, LOGGED_IN_SESSION)
+
+
+_FORM_TOKEN = re.compile(rf'name="{csrf.FIELD_NAME}" value="([^"]+)"')
+
+
+def _form_token(client, path):
+    """The CSRF token the page at `path` renders into its forms, as a
+    browser would submit it."""
+    return _FORM_TOKEN.search(client.get(path).get_data(as_text=True)).group(1)
 
 
 def _set_cookies(resp):
@@ -352,9 +373,9 @@ def test_logout_post_requires_csrf(client, fake):
     assert not fake.called("auth_logout")
 
 
-def test_logout_post_clears_cookie(client, fake, token):
+def test_logout_post_clears_cookie(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/logout", data={csrf.FIELD_NAME: token})
+    resp = client.post("/logout", data={csrf.FIELD_NAME: admin_token})
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/"
     assert SESSION_CLEAR in _set_cookies(resp)
@@ -366,15 +387,15 @@ def test_logout_post_clears_cookie(client, fake, token):
 def test_account_form(client, fake):
     _logged_in(client, fake, must_change=True)
     html = client.get("/account?next=/admin/stats").get_data(as_text=True)
-    assert "still uses the default username and password" in html
+    assert "still uses the first password the installer printed" in html
     assert 'name="new_username" value="boss"' in html
     assert '<input type="hidden" name="next" value="/admin/stats">' in html
     assert f'name="{csrf.FIELD_NAME}"' in html
 
 
-def test_account_change_relays_new_cookie(client, fake, token):
+def test_account_change_relays_new_cookie(client, fake, admin_token):
     _logged_in(client, fake, must_change=True)
-    resp = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": "password",
+    resp = client.post("/account", data={csrf.FIELD_NAME: admin_token, "current_password": "password",
                                          "new_username": "boss2", "new_password": "a-long-new-password",
                                          "next": "/admin/stats"})
     assert resp.status_code == 303
@@ -384,19 +405,19 @@ def test_account_change_relays_new_cookie(client, fake, token):
     assert call[2:] == ("password", "boss2", "a-long-new-password")
 
 
-def test_account_change_to_admin_flashes_a_message(client, fake, token):
+def test_account_change_to_admin_flashes_a_message(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": "x",
+    resp = client.post("/account", data={csrf.FIELD_NAME: admin_token, "current_password": "x",
                                          "new_username": "boss", "new_password": "a-long-new-password"})
     assert resp.headers["Location"] == "/admin"
     html = client.get("/admin").get_data(as_text=True)
     assert "Your username and password were changed." in html
 
 
-def test_account_policy_error_shows_inline(client, fake, token):
+def test_account_policy_error_shows_inline(client, fake, admin_token):
     _logged_in(client, fake)
     fake.change_error = apiclient.ApiError("planetGen API error (400): password is too short", status_code=400)
-    resp = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": "x",
+    resp = client.post("/account", data={csrf.FIELD_NAME: admin_token, "current_password": "x",
                                          "new_username": "<i>new</i>", "new_password": "short"})
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
@@ -438,9 +459,9 @@ def test_admin_keys_are_paged_with_get_links(client, fake):
     assert '<input type="hidden" name="keys_page" value="2">' in html
 
 
-def test_admin_create_key_is_post_redirect_get_and_shown_once(client, fake, token):
+def test_admin_create_key_is_post_redirect_get_and_shown_once(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "create_key", "label": "my script"})
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "create_key", "label": "my script"})
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/admin#new-key"
     assert "pgk_secret_value_123" not in resp.headers["Location"]
@@ -456,6 +477,72 @@ def test_admin_create_key_is_post_redirect_get_and_shown_once(client, fake, toke
     assert "pgk_secret_value_123" not in client.get("/admin").get_data(as_text=True)
 
 
+def test_new_key_flash_is_only_sent_back_to_admin(client, fake, admin_token):
+    """Security #50: the flash cookie carrying a new key's raw value is
+    scoped to `/admin` (the page that shows it), so the browser doesn't
+    send it with requests to the rest of the site."""
+    _logged_in(client, fake)
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "create_key", "label": "k"})
+    flash = [h for h in _set_cookies(resp) if h.startswith(f"{admin_pages.FLASH_COOKIE}=")][0]
+    assert "Path=/admin" in flash and "Path=/;" not in flash
+    for path in ("/logout", "/login", "/account"):
+        sent = client.get(path).request.headers.get("Cookie", "")
+        assert admin_pages.FLASH_COOKIE not in sent, path
+    page = client.get("/admin")
+    assert admin_pages.FLASH_COOKIE in page.request.headers.get("Cookie", "")
+    assert "pgk_secret_value_123" in page.get_data(as_text=True)
+    cleared = [h for h in _set_cookies(page) if h.startswith(f"{admin_pages.FLASH_COOKIE}=;")][0]
+    assert "Path=/admin" in cleared  # deleting must match the path it was set with
+    assert client.get_cookie(admin_pages.FLASH_COOKIE, path="/admin") is None
+
+
+def test_account_change_flash_is_scoped_to_admin(client, fake, admin_token):
+    _logged_in(client, fake)
+    resp = client.post("/account", data={csrf.FIELD_NAME: admin_token, "current_password": "x",
+                                         "new_username": "boss", "new_password": "a-long-new-password",
+                                         "next": "/admin"})
+    flash = [h for h in _set_cookies(resp) if h.startswith(f"{admin_pages.FLASH_COOKIE}=")][0]
+    assert "Path=/admin" in flash
+
+
+# --- CSRF tokens are bound to the login session (security #49) ---------------------------------
+
+def test_csrf_token_for_one_session_fails_for_another(app, client, fake):
+    _logged_in(client, fake)
+    with app.app_context():
+        other_session = csrf._sign(NONCE, "someone-elses-session")
+        anonymous = csrf._sign(NONCE)
+        mine = csrf._sign(NONCE, LOGGED_IN_SESSION)
+    for bad in (other_session, anonymous):
+        resp = client.post("/admin", data={csrf.FIELD_NAME: bad, "action": "revoke_key", "key_id": "1"})
+        assert resp.status_code == 400
+    assert not fake.called("auth_revoke_api_key")
+    resp = client.post("/admin", data={csrf.FIELD_NAME: mine, "action": "revoke_key", "key_id": "1"})
+    assert resp.status_code == 303
+    assert fake.called("auth_revoke_api_key")
+
+
+def test_logged_in_token_fails_without_the_session(client, fake, admin_token):
+    """A token rendered for a session can't be replayed with the session
+    cookie dropped (or before logging in)."""
+    resp = client.post("/login", data={csrf.FIELD_NAME: admin_token, "username": "boss",
+                                       "password": "long-password-1"})
+    assert resp.status_code == 400
+    assert not fake.called("auth_login")
+
+
+def test_rendered_token_follows_the_session(client, fake):
+    """Tokens are computed per render: the login form's token is for no
+    session, and after logging in the pages render one for the new
+    session."""
+    anonymous = _form_token(client, "/login")
+    _logged_in(client, fake)
+    logged_in = _form_token(client, "/admin")
+    assert anonymous != logged_in
+    resp = client.post("/admin", data={csrf.FIELD_NAME: logged_in, "action": "revoke_key", "key_id": "1"})
+    assert resp.status_code == 303
+
+
 def test_admin_forged_flash_is_ignored(client, fake):
     _logged_in(client, fake)
     client.set_cookie(admin_pages.FLASH_COOKIE, "eyJuZXdfa2V5Ijp7ImtleSI6ImZvcmdlZCJ9fQ.bad.sig")
@@ -463,37 +550,37 @@ def test_admin_forged_flash_is_ignored(client, fake):
     assert "forged" not in html and "New API key" not in html
 
 
-def test_admin_create_key_needs_label(client, fake, token):
+def test_admin_create_key_needs_label(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "create_key", "label": "  "})
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "create_key", "label": "  "})
     assert resp.headers["Location"] == "/admin#api-keys"
     assert not fake.called("auth_create_api_key")
     assert "Label is required." in client.get("/admin").get_data(as_text=True)
 
 
-def test_admin_revoke_key_returns_to_same_page(client, fake, token):
+def test_admin_revoke_key_returns_to_same_page(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "revoke_key", "key_id": "1",
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "revoke_key", "key_id": "1",
                                        "keys_page": "2"})
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/admin?keys_page=2#api-keys"
     assert fake.called("auth_revoke_api_key")[0][2] == 1
 
 
-def test_admin_revoke_bad_id(client, fake, token):
+def test_admin_revoke_bad_id(client, fake, admin_token):
     _logged_in(client, fake)
-    client.post("/admin", data={csrf.FIELD_NAME: token, "action": "revoke_key", "key_id": "x"})
+    client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "revoke_key", "key_id": "x"})
     assert not fake.called("auth_revoke_api_key")
     assert "Invalid key id." in client.get("/admin").get_data(as_text=True)
 
 
-def test_admin_api_error_is_flashed(client, fake, token, monkeypatch):
+def test_admin_api_error_is_flashed(client, fake, admin_token, monkeypatch):
     _logged_in(client, fake)
 
     def refuse(cookie_header, key_id):
         raise apiclient.ApiError("planetGen API error (403): <credentials> stale", status_code=403)
     monkeypatch.setattr(apiclient, "auth_revoke_api_key", refuse)
-    client.post("/admin", data={csrf.FIELD_NAME: token, "action": "revoke_key", "key_id": "1"})
+    client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "revoke_key", "key_id": "1"})
     html = client.get("/admin").get_data(as_text=True)
     assert "&lt;credentials&gt; stale" in html
 
@@ -505,9 +592,9 @@ def test_admin_post_requires_csrf(client, fake):
     assert not fake.called("auth_create_api_key")
 
 
-def test_admin_sets_wiki_url_in_configured_database(client, fake, token):
+def test_admin_sets_wiki_url_in_configured_database(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "set_sector_wiki_url", "sector_id": "5",
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "set_sector_wiki_url", "sector_id": "5",
                                        "wiki_url": "https://wiki.example/S5", "db": "someone_elses_db"})
     assert resp.headers["Location"] == "/admin#sector-wiki-link"
     assert fake.called("admin_set_sector_wiki_url") == [
@@ -515,19 +602,19 @@ def test_admin_sets_wiki_url_in_configured_database(client, fake, token):
     assert "Wiki link for sector 5 set to https://wiki.example/S5." in client.get("/admin").get_data(as_text=True)
 
 
-def test_admin_wiki_url_unknown_sector(client, fake, token, monkeypatch):
+def test_admin_wiki_url_unknown_sector(client, fake, admin_token, monkeypatch):
     _logged_in(client, fake)
 
     def missing(*args):
         raise apiclient.NotFoundError("Unknown sector 404")
     monkeypatch.setattr(apiclient, "admin_set_sector_wiki_url", missing)
-    client.post("/admin", data={csrf.FIELD_NAME: token, "action": "set_sector_wiki_url", "sector_id": "404"})
+    client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "set_sector_wiki_url", "sector_id": "404"})
     assert "Unknown sector 404" in client.get("/admin").get_data(as_text=True)
 
 
-def test_admin_unknown_action(client, fake, token):
+def test_admin_unknown_action(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "drop_tables"})
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "drop_tables"})
     assert resp.headers["Location"] == "/admin"
     assert "Unrecognized form action." in client.get("/admin").get_data(as_text=True)
 
@@ -606,10 +693,11 @@ def db_app(mysql_config):
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "test-secret"
 
-    adminAuth.bootstrap_control_schema(mysql_config)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
     _db.get_connection(mysql_config).close()
     application = create_app(RealConfig)
     application.testing = True
+    application.first_admin_password = first_password  # printed once by migrateDb on a real install
     return application
 
 
@@ -617,7 +705,7 @@ def _csrf_client(app):
     test_client = app.test_client()
     test_client.set_cookie(csrf.COOKIE_NAME, NONCE)
     with app.app_context():
-        return test_client, csrf._sign(NONCE)
+        return test_client, csrf._sign(NONCE)  # not logged in yet: bound to no session
 
 
 def test_real_login_account_admin_logout_flow(db_app, monkeypatch):
@@ -625,22 +713,28 @@ def test_real_login_account_admin_logout_flow(db_app, monkeypatch):
         raise AssertionError("HTTP transport used inside a Flask request")
     monkeypatch.setattr(apiclient, "_http_transport", no_http)
     client, token = _csrf_client(db_app)
+    first = db_app.first_admin_password
 
     assert _redirect(client.get("/admin")) == ("/login", "/admin")
 
-    resp = client.post("/login", data={csrf.FIELD_NAME: token, "username": "admin", "password": "password",
+    resp = client.post("/login", data={csrf.FIELD_NAME: token, "username": "admin", "password": first,
                                        "next": "/admin/stats"})
     assert resp.status_code == 303
     assert _redirect(resp) == ("/account", "/admin/stats")
     session_cookie = [h for h in _set_cookies(resp) if h.startswith(f"{SESSION_COOKIE_NAME}=")][0]
     assert "HttpOnly" in session_cookie and "SameSite=Strict" in session_cookie and "Path=/" in session_cookie
 
-    # Still on the default credentials: admin pages send us to /account.
+    # Still on the first credentials: admin pages send us to /account.
     assert _redirect(client.get("/admin")) == ("/account", "/admin")
-    bad = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": "password",
+    # The login changed the session, so the pre-login token is refused and
+    # the page now renders one for the new session (security #49).
+    assert client.post("/account", data={csrf.FIELD_NAME: token, "current_password": first,
+                                         "new_username": "boss", "new_password": "short"}).status_code == 400
+    token = _form_token(client, "/account")
+    bad = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": first,
                                         "new_username": "boss", "new_password": "short"})
     assert bad.status_code == 200
-    resp = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": "password",
+    resp = client.post("/account", data={csrf.FIELD_NAME: token, "current_password": first,
                                          "new_username": "boss", "new_password": "a-much-longer-password",
                                          "next": "/admin/stats"})
     assert resp.status_code == 303
@@ -651,8 +745,12 @@ def test_real_login_account_admin_logout_flow(db_app, monkeypatch):
     assert stats.status_code == 200
     assert "Server health" in stats.get_data(as_text=True)
 
+    token = _form_token(client, "/admin")  # the change re-issued the session
     resp = client.post("/admin", data={csrf.FIELD_NAME: token, "action": "create_key", "label": "ci"})
     assert resp.status_code == 303
+    flash = [h for h in _set_cookies(resp) if h.startswith(f"{admin_pages.FLASH_COOKIE}=")][0]
+    assert "Path=/admin" in flash  # the new key is never sent to the rest of the site
+    assert client.get_cookie(admin_pages.FLASH_COOKIE, path="/admin") is not None
     html = client.get("/admin").get_data(as_text=True)
     key = re.search(r'<p class="api-key-value">([^<]+)</p>', html).group(1)
     assert client.get("/api/auth/me", headers={"Authorization": f"Bearer {key}"}).status_code == 200
@@ -677,7 +775,8 @@ def test_real_login_keeps_rate_limit(db_app):
                     for _ in range(per_minute + 1)]
         assert statuses[:per_minute] == [200] * per_minute  # the form again, "Invalid username or password."
         assert statuses[-1] == 429
-        last = client.post("/login", data={csrf.FIELD_NAME: token, "username": "admin", "password": "password"})
+        last = client.post("/login", data={csrf.FIELD_NAME: token, "username": "admin",
+                                           "password": db_app.first_admin_password})
         assert last.status_code == 429
         assert "Too many login attempts" in last.get_data(as_text=True)
     finally:

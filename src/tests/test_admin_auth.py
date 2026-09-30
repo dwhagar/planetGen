@@ -50,7 +50,7 @@ def test_validate_password_policy_rejects_short_default_and_username_match():
     with pytest.raises(adminAuth.AuthError):
         adminAuth.validate_password_policy("short")
     with pytest.raises(adminAuth.AuthError):
-        adminAuth.validate_password_policy(adminAuth.DEFAULT_ADMIN_PASSWORD)
+        adminAuth.validate_password_policy("password")
     with pytest.raises(adminAuth.AuthError):
         adminAuth.validate_password_policy("MyUsername123", username="myusername123")
     # Long enough, not the default, not the username -- no exception.
@@ -58,7 +58,8 @@ def test_validate_password_policy_rejects_short_default_and_username_match():
 
 
 def test_bootstrap_control_schema_seeds_default_admin_once(mysql_config):
-    adminAuth.bootstrap_control_schema(mysql_config)
+    username, password = adminAuth.bootstrap_control_schema(mysql_config)
+    assert username == adminAuth.DEFAULT_ADMIN_USERNAME
 
     conn = _db.get_control_connection(mysql_config, ensure_schema=False)
     try:
@@ -67,7 +68,8 @@ def test_bootstrap_control_schema_seeds_default_admin_once(mysql_config):
         ).fetchone()
         assert row is not None
         assert row["must_change_credentials"] == 1
-        assert adminAuth.verify_password(adminAuth.DEFAULT_ADMIN_PASSWORD, row["password_hash"])
+        assert adminAuth.verify_password(password, row["password_hash"])
+        assert not adminAuth.verify_password("password", row["password_hash"])
 
         # Idempotent: a second bootstrap doesn't insert a second row or
         # reset an already-changed admin back to the default.
@@ -78,7 +80,8 @@ def test_bootstrap_control_schema_seeds_default_admin_once(mysql_config):
     finally:
         conn.close()
 
-    adminAuth.bootstrap_control_schema(mysql_config)
+    # Nothing seeded, so nothing to show (migrateDb prints only a new seed).
+    assert adminAuth.bootstrap_control_schema(mysql_config) is None
     conn = _db.get_control_connection(mysql_config, ensure_schema=False)
     try:
         count = conn.execute(
@@ -92,6 +95,131 @@ def test_bootstrap_control_schema_seeds_default_admin_once(mysql_config):
         assert still_changed == 0
     finally:
         conn.close()
+
+
+def test_bootstrap_seeds_a_random_first_password_meeting_the_policy(mysql_config):
+    """Security #39: no published default. Each fresh control schema gets
+    its own random password, long enough for the policy, stored only as a
+    hash; the seeded admin must still change it before doing anything."""
+    _username, first = adminAuth.bootstrap_control_schema(mysql_config)
+    adminAuth.validate_password_policy(first, username=adminAuth.DEFAULT_ADMIN_USERNAME)
+    assert len(first) >= adminAuth.MIN_PASSWORD_LENGTH
+    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    try:
+        row = conn.execute("SELECT * FROM admin_users").fetchone()
+        assert first not in row["password_hash"]
+        assert row["must_change_credentials"] == 1
+        admin = adminAuth.authenticate(conn, adminAuth.DEFAULT_ADMIN_USERNAME, first)
+        assert admin["must_change_credentials"] == 1
+        with pytest.raises(adminAuth.AuthError):
+            adminAuth.authenticate(conn, adminAuth.DEFAULT_ADMIN_USERNAME, "password")
+        # A second seed (as after deleting the admin rows) is a new password.
+        conn.execute("DELETE FROM admin_users")
+        conn.commit()
+    finally:
+        conn.close()
+    _username, second = adminAuth.bootstrap_control_schema(mysql_config)
+    assert second != first
+
+
+def test_bootstrap_rotates_an_older_install_still_on_the_published_password(mysql_config):
+    """An install seeded before random first passwords whose admin never
+    made the forced change is still on admin/password; the next
+    migrateDb run gives it a random password and ends its sessions. A
+    changed login, or one that no longer verifies, is left alone."""
+    adminAuth.bootstrap_control_schema(mysql_config)
+    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("UPDATE admin_users SET password_hash = ?", (adminAuth.hash_password("password"),))
+        conn.commit()
+        admin = adminAuth.authenticate(conn, adminAuth.DEFAULT_ADMIN_USERNAME, "password")
+        adminAuth.create_session(conn, admin["id"])
+    finally:
+        conn.close()
+    username, rotated = adminAuth.bootstrap_control_schema(mysql_config)
+    assert username == adminAuth.DEFAULT_ADMIN_USERNAME and rotated != "password"
+    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    try:
+        with pytest.raises(adminAuth.AuthError):
+            adminAuth.authenticate(conn, username, "password")
+        assert adminAuth.authenticate(conn, username, rotated)["must_change_credentials"] == 1
+        assert conn.execute("SELECT COUNT(*) AS n FROM admin_sessions").fetchone()["n"] == 0
+    finally:
+        conn.close()
+    assert adminAuth.bootstrap_control_schema(mysql_config) is None
+
+
+def test_migrate_db_prints_the_first_password_only_when_seeded(monkeypatch, capsys):
+    """Security #39: `migrateDb.py` shows the seeded login exactly once."""
+    import migrateDb
+
+    migrateDb.print_initial_admin_login("admin", "Zx9-random-first-pass")
+    out = capsys.readouterr().out
+    assert "username: admin" in out
+    assert "password: Zx9-random-first-pass" in out
+    assert "/login" in out and "change" in out
+
+    monkeypatch.setattr(migrateDb, "_migrate_with_progress", lambda config: migrateDb.SCHEMA_VERSION)
+    monkeypatch.setattr(migrateDb.sys, "argv", ["migrateDb.py"])
+    for seeded, shown in ((("admin", "Zx9-random-first-pass"), True), (None, False)):
+        monkeypatch.setattr(migrateDb.adminAuth, "bootstrap_control_schema", lambda config, s=seeded: s)
+        migrateDb.main()
+        out = capsys.readouterr().out
+        assert ("Zx9-random-first-pass" in out) is shown
+        assert ("New admin login password" in out) is shown
+
+
+def test_authenticate_unknown_username_still_checks_a_password_hash(control_conn, admin_id, monkeypatch):
+    """Security #44: an unknown username runs `verify_password` (against
+    a dummy hash made with `hash_password`) so it takes as long as a wrong
+    password for a real one."""
+    calls = []
+    real_verify = adminAuth.verify_password
+    monkeypatch.setattr(adminAuth, "verify_password",
+                        lambda password, password_hash: calls.append(password_hash) or real_verify(password, password_hash))
+    with pytest.raises(adminAuth.AuthError):
+        adminAuth.authenticate(control_conn, "no-such-admin", "irrelevant")
+    assert len(calls) == 1
+    dummy = calls[0]
+    assert dummy == adminAuth._get_dummy_password_hash()
+    # Same algorithm and cost as a real password hash.
+    real = adminAuth.hash_password("x" * 20)
+    assert dummy.split("$", 1)[0] == real.split("$", 1)[0]
+    # The dummy never matches a guess, including an empty one.
+    assert not real_verify("", dummy) and not real_verify("irrelevant", dummy)
+
+    calls.clear()
+    with pytest.raises(adminAuth.AuthError):
+        adminAuth.authenticate(control_conn, "tester", "not the password")
+    assert len(calls) == 1 and calls[0] != dummy
+
+
+def test_change_credentials_ends_every_session_but_keeps_api_keys(control_conn, admin_id):
+    """Security #45: a credential change logs out every session of that
+    admin (the API route then issues the caller a fresh one); API keys
+    and other admins' sessions are untouched."""
+    other = control_conn.execute(
+        "INSERT INTO admin_users (username, password_hash, must_change_credentials) VALUES (?, ?, 0)",
+        ("other-admin", adminAuth.hash_password("another-strong-password")),
+    ).lastrowid
+    control_conn.commit()
+    stolen = adminAuth.create_session(control_conn, admin_id)
+    current = adminAuth.create_session(control_conn, admin_id)
+    others_session = adminAuth.create_session(control_conn, other)
+    _key_id, raw_key = adminAuth.create_api_key(control_conn, admin_id, "ci")
+
+    # A failed change ends nothing.
+    with pytest.raises(adminAuth.AuthError):
+        adminAuth.change_credentials(control_conn, admin_id, "wrong", "tester", "a-strong-new-password")
+    assert adminAuth.validate_session(control_conn, stolen) is not None
+
+    adminAuth.change_credentials(control_conn, admin_id, "a-strong-test-password", "tester", "a-strong-new-password")
+    assert adminAuth.validate_session(control_conn, stolen) is None
+    assert adminAuth.validate_session(control_conn, current) is None
+    assert adminAuth.validate_session(control_conn, others_session)["id"] == other
+    assert adminAuth.validate_api_key(control_conn, raw_key)["id"] == admin_id
+    fresh = adminAuth.create_session(control_conn, admin_id)
+    assert adminAuth.validate_session(control_conn, fresh)["id"] == admin_id
 
 
 def test_authenticate_success_and_generic_failure_message(control_conn, admin_id):

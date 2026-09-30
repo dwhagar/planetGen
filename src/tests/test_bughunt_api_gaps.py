@@ -28,7 +28,7 @@ from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 # wiring -- pytest fixtures are just functions with @pytest.fixture, so
 # importing them makes them available to tests in this module too.
 from tests.test_api import (  # noqa: F401
-    admin_client, client, default_admin_client, seeded_sector,
+    admin_client, client, default_admin_client, first_admin_password, seeded_sector,
 )
 
 

@@ -110,12 +110,15 @@ def _register_security_headers(app):
     the pages' CSP and the rest). Everything else
     (API JSON, static files under the dev server) gets the same three
     basic headers with `Content-Security-Policy: default-src 'none'` --
-    a JSON body never needs to load anything.
+    a JSON body never needs to load anything. Either way a request that
+    came in over HTTPS also gets `web.STRICT_TRANSPORT_SECURITY`.
     """
-    from web import SECURITY_HEADERS
+    from web import SECURITY_HEADERS, STRICT_TRANSPORT_SECURITY
 
     @app.after_request
     def _add_headers(response):
+        if request.is_secure:
+            response.headers.setdefault(*STRICT_TRANSPORT_SECURITY)
         if response.mimetype == "text/html":
             for name, value in SECURITY_HEADERS:
                 response.headers.setdefault(name, value)
@@ -210,8 +213,10 @@ def _register_error_handlers(app):
         # raises a bare 429) the same way `404`/`405` above catch Flask's
         # own routing exceptions, without importing Flask-Limiter's
         # exception type here just to reference it once.
+        # /galaxy/tiles is fetched by the map's script, which wants JSON
+        # like the API; every other page gets the HTML error page.
         log.debug(f"Rate limit exceeded by {request.remote_addr} on {request.path}: {exc.description}")
-        if not _is_api_request():
+        if not _is_api_request() and request.endpoint != "web.galaxy_tiles":
             return render_error(429, "Too many requests. Please wait a minute and try again.")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429
 

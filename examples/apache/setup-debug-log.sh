@@ -9,10 +9,13 @@
 #   1. When debug is on (config.json's "debug": true, or PLANETGEN_DEBUG in
 #      this shell), creates the log file -- "log_file" in config.json,
 #      default /var/log/planetgen.log. An existing file is kept either way.
-#   2. Makes the file writable by every process that logs to it: the web
-#      interface (Apache's worker user) and whoever runs the generator from
-#      a shell (any login user, or root from a systemd timer). There's no
-#      one group all of those share, so the file is mode 0666.
+#   2. Makes the file owned by Apache's worker user and group, mode 0660:
+#      the web interface writes to it as that user, root (a systemd timer,
+#      sudo) can always write to it, and a login user who runs the
+#      generator from a shell must be in the Apache group to append to it
+#      (`sudo usermod -aG <apache group> <user>`, then log in again).
+#      Other users can neither read nor write it -- a world-writable log
+#      would let any local user forge or flood its entries.
 #   3. Installs /etc/logrotate.d/planetgen, so a debug log someone forgot to
 #      turn off can't fill the disk: rotated daily, or as soon as it passes
 #      100 MB, keeping 7 compressed copies. Where /etc/cron.hourly exists it
@@ -42,8 +45,11 @@ fi
 # Prints "<debug on: 1|0> <log file path>", read the same way the program
 # itself reads them (stellarObjects/appconfig.py). appconfig is loaded
 # straight from its file, not through the stellarObjects package, so this
-# works before the package's own dependencies are installed.
-read -r DEBUG_ON LOG_FILE < <("$PYTHON" - "$REPO_DIR" <<'PY'
+# works before the package's own dependencies are installed. This runs as
+# root, so -I keeps the current directory, user site-packages and PYTHON*
+# variables off sys.path (appconfig.py itself lives outside src/html, in
+# the root-owned part of the checkout).
+read -r DEBUG_ON LOG_FILE < <(cd / && "$PYTHON" -I - "$REPO_DIR" <<'PY'
 import importlib.util
 import os
 import sys
@@ -69,10 +75,9 @@ fi
 
 if [[ -e "$LOG_FILE" ]]; then
     chown "$APACHE_USER:$APACHE_GROUP" "$LOG_FILE"
-    # TODO(security #43): mode 0660 for the Apache group (here and in the
-    # logrotate create line below).
-    chmod 0666 "$LOG_FILE"
-    echo "Debug log: $LOG_FILE (owned by $APACHE_USER:$APACHE_GROUP, mode 0666)"
+    chmod 0660 "$LOG_FILE"
+    echo "Debug log: $LOG_FILE (owned by $APACHE_USER:$APACHE_GROUP, mode 0660;"
+    echo "  add CLI users who run the generator to the $APACHE_GROUP group so they can append)"
 elif [[ "$DEBUG_ON" != "1" ]]; then
     echo "Debug is off: no debug log to create (set \"debug\": true in config.json and re-run to create $LOG_FILE)."
 fi
@@ -92,7 +97,7 @@ $LOG_FILE {
     notifempty
     compress
     delaycompress
-    create 0666 $APACHE_USER $APACHE_GROUP
+    create 0660 $APACHE_USER $APACHE_GROUP
     su root root
 }
 EOF

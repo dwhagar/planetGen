@@ -32,6 +32,8 @@ from galaxymap import sector_quadrant
 from pagination import page_slice, parse_page
 from starmap import render_map_panel
 
+from api.common import is_http_url
+
 from . import bp
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
@@ -200,6 +202,10 @@ def sector(sector_id):
         errors[form] = message
 
     detail = apiclient.get_sector(db_name(), sector_id)
+    if detail.get("wiki_url") and not is_http_url(detail["wiki_url"]):
+        # Saved before the API checked it: never link to a javascript:/
+        # data: URL.
+        detail["wiki_url"] = None
     rows, map_systems = _contents(detail)
     page_rows, contents_page = page_slice(rows, parse_page(request.args.get("contents_page")))
 

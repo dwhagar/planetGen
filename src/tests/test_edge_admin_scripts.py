@@ -18,6 +18,7 @@ measured) rather than only their happy path through a subprocess:
 
 import json
 import os
+import re
 import signal
 import sys
 import threading
@@ -31,7 +32,7 @@ import jobRunner
 import migrateDb
 import resetDb
 import updateOrbits
-from stellarObjects import _db
+from stellarObjects import _db, adminAuth
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 
@@ -283,10 +284,26 @@ def control_schema(monkeypatch):
 
 def test_migrate_brings_a_fresh_database_current_and_is_idempotent(mysql_config, control_schema, monkeypatch, capsys):
     assert _run_main(migrateDb, mysql_argv(mysql_config), monkeypatch) == 0
+    first = capsys.readouterr().out
     assert _run_main(migrateDb, mysql_argv(mysql_config), monkeypatch) == 0
-    out = capsys.readouterr().out
-    assert out.count(f"schema v{_db.SCHEMA_VERSION} (current)") == 2
-    assert "Control schema (admin logins) is up to date." in out
+    second = capsys.readouterr().out
+    for out in (first, second):
+        assert f"schema v{_db.SCHEMA_VERSION} (current)" in out
+        assert "Control schema (admin logins) is up to date." in out
+
+    # Security #39: the first run seeds a random password and prints it
+    # once; the repeat run prints no password at all.
+    password = re.search(r"^\s*password: (\S+)$", first, re.M).group(1)
+    assert re.search(r"^\s*username: admin$", first, re.M)
+    assert "Log in at /login" in first
+    assert "password:" not in second and password not in second
+    assert password != "password" and len(password) >= adminAuth.MIN_PASSWORD_LENGTH
+    conn = _db.get_control_connection(_db.control_mysql_config(mysql_config), ensure_schema=False)
+    try:
+        admin = adminAuth.authenticate(conn, "admin", password)
+        assert admin["must_change_credentials"] == 1
+    finally:
+        conn.close()
 
 
 def _unreachable_argv():

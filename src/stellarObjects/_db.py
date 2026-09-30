@@ -479,8 +479,24 @@ with just one schema names it `planetgen` and never needs to set
 one with several names them `planetgen_<something>` to share the prefix."""
 
 
-# TODO(security #47): leave the control database out, and escape _ and %
-# in the LIKE prefix.
+def escape_like(value):
+    """
+    Escapes `\\`, `%` and `_` in `value` so it matches only itself inside
+    a SQL `LIKE` pattern -- paired with `ESCAPE '\\\\'` in the query (the
+    same convention as `queryDb._search_like_pattern`). Without it a
+    prefix like `planetgen_` would also match `planetgenX...`, and a `%`
+    would match anything.
+    """
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def configured_control_database():
+    """The control schema's name: `CONTROL_DB_ENV_VAR`, else
+    `config.json`'s `control_database`, else `DEFAULT_CONTROL_DATABASE`
+    (what `control_mysql_config` connects to)."""
+    return os.environ.get(CONTROL_DB_ENV_VAR) or load_config()["control_database"] or DEFAULT_CONTROL_DATABASE
+
+
 def list_databases(base_config=None, prefix=None):
     """
     Lists every MySQL schema on `base_config`'s server whose name starts
@@ -497,6 +513,11 @@ def list_databases(base_config=None, prefix=None):
             `database` field is ignored (this opens a connection with no
             specific schema selected). Defaults to `DEFAULT_MYSQL_CONFIG`.
         prefix (str, optional): Overrides the env-var-derived default.
+
+    The control schema (`configured_control_database`: admin logins,
+    sessions, API keys) is never listed, even when its name shares the
+    prefix (`planetgen_control` does by default), so no `?db=` can select
+    it either (`resolve_database`).
 
     Returns:
         list[dict]: One entry per matching schema, sorted by name, each
@@ -523,8 +544,8 @@ def list_databases(base_config=None, prefix=None):
     try:
         schema_rows = conn.execute(
             "SELECT schema_name AS name FROM information_schema.schemata "
-            "WHERE schema_name LIKE ? ORDER BY schema_name",
-            (f"{prefix}%",),
+            "WHERE schema_name LIKE ? ESCAPE '\\\\' AND schema_name <> ? ORDER BY schema_name",
+            (f"{escape_like(prefix)}%", configured_control_database()),
         ).fetchall()
 
         entries = []
@@ -639,7 +660,7 @@ def control_mysql_config(base_config=None):
             `CONTROL_DB_ENV_VAR` (or `DEFAULT_CONTROL_DATABASE`).
     """
     base_config = base_config or DEFAULT_MYSQL_CONFIG
-    database = os.environ.get(CONTROL_DB_ENV_VAR) or load_config()["control_database"] or DEFAULT_CONTROL_DATABASE
+    database = configured_control_database()
     return MySQLConfig(
         host=base_config.host, port=base_config.port,
         user=base_config.user, password=base_config.password, database=database,

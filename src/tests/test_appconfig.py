@@ -79,7 +79,10 @@ def test_default_config_matches_example_shape():
     assert set(appconfig.DEFAULT_CONFIG["mysql"].keys()) == {
         "host", "port", "user", "password", "database", "database_prefix",
     }
-    assert set(appconfig.DEFAULT_CONFIG["ratelimit"].keys()) == {"default", "storage_uri"}
+    assert set(appconfig.DEFAULT_CONFIG["ratelimit"].keys()) == {"default", "storage_uri", "pages"}
+    assert set(appconfig.DEFAULT_CONFIG["ratelimit"]["pages"].keys()) == {
+        "search", "galaxy", "galaxy_tiles", "health", "other",
+    }
     assert set(appconfig.DEFAULT_CONFIG["tile_cache"].keys()) == {"dir", "max_mb"}
     assert set(appconfig.DEFAULT_CONFIG["wiki"].keys()) == {"wikijs", "mediawiki"}
     assert set(appconfig.DEFAULT_CONFIG["wiki"]["wikijs"].keys()) == {"base_url", "api_token"}

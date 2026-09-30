@@ -13,6 +13,8 @@ from fmt import format_density, format_distance_ly
 from galaxymap import sector_quadrant
 from pagination import fetch_page, parse_page
 
+from api.limiter import page_limit
+
 from . import bp
 from . import searchpage
 from .helpers import crumb, db_name, page_url, pager, render_page, trusted_html
@@ -124,6 +126,7 @@ def systems():
 
 
 @bp.route("/search")
+@page_limit("search")
 def search():
     """
     Faceted search (was `search.py`): `?q=` searches every kind of name

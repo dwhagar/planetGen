@@ -60,6 +60,31 @@ default (see `tile_cache` in [`config.md`](config.md)).
 Pass: the folder exists and is owned by (or writable by) Apache's user,
 usually `www-data`. It fills up after you open the Galaxy Map.
 
+## 5a. Are the code and config.json locked down?
+
+    ls -ld src/html src/html/wsgi.py config.json /var/log/planetgen.log
+
+Pass: `src/html` and `wsgi.py` are owned by `root` with Apache's group
+(`www-data`), not by Apache's user; `config.json` is `-rw-r-----
+root www-data` (mode 640: it holds the database password and
+`secret_key`); the debug log, if there is one, is `-rw-rw----` owned by
+Apache's user and group (mode 660), never world-writable. If not: `sudo
+./update.sh`, or `sudo examples/apache/set-permissions.sh` and `sudo
+examples/apache/setup-debug-log.sh`. Anyone who runs the generator from a
+shell without `sudo` must be in Apache's group to read `config.json` and
+append to the debug log.
+
+## 5b. Has the first admin login been changed?
+
+Log in at `https://HOST/login`. On a fresh install the username is
+`admin` and the password is the random one `migrateDb.py` printed once
+during `install.sh` (there is no default password).
+
+Pass: after logging in you land on `/admin`, not the forced "Change
+Credentials" page. If you're sent to `/account`, choose a new username
+and password now. If nobody has the printed password, see "Resetting the
+admin login" in [`api.md`](api.md#resetting-the-admin-login).
+
 ## 6. Time the Galaxy Map's API calls
 
     time curl -s -o /dev/null "https://HOST/api/galaxy/stamp"

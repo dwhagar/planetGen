@@ -19,6 +19,7 @@ import time
 import pytest
 
 from api.app import create_app
+from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
 from stellarObjects import _db, adminAuth
 from stellarObjects._db import MySQLConfig
@@ -97,7 +98,15 @@ def client(mysql_config):
 
 
 @pytest.fixture
-def default_admin_client(mysql_config, client):
+def first_admin_password(mysql_config):
+    """Seeds the control schema (`bootstrap_control_schema`) and returns
+    the random first password it made -- there is no published default."""
+    _username, password = adminAuth.bootstrap_control_schema(mysql_config)
+    return password
+
+
+@pytest.fixture
+def default_admin_client(mysql_config, client, first_admin_password):
     """
     A `client` already logged in as the seeded default `admin`/`password`
     admin -- `must_change_credentials` is still set, so this is the
@@ -110,7 +119,6 @@ def default_admin_client(mysql_config, client):
     sets is carried automatically into every later request this fixture's
     caller makes -- no manual cookie plumbing needed in tests.
     """
-    adminAuth.bootstrap_control_schema(mysql_config)
     # The write endpoints intentionally run with ensure_schema=False (see
     # routes._write_conn) -- a real deployment's content schema already
     # exists by the time an admin account is in use. This throwaway test
@@ -118,7 +126,7 @@ def default_admin_client(mysql_config, client):
     # here the same way any first `sectorGen.py`/`migrateDb.py` run would.
     _db.get_connection(mysql_config).close()
     response = client.post("/api/auth/login", json={
-        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_admin_password,
     })
     assert response.status_code == 200
     assert response.get_json()["must_change_credentials"] is True
@@ -126,11 +134,11 @@ def default_admin_client(mysql_config, client):
 
 
 @pytest.fixture
-def admin_client(default_admin_client):
+def admin_client(default_admin_client, first_admin_password):
     """A `client` logged in and past the forced credential change -- ready
     to exercise real write/admin endpoints against."""
     response = default_admin_client.post("/api/auth/change-credentials", json={
-        "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "current_password": first_admin_password,
         "new_username": "test-admin",
         "new_password": TEST_ADMIN_PASSWORD,
     })
@@ -177,14 +185,14 @@ def admin_client_with_wiki(mysql_config, client_with_wiki):
     parameterizing `admin_client` itself, since fixtures can't take
     runtime arguments; kept to these two extra lines beyond what
     `default_admin_client`/`admin_client` already do."""
-    adminAuth.bootstrap_control_schema(mysql_config)
+    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
     _db.get_connection(mysql_config).close()
     response = client_with_wiki.post("/api/auth/login", json={
-        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_password,
     })
     assert response.status_code == 200
     response = client_with_wiki.post("/api/auth/change-credentials", json={
-        "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "current_password": first_password,
         "new_username": "test-admin-wiki",
         "new_password": TEST_ADMIN_PASSWORD,
     })
@@ -351,6 +359,16 @@ def test_systems_filters_by_star_type_and_sector(client, seeded_sector):
     assert body["total"] == 1
     assert body["items"][0]["is_binary"] == 0
     assert body["items"][0]["star_summary"].startswith("G2V")
+
+
+@pytest.mark.parametrize("star_type", ["%", "_", "_2V", "%V", "G%"])
+def test_systems_star_type_wildcards_match_only_themselves(client, seeded_sector, star_type):
+    # `%`/`_` in ?star_type= are literal characters, not LIKE wildcards:
+    # no star type contains them, so nothing matches.
+    _config, sector_id, _system_ids = seeded_sector
+    response = client.get("/api/systems", query_string={"sector_id": sector_id, "star_type": star_type})
+    assert response.status_code == 200
+    assert response.get_json()["total"] == 0
 
 
 def test_systems_rejects_invalid_sector_id(client):
@@ -652,6 +670,38 @@ def test_db_query_param_rejects_unknown_database(client):
     assert "error" in response.get_json()
 
 
+def test_the_control_database_is_never_listed_or_selectable(client, seeded_sector, monkeypatch):
+    """The control schema (admin logins, sessions, API keys) shares the
+    `planetgen` prefix by default (`planetgen_control`); it must not show
+    up in `/api/databases` or be reachable with `?db=`."""
+    mysql_config, _sector_id, _system_ids = seeded_sector
+    monkeypatch.setenv(_db.CONTROL_DB_ENV_VAR, mysql_config.database)
+
+    names = {item["name"] for item in client.get("/api/databases").get_json()["items"]}
+    assert mysql_config.database not in names
+    response = client.get(f"/api/sectors?db={mysql_config.database}")
+    assert response.status_code == 404
+    with pytest.raises(ValueError):
+        _db.resolve_database(mysql_config, mysql_config.database)
+
+    monkeypatch.delenv(_db.CONTROL_DB_ENV_VAR)
+    real_load_config = _db.load_config
+    monkeypatch.setattr(_db, "load_config", lambda: {**real_load_config(), "control_database": mysql_config.database})
+    assert mysql_config.database not in {entry["name"] for entry in _db.list_databases(mysql_config)}
+
+
+def test_list_databases_prefix_is_not_a_like_pattern(mysql_config):
+    """`_` and `%` in the prefix match only themselves."""
+    _db.get_connection(mysql_config).close()
+    name = mysql_config.database
+    assert name in {entry["name"] for entry in _db.list_databases(mysql_config, prefix=name)}
+    # With `_` as a wildcard, name[:-1] + "_" would match `name` itself.
+    assert _db.list_databases(mysql_config, prefix=name[:-1] + "_") == []
+    assert _db.list_databases(mysql_config, prefix="%") == []
+    assert _db.list_databases(mysql_config, prefix="planetgen%test") == []
+    assert _db.escape_like("a_b%c\\d") == "a\\_b\\%c\\\\d"
+
+
 def test_galaxy_sectors_excludes_unplaced_sectors(client, seeded_sector):
     # seeded_sector's own sector is never given a galaxy placement.
     response = client.get("/api/galaxy/sectors")
@@ -890,7 +940,7 @@ def test_login_success_sets_cookie_and_reports_must_change_credentials(default_a
     assert body["must_change_credentials"] is True
 
 
-def test_login_sets_cookie_scoped_to_root_path_not_api(mysql_config, client):
+def test_login_sets_cookie_scoped_to_root_path_not_api(first_admin_password, client):
     """
     Regression test: the session cookie's `Path` attribute must be `/`,
     not `/api`. The admin pages (`/admin`, `/account`, ...) live at the
@@ -900,9 +950,8 @@ def test_login_sets_cookie_scoped_to_root_path_not_api(mysql_config, client):
     immediately after a successful login. This asserts the cookie's scope
     directly.
     """
-    adminAuth.bootstrap_control_schema(mysql_config)
     response = client.post("/api/auth/login", json={
-        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": adminAuth.DEFAULT_ADMIN_PASSWORD,
+        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_admin_password,
     })
     assert response.status_code == 200
     set_cookie_headers = response.headers.get_all("Set-Cookie")
@@ -931,9 +980,9 @@ def test_change_credentials_requires_current_password(default_admin_client):
     assert response.status_code == 400
 
 
-def test_change_credentials_rejects_weak_password(default_admin_client):
+def test_change_credentials_rejects_weak_password(default_admin_client, first_admin_password):
     response = default_admin_client.post("/api/auth/change-credentials", json={
-        "current_password": adminAuth.DEFAULT_ADMIN_PASSWORD, "new_username": "someone", "new_password": "short",
+        "current_password": first_admin_password, "new_username": "someone", "new_password": "short",
     })
     assert response.status_code == 400
 
@@ -988,6 +1037,51 @@ def test_api_key_create_list_revoke(admin_client):
 
     response = admin_client.delete(f"/api/auth/api-keys/{created['id']}")
     assert response.status_code == 404
+
+
+def test_seeded_admin_has_no_published_default_password(first_admin_password, client):
+    """Security #39: `admin`/`password` no longer logs in on a fresh
+    install; only the random first password does."""
+    response = client.post("/api/auth/login", json={"username": "admin", "password": "password"})
+    assert response.status_code == 401
+    response = client.post("/api/auth/login", json={"username": "admin", "password": first_admin_password})
+    assert response.status_code == 200
+    assert response.get_json()["must_change_credentials"] is True
+
+
+def test_change_credentials_logs_out_other_sessions_but_not_the_caller(
+        mysql_config, first_admin_password, default_admin_client):
+    """Security #45: after a credential change, another browser's session
+    is gone, the browser that made the change gets a fresh session and
+    stays logged in, and the old session cookie no longer works."""
+    other = default_admin_client.application.test_client()
+    assert other.post("/api/auth/login", json={
+        "username": "admin", "password": first_admin_password}).status_code == 200
+    assert other.get("/api/auth/me").status_code == 200
+    old_cookie = default_admin_client.get_cookie(SESSION_COOKIE_NAME).value
+
+    response = default_admin_client.post("/api/auth/change-credentials", json={
+        "current_password": first_admin_password, "new_username": "renamed", "new_password": TEST_ADMIN_PASSWORD,
+    })
+    assert response.status_code == 200
+    assert default_admin_client.get_cookie(SESSION_COOKIE_NAME).value != old_cookie
+    assert default_admin_client.get("/api/auth/me").get_json()["username"] == "renamed"
+    assert other.get("/api/auth/me").status_code == 401
+    stale = default_admin_client.application.test_client()
+    stale.set_cookie(SESSION_COOKIE_NAME, old_cookie, domain="localhost")
+    assert stale.get("/api/auth/me").status_code == 401
+
+
+def test_change_credentials_keeps_api_keys(admin_client):
+    """Security #45: API keys survive a credential change."""
+    key = admin_client.post("/api/auth/api-keys", json={"label": "ci"}).get_json()["key"]
+    response = admin_client.post("/api/auth/change-credentials", json={
+        "current_password": TEST_ADMIN_PASSWORD, "new_username": "test-admin",
+        "new_password": TEST_ADMIN_PASSWORD + "-2",
+    })
+    assert response.status_code == 200
+    bearer = admin_client.application.test_client()
+    assert bearer.get("/api/auth/me", headers={"Authorization": f"Bearer {key}"}).status_code == 200
 
 
 def test_login_is_rate_limited(mysql_config, client):
@@ -1386,6 +1480,21 @@ def test_update_sector_wiki_url_manually_sets_and_clears(admin_client, seeded_se
 
     response = admin_client.patch(f"/api/sectors/{sector_id}", json={"wiki_url": None})
     assert response.status_code == 200
+    assert admin_client.get(f"/api/sectors/{sector_id}").get_json()["wiki_url"] is None
+
+
+@pytest.mark.parametrize("wiki_url", [
+    "javascript:alert(document.cookie)", "data:text/html,<script>alert(1)</script>", "ftp://wiki.example.com/x",
+    "//wiki.example.com/x", "https://", "wiki.example.com/Sector",
+])
+def test_update_sector_refuses_a_wiki_url_that_is_not_http(admin_client, seeded_sector, wiki_url):
+    """The sector page links to `wiki_url`, so only an http(s) URL with a
+    host is stored; the /admin form's manual link goes through this same
+    PATCH, so it's refused there too."""
+    _config, sector_id, _system_ids = seeded_sector
+    response = admin_client.patch(f"/api/sectors/{sector_id}", json={"wiki_url": wiki_url})
+    assert response.status_code == 400
+    assert "wiki_url" in response.get_json()["error"]
     assert admin_client.get(f"/api/sectors/{sector_id}").get_json()["wiki_url"] is None
 
 

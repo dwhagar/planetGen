@@ -914,7 +914,7 @@ class SpaceSector:
                   f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'})")
         return entry
 
-    # TODO(physics #58): also keep clear of _massive_neighbors() (black holes,
+    # TODO(physics #45): also keep clear of _massive_neighbors() (black holes,
     # neutron stars), as add_phenomenon promises.
     def _fine_tune_position(self, position, candidate_system,
                             max_iterations=program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS):

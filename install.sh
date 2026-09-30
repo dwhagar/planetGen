@@ -44,13 +44,14 @@
 #      update.sh shares.
 #   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `src/html/`/`db/` directories for Apache's worker
-#      user/group.
+#      user/group, and config.json to root:<apache group>, mode 640.
 #   7. Runs `examples/apache/create-cache-dir.sh` to create the Galaxy Map's
 #      on-disk tile cache (`tile_cache.dir` in config.json, default
 #      /var/cache/planetgen/tiles) owned by Apache's worker user.
 #   8. Runs `examples/apache/setup-debug-log.sh` to create the debug log
 #      (`log_file` in config.json, default /var/log/planetgen.log) when
-#      `debug` is on, writable by Apache and CLI users alike, and to
+#      `debug` is on, mode 0660 for Apache's user and group (CLI users
+#      must be in that group to append), and to
 #      install its logrotate config.
 #   9. Prints the one remaining manual step: copying and enabling the
 #      example virtual host config. This script never touches Apache's
@@ -129,7 +130,7 @@ ensure_apache_modules
 
 echo
 echo "== 6/8: Setting directory ownership/permissions for Apache =="
-# TODO(security #51): set config.json to root:<apache group>, mode 640.
+# Also sets config.json (DB password, secret_key) to root:<apache group>, 640.
 "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 echo
@@ -161,6 +162,11 @@ ServerName/TLS/logging are your call):
 
        sudo a2ensite planetgen
        sudo systemctl reload apache2
+
+  3. Log in at https://<ServerName>/login with the admin username and
+     password printed once in step 2/8 above, and change both (the
+     admin pages stay locked until you do). Lost it? See "Resetting the
+     admin login" in docs/api.md.
 
 See docs/apache-deployment.md and docs/html-interface.md for more detail.
 ------------------------------------------------------------------------

@@ -29,6 +29,8 @@ from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 from tilecache import TileRequestError, fetch_tiles
 
+from api.limiter import page_limit
+
 from . import bp
 from .helpers import crumb, db_name, page_url, pager, render_page, trusted_html
 
@@ -91,6 +93,7 @@ def _quadrant_sector_rows(sectors, quadrant, page):
 
 
 @bp.route("/galaxy")
+@page_limit("galaxy")
 def galaxy():
     """The 3D Galaxy Map plus the Quadrant table (`?quadrant=`, `?page=`)."""
     db = db_name()
@@ -139,6 +142,7 @@ def _json_error(message, status):
 
 
 @bp.route("/galaxy/tiles")
+@page_limit("galaxy_tiles")
 def galaxy_tiles():
     """
     JSON for the map's script: `?tiles=<level/ix/iy/iz,...>`, optional
