@@ -616,6 +616,7 @@ def nav():
         "scope": result["scope"],
         "direct": result["direct"]._asdict(),
         "warp_times": [leg._asdict() for leg in result["warp_times"]],
+        "fold_times": [leg._asdict() for leg in result["fold_times"]],
         "origin_position": result["origin_position"],
         "destination_position": result["destination_position"],
         "route": _route_for_json(result["route"]),
@@ -739,8 +740,7 @@ def galaxy_cell():
 def galaxy_tiles_route():
     """
     The 3D Galaxy Map's cube tiles -- `tiles` is a comma-separated list of
-    `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`), `density` an
-    optional single key to anchor a density cloud on. See
+    `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`). See
     `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
     tiles" section. Each tile's work is bounded, so no request can scan an
     unbounded region (the removed `/galaxy/view` route could). Called by
@@ -748,11 +748,10 @@ def galaxy_tiles_route():
     the ones it doesn't already have.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
-    density_key = request.args.get("density") or None
     if len(tile_keys) > MAX_TILES_PER_REQUEST:
         raise ApiError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
     try:
-        return jsonify(galaxy_tiles(get_db(), tile_keys, density_key))
+        return jsonify(galaxy_tiles(get_db(), tile_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
 

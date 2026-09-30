@@ -417,7 +417,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   empty space to center the view there and select it &middot; double-click to do the same AND zoom in (bigger
   steps while zoomed out, finer near a single sector) &middot; generated-sector dots colored by their own real
   stellar density (dim &rarr; bright, relative to the real local average) &middot; small dim dots &asymp; real,
-  not-yet-generated sector addresses &middot; shaded prisms &asymp; predicted density (brighter = denser)</span>
+  not-yet-generated sector addresses &middot; a solid of blocks shaded by predicted density (brighter = denser; Slice cuts it at the
+  focus's layer) &middot; wedge lines run out from the core,
+  labelled by bearing (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
 {shape_hint}
 <div class="starmap-layout">
@@ -426,17 +428,16 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons to
      zoom, click a dot or empty space to center the view there and select it, double-click to do the same and
      zoom in."></canvas>
-<!-- TODO(galaxy-map #11): the scale readout grows to three lines (1 px, 1 block, a 70 px bar in
-     sectors / pc / ly); give it room at 390 px and an aria-live="polite" so zoom changes are announced. -->
-<div class="starmap-scale" id="galaxymap3d-scale"></div>
+<div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">
   <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
   <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
-  <!-- TODO(galaxy-map #14): a Slice control goes here ("Cut at focus layer" / "Whole solid"), as a
-       real <button aria-pressed> or radio pair so it works by keyboard. -->
+  <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
+  <button type="button" class="starmap-btn" data-action="slice" aria-pressed="true"
+          title="Cut the solid at the focus layer (off: the whole solid)">Slice</button>
 </div>
 <aside class="starmap-info" id="galaxymap3d-info">
 <p class="hint">Click a sector dot for details, or double-click a dot or empty space to zoom in there.</p>

@@ -30,6 +30,11 @@
 #              (/opt/planetgen/venv, or PLANETGEN_VENV_DIR) with a
 #              planetgen-venv.pth file; both are removed here when found.
 #
+# Whatever pip installs on either path comes from requirements.lock: the
+# exact versions scripts/lock-requirements.sh pinned, checked against the
+# lock's sha256 hashes (--require-hashes), so nothing newer or altered on
+# PyPI gets in unnoticed. apt packages are apt's to verify.
+#
 # planetGen itself is never installed into site-packages: every entry
 # point adds the checkout's src/ to sys.path itself (generate.py,
 # src/html/lib/apiclient.py, src/html/wsgi.py, and src/migrateDb.py
@@ -73,6 +78,10 @@ MODE="${PLANETGEN_PYTHON_MODE:-auto}"
 LEGACY_VENV_DIR="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}"
 LEGACY_PTH_NAME="planetgen-venv.pth"
 WRAPPER=/usr/local/bin/planetgen
+# Exact versions and file hashes for everything pip installs
+# (scripts/lock-requirements.sh writes it).
+LOCK="$SCRIPT_DIR/requirements.lock"
+LOCK_PINS="$SCRIPT_DIR/scripts/lock_pins.py"
 
 # Every runtime requirement install.sh needs: setup.py's install_requires
 # plus its 'api' extra, as "<pip requirement> <apt package>". Keep in step
@@ -200,24 +209,20 @@ apt_install() {
 # sys.path, so each shadows apt's copy without touching it, and
 # everything else apt provides stays apt's. A managed Python also needs
 # --break-system-packages for pip to write there at all.
+#
+# scripts/lock_pins.py does the resolving, holding everything pip adds to
+# the version in requirements.lock, and the install uses --require-hashes,
+# so pip only accepts the exact files the lock names.
 pip_install_system() {
     if ! "$PYTHON" -m pip --version >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-pip || true
     fi
-    local flags=() plan pins=()
+    local flags=() hashed status=0 pins=()
     [[ "$MODE" == managed ]] && flags+=(--break-system-packages)
-    plan="$(mktemp)"
-    if "$PYTHON" -m pip install "${flags[@]}" --dry-run --quiet --report "$plan" "$@"; then
-        mapfile -t pins < <("$PYTHON" - "$plan" <<'EOF'
-import json
-import sys
-
-with open(sys.argv[1], encoding="utf-8") as f:
-    for item in json.load(f)["install"]:
-        print(f"{item['metadata']['name']}=={item['metadata']['version']}")
-EOF
-        )
-        rm -f "$plan"
+    hashed="$(mktemp)"
+    "$PYTHON" -I "$LOCK_PINS" resolve "$LOCK" "$hashed" ${flags[@]+"${flags[@]}"} -- "$@" || status=$?
+    if (( status != 3 )); then
+        (( status == 0 )) && mapfile -t pins < <(awk '{print $1}' "$hashed")
         if (( ${#pins[@]} )); then
             # An older copy pip itself installed (outside apt's
             # directory) is pip's to replace, and would otherwise leave its
@@ -240,14 +245,17 @@ EOF
                 "$PYTHON" -m pip uninstall -y "${flags[@]}" "${owned[@]}" || true
             fi
             echo "Installing with pip into the system Python: ${pins[*]}"
-            "$PYTHON" -m pip install "${flags[@]}" --ignore-installed --no-deps "${pins[@]}" || true
+            "$PYTHON" -m pip install "${flags[@]}" --ignore-installed --no-deps --require-hashes -r "$hashed" || true
         fi
     else
         # pip older than 22.2 has no --report: the same --ignore-installed
-        # the unmanaged install uses, dependencies and all.
-        rm -f "$plan"
-        "$PYTHON" -m pip install "${flags[@]}" --ignore-installed "$@" || true
+        # the unmanaged install uses, dependencies and all, held to the
+        # locked versions (though not their hashes, which would need
+        # every dependency listed up front).
+        "$PYTHON" -I "$LOCK_PINS" constraints "$LOCK" > "$hashed"
+        "$PYTHON" -m pip install "${flags[@]}" --ignore-installed -c "$hashed" "$@" || true
     fi
+    rm -f "$hashed"
 }
 
 # Earlier versions put the fallback libraries in a venv that a .pth file
@@ -427,8 +435,13 @@ install_unmanaged() {
     # standard workaround for this well-known Debian/Ubuntu packaging class
     # of error, not specific to blinker (a future dependency bump could hit
     # the same wall with some other apt-provided package).
+    #
+    # The libraries come from requirements.lock with --require-hashes, so
+    # pip installs exactly the locked files, and planetGen itself after
+    # them with --no-deps, since a local directory has no hash to check.
     "$PYTHON" -m pip install --upgrade pip
-    "$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed "${SCRIPT_DIR}[api]"
+    "$PYTHON" -m pip install --ignore-installed --require-hashes -r "$LOCK"
+    "$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed --no-deps "$SCRIPT_DIR"
     # Replaces pip's own console script, which would run the copy pip
     # just installed and go stale after the next update.sh.
     write_wrapper

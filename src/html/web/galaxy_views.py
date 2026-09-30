@@ -105,7 +105,7 @@ def galaxy():
     galaxy_shape = apiclient.get_galaxy_shape(db)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    initial_view = fetch_tiles(db, initial_tile_request(max_radius), None)
+    initial_view = fetch_tiles(db, initial_tile_request(max_radius))
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
@@ -147,16 +147,15 @@ def _json_error(message, status):
 @page_limit("galaxy_tiles")
 def galaxy_tiles():
     """
-    JSON for the map's script: `?tiles=<level/ix/iy/iz,...>`, optional
-    `&density=<key>` and `&stamp=<the browser cache's stamp>`. Returns
+    JSON for the map's script: `?tiles=<level/ix/iy/iz,...>` and optional
+    `&stamp=<the browser cache's stamp>`. Returns
     `tilecache.fetch_tiles`' payload; a malformed request is a 400, an
     API failure a 502, both as `{"error": ...}` JSON.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
-    density_key = request.args.get("density") or None
     known_stamp = request.args.get("stamp") or None
     try:
-        payload = fetch_tiles(db_name(), tile_keys, density_key, known_stamp)
+        payload = fetch_tiles(db_name(), tile_keys, known_stamp)
     except TileRequestError as exc:
         return _json_error(str(exc), 400)
     except apiclient.NotFoundError as exc:

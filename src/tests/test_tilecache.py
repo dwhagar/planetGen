@@ -41,11 +41,10 @@ class FakeApi:
             "full": full, "tiles": [] if full else list(self.changed),
         }
 
-    def get_galaxy_tiles(self, db, tile_keys, density_key=None):
-        self.tile_calls.append((list(tile_keys), density_key))
+    def get_galaxy_tiles(self, db, tile_keys):
+        self.tile_calls.append(list(tile_keys))
         return {
             "tiles": {key: {"placed": [{"id": 1, "x": 1.23456789, "y": 0.0, "z": 0.0}], "planned": []} for key in tile_keys},
-            "density": {"key": density_key, "points": [{"x": 1.0, "y": 2.0, "z": 3.0, "relative_density": 0.5}]} if density_key else None,
             "edge_pc": 3.526, "has_shape": True,
         }
 
@@ -62,25 +61,24 @@ def api(monkeypatch, tmp_path):
 
 
 def test_second_request_is_served_from_disk(api):
-    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"], "5/1/1/1")
+    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
     assert first["cached"] == 0
     assert first["stamp"] == api.stamp
     assert first["tiles"]["12/1/2/3"]["placed"][0]["x"] == 1.2346  # rounded for size
-    assert first["density"]["points"]
+    assert "density" not in first
     assert len(api.tile_calls) == 1
 
-    second = tilecache.fetch_tiles("mydb", ["12/1/2/4", "12/1/2/3"], "5/1/1/1")
-    assert second["cached"] == 3
+    second = tilecache.fetch_tiles("mydb", ["12/1/2/4", "12/1/2/3"])
+    assert second["cached"] == 2
     assert len(api.tile_calls) == 1  # no API call for tiles at all
     assert second["tiles"] == first["tiles"]
-    assert second["density"] == first["density"]
     assert second["edge_pc"] == 3.526 and second["has_shape"] is True
 
 
 def test_only_missing_tiles_reach_the_api(api):
     tilecache.fetch_tiles("mydb", ["12/1/2/3"])
     tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/9/9/9"])
-    assert api.tile_calls[-1] == (["12/9/9/9"], None)
+    assert api.tile_calls[-1] == ["12/9/9/9"]
 
 
 def test_stamp_is_remembered_then_rechecked(api, monkeypatch):
@@ -120,7 +118,7 @@ def test_only_changed_tiles_are_dropped(api, monkeypatch):
     assert result["stamp"] == "00000000000000bb"
     assert result["generation"] == first["generation"] == "00000000000000aa"
     assert result["cached"] == 1
-    assert api.tile_calls[-1] == (["12/1/2/3"], None)
+    assert api.tile_calls[-1] == ["12/1/2/3"]
 
 
 def test_browser_is_told_which_tiles_changed_since_its_stamp(api, monkeypatch):
@@ -169,16 +167,15 @@ def test_databases_are_cached_separately(api):
     assert len(api.tile_calls) == 2
 
 
-@pytest.mark.parametrize("keys,density", [
-    (["nope"], None),
-    (["13/0/0/0"], None),
-    (["1/2/0/0"], None),
-    ([], "garbage"),
-    ([f"12/{i}/0/0" for i in range(129)], None),
+@pytest.mark.parametrize("keys", [
+    ["nope"],
+    ["13/0/0/0"],
+    ["1/2/0/0"],
+    [f"12/{i}/0/0" for i in range(129)],
 ])
-def test_bad_requests_are_rejected_before_any_api_call(api, keys, density):
+def test_bad_requests_are_rejected_before_any_api_call(api, keys):
     with pytest.raises(tilecache.TileRequestError):
-        tilecache.fetch_tiles("mydb", keys, density)
+        tilecache.fetch_tiles("mydb", keys)
     assert api.tile_calls == [] and api.stamp_calls == 0
 
 
