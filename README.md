@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 6.2.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 6.4.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -71,6 +71,7 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `--system-file`, `-f <path>`: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.
 *   `--num-orbits <int>`: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.
 *   `--markdown`, `-m`: Formats the stored write-up in Markdown instead of the default wikitext.
+*   `--output`, `-o <file>`: Writes the system's page (wikitext, or Markdown with `--markdown`) to `file` instead of saving the system to the database; `-` writes it to stdout. The admin site's one-off system page (`/admin/generate/system`) does the same from the browser.
 *   `--star-type <type>`: Force the generation of a specific star type (e.g., G2V).
 *   `--name <name>`: Specifies a name for the star system, overriding the default random generation.
 *   `--age <young|old>`: Specifies the age of the star system (young or old).
