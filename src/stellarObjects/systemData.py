@@ -31,6 +31,7 @@ from .planetData import Planet
 from .starData import Star
 from .utils import (
     calculate_reflex_offset,
+    format_distance_au,
     disk_surface_density_scale,
     isolation_mass_kg,
     mmsn_surface_density_gcm2,
@@ -1872,17 +1873,12 @@ class StarSystem:
         else:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
-        perimeter_ly = self.star.system_perimeter * physical_constants.AU_TO_LY
-        heliosphere_ly = self.star.heliosphere_radius * physical_constants.AU_TO_LY
-        if heliosphere_ly < 0.1:
-            heliosphere_text = f"{self.star.heliosphere_radius:.4f} AU"
-        else:
-            heliosphere_text = f"{heliosphere_ly:.4f} light-years"
+        heliosphere_text = format_distance_au(self.star.heliosphere_radius)
 
         system_summary_sentences.append(
             f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
         system_summary_sentences.append(
-            f"Beyond this, the star's gravitational influence extends out to a distance of {perimeter_ly:.2f} light-years, marking the ultimate edge of the system.")
+            f"Beyond this, the star's gravitational influence extends out to a distance of {format_distance_au(self.star.system_perimeter)}, marking the ultimate edge of the system.")
 
         return to_paragraph(system_summary_sentences)
 

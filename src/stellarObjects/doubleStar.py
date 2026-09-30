@@ -18,15 +18,15 @@ import math
 import random
 
 from .config import SystemConfig
-from . import physical_constants, program_constants
+from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
-                    format_galactic_orbit, format_relative_to_sol,
+                    format_distance_au, format_distance_km, format_galactic_orbit, format_relative_to_sol,
                     minimum_update_interval_years, orbital_position_au,
-                    properties_to_string, to_scientific_notation,
+                    properties_to_string,
                     years_to_time_string)
 
 class BinaryStarProxy(Star):
@@ -349,13 +349,7 @@ class BinaryStarProxy(Star):
         mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
-        hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU))
-        hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU))
-
-        # Calculate separation in kilometers and format with scientific notation
-        separation_km = self.binary_separation_au * physical_constants.AU_TO_KM
-        separation_km_scientific = to_scientific_notation(self.system_config, separation_km)
-        separation_string = f"{separation_km_scientific} km ({self.binary_separation_au:.2f} AU)"
+        separation_string = format_distance_au(self.binary_separation_au)
 
         orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
         mutual_orbit_string = (
@@ -375,8 +369,8 @@ class BinaryStarProxy(Star):
             + self.binary_secondary_position_z ** 2
         ) * physical_constants.AU_TO_KM
         wobble_string = (
-            f"{self._primary.name}: {to_scientific_notation(self.system_config, primary_offset_km)} km, "
-            f"{self._secondary.name}: {to_scientific_notation(self.system_config, secondary_offset_km)} km "
+            f"{self._primary.name}: {format_distance_km(primary_offset_km)}, "
+            f"{self._secondary.name}: {format_distance_km(secondary_offset_km)} "
             f"from the barycenter"
         )
 
@@ -384,7 +378,7 @@ class BinaryStarProxy(Star):
             "type": self.type,
             "mass": mass_string,
             "lum": lum_string,
-            "hab": f"Between {hab_lower} and {hab_upper} AU",
+            "hab": f"Between {format_distance_au(self.habitable_zone[0])} and {format_distance_au(self.habitable_zone[1])}",
             "separation": separation_string,
             "mutual_orbit": mutual_orbit_string,
             "wobble": wobble_string,

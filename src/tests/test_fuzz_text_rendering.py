@@ -208,7 +208,8 @@ def test_nearest_neighbors_location_escapes_every_name(location, neighbors):
 @given(distance=st.one_of(st.none(), any_float))
 def test_format_distance_ly_never_raises(distance):
     out = fmt.format_distance_ly(distance)
-    assert out == "&ndash;" if distance is None else out.endswith(" ly")
+    units = (" km", " AU", " ly", " ly)", " AU)", " km)")
+    assert out == "&ndash;" if distance is None else out.endswith(units)
 
 
 @given(edge=st.floats(min_value=1e-3, max_value=1e6), count=st.integers(0, 10**7))
@@ -393,7 +394,7 @@ def test_star_formatters_never_raise_on_finite_values(value):
 @given(value=nonzero_finite, is_moon=st.booleans())
 def test_format_body_distance_never_raises_on_finite_values(value, is_moon):
     out = tabledisplay.format_body_distance(value, is_moon)
-    assert out.endswith((" km", " AU", "light-years", " AU)"))
+    assert out.endswith((" km", " AU", " ly", " ly)", " AU)", " km)"))
 
 
 @given(years=st.floats(min_value=0, max_value=1e9))

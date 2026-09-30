@@ -253,7 +253,8 @@ def tag_groups(state, facets):
     return groups
 
 
-# TODO(distances #1): use the unit-ladder helper instead of km-only.
+# Body radii are the distance ladder's exception (always km), and these
+# chips echo the km the visitor typed, so they stay plain km.
 def _km(value):
     return f"{value:,.0f} km"
 

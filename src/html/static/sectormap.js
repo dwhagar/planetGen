@@ -37,6 +37,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
@@ -818,13 +819,6 @@ function initStarmap(canvasEl, data) {
     return niceMantissa * magnitude;
   }
 
-  // TODO(distances #1): use the shared unit-ladder formatter.
-  function formatLy(value) {
-    if (value >= 100) return Math.round(value) + " ly";
-    if (value >= 1) return Math.round(value * 10) / 10 + " ly";
-    return Math.round(value * 1000) / 1000 + " ly";
-  }
-
   // Unlike the old CSS version (a fixed 320px scene scaled by a flat CSS
   // `zoom` factor, so ly-per-pixel was that one ratio divided by `zoom`),
   // a real perspective camera's screen-pixels-per-world-unit depends on
@@ -847,7 +841,7 @@ function initStarmap(canvasEl, data) {
       return;
     }
     scaleBarEl.style.width = (niceLy / lyPerScreenPx).toFixed(1) + "px";
-    scaleLabelEl.textContent = formatLy(niceLy);
+    scaleLabelEl.textContent = formatDistanceLy(niceLy);
   }
 
   // --- Resize/render loop ----------------------------------------------

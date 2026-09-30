@@ -272,7 +272,7 @@ def test_render_map_panel_draws_an_accreting_black_hole_point():
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "blackHoleAccreting"
     assert cloud["typeLabel"] == "Black Hole (Accreting)"
-    assert cloud["radiusText"] == "0.00 ly"
+    assert cloud["radiusText"] is None  # a point has no radius row
 
 
 def test_render_map_panel_draws_a_quasar_point():

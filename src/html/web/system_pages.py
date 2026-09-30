@@ -19,20 +19,18 @@ every link is a plain GET link (`page_url`).
 
 from flask import abort, redirect, request
 import apiclient
-from fmt import nearest_neighbors_location, linkify_location
+from fmt import (
+    format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
+)
 from pagination import fetch_page, parse_page
 from phenomenonmap import render_phenomenon_map_panel
 from systemmap import render_system_map_panel
 from systempage import bodies_html, stars_html, system_list_html
+from tabledisplay import format_star_radius, to_plain_text
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 from .nav_page import endpoint, nav_url
-
-try:
-    from stellarObjects.utils import pc_to_ly
-except ImportError:  # pragma: no cover -- the package is always importable next to the API
-    pc_to_ly = None
 
 # ---------------------------------------------------------------------
 # /system/<id>
@@ -251,7 +249,7 @@ def phenomena():
         "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
         "type": TYPE_LABELS.get(row["type"], row["type"]),
         "descriptor": _title_case(row["descriptor"]),
-        "radius": f"{row['radius_ly']:,.2f} ly" if row["radius_ly"] else None,
+        "radius": format_distance_ly(row["radius_ly"]) if row["radius_ly"] else None,
         "sector_name": row["sector_name"],
         "sector_url": page_url("sector", sector_id=row["sector_id"]) if row["sector_id"] is not None else None,
         "placed": bool(row["placed"]),
@@ -268,11 +266,25 @@ def phenomena():
     )
 
 
-# TODO(distances #1): phenomenon radius, event horizon, jet length and
-# distance from the galactic center are fixed ly or km here and in
-# FIELD_SPECS below; pass them through the unit-ladder helper.
-def _ly(value):
-    return f"{value:,.2f} ly"
+# Every distance and non-body radius goes through the distance ladder
+# (fmt.format_distance_*); a rogue planet's radius is a body radius, so it
+# is km in scientific notation like every planet's.
+_ly = format_distance_ly
+
+
+def _km(value):
+    return format_distance_km(value)
+
+
+def _body_radius(value):
+    return to_plain_text(format_star_radius(value))
+
+
+_DAYS_PER_YEAR = 365.25
+
+
+def _light_days(value):
+    return format_distance_ly(value / _DAYS_PER_YEAR)
 
 
 def _bool_text(value):
@@ -312,7 +324,7 @@ FIELD_SPECS = {
     ],
     "black_hole": [
         ("mass_solar", "Mass", lambda v: f"{v:,.2f} solar masses"),
-        ("event_horizon_radius_km", "Event Horizon Radius", lambda v: f"{v:,.1f} km"),
+        ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
         ("temperature_k", "Hawking Temperature", lambda v: f"{v:.2e} K"),
@@ -323,7 +335,7 @@ FIELD_SPECS = {
     ],
     "neutron_star": [
         ("mass_solar", "Mass", lambda v: f"{v:,.2f} solar masses"),
-        ("radius_km", "Radius", lambda v: f"{v:,.2f} km"),
+        ("radius_km", "Radius", _km),
         ("spin_period_ms", "Spin Period", lambda v: f"{v:,.2f} ms"),
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
         ("pulsar_type", "Pulsar Type", _title_case),
@@ -344,14 +356,14 @@ FIELD_SPECS = {
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
-        ("radius_km", "Radius", lambda v: f"{v:,.0f} km"),
+        ("radius_km", "Radius", _body_radius),
         ("composition", "Composition", str),
         ("has_internal_heat", "Internal Heat", _bool_text),
         ("has_moons", "Has Moons", _bool_text),
         _SPEED, _PERIOD,
     ],
     "interstellar_comet": [
-        ("nucleus_diameter_km", "Nucleus Diameter", lambda v: f"{v:,.2f} km"),
+        ("nucleus_diameter_km", "Nucleus Diameter", _km),
         ("velocity_kms", "Velocity", lambda v: f"{v:,.1f} km/s"),
         ("is_active", "Active", _bool_text),
         ("composition_summary", "Composition", str),
@@ -360,13 +372,13 @@ FIELD_SPECS = {
     # No galactic-orbit rows: a quasar sits at the galactic center.
     "quasar": [
         ("black_hole_mass_solar", "Black Hole Mass", lambda v: f"{v:.2e} solar masses"),
-        ("event_horizon_radius_km", "Event Horizon Radius", lambda v: f"{v:.2e} km"),
+        ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("luminosity_w", "Luminosity", lambda v: f"{v:.2e} W"),
         ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),
         ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{v:,.2f} solar masses/year"),
-        ("broad_line_region_light_days", "Broad-Line Region Radius", lambda v: f"{v:,.0f} light-days"),
+        ("broad_line_region_light_days", "Broad-Line Region Radius", _light_days),
         ("is_radio_loud", "Radio-Loud (Jets)", _bool_text),
-        ("jet_length_ly", "Jet Length", lambda v: f"{v:,.0f} ly"),
+        ("jet_length_ly", "Jet Length", _ly),
         ("active_age_years", "Active For", lambda v: f"{v:,.0f} years"),
     ],
 }
@@ -400,7 +412,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
     distance = None
     radius_pc = detail.get("galactic_radius_pc")
     if radius_pc is not None:
-        distance = _ly(pc_to_ly(radius_pc) if pc_to_ly else radius_pc * 3.2616)
+        distance = format_distance_pc(radius_pc)
     sector = None
     if detail.get("sector_id") is not None:
         sector = {"name": detail.get("sector_name") or "Sector",

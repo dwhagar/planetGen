@@ -74,7 +74,7 @@ from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_a
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
-from stellarObjects.utils import ly_to_milliparsecs, ly_to_pc
+from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
@@ -1539,7 +1539,7 @@ def _sector_wiki_content(sector):
     ) or "| *(none)* | | | | |"
     markdown_content = (
         f'# {sector["name"]}\n\n'
-        f'**Cube edge:** {sector["edge_ly"]:,.2f} ly  \n'
+        f'**Cube edge:** {format_distance_ly(sector["edge_ly"])}  \n'
         f'**Systems:** {sector["system_count"]}\n\n'
         "## Systems\n\n"
         "| Name | Octant | Binary | Star type | Location |\n"
@@ -1554,7 +1554,7 @@ def _sector_wiki_content(sector):
     ) or "| ''(none)'' ||  ||  ||  || "
     wikitext_content = (
         f'= {sector["name"]} =\n\n'
-        f"'''Cube edge:''' {sector['edge_ly']:,.2f} ly\n\n"
+        f"'''Cube edge:''' {format_distance_ly(sector['edge_ly'])}\n\n"
         f"'''Systems:''' {sector['system_count']}\n\n"
         "== Systems ==\n\n"
         '{| class="wikitable"\n'
