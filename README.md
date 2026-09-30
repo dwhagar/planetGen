@@ -294,6 +294,14 @@ This tool is designed as a personal tool for the Molten Aether FFRP game. Everyt
 
 Using commands to force a habitable world and an asteroid belt will automatically force a large star to ensure there is room for both objects. The most common stars are small dwarf stars which make a smaller star system. Forcing a large star as well as the maximum number of planets will cause the generated system to be very large with an extremely high number of planets. Do not assume that just because it is generated here, it is accurate or possible, such large systems may require editing as some worlds may end up saying they are several thousand AU's from the central star.
 
+## Testing
+
+`pip install -e ".[test,api]"` and then `pytest` runs the whole suite,
+including the brute-force (Hypothesis) tests that try to break generation,
+placement, the CLI and every web page. Database tests need a MySQL server
+and skip without one. See [`docs/testing.md`](docs/testing.md) for the
+database settings, the fuzz profiles and the weekly deep fuzz run.
+
 ## License
 
 This project is licensed under the [CC0 1.0 Universal](LICENSE.md) license.

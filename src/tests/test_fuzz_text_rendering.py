@@ -19,7 +19,6 @@ Same `sys.path` setup as `test_pagination.py`/`test_page_shell.py`. See
 """
 
 import html
-import json
 import math
 import os
 import re
@@ -182,47 +181,16 @@ def test_esc_round_trips_and_leaves_no_markup_characters(value):
     assert html.unescape(out) == ("" if value is None else str(value))
 
 
-_PARAM_KEY = st.text(max_size=20)
-_PARAM_VAL = st.one_of(hostile_text, st.integers(), finite)
-
-
-@given(action=hostile_text, params=st.lists(st.tuples(_PARAM_KEY, _PARAM_VAL), max_size=6),
-       css=hostile_text, label=hostile_text)
-def test_post_link_carries_every_param_as_an_escaped_hidden_field(action, params, css, label):
-    out = fmt.post_link(action, params, fmt.esc(label), css_class=css)
-    parsed = _assert_no_active_content(out, {"form", "input", "button"},
-                                       {"method", "action", "class", "type", "name", "value"},
-                                       trusted_targets=True)
-    forms = [a for t, a in parsed.tags if t == "form"]
-    assert len(forms) == 1 and forms[0]["action"] == action and forms[0]["method"] == "post"
-    hidden = [(a["name"], a["value"]) for t, a in parsed.tags if t == "input"]
-    # HTMLParser normalizes \r\n / \r in attribute values the way a browser would.
-    norm = lambda s: s.replace("\r\n", "\n").replace("\r", "\n")  # noqa: E731
-    assert [(norm(k), norm(v)) for k, v in hidden] == [(norm(str(k)), norm(str(v))) for k, v in params]
-
-
-@given(params=st.dictionaries(st.text(max_size=10),
-                              st.one_of(hostile_text, st.integers(), st.booleans(), st.none(),
-                                        st.floats(allow_nan=False, allow_infinity=False)),
-                              max_size=6))
-def test_data_nav_params_is_attribute_safe_json(params):
-    out = fmt.data_nav_params(params)
-    assert not set(out) & set("<>\"'")
-    assert json.loads(html.unescape(out)) == params
-
-
 @given(prefix=hostile_text,
        entries=st.lists(st.tuples(hostile_text, st.floats(0, 1e6)), max_size=4),
-       link_some=st.booleans(), get_mode=st.booleans())
-def test_linkify_location_escapes_everything_and_links_only_known_names(prefix, entries, link_some, get_mode):
+       link_some=st.booleans())
+def test_linkify_location_escapes_everything_and_links_only_known_names(prefix, entries, link_some):
     assume(fmt._LOCATION_NEIGHBOR_MARKER not in prefix)
     neighbors = ", ".join(f"{name} ({dist:.1f} ly)" for name, dist in entries)
     location = f"{prefix} -- nearest: {neighbors}" if entries else prefix
     name_to_id = {name: i + 1 for i, (name, _d) in enumerate(entries)} if link_some else {}
-    system_url = (lambda i: f"/system/{i}") if get_mode else None
-    out = fmt.linkify_location("db<x>", location, name_to_id, system_url=system_url)
-    _assert_no_active_content(out, {"a", "form", "input", "button"},
-                              {"href", "method", "action", "class", "type", "name", "value"})
+    out = fmt.linkify_location(location, name_to_id, lambda i: f"/system/{i}")
+    _assert_no_active_content(out, {"a"}, {"href"})
     if not name_to_id or not entries:
         assert out == fmt.esc(location)
     assert html.unescape(re.sub(r"<[^>]*>", "", out)).replace("\r", "") .count("nearest") >= (1 if entries else 0)
@@ -230,14 +198,11 @@ def test_linkify_location_escapes_everything_and_links_only_known_names(prefix, 
 
 @given(location=st.one_of(st.none(), hostile_text),
        neighbors=st.lists(st.fixed_dictionaries({"id": st.integers(1, 10**9), "name": hostile_text,
-                                                  "distance_ly": st.floats(0, 1e9)}), max_size=4),
-       get_mode=st.booleans())
-def test_nearest_neighbors_location_escapes_every_name(location, neighbors, get_mode):
-    system_url = (lambda i: f"/system/{i}") if get_mode else None
-    out = fmt.nearest_neighbors_location("db", location, neighbors, system_url=system_url)
-    parsed = _assert_no_active_content(out, {"a", "form", "input", "button"},
-                                       {"href", "method", "action", "class", "type", "name", "value"})
-    assert len([t for t, _a in parsed.tags if t in ("a", "form")]) == len(neighbors)
+                                                  "distance_ly": st.floats(0, 1e9)}), max_size=4))
+def test_nearest_neighbors_location_escapes_every_name(location, neighbors):
+    out = fmt.nearest_neighbors_location(location, neighbors, lambda i: f"/system/{i}")
+    parsed = _assert_no_active_content(out, {"a"}, {"href"})
+    assert len([t for t, _a in parsed.tags if t == "a"]) == len(neighbors)
 
 
 @given(distance=st.one_of(st.none(), any_float))
@@ -366,12 +331,12 @@ def test_page_numbers_window(page_, last):
 @given(total=st.integers(0, 10**9), size=st.integers(1, 500), data=st.data(),
        params=st.dictionaries(hostile_text, hostile_text, max_size=4),
        anchor=st.one_of(st.none(), hostile_text), label=hostile_text,
-       method=st.sampled_from(["post", "get"]), action=hostile_text)
-def test_render_pagination_is_safe_and_consistent(total, size, data, params, anchor, label, method, action):
+       action=hostile_text)
+def test_render_pagination_is_safe_and_consistent(total, size, data, params, anchor, label, action):
     last = pagination.page_count(total, size)
     page_ = data.draw(st.integers(1, last))
     out = pagination.render_pagination(action, params, "p", page_, total, page_size=size, anchor=anchor,
-                                       label=label, method=method)
+                                       label=label)
     if total <= size:
         assert out == ""
         return
@@ -385,10 +350,9 @@ def test_render_pagination_is_safe_and_consistent(total, size, data, params, anc
     assert last_row - first + 1 <= size
     current = [t for t, a in parsed.tags if a.get("aria-current") == "page"]
     assert len(current) == 1
-    if method == "get":
-        for _t, attrs in parsed.tags:
-            if "href" in attrs:
-                assert attrs["href"].startswith(action)
+    for _t, attrs in parsed.tags:
+        if "href" in attrs:
+            assert attrs["href"].startswith(action)
 
 
 # ---------------------------------------------------------------------------
