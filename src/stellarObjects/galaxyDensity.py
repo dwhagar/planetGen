@@ -80,7 +80,9 @@ def _sech_squared(x):
     if ax > 700.0:  # exp(-1400) underflows to exactly 0.0 anyway
         return 0.0
     e = math.exp(-2.0 * ax)
-    return 4.0 * e / (1.0 + e) ** 2
+    # min(): at |x| below ~1e-8, rounding can put the quotient one ulp
+    # above its true maximum of 1.
+    return min(1.0, 4.0 * e / (1.0 + e) ** 2)
 
 
 def _raw_density(position_pc, shape):

@@ -24,7 +24,7 @@ import secrets
 from . import log, physical_constants, program_constants
 from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
-                    orbital_position_au, reseed_rng, sample_bounded_bell)
+                    finite_domain, orbital_position_au, reseed_rng, sample_bounded_bell)
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -189,6 +189,7 @@ def _validate_mass(planet):
         raise ValueError("Invalid mass for planet class")
 
 
+@finite_domain()
 def calculate_orbital_period_years(distance_au, primary_mass_kg):
     """
     Kepler's third law: T(years) = sqrt(a(AU)^3 / M_primary(Msun)).
@@ -305,6 +306,10 @@ def generate_planet_properties(planet, zone_override=None):
             raise ValueError("No valid planet class for the given mass in this zone")
         planet.planet_class = secrets.choice(possible_classes)
         _validate_mass(planet)
+        # Everything downstream needs a radius, so draw one for the class,
+        # the same as the class+mass branch below.
+        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is not None and planet.mass is None:
         # Class and radius given, validate
@@ -470,6 +475,7 @@ def calculate_surface_gravity(planet):
     planet.gravity = surface_gravity_g
 
 
+@finite_domain()
 def _atmosphere_retention_factor(gravity_g):
     """
     A gravity-based atmosphere-retention scaling factor, normalized to 1.0

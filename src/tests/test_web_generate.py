@@ -318,7 +318,13 @@ def test_runner_runs_steps_in_order_and_reports_progress(jobs_root):
     with open(os.path.join(jobs_root, job_id, "progress.json")) as f:
         assert json.load(f)["completed"] == 3
     assert jobs.active_job() is None
-    assert not os.path.exists(os.path.join(jobs_root, jobs.LOCK_NAME))
+    # The runner writes its final state.json and only then drops the lock
+    # (a finished holder's lock already counts as free), so give it a moment.
+    lock = os.path.join(jobs_root, jobs.LOCK_NAME)
+    deadline = time.time() + 10
+    while os.path.exists(lock):
+        assert time.time() < deadline, "the runner never released its lock"
+        time.sleep(0.05)
 
 
 def test_runner_stops_at_the_first_failure(jobs_root):

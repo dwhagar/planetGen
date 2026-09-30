@@ -132,6 +132,10 @@ def load_config():
 
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         overrides = json.load(f)
+    if not isinstance(overrides, dict):
+        # Same failure mode as malformed JSON (json.JSONDecodeError is a
+        # ValueError), with a message that says what's actually wrong.
+        raise ValueError(f"{CONFIG_PATH} must contain a JSON object, not {type(overrides).__name__}")
     _merge(merged, overrides)
     return merged
 
@@ -144,7 +148,7 @@ def debug_enabled(config=None):
     Whether this deployment's debug mode is on: the `PLANETGEN_DEBUG`
     environment variable when set (`0`/`false`/`no`/`off`/empty mean off,
     anything else on), else `config.json`'s `"debug"`, which defaults to
-    off when missing. Debug mode turns on the verbose debug log (see
+    off when missing (a string there is read the same way as the variable). Debug mode turns on the verbose debug log (see
     `stellarObjects.log`) and the web interface's traceback-in-page 500
     responses.
 
@@ -160,7 +164,12 @@ def debug_enabled(config=None):
         return env.strip().lower() not in _FALSE_STRINGS
     if config is None:
         config = load_config()
-    return bool(config.get("debug"))
+    value = config.get("debug")
+    if isinstance(value, str):
+        # "false"/"0"/"off"/"no" in config.json mean off, exactly as they
+        # do for PLANETGEN_DEBUG -- bool("false") would be True.
+        return value.strip().lower() not in _FALSE_STRINGS
+    return bool(value)
 
 
 def log_file_path(config=None):

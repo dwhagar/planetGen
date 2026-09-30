@@ -214,15 +214,38 @@ def configure(level=NORMAL, debug_file=None, console=True):
                       os.getuid() if hasattr(os, "getuid") else "n/a")
 
 
+_SECRET_OPTIONS = ("--mysql-password",)
+"""Every command-line option in this project whose value is a secret."""
+
+_SECRET_OPTION_WORDS = ("password", "passwd", "token", "secret")
+
+
+def _is_secret_option(arg):
+    """Whether `arg` (an option, possibly `--opt=value`) names a secret:
+    any option mentioning a secret word, or any abbreviation argparse
+    would accept for one of `_SECRET_OPTIONS` (`allow_abbrev` is on by
+    default, so `--mysql-pass X` sets `--mysql-password` too). Prefixes
+    shorter than `--mysql-p` are left alone: they're ambiguous with the
+    other `--mysql-*` options, so argparse rejects them anyway."""
+    if not arg.startswith("-"):
+        return False
+    option = arg.split("=", 1)[0].lower()
+    if any(word in option for word in _SECRET_OPTION_WORDS):
+        return True
+    return option.startswith("--") and any(
+        secret.startswith(option) and len(option) > len("--mysql-") for secret in _SECRET_OPTIONS)
+
+
 def _redacted_argv():
-    """`sys.argv` with any password option's value (`--mysql-password X`,
-    `--mysql-password=X`) withheld."""
+    """`sys.argv` with any secret option's value (`--mysql-password X`,
+    `--mysql-password=X`, or an abbreviation such as `--mysql-pass X`)
+    withheld."""
     shown, hide_next = [], False
     for arg in sys.argv:
         if hide_next:
             shown.append("<withheld>")
             hide_next = False
-        elif arg.startswith("-") and "password" in arg.lower():
+        elif _is_secret_option(arg):
             if "=" in arg:
                 shown.append(arg.split("=", 1)[0] + "=<withheld>")
             else:
@@ -256,6 +279,11 @@ def _configure_debug_log():
         config = appconfig.load_config()
         enabled = appconfig.debug_enabled(config)
         path = appconfig.log_file_path(config)
+        if not isinstance(path, str):
+            # A non-string "log_file" in config.json would otherwise raise
+            # a TypeError from the file handler below, past the OSError
+            # handling there.
+            raise TypeError(f'"log_file" must be a string, not {type(path).__name__}')
     except Exception as exc:  # noqa: BLE001 -- logging must never stop the program
         print(f"planetgen: debug log disabled, could not read config.json: {exc}", file=sys.stderr)
         enabled, path = False, None

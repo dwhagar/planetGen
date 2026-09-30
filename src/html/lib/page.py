@@ -320,6 +320,16 @@ def redirect(url, set_cookie_headers=None, status="302 Found"):
     sys.stdout.write("\r\n")
 
 
+_MAX_CARRIED_DIGITS = 18
+
+
+def _is_positive_page_number(value):
+    """Whether `value` is a plain positive ASCII integer of at most
+    `_MAX_CARRIED_DIGITS` digits -- see `moved_permanently`."""
+    return (value.isascii() and value.isdecimal() and len(value) <= _MAX_CARRIED_DIGITS
+            and int(value) > 0)
+
+
 def moved_permanently(path, keep=()):
     """
     The whole body of a CGI shim for a page that moved to the Flask app
@@ -338,8 +348,11 @@ def moved_permanently(path, keep=()):
 
     start_request_log()
     params = nav_params()
+    # ASCII decimal digits only, and a sane length: `str.isdigit()` alone
+    # also accepts e.g. "²" (which `int()` then rejects), and a
+    # thousands-of-digits value trips `int()`'s own digit limit.
     carried = [(name, params[name]) for name in keep
-               if params.get(name, "").isdigit() and int(params[name]) > 0]
+               if _is_positive_page_number(params.get(name, ""))]
     redirect(f"{path}?{urlencode(carried)}" if carried else path, status="301 Moved Permanently")
 
 

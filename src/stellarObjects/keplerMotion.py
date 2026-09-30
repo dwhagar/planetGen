@@ -45,7 +45,7 @@ angle instead. No new rotation math is needed.
 import math
 
 from . import physical_constants
-from .utils import orbital_position_au
+from .utils import finite_domain, orbital_position_au
 
 TWO_PI = 2 * math.pi
 
@@ -58,6 +58,7 @@ its own `mu` in these units.
 """
 
 
+@finite_domain()
 def gravitational_parameter_au3_yr2(primary_mass_solar):
     """
     `mu = G*M`, in AU^3/yr^2, for a primary of the given mass.
@@ -71,6 +72,7 @@ def gravitational_parameter_au3_yr2(primary_mass_solar):
     return AU3_PER_YR2_PER_SOLAR_MASS * primary_mass_solar
 
 
+@finite_domain()
 def mean_motion_per_year(semi_major_axis_au, primary_mass_solar):
     """
     An elliptical orbit's mean motion `n = 2*pi/P` (radians/year), via
@@ -90,6 +92,7 @@ def mean_motion_per_year(semi_major_axis_au, primary_mass_solar):
     return TWO_PI / period_years
 
 
+@finite_domain()
 def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity, tolerance=1e-10, max_iterations=100):
     """
     Newton-Raphson solution of Kepler's equation `M = E - e*sin(E)` for
@@ -129,6 +132,7 @@ def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity, tolerance=1e-10, max
     return eccentric_anomaly
 
 
+@finite_domain()
 def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_major_axis_au):
     """
     The true anomaly and current orbital radius for a bound (`e < 1`)
@@ -190,6 +194,7 @@ def _real_cube_root(value):
     return math.copysign(abs(value) ** (1 / 3), value)
 
 
+@finite_domain()
 def solve_barker_equation(parabolic_mean_anomaly):
     """
     Closed-form (Cardano) solution of Barker's equation, `D^3 + 3*D =
@@ -214,10 +219,13 @@ def solve_barker_equation(parabolic_mean_anomaly):
         float: `D = tan(true_anomaly / 2)`.
     """
     w = 1.5 * parabolic_mean_anomaly
-    s = math.sqrt(w * w + 1)
+    # sqrt(w^2 + 1) == |w| to double precision long before w*w overflows
+    # (which would make `w - s` an inf - inf = NaN).
+    s = math.sqrt(w * w + 1) if abs(w) < 1e150 else abs(w)
     return _real_cube_root(w + s) + _real_cube_root(w - s)
 
 
+@finite_domain()
 def parabolic_mean_anomaly(time_since_perihelion_years, perihelion_distance_au, primary_mass_solar):
     """
     The parabolic "mean anomaly" `Mp = sqrt(mu / (2*q^3)) * dt` --
@@ -240,6 +248,7 @@ def parabolic_mean_anomaly(time_since_perihelion_years, perihelion_distance_au, 
     return math.sqrt(mu / (2 * perihelion_distance_au ** 3)) * time_since_perihelion_years
 
 
+@finite_domain()
 def true_anomaly_and_distance_parabolic(parabolic_mean_anomaly_value, perihelion_distance_au):
     """
     The true anomaly and current orbital radius for a parabolic (`e ==
@@ -264,6 +273,7 @@ def true_anomaly_and_distance_parabolic(parabolic_mean_anomaly_value, perihelion
     return true_anomaly_rad, distance_au
 
 
+@finite_domain(allow_inf=("semi_major_axis_au",))
 def vis_viva_speed_kms(distance_au, semi_major_axis_au, primary_mass_solar):
     """
     The vis-viva equation, `v = sqrt(mu * (2/r - 1/a))` -- a body's own

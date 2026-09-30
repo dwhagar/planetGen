@@ -76,7 +76,9 @@ def valid(submitted, nonce):
     """Whether `submitted` is the right token for `nonce`."""
     if not submitted or not nonce:
         return False
-    return hmac.compare_digest(str(submitted), _sign(nonce))
+    # Bytes, not str: compare_digest refuses a str with non-ASCII
+    # characters (TypeError), and a submitted token can hold anything.
+    return hmac.compare_digest(str(submitted).encode("utf-8"), _sign(nonce).encode("ascii"))
 
 
 def protect():

@@ -332,8 +332,10 @@ def tile_level_for_view_radius(radius_pc):
     client-side; this is the Python twin the `/galaxy` page uses for the
     first frame.
     """
-    if radius_pc <= 0:
+    if not radius_pc > 0:  # also NaN
         return TILE_MAX_LEVEL
+    if math.isinf(radius_pc):
+        return 0
     level = math.floor(math.log2(TILE_ROOT_EDGE_PC / radius_pc))
     return max(0, min(TILE_MAX_LEVEL, level))
 

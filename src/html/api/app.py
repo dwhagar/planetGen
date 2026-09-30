@@ -9,7 +9,7 @@ behind the project's existing Apache2 vhost (`examples/apache/`).
 
 import time
 
-from flask import Flask, g, jsonify, request
+from flask import Flask, abort, g, jsonify, request
 
 from stellarObjects import log
 
@@ -37,6 +37,7 @@ def create_app(config_object=Config):
     # (`python src/html/wsgi.py`) and tests.
     app = Flask(__name__, static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
+    app.before_request(_reject_undecodable_query_string)
     limiter.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
@@ -49,6 +50,19 @@ def create_app(config_object=Config):
     _register_request_logging(app)
     _warn_if_unshared_ratelimit_storage(app)
     return app
+
+
+def _reject_undecodable_query_string():
+    """
+    First `before_request` hook: a query string holding raw (not
+    %-escaped) bytes that aren't UTF-8 is a 400. Werkzeug decodes
+    `request.args` strictly, so without this every route that reads a
+    parameter would fail with a UnicodeDecodeError (a 500).
+    """
+    try:
+        request.query_string.decode("utf-8")
+    except UnicodeDecodeError:
+        abort(400, description="The query string is not valid UTF-8.")
 
 
 _SECRET_WORDS = ("password", "token", "secret", "key")

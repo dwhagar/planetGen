@@ -3522,7 +3522,11 @@ def load_sector(conn, sector_id) -> SpaceSector:
     if row is None:
         raise ValueError(f"no sectors row with id {sector_id}")
 
-    sector = SpaceSector(row["name"], edge_ly=milliparsecs_to_ly(row["edge_mpc"]))
+    edge_ly = milliparsecs_to_ly(row["edge_mpc"])
+    # The cell isn't stored, but a galaxy-placed sector's is fully
+    # determined by its ring and edge (as generate.py builds it).
+    cell = SectorCell.for_ring(row["ring_index"], edge_ly) if row["ring_index"] is not None else None
+    sector = SpaceSector(row["name"], edge_ly=edge_ly, cell=cell)
 
     system_rows = conn.execute(
         "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "

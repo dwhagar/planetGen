@@ -32,6 +32,8 @@ from urllib.parse import urlencode
 from fmt import esc, post_link
 
 PAGE_SIZE = 50
+MAX_PAGE = 10 ** 9
+"""int: The largest page number `parse_page` returns."""
 """int: Most rows any paged table shows at once, site-wide."""
 
 _WINDOW = 2
@@ -49,7 +51,9 @@ def parse_page(raw):
         value = int(raw)
     except (TypeError, ValueError):
         return 1
-    return max(1, value)
+    # Capped: past this, a page's row offset stops being a number MySQL's
+    # LIMIT/OFFSET accepts. A page past the end is clamped to the last one anyway.
+    return min(max(1, value), MAX_PAGE)
 
 
 def page_count(total, page_size=PAGE_SIZE):

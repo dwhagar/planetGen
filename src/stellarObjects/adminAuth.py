@@ -44,6 +44,9 @@ MIN_PASSWORD_LENGTH = 12
 password -- applies to every credential change, not just the forced one
 off the seeded default."""
 
+MAX_USERNAME_LENGTH = 64
+"""int: `admin_users.username` is VARCHAR(64)."""
+
 DEFAULT_ADMIN_USERNAME = "admin"
 DEFAULT_ADMIN_PASSWORD = "password"
 """str: The seeded bootstrap credentials `bootstrap_control_schema`
@@ -342,12 +345,17 @@ def change_credentials(conn, admin_user_id, current_password, new_username, new_
             `new_username`, or a `new_password` failing policy.
     """
     row = conn.execute("SELECT * FROM admin_users WHERE id = ?", (admin_user_id,)).fetchone()
-    if row is None or not verify_password(current_password, row["password_hash"]):
+    if row is None or not isinstance(current_password, str) \
+            or not verify_password(current_password, row["password_hash"]):
         raise AuthError("current password is incorrect")
 
+    if new_username is not None and not isinstance(new_username, str):
+        raise AuthError("username must be a string")
     new_username = (new_username or "").strip()
     if not new_username:
         raise AuthError("username must not be empty")
+    if len(new_username) > MAX_USERNAME_LENGTH:
+        raise AuthError(f"username must be at most {MAX_USERNAME_LENGTH} characters")
     validate_password_policy(new_password, username=new_username)
 
     existing = conn.execute(

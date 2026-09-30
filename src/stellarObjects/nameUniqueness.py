@@ -87,6 +87,8 @@ def resolve_greek_roman_collision(base_name, existing_count):
                 tier). `None` every other time -- no existing row needs
                 touching, the new row's own decoration is enough.
     """
+    if existing_count < 0:
+        raise ValueError(f"existing_count must be >= 0, got {existing_count!r}")
     n_greek = len(GREEK_LETTERS)
     n_roman = len(ROMAN_NUMERAL_VALUES)
     alpha_name = f"{GREEK_LETTERS[0]} {base_name}"
@@ -143,6 +145,8 @@ def resolve_diminutive(diminutive_index):
             own "leave the others alone" rule). `next_index` is the value
             to persist for next time (`None` alongside a `None` prefix).
     """
+    if diminutive_index is not None and diminutive_index < 0:
+        raise ValueError(f"diminutive_index must be None or >= 0, got {diminutive_index!r}")
     next_index = 0 if diminutive_index is None else diminutive_index + 1
     if next_index >= len(DIMINUTIVE_PREFIXES):
         return None, None
@@ -168,6 +172,8 @@ def resolve_companion(suffix_index):
             `Returns` for the shape; `suffix` is appended after the name
             rather than prepended before it.
     """
+    if suffix_index is not None and suffix_index < 0:
+        raise ValueError(f"suffix_index must be None or >= 0, got {suffix_index!r}")
     next_index = 0 if suffix_index is None else suffix_index + 1
     if next_index >= len(COMPANION_SUFFIXES):
         return None, None
@@ -182,14 +188,12 @@ def strip_decoration(name):
     `resolve_companion`. Used by `src/dedupeNames.py` to group already-
     stored names by what they'd collide on.
 
-    Checks each decoration independently and unconditionally, in a fixed
-    order (trailing roman numeral, then trailing companion suffix, then
-    leading Greek letter, then leading diminutive prefix) -- safe for a
-    name from any of the four tables, since no real entity ever carries
-    more than one of these four vocabularies at once (planets/moons only
-    ever get a companion suffix; sectors/systems only ever get a Greek
-    prefix and, for systems only, also a diminutive prefix or a trailing
-    roman numeral) and the four word lists don't overlap.
+    Strips a trailing roman numeral, trailing companion suffixes and
+    leading Greek/diminutive prefixes, repeating until none is left, so
+    the stacks `_db.py` builds come apart too ("Little Beta <base>",
+    "Petit Little <base>", "<base> Kin Ami"). Safe because the four word
+    lists don't overlap and a generated base word is never one of them
+    (`utils.is_name_valid` rejects every decoration word).
 
     Args:
         name (str): A stored `sectors`/`star_systems`/`planets`/`moons`
@@ -199,13 +203,19 @@ def strip_decoration(name):
         str: `name` with every decoration this module could have added
             stripped away.
     """
+    # Repeated until nothing changes: `_db.py` stacks decorations -- a
+    # diminutive prefix *outside* a Greek one ("Little Beta <base>",
+    # `reserve_system_name`), a second diminutive on top of the first
+    # ("Petit Little <base>") or a second companion suffix ("<base> Kin
+    # Ami"), each time `_rename_existing_*` decorates the same row again.
     tokens = name.split(" ")
-    if tokens and tokens[-1] in _ROMAN_SUFFIX_TOKENS:
-        tokens = tokens[:-1]
-    if tokens and tokens[-1] in _COMPANION_SUFFIX_TOKENS:
-        tokens = tokens[:-1]
-    if tokens and tokens[0] in _GREEK_PREFIX_TOKENS:
-        tokens = tokens[1:]
-    if tokens and tokens[0] in _DIMINUTIVE_PREFIX_TOKENS:
-        tokens = tokens[1:]
-    return " ".join(tokens)
+    while True:
+        before = len(tokens)
+        if tokens and tokens[-1] in _ROMAN_SUFFIX_TOKENS:
+            tokens = tokens[:-1]
+        while tokens and tokens[-1] in _COMPANION_SUFFIX_TOKENS:
+            tokens = tokens[:-1]
+        while tokens and (tokens[0] in _GREEK_PREFIX_TOKENS or tokens[0] in _DIMINUTIVE_PREFIX_TOKENS):
+            tokens = tokens[1:]
+        if len(tokens) == before:
+            return " ".join(tokens)

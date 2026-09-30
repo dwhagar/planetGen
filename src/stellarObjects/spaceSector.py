@@ -325,6 +325,10 @@ def mean_nearest_neighbor_ly():
     return math.gamma(4 / 3) * (3 / (4 * math.pi * density)) ** (1 / 3)
 
 
+_POISSON_NORMAL_APPROX_MEAN = 500.0
+"""Above this mean `_sample_poisson_count` uses the normal approximation."""
+
+
 def _sample_poisson_count(mean, rng=_rng):
     """
     Draws a Poisson-distributed non-negative integer with the given mean,
@@ -351,8 +355,16 @@ def _sample_poisson_count(mean, rng=_rng):
     Returns:
         int: A Poisson-distributed sample.
     """
+    if not math.isfinite(mean):
+        # NaN never satisfies either loop exit below (it used to hang).
+        raise ValueError(f"_sample_poisson_count: mean must be finite, got {mean!r}")
     if mean <= 0:
         return 0
+    if mean > _POISSON_NORMAL_APPROX_MEAN:
+        # exp(-mean) underflows to 0.0 above ~745, which capped Knuth's loop
+        # near 740 whatever the mean; the normal approximation N(mean, mean)
+        # is accurate to well under a percent this far out.
+        return max(0, round(rng.gauss(mean, math.sqrt(mean))))
 
     threshold = math.exp(-mean)
     count = 0
@@ -653,6 +665,8 @@ class SpaceSector:
     """
 
     def __init__(self, name, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY, cell=None):
+        if not (isinstance(edge_ly, (int, float)) and math.isfinite(edge_ly) and edge_ly > 0):
+            raise ValueError(f"SpaceSector: edge_ly must be a finite positive number, got {edge_ly!r}")
         self.name = name
         self.edge_ly = edge_ly
         self.cell = cell
@@ -769,6 +783,17 @@ class SpaceSector:
             f"attempts; the sector may be too full or too small."
         )
 
+    def _check_explicit_position(self, position):
+        """An explicit `position` must be three finite coordinates: a NaN
+        one makes every later distance check False, poisoning all placement
+        after it. (Like the Hill-sphere check, containment is deliberately
+        not enforced for an explicit position.)"""
+        position = tuple(position)
+        if len(position) != 3 or not all(
+                isinstance(c, (int, float)) and math.isfinite(c) for c in position):
+            raise ValueError(f"Sector {self.name!r}: position must be three finite numbers, got {position!r}")
+        return position
+
     def add_system(self, star_system, position=None, system_config=None, min_separation_ly=None):
         """
         Adds an already-generated `StarSystem` to the sector.
@@ -798,6 +823,8 @@ class SpaceSector:
         """
         if position is None:
             position = self._random_position(star_system, min_separation_ly)
+        else:
+            position = self._check_explicit_position(position)
 
         entry = SectorSystemEntry(star_system, position, system_config=system_config)
         self.entries.append(entry)
@@ -878,6 +905,8 @@ class SpaceSector:
                 position = self._random_position(phenomenon, min_separation_ly)
             else:
                 position = self._sample_point()
+        else:
+            position = self._check_explicit_position(position)
 
         entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position)
         self.phenomena.append(entry)
@@ -1082,6 +1111,8 @@ class SpaceSector:
             list: Up to `count` other `SectorSystemEntry` instances, nearest
                  first.
         """
+        if count < 0:
+            raise ValueError(f"nearest_neighbors: count must be >= 0, got {count!r}")
         others = [other for other in self.entries if other is not entry]
         others.sort(key=entry.distance_to)
         return others[:count]
@@ -1096,12 +1127,22 @@ class SpaceSector:
                  phenomenon entry's `to_dict()`, see `SectorPhenomenonEntry`)
                  keys.
         """
-        return {
+        data = {
             "name": self.name,
             "edge_ly": self.edge_ly,
             "systems": [entry.to_dict() for entry in self.entries],
             "phenomena": [entry.to_dict() for entry in self.phenomena],
         }
+        if self.cell is not None:
+            # Only a galaxy-placed sector has one; without it a reload would
+            # come back as a cube (different volume, contains(), density).
+            data["cell"] = {
+                "r_inner": self.cell.r_inner,
+                "r_outer": self.cell.r_outer,
+                "half_angle": self.cell.half_angle,
+                "half_height": self.cell.half_height,
+            }
+        return data
 
     def save(self, path):
         """
@@ -1135,7 +1176,12 @@ class SpaceSector:
         Returns:
             SpaceSector: The reconstructed sector.
         """
-        sector = cls(data["name"], edge_ly=data.get("edge_ly", program_constants.DEFAULT_SECTOR_EDGE_LY))
+        cell = None
+        if data.get("cell") is not None:
+            from .galaxyGeometry import SectorCell
+            cell = SectorCell(**{key: data["cell"][key] for key in ("r_inner", "r_outer", "half_angle", "half_height")})
+        sector = cls(data["name"], edge_ly=data.get("edge_ly", program_constants.DEFAULT_SECTOR_EDGE_LY),
+                     cell=cell)
 
         for system_data in data["systems"]:
             if "generated" in system_data:

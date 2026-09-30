@@ -24,6 +24,7 @@ The query logic itself lives in `queryDb.search`, behind `GET /api/search`
 (`apiclient.get_search`, called in-process).
 """
 
+import math
 from urllib.parse import urlencode
 
 from flask import request, url_for
@@ -156,11 +157,18 @@ class SearchState:
                 value = float(raw) if raw else None
             except ValueError:
                 return None
-            return value if value is None or value == value else None  # drop NaN
+            # Only a finite, non-negative size is a size: NaN, infinity
+            # and negatives from a hand-edited URL are ignored like any
+            # other non-number (the API would refuse them).
+            if value is None or not math.isfinite(value) or value < 0:
+                return None
+            return value
 
         low, high = parse(f"{entity}_min_radius_km"), parse(f"{entity}_max_radius_km")
         if low is None and high is None:
             return None
+        if low is not None and high is not None and low > high:
+            return None  # an inverted range, likewise ignored
         return (low, high)
 
     def sizes(self):

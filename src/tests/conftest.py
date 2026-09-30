@@ -191,3 +191,8 @@ def mediawiki_config():
         pytest.skip(f"MediaWiki test instance at {base_url} not reachable: {exc}")
 
     yield base_url, username, password
+
+
+# Registers and loads the hypothesis profiles for every `test_fuzz_*.py`
+# file (see tests/fuzz_support.py) before any of them is collected.
+from tests import fuzz_support  # noqa: E402,F401
