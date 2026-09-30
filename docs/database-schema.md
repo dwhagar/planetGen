@@ -484,6 +484,13 @@ systems and phenomena; the skeleton (`galaxy_layer`, `galaxy_column`) is
 keyed by ring and layer and stays. See `schema.sql`'s "v35" header note
 and `docs/design/galaxy-coordinate-system.md`.
 
+**A black hole at every galaxy's center (v36).** When the nucleus roll
+finds no quasar, `generate.add_galactic_nucleus` places a quiescent
+supermassive black hole there instead, so every galaxy has one.
+`black_holes.mass_class` records whether a row is stellar-mass,
+intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
+row's mass.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
@@ -1034,6 +1041,7 @@ standalone (no owning `StarSystem` at all).
 | `id` | INTEGER | PK | |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE CASCADE`, nullable | NULL for a standalone black hole. |
 | `name` | TEXT | NOT NULL | |
+| `mass_class` | VARCHAR(16) | NOT NULL, default `'stellar'`, CHECK | Added in v36. `'stellar'` (5-20 Msun), `'intermediate'` (1e2-1e5 Msun, `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE` of rolls) or `'supermassive'` (a galaxy's quiescent central black hole, 1e6-1e8 Msun, at the galactic center with NULL galactic-orbit columns; see `generate.add_galactic_nucleus`). |
 | `mass_solar` | DOUBLE | NOT NULL | |
 | `event_horizon_radius_km` | DOUBLE | NOT NULL | Schwarzschild radius, `2GM/c^2` — also `BlackHole.radius`. |
 | `spin` | DOUBLE | NOT NULL | Dimensionless spin parameter a* in [0, 1). |

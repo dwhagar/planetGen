@@ -189,21 +189,6 @@ renumber when items are added or finished.
    - Update `phenomenaPlausibility` (it recomputes the expected
      terrestrial share from the same draw).
 
-7. [ ] **A supermassive black hole in every galaxy, and rare
-   intermediate ones.** Boss: "add a supermassive black hole at the
-   center (or near center) of each galaxy and a smattering (rare) of
-   medium sized black holes."
-   - `generate.add_galactic_nucleus` only places a quasar, 10% of the
-     time; the other 90% have nothing at the center. Place a quiescent
-     SMBH (Sagittarius A* is ~4.3e6 Msun) when the quasar roll fails.
-     Its own table or a `black_holes` row with a supermassive class
-     (schema change, migration).
-   - Intermediate-mass black holes already exist as 2% of black-hole
-     rolls (100-1,000 Msun, `compactRemnant.BlackHole.__init__`,
-     `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`). Revisit the chance and the
-     range (IMBHs span ~1e2-1e5 Msun). Default taken: keep them a black
-     hole subtype with its own tweakable chance.
-
 ### Performance
 
 8. [ ] **Add a cache so pages don't hit the database on every request.**
