@@ -10,6 +10,7 @@ Run with: pytest src/tests/test_install_python_deps.py
 import ast
 import os
 import re
+import sys
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 
@@ -90,7 +91,8 @@ def test_pip_never_removes_apt_files():
     pinned result alongside with --ignore-installed --no-deps.
     """
     pip = _function(_code(_read("scripts", "install-python-deps.sh")), "pip_install_system")
-    assert "--dry-run" in pip and "--report" in pip
+    resolver = _read("scripts", "lock_pins.py")
+    assert '"--dry-run"' in resolver and '"--report"' in resolver
     assert "--ignore-installed --no-deps" in pip
     assert "--upgrade" not in pip
     # The only uninstall is of copies outside apt's directory.
@@ -103,3 +105,96 @@ def test_managed_paths_try_apt_first():
         body = _function(script, name)
         assert body.index("apt_install") < body.index("pip_install_system"), name
         assert "remove_legacy_venv" in body, name
+
+
+def _lock_pins():
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    try:
+        import lock_pins
+    finally:
+        sys.path.pop(0)
+    return lock_pins
+
+
+def _key(version):
+    return tuple(int(p) for p in re.findall(r"\d+", version)[:3])
+
+
+def test_lock_satisfies_setup_py():
+    """
+    requirements.lock pins every runtime requirement at or above
+    setup.py's floor, for every Python range it splits into. Rerun
+    scripts/lock-requirements.sh when this fails.
+    """
+    lock_pins = _lock_pins()
+    pins = lock_pins.read_lock(os.path.join(ROOT, "requirements.lock"))
+    for spec in _setup_requirements():
+        name, floor = spec.split(">=")
+        versions = [v for n, v, _, _ in pins if n == lock_pins.normalize(name)]
+        assert versions, f"{name} is not in requirements.lock"
+        for version in versions:
+            assert _key(version) >= _key(floor), f"{name}=={version} is below {floor}"
+
+
+def test_every_locked_pin_has_hashes():
+    lock_pins = _lock_pins()
+    pins = lock_pins.read_lock(os.path.join(ROOT, "requirements.lock"))
+    assert len(pins) > len(_setup_requirements())  # dependencies are locked too
+    for name, version, _, hashes in pins:
+        assert hashes and all(h.startswith("sha256:") for h in hashes), f"{name}=={version}"
+
+
+def test_every_pip_install_uses_the_lock():
+    """
+    Every pip install of a library checks the lock's hashes; the only
+    unhashed ones are pip itself, planetGen's own checkout (--no-deps) and
+    the fallback for a pip too old to report, which is held to the lock's
+    versions.
+    """
+    code = _code(_read("scripts", "install-python-deps.sh"))
+    installs = [line.strip() for line in code.splitlines() if "-m pip install" in line]
+    assert installs
+    for line in installs:
+        assert ("--require-hashes" in line or "--upgrade pip" in line
+                or ("--no-deps" in line and '"$SCRIPT_DIR"' in line)
+                or '-c "$hashed"' in line), line
+
+
+def test_resolve_writes_hashed_pins(tmp_path, monkeypatch):
+    lock_pins = _lock_pins()
+    lock = tmp_path / "requirements.lock"
+    lock.write_text(
+        "# header\n"
+        "flask==3.1.3 \\\n    --hash=sha256:aa \\\n    --hash=sha256:bb\n"
+        "    # via planetgen\n"
+        "click==8.1.8 ; python_full_version < '3.10' \\\n    --hash=sha256:cc\n"
+        "click==8.5.0 ; python_full_version >= '3.10' \\\n    --hash=sha256:dd\n",
+        encoding="utf-8",
+    )
+    seen = []
+
+    def fake_dry_run(flags, requirements, lines):
+        seen.append(lines)
+        return [("flask", "3.1.3"), ("click", "8.5.0")]
+
+    monkeypatch.setattr(lock_pins, "_dry_run", fake_dry_run)
+    monkeypatch.setattr(lock_pins, "_installed", lambda name: name == "click")
+    out = tmp_path / "out.txt"
+    assert lock_pins.resolve(str(lock), str(out), [], ["flask>=3.0.3"]) == 0
+    # click was installed, so it isn't held on the first pass; pip chose
+    # to replace it anyway, so the second pass holds it to the lock.
+    assert seen[0] == ["flask==3.1.3"]
+    assert "click==8.5.0 ; python_full_version >= '3.10'" in seen[1]
+    assert out.read_text(encoding="utf-8").splitlines() == [
+        "flask==3.1.3 --hash=sha256:aa --hash=sha256:bb",
+        "click==8.5.0 --hash=sha256:dd",
+    ]
+
+
+def test_resolve_refuses_unlocked_versions(tmp_path, monkeypatch):
+    lock_pins = _lock_pins()
+    lock = tmp_path / "requirements.lock"
+    lock.write_text("flask==3.1.3 \\\n    --hash=sha256:aa\n", encoding="utf-8")
+    monkeypatch.setattr(lock_pins, "_dry_run", lambda *a: [("flask", "3.2.0")])
+    monkeypatch.setattr(lock_pins, "_installed", lambda name: False)
+    assert lock_pins.resolve(str(lock), str(tmp_path / "out"), [], ["flask"]) == 1
