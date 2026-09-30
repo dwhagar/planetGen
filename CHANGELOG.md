@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.57.0] - 2026-09-30
+
+### Changed
+- **The search page moved to `/search` (Flask), with bookmarkable GET
+  URLs.** Every filter is a query parameter: `q` (the header search box)
+  searches sector, system, star, planet and moon names at once; the
+  per-object name fields (`sector_q`, ...), size ranges
+  (`planet_min_radius_km`, ...), repeated tag facets
+  (`spectral=G&spectral=K`) and each result panel's page
+  (`stars_page=2`) follow it. Tags and "remove filter" chips are plain
+  links, the per-object fields fold into a "Search by object and size"
+  section, and results now appear above the tag browser. A submitted
+  form's empty fields are dropped by a redirect to the short URL.
+  `search.py` is now a shim that 301-redirects to `/search`, keeping every
+  search parameter from an old link, bookmark or form post.
+
+## [5.56.0] - 2026-09-30
+
+### Added
+- **Quasars.** A galaxy's nucleus can now be active: 10% of the time
+  (`QUASAR_ACTIVE_NUCLEUS_CHANCE`) the first core sector gets a quasar at
+  the exact galactic center, so a galaxy has at most one. Each has a
+  supermassive black hole (1e8-1e10 solar masses), a luminosity set by
+  its Eddington ratio, the matching accretion rate and broad-line-region
+  size, and ~10% are radio-loud with jets. It shows on the Sector Map,
+  in the sector's Contents table, in the phenomena list and on its own
+  detail page, and `generate.py phenomenon --type quasar` makes one on
+  demand (`--sector-id` must be a shell-0 sector). New `quasars` table,
+  schema v31; run `migrateDb.py` (update.sh does).
+
+### Fixed
+- **A black hole's accretion-disk temperature could render one kelvin
+  low.** Loading an anchored black hole back from the database truncated
+  its fractional disk temperature, so the rendered page could read e.g.
+  3,676,064 K instead of 3,676,065 K.
+
 ## [5.55.0] - 2026-09-27
 
 ### Changed

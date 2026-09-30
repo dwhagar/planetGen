@@ -91,6 +91,7 @@ from stellarObjects.galaxySkeleton import (
     DEFAULT_EMPTY_STREAK_TO_STOP, DEFAULT_MAX_RING, build_ring_bands, expected_system_count_at_density_1,
 )
 from stellarObjects.nebulaData import Nebula
+from stellarObjects.quasarData import Quasar
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
@@ -816,6 +817,49 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
     return new_entries
 
 
+NUCLEUS_ADDRESS = (0, 0, 0)
+"""tuple: The `(ring, layer, slot)` of the one sector per galaxy that rolls
+for an active nucleus (see `add_galactic_nucleus`)."""
+
+
+def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
+    """
+    Rolls whether the galaxy's nucleus is active and, if so, adds a
+    `Quasar` to `sector` at the galactic center.
+
+    A quasar is a galaxy's central supermassive black hole, so there is
+    only ever one, and only at the origin. `generate_and_save_sector_at`
+    calls this for exactly one sector per galaxy, `NUCLEUS_ADDRESS`
+    (ring 0, layer 0, slot 0 -- every ring-0, layer-0 cell has the
+    galactic axis as its inner edge and the plane through its middle, so
+    each touches the origin, and picking one keeps it to a single roll),
+    with `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`.
+
+    The sector's local +X axis points radially out from the galactic axis
+    to the sector's own center, and a layer-0 center sits on the plane
+    (`galaxyGeometry.sector_orientation`), so the center sits at
+    `(-galactic_center_dist_ly, 0, 0)` in the sector's own frame;
+    `_db.insert_sector` converts that back to the galaxy origin.
+
+    Args:
+        sector (SpaceSector): The core sector, already populated.
+        args (argparse.Namespace): Parsed arguments; only `args.markdown`
+            is consulted.
+        galactic_center_dist_ly (float): The sector center's distance from
+            the galactic center, in light-years.
+
+    Returns:
+        SectorPhenomenonEntry or None: The quasar's entry, or `None` if
+            the nucleus came up quiescent.
+    """
+    if random.random() >= program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
+        log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (no quasar)")
+        return None
+    quasar_config = SystemConfig()
+    quasar_config.MARKDOWN = args.markdown
+    return sector.add_phenomenon(Quasar(quasar_config), "quasar", position=(-galactic_center_dist_ly, 0.0, 0.0))
+
+
 def generate_sector(args, galactic_center_dist_ly=None, cell=None):
     """
     Builds a fully populated `SpaceSector` from parsed args, without
@@ -1308,6 +1352,8 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     cell = SectorCell.for_ring(ring_index, pc_to_ly(edge_pc))
 
     _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell)
+    if address == NUCLEUS_ADDRESS:
+        add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
 
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
@@ -2022,6 +2068,7 @@ TYPE_LABELS = {
     "rogue-planet": "rogue planet",
     "comet": "interstellar comet",
     "asteroid-field": "asteroid field",
+    "quasar": "quasar",
 }
 """dict: `--type` value -> human-readable label, used in the `phenomenon`
 subcommand's own status output (not part of the generated phenomenon's
@@ -2039,7 +2086,8 @@ def add_phenomenon_arguments(parser):
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     parser.add_argument('--type', type=str, choices=list(program_constants.PHENOMENON_TYPE_CHOICES),
-                         help="The kind of phenomenon to generate. Omit to pick uniformly at random.")
+                         help="The kind of phenomenon to generate. Omit to pick uniformly at random "
+                              "(never a quasar, which only exists at a galaxy's center).")
 
     parser.add_argument('--anchor-system', action='store_true',
                          help="Only valid with --type black-hole or --type neutron-star: build a full star "
@@ -2056,8 +2104,9 @@ def add_phenomenon_arguments(parser):
                               "near this already-generated, already galaxy-placed sector (see "
                               "stellarObjects._db.compute_phenomenon_placement). Also links a "
                               "supernova-remnant/rogue-planet/comet to that sector, without a computed "
-                              "galaxy position (those types have no placement columns of their own). Omit "
-                              "to generate it unplaced/unlinked, as before.")
+                              "galaxy position (those types have no placement columns of their own). A "
+                              "quasar needs a ring-0, layer-0 (galactic core) sector and is placed at the galactic "
+                              "center; only one per galaxy. Omit to generate it unplaced/unlinked, as before.")
 
     # Database persistence
     _db.add_mysql_connection_args(parser)
@@ -2112,7 +2161,7 @@ def generate_phenomenon(phenomenon_type, system_config, anchor_system, name=None
     Returns:
         The generated phenomenon: a `BlackHole`, `NeutronStar`, `StarSystem`
         (only when `anchor_system` is True), `Nebula`, `SupernovaRemnant`,
-        `RoguePlanet`, `InterstellarComet`, or `AsteroidField`.
+        `RoguePlanet`, `InterstellarComet`, `AsteroidField`, or `Quasar`.
 
     Raises:
         ValueError: If `phenomenon_type` isn't one of the recognized choices.
@@ -2133,6 +2182,8 @@ def generate_phenomenon(phenomenon_type, system_config, anchor_system, name=None
         return InterstellarComet(system_config, name=name)
     if phenomenon_type == "asteroid-field":
         return AsteroidField(system_config, name=name)
+    if phenomenon_type == "quasar":
+        return Quasar(system_config, name=name)
 
     raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
 
@@ -2145,7 +2196,7 @@ def run_phenomenon(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "phenomenon"`).
     """
-    phenomenon_type = args.type or random.choice(program_constants.PHENOMENON_TYPE_CHOICES)
+    phenomenon_type = args.type or random.choice(program_constants.RANDOM_PHENOMENON_TYPE_CHOICES)
 
     system_config = SystemConfig()
     system_config.MARKDOWN = args.markdown

@@ -29,7 +29,7 @@
 - Designations encode ring, layer and slot, so every sector gets a new one.
 
 ### Removed
-- **Upgrading deletes every galaxy-placed sector.** Schema v31's migration
+- **Upgrading deletes every galaxy-placed sector.** Schema v32's migration
   deletes each placed sector together with its systems and phenomena, since
   shell addresses have no matching cell, and rebuilds the skeleton from the
   stored shape. Sectors that were never placed in the galaxy are kept.

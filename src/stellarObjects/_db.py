@@ -76,6 +76,7 @@ from .planetData import Planet
 from .roguePlanetData import InterstellarComet, RoguePlanet
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
+from .quasarData import Quasar
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 from .utils import (
@@ -84,7 +85,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 31
+SCHEMA_VERSION = 32
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1834,6 +1835,72 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     return field_id
 
 
+GALACTIC_CENTER_PLACEMENT = {
+    "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 0.0,
+}
+"""dict: The galactic origin, in `_placement_values`' shape -- where every
+placed quasar sits."""
+
+
+def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
+    """
+    Inserts a `quasars` row (see `schema.sql`'s "v31" header note).
+
+    A quasar is a galaxy's nucleus, so any placement at all is snapped to
+    the galactic center (`GALACTIC_CENTER_PLACEMENT`): `insert_sector`'s
+    converted in-sector offset already lands there up to rounding, and
+    `save_phenomenon`'s `--sector-id` jitter would otherwise scatter it.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        quasar (Quasar): The quasar to persist.
+        sector_id (int, optional): The core sector it belongs to.
+        placement (dict, optional): Any non-`None` value places it at the
+            galactic center; `None` leaves it unplaced.
+
+    Returns:
+        int: The new `quasars.id`.
+    """
+    cur = conn.execute(
+        """
+        INSERT INTO quasars (
+            sector_id, name, black_hole_mass_solar, event_horizon_radius_km, eddington_ratio,
+            luminosity_w, accretion_rate_solar_per_year, broad_line_region_light_days,
+            is_radio_loud, jet_length_ly, active_age_years,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            sector_id, quasar.name, quasar.black_hole_mass_solar, quasar.event_horizon_radius_km,
+            quasar.eddington_ratio, quasar.luminosity_w, quasar.accretion_rate_solar_per_year,
+            quasar.broad_line_region_light_days, int(quasar.is_radio_loud), quasar.jet_length_ly,
+            quasar.active_age_years,
+            *_placement_values(GALACTIC_CENTER_PLACEMENT if placement is not None else None),
+        ),
+    )
+    return cur.lastrowid
+
+
+def _check_quasar_sector(conn, sector_id):
+    """
+    Refuses to place a quasar "at" a sector that doesn't host the galactic
+    nucleus (every ring-0, layer-0 cell touches the origin), or into a
+    galaxy that already has one -- a galaxy has a single nucleus.
+
+    Raises:
+        ValueError: If either rule would be broken.
+    """
+    row = conn.execute("SELECT ring_index, layer_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None or row["ring_index"] != 0 or row["layer_index"] != 0:
+        raise ValueError(
+            f"a quasar can only be placed in a ring-0, layer-0 sector (the galactic core); "
+            f"sector {sector_id} is not one"
+        )
+    existing = conn.execute("SELECT id FROM quasars WHERE center_x_pc IS NOT NULL LIMIT 1").fetchone()
+    if existing is not None:
+        raise ValueError(f"this galaxy already has a quasar at its center (quasars.id={existing['id']})")
+
+
 _PHENOMENON_INSERTERS = {
     "black-hole": insert_black_hole,
     "neutron-star": insert_neutron_star,
@@ -1842,6 +1909,7 @@ _PHENOMENON_INSERTERS = {
     "supernova-remnant": insert_supernova_remnant,
     "rogue-planet": insert_rogue_planet,
     "comet": insert_interstellar_comet,
+    "quasar": insert_quasar,
 }
 """dict: `program_constants.PHENOMENON_TYPE_CHOICES` value -> the
 `insert_*` function for its table. Every one takes `sector_id=` and
@@ -1905,6 +1973,8 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             inserter = _PHENOMENON_INSERTERS.get(phenomenon_type)
             if inserter is None:
                 raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
+            if phenomenon_type == "quasar" and sector_id is not None:
+                _check_quasar_sector(conn, sector_id)
             placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
             return inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
     finally:
@@ -2653,7 +2723,7 @@ def replace_galaxy_ring_bands(ring_bands, config=None, conn=None):
         config (MySQLConfig, optional): Connection parameters. Defaults
             to `DEFAULT_MYSQL_CONFIG`. Ignored when `conn` is given.
         conn (Connection, optional): Write through this connection, inside
-            the caller's own transaction (the v31 migration does), instead
+            the caller's own transaction (the v32 migration does), instead
             of opening and committing a new one.
     """
     def _write(c):
@@ -2818,20 +2888,25 @@ def _star_row_to_dict(row):
     """Maps a `stars` row to `Star.from_dict`'s expected dict shape,
     inverting every unit conversion `insert_star` applies.
 
-    `temperature` is cast back to `int` -- `Star.generate_star` always sets
-    it via `int(round(...))`, but SQLite's `REAL` column type hands every
-    numeric value back as a Python `float` regardless of what was stored,
-    and `f"{self.temperature} K"` (`get_table_properties`) renders `5800`
-    vs. `5800.0` differently -- the one place a plain round-trip through a
-    `REAL` column would otherwise silently break render fidelity.
+    `temperature` is cast back to `int` when it is a whole number --
+    `Star.generate_star` always sets it via `int(round(...))`, but a `REAL`/
+    `DOUBLE` column hands every numeric value back as a Python `float`, and
+    `f"{self.temperature} K"` (`get_table_properties`) renders `5800` vs.
+    `5800.0` differently. A fractional value is kept as-is: an anchored
+    `BlackHole`'s accretion-disk temperature is a float (`random.uniform`),
+    and truncating it would render e.g. 3,676,064.7 K as "3,676,064 K"
+    instead of the generated "3,676,065 K".
     """
+    temperature = row["temperature_k"]
+    if temperature is not None and float(temperature).is_integer():
+        temperature = int(temperature)
     return {
         "name": row["name"],
         "type": row["star_type"],
         "yerkes_class": row["yerkes_class"],
         "mass": row["mass_kg"],
         "radius": row["radius_km"],
-        "temperature": int(row["temperature_k"]),
+        "temperature": temperature,
         "luminosity": row["luminosity_w"],
         "age": row["age_gy"],
         "lifespan": row["lifespan_gy"],
@@ -4412,7 +4487,7 @@ def _migrate_v25_to_v26(conn):
 TIMESTAMPED_TABLES = (
     "sectors", "star_systems",
     "black_holes", "neutron_stars", "nebulae", "supernova_remnants",
-    "rogue_planets", "interstellar_comets", "asteroid_fields",
+    "rogue_planets", "interstellar_comets", "asteroid_fields", "quasars",
 )
 """tuple: The top-level tables carrying v27's `created_at`/`modified_at`
 row timestamps -- see `schema.sql`'s "v27" header note. Child rows
@@ -4768,19 +4843,34 @@ def _migrate_v29_to_v30(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (30)")
 
 
-V31_PLACED_CONTENT_TABLES = (
-    "supernova_remnants", "rogue_planets", "interstellar_comets", "nebulae", "asteroid_fields",
+def _migrate_v30_to_v31(conn):
+    """
+    Records schema v31 -- the new `quasars` table (see `schema.sql`'s
+    "v31" header note). Like `_migrate_v15_to_v16`, a brand-new table
+    needs no `ALTER TABLE`: `_ensure_schema` already created it, so this
+    step only keeps the bookkeeping counter accurate.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
+
+
+V32_PLACED_CONTENT_TABLES = (
+    "quasars", "supernova_remnants", "rogue_planets", "interstellar_comets", "nebulae", "asteroid_fields",
     "black_holes", "neutron_stars", "star_systems",
 )
-"""tuple: The tables whose rows in a galaxy-placed sector v31 deletes, in
+"""tuple: The tables whose rows in a galaxy-placed sector v32 deletes, in
 an order that respects their foreign keys (supernova remnants point at
 black holes and neutron stars, so they go first)."""
 
 
-def _migrate_v30_to_v31(conn):
+def _migrate_v31_to_v32(conn):
     """
     Moves galaxy placement from spherical shells to the cylindrical
-    ring/layer/slot grid -- see `schema.sql`'s "v31" header note. A
+    ring/layer/slot grid -- see `schema.sql`'s "v32" header note. A
     shell-addressed sector has no matching cell, so every galaxy-placed
     sector is **deleted**, together with its star systems (their planets,
     moons and stars go with them through `ON DELETE CASCADE`) and every
@@ -4809,7 +4899,7 @@ def _migrate_v30_to_v31(conn):
         from .galaxySkeleton import build_ring_bands
 
         placed = "SELECT id FROM sectors WHERE center_x_pc IS NOT NULL"
-        for table in V31_PLACED_CONTENT_TABLES:
+        for table in V32_PLACED_CONTENT_TABLES:
             conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})")
         conn.execute("DROP TABLE IF EXISTS sector_vertices")
         conn.execute("DELETE FROM sectors WHERE center_x_pc IS NOT NULL")
@@ -4838,7 +4928,7 @@ def _migrate_v30_to_v31(conn):
             replace_galaxy_ring_bands(bands, conn=conn)
             conn.execute("UPDATE galaxy_shape SET outer_ring_index = ? WHERE id = 1", (outer_ring_index,))
 
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (32)")
 
 
 def touch_star_system(conn, star_system_id):
@@ -4914,7 +5004,8 @@ def migrate_database(config=None):
     (dropping the stored wikitext/Markdown page text v29 renders on
     demand instead), `_migrate_v29_to_v30` (clearing stale atmosphere
     values on airless bodies and flooring surface temperatures at the
-    cosmic background), and `_migrate_v30_to_v31` (moving galaxy placement
+    cosmic background), `_migrate_v30_to_v31` (recording v31's new
+    `quasars` table), and `_migrate_v31_to_v32` (moving galaxy placement
     to the cylindrical sector grid, which deletes every galaxy-placed
     sector and its contents) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
@@ -5024,6 +5115,9 @@ def migrate_database(config=None):
         if version < 31:
             _migrate_v30_to_v31(conn)
             version = 31
+        if version < 32:
+            _migrate_v31_to_v32(conn)
+            version = 32
 
         conn.commit()
         return version

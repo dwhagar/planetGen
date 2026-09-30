@@ -432,15 +432,24 @@ cube (its real generated position was never saved), seeded by the row's
 id. Rows with no placed sector stay unplaced. The full reasoning is in
 `schema.sql`'s "v28" header note.
 
-**Cylindrical sector grid (v31).** Galaxy-placed sectors moved from
+**Quasars (v31).** A new `quasars` table holds a galaxy's active nucleus
+(`quasarData.Quasar`). A quasar is only ever generated at the galactic
+center, by the core sector at ring 0, layer 0, slot 0 (`generate.add_galactic_nucleus`,
+rolled against `program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`), so a
+placed row always sits at (0, 0, 0) and a galaxy has at most one. It has
+the usual placement columns and row timestamps, but no galactic-orbit
+columns: it is the point everything else orbits. A brand-new table needs
+no `ALTER TABLE`, so `_migrate_v30_to_v31` only records the version.
+
+**Cylindrical sector grid (v32).** Galaxy-placed sectors moved from
 spherical shells to rings, layers and slots: `sectors.shell_index`/
 `shell_slot_index` became `ring_index`/`layer_index`/`ring_slot_index`,
 `sector_vertices` was dropped, `galaxy_shell_band` became
 `galaxy_ring_band`, and `galaxy_shape.outer_shell_index` became
 `outer_ring_index`. Old addresses have no matching cell, so
-`_migrate_v30_to_v31` deletes every galaxy-placed sector with its systems
+`_migrate_v31_to_v32` deletes every galaxy-placed sector with its systems
 and phenomena (never-placed sectors stay) and rebuilds the ring bands from
-the stored shape. See `schema.sql`'s "v31" header note.
+the stored shape. See `schema.sql`'s "v32" header note.
 
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
@@ -539,7 +548,7 @@ One row per generated sector.
 | `edge_mpc` | DOUBLE | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`sectorGen.py`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
-| `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v31, `stellarObjects/galaxyGeometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (11.5 ly wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
+| `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `stellarObjects/galaxyGeometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (11.5 ly wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
 | `wiki_url` | TEXT | nullable | Where this sector's summary page lives on a wiki (v22) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (`html/admin.py`'s manual-link admin section). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
@@ -547,7 +556,7 @@ A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 history" above for why that addition needed a wholesale table rewrite
 rather than an incremental `ALTER TABLE`). A cell's corners are
 closed-form (`galaxyGeometry.sector_cell_vertices_pc`), so none are
-stored (v31 dropped the old `sector_vertices` table). A
+stored (v32 dropped the old `sector_vertices` table). A
 `UNIQUE (ring_index, layer_index, ring_slot_index)` constraint
 (`uq_sectors_address`) guarantees at most one sector per galaxy address —
 NULL-together rows (never placed in a galaxy) don't collide with each
@@ -583,11 +592,11 @@ billions of candidates).
 | `arm_count` | INT | NOT NULL | Same source. |
 | `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs. |
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
-| `outer_ring_index` | INT | NOT NULL | The last ring with any qualifying content — this galaxy's real edge, discovered by `generate.py plan` (a run of consecutive empty rings beyond it), not an arbitrary radius. Named `outer_shell_index` before v31. |
+| `outer_ring_index` | INT | NOT NULL | The last ring with any qualifying content — this galaxy's real edge, discovered by `generate.py plan` (a run of consecutive empty rings beyond it), not an arbitrary radius. Named `outer_shell_index` before v32. |
 
 ### `galaxy_ring_band`
 
-One row per ring that can hold content (v31, replacing v8's
+One row per ring that can hold content (v32, replacing v8's
 `galaxy_shell_band`): the inclusive range of layers whose sector centers
 could clear the qualification threshold
 (`stellarObjects.galaxySkeleton.find_ring_band`). It comes from an exact
@@ -1052,6 +1061,29 @@ from any star.
 | `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
+
+### `quasars`
+
+Added in v31. A galaxy's active nucleus: its central supermassive black
+hole, accreting near its Eddington limit. See `schema.sql`'s "v31" header
+note.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | INTEGER | PK | |
+| `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The core sector that generated it (or `phenomenon --sector-id`, which only accepts a ring-0, layer-0 sector); NULL for one generated standalone. |
+| `name` | TEXT | NOT NULL | |
+| `black_hole_mass_solar` | DOUBLE | NOT NULL | Log-uniform 1e8-1e10. |
+| `event_horizon_radius_km` | DOUBLE | NOT NULL | Schwarzschild radius. |
+| `eddington_ratio` | DOUBLE | NOT NULL | Log-uniform 0.1-1. |
+| `luminosity_w` | DOUBLE | NOT NULL | `eddington_ratio` x the Eddington limit for its mass. |
+| `accretion_rate_solar_per_year` | DOUBLE | NOT NULL | `luminosity_w / (0.1 c^2)`. |
+| `broad_line_region_light_days` | DOUBLE | NOT NULL | From the reverberation-mapped radius-luminosity relation. |
+| `is_radio_loud` | BOOLEAN | NOT NULL | ~10% launch relativistic jets. |
+| `jet_length_ly` | DOUBLE | nullable | Set exactly when `is_radio_loud`. |
+| `active_age_years` | DOUBLE | NOT NULL | How long this episode of activity has run. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Always the galactic center (all 0) when placed; NULL together when never placed. |
+| `created_at`, `modified_at` | TIMESTAMP | NOT NULL | Row timestamps, as v27 gave every other phenomenon table. |
 
 ### `interstellar_comets`
 

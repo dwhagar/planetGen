@@ -9,7 +9,7 @@ core design in sections 0-7 below now describes shipped behavior
 migration), extended by the addenda in sections 8 and 9, each separately
 marked "Status: implemented" where it lives.
 
-**Superseded in part (schema v31):** sector *addressing* no longer uses
+**Superseded in part (schema v32):** sector *addressing* no longer uses
 the spherical shells, Fibonacci slots and Voronoi prisms of sections 3, 8,
 9 and 10. Sectors now sit on the cylindrical grid described in the next
 section. The coordinate frame, units and phenomenon placement below are
@@ -63,7 +63,7 @@ core, and it builds in about half a second.
 now called Zones: `ZONE_RING_WIDTH = round(100 / 11.5)` consecutive rings.
 
 **Migration.** Shell-addressed sectors have no matching cell, so
-`_migrate_v30_to_v31` deletes every galaxy-placed sector with its systems
+`_migrate_v31_to_v32` deletes every galaxy-placed sector with its systems
 and phenomena and rebuilds the skeleton; sectors regenerate as they are
 visited. Never-placed sectors are untouched.
 
