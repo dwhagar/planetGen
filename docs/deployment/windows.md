@@ -16,7 +16,8 @@ guides unchanged.
 ## Limits on native Windows
 
 - **`install.sh`, `update.sh` and the systemd timers are Linux-only.**
-  The steps below do their work by hand.
+  The steps below do their work by hand. PowerShell versions are planned
+  ([`TODO.md`](../TODO.md) item 50).
 - **gunicorn does not run on Windows** (it needs `fork`). All three
   setups use waitress, a pure-Python WSGI server that does.
 - **The admin Generate page does not work reliably.** Its background

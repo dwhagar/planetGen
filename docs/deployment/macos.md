@@ -7,7 +7,8 @@ gunicorn runs the app under launchd, the macOS service manager. The job
 runner behind the admin Generate page is POSIX code and works on macOS.
 
 `install.sh` and `update.sh` are Linux-only (apt, `a2enmod`, `runuser`),
-so their steps are done by hand below.
+so their steps are done by hand below. Making them run on macOS is
+[`TODO.md`](../TODO.md) item 50.
 
 Paths match the Linux guides where they can:
 
