@@ -91,7 +91,12 @@ def test_system_page_lists_bodies_and_shows_generated_code(live_api, mysql_confi
     cfg.STAR_TYPE = "G2V"
     cfg.MOONS = True
     cfg.BINARY_SYSTEM = False
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    # About 1 in 20 random G2V systems has no planet (nothing, or a lone
+    # asteroid belt), and so no "Habitable:"/"Inhabited:" row to check.
+    system = StarSystem(system_config=cfg)
+    while not system.planet_count:
+        system = StarSystem(system_config=cfg)
+    system_id = _db.save_system(system, cfg, config=mysql_config)
     query = {"db": mysql_config.database, "id": str(system_id)}
 
     result = run_page(live_api, "system.py", query=query)
