@@ -68,7 +68,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
   buildPrismGeometry, cellCoordinates, cellVertices, groupSectorCount, groupSectorRanges, prismsForView,
-  sectorAddressAt, sectorCellBounds,
+  sectorAddressAt, sectorCellBounds, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -328,6 +328,26 @@ function makeDotTexture(fillColor, strokeColor) {
   return texture;
 }
 
+// A text label for a sprite, with its width / height in userData.aspect.
+function makeLabelTexture(text, color) {
+  var height = 64;
+  var canvasEl = document.createElement("canvas");
+  var ctx = canvasEl.getContext("2d");
+  var font = "600 " + Math.round(height * 0.7) + "px system-ui, sans-serif";
+  ctx.font = font;
+  canvasEl.width = Math.ceil(ctx.measureText(text).width + height * 0.3);
+  canvasEl.height = height;
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, canvasEl.width / 2, height / 2);
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.userData.aspect = canvasEl.width / height;
+  return texture;
+}
+
 function makeRingTexture(color) {
   var size = 64;
   var canvasEl = document.createElement("canvas");
@@ -407,7 +427,7 @@ function placedRelativeDensity(entry, referenceDensityPerLy3) {
 // at a glance, exactly like it already was before density coloring.
 // TODO(galaxy-map #15): the sprites go away. This colour scale lives on as a
 // filled sector's block colour at m = 1 (its real system density). Coarser
-// blocks take the space's density colour (#10), and their filled share only
+// blocks take the space's density colour (prismShade), and their filled share only
 // sets their opacity.
 function placedDensityColor(entry, referenceDensityPerLy3) {
   var relative = placedRelativeDensity(entry, referenceDensityPerLy3);
@@ -536,10 +556,56 @@ function initGalaxyMap3d(canvasEl, data) {
     scheduleFetch(true);
   }
 
-  // TODO(galaxy-map #21): draw meaningful wedge lines from the center out
-  // to the edge in the galactic plane (e.g. the master-wedge boundaries of
-  // galaxy-map #12, labelled by bearing from the core) as a LineSegments
-  // overlay here, so navigation is easier. --- Content groups
+  // --- Wedge lines ---------------------------------------------------------
+  //
+  // Lines in the galactic plane from the core out past the edge, each
+  // labelled with its bearing (degrees counterclockwise from +X, the zero
+  // meridian), so a view can be placed around the galaxy at a glance.
+  // Drawn over everything (no depth test) and never picked. The Wedge
+  // lines button hides them.
+  var wedgeColor = new THREE.Color(cssVar("--text", "#e6e8f0"));
+  var wedgeGroup = new THREE.Group();
+  wedgeGroup.renderOrder = 2;
+  scene.add(wedgeGroup);
+  var WEDGE_LABEL_PX = 16;
+  var wedgeLabels = [];
+  (function buildWedgeLines() {
+    var lines = wedgeLines();
+    var reach = GALAXY_RADIUS * 1.02;
+    var points = new Float32Array(lines.length * 6);
+    lines.forEach(function (line, n) {
+      var cos = Math.cos(line.angleRad);
+      var sin = Math.sin(line.angleRad);
+      points.set([line.r0 * cos, line.r0 * sin, 0, reach * cos, reach * sin, 0], 6 * n);
+      var label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: makeLabelTexture(String(line.bearingDeg).padStart(3, "0"), "#" + wedgeColor.getHexString()),
+        transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: false,
+      }));
+      label.position.set(reach * 1.06 * cos, reach * 1.06 * sin, 0);
+      label.renderOrder = 2;
+      wedgeLabels.push(label);
+      wedgeGroup.add(label);
+    });
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
+    var segments = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
+      color: wedgeColor, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false,
+    }));
+    segments.renderOrder = 2;
+    wedgeGroup.add(segments);
+  })();
+
+  // Keeps the labels WEDGE_LABEL_PX tall on screen: a sprite without size
+  // attenuation spans scale / tan(fov / 2) half-heights of the view.
+  function updateWedgeLabels() {
+    var heightPx = canvasEl.clientHeight || 1;
+    var h = (WEDGE_LABEL_PX * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
+    wedgeLabels.forEach(function (label) {
+      label.scale.set(h * label.material.map.userData.aspect, h, 1);
+    });
+  }
+
+  // --- Content groups
   // ------------------------------------------------------
 
   var interactiveGroup = new THREE.Group();
@@ -775,14 +841,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // little off to one side, so tops, walls and sides all read apart.
   var PRISM_LIGHT = new THREE.Vector3(0.35, -0.3, 0.9).normalize();
   var PRISM_AMBIENT = 0.35;
-  // Each prism's share of its cell, per side, for the thinnest and the
-  // densest prism drawn.
-  // TODO(galaxy-map #14): mega-blocks are drawn full size (fill 1), making
-  // one continuous solid, so these and the per-prism shrink in
-  // updatePrisms go. The shader's thin face edges stay, so block
-  // boundaries still read.
-  var PRISM_FILL_MIN = 0.3;
-  var PRISM_FILL_MAX = 0.92;
+  // Prisms fill their whole cell, so the galaxy reads as one solid built
+  // of blocks; the shader's thin face edges keep block boundaries visible.
+  // With the slice on (the default), blocks above the focus's own layer
+  // are left out, so the view looks down on the solid's cut face -- the
+  // arms and whatever layer the focus is in -- instead of its outside.
+  var sliceAtFocus = true;
+  var lastPrismViewRadius = null;
   // Prism shading runs over a much wider density range than the markers'
   // densityIntensity (which tops out at 7x): the drawing floor
   // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
@@ -793,20 +858,31 @@ function initGalaxyMap3d(canvasEl, data) {
   var PRISM_ACCENT = new THREE.Color(accentColor);
   var PRISM_HOT = new THREE.Color(0xeef0ff);
 
-  // TODO(galaxy-map #10): make the spiral visible. On this single log ramp
-  // (0.02 to 100) the arm/inter-arm contrast (1.4 / 0.6 at the default
-  // arm_amplitude) is only about 10% of the range. Instead, shade by
-  //   t = 0.45 * prismIntensity(density) + 0.55 * armT
-  //   armT = clamp((density / mean - (1 - A)) / (2A))
-  // where mean is the block's azimuthal mean from galaxyprisms.js and A is
-  // shape.arm_amplitude (mocked in galaxy-megablocks/
-  // spiral-contrast-compare.png).
-  // Edge cases:
-  // - arm_amplitude 0 or arm_count 0: fall back to density alone;
-  // - the bulge dilutes arms near the core, which is fine;
-  // - check the light theme's accent;
-  // - planned (unfilled) sector dots should pick up the same arm tint
-  //   when zoomed in.
+  // Density alone puts the arms (1 +/- arm_amplitude around the ring's
+  // mean) on a sliver of that 0.02-100 ramp, so the spiral barely shows.
+  // Each prism's shade mixes its density with its arm factor (density /
+  // its azimuthal mean, from galaxyprisms.js), stretched over the arm
+  // model's own range: inter-arm troughs dim, arm crests bright.
+  var PRISM_DENSITY_SHARE = 0.45;
+  var ARM_AMPLITUDE = galaxyArmAmplitude(data.densityShape);
+
+  function galaxyArmAmplitude(shape) {
+    if (!shape || !(shape.arm_count > 0)) {
+      return 0;
+    }
+    return Math.min(1, Math.abs(shape.arm_amplitude || 0));
+  }
+
+  // 0..1 shade for a prism: density alone when the galaxy has no arms.
+  function prismShade(cell) {
+    var t = prismIntensity(cell.density);
+    if (!(ARM_AMPLITUDE > 0) || !(cell.meanDensity > 0)) {
+      return t;
+    }
+    var arm = (cell.density / cell.meanDensity - (1 - ARM_AMPLITUDE)) / (2 * ARM_AMPLITUDE);
+    return PRISM_DENSITY_SHARE * t + (1 - PRISM_DENSITY_SHARE) * Math.max(0, Math.min(1, arm));
+  }
+
   function prismIntensity(relativeDensity) {
     var t = Math.log(Math.max(relativeDensity, 1e-9) / PRISM_DENSITY_LOW) / Math.log(PRISM_DENSITY_HIGH / PRISM_DENSITY_LOW);
     return Math.max(0, Math.min(1, t));
@@ -868,30 +944,27 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     var center = [target.x, target.y, target.z];
     var pcPerPixel = pcPerPixelAtTarget();
-    var key = center.join(",") + ":" + viewRadius + ":" + pcPerPixel.toPrecision(3);
+    lastPrismViewRadius = viewRadius;
+    var key = center.join(",") + ":" + viewRadius + ":" + pcPerPixel.toPrecision(3) + ":" + sliceAtFocus;
     if (key === prismSetKey) {
       return;
     }
     prismSetKey = key;
     var view = prismsForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, pcPerPixel);
-    var cells = view.prisms;
+    var cells = sliceAtFocus
+      ? view.prisms.filter(function (cell) { return cell.z0 <= target.z; })
+      : view.prisms;
     var colorsOf = [];
     var centersOf = [];
     var prisms = cells.map(function (cell) {
-      var t = prismIntensity(cell.density);
+      var t = prismShade(cell);
       var midR = (cell.r0 + cell.r1) / 2;
       var midT = (cell.t0 + cell.t1) / 2;
       var midZ = (cell.z0 + cell.z1) / 2;
-      var fill = (PRISM_FILL_MIN + (PRISM_FILL_MAX - PRISM_FILL_MIN) * t) / 2;
       var fade = edgeFade(midR * Math.cos(midT), midR * Math.sin(midT), midZ);
       colorsOf.push(prismColor(t).multiplyScalar(0.25 + 0.75 * fade));
       centersOf.push([midR * Math.cos(midT), midR * Math.sin(midT), midZ]);
-      // Shrunk about the cell's middle by the same fraction on every side.
-      return {
-        r0: midR - fill * (cell.r1 - cell.r0), r1: midR + fill * (cell.r1 - cell.r0),
-        t0: midT - fill * (cell.t1 - cell.t0), t1: midT + fill * (cell.t1 - cell.t0),
-        z0: midZ - fill * (cell.z1 - cell.z0), z1: midZ + fill * (cell.z1 - cell.z0),
-      };
+      return { r0: cell.r0, r1: cell.r1, t0: cell.t0, t1: cell.t1, z0: cell.z0, z1: cell.z1 };
     });
     var built = buildPrismGeometry(prisms);
     drawnCells = cells;
@@ -923,12 +996,11 @@ function initGalaxyMap3d(canvasEl, data) {
     prismMesh.geometry.dispose();
     prismMesh.geometry = geometry;
     prismMesh.visible = prisms.length > 0;
+    updateScaleBar();
   }
 
-  // TODO(galaxy-map #14): with a solid of full-size blocks the camera is
-  // often inside it. The slice (hide block layers above the focus layer,
-  // on by default) is the main answer; this near cut stays for views
-  // where the camera is below the cut.
+  // Inside the solid, the slice is the main answer; this near cut stays
+  // for views where the camera is below the cut (or the slice is off).
   function updateNearCut() {
     prismMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
   }
@@ -1767,11 +1839,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // docstring) -- the browser's own default context menu is left alone,
   // rather than preventDefault()-ing it for nothing.
 
-  // TODO(galaxy-map #14): wire the Slice control (lib/galaxymap3d.py)
-  // here. It toggles between cutting at the focus layer and the whole
-  // solid, resets prismSetKey, and redraws.
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
+    // Five buttons: let them wrap rather than run off the side panel.
+    controlsEl.style.flexWrap = "wrap";
     controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
       button.addEventListener("click", function () {
         var action = button.dataset.action;
@@ -1783,6 +1854,15 @@ function initGalaxyMap3d(canvasEl, data) {
           scheduleFetch(true);
         } else if (action === "reset") {
           resetView();
+        } else if (action === "wedges") {
+          wedgeGroup.visible = !wedgeGroup.visible;
+          button.setAttribute("aria-pressed", String(wedgeGroup.visible));
+        } else if (action === "slice") {
+          sliceAtFocus = !sliceAtFocus;
+          button.setAttribute("aria-pressed", String(sliceAtFocus));
+          if (lastPrismViewRadius !== null) {
+            updatePrisms(lastPrismViewRadius);
+          }
         }
       });
     });
@@ -1859,25 +1939,68 @@ function initGalaxyMap3d(canvasEl, data) {
     return Math.round(value * 1000) / 1000 + " pc";
   }
 
-  // TODO(galaxy-map #11): replace the single "≈ N pc (reference)" line with
-  // three:
-  //   1 px ≈ s sectors · pc · ly           (s = pcPerScreenPx / edgePc)
-  //   1 block = m sectors across (m³) · pc · ly
-  //   70 px ≈ sectors · pc · ly            (a nice-rounded bar)
-  // m is drawnSectorsPerPrism, so refresh it after updatePrisms too, not
-  // only on resize. Format large counts with toLocaleString.
+  // Up to 3 significant figures, grouped: 0.0512, 3.4, 1,280.
+  function formatCount(value) {
+    if (!(value > 0)) return "0";
+    if (value >= 100) return Math.round(value).toLocaleString();
+    return String(Number(value.toPrecision(value >= 1 ? 3 : 2)));
+  }
+
+  function formatLy(pc) {
+    return formatCount(pc * LY_PER_PC) + " ly";
+  }
+
+  function plural(count, word) {
+    return count === 1 ? word : word + "s";
+  }
+
+  // One line of the readout: "<lead> <sectors> · <pc> · <ly>".
+  function scaleLine(lead, pc, suffix) {
+    var sectors = pc / edgePc;
+    var line = document.createElement("span");
+    line.className = "starmap-scale-label";
+    // Wraps on a phone instead of running off the canvas.
+    line.style.whiteSpace = "normal";
+    line.textContent = lead + " " + formatCount(sectors) + " " + plural(sectors, "sector") + (suffix || "")
+      + " · " + formatPc(pc) + " · " + formatLy(pc);
+    return line;
+  }
+
+  // Three lines: what one screen pixel spans at the focus, how big one
+  // prism (block) is, and a bar of about SCALE_BAR_PX rounded to a nice
+  // number of parsecs. All per CSS pixel, like the block size itself:
+  // they're about what a person can see and click, not device pixels.
+  var SCALE_BAR_PX = 70;
+  if (scaleEl) {
+    // A column instead of the other maps' one-line row (set here, not in
+    // style.css: only this map's readout stacks).
+    scaleEl.style.flexDirection = "column";
+    scaleEl.style.alignItems = "flex-start";
+    scaleEl.style.gap = "0.1rem";
+    scaleEl.style.maxWidth = "calc(100% - 1.5rem)";
+  }
+
   function updateScaleBar() {
     if (!scaleEl) {
       return;
     }
-    var fovRad = THREE.MathUtils.degToRad(camera.fov);
-    var heightPx = canvasEl.clientHeight || 1;
-    var pcPerScreenPx = (2 * orbit.radius * Math.tan(fovRad / 2)) / heightPx;
-    var nicePc = niceScaleValue(70 * pcPerScreenPx);
+    var pcPerScreenPx = pcPerPixelAtTarget();
+    var nicePc = niceScaleValue(SCALE_BAR_PX * pcPerScreenPx);
     if (!nicePc) {
       return;
     }
-    scaleEl.textContent = "≈ " + formatPc(nicePc) + " (reference)";
+    var m = drawnSectorsPerPrism || 1;
+    var block = scaleLine("1 block =", m * edgePc, m === 1 ? "" : " across (≈ " + formatCount(m * m * m) + ")");
+    var barRow = document.createElement("span");
+    barRow.style.display = "flex";
+    barRow.style.alignItems = "center";
+    barRow.style.gap = "0.4rem";
+    var bar = document.createElement("span");
+    bar.className = "starmap-scale-bar";
+    bar.style.width = (nicePc / pcPerScreenPx).toFixed(1) + "px";
+    barRow.appendChild(bar);
+    barRow.appendChild(scaleLine("≈", nicePc));
+    scaleEl.replaceChildren(scaleLine("1 px ≈", pcPerScreenPx), block, barRow);
   }
 
   // --- Resize/render loop ----------------------------------------------
@@ -1900,6 +2023,7 @@ function initGalaxyMap3d(canvasEl, data) {
   (function animate() {
     requestAnimationFrame(animate);
     updateMarkerScales();
+    updateWedgeLabels();
     updateNearCut();
     renderer.render(scene, camera);
   })();

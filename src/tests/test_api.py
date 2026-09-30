@@ -749,7 +749,7 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     # the level-0 tile is far too big to list slots at all.
     assert tiles[near]["planned"]
     assert tiles[whole]["planned"] == []
-    assert body["density"] is None
+    assert "density" not in body
     assert body["has_shape"] is False
 
 
@@ -776,9 +776,9 @@ def test_galaxy_tiles_rejects_bad_requests(client, mysql_config):
     assert client.get("/api/galaxy/tiles?tiles=nonsense").status_code == 400
     too_many = ",".join(f"12/{i}/0/0" for i in range(129))
     assert client.get(f"/api/galaxy/tiles?tiles={too_many}").status_code == 400
-    empty = client.get("/api/galaxy/tiles?tiles=&density=1/0/0/0")
+    empty = client.get("/api/galaxy/tiles?tiles=")
     assert empty.status_code == 200
-    assert empty.get_json()["density"] == {"key": "1/0/0/0", "points": []}
+    assert empty.get_json()["tiles"] == {}
 
 
 def test_galaxy_stamp_changes_when_a_sector_is_placed(client, mysql_config):
