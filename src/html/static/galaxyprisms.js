@@ -111,14 +111,26 @@ function densityUpperBound(r0, zMinAbs, shape) {
 // ringSectorCount(i) equal wedges counterclockwise from +X. Every point in
 // space falls in exactly one cell.
 
-// Slots in sector ring `ring`: round(2 * pi * (i + 1/2)) -- 3, 9, 16, 22,
-// ... -- so each slot's arc is about one edge long. The same on every
-// layer, so the columns line up through the whole stack.
-// TODO(galaxy-map #12): mirror galaxyGeometry.ring_sector_count's hybrid
-// master-wedge rule exactly, and add ringMasterCount(ring). The tests
-// compare the two tables ring by ring out to the default galaxy's edge.
+// Master wedges ring `ring` sits in: 3 at the center, doubling (6, 12,
+// ... 1,536) at the first ring where each doubled wedge would hold at
+// least 8 slots. Every master line runs from where it starts out to the
+// edge, and is a slot boundary in every ring outward. Mirrors
+// galaxyGeometry.ring_master_count.
+export function ringMasterCount(ring) {
+  var c = 2 * Math.PI * (ring + 0.5);
+  var master = 3;
+  if (!isFinite(c)) return NaN;
+  while (c >= 2 * master * 8) master *= 2;
+  return master;
+}
+
+// Slots in sector ring `ring`: the multiple of its master count nearest
+// 2 * pi * (i + 1/2) -- 3, 9, 15, 21, 27, 36, ... -- so each slot's arc is
+// within about 6% of one edge. The same on every layer, so the columns
+// line up through the whole stack. Mirrors galaxyGeometry.ring_sector_count.
 export function ringSectorCount(ring) {
-  return Math.max(1, Math.round(2 * Math.PI * (ring + 0.5)));
+  var master = ringMasterCount(ring);
+  return Math.max(master, master * Math.round((2 * Math.PI * (ring + 0.5)) / master));
 }
 
 // The same rule for a group grid's rings (kept under its old name).

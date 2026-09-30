@@ -1,5 +1,104 @@
 # Changelog
 
+## [7.14.0] - 2026-09-30
+
+### Changed
+
+- NAV courses read "bearing mark mark" (for example "045 mark 330") on Boss's nested reference frames: bearing 000 points at the sector's center for a course inside one sector and at the galactic core between sectors, and the mark is the elevation mod 360 (270 is straight down). The NAV page shows the course and its frame in place of the Azimuth and Altitude rows, and the NAV Map's compass arrow marks bearing 000.
+- `/api/nav`'s `direct` carries `bearing_deg`, `mark_deg`, `elevation_deg` and `frame` instead of `azimuth_deg` and `altitude_deg`.
+- The NAV page's distances and the NAV Map's scale bar use the shared distance ladder (for example "1.07 pc (3.5 ly)").
+
+## [7.13.1] - 2026-09-30
+
+### Fixed
+- **A close binary's planets could orbit inside the binary.** A close
+  pair's innermost planet or belt now starts at the Holman & Wiegert
+  (1999) circumbinary stability limit, about twice the stars'
+  separation. When a habitable world is required and the pair's whole
+  habitable zone lies inside that limit, the pair is made wide instead,
+  unless the binary type was forced (TODO item 42).
+
+## [7.13.0] - 2026-09-30
+
+### Changed
+
+- **Schema v35: hybrid master-wedge sector slots.** Each ring now holds
+  the multiple of its master wedge count nearest `2*pi*(i + 1/2)`
+  (3, 9, 15, 21, 27, 36, ...), with 3 master wedges at the center that
+  double (6, 12, ... 1,536) once each would hold 8 slots. Slot
+  boundaries line up on the master lines from the center to the edge,
+  sector arcs stay within about 6% of 4 pc, and the total sector count
+  is unchanged. `galaxyGeometry.ring_master_count` is new, and
+  `galaxyprisms.js` mirrors both functions.
+- The migration deletes every sector in a ring whose slot count changed
+  (all but 15 rings) with its systems and phenomena. Run `update.sh`,
+  then regenerate the galaxy; the skeleton (`generate.py plan`) is kept.
+
+## [7.12.0] - 2026-09-30
+
+### Changed
+- **The system page lists everything in orbit once, in order.** The
+  Planets & Moons, Asteroid Belts and Comets tables are gone; each list
+  row now shows what they did (class, zone, distance, period, gravity;
+  a belt's distance and inner-to-outer range; a comet's perihelion and
+  period). Comets sort in among the planets and belts by semi-major axis
+  (unbound ones last), and the Stars table sits first, right under the
+  System Map.
+- **One type chip per world:** "Habitable", "Terrestrial" or "Gas
+  Giant", never two, plus a "Habitable moon" chip when one of its moons
+  is habitable and "Inhabited" when it is.
+- **A planet's moons get their own collapsed "N moons of ..." group**
+  right under the planet's row, instead of sitting after its whole
+  description.
+
+## [7.11.0] - 2026-09-30
+
+### Changed
+- **A lighter top bar with a settings gear.** The theme switch, search
+  (when the bar has no room for it) and the account links moved under a
+  gear at the upper right: Account, Admin, Generate, Stats and Logout
+  for an admin, Login for a visitor (who never sees Stats). Galaxy,
+  Sectors, Systems, Phenomena and Nav stay buttons while they fit and
+  fold into a Menu when they don't, and the bar's search box shows only
+  while its text entry is at least twice the width of its button. The
+  layout follows the header's own width with container queries, so it
+  needs no script; with script, an open menu closes on an outside click
+  or Escape. The logged-in header no longer collapses at a wider width
+  than a visitor's.
+
+## [7.10.3] - 2026-09-30
+
+### Changed
+
+- Galaxy Map: the scale readout and the cell info panel show distances on the
+  shared distance ladder (`static/distance.js`), so parsec values carry ly in
+  parentheses and large or small ones switch to kpc, cpc or ly like every
+  other page.
+
+## [7.10.2] - 2026-09-30
+
+### Security
+- **Admin generation inputs have upper bounds.** The Generate page, the
+  one-off system page, the API and `generate.py` now reject a radius over
+  200 pc (about 652 ly for the API's generate-neighborhood `radius_ly`,
+  down from 1,000,000 ly), a ring or highest ring over 100,000, a ring
+  `--limit` over 628,322 (ring 100,000's slot count), and more than 500
+  orbital slots (also in a `--system-file`). All four share the constants
+  in `src/stellarObjects/generationLimits.py`, and the page's number
+  inputs carry them as `max`.
+
+## [7.10.1] - 2026-09-30
+
+### Changed
+
+- Renames check only uniquely named objects (sectors, systems and stars)
+  for a clashing name. Planet and moon names come from their star's, so
+  `PATCH /api/planets|moons|stars|systems/<id>` no longer searches the
+  planet and moon tables; a planet or moon may share another body's name.
+  Generation already skipped them (since v34). Profiling a galaxy run
+  showed name reservation at about 1% of generation time; row-by-row
+  inserts are the main cost.
+
 ## [7.10.0] - 2026-09-30
 
 ### Changed

@@ -35,25 +35,24 @@ renumber when items are added or finished.
 
 - **The known generation bugs (40-45) come first**; their tests are
    already written.
-- **Bug fixes (2-7)** come next, from Boss's notes of 2026-09-30. 2-4
-   are small web changes;
+- **Bug fixes (4-7)** come next, from Boss's notes of 2026-09-30. 4 is
+   a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
    local-time change (22) is small and can go in any time.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 12-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 is the
-   one data-deleting step. 19 is follow-ups.
+   slots, pixel-sized mega-blocks). Work items 13-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 (the
+   hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
    are schema changes.
-- **More pages (46-49)**: the full systems list, the Sector Map
-   wireframe, the system page layout and non-overlapping System Map
-   names are small and can go in any time.
+- **More pages (46, 47, 49)**: the full systems list, the Sector Map
+   wireframe and non-overlapping System Map names are small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -63,42 +62,6 @@ renumber when items are added or finished.
    can start on that default.
 
 ### Bug fixes (Boss's notes, 2026-09-30)
-
-2. [ ] **Planet list: one type chip, a habitable-moon chip, belt
-   distances.** Boss: "if a planet is not terrestrial it is not
-   habitable so no need to display both. Likewise, no need to say both
-   terrestrial and habitable, but add a new field for all planets that
-   appears only if one of the moons is habitable. Asteroid belts in the
-   list should display with their distance from the star (see above) in
-   a meaningful unit."
-   - `systempage._planet_row_html` (list) and `_body_row` (table): show
-     "Gas Giant", "Terrestrial" or "Habitable", never two of them.
-   - New chip (e.g. "Habitable moon") when any moon is habitable;
-     `queryDb._with_life_fields`/`system_detail` sets the flag.
-   - `systempage._belt_row_html`: add the belt's distance (`fmt.format_distance_km`).
-
-3. [ ] **A less dense top bar.** Boss: "Admin should be a menu dropdown
-   with 'Admin', 'generate' and 'logout', if the search bar text entry
-   is less than twice the size of the search button, don't display it.
-   Galaxy, Sectors, and such should also appear in their own separate
-   menu. In fact, settings like password, theme, and admin pages should
-   all be under a 'settings' gear icon in upper right,
-   galaxy/sectors/systems/phenomena/nav should be in a different menu
-   only if there isn't enough room to comfortably print each as a
-   button, and then the above laid out search bar logic."
-   - `templates/base.html` (`account_links`, the header), `style.css`
-     (`.site-header`, the 56rem/92rem collapses), `helpers.SECTIONS`,
-     `theme.js` (the toggle moves into the gear menu).
-   - Boss confirmed on 2026-09-30: a visitor who isn't logged in gets
-     the pages (Galaxy, Sectors, Systems, Phenomena, Nav) and, under the
-     gear, Theme and search. No Stats unless logged in. ("Admion" was a
-     typo for Admin.)
-   - Default taken: for a logged-in admin the gear menu holds Account
-     (password), Theme, Admin, Generate, Stats and Logout; there is no
-     separate Admin dropdown. A container query on the header can hide
-     the search box and collapse the sections without JavaScript.
-   - **Question for Boss:** a visitor still needs a way to log in; a
-     Login entry in the gear menu is the default.
 
 4. [ ] **Tag search: collapsible groups and phenomena.** Boss: "Search
    by tag should have collapsible zones for each group of tags so it
@@ -272,29 +235,6 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
-
-12. [ ] **Hybrid master-wedge slot rule (next schema version).** Boss chose it on
-   2026-09-30. There are 3 master wedges at the center, doubling (6, 12,
-   ..., 1,536) once each would hold at least 8 slots. Each ring's slot
-   count is the multiple of its zone's master count nearest
-   `2*pi*(i + 1/2)`. Sector arcs stay within ±6% of the edge (±2% today),
-   the total count is unchanged, and every master line runs from where it
-   starts out to the edge.
-   - Change `galaxyGeometry.ring_sector_count` and its mirror in
-     `galaxyprisms.js` together.
-   - Add a `ring_master_count` helper.
-   - `_overlapping_slots` and `neighbor_addresses` become simple integer
-     ratios across aligned boundaries.
-   - Update `docs/design/galaxy-coordinate-system.md`.
-   - Slot counts change in all but 15 of 3,856 rings, so the next migration
-     deletes galaxy-placed sectors, systems and phenomena, as v32 and v33 did.
-     `galaxy_layer` and `galaxy_column` are stored by ring and layer and stay
-     valid.
-
-   **Needs Boss's explicit OK before merging**, then `update.sh` and a
-   regenerate. Done means tests pin the first rings (3, 9, 15, 21, 27,
-   36, ...), check that every master line is a slot boundary in every
-   ring outward, and check that arcs stay in 0.94-1.06.
 
 13. [ ] **Mega-blocks sized from the pixel scale.**
    - Replace `sectorsPerPrism` and `prismsForView` with
@@ -605,47 +545,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       (`quadrant`), `star_systems.location`, containing nebula (#29),
       and any stored or rendered text naming the old sector.
 
-### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
-
-33. [ ] **Courses in "bearing mark mark" format on nested reference
-    frames.** Boss: "Course projections should be in the format of:
-    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
-    Boss's design (summarized; the full text and pseudocode are in
-    `docs/design/navigation-frames.md`):
-    - North points toward the local dominant center of mass. Every
-      local frame is a rigid transform of the absolute galactic
-      Cartesian frame.
-    - Galactic Standard Frame: origin the galactic core, +Z galactic
-      north, +X a fixed zero meridian. Between sectors, bearing 000
-      points at the core.
-    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
-      North from the ship toward it, +Z the galactic +Z.
-    - System Local Frame: origin the central star/barycenter, North
-      from the ship toward it, +Z the star's net angular momentum
-      (the ecliptic normal).
-    - Math: D = target - ship; U = the plane's normal; N = (center -
-      ship) with its U part removed, normalized; E = N x U. Bearing =
-      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
-      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
-      fall back to a fixed reference vector. Boss's `compute_course`
-      pseudocode in the design doc is the reference.
-    - Hand-offs: star to sector barycenter past the heliopause (~120
-      AU); galactic frame when crossing a sector boundary (> 4 pc).
-    - Today `navigation.course_between` returns azimuth/altitude on the
-      galactic plane and `nav.html` shows them as separate rows.
-    - **Questions for Boss:**
-      - Marks from 0-359: the math gives -90 to +90. Default taken, from
-        your own note: write mark as elevation mod 360, so 000-090 is up
-        and 270-359 is down (270 = straight down), and nothing between
-        091 and 269 appears. OK?
-      - "0 mark 0 toward the galactic core" holds in the galactic frame;
-        inside a system or sector, 0 points at the star or sector
-        barycenter. Default taken: 0 mark 0 is toward the current
-        frame's center.
-      - The zero meridian "toward a reference quasar": here the quasar
-        sits at the galactic center, so it can't set +X. Default taken:
-        keep the galaxy's existing +X axis (ring slot 0).
-
 ### Facilities (new)
 
 35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I
@@ -703,8 +602,7 @@ The audit's findings were fixed in the security PR; these hardening
 ideas remain, none with a known exploit.
 
 39. [ ] **Hardening:** a per-username login backoff on top of the per-IP
-    limit; and upper bounds on admin generation inputs (`radius_pc`,
-    `limit`, `max_ring`, `num_orbits`, the API's `radius_ly`).
+    limit.
 
 ### Known generation bugs (strict xfail tests)
 
@@ -719,10 +617,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
     `low_orbit` ignores the planet's radius. Test:
     `test_moons_orbit_outside_their_parents_body`.
-42. [ ] **A close binary's planets can orbit inside the binary.**
-    `StarSystem._generate_planets` has no floor at the stars' separation
-    (about 5% of close binaries). Test:
-    `test_circumbinary_bodies_orbit_outside_the_binary`.
 43. [ ] **A planet's Hill sphere can overlap the belt inside it.**
     `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
     but a belt after a planet must clear 5 Hill radii. Test:
@@ -749,34 +643,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     12 straight edges between 8 corners, thin and low-contrast so the
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
-
-48. [ ] **System page: one ordered list of everything in orbit, with
-    expandable moons, stars table first.** Boss: "on the star system
-    page we list planets and moons twice, have moons expandable under
-    the initial planet list so we can get rid of the 2nd table at the
-    end of the page. Move the star table to the top of the tables under
-    the clickable map interface."
-    - Moons: in `systempage._planet_row_html` a planet's moons sit inside
-      its `<details>`, after its whole description. Give them their own
-      expandable group right under the planet's row (e.g. a nested
-      "N moons" `<details>`), still working without script.
-    - Remove the Planets & Moons table (`bodies_html` /
-      `_planets_table_html`, rendered last in `system.html`). Its columns
-      (class, type, zone, distance, period, gravity) move into each
-      row's compact stats so nothing is lost; item 2's chip rules apply
-      there.
-    - Move `stars_html` (the stars table) up to be the first table,
-      directly under `map_html`.
-    - Belts and comets (Boss, 2026-09-30): "Asteroid belts and comets
-      should be placed in the interactive list of objects in orbit
-      around the star in their relative order from the star." Remove
-      the Asteroid Belts and Comets tables too. `_orbiting_rows_html`
-      already orders belts with planets by `orbital_index`, but appends
-      every comet at the end; sort comets in by distance instead.
-      Default taken: a comet sorts by its semi-major axis
-      (`perihelion_distance_km / (1 - eccentricity)`), and parabolic
-      ones (no finite axis) go last by perihelion. Each belt and comet
-      row shows its distance (`fmt.format_distance_km`).
 
 49. [ ] **System Map names never overlap.** Boss: "we need to make sure
     names on the system map clickable interface do not overlap."

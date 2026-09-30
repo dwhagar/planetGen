@@ -479,7 +479,11 @@ def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert 'class="system-list system-list-root"' in html
-    assert "Habitable: " in html and "Inhabited: " in html
+    # One ordered list (TODO 48): no Planets & Moons table any more, and
+    # the stars table comes first, right under the map.
+    assert "Planets &amp; Moons" not in html and "<h2>Asteroid Belts" not in html
+    assert '<span class="stat">Class ' in html
+    assert html.index("<h2>Stars</h2>") < html.index('id="system-panel"')
     assert 'id="system-code"' not in html
     for fmt, marker in (("wikitext", "[[Category:Star Systems]]"), ("markdown", "| Property | Value |")):
         page = client.get(f"/system/{system_id}?code={fmt}").get_data(as_text=True)

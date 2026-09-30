@@ -24,26 +24,35 @@ subhead (badges or actions under the <h1>). -#}
   <button type="submit">Search</button>
 </form>
 {%- endmacro -%}
-{# TODO(site-header #3): the top bar is too dense. Account (password), the
-   theme toggle and the admin pages (Admin, Generate, Stats) plus Logout
-   move into one settings gear menu at the upper right. A visitor who isn't
-   logged in gets Theme and search under the gear (plus Login), and never
-   Stats. #}
-{%- macro account_links() -%}
+{%- macro gear_link(name, text, current, href=None) -%}
+<li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
+{%- endmacro -%}
+{#- The settings gear: search (for when the bar has no room for it), the
+    theme switch, and either the admin's pages or Login. -#}
+{%- macro gear_menu() -%}
 {%- set admin = current_admin() -%}
-<nav class="site-account" aria-label="Account">
-<ul>
-  {%- if admin %}
-  <li><a href="{{ page_url('admin') }}"{% if section == 'admin' %} aria-current="page"{% endif %}>Admin</a></li>
-  <li><a href="{{ page_url('admin_stats') }}"{% if section == 'admin_stats' %} aria-current="page"{% endif %}>Stats</a></li>
-  <li><a href="{{ url_for('web.generate') }}"{% if section == 'admin_generate' %} aria-current="page"{% endif %}>Generate</a></li>
-  <li><a href="{{ page_url('logout') }}">Logout</a></li>
-  {%- else %}
-  <li><a href="{{ page_url('login') }}"{% if section == 'login' %} aria-current="page"{% endif %}>Login</a></li>
-  {%- endif %}
-  <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
-</ul>
-</nav>
+<details class="site-gear">
+  <summary aria-label="Settings" title="Settings">
+    <svg class="gear-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 0-.5.4l-.4 2.7a7.3 7.3 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .3.2.5.5.5h4c.3 0 .5-.2.5-.4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+  </summary>
+  <div class="site-gear-panel">
+    {{ search_form("site-search-gear") }}
+    <nav class="site-account" aria-label="Settings">
+    <ul>
+      <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
+      {%- if admin %}
+      {{ gear_link('account', 'Account', 'account') }}
+      {{ gear_link('admin', 'Admin', 'admin') }}
+      {{ gear_link('generate', 'Generate', 'admin_generate') }}
+      {{ gear_link('admin_stats', 'Stats', 'admin_stats') }}
+      {{ gear_link('logout', 'Logout', None) }}
+      {%- else %}
+      {{ gear_link('login', 'Login', 'login') }}
+      {%- endif %}
+    </ul>
+    </nav>
+  </div>
+</details>
 {%- endmacro -%}
 <!doctype html>
 <html lang="en">
@@ -64,28 +73,24 @@ subhead (badges or actions under the <h1>). -#}
 </head>
 <body class="app">
 <a class="skip-link" href="#main">Skip to content</a>
-{# TODO(site-header #3): Galaxy / Sectors / Systems / Phenomena / Nav stay
-   buttons only while there is room to print each comfortably; otherwise
-   they collapse into their own menu (separate from the gear). The search
-   box is hidden when its text entry would be less than twice the width of
-   the search button. Replaces today's single "Menu" and the
-   .site-header-admin collapse. #}
-<header class="site-header{% if current_admin() %} site-header-admin{% endif %}">
+{#- The top bar: the sections as buttons while they fit, else a Menu; the
+    search box while its text entry is at least twice the button's width;
+    everything else under the gear. Container queries in style.css pick
+    the layout, so it needs no script. -#}
+<header class="site-header">
   <div class="site-header-inner">
     <a class="site-name" href="{{ url_for('web.index') }}"{% if request.endpoint == 'web.index' %} aria-current="page"{% endif %}>{{ site_name }}</a>
     <div class="site-wide">
       {{ section_links("Main") }}
-      {{ search_form("site-search-wide") }}
-      {{ account_links() }}
     </div>
     <details class="site-menu">
       <summary>Menu</summary>
       <div class="site-menu-panel">
-        {{ search_form("site-search-menu") }}
-        {{ section_links("Main") }}
-        {{ account_links() }}
+        {{ section_links("Main menu") }}
       </div>
     </details>
+    {{ search_form("site-search-wide") }}
+    {{ gear_menu() }}
   </div>
 </header>
 <main id="main" class="app-main" tabindex="-1">

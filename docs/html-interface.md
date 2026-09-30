@@ -56,7 +56,7 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/lib/systempage.py` | The system page's Python-built HTML (moved from the old `system.py`): the expandable body list (`system_list_html`) and the Stars/Planets & Moons/Asteroid Belts/Comets tables (`stars_html`, `bodies_html`). Escapes every database value itself; `web/system_pages.py` passes the result through `trusted_html`. Not web-accessible. |
 | `../src/html/lib/tabledisplay.py` | Computes the same "Star Data"/"Planet Data" display strings once baked into the database's now-removed `table_*`/`binary_table_*` columns, but on demand from the raw numeric columns the system page already has -- reuses `stellarObjects.utils`'s formatters directly. Not web-accessible. |
 | `../src/html/lib/starmap.py` | Builds the sector page's "Sector Map" panel (`render_map_panel(link_url, ...)`, where `link_url` is `web.helpers.page_url`; every entry carries a plain `href`): computes every position/size/color/label the map needs (a wedge or fallback-cube outline, one entry per star -- billboarded, radius from `radius_km` square-root scaled against the Sun, color from `star_type`'s spectral letter (`SPECTRAL_CLASS_COLORS`) shaded by `luminosity_w` and nudged by where `temperature_k` falls in that spectral class's range, so "White Giant" reads white and "Blue Giant" reads blue regardless of temperature -- and one per nearby standalone phenomenon, sized by `radius_ly` (always 0 for the point-like types) and positioned directly in the galaxy frame, no rotation needed unlike a star system's sector-local position -- see `queryDb.phenomena_near_sector`) and serializes it as a `<script type="application/json">` block; `static/sectormap.js` is what actually renders it, this module builds no HTML scene of its own. Not web-accessible. |
-| `../src/html/lib/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so azimuth angles aren't visually distorted, plus a `+X` compass tick and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`lib/phenomenonmap.py`) -- the course panel's own Altitude figure already covers that axis. Not web-accessible. |
+| `../src/html/lib/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so bearings aren't visually distorted, plus a compass arrow along the origin's bearing 000 (toward the frame's center) and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`lib/phenomenonmap.py`) -- the course's mark already covers that axis. Not web-accessible. |
 | `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by the web server. |
 | `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`web/templates/base.html`): applies the saved light/dark/system theme before the first paint and drives the header's theme button. See "The page shell" below. |
 | `../src/html/static/favicon.svg` | The site icon (a small ringed planet), linked from every page's `<head>`. |
@@ -225,7 +225,7 @@ step can be bookmarked or shared:
 | `/nav` | Choose a starting sector. |
 | `/nav?from_sector=5` | Choose a starting system in sector 5. |
 | `/nav?from=system:12` | Destination pickers: the other systems in its sector, and (when that sector is galaxy-placed) a sector-then-system picker for another sector (`&to_sector=9`). |
-| `/nav?from=system:12&to=system:40` | The direct course (distance, azimuth, altitude, travel times), the NAV Map and the optimal route. |
+| `/nav?from=system:12&to=system:40` | The direct course (distance, "bearing mark mark" and its frame, warp and fold travel times), the NAV Map and the optimal route. |
 | `/nav?from=nebula:3&to=system:40` | The same with a phenomenon endpoint. |
 | `/nav?to=black_hole:3` | "Navigate to here": the origin picker, carrying `to` along. |
 
@@ -290,6 +290,11 @@ terminal on the server, as background jobs:
 | Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), or one address (`--ring --layer --slot`). |
 | Plan the galaxy | `generate.py plan` with the galaxy shape fields. |
 | Reset | `src/resetDb.py --yes`. |
+
+The number fields have upper bounds, the same ones `generate.py` checks
+(`src/stellarObjects/generationLimits.py`): a radius of at most 200 pc,
+rings up to 100,000, and at most 500 orbital slots on the one-off system
+page.
 
 New galaxy and Reset delete every generated row, so both need the
 database name typed back. Every job writes the database this site shows,

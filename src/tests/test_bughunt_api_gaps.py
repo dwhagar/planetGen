@@ -19,7 +19,7 @@ All tests are skipped, not failed, without a reachable MySQL test server
 
 import pytest
 
-from stellarObjects import _db
+from stellarObjects import _db, generationLimits
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
@@ -206,7 +206,7 @@ def test_generate_neighborhood_never_galaxy_placed_sector_is_404(seeded_sector, 
 
 def test_generate_neighborhood_invalid_radius_is_400(seeded_sector, admin_client):
     _config, sector_id, _system_ids = seeded_sector
-    for bad_radius in [-1, 0, "not-a-number", True]:
+    for bad_radius in [-1, 0, "not-a-number", True, generationLimits.MAX_GENERATE_RADIUS_LY * 1.01, 1e300]:
         response = admin_client.post(
             f"/api/sectors/{sector_id}/generate-neighborhood", json={"radius_ly": bad_radius}
         )

@@ -51,7 +51,9 @@ from stellarObjects.galaxyViewport import (
     tile_keys_containing,
 )
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
-from stellarObjects.navigation import course_between, fold_travel_times, warp_travel_times
+from stellarObjects.navigation import (
+    FRAME_GALACTIC, FRAME_SECTOR, course_between, fold_travel_times, warp_travel_times,
+)
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
 from stellarObjects.evolution import life_stage_from_paragraphs
 from stellarObjects.program_constants import (
@@ -703,7 +705,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
-    hole/neutron star) -- a direct course (distance/azimuth/altitude/warp and fold
+    hole/neutron star) -- a direct course (distance/bearing/mark/warp and fold
     travel times, from `stellarObjects.navigation`) plus an optimal route
     via adjacent systems (`stellarObjects.navGraph`), or raises if NAV
     doesn't apply to this pair.
@@ -809,7 +811,11 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             "NAV requires both endpoints to share a sector, or both to have a galaxy placement"
         )
 
-    direct = course_between(origin_position, destination_position)
+    # Both frames are centered on their coordinate origin: sector-local
+    # positions are offsets from the sector's center, galaxy-frame ones
+    # from the galactic core. Bearing 000 points at that center.
+    frame = FRAME_SECTOR if scope == "sector" else FRAME_GALACTIC
+    direct = course_between(origin_position, destination_position, frame=frame)
 
     route = None
     if from_key != to_key:
@@ -1536,9 +1542,6 @@ def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
     return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
 
 
-# TODO(system-list #2): system_detail should also set a planet-level
-# "has_habitable_moon" flag from its moons' `habitable`, so the list can
-# show the new chip without re-walking the moons.
 # TODO(facilities #35): a colony on a terrestrial world makes it inhabited;
 # OR that into `inhabited` here.
 def _with_life_fields(body, stages):

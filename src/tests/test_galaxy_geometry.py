@@ -29,6 +29,7 @@ from stellarObjects.galaxyGeometry import (
     provisional_sector_designation,
     ring_bounds_pc,
     ring_radius_pc,
+    ring_master_count,
     ring_sector_count,
     sector_address_at,
     sector_cell_vertices_pc,
@@ -39,23 +40,76 @@ from stellarObjects.galaxyGeometry import (
     slot_angle_bounds,
 )
 
+from stellarObjects.galaxyGeometry import _overlapping_slots
+
 EDGE_PC = 4.0
 
 
 @pytest.mark.parametrize("ring_index, expected", [
-    (0, 3), (1, 9), (2, 16), (3, 22), (10, 66), (100, 631),
+    (0, 3), (1, 9), (2, 15), (3, 21), (4, 27), (5, 36), (6, 42), (7, 48), (8, 54), (10, 66), (100, 624),
 ])
-def test_ring_sector_count_rounds_centerline_circumference_to_whole_edges(ring_index, expected):
+def test_ring_sector_count_follows_the_hybrid_master_wedge_rule(ring_index, expected):
     assert ring_sector_count(ring_index) == expected
 
 
+def test_ring_master_count_doubles_once_each_wedge_holds_eight_slots():
+    assert [ring_master_count(i) for i in range(9)] == [3] * 8 + [6]
+    assert ring_master_count(3855) == 1536
+    previous = 3
+    for ring_index in range(4000):
+        master = ring_master_count(ring_index)
+        assert master in (previous, 2 * previous)
+        if master == 2 * previous:
+            assert 2 * math.pi * (ring_index + 0.5) / master >= 8
+            assert 2 * math.pi * (ring_index - 0.5) / master < 8
+        previous = master
+
+
 def test_ring_sector_count_keeps_arcs_near_one_edge():
-    for ring_index in range(0, 5000, 7):
+    for ring_index in range(4000):
         n = ring_sector_count(ring_index)
         arc_edges = 2 * math.pi * (ring_index + 0.5) / n
-        assert abs(arc_edges - 1.0) < (0.05 if ring_index >= 1 else 0.05 + 0.01)
-        if ring_index >= 10:
-            assert abs(arc_edges - 1.0) < 0.01
+        assert 0.94 <= arc_edges <= 1.065
+
+
+def test_ring_sector_count_keeps_the_total_count():
+    rings = range(3856)
+    total = sum(ring_sector_count(i) for i in rings)
+    plain = sum(round(2 * math.pi * (i + 0.5)) for i in rings)
+    assert abs(total / plain - 1) < 0.001
+
+
+def test_master_lines_are_slot_boundaries_in_every_ring_outward():
+    """Every ring's count is a multiple of its master count, and master
+    counts only grow outward, so a master line that starts at some ring
+    stays a slot boundary out to the edge."""
+    for ring_index in range(4000):
+        assert ring_sector_count(ring_index) % ring_master_count(ring_index) == 0
+    # The 3 first master lines (0, 120 and 240 degrees) are boundaries
+    # everywhere; ring 8's new lines (60, 180, 300) from there out.
+    for ring_index in (0, 1, 7, 8, 500, 3855):
+        assert ring_sector_count(ring_index) % 3 == 0
+    for ring_index in (8, 9, 500, 3855):
+        assert ring_sector_count(ring_index) % 6 == 0
+
+
+def test_neighbor_slots_never_straddle_a_master_line():
+    """A slot of one ring overlaps only slots of the next ring inside the
+    same master wedge of the inner ring's master count."""
+    for ring_index in range(0, 400):
+        inner, outer = ring_index, ring_index + 1
+        master = ring_master_count(inner)
+        per_inner = ring_sector_count(inner) // master
+        per_outer = ring_sector_count(outer) // master
+        for slot in range(ring_sector_count(outer)):
+            wedge = slot // per_outer
+            for other in _overlapping_slots(outer, slot, inner):
+                assert other // per_inner == wedge
+
+
+def test_ring_sector_count_overflows_instead_of_looping_forever():
+    with pytest.raises(OverflowError):
+        ring_sector_count(int(1e308))
 
 
 def test_ring_sector_count_rejects_negative_ring():
@@ -157,7 +211,7 @@ def test_sector_cell_samples_land_inside_the_true_cell(ring_index):
 
 def test_sector_cell_volume_matches_an_edge_cubed_away_from_the_core():
     cell = SectorCell.for_ring(1000, 11.5)
-    assert cell.volume == pytest.approx(11.5 ** 3, rel=0.01)
+    assert cell.volume == pytest.approx(11.5 ** 3, rel=0.065)
     # Every ring's cells together make the full annulus.
     for ring_index in (0, 3, 50):
         cell = SectorCell.for_ring(ring_index, 2.0)
@@ -191,7 +245,7 @@ def _faces_touch(a, b):
     return False
 
 
-@pytest.mark.parametrize("address", [(0, 0, 0), (0, 3, 2), (1, 0, 5), (2, -1, 15), (37, 4, 100), (38, 0, 0)])
+@pytest.mark.parametrize("address", [(0, 0, 0), (0, 3, 2), (1, 0, 5), (2, -1, 14), (37, 4, 100), (38, 0, 0)])
 def test_neighbor_addresses_match_brute_force_face_adjacency(address):
     ring, layer, _slot = address
     expected = set()

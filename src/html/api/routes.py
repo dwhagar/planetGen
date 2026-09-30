@@ -67,7 +67,7 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db, program_constants
+from stellarObjects import _db, generationLimits, program_constants
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
@@ -95,9 +95,10 @@ MAX_WIKI_URL_LENGTH = 2048
 MAX_SECTOR_EDGE_LY = 1e9
 """float: An upper bound on a sector's `edge_ly` -- far beyond any real
 sector, well short of overflowing the unit conversion."""
-MAX_NEIGHBORHOOD_RADIUS_LY = 1e6
-"""float: An upper bound on generate-neighborhood's `radius_ly` (the
-galaxy is ~1e5 ly across), so no request can ask for an unbounded run."""
+MAX_NEIGHBORHOOD_RADIUS_LY = generationLimits.MAX_GENERATE_RADIUS_LY
+"""float: An upper bound on generate-neighborhood's `radius_ly` (about
+652 ly, the same 200 pc cap the Generate page and `generate.py` use), so
+no request can ask for an unbounded run."""
 
 WRITE_RATE_LIMIT = "10 per minute"
 """str: Applied to every write route, on top of the app-wide default
@@ -1156,8 +1157,13 @@ def _validate_system_config_body(body):
         raise ApiError("'age' must be 'young', 'old', or null")
     if "num_orbits" in body:
         value = body["num_orbits"]
-        if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value <= 0):
-            raise ApiError("'num_orbits' must be a positive integer or null")
+        if value is not None and (
+            not isinstance(value, int) or isinstance(value, bool)
+            or not 0 < value <= generationLimits.MAX_NUM_ORBITS
+        ):
+            raise ApiError(
+                f"'num_orbits' must be a positive integer up to {generationLimits.MAX_NUM_ORBITS}, or null"
+            )
 
 
 @bp.route("/systems", methods=["POST"])
