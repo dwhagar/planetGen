@@ -2342,7 +2342,7 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
     from the stored shape at the standard edge.
     """
     from stellarObjects.galaxyDensity import build_galaxy_shape
-    from stellarObjects.galaxySkeleton import build_layer_extents
+    from stellarObjects.galaxySkeleton import build_layer_extents, column_extents
     from stellarObjects.roguePlanetData import RoguePlanet
 
     shape = build_galaxy_shape(
@@ -2398,6 +2398,15 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
         )
         assert _db.get_galaxy_layers(conn) == expected
         assert skeleton.outer_ring_index == outer
+        columns = [
+            (row["ring_index"], row["layer_index_min"], row["layer_index_max"])
+            for row in conn.execute("SELECT * FROM galaxy_column ORDER BY ring_index").fetchall()
+        ]
+        assert columns == column_extents(expected)
+        assert _db.get_galaxy_column(conn, 0) == columns[0][1:]
+        bounds = _db.get_galaxy_bounds(conn)
+        assert bounds.outer_ring == dict(expected)
+        assert bounds.contains(outer, 0) and not bounds.contains(outer + 1, 0)
     finally:
         conn.close()
 

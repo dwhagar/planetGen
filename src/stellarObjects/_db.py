@@ -2713,9 +2713,11 @@ def get_galaxy_shape(conn):
 
 def replace_galaxy_layers(layer_extents, config=None, conn=None):
     """
-    Replaces every `galaxy_layer` row wholesale -- a full skeleton build
-    always produces the whole galaxy's outline in one pass, so there is
-    no partial update (matches `save_galaxy_shape`).
+    Replaces the galaxy's stored outline wholesale: every `galaxy_layer`
+    row (each layer's radial bound) and every `galaxy_column` row (each
+    ring's stack bound, derived from the same extents) -- a full skeleton
+    build always produces the whole outline in one pass, so there is no
+    partial update (matches `save_galaxy_shape`).
 
     Args:
         layer_extents (iterable): `(layer_index, outer_ring_index)`
@@ -2726,11 +2728,19 @@ def replace_galaxy_layers(layer_extents, config=None, conn=None):
             the caller's own transaction (the v33 migration does), instead
             of opening and committing a new one.
     """
+    from .galaxySkeleton import column_extents
+
+    layer_extents = list(layer_extents)
+
     def _write(c):
         c.execute("DELETE FROM galaxy_layer")
         c.executemany(
-            "INSERT INTO galaxy_layer (layer_index, outer_ring_index) VALUES (?, ?)",
-            list(layer_extents),
+            "INSERT INTO galaxy_layer (layer_index, outer_ring_index) VALUES (?, ?)", layer_extents,
+        )
+        c.execute("DELETE FROM galaxy_column")
+        c.executemany(
+            "INSERT INTO galaxy_column (ring_index, layer_index_min, layer_index_max) VALUES (?, ?, ?)",
+            column_extents(layer_extents),
         )
 
     if conn is not None:
@@ -2757,6 +2767,38 @@ def get_galaxy_layer_outer_ring(conn, layer_index):
         "SELECT outer_ring_index FROM galaxy_layer WHERE layer_index = ?", (layer_index,),
     ).fetchone()
     return row["outer_ring_index"] if row is not None else None
+
+
+def get_galaxy_column(conn, ring_index):
+    """
+    Ring `ring_index`'s stack bound: the lowest and highest layer its
+    column of sectors reaches, or `None` if no layer reaches that ring.
+
+    Returns:
+        tuple or None: `(layer_index_min, layer_index_max)`, inclusive.
+    """
+    row = conn.execute(
+        "SELECT layer_index_min, layer_index_max FROM galaxy_column WHERE ring_index = ?", (ring_index,),
+    ).fetchone()
+    return (row["layer_index_min"], row["layer_index_max"]) if row is not None else None
+
+
+def get_galaxy_bounds(conn):
+    """
+    The galaxy's stored outline as a `galaxySkeleton.GalaxyBounds`, the
+    object every generation path checks an address against before
+    generating anything there.
+
+    Returns:
+        GalaxyBounds or None: `None` if the skeleton was never built (no
+            `galaxy_shape` row).
+    """
+    from .galaxySkeleton import GalaxyBounds
+
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is None:
+        return None
+    return GalaxyBounds(get_galaxy_layers(conn), skeleton.edge_pc)
 
 
 def get_galaxy_layers(conn):

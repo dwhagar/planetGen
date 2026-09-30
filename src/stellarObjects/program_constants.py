@@ -1972,12 +1972,10 @@ dict: `PHENOMENON_TYPE_CHOICES` entry -> expected count per star system, for
 GALAXY_RADIUS_PC = 15000.0
 """
 float: The Milky Way's real approximate radius, in parsecs (commonly cited
-~15 kpc -- see docs/design/galaxy-coordinate-system.md section 2, whose own
-worked examples use this exact figure). Used by `generate.py galaxy`'s
-no-argument "random start" mode as the outer bound for picking a random
-ring, so a bare `generate.py galaxy` run (no --ring/--center-sector)
-lands somewhere within a real Milky-Way-scale galaxy instead of an
-arbitrarily large or small one.
+~15 kpc). Only a fallback for the Galaxy Map's camera range before any
+`generate.py plan` has run; once a galaxy is planned, its stored outline
+(`galaxy_layer`) is the only bound anything uses -- generation never picks
+or accepts an address outside it.
 """
 
 RANDOM_START_NEIGHBORHOOD_RADIUS_LY = 100.0

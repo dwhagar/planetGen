@@ -41,6 +41,7 @@ visited.
 Pure and side-effect-free, like `galaxyGeometry.py`/`galaxyDensity.py`.
 """
 
+import bisect
 import math
 from collections import namedtuple
 
@@ -169,3 +170,109 @@ def candidate_sector_count(extents):
             cumulative.append(cumulative[-1] + ring_sector_count(len(cumulative) - 1))
         total += cumulative[outer_ring_index + 1]
     return total
+
+
+def column_extents(layer_extents):
+    """
+    The same outline seen from the side: for each ring, the highest and
+    lowest layer its column of sectors reaches (its stack bound). A ring
+    reaches layer `j` exactly when layer `j`'s outer ring is at least that
+    ring, so this is `layer_extents` turned on its side.
+
+    Args:
+        layer_extents (iterable): `(layer_index, outer_ring_index)` pairs,
+            as `build_layer_extents` returns them.
+
+    Returns:
+        list[tuple]: `(ring_index, layer_index_min, layer_index_max)`, ring
+            0 outward, one per ring that any layer reaches.
+    """
+    extents = sorted(layer_extents)
+    top = {}
+    covered = -1
+    for layer_index, outer_ring_index in reversed(extents):
+        for ring_index in range(covered + 1, outer_ring_index + 1):
+            top[ring_index] = layer_index
+        covered = max(covered, outer_ring_index)
+    bottom = {}
+    covered = -1
+    for layer_index, outer_ring_index in extents:
+        for ring_index in range(covered + 1, outer_ring_index + 1):
+            bottom[ring_index] = layer_index
+        covered = max(covered, outer_ring_index)
+    return [(ring_index, bottom[ring_index], top[ring_index]) for ring_index in sorted(top)]
+
+
+class GalaxyBounds:
+    """
+    The galaxy's stored outline (`galaxy_layer`), for checking an address
+    *before* anything is generated there: every `generate.py galaxy` path
+    and visit-time generation go through `contains`.
+
+    Attributes:
+        edge_pc (float): The sector edge the outline was built at.
+        outer_ring (dict): `{layer_index: outer_ring_index}`.
+        top_layer_index (int): The highest layer (`-top_layer_index` is the
+            lowest); `-1` when no layer holds content.
+        outer_ring_index (int): The widest layer's (the plane's) outer
+            ring; `-1` when no layer holds content.
+    """
+
+    def __init__(self, layer_extents, edge_pc):
+        self.edge_pc = edge_pc
+        self.outer_ring = dict(layer_extents)
+        self.top_layer_index = max(self.outer_ring) if self.outer_ring else -1
+        self.outer_ring_index = max(self.outer_ring.values()) if self.outer_ring else -1
+        # Sectors in rings 0 .. r-1 of any one layer, for r = 0 .. outer + 1:
+        # the per-ring lookup table (slot counts only depend on the ring).
+        self._cumulative = [0]
+        for ring_index in range(self.outer_ring_index + 1):
+            self._cumulative.append(self._cumulative[-1] + ring_sector_count(ring_index))
+
+    def __bool__(self):
+        return bool(self.outer_ring)
+
+    def contains(self, ring_index, layer_index):
+        """Whether cell `(ring_index, layer_index, any slot)` lies inside the
+        galaxy's outline."""
+        outer = self.outer_ring.get(layer_index)
+        return outer is not None and 0 <= ring_index <= outer
+
+    def describe_miss(self, ring_index, layer_index):
+        """A one-line reason `contains` said no, for error messages."""
+        outer = self.outer_ring.get(layer_index)
+        if outer is None:
+            return (f"layer {layer_index} is outside the galaxy (layers run from {self.top_layer_index} "
+                    f"down to {-self.top_layer_index})")
+        return f"ring {ring_index} is outside the galaxy (layer {layer_index} ends at ring {outer})"
+
+    def cell_count(self):
+        """How many sectors (every slot of every ring of every layer) lie
+        inside the outline."""
+        return sum(self._cumulative[outer + 1] for outer in self.outer_ring.values())
+
+    def random_address(self, rng, max_ring=None):
+        """
+        A random `(ring, layer, slot)` inside the outline, every sector
+        equally likely (so uniform by volume), optionally only from rings
+        `0 .. max_ring`.
+
+        Returns:
+            tuple or None: `None` when nothing lies inside.
+        """
+        layers = []
+        total = 0
+        for layer_index, outer in sorted(self.outer_ring.items()):
+            top = outer if max_ring is None else min(outer, max_ring)
+            if top >= 0:
+                total += self._cumulative[top + 1]
+                layers.append((total, layer_index))
+        if total == 0:
+            return None
+        pick = rng.randrange(total)
+        index = bisect.bisect_right([end for end, _layer in layers], pick)
+        end, layer_index = layers[index]
+        start = layers[index - 1][0] if index else 0
+        pick -= start
+        ring_index = bisect.bisect_right(self._cumulative, pick) - 1
+        return ring_index, layer_index, pick - self._cumulative[ring_index]

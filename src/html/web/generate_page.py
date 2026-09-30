@@ -50,7 +50,6 @@ PLAN_FIELDS = (
     ("arm_count", "--arm-count", "Spiral arms", int, 2, 0, None),
     ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, 15.0, 1.0, 90.0),
     ("arm_amplitude", "--arm-amplitude", "Arm contrast (0 to 1)", float, 0.4, 0.0, 1.0),
-    ("edge_ly", "--edge-ly", "Sector edge (ly)", float, 11.5, 1.0, None),
 )
 """tuple: The `plan` options the page offers, with `generate.py`'s own
 defaults (a test checks they still match `generate.py plan`'s parser)."""

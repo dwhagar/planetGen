@@ -86,6 +86,20 @@ visited.
 The Galaxy Map's prisms use the same threshold, so at one sector per prism
 the map's outline is exactly these layers.
 
+### Bounds and validation
+
+`generate.py plan` stores the outline twice: `galaxy_layer` (each
+layer's radial bound) and `galaxy_column` (each ring's stack bound, the
+highest and lowest layer it reaches). Generation validates against these
+bounds before it generates, rather than checking afterwards. Every
+`generate.py galaxy` mode (a ring, one slot, a neighborhood around a
+sector, a random start) and visit-time generation first ask
+`GalaxyBounds.contains`. An address outside is refused with the reason,
+even when `--density` or `--num-systems` is given, and a neighborhood near
+the edge leaves out the sectors past it. A random start draws a uniformly
+random sector from inside the outline (`GalaxyBounds.random_address`), so
+it always lands inside the galaxy.
+
 ---
 
 The address `(ring, layer, slot)` is unique (`uq_sectors_address`), and a

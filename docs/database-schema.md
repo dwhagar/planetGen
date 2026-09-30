@@ -455,7 +455,8 @@ header note.
 parsecs, 4 pc (~13.05 ly) instead of 11.5 ly; ring `i` holds
 `round(2*pi*(i + 1/2))` slots on every layer instead of a multiple of 4;
 and `galaxy_ring_band` became `galaxy_layer`, one row per layer with the
-last ring it reaches. Almost every address moves, so `_migrate_v32_to_v33`
+last ring it reaches, plus `galaxy_column`, one row per ring with the
+highest and lowest layer it reaches. Almost every address moves, so `_migrate_v32_to_v33`
 again deletes every galaxy-placed sector with its systems and phenomena,
 and rebuilds the skeleton from the stored shape at 4 pc (rewriting
 `galaxy_shape.edge_pc`, `expected_system_count_at_density_1` and
@@ -624,6 +625,25 @@ from it. A layer with no qualifying content has no row.
 |---|---|---|---|
 | `layer_index` | INT | PK | The layer (signed; 0 is centered on the plane). |
 | `outer_ring_index` | INT | NOT NULL | The last ring this layer reaches; it holds rings 0 through this one. |
+
+### `galaxy_column`
+
+The same outline seen from the side (v33): one row per ring, holding the
+highest and lowest layer that ring's column of sectors reaches (its stack
+bound). It is derived from `galaxy_layer`
+(`galaxySkeleton.column_extents`) and rewritten with it whenever
+`generate.py plan` runs.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `ring_index` | INT | PK | The ring. |
+| `layer_index_min` | INT | NOT NULL | The lowest layer this ring reaches. |
+| `layer_index_max` | INT | NOT NULL | The highest layer this ring reaches. |
+
+Together these two tables are the galaxy's bounds.
+`_db.get_galaxy_bounds` loads them as a `galaxySkeleton.GalaxyBounds`,
+and every generation path checks an address against it before generating
+anything there, so a sector is never placed outside the galaxy.
 
 ### `orbit_simulation_state`
 

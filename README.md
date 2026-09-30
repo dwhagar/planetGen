@@ -169,12 +169,13 @@ one whole layer of a ring (layer 0 unless `--layer J` is given), and adding
 
 Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
 all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-
-occupied sector address somewhere within a real Milky-Way-scale galaxy,
+occupied sector address inside the galaxy's planned outline (every layer
+out to its stored edge, from the top of the galaxy to the bottom),
 generates it, and then generates every not-yet-generated sector within
 100 ly of it too, in every direction — a whole small starmap around a
 fresh, randomly chosen starting point in one run. `--max-ring` bounds how
-far out the random starting address can land (defaults to a real galaxy's
-own outer edge, ~15,000 pc), `--radius-pc` overrides the default 100 ly
+far out the random starting address can land (defaults to the galaxy's
+own edge from `generate.py plan`), `--radius-pc` overrides the default 100 ly
 neighborhood radius, and `--min-start-density` requires the randomly
 chosen starting sector's own real density to be at least that many times
 local (e.g. `--min-start-density 1.0` for at least as dense as the
@@ -189,7 +190,13 @@ builds a small, cheap-to-recompute density "skeleton" (one singleton shape
 row plus one row per layer, from the top of the galaxy to the bottom, naming
 the last ring that layer reaches) that `generate.py galaxy` consults to decide, per
 address, whether anything exists there at all before generating it lazily
-on demand.
+on demand. It also stores each ring's column bound (the highest and lowest
+layer that ring reaches). Every `generate.py galaxy` mode checks its
+address against this outline before generating anything, even when
+`--density` or `--num-systems` is given, so nothing is ever placed outside
+the galaxy: an address outside it is refused with the reason, and a
+neighborhood near the edge simply leaves out the sectors past it.
+`generate.py galaxy` refuses to run until `generate.py plan` has been run.
 
 ## Exotic Phenomena Generation
 

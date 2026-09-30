@@ -761,7 +761,10 @@
 --   multiple of 4, identical on every layer so columns line up; and the
 --   skeleton is stored per layer instead of per ring: `galaxy_ring_band`
 --   becomes `galaxy_layer`, one row per layer from the highest to the
---   lowest holding the last ring that layer reaches. Almost every address
+--   lowest holding the last ring that layer reaches, alongside
+--   `galaxy_column`, one row per ring holding the lowest and highest
+--   layer its column reaches. Every galaxy generation path checks an
+--   address against this outline before generating anything. Almost every address
 --   changes, so `_migrate_v32_to_v33` deletes every galaxy-placed sector
 --   with its systems and phenomena (as v32 did) and rebuilds the skeleton
 --   from the stored shape at the standard edge.
@@ -885,7 +888,8 @@ CREATE TABLE IF NOT EXISTS sectors (
 -- comment's notes).
 -- `galaxy_shape` is a singleton (`id` pinned to 1, enforced by the CHECK)
 -- -- there is exactly one galaxy. Building or rebuilding the skeleton
--- (`generate.py plan`) replaces this row and every `galaxy_layer` row
+-- (`generate.py plan`) replaces this row and every `galaxy_layer`/
+-- `galaxy_column` row
 -- wholesale; neither
 -- table is ever partially updated.
 -- ---------------------------------------------------------------------
@@ -933,6 +937,16 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
 CREATE TABLE IF NOT EXISTS galaxy_layer (
     layer_index       INT NOT NULL PRIMARY KEY,
     outer_ring_index  INT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The same outline seen from the side (v33): one row per ring any layer
+-- reaches, holding the lowest and highest layer that ring's column of
+-- sectors reaches -- its stack bound (`galaxySkeleton.column_extents`).
+-- Written together with `galaxy_layer`, never on its own.
+CREATE TABLE IF NOT EXISTS galaxy_column (
+    ring_index       INT NOT NULL PRIMARY KEY,
+    layer_index_min  INT NOT NULL,
+    layer_index_max  INT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when

@@ -10,6 +10,18 @@
   skeleton is stored per layer: each layer, from the top of the galaxy to
   the bottom, runs from ring 0 out to the last ring that still expects a
   star per sector (`galaxy_layer`, replacing `galaxy_ring_band`).
+- **Generation never lands outside the galaxy.** `generate.py plan` also
+  stores each ring's column bound (`galaxy_column`: the highest and lowest
+  layer it reaches), and every `generate.py galaxy` mode checks its address
+  against the stored outline before generating anything. Explicit
+  `--density` or `--num-systems` no longer skip that check; an address
+  outside is refused with the reason, and a neighborhood near the edge
+  leaves out the sectors past it. `generate.py galaxy` now refuses to run
+  before `generate.py plan`.
+- **Random starts are drawn from the real outline.** A random start picks a
+  uniformly random sector inside the planned galaxy instead of from a fixed
+  15,000 pc disk 2,000 pc tall, so the starting neighborhood can no longer
+  land outside the galaxy. `--max-ring` defaults to the galaxy's own edge.
 - The Galaxy Map's prisms use the generator's own one-star-per-sector
   threshold, so fully zoomed in their outline is exactly the galaxy's
   layers.

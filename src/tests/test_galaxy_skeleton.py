@@ -22,7 +22,9 @@ from stellarObjects.galaxyGeometry import ring_radius_pc, ring_sector_count, sec
 from stellarObjects.galaxySkeleton import (
     bound_relative_density_at,
     build_layer_extents,
+    GalaxyBounds,
     candidate_sector_count,
+    column_extents,
     expected_system_count_at_density_1,
 )
 
@@ -141,3 +143,49 @@ def test_candidate_sector_count_sums_every_ring_of_every_layer():
     by_ring = [ring_sector_count(r) for r in range(4)]
     assert candidate_sector_count(extents) == 2 * sum(by_ring[:3]) + sum(by_ring)
     assert candidate_sector_count([]) == 0
+
+
+def test_column_extents_turn_the_layer_outline_on_its_side():
+    extents, outer, _confirmed = build_layer_extents(SHAPE, EDGE_PC, 0.05)
+    layers = dict(extents)
+    columns = column_extents(extents)
+    assert [ring for ring, _lo, _hi in columns] == list(range(outer + 1))
+    for ring, lo, hi in columns:
+        reached = [layer for layer, last in layers.items() if ring <= last]
+        assert (lo, hi) == (min(reached), max(reached))
+        assert lo == -hi
+
+
+def test_galaxy_bounds_contains_exactly_the_outline():
+    bounds = GalaxyBounds([(1, 1), (0, 3), (-1, 1)], EDGE_PC)
+    assert (bounds.top_layer_index, bounds.outer_ring_index) == (1, 3)
+    assert bounds.contains(3, 0) and not bounds.contains(4, 0)
+    assert bounds.contains(1, -1) and not bounds.contains(2, -1)
+    assert not bounds.contains(0, 2) and not bounds.contains(0, -2)
+    assert "layer 0 ends at ring 3" in bounds.describe_miss(4, 0)
+    assert "layers run from 1 down to -1" in bounds.describe_miss(0, 5)
+    assert bounds.cell_count() == candidate_sector_count([(1, 1), (0, 3), (-1, 1)])
+    assert not GalaxyBounds([], EDGE_PC)
+
+
+def test_random_addresses_stay_inside_and_reach_every_ring_evenly_per_sector():
+    import random
+    from collections import Counter
+
+    bounds = GalaxyBounds([(1, 1), (0, 3), (-1, 1)], EDGE_PC)
+    rng = random.Random(7)
+    draws = [bounds.random_address(rng) for _ in range(20000)]
+    for ring, layer, slot in draws:
+        assert bounds.contains(ring, layer)
+        assert 0 <= slot < ring_sector_count(ring)
+    # Every sector equally likely: each (ring, layer) gets draws in
+    # proportion to its slot count.
+    counts = Counter((ring, layer) for ring, layer, _slot in draws)
+    total = bounds.cell_count()
+    for (ring, layer), n in counts.items():
+        assert n / len(draws) == pytest.approx(ring_sector_count(ring) / total, rel=0.15)
+    assert len(counts) == 2 * 2 + 4
+
+    capped = {bounds.random_address(rng, max_ring=0)[0] for _ in range(200)}
+    assert capped == {0}
+    assert GalaxyBounds([], EDGE_PC).random_address(rng) is None
