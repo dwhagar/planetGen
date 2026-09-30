@@ -5025,7 +5025,59 @@ def touch_sector(conn, sector_id):
     conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (sector_id,))
 
 
-def migrate_database(config=None):
+def _migration_steps():
+    """Every migration step `migrate_database` knows, oldest first, as
+    `(version it brings the database to, step function)`."""
+    return [
+        (9, _migrate_v8_to_v9),
+        (10, _migrate_v9_to_v10),
+        (11, _migrate_v10_to_v11),
+        (12, _migrate_v11_to_v12),
+        (13, _migrate_v12_to_v13),
+        (14, _migrate_v13_to_v14),
+        (15, _migrate_v14_to_v15),
+        (16, _migrate_v15_to_v16),
+        (17, _migrate_v16_to_v17),
+        (18, _migrate_v17_to_v18),
+        (19, _migrate_v18_to_v19),
+        (20, _migrate_v19_to_v20),
+        (21, _migrate_v20_to_v21),
+        (22, _migrate_v21_to_v22),
+        (23, _migrate_v22_to_v23),
+        (24, _migrate_v23_to_v24),
+        (25, _migrate_v24_to_v25),
+        (26, _migrate_v25_to_v26),
+        (27, _migrate_v26_to_v27),
+        (28, _migrate_v27_to_v28),
+        (29, _migrate_v28_to_v29),
+        (30, _migrate_v29_to_v30),
+        (31, _migrate_v30_to_v31),
+        (32, _migrate_v31_to_v32),
+        (33, _migrate_v32_to_v33),
+        (34, _migrate_v33_to_v34),
+    ]
+
+
+def _schema_version(conn):
+    row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
+    return row["version"]
+
+
+def schema_status(config=None):
+    """
+    `(current version, number of migration steps pending)` for a
+    database, without migrating it -- `migrateDb.py --status`, which
+    update.sh reads to decide whether to ask about the database at all.
+    """
+    conn = get_connection(config)
+    try:
+        version = _schema_version(conn)
+        return version, sum(1 for target, _ in _migration_steps() if version < target)
+    finally:
+        conn.close()
+
+
+def migrate_database(config=None, on_step=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
     `SCHEMA_VERSION`, applying any migration step in between.
@@ -5077,6 +5129,10 @@ def migrate_database(config=None):
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
+        on_step (callable, optional): Called as `on_step(number, total,
+            from_version, to_version)` just before each pending step
+            runs (`number` counts from 1 to `total`), so a caller can
+            show progress (`migrateDb.py`'s progress bar).
 
     Returns:
         int: The database's `schema_migrations` version (always
@@ -5084,112 +5140,13 @@ def migrate_database(config=None):
     """
     conn = get_connection(config)
     try:
-        row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
-        version = row["version"]
-
-        if version < 9:
-            _migrate_v8_to_v9(conn)
-            version = 9
-
-        if version < 10:
-            _migrate_v9_to_v10(conn)
-            version = 10
-
-        if version < 11:
-            _migrate_v10_to_v11(conn)
-            version = 11
-
-        if version < 12:
-            _migrate_v11_to_v12(conn)
-            version = 12
-
-        if version < 13:
-            _migrate_v12_to_v13(conn)
-            version = 13
-
-        if version < 14:
-            _migrate_v13_to_v14(conn)
-            version = 14
-
-        if version < 15:
-            _migrate_v14_to_v15(conn)
-            version = 15
-
-        if version < 16:
-            _migrate_v15_to_v16(conn)
-            version = 16
-
-        if version < 17:
-            _migrate_v16_to_v17(conn)
-            version = 17
-
-        if version < 18:
-            _migrate_v17_to_v18(conn)
-            version = 18
-
-        if version < 19:
-            _migrate_v18_to_v19(conn)
-            version = 19
-
-        if version < 20:
-            _migrate_v19_to_v20(conn)
-            version = 20
-
-        if version < 21:
-            _migrate_v20_to_v21(conn)
-            version = 21
-
-        if version < 22:
-            _migrate_v21_to_v22(conn)
-            version = 22
-
-        if version < 23:
-            _migrate_v22_to_v23(conn)
-            version = 23
-
-        if version < 24:
-            _migrate_v23_to_v24(conn)
-            version = 24
-
-        if version < 25:
-            _migrate_v24_to_v25(conn)
-            version = 25
-
-        if version < 26:
-            _migrate_v25_to_v26(conn)
-            version = 26
-
-        if version < 27:
-            _migrate_v26_to_v27(conn)
-            version = 27
-
-        if version < 28:
-            _migrate_v27_to_v28(conn)
-            version = 28
-
-        if version < 29:
-            _migrate_v28_to_v29(conn)
-            version = 29
-
-        if version < 30:
-            _migrate_v29_to_v30(conn)
-            version = 30
-
-        if version < 31:
-            _migrate_v30_to_v31(conn)
-            version = 31
-        if version < 32:
-            _migrate_v31_to_v32(conn)
-            version = 32
-
-        if version < 33:
-            _migrate_v32_to_v33(conn)
-            version = 33
-
-        if version < 34:
-            _migrate_v33_to_v34(conn)
-            version = 34
-
+        version = _schema_version(conn)
+        pending = [(target, step) for target, step in _migration_steps() if version < target]
+        for number, (target, step) in enumerate(pending, start=1):
+            if on_step is not None:
+                on_step(number, len(pending), version, target)
+            step(conn)
+            version = target
         conn.commit()
         return version
     finally:

@@ -8,7 +8,7 @@ applying any migration step in between -- a no-op for a database that's
 already current. See `stellarObjects/_db.py`'s `migrate_database` for how
 a single database's version is checked/advanced.
 
-Run automatically by `install.sh` (and so by `update.sh`, which calls it)
+Run automatically by `install.sh` and `update.sh`
 on every deploy, so a database created under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
 for a one-off check/migration outside of a deployment.
@@ -17,10 +17,19 @@ This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
 
+Shows a progress bar while it migrates: one tick per migration step,
+with the elapsed time and an estimate of the time left (from how long the
+steps so far took -- steps differ a lot in cost, so it firms up as they
+run).
+
 Usage:
     python3 src/migrateDb.py [--mysql-host HOST] [--mysql-port PORT]
                              [--mysql-user USER] [--mysql-password PASSWORD]
-                             [--mysql-database DATABASE]
+                             [--mysql-database DATABASE] [--status]
+
+    --status prints "<current version> <target version> <pending steps>
+    <database>" and changes nothing (update.sh reads it to decide whether
+    to ask about the database).
 
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
@@ -33,6 +42,15 @@ Usage:
 import argparse
 import sys
 
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
+
 from stellarObjects import adminAuth
 from stellarObjects._db import (
     SCHEMA_VERSION,
@@ -40,7 +58,42 @@ from stellarObjects._db import (
     control_mysql_config,
     migrate_database,
     mysql_config_from_args,
+    schema_status,
 )
+
+
+def _migrate_with_progress(config):
+    """Runs `migrate_database` behind a progress bar (steps done of steps
+    pending, elapsed, estimated time left); shows nothing when there is
+    nothing to migrate."""
+    progress = Progress(
+        TextColumn("[bold]Migrating[/bold] {task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TextColumn("elapsed"),
+        TimeElapsedColumn(),
+        TextColumn("left"),
+        TimeRemainingColumn(),
+    )
+    task = None
+
+    def on_step(number, total, from_version, to_version):
+        nonlocal task
+        description = f"v{from_version} -> v{to_version}"
+        if task is None:
+            task = progress.add_task(description, total=total)
+            progress.start()
+        # The step about to run; the previous one just finished.
+        progress.update(task, completed=number - 1, description=description)
+
+    try:
+        version = migrate_database(config, on_step=on_step)
+        if task is not None:
+            progress.update(task, completed=progress.tasks[0].total, description=f"to v{version}")
+    finally:
+        if task is not None:
+            progress.stop()
+    return version
 
 
 def main():
@@ -50,12 +103,24 @@ def main():
                      "alongside it.",
     )
     add_mysql_connection_args(parser)
+    parser.add_argument("--status", action="store_true",
+                        help="Print '<current version> <target version> <pending steps> <database>' "
+                             "and change nothing.")
     args = parser.parse_args()
 
     config = mysql_config_from_args(args)
 
+    if args.status:
+        try:
+            version, pending = schema_status(config)
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            sys.exit(1)
+        print(version, SCHEMA_VERSION, pending, config.database)
+        return
+
     try:
-        version = migrate_database(config)
+        version = _migrate_with_progress(config)
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
