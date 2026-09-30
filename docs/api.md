@@ -67,8 +67,8 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/sectors?limit=<n>&offset=<n>` — every sector, paginated (see
   "Pagination" below), each with `id`, `name`, `edge_mpc`, `edge_ly`,
   `system_count`, and its galaxy placement (`center_x_pc`/`center_y_pc`/
-  `center_z_pc`/`galactic_radius_pc`/`galactic_radius_ly`/`shell_index`/
-  `shell_slot_index`, all
+  `center_z_pc`/`galactic_radius_pc`/`galactic_radius_ly`/`ring_index`/
+  `layer_index`/`ring_slot_index` (the cylindrical grid address), all
   `null` together for an unplaced sector, plus a `placed` bool), nearest
   the galactic core first, then unplaced sectors by name
   (`queryDb.list_sectors`/`count_sectors`).
@@ -139,7 +139,7 @@ connectivity to that specific schema rather than the default one.
   between two systems (`queryDb.nav_between`) — see "NAV" below.
 - `GET /api/galaxy/sectors` — every galaxy-placed sector (non-`null`
   galaxy placement), each with `id`, `name`, `x`/`y`/`z`
-  (`center_x/y/z_pc`), `galactic_radius_pc`, `shell_index`, and
+  (`center_x/y/z_pc`), `galactic_radius_pc`, `ring_index`, and
   `system_count` (`queryDb.galaxy_placed_sectors`) — the data
   `../src/html/galaxy.py`'s Galaxy Map plots. Not paginated: bounded by
   how much of the galaxy has actually been generated (see `TODO.md`'s
@@ -163,11 +163,21 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/shape` — `{"shape": ...}`, the galaxy's stored
   density-skeleton shape (`generate.py plan`'s output): every
   `stellarObjects.galaxyDensity.GalaxyShape` field plus `edge_pc`,
-  `outer_shell_index`, and `expected_system_count_at_density_1`
+  `outer_ring_index`, and `expected_system_count_at_density_1`
   (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
   has never been built. The Galaxy Map shades its "expected density"
   cloud from this real model (falling back to a generic illustrative
   gradient when `null`) instead of a placeholder.
+- `GET /api/galaxy/cell?ring=<i>&layer=<j>&slot=<k>` (or `?x=&y=&z=`,
+  parsecs, for the cell holding that point) — one cell of the cylindrical
+  sector grid, whether or not anything was generated there
+  (`galaxyGeometry.describe_sector_cell`): `ring_index`/`layer_index`/
+  `ring_slot_index`, `designation`, `cartesian_pc`, `cylindrical`
+  (`r_pc`, `theta_rad`, `z_pc`), `spherical` (`r_pc`, `theta_rad`,
+  `polar_rad` from galactic north), `bounds`, `mean_arc_length_pc`,
+  `volume_pc3`, `vertices_pc` (8 corners), `edge_pc`, and `sector_id`
+  (the generated sector there, or `null`). `400` for a bad or incomplete
+  query.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...&density=<key>` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
@@ -177,7 +187,7 @@ connectivity to that specific schema rather than the default one.
   `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "density":
   {"key": ..., "points": [...]} | null, "edge_pc": ..., "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
-  box (the `/api/galaxy/sectors` shape plus `shell_slot_index`,
+  box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
   predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated

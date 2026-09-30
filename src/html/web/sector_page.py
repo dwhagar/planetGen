@@ -201,8 +201,9 @@ def sector(sector_id):
         (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]) if detail["placed"] else None
     )
     map_html = render_map_panel(
-        page_url, detail["edge_mpc"], detail["shell_index"], detail["shell_slot_index"], center_pc,
-        map_systems, phenomena=detail.get("phenomena"), neighbors=detail.get("neighbors"),
+        page_url, detail["edge_mpc"],
+        (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
+        center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=detail.get("neighbors"),
     )
 
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None

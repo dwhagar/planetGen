@@ -58,7 +58,8 @@ def _sector_system(system_id, name, distance, x=1.0):
 def _sector_detail(sector_id=5, name="Fake Sector", systems=None, placed=True, wiki_url=None):
     return {
         "id": sector_id, "name": name, "edge_mpc": 3066.0, "edge_ly": 10.0,
-        "shell_index": 5 if placed else None, "shell_slot_index": 100 if placed else None,
+        "ring_index": 5 if placed else None, "layer_index": 1 if placed else None,
+        "ring_slot_index": 20 if placed else None,
         "placed": placed,
         "center_x_pc": 500.0 if placed else None, "center_y_pc": 200.0 if placed else None,
         "center_z_pc": 10.0 if placed else None,
@@ -71,7 +72,7 @@ def _sector_detail(sector_id=5, name="Fake Sector", systems=None, placed=True, w
             "distance_ly": 4.0, "offset_x_ly": 1.0, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
         }],
         "neighbors": [{
-            "direction_pc": (1.0, 0.0, 0.0), "shell_index": 5, "shell_slot_index": 101,
+            "direction_pc": (1.0, 0.0, 0.0), "ring_index": 5, "layer_index": 1, "ring_slot_index": 21,
             "designation": "ABC", "exists": True, "sector_id": 6, "sector_name": "Next Door",
         }],
     }
@@ -639,16 +640,15 @@ def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_c
     from stellarObjects.galaxyGeometry import galactic_radius_pc, sector_position_pc
 
     edge_pc = 3.526
-    shell_index, shell_slot_index = 5, 100
-    position = sector_position_pc(shell_index, shell_slot_index, edge_pc)
+    address = (5, 1, 20)
+    position = sector_position_pc(*address, edge_pc)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
             sector_id = _db.insert_sector(conn, SpaceSector(name="Placed Sector"), galaxy_position={
                 "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
                 "galactic_radius_pc": galactic_radius_pc(position),
-                "shell_index": shell_index, "shell_slot_index": shell_slot_index,
-                "vertices_pc": {"inner": [], "outer": []},
+                "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
             })
     finally:
         conn.close()
@@ -682,7 +682,6 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
         "galactic_radius_pc": (500.0 ** 2 + 200.0 ** 2 + 10.0 ** 2) ** 0.5,
-        "vertices_pc": {"inner": [], "outer": []},
     })
 
     html = db_client.get(f"/sector/{sector_id}").get_data(as_text=True)

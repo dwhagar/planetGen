@@ -27,6 +27,7 @@ separate, write-capable database account -- see `docs/api.md`'s
 "Write endpoints" section and `stellarObjects/adminAuth.py`.
 """
 
+import math
 import os
 import sys
 
@@ -65,13 +66,14 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db
-from stellarObjects._db import MySQLConfig, list_databases, resolve_database
+from stellarObjects import _db, program_constants
+from stellarObjects._db import MySQLConfig, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
+from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
-from stellarObjects.utils import ly_to_milliparsecs
+from stellarObjects.utils import ly_to_milliparsecs, ly_to_pc
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
@@ -624,6 +626,48 @@ def galaxy_shape():
     then falls back to its own generic illustrative gradient).
     """
     return jsonify({"shape": galaxy_density_shape(get_db())})
+
+
+@bp.route("/galaxy/cell")
+def galaxy_cell():
+    """
+    One sector cell of the cylindrical grid, whether or not anything was
+    ever generated there: `?ring=I&layer=J&slot=K` names it by address,
+    `?x=&y=&z=` (parsecs, galaxy frame) by any point inside it. Returns
+    `galaxyGeometry.describe_sector_cell` (center in Cartesian, cylindrical
+    and spherical coordinates, bounds, 8 corners) plus `sector_id`, the
+    generated sector there or `null`. Uses the stored skeleton's edge
+    length, else the default 11.5 ly.
+    """
+    def number(name, cast):
+        value = request.args.get(name)
+        if value is None:
+            return None
+        try:
+            return cast(value)
+        except ValueError:
+            raise ApiError(f"{name} must be a number")
+
+    conn = get_db()
+    skeleton = get_galaxy_shape(conn)
+    edge_pc = skeleton.edge_pc if skeleton else ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+    ring, layer, slot = number("ring", int), number("layer", int), number("slot", int)
+    x, y, z = number("x", float), number("y", float), number("z", float)
+    if None not in (ring, layer, slot):
+        address = (ring, layer, slot)
+    elif None not in (x, y, z) and all(math.isfinite(v) for v in (x, y, z)):
+        address = sector_address_at((x, y, z), edge_pc)
+    else:
+        raise ApiError("give ring, layer and slot, or x, y and z")
+    if address[0] < 0:
+        raise ApiError("ring must be >= 0")
+    try:
+        cell = describe_sector_cell(*address, edge_pc)
+    except ValueError as err:
+        raise ApiError(str(err))
+    cell["edge_pc"] = edge_pc
+    cell["sector_id"] = get_sector_id_at(conn, *address)
+    return jsonify(cell)
 
 
 @bp.route("/galaxy/tiles")
