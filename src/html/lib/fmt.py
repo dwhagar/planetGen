@@ -99,7 +99,7 @@ def linkify_location(location, name_to_id, system_url):
 
     `location` is plain text baked in at generation time by
     `stellarObjects._db._format_location_string`, e.g.
-    `"Voranthis Kelmoor -- nearest: Alpha Prime (4.2 ly), Beta (5.1 ly)"` --
+    `"Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly), Beta (5.1 ly)"` --
     the sector name, then up to 3 "Name (distance ly)" entries
     comma-joined after a fixed `" -- nearest: "` marker (empty when the
     sector has no other systems, in which case this is just the sector

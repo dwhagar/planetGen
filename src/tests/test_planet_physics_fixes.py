@@ -411,3 +411,26 @@ def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, 
     planet.star = DimStar()
     planetPhysics.calculate_atmospheric_conditions(planet)
     assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K
+
+
+def test_reclassifying_a_moved_planet_keeps_its_distance(host_star):
+    """
+    `validate_system` pushes a planet clear of its inner neighbor, then
+    `reconcile_zone_and_class` reclassifies it for its new zone. Ecosphere
+    classes with a "zone_position_mode" used to redraw the distance
+    anywhere in the habitable zone at that point, which could drop the
+    planet back inside the neighbor it had just been moved past (seen as
+    an asteroid belt overlapping the next planet in giant-star systems).
+    """
+    cfg = SystemConfig()
+    inner, outer = host_star.habitable_zone
+    for _ in range(30):
+        planet = Planet(cfg, host_star, host_star.habitable_zone,
+                        plausibility.distance_for_zone(host_star, "h"),
+                        planet_class="A", zone_override="h", moon_count=0)
+        moved_to = inner + 0.95 * (outer - inner)
+        planet.distance = moved_to
+
+        assert planetPhysics.reconcile_zone_and_class(planet, host_star.mass)
+        assert planet.zone == "e"
+        assert planet.distance == moved_to

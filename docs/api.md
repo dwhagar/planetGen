@@ -74,7 +74,7 @@ connectivity to that specific schema rather than the default one.
   it, nearest the sector's center first — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, `center_distance_ly`,
   and `stars`, each
-  with `role`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
+  with `role`/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
   `phenomena` (every galaxy-placed standalone phenomenon whose sphere
   could plausibly reach into this sector's cube, plus every placed one
   generated as part of this sector, nearest its center first — `id`,
@@ -277,7 +277,11 @@ connectivity to that specific schema rather than the default one.
 - `POST /api/sectors/<id>/wiki` — publish a sector-summary page to a
   wiki (see "Wiki publishing" below).
 - `POST /api/systems` — generate and create a standalone system.
-- `PATCH /api/systems/<id>` — rename a system.
+- `PATCH /api/systems/<id>` — rename a system (its stars, planets and
+  moons follow; see "Renaming" below).
+- `PATCH /api/stars/<id>` — rename a star.
+- `PATCH /api/planets/<id>` — rename a planet.
+- `PATCH /api/moons/<id>` — rename a moon.
 - `DELETE /api/systems/<id>` — remove a system.
 - `POST /api/systems/<id>/wiki` — publish a system's already-generated
   page to a wiki (see "Wiki publishing" below).
@@ -523,7 +527,7 @@ it the same way `systemGen.py` does, via `StarSystem(system_config=...)`:
 ```json
 {
   "star_type": "G2V",
-  "name": "Voranthis Prime",
+  "name": "Voranthis Vesta",
   "age": "old",
   "habitable_world": true,
   "asteroid_belt": null,
@@ -559,7 +563,31 @@ A generation failure (an internally-inconsistent recipe, e.g. an
 impossible `num_orbits`/class combination) is reported as a `400`, not a
 `500` — the request body was the problem, not the server.
 
-`PATCH /api/systems/<id>` accepts only `{"name": str}` — a rename.
+### Renaming
+
+`PATCH /api/systems/<id>`, `/api/stars/<id>`, `/api/planets/<id>` and
+`/api/moons/<id>` each accept only `{"name": str}`. Runs of whitespace
+collapse to one space; a blank name, one over 255 characters, or any other
+field is a `400`, and an unknown id is a `404`. A name any other sector,
+system, star, planet or moon already has is a `409`
+(`{"error": "a planet is already named 'New Terra'"}`). Success returns
+`{"status": "ok", "id", "name"}` (plus `star_system_id` for a star,
+planet or moon).
+
+Generated names derive from the system (`src/stellarObjects/bodyNames.py`):
+a single star shares the system's name (`Voranthis`), a binary's stars add
+their own word after it (`Voranthis Kelmoor`, `Voranthis Ostra`), planets
+are numbered in orbit order after the star they orbit (`Voranthis II`, or
+`Voranthis Kelmoor II` around one star of a wide pair), and moons add a
+letter (`Voranthis IIa`). Renames keep that in step:
+
+- **System:** every star, planet and moon whose name starts with the old
+  system name is renamed with it. Names set by hand are left alone.
+- **Star:** a single star shares its system's name, so this renames the
+  system (as above). A binary's star is renamed on its own, along with the
+  planets and moons named after it.
+- **Planet or moon:** just that body. A renamed planet's moons keep their
+  names.
 
 ### Wiki publishing — request body
 
@@ -569,7 +597,7 @@ same request shape:
 ```json
 {
   "backend": "wikijs",
-  "path": "systems/voranthis-prime"
+  "path": "systems/voranthis-vesta"
 }
 ```
 
@@ -701,7 +729,7 @@ local development without TLS in front, never in production.
 See `docs/TODO.md`'s open items — in particular, sector-attached system
 creation (`POST /api/systems` is standalone-only today, per "Systems —
 request body" above) and editing a system's generated content (stars/
-planets/moons/belts) beyond a plain rename. The frontend gap that this
+planets/moons/belts) beyond renaming it. The frontend gap that this
 section used to describe is closed: the pages in `../src/html/web/` (see
 [`html-interface.md`](html-interface.md)) are this API's own server-
 rendered frontend.

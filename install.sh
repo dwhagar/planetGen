@@ -11,15 +11,18 @@
 #   1. Runs `scripts/install-python-deps.sh` to install the Python package
 #      and its libraries: a build-isolated `pip install` on an ordinary
 #      Python, or distribution (apt) packages on an externally managed one
-#      (PEP 668, e.g. Ubuntu 24.04+), with a venv only for libraries the
-#      distribution doesn't package.
-#   2. Runs `src/migrateDb.py` against the configured MySQL database
+#      (PEP 668, e.g. Ubuntu 24.04+), with system-wide pip only for
+#      libraries the distribution lacks or ships too old. No venv.
+#   2. Runs `src/migrateDb.py` (with a progress bar; when a migration is
+#      pending it first asks, y/N with a 30-second timeout defaulting to
+#      N, whether to delete the galaxy data instead) against the
+#      configured MySQL database
 #      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
 #      `SetEnv` directives once deployed), bringing it up to the current
 #      schema (`stellarObjects/schema.sql`) if it isn't already. A no-op
 #      for a database that's already current. Needs step 1 done first,
 #      since it imports `stellarObjects`.
-#   3. Pre-fetches the NLTK `words` corpus into a shared, world-readable
+#   3. Pre-fetches (unless it's already there) the NLTK `words` corpus into a shared, world-readable
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
 #      `sectorgen`/`systemgen`, or Apache's own locked-down `www-data`
@@ -35,8 +38,10 @@
 #      `docs/TODO.md` -- a `core.fileMode=false` git config on the authoring
 #      machine silently dropped this once already, and nothing about a
 #      git checkout should be trusted to carry it reliably).
-#   5. Enables Apache's headers and deflate modules (`a2enmod headers
-#      deflate`) and, when it is installed, mod_wsgi (`a2enmod wsgi`).
+#   5. Enables Apache's headers, deflate and wsgi modules, installing
+#      mod_wsgi (libapache2-mod-wsgi-py3) first if apt can and it's
+#      missing. Steps 3 and 5 come from scripts/deploy-common.sh, which
+#      update.sh shares.
 #   6. Runs `examples/apache/set-permissions.sh` to set ownership/permissions on
 #      the deployed `src/html/`/`db/` directories for Apache's worker
 #      user/group.
@@ -72,36 +77,30 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-PYTHON="$(command -v python3 || command -v python || true)"
+PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1
 fi
 
+# shellcheck source=scripts/deploy-common.sh
+source "$SCRIPT_DIR/scripts/deploy-common.sh"
+
 echo "== 1/8: Installing the Python package and its libraries =="
-# pip on an ordinary Python; distribution packages (plus a venv for
-# anything the distribution lacks) on an externally managed one (PEP 668,
-# e.g. Ubuntu 24.04+), where pip refuses to install. See that script for
+# pip on an ordinary Python; distribution packages (plus system-wide pip
+# for anything the distribution lacks or ships too old) on an externally
+# managed one (PEP 668, e.g. Ubuntu 24.04+). See that script for
 # the details of each path; it prints which one it took.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 
 echo
 echo "== 2/8: Migrating the configured MySQL database to the current schema =="
-"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+migrate_or_reset_db
 
 echo
 echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
-mkdir -p "$NLTK_DATA_DIR"
-# A plain `nltk.download()` call, not `python -m nltk.downloader`: nltk's
-# own `__init__.py` already imports `nltk.downloader` internally (for the
-# `nltk.download()` shorthand this uses), so running it again as `-m`
-# finds it already in sys.modules and prints a spurious
-# "found in sys.modules ... this may result in unpredictable behaviour"
-# RuntimeWarning on every run -- same download, same target directory,
-# no warning. `stellarObjects/names.py`'s own lazy corpus check already
-# calls `nltk.download()` this same way.
-"$PYTHON" -c "import nltk; nltk.download('words', download_dir='$NLTK_DATA_DIR')"
-chmod -R a+rX "$NLTK_DATA_DIR"
+# Skipped when it's already there (scripts/deploy-common.sh).
+ensure_nltk_words "$NLTK_DATA_DIR"
 
 echo
 echo "== 4/8: Making the web app's Python files and the shell scripts executable =="
@@ -123,22 +122,10 @@ find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
 echo
 echo "== 5/8: Enabling Apache's wsgi, headers and deflate modules =="
-if command -v a2enmod >/dev/null 2>&1; then
-    # headers: static/'s Cache-Control/nosniff lines in
-    # examples/apache/planetgen.conf.example. deflate: that file's
-    # compression block. wsgi: runs the Flask app (every page and the
-    # API), from the libapache2-mod-wsgi-py3 package -- warned about
-    # rather than fatal when that package isn't installed yet. No CGI
-    # module is needed any more.
-    a2enmod headers deflate
-    if ! a2enmod wsgi; then
-        echo "warning: could not enable mod_wsgi -- install it first:" >&2
-        echo "  sudo apt install libapache2-mod-wsgi-py3 && sudo a2enmod wsgi" >&2
-    fi
-else
-    echo "warning: a2enmod not found -- is apache2 installed?" >&2
-    echo "  Try: sudo apt install apache2" >&2
-fi
+# Installs mod_wsgi (libapache2-mod-wsgi-py3) if it's missing, and
+# enables whichever of the three aren't already (scripts/deploy-common.sh).
+APACHE_NEEDS_RESTART=0
+ensure_apache_modules
 
 echo
 echo "== 6/8: Setting directory ownership/permissions for Apache =="
@@ -151,6 +138,10 @@ echo "== 7/8: Creating the Galaxy Map tile cache directory =="
 echo
 echo "== 8/8: Setting up the debug log and its rotation =="
 "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+
+echo
+echo "Checking that the web app imports:"
+check_app_imports
 
 if [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
     cat <<EOF

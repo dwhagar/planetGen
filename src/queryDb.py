@@ -962,7 +962,7 @@ def sector_detail(conn, sector_id):
     systems = []
     for row in system_rows:
         star_rows = conn.execute(
-            "SELECT role, star_type, temperature_k, radius_km, luminosity_w"
+            "SELECT role, name, star_type, temperature_k, radius_km, luminosity_w"
             " FROM stars WHERE star_system_id = ?"
             " ORDER BY CASE role WHEN 'secondary' THEN 1 ELSE 0 END",
             (row["id"],),

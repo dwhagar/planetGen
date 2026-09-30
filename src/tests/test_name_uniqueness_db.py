@@ -2,15 +2,15 @@
 
 """
 Database-integration tests for `stellarObjects._db`'s name-uniqueness
-machinery (v22, `stellarObjects/nameUniqueness.py`) -- `insert_sector`/
-`insert_star_system`/`insert_planet`/`insert_moon`'s `_reserve_*`/
-`_confirm_*` calls, exercised against a real database. `test_name_uniqueness.py`
-covers the pure resolver functions in isolation; this file covers the
-sector > system > planet/moon hierarchy those functions are wired into --
-forced collisions (via a hand-set `.name` before saving, since a real
-collision is otherwise astronomically unlikely), same-level Greek/Roman
-and companion-suffix progression, and cross-level decoration (never
-touching the higher-level row).
+machinery (v24, `stellarObjects/nameUniqueness.py`) -- `insert_sector`/
+`insert_star_system`'s `reserve_*`/`confirm_*` calls, exercised against a
+real database. `test_name_uniqueness.py` covers the pure resolver
+functions in isolation; this file covers the sector > system hierarchy
+those functions are wired into -- forced collisions (via a hand-set
+`.name` before saving, since a real collision is otherwise astronomically
+unlikely), same-level Greek/Roman progression, cross-level decoration
+(never touching the higher-level row), and the planets and moons named
+from their system following it through each rename (v34, `bodyNames.py`).
 
 Every test here takes the `mysql_config` fixture (see `conftest.py`) --
 skipped, not failed, when no MySQL test server is configured/reachable.
@@ -85,13 +85,13 @@ def test_first_system_collision_renames_existing_to_alpha_new_to_beta(mysql_conf
     try:
         with conn:
             system1 = _make_system()
-            system1.star.name = "Terra"
+            system1.name = "Terra"
             id1 = _db.insert_star_system(conn, system1, system1.system_config)
         with conn:
             system2 = _make_system()
-            system2.star.name = "Terra"
+            system2.name = "Terra"
             id2 = _db.insert_star_system(conn, system2, system2.system_config)
-            assert system2.star.name == "Beta Terra"
+            assert system2.name == "Beta Terra"
 
         rows = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM star_systems").fetchall()}
         assert rows[id1] == "Alpha Terra"
@@ -113,9 +113,9 @@ def test_system_created_after_matching_sector_gets_diminutive_prefix(mysql_confi
 
         with conn:
             system = _make_system()
-            system.star.name = "Mars"
+            system.name = "Mars"
             system_id = _db.insert_star_system(conn, system, system.system_config)
-            assert system.star.name == "Little Mars"
+            assert system.name == "Little Mars"
 
         sector_row = conn.execute("SELECT name FROM sectors WHERE id = ?", (sector_id,)).fetchone()
         system_row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()
@@ -130,7 +130,7 @@ def test_sector_created_after_matching_system_renames_system_not_sector(mysql_co
     try:
         with conn:
             system = _make_system()
-            system.star.name = "Venus"
+            system.name = "Venus"
             system_id = _db.insert_star_system(conn, system, system.system_config)
 
         with conn:
@@ -158,111 +158,105 @@ def test_repeat_system_vs_sector_collision_advances_to_next_diminutive(mysql_con
             _db.insert_sector(conn, SpaceSector(name="Jupiter"))
         with conn:
             system1 = _make_system()
-            system1.star.name = "Jupiter"
+            system1.name = "Jupiter"
             _db.insert_star_system(conn, system1, system1.system_config)
-            assert system1.star.name == "Little Jupiter"
+            assert system1.name == "Little Jupiter"
         with conn:
             system2 = _make_system()
-            system2.star.name = "Jupiter"
+            system2.name = "Jupiter"
             _db.insert_star_system(conn, system2, system2.system_config)
 
         all_names = [r["name"] for r in conn.execute("SELECT name FROM star_systems").fetchall()]
         all_names.append("Jupiter")  # the sector's own name
         assert len(all_names) == len(set(all_names)), all_names
         # system2 must carry a *different* diminutive from system1's.
-        assert system2.star.name != "Little Jupiter"
-        assert "Petit" in system2.star.name or system2.star.name.split(" ")[0] != "Little"
+        assert system2.name != "Little Jupiter"
+        assert "Petit" in system2.name or system2.name.split(" ")[0] != "Little"
     finally:
         conn.close()
 
 
 # ---------------------------------------------------------------------------
-# Planets/moons: shared body namespace, always decorated with a suffix
+# Planets/moons: named from their system, following it through renames
 # ---------------------------------------------------------------------------
 
-def _insert_system_with_one_real_planet(conn, planet_name):
-    """Generates a system with real (non-asteroid-belt) planets, forces
-    the first one's name, and saves it -- retries generation since not
-    every random system has any planets at all."""
+def _make_system_with_planets():
+    """A system with at least one real (non-belt) planet -- retried, since
+    not every random system has one."""
     for _ in range(30):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
+        cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        real_planets = [p for p in system.planets if p.body_type != "a"]
-        if real_planets:
-            real_planets[0].name = planet_name
-            with conn:
-                system_id = _db.insert_star_system(conn, system, cfg)
-            return system, system_id, real_planets[0]
+        if any(p.body_type != "a" for p in system.planets):
+            return system
     raise AssertionError("could not generate a system with a real (non-belt) planet after 30 attempts")
 
 
-def test_planet_colliding_with_sector_gets_companion_suffix(mysql_config):
+def _body_names(conn, system_id):
+    planets = [r["name"] for r in conn.execute(
+        "SELECT name FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)).fetchall()]
+    moons = [r["name"] for r in conn.execute(
+        "SELECT name FROM moons WHERE star_system_id = ? ORDER BY planet_id, orbital_index", (system_id,)).fetchall()]
+    return planets, moons
+
+
+def test_planets_take_the_decorated_system_name(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
+        system1 = _make_system_with_planets()
+        system1.name = "Rigel"
+        with conn:
+            id1 = _db.insert_star_system(conn, system1, system1.system_config)
+        system2 = _make_system_with_planets()
+        system2.name = "Rigel"
+        with conn:
+            id2 = _db.insert_star_system(conn, system2, system2.system_config)
+
+        planets2, moons2 = _body_names(conn, id2)
+        assert planets2[0] == "Beta Rigel I"
+        assert all(name.startswith("Beta Rigel ") for name in planets2 + moons2)
+        # The first system became Alpha Rigel, and its planets and moons followed.
+        planets1, moons1 = _body_names(conn, id1)
+        assert planets1[0] == "Alpha Rigel I"
+        assert all(name.startswith("Alpha Rigel ") for name in planets1 + moons1)
+        assert conn.execute("SELECT name FROM stars WHERE star_system_id = ?", (id1,)).fetchone()["name"] == "Alpha Rigel"
+    finally:
+        conn.close()
+
+
+def test_sector_collision_renames_the_system_and_its_planets(mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        system = _make_system_with_planets()
+        system.name = "Kepler"
+        with conn:
+            system_id = _db.insert_star_system(conn, system, system.system_config)
         with conn:
             _db.insert_sector(conn, SpaceSector(name="Kepler"))
 
-        _system, _system_id, planet = _insert_system_with_one_real_planet(conn, "Kepler")
-        assert planet.name == "Kepler Kin"
-
-        row = conn.execute("SELECT name FROM planets WHERE name LIKE ?", ("Kepler%",)).fetchone()
-        assert row["name"] == "Kepler Kin"
+        planets, moons = _body_names(conn, system_id)
+        assert planets[0] == "Little Kepler I"
+        assert all(name.startswith("Little Kepler ") for name in planets + moons)
     finally:
         conn.close()
 
 
-def test_second_planet_with_same_base_name_gets_next_companion_suffix(mysql_config):
-    conn = _db.get_connection(mysql_config)
-    try:
-        _system1, _id1, planet1 = _insert_system_with_one_real_planet(conn, "Rigel")
-        assert planet1.name == "Rigel"  # no collision yet -- bare name
-
-        _system2, _id2, planet2 = _insert_system_with_one_real_planet(conn, "Rigel")
-        assert planet2.name == "Rigel Kin"  # first companion suffix
-
-        _system3, _id3, planet3 = _insert_system_with_one_real_planet(conn, "Rigel")
-        assert planet3.name == "Rigel Ami"  # second companion suffix, first ("Kin") already used
-
-        names = [
-            r["name"] for r in conn.execute("SELECT name FROM planets WHERE name LIKE ?", ("Rigel%",)).fetchall()
-        ]
-        assert len(names) == len(set(names)), names
-        assert set(names) == {"Rigel", "Rigel Kin", "Rigel Ami"}
-    finally:
-        conn.close()
-
-
-def test_planet_colliding_with_system_gets_companion_suffix(mysql_config):
+def test_a_planet_named_like_a_sector_is_left_alone(mysql_config):
+    """Planet names are never searched -- a hand-set one that matches a
+    sector isn't decorated."""
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            system = _make_system()
-            system.star.name = "Orion"
-            _db.insert_star_system(conn, system, system.system_config)
-
-        _planet_system, _planet_system_id, planet = _insert_system_with_one_real_planet(conn, "Orion")
-        assert planet.name == "Orion Kin"
-    finally:
-        conn.close()
-
-
-def test_body_registry_tracks_the_first_planet_and_advances_suffix_index(mysql_config):
-    conn = _db.get_connection(mysql_config)
-    try:
-        _system1, _id1, planet1 = _insert_system_with_one_real_planet(conn, "Vega")
-        _system2, _id2, planet2 = _insert_system_with_one_real_planet(conn, "Vega")
-
-        registry = conn.execute(
-            "SELECT occurrence_count, first_body_kind, first_body_id, suffix_index "
-            "FROM body_name_registry WHERE base_name = 'Vega'"
-        ).fetchone()
-        assert registry["occurrence_count"] == 2
-        assert registry["first_body_kind"] == "planet"
-        assert registry["suffix_index"] == 0  # "Kin", the first companion suffix used
-
-        planet1_row = conn.execute("SELECT id FROM planets WHERE name = 'Vega'").fetchone()
-        assert registry["first_body_id"] == planet1_row["id"]
+            _db.insert_sector(conn, SpaceSector(name="Orion"))
+        system = _make_system_with_planets()
+        with conn:
+            system_id = _db.insert_star_system(conn, system, system.system_config)
+            planet_id = conn.execute(
+                "SELECT id FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
+            ).fetchone()["id"]
+            _db.rename_body(conn, "planets", planet_id, "Orion")
+        assert conn.execute("SELECT name FROM planets WHERE id = ?", (planet_id,)).fetchone()["name"] == "Orion"
     finally:
         conn.close()

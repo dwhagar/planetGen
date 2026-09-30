@@ -1131,45 +1131,147 @@ def create_system():
     return jsonify({"id": system_id}), 201
 
 
-SYSTEM_UPDATE_FIELDS = {
-    "name": (str, lambda v: bool(v.strip())),
+NAME_MAX_LENGTH = 255
+"""int: Every `name` column is `VARCHAR(255)` (see `schema.sql`)."""
+
+_NAME_CLASH_LABELS = {
+    "sectors": "a sector", "star_systems": "a star system", "stars": "a star",
+    "planets": "a planet", "moons": "a moon",
 }
-"""dict: `PATCH /api/systems/<id>`'s allowed fields -- metadata only
-(a rename) in this pass; editing a system's generated content (stars/
-planets/moons/belts) is out of scope here, same reasoning as `POST
-/api/systems` accepting only a generation recipe rather than a
-hand-edited object graph (see docs/api.md)."""
+
+
+def _rename_body():
+    """
+    Validates a rename request's body -- exactly `{"name": str}`, not
+    blank once trimmed, at most `NAME_MAX_LENGTH` characters -- and
+    returns the trimmed name.
+
+    Raises:
+        ApiError: 400 on any other shape.
+    """
+    body = require_json_body()
+    unknown = set(body) - {"name"}
+    if unknown:
+        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
+    name = body.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise ApiError("'name' must be a non-empty string")
+    name = " ".join(name.split())
+    if len(name) > NAME_MAX_LENGTH:
+        raise ApiError(f"'name' must be at most {NAME_MAX_LENGTH} characters")
+    return name
+
+
+def _require_unique_name(conn, name, exclude):
+    """Raises a 409 when a sector, system, star, planet or moon other than
+    the rows in `exclude` (`(table, id)` pairs) is already called `name`."""
+    clash = _db.name_in_use(conn, name, exclude=exclude)
+    if clash is not None:
+        raise ApiError(f"{_NAME_CLASH_LABELS[clash]} is already named {name!r}", status_code=409)
+
+
+def _system_rename_exclusions(conn, system_id):
+    """The system itself plus its single star, which shares its name --
+    both are renamed together, so neither is a clash."""
+    exclude = [("star_systems", system_id)]
+    exclude.extend(
+        ("stars", row["id"])
+        for row in conn.execute(
+            "SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)
+        ).fetchall()
+    )
+    return exclude
 
 
 @bp.route("/systems/<int:system_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def update_system(system_id):
-    """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system."""
-    body = require_json_body()
-    if not body:
-        raise ApiError("body must include at least one field to update")
-    unknown = set(body) - set(SYSTEM_UPDATE_FIELDS)
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-    for field, (expected_type, is_valid) in SYSTEM_UPDATE_FIELDS.items():
-        if field not in body:
-            continue
-        value = body[field]
-        if not isinstance(value, expected_type) or not is_valid(value):
-            raise ApiError(f"'{field}' is invalid: {value!r}")
+    """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system, and
+    every star, planet and moon still named after it
+    (`_db.rename_star_system`). 409 if anything else already has the
+    name."""
+    name = _rename_body()
 
     conn = _write_conn()
     try:
         with conn:
             if conn.execute("SELECT id FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
                 raise ApiError(f"no such system: {system_id}", status_code=404)
-            conn.execute("UPDATE star_systems SET name = ? WHERE id = ?", (body["name"], system_id))
+            _require_unique_name(conn, name, _system_rename_exclusions(conn, system_id))
+            _db.rename_star_system(conn, system_id, name)
     finally:
         conn.close()
 
-    audit("system.update", target=f"system:{system_id}", detail=str(body))
-    return jsonify({"status": "ok"})
+    audit("system.update", target=f"system:{system_id}", detail=str({"name": name}))
+    return jsonify({"status": "ok", "id": system_id, "name": name})
+
+
+@bp.route("/stars/<int:star_id>", methods=["PATCH"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def rename_star(star_id):
+    """`PATCH /api/stars/<id>` `{"name": str}` -- renames a star. A single
+    star shares its system's name, so this renames the system too; a
+    binary's star is renamed on its own, with the planets and moons named
+    after it (`_db.rename_star`). 409 if anything else already has the
+    name."""
+    name = _rename_body()
+
+    conn = _write_conn()
+    try:
+        with conn:
+            row = conn.execute("SELECT star_system_id, role FROM stars WHERE id = ?", (star_id,)).fetchone()
+            if row is None:
+                raise ApiError(f"no such star: {star_id}", status_code=404)
+            if row["role"] == "single":
+                exclude = _system_rename_exclusions(conn, row["star_system_id"])
+            else:
+                exclude = [("stars", star_id)]
+            _require_unique_name(conn, name, exclude)
+            _db.rename_star(conn, star_id, name)
+    finally:
+        conn.close()
+
+    audit("star.rename", target=f"star:{star_id}", detail=str({"name": name}))
+    return jsonify({"status": "ok", "id": star_id, "star_system_id": row["star_system_id"], "name": name})
+
+
+def _rename_planet_or_moon(table, kind, body_id):
+    """Shared body of `rename_planet`/`rename_moon`."""
+    name = _rename_body()
+
+    conn = _write_conn()
+    try:
+        with conn:
+            row = conn.execute(f"SELECT star_system_id FROM {table} WHERE id = ?", (body_id,)).fetchone()
+            if row is None:
+                raise ApiError(f"no such {kind}: {body_id}", status_code=404)
+            _require_unique_name(conn, name, [(table, body_id)])
+            _db.rename_body(conn, table, body_id, name)
+    finally:
+        conn.close()
+
+    audit(f"{kind}.rename", target=f"{kind}:{body_id}", detail=str({"name": name}))
+    return jsonify({"status": "ok", "id": body_id, "star_system_id": row["star_system_id"], "name": name})
+
+
+@bp.route("/planets/<int:planet_id>", methods=["PATCH"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def rename_planet(planet_id):
+    """`PATCH /api/planets/<id>` `{"name": str}` -- renames one planet. Its
+    moons keep their names. 409 if anything else already has the name."""
+    return _rename_planet_or_moon("planets", "planet", planet_id)
+
+
+@bp.route("/moons/<int:moon_id>", methods=["PATCH"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def rename_moon(moon_id):
+    """`PATCH /api/moons/<id>` `{"name": str}` -- renames one moon. 409 if
+    anything else already has the name."""
+    return _rename_planet_or_moon("moons", "moon", moon_id)
 
 
 @bp.route("/systems/<int:system_id>", methods=["DELETE"])

@@ -480,14 +480,14 @@ def test_system_request_rejects_what_generate_py_rejects(form, message):
 
 
 def test_system_page_generates_markdown_without_a_database(site, client):
-    resp = _post_system(client, name="Webtest Prime", habitable_world="yes", num_orbits="3", debug="1",
+    resp = _post_system(client, name="Webtest Vesta", habitable_world="yes", num_orbits="3", debug="1",
                         system_file='{"slots": [{"type": "planet", "planet_class": "M"}, null, null]}')
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200, html
-    assert '<h2 id="system-result-heading">Webtest Prime</h2>' in html
-    assert "# Webtest Prime" in html  # the Markdown code box
+    assert '<h2 id="system-result-heading">Webtest Vesta</h2>' in html
+    assert "# Webtest Vesta" in html  # the Markdown code box
     assert '<div class="prose">' in html  # the rendered preview
-    assert 'title="Save as Webtest-Prime.md">Download</button>' in html
+    assert 'title="Save as Webtest-Vesta.md">Download</button>' in html
     assert "Debug log" in html
     assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)
 

@@ -535,12 +535,12 @@ def run_system(args):
         else:
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write(text)
-            log.normal(f"Wrote system '{system.star.name}' to {args.output} (not saved to the database).")
+            log.normal(f"Wrote system '{system.name}' to {args.output} (not saved to the database).")
         return
 
     mysql_config = _db.mysql_config_from_args(args)
     star_system_id = _db.save_system(system, system_config, config=mysql_config)
-    log.normal(f"Saved system '{system.star.name}' to the database (star_system_id={star_system_id}, "
+    log.normal(f"Saved system '{system.name}' to the database (star_system_id={star_system_id}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
 

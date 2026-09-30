@@ -30,20 +30,88 @@ checks for that file and picks a path, printing which one it took:
 
 - **Not managed:** `pip install` of the package and its `api` extra, as
   before.
-- **Managed:** the libraries come from apt (`python3-flask`,
+- **Managed:** everything goes into the system Python, no virtual
+  environment. Each library comes from apt (`python3-flask`,
   `python3-nltk`, `python3-pymysql`, `python3-dbutils`,
-  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`). Any the
-  distribution doesn't package, or packages below the version `setup.py`
-  asks for, are pip-installed into a venv at `/opt/planetgen/venv`
-  (`PLANETGEN_VENV_DIR`), and a `planetgen-venv.pth` file in the system
-  site-packages puts that venv first on the system Python's `sys.path` so
-  mod_wsgi sees it without any vhost change. The
-  `.pth` is removed again once apt provides everything. planetGen itself
-  runs straight from the checkout (every entry point adds `src/` to
-  `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing in for
-  pip's console script.
+  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`) when the
+  distribution packages it at or above the version `setup.py` asks for.
+  Only a library apt lacks, or ships too old, is pip-installed
+  system-wide into `/usr/local/lib/python3.X/dist-packages`, which comes
+  before apt's `/usr/lib/python3/dist-packages` on `sys.path`. The same
+  goes for any dependency of it that has to be newer than apt's (Flask
+  3.1 needs a newer Werkzeug than Ubuntu 24.04 ships, for example). pip
+  never removes or overwrites apt's files: it resolves first and then
+  installs exactly those versions alongside (`--ignore-installed
+  --no-deps`). A plain `pip install --upgrade --break-system-packages`
+  deletes apt's copy of some packages (python3-pymysql, for one) and
+  leaves dpkg broken. The report lists each library with where it came
+  from, and for each pip one, why apt couldn't provide it. Servers set up
+  by earlier versions had a venv at `/opt/planetgen/venv` with a
+  `planetgen-venv.pth`. Both are removed on the next `install.sh` or
+  `update.sh`, and what they held goes system-wide.
+
+planetGen itself runs straight from the checkout (every entry point adds
+`src/` to `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing
+in for pip's console script on every host, so the CLI always runs the
+checkout's code.
 
 `PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
+
+`update.sh` reinstalls nothing. It runs the same script with `--check`,
+which imports each library with the system Python and compares its
+version with `setup.py`'s floor. It then installs only what is missing,
+too old or fails to import, the same way `install.sh` would on that host:
+apt first, then system-wide pip. It prints one line per library
+(`present`, `installed`, `upgraded`, `repaired` or `failed`, and its
+source) and stops the update if anything is still unusable. Its last step
+imports the web app as Apache's user, so a library www-data can't read
+shows up there rather than as a 500. `sudo ./install.sh` is still the
+full reinstall.
+
+### Migrating or deleting the database
+
+When the configured database is behind the current schema, `install.sh`
+and `update.sh` first ask:
+
+    Delete all galaxy data in 'planetgen' instead of migrating it? [y/N] (default N in 30s):
+
+`y` wipes every generated sector and system (the same as the Generate
+page's Reset; admin logins are kept) and then brings the empty database to
+the current schema. Anything else, no answer within 30 seconds, or no
+terminal to ask on (the maintenance timer) keeps the data and migrates it.
+Nothing is asked when the database is already current. The migration
+shows a progress bar with one tick per step, the elapsed time and an
+estimate of the time left. `python3 src/migrateDb.py --status` prints the
+current and target versions and how many steps are pending, without
+changing anything.
+
+### Which Python and libraries Apache uses
+
+Nothing in the vhost names a Python or a library path, and nothing needs
+to. mod_wsgi embeds the system Python it was built against, and that
+Python finds the libraries in its own system site-packages, exactly as
+`python3` does in a shell. Leave `python-home` off `WSGIDaemonProcess`.
+
+The one thing that has to line up is the Python version: mod_wsgi
+(`libapache2-mod-wsgi-py3`) must be built for the same Python that
+`install.sh`/`update.sh` set up. Both scripts check this and warn if
+they differ. By hand:
+
+    ldd /usr/lib/apache2/modules/mod_wsgi.so | grep libpython   # e.g. libpython3.12
+    python3 --version                                           # must match
+    sudo -u www-data python3 -c "import flask; print(flask.__file__)"
+
+If they differ, install the `libapache2-mod-wsgi-py3` that matches, or run
+the scripts with that Python (`sudo PYTHON=/usr/bin/python3.12
+./update.sh`).
+
+To see what the running site really uses, open the admin Stats page
+(`/admin/stats`): **Python** shows the daemon's version and prefix, and
+**Libraries from** shows the directory it imports Flask from
+(`/usr/lib/python3/dist-packages` for apt's Flask,
+`/usr/local/lib/python3.X/dist-packages` for pip's). After an update,
+`sudo systemctl reload apache2` restarts the daemon so it picks up
+anything newly installed.
 
 See [`../install.sh`](../install.sh) for the full install script,
 [`../update.sh`](../update.sh) for pulling later updates, and
@@ -96,7 +164,7 @@ other `.py` name gets the app's 404 page.
 
 ### Updating an existing server
 
-1. `sudo ./update.sh` (pulls, re-runs `install.sh`).
+1. `sudo ./update.sh` (pulls, then checks and fills in only what's missing).
 2. Make sure `config.json` has a `secret_key` (it signs the pages' form
    tokens; see [`config.md`](config.md)):
    `python3 -c "import secrets; print(secrets.token_hex(32))"`, and that

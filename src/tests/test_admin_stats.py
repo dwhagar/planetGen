@@ -7,6 +7,8 @@ Tests for the admin stats endpoints (`html/api/admin.py`, backed by
 database-backed test (see `conftest.py`).
 """
 
+import os
+
 import pytest
 
 import adminStats
@@ -58,7 +60,7 @@ def _insert_system(conn, name):
     cfg.PLANETS = False
     cfg.BINARY_SYSTEM = False
     system = StarSystem(system_config=cfg)
-    system.star.name = name
+    system.name = name
     with conn:
         return _db.insert_star_system(conn, system, cfg)
 
@@ -66,8 +68,7 @@ def _insert_system(conn, name):
 @pytest.fixture
 def colliding_names(mysql_config):
     """Two sectors named "Sol", two systems named "Terra", and a system
-    named after a sector ("Mars"), so every registry except the body one
-    has a row."""
+    named after a sector ("Mars"), so every registry has a row."""
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
@@ -102,6 +103,9 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
 
     assert body["api"]["version"]
     assert body["api"]["uptime_seconds"] >= 0
+    assert body["api"]["python_prefix"]
+    # The directory Flask is imported from, i.e. the one that holds flask/.
+    assert os.path.isdir(os.path.join(body["api"]["libraries_dir"], "flask"))
     assert body["mysql"]["version"]
 
     database = body["database"]
@@ -120,7 +124,7 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     collisions = database["name_collisions"]
     assert collisions["sector"] == 1
     assert collisions["system"] == 2
-    assert collisions["body"] == 0
+    assert "body" not in collisions
     assert collisions["distinct_base_names"] == 3
 
 
@@ -156,38 +160,29 @@ def test_duplicate_names_paginates_by_base_name(admin_client, colliding_names):
     assert admin_client.get("/api/admin/duplicate-names?limit=0").status_code == 400
 
 
-def test_duplicate_names_includes_planets_with_their_system(mysql_config):
+def test_duplicate_names_leaves_out_planets_named_after_a_decorated_system(mysql_config):
+    """Planets are named from their system (`Alpha Terra I`), which reads
+    like a roman-numeral decoration of "Terra" -- they aren't listed."""
     conn = _db.get_connection(mysql_config)
     try:
-        with conn:
-            _db.insert_sector(conn, SpaceSector(name="Kepler"))
-        for _ in range(30):
+        for _ in range(2):
             cfg = SystemConfig()
             cfg.PLANETS = True
             cfg.MAX_PLANETS = True
+            cfg.BINARY_SYSTEM = False
             system = StarSystem(system_config=cfg)
-            planets = [p for p in system.planets if p.body_type != "a"]
-            if planets:
-                planets[0].name = "Kepler"
-                with conn:
-                    system_id = _db.insert_star_system(conn, system, cfg)
-                break
-        else:
-            pytest.fail("could not generate a system with a real planet")
+            system.name = "Terra"
+            with conn:
+                _db.insert_star_system(conn, system, cfg)
 
-        # Other bodies in the generated system can collide on their own,
-        # so only the forced one is checked.
         result = adminStats.duplicate_names(conn)
-        (item,) = [item for item in result["items"] if item["base_name"] == "Kepler"]
-        assert item["levels"] == ["body"]
-        planet_rows = [r for r in item["rows"] if r["kind"] == "planet"]
-        assert [r["name"] for r in planet_rows] == ["Kepler Kin"]
-        assert planet_rows[0]["star_system_id"] == system_id
-        assert planet_rows[0]["system_name"] == system.star.name
+        (item,) = [item for item in result["items"] if item["base_name"] == "Terra"]
+        assert item["levels"] == ["system"]
+        assert {r["kind"] for r in item["rows"]} == {"system"}
     finally:
         conn.close()
 
 
 def test_every_decorated_candidate_strips_back_to_its_base_name():
-    for name in adminStats.decorated_name_candidates("Nova Prime"):
-        assert strip_decoration(name) == "Nova Prime"
+    for name in adminStats.decorated_name_candidates("Nova Vesta"):
+        assert strip_decoration(name) == "Nova Vesta"

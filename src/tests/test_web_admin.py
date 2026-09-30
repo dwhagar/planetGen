@@ -50,7 +50,7 @@ def _stats(reachable=True):
         "name": DB, "reachable": reachable, "schema_current": True, "schema_version": 30,
         "schema_expected": 30, "size_bytes": 5 * 1024 * 1024,
         "counts": {"sectors": 12, "star_systems": 3456},
-        "name_collisions": {"distinct_base_names": 2, "sector": 1, "system": 1, "body": 0},
+        "name_collisions": {"distinct_base_names": 2, "sector": 1, "system": 1},
         "timestamps": [{"table": "sectors", "newest_created_at": "2026-09-01 10:00:00",
                         "last_modified_at": "2026-09-02 10:00:00"},
                        {"table": "star_systems", "newest_created_at": None, "last_modified_at": None}],
@@ -79,7 +79,6 @@ class FakeAuth:
         self.names = [{"base_name": "Vega", "levels": ["system"], "rows": [
             {"kind": "sector", "id": 5, "name": "Vega Alpha"},
             {"kind": "system", "id": 77, "name": "Vega <b>Beta</b>"},
-            {"kind": "planet", "id": 9, "name": "Vega Kin", "star_system_id": 77, "system_name": "Vega Beta"},
         ]}]
 
     def auth_me(self, cookie_header):
@@ -549,7 +548,7 @@ def test_admin_stats_renders(client, fake):
     # Duplicate names: links to the sector/system pages, escaped names.
     assert "Vega &lt;b&gt;Beta&lt;/b&gt;" in html
     assert 'href="/sector.py?db=' in html or 'href="/sector/5"' in html
-    assert "planet in" in html
+    assert "Planet/moon collisions" not in html
     assert '<a href="/admin/stats" aria-current="page">Stats</a>' in html
     assert "<form" not in re.search(r'<main.*</main>', html, re.S).group(0)
 
