@@ -42,3 +42,38 @@ def test_every_requirement_has_a_floor_and_apt_package():
     for spec, package in _script_requirements().items():
         assert re.fullmatch(r"[a-z0-9-]+>=[0-9.]+", spec), spec
         assert package.startswith("python3-"), package
+
+
+def _read(*parts):
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        return f.read()
+
+
+def _code(text):
+    """Shell source without its comment lines."""
+    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
+
+
+def test_update_checks_instead_of_reinstalling():
+    update = _code(_read("update.sh"))
+    assert "install-python-deps.sh\" --check" in update
+    assert "install.sh\"" not in update.replace("install-python-deps.sh\"", "")
+    assert "--force-reinstall" not in update
+    assert "--clear" not in update
+
+
+def test_install_and_update_share_the_deploy_checks():
+    for script in ("install.sh", "update.sh"):
+        code = _code(_read(script))
+        assert 'source "$SCRIPT_DIR/scripts/deploy-common.sh"' in code, script
+        for check in ("ensure_nltk_words", "ensure_apache_modules", "check_app_imports"):
+            assert check in code, (script, check)
+
+
+def test_check_mode_keeps_the_venv():
+    script = _read("scripts", "install-python-deps.sh")
+    check = script[script.index("check_requirements() {"):]
+    check = check[:check.index("\n}\n")]
+    assert "venv_install keep" in check
+    assert "venv_install clear" not in check
+    assert "--force-reinstall" not in check

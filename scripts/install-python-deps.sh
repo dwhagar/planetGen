@@ -29,8 +29,20 @@
 #              /usr/local/bin/planetgen wrapper around generate.py stands in
 #              for the console script pip would have made.
 #
-# Usage (as root; install.sh calls it this way):
-#   scripts/install-python-deps.sh
+# Usage (as root):
+#   scripts/install-python-deps.sh           install.sh: full install
+#   scripts/install-python-deps.sh --check   update.sh: install nothing that
+#                                            is already there
+#
+# --check imports every requirement with the interpreter the site runs
+# under (so the venv .pth, if any, is in effect) and compares its version
+# with the floor. Only a requirement that is missing, below its floor or
+# fails to import gets installed, the same way the full install would
+# have on this host: apt first and then the venv on a managed Python, pip
+# on an unmanaged one. Nothing already present is reinstalled or
+# rebuilt. It prints one line per requirement (present, installed, upgraded,
+# repaired or failed) and exits non-zero if anything is still unusable. It also puts
+# back the /usr/local/bin/planetgen wrapper if it is missing or stale.
 #
 # Environment:
 #   PYTHON                 interpreter to install for (default: python3 on PATH)
@@ -38,6 +50,15 @@
 #   PLANETGEN_VENV_DIR     fallback venv location (default /opt/planetgen/venv)
 
 set -euo pipefail
+
+ACTION=install
+case "${1:-}" in
+    "") ;;
+    --check) ACTION=check ;;
+    *)
+        echo "error: unknown argument '$1' (expected nothing or --check)." >&2
+        exit 1 ;;
+esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
@@ -49,6 +70,8 @@ WRAPPER=/usr/local/bin/planetgen
 # Every runtime requirement install.sh needs: setup.py's install_requires
 # plus its 'api' extra, as "<pip requirement> <apt package>". Keep in step
 # with setup.py (src/tests/test_install_python_deps.py checks this).
+# --check imports each one by its pip name with "-" turned into "_"
+# (flask-limiter -> flask_limiter).
 REQUIREMENTS=(
     "nltk>=3.9.1 python3-nltk"
     "pymysql>=1.1.1 python3-pymysql"
@@ -112,6 +135,109 @@ for spec in sys.argv[2:]:
 EOF
 }
 
+# Prints "<state> <spec> <detail>" for each requirement (from the
+# arguments) as the system Python sees it, venv .pth and all: state is ok,
+# missing (not installed), old (below its floor; detail is the version
+# found) or broken (installed but the import raised; detail is the
+# error). Imports each one for real, since an installed distribution
+# whose own dependencies are missing is not usable either.
+probe() {
+    "$PYTHON" - "$@" <<'EOF'
+import importlib
+import re
+import sys
+from importlib import metadata
+
+
+def key(version):
+    parts = []
+    for piece in version.split("."):
+        match = re.match(r"\d+", piece)
+        if not match:
+            break
+        parts.append(int(match.group()))
+        if match.group() != piece:
+            break
+    return tuple(parts)
+
+
+for spec in sys.argv[1:]:
+    name, floor = spec.split(">=")
+    try:
+        version = metadata.version(name)
+    except metadata.PackageNotFoundError:
+        try:
+            version = metadata.version(name.replace("-", "_"))
+        except metadata.PackageNotFoundError:
+            print("missing", spec, "-")
+            continue
+    if key(version) < key(floor):
+        print("old", spec, version)
+        continue
+    try:
+        importlib.import_module(name.replace("-", "_"))
+    except Exception as exc:  # any import failure makes it unusable
+        print("broken", spec, f"{type(exc).__name__}: {exc}".replace("\n", " "))
+        continue
+    print("ok", spec, version)
+EOF
+}
+
+# Sets VENV_SITE to the fallback venv's site-packages, (re)creating the
+# venv first if needed: with "clear" always (the full install rebuilds
+# it every run), otherwise only when it's missing or its interpreter no
+# longer runs (a distribution upgrade removed the Python it was made
+# from). Then pip-installs the given requirements into it and writes the
+# .pth that puts it first on the system Python's sys.path.
+venv_install() {
+    local how="$1"; shift
+    if [[ "$how" == clear ]] || ! "$VENV_DIR/bin/python" -c "" >/dev/null 2>&1; then
+        if command -v apt-get >/dev/null 2>&1 && ! "$PYTHON" -c "import ensurepip" >/dev/null 2>&1; then
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv
+        fi
+        # --clear also keeps it working after a distribution upgrade
+        # changes the Python version under it. --system-site-packages
+        # lets pip see what apt already installed, so only the given
+        # requirements (and whatever they need that apt doesn't have) go
+        # in here.
+        mkdir -p "$(dirname "$VENV_DIR")"
+        "$PYTHON" -m venv --clear --system-site-packages "$VENV_DIR"
+        "$VENV_DIR/bin/python" -m pip install --upgrade pip
+    fi
+    "$VENV_DIR/bin/python" -m pip install --upgrade "$@"
+    VENV_SITE="$("$VENV_DIR/bin/python" -c "import sysconfig; print(sysconfig.get_path('purelib'))")"
+    chmod -R a+rX "$VENV_DIR"
+    # An `import` line rather than a bare path, which site.py would
+    # append after the distribution's own dist-packages: a package apt
+    # has but at a version below our floor must lose to the newer copy
+    # here, not win over it.
+    local pth
+    pth="$(site_dir)/$PTH_NAME"
+    mkdir -p "$(dirname "$pth")"
+    printf 'import sys; p = %s; p in sys.path or sys.path.insert(0, p)\n' \
+        "$("$PYTHON" -c 'import sys; print(repr(sys.argv[1]))' "$VENV_SITE")" > "$pth"
+    echo "Wrote $pth, putting $VENV_SITE first on the system Python's sys.path."
+}
+
+# Stands in for the `planetgen` console script pip would make, but runs
+# this checkout's generate.py, so the CLI always runs the code that was
+# just pulled (like the web app, which imports from the checkout too)
+# without anything being reinstalled. Rewritten only when it differs.
+write_wrapper() {
+    local want
+    want="$(cat <<EOF
+#!/bin/sh
+# Written by planetGen's scripts/install-python-deps.sh.
+exec "$PYTHON" "$SCRIPT_DIR/generate.py" "\$@"
+EOF
+)"
+    if [[ "$(cat "$WRAPPER" 2>/dev/null || true)" != "$want" ]]; then
+        printf '%s\n' "$want" > "$WRAPPER"
+        echo "Wrote $WRAPPER (runs $SCRIPT_DIR/generate.py)."
+    fi
+    chmod 755 "$WRAPPER"
+}
+
 install_unmanaged() {
     echo "Python at $PYTHON is not externally managed: installing with pip."
     # `pip install .` (a proper, build-isolated PEP 517 install), NOT the
@@ -141,15 +267,14 @@ install_unmanaged() {
     # which is one less thing on this box's system-wide Python environment
     # for this script to touch.
     #
-    # --force-reinstall (not a plain `pip install .`): unlike the old `setup.py
-    # install`, which unconditionally redid the install every run, plain `pip
-    # install .` skips reinstalling when pip thinks the same version is
-    # already installed -- true on every run between version bumps in
-    # `stellarObjects/_version.py`. Since this script's whole point (via
-    # update.sh) is redeploying whatever was just `git pull`-ed regardless of
-    # whether the version string changed, skipping would silently leave the
-    # previous run's installed copy in place, shadowing the freshly pulled
-    # source the same way this whole section is otherwise about avoiding.
+    # --force-reinstall (not a plain `pip install .`): plain `pip install .`
+    # skips reinstalling when pip thinks the same version is already
+    # installed -- true on every run between version bumps in
+    # `stellarObjects/_version.py` -- and install.sh is the full reinstall.
+    # (update.sh never comes here: it runs --check, which installs only
+    # what's missing. Nothing needs the pip-installed copy of planetGen to
+    # be current anyway, since every entry point imports from the checkout
+    # and write_wrapper below replaces pip's console script.)
     #
     # The `api` extra (Flask/Flask-Limiter, see setup.py's `extras_require`)
     # is included here, not left to a separate manual `pip install .[api]`
@@ -184,6 +309,9 @@ install_unmanaged() {
     # the same wall with some other apt-provided package).
     "$PYTHON" -m pip install --upgrade pip
     "$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed "${SCRIPT_DIR}[api]"
+    # Replaces pip's own console script, which would run the copy pip
+    # just installed and go stale after the next update.sh.
+    write_wrapper
     echo "Python install path: pip (unmanaged interpreter)."
 }
 
@@ -242,49 +370,111 @@ install_managed() {
         echo "Python install path: distribution packages (apt)."
     else
         echo "Not provided by the distribution (missing or too old): ${need[*]}"
-        if (( have_apt )) && ! "$PYTHON" -c "import ensurepip" >/dev/null 2>&1; then
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv
-        fi
-        # --clear rebuilds it every run (like the unmanaged path's
-        # --force-reinstall), which also keeps it working after a
-        # distribution upgrade changes the Python version under it.
-        # --system-site-packages lets pip see what apt already installed,
-        # so only the requirements listed above (and whatever they need
-        # that apt doesn't have) go in here.
-        mkdir -p "$(dirname "$VENV_DIR")"
-        "$PYTHON" -m venv --clear --system-site-packages "$VENV_DIR"
-        "$VENV_DIR/bin/python" -m pip install --upgrade pip
-        "$VENV_DIR/bin/python" -m pip install --upgrade "${need[@]}"
-        venv_site="$("$VENV_DIR/bin/python" -c "import sysconfig; print(sysconfig.get_path('purelib'))")"
-        chmod -R a+rX "$VENV_DIR"
-        # An `import` line rather than a bare path, which site.py would
-        # append after the distribution's own dist-packages: a package apt
-        # has but at a version below our floor must lose to the newer copy
-        # here, not win over it.
-        mkdir -p "$(dirname "$pth")"
-        printf 'import sys; p = %s; p in sys.path or sys.path.insert(0, p)\n' \
-            "$("$PYTHON" -c 'import sys; print(repr(sys.argv[1]))' "$venv_site")" > "$pth"
-        echo "Wrote $pth, putting $venv_site first on the system Python's sys.path."
+        venv_install clear "${need[@]}"
         echo "Python install path: distribution packages (apt) plus a venv at $VENV_DIR for: ${need[*]}"
     fi
 
-    # Stands in for the `planetgen` console script pip would have written.
-    cat > "$WRAPPER" <<EOF
-#!/bin/sh
-# Written by planetGen's scripts/install-python-deps.sh (managed Python).
-exec "$PYTHON" "$SCRIPT_DIR/generate.py" "\$@"
-EOF
-    chmod 755 "$WRAPPER"
+    write_wrapper
+}
+
+# update.sh's path: install nothing that is already usable. See the
+# header for what it does; $1 is "managed" or "unmanaged".
+check_requirements() {
+    local mode="$1" line
+    local specs=() packages=()
+    declare -A package_of=()
+    for line in "${REQUIREMENTS[@]}"; do
+        specs+=("${line%% *}")
+        packages+=("${line##* }")
+        package_of["${line%% *}"]="${line##* }"
+    done
+
+    echo "Checking the Python libraries with $PYTHON ($mode Python)."
+    local before=() need=() state spec detail
+    mapfile -t before < <(probe "${specs[@]}")
+    for line in "${before[@]}"; do
+        read -r state spec detail <<< "$line"
+        [[ "$state" == ok ]] || need+=("$spec")
+    done
+
+    if (( ${#need[@]} )); then
+        echo "Missing, too old or not importable: ${need[*]}"
+        if [[ "$mode" == unmanaged ]]; then
+            # A plain install upgrades only what the specs need. Falls back
+            # to install.sh's --ignore-installed for the case it exists for:
+            # an old distutils-installed dependency pip can't uninstall.
+            "$PYTHON" -m pip install --upgrade "${need[@]}" \
+                || "$PYTHON" -m pip install --upgrade --ignore-installed "${need[@]}" \
+                || true
+        else
+            local wanted=() pkg candidate
+            if command -v apt-get >/dev/null 2>&1; then
+                apt-get update -qq || true
+                for spec in "${need[@]}"; do
+                    pkg="${package_of[$spec]}"
+                    candidate="$(apt-cache policy "$pkg" 2>/dev/null | awk '/Candidate:/ {print $2}')"
+                    [[ -n "$candidate" && "$candidate" != "(none)" ]] && wanted+=("$pkg")
+                done
+                if (( ${#wanted[@]} )); then
+                    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${wanted[@]}" || true
+                fi
+            fi
+            # Whatever apt couldn't satisfy goes into the venv, which is
+            # kept (not rebuilt) if it still works.
+            local still=()
+            mapfile -t still < <(probe "${need[@]}" | awk '$1 != "ok" {print $2}')
+            if (( ${#still[@]} )); then
+                venv_install keep "${still[@]}" || true
+            fi
+        fi
+    fi
+
+    # Report against the state before, so each line says what happened.
+    local after=() failed=0 old_state
+    mapfile -t after < <(probe "${specs[@]}")
+    if (( ${#after[@]} != ${#specs[@]} )); then
+        echo "error: could not check the Python libraries with $PYTHON." >&2
+        return 1
+    fi
+    local i
+    for i in "${!after[@]}"; do
+        read -r state spec detail <<< "${after[$i]}"
+        read -r old_state _ _ <<< "${before[$i]}"
+        if [[ "$state" != ok ]]; then
+            printf '  %-10s %s (%s: %s)\n' failed "$spec" "$state" "$detail"
+            failed=1
+        elif [[ "$old_state" == ok ]]; then
+            printf '  %-10s %s %s\n' present "$spec" "$detail"
+        elif [[ "$old_state" == missing ]]; then
+            printf '  %-10s %s %s\n' installed "$spec" "$detail"
+        elif [[ "$old_state" == old ]]; then
+            printf '  %-10s %s %s\n' upgraded "$spec" "$detail"
+        else
+            printf '  %-10s %s %s\n' repaired "$spec" "$detail"
+        fi
+    done
+
+    write_wrapper
+    if (( failed )); then
+        echo "error: some Python libraries are still unusable (see above)." >&2
+        echo "  Running sudo ./install.sh does a full reinstall." >&2
+        return 1
+    fi
 }
 
 case "$MODE" in
     auto)
-        if is_managed; then install_managed; else install_unmanaged; fi ;;
-    managed)
-        install_managed ;;
-    unmanaged)
-        install_unmanaged ;;
+        if is_managed; then MODE=managed; else MODE=unmanaged; fi ;;
+    managed|unmanaged) ;;
     *)
         echo "error: PLANETGEN_PYTHON_MODE must be auto, managed or unmanaged (got '$MODE')." >&2
         exit 1 ;;
 esac
+
+if [[ "$ACTION" == check ]]; then
+    check_requirements "$MODE"
+elif [[ "$MODE" == managed ]]; then
+    install_managed
+else
+    install_unmanaged
+fi

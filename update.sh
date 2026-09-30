@@ -2,28 +2,44 @@
 #
 # update.sh
 #
-# Pulls the latest planetGen changes from git, then:
-#   - If the pull actually brought new commits, re-runs `install.sh` so
-#     everything it covers (the Python package, the NLTK corpus, Apache's
-#     modules, permissions, the tile cache directory) stays correct afterward -- a `git pull` on
-#     its own isn't enough: pulling a changed file rewrites it with
-#     whatever mode is tracked in the repo (non-executable, historically
-#     -- see `docs/TODO.md`'s "Deployment bugs found in production"
-#     section), silently undoing any executable bit a previous
-#     `install.sh`/`set-permissions.sh` run had fixed.
-#   - Otherwise (already up to date), skips that -- there is nothing new
-#     to reinstall, re-fetch, or re-`chmod`, so redoing all of it anyway
-#     (a `pip install --force-reinstall`, Apache module/permission
-#     churn, ...) on every single run would just be wasted work, which
-#     matters for a scheduled/unattended caller (see
-#     `examples/maintenance/`) that may run this monthly for years
-#     without ever actually finding a new commit. Either way, `src/migrateDb.py`
-#     still runs directly (see below) -- database migrations are cheap
-#     and idempotent (a no-op once the schema is already current, per its
-#     own docstring), and a database can need migrating even when this
-#     checkout's code didn't just change (e.g. this is the first time
-#     update.sh has run against it since install.sh's own last-run
-#     migration).
+# Pulls the latest planetGen changes from git, then makes sure everything
+# the site needs is present and usable -- without reinstalling anything
+# that already is. Each step looks first and changes only what is
+# missing, so running this on a server that's already current changes
+# nothing (which matters for a scheduled caller, see
+# `examples/maintenance/`, that may run it monthly for years):
+#
+#   1. Pulls (a `git reset --hard` to origin's branch tip, see below) and
+#      puts back the executable bit on the repo's shell scripts and
+#      `src/html/`'s Python files. A pull rewrites any changed file with
+#      whatever mode is tracked in the repo, which has dropped that bit
+#      before (see `docs/TODO.md`'s "Deployment bugs found in
+#      production").
+#   2. Checks every Python library the site needs by importing it with
+#      the system Python (the one mod_wsgi and the CLI run under) and
+#      comparing its version with setup.py's floor:
+#      `scripts/install-python-deps.sh --check`. Only a library that is
+#      missing, too old or broken gets installed, the same way install.sh
+#      would on this host (apt and then the venv on an externally managed
+#      Python, pip on an ordinary one). planetGen itself is never
+#      reinstalled: the web app, the maintenance scripts and the
+#      `planetgen` wrapper all run the checkout's code directly.
+#   3. The NLTK 'words' corpus: fetched only if it's missing.
+#   4. `src/migrateDb.py`: brings the database up to the current schema
+#      (a no-op when it already is).
+#   5. Apache's headers, deflate and wsgi modules: enabled only if not
+#      already (mod_wsgi installed first if it's missing).
+#   6. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
+#      since a pull leaves new and changed files owned by root.
+#   7. The tile cache and Generate jobs directories
+#      (`examples/apache/create-cache-dir.sh`) and the debug log
+#      (`examples/apache/setup-debug-log.sh`).
+#   8. Imports the web app as Apache's user, so anything still unusable
+#      fails here instead of as a 500.
+#
+# Steps 2, 3 and 5 share their code with install.sh (scripts/), so the
+# two can't disagree about what a working server needs. `sudo
+# ./install.sh` is still there for a full reinstall.
 #
 # Usage:
 #   sudo ./update.sh
@@ -41,6 +57,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HTML_DIR="$SCRIPT_DIR/src/html"
+DB_DIR="$SCRIPT_DIR/db"
+NLTK_DATA_DIR="${PLANETGEN_NLTK_DATA_DIR:-/usr/local/share/nltk_data}"
 
 if [[ $EUID -ne 0 ]]; then
     echo "error: must be run as root, e.g.:" >&2
@@ -55,7 +74,13 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "== 1/2: Pulling the latest changes =="
+PYTHON="$(command -v python3 || command -v python || true)"
+if [[ -z "$PYTHON" ]]; then
+    echo "error: no python3/python found on PATH." >&2
+    exit 1
+fi
+
+echo "== 1/8: Pulling the latest changes =="
 
 dirty="$(git status --porcelain)"
 if [[ -n "$dirty" ]]; then
@@ -85,40 +110,50 @@ else
     echo "Updated $before..$after:"
     git log --oneline "$before..$after"
 fi
+# The scripts below are run directly, so this comes before any of them.
+find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
+find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
+
+# shellcheck source=scripts/deploy-common.sh
+source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 echo
-if [[ "$before" == "$after" ]]; then
-    echo "== 2/2: No new commits -- checking the database schema only =="
-    # Nothing changed on disk, so nothing needs reinstalling/re-chmod-ing:
-    # skip straight to the one step that isn't conditional on the code
-    # having changed. Uses the package/interpreter already installed from
-    # a previous install.sh run -- there's nothing to reinstall it from
-    # here, since this branch is exactly "no new commit landed".
-    PYTHON="$(command -v python3 || command -v python || true)"
-    if [[ -z "$PYTHON" ]]; then
-        echo "error: no python3/python found on PATH." >&2
-        exit 1
-    fi
-    "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
-    # Cheap and idempotent too, and puts back a tile cache directory that
-    # was deleted or never created (an install from before it existed).
-    "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
-    # Same for the debug log: creates it if debug was turned on since the
-    # last run, and keeps its permissions and logrotate config current.
-    "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+echo "== 2/8: Checking the Python libraries =="
+PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
+
+echo
+echo "== 3/8: Checking the NLTK 'words' corpus =="
+ensure_nltk_words "$NLTK_DATA_DIR"
+
+echo
+echo "== 4/8: Migrating the configured MySQL database to the current schema =="
+"$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+
+echo
+echo "== 5/8: Checking Apache's modules =="
+APACHE_NEEDS_RESTART=0
+ensure_apache_modules
+
+echo
+echo "== 6/8: Setting directory ownership/permissions for Apache =="
+"$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
+
+echo
+echo "== 7/8: Checking the cache, jobs and debug log locations =="
+"$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
+"$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+
+echo
+echo "== 8/8: Checking that the web app imports =="
+check_app_imports
+
+echo
+if (( APACHE_NEEDS_RESTART )); then
+    echo "Done. An Apache module was just enabled: restart Apache to load it:"
+    echo "  sudo systemctl restart apache2"
+elif [[ "$before" != "$after" ]]; then
+    echo "Done. Reload Apache so the site runs the new code:"
+    echo "  sudo systemctl reload apache2"
 else
-    echo "== 2/2: Re-running install.sh to keep permissions (and everything else it covers) correct =="
-    # A pull rewrites any changed file with whatever mode is tracked in the
-    # repo -- including install.sh (and this script) itself -- so a prior
-    # run's executable-bit fix doesn't survive a pull that touched them.
-    # Fixing that here, before invoking install.sh, matters because
-    # install.sh is run directly below ("$SCRIPT_DIR/install.sh", not
-    # `bash install.sh`): if the pull just dropped its executable bit,
-    # install.sh's own step 4 (which re-chmods every *.sh in the repo) never
-    # gets a chance to run at all -- the shell refuses to exec it first with
-    # "Permission denied", exactly as install.sh's own step 4 fix already
-    # had to for src/html/*.py. install.sh's own step 2 covers the database
-    # migration in this branch, so it isn't run a second time here.
-    find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
-    "$SCRIPT_DIR/install.sh"
+    echo "Done. Nothing new was pulled."
 fi

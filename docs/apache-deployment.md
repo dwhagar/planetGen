@@ -41,9 +41,22 @@ checks for that file and picks a path, printing which one it took:
   `.pth` is removed again once apt provides everything. planetGen itself
   runs straight from the checkout (every entry point adds `src/` to
   `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing in for
-  pip's console script.
+  pip's console script. (The wrapper is written on the unmanaged path
+  too, so the CLI always runs the checkout's code.)
 
 `PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
+
+`update.sh` reinstalls nothing. It runs the same script with `--check`,
+which imports each library with the system Python (the venv `.pth`
+included) and compares its version with `setup.py`'s floor, then
+installs only what is missing, too old or fails to import, the same way
+`install.sh` would on that host: apt and then the venv (kept, not
+rebuilt) on a managed Python, pip on an ordinary one. It prints one line
+per library (`present`, `installed`, `upgraded`, `repaired` or `failed`)
+and stops the update if anything is still unusable. Its last step imports
+the web app as Apache's user, so a library www-data can't read shows up
+there rather than as a 500. `sudo ./install.sh` is still the full
+reinstall.
 
 See [`../install.sh`](../install.sh) for the full install script,
 [`../update.sh`](../update.sh) for pulling later updates, and
@@ -96,7 +109,7 @@ other `.py` name gets the app's 404 page.
 
 ### Updating an existing server
 
-1. `sudo ./update.sh` (pulls, re-runs `install.sh`).
+1. `sudo ./update.sh` (pulls, then checks and fills in only what's missing).
 2. Make sure `config.json` has a `secret_key` (it signs the pages' form
    tokens; see [`config.md`](config.md)):
    `python3 -c "import secrets; print(secrets.token_hex(32))"`, and that

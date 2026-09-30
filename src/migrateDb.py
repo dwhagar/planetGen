@@ -8,7 +8,7 @@ applying any migration step in between -- a no-op for a database that's
 already current. See `stellarObjects/_db.py`'s `migrate_database` for how
 a single database's version is checked/advanced.
 
-Run automatically by `install.sh` (and so by `update.sh`, which calls it)
+Run automatically by `install.sh` and `update.sh`
 on every deploy, so a database created under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
 for a one-off check/migration outside of a deployment.
