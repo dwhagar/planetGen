@@ -170,11 +170,142 @@ def get_star_evolutionary_profile(star):
     return {**base_info, "supported_evolutionary_scales": reachable_scales}
 
 
-# TODO(distances #1): the shared unit-ladder formatter (km < AU < mpc < cpc
-# < ly < pc < kpc < Mpc < Gpc) belongs next to this so both the text output
-# and html/lib/fmt.py can use it; star radii stop being km-only. Parsec
-# units get a parenthetical: ly at 0.01 ly or more, else AU at 0.01 AU or
-# more, else km ("4.2 pc (13.7 ly)"); see docs/TODO.md item 1.
+# The distance ladder, smallest first: (label, meters). `format_distance`
+# shows a value in the largest unit it is at least 1 of.
+DISTANCE_LADDER = (
+    ("km", physical_constants.KM_M),
+    ("AU", physical_constants.AU_M),
+    ("mpc", physical_constants.MILLIPARSEC_M),
+    ("cpc", physical_constants.CENTIPARSEC_M),
+    ("ly", physical_constants.LIGHTYEAR_M),
+    ("pc", physical_constants.PARSEC_M),
+    ("kpc", physical_constants.KILOPARSEC_M),
+    ("Mpc", physical_constants.MEGAPARSEC_M),
+    ("Gpc", physical_constants.GIGAPARSEC_M),
+)
+# Units that carry a second, more familiar unit in parentheses.
+PARSEC_UNITS = frozenset({"mpc", "cpc", "pc", "kpc", "Mpc", "Gpc"})
+# A parsec value's parenthetical is in ly when the distance is at least
+# this many ly, else in AU when at least this many AU, else in km (Boss,
+# 2026-09-30: "4.2 pc (13.7 ly)", "2.4 mpc (495 AU)").
+DISTANCE_PAREN_MIN_LY = 0.01
+DISTANCE_PAREN_MIN_AU = 0.01
+
+
+def _three_figures(value):
+    """`value` to three significant figures, comma-grouped, trailing zeros
+    dropped: 4.2, 13.7, 0.499, 495, 12,300."""
+    if value == 0 or not math.isfinite(value):
+        return f"{value:g}"
+    magnitude = math.floor(math.log10(abs(value)))
+    decimals = max(0, 2 - magnitude)
+    text = f"{round(value, decimals):,.{decimals}f}"
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text
+
+
+def _format_in_unit(meters, label, unit_m):
+    if label == "km" and abs(meters) >= 1e6:
+        # Whole kilometers read better than three figures ("384,400 km").
+        return f"{round(meters / unit_m):,} km"
+    return f"{_three_figures(meters / unit_m)} {label}"
+
+
+def format_distance_m(meters):
+    """
+    Formats a distance (or a non-body radius) in the most meaningful unit on
+    the ladder km < AU < mpc < cpc < ly < pc < kpc < Mpc < Gpc: the largest
+    unit the value is at least 1 of. Values in a parsec unit add one
+    parenthetical: ly when the distance is at least `DISTANCE_PAREN_MIN_LY`,
+    else AU when at least `DISTANCE_PAREN_MIN_AU`, else km.
+
+    Every page and text output passes its distances through this (or its
+    `format_distance_km`/`_au`/`_ly`/`_pc` wrappers) rather than formatting
+    them itself; `static/distance.js` mirrors it for the maps. Planet, moon
+    and star radii are the exception: see `format_body_radius_km`.
+
+    Args:
+        meters (float): The distance, in meters.
+
+    Returns:
+        str: e.g. "384,400 km", "1.52 AU", "4.2 pc (13.7 ly)",
+             "2.4 mpc (495 AU)". `None` gives an en dash.
+    """
+    if meters is None:
+        return "\u2013"
+    meters = float(meters)
+    if not math.isfinite(meters):
+        return f"{meters:g} km"
+    size = abs(meters)
+    label, unit_m = DISTANCE_LADDER[0]
+    for candidate_label, candidate_m in DISTANCE_LADDER:
+        # A hair of tolerance so a value computed as exactly 1 unit (e.g.
+        # 1 pc from ly * LY_TO_AU / AU_PER_PARSEC) isn't shown as 1,000 mpc.
+        if size >= candidate_m * (1 - 1e-12):
+            label, unit_m = candidate_label, candidate_m
+    text = _format_in_unit(meters, label, unit_m)
+    if label in PARSEC_UNITS:
+        text += f" ({distance_parenthetical(meters)})"
+    return text
+
+
+def distance_parenthetical(meters):
+    """
+    The familiar unit a parsec-family value carries in parentheses: ly when
+    the distance is at least `DISTANCE_PAREN_MIN_LY`, else AU when at least
+    `DISTANCE_PAREN_MIN_AU`, else km. (No parsec value is under 0.01 AU,
+    1 mpc being about 206 AU, but the rule is kept as Boss wrote it.)
+    """
+    size = abs(meters)
+    if size >= DISTANCE_PAREN_MIN_LY * physical_constants.LIGHTYEAR_M:
+        return _format_in_unit(meters, "ly", physical_constants.LIGHTYEAR_M)
+    if size >= DISTANCE_PAREN_MIN_AU * physical_constants.AU_M:
+        return _format_in_unit(meters, "AU", physical_constants.AU_M)
+    return _format_in_unit(meters, "km", physical_constants.KM_M)
+
+
+def format_distance_km(km):
+    """`format_distance_m` for a value in kilometers (the schema's unit)."""
+    return format_distance_m(None if km is None else km * physical_constants.KM_M)
+
+
+def format_distance_au(au):
+    """`format_distance_m` for a value in AU (generation's orbit unit)."""
+    return format_distance_m(None if au is None else au * physical_constants.AU_M)
+
+
+def format_distance_ly(ly):
+    """`format_distance_m` for a value in light-years."""
+    return format_distance_m(None if ly is None else ly * physical_constants.LIGHTYEAR_M)
+
+
+def format_distance_pc(pc):
+    """`format_distance_m` for a value in parsecs (galaxy geometry)."""
+    return format_distance_m(None if pc is None else pc * physical_constants.PARSEC_M)
+
+
+def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
+    """
+    A planet, moon or star radius: always km in scientific notation (Boss,
+    2026-09-30), the one exception to `format_distance_m`'s ladder.
+
+    Args:
+        system_config (SystemConfig): Picks HTML or wikitext notation.
+        radius_km (float): The radius, in kilometers.
+        precision (int, optional): Decimal places of the mantissa; defaults
+            to `program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES`.
+
+    Returns:
+        str: e.g. "6.371 × 10^3 km".
+    """
+    if radius_km is None:
+        return "\u2013"
+    if precision is None:
+        precision = program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES
+    return f"{to_scientific_notation(system_config, radius_km, precision)} km"
+
+
 def format_length_km(system_config: SystemConfig, value_km, threshold, round_digits, scientific_precision=None):
     """
     Formats a length in kilometers, switching between a comma-grouped plain

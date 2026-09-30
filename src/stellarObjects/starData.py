@@ -27,9 +27,9 @@ from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
-                    format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
+                    format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, get_star_evolutionary_profile,
-                    finite_domain, properties_to_string, reseed_rng, to_scientific_notation)
+                    finite_domain, properties_to_string, reseed_rng)
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -797,25 +797,10 @@ class Star:
             dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,
                  `loc`, each an already-formatted display string.
         """
-        if round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU) == round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU):
-            hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-            hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-        else:
-            if self.habitable_zone[0] < program_constants.PERCENT_SOL_THRESHOLD_LOW:
-                hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-            else:
-                hab_lower = str(round(self.habitable_zone[0], program_constants.ROUND_HABITABLE_ZONE_AU))
-
-            if self.habitable_zone[1] < program_constants.PERCENT_SOL_THRESHOLD_LOW:
-                hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU_SMALL))
-            else:
-                hab_upper = str(round(self.habitable_zone[1], program_constants.ROUND_HABITABLE_ZONE_AU))
-
         mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
         lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
-        radius_string = format_length_km(self.system_config, self.radius, program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-                                         program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES)
+        radius_string = format_body_radius_km(self.system_config, self.radius)
 
         orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
 
@@ -825,7 +810,7 @@ class Star:
             "mass": mass_string,
             "temp": f"{self.temperature} K",
             "lum": lum_string,
-            "hab": f"Between {hab_lower} and {hab_upper} AU",
+            "hab": f"Between {format_distance_au(self.habitable_zone[0])} and {format_distance_au(self.habitable_zone[1])}",
             "orbit": orbit_string,
             "loc": self.name # Adding the star's name as location
         }
@@ -836,7 +821,7 @@ class Star:
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
             ) * physical_constants.AU_TO_KM
-            properties["wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own planets"
+            properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
         return properties
 
     def to_paragraph_list(self):

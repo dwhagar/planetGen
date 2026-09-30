@@ -1,5 +1,44 @@
 # Changelog
 
+## [7.10.0] - 2026-09-30
+
+### Changed
+- **Every distance is shown in its most meaningful unit.** One helper,
+  `stellarObjects.utils.format_distance_m` (with `_km`, `_au`, `_ly` and
+  `_pc` wrappers, re-exported by `html/lib/fmt.py`), and its browser copy
+  `html/static/distance.js` pick the largest of km < AU < mpc < cpc < ly
+  < pc < kpc < Mpc < Gpc the value is at least 1 of. Parsec values add
+  ly in parentheses ("4.2 pc (13.7 ly)"), or AU below 0.01 ly ("2.4 mpc
+  (495 AU)"). The system, sector, galaxy and phenomenon pages, the
+  System, Sector and phenomenon map readouts, the wiki sector page and
+  the generated text (planet, star, binary, belt and heliosphere
+  distances) all use it.
+- **Planet, moon and star radii are always km in scientific notation**
+  (`utils.format_body_radius_km`), including a rogue planet's.
+- **The distance constants are exact:** AU = 149,597,870,700 m,
+  lightyear = 9,460,730,472,580,800 m, parsec = 3.085677581491367e16 m,
+  with every conversion derived from them. Stored values shift by about
+  one part in 70,000.
+
+### Removed
+- The unused `LY_THRESHOLD`, `HELIOSPHERE_DISPLAY_THRESHOLD_LY` and
+  `ROUND_HABITABLE_ZONE_AU(_SMALL)` display constants.
+
+## [7.9.2] - 2026-09-30
+
+### Fixed
+- **The admin Generate page's jobs work on native Windows.** Cancel now
+  writes a `cancel` file that the job runner checks while a step runs,
+  and stops the step's whole process tree (`os.killpg` on POSIX,
+  `taskkill /T /F` on Windows), so a cancelled generation step no longer
+  keeps writing to the database. Liveness uses `OpenProcess` and
+  `GetExitCodeProcess` on Windows (with a creation-time check against
+  reused pids), the runner starts detached in its own process group
+  (breaking away from IIS's job object where allowed), `state.json`
+  writes retry while the page has the file open, and the private
+  fallback directory check no longer needs `os.geteuid`. CI runs the job
+  tests on a Windows runner.
+
 ## [7.9.1] - 2026-09-30
 
 ### Fixed

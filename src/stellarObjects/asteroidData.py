@@ -20,9 +20,9 @@ this module's logic.
 import random
 
 from .config import SystemConfig
-from . import log, physical_constants, program_constants
+from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import reseed_rng
+from .utils import format_distance_au, reseed_rng
 
 
 def generate_asteroid_composition():
@@ -190,28 +190,17 @@ class AsteroidBelt:
         """
         return format_composition_summary(self.composition)
 
-    # TODO(distances #1): write the belt's inner-outer range with the
-    # shared unit-ladder helper instead of AU-or-ly.
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs for the asteroid belt,
-        including its header, orbital boundaries (in AU or light-years
-        depending on scale), density, and composition.
+        including its header, orbital boundaries (through the distance
+        ladder), density, and composition.
 
         Returns:
             list: A list of strings, where each string is a paragraph describing
                   the asteroid belt.
         """
-        # Convert the belt's boundaries to light-years to check against the threshold
-        upper_limit_ly = self.upper_limit * physical_constants.AU_TO_LY
-
-        if upper_limit_ly < program_constants.LY_THRESHOLD:
-            # For smaller systems, display the boundaries in AU for better precision
-            distance_text = f"between {self.lower_limit:.3f} AU and {self.upper_limit:.3f} AU"
-        else:
-            # For very large systems, display in light-years for readability
-            lower_limit_ly = self.lower_limit * physical_constants.AU_TO_LY
-            distance_text = f"between {lower_limit_ly:.4f} light-years and {upper_limit_ly:.4f} light-years"
+        distance_text = f"between {format_distance_au(self.lower_limit)} and {format_distance_au(self.upper_limit)}"
 
         output_paragraphs = []
         header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
