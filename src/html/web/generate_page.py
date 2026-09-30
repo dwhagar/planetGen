@@ -54,6 +54,9 @@ PLAN_FIELDS = (
 """tuple: The `plan` options the page offers, with `generate.py`'s own
 defaults (a test checks they still match `generate.py plan`'s parser)."""
 
+# TODO(sector-map #24): add "column" and "shell" (#23) modes, and accept a
+# one-click POST from the maps' buttons with the sector's ring/layer/slot
+# pre-filled.
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "

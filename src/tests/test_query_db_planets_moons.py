@@ -67,9 +67,7 @@ def test_list_planets_returns_every_planet_with_no_filter(mysql_config):
         conn.close()
 
     assert sorted(r["name"] for r in rows) == expected_names
-    # StarSystem has no `.name` of its own -- the system's name lives on
-    # its star (system.star.name).
-    assert all(r["system_name"] == system.star.name for r in rows)
+    assert all(r["system_name"] == system.name for r in rows)
 
 
 def test_list_planets_filters_by_class(mysql_config):

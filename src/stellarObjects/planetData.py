@@ -25,11 +25,9 @@ import math
 import secrets
 
 from .config import SystemConfig
-from .names import (MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES, PLANET_NAMES,
-                    PLANET_PREFIXES, PLANET_SUFFIXES)
 from . import physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_length_km, generate_phoneme_salad_name,
+from .utils import (format_length_km,
                     properties_to_string, to_paragraph, to_scientific_notation,
                     years_to_time_string)
 
@@ -273,7 +271,7 @@ class Planet:
         self.scale_height = None
         self.hill_radius = None
         self.min_orbit_distance = None
-        self.name = None
+        self.name = None # Set by the owning StarSystem (bodyNames.name_bodies) once orbits are final.
         self.life_chemical = None
         self.evolutionary_speed = None
         self.reflection_spectrum_visible = None
@@ -294,11 +292,6 @@ class Planet:
         # From the star, should not be changed.
         self.habitable_zone = habitable_zone
         self.star = star # Store the Star object
-
-        if self.is_moon:
-            self.name = generate_phoneme_salad_name(MOON_NAMES, MOON_PREFIXES, MOON_SUFFIXES)
-        else:
-            self.name = generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)
 
         # Calculate physical/orbital properties (no life data yet).
         planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
@@ -409,6 +402,10 @@ class Planet:
 
         return life_paragraphs
 
+    # TODO(distances #1): the distance text here duplicates
+    # tabledisplay.format_body_distance; use the shared unit-ladder helper
+    # (move it into stellarObjects/utils.py if the text output needs it
+    # without importing html.lib).
     def get_table_properties(self):
         """
         Builds the "Planet Data"/"Class Data" property dict -- the exact

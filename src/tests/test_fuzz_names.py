@@ -4,7 +4,7 @@
 Property-based / brute-force tests for name generation and name-uniqueness
 decoration: `stellarObjects/names.py` (the word lists themselves),
 `stellarObjects/nameUniqueness.py` (`resolve_greek_roman_collision`,
-`resolve_diminutive`, `resolve_companion`, `strip_decoration`) and the
+`resolve_diminutive`, `strip_decoration`) and the
 name-generation helpers in `stellarObjects/utils.py` that consume them
 (`split_into_syllables`, `is_name_valid`, `split_long_word`,
 `generate_phoneme_salad_name`, `generate_sector_name`).
@@ -32,7 +32,6 @@ from tests.fuzz_support import hostile_text, scaled
 DECORATION_TOKENS = (
     set(names.GREEK_LETTERS)
     | set(names.DIMINUTIVE_PREFIXES)
-    | set(names.COMPANION_SUFFIXES)
     | set(names.ROMAN_NUMERALS_BY_VALUE.values())
 )
 
@@ -174,12 +173,11 @@ def test_same_level_simulated_insert_run_stays_unique(inserts):
 
 
 # ---------------------------------------------------------------------------
-# resolve_diminutive / resolve_companion
+# resolve_diminutive
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("resolver, words", [
     (nu.resolve_diminutive, names.DIMINUTIVE_PREFIXES),
-    (nu.resolve_companion, names.COMPANION_SUFFIXES),
 ])
 def test_index_resolvers_walk_every_word_once_then_stop(resolver, words):
     seen, index = [], None
@@ -197,8 +195,7 @@ def test_index_resolvers_walk_every_word_once_then_stop(resolver, words):
 
 @given(index=st.one_of(st.none(), st.integers(0, 10**40)))
 def test_index_resolvers_for_any_non_negative_index(index):
-    for resolver, words in ((nu.resolve_diminutive, names.DIMINUTIVE_PREFIXES),
-                            (nu.resolve_companion, names.COMPANION_SUFFIXES)):
+    for resolver, words in ((nu.resolve_diminutive, names.DIMINUTIVE_PREFIXES),):
         word, nxt = resolver(index)
         expected_next = 0 if index is None else index + 1
         if expected_next >= len(words):
@@ -235,41 +232,33 @@ def test_strip_decoration_never_raises_and_only_removes_whole_edge_tokens(name):
 @given(base=plain_base,
        greek=st.sampled_from(names.GREEK_LETTERS),
        roman=st.sampled_from(list(names.ROMAN_NUMERALS_BY_VALUE.values())),
-       companion=st.sampled_from(names.COMPANION_SUFFIXES),
        diminutive=st.sampled_from(names.DIMINUTIVE_PREFIXES))
-def test_strip_decoration_inverts_each_single_decoration(base, greek, roman, companion, diminutive):
-    for decorated in (f"{greek} {base}", f"{greek} {base} {roman}", f"{base} {companion}",
+def test_strip_decoration_inverts_each_single_decoration(base, greek, roman, diminutive):
+    for decorated in (f"{greek} {base}", f"{greek} {base} {roman}",
                       f"{diminutive} {base}", f"{greek} {diminutive} {base}"):
         assert nu.strip_decoration(decorated) == base, decorated
 
 
 @given(base=plain_base, count=st.integers(1, nu.GREEK_ROMAN_CAPACITY - 2),
-       diminutives=st.integers(1, len(names.DIMINUTIVE_PREFIXES)),
-       companions=st.integers(1, len(names.COMPANION_SUFFIXES)))
-@example(base="Voranthis", count=1, diminutives=2, companions=2)   # "Little Beta ...", "Petit Little ..."
-@example(base="Voranthis", count=30, diminutives=1, companions=1)  # "Little Alpha Voranthis <roman>"
-def test_strip_decoration_inverts_the_stacks_db_actually_builds(base, count, diminutives, companions):
+       diminutives=st.integers(1, len(names.DIMINUTIVE_PREFIXES)))
+@example(base="Voranthis", count=1, diminutives=2)   # "Little Beta ...", "Petit Little ..."
+@example(base="Voranthis", count=30, diminutives=1)  # "Little Alpha Voranthis <roman>"
+def test_strip_decoration_inverts_the_stacks_db_actually_builds(base, count, diminutives):
     """Regression: `strip_decoration("Little Beta Foo")` used to give
-    "Beta Foo" (and "Petit Little Foo" -> "Little Foo", "Foo Kin Ami" ->
-    "Foo Kin"). These are the exact stacks `_db.py` builds:
-    `reserve_system_name` prefixes the diminutive onto the Greek/Roman
-    name, and `_rename_existing_system_for_diminutive`/
-    `_rename_existing_body_for_companion` decorate the same row again on
-    every later collision."""
+    "Beta Foo" (and "Petit Little Foo" -> "Little Foo"). These are the
+    exact stacks `_db.py` builds: `reserve_system_name` prefixes the
+    diminutive onto the Greek/Roman name, and
+    `_rename_existing_system_for_diminutive` decorates the same row again
+    on every later collision."""
     greek_name, _ = nu.resolve_greek_roman_collision(base, count)
     prefixes, index = [], None
     for _ in range(diminutives):
         prefix, index = nu.resolve_diminutive(index)
         prefixes.insert(0, prefix)          # each rename goes on the outside
-    suffixes, index = [], None
-    for _ in range(companions):
-        suffix, index = nu.resolve_companion(index)
-        suffixes.append(suffix)
     stacks = [
         f"{prefixes[-1]} {greek_name}",                  # reserve_system_name after a sector hit
         " ".join(prefixes + [greek_name]),               # ...then renamed again by later sectors
         " ".join(prefixes + [base]),                     # _rename_existing_system_for_diminutive, repeatedly
-        " ".join([base] + suffixes),                     # _rename_existing_body_for_companion, repeatedly
     ]
     for stack in stacks:
         assert nu.strip_decoration(stack) == base, stack
@@ -302,14 +291,11 @@ def test_resolvers_reject_negative_indices():
         nu.resolve_greek_roman_collision("X", -1)
     with pytest.raises(ValueError):
         nu.resolve_diminutive(-1)
-    with pytest.raises(ValueError):
-        nu.resolve_companion(-100)
 
 
 @given(n=st.integers(max_value=-1))
 def test_resolvers_reject_any_negative_index(n):
-    for call in (lambda: nu.resolve_greek_roman_collision("X", n), lambda: nu.resolve_diminutive(n),
-                 lambda: nu.resolve_companion(n)):
+    for call in (lambda: nu.resolve_greek_roman_collision("X", n), lambda: nu.resolve_diminutive(n)):
         with pytest.raises(ValueError):
             call()
 
@@ -452,4 +438,3 @@ def test_huge_counts_never_index_out_of_range(huge):
     assume(huge >= nu.GREEK_ROMAN_CAPACITY)
     assert nu.resolve_greek_roman_collision("X", huge) == (None, None)
     assert nu.resolve_diminutive(huge) == (None, None)
-    assert nu.resolve_companion(huge) == (None, None)

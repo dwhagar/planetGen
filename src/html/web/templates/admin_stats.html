@@ -37,9 +37,9 @@
 <section class="panel" id="duplicate-names" aria-labelledby="duplicate-names-heading">
   <h2 id="duplicate-names-heading">Names made unique</h2>
   <p class="hint">Names that came up more than once and were given a Greek
-  letter (Alpha, Beta, ...), a "little" prefix (a system named after a
-  sector) or a companion suffix (a planet or moon), with every sector,
-  system, planet and moon that now carries one.</p>
+  letter (Alpha, Beta, ...) or a "little" prefix (a system named after a
+  sector), with every sector and system that now carries one. Planets and
+  moons are named after their system, so they never collide.</p>
   {{ tiles(name_tiles) }}
   {%- if names.error %}
   <p class="error">{{ names.error }}</p>
@@ -55,9 +55,8 @@
         <td>{{ item.levels }}</td>
         <td class="inline-links">
           {%- for row in item.rows %}
-          {%- if row.url %}<a href="{{ row.url }}">{{ row.name }}</a> <span class="hint">{{ row.kind }}</span>
-          {%- else %}{{ row.name }} <span class="hint">{{ row.kind }}</span> <a href="{{ row.system_url }}">{{ row.system_name }}</a>
-          {%- endif %}{% if not loop.last %}<br>{% endif %}
+          <a href="{{ row.url }}">{{ row.name }}</a> <span class="hint">{{ row.kind }}</span>
+          {%- if not loop.last %}<br>{% endif %}
           {%- else %}<span class="hint">no rows left</span>
           {%- endfor %}
         </td>

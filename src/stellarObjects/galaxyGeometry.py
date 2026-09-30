@@ -53,6 +53,23 @@ DESIGNATION_LAYER_BIAS = 1 << (DESIGNATION_LAYER_BITS - 1)
 """int: Added to a layer index before packing (layers -4096..4095)."""
 
 
+# TODO(galaxy-map #12): replace this rule with the hybrid master-wedge rule
+# Boss chose on 2026-09-30, so slot boundaries line up from the center out.
+#   master(i) = 3 * 2**max(0, floor(log2(c / (3 * 8)))), c = 2*pi*(i + 1/2)
+#   ring_sector_count(i) = max(master(i), master(i) * round(c / master(i)))
+# Rings then hold 3, 9, 15, 21, 27, 36, 42, 48, ... slots; arcs stay within
+# 0.94-1.06 of an edge and the total count is unchanged. Add
+# `ring_master_count(i)` beside it: the mega-block grid (galaxyprisms.js)
+# cuts its wedges on master lines.
+# Edge cases:
+# - ring 0 stays 3 and ring 1 stays 9;
+# - the rule must stay integer-exact (no float log2 near a zone's first
+#   ring) -- compare c against 3 * 8 * 2**z instead;
+# - keep galaxyprisms.js's ringSectorCount identical, and pin both with the
+#   same table in the tests;
+# - DESIGNATION_SLOT_BITS (20) is still ample (max ~25k slots);
+# - every stored slot index changes meaning, so this ships with the next
+#   schema version's migration (_db.py), never alone.
 def ring_sector_count(ring_index):
     """
     How many slots ring `ring_index` holds: `2*pi*(i + 1/2)` (the ring's
@@ -275,6 +292,11 @@ class SectorCell:
         return (r * math.cos(theta) - self.r_center, r * math.sin(theta), z)
 
 
+# TODO(galaxy-map #12): with master-aligned rings, a slot of one ring never
+# straddles a master line of its neighbor, so this can map through the
+# shared master wedge (slot // per_master) and stay exact. Keep the general
+# integer form as the fallback and test both agree for every ring pair
+# across a zone boundary (where the master count doubles).
 def _overlapping_slots(from_ring, slot_index, to_ring):
     """Slots of `to_ring` whose angular span overlaps slot `slot_index`
     of `from_ring` (touching at a single boundary angle doesn't count).

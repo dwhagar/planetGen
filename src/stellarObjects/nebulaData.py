@@ -74,6 +74,12 @@ class Nebula:
         """
         reseed_rng()
         self.system_config = system_config
+        # TODO(phenomena #30): name nebulae the way star systems are named,
+        # through the system-name registry (_db.reserve_system_name /
+        # confirm_system_name), not an unregistered phoneme-salad name.
+        # TODO(phenomena #28): pick a class from NEBULA_CLASSES and
+        # generate its contents (dominant species, density, temperature,
+        # extinction); #27 adds the central star the class needs.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.nebula_type = random.choice(list(program_constants.NEBULA_TYPES.keys()))

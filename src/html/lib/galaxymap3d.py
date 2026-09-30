@@ -188,6 +188,10 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
     return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
 
 
+# TODO(galaxy-map #17): the client should also prefetch the tiles its next
+# zoom step in and out will need (one tile level either side), so a zoom
+# never waits on the network. Send the step factor to the client from here
+# if it needs tuning per deployment.
 FETCH_RADIUS_FACTOR = 1.6
 """float: The map fetches content out to this multiple of the camera's
 orbit radius, so what's just off-screen is already there when the camera
@@ -367,6 +371,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         # The galaxy's density model parameters -- static/galaxyprisms.js
         # evaluates stellarObjects.galaxyDensity.relative_density from
         # these itself to shade the density prisms.
+        # TODO(galaxy-map #13/#14): add the mega-block settings here, so they
+        # live in one place: "blockMinPx" (4), "blockBudget", and
+        # "sliceDefault" ("focus" or "solid"). Also add the zone rule's
+        # constants if galaxyprisms.js stops hard-coding them (they must
+        # match galaxyGeometry.ring_sector_count).
         "densityShape": _density_shape(galaxy_shape),
         "edgePc": edge_pc,
         "edgeLy": edge_ly,
@@ -417,6 +426,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons to
      zoom, click a dot or empty space to center the view there and select it, double-click to do the same and
      zoom in."></canvas>
+<!-- TODO(galaxy-map #11): the scale readout grows to three lines (1 px, 1 block, a 70 px bar in
+     sectors / pc / ly); give it room at 390 px and an aria-live="polite" so zoom changes are announced. -->
 <div class="starmap-scale" id="galaxymap3d-scale"></div>
 </div>
 <div class="starmap-side">
@@ -424,6 +435,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
   <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
+  <!-- TODO(galaxy-map #14): a Slice control goes here ("Cut at focus layer" / "Whole solid"), as a
+       real <button aria-pressed> or radio pair so it works by keyboard. -->
 </div>
 <aside class="starmap-info" id="galaxymap3d-info">
 <p class="hint">Click a sector dot for details, or double-click a dot or empty space to zoom in there.</p>

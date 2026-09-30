@@ -100,7 +100,7 @@ def linkify_location(location, name_to_id, system_url):
 
     `location` is plain text baked in at generation time by
     `stellarObjects._db._format_location_string`, e.g.
-    `"Voranthis Kelmoor -- nearest: Alpha Prime (4.2 ly), Beta (5.1 ly)"` --
+    `"Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly), Beta (5.1 ly)"` --
     the sector name, then up to 3 "Name (distance ly)" entries
     comma-joined after a fixed `" -- nearest: "` marker (empty when the
     sector has no other systems, in which case this is just the sector
@@ -165,6 +165,14 @@ def nearest_neighbors_location(location, neighbors, system_url):
     return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
 
 
+# TODO(distances #1): add one `format_distance(km)` helper here that picks
+# the most meaningful unit on the ladder km < AU < mpc < cpc < ly < pc <
+# kpc < Mpc < Gpc (the largest unit the value is at least 1 of), and pass
+# every radius, distance and orbital distance through it before display.
+# This function, tabledisplay.format_body_distance and the JS formatters
+# (systemmap.js formatDistanceKm, phenomenonmap.js formatSpan, sectormap.js
+# formatLy, galaxymap3d.js formatPcLy/formatPc) all become thin wrappers or
+# go away. See docs/TODO.md item 1.
 def format_distance_ly(distance_ly):
     """Formats a distance in light-years for a table cell, e.g.
     `"26,012.4 ly"`, or an en dash when there is none (`None`, an unplaced

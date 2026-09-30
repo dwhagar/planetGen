@@ -572,10 +572,10 @@ class SectorSystemEntry:
         """
         config_dict = self.system_config.to_dict()
         if config_dict.get("name") is None:
-            config_dict["name"] = self.star_system.star.name
+            config_dict["name"] = self.star_system.name
 
         return {
-            "name": self.star_system.star.name,
+            "name": self.star_system.name,
             "position": list(self.position),
             "config": config_dict,
             "generated": self.star_system.to_dict(),

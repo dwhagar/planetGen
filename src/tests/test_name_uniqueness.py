@@ -4,7 +4,7 @@
 Pure unit tests for `stellarObjects.nameUniqueness` -- no database, no
 generation, just the collision-resolution state machines and their
 inverse (`strip_decoration`). See that module's own docstring for the
-full sector > system > planet/moon hierarchy these feed into; the actual
+sector > system hierarchy these feed into; the actual
 database integration (`_db.py`'s `_reserve_*`/`_confirm_*` functions) is
 covered separately by `test_db_persistence.py`.
 
@@ -13,7 +13,7 @@ Run with: pytest tests/test_name_uniqueness.py
 
 from stellarObjects import nameUniqueness as nu
 from stellarObjects.names import (
-    COMPANION_SUFFIXES, DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERAL_VALUES,
+    DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERAL_VALUES,
 )
 
 BASE = "Sol"
@@ -90,7 +90,7 @@ def test_capacity_matches_greek_plus_roman_list_lengths():
 
 
 # ---------------------------------------------------------------------------
-# resolve_diminutive / resolve_companion -- identical shape, different lists
+# resolve_diminutive
 # ---------------------------------------------------------------------------
 
 def test_resolve_diminutive_first_use_returns_the_first_prefix():
@@ -112,27 +112,8 @@ def test_resolve_diminutive_exhausts_after_the_last_prefix():
     assert next_index is None
 
 
-def test_resolve_companion_first_use_returns_the_first_suffix():
-    suffix, next_index = nu.resolve_companion(None)
-    assert suffix == COMPANION_SUFFIXES[0]
-    assert next_index == 0
-
-
-def test_resolve_companion_advances_on_repeat():
-    suffix, next_index = nu.resolve_companion(0)
-    assert suffix == COMPANION_SUFFIXES[1]
-    assert next_index == 1
-
-
-def test_resolve_companion_exhausts_after_the_last_suffix():
-    last_index = len(COMPANION_SUFFIXES) - 1
-    suffix, next_index = nu.resolve_companion(last_index)
-    assert suffix is None
-    assert next_index is None
-
-
 # ---------------------------------------------------------------------------
-# strip_decoration -- inverse of all three resolvers above
+# strip_decoration -- inverse of both resolvers above
 # ---------------------------------------------------------------------------
 
 def test_strip_decoration_is_a_no_op_on_an_undecorated_name():
@@ -159,8 +140,3 @@ def test_strip_decoration_strips_every_greek_roman_variant():
 def test_strip_decoration_strips_a_diminutive_prefix():
     prefix, _index = nu.resolve_diminutive(None)
     assert nu.strip_decoration(f"{prefix} {BASE}") == BASE
-
-
-def test_strip_decoration_strips_a_companion_suffix():
-    suffix, _index = nu.resolve_companion(None)
-    assert nu.strip_decoration(f"{BASE} {suffix}") == BASE

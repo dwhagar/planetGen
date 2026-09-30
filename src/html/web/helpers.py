@@ -131,6 +131,8 @@ def current_admin():
     return admin
 
 
+# TODO(site-header #3): these become the sections menu entries when they
+# don't fit as buttons.
 SECTIONS = (
     # (endpoint name, label)
     ("galaxy", "Galaxy"),

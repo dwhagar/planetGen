@@ -95,6 +95,8 @@ def _planets_table_html(planets, heading="Planets &amp; Moons"):
 """
 
 
+# TODO(distances #1): the belt distance is hard-coded as raw km; use the
+# unit-ladder helper.
 def _belts_table_html(belts, heading="Asteroid Belts"):
     if not belts:
         return ""
@@ -214,6 +216,12 @@ def _star_row_html(star, sections, children_html=""):
     )
 
 
+# TODO(system-list #2): a non-terrestrial planet is never habitable, and a
+# habitable one is always terrestrial, so show one type chip: "Gas Giant",
+# "Terrestrial" or "Habitable" (never Terrestrial and Habitable together).
+# Add a new chip, shown only when one of the planet's moons is habitable
+# (e.g. "Habitable moon"); queryDb._with_life_fields already marks each
+# moon. _body_row above (the table view) follows the same rule.
 def _planet_row_html(body, sections, is_moon=False):
     stats = [
         f'<span class="stat">Class {esc(body["planet_class"])}</span>' if body["planet_class"] else "",
@@ -235,6 +243,9 @@ def _planet_row_html(body, sections, is_moon=False):
     return _row_html(esc(body["name"]), stats, markdown, children_html)
 
 
+# TODO(system-list #2): the list shows only "Asteroid Belt" and density;
+# add its distance from the star in the most meaningful unit (distances
+# #1).
 def _belt_row_html(belt, sections):
     stats = [f'<span class="stat">{esc(belt["density"]).capitalize()}</span>'] if belt.get("density") else []
     return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])))
