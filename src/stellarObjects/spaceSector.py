@@ -914,14 +914,14 @@ class SpaceSector:
                   f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'})")
         return entry
 
-    # TODO(physics #45): also keep clear of _massive_neighbors() (black holes,
-    # neutron stars), as add_phenomenon promises.
     def _fine_tune_position(self, position, candidate_system,
                             max_iterations=program_constants.SECTOR_GROWTH_FINE_TUNE_MAX_ITERATIONS):
         """
         Nudges `position` until `candidate_system`, placed there, clears
-        every existing system's Hill sphere -- not necessarily just the
-        point it was originally sampled around -- by repeatedly finding the
+        every existing massive object's Hill sphere (every star system and
+        every placed black hole or neutron star, `_massive_neighbors`) --
+        not necessarily just the point it was originally sampled around --
+        by repeatedly finding the
         worst violation (if any) and pushing directly away from it
         (`_nudge_away`), out to exactly `required_separation_ly`. Moving
         away from one neighbor can bring the position closer to (or newly
@@ -956,22 +956,22 @@ class SpaceSector:
         tolerance = program_constants.SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY
 
         for _ in range(max_iterations):
-            worst_entry = None
+            worst_position = None
             worst_required = None
             worst_deficit = tolerance
 
-            for entry in self.entries:
-                required = required_separation_ly(candidate_system, entry.star_system)
-                deficit = required - distance_between(position, entry.position)
+            for neighbor, neighbor_position in self._massive_neighbors():
+                required = required_separation_ly(candidate_system, neighbor)
+                deficit = required - distance_between(position, neighbor_position)
                 if deficit > worst_deficit:
                     worst_deficit = deficit
-                    worst_entry = entry
+                    worst_position = neighbor_position
                     worst_required = required
 
-            if worst_entry is None:
+            if worst_position is None:
                 return position
 
-            position = _nudge_away(worst_entry.position, position, worst_required)
+            position = _nudge_away(worst_position, position, worst_required)
 
         return None
 
