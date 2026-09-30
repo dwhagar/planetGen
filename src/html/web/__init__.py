@@ -90,6 +90,7 @@ errors.register(bp)
 
 from . import views  # noqa: E402,F401 -- registers the routes on bp
 from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
+from . import nav_page, sector_page  # noqa: E402,F401 -- /nav, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 
 

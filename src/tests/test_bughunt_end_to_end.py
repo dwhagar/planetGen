@@ -87,9 +87,22 @@ def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     assert api_body["name"] == sector_name
     assert len(api_body["systems"]) == 2
 
-    result = run_page(live_api, "sector.py", query={"db": mysql_config.database, "id": str(sector_id)})
-    assert result.status_code == 200
-    assert sector_name in result.body
+    # The sector page is served by the Flask app (`/sector/<id>`).
+    from api.app import create_app
+    from api.config import Config
+
+    class _PageConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+        SESSION_COOKIE_SECURE = False
+        SECRET_KEY = "test-secret"
+
+    app = create_app(_PageConfig)
+    app.testing = True
+    resp = app.test_client().get(f"/sector/{sector_id}")
+    assert resp.status_code == 200
+    assert sector_name in resp.get_data(as_text=True)
 
 
 def _db_get_connection(mysql_config):
