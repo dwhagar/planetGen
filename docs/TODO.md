@@ -74,118 +74,7 @@ renumber when items are added or finished.
      `queryDb.SEARCH_TAG_FACETS`: add a phenomenon-type facet and a
      Phenomena result panel (none exists today).
    - Nebulae are missing because they're almost never generated, not
-     because the page hides them: see #5.
-
-5. [ ] **Real-world frequencies for interstellar objects.** Boss: "The
-   most common interstellar objects should be asteroid field and
-   comets, look up actual stats for how common each stellar object is
-   and adjust probability tables adding to constants if necessary so
-   it's tweakable."
-   - Boss supplied the research on 2026-09-30 and asked to reorganize the
-     rates from it. Numbers, scaling functions, checks, measured cost and
-     references: `docs/design/interstellar-object-rates.md`.
-   - Today (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`, per
-     star system, Poisson per sector in `generate.generate_sector_phenomena`):
-     rogue planet 0.1, comet 0.05, asteroid field 0.05, neutron star
-     5e-3, black hole 5e-4, nebula 2.5e-7, supernova remnant 1e-8.
-   - The model: each type has a local density `n_i` (per pc³) at the
-     solar neighborhood's `n_*0 = 0.14` stars per pc³, scaled by the
-     sector's own stellar density: `n_i = n_i0 * n_* / 0.14`. That is a
-     fixed rate per star, so the existing per-sector Poisson draw stays;
-     only the rates change.
-
-     | Type | n_i0 (pc⁻³) | Per star | Scales with |
-     |---|---|---|---|
-     | Comets and debris | 1e12 (1e11-1e14) | ~7e12 | n_* |
-     | Terrestrial rogue planets | 0.7 (0.5-1.4) | 5 (2-10) | n_* |
-     | Jupiter-mass rogue planets | 0.035 | ≤ 0.25 | n_* |
-     | Rogue brown dwarfs | 0.03 | ~0.21 | n_* |
-     | Runaway stars | 2.1e-3 | 0.015 | n_* |
-     | Isolated neutron stars | 1e-3 | ~7e-3 | n_* |
-     | Isolated black holes | 1e-4 | ~7e-4 | n_* |
-     | Giant molecular clouds | 5e-6 | n/a | ρ_gas^1.4, filling 1-2% of arms |
-     | Planetary nebulae | 3e-8 | ~2e-7 | n_* |
-     | Supernova remnants | 1e-8 | n/a | n_* · ρ_gas |
-     | Hypervelocity stars | 1e-10 at 8 kpc (research says 5e-9) | n/a | r_GC⁻² |
-     | Isolated asteroid fields | ~0 | 0 | none (they disperse) |
-
-   - Constants to add in `program_constants` (replacing
-     `PHENOMENON_RATE_PER_STAR_SYSTEM`), each with its source in a
-     comment: `REFERENCE_STELLAR_DENSITY_PC3 = 0.14`;
-     `PHENOMENON_DENSITY_PC3` keyed by type (`"rogue-planet"` is the sum
-     of the item 6 bins, `"brown-dwarf"`, `"runaway-star"`,
-     `"hypervelocity-star"`, `"neutron-star"`, `"black-hole"`,
-     `"molecular-cloud"`, `"planetary-nebula"`, `"supernova-remnant"`,
-     `"comet"`, `"asteroid-field"`); `GMC_ARM_FILLING_FACTOR = 0.015`;
-     `GMC_GAS_DENSITY_EXPONENT = 1.4`; `HVS_REFERENCE_RADIUS_PC = 8000`;
-     `INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12`; and one
-     `PHENOMENON_RATE_SCALE` per type (default 1.0) to dial any type up
-     or down without touching the research value.
-   - Generation cost (measured, see the design doc): at these rates a
-     local-density 4 pc sector gets about 50-60 rogue rows on top of
-     roughly 650 body rows, about 8-10% more rows and under 1% more
-     generation time. Cost is not the problem; the sector's look is.
-     Rogues would outnumber systems about five to one in the Contents
-     table and on the Sector Map.
-   - Recommended way to apply them:
-     - Rogue planets, brown dwarfs, neutron stars, black holes: rows,
-       per-star rate times the sector's star count, Poisson, no cap.
-     - Comets: the real density (~6e13 per sector) can't be rows. Show
-       it as a computed sector figure ("about 10^13 interstellar comets
-       and planetesimals"), and keep the `comet` rows as notable comets
-       at a design rate (default 0.007 per pc³, which is today's 0.05
-       per star); `INTERSTELLAR_DEBRIS_DENSITY_PC3` feeds the figure.
-     - Isolated asteroid fields: rate 0 (Boss's research: a free
-       asteroid field disperses in 1e6-1e7 years). Keep the type and
-       table for hand-made fields and facilities (#31, #35); none get
-       generated.
-     - Runaway and hypervelocity stars: a flag and speed on an ordinary
-       generated system (1.5% of systems; HVS by `r_GC⁻²`), not a new
-       phenomenon table.
-     - Brown dwarfs: a new rogue-body kind (a rogue planet row above
-       13 Mjup, or its own table); schema change.
-     - Nebulae and remnants: real point rates make them essentially
-       never appear (a planetary nebula ~2e-6 per sector). Molecular
-       clouds place by filling factor (about 1-2% of arm sectors sit
-       inside one), with #27 generating the stars inside; planetary
-       nebulae and remnants keep their real rates.
-   - The research's comet separation column, hypervelocity density and
-     remnant density don't add up; see "Checks" in the design doc.
-   - **Question for Boss:** show rogue planets at the full research rate
-     (about 45 per sector, five to one against systems), or scale them
-     down for readability with `PHENOMENON_RATE_SCALE["rogue-planet"]`
-     (0.1 gives about 5 per sector)? Default: full rate, with rogues
-     grouped into one collapsible row in the sector's Contents table.
-   - Regenerate the galaxy after this ships to see the new mix.
-
-6. [ ] **Rogue planets: terrestrial ones, and fewer giants.** Boss: "I
-   see no terrestrial planets as rogue planets, is that intentional?
-   Research and revise probabilities for appearance of rogue planets
-   (there are a lot of them right now) and what type."
-   - Not intentional. `roguePlanetData.RoguePlanet.__init__` draws mass
-     linear-uniformly over 0.0005-10 Mjup, so only ~0.5% land under the
-     0.05 Mjup gas-giant threshold. Microlensing says low-mass rogues
-     outnumber giants several to one; terrestrial rogues must stay
-     present.
-   - Boss's research (2026-09-30): terrestrial rogues 2-10 per star
-     (Johnson et al. 2020; OGLE-2016-BLG-1928, 0.3-2 M⊕, Mróz et al.
-     2020); Jupiter-mass rogues at most 0.25 per star (Mróz et al. 2017,
-     superseding Sumi et al. 2011's 1.8). Sub-Neptunes are expected to
-     dominate with terrestrials (Barclay et al. 2023) but have no rate.
-   - Draw a mass bin by its per-star rate, then a log-uniform mass inside
-     the bin. Constant to add next to `ROGUE_PLANET_MASS_RANGE_JUPITER`
-     (which it replaces): `ROGUE_PLANET_MASS_BINS`, each bin
-     `(min_mass_earth, max_mass_earth, per_star_rate)`:
-     - terrestrial 0.1-2 M⊕, 5 per star;
-     - sub-Neptune 2-20 M⊕, 1 per star (default, not from the research);
-     - Saturn-class 20 M⊕-1 Mjup, 0.25 per star (default, not from the
-       research);
-     - Jupiter-mass 1-13 Mjup, 0.25 per star.
-     Above 13 Mjup is a brown dwarf (#5). A single power law can't fit
-     both ends (the design doc shows why).
-   - The bins' summed per-star rate is the rogue-planet rate in #5.
-   - Update `phenomenaPlausibility` (it recomputes the expected
-     terrestrial share from the same draw).
+     because the page hides them: see `docs/design/interstellar-object-rates.md` (the v37 rates).
 
 ### Performance
 
@@ -407,7 +296,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     Remnants should be generated and placed on the map. Research if we
     need stars at the center of these or what kind of star, etc, so we
     can make them."
-    - Rates come from #5 (a per-volume rate suits objects this big).
+    - Rates come from `PHENOMENON_DENSITY_PC3` (v37; a per-volume rate suits objects this big).
     - Each class brings its central object (table in
       `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
       emission nebulae, a B or A star for reflection, one hot central

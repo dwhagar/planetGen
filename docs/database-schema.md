@@ -338,7 +338,8 @@ existing rows, so it backfills real values rather than leaving them NULL.
 
 v21 gave every generated sector its own realistically sparse population of
 exotic phenomena (`generate.generate_sector_phenomena`, sampled from
-`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`) instead of leaving
+`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`, replaced in v37 by
+per-star research densities) instead of leaving
 all seven types reachable only through `generate.py phenomenon`'s separate,
 on-demand CLI. `nebulae`/`supernova_remnants`/`rogue_planets`/
 `interstellar_comets`/`asteroid_fields` needed no schema change at all —
@@ -490,6 +491,15 @@ supermassive black hole there instead, so every galaxy has one.
 `black_holes.mass_class` records whether a row is stellar-mass,
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
+
+**Research-based interstellar rates (v37).** Phenomena are now drawn per
+star from Boss's research densities (`program_constants.
+PHENOMENON_DENSITY_PC3`, `docs/design/interstellar-object-rates.md`).
+`rogue_planets.mass_bin` records a rogue's mass bin (`terrestrial`,
+`sub-neptune`, `saturn`, `jupiter`) or `brown-dwarf` (free-floating brown
+dwarfs share the table), and `star_systems.runaway_class`/
+`runaway_speed_kms` flag runaway and hypervelocity stars.
+`_migrate_v36_to_v37` fills `mass_bin` from each existing row's mass.
 
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
@@ -788,6 +798,8 @@ One row per generated system (single-star or binary).
 | `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
+| `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
+| `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
 | `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |
@@ -1121,6 +1133,7 @@ from any star.
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
+| `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
 | `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |

@@ -169,7 +169,9 @@ def test_rogue_planet_mass_and_type_within_configured_ranges():
     for _ in range(TRIALS):
         planet = RoguePlanet(make_config())
         mass_jupiter = planet.mass_kg / physical_constants.JUPITER_MASS_TO_KG
-        assert program_constants.ROGUE_PLANET_MASS_RANGE_JUPITER[0] <= mass_jupiter <= program_constants.ROGUE_PLANET_MASS_RANGE_JUPITER[1]
+        low, high, _rate = program_constants.ROGUE_PLANET_MASS_BINS[planet.mass_bin]
+        mass_earth = planet.mass_kg / physical_constants.EARTH_MASS_TO_KG
+        assert low * (1 - 1e-9) <= mass_earth <= high * (1 + 1e-9)
         assert planet.planet_type in ('t', 'g')
         if planet.planet_type == 'g':
             assert mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
@@ -177,6 +179,27 @@ def test_rogue_planet_mass_and_type_within_configured_ranges():
             assert mass_jupiter < program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
         assert planet.radius_km > 0
         assert planet.mass_kg > 0
+
+
+def test_rogue_planets_are_mostly_terrestrial():
+    """Terrestrial rogues outnumber the rest (5 of 6.5 per star)."""
+    bins = [RoguePlanet(make_config()).mass_bin for _ in range(400)]
+    share = bins.count("terrestrial") / len(bins)
+    assert 0.65 < share < 0.88
+    assert set(bins) <= set(program_constants.ROGUE_PLANET_MASS_BINS)
+
+
+def test_rogue_brown_dwarf():
+    dwarf = RoguePlanet(make_config(), mass_bin="brown-dwarf")
+    low, high = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
+    assert low <= dwarf.mass_kg / physical_constants.JUPITER_MASS_TO_KG <= high
+    assert dwarf.planet_type == 'g' and dwarf.kind_label == "Brown Dwarf"
+    assert "Rogue Brown Dwarf" in dwarf.to_paragraph_list()[0]
+    with pytest.raises(ValueError):
+        RoguePlanet(make_config(), mass_bin="moon")
+    old = dwarf.to_dict()
+    old.pop("mass_bin")
+    assert RoguePlanet.from_dict(old, make_config()).mass_bin == "brown-dwarf"
 
 
 def test_interstellar_comet_within_configured_ranges():

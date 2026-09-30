@@ -795,6 +795,14 @@
 --   fills it from each existing row's mass. Intermediate-mass black holes
 --   now span 1e2-1e5 Msun (log-uniform).
 --
+-- v37: research-based interstellar rates (docs/design/
+--   interstellar-object-rates.md). `rogue_planets.mass_bin` records the
+--   mass bin a rogue was drawn from ('terrestrial', 'sub-neptune',
+--   'saturn', 'jupiter') or 'brown-dwarf' (free-floating brown dwarfs
+--   share the table); `star_systems.runaway_class`/`runaway_speed_kms`
+--   flag runaway and hypervelocity stars. `_migrate_v36_to_v37` fills
+--   `mass_bin` from each existing row's mass.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1120,6 +1128,11 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_planetary_wobble_z_km    DOUBLE,
 
     system_flavor_text   TEXT,
+    -- v37: 'runaway' (> 30 km/s) or 'hypervelocity' (> 500 km/s) when the
+    -- system moves unusually fast (generate.flag_fast_stars); NULL
+    -- together otherwise.
+    runaway_class        VARCHAR(16),
+    runaway_speed_kms    DOUBLE,
     schema_version       INT NOT NULL DEFAULT 1,
 
     -- No stored page text since v29: wikitext/Markdown are rendered on
@@ -1838,6 +1851,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
     planet_type         VARCHAR(4) NOT NULL CHECK (planet_type IN ('t', 'g')),
+    -- v37: the mass bin it was drawn from (program_constants.
+    -- ROGUE_PLANET_MASS_BINS), or 'brown-dwarf' (13-80 Mjup).
+    mass_bin            VARCHAR(16) NOT NULL DEFAULT 'terrestrial',
     mass_kg             DOUBLE NOT NULL,
     radius_km           DOUBLE NOT NULL,
     composition         TEXT NOT NULL,

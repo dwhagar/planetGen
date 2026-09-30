@@ -24,7 +24,7 @@ def test_generate_sector_name_is_always_two_words():
 
 # ---------------------------------------------------------------------------
 # generate_sector_phenomena -- sector-level exotic phenomena generation
-# (science-based Poisson rates, see program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM).
+# (research-based Poisson rates, see program_constants.PHENOMENON_DENSITY_PC3).
 # ---------------------------------------------------------------------------
 
 from types import SimpleNamespace
@@ -57,9 +57,14 @@ def _seeded_sector(system_count):
     return sector
 
 
-def test_generate_sector_phenomena_passes_rate_times_system_count_as_the_poisson_mean(monkeypatch):
-    system_count = 7
-    sector = _seeded_sector(system_count)
+def _rate(kind):
+    return program_constants.phenomenon_rate_per_star(kind)
+
+
+def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_poisson_mean(monkeypatch):
+    sector = _seeded_sector(7)
+    star_count = sectorGen.sector_star_count(sector)
+    assert star_count >= 7
 
     captured_means = []
 
@@ -73,46 +78,69 @@ def test_generate_sector_phenomena_passes_rate_times_system_count_as_the_poisson
     entries = sectorGen.generate_sector_phenomena(sector, args)
 
     assert entries == []
-    expected_means = [rate * system_count for rate in program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM.values()]
+    expected_means = [_rate(kind) * star_count for kind, _type, _factory in sectorGen.SECTOR_PHENOMENON_KINDS]
     assert sorted(captured_means) == pytest.approx(sorted(expected_means))
 
 
+def test_research_rates_per_star():
+    """Boss's research densities at 0.14 stars per pc^3."""
+    assert _rate("rogue-planet") == pytest.approx(6.5)
+    assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
+    assert _rate("neutron-star") == pytest.approx(0.005)
+    assert _rate("black-hole") == pytest.approx(0.001)
+    assert _rate("comet") == pytest.approx(0.05)
+    assert _rate("asteroid-field") == 0.0
+    assert _rate("runaway-star") == pytest.approx(0.015)
+
+
+def test_rate_scale_dials_a_kind(monkeypatch):
+    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
+    assert _rate("rogue-planet") == pytest.approx(0.65)
+
+
+def _only(kind, count):
+    """A fake Poisson draw returning `count` for `kind` and 0 otherwise
+    (matched by the mean, since each kind's rate differs)."""
+    def fake(mean):
+        return count if mean == pytest.approx(_rate(kind) * fake.stars) and mean > 0 else 0
+    return fake
+
+
 def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
-    # Force only "nebula" (a non-massive type -- no Hill-sphere placement
-    # risk, so this is fully deterministic) to draw a count, every other
-    # type draws 0.
-    def fake_sample_poisson_count(mean):
-        # nebula's own rate is the smallest of the seven (see
-        # PHENOMENON_RATE_PER_STAR_SYSTEM's own docstring) -- comparing the
-        # mean directly, rather than hardcoding its value here, keeps this
-        # test correct even if the cited rate is retuned later.
-        nebula_rate = program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM["nebula"]
-        return 3 if mean == pytest.approx(nebula_rate * 4) else 0
-
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake_sample_poisson_count)
-
     sector = _seeded_sector(4)
+    fake = _only("planetary-nebula", 3)
+    fake.stars = sectorGen.sector_star_count(sector)
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+
     args = SimpleNamespace(markdown=False)
     entries = sectorGen.generate_sector_phenomena(sector, args)
 
     assert len(entries) == 3
     assert all(e.phenomenon_type == "nebula" for e in entries)
+    assert all(e.phenomenon.nebula_type == "planetary" for e in entries)
     assert entries == sector.phenomena
-    for entry in entries:
-        assert entry.phenomenon.name  # a real, generated Nebula object
+
+
+def test_brown_dwarfs_are_rogue_planet_rows(monkeypatch):
+    sector = _seeded_sector(2)
+    fake = _only("brown-dwarf", 2)
+    fake.stars = sectorGen.sector_star_count(sector)
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+
+    entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    assert [e.phenomenon_type for e in entries] == ["rogue-planet", "rogue-planet"]
+    assert all(e.phenomenon.mass_bin == "brown-dwarf" for e in entries)
 
 
 def test_generate_sector_phenomena_threads_galactic_center_dist_ly_to_compact_remnants(monkeypatch):
     # Force exactly one black hole and confirm its own Hill-sphere/orbit
     # calculation actually used the sector's real distance from the
     # galactic center, not the fallback constant.
-    def fake_sample_poisson_count(mean):
-        black_hole_rate = program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM["black-hole"]
-        return 1 if mean == pytest.approx(black_hole_rate * 1) else 0
-
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake_sample_poisson_count)
-
     sector = _seeded_sector(1)
+    fake = _only("black-hole", 1)
+    fake.stars = sectorGen.sector_star_count(sector)
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+
     args = SimpleNamespace(markdown=False)
     galactic_center_dist_ly = 5000.0
     entries = sectorGen.generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
@@ -130,18 +158,16 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
     # If SpaceSector.add_phenomenon can't fit a massive phenomenon
     # (Hill-sphere placement failure), generate_sector_phenomena must
     # silently skip that one draw rather than crashing the whole sector.
-    def fake_sample_poisson_count(mean):
-        black_hole_rate = program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM["black-hole"]
-        return 2 if mean == pytest.approx(black_hole_rate * 1) else 0
-
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake_sample_poisson_count)
+    sector = _seeded_sector(1)
+    fake = _only("black-hole", 2)
+    fake.stars = sectorGen.sector_star_count(sector)
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
 
     def fake_add_phenomenon(self, phenomenon, phenomenon_type, position=None, min_separation_ly=None):
         raise ValueError("no room -- simulated placement failure")
 
     monkeypatch.setattr(SpaceSector, "add_phenomenon", fake_add_phenomenon)
 
-    sector = _seeded_sector(1)
     args = SimpleNamespace(markdown=False)
     entries = sectorGen.generate_sector_phenomena(sector, args)
 
@@ -149,21 +175,49 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
 
 
 def test_generate_sector_phenomena_honors_markdown_flag(monkeypatch):
-    # A mean of 30 makes P(count == 0) ~= e^-30 (effectively zero) while
-    # staying well within _sample_poisson_count's own "small means" scope
-    # (its docstring flags O(mean) draws as inefficient much above a few
-    # dozen) -- every other type pinned to 0 so only nebula draws at all.
-    inflated = {key: 0.0 for key in program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM}
-    inflated["nebula"] = 30.0
-    monkeypatch.setattr(program_constants, "PHENOMENON_RATE_PER_STAR_SYSTEM", inflated)
-
     sector = _seeded_sector(1)
+    fake = _only("comet", 4)
+    fake.stars = sectorGen.sector_star_count(sector)
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+
     args = SimpleNamespace(markdown=True)
     entries = sectorGen.generate_sector_phenomena(sector, args)
 
-    assert entries
-    assert all(e.phenomenon_type == "nebula" for e in entries)
+    assert len(entries) == 4
     assert all(e.phenomenon.system_config.MARKDOWN is True for e in entries)
+
+
+def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
+    sector = _seeded_sector(9)
+    stars = sectorGen.sector_star_count(sector)
+    counts = []
+    for _ in range(5):
+        sector.phenomena.clear()
+        entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+        counts.append(sum(1 for e in entries if e.phenomenon_type == "rogue-planet"))
+    mean = sum(counts) / len(counts)
+    expected = (_rate("rogue-planet") + _rate("brown-dwarf")) * stars
+    assert 0.6 * expected < mean < 1.4 * expected
+
+
+def test_flag_fast_stars(monkeypatch):
+    sector = _seeded_sector(20)
+    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "runaway-star", 1 / 0.015)
+    assert sectorGen.flag_fast_stars(sector, galactic_center_dist_ly=26000.0) == 20
+    for entry in sector.entries:
+        system = entry.star_system
+        assert system.runaway_class in ("runaway", "hypervelocity")
+        if system.runaway_class == "runaway":
+            low, high = program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS
+            assert low <= system.runaway_speed_kms <= high
+
+    # Hypervelocity stars crowd the center (r^-2).
+    sector = _seeded_sector(5)
+    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "runaway-star", 0.0)
+    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "hypervelocity-star", 1e12)
+    assert sectorGen.flag_fast_stars(sector, galactic_center_dist_ly=1.0) == 5
+    assert all(e.star_system.runaway_class == "hypervelocity" for e in sector.entries)
+    assert all(500 <= e.star_system.runaway_speed_kms <= 1000 for e in sector.entries)
 
 
 # ---------------------------------------------------------------------------
