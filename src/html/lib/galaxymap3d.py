@@ -188,7 +188,7 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
     return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
 
 
-# TODO(galaxy-map #9): the client should also prefetch the tiles its next
+# TODO(galaxy-map #10): the client should also prefetch the tiles its next
 # zoom step in and out will need (one tile level either side), so a zoom
 # never waits on the network. Send the step factor to the client from here
 # if it needs tuning per deployment.

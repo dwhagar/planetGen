@@ -1850,6 +1850,12 @@ def _placed_sector_entry(r, system_count):
     }
 
 
+# TODO(galaxy-map #8): the map needs filled-sector counts per mega-block.
+# Tiles already carry every placed sector's (ring, layer, slot), so the
+# browser can count them itself. Once tiles are too coarse to list every
+# sector (a zoomed-out view), return per-block totals here instead: GROUP
+# BY ring_index DIV m, layer bucket, master-wedge bucket, for the m the
+# client asks for, served from the same tile cache.
 def galaxy_tiles(conn, tile_keys, density_key=None):
     """
     The contents of each requested cube tile, plus optionally one density
@@ -1878,7 +1884,7 @@ def galaxy_tiles(conn, tile_keys, density_key=None):
     parsed = [(key, parse_tile_key(key)) for key in dict.fromkeys(tile_keys)]
     if len(parsed) > MAX_TILES_PER_REQUEST:
         raise ValueError(f"at most {MAX_TILES_PER_REQUEST} tiles per request, got {len(parsed)}")
-    # TODO(galaxy-map #12): the page computes density itself
+    # TODO(galaxy-map #13): the page computes density itself
     # (static/galaxyprisms.js), so `density_key` and this sampling are dead
     # weight; drop them with galaxyViewport.density_points_for_tile and
     # tilecache's "density" field.

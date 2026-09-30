@@ -34,11 +34,11 @@ renumber when items are added or finished.
 ### Plan: what to do first
 
 - **Extend the cache (1)**, then do the System Map route (2).
-- **Galaxy Map (3-12):** Boss approved the plan in the
+- **Galaxy Map (3-13):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 3-10 in order. 3 and 4 ship
+   slots, pixel-sized mega-blocks). Work items 3-11 in order. 3 and 4 ship
    on today's prisms. 5 is the one data-deleting step and waits for Boss's
-   go-ahead on the migration. 11-12 are follow-ups. Each change site
+   go-ahead on the migration. 12-13 are follow-ups. Each change site
    in the code carries a `TODO(galaxy-map #N)` comment naming its item
    here; grep for `TODO(galaxy-map` to see them all.
 
@@ -141,12 +141,46 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    Done means the arms show at full zoom-out, zoomed views look down on a
    continuous floor, and the control works by keyboard.
 
-8. [ ] **Block info on click.** Clicking a block shows its sector ring,
+8. [ ] **Unfilled space see-through, filled sectors solid, all colored by
+   density.** Boss asked for this on 2026-09-30.
+   - Unfilled (not yet generated) sectors and mega-blocks are drawn
+     translucent, 20% transparent where densest and 50% where sparsest,
+     scaled by density. Filled (generated) sectors show through them.
+   - Every filled sector, and every mega-block holding generated sectors,
+     is drawn opaque. Its colour comes from its own density:
+     - a sector from its real system density (`placedDensityColor`'s
+       scale);
+     - a mega-block from the density of the space it covers (#3's shading).
+
+   What this needs:
+   - Per-block filled counts. The tiles already list placed sectors, so
+     count them per block in the browser, or have the server add
+     per-block totals to the tiles (it knows `sectors.ring_index`,
+     `layer_index` and `ring_slot_index`).
+   - A block's filled share could also scale its opacity between "all
+     unfilled" and "solid".
+   - Translucency breaks two tricks from #6 and #7:
+     - Surface-only listing: interior blocks now show through. Keep the
+       culling for opaque (filled) blocks only.
+     - Face-sharing: hidden faces of translucent blocks must go, or they
+       double up.
+   - Draw opaque blocks first, then the translucent ones back to front
+     (sorted per rebuild by distance to the camera) with depthWrite off.
+     Or split them into two meshes: an opaque one, and a translucent one
+     that is sorted per block.
+   - Keep the slice (#7). Translucency is how filled sectors inside the
+     solid become visible without cutting.
+
+   Done means generated sectors are visible through unfilled space at
+   every zoom, colours follow density on both, and the frame rate holds
+   at the #6 block budget.
+
+9. [ ] **Block info on click.** Clicking a block shows its sector ring,
    layer and slot ranges and its exact sector count (and how many are
    generated once tiles carry that). A click at m = 1 keeps today's sector
    panel (designation, CLI snippet, 8 corners).
 
-9. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
+10. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
    rebuilds the whole prism set on the main thread, then waits on tiles.
    - Move block listing and geometry into a Web Worker. `galaxyprisms.js`
      already has no three.js import. Hand back transferable typed arrays.
@@ -159,7 +193,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    Done means no dropped frames while zooming on a mid-range laptop, and
    no visible wait at any zoom step already visited.
 
-10. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
+11. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
    - Babylon.js is several MB, and deck.gl needs a bundler.
    - regl and raw WebGPU would mean rewriting picking, sprites and
      lighting by hand.
@@ -171,17 +205,16 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
    WebGPURenderer to move to later. Done means the rendering choice is
    written into `docs/html-interface.md`.
 
-11. [ ] **Follow-ups (edge cases).**
+12. [ ] **Follow-ups (edge cases).**
    - Distance-based detail (bigger blocks farther from the camera), which
      the aligned wedges from 5 make seamless.
-   - An option to color blocks by the share of their sectors already
-     generated.
-   - A translucent mode.
+   - Order-independent transparency (weighted blended) if #8's sorting
+     shows artifacts where translucent blocks intersect.
    - Phone performance at 390 px.
    - DPR: `pcPerPixel` is per CSS pixel.
    - Reduced-motion users get instant zoom.
 
-12. [ ] **Remove the server's leftover density sampling.** The page draws
+13. [ ] **Remove the server's leftover density sampling.** The page draws
    density itself since the prisms landed, but `queryDb.galaxy_tiles`
    still accepts `density_key` and `galaxyViewport.density_points_for_tile`
    / `density_sample_points` still exist, as does `tilecache`'s `density`
@@ -192,14 +225,14 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 Low priority; nobody is waiting on these.
 
-13. [ ] **The API can't create a system inside an existing sector.**
+14. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-14. [ ] **The API can't edit a system's generated content.** `PATCH
+15. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -209,10 +242,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-15. [ ] Assign government ownership to star systems so that groups of
+16. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-16. [ ] Flag worlds with life for generated names of their dominant
+17. [ ] Flag worlds with life for generated names of their dominant
     species.
-17. [ ] A database of spacefaring species.
-18. [ ] Model younger and older civilizations: what differs with a
+18. [ ] A database of spacefaring species.
+19. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.

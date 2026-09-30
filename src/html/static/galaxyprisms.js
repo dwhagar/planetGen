@@ -38,7 +38,7 @@
 //     blocks are skipped before any wedge is looked at.
 //   - A slice layer hides blocks above the cut (#7).
 //   - Everything here must stay free of three.js, so it can run in a Web
-//     Worker (#9).
+//     Worker (#10).
 
 // How many prisms one view may draw, roughly.
 export var PRISM_BUDGET = 14000;
@@ -296,6 +296,15 @@ export function prismsForView(center, viewRadius, edgePc, galaxyRadius, shape, d
 //     all exist (the axis counts as filled), and only then lists that
 //     pair's wedges inside the view.
 // A slab above `slice` counts as empty, so the cut face is drawn.
+// TODO(galaxy-map #8): the interior skip is only valid for opaque blocks.
+// A translucent (unfilled) block lets its neighbours show through. So:
+// - cull interior blocks only when every neighbour is filled;
+// - list unfilled interior blocks while they are within the view and the
+//   budget;
+// - otherwise, at large m, draw the unfilled volume as a thinner shell
+//   (the outline, plus the slice face).
+// Each listed block gets `filled` (the count of its generated sectors,
+// from the tiles) alongside `density`.
 // Edge cases:
 // - the view ball reaching past the galaxy's edge;
 // - a view centred on the axis (every wedge in view);
@@ -411,7 +420,7 @@ function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
 // wound counter-clockwise seen from outside, so front-face culling shows
 // each prism's outside only.
 
-// TODO(galaxy-map #9): build this in a Web Worker, returning the typed
+// TODO(galaxy-map #10): build this in a Web Worker, returning the typed
 // arrays as transferables. Full-size blocks share faces with their
 // neighbours, so skip any face whose neighbour exists: the surface
 // listing only removes whole blocks, not hidden faces. If the vertex
