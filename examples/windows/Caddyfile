@@ -1,0 +1,38 @@
+# examples/windows/Caddyfile
+#
+# Caddy on Windows in front of waitress (planetgen-waitress.xml, on
+# 127.0.0.1:8000). docs/deployment/windows.md, option 2. Same rules as the
+# Linux examples/caddy/Caddyfile; only the paths and the upstream differ.
+# Put it at C:\srv\caddy\Caddyfile and run Caddy as a service
+# (caddy-service.xml). config.json's "proxy_fix" trusts one proxy for
+# x_for and x_proto (examples/windows/config.json.example).
+
+planetgen.example.com {
+	encode zstd gzip
+
+	log {
+		output file C:/ProgramData/planetgen/logs/caddy_access.log
+	}
+
+	handle_path /static/* {
+		root * C:/srv/planetGen/src/html/static
+		header X-Content-Type-Options "nosniff"
+		@versioned query v=*
+		header @versioned Cache-Control "public, max-age=31536000, immutable"
+		@unversioned not query v=*
+		header @unversioned Cache-Control "no-cache"
+		file_server
+	}
+
+	handle {
+		request_body {
+			max_size 1MB
+		}
+		reverse_proxy 127.0.0.1:8000 {
+			transport http {
+				dial_timeout 5s
+				response_header_timeout 60s
+			}
+		}
+	}
+}

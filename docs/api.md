@@ -7,8 +7,7 @@ project uses (see [`database-schema.md`](database-schema.md) for the MySQL
 port). It now has a frontend: the interim `../src/html/` browser
 ([`html-interface.md`](html-interface.md)) is a thin client over this API
 rather than a direct database consumer — see that doc's own note on the
-switch, and "Deploying behind Apache" below for how both are mounted on
-one vhost.
+switch, and "Deploying" below for how both are served by one app.
 
 Every read endpoint is fully implemented and unauthenticated (read-only,
 no account needed). Every write endpoint (create/modify/delete a sector or
@@ -20,13 +19,14 @@ seeded first login — see "Authentication" and "Write endpoints" below.
 Comparison against FastAPI/Django REST Framework: the persistence layer
 (`stellarObjects/_db.py`) is deliberately plain SQL over a small `pymysql`
 wrapper with no ORM, this API is read-heavy with no concurrency pressure yet,
-and it needs to deploy onto a plain Apache2/VPS setup (see
-[`apache-deployment.md`](apache-deployment.md)).
+and it needs to deploy onto a plain Apache2/VPS setup (or nginx, Caddy,
+IIS or macOS; see [`deployment/`](deployment/README.md)).
 Flask has no opinion
 about the data layer (route handlers call straight into `queryDb.py`'s and
-`stellarObjects._db`'s existing functions), deploys via `mod_wsgi`, and
+`stellarObjects._db`'s existing functions), deploys as a plain WSGI app
+(`mod_wsgi`, gunicorn or waitress), and
 lives at `../src/html/api/`, mounted at `/api/` by the same Flask app that
-serves the HTML pages (`../src/html/web/`, see "Deploying behind Apache"
+serves the HTML pages (`../src/html/web/`, see "Deploying"
 below). Those pages are this API's own frontend, calling it in-process. FastAPI's
 headline advantages (async, auto-generated OpenAPI docs) still don't pay
 for themselves: this API is read-heavy and low-concurrency regardless of
@@ -418,7 +418,7 @@ every intermediate hop is always a system.
   positions). Checked first/preferred over the galaxy-scope rule below.
 - Otherwise, both have a galaxy-frame position -- a system whose sector has
   a galaxy placement (`sectors.center_x/y/z_pc IS NOT NULL`, i.e. placed by
-  `galaxyGen.py`), or a phenomenon that's itself been placed in the galaxy
+  `generate.py galaxy`), or a phenomenon that's itself been placed in the galaxy
   (`--sector-id` at generation time -- see `generate.py phenomenon`'s own
   help). A phenomenon endpoint can only ever be resolved this way: it has
   no sector-local position of its own, regardless of which sector its own
@@ -493,7 +493,7 @@ admin (random first password, printed once by `migrateDb.py`) can log in and cal
 nothing else, until it changes its own credentials (`403` otherwise). A
 missing/invalid credential is `401`. Every write route runs against the
 same `PLANETGEN_MYSQL_*` database account every read route above uses —
-see `config.py` and [`apache-deployment.md`](apache-deployment.md) — and
+see `config.py` and [`deployment/README.md`](deployment/README.md#mysql-accounts) — and
 records one row in the control schema's `admin_audit_log` (who, what,
 when) after the write actually succeeds.
 
@@ -538,10 +538,10 @@ type, or a value failing the constraints above is a `400`.
 ### Systems — request body
 
 `POST /api/systems` takes a generation **"recipe"**, the same shape
-`systemGen.py --system-file` already takes (`SystemConfig.to_dict()`/
+`generate.py system --system-file` already takes (`SystemConfig.to_dict()`/
 `from_dict()`) — every field is optional (`null`/omitted means "let the
 generator decide"), and the server generates a brand-new, real system from
-it the same way `systemGen.py` does, via `StarSystem(system_config=...)`:
+it the same way `generate.py system` does, via `StarSystem(system_config=...)`:
 
 ```json
 {
@@ -573,7 +573,7 @@ or a fully-specified object graph shaped like `StarSystem.to_dict()`) is a
 `400` — not silently ignored.
 
 **Standalone only, for now.** The created system always has `sector_id =
-NULL` (same as `systemGen.py`'s own output) — attaching a newly generated
+NULL` (same as `generate.py system`'s own output) — attaching a newly generated
 system to an existing sector needs that sector's own placement/Hill-sphere
 separation logic (`SpaceSector.add_system`), which this endpoint doesn't
 call. Tracked as follow-up work in `docs/TODO.md`.
@@ -657,7 +657,7 @@ every write endpoint applies its own stricter limit
   `"1000 per day;200 per hour"`).
 - Storage backend: in-memory by default (`PLANETGEN_RATELIMIT_STORAGE_URI`,
   default `memory://`) — correct for a single-process deployment (Flask's
-  dev server, or `mod_wsgi`/`gunicorn` with exactly one worker). **A
+  dev server, or `mod_wsgi`/`gunicorn`/waitress with exactly one process). **A
   multi-worker deployment needs a shared backend** (e.g. Redis:
   `PLANETGEN_RATELIMIT_STORAGE_URI=redis://host:6379/0`), since each
   worker otherwise tracks its own separate counters and the real,
@@ -671,6 +671,13 @@ every write endpoint applies its own stricter limit
   a page makes in-process count against neither.
 - Exceeding a limit returns `429` with a `Retry-After` header and
   `X-RateLimit-*` headers (`RATELIMIT_HEADERS_ENABLED`).
+- "Client IP" is `request.remote_addr`. Behind a separate reverse proxy
+  (nginx, Caddy, IIS, Apache `mod_proxy`) that is the proxy's address
+  unless `config.json`'s `proxy_fix` is set (see
+  [`config.md`](config.md) and
+  [`deployment/README.md`](deployment/README.md#behind-a-reverse-proxy-proxy_fix));
+  without it every visitor shares one budget. Under Apache + `mod_wsgi`
+  it is already the client's address.
 
 ## Running locally
 
@@ -700,7 +707,7 @@ the same `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` account —
 `WRITE_MYSQL_CONFIG` simply reuses `MYSQL_CONFIG` (see
 `html/api/config.py`), there's no separate write-capable override. Point
 it at an account with `INSERT`/`UPDATE`/`DELETE`/`SELECT` grants in
-production — see [`apache-deployment.md`](apache-deployment.md#mysql-accounts).
+production — see [`deployment/README.md`](deployment/README.md#mysql-accounts).
 
 Admin logins/sessions/API keys/audit log live in a separate **control
 schema** (`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`),
@@ -731,44 +738,53 @@ rows and let `migrateDb.py` seed a new one:
 the rows also deletes their sessions and API keys; the audit log keeps
 its entries. The new random password is printed as above.
 
-## Deploying behind Apache (mod_wsgi)
+## Deploying
 
-`src/html/wsgi.py` exposes the standard `application` object `mod_wsgi`
-expects, and lives inside the `html/` tree the vhost's `DocumentRoot`
-points at. The example vhost config in `examples/apache/` mounts it out
-of the box -- a `WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py`
-(the same app serves the API under `/api` and every HTML page; see
-[`apache-deployment.md`](apache-deployment.md)), in its own
-`WSGIDaemonProcess`, plus the `<Directory>` block that denies direct
-requests into `html/api/` the same way it already does for `html/lib/`
-(see [`apache-deployment.md`](apache-deployment.md)) -- so the common
-single-vhost case needs no changes, just copying/enabling that example as
-usual; replicate the same block into a custom vhost, or run it behind
-`gunicorn` + `mod_proxy`/`mod_proxy_http`, if `mod_wsgi` isn't available.
-No separate vhost/`ServerName` is needed either way: the pages call the
-API in-process (`html/web/transport.py`), not over HTTP, so a `:80` to
-HTTPS redirect no longer needs to exclude `/api` (older versions of this
-document required that, for the CGI pages' loopback calls).
+`src/html/wsgi.py` exposes the standard WSGI `application` object: the
+same app serves the API under `/api` and every HTML page. Every hosting
+setup loads that one file:
 
-Either way, set `PLANETGEN_MYSQL_*` in
-the process environment to point at the deployed MySQL database, ideally
-via a read-only account (see above) -- under `mod_wsgi` this means the
-Apache service's own process environment (e.g. `/etc/apache2/envvars`, or
-an `Environment=` line on the apache2 systemd unit), **not** the vhost's
-`SetEnv` directives: those never reach `os.environ` under `mod_wsgi` -- `html/api/config.py` reads its config
-from `os.environ` once, at process startup, and `SetEnv` values only ever
-show up in a request's `environ` dict, which doesn't exist yet at that
-point. Under `gunicorn`, its own service's environment file works the
-normal way. If running more than one `mod_wsgi`/`gunicorn` worker, also set
-`PLANETGEN_RATELIMIT_STORAGE_URI` to a shared backend (see "Rate
-limiting").
+- **Apache + `mod_wsgi`** (the reference setup, `examples/apache/`): a
+  `WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py`, in its own
+  `WSGIDaemonProcess`, plus the `<Directory>` blocks that deny direct
+  requests into `html/api/` and `html/lib/`. See
+  [`deployment/apache.md`](deployment/apache.md).
+- **gunicorn** behind nginx or Caddy (Linux, macOS):
+  `gunicorn --pythonpath <checkout>/src/html wsgi:application`.
+- **waitress** behind IIS, Caddy or Apache (Windows):
+  `waitress-serve wsgi:application` run from `src/html`.
+
+[`deployment/README.md`](deployment/README.md) compares them and links
+each guide. Behind nginx, Caddy, IIS or Apache's `mod_proxy`, set
+`config.json`'s `proxy_fix` so the rate limits see the client's address
+and the app knows a request came over HTTPS; under `mod_wsgi` leave it
+off. No separate vhost or `ServerName` is needed for the API: the pages
+call it in-process (`html/web/transport.py`), not over HTTP.
+
+Point the app at the deployed MySQL database with `config.json`'s `mysql`
+section, or `PLANETGEN_MYSQL_*` in the process environment. That account
+needs write grants, not just `SELECT`: the admin pages and every write
+endpoint write through it (see "Running locally" above and
+[`deployment/README.md`](deployment/README.md#mysql-accounts)). Under
+`mod_wsgi`, environment variables must be in the Apache service's own
+process environment (e.g. `/etc/apache2/envvars`, or an `Environment=`
+line on the apache2 systemd unit), **not** the vhost's `SetEnv`
+directives: those never reach `os.environ` under `mod_wsgi` --
+`html/api/config.py` reads its config from `os.environ` once, at process
+startup, and `SetEnv` values only ever show up in a request's `environ`
+dict, which doesn't exist yet at that point. Under gunicorn or waitress,
+the service's own environment (systemd `EnvironmentFile`, launchd
+`EnvironmentVariables`, WinSW `<env>`) works the normal way. If running
+more than one process, also set `PLANETGEN_RATELIMIT_STORAGE_URI` to a
+shared backend (see "Rate limiting").
 
 **The admin session cookie requires HTTPS.** It's set `Secure` by default
 (`config.SESSION_COOKIE_SECURE`) -- the browser never sends it over plain
-HTTP, so `/login` and `/admin` won't work behind a vhost that's HTTP-only.
-Terminate TLS in front of this vhost (e.g. `certbot --apache`) before
-using the admin pages; only set `PLANETGEN_ADMIN_COOKIE_INSECURE=1` for
-local development without TLS in front, never in production.
+HTTP, so `/login` and `/admin` won't work on an HTTP-only site. Terminate
+TLS in front of the app (e.g. `certbot --apache` or `--nginx`, or Caddy's
+automatic HTTPS) before using the admin pages; only set
+`PLANETGEN_ADMIN_COOKIE_INSECURE=1` for local development without TLS in
+front, never in production.
 
 ## Not done yet
 

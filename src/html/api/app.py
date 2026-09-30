@@ -49,7 +49,37 @@ def create_app(config_object=Config):
     _register_security_headers(app)
     _register_request_logging(app)
     _warn_if_unshared_ratelimit_storage(app)
+    _apply_proxy_fix(app)
     return app
+
+
+def _apply_proxy_fix(app):
+    """
+    Behind a reverse proxy (nginx, Caddy, IIS, Apache `mod_proxy`), takes
+    the client address, scheme and host from the proxy's `X-Forwarded-*`
+    headers, trusting as many proxies per header as `PROXY_FIX` says
+    (`config.json`'s `proxy_fix`, see `config._proxy_fix`). Rate limits
+    are keyed by `request.remote_addr` and HSTS depends on
+    `request.is_secure`, so both need this behind a proxy. Nothing
+    changes when every count is 0 (the default, right for Apache +
+    mod_wsgi).
+
+    The in-process API calls the pages make (`web/transport.py`) pass
+    through this too; they carry no `X-Forwarded-*` headers, so they keep
+    the `REMOTE_ADDR` the page gave them.
+    """
+    counts = app.config.get("PROXY_FIX") or {}
+    if not any(counts.get(name, 0) for name in ("x_for", "x_proto", "x_host")):
+        return
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=counts.get("x_for", 0),
+        x_proto=counts.get("x_proto", 0),
+        x_host=counts.get("x_host", 0),
+    )
+    log.debug(f"Trusting X-Forwarded-* headers from proxies: {counts}")
 
 
 def _reject_undecodable_query_string():

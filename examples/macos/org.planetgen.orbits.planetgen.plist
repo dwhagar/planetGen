@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  examples/macos/org.planetgen.orbits.planetgen.plist
+
+  launchd counterpart of examples/maintenance/planetgen-orbits@.timer and
+  its service: runs src/updateOrbits.py against the "planetgen" database
+  on the 1st of every month at 03:30. For another database, copy this
+  file, change "planetgen" in the Label, the file name and
+  PLANETGEN_MYSQL_DATABASE. See docs/deployment/macos.md.
+
+  launchd has no Persistent=true: a run missed while the Mac was asleep
+  runs on wake, but one missed while it was powered off is skipped.
+
+  Install:
+      sudo cp org.planetgen.orbits.planetgen.plist /Library/LaunchDaemons/
+      sudo chown root:wheel /Library/LaunchDaemons/org.planetgen.orbits.planetgen.plist
+      sudo launchctl bootstrap system /Library/LaunchDaemons/org.planetgen.orbits.planetgen.plist
+  Run it once now to test:
+      sudo launchctl kickstart system/org.planetgen.orbits.planetgen
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>org.planetgen.orbits.planetgen</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/planetgen/venv/bin/python</string>
+        <string>src/updateOrbits.py</string>
+    </array>
+    <key>UserName</key>
+    <string>_www</string>
+    <key>WorkingDirectory</key>
+    <string>/var/lib/planetGen</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PLANETGEN_MYSQL_DATABASE</key>
+        <string>planetgen</string>
+    </dict>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/usr/local/planetgen/log/orbits.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/planetgen/log/orbits.log</string>
+</dict>
+</plist>

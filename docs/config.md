@@ -1,9 +1,9 @@
 # Deployment Configuration
 
 This document describes `config.json`, the single per-deployment
-configuration file for the whole planetGen project -- the generation
-CLIs (`sectorGen.py`/`systemGen.py`/`galaxyGen.py`/`queryDb.py`/
-`migrateDb.py`/`updateOrbits.py`) and the Flask app (the API in
+configuration file for the whole planetGen project -- the command-line
+tools (`generate.py`, `queryDb.py`, `migrateDb.py`, `updateOrbits.py`,
+`resetDb.py`, ...) and the Flask app (the API in
 `../src/html/api/` and the pages in `../src/html/web/`) all read it -- and
 [`../config.json.example`](../config.json.example), the committed
 template it's copied from.
@@ -28,17 +28,17 @@ keeps its default value.
 
 ## Location: repo root
 
-`config.json` lives at the repo root -- a sibling of `../src/html/`, `db/`,
-and `src/` -- rather than inside `../src/html/` itself (its *example*
+`config.json` lives at the repo root -- next to `src/` -- rather than
+inside `../src/html/` itself (its *example*
 template, [`../config.json.example`](../config.json.example), lives at the
 repo root too, since a template holds only placeholder values, not
 secrets). This mirrors how Apache's `DocumentRoot` for this application is
 `../src/html/` alone (see
 [`../examples/apache/planetgen.conf.example`](../examples/apache/planetgen.conf.example)),
-so `config.json`, one level above `../src/html/`, can never be requested
-over HTTP no matter how the vhost or `.htaccess` rules are written --
-there's no path traversal or misconfiguration that reaches it, because
-it's outside the tree Apache serves at all. This matters because
+and the other web servers only serve `src/html/static/` from disk (see
+[`deployment/`](deployment/README.md)), so `config.json`, outside those
+trees, can never be requested over HTTP no matter how the site's rules
+are written. This matters because
 `config.json` holds real MySQL credentials, unlike the placeholder fields
 its now-removed predecessor (`webconfig.json`) only ever reserved for
 them.
@@ -46,7 +46,9 @@ them.
 It also has to be unreadable by other local users. `install.sh` and
 `update.sh` (through `examples/apache/set-permissions.sh`) set it to
 `root:<apache group>`, mode `640`, whenever it exists: root can edit it,
-Apache's worker can read it, nobody else can. A login user who runs the
+the web app (running as that group's user, `www-data` for Apache and the
+gunicorn unit alike) can read it, nobody else can. The macOS and Windows
+guides set the same rule by hand. A login user who runs the
 generator or the maintenance scripts from a shell without `sudo` needs to
 be in Apache's group (`sudo usermod -aG www-data <user>`, then log in
 again) to read it. After creating or copying a new `config.json`, re-run
@@ -57,7 +59,7 @@ it by hand: `sudo chown root:www-data config.json && sudo chmod 640 config.json`
 
 Every setting below has up to three sources, checked in this order:
 
-1. An explicit function/CLI argument (e.g. `sectorGen.py --mysql-password ...`,
+1. An explicit function/CLI argument (e.g. `generate.py sector --mysql-password ...`,
    or a test building its own `MySQLConfig(...)` directly) -- always wins.
 2. The matching `PLANETGEN_*` environment variable, if set.
 3. `config.json`.
@@ -80,16 +82,17 @@ now, `config.json`).
 | `base_url` | The base URL this deployment is served from, e.g. `"http://localhost/"` or `"https://planetgen.example.com/"`. Not yet read by any page -- reserved for future absolute-URL generation (e.g. constructing shareable links) that can't be derived from a request alone. |
 | `api_base_url` | Base URL of the Flask API's `/api` mount point, used by `../src/html/lib/apiclient.py` only outside the Flask app (the pages call the API in-process). Defaults to `http://127.0.0.1/api`; override when the API is deployed at a different host/port. Equivalent to `PLANETGEN_API_BASE_URL`. |
 | `debug` | When true, every part of planetGen -- the generator CLI, the maintenance scripts, the `html/` pages and the API -- writes a verbose debug log to `log_file`: every decision the generator makes and why, every random roll (with the source line that asked for it and the probabilities or thresholds that line refers to), every SQL statement, every web request, API call and admin access check, and every error with its traceback, each line timestamped to the millisecond and tagged with its process. Off when missing. The log grows fast (a single sector writes megabytes), so `install.sh`/`update.sh` install a logrotate config for it (daily, or past 100 MB; 7 compressed copies kept). The web interface never shows tracebacks on its pages, debug or not; with debug on, a 500 page says the traceback is in the debug log. See `../src/stellarObjects/log.py`. Equivalent to `PLANETGEN_DEBUG` (`1` on, `0` off). |
-| `log_file` | Where the debug log goes; default `/var/log/planetgen.log`. With `debug` on, `install.sh`/`update.sh` create it (owned by Apache's user and group, mode 0660) and point the logrotate config at it. A login user who runs the generator from a shell must be in Apache's group (`sudo usermod -aG www-data <user>`, then log in again) to append to it; root can always write to it. A process that can't open it carries on without a debug log and prints one warning to stderr. Equivalent to `PLANETGEN_LOG_FILE`. |
+| `log_file` | Where the debug log goes; default `/var/log/planetgen.log` (set it explicitly on Windows). With `debug` on, `install.sh`/`update.sh` create it (owned by Apache's user and group, mode 0660) and point the logrotate config at it. A login user who runs the generator from a shell must be in Apache's group (`sudo usermod -aG www-data <user>`, then log in again) to append to it; root can always write to it. A process that can't open it carries on without a debug log and prints one warning to stderr. Equivalent to `PLANETGEN_LOG_FILE`. |
 | `mysql.host`/`mysql.port`/`mysql.user`/`mysql.password`/`mysql.database` | The one MySQL connection every entry point uses -- the generation CLIs, `install.sh`/`migrateDb.py`, and the Flask API's reads and writes alike (see `stellarObjects._db.MySQLConfig`). There's no separate write-capable override: give this account whatever grants the most demanding caller needs. Equivalent to `PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE`. |
 | `mysql.database_prefix` | The schema-name prefix `list_databases`/`resolve_database` filter by, for a deployment with more than one game database on one server (e.g. `planetgen`, `planetgen_alpha`, ...). Equivalent to `PLANETGEN_MYSQL_DATABASE_PREFIX`. |
 | `control_database` | Name of the separate MySQL schema holding admin identities/sessions/API keys/audit log (see `../src/stellarObjects/control_schema.sql`), reached via the account above. Never listed by `/api/databases` or selectable with `?db=`, even when it shares `mysql.database_prefix` (as the default `planetgen_control` does). Equivalent to `PLANETGEN_CONTROL_DATABASE`. |
 | `ratelimit.default`/`ratelimit.storage_uri` | Flask-Limiter's default rate limit and storage backend for the API (see `../src/html/api/config.py`). `storage_uri` needs a shared backend (e.g. `redis://...`) once a deployment runs more than one worker process. Equivalent to `PLANETGEN_RATELIMIT_DEFAULT`/`PLANETGEN_RATELIMIT_STORAGE_URI`. |
 | `ratelimit.pages` | Per-client-IP limits on the HTML pages and `/api/health` (see `../src/html/api/limiter.py` and [`html-interface.md`](html-interface.md#rate-limits)): `search` (`/search`, default `"30 per minute"`), `galaxy` (`/galaxy`, `"60 per minute"`), `galaxy_tiles` (`/galaxy/tiles`, `"600 per minute"`), `health` (`/api/health`, `"60 per minute"`) and `other` (every other page, counted together, `"300 per minute"`). A name left out keeps its default; an empty string turns that limit off. No environment variable. |
+| `proxy_fix.x_for`/`proxy_fix.x_proto`/`proxy_fix.x_host` | How many reverse proxies to trust for the client address (`X-Forwarded-For`), the scheme (`X-Forwarded-Proto`) and the host (`X-Forwarded-Host`); werkzeug's `ProxyFix`, applied in `create_app` (`../src/html/api/app.py`). All `0` (the default) means off: the app uses the connection's own address and scheme, which is right under Apache + mod_wsgi. Behind nginx, Caddy, IIS or Apache's `mod_proxy` in front of gunicorn or waitress, set `x_for` and `x_proto` to `1`: otherwise every visitor shares the proxy's address (one rate-limit budget for everyone) and the app never sends `Strict-Transport-Security`. Only turn it on when the app server is reachable through that proxy alone (a Unix socket or `127.0.0.1`), since whoever connects can set these headers. A value that isn't a whole number 0 or above stops the app at startup. See [`deployment/README.md`](deployment/README.md#behind-a-reverse-proxy-proxy_fix). Equivalent to `PLANETGEN_PROXY_FIX_X_FOR`/`PLANETGEN_PROXY_FIX_X_PROTO`/`PLANETGEN_PROXY_FIX_X_HOST`. |
 | `admin_cookie_insecure` | When true, the admin session cookie is sent over plain HTTP. Only for local development without TLS in front of the app (e.g. `python src/html/wsgi.py`) -- a production deployment must never set this. Equivalent to `PLANETGEN_ADMIN_COOKIE_INSECURE=1`. |
-| `secret_key` | Signs the CSRF tokens on the Flask-served pages' forms (`src/html/web/csrf.py`). Set it to a long random string (e.g. `python3 -c "import secrets; print(secrets.token_hex(32))"`) and keep it private. If empty, the app makes a random one at startup and logs a warning: forms still work, but a form left open across an Apache restart fails once and has to be resubmitted. Equivalent to `PLANETGEN_SECRET_KEY`. |
-| `tile_cache.dir`/`tile_cache.max_mb` | Where the web pages (the Flask-served `/galaxy` and `/galaxy/tiles`, in the WSGI daemon) keep their on-disk cache of 3D Galaxy Map tiles (see `../src/html/lib/tilecache.py`), and roughly how big that cache may grow before its oldest files are pruned. An empty `dir` (the default) means `/var/cache/planetgen/tiles`, which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`, which also creates a `dir` you set here); if it's missing and Apache can't create it, the cache falls back to a private (mode 0700) `planetgen-tiles` folder in the system temp directory; an existing one that isn't a real directory owned by Apache's user, or that other users can write to, is refused (the cache is then off) rather than reused. `max_mb` of `0` turns the disk cache off. Equivalent to `PLANETGEN_TILE_CACHE_DIR`/`PLANETGEN_TILE_CACHE_MAX_MB`. |
-| `jobs.dir`/`jobs.keep`/`jobs.python` | The admin Generate page's background jobs (see `../src/html/web/jobs.py`). `dir` is where each job's command lines, status and output are kept; empty (the default) means `/var/lib/planetgen/jobs`, which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`), falling back to a private (mode 0700) `planetgen-jobs` folder in the system temp directory, refused under the same conditions as the tile cache's fallback. `keep` is how many finished jobs are kept (default 20). `python` is the interpreter that runs `generate.py` and `resetDb.py`; empty means the web app's own Python (under mod_wsgi, `<sys.prefix>/bin/python3`). Equivalent to `PLANETGEN_JOBS_DIR`/`PLANETGEN_PYTHON`. |
+| `secret_key` | Signs the CSRF tokens on the Flask-served pages' forms (`src/html/web/csrf.py`). Set it to a long random string (e.g. `python3 -c "import secrets; print(secrets.token_hex(32))"`) and keep it private. If empty, the app makes a random one at startup and logs a warning: forms still work, but a form left open across an app restart fails once and has to be resubmitted. Equivalent to `PLANETGEN_SECRET_KEY`. |
+| `tile_cache.dir`/`tile_cache.max_mb` | Where the web pages (the Flask-served `/galaxy` and `/galaxy/tiles`, in the WSGI daemon) keep their on-disk cache of 3D Galaxy Map tiles (see `../src/html/lib/tilecache.py`), and roughly how big that cache may grow before its oldest files are pruned. An empty `dir` (the default) means `/var/cache/planetgen/tiles` (set it explicitly on Windows), which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`, which also creates a `dir` you set here); if it's missing and Apache can't create it, the cache falls back to a private (mode 0700) `planetgen-tiles` folder in the system temp directory; an existing one that isn't a real directory owned by Apache's user, or that other users can write to, is refused (the cache is then off) rather than reused. `max_mb` of `0` turns the disk cache off. Equivalent to `PLANETGEN_TILE_CACHE_DIR`/`PLANETGEN_TILE_CACHE_MAX_MB`. |
+| `jobs.dir`/`jobs.keep`/`jobs.python` | The admin Generate page's background jobs (see `../src/html/web/jobs.py`). `dir` is where each job's command lines, status and output are kept; empty (the default) means `/var/lib/planetgen/jobs` (set it explicitly on Windows), which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`), falling back to a private (mode 0700) `planetgen-jobs` folder in the system temp directory, refused under the same conditions as the tile cache's fallback. `keep` is how many finished jobs are kept (default 20). `python` is the interpreter that runs `generate.py` and `resetDb.py`; empty means the web app's own Python (under mod_wsgi, `<sys.prefix>/bin/python3`). Equivalent to `PLANETGEN_JOBS_DIR`/`PLANETGEN_PYTHON`. |
 | `wiki.wikijs.base_url`/`.api_token` | The target Wiki.js instance's root URL and a Personal API Token (Admin -> API Access) -- see `../src/wikiClient/wikijs.py`. Leaving `base_url` empty (the default) means Wiki.js isn't offered as an "Upload to Wiki" target at all. Equivalent to `PLANETGEN_WIKIJS_BASE_URL`/`PLANETGEN_WIKIJS_API_TOKEN`. |
 | `wiki.mediawiki.base_url`/`.username`/`.password` | The target MediaWiki instance's API entry point directory (everything up to, not including, `api.php`) and a [Bot Password](https://www.mediawiki.org/wiki/Special:BotPasswords) (`username` in `"User@BotName"` form) -- see `../src/wikiClient/mediawiki.py`. Leaving `base_url` empty (the default) means MediaWiki isn't offered as an upload target. Equivalent to `PLANETGEN_MEDIAWIKI_BASE_URL`/`PLANETGEN_MEDIAWIKI_USERNAME`/`PLANETGEN_MEDIAWIKI_PASSWORD`. |
 
@@ -117,7 +120,7 @@ cp config.json.example config.json
 Then fill in `mysql.host`/`mysql.user`/`mysql.password`/`mysql.database`
 (and `control_database`, if this deployment names its control schema
 something other than the default -- see
-[`apache-deployment.md`](apache-deployment.md#mysql-accounts)) for this
+[`deployment/README.md`](deployment/README.md#mysql-accounts)) for this
 deployment's actual database server. `site_name`/`base_url` are cosmetic
 and safe to leave as-is.
 
@@ -131,7 +134,9 @@ behavior this project had before `config.json` existed.
 
 `config.json` doesn't replace the `PLANETGEN_*` environment variables --
 see "Precedence" above. In short: `config.json` is where a deployment
-sets its defaults once; environment variables (Apache `SetEnv`, a
-systemd `EnvironmentFile`, or a shell export) remain the way to override
+sets its defaults once; environment variables (the web server's or
+service's own environment -- not an Apache `SetEnv`, which never reaches
+`os.environ` under mod_wsgi -- a systemd `EnvironmentFile`, a launchd
+`EnvironmentVariables`, a WinSW `<env>`, or a shell export) remain the way to override
 one of those defaults for a single process, most importantly the
 per-instance database name `planetgen-orbits@.service` needs.

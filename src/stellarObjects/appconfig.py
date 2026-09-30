@@ -80,6 +80,16 @@ DEFAULT_CONFIG = {
     },
     "admin_cookie_insecure": False,
     "secret_key": "",
+    # How many reverse proxies in front of the WSGI server to trust for
+    # each X-Forwarded-* header (werkzeug's ProxyFix; see
+    # html/api/config.py). All 0 (the default) means the app uses the
+    # connection's own address and scheme, which is right under Apache +
+    # mod_wsgi.
+    "proxy_fix": {
+        "x_for": 0,
+        "x_proto": 0,
+        "x_host": 0,
+    },
     "tile_cache": {
         "dir": "",
         "max_mb": 200,

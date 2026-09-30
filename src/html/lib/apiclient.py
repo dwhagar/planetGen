@@ -21,7 +21,7 @@ deployment story this project's docs already describe for `html/`
 over HTTP rather than a database socket.
 
 The API must be reachable for this browser to work at all now -- see
-`API_BASE_URL` below and `docs/apache-deployment.md` for how it's mounted
+`API_BASE_URL` below and `docs/deployment/apache.md` for how it's mounted
 alongside `html/` in a real deployment.
 """
 

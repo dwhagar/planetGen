@@ -12,7 +12,7 @@ decorate).
 
 Everything here is written to stay cheap on a galaxy-scale database,
 because the API serves every page from one small thread pool and a slow
-admin request would stall the whole site (see `docs/apache-deployment.md`):
+admin request would stall the whole site (see `docs/deployment/apache.md`):
 
 - Per-table row counts come from `information_schema.tables`, which is an
   estimate for InnoDB (and can lag by up to a day on MySQL 8, see

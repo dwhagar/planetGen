@@ -1,0 +1,23 @@
+{
+  "log_file": "C:/ProgramData/planetgen/logs/planetgen.log",
+  "mysql": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "planetgen",
+    "password": "CHANGE-ME",
+    "database": "planetgen"
+  },
+  "secret_key": "CHANGE-ME-to-64-random-hex-characters",
+  "proxy_fix": {
+    "x_for": 1,
+    "x_proto": 1,
+    "x_host": 0
+  },
+  "tile_cache": {
+    "dir": "C:/ProgramData/planetgen/tiles"
+  },
+  "jobs": {
+    "dir": "C:/ProgramData/planetgen/jobs",
+    "python": "C:/srv/planetgen-venv/Scripts/python.exe"
+  }
+}

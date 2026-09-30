@@ -1,0 +1,98 @@
+# examples/systemd/planetgen-gunicorn.service
+#
+# Runs the planetGen Flask app (every page and the API) under gunicorn,
+# for nginx or Caddy to proxy to. The gunicorn equivalent of the Apache
+# vhost's
+#     WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
+#
+# gunicorn loads src/html/wsgi.py directly, the file mod_wsgi loads.
+# config.json must set "proxy_fix": {"x_for": 1, "x_proto": 1} so the app
+# sees the client's address and scheme, not the proxy's (docs/config.md).
+# See docs/deployment/nginx.md.
+#
+# Install:
+#     sudo apt install gunicorn            # Debian/Ubuntu: uses the system python3
+#     sudo cp examples/systemd/planetgen-gunicorn.service /etc/systemd/system/
+#     sudo systemctl daemon-reload
+#     sudo systemctl enable --now planetgen-gunicorn
+#
+# After `sudo ./update.sh`:   sudo systemctl reload planetgen-gunicorn
+#
+# reload vs restart: reload (SIGHUP) starts new workers with the new code
+# and leaves a running admin Generate job alone. restart/stop end every
+# process in this unit's cgroup, including a Generate job's runner (it
+# was started with start_new_session=True, which leaves the process group
+# but not the cgroup); the page then shows that job as "interrupted".
+# Apache's own unit behaves the same way on a restart.
+
+[Unit]
+Description=planetGen web app (gunicorn)
+After=network-online.target
+Wants=network-online.target
+# If MySQL/MariaDB runs on this host, also order after it:
+# After=mariadb.service mysql.service
+
+[Service]
+# gunicorn tells systemd when it is ready. If your gunicorn is too old to
+# do that (the unit then times out on start), use Type=simple instead.
+Type=notify
+NotifyAccess=main
+# The same identity install.sh/update.sh give the runtime directories to
+# (they detect Apache's user and fall back to www-data when Apache is
+# not installed). The code tree stays root:www-data and read-only.
+User=www-data
+Group=www-data
+WorkingDirectory=/var/lib/planetGen
+# config.json at the repo root is the main configuration. Optional
+# per-process overrides (PLANETGEN_* variables, see docs/config.md) go in
+# this file, mode 640 root:www-data. The leading "-" makes it optional.
+EnvironmentFile=-/etc/planetgen/web.env
+
+# /run/planetgen/ for the socket nginx/Caddy connect to.
+RuntimeDirectory=planetgen
+RuntimeDirectoryMode=0750
+
+# One process, five threads: the same shape as the Apache daemon. One
+# process keeps the in-memory rate limiter correct (ratelimit.storage_uri
+# "memory://"); for more workers set ratelimit.storage_uri to a shared
+# backend such as redis:// first (docs/api.md, "Rate limiting").
+#
+# --timeout is gunicorn's worker heartbeat, not a per-request limit: with
+# threads, one slow request does not trip it. The per-request limit is
+# the proxy's (proxy_read_timeout 60s in the nginx example).
+#
+# gunicorn 25.1 and later (Ubuntu 26.04's apt package is 25.1.0): add
+# --no-control-socket. The control socket (for the gunicornc tool, unused
+# here) tries to create ~/.gunicorn in www-data's home, and in 25.1-26.x
+# leaks a thread and a file descriptor on every reload
+# (benoitc/gunicorn#3648). Older gunicorn (Ubuntu 24.04 ships 20.1.0)
+# rejects the flag. Check with: gunicorn --version
+ExecStart=/usr/bin/gunicorn \
+    --pythonpath /var/lib/planetGen/src/html \
+    --bind unix:/run/planetgen/gunicorn.sock \
+    --umask 0007 \
+    --workers 1 \
+    --worker-class gthread \
+    --threads 5 \
+    --timeout 60 \
+    --graceful-timeout 30 \
+    --access-logfile - \
+    --error-logfile - \
+    wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+Restart=on-failure
+
+# Hardening. ProtectSystem=full makes /usr, /boot and /etc read-only for
+# this service and the Generate jobs it starts; /var stays governed by
+# ordinary file permissions (the tile cache, the jobs directory and the
+# debug log belong to www-data, the code tree does not). /tmp is a
+# private one.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

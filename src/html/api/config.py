@@ -18,7 +18,7 @@ Every read and write in `routes.py` goes through this same connection --
 Give this one account whatever grants the most demanding caller needs
 (`INSERT`/`UPDATE`/`DELETE` on the content schemas and the control schema,
 at minimum, once any write endpoint is reachable) -- see
-`docs/apache-deployment.md`'s "MySQL accounts" section.
+`docs/deployment/README.md`'s "MySQL accounts" section.
 
 `RATELIMIT_DEFAULT`/`RATELIMIT_STORAGE_URI` configure Flask-Limiter (see
 `limiter.py`) -- applied to every route by default; `routes.py`'s write
@@ -118,6 +118,55 @@ def _secret_key():
 _SECRET_KEY, _SECRET_KEY_IS_EPHEMERAL = _secret_key()
 
 
+PROXY_FIX_HEADERS = ("x_for", "x_proto", "x_host")
+"""tuple: The `proxy_fix` fields, each werkzeug `ProxyFix`'s argument of
+the same name: `x_for` (`X-Forwarded-For`, the client address),
+`x_proto` (`X-Forwarded-Proto`, http or https) and `x_host`
+(`X-Forwarded-Host`)."""
+
+
+def _proxy_fix(section):
+    """
+    How many proxies to trust for each `X-Forwarded-*` header:
+    `PLANETGEN_PROXY_FIX_X_FOR`/`_X_PROTO`/`_X_HOST` when set, else
+    `config.json`'s `proxy_fix` section, else 0 (don't trust the header).
+
+    Behind nginx, Caddy, IIS or Apache's `mod_proxy`, the WSGI server only
+    sees the proxy's connection: without this every visitor has the
+    proxy's address (so they all share one rate-limit bucket) and every
+    request looks like plain HTTP (so no `Strict-Transport-Security`).
+    `create_app` wraps the app in `ProxyFix` when any count is above 0.
+    Under Apache + mod_wsgi the connection already is the client's, so
+    leave them all at 0 there: a trusted header a client can set itself
+    lets it pick its own rate-limit address.
+
+    Raises:
+        ValueError: A count that isn't a whole number 0 or above -- a
+            typo here should stop the app, not quietly turn trust off
+            (or on).
+    """
+    if not isinstance(section, dict):
+        section = {}
+    counts = {}
+    for name in PROXY_FIX_HEADERS:
+        env_name = f"PLANETGEN_PROXY_FIX_{name.upper()}"
+        raw = os.environ.get(env_name)
+        source = env_name
+        if raw is None or raw.strip() == "":
+            raw = section.get(name, 0)
+            source = f"config.json proxy_fix.{name}"
+        if isinstance(raw, bool):
+            raise ValueError(f"{source} must be a whole number of proxies (0 = off), not {raw!r}")
+        try:
+            value = int(str(raw).strip())
+        except ValueError:
+            raise ValueError(f"{source} must be a whole number of proxies (0 = off), not {raw!r}") from None
+        if value < 0:
+            raise ValueError(f"{source} must be 0 or more, not {value}")
+        counts[name] = value
+    return counts
+
+
 class Config:
     MYSQL_CONFIG = MySQLConfig()
 
@@ -147,12 +196,15 @@ class Config:
 
     # The admin session cookie (auth.py) is Secure by default -- never
     # sent over plain HTTP -- matching this project's documented
-    # deployment (Apache + Let's Encrypt, docs/apache-deployment.md).
+    # deployment (HTTPS in front of the app, docs/deployment/).
     # Only ever disable this for local development over plain HTTP (e.g.
     # `python src/html/wsgi.py` without TLS in front of it); a production
     # deployment must never set PLANETGEN_ADMIN_COOKIE_INSECURE or
     # config.json's admin_cookie_insecure.
     SESSION_COOKIE_SECURE = _session_cookie_secure(_config_file["admin_cookie_insecure"])
+
+    # See `_proxy_fix` above. All 0 (the default) leaves the app as it is.
+    PROXY_FIX = _proxy_fix(_config_file.get("proxy_fix"))
 
     # See `_secret_key` above.
     SECRET_KEY = _SECRET_KEY
