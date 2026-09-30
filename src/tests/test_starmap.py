@@ -171,14 +171,16 @@ def test_render_map_panel_compass_present_only_when_placed():
 
 def test_render_map_panel_binary_system_gets_two_star_entries():
     system = _make_system()
+    system["stars"][0]["name"] = "Test System Kelmoor"
     system["stars"].append({
-        "star_type": "M4V", "temperature_k": 3200, "radius_km": 200000,
+        "name": "Test System Ostra", "star_type": "M4V", "temperature_k": 3200, "radius_km": 200000,
         "luminosity_w": 1.0e24, "temp_display": "3200 K",
     })
     scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
     assert len(scene["stars"]) == 2
-    assert scene["stars"][0]["name"] == "Test System A"
-    assert scene["stars"][1]["name"] == "Test System B"
+    # Each star shows its own name, with no A/B letters (bodyNames.py).
+    assert scene["stars"][0]["name"] == "Test System Kelmoor"
+    assert scene["stars"][1]["name"] == "Test System Ostra"
     # The secondary is offset from (not stacked exactly on) the primary.
     assert (scene["stars"][1]["x"], scene["stars"][1]["y"]) != (scene["stars"][0]["x"], scene["stars"][0]["y"])
 

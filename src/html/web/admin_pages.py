@@ -488,19 +488,14 @@ def _schema_text(database):
 _LEVEL_LABELS = {
     "sector": "sector vs sector",
     "system": "system vs system or sector",
-    "body": "planet or moon",
 }
 
 
 def _name_entry(row):
-    """One "now named" row: its name, what it is, and a link (planets
-    and moons link to their system)."""
+    """One "now named" row: its name, what it is, and a link."""
     if row["kind"] == "sector":
         return {"name": row["name"], "url": page_url("sector", sector_id=row["id"]), "kind": "sector"}
-    if row["kind"] == "system":
-        return {"name": row["name"], "url": page_url("system", system_id=row["id"]), "kind": "system"}
-    return {"name": row["name"], "kind": f"{row['kind']} in", "system_name": row["system_name"],
-            "system_url": page_url("system", system_id=row["star_system_id"])}
+    return {"name": row["name"], "url": page_url("system", system_id=row["id"]), "kind": "system"}
 
 
 def _names_panel(cookie_header, db):
@@ -561,7 +556,6 @@ def admin_stats():
                 ("Names made unique", format_count(collisions.get("distinct_base_names"))),
                 ("Sector collisions", format_count(collisions.get("sector"))),
                 ("System collisions", format_count(collisions.get("system"))),
-                ("Planet/moon collisions", format_count(collisions.get("body"))),
             ],
             names=_names_panel(cookie_header, db),
             tables=[{

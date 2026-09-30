@@ -257,7 +257,7 @@ def test_to_dict_and_from_dict_round_trip_positions_and_names():
     assert rebuilt.edge_ly == 25.0
     assert len(rebuilt) == 1
     assert rebuilt.entries[0].position == (1.5, -2.5, 0.0)
-    assert rebuilt.entries[0].star_system.star.name == "Trantor"
+    assert rebuilt.entries[0].star_system.name == "Trantor"
 
 
 def test_reload_with_generated_key_reproduces_the_exact_system():
@@ -308,7 +308,7 @@ def test_reload_without_generated_key_falls_back_to_recipe_regeneration():
     rebuilt = SpaceSector.from_dict(data)
     rebuilt_system = rebuilt.entries[0].star_system
 
-    assert rebuilt_system.star.name == "Sol"
+    assert rebuilt_system.name == "Sol"
     assert rebuilt_system.star.type == system.star.type
     assert rebuilt_system.hab_count >= 1
 
@@ -319,10 +319,10 @@ def test_reload_pins_an_unset_name_to_the_originally_generated_one():
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
 
     data = sector.to_dict()
-    assert data["systems"][0]["config"]["name"] == system.star.name
+    assert data["systems"][0]["config"]["name"] == system.name
 
     rebuilt = SpaceSector.from_dict(data)
-    assert rebuilt.entries[0].star_system.star.name == system.star.name
+    assert rebuilt.entries[0].star_system.name == system.name
 
 
 def test_save_and_load_round_trip_via_file(tmp_path):
@@ -345,7 +345,7 @@ def test_save_and_load_round_trip_via_file(tmp_path):
     reloaded = SpaceSector.load(path)
     assert reloaded.name == "File Sector"
     assert reloaded.entries[0].position == (4.0, 4.0, 4.0)
-    assert reloaded.entries[0].star_system.star.name == "Vulcan"
+    assert reloaded.entries[0].star_system.name == "Vulcan"
     # File save/load round-trips the generated object graph exactly too,
     # not just the recipe (Phase 1.5).
     assert str(reloaded.entries[0].star_system) == str(system)

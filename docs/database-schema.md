@@ -463,6 +463,15 @@ and rebuilds the skeleton from the stored shape at 4 pc (rewriting
 `outer_ring_index`). See `schema.sql`'s "v33" header note and
 `docs/design/galaxy-coordinate-system.md`.
 
+**Planets and moons named from their system (v34).** Only the system
+draws a generated name. Planets are `<star> I`, `<star> II` in orbit
+order, moons add a letter (`<star> IIa`), and a binary's stars are
+`<system> <word>`. The system name is already unique, so these are too,
+and `body_name_registry` (v24's planet/moon registry, which gave
+colliding names a companion suffix like `"Kin"`) is dropped by
+`_migrate_v33_to_v34`. Existing rows keep their names until regenerated.
+See `stellarObjects/bodyNames.py`.
+
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
@@ -728,10 +737,10 @@ One row per generated system (single-star or binary).
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | NULL for a standalone system never placed in a sector. |
 | `system_config_id` | INTEGER | FK -> `system_configs.id`, NOT NULL | The recipe this system was generated from. For binaries, this is the *shared* config the primary/proxy/planets all use — the secondary star's transient `LARGE_STAR=False` deep copy (`systemData.py:97-100`) has no field this schema captures, so there's no second config row. |
-| `name` | TEXT | NOT NULL | The system's display name — the primary star's name, or `"X Binary System"` for a binary. |
+| `name` | TEXT | NOT NULL | The system's display name, e.g. `"Voranthis"`. Unique across systems and sectors (v24). Its stars, planets and moons are named from it (v34, see below); renaming it (`PATCH /api/systems/<id>`, or a uniqueness decoration) renames every one still carrying it. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | DOUBLE | nullable | Position relative to the sector's cubic center. NULL iff not placed in a sector. |
 | `quadrant` | TEXT | nullable, CHECK IN ('I'..'VIII') | The sector octant label derived from the position above (see "Quadrant labeling" below). NULL iff position is NULL. |
-| `location` | TEXT | nullable | Human-readable "sector name + nearest neighbors" summary, e.g. `"Voranthis Kelmoor — nearest: Alpha Prime (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)"` — up to 3 neighbors, nearest first, computed once at write time from `SpaceSector.nearest_neighbors` (see "v3" in "Schema history" above). NULL iff position is NULL. |
+| `location` | TEXT | nullable | Human-readable "sector name + nearest neighbors" summary, e.g. `"Voranthis Kelmoor — nearest: Alpha Vesta (4.2 ly), Beta Cerise (7.8 ly), Gamma Ost (9.1 ly)"` — up to 3 neighbors, nearest first, computed once at write time from `SpaceSector.nearest_neighbors` (see "v3" in "Schema history" above). NULL iff position is NULL. |
 | `is_binary` | INTEGER (0/1) | NOT NULL, default 0 | True for either binary configuration as of v15 (see `binary_configuration`) — before v15, true only ever meant a `'close'` pair. |
 | `binary_configuration` | TEXT | nullable, CHECK IN ('close','wide') | Added in v15. `'close'` (P-type/circumbinary, `doubleStar.BinaryStarProxy`) or `'wide'` (S-type, `wideBinary.WideBinaryPair`) — NULL for a single star. The authoritative discriminator going forward; see "Binary configuration" below for which other columns apply to which value. |
 | `binary_separation_km` | DOUBLE | nullable | Orbital separation between the two stars. NULL for single-star systems. Reused unchanged for both binary configurations (see "Binary configuration" below). |
@@ -809,7 +818,7 @@ anything.
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
 | `role` | TEXT | NOT NULL, CHECK IN ('primary','secondary','single') | |
-| `name` | TEXT | NOT NULL | |
+| `name` | TEXT | NOT NULL | A single star shares the system's name (renaming one renames the other). A binary's stars put their own word after it, e.g. `"Voranthis Kelmoor"` and `"Voranthis Ostra"`, with no A/B letters (v34). |
 | `star_type` | TEXT | NOT NULL | Full descriptive string, e.g. `"G2V Yellow Main Sequence Star"` — unrelated to `planets.body_type`'s single-character code. |
 | `yerkes_class` | TEXT | NOT NULL | e.g. `"V"`, `"VII"` (white dwarf). |
 | `mass_kg`, `radius_km`, `luminosity_w` | DOUBLE | NOT NULL | |
@@ -839,7 +848,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | The specific star this planet orbits, when that's a real stored `stars` row — true for every single-star system, and, as of v15, every `'wide'` binary's planets too (each orbits one specific constituent star). Still **NULL for a `'close'` binary's planets**: the generator builds those against the merged `BinaryStarProxy`, never one individual constituent star, and the proxy has no `stars` row to point at. |
 | `orbital_index` | INTEGER | NOT NULL | Position in the star's ordered `planets` list. |
 | `body_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Terrestrial or gas giant. Unrelated to `stars.star_type`. |
-| `name` | TEXT | NOT NULL | |
+| `name` | TEXT | NOT NULL | Generated as the star it orbits plus a roman numeral in orbit order, e.g. `"Voranthis II"` (v34); asteroid belts take no number. A close pair's planets use the system name, a wide pair's their own star's. Can be renamed (`PATCH /api/planets/<id>`). |
 | `planet_class` | TEXT | nullable | e.g. `"M"`. |
 | `distance_km` | DOUBLE | NOT NULL | From the star. |
 | `radius_km`, `mass_kg` | DOUBLE | NOT NULL | |
@@ -900,7 +909,8 @@ moon was a `planets` row self-referencing via `parent_planet_id`. Exactly
 the same column shape as `planets` (a moon is a `Planet` instance too,
 with `is_moon=True`), except `planet_id` names the specific planet it
 orbits. No self-reference here: moons never generate their own moons
-(`Planet.__init__` only calls `generate_moons` `if not self.is_moon`).
+(`Planet.__init__` only calls `generate_moons` `if not self.is_moon`). A moon is generated as its planet's numeral plus a letter in orbit order,
+e.g. `"Voranthis IIa"` (v34), and can be renamed (`PATCH /api/moons/<id>`).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|

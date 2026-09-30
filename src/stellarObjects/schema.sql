@@ -769,6 +769,12 @@
 --   with its systems and phenomena (as v32 did) and rebuilds the skeleton
 --   from the stored shape at the standard edge.
 --
+-- v34: planets and moons are named from their system (`bodyNames.py`):
+--   `<system> I`, `<system> II`, moons `<system> IIa`, and a binary's stars
+--   `<system> <word>`. The system name is already unique, so derived names
+--   are too, and `body_name_registry` (v24's planet/moon registry) is
+--   dropped. Existing rows keep their old names until regenerated.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1964,10 +1970,11 @@ CREATE TABLE IF NOT EXISTS asteroid_field_composition (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- sector_name_registry / system_name_registry / body_name_registry --
--- name-uniqueness bookkeeping (v24, see the header comment's "v24" note
--- and `stellarObjects/nameUniqueness.py`'s own module docstring for the
--- full sector > system > planet/moon decoration hierarchy). One row per
+-- sector_name_registry / system_name_registry -- name-uniqueness
+-- bookkeeping (v24, see the header comment's "v24" note and
+-- `stellarObjects/nameUniqueness.py`'s own module docstring for the
+-- sector > system decoration hierarchy; v34 dropped the planet/moon
+-- registry, since those names now derive from the system's). One row per
 -- distinct base name (the name with every decoration this project could
 -- have added stripped back off -- `nameUniqueness.strip_decoration`)
 -- that has ever collided at least once; a base name that's only ever
@@ -1975,10 +1982,8 @@ CREATE TABLE IF NOT EXISTS asteroid_field_composition (
 --
 -- `first_*_id` always points at the row that *first* used this base
 -- name -- the one that gets renamed as collisions happen (bare -> Alpha,
--- later Alpha -> Alpha ... I for sector_name_registry/
--- system_name_registry; bare -> <first companion suffix> for
--- body_name_registry). It never changes to a different row once set.
--- `ON DELETE CASCADE` on the two FK'd registries means a deleted "first"
+-- later Alpha -> Alpha ... I). It never changes to a different row once
+-- set. `ON DELETE CASCADE` means a deleted "first"
 -- row's bookkeeping simply disappears -- correct, since the base name is
 -- genuinely free again once nothing live still uses any decorated form
 -- of it descended from that row.
@@ -2010,28 +2015,6 @@ CREATE TABLE IF NOT EXISTS system_name_registry (
         FOREIGN KEY (first_star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS body_name_registry (
-    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    base_name         VARCHAR(255) NOT NULL,
-    occurrence_count  INT NOT NULL,
-
-    -- Planets and moons share this one registry (a planet and a moon may
-    -- not share a name either), so the "first" row is polymorphic --
-    -- first_body_kind says which table first_body_id is a row in. No FK
-    -- (can't reference two different tables from one column): a rename
-    -- step that targets a since-deleted row is simply skipped rather
-    -- than erroring -- the no-live-duplicate guarantee still holds
-    -- either way, see nameUniqueness.py's own docstring.
-    first_body_kind   VARCHAR(8) NOT NULL CHECK (first_body_kind IN ('planet', 'moon')),
-    first_body_id     BIGINT UNSIGNED NOT NULL,
-
-    -- Index into names.COMPANION_SUFFIXES already applied to this base
-    -- name -- NULL until the first collision of any kind
-    -- (nameUniqueness.resolve_companion).
-    suffix_index      INT,
-
-    UNIQUE (base_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- sector_objects -- unified "every stellar object in a sector" search.
