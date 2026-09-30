@@ -43,6 +43,7 @@
 #
 # Usage:
 #   sudo ./update.sh
+#   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (a Python other than python3)
 #
 # Forces the checkout to match origin's branch tip even if there are
 # uncommitted local changes to tracked files (a `git reset --hard` after
@@ -74,7 +75,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
 fi
 
-PYTHON="$(command -v python3 || command -v python || true)"
+PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1

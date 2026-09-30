@@ -68,6 +68,29 @@ ensure_apache_modules() {
     if (( ${#enabled[@]} )); then
         APACHE_NEEDS_RESTART=1
     fi
+    check_mod_wsgi_python
+}
+
+# mod_wsgi embeds the Python it was built against, not whatever `python3`
+# is. The libraries (and the venv .pth, which lives in that Python's own
+# site-packages) are set up for $PYTHON, so the two must be the same
+# version or Apache won't see them. Warns rather than fails: the fix is
+# a package choice for the admin.
+check_mod_wsgi_python() {
+    local so=/usr/lib/apache2/modules/mod_wsgi.so built ours
+    [[ -e "$so" ]] && command -v ldd >/dev/null 2>&1 || return 0
+    built="$(ldd "$so" 2>/dev/null | grep -o 'libpython[0-9]*\.[0-9]*' | head -n1 | sed 's/libpython//')"
+    ours="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+    if [[ -z "$built" ]]; then
+        return 0
+    elif [[ "$built" == "$ours" ]]; then
+        echo "mod_wsgi runs Python $built, the same as $PYTHON."
+    else
+        echo "warning: mod_wsgi is built for Python $built, but the libraries were" >&2
+        echo "  checked for $PYTHON (Python $ours). Apache won't see them. Either install" >&2
+        echo "  the libapache2-mod-wsgi-py3 that matches $PYTHON, or rerun with" >&2
+        echo "  PYTHON=/usr/bin/python$built." >&2
+    fi
 }
 
 # Imports the web app and the generator package with the interpreter the

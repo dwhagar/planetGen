@@ -461,7 +461,9 @@ def _health(stats, api_ms, cache):
             ("API response", f"{api_ms:.0f} ms (queries took {stats.get('query_ms', 0):.0f} ms)"),
             ("API version", api["version"]),
             ("API uptime", format_duration(api["uptime_seconds"])),
-            ("Python", api["python_version"]),
+            ("Python", f"{api['python_version']} ({api['python_prefix']})"
+             if api.get("python_prefix") else api["python_version"]),
+            ("Libraries from", api.get("libraries_dir") or "unknown"),
             ("Load average (1/5/15 min)", " / ".join(f"{value:.2f}" for value in load) if load else "unknown"),
             ("Memory", f"{format_bytes(memory['available_bytes'])} free of {format_bytes(memory['total_bytes'])}"
              if memory else "unknown"),

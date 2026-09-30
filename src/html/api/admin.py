@@ -12,6 +12,7 @@ The queries themselves live in `src/adminStats.py`.
 
 import os
 import platform
+import sys
 import time
 
 import pymysql
@@ -45,6 +46,15 @@ def _memory_info():
     return {"total_bytes": total_kb * 1024, "available_bytes": available_kb * 1024}
 
 
+def _libraries_dir():
+    """Where this process imports Flask from: the venv's site-packages when
+    the planetgen-venv.pth fallback is in effect, else the distribution's
+    (or pip's) own directory. Shows which libraries mod_wsgi really uses."""
+    flask = sys.modules.get("flask")
+    path = getattr(flask, "__file__", None)
+    return os.path.dirname(os.path.dirname(path)) if path else None
+
+
 def _api_process_info():
     try:
         load = os.getloadavg()
@@ -53,6 +63,8 @@ def _api_process_info():
     return {
         "version": __version__,
         "python_version": platform.python_version(),
+        "python_prefix": sys.prefix,
+        "libraries_dir": _libraries_dir(),
         "pid": os.getpid(),
         "uptime_seconds": int(time.time() - _STARTED_AT),
         "load_average": list(load) if load is not None else None,

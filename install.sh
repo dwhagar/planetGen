@@ -74,7 +74,7 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-PYTHON="$(command -v python3 || command -v python || true)"
+PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1

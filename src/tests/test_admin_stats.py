@@ -7,6 +7,8 @@ Tests for the admin stats endpoints (`html/api/admin.py`, backed by
 database-backed test (see `conftest.py`).
 """
 
+import os
+
 import pytest
 
 import adminStats
@@ -102,6 +104,9 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
 
     assert body["api"]["version"]
     assert body["api"]["uptime_seconds"] >= 0
+    assert body["api"]["python_prefix"]
+    # The directory Flask is imported from, i.e. the one that holds flask/.
+    assert os.path.isdir(os.path.join(body["api"]["libraries_dir"], "flask"))
     assert body["mysql"]["version"]
 
     database = body["database"]

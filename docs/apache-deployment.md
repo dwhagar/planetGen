@@ -58,6 +58,37 @@ the web app as Apache's user, so a library www-data can't read shows up
 there rather than as a 500. `sudo ./install.sh` is still the full
 reinstall.
 
+### Which Python and libraries Apache uses
+
+Nothing in the vhost points at the venv, and nothing needs to. mod_wsgi
+embeds the system Python it was built against, and that Python reads
+`planetgen-venv.pth` from its own site-packages at startup, so the venv
+comes first on `sys.path` in the `planetgen-api` daemon exactly as it
+does for `python3` in a shell. Don't add `python-home=/opt/planetgen/venv`
+to `WSGIDaemonProcess`: the venv holds only the libraries apt lacks, and
+the apt ones can drop out of the path.
+
+The one thing that has to line up is the Python version: mod_wsgi
+(`libapache2-mod-wsgi-py3`) must be built for the same Python that
+`install.sh`/`update.sh` set up. Both scripts check this and warn if
+they differ. By hand:
+
+    ldd /usr/lib/apache2/modules/mod_wsgi.so | grep libpython   # e.g. libpython3.12
+    python3 --version                                           # must match
+    sudo -u www-data python3 -c "import flask; print(flask.__file__)"
+
+If they differ, install the `libapache2-mod-wsgi-py3` that matches, or run
+the scripts with that Python (`sudo PYTHON=/usr/bin/python3.12
+./update.sh`).
+
+To see what the running site really uses, open the admin Stats page
+(`/admin/stats`): **Python** shows the daemon's version and prefix, and
+**Libraries from** shows the directory it imports Flask from
+(`/opt/planetgen/venv/lib/python3.X/site-packages` when the venv
+fallback is in use, `/usr/lib/python3/dist-packages` when apt provides
+everything). After an update, `sudo systemctl reload apache2` restarts
+the daemon so it picks up anything newly installed.
+
 See [`../install.sh`](../install.sh) for the full install script,
 [`../update.sh`](../update.sh) for pulling later updates, and
 [`html-interface.md`](html-interface.md#deploying) for the deployment

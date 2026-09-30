@@ -18,3 +18,9 @@
 - `/usr/local/bin/planetgen` is now the checkout wrapper on every host
   (pip's console script ran the pip-installed copy, which would go stale
   once updates stopped reinstalling it).
+- **Checking which Python Apache really uses.** `install.sh`/`update.sh`
+  now warn when mod_wsgi is built for a different Python version than the
+  one they set the libraries up for, and both take `PYTHON=` to pick
+  another interpreter. The admin Stats page shows the web app's Python
+  prefix and the directory it imports its libraries from (the venv when
+  the fallback is in use). See `docs/apache-deployment.md`.
