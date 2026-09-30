@@ -10,7 +10,7 @@ needs a terminal on the server. Four actions, each a background job
   neighborhood around a random start (`generate.py galaxy`).
 - Plan: rebuild the density skeleton only.
 - Generate sectors: `generate.py galaxy` in any of its four modes
-  (random start, a whole shell, around a sector, one address).
+  (random start, a whole ring, around a sector, one address).
 - Reset: wipe the database only.
 
 New galaxy and Reset delete every generated sector and system, so both
@@ -59,12 +59,13 @@ GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
      "(100 ly when the radius is left blank)."),
-    ("shell", "A whole shell",
-     "Every not-yet-generated sector in one radial shell, or only the first few with a limit."),
+    ("ring", "A whole ring",
+     "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
+     "or only the first few with a limit."),
     ("center", "Around a sector",
      "Every not-yet-generated sector within a radius of an existing sector."),
     ("slot", "One address",
-     "Exactly one sector, by shell and slot (the designation the Galaxy Map shows)."),
+     "Exactly one sector, by ring, layer and slot (the address the Galaxy Map shows)."),
 )
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
@@ -101,9 +102,6 @@ def plan_argv(form):
         value = _number(form, name, label, kind, minimum=minimum, maximum=maximum, exclusive_max=True)
         if value is not None:
             argv += [flag, str(value)]
-    workers = _number(form, "workers", "Worker processes", int, minimum=1, maximum=256)
-    if workers is not None:
-        argv += ["--workers", str(workers)]
     return argv
 
 
@@ -113,10 +111,10 @@ def random_start_argv(form):
     radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1)
     if radius is not None:
         argv += ["--radius-pc", str(radius)]
-    max_shell = _number(form, "max_shell", "Highest shell", int, minimum=0)
-    if max_shell is not None:
-        argv += ["--max-shell", str(max_shell)]
-    density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.0)
+    max_ring = _number(form, "max_ring", "Highest ring", int, minimum=0)
+    if max_ring is not None:
+        argv += ["--max-ring", str(max_ring)]
+    density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.001)
     if density is not None:
         argv += ["--min-start-density", str(density)]
     return argv
@@ -132,23 +130,26 @@ def galaxy_argv(form):
     mode = form.get("mode") or "random"
     if mode == "random":
         return random_start_argv(form), "around a random start"
-    if mode == "shell":
-        shell = _number(form, "shell", "Shell", int, required=True, minimum=0)
-        argv = ["--shell", str(shell)]
+    if mode == "ring":
+        ring = _number(form, "ring", "Ring", int, required=True, minimum=0)
+        layer = _number(form, "layer", "Layer", int)
+        argv = ["--ring", str(ring), "--layer", str(layer or 0)]
         limit = _number(form, "limit", "Limit", int, minimum=1)
         if limit is not None:
             argv += ["--limit", str(limit)]
-        elif form.get("whole_shell"):
+        elif form.get("whole_ring"):
             argv.append("--yes")
-        return argv, f"in shell {shell}"
+        return argv, f"in ring {ring} layer {layer or 0}"
     if mode == "center":
         sector_id = _number(form, "center_sector", "Sector ID", int, required=True, minimum=1)
         radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1)
         return ["--center-sector", str(sector_id), "--radius-pc", str(radius)], f"around sector {sector_id}"
     if mode == "slot":
-        shell = _number(form, "slot_shell", "Shell", int, required=True, minimum=0)
+        ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0)
+        layer = _number(form, "slot_layer", "Layer", int) or 0
         slot = _number(form, "slot", "Slot", int, required=True, minimum=0)
-        return ["--shell", str(shell), "--slot", str(slot)], f"at shell {shell} slot {slot}"
+        return (["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)],
+                f"at ring {ring} layer {layer} slot {slot}")
     raise FormError("Choose what to generate.")
 
 

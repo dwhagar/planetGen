@@ -11,8 +11,7 @@ progress bar:
 
     {"description": "Sectors", "completed": 12, "total": 40, "updated_at": 1759236000.0}
 
-`total` is `null` when the amount of work isn't known up front (the
-`plan` skeleton scan stops when it finds the galaxy's edge). Writes are
+`total` is `null` when the amount of work isn't known up front. Writes are
 atomic (a temp file renamed over the old one) and throttled to a few per
 second, so a fast loop costs nothing. Without the variable (every
 terminal run) `report` does nothing.

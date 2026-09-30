@@ -2,7 +2,7 @@
 - **Generate, plan and reset the galaxy from the web interface.** A new
   admin-only page, `/admin/generate` (the Generate link in the header),
   runs `generate.py plan`, `generate.py galaxy` (every mode: random start,
-  whole shell, around a sector, one address) and `resetDb.py` as
+  whole ring, around a sector, one address) and `resetDb.py` as
   background jobs, plus a one-click "New galaxy" that resets, plans and
   generates a first neighborhood. Reset and New galaxy ask for the
   database name to be typed back. The running job shows its step, a

@@ -56,15 +56,15 @@ def test_density_matches_the_python_model():
 def test_prisms_fit_the_budget_and_cover_the_view(center, view_radius):
     out = _run(f"""
 const center = {json.dumps(center)};
-const shells = P.shellsPerPrism(center, {view_radius}, {EDGE_PC}, {GALAXY_RADIUS_PC}, shape);
-const prisms = P.prismsInView(center, {view_radius}, shells * {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map());
-console.log(JSON.stringify({{shells, budget: P.PRISM_BUDGET, prisms}}));
+const m = P.sectorsPerPrism(center, {view_radius}, {EDGE_PC}, {GALAXY_RADIUS_PC}, shape, 0);
+const prisms = P.prismsInView(center, {view_radius}, m, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map());
+console.log(JSON.stringify({{m, budget: P.PRISM_BUDGET, prisms}}));
 """)
-    shells = out["shells"]
-    size = shells * EDGE_PC
+    m = out["m"]
+    size = m * EDGE_PC
     prisms = out["prisms"]
-    # A power of two shells, and the view gets finer detail as it narrows.
-    assert shells >= 1 and shells & (shells - 1) == 0
+    # A power of three sectors a side, and finer detail as the view narrows.
+    assert m >= 1 and 3 ** round(math.log(m, 3)) == m
     assert size <= view_radius
     assert 0 < len(prisms) <= 1.5 * out["budget"]
     for p in prisms:
@@ -72,8 +72,6 @@ console.log(JSON.stringify({{shells, budget: P.PRISM_BUDGET, prisms}}));
         assert p["r1"] - p["r0"] == pytest.approx(size)
         assert p["z1"] - p["z0"] == pytest.approx(size)
         assert p["density"] >= 0.02
-    # The prism holding the view's center is there (every one of these
-    # centers sits in the disk, so it's dense enough to draw).
     rc = math.hypot(center[0], center[1])
     theta = math.atan2(center[1], center[0]) % (2 * math.pi)
     assert any(
@@ -83,9 +81,75 @@ console.log(JSON.stringify({{shells, budget: P.PRISM_BUDGET, prisms}}));
     )
 
 
+def test_groups_stay_big_enough_on_screen():
+    # At 50 pc per pixel a group must be at least MIN_PRISM_PX pixels wide.
+    out = _run(f"""
+const m = P.sectorsPerPrism([8000, 0, 0], 400, {EDGE_PC}, {GALAXY_RADIUS_PC}, shape, 50);
+console.log(JSON.stringify({{m, minPx: P.MIN_PRISM_PX}}));
+""")
+    assert out["m"] * EDGE_PC >= 50 * out["minPx"]
+    assert out["m"] * EDGE_PC / 3 < 50 * out["minPx"]
+
+
+@pytest.mark.parametrize("m", [1, 3, 9, 27])
+def test_group_boundaries_fall_on_sector_boundaries(m):
+    """A group's rings and layers are whole sector rings and layers, and
+    group layer 0 straddles the plane like sector layer 0."""
+    from stellarObjects.galaxyGeometry import layer_bounds_pc, ring_bounds_pc
+
+    for ring, slab in ((0, 0), (2, -1), (5, 3)):
+        ranges = _run(f"console.log(JSON.stringify(P.groupSectorRanges({ring}, {slab}, {m})));")
+        size = m * EDGE_PC
+        assert ring_bounds_pc(ranges["ringFirst"], EDGE_PC)[0] == pytest.approx(ring * size)
+        assert ring_bounds_pc(ranges["ringLast"], EDGE_PC)[1] == pytest.approx((ring + 1) * size)
+        assert layer_bounds_pc(ranges["layerFirst"], EDGE_PC)[0] == pytest.approx((slab - 0.5) * size)
+        assert layer_bounds_pc(ranges["layerLast"], EDGE_PC)[1] == pytest.approx((slab + 0.5) * size)
+
+
+def test_group_sector_counts_add_up_to_every_sector():
+    """Every sector's center falls in exactly one group, so a group ring's
+    counts sum to all its member rings' slots times m layers."""
+    from stellarObjects.galaxyGeometry import ring_sector_count
+
+    m = 9
+    for ring in (0, 1, 4):
+        total = _run(f"""
+const n = P.ringSectorCount({ring});
+let total = 0;
+for (let seg = 0; seg < n; seg++) {{
+  const step = 2 * Math.PI / n;
+  total += P.groupSectorCount({{ring: {ring}, slab: 0, t0: seg * step, t1: (seg + 1) * step}}, {m});
+}}
+console.log(JSON.stringify(total));
+""")
+        expected = sum(ring_sector_count(i) for i in range(ring * m, ring * m + m)) * m
+        assert total == expected
+
+
+def test_js_grid_matches_python():
+    from stellarObjects.galaxyGeometry import (
+        provisional_sector_designation, sector_address_at, sector_cell_vertices_pc,
+    )
+
+    points = [(0.0, 0.0, 0.0), (8000.0, 12.5, -40.0), (-3.2, 7.9, 1.7), (1234.5, -9876.5, 300.0), (0.1, -0.1, -1.76)]
+    got = _run(f"""
+const pts = {json.dumps(points)};
+console.log(JSON.stringify(pts.map(p => {{
+  const a = P.sectorAddressAt(...p, {EDGE_PC});
+  return {{a, v: P.cellVertices(P.sectorCellBounds(a.ring, a.layer, a.slot, {EDGE_PC}))}};
+}})));
+""")
+    for point, entry in zip(points, got):
+        address = sector_address_at(point, EDGE_PC)
+        assert (entry["a"]["ring"], entry["a"]["layer"], entry["a"]["slot"]) == address
+        for js, py in zip(entry["v"], sector_cell_vertices_pc(*address, EDGE_PC)):
+            assert js == pytest.approx(py, abs=1e-9)
+        assert provisional_sector_designation(*address)
+
+
 def test_prisms_skip_empty_space():
     out = _run(f"""
-const prisms = P.prismsInView([8000, 0, 3000], 1000, 32 * {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map());
+const prisms = P.prismsInView([8000, 0, 3000], 1000, 27, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map());
 console.log(JSON.stringify(prisms.length));
 """)
     assert out == 0

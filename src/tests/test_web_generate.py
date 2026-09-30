@@ -49,7 +49,7 @@ def jobs_root(tmp_path, monkeypatch):
 class FakeSite:
     def __init__(self):
         self.admin = {"username": "boss", "must_change_credentials": False}
-        self.shape = {"outer_shell_index": 4100, "edge_pc": 3.5}
+        self.shape = {"outer_ring_index": 4100, "edge_pc": 3.5}
         self.sector_total = 7
 
     def auth_me(self, cookie_header):
@@ -153,7 +153,7 @@ def test_page_renders_summary_and_forms(site, client):
     assert resp.status_code == 200
     assert resp.headers["Cache-Control"] == "no-store"
     assert f"Database {DB}" in html
-    assert "Planned, edge at shell 4,100" in html
+    assert "Planned, edge at ring 4,100" in html
     assert "7 sectors" in html
     for action in ("new_galaxy", "galaxy", "plan", "reset"):
         assert f'name="action" value="{action}"' in html
@@ -190,12 +190,12 @@ def _argv(step):
 
 
 def test_plan_job_passes_only_given_fields(site, client, no_spawn):
-    resp = _post(client, action="plan", arm_count="3", pitch_angle_deg="", workers="4")
+    resp = _post(client, action="plan", arm_count="3", pitch_angle_deg="")
     assert resp.status_code == 303
     assert resp.headers["Location"].endswith("/admin/generate#current-job")
     (job,) = no_spawn
     assert job["kind"] == "plan"
-    assert _argv(job["steps"][0]) == ["plan", "--arm-count", "3", "--workers", "4"]
+    assert _argv(job["steps"][0]) == ["plan", "--arm-count", "3"]
     assert job["steps"][0]["argv"][1] == jobs.GENERATE_SCRIPT
     assert job["admin"] == "boss" and job["database"] == DB
     assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
@@ -203,14 +203,16 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
 
 @pytest.mark.parametrize("form, argv", [
     ({"mode": "random"}, []),
-    ({"mode": "random", "radius_pc": "50", "max_shell": "30", "min_start_density": "1.5"},
-     ["--radius-pc", "50.0", "--max-shell", "30", "--min-start-density", "1.5"]),
-    ({"mode": "shell", "shell": "12"}, ["--shell", "12"]),
-    ({"mode": "shell", "shell": "12", "limit": "5", "whole_shell": "1"}, ["--shell", "12", "--limit", "5"]),
-    ({"mode": "shell", "shell": "4000", "whole_shell": "1"}, ["--shell", "4000", "--yes"]),
+    ({"mode": "random", "radius_pc": "50", "max_ring": "30", "min_start_density": "1.5"},
+     ["--radius-pc", "50.0", "--max-ring", "30", "--min-start-density", "1.5"]),
+    ({"mode": "ring", "ring": "12"}, ["--ring", "12", "--layer", "0"]),
+    ({"mode": "ring", "ring": "12", "layer": "-2", "limit": "5", "whole_ring": "1"},
+     ["--ring", "12", "--layer", "-2", "--limit", "5"]),
+    ({"mode": "ring", "ring": "4000", "whole_ring": "1"}, ["--ring", "4000", "--layer", "0", "--yes"]),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "20"},
      ["--center-sector", "9", "--radius-pc", "20.0"]),
-    ({"mode": "slot", "slot_shell": "3", "slot": "17"}, ["--shell", "3", "--slot", "17"]),
+    ({"mode": "slot", "slot_ring": "3", "slot_layer": "1", "slot": "17"},
+     ["--ring", "3", "--layer", "1", "--slot", "17"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", **form)
@@ -220,10 +222,10 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
 
 
 @pytest.mark.parametrize("form, message", [
-    ({"mode": "shell"}, "Shell is required."),
-    ({"mode": "shell", "shell": "-1"}, "Shell must be at least 0."),
+    ({"mode": "ring"}, "Ring is required."),
+    ({"mode": "ring", "ring": "-1"}, "Ring must be at least 0."),
     ({"mode": "center", "center_sector": "9"}, "Radius (pc) is required."),
-    ({"mode": "slot", "slot_shell": "x", "slot": "1"}, "Shell must be a whole number."),
+    ({"mode": "slot", "slot_ring": "x", "slot": "1"}, "Ring must be a whole number."),
     ({"mode": "random", "radius_pc": "nan"}, "Radius (pc) must be a finite number."),
     ({"mode": "bogus"}, "Choose what to generate."),
 ])
@@ -373,8 +375,8 @@ def test_progress_file_is_a_no_op_without_the_variable(tmp_path, monkeypatch):
     progressFile.report(1, 2, "x", force=True)
     target = tmp_path / "p.json"
     monkeypatch.setenv(progressFile.ENV_VAR, str(target))
-    progressFile.report(1, None, "Shells scanned", force=True)
-    assert json.loads(target.read_text())["description"] == "Shells scanned"
+    progressFile.report(1, None, "Rings scanned", force=True)
+    assert json.loads(target.read_text())["description"] == "Rings scanned"
 
 
 def test_python_executable_falls_back_when_embedded(monkeypatch):

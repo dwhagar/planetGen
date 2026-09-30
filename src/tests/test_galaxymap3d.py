@@ -63,15 +63,15 @@ def test_view_radius_bounds_without_a_shape_uses_the_default_galaxy_radius():
     assert min_radius == pytest.approx(EDGE_PC * 1.5)
 
 
-def test_view_radius_bounds_with_a_shape_uses_its_own_outer_shell_index():
-    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 99})
+def test_view_radius_bounds_with_a_shape_uses_its_own_outer_ring_index():
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_ring_index": 99})
     assert max_radius == pytest.approx((99 + 1) * EDGE_PC * 1.05 / math.tan(math.radians(CAMERA_FOV_DEG / 2)))
 
 
 def test_view_radius_bounds_max_fits_the_whole_galaxy_in_view():
     # At the zoomed-all-the-way-out radius, half the field of view must
     # span at least the galaxy's own padded outer edge.
-    shape = {"outer_shell_index": 99}
+    shape = {"outer_ring_index": 99}
     _min_radius, max_radius = view_radius_bounds(EDGE_PC, shape)
     visible_half_height = max_radius * math.tan(math.radians(CAMERA_FOV_DEG / 2))
     assert visible_half_height >= galaxy_extent_pc(EDGE_PC, shape) - 1e-9
@@ -85,7 +85,7 @@ def test_view_radius_bounds_min_has_an_absolute_floor():
 
 
 def test_view_radius_bounds_max_is_always_well_past_min():
-    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_shell_index": 0})
+    min_radius, max_radius = view_radius_bounds(EDGE_PC, {"outer_ring_index": 0})
     assert max_radius >= min_radius * 10
 
 
@@ -102,7 +102,7 @@ def test_panel_includes_the_canvas_and_controls():
 
 def test_panel_json_payload_has_every_field_the_client_reads():
     view = _empty_view(has_shape=True)
-    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, view)
+    html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 50}, EDGE_PC, view)
     data = _json_payload(html)
 
     assert data["db"] == "mydb"
@@ -118,7 +118,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["initialCenter"] == [0.0, 0.0, 0.0]
     assert data["initialRadiusPc"] == data["maxViewRadiusPc"]
     assert data["fovDeg"] == CAMERA_FOV_DEG
-    assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_shell_index": 50}))
+    assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 50}))
     assert data["initial"] == view
 
 
@@ -129,13 +129,13 @@ def test_panel_shows_a_hint_when_no_shape_has_been_built():
 
 
 def test_panel_omits_the_hint_when_a_shape_exists():
-    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, _empty_view(has_shape=True))
+    html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 50}, EDGE_PC, _empty_view(has_shape=True))
     assert "density skeleton hasn't been built yet" not in html
 
 
 def test_panel_embeds_the_density_shape_for_the_prisms():
     shape = {field: float(i + 1) for i, field in enumerate(DENSITY_SHAPE_FIELDS)}
-    shape.update({"outer_shell_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
+    shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
     data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
     assert data["densityShape"] == {field: shape[field] for field in DENSITY_SHAPE_FIELDS}
 
@@ -159,11 +159,11 @@ def test_panel_includes_real_placed_and_planned_data_from_the_initial_view():
     view = _empty_view(has_shape=True)
     view["tiles"]["1/1/1/1"] = {
         "placed": [{"id": 1, "name": "Real Sector", "x": 1.0, "y": 2.0, "z": 3.0,
-                     "galactic_radius_pc": 3.7, "shell_index": 1, "shell_slot_index": 0,
+                     "galactic_radius_pc": 3.7, "ring_index": 1, "layer_index": 0, "ring_slot_index": 0,
                      "designation": "ABC", "system_count": 4}],
         "planned": [],
     }
-    html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 10}, EDGE_PC, view)
+    html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 10}, EDGE_PC, view)
     data = _json_payload(html)
     assert data["initial"]["tiles"]["1/1/1/1"]["placed"][0]["name"] == "Real Sector"
     assert data["initial"]["stamp"] == "0123456789abcdef"

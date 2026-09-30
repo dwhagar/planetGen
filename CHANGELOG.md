@@ -1,5 +1,75 @@
 # Changelog
 
+## [6.0.0] - 2026-09-30
+
+### Added
+- **The Galaxy Map draws the sector grid itself.** Its prisms are the real
+  cylindrical sector cells: one prism is one sector up close, and further
+  out one prism stands for a block of whole sectors (3, 9, 27, ... a side),
+  chosen so a block stays at least about 10 pixels across on screen and the
+  view stays fast. Clicking a prism, or any empty spot, shows that sector or
+  block: its address or ring and layer range, how many sectors it holds, its
+  center in Cartesian, cylindrical and spherical coordinates, its size and
+  its 8 corners, plus the command to generate a single sector.
+- `GET /api/galaxy/cell?ring=&layer=&slot=` (or `?x=&y=&z=`) describes any
+  sector cell in the galaxy, generated or not, the same way.
+
+### Changed
+- **Galaxy sectors now sit on a cylindrical grid instead of spherical
+  shells.** Each galaxy-placed sector is one cell of rings 11.5 ly wide
+  around the galactic axis, layers 11.5 ly tall (layer 0 centered on the
+  galactic plane) and wedge-shaped slots about 11.5 ly across, so sectors
+  follow the flat disk instead of a ball. A sector's address is
+  `(ring, layer, slot)`; systems and phenomena are placed inside the real
+  cell, with local axes pointing outward, along the ring and north. See
+  `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid".
+- `generate.py galaxy` takes `--ring I [--layer J] [--slot K]` in place of
+  `--shell K [--slot N]`, and `--max-ring` in place of `--max-shell`.
+  `generate.py plan` builds one band of layers per ring and takes
+  `--max-ring`; `--workers` and `--chunk-size` are gone, since the build
+  now takes about half a second. The Galaxy Map's copied commands use the
+  new flags.
+- The Galaxy page's 100 ly radial groups are now called Zones.
+- Designations encode ring, layer and slot, so every sector gets a new one.
+
+### Removed
+- **Upgrading deletes every galaxy-placed sector.** Schema v32's migration
+  deletes each placed sector together with its systems and phenomena, since
+  shell addresses have no matching cell, and rebuilds the skeleton from the
+  stored shape. Sectors that were never placed in the galaxy are kept.
+  Regenerate the galaxy afterwards (for example `generate.py plan`, then
+  `generate.py galaxy`), and take a backup first if you want the old data.
+- The `sector_vertices` and `galaxy_shell_band` tables.
+
+## [5.59.0] - 2026-09-30
+
+### Added
+- **Browser checks for every Flask page.** A new test
+  (`src/tests/test_web_a11y.py`, and its own `browser-a11y` CI job) loads
+  each page in headless Chromium at phone and desktop widths, in light and
+  dark, and fails on serious or critical axe-core (WCAG 2.1 AA)
+  violations, horizontal page scroll, console or CSP errors, or a missing
+  skip link or `aria-current` marker. The page list comes from the app's
+  routes, so pages moved off CGI later are checked automatically.
+  axe-core 4.13.0 is vendored under `src/tests/vendor/axe-core/`; the new
+  `browser` extra installs Playwright.
+
+### Fixed
+- **The current section in the header was below WCAG AA contrast** in the
+  light theme (4.45:1); it now uses the link colour.
+
+## [5.58.0] - 2026-09-30
+
+### Changed
+- **`install.sh` now works on an externally managed Python (PEP 668),
+  such as Ubuntu 26.04 LTS's.** Where pip used to fail with
+  "externally-managed-environment", the installer now detects the
+  `EXTERNALLY-MANAGED` marker and installs the libraries as apt packages
+  instead, pip-installing only what the distribution lacks (or packages too
+  old) into a venv at `/opt/planetgen/venv`. On an unmanaged Python it still
+  uses pip exactly as before. It prints which path it took; see
+  `docs/apache-deployment.md`'s "Managed Python".
+
 ## [5.57.0] - 2026-09-30
 
 ### Changed

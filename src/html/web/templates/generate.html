@@ -18,7 +18,6 @@
   {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
   {{ field(name, label, value=default, step="1" if kind is sameas int else "any", min=minimum) }}
   {%- endfor %}
-  {{ field("workers", "Worker processes", placeholder="all CPUs", step="1", min=1) }}
 </div>
 {%- endmacro -%}
 {%- macro confirm_field(id) -%}
@@ -35,7 +34,7 @@
   {%- if summary.error %}
   <span class="badge">Database unavailable</span>
   {%- else %}
-  <span class="badge">{% if summary.shape %}Planned, edge at shell {{ "{:,}".format(summary.shape.outer_shell_index) }}{% else %}Not planned yet{% endif %}</span>
+  <span class="badge">{% if summary.shape %}Planned, edge at ring {{ "{:,}".format(summary.shape.outer_ring_index) }}{% else %}Not planned yet{% endif %}</span>
   <span class="badge">{{ "{:,}".format(summary.sectors or 0) }} sector{{ "" if summary.sectors == 1 else "s" }}</span>
   {%- endif %}
 </p>
@@ -102,17 +101,19 @@
       <div class="search-fields">
       {%- if mode == "random" %}
         {{ field("radius_pc", "Radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1) }}
-        {{ field("max_shell", "Highest shell", placeholder="Milky Way size", step="1", min=0) }}
+        {{ field("max_ring", "Highest ring", placeholder="Milky Way size", step="1", min=0) }}
         {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
-      {%- elif mode == "shell" %}
-        {{ field("shell", "Shell", step="1", min=0) }}
-        {{ field("limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1) }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a very large shell (over 2,000 slots) without a limit</span></label>
+      {%- elif mode == "ring" %}
+        {{ field("ring", "Ring", step="1", min=0) }}
+        {{ field("layer", "Layer", placeholder="0", step="1") }}
+        {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1) }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="whole_ring" value="1"> Allow a very large ring (over 2,000 slots) without a limit</span></label>
       {%- elif mode == "center" %}
         {{ field("center_sector", "Sector ID", step="1", min=1) }}
         {{ field("center_radius_pc", "Radius (pc)", min=0.1) }}
       {%- elif mode == "slot" %}
-        {{ field("slot_shell", "Shell", step="1", min=0) }}
+        {{ field("slot_ring", "Ring", step="1", min=0) }}
+        {{ field("slot_layer", "Layer", placeholder="0", step="1") }}
         {{ field("slot", "Slot", step="1", min=0) }}
       {%- endif %}
       </div>

@@ -63,21 +63,21 @@ def test_qualifying_threshold_is_one_star():
 
 def test_unfiltered_without_shape_includes_every_enumerated_slot():
     expected = {
-        (shell_index, shell_slot_index)
-        for shell_index, shell_slot_index, *_ in enumerate_sectors_within_radius(CENTER, RADIUS_PC, EDGE_PC)
+        (ring_index, layer_index, ring_slot_index)
+        for ring_index, layer_index, ring_slot_index, *_ in enumerate_sectors_within_radius(CENTER, RADIUS_PC, EDGE_PC)
     }
     results = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
-    got = {(entry["shell_index"], entry["shell_slot_index"]) for entry in results}
+    got = {(entry["ring_index"], entry["layer_index"], entry["ring_slot_index"]) for entry in results}
     assert got == expected
     assert all(entry["predicted_star_count"] is None and entry["relative_density"] is None for entry in results)
 
 
 def test_filtered_with_shape_only_keeps_qualifying_slots():
     results = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=SHAPE,
+        CENTER, RADIUS_PC, EDGE_PC, shape=SHAPE,
         expected_system_count_at_density_1=E, exclude_addresses=set(),
     )
     assert results  # this toy shape/radius combination has real qualifying content
@@ -89,24 +89,24 @@ def test_filtered_with_shape_only_keeps_qualifying_slots():
 
 def test_excluded_addresses_are_skipped():
     baseline = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
     assert len(baseline) >= 2
-    excluded = {(baseline[0]["shell_index"], baseline[0]["shell_slot_index"])}
+    excluded = {(baseline[0]["ring_index"], baseline[0]["layer_index"], baseline[0]["ring_slot_index"])}
 
     results = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=excluded,
     )
-    got = {(entry["shell_index"], entry["shell_slot_index"]) for entry in results}
+    got = {(entry["ring_index"], entry["layer_index"], entry["ring_slot_index"]) for entry in results}
     assert got.isdisjoint(excluded)
     assert len(results) == len(baseline) - 1
 
 
 def test_results_are_sorted_closest_first():
     results = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
     distances = [entry["distance_pc"] for entry in results]
@@ -115,12 +115,12 @@ def test_results_are_sorted_closest_first():
 
 def test_cap_truncates_to_the_closest_entries():
     full = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(), cap=1000,
     )
     assert len(full) > 3
     capped = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(), cap=3,
     )
     assert len(capped) == 3
@@ -129,25 +129,25 @@ def test_cap_truncates_to_the_closest_entries():
 
 def test_radius_is_clamped_to_the_planned_radius_cap():
     # A radius far beyond PLANNED_RADIUS_CAP_PC must not make this scan the
-    # galaxy's outer shells (hundreds of millions of slots each) -- if it
+    # galaxy's outer rings (thousands of layers of slots each) -- if it
     # weren't clamped, this call alone would never return.
     huge_radius = PLANNED_RADIUS_CAP_PC * 500
     clamped = planned_slots_in_view(
-        CENTER, PLANNED_RADIUS_CAP_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, PLANNED_RADIUS_CAP_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(), cap=100000,
     )
     unclamped_request = planned_slots_in_view(
-        CENTER, huge_radius, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, huge_radius, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(), cap=100000,
     )
-    got_clamped = {(e["shell_index"], e["shell_slot_index"]) for e in clamped}
-    got_unclamped_request = {(e["shell_index"], e["shell_slot_index"]) for e in unclamped_request}
+    got_clamped = {(e["ring_index"], e["layer_index"], e["ring_slot_index"]) for e in clamped}
+    got_unclamped_request = {(e["ring_index"], e["layer_index"], e["ring_slot_index"]) for e in unclamped_request}
     assert got_clamped == got_unclamped_request
 
 
 def test_designation_is_present_and_stable():
     results = planned_slots_in_view(
-        CENTER, RADIUS_PC, EDGE_PC, EDGE_LY, shape=None,
+        CENTER, RADIUS_PC, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
     for entry in results:
@@ -262,7 +262,7 @@ def test_planned_radius_cap_bounds_the_work_far_from_the_core():
     import time
     started = time.monotonic()
     result = planned_slots_in_view(
-        (8000.0, 0.0, 0.0), 15000.0, EDGE_PC, EDGE_LY, shape=None,
+        (8000.0, 0.0, 0.0), 15000.0, EDGE_PC, shape=None,
         expected_system_count_at_density_1=None, exclude_addresses=set(),
     )
     assert len(result) == 4000
@@ -335,30 +335,30 @@ def test_planned_slots_partition_into_tiles():
     for key in tiles_intersecting_sphere(TILE_MAX_LEVEL, center, radius):
         level, ix, iy, iz = parse_tile_key(key)
         by_tile.extend(
-            (entry["shell_index"], entry["shell_slot_index"])
-            for entry in planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, None, None, set())
+            (entry["ring_index"], entry["layer_index"], entry["ring_slot_index"])
+            for entry in planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set())
         )
     assert len(by_tile) == len(set(by_tile))
-    expected = {(k, i) for k, i, *_ in enumerate_sectors_within_radius(center, radius, EDGE_PC)}
+    expected = {(k, j, i) for k, j, i, *_ in enumerate_sectors_within_radius(center, radius, EDGE_PC)}
     assert expected <= set(by_tile)
 
 
 def test_planned_slots_in_tile_respects_shape_and_exclusions():
     key = tiles_intersecting_sphere(TILE_MAX_LEVEL, (0.0, 0.0, 0.0), 0.0)[0]
     level, ix, iy, iz = parse_tile_key(key)
-    unfiltered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, None, None, set())
+    unfiltered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set())
     assert unfiltered and all(entry["predicted_star_count"] is None for entry in unfiltered)
-    excluded = {(unfiltered[0]["shell_index"], unfiltered[0]["shell_slot_index"])}
-    remaining = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, None, None, excluded)
+    excluded = {(unfiltered[0]["ring_index"], unfiltered[0]["layer_index"], unfiltered[0]["ring_slot_index"])}
+    remaining = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, excluded)
     assert len(remaining) == len(unfiltered) - 1
-    filtered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, EDGE_LY, SHAPE, E, set())
+    filtered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, SHAPE, E, set())
     assert all(entry["predicted_star_count"] >= qualifying_threshold_star_count() for entry in filtered)
 
 
 def test_planned_slots_skip_big_tiles_and_tiny_sectors():
-    assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, 2047, 2047, 2047, EDGE_PC, EDGE_LY, None, None, set()) == []
+    assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, 2047, 2047, 2047, EDGE_PC, None, None, set()) == []
     # A 0.5 pc sector edge would put thousands of slots in a 16 pc tile.
-    assert planned_slots_in_tile(TILE_MAX_LEVEL, 2048, 2048, 2048, 0.5, 1.63, None, None, set()) == []
+    assert planned_slots_in_tile(TILE_MAX_LEVEL, 2048, 2048, 2048, 0.5, None, None, set()) == []
 
 
 def test_density_points_for_tile_is_deterministic_and_sized():
