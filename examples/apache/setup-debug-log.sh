@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# TODO(installers #50): logrotate and usermod don't exist on macOS
-# (use newsyslog and dscl); add a Windows counterpart. See docs/TODO.md item
-# 50.
 #
 # examples/apache/setup-debug-log.sh
 #
@@ -16,7 +13,8 @@
 #      the web interface writes to it as that user, root (a systemd timer,
 #      sudo) can always write to it, and a login user who runs the
 #      generator from a shell must be in the Apache group to append to it
-#      (`sudo usermod -aG <apache group> <user>`, then log in again).
+#      (`sudo usermod -aG <apache group> <user>`, then log in again; on
+#      macOS `sudo dseditgroup -o edit -a <user> -t user _www`).
 #      Other users can neither read nor write it -- a world-writable log
 #      would let any local user forge or flood its entries.
 #   3. Installs /etc/logrotate.d/planetgen, so a debug log someone forgot to
@@ -24,6 +22,12 @@
 #      100 MB, keeping 7 compressed copies. Where /etc/cron.hourly exists it
 #      also adds a job that checks the size every hour, since a galaxy run
 #      with debug on can write gigabytes between daily logrotate runs.
+#      On macOS, which has newsyslog instead of logrotate, installs
+#      /etc/newsyslog.d/planetgen.conf: rotated past 100 MB, 7 compressed
+#      copies kept (newsyslog runs hourly by itself).
+#
+# Runs on Linux and macOS. Windows has no rotation for it; install.ps1
+# only creates the logs folder.
 #
 # Usage:
 #   sudo examples/apache/setup-debug-log.sh
@@ -39,7 +43,7 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-PYTHON="$(command -v python3 || command -v python || true)"
+PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1
@@ -52,7 +56,10 @@ fi
 # root, so -I keeps the current directory, user site-packages and PYTHON*
 # variables off sys.path (appconfig.py itself lives outside src/html, in
 # the root-owned part of the checkout).
-read -r DEBUG_ON LOG_FILE < <(cd / && "$PYTHON" -I - "$REPO_DIR" <<'PY'
+# (Through a temp file: bash 3.2, macOS's, can't parse a heredoc inside
+# a process substitution.)
+SETTINGS="$(mktemp)"
+(cd / && "$PYTHON" -I - "$REPO_DIR" > "$SETTINGS") <<'PY'
 import importlib.util
 import os
 import sys
@@ -64,7 +71,8 @@ spec.loader.exec_module(appconfig)
 config = appconfig.load_config()
 print(1 if appconfig.debug_enabled(config) else 0, appconfig.log_file_path(config))
 PY
-)
+read -r DEBUG_ON LOG_FILE < "$SETTINGS"
+rm -f "$SETTINGS"
 
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
@@ -86,7 +94,23 @@ elif [[ "$DEBUG_ON" != "1" ]]; then
 fi
 
 # Rotation is set up whether or not debug is on right now, so turning it on
-# later is covered. `missingok` makes it a no-op while there's no file.
+# later is covered.
+if [[ "$(uname -s)" == Darwin ]]; then
+    # newsyslog: owner:group, mode, copies kept, size in KB, no time
+    # rotation, Z = gzip. It creates the new file with that owner and mode.
+    mkdir -p /etc/newsyslog.d
+    cat > /etc/newsyslog.d/planetgen.conf <<EOF
+# planetGen debug log -- written by examples/apache/setup-debug-log.sh
+# (install.sh/update.sh). Edits here are overwritten on the next run.
+# logfilename            [owner:group]              mode count size(KB) when  flags
+$LOG_FILE  $APACHE_USER:$APACHE_GROUP  660  7  102400  *  Z
+EOF
+    chmod 0644 /etc/newsyslog.d/planetgen.conf
+    echo "Log rotation: /etc/newsyslog.d/planetgen.conf (past 100 MB, 7 kept)"
+    exit 0
+fi
+
+# `missingok` makes it a no-op while there's no file.
 # `create` recreates the file with the same owner and mode after each
 # rotation; the program reopens it on its own (WatchedFileHandler).
 cat > /etc/logrotate.d/planetgen <<EOF

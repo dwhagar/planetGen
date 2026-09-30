@@ -1,0 +1,109 @@
+<#
+.SYNOPSIS
+    Pulls the latest planetGen and checks everything the site needs, on
+    native Windows, without reinstalling what's already there.
+
+.DESCRIPTION
+    update.ps1 is update.sh's Windows counterpart and follows the same
+    steps (a change to one belongs in both):
+
+      1. Pulls: git fetch, then git reset --hard to origin's branch tip,
+         so the checkout matches the branch exactly. Uncommitted changes
+         to tracked files are listed and overwritten; untracked files,
+         config.json among them, are never touched.
+      2. Checks every Python library in the venv (and waitress) by
+         importing it; only when one is missing, too old or broken does
+         pip install from requirements-server.lock (--require-hashes).
+      3. The NLTK 'words' corpus: fetched only if it's missing.
+      4. src\migrateDb.py, a no-op when the database is current. When a
+         migration is pending it first asks (y/N, 30 seconds, default N)
+         whether to delete the galaxy data instead; a scheduled run with
+         no console keeps the data and migrates it.
+      5. The tile cache, jobs and log folders.
+      6. Permissions for the app's account (icacls), in case new folders
+         came in.
+      7. Imports the web app, so anything unusable fails here instead of
+         as a 500.
+
+    Run from an elevated PowerShell in the checkout:
+
+        powershell -ExecutionPolicy Bypass -File .\update.ps1
+
+    then restart the app (the closing message says how). Takes the same
+    -VenvDir, -DataDir and -ServiceAccount as install.ps1.
+#>
+[CmdletBinding()]
+param(
+    [string]$VenvDir = "C:\srv\planetgen-venv",
+    [string]$DataDir = (Join-Path $env:ProgramData "planetgen"),
+    [string]$ServiceAccount = "NT SERVICE\planetgen"
+)
+
+$ErrorActionPreference = "Stop"
+$Root = $PSScriptRoot
+. (Join-Path $Root "scripts\deploy-common.ps1")
+
+Assert-Administrator
+Set-Location $Root
+
+$inside = & git rev-parse --is-inside-work-tree
+if ($LASTEXITCODE -ne 0 -or "$inside".Trim() -ne "true") {
+    throw "$Root is not a git checkout; can't pull an update here."
+}
+
+Write-Step "1/7: Pulling the latest changes"
+$dirty = @(& git status --porcelain)
+if ($dirty.Count -gt 0) {
+    Write-Warning "Uncommitted local changes in $Root will be overwritten:"
+    $dirty | ForEach-Object { Write-Host "  $_" }
+}
+$branch = "$(& git rev-parse --abbrev-ref HEAD)".Trim()
+if ($branch -eq "HEAD") {
+    throw "The repository is in a detached HEAD state; check out a branch first."
+}
+$before = "$(& git rev-parse HEAD)".Trim()
+Invoke-Checked git fetch origin $branch
+# reset --hard rather than pull: tracked files always match origin's tip,
+# whatever was committed or edited here. Never git clean: config.json is
+# untracked and must survive.
+Invoke-Checked git reset --hard "origin/$branch"
+$after = "$(& git rev-parse HEAD)".Trim()
+if ($before -eq $after) {
+    Write-Host "Already up to date ($before)."
+} else {
+    Write-Host "Updated $before..$after`:"
+    & git log --oneline "$before..$after"
+}
+# Again, now that the pull may have changed it.
+. (Join-Path $Root "scripts\deploy-common.ps1")
+
+Write-Step "2/7: Checking the Python libraries in $VenvDir"
+Install-PythonDeps -Check
+
+Write-Step "3/7: Checking the NLTK 'words' corpus"
+Install-NltkWords
+
+Write-Step "4/7: Migrating the configured MySQL database to the current schema"
+if (Test-DatabaseUnconfigured) {
+    Write-Host "Skipped: config.json still has the example's database password. Set the mysql settings in"
+    Write-Host "  $(Join-Path $Root 'config.json'), then run this again."
+} else {
+    Invoke-MigrateOrReset
+}
+
+Write-Step "5/7: Checking the tile cache, jobs and log folders"
+New-RuntimeDirs
+
+Write-Step "6/7: Setting permissions for $ServiceAccount"
+Set-PlanetGenPermissions
+
+Write-Step "7/7: Checking that the web app imports"
+Test-AppImports
+
+Write-Host ""
+if ($before -ne $after) {
+    Write-Host "Done. Restart the app so the site runs the new code:"
+    Write-Host "  $(Get-RestartHint)"
+} else {
+    Write-Host "Done. Nothing new was pulled."
+}

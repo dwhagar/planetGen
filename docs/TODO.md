@@ -39,10 +39,10 @@ renumber when items are added or finished.
    a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
-- **Extend the cache (8)**, then do the System Map route (9).
+- **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 13-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 (the
+   slots, pixel-sized mega-blocks). Work items 15-18 in order (13, pixel-sized blocks, and 14, the solid and its slice, have shipped). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
@@ -50,14 +50,11 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
    are schema changes.
-- **More pages (47, 49)**: the Sector Map wireframe and
-   non-overlapping System Map names are small and can go in any time.
-- **Installers (50)**: PowerShell install and upgrade scripts, and the
-   bash scripts made to run on macOS too.
+- **More pages (47)**: the Sector Map wireframe is small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
-   security, physics, web-pages, installers);
+   security, physics, web-pages);
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
@@ -188,21 +185,6 @@ renumber when items are added or finished.
    - Update `phenomenaPlausibility` (it recomputes the expected
      terrestrial share from the same draw).
 
-7. [ ] **A supermassive black hole in every galaxy, and rare
-   intermediate ones.** Boss: "add a supermassive black hole at the
-   center (or near center) of each galaxy and a smattering (rare) of
-   medium sized black holes."
-   - `generate.add_galactic_nucleus` only places a quasar, 10% of the
-     time; the other 90% have nothing at the center. Place a quiescent
-     SMBH (Sagittarius A* is ~4.3e6 Msun) when the quasar roll fails.
-     Its own table or a `black_holes` row with a supermassive class
-     (schema change, migration).
-   - Intermediate-mass black holes already exist as 2% of black-hole
-     rolls (100-1,000 Msun, `compactRemnant.BlackHole.__init__`,
-     `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`). Revisit the chance and the
-     range (IMBHs span ~1e2-1e5 Msun). Default taken: keep them a black
-     hole subtype with its own tweakable chance.
-
 ### Performance
 
 8. [ ] **Add a cache so pages don't hit the database on every request.**
@@ -223,22 +205,6 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
-
-13. [ ] **Mega-blocks sized from the pixel scale.**
-   - Replace `sectorsPerPrism` and `prismsForView` with
-     `blockSizeForScale`: the smallest power of 3 with `m * edge >=
-     BLOCK_MIN_PX * pcPerPixel`, with BLOCK_MIN_PX = 4.
-   - Block rings and layers are the sector grid scaled by m (odd m keeps
-     layer 0 on the plane).
-   - Block wedges are the innermost member ring's master wedges divided by
-     a power of 2. This makes every block an exact set of whole sectors, so
-     `groupSectorCount` stops binning by center angle.
-   - Existence depends only on ring and layer, so list exposed (surface)
-     blocks only, never the whole view volume. Keep a budget guard that
-     steps m up by 3.
-
-   Done means tests check m against the scale, counts within a few percent
-   of m³, surface listing against brute force, and the budget at every zoom.
 
 15. [ ] **One solid of blocks for filled and unfilled sectors; no more
    marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
@@ -275,7 +241,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
        placed lists, or totalled by the server for coarse views.
      - Translucent blocks drawn after opaque ones, sorted back to front.
      - Interior culling (#13) only where all neighbours are opaque.
-     - A block's total sector count (`groupSectorCount`, exact with #12).
+     - A block's total sector count (`blockSectorCount`).
 
    Done means filled sectors can be found by zooming alone at every zoom,
    there are no marker sprites left, colors follow density, and the frame
@@ -580,10 +546,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
 41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
     `low_orbit` ignores the planet's radius. Test:
     `test_moons_orbit_outside_their_parents_body`.
-43. [ ] **A planet's Hill sphere can overlap the belt inside it.**
-    `StarSystem.validate_system` keeps a planet only 0.05 AU past a belt,
-    but a belt after a planet must clear 5 Hill radii. Test:
-    `test_planet_hill_sphere_clears_the_belt_inside_it`.
 
 ### More pages (Boss's notes, 2026-09-30)
 
@@ -597,38 +559,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     12 straight edges between 8 corners, thin and low-contrast so the
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
-
-### Installers and platforms (Boss's notes, 2026-09-30)
-
-50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
-    also run on macOS.** Boss: "we need to write a powershell install and
-    upgrade scripts as well as make sure our bash shell scripts will also
-    work on macos as well as linux."
-    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
-      `install.sh` and `update.sh`: the same steps and the same prompts
-      (check-only upgrades, the migrate-or-delete database prompt with
-      its 30-second default, the migration progress bar), using a venv
-      or the Windows Python launcher instead of apt, Windows services or
-      Task Scheduler instead of systemd timers, and Apache on Windows
-      (or IIS) paths and permissions (`icacls`) instead of `www-data`
-      and `chown`.
-    - **macOS:** every bash script (`install.sh`, `update.sh`,
-      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
-      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
-      macOS too. Known gaps: macOS ships bash 3.2, so
-      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
-      (require Homebrew bash, or rewrite them); apt is assumed (use
-      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
-      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
-      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
-      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
-      `stat`, `readlink`, `date` and `timeout` wherever they appear.
-    - Keep the steps in step across the three platforms, so a change to
-      one installer lands in all of them.
-    - The Windows and macOS hosting guides (being written in `docs/` by
-      the docs thread) describe the server setup; this item is only the
-      scripts, and the guides should point at them once they exist.
-    - Each script carries a `TODO(installers #50)` comment at its top.
 
 ## Population and Politics
 

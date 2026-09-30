@@ -12,6 +12,8 @@ import os
 import re
 import sys
 
+import pytest
+
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 
 
@@ -77,9 +79,13 @@ def _function(script, name):
 
 
 def test_no_virtual_environment():
-    """Boss's call: libraries go into the system Python, apt first."""
+    """Boss's call: on Linux, libraries go into the system Python, apt
+    first. Only macOS's path (install_venv, picked on Darwin) makes one."""
     code = _code(_read("scripts", "install-python-deps.sh"))
-    assert "-m venv" not in code
+    venv = _function(code, "install_venv")
+    assert "-m venv" in venv
+    assert "-m venv" not in code.replace(venv, "")
+    assert 'if [[ "$(uname -s)" == Darwin ]]; then MODE=venv' in code
     assert "sys.path.insert" not in code  # no .pth written any more
 
 
@@ -198,3 +204,83 @@ def test_resolve_refuses_unlocked_versions(tmp_path, monkeypatch):
     monkeypatch.setattr(lock_pins, "_dry_run", lambda *a: [("flask", "3.2.0")])
     monkeypatch.setattr(lock_pins, "_installed", lambda name: False)
     assert lock_pins.resolve(str(lock), str(tmp_path / "out"), [], ["flask"]) == 1
+
+
+MACOS_SCRIPTS = [
+    ("install.sh",), ("update.sh",), ("scripts", "deploy-common.sh"),
+    ("scripts", "install-python-deps.sh"), ("scripts", "lock-requirements.sh"),
+    ("examples", "apache", "apache-identity.sh"), ("examples", "apache", "create-cache-dir.sh"),
+    ("examples", "apache", "set-permissions.sh"), ("examples", "apache", "setup-debug-log.sh"),
+    ("examples", "maintenance", "install-maintenance-timer.sh"),
+]
+
+
+@pytest.mark.parametrize("parts", MACOS_SCRIPTS, ids=lambda p: "/".join(p))
+def test_bash_scripts_avoid_bash4_only_features(parts):
+    """
+    macOS ships bash 3.2: no mapfile/readarray, associative arrays, case
+    modification or nameref, and "${a[@]}" of an empty array is an
+    unbound-variable error under set -u before bash 4.4. Every array
+    expansion is either guarded (${a[@]+"${a[@]}"}) or of an array that
+    is never empty (listed here).
+    """
+    code = _code(_read(*parts))
+    for word in ("mapfile", "readarray", "declare -A", "local -A", "declare -n", "local -n", ",,}", "^^}"):
+        assert word not in code, (parts, word)
+    never_empty = {"REQUIREMENTS", "SPECS", "enabled", "need", "pins", "owned", "databases", "wanted", "lacking", "before"}
+    for name in re.findall(r'(?<!\+)"\$\{(\w+)\[@\]', code):
+        if name not in never_empty:
+            unguarded = re.search(r'(?<!\+)"\$\{%s\[@\]' % name, code.replace('+"${%s[@]' % name, ""))
+            assert not unguarded, (parts, name)
+
+
+def test_every_script_names_its_platforms():
+    """No installer is left carrying its item-50 TODO."""
+    for parts in MACOS_SCRIPTS:
+        assert "TODO(installers #50)" not in _read(*parts), parts
+
+
+def test_powershell_requirements_match_setup_py():
+    """scripts/deploy-common.ps1 checks the same requirements on Windows."""
+    text = _read("scripts", "deploy-common.ps1")
+    block = re.search(r"\$script:Requirements = @\((.*?)\)", text, re.S).group(1)
+    assert set(re.findall(r'"([^"]+)"', block)) == _setup_requirements()
+    server = re.search(r'\$script:ServerRequirement = "([^"]+)"', text).group(1)
+    assert server + '; sys_platform == "win32"' in _read("setup.py")
+
+
+POWERSHELL_SCRIPTS = [("install.ps1",), ("update.ps1",), ("scripts", "deploy-common.ps1"),
+                      ("examples", "maintenance", "install-maintenance-task.ps1")]
+
+
+@pytest.mark.parametrize("parts", POWERSHELL_SCRIPTS, ids=lambda p: "/".join(p))
+def test_powershell_scripts_are_ascii(parts):
+    """Windows PowerShell 5.1 reads a BOM-less script as the ANSI code
+    page, so anything outside ASCII would come out garbled."""
+    _read(*parts).encode("ascii")
+
+
+def test_powershell_installers_share_the_steps():
+    """install.ps1 and update.ps1 do what install.sh and update.sh do,
+    through the shared deploy-common.ps1."""
+    for script in ("install.ps1", "update.ps1"):
+        text = _read(script)
+        assert '. (Join-Path $Root "scripts\\deploy-common.ps1")' in text, script
+        for step in ("Install-PythonDeps", "Install-NltkWords", "Invoke-MigrateOrReset",
+                     "New-RuntimeDirs", "Set-PlanetGenPermissions", "Test-AppImports"):
+            assert step in text, (script, step)
+    assert "Install-PythonDeps -Check" in _read("update.ps1")
+    assert "--force-reinstall" not in _read("update.ps1")
+    common = _read("scripts", "deploy-common.ps1")
+    assert "--require-hashes -r (Join-Path $Root \"requirements-server.lock\")" in common
+    # The same migrate-or-delete question as install.sh: y/N, 30 seconds.
+    assert "[y/N] (default N in 30s): \" 30" in common
+
+
+def test_server_lock_has_the_app_servers():
+    lock_pins = _lock_pins()
+    pins = lock_pins.read_lock(os.path.join(ROOT, "requirements-server.lock"))
+    names = {name for name, _, _, _ in pins}
+    assert {"gunicorn", "waitress"} <= names
+    for name, version, _, hashes in pins:
+        assert hashes, f"{name}=={version}"

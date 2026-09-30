@@ -138,6 +138,17 @@ this factor for the zoomed-all-the-way-out ceiling -- a hair of headroom
 so the outermost real content isn't sitting exactly on the view's own
 edge."""
 
+BLOCK_MIN_PX = 4
+"""int: The smallest a mega-block is allowed to be on screen, CSS pixels
+across at the view's focus (passed to `static/galaxymap3d.js` as
+`blockMinPx`). `galaxyprisms.blockSizeForScale` picks the smallest power
+of 3 sectors a side that is at least this wide, so one block always covers
+at least a pixel's worth of sectors."""
+
+BLOCK_BUDGET = 60000
+"""int: The most blocks one view draws (`blockBudget`). A view whose
+surface blocks would overflow it uses blocks three times bigger."""
+
 CAMERA_FOV_DEG = 50.0
 """float: The map camera's vertical field of view, degrees (passed to
 `static/galaxymap3d.js` as `fovDeg`). `view_radius_bounds` needs it to
@@ -371,12 +382,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         # The galaxy's density model parameters -- static/galaxyprisms.js
         # evaluates stellarObjects.galaxyDensity.relative_density from
         # these itself to shade the density prisms.
-        # TODO(galaxy-map #13/#14): add the mega-block settings here, so they
-        # live in one place: "blockMinPx" (4), "blockBudget", and
-        # "sliceDefault" ("focus" or "solid"). Also add the zone rule's
-        # constants if galaxyprisms.js stops hard-coding them (they must
-        # match galaxyGeometry.ring_sector_count).
         "densityShape": _density_shape(galaxy_shape),
+        "blockMinPx": BLOCK_MIN_PX,
+        "blockBudget": BLOCK_BUDGET,
         "edgePc": edge_pc,
         "edgeLy": edge_ly,
         "fovDeg": CAMERA_FOV_DEG,
@@ -418,8 +426,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   steps while zoomed out, finer near a single sector) &middot; generated-sector dots colored by their own real
   stellar density (dim &rarr; bright, relative to the real local average) &middot; small dim dots &asymp; real,
   not-yet-generated sector addresses &middot; a solid of blocks shaded by predicted density (brighter = denser; Slice cuts it at the
-  focus's layer) &middot; wedge lines run out from the core,
-  labelled by bearing (degrees counterclockwise from +X, ring slot 0)</span>
+  focus's layer; each block is the fewest whole sectors still a few pixels across) &middot; wedge lines follow
+  the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing (degrees
+  counterclockwise from +X, ring slot 0)</span>
 </div>
 {shape_hint}
 <div class="starmap-layout">

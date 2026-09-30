@@ -1,5 +1,64 @@
 # Changelog
 
+## [7.17.0] - 2026-09-30
+
+### Changed
+
+- The Galaxy Map sizes its sector blocks from the screen: each block is the smallest power-of-3 cube of whole sectors that is at least 4 pixels across at the focus, and blocks line up with the sector grid's master wedges wherever that keeps them near one block long. Only the solid's visible surface is built, so views zoom in to single sectors much sooner, and a clicked block shows its exact sector count, leaving out sectors the galaxy's outline doesn't allow.
+- The Galaxy Map's wedge lines now follow every master wedge (3 from the core, doubling outward), each zone shown once its lines are far enough apart on screen.
+
+## [7.16.1] - 2026-09-30
+
+### Fixed
+- **A planet's Hill sphere could overlap the asteroid belt inside it.**
+  A planet after a belt now keeps 5 Hill radii clear of the belt's outer
+  edge, the same rule a belt after a planet already followed, and a
+  planet moved to fix spacing now gets its Hill radius recomputed for
+  its new distance (TODO item 43).
+
+## [7.16.0] - 2026-09-30
+
+### Added
+- **Windows installers.** `install.ps1` and `update.ps1` do what
+  `install.sh` and `update.sh` do, with the Windows guide's layout: a venv
+  with the libraries and waitress from `requirements-server.lock`
+  (checked by hash), the NLTK corpus with `NLTK_DATA` set machine-wide,
+  `config.json` from the Windows example when there is none, the
+  migrate-or-delete question (y/N, 30 seconds), the runtime folders, and
+  `icacls` permissions for the app's account. `update.ps1` pulls and
+  installs only what's missing. `examples/maintenance/install-maintenance-task.ps1`
+  schedules the monthly orbit update and `update.ps1` with Task
+  Scheduler.
+- **The bash installers run on macOS.** `install.sh`, `update.sh`,
+  `install-maintenance-timer.sh` and their helpers run under macOS's
+  bash 3.2: a venv from Homebrew's `python3` with gunicorn, `_www`
+  ownership, `newsyslog` for the debug log, and gunicorn, the orbit update
+  and `update.sh` as launchd daemons (`examples/macos/org.planetgen.update.plist`
+  is new). `install.sh --skip-database` leaves out the database step.
+- **`requirements-server.lock`** and a `server` extra in `setup.py`
+  (gunicorn, or waitress on Windows) for those venvs.
+- CI runs `install.sh` on macOS and `install.ps1` on Windows.
+
+## [7.15.0] - 2026-09-30
+
+### Added
+
+- **Schema v36: a supermassive black hole at every galaxy's center.** When
+  the nucleus roll finds no quasar (90% of galaxies), a quiescent
+  supermassive black hole (1e6-1e8 solar masses, like Sagittarius A*) is
+  placed at the galactic center instead. It has no galactic orbit, a faint
+  accretion flow far below its Eddington limit, and a sphere of influence
+  of `G*M/sigma^2`.
+- `black_holes.mass_class` (`stellar`, `intermediate`, `supermassive`);
+  the migration fills it from each row's mass.
+
+### Changed
+
+- Intermediate-mass black holes now span 1e2-1e5 solar masses
+  (log-uniform) instead of 100-1,000, still 2% of black holes
+  (`BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`), and their text says they grew
+  in a dense star cluster rather than in one supernova.
+
 ## [7.14.1] - 2026-09-30
 
 ### Security

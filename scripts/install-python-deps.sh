@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# TODO(installers #50): macOS ships bash 3.2, where declare -A and mapfile
-# below fail; rewrite them (or require Homebrew bash) and use Homebrew or a
-# venv instead of apt on macOS. See docs/TODO.md item 50.
 #
 # scripts/install-python-deps.sh
 #
-# Makes planetGen's libraries importable by the system Python, the one
-# mod_wsgi (and the CLI tools) run under. Everything goes into that
-# Python's own system-wide site-packages; there is no virtual
-# environment. Picks one of two paths and prints which one it took:
+# Makes planetGen's libraries importable by the Python the site runs
+# under. On Linux that's the system Python, the one mod_wsgi (and the
+# CLI tools) run under, and everything goes into its own system-wide
+# site-packages, with no virtual environment. Picks one of three paths
+# and prints which one it took:
 #
 #   unmanaged  The interpreter lets pip install into it. Same pip install
 #              install.sh has always done (see the comment on that branch
@@ -29,6 +27,14 @@
 #              Earlier versions put that fallback in a venv
 #              (/opt/planetgen/venv, or PLANETGEN_VENV_DIR) with a
 #              planetgen-venv.pth file; both are removed here when found.
+#
+#   venv       macOS (picked automatically there). There is no apt, and
+#              Homebrew's Python refuses system-wide pip (PEP 668), so,
+#              as docs/deployment/macos.md describes, the libraries and
+#              gunicorn go into a virtual environment (PLANETGEN_VENV,
+#              default /usr/local/planetgen/venv) made from Homebrew's
+#              python3, from requirements-server.lock. install.sh and
+#              update.sh then run everything else with the venv's python.
 #
 # Whatever pip installs on either path comes from requirements.lock: the
 # exact versions scripts/lock-requirements.sh pinned, checked against the
@@ -56,9 +62,16 @@
 # came from, and exit non-zero if anything is still unusable. Both also
 # put back the /usr/local/bin/planetgen wrapper if it's missing or stale.
 #
+# Runs under macOS's bash 3.2 as well as Linux's bash: no associative
+# arrays or mapfile, and every array that can be empty is expanded as
+# ${a[@]+"${a[@]}"} (bash before 4.4 calls an empty "${a[@]}" unbound
+# under set -u).
+#
 # Environment:
-#   PYTHON                 interpreter to install for (default: python3 on PATH)
-#   PLANETGEN_PYTHON_MODE  auto (default), managed or unmanaged
+#   PYTHON                 interpreter to install for (default: python3 on PATH;
+#                          on macOS, the venv is made from Homebrew's python3)
+#   PLANETGEN_PYTHON_MODE  auto (default), managed, unmanaged or venv
+#   PLANETGEN_VENV         the venv path's venv (default /usr/local/planetgen/venv)
 #   PLANETGEN_VENV_DIR     old fallback venv to remove (default /opt/planetgen/venv)
 
 set -euo pipefail
@@ -73,14 +86,25 @@ case "${1:-}" in
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -z "${PYTHON:-}" && "$(uname -s)" == Darwin ]]; then
+    # Homebrew's python3 (Apple Silicon, then Intel), not the Command Line
+    # Tools' /usr/bin/python3. Homebrew itself won't run as root, so it
+    # is never called here.
+    for candidate in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+        if [[ -x "$candidate" ]]; then PYTHON="$candidate"; break; fi
+    done
+fi
 PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
 MODE="${PLANETGEN_PYTHON_MODE:-auto}"
 LEGACY_VENV_DIR="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}"
 LEGACY_PTH_NAME="planetgen-venv.pth"
+VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
 WRAPPER=/usr/local/bin/planetgen
 # Exact versions and file hashes for everything pip installs
-# (scripts/lock-requirements.sh writes it).
+# (scripts/lock-requirements.sh writes both). The server lock adds the
+# app server (gunicorn) for the venv path.
 LOCK="$SCRIPT_DIR/requirements.lock"
+SERVER_LOCK="$SCRIPT_DIR/requirements-server.lock"
 LOCK_PINS="$SCRIPT_DIR/scripts/lock_pins.py"
 
 # Every runtime requirement install.sh needs: setup.py's install_requires
@@ -104,11 +128,30 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 SPECS=()
-declare -A PACKAGE_OF=()
 for line in "${REQUIREMENTS[@]}"; do
     SPECS+=("${line%% *}")
-    PACKAGE_OF["${line%% *}"]="${line##* }"
 done
+
+# The apt package that provides a requirement spec.
+package_of() {
+    local line
+    for line in "${REQUIREMENTS[@]}"; do
+        if [[ "${line%% *}" == "$1" ]]; then
+            printf '%s' "${line##* }"
+            return
+        fi
+    done
+}
+
+# Reads the lines of stdin into the array named $1 (bash 3.2 has no
+# mapfile). Blank lines are dropped.
+read_lines() {
+    local line lines=()
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -n "$line" ]] && lines+=("$line")
+    done
+    eval "$1=(\${lines[@]+\"\${lines[@]}\"})"
+}
 
 is_managed() {
     local stdlib
@@ -122,48 +165,7 @@ is_managed() {
 # but the import raised). Imports each one for real, since an installed
 # distribution whose own dependencies are missing is not usable either.
 probe() {
-    "$PYTHON" - "$@" <<'EOF'
-import importlib
-import re
-import sys
-from importlib import metadata
-
-
-def key(version):
-    parts = []
-    for piece in version.split("."):
-        match = re.match(r"\d+", piece)
-        if not match:
-            break
-        parts.append(int(match.group()))
-        if match.group() != piece:
-            break
-    return tuple(parts)
-
-
-for spec in sys.argv[1:]:
-    name, floor = spec.split(">=")
-    dist = None
-    for candidate in (name, name.replace("-", "_")):
-        try:
-            dist = metadata.distribution(candidate)
-            break
-        except metadata.PackageNotFoundError:
-            pass
-    if dist is None:
-        print("missing", spec, "-", "-")
-        continue
-    where = str(dist.locate_file("")).rstrip("/") or "-"
-    if key(dist.version) < key(floor):
-        print("old", spec, dist.version, where)
-        continue
-    try:
-        importlib.import_module(name.replace("-", "_"))
-    except Exception as exc:  # any import failure makes it unusable
-        print("broken", spec, f"{type(exc).__name__}:{exc}".replace(" ", "_").replace("\n", "_"), where)
-        continue
-    print("ok", spec, dist.version, where)
-EOF
+    "$PYTHON" "$SCRIPT_DIR/scripts/probe_requirements.py" "$@"
 }
 
 # The version apt would install for a package, or nothing if it has none.
@@ -185,11 +187,11 @@ apt_install() {
     apt-get update -qq || true
     local spec pkg wanted=() lacking=()
     for spec in "$@"; do
-        pkg="${PACKAGE_OF[$spec]}"
+        pkg="$(package_of "$spec")"
         if [[ -n "$(apt_candidate "$pkg")" ]]; then wanted+=("$pkg"); else lacking+=("$pkg"); fi
     done
     if (( ${#wanted[@]} )); then
-        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${wanted[@]}" || true
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ${wanted[@]+"${wanted[@]}"} || true
     fi
     if (( ${#lacking[@]} )); then
         echo "No distribution package for: ${lacking[*]}"
@@ -222,13 +224,18 @@ pip_install_system() {
     hashed="$(mktemp)"
     "$PYTHON" -I "$LOCK_PINS" resolve "$LOCK" "$hashed" ${flags[@]+"${flags[@]}"} -- "$@" || status=$?
     if (( status != 3 )); then
-        (( status == 0 )) && mapfile -t pins < <(awk '{print $1}' "$hashed")
+        if (( status == 0 )); then
+            read_lines pins < <(awk '{print $1}' "$hashed")
+        fi
         if (( ${#pins[@]} )); then
             # An older copy pip itself installed (outside apt's
             # directory) is pip's to replace, and would otherwise leave its
             # metadata behind next to the new one.
-            local owned=()
-            mapfile -t owned < <("$PYTHON" - "${pins[@]%%==*}" <<'EOF'
+            # (A temp file, not <(... <<EOF): bash 3.2 can't parse a
+            # heredoc inside a command or process substitution.)
+            local owned=() owned_file
+            owned_file="$(mktemp)"
+            "$PYTHON" - "${pins[@]%%==*}" > "$owned_file" <<'EOF'
 import sys
 from importlib import metadata
 
@@ -240,12 +247,13 @@ for name in sys.argv[1:]:
     if not where.startswith("/usr/lib/python3/"):
         print(name)
 EOF
-            )
+            read_lines owned < "$owned_file"
+            rm -f "$owned_file"
             if (( ${#owned[@]} )); then
-                "$PYTHON" -m pip uninstall -y "${flags[@]}" "${owned[@]}" || true
+                "$PYTHON" -m pip uninstall -y ${flags[@]+"${flags[@]}"} "${owned[@]}" || true
             fi
             echo "Installing with pip into the system Python: ${pins[*]}"
-            "$PYTHON" -m pip install "${flags[@]}" --ignore-installed --no-deps --require-hashes -r "$hashed" || true
+            "$PYTHON" -m pip install ${flags[@]+"${flags[@]}"} --ignore-installed --no-deps --require-hashes -r "$hashed" || true
         fi
     else
         # pip older than 22.2 has no --report: the same --ignore-installed
@@ -253,7 +261,7 @@ EOF
         # locked versions (though not their hashes, which would need
         # every dependency listed up front).
         "$PYTHON" -I "$LOCK_PINS" constraints "$LOCK" > "$hashed"
-        "$PYTHON" -m pip install "${flags[@]}" --ignore-installed -c "$hashed" "$@" || true
+        "$PYTHON" -m pip install ${flags[@]+"${flags[@]}"} --ignore-installed -c "$hashed" "$@" || true
     fi
     rm -f "$hashed"
 }
@@ -285,10 +293,12 @@ source_of() {
         /usr/lib/python3/dist-packages|/usr/lib/python3/dist-packages/*) echo "apt"; return ;;
         -) echo "-"; return ;;
     esac
-    if [[ "$MODE" != managed ]]; then
+    if [[ "$MODE" == venv ]]; then
+        echo "pip, in $VENV"; return
+    elif [[ "$MODE" != managed ]]; then
         echo "pip"; return
     fi
-    pkg="${PACKAGE_OF[$spec]}"
+    pkg="$(package_of "$spec")"
     candidate="$(apt_candidate "$pkg")"
     if [[ -z "$candidate" ]]; then
         echo "pip, apt has no $pkg"
@@ -306,7 +316,9 @@ source_of() {
 report() {
     local before_file="${1:-}" state spec detail where old failed=0 label i=0
     local -a before=()
-    [[ -n "$before_file" ]] && mapfile -t before < "$before_file"
+    if [[ -n "$before_file" ]]; then
+        read_lines before < "$before_file"
+    fi
     while read -r state spec detail where; do
         if [[ "$state" != ok ]]; then
             printf '  %-10s %s (%s: %s)\n' failed "$spec" "$state" "$detail"
@@ -353,12 +365,9 @@ not_ok() {
 # without anything being reinstalled. Rewritten only when it differs.
 write_wrapper() {
     local want
-    want="$(cat <<EOF
-#!/bin/sh
-# Written by planetGen's scripts/install-python-deps.sh.
-exec "$PYTHON" "$SCRIPT_DIR/generate.py" "\$@"
-EOF
-)"
+    want="$(printf '%s\n' '#!/bin/sh' \
+        "# Written by planetGen's scripts/install-python-deps.sh." \
+        "exec \"$PYTHON\" \"$SCRIPT_DIR/generate.py\" \"\$@\"")"
     if [[ "$(cat "$WRAPPER" 2>/dev/null || true)" != "$want" ]]; then
         printf '%s\n' "$want" > "$WRAPPER"
         echo "Wrote $WRAPPER (runs $SCRIPT_DIR/generate.py)."
@@ -454,11 +463,53 @@ install_managed() {
     remove_legacy_venv
     apt_install "${SPECS[@]}"
     local need=()
-    mapfile -t need < <(probe "${SPECS[@]}" | not_ok)
+    read_lines need < <(probe "${SPECS[@]}" | not_ok)
     if (( ${#need[@]} )); then
         echo "Not provided well enough by apt (missing, too old or broken): ${need[*]}"
         echo "Installing those system-wide with pip."
         pip_install_system "${need[@]}"
+    fi
+    write_wrapper
+    final_report
+}
+
+# The venv path (macOS): a virtual environment made from $PYTHON, with
+# the libraries and gunicorn from requirements-server.lock, checked
+# against its hashes. pip leaves alone whatever is already installed at
+# the locked version.
+install_venv() {
+    local base="$PYTHON"
+    # 3.10, not setup.py's 3.9: the gunicorn plist passes
+    # --no-control-socket, which needs gunicorn 25.1+, and that needs 3.10.
+    "$base" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' || {
+        echo "error: $base is older than Python 3.10. Install Homebrew's (brew install python@3.12)." >&2
+        return 1
+    }
+    if [[ ! -x "$VENV/bin/python" ]]; then
+        echo "Creating the virtual environment $VENV with $base."
+        mkdir -p "$(dirname "$VENV")"
+        "$base" -m venv "$VENV"
+        "$VENV/bin/python" -m pip install --quiet --upgrade pip
+    fi
+    PYTHON="$VENV/bin/python"
+    echo "Installing the locked libraries and gunicorn into $VENV."
+    "$PYTHON" -m pip install --quiet --require-hashes -r "$SERVER_LOCK"
+}
+
+venv_ready() {
+    [[ -x "$VENV/bin/python" ]] || return 1
+    local status
+    status="$(PYTHON="$VENV/bin/python" probe "${SPECS[@]}" "gunicorn>=0")" || return 1
+    ! grep -qv '^ok ' <<< "$status"
+}
+
+check_venv() {
+    echo "Checking the Python libraries in $VENV."
+    if venv_ready; then
+        PYTHON="$VENV/bin/python"
+    else
+        echo "Missing, too old or not importable in $VENV: installing from requirements-server.lock."
+        install_venv
     fi
     write_wrapper
     final_report
@@ -471,13 +522,13 @@ check_requirements() {
     local before_file need=()
     before_file="$(mktemp)"
     probe "${SPECS[@]}" > "$before_file"
-    mapfile -t need < <(not_ok < "$before_file")
+    read_lines need < <(not_ok < "$before_file")
 
     if (( ${#need[@]} )); then
         echo "Missing, too old or not importable: ${need[*]}"
         if [[ "$MODE" == managed ]]; then
             apt_install "${need[@]}"
-            mapfile -t need < <(probe "${need[@]}" | not_ok)
+            read_lines need < <(probe "${need[@]}" | not_ok)
             if (( ${#need[@]} )); then
                 echo "apt can't provide: ${need[*]} -- installing those system-wide with pip."
             fi
@@ -498,14 +549,25 @@ check_requirements() {
 
 case "$MODE" in
     auto)
-        if is_managed; then MODE=managed; else MODE=unmanaged; fi ;;
-    managed|unmanaged) ;;
+        if [[ "$(uname -s)" == Darwin ]]; then MODE=venv
+        elif is_managed; then MODE=managed
+        else MODE=unmanaged; fi ;;
+    managed|unmanaged|venv) ;;
     *)
-        echo "error: PLANETGEN_PYTHON_MODE must be auto, managed or unmanaged (got '$MODE')." >&2
+        echo "error: PLANETGEN_PYTHON_MODE must be auto, managed, unmanaged or venv (got '$MODE')." >&2
         exit 1 ;;
 esac
 
-if [[ "$ACTION" == check ]]; then
+if [[ "$MODE" == venv ]]; then
+    if [[ "$ACTION" == check ]]; then
+        check_venv
+    else
+        install_venv
+        write_wrapper
+        echo "Python install path: venv ($VENV)."
+        final_report
+    fi
+elif [[ "$ACTION" == check ]]; then
     check_requirements
 elif [[ "$MODE" == managed ]]; then
     install_managed

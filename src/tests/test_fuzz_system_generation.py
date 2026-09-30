@@ -623,11 +623,6 @@ def test_circumbinary_bodies_orbit_outside_the_binary():
     assert not bad, f"bodies inside the binary orbit (seed, edge AU, separation AU): {bad[:5]}"
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG: StarSystem.validate_system only keeps a planet MIN_ASTEROID_BELT_SEPARATION (0.05 AU) past "
-    "a belt, ignoring the planet's own Hill radius, while a belt after a planet must clear 5 Hill "
-    "radii -- so a massive outer planet's Hill sphere can swallow the belt's outer edge "
-    "(repro: default SystemConfig(), seed=0: belt ends 100.66 AU, planet at 100.71 AU with r_H=0.10 AU)"))
 def test_planet_hill_sphere_clears_the_belt_inside_it():
     bad = []
     for seed in range(40):
