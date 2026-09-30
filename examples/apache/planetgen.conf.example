@@ -152,12 +152,7 @@
     # threads and memory until the kernel's OOM killer takes Apache down
     # with it -- what happened on 2026-09-24 with the Galaxy Map's old
     # unbounded view query.
-    #
-    # python-home runs the app in planetGen's own venv, where install.sh
-    # puts every library it needs; the system Python stays apt's. The
-    # venv is built from the same system python3 mod_wsgi embeds, which
-    # install.sh/update.sh check.
-    WSGIDaemonProcess planetgen-api python-home=/opt/planetgen/venv processes=1 threads=5 request-timeout=60
+    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
     #
     # Mounted at / (not /api): the same app serves the JSON API under /api
     # and the pages everywhere else. Replace an older `WSGIScriptAlias

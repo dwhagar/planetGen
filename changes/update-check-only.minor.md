@@ -1,30 +1,33 @@
 ### Changed
-- **planetGen's Python libraries live in their own venv,
-  `/opt/planetgen/venv`, and the system Python is left to apt.** Nothing
-  is pip-installed into `/usr/lib` or `/usr/local` any more, and
-  `--break-system-packages` is never used. The venv is isolated and built
-  from the system `python3` (the Python mod_wsgi embeds). Apache runs it
-  through `python-home=/opt/planetgen/venv` on `WSGIDaemonProcess`
-  (added to `examples/apache/planetgen.conf.example`).
-  `/usr/local/bin/planetgen` and `planetgen-orbits@.service` run the
-  venv's Python too. On an existing server, the next run removes the old
-  `planetgen-venv.pth` from the system Python and rebuilds the old
-  shared-packages venv as an isolated one. Until the vhost has the
-  `python-home` line (install.sh and update.sh print it), `wsgi.py` adds
-  the venv to its own path, so the site keeps working.
 - **`update.sh` no longer reinstalls anything.** It used to re-run
-  `install.sh` after every pull, which force-reinstalled the package and
-  rebuilt the venv. Now it imports each library with the venv's Python and
-  installs only one that is missing, below `setup.py`'s floor or broken
-  (`scripts/install-python-deps.sh --check`). It rebuilds the venv only
-  when a distribution upgrade changed the Python under it. It prints one
-  line per library (present, installed, upgraded, repaired or failed), and
-  finishes by importing the web app as Apache's user.
-- The NLTK corpus and mod_wsgi are installed, and Apache's modules
-  enabled, only when missing. These steps live in
-  `scripts/deploy-common.sh`, shared by `install.sh` and `update.sh`. Both
-  scripts warn when mod_wsgi is built for a different Python version than
-  the venv, and both accept `PYTHON=` to build the venv from another
-  interpreter.
-- The admin Stats page shows the web app's Python prefix and the
-  directory it imports its libraries from.
+  `install.sh` after every pull that brought new commits, which
+  force-reinstalled the Python package with pip, rebuilt the fallback
+  venv and re-fetched the NLTK corpus. Now it checks instead: each Python
+  library is imported with the system Python and compared with
+  `setup.py`'s floor (`scripts/install-python-deps.sh --check`), and only
+  one that is missing, too old or broken is installed, the same way
+  `install.sh` would on that host. The NLTK corpus and mod_wsgi are
+  installed, and Apache's modules enabled, only when missing. It prints
+  one line per library (present, installed, upgraded, repaired or failed)
+  with where it came from, and finishes by importing the web app as
+  Apache's user, so a library www-data can't use fails the update instead
+  of the site.
+- **No more venv: libraries go into the system Python.** On an
+  externally managed Python (Ubuntu 24.04+), everything apt packages at
+  or above `setup.py`'s floor comes from apt. Only what apt lacks or ships
+  too old is pip-installed system-wide into `/usr/local`, alongside apt's
+  copy and never over it. The report says which ones and why. An existing
+  `/opt/planetgen/venv` and its `planetgen-venv.pth` are removed on the
+  next run, and their libraries are installed system-wide.
+- The NLTK and Apache module steps now live in `scripts/deploy-common.sh`,
+  shared by `install.sh` and `update.sh`, and `install.sh` installs
+  mod_wsgi when apt can instead of only warning about it.
+- `/usr/local/bin/planetgen` is now the checkout wrapper on every host
+  (pip's console script ran the pip-installed copy, which would go stale
+  once updates stopped reinstalling it).
+- **Checking which Python Apache really uses.** `install.sh`/`update.sh`
+  now warn when mod_wsgi is built for a different Python version than the
+  one they set the libraries up for, and both take `PYTHON=` to pick
+  another interpreter. The admin Stats page shows the web app's Python
+  prefix and the directory it imports its libraries from. See
+  `docs/apache-deployment.md`.

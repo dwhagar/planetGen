@@ -19,72 +19,80 @@ call `set-permissions.sh` and `create-cache-dir.sh` (below) as steps. Use
 | [`set-permissions.sh`](../examples/apache/set-permissions.sh) | Detects the user/group Apache2 is actually configured to run as (from `/etc/apache2/envvars`, a running `apache2` process, or falling back to the Debian/Ubuntu default `www-data:www-data` if neither is found -- e.g. because apache2 isn't started yet), `chown`s the deployed `../src/html/` directory to that user:group, and makes every `*.py` file anywhere under it (at any subdirectory depth, `../src/html/lib/` included) owner/group readable (and executable, a harmless leftover from the CGI pages). Prints a count of how many `.py` files it fixed, so a wrong path is obvious rather than silently matching nothing. Its optional `db-dir` argument is a pre-MySQL-port leftover (harmless no-op if that directory doesn't exist -- the database is a MySQL server now, not local files; see [`database-schema.md`](database-schema.md)). Bash, not Python -- Linux-only deployment step, safe to re-run any time as root. |
 | [`create-cache-dir.sh`](../examples/apache/create-cache-dir.sh) | Creates the 3D Galaxy Map's on-disk tile cache (see [`config.md`](config.md)'s `tile_cache`: `PLANETGEN_TILE_CACHE_DIR`, else `tile_cache.dir`, else `/var/cache/planetgen/tiles`) and `chown`s it to Apache's user, detected the same way `set-permissions.sh` does (both source [`apache-identity.sh`](../examples/apache/apache-identity.sh)). Does nothing when `tile_cache.max_mb` is `0`. Takes the directory as an argument when it's set only by a `SetEnv` in the vhost, which the script can't see. Safe to re-run any time as root. |
 
-## Python environment
+## Managed Python
 
-planetGen runs in its own virtual environment, `/opt/planetgen/venv`
-(`PLANETGEN_VENV_DIR`), the standard way to deploy a Python service on a
-Linux host. `install.sh`'s first step
+Newer Debian and Ubuntu releases (Debian 12+, Ubuntu 23.04+, including
+Ubuntu 26.04 LTS) mark their system Python as *externally managed*
+(PEP 668: an `EXTERNALLY-MANAGED` file in the stdlib directory), and pip
+refuses to install into it. `install.sh`'s first step
 ([`../scripts/install-python-deps.sh`](../scripts/install-python-deps.sh))
-builds it from the system `python3` and pip-installs every library
-`setup.py` needs into it. The system Python is never changed: nothing is
-pip-installed into `/usr/lib` or `/usr/local`, and
-`--break-system-packages` is never used, so apt keeps sole charge of what
-it installed (PEP 668's `EXTERNALLY-MANAGED` marker on Debian 12+ and
-Ubuntu 23.04+ is respected, not bypassed). apt provides only the OS side:
-the interpreter, `python3-venv`, and mod_wsgi
-(`libapache2-mod-wsgi-py3`).
+checks for that file and picks a path, printing which one it took:
 
-planetGen itself isn't installed into the venv. Every entry point adds the
-checkout's `src/` to `sys.path`, so the code that runs is always the code
-that was pulled. `/usr/local/bin/planetgen` is a wrapper that runs the
-checkout's `generate.py` with the venv's Python.
-`examples/maintenance/planetgen-orbits@.service` runs
-`/opt/planetgen/venv/bin/python` the same way.
+- **Not managed:** `pip install` of the package and its `api` extra, as
+  before.
+- **Managed:** everything goes into the system Python, no virtual
+  environment. Each library comes from apt (`python3-flask`,
+  `python3-nltk`, `python3-pymysql`, `python3-dbutils`,
+  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`) when the
+  distribution packages it at or above the version `setup.py` asks for.
+  Only a library apt lacks, or ships too old, is pip-installed
+  system-wide into `/usr/local/lib/python3.X/dist-packages`, which comes
+  before apt's `/usr/lib/python3/dist-packages` on `sys.path`. The same
+  goes for any dependency of it that has to be newer than apt's (Flask
+  3.1 needs a newer Werkzeug than Ubuntu 24.04 ships, for example). pip
+  never removes or overwrites apt's files: it resolves first and then
+  installs exactly those versions alongside (`--ignore-installed
+  --no-deps`). A plain `pip install --upgrade --break-system-packages`
+  deletes apt's copy of some packages (python3-pymysql, for one) and
+  leaves dpkg broken. The report lists each library with where it came
+  from, and for each pip one, why apt couldn't provide it. Servers set up
+  by earlier versions had a venv at `/opt/planetgen/venv` with a
+  `planetgen-venv.pth`. Both are removed on the next `install.sh` or
+  `update.sh`, and what they held goes system-wide.
+
+planetGen itself runs straight from the checkout (every entry point adds
+`src/` to `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing
+in for pip's console script on every host, so the CLI always runs the
+checkout's code.
+
+`PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
 
 `update.sh` reinstalls nothing. It runs the same script with `--check`,
-which imports each library with the venv's Python and compares its
-version with `setup.py`'s floor. It then pip-installs into the venv only
-what is missing, too old or fails to import. It prints one line per
-library (`present`, `installed`, `upgraded`, `repaired` or `failed`) and
-stops the update if anything is still unusable. The venv is rebuilt only
-when a distribution upgrade has changed the system Python's version under
-it. Its last step imports the web app as Apache's user, so a library
-www-data can't read shows up there rather than as a 500.
-`sudo ./install.sh` also brings every library up to its latest release.
+which imports each library with the system Python and compares its
+version with `setup.py`'s floor. It then installs only what is missing,
+too old or fails to import, the same way `install.sh` would on that host:
+apt first, then system-wide pip. It prints one line per library
+(`present`, `installed`, `upgraded`, `repaired` or `failed`, and its
+source) and stops the update if anything is still unusable. Its last step
+imports the web app as Apache's user, so a library www-data can't read
+shows up there rather than as a 500. `sudo ./install.sh` is still the
+full reinstall.
 
-Servers set up before this had libraries from apt, or a venv reached
-through a `planetgen-venv.pth` file in the system site-packages. The next
-`install.sh` or `update.sh` removes that `.pth` and fills the venv. The
-apt `python3-*` packages are left installed, since other software may use
-them, and nothing of planetGen's uses them any more.
+### Which Python and libraries Apache uses
 
-### How Apache uses the venv
+Nothing in the vhost names a Python or a library path, and nothing needs
+to. mod_wsgi embeds the system Python it was built against, and that
+Python finds the libraries in its own system site-packages, exactly as
+`python3` does in a shell. Leave `python-home` off `WSGIDaemonProcess`.
 
-The vhost's `WSGIDaemonProcess` line names the venv with `python-home`:
-
-    WSGIDaemonProcess planetgen-api python-home=/opt/planetgen/venv processes=1 threads=5 request-timeout=60
-
-`install.sh` and `update.sh` never edit the site file. They print this
-line when an existing `/etc/apache2/sites-available/*.conf` is missing it.
-Until it's added, `src/html/wsgi.py` puts the venv on `sys.path` itself,
-so the site keeps working. After adding it, run `sudo apache2ctl
-configtest && sudo systemctl restart apache2`.
-
-mod_wsgi embeds the system Python it was built for, and a venv only works
-under the Python version it was built from. Both scripts compare the two
-and warn if they differ. By hand:
+The one thing that has to line up is the Python version: mod_wsgi
+(`libapache2-mod-wsgi-py3`) must be built for the same Python that
+`install.sh`/`update.sh` set up. Both scripts check this and warn if
+they differ. By hand:
 
     ldd /usr/lib/apache2/modules/mod_wsgi.so | grep libpython   # e.g. libpython3.12
-    /opt/planetgen/venv/bin/python --version                    # must match
+    python3 --version                                           # must match
+    sudo -u www-data python3 -c "import flask; print(flask.__file__)"
 
-If they differ, install the `libapache2-mod-wsgi-py3` that matches, or
-rebuild the venv with mod_wsgi's Python (`sudo PYTHON=/usr/bin/python3.12
-./install.sh`).
+If they differ, install the `libapache2-mod-wsgi-py3` that matches, or run
+the scripts with that Python (`sudo PYTHON=/usr/bin/python3.12
+./update.sh`).
 
 To see what the running site really uses, open the admin Stats page
-(`/admin/stats`). **Python** shows the daemon's version and prefix, which
-is `/opt/planetgen/venv` when python-home is set. **Libraries from** shows
-the directory it imports Flask from. After an update,
+(`/admin/stats`): **Python** shows the daemon's version and prefix, and
+**Libraries from** shows the directory it imports Flask from
+(`/usr/lib/python3/dist-packages` for apt's Flask,
+`/usr/local/lib/python3.X/dist-packages` for pip's). After an update,
 `sudo systemctl reload apache2` restarts the daemon so it picks up
 anything newly installed.
 

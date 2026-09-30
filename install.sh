@@ -8,10 +8,11 @@
 # scripts, installable on any OS); everything Linux/Apache-specific lives
 # here instead:
 #
-#   1. Runs `scripts/install-python-deps.sh` to put the Python libraries
-#      in planetGen's own venv, /opt/planetgen/venv, built from the system
-#      python3 (the one mod_wsgi embeds). The system Python itself is
-#      never changed (PEP 668), so apt stays in charge of it.
+#   1. Runs `scripts/install-python-deps.sh` to install the Python package
+#      and its libraries: a build-isolated `pip install` on an ordinary
+#      Python, or distribution (apt) packages on an externally managed one
+#      (PEP 668, e.g. Ubuntu 24.04+), with system-wide pip only for
+#      libraries the distribution lacks or ships too old. No venv.
 #   2. Runs `src/migrateDb.py` against the configured MySQL database
 #      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
 #      `SetEnv` directives once deployed), bringing it up to the current
@@ -82,12 +83,12 @@ fi
 # shellcheck source=scripts/deploy-common.sh
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
-echo "== 1/8: Installing the Python libraries into planetGen's venv =="
+echo "== 1/8: Installing the Python package and its libraries =="
+# pip on an ordinary Python; distribution packages (plus system-wide pip
+# for anything the distribution lacks or ships too old) on an externally
+# managed one (PEP 668, e.g. Ubuntu 24.04+). See that script for
+# the details of each path; it prints which one it took.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
-
-# From here on everything runs with the venv's Python, the one the site
-# and the CLI use.
-PYTHON="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}/bin/python"
 
 echo
 echo "== 2/8: Migrating the configured MySQL database to the current schema =="

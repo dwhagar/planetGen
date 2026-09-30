@@ -493,9 +493,10 @@ and how it relates to the `PLANETGEN_*` environment variables.
    database and account already created, is a separate prerequisite --
    see [`database-schema.md`](database-schema.md).
 2. From that directory, run `sudo ./install.sh` -- installs the Python
-   libraries into planetGen's own venv at `/opt/planetgen/venv`, leaving
-   the system Python alone (see
-   [`apache-deployment.md`](apache-deployment.md#python-environment)), brings the configured MySQL database's schema up to date
+   package (with pip, or on an externally managed Python such as Ubuntu
+   24.04+'s, from apt packages, with system-wide pip only for anything apt
+   lacks or ships too old; see
+   [`apache-deployment.md`](apache-deployment.md#managed-python)), brings the configured MySQL database's schema up to date
    (a no-op if it's already current -- see
    [`database-schema.md`](database-schema.md)'s "Versioning"),
    pre-fetches the NLTK `words` corpus into a shared world-readable
@@ -524,7 +525,7 @@ diverged) and then checks everything the site needs without
 reinstalling anything that's already there: the executable bits and
 permissions, each Python library (installing only one that's missing,
 too old or broken, see
-[`apache-deployment.md`](apache-deployment.md#python-environment)), the NLTK
+[`apache-deployment.md`](apache-deployment.md#managed-python)), the NLTK
 corpus, the schema migration, Apache's modules, the cache/jobs
 directories and the debug log, and finally that the web app imports as
 Apache's user. `install.sh` remains safe to run directly any time you

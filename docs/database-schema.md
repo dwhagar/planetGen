@@ -665,7 +665,7 @@ Meant to run on a schedule, not on every deploy (`install.sh`/`update.sh`
 don't call it) -- e.g. a monthly cron entry:
 
 ```
-0 3 1 * * cd /var/lib/planetGen && /opt/planetgen/venv/bin/python src/updateOrbits.py >> /var/log/planetgen-orbits.log 2>&1
+0 3 1 * * cd /var/lib/planetGen && python3 src/updateOrbits.py >> /var/log/planetgen-orbits.log 2>&1
 ```
 
 or, on a systemd-based (Ubuntu/Debian) host, the equivalent systemd timer

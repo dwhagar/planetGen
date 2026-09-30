@@ -16,12 +16,12 @@
 #      before (see `docs/TODO.md`'s "Deployment bugs found in
 #      production").
 #   2. Checks every Python library the site needs by importing it with
-#      the Python of planetGen's venv (/opt/planetgen/venv, which mod_wsgi
-#      and the CLI run under) and comparing its version with setup.py's
-#      floor: `scripts/install-python-deps.sh --check`. Only a library
-#      that is missing, too old or broken gets installed into the venv;
-#      the venv is rebuilt only if a distribution upgrade changed the
-#      system Python's version under it. planetGen itself is never
+#      the system Python (the one mod_wsgi and the CLI run under) and
+#      comparing its version with setup.py's floor:
+#      `scripts/install-python-deps.sh --check`. Only a library that is
+#      missing, too old or broken gets installed, the same way install.sh
+#      would on this host (apt first and then system-wide pip on an
+#      externally managed Python, pip on an ordinary one). planetGen itself is never
 #      reinstalled: the web app, the maintenance scripts and the
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.
@@ -121,10 +121,6 @@ source "$SCRIPT_DIR/scripts/deploy-common.sh"
 echo
 echo "== 2/8: Checking the Python libraries =="
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
-
-# From here on everything runs with the venv's Python, the one the site
-# and the CLI use.
-PYTHON="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}/bin/python"
 
 echo
 echo "== 3/8: Checking the NLTK 'words' corpus =="

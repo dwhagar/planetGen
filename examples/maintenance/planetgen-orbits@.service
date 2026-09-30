@@ -53,6 +53,4 @@ EnvironmentFile=-/etc/planetgen/maintenance.env
 # of templating is one shared credentials file with a per-instance
 # target database.
 Environment=PLANETGEN_MYSQL_DATABASE=%i
-# planetGen's venv (install.sh), where its libraries are; the system
-# python3 doesn't have them.
-ExecStart=/opt/planetgen/venv/bin/python src/updateOrbits.py
+ExecStart=/usr/bin/python3 src/updateOrbits.py

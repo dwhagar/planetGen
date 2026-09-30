@@ -2,48 +2,56 @@
 #
 # scripts/install-python-deps.sh
 #
-# Puts every Python library planetGen needs into one dedicated virtual
-# environment, /opt/planetgen/venv (PLANETGEN_VENV_DIR), the usual way to
-# deploy a Python service on a Linux host. The system Python is never
-# changed: nothing is pip-installed into /usr/lib or /usr/local, and
-# `--break-system-packages` is never used, so apt/dpkg stay in charge of
-# everything they installed (PEP 668). apt still provides the OS side:
-# the base interpreter, python3-venv, and mod_wsgi (see
-# scripts/deploy-common.sh).
+# Makes planetGen's libraries importable by the system Python, the one
+# mod_wsgi (and the CLI tools) run under. Everything goes into that
+# Python's own system-wide site-packages; there is no virtual
+# environment. Picks one of two paths and prints which one it took:
 #
-# The venv is built from the system python3 (PYTHON), because mod_wsgi
-# (libapache2-mod-wsgi-py3) embeds that same Python and runs the venv via
-# `python-home=/opt/planetgen/venv` on WSGIDaemonProcess (see
-# examples/apache/planetgen.conf.example). It's isolated (no
-# --system-site-packages): everything the site imports comes from here.
+#   unmanaged  The interpreter lets pip install into it. Same pip install
+#              install.sh has always done (see the comment on that branch
+#              below for why each flag is there).
 #
-# planetGen itself isn't installed into the venv: every entry point adds
-# the checkout's src/ to sys.path itself (generate.py,
+#   managed    The interpreter is "externally managed" (PEP 668): the
+#              distribution ships an EXTERNALLY-MANAGED file in its stdlib
+#              directory, as Debian 12+/Ubuntu 23.04+ do. Every library the
+#              distribution packages at or above setup.py's floor comes from
+#              apt (python3-flask, python3-nltk, ...). Only one apt has no
+#              package for, or ships below the floor, is pip-installed
+#              system-wide (--break-system-packages) into
+#              /usr/local/lib/python3.X/dist-packages, which comes before
+#              apt's /usr/lib/python3/dist-packages on sys.path, so it
+#              wins without apt's copy being touched. The report says
+#              which libraries came from pip and why.
+#
+#              Earlier versions put that fallback in a venv
+#              (/opt/planetgen/venv, or PLANETGEN_VENV_DIR) with a
+#              planetgen-venv.pth file; both are removed here when found.
+#
+# planetGen itself is never installed into site-packages: every entry
+# point adds the checkout's src/ to sys.path itself (generate.py,
 # src/html/lib/apiclient.py, src/html/wsgi.py, and src/migrateDb.py
-# through its own sys.path[0]), so the code that runs is always the code
-# that was just pulled. /usr/local/bin/planetgen is a small wrapper that
-# runs the checkout's generate.py with the venv's Python.
+# through its own sys.path[0]), and /usr/local/bin/planetgen is a small
+# wrapper around the checkout's generate.py. (The unmanaged path still
+# pip-installs the package, as it always has, but nothing runs that copy.)
 #
 # Usage (as root):
-#   scripts/install-python-deps.sh           install.sh: create the venv if
-#                                            needed, install every library
-#                                            at its latest version
-#   scripts/install-python-deps.sh --check   update.sh: install nothing
-#                                            that is already there
+#   scripts/install-python-deps.sh           install.sh: full install
+#   scripts/install-python-deps.sh --check   update.sh: install nothing that
+#                                            is already there
 #
-# --check imports every requirement with the venv's Python and compares
-# its version with setup.py's floor. Only a requirement that is missing,
-# below its floor or fails to import gets installed. The venv is rebuilt
-# only when it's missing, its Python no longer runs, or its Python
-# version no longer matches the system one (a distribution upgrade),
-# since mod_wsgi would then load it with the wrong Python. Both actions
-# print one line per requirement and exit non-zero if anything is still
-# unusable.
+# --check imports every requirement with the system Python and compares
+# its version with the floor. Only a requirement that is missing, below
+# its floor or fails to import gets installed, the same way the full
+# install would have on this host (apt first, then system-wide pip on a
+# managed Python; pip on an unmanaged one). Nothing already present is
+# reinstalled. Both actions print one line per requirement with where it
+# came from, and exit non-zero if anything is still unusable. Both also
+# put back the /usr/local/bin/planetgen wrapper if it's missing or stale.
 #
 # Environment:
-#   PYTHON              base interpreter the venv is built from (default:
-#                       python3 on PATH -- the one mod_wsgi is built for)
-#   PLANETGEN_VENV_DIR  the venv (default /opt/planetgen/venv)
+#   PYTHON                 interpreter to install for (default: python3 on PATH)
+#   PLANETGEN_PYTHON_MODE  auto (default), managed or unmanaged
+#   PLANETGEN_VENV_DIR     old fallback venv to remove (default /opt/planetgen/venv)
 
 set -euo pipefail
 
@@ -58,22 +66,24 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
-VENV_DIR="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}"
-VENV_PYTHON="$VENV_DIR/bin/python"
+MODE="${PLANETGEN_PYTHON_MODE:-auto}"
+LEGACY_VENV_DIR="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}"
+LEGACY_PTH_NAME="planetgen-venv.pth"
 WRAPPER=/usr/local/bin/planetgen
 
-# Every runtime requirement: setup.py's install_requires plus its 'api'
-# extra. Keep in step with setup.py (src/tests/test_install_python_deps.py
-# checks this). Each is imported by its pip name with "-" turned into "_"
+# Every runtime requirement install.sh needs: setup.py's install_requires
+# plus its 'api' extra, as "<pip requirement> <apt package>". Keep in step
+# with setup.py (src/tests/test_install_python_deps.py checks this).
+# Each is imported by its pip name with "-" turned into "_"
 # (flask-limiter -> flask_limiter).
 REQUIREMENTS=(
-    "nltk>=3.9.1"
-    "pymysql>=1.1.1"
-    "dbutils>=3.1.0"
-    "werkzeug>=3.0.0"
-    "rich>=13.7.0"
-    "flask>=3.0.3"
-    "flask-limiter>=3.7.0"
+    "nltk>=3.9.1 python3-nltk"
+    "pymysql>=1.1.1 python3-pymysql"
+    "dbutils>=3.1.0 python3-dbutils"
+    "werkzeug>=3.0.0 python3-werkzeug"
+    "rich>=13.7.0 python3-rich"
+    "flask>=3.0.3 python3-flask"
+    "flask-limiter>=3.7.0 python3-flask-limiter"
 )
 
 if [[ -z "$PYTHON" ]]; then
@@ -81,51 +91,26 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
-py_version() {
-    "$1" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null
+SPECS=()
+declare -A PACKAGE_OF=()
+for line in "${REQUIREMENTS[@]}"; do
+    SPECS+=("${line%% *}")
+    PACKAGE_OF["${line%% *}"]="${line##* }"
+done
+
+is_managed() {
+    local stdlib
+    stdlib="$("$PYTHON" -c "import sysconfig; print(sysconfig.get_path('stdlib'))")"
+    [[ -f "$stdlib/EXTERNALLY-MANAGED" ]]
 }
 
-# Creates the venv when it's missing, its Python doesn't run, its Python
-# version isn't the system one's any more, or it was made with
-# --system-site-packages (the old fallback venv). Otherwise leaves it
-# exactly as it is.
-ensure_venv() {
-    local want have
-    want="$(py_version "$PYTHON")"
-    have="$(py_version "$VENV_PYTHON" || true)"
-    local shared=0
-    grep -qi '^include-system-site-packages *= *true' "$VENV_DIR/pyvenv.cfg" 2>/dev/null && shared=1
-    if [[ -n "$have" && "$have" == "$want" ]] && (( ! shared )); then
-        echo "Using the venv at $VENV_DIR (Python $have)."
-        return 0
-    fi
-    if (( shared )); then
-        # PR #99's venv saw apt's packages and held only what apt lacked.
-        echo "The venv at $VENV_DIR shares the system's packages: rebuilding it on its own."
-    elif [[ -n "$have" ]]; then
-        echo "The venv at $VENV_DIR is Python $have but $PYTHON is $want: rebuilding it."
-    elif [[ -e "$VENV_DIR" ]]; then
-        echo "The venv at $VENV_DIR doesn't run: rebuilding it."
-    else
-        echo "Creating the venv at $VENV_DIR (Python $want)."
-    fi
-    # python3-venv provides ensurepip, which `-m venv` needs for pip.
-    if ! "$PYTHON" -c "import ensurepip" >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
-        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv
-    fi
-    mkdir -p "$(dirname "$VENV_DIR")"
-    "$PYTHON" -m venv --clear "$VENV_DIR"
-    "$VENV_PYTHON" -m pip install --quiet --upgrade pip
-    VENV_REBUILT=1
-}
-
-# Prints "<state> <spec> <version or error>" for each requirement (from
-# the arguments) as the venv's Python sees it: state is ok, missing (not
-# installed), old (below its floor) or broken (installed but the import
-# raised). Imports each one for real, since an installed distribution
-# whose own dependencies are missing is not usable either.
+# Prints "<state> <spec> <version or error> <directory>" for each
+# requirement (from the arguments) as the system Python sees it: state is
+# ok, missing (not installed), old (below its floor) or broken (installed
+# but the import raised). Imports each one for real, since an installed
+# distribution whose own dependencies are missing is not usable either.
 probe() {
-    "$VENV_PYTHON" - "$@" <<'EOF'
+    "$PYTHON" - "$@" <<'EOF'
 import importlib
 import re
 import sys
@@ -146,32 +131,172 @@ def key(version):
 
 for spec in sys.argv[1:]:
     name, floor = spec.split(">=")
-    try:
-        version = metadata.version(name)
-    except metadata.PackageNotFoundError:
-        print("missing", spec, "-")
+    dist = None
+    for candidate in (name, name.replace("-", "_")):
+        try:
+            dist = metadata.distribution(candidate)
+            break
+        except metadata.PackageNotFoundError:
+            pass
+    if dist is None:
+        print("missing", spec, "-", "-")
         continue
-    if key(version) < key(floor):
-        print("old", spec, version)
+    where = str(dist.locate_file("")).rstrip("/") or "-"
+    if key(dist.version) < key(floor):
+        print("old", spec, dist.version, where)
         continue
     try:
         importlib.import_module(name.replace("-", "_"))
     except Exception as exc:  # any import failure makes it unusable
-        print("broken", spec, f"{type(exc).__name__}: {exc}".replace("\n", " "))
+        print("broken", spec, f"{type(exc).__name__}:{exc}".replace(" ", "_").replace("\n", "_"), where)
         continue
-    print("ok", spec, version)
+    print("ok", spec, dist.version, where)
 EOF
 }
 
-# Prints one line per requirement from the probe lines in $2 (a file).
-# Given the probe lines from before anything was installed in $1, labels
-# each one present/installed/upgraded/repaired rather than ok. Returns 1
-# if any requirement is still unusable.
+# The version apt would install for a package, or nothing if it has none.
+apt_candidate() {
+    command -v apt-cache >/dev/null 2>&1 || return 0
+    local candidate
+    candidate="$(apt-cache policy "$1" 2>/dev/null | awk '/Candidate:/ {print $2}')"
+    [[ "$candidate" == "(none)" ]] || printf '%s' "$candidate"
+}
+
+# apt-installs the distribution package of each given requirement that
+# apt has at all (one it doesn't would make apt-get fail the whole
+# batch). Packages already installed are left alone by apt-get.
+apt_install() {
+    command -v apt-get >/dev/null 2>&1 || {
+        echo "warning: apt-get not found -- installing with pip instead." >&2
+        return 0
+    }
+    apt-get update -qq || true
+    local spec pkg wanted=() lacking=()
+    for spec in "$@"; do
+        pkg="${PACKAGE_OF[$spec]}"
+        if [[ -n "$(apt_candidate "$pkg")" ]]; then wanted+=("$pkg"); else lacking+=("$pkg"); fi
+    done
+    if (( ${#wanted[@]} )); then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${wanted[@]}" || true
+    fi
+    if (( ${#lacking[@]} )); then
+        echo "No distribution package for: ${lacking[*]}"
+    fi
+}
+
+# pip-installs the given requirements into the system Python's own
+# site-packages (/usr/local/lib/python3.X/dist-packages on Debian/Ubuntu),
+# never removing anything. A plain `pip install --upgrade` would
+# uninstall the older copy first, and for a library apt installed that
+# deletes apt's own files (it does for egg-info packages such as
+# python3-pymysql), leaving dpkg's view of the system broken. So pip
+# resolves first (--dry-run --report), and then exactly the distributions
+# it picked -- the requirements plus any dependency they need newer than
+# what's installed -- go into /usr/local with --ignore-installed
+# --no-deps. /usr/local comes before /usr/lib/python3/dist-packages on
+# sys.path, so each shadows apt's copy without touching it, and
+# everything else apt provides stays apt's. A managed Python also needs
+# --break-system-packages for pip to write there at all.
+pip_install_system() {
+    if ! "$PYTHON" -m pip --version >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-pip || true
+    fi
+    local flags=() plan pins=()
+    [[ "$MODE" == managed ]] && flags+=(--break-system-packages)
+    plan="$(mktemp)"
+    if "$PYTHON" -m pip install "${flags[@]}" --dry-run --quiet --report "$plan" "$@"; then
+        mapfile -t pins < <("$PYTHON" - "$plan" <<'EOF'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as f:
+    for item in json.load(f)["install"]:
+        print(f"{item['metadata']['name']}=={item['metadata']['version']}")
+EOF
+        )
+        rm -f "$plan"
+        if (( ${#pins[@]} )); then
+            # An older copy pip itself installed (outside apt's
+            # directory) is pip's to replace, and would otherwise leave its
+            # metadata behind next to the new one.
+            local owned=()
+            mapfile -t owned < <("$PYTHON" - "${pins[@]%%==*}" <<'EOF'
+import sys
+from importlib import metadata
+
+for name in sys.argv[1:]:
+    try:
+        where = str(metadata.distribution(name).locate_file(""))
+    except metadata.PackageNotFoundError:
+        continue
+    if not where.startswith("/usr/lib/python3/"):
+        print(name)
+EOF
+            )
+            if (( ${#owned[@]} )); then
+                "$PYTHON" -m pip uninstall -y "${flags[@]}" "${owned[@]}" || true
+            fi
+            echo "Installing with pip into the system Python: ${pins[*]}"
+            "$PYTHON" -m pip install "${flags[@]}" --ignore-installed --no-deps "${pins[@]}" || true
+        fi
+    else
+        # pip older than 22.2 has no --report: the same --ignore-installed
+        # the unmanaged install uses, dependencies and all.
+        rm -f "$plan"
+        "$PYTHON" -m pip install "${flags[@]}" --ignore-installed "$@" || true
+    fi
+}
+
+# Earlier versions put the fallback libraries in a venv that a .pth file
+# put first on sys.path. Removed before anything is checked, so the
+# check sees the system Python on its own and fills any gap system-wide.
+remove_legacy_venv() {
+    local pth
+    for pth in "$("$PYTHON" -c "import site; print(site.getsitepackages()[0])")/$LEGACY_PTH_NAME" \
+               /usr/local/lib/python3*/dist-packages/"$LEGACY_PTH_NAME"; do
+        if [[ -f "$pth" ]]; then
+            rm -f "$pth"
+            echo "Removed $pth (the old venv fallback; everything is system-wide now)."
+        fi
+    done
+    if [[ -f "$LEGACY_VENV_DIR/pyvenv.cfg" ]]; then
+        rm -rf "$LEGACY_VENV_DIR"
+        echo "Removed the old fallback venv at $LEGACY_VENV_DIR."
+        rmdir "$(dirname "$LEGACY_VENV_DIR")" 2>/dev/null || true
+    fi
+}
+
+# Where a library came from, for the report: apt, or pip and why apt
+# couldn't provide it.
+source_of() {
+    local spec="$1" where="$2" pkg candidate
+    case "$where" in
+        /usr/lib/python3/dist-packages|/usr/lib/python3/dist-packages/*) echo "apt"; return ;;
+        -) echo "-"; return ;;
+    esac
+    if [[ "$MODE" != managed ]]; then
+        echo "pip"; return
+    fi
+    pkg="${PACKAGE_OF[$spec]}"
+    candidate="$(apt_candidate "$pkg")"
+    if [[ -z "$candidate" ]]; then
+        echo "pip, apt has no $pkg"
+    elif dpkg --compare-versions "$candidate" lt "${spec#*>=}" 2>/dev/null; then
+        echo "pip, apt's $pkg is $candidate, below ${spec#*>=}"
+    else
+        echo "pip, as a newer dependency of another library than apt's $candidate"
+    fi
+}
+
+# Prints one line per requirement from the probe lines on stdin; with
+# the probe lines from before any install in $1 (a file), labels each as
+# present/installed/upgraded/repaired instead of ok. Returns 1 if any
+# requirement is still unusable.
 report() {
-    local before_file="$1" after_file="$2" state spec detail old label failed=0 i=0
+    local before_file="${1:-}" state spec detail where old failed=0 label i=0
     local -a before=()
     [[ -n "$before_file" ]] && mapfile -t before < "$before_file"
-    while read -r state spec detail; do
+    while read -r state spec detail where; do
         if [[ "$state" != ok ]]; then
             printf '  %-10s %s (%s: %s)\n' failed "$spec" "$state" "$detail"
             failed=1
@@ -184,82 +309,190 @@ report() {
                     old) label=upgraded ;; *) label=repaired ;;
                 esac
             fi
-            printf '  %-10s %-24s %s\n' "$label" "$spec" "$detail"
+            printf '  %-10s %-24s %-8s (%s)\n' "$label" "$spec" "$detail" "$(source_of "$spec" "$where")"
         fi
         i=$((i + 1))
-    done < "$after_file"
+    done
     return "$failed"
 }
 
-# Removes what earlier versions of this script put into the system
-# Python: PR #99's planetgen-venv.pth, which put the venv on every system
-# Python process's sys.path. The venv is reached through python-home and
-# the wrapper now, so the system Python goes back to being the
-# distribution's own.
-remove_legacy_pth() {
-    local pth
-    for pth in /usr/local/lib/python3*/dist-packages/planetgen-venv.pth; do
-        if [[ -f "$pth" ]]; then
-            rm -f "$pth"
-            echo "Removed $pth (the system Python no longer loads the venv)."
-        fi
-    done
+# Probes every requirement and reports; fails if any is unusable or the
+# probe itself didn't run.
+final_report() {
+    local after
+    after="$(probe "${SPECS[@]}")" || true
+    if (( $(grep -c . <<< "$after") != ${#SPECS[@]} )); then
+        echo "error: could not check the Python libraries with $PYTHON." >&2
+        return 1
+    fi
+    if ! report "${1:-}" <<< "$after"; then
+        echo "error: some Python libraries are still unusable (see above)." >&2
+        return 1
+    fi
+}
+
+# Just the specs from probe lines on stdin that aren't ok.
+not_ok() {
+    awk '$1 != "ok" {print $2}'
 }
 
 # Stands in for the `planetgen` console script pip would make, but runs
-# the checkout's generate.py with the venv's Python. Rewritten only when
-# it differs.
+# this checkout's generate.py, so the CLI always runs the code that was
+# just pulled (like the web app, which imports from the checkout too)
+# without anything being reinstalled. Rewritten only when it differs.
 write_wrapper() {
     local want
     want="$(cat <<EOF
 #!/bin/sh
 # Written by planetGen's scripts/install-python-deps.sh.
-exec "$VENV_PYTHON" "$SCRIPT_DIR/generate.py" "\$@"
+exec "$PYTHON" "$SCRIPT_DIR/generate.py" "\$@"
 EOF
 )"
     if [[ "$(cat "$WRAPPER" 2>/dev/null || true)" != "$want" ]]; then
         printf '%s\n' "$want" > "$WRAPPER"
-        echo "Wrote $WRAPPER (runs $SCRIPT_DIR/generate.py with $VENV_PYTHON)."
+        echo "Wrote $WRAPPER (runs $SCRIPT_DIR/generate.py)."
     fi
     chmod 755 "$WRAPPER"
 }
 
-VENV_REBUILT=0
-remove_legacy_pth
-ensure_venv
+install_unmanaged() {
+    echo "Python at $PYTHON is not externally managed: installing with pip."
+    # `pip install .` (a proper, build-isolated PEP 517 install), NOT the
+    # legacy `python3 setup.py install` this used to run. setuptools itself
+    # now prints "Please avoid running setup.py directly" for that direct
+    # invocation, and it's not just a style complaint: that legacy code path
+    # is where two separate production incidents happened back to back (see
+    # docs/TODO.md's "Deployment bugs found in production"). Both had the same
+    # root cause -- setuptools' own vendoring shim (`extern`) prefers a
+    # *real*, already-installed copy of a dependency it vendors
+    # (`importlib_metadata`, then `packaging`) over its own newer bundled
+    # copy whenever a real one is importable, so this system's old
+    # apt-provided copies of each one in turn silently shadowed the working
+    # vendored copy and crashed on a missing/changed API
+    # (`importlib_metadata.EntryPoints`, then
+    # `packaging.version.canonicalize_version`'s `strip_trailing_zero`
+    # kwarg) -- and chasing each one individually with another `pip install
+    # --upgrade <whatever's shadowed this time>` only fixes the specific
+    # dependency that happened to break today, not the next one. `pip
+    # install .`'s build isolation builds this package in a throwaway
+    # environment that can't see this system's site-packages at all (only
+    # the stdlib and pip's own freshly fetched build dependencies), so the
+    # shadowing can't happen there regardless of which dependency it would
+    # have hit -- avoiding this whole class of bug instead of patching it
+    # dependency-by-dependency. This also means the global `setuptools`
+    # system install no longer needs to be upgraded at all for this step,
+    # which is one less thing on this box's system-wide Python environment
+    # for this script to touch.
+    #
+    # --force-reinstall (not a plain `pip install .`): plain `pip install .`
+    # skips reinstalling when pip thinks the same version is already
+    # installed -- true on every run between version bumps in
+    # `stellarObjects/_version.py` -- and install.sh is the full reinstall.
+    # (update.sh never comes here: it runs --check, which installs only
+    # what's missing. Nothing needs the pip-installed copy of planetGen to
+    # be current anyway, since every entry point imports from the checkout
+    # and write_wrapper below replaces pip's console script.)
+    #
+    # The `api` extra (Flask/Flask-Limiter, see setup.py's `extras_require`)
+    # is included here, not left to a separate manual `pip install .[api]`
+    # some other doc might mention: every page under src/html/ is a thin
+    # HTTP client over GET /api/... now (see html/lib/apiclient.py's own
+    # docstring), so the web interface this script exists to deploy simply
+    # doesn't work without it -- confirmed in production as
+    # "ModuleNotFoundError: No module named 'flask'" from mod_wsgi once the
+    # vhost's own handler-conflict and sys.path bugs (see wsgi.py) were fixed
+    # and this became the next thing standing between a fresh install and a
+    # working /api/search. A CLI-only use of this package (just `sectorgen`/
+    # `systemgen`, no web interface ever deployed) wouldn't need it, but
+    # nothing reaches this script without wanting the web interface.
+    #
+    # --ignore-installed: pulling in Flask this way surfaced a second,
+    # unrelated production failure -- Flask 3.x needs blinker>=1.9.0, but
+    # Ubuntu 22.04 ships blinker 1.4 pre-installed the old `distutils`
+    # way (no `RECORD` file, so pip can't tell which files are its to
+    # remove). `--force-reinstall`/`--upgrade` both still need to *upgrade*
+    # it, which means uninstalling that old copy first, which fails with
+    # "Cannot uninstall blinker 1.4 ... distutils installed project" and
+    # aborts the whole install before it ever reaches flask/flask-limiter/
+    # planetGen itself (see pip's own install order in its output -- it
+    # aborts alphabetically-ish partway through, well before the packages
+    # that actually matter here). `--ignore-installed` sidesteps the
+    # uninstall step entirely: pip just installs its own copy into
+    # /usr/local's site-packages, which already comes before apt's
+    # /usr/lib/python3/dist-packages on sys.path, so the newer pip-managed
+    # copy shadows the old system one without ever touching it -- the
+    # standard workaround for this well-known Debian/Ubuntu packaging class
+    # of error, not specific to blinker (a future dependency bump could hit
+    # the same wall with some other apt-provided package).
+    "$PYTHON" -m pip install --upgrade pip
+    "$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed "${SCRIPT_DIR}[api]"
+    # Replaces pip's own console script, which would run the copy pip
+    # just installed and go stale after the next update.sh.
+    write_wrapper
+    echo "Python install path: pip (unmanaged interpreter)."
+    final_report
+}
 
-before_file="$(mktemp)"
-after_file="$(mktemp)"
-trap 'rm -f "$before_file" "$after_file"' EXIT
+install_managed() {
+    echo "Python at $PYTHON is externally managed (PEP 668): using distribution packages."
+    remove_legacy_venv
+    apt_install "${SPECS[@]}"
+    local need=()
+    mapfile -t need < <(probe "${SPECS[@]}" | not_ok)
+    if (( ${#need[@]} )); then
+        echo "Not provided well enough by apt (missing, too old or broken): ${need[*]}"
+        echo "Installing those system-wide with pip."
+        pip_install_system "${need[@]}"
+    fi
+    write_wrapper
+    final_report
+}
 
-if [[ "$ACTION" == install ]]; then
-    "$VENV_PYTHON" -m pip install --upgrade "${REQUIREMENTS[@]}"
-else
-    echo "Checking the Python libraries in $VENV_DIR."
-    probe "${REQUIREMENTS[@]}" > "$before_file"
-    mapfile -t need < <(awk '$1 != "ok" {print $2}' "$before_file")
+# update.sh's path: install nothing that is already usable.
+check_requirements() {
+    echo "Checking the Python libraries with $PYTHON ($MODE Python)."
+    [[ "$MODE" == managed ]] && remove_legacy_venv
+    local before_file need=()
+    before_file="$(mktemp)"
+    probe "${SPECS[@]}" > "$before_file"
+    mapfile -t need < <(not_ok < "$before_file")
+
     if (( ${#need[@]} )); then
         echo "Missing, too old or not importable: ${need[*]}"
-        # pip's default strategy upgrades only what these specs need.
-        "$VENV_PYTHON" -m pip install "${need[@]}" || true
+        if [[ "$MODE" == managed ]]; then
+            apt_install "${need[@]}"
+            mapfile -t need < <(probe "${need[@]}" | not_ok)
+            if (( ${#need[@]} )); then
+                echo "apt can't provide: ${need[*]} -- installing those system-wide with pip."
+            fi
+        fi
+        if (( ${#need[@]} )); then
+            pip_install_system "${need[@]}"
+        fi
     fi
-fi
 
-# The venv is read by Apache's user and anyone running the CLI.
-chmod -R a+rX "$VENV_DIR"
-write_wrapper
+    write_wrapper
+    if ! final_report "$before_file"; then
+        rm -f "$before_file"
+        echo "  Running sudo ./install.sh does a full reinstall." >&2
+        return 1
+    fi
+    rm -f "$before_file"
+}
 
-probe "${REQUIREMENTS[@]}" > "$after_file" || true
-if (( $(grep -c . "$after_file") != ${#REQUIREMENTS[@]} )); then
-    echo "error: could not check the Python libraries with $VENV_PYTHON." >&2
-    exit 1
-fi
-labels=""
-[[ "$ACTION" == check ]] && labels="$before_file"
-if ! report "$labels" "$after_file"; then
-    echo "error: some Python libraries are still unusable (see above)." >&2
-    exit 1
-fi
-if (( VENV_REBUILT )); then
-    echo "The venv was (re)built: restart Apache so mod_wsgi loads it."
+case "$MODE" in
+    auto)
+        if is_managed; then MODE=managed; else MODE=unmanaged; fi ;;
+    managed|unmanaged) ;;
+    *)
+        echo "error: PLANETGEN_PYTHON_MODE must be auto, managed or unmanaged (got '$MODE')." >&2
+        exit 1 ;;
+esac
+
+if [[ "$ACTION" == check ]]; then
+    check_requirements
+elif [[ "$MODE" == managed ]]; then
+    install_managed
+else
+    install_unmanaged
 fi
