@@ -43,6 +43,8 @@ import sys
 
 repo = sys.argv[1]
 sys.path[:0] = [os.path.join(repo, "src", "html", "lib"), os.path.join(repo, "src")]
+# TODO(security #40): this runs as root; don't import from directories the
+# Apache user can write (run Python with -I or as the Apache user).
 import tilecache
 
 print(tilecache.configured_cache_dir() or "")

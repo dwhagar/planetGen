@@ -479,6 +479,8 @@ with just one schema names it `planetgen` and never needs to set
 one with several names them `planetgen_<something>` to share the prefix."""
 
 
+# TODO(security #47): leave the control database out, and escape _ and %
+# in the LIKE prefix.
 def list_databases(base_config=None, prefix=None):
     """
     Lists every MySQL schema on `base_config`'s server whose name starts

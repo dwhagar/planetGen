@@ -268,6 +268,8 @@ def _parse_size_range(query_args, prefix):
 
 @bp.route("/health")
 @limiter.exempt
+# TODO(security #48): return a generic "database unavailable" here and in
+# the read routes' 503s, and log the detail.
 def health():
     """
     Liveness/readiness check for monitoring -- confirms the process is up
@@ -878,6 +880,7 @@ SECTOR_UPDATE_FIELDS = {
     # doesn't accept this (a brand-new, just-generated sector has never
     # been uploaded anywhere), so it's added only to `update_sector`'s own
     # allowed-fields set, not to SECTOR_FIELDS itself.
+    # TODO(security #46): accept only http/https URLs with a host.
     "wiki_url": ((str, type(None)), lambda v: v is None or (bool(v.strip()) and len(v) <= MAX_WIKI_URL_LENGTH)),
 }
 """dict: `SECTOR_FIELDS` plus `update_sector`-only fields -- see

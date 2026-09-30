@@ -916,6 +916,8 @@ def generate_moons(planet, moon_count=None):
     if not possible_classes:
         return
 
+    # TODO(physics #53, #54): high_orbit is 5 Hill radii (moons land outside
+    # the Hill sphere) and low_orbit ignores the planet's own radius.
     low_orbit = planet.scale_height * 15 if planet.scale_height else 100
     high_orbit = planet.min_orbit_distance * physical_constants.AU_TO_KM
     total_orbit_distance = low_orbit

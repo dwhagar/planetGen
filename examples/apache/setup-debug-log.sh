@@ -69,6 +69,8 @@ fi
 
 if [[ -e "$LOG_FILE" ]]; then
     chown "$APACHE_USER:$APACHE_GROUP" "$LOG_FILE"
+    # TODO(security #43): mode 0660 for the Apache group (here and in the
+    # logrotate create line below).
     chmod 0666 "$LOG_FILE"
     echo "Debug log: $LOG_FILE (owned by $APACHE_USER:$APACHE_GROUP, mode 0666)"
 elif [[ "$DEBUG_ON" != "1" ]]; then

@@ -305,6 +305,8 @@ def _admin_action(cookie_header):
             if not label:
                 return {"error": "Label is required."}, "api-keys"
             new_key = apiclient.auth_create_api_key(cookie_header, label)
+            # TODO(security #50): don't carry the raw key in the flash cookie (scope it
+            # to /admin or keep it server-side for one read).
             return {"new_key": {"label": new_key["label"], "key": new_key["key"]}}, "new-key"
         if action == "revoke_key":
             try:

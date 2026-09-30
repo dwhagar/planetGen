@@ -109,6 +109,8 @@ def validate_password_policy(password, username=None):
         raise AuthError("password must not match the username")
 
 
+# TODO(security #39): seed a random first password (printed once by the
+# installer) instead of the published admin/password pair.
 def bootstrap_control_schema(config=None):
     """
     Ensures the control schema's *database* (MySQL schema) itself exists,
@@ -158,6 +160,8 @@ def bootstrap_control_schema(config=None):
         conn.close()
 
 
+# TODO(security #44): check an unknown username against a dummy hash so
+# the response time doesn't reveal which usernames exist.
 def authenticate(conn, username, password):
     """
     Verifies a username/password pair against `admin_users`, updating
@@ -322,6 +326,8 @@ def revoke_api_key(conn, admin_user_id, key_id):
     return cur.rowcount > 0
 
 
+# TODO(security #45): end this admin's other sessions on a change (API
+# keys stay).
 def change_credentials(conn, admin_user_id, current_password, new_username, new_password):
     """
     Changes an admin's username and password together, clearing

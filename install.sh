@@ -129,6 +129,7 @@ ensure_apache_modules
 
 echo
 echo "== 6/8: Setting directory ownership/permissions for Apache =="
+# TODO(security #51): set config.json to root:<apache group>, mode 640.
 "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 echo

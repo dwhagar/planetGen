@@ -69,6 +69,8 @@ echo "  html: $HTML_DIR"
 
 apply_permissions() {
     local dir="$1"
+    # TODO(security #40): the code tree should be root:<apache group>, read-only
+    # for Apache; only the runtime directories belong to the Apache user.
     chown -R "$APACHE_USER:$APACHE_GROUP" "$dir"
     find "$dir" -type d -exec chmod 750 {} +
     find "$dir" -type f -exec chmod 640 {} +

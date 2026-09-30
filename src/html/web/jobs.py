@@ -96,6 +96,8 @@ def configured_jobs_dir():
     return os.environ.get("PLANETGEN_JOBS_DIR") or _config().get("dir") or DEFAULT_JOBS_DIR
 
 
+# TODO(security #42): the /tmp fallback must be created privately (or
+# refused when not owned by this user), not reused as found.
 def jobs_dir():
     """
     The writable jobs directory, created if needed.
