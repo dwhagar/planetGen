@@ -2000,6 +2000,21 @@ body.app {
   font-weight: 400;
 }
 
+/* One-off system page (web/templates/generate_system.html). */
+.system-format {
+  margin-top: 1rem;
+}
+
+.system-preview {
+  margin-top: 1rem;
+}
+
+.code-view-header .search-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .field-hint {
   font-weight: 400;
   font-style: italic;
