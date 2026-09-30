@@ -83,18 +83,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-# TODO(galaxy-map #12): bump to the next free schema version with a
-# migration for the hybrid master-wedge slot rule
-# (galaxyGeometry.ring_sector_count). Like v32 and v33 it deletes every
-# galaxy-placed sector with its systems and phenomena (slot numbers change
-# meaning in nearly every ring); sectors never placed in the galaxy are
-# untouched. `galaxy_layer` and `galaxy_column` are keyed by ring and
-# layer, so the skeleton survives, but its candidate counts must be
-# recomputed. Guard it so a database created fresh at the new version
-# keeps its sectors, bump the tile cache stamp so browsers drop every
-# cached tile, and note it in schema.sql's header. Needs Boss's explicit
-# OK before merge.
-SCHEMA_VERSION = 34
+SCHEMA_VERSION = 35
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -5046,6 +5035,48 @@ def _migrate_v33_to_v34(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (34)")
 
 
+def _migrate_v34_to_v35(conn):
+    """
+    Moves ring slot counts to the hybrid master-wedge rule
+    (`galaxyGeometry.ring_sector_count`) -- see `schema.sql`'s "v35"
+    header note. Slot counts change in all but 15 of the default galaxy's
+    3,856 rings, so a stored `ring_slot_index` no longer names the same
+    wedge: as in v32 and v33, every grid-addressed sector in a ring whose
+    count changed is **deleted** with its star systems and every
+    phenomenon filed under it, and regenerating the galaxy refills them.
+    Sectors in the 15 unchanged rings (0, 1, 9, 10, 11, 30, ...), and sectors never
+    placed on the grid, are untouched. `galaxy_layer` and `galaxy_column` are keyed by
+    ring and layer, which keep their meaning, so the skeleton stays; its
+    candidate counts are computed on the fly from `ring_sector_count`.
+
+    A database `_ensure_schema` creates fresh starts at `SCHEMA_VERSION`,
+    so this only ever runs on a database that holds old-rule addresses.
+    The Galaxy Map's tile caches drop everything on their own: the
+    deleted sectors (and the new release) make `queryDb.galaxy_changes`
+    answer `full`.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    from .galaxyGeometry import ring_sector_count
+
+    max_ring = conn.execute("SELECT MAX(ring_index) AS ring FROM sectors").fetchone()["ring"]
+    changed = [
+        ring for ring in range((max_ring if max_ring is not None else -1) + 1)
+        if ring_sector_count(ring) != max(1, round(2 * math.pi * (ring + 0.5)))
+    ]
+    for start in range(0, len(changed), 1000):
+        rings = changed[start:start + 1000]
+        marks = ", ".join("?" * len(rings))
+        placed = f"SELECT id FROM sectors WHERE ring_index IN ({marks})"
+        for table in V32_PLACED_CONTENT_TABLES:
+            conn.execute(f"DELETE FROM {table} WHERE sector_id IN ({placed})", tuple(rings))
+        conn.execute(f"DELETE FROM sectors WHERE ring_index IN ({marks})", tuple(rings))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (35)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -5110,6 +5141,7 @@ def _migration_steps():
         (32, _migrate_v31_to_v32),
         (33, _migrate_v32_to_v33),
         (34, _migrate_v33_to_v34),
+        (35, _migrate_v34_to_v35),
     ]
 
 
@@ -5176,8 +5208,9 @@ def migrate_database(config=None, on_step=None):
     to the cylindrical sector grid, which deletes every galaxy-placed
     sector and its contents), and `_migrate_v32_to_v33` (the whole-parsec
     sector standard and per-layer skeleton, which deletes them again), and
-    `_migrate_v33_to_v34` (dropping the planet/moon name registry) are
-    the migration steps so far; see
+    `_migrate_v33_to_v34` (dropping the planet/moon name registry), and
+    `_migrate_v34_to_v35` (the hybrid master-wedge slot rule, which deletes
+    galaxy-placed sectors once more) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
     `migrateDb.py` for the CLI wrapper around this.
 

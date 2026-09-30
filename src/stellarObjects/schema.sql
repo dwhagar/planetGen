@@ -775,6 +775,18 @@
 --   are too, and `body_name_registry` (v24's planet/moon registry) is
 --   dropped. Existing rows keep their old names until regenerated.
 --
+-- v35: ring slot counts follow the hybrid master-wedge rule
+--   (`galaxyGeometry.ring_sector_count`/`ring_master_count`, see
+--   docs/design/galaxy-coordinate-system.md): 3 master wedges at the
+--   center, doubling once each would hold 8 slots, and each ring's count
+--   the multiple of its master count nearest `2*pi*(i + 1/2)` (3, 9, 15,
+--   21, 27, 36, ...), so slot boundaries line up on master lines from the
+--   center out. No column changes, but stored `ring_slot_index` values
+--   change meaning, so `_migrate_v34_to_v35` deletes every sector in a
+--   ring whose count changed (all but 15 of 3,856) with its systems and
+--   phenomena, as v32 and v33 did.
+--   `galaxy_layer`/`galaxy_column` are keyed by ring and layer and stay.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every

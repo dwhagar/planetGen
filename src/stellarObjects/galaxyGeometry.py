@@ -18,8 +18,9 @@ the galactic origin (see `docs/design/galaxy-coordinate-system.md`,
 `w` and `h` are both the sector edge length (`edge_pc`, a whole number of
 parsecs: `program_constants.DEFAULT_SECTOR_EDGE_PC`, 4 pc, by default),
 and `N` is chosen so the arc along a ring's centerline is also about one
-edge, so every cell is close to an `edge_pc` cube (within 5% from ring 1
-out, within 1% from ring 10 out).
+edge, so every cell is close to an `edge_pc` cube (its arc within about
+6% of an edge; `N` is a multiple of the ring's master wedge count so slot
+boundaries line up from the center out -- see `ring_sector_count`).
 
 Ring and slot counts are the same on every layer, so the grid is a stack
 of identical circular slices: cell `(i, j, k)` sits directly above
@@ -53,31 +54,66 @@ DESIGNATION_LAYER_BIAS = 1 << (DESIGNATION_LAYER_BITS - 1)
 """int: Added to a layer index before packing (layers -4096..4095)."""
 
 
-# TODO(galaxy-map #12): replace this rule with the hybrid master-wedge rule
-# Boss chose on 2026-09-30, so slot boundaries line up from the center out.
-#   master(i) = 3 * 2**max(0, floor(log2(c / (3 * 8)))), c = 2*pi*(i + 1/2)
-#   ring_sector_count(i) = max(master(i), master(i) * round(c / master(i)))
-# Rings then hold 3, 9, 15, 21, 27, 36, 42, 48, ... slots; arcs stay within
-# 0.94-1.06 of an edge and the total count is unchanged. Add
-# `ring_master_count(i)` beside it: the mega-block grid (galaxyprisms.js)
-# cuts its wedges on master lines.
-# Edge cases:
-# - ring 0 stays 3 and ring 1 stays 9;
-# - the rule must stay integer-exact (no float log2 near a zone's first
-#   ring) -- compare c against 3 * 8 * 2**z instead;
-# - keep galaxyprisms.js's ringSectorCount identical, and pin both with the
-#   same table in the tests;
-# - DESIGNATION_SLOT_BITS (20) is still ample (max ~25k slots);
-# - every stored slot index changes meaning, so this ships with the next
-#   schema version's migration (_db.py), never alone.
+MASTER_WEDGE_BASE_COUNT = 3
+"""int: Master wedges at the center (ring 0's own slot count)."""
+
+MASTER_WEDGE_MIN_SLOTS = 8
+"""int: A new master zone (twice the master wedges) starts at the first
+ring where each doubled master wedge would still hold at least this many
+slots."""
+
+
+def _ring_centerline_edges(ring_index):
+    """`2*pi*(i + 1/2)`, ring `i`'s centerline circumference in edges.
+
+    Raises:
+        ValueError: For a negative ring.
+        OverflowError: For a ring so far out the float overflows (as
+            `round` of it would), rather than looping forever.
+    """
+    if ring_index < 0:
+        raise ValueError(f"ring_index must be >= 0, got {ring_index}")
+    c = 2 * math.pi * (ring_index + 0.5)
+    if not math.isfinite(c):
+        raise OverflowError(f"ring_index {ring_index} is too far out")
+    return c
+
+
+def ring_master_count(ring_index):
+    """
+    How many master wedges ring `ring_index` sits in: 3 at the center,
+    doubling (6, 12, ... 1,536 at the default galaxy's edge) at the first
+    ring where each doubled wedge would hold at least
+    `MASTER_WEDGE_MIN_SLOTS` slots. Every master line, once started, runs
+    out to the edge, and `ring_sector_count` is always a multiple of this,
+    so master lines are slot boundaries in every ring outward -- the
+    Galaxy Map's mega-blocks cut their wedges on them.
+
+    Args:
+        ring_index (int): `i >= 0`.
+
+    Returns:
+        int: `3 * 2**z`.
+    """
+    c = _ring_centerline_edges(ring_index)
+    master = MASTER_WEDGE_BASE_COUNT
+    # 2*pi*(i + 1/2) is never a whole number, so the comparison is exact.
+    while c >= 2 * master * MASTER_WEDGE_MIN_SLOTS:
+        master *= 2
+    return master
+
+
 def ring_sector_count(ring_index):
     """
-    How many slots ring `ring_index` holds: `2*pi*(i + 1/2)` (the ring's
-    centerline circumference in edge lengths) rounded to the nearest
-    whole number, so each slot's centerline arc is as close to one edge
-    as a whole count allows -- 3, 9, 16, 22, ... (about 6 more per ring).
-    Independent of `edge_pc`, which cancels out, and of the layer, so
-    columns line up through every layer.
+    How many slots ring `ring_index` holds: the multiple of its master
+    wedge count (`ring_master_count`) nearest `2*pi*(i + 1/2)` (the ring's
+    centerline circumference in edge lengths) -- 3, 9, 15, 21, 27, 36, 42,
+    48, ... (the hybrid master-wedge rule Boss chose on 2026-09-30). Each
+    slot's centerline arc stays within about 0.94-1.06 of one edge, the
+    total count is within 0.1% of plain rounding, and slot boundaries line
+    up on the master lines from the center out. Independent of `edge_pc`,
+    which cancels out, and of the layer, so columns line up through every
+    layer. `galaxyprisms.js`'s `ringSectorCount` mirrors it.
 
     Args:
         ring_index (int): `i >= 0`.
@@ -85,9 +121,9 @@ def ring_sector_count(ring_index):
     Returns:
         int: `N_i >= 3`.
     """
-    if ring_index < 0:
-        raise ValueError(f"ring_index must be >= 0, got {ring_index}")
-    return max(1, round(2 * math.pi * (ring_index + 0.5)))
+    c = _ring_centerline_edges(ring_index)
+    master = ring_master_count(ring_index)
+    return max(master, master * round(c / master))
 
 
 def ring_radius_pc(ring_index, edge_pc):
@@ -292,15 +328,11 @@ class SectorCell:
         return (r * math.cos(theta) - self.r_center, r * math.sin(theta), z)
 
 
-# TODO(galaxy-map #12): with master-aligned rings, a slot of one ring never
-# straddles a master line of its neighbor, so this can map through the
-# shared master wedge (slot // per_master) and stay exact. Keep the general
-# integer form as the fallback and test both agree for every ring pair
-# across a zone boundary (where the master count doubles).
 def _overlapping_slots(from_ring, slot_index, to_ring):
     """Slots of `to_ring` whose angular span overlaps slot `slot_index`
     of `from_ring` (touching at a single boundary angle doesn't count).
-    Integer arithmetic, so coinciding boundaries are exact."""
+    Integer arithmetic, so coinciding boundaries -- every master line
+    (`ring_master_count`) is one -- are exact."""
     n_from = ring_sector_count(from_ring)
     n_to = ring_sector_count(to_ring)
     first = (slot_index * n_to) // n_from

@@ -28,10 +28,23 @@ and each ring into wedges. With edge `e`:
 - **Layer `j`** (`sectors.layer_index`, any integer): height `z` in
   `[(j - 1/2)*e, (j + 1/2)*e)`, so layer 0 is centered on the galactic plane.
 - **Slot `k`** (`sectors.ring_slot_index`): one of `N_i` equal angular
-  wedges, counterclockwise from `+X`, where `N_i = round(2*pi*(i + 1/2))`
-  (3, 9, 16, 22, ...; about six more per ring). Each slot's arc along the
-  centerline is then within 5% of `e` from ring 1 out and within 1% from
-  ring 10 out; ring 0's three cells are pie wedges meeting on the axis.
+  wedges, counterclockwise from `+X`. `N_i` follows the hybrid
+  master-wedge rule (v35, Boss's choice of 2026-09-30):
+  - `c_i = 2*pi*(i + 1/2)` is the ring's centerline circumference in edges.
+  - `M_i` (`ring_master_count`) is the ring's master wedge count: 3 at the
+    center, doubling to 6, 12, ... 1,536 at the first ring where
+    `c_i >= 2 * M * 8` (each doubled wedge would still hold 8 slots).
+  - `N_i = M_i * round(c_i / M_i)`, never less than `M_i`: 3, 9, 15, 21,
+    27, 36, 42, 48, 54, ...
+
+  Each slot's centerline arc stays within 0.94-1.06 of `e` (ring 0's
+  three pie wedges, meeting on the axis, are 1.05), and the total count
+  is within 0.1% of plain rounding. Because every `N_i` is a multiple of
+  its `M_i`, and `M_i` only grows outward, **every master line is a slot
+  boundary in every ring from where it starts out to the edge**: the 3
+  first lines run from the center, the next 3 from ring 8, and so on.
+  The Galaxy Map cuts its mega-block wedges on these lines, and a slot of
+  one ring never straddles a master line of its neighbor.
 
 **Aligned columns.** `N_i` depends only on the ring, never on the layer,
 so every layer cuts ring `i` identically: cell `(i, j, k)` sits directly

@@ -6,9 +6,7 @@ must stay within budget and cover the view, and its geometry must be
 well formed.
 """
 
-# TODO(galaxy-map #12/#13/#14): add tests for
-#   - ringSectorCount matching galaxyGeometry.ring_sector_count out to ring
-#     4,000, with master lines on slot boundaries;
+# TODO(galaxy-map #13/#14): add tests for
 #   - blockSizeForScale against pcPerPixel;
 #   - block sector counts within a few percent of m³, exact with aligned
 #     wedges;
@@ -217,6 +215,19 @@ def test_wedge_counts_follow_the_cylindrical_sector_rule():
     rings = list(range(0, 40)) + [100, 1234]
     got = _run(f"console.log(JSON.stringify({json.dumps(rings)}.map(i => P.azimuthSegments(i))));")
     assert got == [ring_sector_count(i) for i in rings]
+
+
+def test_js_master_wedge_rule_matches_python_to_the_edge():
+    """ringSectorCount and ringMasterCount mirror galaxyGeometry ring by
+    ring out to ring 4,000, past the default galaxy's edge (3,855)."""
+    from stellarObjects.galaxyGeometry import ring_master_count
+
+    got = _run("""
+const out = [];
+for (let i = 0; i <= 4000; i++) out.push([P.ringSectorCount(i), P.ringMasterCount(i)]);
+console.log(JSON.stringify(out));
+""")
+    assert got == [[ring_sector_count(i), ring_master_count(i)] for i in range(4001)]
 
 
 @pytest.mark.parametrize("center, view_radius", [((0.0, 0.0, 1268.0), 30.0), ((15420.0, 0.0, 0.0), 30.0)])

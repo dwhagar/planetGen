@@ -43,8 +43,8 @@ renumber when items are added or finished.
    local-time change (22) is small and can go in any time.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 12-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 is the
-   one data-deleting step. 19 is follow-ups.
+   slots, pixel-sized mega-blocks). Work items 13-18 in order (14, the solid and its slice, shipped early at Boss's request). 12 (the
+   hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
@@ -274,29 +274,6 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
-
-12. [ ] **Hybrid master-wedge slot rule (next schema version).** Boss chose it on
-   2026-09-30. There are 3 master wedges at the center, doubling (6, 12,
-   ..., 1,536) once each would hold at least 8 slots. Each ring's slot
-   count is the multiple of its zone's master count nearest
-   `2*pi*(i + 1/2)`. Sector arcs stay within ±6% of the edge (±2% today),
-   the total count is unchanged, and every master line runs from where it
-   starts out to the edge.
-   - Change `galaxyGeometry.ring_sector_count` and its mirror in
-     `galaxyprisms.js` together.
-   - Add a `ring_master_count` helper.
-   - `_overlapping_slots` and `neighbor_addresses` become simple integer
-     ratios across aligned boundaries.
-   - Update `docs/design/galaxy-coordinate-system.md`.
-   - Slot counts change in all but 15 of 3,856 rings, so the next migration
-     deletes galaxy-placed sectors, systems and phenomena, as v32 and v33 did.
-     `galaxy_layer` and `galaxy_column` are stored by ring and layer and stay
-     valid.
-
-   **Needs Boss's explicit OK before merging**, then `update.sh` and a
-   regenerate. Done means tests pin the first rings (3, 9, 15, 21, 27,
-   36, ...), check that every master line is a slot boundary in every
-   ring outward, and check that arcs stay in 0.94-1.06.
 
 13. [ ] **Mega-blocks sized from the pixel scale.**
    - Replace `sectorsPerPrism` and `prismsForView` with
