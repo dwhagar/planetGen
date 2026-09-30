@@ -761,40 +761,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
         sits at the galactic center, so it can't set +X. Default taken:
         keep the galaxy's existing +X axis (ring slot 0).
 
-34. [ ] **Warp and fold speeds.** Replace `WARP_VELOCITY_EXPONENT`
-    (plain w^(10/3)) and `WARP_FACTORS_FOR_NAV` with Boss's curves, and
-    add fold travel times to the nav page:
-    - Warp (w): speed in c = w^(10/3) + 1 / (1 + e^(-9.3575(w - 9.5)))
-      × (198.9 / (10 - w)^0.75 + 1721.7 - w^(10/3)).
-    - Dimensional fold (F): speed in c = 6F⁴ / (10 - F).
-    - Keep every coefficient a named constant in `program_constants`.
-    - Values (1 ly per 365.25 days at 1c; 1 kpc = 3,261.56 ly):
-
-      | Warp | Speed (c) | ly/day | Days per ly | Days per kpc |
-      |---:|---:|---:|---:|---:|
-      | 1 | 1.0 | 0.003 | 365.25 | 1,191,286 |
-      | 2 | 10.1 | 0.028 | 36.24 | 118,191 |
-      | 4 | 101.6 | 0.278 | 3.60 | 11,726 |
-      | 8 | 1,024.0 | 2.804 | 0.357 | 1,163 |
-      | 9 | 1,520.1 | 4.162 | 0.240 | 784 |
-      | 9.5 | 1,936.0 | 5.301 | 0.189 | 615 |
-      | 9.9 | 2,822.7 | 7.728 | 0.129 | 422 |
-      | 9.995 | 12,201.9 | 33.41 | 0.030 | 98 |
-
-      | Fold | Speed (c) | ly/day | Days per ly | Days per kpc |
-      |---:|---:|---:|---:|---:|
-      | 4 | 256.0 | 0.701 | 1.43 | 4,653 |
-      | 5 | 750.0 | 2.053 | 0.487 | 1,588 |
-      | 6 | 1,944.0 | 5.322 | 0.188 | 613 |
-      | 6.5 | 3,060.1 | 8.378 | 0.119 | 389 |
-      | 7 | 4,802.0 | 13.15 | 0.076 | 248 |
-      | 7.5 | 7,593.8 | 20.79 | 0.048 | 157 |
-      | 8 | 12,288.0 | 33.64 | 0.030 | 97 |
-      | 8.5 | 20,880.2 | 57.17 | 0.017 | 57 |
-
-    Done means tests pin these values, and the nav page lists warp and
-    fold travel times.
-
 ### Facilities (new)
 
 35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I

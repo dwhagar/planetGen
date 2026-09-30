@@ -616,6 +616,7 @@ def nav():
         "scope": result["scope"],
         "direct": result["direct"]._asdict(),
         "warp_times": [leg._asdict() for leg in result["warp_times"]],
+        "fold_times": [leg._asdict() for leg in result["fold_times"]],
         "origin_position": result["origin_position"],
         "destination_position": result["destination_position"],
         "route": _route_for_json(result["route"]),
