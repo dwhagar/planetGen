@@ -74,6 +74,16 @@ def test_a_directory_owned_by_another_user_is_refused(tmp_path):
         ensure_private_dir(str(path))
 
 
+def test_windows_skips_the_owner_and_mode_checks(tmp_path, monkeypatch):
+    """Windows has no os.geteuid and its mode bits don't describe the ACL;
+    its temp directory is per user, so only the symlink check applies."""
+    monkeypatch.delattr(os, "geteuid", raising=False)
+    path = tmp_path / "planetgen-jobs"
+    path.mkdir()
+    os.chmod(path, 0o777)
+    assert ensure_private_dir(str(path)) == str(path)
+
+
 @pytest.fixture
 def fallback_tmp(tmp_path, monkeypatch):
     """The system temp directory is `tmp_path`, and the default

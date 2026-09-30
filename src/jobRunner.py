@@ -16,9 +16,11 @@ running and how the job ended:
      "pid": 1234, "step": 2, "started_at": ..., "finished_at": ...,
      "exit_code": 0, "error": "..."}
 
-It stops at the first step that fails. SIGTERM (the page's Cancel
-button) stops the running step and marks the job cancelled. When it is
-done it removes the jobs directory's `active` lock, if the lock is still
+It stops at the first step that fails. The page's Cancel button writes a
+`cancel` file into the job directory; this checks for it while a step
+runs, stops the step and every process it started, and marks the job
+cancelled. SIGTERM does the same (a server shutting down, on POSIX).
+When it is done it removes the jobs directory's `active` lock, if the lock is still
 this job's, so the next job can start.
 
 Standard library only: this starts before anything else is imported, so a
@@ -36,15 +38,56 @@ import time
 LOCK_NAME = "active"
 """str: The jobs directory's lock file, holding the running job's id."""
 
+CANCEL_NAME = "cancel"
+"""str: The file in a job's directory that asks it to stop (must match
+`jobs.CANCEL_NAME`)."""
 
-# TODO(windows #55): os.replace fails with PermissionError on Windows while
-# the page has state.json open; retry briefly.
+POLL_SECONDS = 0.25
+"""float: How often a running step is checked for a cancel request."""
+
+WINDOWS = os.name == "nt"
+
+
 def _write_json(path, body):
     directory = os.path.dirname(path)
     fd, tmp = tempfile.mkstemp(prefix=".state-", dir=directory)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(body, f)
-    os.replace(tmp, path)
+    # On Windows, replacing a file another process has open (the page
+    # reading state.json) fails with PermissionError until it's closed,
+    # which is a moment later.
+    for attempt in range(40):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if attempt == 39:
+                os.remove(tmp)
+                raise
+            time.sleep(0.05)
+
+
+def _step_process_options():
+    """Popen options that give a step its own process group, so stopping
+    it can stop the worker processes it starts (`plan`'s pool) too."""
+    if WINDOWS:
+        return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW}
+    return {"start_new_session": True}
+
+
+def _stop_tree(proc):
+    """Stops a step and every process it started."""
+    if proc is None or proc.poll() is not None:
+        return
+    if WINDOWS:
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       creationflags=subprocess.CREATE_NO_WINDOW, check=False)
+        return
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+    except OSError:
+        pass
 
 
 def _release_lock(jobs_dir, job_id):
@@ -77,18 +120,16 @@ def run(job_dir):
     _write_json(state_path, state)
 
     current = {"proc": None, "cancelled": False}
+    cancel_path = os.path.join(job_dir, CANCEL_NAME)
 
-    # TODO(windows #55): os.killpg doesn't exist on Windows, and nothing
-    # sends this handler SIGTERM there (jobs.cancel_job's os.kill is
-    # TerminateProcess). Cancel through a file in the job directory instead.
     def _on_term(signum, frame):
         current["cancelled"] = True
-        proc = current["proc"]
-        if proc is not None and proc.poll() is None:
-            try:
-                os.killpg(proc.pid, signal.SIGTERM)
-            except OSError:
-                pass
+        _stop_tree(current["proc"])
+
+    def _cancel_requested():
+        if not current["cancelled"] and os.path.exists(cancel_path):
+            current["cancelled"] = True
+        return current["cancelled"]
 
     signal.signal(signal.SIGTERM, _on_term)
     signal.signal(signal.SIGINT, _on_term)
@@ -102,7 +143,7 @@ def run(job_dir):
     try:
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
             for index, step in enumerate(steps, start=1):
-                if current["cancelled"]:
+                if _cancel_requested():
                     break
                 state["step"] = index
                 _write_json(state_path, state)
@@ -113,17 +154,18 @@ def run(job_dir):
                 header = f"\n=== Step {index} of {len(steps)}: {step['label']} ===\n"
                 log.write(header.encode("utf-8"))
                 started = time.time()
-                # Its own process group, so Cancel stops the step's worker
-                # processes (`plan`'s multiprocessing pool) too.
-                # TODO(windows #55): start_new_session is ignored on Windows;
-                # use CREATE_NEW_PROCESS_GROUP there.
                 current["proc"] = subprocess.Popen(
                     step["argv"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
-                    cwd=job.get("cwd") or None, env=env, start_new_session=True,
+                    cwd=job.get("cwd") or None, env=env, **_step_process_options(),
                 )
-                if current["cancelled"]:
-                    _on_term(signal.SIGTERM, None)
-                code = current["proc"].wait()
+                while True:
+                    if _cancel_requested():
+                        _stop_tree(current["proc"])
+                    try:
+                        code = current["proc"].wait(timeout=POLL_SECONDS)
+                        break
+                    except subprocess.TimeoutExpired:
+                        pass
                 current["proc"] = None
                 log.write(f"=== Step {index} exited with status {code} after "
                           f"{time.time() - started:.0f} s ===\n".encode("utf-8"))

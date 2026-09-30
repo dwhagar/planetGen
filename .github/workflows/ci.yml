@@ -129,6 +129,28 @@ jobs:
           raise SystemExit(0 if ran > 0 else "every browser test was skipped")
           PY
 
+  windows-jobs:
+    # The admin Generate page's background jobs on native Windows:
+    # spawning the runner detached, liveness through OpenProcess, Cancel
+    # through the job's cancel file and taskkill /T, and the state file
+    # write retry. No MySQL here; the one database test skips.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package with test/api extras
+        run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
+
+      - name: Pre-fetch the NLTK 'words' corpus
+        run: python -m nltk.downloader words
+
+      - name: Run the Generate page and job tests
+        run: pytest src/tests/test_web_generate.py -rs -p no:cacheprovider
+
   dependency-audit:
     runs-on: ubuntu-latest
     steps:
