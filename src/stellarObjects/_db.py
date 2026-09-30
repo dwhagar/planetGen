@@ -894,11 +894,19 @@ def rename_body(conn, table, body_id, new_name):
     return True
 
 
+UNIQUE_NAME_TABLES = ("sectors", "star_systems", "stars")
+"""tuple: The tables whose names must be unique across the galaxy --
+what `name_in_use` searches. Planets and moons never are."""
+
+
 def name_in_use(conn, name, exclude=None):
     """
-    Whether any sector, system, star, planet or moon is already called
-    exactly `name` -- the check a rename runs before it goes ahead. Each
-    table's `name` column is indexed, so this is five index lookups.
+    Whether any uniquely named object -- a sector, system or star -- is
+    already called exactly `name`, the check a rename runs before it goes
+    ahead. Planets and moons are left out (Boss, 2026-09-30): their names
+    come from their star's (`bodyNames.py`), so they're unique whenever
+    it is, and a body renamed by hand may share another body's name.
+    Each table's `name` column is indexed, so this is three index lookups.
 
     Args:
         conn (Connection): An open connection.
@@ -908,11 +916,11 @@ def name_in_use(conn, name, exclude=None):
 
     Returns:
         str or None: The table holding the clash (`'sectors'`,
-            `'star_systems'`, `'stars'`, `'planets'` or `'moons'`), or
-            `None` when the name is free.
+            `'star_systems'` or `'stars'`), or `None` when the name is
+            free.
     """
     exclude = {tuple(pair) for pair in (exclude or ())}
-    for table in ("sectors", "star_systems", "stars", "planets", "moons"):
+    for table in UNIQUE_NAME_TABLES:
         rows = conn.execute(f"SELECT id FROM {table} WHERE name = ? LIMIT 3", (name,)).fetchall()
         if any((table, row["id"]) not in exclude for row in rows):
             return table

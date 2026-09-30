@@ -67,7 +67,7 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db, program_constants
+from stellarObjects import _db, generationLimits, program_constants
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
@@ -95,9 +95,10 @@ MAX_WIKI_URL_LENGTH = 2048
 MAX_SECTOR_EDGE_LY = 1e9
 """float: An upper bound on a sector's `edge_ly` -- far beyond any real
 sector, well short of overflowing the unit conversion."""
-MAX_NEIGHBORHOOD_RADIUS_LY = 1e6
-"""float: An upper bound on generate-neighborhood's `radius_ly` (the
-galaxy is ~1e5 ly across), so no request can ask for an unbounded run."""
+MAX_NEIGHBORHOOD_RADIUS_LY = generationLimits.MAX_GENERATE_RADIUS_LY
+"""float: An upper bound on generate-neighborhood's `radius_ly` (about
+652 ly, the same 200 pc cap the Generate page and `generate.py` use), so
+no request can ask for an unbounded run."""
 
 WRITE_RATE_LIMIT = "10 per minute"
 """str: Applied to every write route, on top of the app-wide default
@@ -1156,8 +1157,13 @@ def _validate_system_config_body(body):
         raise ApiError("'age' must be 'young', 'old', or null")
     if "num_orbits" in body:
         value = body["num_orbits"]
-        if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value <= 0):
-            raise ApiError("'num_orbits' must be a positive integer or null")
+        if value is not None and (
+            not isinstance(value, int) or isinstance(value, bool)
+            or not 0 < value <= generationLimits.MAX_NUM_ORBITS
+        ):
+            raise ApiError(
+                f"'num_orbits' must be a positive integer up to {generationLimits.MAX_NUM_ORBITS}, or null"
+            )
 
 
 @bp.route("/systems", methods=["POST"])
@@ -1203,7 +1209,6 @@ NAME_MAX_LENGTH = MAX_NAME_LENGTH
 
 _NAME_CLASH_LABELS = {
     "sectors": "a sector", "star_systems": "a star system", "stars": "a star",
-    "planets": "a planet", "moons": "a moon",
 }
 
 
@@ -1230,8 +1235,9 @@ def _rename_body():
 
 
 def _require_unique_name(conn, name, exclude):
-    """Raises a 409 when a sector, system, star, planet or moon other than
-    the rows in `exclude` (`(table, id)` pairs) is already called `name`."""
+    """Raises a 409 when a sector, system or star other than the rows in
+    `exclude` (`(table, id)` pairs) is already called `name`. Planet and
+    moon names aren't checked (`_db.name_in_use`)."""
     clash = _db.name_in_use(conn, name, exclude=exclude)
     if clash is not None:
         raise ApiError(f"{_NAME_CLASH_LABELS[clash]} is already named {name!r}", status_code=409)
@@ -1256,7 +1262,7 @@ def _system_rename_exclusions(conn, system_id):
 def update_system(system_id):
     """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system, and
     every star, planet and moon still named after it
-    (`_db.rename_star_system`). 409 if anything else already has the
+    (`_db.rename_star_system`). 409 if a sector, system or star already has the
     name."""
     name = _rename_body()
 
@@ -1281,7 +1287,7 @@ def rename_star(star_id):
     """`PATCH /api/stars/<id>` `{"name": str}` -- renames a star. A single
     star shares its system's name, so this renames the system too; a
     binary's star is renamed on its own, with the planets and moons named
-    after it (`_db.rename_star`). 409 if anything else already has the
+    after it (`_db.rename_star`). 409 if a sector, system or star already has the
     name."""
     name = _rename_body()
 
@@ -1328,7 +1334,7 @@ def _rename_planet_or_moon(table, kind, body_id):
 @require_admin(fresh=True)
 def rename_planet(planet_id):
     """`PATCH /api/planets/<id>` `{"name": str}` -- renames one planet. Its
-    moons keep their names. 409 if anything else already has the name."""
+    moons keep their names. 409 if a sector, system or star already has the name."""
     return _rename_planet_or_moon("planets", "planet", planet_id)
 
 
@@ -1337,7 +1343,7 @@ def rename_planet(planet_id):
 @require_admin(fresh=True)
 def rename_moon(moon_id):
     """`PATCH /api/moons/<id>` `{"name": str}` -- renames one moon. 409 if
-    anything else already has the name."""
+    a sector, system or star already has the name."""
     return _rename_planet_or_moon("moons", "moon", moon_id)
 
 

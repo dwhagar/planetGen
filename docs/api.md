@@ -579,7 +579,7 @@ it the same way `generate.py system` does, via `StarSystem(system_config=...)`:
 ```
 
 Accepted fields: `markdown`, `star_type`, `name`, `age` (`"young"`,
-`"old"`, or `null`), `num_orbits` (positive integer or `null`), and the
+`"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), and the
 tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
 `max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
 (`true`, `false`, or `null`) — `wide_binary` selects an S-type (wide) vs.
@@ -604,8 +604,10 @@ impossible `num_orbits`/class combination) is reported as a `400`, not a
 `/api/moons/<id>` each accept only `{"name": str}`. Runs of whitespace
 collapse to one space; a blank name, one over 255 characters, or any other
 field is a `400`, and an unknown id is a `404`. A name any other sector,
-system, star, planet or moon already has is a `409`
-(`{"error": "a planet is already named 'New Terra'"}`). Success returns
+system or star already has is a `409`
+(`{"error": "a star is already named 'Sirius'"}`). Planet and moon names
+aren't checked: they come from their star's name, so only uniquely named
+objects are searched. Success returns
 `{"status": "ok", "id", "name"}` (plus `star_system_id` for a star,
 planet or moon).
 

@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 7.10.0 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 7.10.1 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 A procedural planet and star system generator, designed for the Molten Aether FFRP game. The output is designed to be easily copied and pasted into the wiki.
 
@@ -88,6 +88,7 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `+intelligent_life`/`-intelligent_life` cannot be combined with `-habitable_world`.
 *   `+habitable_world` and `+asteroid_belt` together cannot be combined with `-large_star` (both objects require the room a large star provides).
 *   `--num-orbits` cannot be combined with `-planets`.
+*   `--num-orbits` must be from 0 to 500 (the generator's own ceiling on objects in a system).
 *   `--flavor-chance-system` must be a float between 0.0 and 1.0.
 *   `--flavor-chance-planet` must be a float between 0.0 and 1.0.
 
@@ -185,6 +186,12 @@ galaxy's own real local density) before accepting it, retrying otherwise
 start somewhere with more to look at. A high threshold combined with a
 large `--max-ring` can take many retries to satisfy, since a
 volume-weighted random draw favors the sparser outskirts to begin with.
+
+Each of these has an upper bound, so a typo can't start a run that never
+ends: `--radius-pc` at most 200 (about 650 ly), `--ring` and `--max-ring`
+at most 100,000, and `--limit` at most the slot count of ring 100,000.
+The web Generate page and the API check the same bounds
+(`src/stellarObjects/generationLimits.py`).
 
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
