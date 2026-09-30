@@ -361,7 +361,9 @@ and how it relates to the `PLANETGEN_*` environment variables.
    database and account already created, is a separate prerequisite --
    see [`database-schema.md`](database-schema.md).
 2. From that directory, run `sudo ./install.sh` -- installs the Python
-   package, brings the configured MySQL database's schema up to date
+   package (with pip, or on an externally managed Python such as Ubuntu
+   24.04+'s, from apt packages plus a venv for anything apt lacks; see
+   [`apache-deployment.md`](apache-deployment.md#managed-python)), brings the configured MySQL database's schema up to date
    (a no-op if it's already current -- see
    [`database-schema.md`](database-schema.md)'s "Versioning"),
    pre-fetches the NLTK `words` corpus into a shared world-readable
