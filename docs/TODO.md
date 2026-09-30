@@ -69,8 +69,8 @@ renumber when items are added or finished.
    isn't overwhelming, add stellar phenomena types to its search list.
    I can't find any nebulae on the phenomena page and they aren't
    searchable."
-   - `search.html` "Browse by Tag": each group becomes a
-     `<details>`, open when one of its tags is active.
+   - Done: each "Browse by Tag" group is a `<details>`, open when one
+     of its tags is active. Left: the phenomenon facet, after item 28.
    - `searchpage.TAG_FACETS`/`RESULT_PANELS` and
      `queryDb.SEARCH_TAG_FACETS`: add a phenomenon-type facet and a
      Phenomena result panel (none exists today).
