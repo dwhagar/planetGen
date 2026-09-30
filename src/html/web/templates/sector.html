@@ -84,7 +84,7 @@
         <td>{{ row.type }}</td>
         <td>{{ row.details }}</td>
         <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>
-        <td>{% if row.location is not none %}{{ row.location }}{% else %}&ndash;{% endif %}</td>
+        <td class="inline-links">{% if row.location is not none %}{{ row.location }}{% else %}&ndash;{% endif %}</td>
         <td>{{ row.distance }}</td>
       </tr>
       {%- else %}

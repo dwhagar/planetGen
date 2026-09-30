@@ -125,6 +125,13 @@ a:visited {
   color: var(--link-visited);
 }
 
+/* Links set inside running text (a table cell or line mixing links and
+   plain words) need more than color to stand out (WCAG 1.4.1; axe's
+   link-in-text-block): underline them. */
+.inline-links a {
+  text-decoration: underline;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
