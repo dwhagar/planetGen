@@ -216,19 +216,6 @@ renumber when items are added or finished.
    the other pages, invalidating each page from its own rows'
    `modified_at`.
 
-### System Map (`lib/systemmap.py`, `static/systemmap.js`)
-
-9. [ ] **Draw the Measure distance path and route it around obstacles.**
-   "Measure distance" ([5.46.32]) reports a straight-line distance plus,
-   when the line crosses the scene's central body, a tangent-and-arc
-   detour around that one body (`computeMeasurement`,
-   `routeAroundCircle`). It should also draw the path on the map, and the
-   route should avoid every body it would pass through (planets, moons,
-   either star of a binary), keep a safe distance from stars rather than
-   just clearing the surface, and not thread between the two stars of a
-   close binary. Done means the drawn path and reported distance agree
-   and both respect those clearances.
-
 ### Galaxy Map and the sector standard (`static/galaxyprisms.js`, `static/galaxymap3d.js`, `lib/galaxymap3d.py`, `stellarObjects/galaxyGeometry.py`)
 
 Today the map draws the analytic density as shrunk prisms, m sectors a
@@ -362,6 +349,14 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - `generate_page.GALAXY_MODES`/`galaxy_argv`: add column and shell
       (#23); the buttons post a CSRF-protected form that
       starts the job with the address filled in.
+
+55. [ ] **Star dots sized to real giants and white dwarfs.** From the
+    star-type study (2026-09-30): `lib/starmap.py _star_dot_radius`
+    caps at 14 px, so every giant and supergiant draws the same size.
+    Once the star population fix adds real giants (10-200 solar radii)
+    and white dwarfs (0.01), size the Sector Map dots on a log scale so
+    a giant is visibly larger than a dwarf, and check that white dwarf
+    and giant systems render on the system page and System Map.
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
@@ -655,22 +650,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     12 straight edges between 8 corners, thin and low-contrast so the
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
-
-49. [ ] **System Map names never overlap.** Boss: "we need to make sure
-    names on the system map clickable interface do not overlap."
-    - Today `systemmap._label_sides_2d` places each label (4 directions,
-      then a pushed "below"/"above" with a leader line, else dropped)
-      against the others (plus seeded star-label rects) using an
-      estimated width (`_label_half_width_px`: character count times a
-      fixed width). Real text can run wider than the estimate, so
-      labels can still collide.
-    - Fix: make sure every star label and marker is in the collision
-      set; measure the real text in the browser
-      (`getBBox()` in `systemmap.js` after load and after each zoom
-      step in `mapzoom.js`) and nudge or hide labels that still
-      overlap, keeping the server placement as the no-script fallback.
-    - Check every scene: single star, close and wide binaries, and the
-      moon-centered scenes, at 390 px and 1280 px.
 
 ### Installers and platforms (Boss's notes, 2026-09-30)
 

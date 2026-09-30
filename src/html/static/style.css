@@ -1406,6 +1406,17 @@ code {
   stroke-dasharray: 4 2;
 }
 
+/* Measure distance's drawn route (static/systemmap.js drawMeasurePath). */
+.sysmap-measure-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5px;
+  stroke-dasharray: 7 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
 /* A belt is now a plain stroked `<circle>` (a full ring around its own
    anchor -- see `lib/systemmap.py`'s `_belt_ring_svg`), not a filled path,
    so its own visible "band" is the stroke itself. */
@@ -1462,6 +1473,17 @@ code {
    default "below" spot to avoid colliding with a neighbor -- a thin stub
    connecting the marker's own edge to where its (repositioned) label
    begins, so it still reads as belonging to that body. */
+/* A name systemmap.js's layoutLabels hid to avoid an overlap: shown again
+   while its marker is hovered or focused. */
+.sysmap-label-hidden {
+  visibility: hidden;
+}
+
+.sysmap-body:hover .sysmap-label-hidden,
+.sysmap-body:focus .sysmap-label-hidden {
+  visibility: visible;
+}
+
 .sysmap-label-leader {
   stroke: var(--text-muted);
   stroke-width: 1px;
