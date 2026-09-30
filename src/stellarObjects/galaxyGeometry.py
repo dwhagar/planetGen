@@ -64,9 +64,19 @@ slots."""
 
 
 def _ring_centerline_edges(ring_index):
+    """`2*pi*(i + 1/2)`, ring `i`'s centerline circumference in edges.
+
+    Raises:
+        ValueError: For a negative ring.
+        OverflowError: For a ring so far out the float overflows (as
+            `round` of it would), rather than looping forever.
+    """
     if ring_index < 0:
         raise ValueError(f"ring_index must be >= 0, got {ring_index}")
-    return 2 * math.pi * (ring_index + 0.5)
+    c = 2 * math.pi * (ring_index + 0.5)
+    if not math.isfinite(c):
+        raise OverflowError(f"ring_index {ring_index} is too far out")
+    return c
 
 
 def ring_master_count(ring_index):
