@@ -1,9 +1,14 @@
 # Interstellar object rates
 
 Reference numbers for TODO items 5 (rates) and 6 (rogue planet masses),
-from the research Boss supplied on 2026-09-30. Nothing here is built yet;
-this is what the generator should move to. The figures are Boss's chosen
-reference. The ones that don't add up are flagged under "Checks".
+from the research Boss supplied on 2026-09-30. Built in schema v37
+(`program_constants.PHENOMENON_DENSITY_PC3`, `phenomenon_rate_per_star`,
+`ROGUE_PLANET_MASS_BINS`; `generate.generate_sector_phenomena` and
+`flag_fast_stars`), at the full rates Boss chose, with the table's
+hypervelocity figure replaced by 1e-10 (see "Checks"). Molecular clouds
+(filling factor) and the other nebula kinds wait for TODO item 27; until
+then the only generated nebulae are planetary ones. The figures are Boss's
+chosen reference. The ones that don't add up are flagged under "Checks".
 
 ## The model
 

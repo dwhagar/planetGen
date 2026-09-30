@@ -132,6 +132,14 @@ class StarSystem:
             decided once at generation time (or None if the roll didn't select one).
     """
 
+    runaway_class = None
+    """str or None: `"runaway"` or `"hypervelocity"` when the system moves
+    unusually fast through the galaxy (`generate.flag_fast_stars`, schema
+    v37); `None` for an ordinary one."""
+
+    runaway_speed_kms = None
+    """float or None: That speed, km/s; `None` unless `runaway_class`."""
+
     def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None, compact_remnant=None):
         """
         Initializes a StarSystem object, generating a star and its planets.
@@ -994,6 +1002,8 @@ class StarSystem:
             "binary_planetary_wobble_x": self.binary_planetary_wobble_x,
             "binary_planetary_wobble_y": self.binary_planetary_wobble_y,
             "binary_planetary_wobble_z": self.binary_planetary_wobble_z,
+            "runaway_class": self.runaway_class,
+            "runaway_speed_kms": self.runaway_speed_kms,
         }
 
     @classmethod
@@ -1106,6 +1116,8 @@ class StarSystem:
         )
 
         system.system_flavor_text = data.get("system_flavor_text")
+        system.runaway_class = data.get("runaway_class")
+        system.runaway_speed_kms = data.get("runaway_speed_kms")
         # Absent from an export written before bodyNames.py -- the star's
         # own name was the system name then.
         system._name = data.get("name") or star.name

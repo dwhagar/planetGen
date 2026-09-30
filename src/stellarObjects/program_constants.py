@@ -1620,12 +1620,36 @@ SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE = 0.15
 # (Strigari et al. 2012, MNRAS 423:1856, order-of-magnitude population
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
-# TODO(phenomena #6): replace this range with ROGUE_PLANET_MASS_BINS
-# (min M_earth, max M_earth, per-star rate): terrestrial 0.1-2 at 5,
-# sub-Neptune 2-20 at 1, Saturn-class 20-318 at 0.25, Jupiter-mass
-# 1-13 Mjup at 0.25 (Mroz et al. 2017 upper limit). Their sum is the
-# rogue-planet rate. See docs/design/interstellar-object-rates.md.
-ROGUE_PLANET_MASS_RANGE_JUPITER = (0.0005, 10.0)
+# Mass bins (Boss's research, 2026-09-30; docs/design/
+# interstellar-object-rates.md): a rogue planet draws a bin by its
+# per-star rate, then a mass log-uniformly inside it. Low-mass rogues
+# dominate -- disk scattering ejects small bodies while giants stay bound
+# -- and no single power law fits both ends, hence bins.
+#   - terrestrial 0.1-2 Earth masses, 5 per star (2-10; Johnson et al.
+#     2020, AJ 160:123; Mroz et al. 2020, ApJL 903:L11);
+#   - sub-Neptune / ice giant 2-20, 1 per star (a default: Sumi et al.
+#     2023 find Neptune-mass candidates but give no rate);
+#   - Saturn-class 20 Earth masses to 1 Jupiter mass, 0.25 per star (a
+#     default filling the gap);
+#   - Jupiter-mass 1-13 Jupiter masses, 0.25 per star (Mroz et al. 2017,
+#     Nature 548:183, superseding Sumi et al. 2011's 1.8).
+# Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
+ROGUE_PLANET_MASS_BINS = {
+    "terrestrial": (0.1, 2.0, 5.0),
+    "sub-neptune": (2.0, 20.0, 1.0),
+    "saturn": (20.0, 317.8, 0.25),
+    "jupiter": (317.8, 13 * 317.8, 0.25),
+}
+"""dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
+The rates' sum is the rogue-planet rate per star (6.5)."""
+
+ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (13.0, 80.0)
+"""tuple: A free-floating brown dwarf, between the deuterium-burning
+(~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
+`rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""
+
+ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
+"""tuple: Every `rogue_planets.mass_bin` value."""
 
 # Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
 # planet is treated as a gas giant rather than terrestrial -- roughly
@@ -1822,7 +1846,7 @@ ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 # There is exactly one such nucleus per galaxy, at its dynamical center,
 # so the generator only ever places a quasar there (see
 # `generate.add_galactic_nucleus`), never scattered
-# through ordinary sectors the way `PHENOMENON_RATE_PER_STAR_SYSTEM`'s
+# through ordinary sectors the way `PHENOMENON_DENSITY_PC3`'s
 # types are.
 
 QUASAR_ACTIVE_NUCLEUS_CHANCE = 0.1
@@ -1932,91 +1956,100 @@ generated when asked for by name.
 
 # --- Sector-Level Exotic Phenomena (sectorGen.py/galaxyGen.py) ---
 #
-# Every generated sector (and therefore every sector galaxyGen.py generates,
-# since it calls straight into sectorGen.generate_sector) now also seeds a
-# realistically sparse population of phenomenonGen.py's own seven exotic
-# phenomenon types, sampled independently per type via a Poisson draw
-# (spaceSector._sample_poisson_count) whose mean is this rate times however
-# many star systems the sector actually ended up with -- so a denser sector
-# (see --density) gets proportionally more, exactly like star-system count
-# itself scales with density.
+# Every generated sector seeds a population of exotic phenomena, sampled
+# independently per type via a Poisson draw (spaceSector.
+# _sample_poisson_count, generate.generate_sector_phenomena).
 #
-# Each rate is expressed as an expected count PER STAR SYSTEM, derived by
-# dividing a real (or, where flagged, a deliberately conservative
-# order-of-magnitude) total galactic population estimate by ~2x10^11 total
-# stars in the Milky Way -- a commonly cited middle figure for the
-# oft-quoted "100-400 billion stars" range -- the same "ratio of two real
-# numbers" derivation spaceSector.py's own module docstring uses for local
-# stellar density itself. At this generator's sector scale (~1,521 ly^3, a
-# handful of star systems), most of these rates are small enough that a
-# typical sector shows none at all, which is realistic: real space this
-# size is usually devoid of black holes, neutron stars, and visible
-# nebulae, exactly as it is of Alpha-Centauri-close neighbors (see
-# spaceSector.py's own module docstring).
-# TODO(phenomena #5): replace with PHENOMENON_DENSITY_PC3 (per pc^3 at
-# REFERENCE_STELLAR_DENSITY_PC3 = 0.14, scaled by the sector's own
-# stellar density) from Boss's 2026-09-30 research: terrestrial rogues
-# 0.7, Jupiter-mass rogues 0.035, brown dwarfs 0.03, runaway stars 2.1e-3,
-# neutron stars 1e-3, black holes 1e-4, planetary nebulae 3e-8, remnants
-# 1e-8, isolated asteroid fields 0; molecular clouds by filling factor,
-# hypervelocity stars by r_GC^-2, comets as notable ones at a design rate.
-# Add a PHENOMENON_RATE_SCALE per type (default 1.0). See docs/TODO.md
-# item 5 and docs/design/interstellar-object-rates.md.
-PHENOMENON_RATE_PER_STAR_SYSTEM = {
-    # ~100 million stellar-mass black holes in the Milky Way is a commonly
-    # cited estimate (e.g. Lamberts et al. 2018, MNRAS 480:2704,
-    # extrapolating the galaxy's star-formation history through the
-    # stellar initial mass function's high-mass end).
-    "black-hole": 100e6 / 2e11,
-    # ~1 billion neutron stars is a commonly cited Milky Way estimate (e.g.
-    # Sartore et al. 2010, A&A 510:A23) -- roughly 10x more common than
-    # black holes, consistent with the initial mass function producing far
-    # more ~8-20 solar-mass (neutron-star) progenitors than >20-25
-    # solar-mass (black-hole) ones.
-    "neutron-star": 1e9 / 2e11,
-    # Frew & Parker (2010, PASA 27:129) estimate ~10,000-23,000 true
-    # planetary nebulae exist in the Galaxy at any time (a short
-    # ~10,000-25,000 year visible lifetime); NEBULA_TYPES below also covers
-    # emission/reflection/dark nebulae (giant molecular clouds and similar,
-    # of which several thousand more are cataloged), so the combined rate
-    # used here sits a bit above the planetary-nebula-only figure alone.
-    "nebula": 5e4 / 2e11,
-    # The Milky Way's supernova rate is ~2-3 per century (Diehl et al.
-    # 2006, Nature 439:45, from Galactic 26Al gamma-ray emission), and a
-    # remnant stays detectable for roughly ~100,000 years before dispersing
-    # into the interstellar medium -- rate * lifetime gives a standing
-    # population on the order of a couple thousand (well above Green's
-    # ~300-object observed catalog, most of the rest obscured by dust).
-    "supernova-remnant": 2000 / 2e11,
-    # Gravitational-microlensing surveys (Sumi et al. 2011, Nature 473:349;
-    # refined by Mroz et al. 2017, Nature 548:183) suggest free-floating,
-    # planetary-mass objects unbound to any star are plausibly comparable
-    # in number to stars themselves, though with wide uncertainty and later
-    # analyses trending the estimate down substantially -- a deliberately
-    # conservative order-of-magnitude figure is used here, the same
-    # precedent this package already sets for handling wide real
-    # uncertainty conservatively (e.g. SYSTEM_COMET_CHANCE below).
-    "rogue-planet": 0.1,
-    # No established observational population estimate exists for
-    # genuinely unbound interstellar comets at rest between stars (as
-    # opposed to the transient handful passing through the Solar System's
-    # own volume at any instant, e.g. 1I/'Oumuamua, 2I/Borisov -- a flux
-    # measurement, not the standing-population one this per-sector model
-    # needs). Set to the same order of magnitude as this package's own
-    # per-system SYSTEM_COMET_CHANCE below, scaled down since these are
-    # specifically unbound wanderers rather than a system's own reservoir.
-    "comet": 0.05,
-    # Likewise no established population estimate exists for standalone
-    # (non-star-orbiting) asteroid fields -- kept at the same
-    # narrative-flavor order of magnitude as "comet" above, for the same
-    # reason ASTEROID_FIELD_RADIUS_RANGE_LY above is a narrative choice
-    # rather than a derived one.
-    "asteroid-field": 0.05,
+# Rates come from Boss's research of 2026-09-30 (docs/design/
+# interstellar-object-rates.md): each type has a local number density
+# n_i0 (objects per pc^3) at the solar neighborhood's stellar density
+# n_*0 = REFERENCE_STELLAR_DENSITY_PC3, and scales with the local stellar
+# density, n_i = n_i0 * n_* / n_*0. A sector's star count already follows
+# n_* * V, so that is a fixed rate per STAR, n_i0 / n_*0, times the
+# sector's own star count (`phenomenon_rate_per_star`).
+
+REFERENCE_STELLAR_DENSITY_PC3 = 0.14
+"""float: Stars per pc^3 in the solar neighborhood (0.10-0.14 in the
+literature), the density every PHENOMENON_DENSITY_PC3 figure is quoted at."""
+
+PHENOMENON_DENSITY_PC3 = {
+    # Sum of ROGUE_PLANET_MASS_BINS' per-star rates (6.5) at n_*0.
+    # Terrestrial alone: 0.7 pc^-3 (0.5-1.4), Jupiter-mass 0.035.
+    "rogue-planet": sum(rate for _lo, _hi, rate in ROGUE_PLANET_MASS_BINS.values()) * REFERENCE_STELLAR_DENSITY_PC3,
+    # 0.025-0.035 (Kirkpatrick et al. 2021, ApJS 253:7), ~1 per 4.7 stars.
+    "brown-dwarf": 0.03,
+    # Stars moving > 30 km/s, 1-2% of stars (Tauris 2015, MNRAS 448:L6).
+    # A flag on an ordinary generated system, not a phenomenon row.
+    "runaway-star": 2.1e-3,
+    # Stars moving > 500 km/s, ejected by the central black hole, at
+    # HVS_REFERENCE_RADIUS_PC; scales as r_GC^-2 (Brown 2015, ARA&A
+    # 53:15). The research's 5e-9 implies ~4e5 out to 100 kpc against a
+    # stated 1e3-1e4 total; 1e-10 matches the total. Also a system flag.
+    "hypervelocity-star": 1e-10,
+    # ~1e9 isolated neutron stars and ~1e8 black holes galaxy-wide
+    # (Sartore et al. 2010, A&A 510:A23; Olejak et al. 2020, A&A 638:A94;
+    # Sahu et al. 2022, ApJ 933:83).
+    "neutron-star": 1e-3,
+    "black-hole": 1e-4,
+    # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
+    # 50:531), really placed by filling factor inside the arms
+    # (GMC_ARM_FILLING_FACTOR); TODO item 27 generates them.
+    "molecular-cloud": 5e-6,
+    # ~20,000 planetary nebulae galaxy-wide (Frew & Parker 2010, PASA
+    # 27:129).
+    "planetary-nebula": 3e-8,
+    # 1e-8 to 1e-7, really n_* * rho_gas (Draine 2011); 1e-8 counts
+    # faint remnants too (~1,000 are detectable, ~1.5e-9).
+    "supernova-remnant": 1e-8,
+    # Notable interstellar comets kept as rows, a design rate (today's
+    # 0.05 per star). The real population of comets and planetesimals,
+    # INTERSTELLAR_DEBRIS_DENSITY_PC3, is a computed sector figure.
+    "comet": 0.007,
+    # Free asteroid fields disperse in 1e6-1e7 years (Raymond et al.
+    # 2020, ApJL 894:L22), so none are generated; the type stays for
+    # hand-made fields and facilities.
+    "asteroid-field": 0.0,
 }
-"""
-dict: `PHENOMENON_TYPE_CHOICES` entry -> expected count per star system, for
-`sectorGen.generate_sector_phenomena`'s per-sector Poisson sampling.
-"""
+"""dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
+the research value for each kind (see the design doc's table)."""
+
+PHENOMENON_RATE_SCALE = {kind: 1.0 for kind in PHENOMENON_DENSITY_PC3}
+"""dict: A multiplier per kind (default 1.0) to dial a rate up or down
+without touching its research value -- e.g. 0.1 for "rogue-planet" gives
+about 6 rogues per local sector instead of about 58 (Boss chose the full
+rate on 2026-09-30)."""
+
+GMC_ARM_FILLING_FACTOR = 0.015
+"""float: Share of spiral-arm volume inside a giant molecular cloud
+(0.01-0.02), for TODO item 27's cloud placement."""
+
+GMC_GAS_DENSITY_EXPONENT = 1.4
+"""float: Molecular clouds scale with gas density to this power
+(Schmidt-Kennicutt), for TODO item 27."""
+
+HVS_REFERENCE_RADIUS_PC = 8000.0
+"""float: Galactic radius the "hypervelocity-star" density is quoted at."""
+
+INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12
+"""float: Interstellar comets and planetesimals (m-km) per pc^3 at
+REFERENCE_STELLAR_DENSITY_PC3, 1e11-1e14 (Engelhardt et al. 2017, AJ
+153:133; Seligman & Laughlin 2020, ApJL 896:L8) -- far too many for rows,
+so a sector shows it as a figure (`queryDb.interstellar_debris_count`)."""
+
+RUNAWAY_STAR_SPEED_RANGE_KMS = (30.0, 200.0)
+"""tuple: A runaway star's speed relative to its neighbors, km/s
+(log-uniform; Tauris 2015)."""
+
+HYPERVELOCITY_STAR_SPEED_RANGE_KMS = (500.0, 1000.0)
+"""tuple: A hypervelocity star's speed, km/s (Brown 2015)."""
+
+
+def phenomenon_rate_per_star(kind):
+    """Expected count of `kind` (a PHENOMENON_DENSITY_PC3 key) per star:
+    its density over REFERENCE_STELLAR_DENSITY_PC3, times its
+    PHENOMENON_RATE_SCALE."""
+    return PHENOMENON_DENSITY_PC3[kind] * PHENOMENON_RATE_SCALE.get(kind, 1.0) / REFERENCE_STELLAR_DENSITY_PC3
+
 
 # --- Galaxy Random-Start Generation (galaxyGen.py) ---
 

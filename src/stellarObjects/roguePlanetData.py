@@ -55,6 +55,18 @@ def format_comet_composition_summary(composition):
     return ", ".join(composition[:-1]) + f", and {composition[-1]}"
 
 
+def infer_rogue_mass_bin(mass_kg):
+    """The `ROGUE_PLANET_MASS_BIN_CHOICES` bin `mass_kg` falls in, for
+    rows saved before the bin was stored (schema v37)."""
+    if mass_kg >= program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * physical_constants.JUPITER_MASS_TO_KG:
+        return "brown-dwarf"
+    mass_earth = mass_kg / physical_constants.EARTH_MASS_TO_KG
+    for name, (_low, high, _rate) in program_constants.ROGUE_PLANET_MASS_BINS.items():
+        if mass_earth < high:
+            return name
+    return "jupiter"
+
+
 class RoguePlanet:
     """
     A basic class to store information for a free-floating ("rogue"/nomad)
@@ -74,7 +86,7 @@ class RoguePlanet:
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "planet_type", "mass_kg", "radius_km", "composition",
+        "name", "planet_type", "mass_bin", "mass_kg", "radius_km", "composition",
         "has_internal_heat", "has_moons",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
@@ -85,7 +97,7 @@ class RoguePlanet:
     rogue planet is unbound from any specific STAR, not from the galaxy
     itself -- it still orbits the galactic center like a lone star does."""
 
-    def __init__(self, system_config: SystemConfig, name=None):
+    def __init__(self, system_config: SystemConfig, name=None, mass_bin=None):
         """
         Initializes a RoguePlanet object.
 
@@ -93,21 +105,45 @@ class RoguePlanet:
             system_config (SystemConfig): The shared SystemConfig object
                 (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
             name (str, optional): An explicit name. Random if omitted.
+            mass_bin (str, optional): One of
+                `program_constants.ROGUE_PLANET_MASS_BIN_CHOICES`. Omitted,
+                a planet bin is drawn by its per-star rate
+                (`ROGUE_PLANET_MASS_BINS`); `"brown-dwarf"` is only ever
+                asked for explicitly (its own rate,
+                `PHENOMENON_DENSITY_PC3["brown-dwarf"]`).
         """
         reseed_rng()
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
-        # TODO(phenomena #6): a linear-uniform draw over 0.0005-10 Mjup
-        # makes only ~0.5% of rogues terrestrial (< 0.05 Mjup), which is
-        # why none show up. Microlensing (Mroz et al. 2017, Johnson et al.
-        # 2020) says low-mass rogues outnumber giants several to one: pick
-        # a bin from program_constants.ROGUE_PLANET_MASS_BINS by its
-        # per-star rate, then a log-uniform mass inside it.
-        mass_jupiter = random.uniform(*program_constants.ROGUE_PLANET_MASS_RANGE_JUPITER)
-        self.mass_kg = mass_jupiter * physical_constants.JUPITER_MASS_TO_KG
+        if mass_bin is None:
+            bins = program_constants.ROGUE_PLANET_MASS_BINS
+            mass_bin = random.choices(list(bins), weights=[rate for _lo, _hi, rate in bins.values()])[0]
+            log.choice("Rogue planet mass bin", mass_bin, "drawn by ROGUE_PLANET_MASS_BINS' per-star rates")
+        elif mass_bin not in program_constants.ROGUE_PLANET_MASS_BIN_CHOICES:
+            raise ValueError(f"mass_bin must be one of {program_constants.ROGUE_PLANET_MASS_BIN_CHOICES}, got {mass_bin!r}")
+        self.mass_bin = mass_bin
 
-        if mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
+        if mass_bin == "brown-dwarf":
+            low, high = (m * physical_constants.JUPITER_MASS_TO_KG
+                         for m in program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
+        else:
+            low, high, _rate = program_constants.ROGUE_PLANET_MASS_BINS[mass_bin]
+            low, high = low * physical_constants.EARTH_MASS_TO_KG, high * physical_constants.EARTH_MASS_TO_KG
+        self.mass_kg = math.exp(random.uniform(math.log(low), math.log(high)))
+        mass_jupiter = self.mass_kg / physical_constants.JUPITER_MASS_TO_KG
+
+        if mass_bin == "brown-dwarf":
+            log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
+            self.planet_type = 'g'
+            # Brown dwarfs share Jupiter's near-flat mass-radius relation
+            # (Chabrier & Baraffe 2000), slightly smaller when old.
+            self.radius_km = physical_constants.JUPITER_RADIUS_KM * random.uniform(0.75, 1.1)
+            self.composition = (
+                "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
+                "in the infrared as it cools"
+            )
+        elif mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
             log.choice("Rogue planet type", "gas giant",
                        f"mass {mass_jupiter:.4g} Mjup >= ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
                        f"({program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
@@ -129,7 +165,13 @@ class RoguePlanet:
             density_kg_m3 = random.uniform(*density_range_gcm3) * 1000
             radius_m = (self.mass_kg / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3)
             self.radius_km = radius_m / 1000
-            self.composition = "rock, metal, and (at the lower end of its mass range) ice, similar in bulk composition to Earth or Mars"
+            if mass_bin == "sub-neptune":
+                self.composition = (
+                    "rock and ice, possibly beneath a thin hydrogen envelope, between a super-Earth and "
+                    "Neptune in bulk composition"
+                )
+            else:
+                self.composition = "rock, metal, and (at the lower end of its mass range) ice, similar in bulk composition to Earth or Mars"
 
         self.has_internal_heat = random.random() < program_constants.ROGUE_PLANET_INTERNAL_HEAT_CHANCE
         self.has_moons = random.random() < program_constants.ROGUE_PLANET_MOON_CHANCE
@@ -165,7 +207,16 @@ class RoguePlanet:
         planet = object.__new__(cls)
         planet.system_config = system_config
         fields_from_dict(planet, data, cls.SERIALIZABLE_FIELDS)
+        if getattr(planet, "mass_bin", None) is None:
+            planet.mass_bin = infer_rogue_mass_bin(planet.mass_kg)
         return planet
+
+    @property
+    def kind_label(self):
+        """`"Brown Dwarf"`, `"Gas Giant"` or `"Terrestrial"`."""
+        if getattr(self, "mass_bin", None) == "brown-dwarf":
+            return "Brown Dwarf"
+        return "Gas Giant" if self.planet_type == 'g' else "Terrestrial"
 
     def to_paragraph_list(self):
         """
@@ -178,11 +229,12 @@ class RoguePlanet:
                   describing the rogue planet.
         """
         header_level = '##' if self.system_config.MARKDOWN else '=='
-        kind_label = "Gas Giant" if self.planet_type == 'g' else "Terrestrial"
+        kind_label = self.kind_label
         header = f"{header_level} {self.name} (Rogue {kind_label}) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
 
+        what = "brown dwarf" if self.kind_label == "Brown Dwarf" else "planet"
         description = (
-            f"{self.name} is a free-floating planet adrift in interstellar space, bound to no star. It has a "
+            f"{self.name} is a free-floating {what} adrift in interstellar space, bound to no star. It has a "
             f"radius of roughly {self.radius_km:,.0f} km and is composed of {self.composition}."
         )
 
