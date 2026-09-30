@@ -64,6 +64,13 @@
 <p class="hint">The forms below unlock when the current job finishes.</p>
 {%- endif %}
 
+<section class="panel" id="one-off-system" aria-labelledby="one-off-system-heading">
+  <h2 id="one-off-system-heading">One-off system</h2>
+  <p>Generate a single star system with any of the command-line options and get it as Markdown or wikitext,
+  without adding it to the database.</p>
+  <p><a class="btn" href="{{ url_for('web.generate_system') }}">Generate a one-off system</a></p>
+</section>
+
 <section class="panel" id="new-galaxy" aria-labelledby="new-galaxy-heading">
   <h2 id="new-galaxy-heading">New galaxy</h2>
   <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code>, plans a new galaxy,

@@ -1,5 +1,54 @@
 # Changelog
 
+## [6.4.0] - 2026-09-30
+
+### Changed
+- **The Galaxy Map moved to the Flask app at `/galaxy`.** It is a plain,
+  bookmarkable GET URL with no database name in it
+  (`/galaxy?quadrant=II&page=2` for one Quadrant's sector list), under
+  the new header with the Galaxy section marked and breadcrumbs. The
+  map's "View sector" button and every table row are real `<a href>`
+  links. The map's script fetches its tiles from `/galaxy/tiles` (JSON,
+  no database in the URL). Tiles are still cached on the server's disk,
+  now by the WSGI process, and in the browser's `localStorage` under the
+  same keys as before, so nothing already cached is lost. The map's
+  viewport is larger on wide screens.
+- `galaxy.py` and `galaxy_tiles.py` now answer 301 to `/galaxy` and
+  `/galaxy/tiles`, keeping their parameters, so old links, bookmarks and
+  open tabs still work. A tile cache directory set only with `SetEnv
+  PLANETGEN_TILE_CACHE_DIR` in the vhost no longer applies (the WSGI
+  daemon doesn't see `SetEnv`); set `tile_cache.dir` in `config.json`
+  instead.
+
+## [6.3.0] - 2026-09-30
+
+### Added
+- **One-off star systems from the admin site.** A new page,
+  `/admin/generate/system` (linked from Generate), offers every
+  `generate.py system` option, including a pasted system file and the
+  debug narration, and shows the result as Markdown or wikitext with Copy,
+  Download and a rendered preview. Nothing is saved to the database.
+- **`generate.py system --output FILE`** (`-o`, `-` for stdout) writes
+  the system's page instead of saving the system to the database.
+
+## [6.2.0] - 2026-09-30
+
+### Changed
+- **The sector page moved to `/sector/<id>`.** It is a Flask page now, with
+  the new header and breadcrumbs, bookmarkable Contents pages
+  (`?contents_page=N`) and no database in the URL. The Sector Map's info
+  panel buttons and its no-JavaScript list are plain links. The admin
+  forms (wiki upload, generate neighborhood) carry a CSRF token and, once
+  they succeed, redirect back to the page with a message, so reloading
+  never repeats them. `sector.py` answers 301 to the new address.
+- **The NAV page moved to `/nav`, and every step is a GET URL.** Endpoints
+  read as `<kind>:<id>`: `/nav?from=system:12&to=nebula:3`; the pickers
+  use `from_sector`/`to_sector`. The NAV Map's points and the route's
+  stops are plain links, and a "Reverse course" link swaps the endpoints.
+  `nav.py` answers 301 to the new address, translating its old
+  parameters, and the old `from_id`/`from_kind`/`from_type` style
+  redirects to the new one.
+
 ## [6.1.0] - 2026-09-30
 
 ### Added

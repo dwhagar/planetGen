@@ -125,6 +125,13 @@ a:visited {
   color: var(--link-visited);
 }
 
+/* Links set inside running text (a table cell or line mixing links and
+   plain words) need more than color to stand out (WCAG 1.4.1; axe's
+   link-in-text-block): underline them. */
+.inline-links a {
+  text-decoration: underline;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
@@ -1192,6 +1199,13 @@ a:focus-visible .navmap-point circle {
   filter: brightness(1.08);
 }
 
+a.btn,
+a.btn:visited {
+  display: inline-block;
+  color: var(--accent-contrast);
+  text-decoration: none;
+}
+
 .active-filters {
   display: flex;
   flex-wrap: wrap;
@@ -1522,6 +1536,13 @@ code {
    the latter two also reused as-is by the Sector Map's own not-yet-
    generated neighboring-sector indicators (html/static/sectormap.js),
    the identical "copy a generate.py CLI command" concept one level in. */
+/* The Galaxy Map is the page's whole point, so its viewport gets more of
+   a wide screen than the sector map's 22rem (still a square, still full
+   width on a phone). */
+.galaxymap3d-panel .starmap-viewport {
+  width: min(100%, 36rem);
+}
+
 .galaxymap3d-tooltip {
   position: absolute;
   z-index: 3;
@@ -1998,6 +2019,21 @@ body.app {
 .generate-check {
   justify-content: flex-end;
   font-weight: 400;
+}
+
+/* One-off system page (web/templates/generate_system.html). */
+.system-format {
+  margin-top: 1rem;
+}
+
+.system-preview {
+  margin-top: 1rem;
+}
+
+.code-view-header .search-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 .field-hint {

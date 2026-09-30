@@ -96,6 +96,7 @@ from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
+from stellarObjects.systemRender import render_star_system
 from stellarObjects.utils import generate_sector_name, ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
@@ -294,6 +295,11 @@ def add_system_arguments(parser):
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
+
+    # Write the page instead of saving (a one-off system)
+    parser.add_argument('--output', '-o', type=str, metavar='FILE',
+                        help="Write the system's page (wikitext, or Markdown with --markdown) to FILE "
+                             "instead of saving the system to the database; '-' writes it to stdout.")
 
     # Logging (--debug, --quiet/--silent)
     add_logging_arguments(parser)
@@ -510,7 +516,10 @@ def build_system_config(args):
 
 def run_system(args):
     """
-    Generates one star system and saves it to the database.
+    Generates one star system and saves it to the database, or, with
+    `--output`, writes its page to a file (or stdout) and touches no
+    database at all -- the admin site's one-off system page runs it that
+    way (`src/html/web/system_page.py`).
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
@@ -518,6 +527,16 @@ def run_system(args):
     """
     system_config = build_system_config(args)
     system = StarSystem(system_config=system_config)
+
+    if args.output:
+        text = render_star_system(system, "markdown" if system_config.MARKDOWN else "wikitext")
+        if args.output == "-":
+            sys.stdout.write(text if text.endswith("\n") else text + "\n")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(text)
+            log.normal(f"Wrote system '{system.star.name}' to {args.output} (not saved to the database).")
+        return
 
     mysql_config = _db.mysql_config_from_args(args)
     star_system_id = _db.save_system(system, system_config, config=mysql_config)
