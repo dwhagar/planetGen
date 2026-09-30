@@ -45,14 +45,17 @@ def _small_addresses():
 # --- ring_sector_count --------------------------------------------------------
 
 def test_ring_sector_count_first_rings_match_the_documented_sequence():
-    assert [gg.ring_sector_count(i) for i in range(4)] == [3, 9, 16, 22]
+    assert [gg.ring_sector_count(i) for i in range(8)] == [3, 9, 15, 21, 27, 36, 42, 48]
 
 
 @given(st.integers(min_value=0, max_value=10**7))
-def test_ring_sector_count_grows_by_six_or_seven(ring):
+def test_ring_sector_count_is_a_growing_multiple_of_its_master_count(ring):
     n, n_next = gg.ring_sector_count(ring), gg.ring_sector_count(ring + 1)
-    assert n >= 3
-    assert n_next - n in (6, 7)
+    master = gg.ring_master_count(ring)
+    assert n >= 3 and n % master == 0
+    assert gg.ring_master_count(ring + 1) in (master, 2 * master)
+    assert n_next >= n
+    assert 0.94 <= 2 * math.pi * (ring + 0.5) / n <= 1.065
 
 
 @given(st.integers(max_value=-1))
@@ -63,13 +66,11 @@ def test_ring_sector_count_rejects_negative_rings(ring):
 
 @given(st.integers(min_value=0, max_value=10**6), EDGES)
 def test_every_ring_cell_is_close_to_a_cube(ring, edge):
-    # Module docstring: within 5% from ring 1 out, within 1% from ring 10.
+    # Module docstring: the arc is within about 6% of an edge.
     cell = gg.SectorCell.for_ring(ring, edge)
     arc = cell.r_center * 2 * cell.half_angle
-    if ring >= 10:
-        assert abs(arc / edge - 1) < 0.01
-    elif ring >= 1:
-        assert abs(arc / edge - 1) < 0.05
+    if ring >= 1:
+        assert 0.94 <= arc / edge <= 1.065
 
 
 # --- position <-> address ------------------------------------------------------
@@ -530,7 +531,7 @@ def test_random_address_is_uniform_over_every_cell():
     for _ in range(draws):
         address = bounds.random_address(rng)
         counts[address] = counts.get(address, 0) + 1
-    assert len(counts) == bounds.cell_count() == 3 + 3 + (3 + 9 + 16)
+    assert len(counts) == bounds.cell_count() == 3 + 3 + (3 + 9 + 15)
     assert max(counts.values()) < 2 * min(counts.values())
 
 
