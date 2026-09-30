@@ -370,11 +370,6 @@ def test_grow_from_seed_rejects_a_foreign_seed():
         sector.grow_from_seed(foreign, lambda: _StubSystem(1.0), target_count=5)
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG: SpaceSector._fine_tune_position (used by grow_from_seed) only checks self.entries, not "
-    "_massive_neighbors(), so growth places star systems inside an already-placed black hole's/"
-    "neutron star's Hill sphere -- the guarantee add_phenomenon's docstring makes (repro: home "
-    "stub r_H=0.5 ly at origin, black hole r_H=3 ly at (4,0,0), grow_from_seed(target_count=40))"))
 def test_growth_respects_massive_phenomena():
     sector = SpaceSector("black hole nearby")
     with _seeded_sector_rng(1), _time_limit(20):
