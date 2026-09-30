@@ -146,10 +146,9 @@ def _comets_table_html(comets, heading="Comets"):
 """
 
 
-# TODO(web-pages #61): the Planets & Moons table repeats the system list;
-# remove it once the list rows carry its columns (class, type, zone,
-# distance, period, gravity) as stats. Belts and comets tables stay unless
-# Boss says otherwise.
+# TODO(web-pages #61): the Planets & Moons, Asteroid Belts and Comets
+# tables repeat the system list; remove them once the list rows carry their
+# columns (class, type, zone, distance, period, gravity) as stats.
 def bodies_html(planets, belts, comets, stars, binary_configuration):
     """
     Builds the "Planets & Moons"/"Asteroid Belts"/"Comets" section(s).
@@ -267,6 +266,10 @@ def _comet_row_html(comet, sections):
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])))
 
 
+# TODO(web-pages #61): comets go in their relative order from the star too,
+# not appended last: sort them in with planets and belts by distance (a
+# comet by its semi-major axis, perihelion_distance_km / (1 -
+# eccentricity); parabolic ones last, by perihelion).
 def _orbiting_rows_html(planets, belts, comets, sections):
     """A star's (or a close pair's) own bodies, in orbital order -- planets
     and belts share one `orbital_index` space per star -- then comets."""

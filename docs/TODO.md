@@ -868,11 +868,12 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
 
-61. [ ] **System page: one list of planets with expandable moons, stars
-    table first.** Boss: "on the star system page we list planets and
-    moons twice, have moons expandable under the initial planet list so
-    we can get rid of the 2nd table at the end of the page. Move the star
-    table to the top of the tables under the clickable map interface."
+61. [ ] **System page: one ordered list of everything in orbit, with
+    expandable moons, stars table first.** Boss: "on the star system
+    page we list planets and moons twice, have moons expandable under
+    the initial planet list so we can get rid of the 2nd table at the
+    end of the page. Move the star table to the top of the tables under
+    the clickable map interface."
     - Moons: in `systempage._planet_row_html` a planet's moons sit inside
       its `<details>`, after its whole description. Give them their own
       expandable group right under the planet's row (e.g. a nested
@@ -884,9 +885,16 @@ Each has a `TODO(physics #N)` comment where the fix goes.
       there.
     - Move `stars_html` (the stars table) up to be the first table,
       directly under `map_html`.
-    - Default taken: the Asteroid Belts and Comets tables stay, since
-      only planets and moons were named; **question for Boss:** should
-      they go too, as the list already shows belts and comets?
+    - Belts and comets (Boss, 2026-09-30): "Asteroid belts and comets
+      should be placed in the interactive list of objects in orbit
+      around the star in their relative order from the star." Remove
+      the Asteroid Belts and Comets tables too. `_orbiting_rows_html`
+      already orders belts with planets by `orbital_index`, but appends
+      every comet at the end; sort comets in by distance instead.
+      Default taken: a comet sorts by its semi-major axis
+      (`perihelion_distance_km / (1 - eccentricity)`), and parabolic
+      ones (no finite axis) go last by perihelion. Each belt and comet
+      row shows its distance (#1).
 
 62. [ ] **System Map names never overlap.** Boss: "we need to make sure
     names on the system map clickable interface do not overlap."
