@@ -180,5 +180,5 @@ def test_favicon_and_theme_script_exist():
 
 def test_markdown_tables_scroll_inside_their_own_box():
     html = markdown_to_html("| a | b |\n|---|---|\n| 1 | 2 |\n")
-    assert '<div class="table-scroll"><table>' in html
+    assert '<div class="table-scroll" tabindex="0"><table>' in html
     assert "</table></div>" in html

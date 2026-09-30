@@ -89,6 +89,7 @@ def _template_globals():
 errors.register(bp)
 
 from . import views  # noqa: E402,F401 -- registers the routes on bp
+from . import system_pages  # noqa: E402,F401 -- /system, /phenomena, /phenomenon
 from . import admin_pages  # noqa: E402,F401 -- /login, /logout, /account, /admin, /admin/stats
 from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
 from . import nav_page, sector_page  # noqa: E402,F401 -- /nav, /sector/<id>

@@ -1,0 +1,33 @@
+{#- One phenomenon (/phenomenon/<type>/<id>, web/system_pages.py). The
+    diagram is HTML from lib/phenomenonmap.py (escaped there). -#}
+{% extends "base.html" %}
+{% block head %}
+<script src="{{ static_url('mapzoom.js') }}" defer></script>
+<script src="{{ static_url('phenomenonmap.js') }}" defer></script>
+{% endblock %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">{{ type_label }}</span>
+    {%- if distance %}<span class="badge">{{ distance }} from Galactic Center</span>{% endif %}
+    {%- if sector %}<span class="badge">Sector: <a href="{{ sector.url }}">{{ sector.name }}</a></span>{% endif -%}
+  </p>
+  <p class="page-actions">
+    <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
+    <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+{{ map_html }}
+<section class="panel" aria-labelledby="phenomenon-data-heading">
+  <h2 id="phenomenon-data-heading">{{ type_label }} Data</h2>
+  <div class="table-scroll" tabindex="0"><table>
+    <tbody>
+      {%- for label, text in fields %}
+      <tr><th scope="row">{{ label }}</th><td>{{ text }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

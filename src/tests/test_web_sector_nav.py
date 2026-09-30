@@ -11,12 +11,11 @@ bottom use a real throwaway database through the in-process transport and
 are skipped without a MySQL test server.
 """
 
-import html as html_lib
 import json
 import re
 
-import markupsafe
 import pytest
+from markupsafe import escape
 
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
@@ -218,11 +217,11 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     # Contents: nearest first, systems and phenomena, plain links.
     contents = html[html.index('id="sector-contents"'):]
     assert contents.index("Other") < contents.index("Alpha") < contents.index("Veil")
-    assert f'<a href="/system.py?db={DB}&amp;id=1001">Alpha</a>' in contents
-    assert f'<a href="/phenomenon.py?db={DB}&amp;type=nebula&amp;id=3">Veil</a>' in contents
+    assert '<a href="/system/1001">Alpha</a>' in contents
+    assert '<a href="/phenomenon/nebula/3">Veil</a>' in contents
     assert "Emission, 2.50 ly radius" in contents
     # Location's neighbor names link too.
-    assert f'nearest: <a href="/system.py?db={DB}&amp;id=1002">Other</a> (1.0 ly)' in contents
+    assert 'nearest: <a href="/system/1002">Other</a> (1.0 ly)' in contents
     # Anonymous visitors get no forms at all.
     assert "<form method=\"post\"" not in html and "data-nav" not in html
 
@@ -231,8 +230,8 @@ def test_sector_map_entries_are_plain_links(client, fake):
     html = client.get("/sector/5").get_data(as_text=True)
     scene = _scene(html)
     assert {star["href"] for star in scene["stars"]} == {
-        f"/system.py?db={DB}&id=1001", f"/system.py?db={DB}&id=1002"}
-    assert scene["clouds"][0]["href"] == f"/phenomenon.py?db={DB}&type=nebula&id=3"
+        "/system/1001", "/system/1002"}
+    assert scene["clouds"][0]["href"] == "/phenomenon/nebula/3"
     assert scene["neighbors"][0]["href"] == "/sector/6"
     assert not any("navTarget" in entry for entry in scene["stars"] + scene["clouds"] + scene["neighbors"])
     assert '<li><a href="/sector/6">Next Door</a></li>' in html  # <noscript> list
@@ -409,7 +408,7 @@ def test_nav_carries_a_preset_destination_through_the_origin_picker(client, fake
 def test_nav_destination_pickers_for_a_system(client, fake):
     html = client.get("/nav?from=system:1001").get_data(as_text=True)
     assert "<title>Nav: Alpha - " in html
-    assert f'From: <a href="/system.py?db={DB}&amp;id=1001">Alpha</a>' in html
+    assert 'From: <a href="/system/1001">Alpha</a>' in html
     same = _form(html, "to")
     assert '<input type="hidden" name="from" value="system:1001">' in same
     assert '<option value="system:1002">Other</option>' in same
@@ -440,12 +439,12 @@ def test_nav_course_and_route(client, fake):
     assert ("get_nav", DB, 1001, 1002, "system", "system", None, None) in fake.calls
     assert "3.25 ly" in html and "45.00&deg;" in html and "-2.50&deg;" in html and "3 years" in html
     assert "Same sector" in html
-    assert f'To: <a href="/system.py?db={DB}&amp;id=1002">Other</a>' in html
+    assert 'To: <a href="/system/1002">Other</a>' in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
     assert [name for name in re.findall(r">([^<]+)</a>", route)] == ["Alpha", "Waypoint", "Other"]
     assert "3 stops, 3.50 ly total." in html
     # The NAV map's points are plain links.
-    assert f'<a class="navmap-point navmap-hop" href="/system.py?db={DB}&amp;id=1500">' in html
+    assert '<a class="navmap-point navmap-hop" href="/system/1500">' in html
     assert "data-nav" not in html
     assert '<a href="/nav?from=system:1002&amp;to=system:1001">Reverse course</a>' in html
 
@@ -453,9 +452,9 @@ def test_nav_course_and_route(client, fake):
 def test_nav_phenomenon_origin(client, fake):
     html = client.get("/nav?from=nebula:3&to=system:1002").get_data(as_text=True)
     assert ("get_nav", DB, 3, 1002, "phenomenon", "system", "nebula", None) in fake.calls
-    assert f'From: <a href="/phenomenon.py?db={DB}&amp;type=nebula&amp;id=3">Veil</a>' in html
+    assert 'From: <a href="/phenomenon/nebula/3">Veil</a>' in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
-    assert f'href="/phenomenon.py?db={DB}&amp;type=nebula&amp;id=3">Veil</a>' in route
+    assert 'href="/phenomenon/nebula/3">Veil</a>' in route
 
 
 def test_nav_phenomenon_origin_picks_any_sector(client, fake):
@@ -614,7 +613,7 @@ def test_real_sector_page_and_nav(db_client, mysql_config, monkeypatch):
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     for row in systems:
-        assert html_lib.escape(row["name"]) in html
+        assert escape(row["name"]) in html
     assert len(_scene(html)["stars"]) == 2
 
     html = db_client.get("/nav").get_data(as_text=True)
@@ -694,8 +693,7 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
     finally:
         conn.close()
     for name in [system_name] + [entry.phenomenon.name for entry in entries]:
-        # The template escapes with Jinja (' -> &#39;), not html.escape (' -> &#x27;).
-        assert str(markupsafe.escape(name)) in contents
+        assert escape(name) in contents
     for label in ("Supernova Remnant", "Rogue Planet", "Interstellar Comet", "Star System"):
         assert label in contents
     kinds = {cloud["kind"] for cloud in _scene(html)["clouds"]}

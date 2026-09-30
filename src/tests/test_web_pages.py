@@ -121,7 +121,7 @@ def test_home_renders_both_tables_and_shell(client, fake):
     assert "3 sectors" in html and "2 standalone systems" in html
     # Not-yet-moved pages are plain GET links to the CGI scripts.
     assert 'href="/sector/1"' in html
-    assert f'href="/system.py?db={DB}&amp;id=1001"' in html
+    assert 'href="/system/1001"' in html
     # The home page is no section; nothing in the main nav is current.
     assert 'aria-current="page"' not in re.search(
         r'<nav class="site-sections".*?</nav>', html, re.S).group(0)
@@ -363,8 +363,7 @@ def test_page_url_resolves_moved_and_legacy_pages(app):
         assert page_url("index") == "/"
         assert page_url("sectors") == "/sectors"
         assert page_url("sector", sector_id=5) == "/sector/5"
-        assert page_url("phenomenon", phenomenon_type="nebula", phenomenon_id=3) == \
-            f"/phenomenon.py?db={DB}&type=nebula&id=3"
+        assert page_url("phenomenon", phenomenon_type="nebula", phenomenon_id=3) == "/phenomenon/nebula/3"
         assert page_url("galaxy", _anchor="map") == "/galaxy#map"
         with pytest.raises(KeyError):
             page_url("no_such_page")
@@ -449,7 +448,7 @@ def test_real_database_home_and_paging(db_client, mysql_config, monkeypatch):
     assert "55 sectors" in html
     assert "Web &lt;i&gt;Sector&lt;/i&gt; 000" in html
     assert "Web &lt;i&gt;Sector&lt;/i&gt; 050" not in html
-    assert f"db={mysql_config.database}" in html  # legacy links only
+    assert f"db={mysql_config.database}" not in html  # every page is on Flask now
 
     page2 = db_client.get("/sectors?sectors_page=2").get_data(as_text=True)
     assert "Web &lt;i&gt;Sector&lt;/i&gt; 054" in page2

@@ -1252,6 +1252,49 @@ a.btn:visited {
   font-size: 0.85rem;
 }
 
+/* Flask pages: GET links styled as buttons (system/phenomenon pages'
+   "Navigate from here" and Wikitext/Markdown toggles). */
+a.btn,
+a.btn:visited {
+  display: inline-block;
+  color: var(--accent-contrast);
+  text-decoration: none;
+}
+
+a.btn:hover {
+  text-decoration: none;
+}
+
+a.btn.btn-active,
+a.btn.btn-active:visited {
+  color: var(--text);
+}
+
+.btn-small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.page-subhead .location {
+  margin: 0;
+}
+
+.wiki-backends {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
 .api-key-value {
   background: var(--bg-subtle);
   border: 1px solid var(--border);
