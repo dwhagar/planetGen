@@ -437,6 +437,8 @@ class Planet:
                 # For very large systems, display in light-years.
                 distance_text = f"{distance_ly:.4f} light-years"
 
+        # TODO(distances #1): planet and moon radii are always km in
+        # scientific notation, not only above 100,000 km.
         radius_string = format_length_km(self.system_config, self.radius, 100000, 2) # Pass system_config
 
         properties = {

@@ -146,6 +146,10 @@ def _comets_table_html(comets, heading="Comets"):
 """
 
 
+# TODO(web-pages #61): the Planets & Moons table repeats the system list;
+# remove it once the list rows carry its columns (class, type, zone,
+# distance, period, gravity) as stats. Belts and comets tables stay unless
+# Boss says otherwise.
 def bodies_html(planets, belts, comets, stars, binary_configuration):
     """
     Builds the "Planets & Moons"/"Asteroid Belts"/"Comets" section(s).
@@ -222,6 +226,9 @@ def _star_row_html(star, sections, children_html=""):
 # Add a new chip, shown only when one of the planet's moons is habitable
 # (e.g. "Habitable moon"); queryDb._with_life_fields already marks each
 # moon. _body_row above (the table view) follows the same rule.
+# TODO(web-pages #61): moons are buried after the planet's description
+# inside its <details>; give them their own expandable group right under
+# the planet's row (a nested "N moons" <details>), no script needed.
 def _planet_row_html(body, sections, is_moon=False):
     stats = [
         f'<span class="stat">Class {esc(body["planet_class"])}</span>' if body["planet_class"] else "",

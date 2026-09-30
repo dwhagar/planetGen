@@ -110,6 +110,9 @@ def sectors():
     )
 
 
+# TODO(web-pages #59): list every system here, 50 a page through the shared
+# pager, with its sector and octant (apiclient.get_systems without
+# sector_id); keep standalone systems as their own panel or a filter.
 @bp.route("/systems")
 def systems():
     """Every standalone system (one generated outside any sector)."""
