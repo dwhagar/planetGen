@@ -420,11 +420,20 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
         if page.locator('[aria-current="page"]').count() == 0:
             problems.append('no aria-current="page" anywhere on the page')
 
-        if viewport == "phone" and page.locator("details.site-menu > summary").is_visible():
-            page.locator("details.site-menu > summary").click()
-            page.wait_for_timeout(50)
-            problems += [f"(menu open) {p}" for p in _overflow(page)]
-            problems += [f"(menu open) {p}" for p in _axe_blocking(page, axe_source, "header")]
+        # The skip link, focused above, sits over the header's left side.
+        page.evaluate("document.activeElement && document.activeElement.blur()")
+        header_menus = ["details.site-gear"]
+        if page.locator("details.site-menu > summary").is_visible():
+            header_menus.insert(0, "details.site-menu")
+        if viewport == "phone":
+            for menu in header_menus:
+                page.locator(f"{menu} > summary").click()
+                page.wait_for_timeout(50)
+                problems += [f"({menu} open) {p}" for p in _overflow(page)]
+                problems += [f"({menu} open) {p}" for p in _axe_blocking(page, axe_source, "header")]
+                if SCREENSHOT_DIR and endpoint == "web.index":
+                    page.screenshot(path=os.path.join(
+                        SCREENSHOT_DIR, f"index-{menu.split('.')[1]}-{viewport}-{scheme}.png"))
 
         problems += [f"CSP violation: {v}" for v in page.evaluate("window.__cspViolations || []")]
     finally:

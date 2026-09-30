@@ -35,8 +35,8 @@ renumber when items are added or finished.
 
 - **The known generation bugs (40-45) come first**; their tests are
    already written.
-- **Bug fixes (3-7)** come next, from Boss's notes of 2026-09-30. 3-4
-   are small web changes;
+- **Bug fixes (4-7)** come next, from Boss's notes of 2026-09-30. 4 is
+   a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**, then do the System Map route (9). The
@@ -69,29 +69,6 @@ renumber when items are added or finished.
    can start on that default.
 
 ### Bug fixes (Boss's notes, 2026-09-30)
-
-3. [ ] **A less dense top bar.** Boss: "Admin should be a menu dropdown
-   with 'Admin', 'generate' and 'logout', if the search bar text entry
-   is less than twice the size of the search button, don't display it.
-   Galaxy, Sectors, and such should also appear in their own separate
-   menu. In fact, settings like password, theme, and admin pages should
-   all be under a 'settings' gear icon in upper right,
-   galaxy/sectors/systems/phenomena/nav should be in a different menu
-   only if there isn't enough room to comfortably print each as a
-   button, and then the above laid out search bar logic."
-   - `templates/base.html` (`account_links`, the header), `style.css`
-     (`.site-header`, the 56rem/92rem collapses), `helpers.SECTIONS`,
-     `theme.js` (the toggle moves into the gear menu).
-   - Boss confirmed on 2026-09-30: a visitor who isn't logged in gets
-     the pages (Galaxy, Sectors, Systems, Phenomena, Nav) and, under the
-     gear, Theme and search. No Stats unless logged in. ("Admion" was a
-     typo for Admin.)
-   - Default taken: for a logged-in admin the gear menu holds Account
-     (password), Theme, Admin, Generate, Stats and Logout; there is no
-     separate Admin dropdown. A container query on the header can hide
-     the search box and collapse the sections without JavaScript.
-   - **Question for Boss:** a visitor still needs a way to log in; a
-     Login entry in the gear menu is the default.
 
 4. [ ] **Tag search: collapsible groups and phenomena.** Boss: "Search
    by tag should have collapsible zones for each group of tags so it

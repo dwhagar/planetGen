@@ -1600,12 +1600,13 @@ body.app {
 
 /* --- Header ------------------------------------------------------- */
 
-/* TODO(site-header #3): header rules change with the new layout: a gear
-   menu at the right, a sections menu that appears only when the buttons
-   don't fit, and a search box hidden below 2x the button's width (a
-   container query on .site-wide can do both without JavaScript). The @media
-   56rem / 92rem .site-header-admin collapse goes away. */
+/* The top bar: site name, the sections (buttons, or a Menu when they
+   don't fit), the search box (only while its text entry is at least twice
+   the button's width), and the settings gear at the right. The header is a
+   size container, so the breakpoints below follow its own width. */
 .app .site-header {
+  container-type: inline-size;
+  container-name: site-header;
   display: block;
   position: sticky;
   top: 0;
@@ -1740,13 +1741,22 @@ body.app {
   cursor: pointer;
 }
 
-/* Narrow-screen menu: a native <details>, so it opens without JS. */
-.app .site-menu {
-  display: none;
-  margin-left: auto;
+/* The sections Menu and the gear: native <details>, so they open
+   without JS (theme.js closes an open one on an outside click or Esc). */
+.app .site-menu,
+.app .site-gear {
+  position: static;
 }
 
-.app .site-menu > summary {
+.app .site-menu {
+  display: none;
+  /* With the section buttons folded away, the Menu takes their place and
+     pushes the search box and gear to the right. */
+  margin-right: auto;
+}
+
+.app .site-menu > summary,
+.app .site-gear > summary {
   list-style: none;
   cursor: pointer;
   padding: 0.4rem 0.8rem;
@@ -1758,7 +1768,21 @@ body.app {
   user-select: none;
 }
 
-.app .site-menu > summary::-webkit-details-marker {
+.app .site-gear > summary {
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  color: var(--text-muted);
+}
+
+.app .site-gear > summary:hover,
+.app .site-gear[open] > summary {
+  color: var(--link);
+  background: var(--bg-subtle);
+}
+
+.app .site-menu > summary::-webkit-details-marker,
+.app .site-gear > summary::-webkit-details-marker {
   display: none;
 }
 
@@ -1771,42 +1795,76 @@ body.app {
   content: " \25B4";
 }
 
-.app .site-menu-panel {
+.app .site-menu-panel,
+.app .site-gear-panel {
   position: absolute;
-  left: 0;
-  right: 0;
   top: 100%;
   background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 0 0 10px 10px;
   box-shadow: var(--shadow);
   padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 14rem;
+  max-width: calc(100vw - 1rem);
 }
 
-.app .site-menu-panel .site-search {
+.app .site-menu-panel {
+  left: 0.5rem;
+}
+
+.app .site-gear-panel {
+  right: 0.5rem;
+}
+
+.app .site-gear-panel .site-search {
+  display: flex;
   flex: none;
   max-width: none;
   margin: 0;
 }
 
-.app .site-menu-panel ul {
+.app .site-menu-panel ul,
+.app .site-gear-panel ul {
   flex-direction: column;
   align-items: stretch;
 }
 
-.app .site-menu-panel .site-account {
-  border-top: 1px solid var(--border);
-  padding-top: 0.5rem;
-}
-
-.app .site-menu-panel .theme-toggle {
+.app .site-gear-panel .theme-toggle {
   width: 100%;
   text-align: left;
 }
 
-@media (max-width: 56rem) {
+/* The bar's own search box shows only when there's room for a text entry
+   at least twice the button's width next to everything else; otherwise
+   search lives under the gear. Widths: the name (~6rem), five section
+   buttons (~27rem) or the Menu (~5.5rem), the gear (~2.5rem), the gaps
+   and padding, and the search itself (a >= 9rem entry plus its ~4.5rem
+   button). Checked from 360 to 1400 px: the entry is always at least
+   twice the button when shown, and nothing overflows. */
+.app .site-header-inner > .site-search {
+  display: none;
+}
+
+.app .site-header-inner > .site-search input {
+  min-width: 9rem;
+}
+
+@container site-header (min-width: 58rem) {
+  .app .site-header-inner > .site-search {
+    display: flex;
+  }
+
+  .app .site-gear-panel .site-search {
+    display: none;
+  }
+}
+
+/* The five section buttons need about 43rem with the name, the gear and
+   the header's padding; below that they fold into the Menu. */
+@container site-header (max-width: 43rem) {
   .app .site-wide {
     display: none;
   }
@@ -1816,16 +1874,13 @@ body.app {
   }
 }
 
-/* A logged-in admin's header carries four more links (Admin, Stats,
-   Generate, Logout), so it switches to the menu at a wider width rather
-   than overflowing the page sideways. */
-@media (max-width: 92rem) {
-  .app .site-header-admin .site-wide {
-    display: none;
+@container site-header (min-width: 34rem) and (max-width: 43rem) {
+  .app .site-header-inner > .site-search {
+    display: flex;
   }
 
-  .app .site-header-admin .site-menu {
-    display: block;
+  .app .site-gear-panel .site-search {
+    display: none;
   }
 }
 
