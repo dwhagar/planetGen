@@ -77,7 +77,7 @@ from rich.progress import (
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, log, program_constants
+from stellarObjects import _db, log, program_constants, progressFile
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
@@ -99,6 +99,35 @@ from stellarObjects.utils import generate_sector_name, ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
+
+
+class _ReportingProgress(Progress):
+    """`rich.progress.Progress` that also mirrors its most recently
+    changed task to `stellarObjects.progressFile` (a no-op unless the web
+    interface started this run)."""
+
+    def _report(self, task_id, force=False):
+        task = self._tasks.get(task_id)
+        if task is not None:
+            progressFile.report(task.completed, task.total, task.description, force=force)
+
+    def add_task(self, description, *args, **kwargs):
+        task_id = super().add_task(description, *args, **kwargs)
+        self._report(task_id, force=True)
+        return task_id
+
+    def update(self, task_id, **kwargs):
+        super().update(task_id, **kwargs)
+        self._report(task_id, force=kwargs.get("total") is not None)
+
+    def advance(self, task_id, advance=1):
+        super().advance(task_id, advance)
+        self._report(task_id)
+
+    def stop(self):
+        for task_id in list(self._tasks):
+            self._report(task_id, force=True)
+        super().stop()
 
 
 def _generation_progress():
@@ -144,10 +173,14 @@ def _generation_progress():
     plain, periodic line-by-line bar output otherwise (piped to a file, a CI
     log, etc.), so no separate handling is needed for that case.
 
+    The same counts also go to `$PLANETGEN_PROGRESS_FILE` when it is set
+    (`stellarObjects.progressFile`), so the web interface's Generate page
+    can show a run it started in the background.
+
     Returns:
         Progress: Not yet started.
     """
-    return Progress(
+    return _ReportingProgress(
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
         MofNCompleteColumn(),
@@ -2301,6 +2334,7 @@ def build_skeleton(args):
             stop = False
             for shell_index, bands in results:
                 shells_scanned += 1
+                progressFile.report(shells_scanned, None, "Shells scanned")
                 if bands:
                     empty_streak = 0
                     outer_shell_index = shell_index
@@ -2321,6 +2355,7 @@ def build_skeleton(args):
     edge_confirmed = empty_streak >= args.empty_streak_to_stop
 
     elapsed = time.perf_counter() - t0
+    progressFile.report(shells_scanned, shells_scanned, "Shells scanned", force=True)
 
     mysql_config = _db.mysql_config_from_args(args)
     _db.replace_galaxy_shell_bands(all_bands, config=mysql_config)

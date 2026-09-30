@@ -75,6 +75,11 @@ DEFAULT_CONFIG = {
         "dir": "",
         "max_mb": 200,
     },
+    "jobs": {
+        "dir": "",
+        "keep": 20,
+        "python": "",
+    },
     "wiki": {
         # Either, both, or neither backend may be configured at once -- a
         # backend is "configured" (offered as an upload target) purely by
