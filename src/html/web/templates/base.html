@@ -19,8 +19,8 @@ subhead (badges or actions under the <h1>). -#}
 {%- endmacro -%}
 {%- macro search_form(id) -%}
 <form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
-  <label class="sr-only" for="{{ id }}">Search systems</label>
-  <input id="{{ id }}" type="search" name="q" placeholder="Search systems" autocomplete="off" enterkeyhint="search">
+  <label class="sr-only" for="{{ id }}">Search by name</label>
+  <input id="{{ id }}" type="search" name="q" placeholder="Search names" autocomplete="off" enterkeyhint="search">
   <button type="submit">Search</button>
 </form>
 {%- endmacro -%}
