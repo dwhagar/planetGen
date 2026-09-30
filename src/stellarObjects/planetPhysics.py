@@ -449,6 +449,16 @@ def generate_planet_properties(planet, zone_override=None):
     planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
                                               planet.density)
 
+    update_hill_sphere(planet)
+
+
+def update_hill_sphere(planet):
+    """
+    Sets `planet.hill_radius` (km) and `planet.min_orbit_distance` (5 Hill
+    radii, in AU: the clearance the next body out must keep) from the
+    planet's current distance and mass. Call again whenever either changes,
+    e.g. after `StarSystem.validate_system` moves the planet.
+    """
     distance_m = planet.distance * physical_constants.AU_TO_M
     planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, planet.star.mass) / 1000  # Convert to km
     planet.min_orbit_distance = (5 * planet.hill_radius) / physical_constants.AU_TO_KM
