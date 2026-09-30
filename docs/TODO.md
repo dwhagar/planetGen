@@ -33,14 +33,34 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **Extend the cache (1)**, then do the System Map route (2) and the
-   phenomena schema work (3).
+- **Fix the asteroid belt overlap (1)** first: it's a generator bug
+   that turns CI red at random.
+- **Extend the cache (2)**, then do the System Map route (3).
 - **Do the Galaxy Map rework (4) last** of the active work: it's the
    largest change and builds on the cache.
 
+### Generator bugs (`src/stellarObjects/systemData.py`)
+
+1. [ ] **An asteroid belt can overlap the next planet out.** Seen
+   intermittently in CI (Python 3.9, run 36744097318, while testing PR
+   #105, which didn't touch the generator):
+   `src/tests/test_systems.py::test_each_tristate_flag_forced[K1III-False-COMETS]`
+   failed in `assert_no_orbital_overlap` with "objects 12 (a) and 13 (t)
+   overlap: gap=-1.6548277320167166, required>=0.05". The belt's
+   `upper_limit` reached 1.65 AU past the next planet's orbit, where
+   `MIN_ASTEROID_BELT_SEPARATION` requires at least 0.05 AU of clearance.
+   It was a random K1III (giant) system with comets forced off; later runs
+   passed. Start with `StarSystem.validate_system`'s correction pass
+   (around the `MIN_ASTEROID_BELT_SEPARATION` case): it either doesn't
+   account for a belt's width when pushing the following body out, or
+   stops before it converges for a giant star's wide zones. Reproduce by
+   looping that test's generation with fixed seeds until it fails. Done
+   means a failing seed is found, it passes after the fix, and a
+   regression test is pinned to it.
+
 ### Performance
 
-1. [ ] **Add a cache so pages don't hit the database on every request.**
+2. [ ] **Add a cache so pages don't hit the database on every request.**
    Every page calls the Flask API through `html/lib/apiclient.py`,
    and every API route queries MySQL fresh, including results that rarely
    change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
@@ -53,7 +73,7 @@ renumber when items are added or finished.
 
 ### System Map (`lib/systemmap.py`, `static/systemmap.js`)
 
-2. [ ] **Draw the Measure distance path and route it around obstacles.**
+3. [ ] **Draw the Measure distance path and route it around obstacles.**
    "Measure distance" ([5.46.32]) reports a straight-line distance plus,
    when the line crosses the scene's central body, a tangent-and-arc
    detour around that one body (`computeMeasurement`,
@@ -66,7 +86,7 @@ renumber when items are added or finished.
 
 ### Galaxy Map (`src/html/web/galaxy_views.py`, `lib/galaxymap3d.py`, `static/galaxymap3d.js`, `queryDb.galaxy_tiles`)
 
-3. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
+4. [ ] **Rework the Galaxy Map; it isn't useful in its current form.**
    Investigate a representation driven by the real galaxy/sector geometry
    (`stellarObjects/galaxyGeometry.py`: the cylindrical ring/layer/slot
    grid) instead of per-sector sprites plus an illustrative density
@@ -85,14 +105,14 @@ renumber when items are added or finished.
 
 Low priority; nobody is waiting on these.
 
-4. [ ] **The API can't create a system inside an existing sector.**
+5. [ ] **The API can't create a system inside an existing sector.**
     `POST /api/systems` only creates standalone systems (`sector_id =
     NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
     placement and Hill-sphere separation logic (`SpaceSector.add_system`),
     which was left out of the write API to keep the admin-auth change
     small.
 
-5. [ ] **The API can't edit a system's generated content.** `PATCH
+6. [ ] **The API can't edit a system's generated content.** `PATCH
     /api/systems/<id>` only renames. Changing stars/planets/moons/belts
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
@@ -102,10 +122,10 @@ Low priority; nobody is waiting on these.
 Exploratory ideas, not yet designed. Each needs a design pass before it
 can be ordered against the work above.
 
-6. [ ] Assign government ownership to star systems so that groups of
+7. [ ] Assign government ownership to star systems so that groups of
     systems form territories mapped in 3D space.
-7. [ ] Flag worlds with life for generated names of their dominant
+8. [ ] Flag worlds with life for generated names of their dominant
     species.
-8. [ ] A database of spacefaring species.
-9. [ ] Model younger and older civilizations: what differs with a
+9. [ ] A database of spacefaring species.
+10. [ ] Model younger and older civilizations: what differs with a
     society's age and how to store and present it.
