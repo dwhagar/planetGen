@@ -217,8 +217,11 @@ sectors of its children.
 
 ## 4. The stages
 
-The map is always seen from straight above; nothing rotates and nothing
-zooms except by picking (MAP.17). A stage is a container (the galaxy or
+The whole galaxy and its quarters are seen from straight above and
+can't be turned (MAP.17). Below them (once an arc is picked, and inside
+every block) the view can be turned, moved and zoomed freely, to make
+layers, blocks and sectors easier to pick (Boss, 2026-10-01, section
+5.1); each step still opens on its own view. A stage is a container (the galaxy or
 one block of the ladder, section 3) and the picks made inside it so far.
 The picks go:
 
@@ -264,8 +267,8 @@ Two shortcuts (Boss, 2026-10-01):
   fixed 55° slant with its layers pulled two sector-heights apart, so
   every sector can be hovered (the others fade) and clicked on the map.
   The strip still offers the layers. Clicking a sector moves on to its
-  own layer with it selected, or opens it when it is generated. Nothing
-  rotates.
+  own layer with it selected, or opens it when it is generated. The cube
+  can be turned like any view below the quarters.
 
 The admin Generate tools (section 6) appear once the view is one layer
 of a level-3 block.
@@ -283,6 +286,16 @@ of a level-3 block.
   galaxy has galactic north up and bearing 000 to the right; every other
   view is turned so the middle of its bearing span points up (the core
   toward the bottom, decision 6).
+- **Turning and moving** (below the galaxy and its quarters): drag turns
+  the view (tilt up to 80° from straight down), right-drag or
+  Shift-drag moves it (its middle stays within 1.5 fits of the stage's
+  own), and the wheel or a pinch zooms from an eighth of the stage's fit
+  to 2.5 times it. A drag never picks. Where the view can be turned, a
+  layer can also be clicked on the map (the block under the pointer
+  picks its layer). Reset view flies back to the stage's own view, and
+  every step to another stage (into a pick, Up, Back, a crumb) opens on
+  that stage's own view. At the galaxy and its quarters the wheel
+  scrolls the page.
 - **Wedge lines** (MAP.44) are kept to the part of the galaxy in view
   and 15% of its size past each side, and stop there sharply. Over the
   whole galaxy they run to its edge (MAP.43) and carry their bearing
@@ -574,11 +587,12 @@ link, this one included, to open at the sector level.
 
 ## 10. What changes on today's map
 
-- Click-to-center, double-click zoom, the wheel, drag-rotate, the
-  +/− buttons, Slice and Free look are gone (MAP.17); the stages are
-  the only way around. The buttons beside the map are Back, Forward,
-  Up, Whole galaxy, Wedges, Generated only and (with polities)
-  Territories.
+- Click-to-center, double-click zoom, the +/− buttons, Slice and Free
+  look are gone (MAP.17); the stages are the only way between places.
+  Drag-rotate, panning and wheel zoom are back below the galaxy and its
+  quarters (section 5.1). The buttons beside the map are Back, Forward,
+  Up, Whole galaxy, Reset view, Wedges, Generated only and (with
+  polities) Territories.
 - Wedge lines, density shading, the filled-share look, the sector/pc/ly
   scale readout and the info panel all stay.
 - Each stage draws at most a few hundred blocks.
@@ -591,9 +605,14 @@ Each has a default, and work can start on it.
 
 1. **Ladder:** 243 → 27 → 3 → 1. *(Decided by Boss, 2026-10-01: "the
    bigger targets".)*
-2. **Free camera.** *(Decided by Boss, 2026-10-01, MAP.17: no free
-   camera and no rotation at any stage; the map is always top-down and
-   starts with a quarter pick. Built.)*
+2. **Free camera.** *(Decided by Boss, 2026-10-01. MAP.17 first took
+   away all rotation; later that day Boss allowed it again below the top:
+   "Once zoomed into an arc or a block, the user can again freely rotate
+   and move around the render ... The only time the user cannot freely
+   rotate is when at the full galaxy or quarter galaxy zoom levels."
+   Built that way: the galaxy and its quarters are locked top-down, every
+   step below can be turned, moved and zoomed, and each step opens on its
+   own view.)*
 3. **Bigger generate buttons.** Default: sector, layer or slab, and
    neighborhood at stages 7-8 only. Option: "Generate this block" at
    stage 5 (up to about 19,000 sectors) behind a confirmation.

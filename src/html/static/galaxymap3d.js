@@ -24,10 +24,11 @@
 //
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
-// ./galaxystages.js), always from straight above: the visitor picks a
-// quarter, a layer, an arc, a layer, an arc, ... down to a sector, and
-// there is no free camera (MAP.17). Density is computed right here from
-// the galaxy's own analytic shape, not fetched, and colors each block.
+// ./galaxystages.js): the visitor picks a quarter, a layer, an arc, a
+// layer, an arc, ... down to a sector. The whole galaxy and its quarters
+// are seen from straight above; below them the view can be turned, moved
+// and zoomed. Density is computed right here from the galaxy's own
+// analytic shape, not fetched, and colors each block.
 // Unfilled space is mostly see-through; a block holding generated
 // sectors is amber and grows more solid with their share (MAP.37).
 //
@@ -1345,13 +1346,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // core dimmer for a fainter star, all in the star's blackbody color.
   // Halos blend normally rather than adding up, so a crowded arm zoomed
   // out glows in its stars' colors instead of burning to white; stars are
-  // depth-tested against the blocks without hiding them.
-  var STAR_MIN_PX = 5;
+  // drawn over the blocks, never hidden by them.
+  var STAR_MIN_PX = 6;
   var STAR_MAX_PX = 30;
   var STAR_CORE_PX = [1.1, 4.5];
   var STAR_LOG_RADIUS = [-1, 3];
-  var STAR_GLOW = [0.12, 0.6];
-  var STAR_CORE_ALPHA = [0.55, 1];
+  var STAR_GLOW = [0.2, 0.6];
+  var STAR_CORE_ALPHA = [0.75, 1];
   var STAR_LOG_LUMINOSITY = [-4, 6];
   // A click within this many pixels of a star's center picks it.
   var STAR_PICK_PX = 7;
@@ -1411,6 +1412,9 @@ function initGalaxyMap3d(canvasEl, data) {
     ].join("\n"),
     transparent: true,
     depthWrite: false,
+    // Drawn over the blocks (MAP.51): a generated sector's block is
+    // solid, and depth-tested stars inside it never showed.
+    depthTest: false,
   });
   var starPoints = new THREE.Points(new THREE.BufferGeometry(), starMaterial);
   starPoints.renderOrder = 5;
@@ -2059,7 +2063,8 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Pointer and keys ------------------------------------------------------
   //
-  // Everything goes to the drill-down: there is no free camera (MAP.17).
+  // Everything goes to the drill-down, which turns and zooms the view
+  // where it may.
   // A click on a bright star or a cloud small enough to aim at shows it
   // instead of picking what's under it.
   canvasEl.addEventListener("pointerdown", function (event) { stageView.onPointerDown(event); });
@@ -2068,6 +2073,13 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointercancel", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointerleave", function (event) { stageView.onPointerLeave(event); });
   canvasEl.addEventListener("keydown", function (event) { stageView.onKey(event); });
+  // Below the galaxy and its quarters the wheel zooms; above them it is
+  // left to scroll the page.
+  canvasEl.addEventListener("wheel", function (event) {
+    if (stageView.onWheel(event)) {
+      event.preventDefault();
+    }
+  }, { passive: false });
 
   var raycaster = new THREE.Raycaster();
 
@@ -2126,6 +2138,8 @@ function initGalaxyMap3d(canvasEl, data) {
           stageView.up();
         } else if (action === "reset") {
           stageView.home();
+        } else if (action === "reset-view") {
+          stageView.resetView();
         } else if (action === "wedges") {
           wedgeGroup.visible = !wedgeGroup.visible;
           button.setAttribute("aria-pressed", String(wedgeGroup.visible));

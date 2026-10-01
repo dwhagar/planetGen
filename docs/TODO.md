@@ -395,6 +395,10 @@ MAP.48 and MAP.37, all fixed.
     sample past that). Every star draws as a point of light: core sized
     by its radius, halo width and brightness by its luminosity, color
     by its temperature.
+    Follow-up (2026-10-01, Boss's retest): in the drill-down a
+    generated sector's block is solid, and the depth-tested stars inside
+    it were hidden; stars now draw over the blocks, and the faintest are
+    a little brighter.
 
 - [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
   Boss (2026-10-01): "make the stars in a sector more realistic
