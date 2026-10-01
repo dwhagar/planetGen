@@ -67,6 +67,7 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { CELL_STRIDE, POINT_STRIDE, createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
+const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -121,12 +122,6 @@ function formatAddress(ringIndex, layerIndex, slotIndex) {
   return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-// TODO(sector-map #24): the Galaxy Map's unfilled-sector panel gets the
-// same admin generate buttons as the sector map in place of this snippet.
-function cliSnippet(ringIndex, layerIndex, slotIndex) {
-  return "generate.py galaxy --ring " + ringIndex + " --layer " + layerIndex + " --slot " + slotIndex;
-}
-
 // --- Info panel ----------------------------------------------------------
 
 function showPlacedInfo(entry) {
@@ -152,41 +147,6 @@ function showPlacedInfo(entry) {
   if (sceneData.sectorUrl && entry.id != null) {
     panel.appendChild(pageLink(sectorUrl(entry.id), "View sector →"));
   }
-}
-
-function makeCopyButton(text) {
-  var button = document.createElement("button");
-  button.type = "button";
-  button.className = "btn";
-  button.textContent = "Copy CLI command";
-  button.addEventListener("click", function () {
-    var restore = button.textContent;
-    var onDone = function () {
-      button.textContent = "Copied!";
-      setTimeout(function () {
-        button.textContent = restore;
-      }, 1500);
-    };
-    var onFail = function () {
-      // Clipboard API unavailable (insecure context, permissions, older
-      // browser) -- fall back to a selectable readonly field the visitor
-      // can copy by hand, rather than silently doing nothing.
-      var input = document.createElement("input");
-      input.type = "text";
-      input.readOnly = true;
-      input.value = text;
-      input.className = "galaxymap3d-address-field";
-      button.insertAdjacentElement("afterend", input);
-      input.focus();
-      input.select();
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(onDone, onFail);
-    } else {
-      onFail();
-    }
-  });
-  return button;
 }
 
 // A share as a percentage, never rounding a nonzero one down to 0%.
@@ -277,13 +237,11 @@ function showCellInfo(cell) {
   corners.appendChild(list);
   panel.appendChild(corners);
 
-  if (single) {
-    var snippet = cliSnippet(cell.address.ring, cell.address.layer, cell.address.slot);
-    var code = document.createElement("code");
-    code.className = "galaxymap3d-cli-snippet";
-    code.textContent = snippet;
-    panel.appendChild(code);
-    panel.appendChild(makeCopyButton(snippet));
+  // A sector that isn't generated yet: for a logged-in admin
+  // (sceneData.generate, set by lib/galaxymap3d.py only then), the same
+  // Generate buttons the Sector Map gives a neighbor.
+  if (single && !(cell.filled > 0) && sceneData.generate) {
+    panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot));
   }
 }
 

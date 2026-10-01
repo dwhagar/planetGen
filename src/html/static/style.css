@@ -1602,28 +1602,6 @@ code {
   margin: 0;
 }
 
-.galaxymap3d-cli-snippet {
-  display: block;
-  margin: 0 0 0.6rem;
-  padding: 0.5rem 0.65rem;
-  overflow-wrap: anywhere;
-  user-select: all;
-}
-
-.galaxymap3d-address-field {
-  display: block;
-  width: 100%;
-  margin-top: 0.4rem;
-  box-sizing: border-box;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  background: var(--bg-subtle);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.35rem 0.5rem;
-}
-
 /* Phones: the page gets a 1rem gutter each side. Wide tables and
    code scroll inside their own box (.table-scroll/.code-view) instead of
    widening the page. */

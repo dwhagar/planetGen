@@ -35,8 +35,8 @@ from starmap import render_map_panel
 
 from api.common import is_http_url
 
-from . import bp, csrf
-from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
+from . import bp
+from .helpers import crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
 
 PHENOMENON_TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
@@ -234,14 +234,6 @@ def _handle_post(sector_id, admin):
     return page_again
 
 
-def _generate_target(admin):
-    """Where the Sector Map's Generate buttons post, for an admin who can
-    use the Generate page; `None` for everyone else."""
-    if admin is None or admin.get("must_change_credentials"):
-        return None
-    return {"url": url_for("web.generate"), "csrfField": csrf.FIELD_NAME, "csrfToken": csrf.csrf_token()}
-
-
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`?contents_page=N`), and
@@ -270,7 +262,7 @@ def sector(sector_id):
         page_url, detail["edge_mpc"],
         (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
         center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=detail.get("neighbors"),
-        generate=_generate_target(admin),
+        generate=generate_target(admin),
     )
 
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None

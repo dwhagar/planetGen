@@ -121,6 +121,13 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["fovDeg"] == CAMERA_FOV_DEG
     assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 50}))
     assert data["initial"] == view
+    assert data["generate"] is None
+
+
+def test_panel_passes_the_admin_generate_target_through():
+    target = {"url": "/admin/generate", "csrfField": "csrf_token", "csrfToken": "abc"}
+    data = _json_payload(render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), generate=target))
+    assert data["generate"] == target
 
 
 def test_panel_shows_a_hint_when_no_shape_has_been_built():
