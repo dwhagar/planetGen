@@ -69,6 +69,7 @@ that default.
 | API | The JSON API |
 | ADM | Admin tools: editing, overrides, Generate page |
 | SEC | Security |
+| TEST | The test suite itself: new tests, test infrastructure, CI test jobs |
 | USR | User accounts |
 | OPS | Installers, hosting, CI, releases |
 | DOC | Documentation and project process |
@@ -102,8 +103,8 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
    MAP.2.
 3. **Generation estimates and progress:** PERF.3 and PERF.4, then PERF.9
    and PERF.10.
-4. **Admin editing:** ADM.1 and its subitems, starting with the validate
-   module (ADM.5).
+4. **Admin editing:** ADM.1 and its subitems, on the validate module
+   (ADM.5, done in PR #235).
 
 Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
 bookmarks (MAP.23, which finishes MAP.22) and user accounts (USR.1,
@@ -220,11 +221,38 @@ with `clamp()`.
   something, and dead ones (such as the +/- zoom buttons Boss saw) are
   wired up or removed, along with any hint text that names them;
   controls follow the section's rules above (touch targets, spacing).
-  Before/after screenshots of each fixed spot go with the PR. Open
-  question: which page shows the dead +/- buttons (the Sector Map and
-  phenomenon maps still render `starmap-btn` zoom-out/zoom-in buttons
-  from `lib/starmap.py` and `lib/phenomenonmap.py`; the pass checks
-  each).
+  Before/after screenshots of each fixed spot go with the PR. Known
+  dead control (found while planning the TEST items): on the nebula and
+  supernova remnant diagrams, anything about half a light-year across
+  or larger opens already at the 1 ly zoom-out limit
+  (`lib/phenomenonmap.py` lines 53 and 127, the clamp in
+  `static/mapzoom.js`), so "-" has nowhere to go. The Galaxy Map has no
+  +/- buttons, and the Sector Map's buttons work. TEST.55 (every map button
+  changes the view) and TEST.56 (no overlapping controls at 390 to
+  1280 px) pin this item.
+
+- [ ] **UX.22 Meaningful units for every measurement**
+  Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
+  like we have so that we always have meaningful units. From mass, to
+  distance, to time, to speed, just everything that can have units.
+  Atmospheric pressure and surface conditions should show customary
+  units as well as a secondary to help contextualize the metric values
+  given." Today only distance has a ladder (`format_distance_m` and
+  friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
+  by `static/distance.js`), with speed (UX.13) and time periods (UX.14)
+  being built. Done: one ladder per quantity, in Python with a JavaScript
+  mirror, picking a meaningful unit the same way, and every page, map
+  panel and form converted to it: mass (kg, Earth, Jupiter and solar
+  masses), distance, time, speed, temperature, pressure, gravity,
+  density, luminosity, power and any other quantity shown with a unit.
+  Surface conditions show temperature in K, °C and °F; atmospheric
+  pressure and the other surface conditions show a customary unit
+  (such as atm, psi or g) beside the metric value. The UX thread was
+  asked (2026-10-01 15:10Z) to add the K/°C/°F temperature display now;
+  this item covers the rest. Open questions: the ladder and switch
+  points for each quantity; which customary unit goes with each surface
+  condition; whether the secondary unit shows in tables or only in
+  detail panels.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -482,6 +510,87 @@ with `clamp()`.
   - Fill from ring 0 outward, so a run that stops early (or hits
     `--limit`) still leaves a solid disc around the nucleus.
 
+- [ ] **GEN.25 A moon reclassified after its planet moves can be too large for its planet (bug)**
+  Found by the ADM.1 thread with ADM.5's validator (PR #235):
+  `stellarObjects/validation.check_star_system` reports "moon too large
+  for its planet" on about 3 of 1,000 generated systems with moons.
+  Start in `validation.reconcile_moved_planet` and
+  `planetPhysics.reconcile_zone_and_class`, which re-roll a moon's
+  class without checking `max_moon_radius_km` (planet radius /
+  10^(1/3)) or mass <= planet mass / 10. Done: 1,000 generated systems
+  pass `check_star_system` with no moon-size problems.
+
+- [ ] **GEN.26 Rogue planet surface conditions**
+  Boss (2026-10-01): "I also want to calculate surface conditions,
+  knowing they will be extremely cold with no star to warm the
+  surface", with his pasted research: an energy balance with internal
+  heat flux plus the cosmic microwave background, radiogenic and
+  primordial heat, and three outcomes (frozen atmosphere, hydrogen
+  envelope, ocean under an ice lid), with adiabats for gas giants.
+  Being built by the GEN.8 thread as schema v48. `has_internal_heat`
+  stops being a 40% roll (`ROGUE_PLANET_INTERNAL_HEAT_CHANCE` goes): it
+  is computed, true when heat flow is at least 0.04 W/m2 and always for
+  giants. Its design document (`docs/design/rogue-planet-surface.md`)
+  arrives with its PR.
+
+- [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
+  Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
+  appears in the habitable zone and adjust so that it fits there." P is
+  already ecosphere-only (`h` False, `e` True, `c` False in
+  `program_constants.PLANET_CLASSES`) and placed at `zone_position_mode`
+  0.90; sampled P worlds run 198-211 K. Done: no path (generation,
+  `reconcile_zone_and_class`, moon regeneration, admin overrides) can
+  put P outside the ecosphere, and its placement, albedo, greenhouse
+  and atmosphere are tuned so a glaciated world with life is
+  consistent at the outer edge of the habitable zone. Evidence: the
+  planet class gap report
+  (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
+
+- [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
+  Boss (2026-10-01 15:26Z): "add the other 6 classes filling in the
+  letter class gaps sequentially. For the subsurface ocean moon, split
+  this so that we have the one the size of a class D (moon / pseudo
+  planet) and one similar to a terrestrial world (a modification of
+  Class C), for lifeless temperate world, don't we have a class for
+  that already? If not, I approve adding one." There is none: every
+  ecosphere rocky class with air carries life, and C (the only lifeless
+  rocky one) is airless. Proposed mapping, in letter order (the build
+  can adjust):
+  - R Sub-Neptune: rock and ice core under a hydrogen-helium envelope,
+    1.8-4 Earth radii, 3-20 Earth masses, hot, ecosphere and cold. The
+    most common real planet type, missing today; consider whether T
+    (gas dwarf, 0.05% of planets) merges into it.
+  - S Rocky super-Earth: barren, 1.2-1.8 Earth radii, 2-10 Earth
+    masses, hot, ecosphere and cold (a hot one can be a lava world). V
+    stays the life-bearing super-Earth.
+  - U Icy world (ice dwarf or large icy moon): water ice over rock,
+    500-3,000 km, cold (Ganymede, Callisto, Triton, Pluto, Eris).
+  - W Small subsurface ocean body, Class D sized (moon or pseudo-planet,
+    about 50-500 km): Enceladus analog.
+  - X Subsurface ocean world, terrestrial sized (a modified Class C,
+    about 500-10,000 km): Europa analog and larger.
+  - Y Titan-like world: thick nitrogen atmosphere, methane rain,
+    hydrocarbon lakes, 1,500-4,000 km, cold.
+  - Z Lifeless temperate world: rocky, with an atmosphere, ecosphere,
+    no life.
+  Done: each class has zone flags, weights, radius and mass ranges,
+  atmosphere, moon eligibility and a GEN.8 rogue `"r"` flag decision,
+  and shows on the class reference pages. R, W, X and Y belonged to
+  classes removed in early September, so no old rows or tests may
+  still expect those letters. Evidence: the planet class gap report
+  (link in GEN.27).
+
+- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
+  Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
+  sure they all make sense logically once the new classes are in
+  place." After GEN.28. Done: every class's description, composition,
+  zones, sizes, weights, temperatures and atmosphere agree with each
+  other. Known oddities to settle: D allowed in the hot zone (icy
+  bodies at 265-490 K); C a catch-all for 63% of cold planets; Q never
+  generated (weight 0.0001, and orbits are circular); V's composition
+  "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
+  at 376-414 K, above water's boiling point at 0.6 bar.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -687,23 +796,6 @@ with `clamp()`.
   Boss asked for these on 2026-10-01 (quoted where it matters). None is
   designed yet; the open questions are listed in each subitem.
 
-  - [ ] **ADM.5 Central validate module in `stellarObjects`**
-    Boss: "we should
-    get a whole set of validate functions in their own file within the
-    stellarObjects class (if we don't already) so that we can have a
-    central place to validate a system (lunar system, star system) which
-    includes validating planets." There isn't one today; validation is
-    spread out: `SystemData.validate_system`,
-    `_validate_cross_star_clearance` and `_trim_to_orbit_ceiling`
-    (`systemData.py`) for orbits, the `_validate_*` checks in
-    `planetPhysics.py` for a planet's class/radius/mass, and
-    `moon_orbit_bounds_km`/`drop_unstable_moons` (`planetPhysics.py`)
-    for moons. Done: one module (for example
-    `stellarObjects/validation.py`) that validates a planet, a lunar
-    system and a star system, which generation and ADM.6 and ADM.7
-    both call, with existing behavior unchanged. Prerequisite for
-    ADM.6 and ADM.7.
-
   - [ ] **ADM.6 Admin override of a planet's or moon's class**
     Boss: "it should
     have the option to do 'recommended' which are other classes that fit
@@ -785,6 +877,412 @@ two-factor sign-in and the fail2ban example) shipped in PRs #217, #220
 and #221.
 
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
+
+## TEST: The test suite
+
+From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
+items (TEST.x) to build our testing suite to cover all edge cases, and
+prepare to do another solid full on bug hunt. Don't implement just plan
+for it"). Each item ends with its areas in brackets. "Suspected bug"
+means read from the code, not reproduced yet; the bug hunt confirms or
+clears each one.
+
+### Infrastructure and CI
+
+- [ ] **TEST.1 Test category and suite markers**
+  Add TEST to `test_todo_tags.py`; register `db`, `slow`, `browser`
+  markers in `pytest.ini` so fast/no-DB, DB and browser runs can be
+  picked separately. [infra]
+
+- [ ] **TEST.2 Parallel test runs**
+  Add pytest-xdist, give each worker its own control database name
+  (today `configured_control_database()` defaults to one fixed name),
+  and a session-scoped template schema so each test doesn't rebuild
+  `schema.sql` from scratch; goal: the 17-22 minute suite well under 10.
+  [infra]
+
+- [ ] **TEST.3 MariaDB in CI**
+  Add MariaDB 10.11 and 11.x legs (and MySQL 8.4) to `ci.yml`; today CI
+  is MySQL 8.0 only, so the engine-specific paths in `_db.py` (statement
+  timeout via `max_statement_time`, the ALGORITHM fallbacks, the
+  CTE-in-UPDATE workaround) only run on Boss's server. [infra, DB]
+
+- [ ] **TEST.4 Revive and widen the known-bug tests**
+  The "Real bugs (strict xfail)" block in
+  `test_fuzz_system_generation.py` (about line 562) now passes on 5-200
+  seeds; widen the seed counts and fix the stale docstring; promote the
+  three Tier-2 "tracked-not-fixed" reports (NaN radius in the system
+  map, `SERIALIZABLE_FIELDS` drift, galaxy-boundary report) to hard
+  asserts or strict xfails. [infra, GEN]
+
+- [ ] **TEST.5 Real 4 pc in boundary tests**
+  `test_bughunt_galaxy_boundaries.py` uses `EDGE_PC = 10.0`; run it at
+  the real 4 pc sector edge too. [infra, GEN]
+
+### Database and migrations
+
+- [ ] **TEST.6 SQL portability lint**
+  Parse `schema.sql`, `control_schema.sql` and the SQL strings in
+  `_db.py`/`queryDb.py` against the reserved-word lists of MySQL 8.0,
+  8.4 and MariaDB 10.x/11.x; flag deprecated `VALUES()` in ON DUPLICATE
+  KEY. [DB]
+
+- [ ] **TEST.7 Strict sql_mode on both engines**
+  Run the DB tests with `ONLY_FULL_GROUP_BY` and `STRICT_TRANS_TABLES`
+  forced on (MySQL 8's default, not MariaDB's), so a GROUP BY or
+  truncation that MariaDB forgives fails locally too. [DB]
+
+- [ ] **TEST.8 Migrate from real old schemas**
+  Checked-in historic schema dumps (for example v8, v20, v33, v44) each
+  migrated to the latest and compared with a fresh `schema.sql` database
+  (tables, columns, types, indexes, FKs). Steps with no test today:
+  14-15, 15-16, 18-19, 22-23, 23-24, 24-25, 25-26, 30-31, 43-44, 44-45.
+  [DB]
+
+- [ ] **TEST.9 Migration crash and re-run**
+  Fail at step N (DDL has already auto-committed), re-run, and get a
+  correct database; every step idempotent when applied twice; empty or
+  gapped `schema_migrations`. [DB]
+
+- [ ] **TEST.10 Database newer than the code**
+  A galaxy or control database with a version above the code's is
+  refused with a clear message (suspected bug: `migrateDb.py` says "no
+  migration path available yet" and the app uses it anyway). [DB]
+
+- [ ] **TEST.11 Every column round-trips**
+  Walk `INFORMATION_SCHEMA.COLUMNS` and prove each column is written by
+  an insert and read back by a loader, so a new column left NULL or
+  never loaded fails. [DB]
+
+- [ ] **TEST.12 Boundary values round-trip**
+  Float extremes, NaN/inf refused, DECIMAL precision, VARCHAR length
+  limits under strict mode, 4-byte UTF-8 names, NULL tristates. [DB]
+
+- [ ] **TEST.13 Collation collisions**
+  Names equal under `utf8mb4_unicode_ci` but not byte-equal (case,
+  accents) against the unique name registries; a database created with
+  the server's default collation joined to pinned tables (error 1267).
+  [DB]
+
+- [ ] **TEST.14 CHECK constraints enforced**
+  Each CHECK in the schema rejects a bad row on both engines. [DB]
+
+- [ ] **TEST.15 Sector save fails halfway**
+  Inject an error after the systems are written and before phenomena or
+  neighbours; nothing persists, no orphan rows, no stale name
+  reservations or `GET_LOCK`; retry exhaustion at
+  `SECTOR_SAVE_ATTEMPTS`; lock-wait timeout (1205). [DB]
+
+- [ ] **TEST.16 Id blocks after reset and rollback**
+  Id block cache across `resetDb`, a manual insert, two processes
+  exhausting blocks; no duplicate primary key. [DB]
+
+- [ ] **TEST.17 Batched writes at the limits**
+  Multi-row inserts near `max_allowed_packet`; FK ordering for
+  self-referencing tables. [DB]
+
+- [ ] **TEST.18 Full-text search edge cases**
+  Names with `+ - " * '`, words shorter than `innodb_ft_min_token_size`,
+  stopwords that differ between engines, `%`, `_` and backslash in
+  `/search` fields; results checked, not just "no 500". [DB, UX]
+
+### Generation and the work queue
+
+- [ ] **TEST.19 Same galaxy at any worker count**
+  One seed generates identical sectors with `--workers 1`, 2 and N
+  (suspected bug: the one-worker path in `workQueue.submit` never calls
+  `random.seed(task_seed(...))`; the parallel path does, and the only
+  test compares 2 with 3). [GEN, PERF]
+
+- [ ] **TEST.20 Work queue failure paths**
+  A worker dies (BrokenProcessPool), `on_done` raises, a payload won't
+  pickle, a result isn't JSON, two tasks share a key, heartbeat fails,
+  the control database drops mid-run, lease expiry under clock skew.
+  [PERF]
+
+- [ ] **TEST.21 Cancelling a run**
+  SIGTERM, Ctrl+C and SystemExit during a parallel run end the job as
+  cancelled, free the lease and leave no half-written sector. [PERF]
+
+- [ ] **TEST.22 Every bulk mode in parallel**
+  `--shell`, `--block`, `--column`, `--center-sector`, random start and
+  `sector --num-sectors N` with `--workers 2`, checking run counts and
+  that no sector is filled twice. [PERF, GEN]
+
+- [ ] **TEST.23 Resume after an interrupted fill**
+  Stop a ring, shell or block run partway, run it again, and get the
+  same result as one uninterrupted run with no duplicates. [GEN]
+
+- [ ] **TEST.24 Bright-star scatter edge cases**
+  `_place_one` running out of redraws, a zero-weight bin picked by float
+  rounding, a layer where nothing qualifies, `outer_ring=0`, empty
+  extents, a threshold below every white dwarf. [GEN, PERF]
+
+- [ ] **TEST.25 Interrupted bright-star scatter**
+  A worker fails mid-scatter after some 10,000-row commits (the seed is
+  written only at the end); a re-plan or later fill handles the partial
+  table. [GEN, PERF]
+
+- [ ] **TEST.26 `--force` scatter then fill**
+  Sectors skipped by a forced scatter fill correctly afterwards. [GEN]
+
+- [ ] **TEST.27 Progress and ETA under bad clocks**
+  `DecayingRate` with time going backwards, NaN or infinite amounts,
+  many adds at one instant, a tiny rate; workers never write the
+  progress file. [PERF]
+
+- [ ] **TEST.28 CLI errors by message**
+  Every `parser.error` in `generate.py` (block, column, shell,
+  center-sector, limit, plan shape, workers, population, phenomenon,
+  mysql-port) asserted by its text, and each limit tested at exactly its
+  maximum (`MAX_GENERATE_RING`, `MAX_GENERATE_LIMIT`, first and last
+  `--block-layer`). [GEN, OPS]
+
+- [ ] **TEST.29 Limits stay consistent**
+  `MAX_GENERATE_LIMIT` matches `ring_sector_count(MAX_GENERATE_RING)`
+  whatever `DEFAULT_MAX_RING` is. [GEN]
+
+- [ ] **TEST.30 Grid seams and the nucleus**
+  Points at θ just under 2π and at -0.0 on the 4 pc grid; the outermost
+  planned ring and layer against `galaxy_bounds`; the nucleus sector
+  (ring 0, slot 0) across layers 0 and -1. [GEN]
+
+- [ ] **TEST.31 Sector placement exhaustion**
+  "could not place a new object", the Poisson cap, explicit positions on
+  the cell boundary, `nearest_neighbors` with a bad count. [GEN]
+
+- [ ] **TEST.32 System builder internals**
+  Direct tests for `generate_slot_object`,
+  `calculate_distance_for_class`, `_forced_habitable_distance`,
+  `_trim_to_orbit_ceiling`, `_reconcile_moved_planet`,
+  `_clear_circumbinary_floor` and the `from_dict` error; these are what
+  ADM.5's validate module (`stellarObjects/validation.py`) wraps. [GEN]
+
+- [ ] **TEST.33 Moon stability helpers**
+  `moon_orbit_bounds_km`, `drop_unstable_moons`, `update_hill_sphere`
+  and the "no valid planet class" errors, tested directly. [GEN]
+
+- [ ] **TEST.34 Kepler solver extremes**
+  Eccentricity above 0.99, negative mean anomaly and above 2π,
+  non-convergence detected rather than silently returned,
+  `_real_cube_root` at 0 and negative. [GEN]
+
+- [ ] **TEST.35 Star and evolution helpers**
+  `calculate_heliosphere`, the population-model star path, age windows,
+  radius and temperature helpers, white dwarf radius, Yerkes class, and
+  their raise messages. [GEN]
+
+- [ ] **TEST.36 Phenomenon class helpers**
+  Direct tests for nebula, remnant, black hole, rogue planet, comet and
+  asteroid-field class and designation helpers, and every
+  `get_table_properties`. [GEN]
+
+- [ ] **TEST.37 Names under parallel saves**
+  Two workers saving systems and sectors with the same base name at
+  once; the diminutive tier filling under parallel saves; the species
+  name race and "could not find a free species name". [GEN, DB]
+
+- [ ] **TEST.38 Population incremental rescans**
+  `scan_life_worlds`, `refresh_civilizations`, `refresh_territories` and
+  the watermark path; a rescan after new fills adds only the new worlds.
+  [POP]
+
+- [ ] **TEST.39 Navigation graph**
+  K-d tree neighbours checked against brute force, duplicate
+  coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
+
+### Web, API and jobs
+
+- [ ] **TEST.40 Two admins start a job at once**
+  Exactly one job runs (suspected bug: `_take_lock` creates an empty
+  lock before writing the job id, so a second caller can read it as
+  stale, delete it and start its own job). [ADM]
+
+- [ ] **TEST.41 Job files damaged**
+  Corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
+  holding garbage; job id collision; unwritable jobs directory; prune
+  never removes the running job; cancel with unknown, malformed or
+  finished job ids. [ADM]
+
+- [ ] **TEST.42 Pages fresh after a CLI write**
+  After `generate.py` writes straight to the database, `/galaxy`,
+  `/sector`, tiles and lists show the new data (only API writes are
+  tested today). [UX, PERF]
+
+- [ ] **TEST.43 Auth sweep over every route**
+  Generated from `app.url_map`: every API write route gives 401 to
+  anonymous, garbage Bearer and revoked keys; every admin route gives
+  403 to an admin who must still change credentials. [SEC, API]
+
+- [ ] **TEST.44 What an API key may do**
+  Whether a Bearer key can change credentials, set up or turn off TOTP,
+  make keys, or log out, pinned to the intended answer. [SEC, API]
+
+- [ ] **TEST.45 More than one admin**
+  Admin B can't revoke admin A's key, lifting another admin's lockout is
+  audited, two admins editing the same system. [SEC, ADM]
+
+- [ ] **TEST.46 Trusted device and TOTP edge cases**
+  Expired, tampered and other-user device cookies; turning TOTP off
+  voids trust; a code reused across the API and `/login/code`; a pending
+  login that expires. [SEC]
+
+- [ ] **TEST.47 Oversized requests**
+  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
+  the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
+  today). [SEC]
+
+- [ ] **TEST.48 Security headers everywhere**
+  CSP and the other headers on JSON responses, 404/405/500 pages and
+  redirects, not only pages. [SEC]
+
+- [ ] **TEST.49 Thin API routes**
+  Unknown ids, empty galaxy, paging limits and wrong-system ids for
+  `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
+  star/planet/moon PATCH, facilities POST/PATCH/DELETE,
+  `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
+  `/api/systems/<id>/owner`; deleting a sector that has facilities or
+  wiki pages. [API]
+
+- [ ] **TEST.50 Galaxy URLs combined**
+  `?at=` with `?p=` and `?sector=` together; `?course=` to deleted
+  objects; `/galaxy/locate` with unicode, very long input, NaN/inf and
+  out-of-range coordinates, ambiguous names. [MAP]
+
+- [ ] **TEST.51 Page-number sweep gaps**
+  `/species?species_page=` and `/polities?polities_page=` join the
+  page-clamping sweep. [UX]
+
+- [ ] **TEST.52 Old URLs and error codes**
+  Unknown `/<name>.py`, case variants, redirect chains; 400 for
+  malformed form encoding; HEAD and OPTIONS on pages. [UX]
+
+- [ ] **TEST.53 Formatters with bad numbers**
+  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
+  and None; empty tables; huge values. [UX]
+
+- [ ] **TEST.54 Caches under threads**
+  Page cache fill and clear from real threads; two writers to the same
+  tile file. [PERF]
+
+### Browser and JavaScript
+
+- [ ] **TEST.55 Map buttons do something**
+  Playwright clicks every map control (Sector Map, System Map,
+  phenomenon diagram, Galaxy Map) and asserts the view changes. Found
+  while planning: on the phenomenon diagram, any nebula or remnant about
+  half a light-year across or larger opens already at the 1 ly zoom-out
+  limit (`phenomenonmap.py` lines 53 and 127), so "-" does nothing; this
+  test pins the UX cleanup item. [MAP, UX]
+
+- [ ] **TEST.56 No overlapping controls**
+  Playwright compares the bounding boxes of every button and control on
+  every page at 390, 600, 820 and 1280 px, both themes; no two
+  intersect, none off-screen. [UX]
+
+- [ ] **TEST.57 Galaxy Map JavaScript logic**
+  Node tests for `galaxystageview.js` (zoom, pan and tilt clamps) and
+  `galaxymap3d.js` (`sectorDesignation` BigInt packing, address form,
+  history, control handlers); neither has any test today. [MAP]
+
+- [ ] **TEST.58 Other map JavaScript**
+  Node tests for `mapzoom.js` (`zoomedBox` and its clamp),
+  `sectormap.js` and `systemmap.js` zoom and selection logic,
+  `generatejobs.js` polling, `facilityform.js`. [MAP]
+
+- [ ] **TEST.59 Galaxy Map drill-down in a browser**
+  Playwright walks quarter, layer, arc, block and sector by clicks,
+  checks the URL and breadcrumb at each step, Back/Forward, and the free
+  camera from an arc down. [MAP]
+
+### Scripts and ops
+
+- [ ] **TEST.60 Admin script command lines**
+  `main()` tests for `queryDb`, `adminStats`, `checkRenderParity`,
+  `dedupeNames`; bad port, unknown database, empty password vs
+  environment for every script; `resetDb --yes --dry-run`;
+  `updateOrbits` with the clock moved back; `loginLockouts` with bad
+  IPv6. [OPS]
+
+- [ ] **TEST.61 SQLite import script**
+  `migrateSqliteToMysql.py` has no tests and (suspected bug) can't run:
+  it requires the SQLite file to be at today's schema version (46),
+  which no SQLite database ever was. Test it from a v12 file, or retire
+  the script. [OPS, DB]
+
+- [ ] **TEST.62 update.sh against a real database**
+  A CI job runs `update.sh` (and `install.sh`'s database step) on Linux
+  against a live database: up to date, needs migrating, newer than the
+  code, unreachable, failed migration. Today they're only
+  syntax-checked. [OPS]
+
+- [ ] **TEST.63 Math check that runs first**
+  Boss (2026-10-01 15:29Z): "I want a specific way that runs first
+  before other tests that basically validates the math works, before
+  batch generation, we need to verify the actual math works." One
+  module, `src/stellarObjects/mathCheck.py`: pure functions, no
+  database, network or files, fixed seeds, under 5 seconds. Each check
+  has a name, the function it calls, the expected value, a tolerance and
+  the source of the expected value (a textbook figure, a paper's table,
+  or an exact identity). The same module is used three ways: pytest runs
+  it first, `generate.py` and the Generate page run it before bulk
+  generation, and `update.sh` runs it after an update. The coverage
+  tests in TEST.4 and TEST.32 to TEST.36 stay as they are; this item is
+  the reference-value gate in front of them, and TEST.34's Kepler
+  reference values move here.
+
+  Default taken: no skip switch for the bulk gate, since it costs under
+  5 seconds. Open questions for Boss: should there be an emergency skip
+  flag anyway? Should the web app also run it at startup and show admins
+  a warning if it fails? Should the one-off system generator run it too,
+  or only bulk paths?
+
+  - [ ] **TEST.64 Reference values**
+    Known answers from real astronomy, each within a stated tolerance.
+    For example: the Sun (1 M_sun gives 1 L_sun, about 10 Gy on the main
+    sequence, about 5,772 K from L and R through Stefan-Boltzmann);
+    Earth's orbit (1 AU around 1 M_sun is 1 year at 29.78 km/s by
+    vis-viva; Jupiter 11.86 years); Earth's Hill sphere about 1.5
+    million km; habitable zone and snow line at 1 L_sun; a 0.6 M_sun
+    white dwarf about Earth-sized; the Sun's Schwarzschild radius 2.95
+    km; the Sun's galactic orbit (about 8 kpc, about 220-230 km/s, about
+    230 My); Holman-Wiegert critical radii from the paper's table; the
+    Kepler and Barker equations against known solutions.
+
+  - [ ] **TEST.65 Identities and invariants**
+    Things that must be exactly or nearly true for any input. Every unit
+    conversion round-trips (pc, ly, AU, km, mpc) and the constants agree
+    with each other (found while planning: `SPEED_OF_LIGHT_M_S` is
+    2.998e8 while `LIGHTYEAR_M` uses the exact 299,792,458 m/s, a 0.003%
+    mismatch); luminosity rises and lifetime falls with mass; orbital
+    energy is conserved around a Kepler orbit; the sector grid's cell
+    volumes add up to each ring's annulus,
+    `sector_address_at(sector_position_pc(...))` returns the same
+    address, and ring sector counts match `ring_sector_count`; density
+    is normalised to 1 where the code says it is; no NaN or infinity
+    over a fixed sweep of inputs.
+
+  - [ ] **TEST.66 Distributions match their targets**
+    With fixed seeds, a few thousand draws of the IMF, star ages, the
+    Poisson sector counts, the bounded bell and the planet class table
+    land on their intended shares within a statistical tolerance (for
+    example a chi-square test), so a broken sampler fails even when
+    every single value looks fine.
+
+  - [ ] **TEST.67 Runs first in the suite and in CI**
+    A `mathcheck` marker (TEST.1 adds the markers); `conftest.py` moves
+    those tests to the front and stops the run if any fails, saying the
+    math is broken and the rest would be noise; CI runs it as its own
+    quick first job that the other jobs wait on.
+
+  - [ ] **TEST.68 Gate before bulk generation**
+    `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
+    `sector` over many sectors, `plan`, `population`, the Generate
+    page's jobs and the map's block and neighbourhood generation) runs
+    it first and refuses to start if a check fails, naming the failed
+    check and writing nothing; the Generate page shows the result as the
+    job's first step; `update.sh` runs it after updating and warns on
+    failure.
 
 ## USR: User accounts
 
