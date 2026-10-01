@@ -147,3 +147,25 @@ export function generateButtons(target, ring, layer, slot, edgeLy) {
   box.appendChild(hint);
   return box;
 }
+
+// The Galaxy Map's buttons for a size-3 drill-down block (stages 7-8):
+// "Generate this layer" (sector layer `offer.layer` of the block, when
+// set) and "Generate this block" (all its layers, when
+// `offer.wholeBlock`), posting the Generate page's "block" mode with the
+// block's key (m.ring.wedge.slab).
+export function blockGenerateButtons(target, offer) {
+  var box = document.createElement("div");
+  box.className = "starmap-generate";
+  var block = [["mode", "block"], ["block", offer.block]];
+  if (offer.layer != null) {
+    box.appendChild(generateForm(target, "Generate this layer", block.concat([["block_layer", offer.layer]])));
+  }
+  if (offer.wholeBlock) {
+    box.appendChild(generateForm(target, "Generate this block", block.concat([["whole_block", "1"]])));
+  }
+  var hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = "Starts a background job on the Generate page; sectors already generated are skipped.";
+  box.appendChild(hint);
+  return box;
+}

@@ -24,7 +24,9 @@
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
 //   generated, hint, enter} -- enter() flies into it, null for the block
 //   the stage shows);
-// - canGenerate: whether the visitor gets Generate buttons;
+// - canGenerate: whether the visitor gets Generate buttons (a sector's
+//   at stage 8, and a 3-block's and its layer's at stages 7-8, which
+//   showBlockInfo's info carries as `generate`);
 // - sectorUrl(id): a generated sector's page;
 // - locate(name): a Promise of GET /galaxy/locate's matches for a name
 //   (the address bar);
@@ -658,10 +660,29 @@ export function createStageView(host) {
     const data = dataFor(stage.at);
     let generated = 0;
     if (data) data.generated.forEach(function (n) { generated += n; });
+    const total = getOutline().shapeless ? null : S.drillBlockTotal(stage.at, getOutline());
     host.showBlockInfo({
-      block: stage.at, total: getOutline().shapeless ? null : S.drillBlockTotal(stage.at, getOutline()),
+      block: stage.at, total: total,
       generated: data ? generated : null, hint: hint, enter: null,
+      generate: generateOffer(stage, total, data ? generated : null),
     });
+  }
+
+  // Stages 7-8 (a 3-block, and one of its sector layers) for an admin:
+  // {block, layer} for the "Generate this layer" and "Generate this
+  // block" buttons (generatebuttons.js's blockGenerateButtons), with
+  // `layer` null or left out once nothing in it is left to generate.
+  // Null when there is nothing to offer.
+  function generateOffer(s, total, generated) {
+    if (!host.canGenerate || !s.at || s.at.m !== 3) return null;
+    const blockDone = total != null && generated != null && total > 0 && generated >= total;
+    let layer = s.slab;
+    if (layer != null && !getOutline().shapeless) {
+      const summary = slabSummary(layer);
+      if (summary.total > 0 && summary.generated >= summary.total) layer = null;
+    }
+    if (blockDone && layer == null) return null;
+    return { block: S.formatDrillKey(s.at), layer: layer, wholeBlock: !blockDone };
   }
 
   function sectorEntry(block, sector) {

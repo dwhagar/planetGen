@@ -158,20 +158,6 @@ camera (bigger blocks on the far side of the view ball, where the nested
 ladder keeps the borders seamless); each stage draws one level, so the
 stages themselves don't need it.
 
-73. [ ] **Generate from the sector level (section 6).** Boss: "once
-    we're down to a sector level we can tell a slice to generate all the
-    sectors in that slice or click on a sector and generate it from the
-    UI if you're admin", and "add a 'generate neighborhood' when at a
-    sector selection level that will ask the radius in ly." The map's
-    own buttons are in (an admin picking a sector at stage 8 gets
-    Generate this sector, Generate neighborhood with its light-year
-    radius and sector estimate, Generate column and Generate the entire
-    shell), and so is Web's `generate.py galaxy --block m.I.s.S
-    [--block-layer j]` mode with its Generate page form (posts with
-    `Accept: application/json` get the job back as JSON). What is left
-    is the Galaxy Map's Generate this layer or slab button at stages
-    7-8.
-
 75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as
     we have now or the galactic map interface to select. If it's within
