@@ -40,7 +40,7 @@ const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 
 // Not quite 0: the camera keeps galactic north as its up vector, which
 // needs the view direction off vertical by a hair.
-const TOP_DOWN_PHI = 1e-3;
+export const TOP_DOWN_PHI = 1e-3;
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
@@ -60,12 +60,34 @@ export const ISO_TILT = Math.atan(Math.SQRT2);
 // edge-on; zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit,
 // and the view's middle can't wander more than PAN_REACH fits away.
 const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
-const MAX_TILT = (80 * Math.PI) / 180;
-const MIN_ZOOM = 1 / 8;
-const MAX_ZOOM = 2.5;
-const PAN_REACH = 1.5;
+export const MAX_TILT = (80 * Math.PI) / 180;
+export const MIN_ZOOM = 1 / 8;
+export const MAX_ZOOM = 2.5;
+export const PAN_REACH = 1.5;
 const WHEEL_ZOOM_PER_PX = 0.0025;
 const TWO_PI = 2 * Math.PI;
+
+// The free view's limits: the tilt from straight down to MAX_TILT ...
+export function clampTilt(phi) {
+  return Math.max(TOP_DOWN_PHI, Math.min(MAX_TILT, phi));
+}
+
+// ... the camera's distance from MIN_ZOOM to MAX_ZOOM times the stage's
+// fit ...
+export function clampZoom(dist, fitDist) {
+  return Math.max(fitDist * MIN_ZOOM, Math.min(fitDist * MAX_ZOOM, dist));
+}
+
+// ... and the view's middle no further than `reach` from the fit's
+// (`target` is moved back in place).
+export function clampPan(target, fitTarget, reach) {
+  const off = [target[0] - fitTarget[0], target[1] - fitTarget[1], target[2] - fitTarget[2]];
+  const far = Math.hypot(off[0], off[1], off[2]);
+  if (far > reach) {
+    for (let k = 0; k < 3; k++) target[k] = fitTarget[k] + (off[k] * reach) / far;
+  }
+  return target;
+}
 
 export function createStageView(host) {
   const THREE = host.THREE;
@@ -381,6 +403,13 @@ export function createStageView(host) {
     };
   }
 
+  // The view on arrival at camera `to`, keeping `to` as its fit. The
+  // target is a copy: a pan moves view.target in place, and the pan's
+  // reach is measured from the fit's.
+  function settledView(to) {
+    return Object.assign({}, to, { target: to.target.slice(), fit: to });
+  }
+
   function applyView() {
     host.setCamera({ target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi });
   }
@@ -450,7 +479,7 @@ export function createStageView(host) {
     if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
       mapIndex += 1;
       maxIndex = mapIndex;
-      history.pushState({ galaxyStage: true, mapIndex: mapIndex }, "", location.pathname + query + location.hash);
+      history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
     }
     stage = r.stage;
     resolved = r;
@@ -476,7 +505,7 @@ export function createStageView(host) {
     setDisplayFade(incoming, from ? 0 : 1);
     display = incoming;
     if (!from) {
-      view = Object.assign({ fit: to }, to);
+      view = settledView(to);
       applyView();
       afterArrival();
       return;
@@ -490,7 +519,7 @@ export function createStageView(host) {
       if (old) setDisplayFade(old, 1 - f);
     }, function () {
       setDisplayFade(display, 1);
-      view = Object.assign({ fit: to }, to);
+      view = settledView(to);
       applyView();
       afterArrival();
     });
@@ -887,7 +916,7 @@ export function createStageView(host) {
   function drag(dx, dy, pan) {
     if (!pan) {
       view.theta -= dx * ROTATE_PER_PX;
-      view.phi = Math.max(TOP_DOWN_PHI, Math.min(MAX_TILT, view.phi - dy * ROTATE_PER_PX));
+      view.phi = clampTilt(view.phi - dy * ROTATE_PER_PX);
     } else {
       const heightPx = canvasEl.clientHeight || 1;
       const perPx = (2 * view.dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
@@ -899,18 +928,14 @@ export function createStageView(host) {
       t[0] -= (right.x * dx - upward.x * dy) * perPx;
       t[1] -= (right.y * dx - upward.y * dy) * perPx;
       t[2] -= (right.z * dx - upward.z * dy) * perPx;
-      const off = [t[0] - fit.target[0], t[1] - fit.target[1], t[2] - fit.target[2]];
-      const far = Math.hypot(off[0], off[1], off[2]);
-      if (far > reach) {
-        for (let k = 0; k < 3; k++) t[k] = fit.target[k] + (off[k] * reach) / far;
-      }
+      clampPan(t, fit.target, reach);
     }
     applyView();
   }
 
   function zoomBy(factor) {
     if (!view || animation || !isFree(resolved)) return;
-    view.dist = Math.max(view.fit.dist * MIN_ZOOM, Math.min(view.fit.dist * MAX_ZOOM, view.dist * factor));
+    view.dist = clampZoom(view.dist * factor, view.fit.dist);
     applyView();
   }
 
@@ -932,7 +957,7 @@ export function createStageView(host) {
     const from = { target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi };
     const to = cameraFor(resolved);
     flyCamera(from, to, null, function () {
-      view = Object.assign({ fit: to }, to);
+      view = settledView(to);
       applyView();
     });
   }
@@ -943,7 +968,7 @@ export function createStageView(host) {
       if (pinch && touches.size === 2 && view && !animation) {
         const p = Array.from(touches.values());
         const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) || 1;
-        view.dist = Math.max(view.fit.dist * MIN_ZOOM, Math.min(view.fit.dist * MAX_ZOOM, pinch.dist * (pinch.d / d)));
+        view.dist = clampZoom(pinch.dist * (pinch.d / d), view.fit.dist);
         applyView();
         return;
       }
@@ -1439,6 +1464,9 @@ export function createStageView(host) {
     const state = event.state && event.state.galaxyStage ? event.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(maxIndex, mapIndex);
+    // Remembered on this entry too, so a reload here still knows how far
+    // Forward goes.
+    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     const asked = stageFromLocation(false);
     if (asked.problem) {
       selectedSector = null;
