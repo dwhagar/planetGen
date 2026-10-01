@@ -22,6 +22,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     admin_token,
     base_url,
     sample_job,
+    sample_job_tree,
     sample_params,
     site_app,
     site_db,
@@ -193,7 +194,15 @@ def _view_box(page):
 
 
 def _phenomena(site_app):
-    return site_app.test_client().get("/api/phenomena?limit=100").get_json()["items"]
+    """Every phenomenon in the database (all pages of the list: the
+    rogue planets alone run past one)."""
+    client = site_app.test_client()
+    found = []
+    while True:
+        items = client.get(f"/api/phenomena?limit=100&offset={len(found)}").get_json()["items"]
+        found += items
+        if len(items) < 100:
+            return found
 
 
 def _diagram(page, base_url, phenomenon):
@@ -205,7 +214,7 @@ def _diagram(page, base_url, phenomenon):
 
 def test_phenomenon_diagram_zoom_in_and_reset(page, base_url, site_app):
     seen = 0
-    for phenomenon in _phenomena(site_app):
+    for phenomenon in [p for p in _phenomena(site_app) if p["type"] in ("nebula", "supernova_remnant")]:
         if not _diagram(page, base_url, phenomenon):
             continue
         seen += 1

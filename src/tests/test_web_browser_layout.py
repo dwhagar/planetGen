@@ -35,6 +35,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     browser,
     page_targets,
     sample_job,
+    sample_job_tree,
     sample_params,
     site_app,
     site_db,
