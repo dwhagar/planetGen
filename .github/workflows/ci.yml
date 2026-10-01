@@ -213,7 +213,10 @@ jobs:
       - name: Find or install Python 3.12 without administrator rights
         # In order: a copy this step installed before, the py launcher, an
         # all-users install, else python.org's installer run per-user into
-        # the tool cache (no administrator rights needed; reused next time).
+        # the tool cache (reused next time). That last one works when the
+        # service runs as a normal user account, but not as NETWORK SERVICE
+        # or LOCAL SERVICE (access denied): install Python 3.12 for all
+        # users on those machines (docs/ci-runners.md, "Windows runner").
         # The runner's service account can't see a Python installed only
         # for your own login, so that one doesn't count.
         if: steps.setup-python.outcome == 'failure'
@@ -237,7 +240,7 @@ jobs:
                       'Include_test=0', 'Shortcuts=0', 'AssociateFiles=0', 'PrependPath=0')
             $p = Start-Process -FilePath $installer -ArgumentList $opts -Wait -PassThru
             if ($p.ExitCode -ne 0 -or -not (Test-Path "$own\python.exe")) {
-              throw "Python 3.12 installer failed (exit $($p.ExitCode)); see docs/ci-runners.md, Windows runner"
+              throw "No Python 3.12 this runner can use, and installing one for its account failed (exit $($p.ExitCode)). Install Python 3.12 from python.org for all users and restart the runner service; see docs/ci-runners.md, Windows runner."
             }
             $python = "$own\python.exe"
           }

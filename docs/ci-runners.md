@@ -145,15 +145,24 @@ Only the Generate page job runs here (`windows-jobs`).
      (or from `run.cmd` in your own session): every job would then run
      with access to your files.
 
-3. **Python.** Nothing to install. `actions/setup-python` puts Python
-   3.12 in the runner's tool cache when the service account is an
-   administrator. When it isn't, the job finds Python 3.12 itself: an
-   all-users install (`py -3.12`, or `C:\Program Files\Python312`), or
-   else it runs python.org's installer just for the runner's own account
-   into `_work\_tool\python-3.12-user` (no administrator rights needed)
-   and reuses that copy from then on. A Python installed only for your
-   own login (including the one the "Python install manager" sets up)
-   isn't visible to the runner service and doesn't count.
+3. **Python 3.12, installed for all users.** `actions/setup-python`
+   can only install Python itself when the service account is an
+   administrator. Otherwise the job looks for an all-users Python 3.12
+   (`py -3.12` or `C:\Program Files\Python312`). In an administrator
+   PowerShell:
+
+   ```powershell
+   Invoke-WebRequest https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe -OutFile $env:TEMP\py312.exe
+   & $env:TEMP\py312.exe /quiet InstallAllUsers=1 PrependPath=1 Include_launcher=1 InstallLauncherAllUsers=1
+   Get-Service actions.runner.* | Restart-Service
+   ```
+
+   The restart lets the service see the new PATH. A Python installed only
+   for your own login (including the one the "Python install manager"
+   sets up) isn't visible to the runner service. If the service runs as a
+   normal user account rather than NETWORK SERVICE, the job can instead
+   install 3.12 for that account by itself, with no administrator rights.
+   The failed setup-python step then shows as a warning, not a red job.
 
 ## macOS
 
@@ -209,9 +218,10 @@ wipe, such as a VM you restore to a snapshot after each run.
 | A service container never becomes healthy | Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run `docker pull mysql:8.0` by hand as the runner user to see the error. |
 | setup-python can't find 3.9 or 3.12 | Its downloads are built for Ubuntu. On other distributions, install those versions into the runner's tool cache yourself, or run this runner in an Ubuntu VM. |
 | setup-python fails on Windows with "running scripts is disabled on this system" | PowerShell's execution policy is still Restricted. In an administrator PowerShell: `Set-ExecutionPolicy -Scope LocalMachine RemoteSigned -Force`, then re-run the job. |
-| setup-python fails on Windows with "access denied" or "Requested registry access is not allowed" | The service account isn't an administrator. Expected: the next step finds or installs Python 3.12 itself (step 3 under [Windows runner](#windows-runner)). If that step fails too, the machine can't reach python.org, or install Python 3.12 from python.org with "Install for all users" and restart the runner service. |
+| setup-python fails on Windows with "access denied" or "Requested registry access is not allowed" | The service account isn't an administrator. Expected: the next step looks for an all-users Python 3.12. If that step fails with "No Python 3.12 this runner can use", do step 3 under [Windows runner](#windows-runner). |
 | Hundreds of jobs queued, new ones wait for hours | Runs queued before the runners came online are worked through oldest first. Cancel the stale ones: Actions tab > filter "is:queued" > open each run > Cancel workflow run. |
 | Old pull requests' "Release note" check fails saying the PR "changes the version" | A run that waited in the queue was comparing against today's main. Fixed: the check now compares against the base the run started from. Re-run it, or ignore it on merged PRs. |
+| `py -3.12` on your own login says "Unable to create process using ...\actions-runner\_work\_tool\Python\3.12...\python.exe" | A runner that once ran as you registered its Python under your account and the folder is gone. In PowerShell as you: `Remove-Item 'HKCU:\Software\Python\PythonCore\3.12' -Recurse`. |
 | The browser job fails with missing `.so` libraries | Chromium's system libraries aren't installed. See step 4 under [Linux runner](#linux-runner). |
 | "Filename too long" on Windows | Enable long paths (step 1 under [Windows runner](#windows-runner)). |
 | Disk full | Run `docker system prune -af` and empty `_work/_tool` of Python versions you no longer need. |
