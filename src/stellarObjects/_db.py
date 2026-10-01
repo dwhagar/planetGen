@@ -3611,6 +3611,166 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     return sector_id
 
 
+def sector_for_placement(conn, sector_id):
+    """
+    A `SpaceSector` holding just enough of a stored sector to place one
+    more system in it (`SpaceSector.add_system`): its edge and grid cell,
+    and every stored system as a light stand-in carrying its name,
+    position and Hill-sphere radius (`system_perimeter`), not the full
+    object graph `load_sector` rebuilds.
+
+    Args:
+        conn (Connection): An open connection.
+        sector_id (int): The `sectors.id`.
+
+    Returns:
+        SpaceSector: The stand-in sector (`name` the stored name).
+
+    Raises:
+        ValueError: If no such sector exists.
+    """
+    row = conn.execute("SELECT name, edge_mpc, ring_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no sectors row with id {sector_id}")
+    edge_ly = milliparsecs_to_ly(row["edge_mpc"])
+    cell = SectorCell.for_ring(row["ring_index"], edge_ly) if row["ring_index"] is not None else None
+    sector = SpaceSector(row["name"], edge_ly=edge_ly, cell=cell)
+    systems = conn.execute(
+        "SELECT ss.id, ss.name, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,"
+        " ss.binary_configuration, ss.binary_system_perimeter_km,"
+        " (SELECT MAX(st.system_perimeter_km) FROM stars st WHERE st.star_system_id = ss.id) AS star_perimeter_km"
+        " FROM star_systems ss WHERE ss.sector_id = ? AND ss.position_x_mpc IS NOT NULL ORDER BY ss.id",
+        (sector_id,),
+    ).fetchall()
+    for system in systems:
+        perimeter_km = (system["binary_system_perimeter_km"] if system["binary_configuration"] == "close"
+                        else system["star_perimeter_km"]) or 0.0
+        stand_in = SimpleNamespace(
+            name=system["name"], system_config=None,
+            star=SimpleNamespace(system_perimeter=perimeter_km / physical_constants.AU_TO_KM))
+        position = tuple(milliparsecs_to_ly(system[f"position_{axis}_mpc"]) for axis in "xyz")
+        sector.entries.append(SectorSystemEntry(stand_in, position))
+    return sector
+
+
+def add_system_to_sector(conn, sector_id, star_system, system_config, position=None):
+    """
+    Saves one generated system into an existing sector: placed clear of
+    every stored system's Hill sphere (`SpaceSector.add_system`), or at
+    `position` when given, with its location text, and for a galaxy-placed
+    sector its containment and nearest-systems rows (and its neighbors').
+
+    Args:
+        conn (Connection): An open connection.
+        sector_id (int): The `sectors.id`.
+        star_system (StarSystem): The generated system.
+        system_config (SystemConfig): Its recipe.
+        position (tuple, optional): Sector-local `(x, y, z)` in light-years;
+            it must lie inside the sector.
+
+    Returns:
+        tuple: `(star_systems.id, (x, y, z))`.
+
+    Raises:
+        ValueError: No such sector, a position outside it, or no room left.
+    """
+    sector = sector_for_placement(conn, sector_id)
+    if position is not None and not sector.contains(tuple(position)):
+        raise ValueError(f"position {tuple(position)!r} is outside sector {sector_id}")
+    entry = sector.add_system(star_system, position=position, system_config=system_config)
+    system_id = insert_star_system(conn, star_system, system_config, sector_id=sector_id,
+                                   position=entry.position, location=_location_for_entry(sector, entry))
+    if get_sector_galaxy_position(conn, sector_id) is not None:
+        refresh_containment(conn, [sector_id])
+        _add_sector_to_nearest(conn, sector_id)
+    return system_id, entry.position
+
+
+_SYSTEM_CONTENT_COLUMNS = (
+    "system_config_id", "is_binary", "binary_configuration",
+    "binary_separation_km", "binary_eccentricity", "binary_periapsis_km", "binary_apoapsis_km",
+    "binary_type", "binary_temperature_k", "binary_radius_km",
+    "binary_effective_mass_kg", "binary_effective_luminosity_w", "binary_age_gy", "binary_lifespan_gy",
+    "binary_habitable_zone_inner_km", "binary_habitable_zone_outer_km",
+    "binary_system_perimeter_km", "binary_heliosphere_radius_km",
+    "binary_galactic_orbital_speed_kms", "binary_galactic_orbital_period_gy",
+    "binary_galactic_orbital_phase_deg", "binary_galactic_min_update_interval_years",
+    "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
+    "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
+    "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
+    "binary_mutual_position_x_km", "binary_mutual_position_y_km", "binary_mutual_position_z_km",
+    "binary_primary_position_x_km", "binary_primary_position_y_km", "binary_primary_position_z_km",
+    "binary_secondary_position_x_km", "binary_secondary_position_y_km", "binary_secondary_position_z_km",
+    "binary_secondary_mass_fraction",
+    "binary_planetary_wobble_x_km", "binary_planetary_wobble_y_km", "binary_planetary_wobble_z_km",
+    "system_flavor_text", "runaway_class", "runaway_speed_kms", "schema_version",
+)
+"""tuple: The `star_systems` columns that describe a system's generated
+content (everything `insert_star_system` writes except its name and
+placement), which `replace_star_system_content` swaps."""
+
+_SYSTEM_CONTENT_TABLES = ("stars", "planets", "moons", "asteroid_belts", "comets")
+"""tuple: The tables holding a system's bodies, keyed by `star_system_id`."""
+
+
+def system_content_blockers(conn, star_system_id):
+    """
+    What stops `replace_star_system_content` from swapping a system's
+    bodies without losing something: `{"facilities": n}` hosted on the
+    system or its bodies (they would be deleted with the bodies), and
+    `"bright_star": True` when the system was built around a pre-placed
+    bright star (its star is fixed by the galaxy scatter).
+    """
+    facilities = conn.execute("SELECT COUNT(*) AS n FROM facilities WHERE star_system_id = ?",
+                              (star_system_id,)).fetchone()["n"]
+    bright = conn.execute("SELECT 1 FROM bright_stars WHERE star_system_id = ? LIMIT 1",
+                          (star_system_id,)).fetchone() is not None
+    return {"facilities": facilities, "bright_star": bright}
+
+
+def replace_star_system_content(conn, star_system_id, star_system, system_config):
+    """
+    Swaps a stored system's generated content -- its stars, planets,
+    moons, asteroid belts, comets and the system-level star/binary fields
+    -- for a newly generated system's, keeping the system's id, name,
+    sector, position, location, containment and wiki links. The new
+    bodies are renamed from the system's name. Facilities hosted on the
+    old system or its bodies are deleted with them (check
+    `system_content_blockers` first).
+
+    Args:
+        conn (Connection): An open connection, inside a transaction.
+        star_system_id (int): The system to change.
+        star_system (StarSystem): The new content.
+        system_config (SystemConfig): Its recipe.
+
+    Returns:
+        bool: `False` if no such system exists.
+    """
+    row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
+    if row is None:
+        return False
+    # Saved standalone first (the registry gives it a temporary name),
+    # then its bodies are moved under the kept row and the stand-in row
+    # dropped, which also drops its name reservation.
+    temp_id = insert_star_system(conn, star_system, system_config)
+    temp_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (temp_id,)).fetchone()["name"]
+    conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (star_system_id,))
+    for table in ("moons", "planets", "asteroid_belts", "comets", "stars"):
+        conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
+    for table in _SYSTEM_CONTENT_TABLES:
+        conn.execute(f"UPDATE {table} SET star_system_id = ? WHERE star_system_id = ?", (star_system_id, temp_id))
+    assignments = ", ".join(f"kept.{column} = made.{column}" for column in _SYSTEM_CONTENT_COLUMNS)
+    conn.execute(
+        f"UPDATE star_systems kept JOIN star_systems made ON made.id = ? SET {assignments},"
+        " kept.modified_at = CURRENT_TIMESTAMP(3) WHERE kept.id = ?",
+        (temp_id, star_system_id),
+    )
+    conn.execute("DELETE FROM star_systems WHERE id = ?", (temp_id,))
+    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
+    return True
+
+
 def get_sector_galaxy_position(conn, sector_id):
     """
     Reads back a sector's stored galaxy-frame placement (see `schema.sql`'s

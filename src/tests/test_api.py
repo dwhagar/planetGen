@@ -21,7 +21,7 @@ import pytest
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db, adminAuth, spaceSector
 from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyViewport import tile_keys_containing, tiles_intersecting_sphere
@@ -1385,14 +1385,112 @@ def test_create_system_generates_and_persists_a_standalone_system(admin_client):
 
 
 def test_create_system_rejects_unrecognized_and_invalid_fields(admin_client):
-    response = admin_client.post("/api/systems", json={"sector_id": 1})
+    response = admin_client.post("/api/systems", json={"sector_id": "1"})
     assert response.status_code == 400
+
+    response = admin_client.post("/api/systems", json={"position": [0, 0, 0]})
+    assert response.status_code == 400  # a position needs a sector
+
+    response = admin_client.post("/api/systems", json={"sector_id": 999999})
+    assert response.status_code == 404
 
     response = admin_client.post("/api/systems", json={"age": "ancient"})
     assert response.status_code == 400
 
     response = admin_client.post("/api/systems", json={"num_orbits": -1})
     assert response.status_code == 400
+
+
+def test_create_system_inside_a_sector_keeps_clear_of_its_systems(seeded_sector, admin_client):
+    config, sector_id, system_ids = seeded_sector
+    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "star_type": "K2V", "planets": False,
+                                                        "binary_system": False})
+    assert response.status_code == 201, response.get_json()
+    body = response.get_json()
+    assert body["sector_id"] == sector_id
+    placed = body["position"]
+    assert all(abs(c) <= 5.0 for c in placed)
+
+    detail = admin_client.get(f"/api/systems/{body['id']}").get_json()
+    assert detail["sector_id"] == sector_id
+    assert detail["location"]
+
+    conn = _db.get_connection(config)
+    try:
+        sector = _db.sector_for_placement(conn, sector_id)
+    finally:
+        conn.close()
+    new = next(e for e in sector.entries if e.star_system.name == detail["name"])
+    for other in sector.entries:
+        if other is not new:
+            assert spaceSector.distance_between(new.position, other.position) >= \
+                spaceSector.required_separation_ly(new.star_system, other.star_system) - 1e-3
+
+
+def test_create_system_at_an_explicit_position_inside_the_sector(seeded_sector, admin_client):
+    _config, sector_id, _ids = seeded_sector
+    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "position": [4.0, -4.0, 2.5],
+                                                        "planets": False})
+    assert response.status_code == 201
+    assert response.get_json()["position"] == pytest.approx([4.0, -4.0, 2.5], abs=1e-3)
+
+    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "position": [40.0, 0, 0]})
+    assert response.status_code == 400  # outside the sector
+
+
+def test_regenerate_keeps_the_system_but_replaces_its_bodies(seeded_sector, admin_client):
+    config, sector_id, system_ids = seeded_sector
+    system_id = system_ids[0]
+    before = admin_client.get(f"/api/systems/{system_id}").get_json()
+    old_star_ids = {star["id"] for star in before["stars"]}
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={
+        "regenerate": {"star_type": "K1V", "planets": True, "binary_system": False}})
+    assert response.status_code == 200, response.get_json()
+    assert response.get_json()["regenerated"] is True
+
+    after = admin_client.get(f"/api/systems/{system_id}").get_json()
+    assert (after["name"], after["sector_id"], after["location"]) == (before["name"], before["sector_id"],
+                                                                       before["location"])
+    assert after["stars"][0]["star_type"].startswith("K1V")
+    assert after["stars"][0]["name"] == before["name"]
+    assert not old_star_ids & {star["id"] for star in after["stars"]}
+    for planet in after["planets"]:
+        assert planet["name"].startswith(before["name"])
+
+    conn = _db.get_connection(config)
+    try:
+        # The stand-in row used while swapping is gone, with its name.
+        assert conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id IS NULL").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
+def test_regenerate_refuses_to_drop_facilities_unless_told(seeded_sector, admin_client):
+    config, sector_id, system_ids = seeded_sector
+    system_id = system_ids[1]
+    star_id = admin_client.get(f"/api/systems/{system_id}").get_json()["stars"][0]["id"]
+    response = admin_client.post("/api/facilities", json={
+        "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "star", "host_id": star_id})
+    assert response.status_code == 201, response.get_json()
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"planets": False}})
+    assert response.status_code == 409
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"planets": False},
+                                                                      "drop_facilities": True})
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"] == []
+
+
+def test_regenerate_rejects_bad_bodies(admin_client):
+    system_id = admin_client.post("/api/systems", json={"planets": False}).get_json()["id"]
+    assert admin_client.patch(f"/api/systems/{system_id}", json={}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": []}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"age": "ancient"}}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"name": "X"}}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {}, "drop_facilities": 1}
+                              ).status_code == 400
+    assert admin_client.patch("/api/systems/999999", json={"regenerate": {}}).status_code == 404
 
 
 def test_update_and_delete_system(admin_client):
