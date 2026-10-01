@@ -497,9 +497,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">Always seen from above (MAP.17): click a quarter of the galaxy, then pick a slab (a layer of the
-  disk) from the list beside the map, then click an arc of the ring band in view to zoom into it, and so on (layer,
-  arc, layer, arc) down to single sectors &middot; Back and Forward retrace your steps, Up (or Esc) goes one step out,
+  <span class="hint">Click a quarter of the galaxy, then pick a slab (a layer of the disk) from the list beside the
+  map, then click an arc of the ring band in view to zoom into it, and so on (layer, arc, layer, arc) down to single
+  sectors &middot; the whole galaxy and its quarters are seen from above; below them, drag to turn the view,
+  right-drag (or Shift-drag) to move it and scroll or pinch to zoom, and Reset view brings it back &middot; Back and Forward retrace your steps, Up (or Esc) goes one step out,
   Whole galaxy starts over &middot; arrow keys and Enter pick too &middot; blocks are colored by predicted density
   (brighter = denser): unfilled space is see-through, and a block with generated sectors is amber, more solid the
   more of them are generated &middot; glowing points are stars, sized by the star, colored by its temperature and
@@ -522,9 +523,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-layout">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
-     aria-label="Interactive Galaxy Map, seen from above. Arrow keys move among the parts you can pick
-     and Enter takes one; slabs are picked from the list beside the map; Escape or Backspace goes one step
-     back out and Home returns to the whole galaxy."></canvas>
+     aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
+     one; slabs are also picked from the list beside the map; Escape or Backspace goes one step back out
+     and Home returns to the whole galaxy. Below the whole galaxy and its quarters, dragging turns the
+     view and the wheel zooms."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 <div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
@@ -535,6 +537,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <button type="button" class="starmap-btn" data-action="up" disabled
           title="One step back out (Esc)">Up</button>
   <button type="button" class="starmap-btn" data-action="reset" title="Back to the whole galaxy (Home)">Whole galaxy</button>
+  <button type="button" class="starmap-btn" data-action="reset-view" disabled
+          title="Back to this step's own view after turning or moving it">Reset view</button>
   <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
   <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false"
           title="Dim every block with no generated sectors">Generated only</button>

@@ -24,10 +24,11 @@
 //
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
-// ./galaxystages.js), always from straight above: the visitor picks a
-// quarter, a layer, an arc, a layer, an arc, ... down to a sector, and
-// there is no free camera (MAP.17). Density is computed right here from
-// the galaxy's own analytic shape, not fetched, and colors each block.
+// ./galaxystages.js): the visitor picks a quarter, a layer, an arc, a
+// layer, an arc, ... down to a sector. The whole galaxy and its quarters
+// are seen from straight above; below them the view can be turned, moved
+// and zoomed. Density is computed right here from the galaxy's own
+// analytic shape, not fetched, and colors each block.
 // Unfilled space is mostly see-through; a block holding generated
 // sectors is amber and grows more solid with their share (MAP.37).
 //
@@ -2059,7 +2060,8 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Pointer and keys ------------------------------------------------------
   //
-  // Everything goes to the drill-down: there is no free camera (MAP.17).
+  // Everything goes to the drill-down, which turns and zooms the view
+  // where it may.
   // A click on a bright star or a cloud small enough to aim at shows it
   // instead of picking what's under it.
   canvasEl.addEventListener("pointerdown", function (event) { stageView.onPointerDown(event); });
@@ -2068,6 +2070,13 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointercancel", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointerleave", function (event) { stageView.onPointerLeave(event); });
   canvasEl.addEventListener("keydown", function (event) { stageView.onKey(event); });
+  // Below the galaxy and its quarters the wheel zooms; above them it is
+  // left to scroll the page.
+  canvasEl.addEventListener("wheel", function (event) {
+    if (stageView.onWheel(event)) {
+      event.preventDefault();
+    }
+  }, { passive: false });
 
   var raycaster = new THREE.Raycaster();
 
@@ -2126,6 +2135,8 @@ function initGalaxyMap3d(canvasEl, data) {
           stageView.up();
         } else if (action === "reset") {
           stageView.home();
+        } else if (action === "reset-view") {
+          stageView.resetView();
         } else if (action === "wedges") {
           wedgeGroup.visible = !wedgeGroup.visible;
           button.setAttribute("aria-pressed", String(wedgeGroup.visible));

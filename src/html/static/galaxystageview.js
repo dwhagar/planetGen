@@ -51,6 +51,17 @@ const DRAG_CLICK_PX = 6;
 const CUBE_MAX_SECTORS = 27;
 const CUBE_TILT = (55 * Math.PI) / 180;
 const CUBE_LAYER_GAP = 2;
+// Below the galaxy and its quarters the view can be turned, moved and
+// zoomed freely (Boss, 2026-10-01): drag turns it, right-drag or
+// Shift-drag moves it, the wheel or a pinch zooms. The tilt stops short of
+// edge-on; zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit,
+// and the view's middle can't wander more than PAN_REACH fits away.
+const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
+const MAX_TILT = (80 * Math.PI) / 180;
+const MIN_ZOOM = 1 / 8;
+const MAX_ZOOM = 2.5;
+const PAN_REACH = 1.5;
+const WHEEL_ZOOM_PER_PX = 0.0025;
 const TWO_PI = 2 * Math.PI;
 
 export function createStageView(host) {
@@ -224,6 +235,12 @@ export function createStageView(host) {
       hi = Math.max(hi, b.slab);
     });
     return (block.slab - (lo + hi) / 2) * CUBE_LAYER_GAP * edgePc;
+  }
+
+  // Whether the view can be turned and moved: everywhere below the whole
+  // galaxy and its quarters (no arc picked yet at the galaxy).
+  function isFree(r) {
+    return !!(r && r.stage && (r.stage.at || r.stage.picks.some(function (p) { return p.kind === "region"; })));
   }
 
   function isWholeGalaxy(r) {
@@ -455,7 +472,7 @@ export function createStageView(host) {
     setDisplayFade(incoming, from ? 0 : 1);
     display = incoming;
     if (!from) {
-      view = to;
+      view = Object.assign({ fit: to }, to);
       applyView();
       afterArrival();
       return;
@@ -469,7 +486,7 @@ export function createStageView(host) {
       if (old) setDisplayFade(old, 1 - f);
     }, function () {
       setDisplayFade(display, 1);
-      view = to;
+      view = Object.assign({ fit: to }, to);
       applyView();
       afterArrival();
     });
@@ -538,6 +555,8 @@ export function createStageView(host) {
     if (back) back.disabled = mapIndex <= 0;
     if (forward) forward.disabled = mapIndex >= maxIndex;
     if (upButton) upButton.disabled = !stage.at && !stage.picks.length && !selectedSector;
+    const resetButton = els.controls.querySelector('[data-action="reset-view"]');
+    if (resetButton) resetButton.disabled = !isFree(resolved);
   }
 
   // --- Picking and hover -----------------------------------------------------
@@ -557,7 +576,10 @@ export function createStageView(host) {
   // -1. Layers are picked from the strip, not the map: from above, one
   // covers the others.
   function optionAt(clientX, clientY) {
-    if (!display || !resolved || (resolved.kind === "layer" && !isCube(display.resolved))) return -1;
+    // From straight above one layer hides the others, so at the two
+    // locked levels layers are picked from the strip only; once the view
+    // can be turned, the block under the pointer picks its layer too.
+    if (!display || !resolved || (resolved.kind === "layer" && !isCube(display.resolved) && !isFree(display.resolved))) return -1;
     const rect = canvasEl.getBoundingClientRect();
     if (!rect.width || !rect.height) return -1;
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
@@ -766,10 +788,20 @@ export function createStageView(host) {
 
   // A stage's own hint in the info panel.
   function hintFor(r) {
+    const base = baseHint(r);
+    if (!isFree(r)) return base;
+    return (base ? base + " " : "") + "Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom; "
+      + "Reset view brings it back.";
+  }
+
+  function baseHint(r) {
     if (!r || !r.kind) return "";
     if (isCube(r)) {
       return "Click a sector to open it (a sector that isn't generated yet shows where it is"
         + (host.canGenerate ? " and how to generate it" : "") + "), or pick a layer from the list to see just that one.";
+    }
+    if (r.kind === "layer" && isFree(r)) {
+      return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " on the map, or pick one from the list beside it.";
     }
     if (r.kind === "layer") {
       return "Pick a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) from the list beside the map.";
@@ -827,14 +859,107 @@ export function createStageView(host) {
 
   let pointer = null;
   let touchPending = -1;
+  // Touch points down on the map, for a pinch: id -> {x, y}.
+  const touches = new Map();
+  let pinch = null;
 
   function onPointerDown(event) {
-    if (event.button !== 0) return;
-    pointer = { x0: event.clientX, y0: event.clientY, id: event.pointerId, type: event.pointerType };
+    if (event.button !== 0 && event.button !== 2) return;
+    if (event.pointerType === "touch") {
+      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (touches.size === 2 && isFree(resolved) && view) {
+        const p = Array.from(touches.values());
+        pinch = { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) || 1, dist: view.dist };
+        pointer = null;
+        return;
+      }
+    }
+    pointer = {
+      x0: event.clientX, y0: event.clientY, x: event.clientX, y: event.clientY, id: event.pointerId,
+      type: event.pointerType, pan: event.button === 2 || event.shiftKey, dragging: false,
+    };
+    try { canvasEl.setPointerCapture(event.pointerId); } catch (err) { /* not essential */ }
+  }
+
+  // Turns the view (drag) or moves it in the screen's plane (pan).
+  function drag(dx, dy, pan) {
+    if (!pan) {
+      view.theta -= dx * ROTATE_PER_PX;
+      view.phi = Math.max(TOP_DOWN_PHI, Math.min(MAX_TILT, view.phi - dy * ROTATE_PER_PX));
+    } else {
+      const heightPx = canvasEl.clientHeight || 1;
+      const perPx = (2 * view.dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+      const upward = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+      const fit = view.fit;
+      const reach = PAN_REACH * fit.dist * Math.tan(fovHalf());
+      const t = view.target;
+      t[0] -= (right.x * dx - upward.x * dy) * perPx;
+      t[1] -= (right.y * dx - upward.y * dy) * perPx;
+      t[2] -= (right.z * dx - upward.z * dy) * perPx;
+      const off = [t[0] - fit.target[0], t[1] - fit.target[1], t[2] - fit.target[2]];
+      const far = Math.hypot(off[0], off[1], off[2]);
+      if (far > reach) {
+        for (let k = 0; k < 3; k++) t[k] = fit.target[k] + (off[k] * reach) / far;
+      }
+    }
+    applyView();
+  }
+
+  function zoomBy(factor) {
+    if (!view || animation || !isFree(resolved)) return;
+    view.dist = Math.max(view.fit.dist * MIN_ZOOM, Math.min(view.fit.dist * MAX_ZOOM, view.dist * factor));
+    applyView();
+  }
+
+  // The wheel zooms where the view is free; at the galaxy and its
+  // quarters it is left to scroll the page. True when it was used.
+  function onWheel(event) {
+    if (!isFree(resolved) || !view) return false;
+    let deltaPx = event.deltaY;
+    if (event.deltaMode === 1) deltaPx *= 33;
+    else if (event.deltaMode === 2) deltaPx *= canvasEl.clientHeight || 400;
+    deltaPx = Math.max(-200, Math.min(200, deltaPx));
+    if (deltaPx) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    return true;
+  }
+
+  // Back to the stage's own view, after turning or moving it.
+  function resetView() {
+    if (!resolved || animation || !display) return;
+    const from = { target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi };
+    const to = cameraFor(resolved);
+    flyCamera(from, to, null, function () {
+      view = Object.assign({ fit: to }, to);
+      applyView();
+    });
   }
 
   function onPointerMove(event) {
-    if (animation || event.pointerType === "touch" || (pointer && event.pointerId === pointer.id)) return;
+    if (event.pointerType === "touch" && touches.has(event.pointerId)) {
+      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pinch && touches.size === 2 && view && !animation) {
+        const p = Array.from(touches.values());
+        const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) || 1;
+        view.dist = Math.max(view.fit.dist * MIN_ZOOM, Math.min(view.fit.dist * MAX_ZOOM, pinch.dist * (pinch.d / d)));
+        applyView();
+        return;
+      }
+    }
+    if (pointer && event.pointerId === pointer.id) {
+      const dx = event.clientX - pointer.x;
+      const dy = event.clientY - pointer.y;
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      const moved = Math.abs(event.clientX - pointer.x0) + Math.abs(event.clientY - pointer.y0);
+      if (!pointer.dragging && moved > DRAG_CLICK_PX && isFree(resolved) && view && !animation) {
+        pointer.dragging = true;
+        showTooltip("", 0, 0);
+      }
+      if (pointer.dragging && view && !animation) drag(dx, dy, pointer.pan || event.shiftKey);
+      return;
+    }
+    if (animation || event.pointerType === "touch") return;
     const index = optionAt(event.clientX, event.clientY);
     if (index < 0) {
       if (hover && !hover.sticky) setHover(null);
@@ -846,11 +971,21 @@ export function createStageView(host) {
   }
 
   function onPointerUp(event) {
+    if (event.pointerType === "touch") {
+      touches.delete(event.pointerId);
+      if (pinch) {
+        if (touches.size === 0) pinch = null;
+        pointer = null;
+        return;
+      }
+    }
     if (!pointer || event.pointerId !== pointer.id) return;
     const moved = Math.abs(event.clientX - pointer.x0) + Math.abs(event.clientY - pointer.y0);
     const type = pointer.type;
+    const wasDrag = pointer.dragging || pointer.pan;
     pointer = null;
-    if (moved > DRAG_CLICK_PX || animation) return;
+    try { canvasEl.releasePointerCapture(event.pointerId); } catch (err) { /* already released */ }
+    if (wasDrag || moved > DRAG_CLICK_PX || animation || event.button === 2) return;
     // Inside a container, a bright star or cloud under the click is shown
     // rather than the block picked (over the whole galaxy and its
     // quarters the stars are too thick for that).
@@ -871,6 +1006,12 @@ export function createStageView(host) {
     showTooltip("", 0, 0);
     act(index);
   }
+
+  // Right-drag moves the view, so the map has no context menu where the
+  // view is free.
+  canvasEl.addEventListener("contextmenu", function (event) {
+    if (isFree(resolved)) event.preventDefault();
+  });
 
   function onPointerLeave() {
     showTooltip("", 0, 0);
@@ -1225,6 +1366,8 @@ export function createStageView(host) {
     onPointerUp: onPointerUp,
     onPointerLeave: onPointerLeave,
     onKey: onKey,
+    onWheel: onWheel,
+    resetView: resetView,
     home: home,
     up: up,
     travel: travel,
