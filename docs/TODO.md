@@ -75,7 +75,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-NAV, DB, API, OPS, DOC and POP have no open items today.
+NAV, DB, API, SEC, OPS, DOC and POP have no open items today.
 
 ## Background
 
@@ -88,65 +88,27 @@ density skeleton, and the Flask API (`src/html/api/`) with server-rendered
 pages served by the same app (`src/html/web/`): Galaxy, Sector and System
 maps, search, NAV, admin auth and wiki publishing.
 
-## Plan: what to do first
+## Plan: what to do now
 
-Boss (2026-10-01): "bugfixes and security are the two biggest concerns."
-Bugs come first, then security; everything else waits behind them. The
-research behind the security order is the design doc linked at the top
-of the SEC section.
+The bug round (MAP.17 to MAP.19, MAP.26, MAP.37, MAP.43 to MAP.51,
+UX.15, UX.16, UX.19, UX.20, ADM.9), login security (SEC.1, SEC.20 to
+SEC.28), the database-call work (PERF.6, PERF.12 to PERF.17) and
+parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
+14:41Z) set the next round, run as parallel threads:
 
-1. **Bugs, in this order:**
-   1. Done: MAP.45 (objects drawn outside the sector's wireframe; the
-      stored positions were right, so no regenerate is needed for it)
-      and MAP.46.
-   2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
-      wedge lines past the galaxy's edge (MAP.43) and the generated
-      systems that were hard to find (MAP.37).
-   3. Done: UX.19 (belt rows and no Zone column in the object list),
-      ADM.9 (the "place a facility" form) and UX.20 (scientific notation
-      past 4 digits).
-   4. Done: the drill-down rework (MAP.17, MAP.19, MAP.18, MAP.44,
-      MAP.26), built as Boss's "Layer + arc".
-2. **Security, in this order** (login blocking first):
-   1. SEC.28: an always-on log in the standard log location (logins,
-      logouts, database changes, authorization failures), with SEC.20
-      (failed and locked logins with their address) as its first part.
-   2. SEC.1: the per-IP lockout in the control database, with SEC.21
-      (the per-username backoff moved into the same table).
-   3. SEC.23 (bug): a wrong current password on `/account` isn't
-      counted.
-   4. SEC.22: trusted-device cookie, so a lockout can't shut the real
-      admin out.
-   5. SEC.24 (common and breached password blocklist), then SEC.25
-      (check the hashing cost, re-hash on login).
-   6. SEC.26: two-factor sign-in for admins.
-   7. SEC.27: the fail2ban filter and jail (examples written out under
-      the item) in the deployment docs.
+1. **First:** PERF.5 (scatter bright stars in stages).
+2. **Galaxy Map and units:** UX.13, UX.14, MAP.30 (now a layer slider to
+   the right of the Galaxy Map), MAP.15, GEN.23 and what is left of
+   MAP.2.
+3. **Generation estimates and progress:** PERF.3 and PERF.4, then PERF.9
+   and PERF.10.
+4. **Admin editing:** ADM.1 and its subitems, starting with the validate
+   module (ADM.5).
 
-   SEC.23 is small and touch different files from the bugs,
-   so they can run alongside step 1 if Boss wants.
-3. **Database calls, the next update after bugs and security** (Boss,
-   2026-10-01), in this order:
-   1. PERF.12: check the schema once per process during generation.
-   2. PERF.13: write each sector in batches.
-   3. PERF.14: reserve a sector's names in bulk, safe with several
-      writers at once (needed before any parallel generation).
-   4. PERF.15 (fewer queries per web page), PERF.16 (full-text name
-      search on whole words) and PERF.17 (a time limit on web
-      statements). These touch the web read path, not generation, so
-      they can run alongside 1 to 3.
-4. **After that**, as before:
-   - MAP.30 (slab list beside a 3:4 map) and bookmarks (MAP.23, which
-     finishes the NAV page's map picks, MAP.22).
-   - Sector Map stars as points of light (MAP.15).
-   - The rest of generation at scale (PERF.1): the per-sector density
-     stats (PERF.11) and speed records (PERF.10) feed the estimates
-     (PERF.3, PERF.9); the work queue (PERF.8) comes before parallel
-     generation (PERF.7).
-   - Admin editing (ADM.1) starts with the validate module (ADM.5);
-     user accounts (USR.1) start with roles (USR.2).
-   - View from a planet (VIEW.1) waits on a research session with Boss,
-     except the constellation names (VIEW.4).
+Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
+bookmarks (MAP.23, which finishes MAP.22) and user accounts (USR.1,
+starting with roles, USR.2). View from a planet (VIEW.1) waits on a
+research session with Boss, except the constellation names (VIEW.4).
 
 ## UX: Web pages
 
@@ -247,15 +209,6 @@ with `clamp()`.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
-Bugs Boss found on the Galaxy Map (2026-10-01): "bug fix, wedge lines
-should not extend past the boundary of the galaxy. bug fix, bright stars
-do not display past 500 seconds scale (1 block = 81 sectors across). bug
-fix zooming reveals stars are being drawn but it takes a while to load,
-another bugfix, it's really hard to find the generated star system on
-the map, so everything not yet filled should be more transparent by a
-lot with a much higher contrast." They were MAP.43, MAP.47,
-MAP.48 and MAP.37, all fixed.
-
 - [ ] **MAP.2 Drill-down navigation**
 
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
@@ -269,20 +222,19 @@ MAP.48 and MAP.37, all fixed.
   neighborhood (radius asked in light-years) at the sector level, and
   the NAV page can pick its start and destination on the map or in a
   sector. Everything below is specified, with the math, in the design
-  doc; each subitem names its section. The nested ladder (MAP.28,
-  `stellarObjects/galaxyDrill.py`), the stage contents API (MAP.29,
-  `GET /api/galaxy/stage`), the stages (MAP.16,
-  `static/galaxystages.js` and `static/galaxystageview.js`, with stage
-  URLs `/galaxy?at=&p=`, `?sector=<designation>`), the Sector Map
-  pick mode (MAP.21), the address bar (MAP.24, `/galaxy/locate`), the
-  course overlay (MAP.27, `/galaxy?course=<from>,<to>`), generating from
-  the map (MAP.20) and the "Show on Galaxy Map" links (MAP.25) have
-  shipped, and so has the top-down drill-down with no free camera
-  (quarter, layer, arc, ..., sector; MAP.17, MAP.19, MAP.18, MAP.44,
-  MAP.26, decisions 2 and 8 of section 11).
+  doc; each subitem names its section. Shipped: the nested ladder
+  (MAP.28, `stellarObjects/galaxyDrill.py`), the stage contents API
+  (MAP.29, `GET /api/galaxy/stage`), the stages (MAP.16,
+  `static/galaxystages.js`, `static/galaxystageview.js`, stage URLs
+  `/galaxy?at=&p=` and `?sector=<designation>`), the Sector Map pick
+  mode (MAP.21), the address bar (MAP.24, `/galaxy/locate`), the course
+  overlay (MAP.27, `/galaxy?course=<from>,<to>`), generating from the
+  map (MAP.20), the "Show on Galaxy Map" links (MAP.25) and the top-down
+  drill-down (quarter, layer, arc, ..., sector; MAP.17, MAP.18, MAP.19,
+  MAP.44, MAP.26). Since Boss's change of 2026-10-01 09:16Z the camera
+  is locked top-down only at the full galaxy and its quarters, and turns
+  and moves freely from an arc down (PR #219).
 
-  - [x] **MAP.16 Drill-down stages**
-    Done in 7.44.0 (PR #171); its bugs MAP.17-19 are fixed too.
   - [ ] **MAP.22 NAV page picks on the map**
 
     Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 9
@@ -311,10 +263,8 @@ MAP.48 and MAP.37, all fixed.
     entries offered by the NAV pickers. Shared bookmarks need Boss's
     decision 4 and a migration.
 
-  - [x] **MAP.25 "Show on Galaxy Map" links**
-    Done (PR #188); its bug MAP.26 is fixed too.
 - [x] **MAP.3 A bigger Galaxy Map with controls underneath**
-  Done in 7.55.0 (PR #178); kept as the parent of its subitem.
+  Done in 7.55.0 (PR #178); kept as the parent of MAP.30.
   - [ ] **MAP.30 Slab list to the left of the map, and a 3:4 map**
     Boss (2026-10-01): "slab selection goes to the left of the galactic
     map if there is room, given the galactic map shoul dhave a 3:4 aspect
@@ -337,68 +287,6 @@ MAP.48 and MAP.37, all fixed.
     list move to the left (the standards' expanded class, 840 px and up,
     or whenever a readable list column fits)? Does the rest of MAP.3's
     controls row stay under the map, or join the list on the left?
-
-- [x] **MAP.5 Galaxy Map rework**
-  Done (the pixel-sized mega-blocks plan Boss approved in the project's
-  `galaxy-megablocks/report.md`); kept as the parent of its bugs. The
-  map's code is `static/galaxyprisms.js`, `static/galaxymap3d.js`,
-  `lib/galaxymap3d.py` and `stellarObjects/galaxyGeometry.py`.
-  - [x] **MAP.36 One solid of blocks for filled and unfilled sectors**
-    Done in 7.25.0 (PR #142).
-  - [x] **MAP.42 Wedge lines from the center**
-    Done in 7.9.0 (PR #120).
-
-- [x] **MAP.11 Every kind of phenomenon on the Sector Map, clickable**
-  Done in 5.51.0 (PR #81); kept as the parent of its bugs. The Sector Map
-  is `html/lib/starmap.py` and `static/sectormap.js`.
-  - [x] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
-    Done (2026-10-01). The stored positions were right: every star
-    system and every phenomenon a sector generates sits inside its own
-    cell (checked in `test_stars_and_phenomena_fit_within_their_sectors_real_cells`).
-    The objects outside were the neighboring sectors' rogue planets,
-    pulled in by `queryDb.phenomena_near_sector`'s sphere sized for the
-    old cube. Now a point-like object (rogue planet, comet, black hole,
-    neutron star) shows only in its own sector; a neighbor's cloud that
-    reaches in is still drawn, fainter, and says it is from a neighboring
-    sector; the reach sphere holds the whole cell. Still drawn outside on
-    purpose: a supernova's core kicked out of its sector and the galactic
-    nucleus on the axis. `test_sector_map_draws_no_point_object_outside_its_own_sector`
-    checks what the map draws.
-  - [x] **MAP.46 (bug) Rogue planets are hard to find on the Sector Map**
-    Done (2026-10-01). Rogue planets are a brighter cool violet (no star
-    color), each ringed by a marker that keeps its size on screen when
-    zoomed out, with a "Mark rogue planets" button to turn the rings off;
-    every rogue planet in the sector page's Contents has a "Show on map"
-    button. Other dark objects (quiescent black holes, comets) left as
-    they are.
-
-- [x] **MAP.14 Bright stars on the Galaxy Map**
-  Done in 7.42.0 (PR #160; it never had a number); kept as the parent of
-  its bugs.
-  - [x] **MAP.51 (bug) No stars drawn in filled sectors past certain zoom levels**
-    Boss (2026-10-01): "Sectors do not draw any stars beyond certain zoom
-    levels. As one approaches the sector depth it should display more
-    and more stars based on the stars' luminosity in solar luminosities
-    for already generated and placed stars. ... Filled-in sectors should
-    start to become apparent as you get closer because they will have
-    red dwarf stars and things like that start to appear as one zooms
-    in. At all zoom levels stars, if present, should be drawn as points
-    of glowing light, with rough sizes relative to the size of the star,
-    brightness relative to luminosity, and color relative to
-    temperature." Done (2026-10-01). Cause: the map only ever drew the
-    pre-placed bright stars (500 L☉ and up); generated systems' stars
-    were never served. Each tile now also lists its generated systems'
-    stars down to a luminosity floor that drops fourfold per finer tile
-    level (`queryDb.generated_star_floor_sol`: about 260 L☉ on 8 kpc
-    tiles, 1 L☉ on 512 pc, every star on the finest 16 pc tiles), at
-    most 1000 per tile, reading at most 1500 sectors per tile (a hashed
-    sample past that). Every star draws as a point of light: core sized
-    by its radius, halo width and brightness by its luminosity, color
-    by its temperature.
-    Follow-up (2026-10-01, Boss's retest): in the drill-down a
-    generated sector's block is solid, and the depth-tested stars inside
-    it were hidden; stars now draw over the blocks, and the faintest are
-    a little brighter.
 
 - [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
   Boss (2026-10-01): "make the stars in a sector more realistic
@@ -662,214 +550,6 @@ MAP.48 and MAP.37, all fixed.
     regenerate? Must the new band draw from the same random stream, so a
     500-then-100 galaxy matches a straight-to-100 one?
 
-  - [ ] **PERF.6 Rate-limit SQL calls and make each call do more**
-    Boss
-    (2026-10-01): "ratelimiting calls to the sql database and seeing if
-    we can investigate some way to make our DB calls more efficient, do
-    more with less calls without impacting performance." The
-    investigation is done (report of 2026-10-01: https://claude.ai/code/artifact/4111c1a8-0d63-4b6c-b109-1b8389538a13). Measured on
-    a 40-system sector: 1.0 s generating, 1.9 s saving, through about
-    98 single-row INSERTs and 17 SELECTs per system; one `executemany`
-    wrote the same moon rows 2.8x faster than one INSERT each. The
-    batching work is the subitems below. Decided defaults for the open
-    questions:
-    - Two separate limits. Generation: a cap on how many sector writers
-      run at once (PERF.8's parents), at low priority, not a
-      calls-per-second cap (batching already cuts its calls 30 to 50
-      times). Web: Flask-Limiter's per-IP limits as today, plus a
-      statement time limit (PERF.17).
-    - Pools: each generation worker process keeps a pool of 1 or 2
-      connections, so the total is the worker count plus the web's 10.
-    - Benchmark: `generate.py sector --num-systems 40` five times before
-      and after on the same machine; compare the median save time and
-      the server's `Com_insert`/`Com_select` counts.
-
-    - [x] **PERF.12 Check the schema once per process during generation**
-      Done (PR #222):
-      `get_connection` replays `schema.sql` once per process per
-      database, so a filled sector sends no schema statements.
-
-    - [x] **PERF.13 Write each sector in batches**
-      Done (PR #222): `insert_sector` writes inside `Connection.batched()`, one
-      multi-row INSERT per table and statement shape, with ids from the
-      new `id_blocks` table (schema v45); containment, octant and
-      bright-star links are written as `CASE id` updates. Measured on a
-      40-system sector (median of 5): 1.35 s and about 5,650 statements
-      before, 0.54 s and about 186 statements after.
-
-    - [x] **PERF.14 Reserve a sector's names in bulk, safe with several writers at once**
-      Done (PR #222): a sector's systems and named phenomena reserve their names
-      in one sorted multi-row upsert of `system_name_registry` (row
-      locks only, no gap locks), the sector save runs at READ COMMITTED
-      and retries on 1213 and 1205, and DBUtils no longer silently
-      re-runs a statement after a deadlock (the cause of the 1452s).
-      Four parallel `generate.py sector` runs, and four workers saving
-      the same sectors at once, finish with no errors and no duplicate
-      names.
-
-    - [x] **PERF.15 Fewer queries per web page**
-      Done (PR #223): search facets and autocomplete lists (12 queries
-      per request, including `COUNT(*)` of every star, planet and moon)
-      are cached for up to 10 minutes, and dropped as soon as a sector or
-      system is added or changed; `system_detail` loads moons once per
-      system, not once per planet; `sector_detail` loads its stars in one
-      query, not one per system; `list_systems` and
-      `_search_result_systems` read the page's star types in one query
-      instead of three correlated subqueries per row (the existing
-      `stars (star_system_id)` index covers it); and
-      `galaxy_placed_sectors` counts systems with one grouped join instead
-      of a subquery per sector (a stored count waits for PERF.11).
-
-    - [x] **PERF.16 Search names without scanning every row**
-      Done (PR #223, schema v46): a FULLTEXT index on `name` in
-      sectors, star_systems, stars, planets and moons. Search matches
-      whole words (boolean mode, every word required), so "ara" no
-      longer finds "Kemaral". Words shorter than the server's
-      `innodb_ft_min_token_size`, or full-text stopwords ("Mu", "IV"),
-      are matched as whole words with a REGEXP on the rows the other
-      words already narrowed. The Galaxy Map's locate box keeps
-      type-ahead by matching the start of the last word. Result counts
-      stop at 300 (shown as "300+").
-
-    - [x] **PERF.17 A time limit on web database statements**
-      Done (PR #223): the web's read pool sets `max_statement_time`
-      (MariaDB) or `MAX_EXECUTION_TIME` (MySQL) on each connection,
-      default 10 s, `mysql.statement_timeout_seconds` in `config.json`
-      (0 turns it off). A timed-out query returns a 504 "Took too long"
-      page, or `QUERY_TIMEOUT` from the API. Generation and admin writes
-      have no limit.
-
-  - [x] **PERF.7 Parallelize sector and system generation, with stable progress bars**
-    Boss (2026-10-01): "add a TODO item to parallelize
-    sector and system generation and update the progress bars so that
-    they stay stable, I want to keep the ETA until done and elapsed time
-    and I know that'll require some customization of the status bar code
-    as time estimates are to be calculated from a decaying average based
-    on number of runs per second." This is the first user of PERF.8's
-    work queue. Today `generate.py` fills sectors one after another in a
-    single process, and `_generation_progress()` (rich `Progress`) shows
-    elapsed time and rich's own ETA. Done: sector fill and the plan's
-    bright-star scatter run through PERF.8's queue; the bars stay
-    pinned at the bottom without flicker (as PERF.4 requires) even with
-    many workers reporting at once; every bar keeps elapsed time and an
-    ETA until done; and the ETA comes from a custom column that uses a
-    decaying (exponentially weighted) average of tasks finished per
-    second rather than rich's built-in estimate. PERF.3's measured stars
-    per second and PERF.4's slow-layer bar use the same rate. How
-    (report of 2026-10-01): each system's child task only builds the
-    system (no database); its sector's parent places each system as it
-    comes back (placement uses the built system's size, so it can't
-    happen first) and writes the whole sector in one batched
-    transaction (PERF.13, PERF.14); the bright-star scatter's tasks are
-    one layer (or one ring batch of a dense layer) each, not one per
-    star, since 63 million tasks would cost more than the work. Needs
-    PERF.13 and PERF.14 first. Open questions: the decay constant (how
-    fast the average forgets older runs); whether the rate is counted in
-    systems, stars or sectors (sectors differ a lot in size, so systems
-    per second may be steadier; the default is systems); and whether
-    `progress.json` for the web jobs reports the same decayed rate so
-    the Generate page and UX.3's banner show the same ETA (default:
-    yes).
-    Done (PR #225, PR #227): sector fill (PR #225) and the bright-star
-    scatter run through PERF.8's queue; the scatter is one task per
-    layer, densest layers first, each drawn from its own random stream
-    (the scatter's seed and the layer), so any number of workers places
-    the same stars (3 workers: 313 s down to 105 s at 20,000 L_sun on a
-    4-core machine). Every bar's ETA comes from
-    `progressRate.DecayingRate`, a time-weighted exponential average of
-    units finished per second, shown by `_DecayingRemainingColumn` until
-    the bar is done. Answers to the open questions: a 60 s time
-    constant; the rate is counted in the bar's own unit (sectors, or
-    layers), since a sector is one task; and `progress.json` carries the
-    same `rate` and `eta_s`, so the Generate page shows the same
-    "about N left".
-
-  - [x] **PERF.8 A parallel background work queue in the API**
-    Boss
-    (2026-10-01): "I also want to do it in a specific way, ideally how it
-    would work is we'd have a work queue... In fact new TODO item,
-    implement a parallel background work cue in the API. So in the plan
-    phase we'll parallelize the bright star generation for any selected
-    level. Each star generation will be a task there. Then a sector will
-    be one task, but that task will be running until it finished filling
-    the sector. Each star system generated will be it's own task that the
-    API will paralleize, the sending task will get a signal that the
-    parallel task is done when it's finished and will be able to use that
-    information to calculate how long it iwll take to complete a given
-    series of tasks that got handed out. We'll also need limits so the
-    system never uses more than 80% of the total CPU power and defers to
-    other running processes in process scheduling." Boss (2026-10-01) on
-    the scheduler: "we should see if we want the task scheduler to be a
-    daemon or if it'll only spin up a loop when there are tasks, since
-    99.99% of the time there won't be." Today background work
-    is `web/jobs.py`'s one-job-at-a-time runner (an `active` lock,
-    `state.json`, `progress.json`) launching `generate.py`, which does
-    everything serially. Done:
-    - A work queue with a pool of workers, run by an on-demand
-      supervisor, not a daemon: queuing work starts the supervisor when
-      none is alive, it runs while there are tasks, and it exits after
-      about 60 s idle, so an idle server runs nothing.
-    - Plan phase: the bright-star scatter for the selected level
-      (PERF.5's band) runs as parallel tasks.
-    - Sector fill: each sector is one parent task that stays running
-      until its sector is full; each star system in it is its own child
-      task that the queue runs in parallel.
-    - When a child task finishes, its parent gets a signal, and the
-      parent uses those signals to work out how long its handed-out
-      tasks will take to finish (feeding PERF.7's ETA).
-    - Limits: the workers never use more than 80% of total CPU, and they
-      run at a lower scheduling priority (for example `nice` on Linux and
-      macOS, below-normal priority on Windows) so other processes on the
-      machine come first.
-
-    Decided defaults (report of 2026-10-01: https://claude.ai/code/artifact/4111c1a8-0d63-4b6c-b109-1b8389538a13):
-    - Processes, not threads (the GIL), through a `ProcessPoolExecutor`
-      with the spawn start method so Linux, macOS and Windows behave the
-      same.
-    - 80%: `max(1, floor(0.8 x cores))` workers, one fewer when MySQL
-      runs on the same machine, each at `os.nice(10)` or
-      `BELOW_NORMAL_PRIORITY_CLASS`; optionally hold back new tasks
-      while the load average is above 80% of the cores.
-    - Not in the API process: mod_wsgi runs one process with 5 threads
-      that serve every page and is recycled by Apache. The supervisor is
-      its own detached process (`src/workQueue.py`), spawned the way
-      `web/jobs.py` spawns `jobRunner.py` today; no systemd unit,
-      launchd plist or Windows service to install. Command-line
-      `generate.py` becomes the supervisor itself, in the foreground with
-      its bars.
-    - Queue storage: a `tasks` table in the control database (job,
-      parent, kind, payload, state, attempts, timings, result) plus a
-      supervisor lease row refreshed every 5 s; a lease older than 30 s
-      counts as dead and the next enqueue or Generate page load starts a
-      new supervisor. Claims are `UPDATE ... LIMIT n` (no `SKIP LOCKED`,
-      which MariaDB 10.4 lacks). Only sector-level and scatter tasks go
-      in the table, added a ring batch at a time; per-system child tasks
-      live in the supervisor's memory.
-    - Seeds: each child task seeds `random` from the job seed, its sector
-      address and its request number, so results don't depend on worker
-      count or finish order (positions stay OS-random, as today).
-    - Names and positions: children don't touch the database; the
-      parent places systems and reserves names in bulk (PERF.14).
-    - Restart or cancel: a sector is one transaction, so a half-done
-      sector rolls back and its task returns to the queue; cancelling a
-      job stops new dispatches and ends its workers.
-    - Reset, the skeleton build and schema work keep `web/jobs.py`'s
-      one-at-a-time lock.
-
-    Done (PR #225, PR #227): the queue and pool are built
-    (`stellarObjects/workQueue.py`, control schema v5) and `generate.py
-    sector` and every `galaxy` mode fill sectors through it. Two choices
-    differ from the defaults above. The run that queues the work is the
-    supervisor (every queued run is a `generate.py` process already,
-    from the command line or the Generate page's job runner), so there
-    is no separate detached supervisor and nothing left running when
-    the work is done; a second run waits on the lease instead. And a
-    sector is one task that builds its own systems: a system takes about
-    8 ms to build, so sending each one to another process costs about
-    as much as the work, and the sector's save (half its time) would
-    then run one sector at a time in the parent. The bright-star
-    scatter's tasks and the ETA came with PERF.7.
-
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
     (2026-10-01): "so that the bright stars ETA takes into account the
@@ -1053,358 +733,13 @@ MAP.48 and MAP.37, all fixed.
 
 ## SEC: Security
 
+No open items. The login protection of 2026-10-01 (SEC.1, SEC.20 to
+SEC.28: the always-on activity log, per-address and per-username
+lockouts, trusted devices, the password blocklist and hashing cost,
+two-factor sign-in and the fail2ban example) shipped in PRs #217, #220
+and #221.
+
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
-
-The login protection research of 2026-10-01 (what's built today, the
-gaps found, standard methods compared, and the recommended design) is in
-the design doc above; its section numbers are cited below. Order: SEC.28
-(with SEC.20), SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25,
-SEC.26, SEC.27.
-
-- [x] **SEC.28 An always-on log in the standard log location**
-  Done (PR #217): `stellarObjects/activitylog.py`, documented in
-  `docs/config.md` ("The activity log"). Defaults taken: the directory
-  `/var/log/planetgen/`, file only, 30 rotated copies. The folder is
-  root and the web server's group, mode 2770 (file 0660), not 0750/0640,
-  so a CLI user in that group can append, as with the debug log. The
-  description below is kept for reference.
-  Boss (2026-10-01): "Implement a full logging suite that will log to
-  the standard log location. If it's on Windows then it should just do
-  its root folder and a subdirectory for logs but on other platforms it
-  should do the standard log directory. We already have two output
-  levels but I want to make sure that login, logout, database reads and
-  writes can be viewed. Not so much reads, but database changes should
-  be written to the log file and authorization errors, like missed
-  authorizations, should be logged to that file." Today the only file
-  log is the debug log (`stellarObjects/log.py`): written only when
-  `config.json`'s `"debug"` is on, at DEBUG severity, to
-  `/var/log/planetgen.log` (`appconfig.log_file_path`), with every SQL
-  statement and random roll. With debug off nothing is written to a
-  file. Done:
-  - A second, always-on log file, separate from the debug log, at INFO
-    severity, in the platform's standard place: Linux
-    `/var/log/planetgen/planetgen.log`; macOS
-    `/Library/Logs/planetgen/planetgen.log`; Windows `logs\planetgen.log`
-    under the install's root folder. `config.json`'s `"log_dir"` (and an
-    environment variable) can move it. The installers (`install.sh`,
-    `install.ps1`, the macOS path) create the directory with the web
-    server's user able to write and others unable to read (0750 / 0640),
-    and rotate it (samples below).
-  - What it records, one line per event, each with the time (UTC), the
-    process, the client address, the user (or API key label) and the
-    outcome; never a password, token or key:
-    - logins (success, failure, lock), logouts, session expiry and
-      credential changes (SEC.20 is the login part);
-    - authorization failures: a request with no or an expired session,
-      a bad or revoked API key, a failed CSRF check, an admin-only page
-      or route refused;
-    - database changes: every write the web interface or API makes
-      (create, update, delete, regenerate, rename, facility placement,
-      with the target and who did it, alongside the existing
-      `admin_audit_log` row), every migration, and each generation run
-      or job as one start and one finish line with its counts, not one
-      line per row (sector fill writes millions of rows);
-    - database reads only as a count per request at DEBUG, which stays in
-      the debug log.
-  - One fixed line format, documented in `docs/config.md`, so tools can
-    match it, for example
-    `2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"`
-    (the address always comes before any user-supplied text, which is
-    quoted and escaped so it can't fake a field). SEC.27's fail2ban
-    filter matches this format.
-  - The debug log keeps working as it does; with debug on it also gets
-    every always-on line.
-
-  Log rotation. Boss (2026-10-01): "provide a sample log rotation
-  configuration for Linux and macOS too if possible but I don't think
-  the user has access to that. I know Windows users don't have access to
-  that." The installers already run as root and install rotation for the
-  debug log (`examples/apache/setup-debug-log.sh` writes
-  `/etc/logrotate.d/planetgen` on Linux and
-  `/etc/newsyslog.d/planetgen.conf` on macOS), so they install these too
-  and the user never edits them; the samples also go in
-  `docs/deployment/` for anyone setting up by hand. Where no system
-  rotation can be installed (Windows, or a run without root), the app
-  rotates its own file (Python's `RotatingFileHandler`, 100 MB, 30
-  copies) instead; with system rotation installed it uses
-  `WatchedFileHandler`, which reopens the file after logrotate or
-  newsyslog moves it, so no restart or `copytruncate` is needed.
-
-  Sample for Linux, `/etc/logrotate.d/planetgen-log` (the user and group
-  are the web server's: `www-data` on Debian and Ubuntu, `apache` on
-  RHEL and Fedora):
-
-  ```conf
-  /var/log/planetgen/*.log {
-      daily
-      maxsize 100M
-      rotate 30
-      missingok
-      notifempty
-      compress
-      delaycompress
-      dateext
-      su www-data www-data
-      create 0640 www-data www-data
-  }
-  ```
-
-  Sample for macOS, `/etc/newsyslog.d/planetgen.conf` (newsyslog runs
-  every hour by itself; `$D0` rotates at midnight, the size column in
-  KB rotates sooner past 100 MB, `J` compresses with bzip2, `N` means no
-  process to signal):
-
-  ```conf
-  # logfilename                              [owner:group]  mode count size(KB) when flags
-  /Library/Logs/planetgen/planetgen.log      _www:_www      640  30    102400   $D0  JN
-  ```
-
-  On Windows there is no system rotation to configure; the app's own
-  rotation above keeps `logs\planetgen.log` and up to 30 numbered
-  copies under the install's root folder.
-
-  Open questions: is the Linux location `/var/log/planetgen/` (a
-  directory, so the web user can own it) acceptable, or should it stay
-  the single file `/var/log/planetgen.log` the debug log uses? Default:
-  the directory. Does it also go to syslog or the Windows Event Log?
-  Default: no, file only. How long rotated logs are kept? Default: 30
-  days.
-
-  - [x] **SEC.20 Log every failed and locked login with its address**
-    Done (PR #217), failure audit rows kept 90 days (the default below).
-
-    Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
-
-    Today nothing records a failed or locked login: `admin_audit_log` only
-    gets admin actions (`authz.py` calls `adminAuth.record_audit`), and a
-    wrong password on the web `/login` form answers 200 with an error
-    message (`web/admin_pages.py`, `login`), so Apache's access log can't
-    tell it from a page view. Done: every failed login, every lock (per
-    username today, per address with SEC.1) and every wrong current
-    password (SEC.23) writes one log line with the time, client address
-    (`request.remote_addr`) and username, and a row in `admin_audit_log`
-    (`login.failed`, `login.locked`; the username as typed, capped in
-    length; never the password); the `/login` form answers 401 for a wrong
-    password and 429 for a lock; the admin stats page shows recent
-    failures. The log line's format is fixed and documented, so SEC.27's
-    fail2ban filter can match it. The log line goes to SEC.28's always-on
-    log (settled by Boss's request of 2026-10-01), not the debug log.
-    Open question: how long audit rows for failures are kept (a flood of
-    failures shouldn't grow the table without bound)? Default: prune
-    after 90 days.
-
-- [x] **SEC.1 Lock out an IP address after failed logins**
-  Done (PR #220): `stellarObjects/loginThrottle.py` and
-  `html/api/loginguard.py`, table `login_throttle` (control schema v2).
-  Defaults taken: both limits kept; IPv6 counted by its /64; loopback
-  and the new `login_allowlist` setting never locked; lockouts listed
-  and lifted on Admin › Stats and with `src/loginLockouts.py`. Until
-  `update.sh` creates the table, counting falls back to memory.
-
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 2)
-
-  Boss: "3 failed
-  login attempts triggers the script refusing to allow that IP address
-  to login again for an increasing amount of time (Starts at 5 minutes,
-  doubles every time for a max of 1 day). This should get integrated
-  into the control database." This is separate from the per-username
-  backoff already shipped (`src/html/api/loginbackoff.py`: 10 free
-  failures per username, then 1 s doubling to 15 min, kept in memory
-  per worker). Done: a table in the control database
-  (`control_schema.sql`, alongside `admin_users`/`admin_sessions`)
-  recording failures and lockouts per client IP (`request.remote_addr`,
-  which already honors the `proxy_fix` setting); after 3 failures that
-  IP gets 429 + `Retry-After` for 5 minutes, doubling on each further
-  lockout up to 1 day; checked before the password, shared by all
-  workers, kept across restarts, and logged as SEC.20 describes. The
-  research adds these safeguards (default taken; Boss can change them):
-  - `127.0.0.1`, `::1` and addresses in a new config allowlist are never
-    locked, so the server's own admin can always get in.
-  - When the site sits behind a proxy whose address isn't unwrapped
-    (`proxy_fix` unset), every visitor shares one address and a lockout
-    would block everyone for up to a day. If most logins come from one
-    private or loopback address, the app warns at start-up and on the
-    admin stats page.
-  - A successful login clears that address's failure count; its
-    doubling level decays (halves after a day with no lockout) rather
-    than resetting, so one right guess doesn't wipe it.
-  - An admin page and a command-line tool list current lockouts and
-    lift one.
-  - Covers every place a password is checked: `/login`, the API login,
-    change-credentials (SEC.23), and later user logins, password resets
-    and invite links (USR.4, USR.5) and the second step of SEC.26.
-
-  Open questions: do both limits stay (per IP and per username)?
-  Default: yes, see SEC.21. IPv6: lock the single address or its /64
-  (one machine often holds a whole /64)? Default: the /64.
-
-  - [x] **SEC.21 Keep the per-username backoff in the control database too**
-    Done (PR #220): same `login_throttle` table, scope `user`.
-    Today `loginbackoff.py` keeps its counts in memory, so a restart
-    clears every lock and each worker process counts separately (the
-    deployment guides run one process today, so this only bites with
-    more). Done: the per-username counts and locks live in SEC.1's
-    table (or a sibling), shared by every worker and kept across
-    restarts, with the same numbers (10 free failures, 1 s doubling to
-    15 min) and the same rule that unknown usernames are counted like
-    real ones; `LOGIN_BACKOFF_ENABLED` still turns it off for tests.
-
-  - [x] **SEC.22 A trusted-device cookie so lockouts can't shut out the real admin**
-    Done (PR #221): `pg_admin_device` cookie, table `admin_devices`
-    (control schema v3). Defaults taken: 90 days; skips only the
-    per-username lock, not the per-address one; `src/loginLockouts.py
-    --forget-devices <user>` revokes them.
-
-    Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 4)
-
-    Anyone who knows an admin's username can keep it locked by failing
-    on purpose (15 minutes at a time today). OWASP's answer is a device
-    cookie. Done: a successful login sets a long-lived, signed device
-    cookie for that account (only its hash stored in the control
-    database); a login from a browser holding a valid device cookie for
-    that username skips the per-username lock (SEC.21), while the
-    per-address lockout (SEC.1) and the per-IP rate limit still apply;
-    changing credentials, or an admin action, revokes the account's
-    device cookies. Open questions: how long a device cookie lasts
-    (default 90 days); whether a device cookie also skips SEC.1's
-    per-address lock (default: no).
-
-- [x] **SEC.23 (bug) Wrong current passwords on `/account` aren't counted**
-  Done (PR #221).
-  `POST /api/auth/change-credentials` re-checks the current password,
-  but a wrong one isn't counted by the login backoff, and the web
-  `/account` form only falls under the shared page limit (300 a minute;
-  in-process API calls skip the API's default limits, `api/limiter.py`).
-  Someone holding a stolen session cookie can guess the password there
-  quickly. Done: a wrong current password counts as a failed login for
-  that username (SEC.21) and address (SEC.1), is refused while either is
-  locked, is logged (SEC.20), and the route gets the same explicit
-  per-IP limit as login (`auth.LOGIN_RATE_LIMIT`). Can ship before SEC.1
-  using the in-memory backoff.
-
-- [x] **SEC.24 Refuse common and breached passwords**
-  Done (PR #221). Defaults taken: minimum 12; offline only; about
-  47,000 passwords of 12+ characters from SecLists (MIT): xato-net top
-  1,000,000 and NCSC top 100,000. Also refused: the username or
-  "planetgen", "password", "admin" with fewer than 8 other characters.
-
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 2 and 3 (step 6)
-
-  Today a password only has to be 12 characters and differ from the
-  username (`adminAuth.MIN_PASSWORD_LENGTH`). NIST SP 800-63B-4 asks for
-  a check against breached, common and expected passwords. Done: setting
-  a password (change-credentials, the installer's first password, and
-  later USR.5's reset) refuses one on a bundled offline list of common
-  and breached passwords, plus a few site words ("planetgen", the
-  username), with a message saying why; no composition rules are added.
-  Open questions: minimum length 12 or NIST's 15 for a password used
-  alone? Default: 12 until SEC.26 exists. Offline list only, or also Have
-  I Been Pwned's k-anonymity API? Default: offline only. Which list and
-  its license (for example the top 100,000 of a public corpus)?
-
-- [x] **SEC.25 Check the password hashing cost and re-hash on login**
-  Done (PR #221). Default taken: werkzeug's built-ins, now PBKDF2-SHA256
-  at 600,000 rounds (about 175 ms, next to no memory) instead of scrypt
-  N = 2^17 (128 MiB per check); older hashes are re-hashed at login.
-
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 7)
-
-  Passwords use werkzeug's default (scrypt N = 2^15, r = 8, p = 1 in
-  werkzeug 3.1.9); OWASP suggests scrypt N = 2^17, argon2id, or
-  PBKDF2-SHA256 at 600,000 rounds. Done: time a hash on a modest server;
-  if well under about 250 ms, pick stronger settings in one place in
-  `adminAuth.py` (minding memory: scrypt N = 2^17 needs 128 MiB per
-  login, times the five worker threads); a successful login re-hashes a
-  stored hash made with older settings. Open question: is a new
-  dependency (argon2-cffi) acceptable, or stay with werkzeug's built-ins?
-  Default: werkzeug's built-ins.
-
-- [x] **SEC.26 Two-factor sign-in (TOTP) for admins**
-  Done (PR #221): `stellarObjects/totp.py`, tables `admin_totp` and
-  `admin_recovery_codes` (control schema v4). Defaults taken: optional
-  per admin; only the command line resets another admin's
-  (`src/loginLockouts.py --reset-two-factor <user>`); a trusted device
-  does not skip the code.
-
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 8)
-
-  The strongest single defense against a guessed or leaked password.
-  Done: an admin can turn on a time-based one-time code (any
-  authenticator app; QR code on the account page), gets single-use
-  recovery codes (stored hashed), and then signs in with password plus
-  code; the code step is throttled and logged like the password step;
-  API keys are unaffected. Open questions: optional or required for
-  admins (default: optional now, required for the Owner once USR.2
-  exists)? Can an admin reset another admin's second factor, or only the
-  command line? Is "remember this device for 30 days" (tied to SEC.22's
-  cookie) allowed?
-
-- [x] **SEC.27 A fail2ban filter and jail for login brute force**
-  Done (PR #221): `examples/fail2ban/`, guide in
-  `docs/deployment/fail2ban.md` (the filter also matches `totp.failed`;
-  the jail is named `planetgen`).
-
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 9)
-
-  Boss (2026-10-01): "generate a fail-to-ban filter example and jail
-  example to help prevent logins or brute-force attack logins." Done:
-  `docs/deployment/` gets an optional Linux section with the filter and
-  jail below (adjusted to SEC.28's final line format), how to install
-  them (`/etc/fail2ban/filter.d/planetgen.conf`,
-  `/etc/fail2ban/jail.d/planetgen.local`), test the filter
-  (`fail2ban-regex /var/log/planetgen/planetgen.log planetgen`), and
-  check or lift a ban (`fail2ban-client status planetgen-login`,
-  `fail2ban-client set planetgen-login unbanip <address>`); and a short
-  note on Apache-level options (mod_evasive, mod_security) and why
-  they're optional. Nothing is installed by `install.sh`. Waits on
-  SEC.28 and SEC.20 (the lines it matches). The proxy caveat from SEC.1
-  applies: behind a reverse proxy, the log must carry the real client
-  address (`proxy_fix`), or fail2ban would ban the proxy.
-
-  Example filter, `/etc/fail2ban/filter.d/planetgen.conf`:
-
-  ```ini
-  # Matches SEC.28's always-on log lines, for example:
-  # 2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
-  [Definition]
-  # Failed passwords, locked usernames and wrong current passwords on
-  # /account. The address comes before any user-supplied text, so a
-  # crafted username can't steer the match.
-  failregex = ^\s*planetgen\[\d+\]: AUTH (?:login\.failed|login\.locked|password\.failed) ip=<HOST>(?:\s|$)
-  ignoreregex =
-
-  [Init]
-  # ISO 8601 UTC at the start of each line; fail2ban cuts the date off
-  # before applying failregex, hence the ^\s* above.
-  datepattern = {^LN-BEG}%%Y-%%m-%%dT%%H:%%M:%%SZ
-  ```
-
-  Example jail, `/etc/fail2ban/jail.d/planetgen.local`:
-
-  ```ini
-  [planetgen-login]
-  enabled  = true
-  filter   = planetgen
-  logpath  = /var/log/planetgen/planetgen.log
-  port     = http,https
-  backend  = auto
-  # 5 failures within 10 minutes bans the address for 1 hour; repeat
-  # offenders get longer bans, up to 1 week.
-  maxretry = 5
-  findtime = 10m
-  bantime  = 1h
-  bantime.increment = true
-  bantime.factor    = 2
-  bantime.maxtime   = 1w
-  # Never ban the server itself or the admin's own addresses (match
-  # SEC.1's allowlist).
-  ignoreip = 127.0.0.1/8 ::1
-  ```
-
-  An optional second jail can watch authorization failures (SEC.28's
-  `AUTHZ` lines: bad API keys, refused admin routes) with a higher
-  `maxretry` (for example 20 in 10 minutes), since browsers hit those by
-  accident more often than a login form.
 
 ## USR: User accounts
 
