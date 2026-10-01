@@ -180,7 +180,10 @@ with `clamp()`.
   `static/mapzoom.js`), so "-" has nowhere to go. The Galaxy Map has no
   +/- buttons, and the Sector Map's buttons work. TEST.55 (every map button
   changes the view) and TEST.56 (no overlapping controls at 390 to
-  1280 px) pin this item.
+  1280 px) shipped in PR #307: the nebula "-" no-op is pinned by a
+  strict xfail in `test_web_browser_maps.py` (fix it and drop the
+  xfail), and the overlap check found no overlapping controls on the
+  pages as they were then.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -1063,36 +1066,6 @@ clears each one.
   coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
 
 ### Web, API and jobs
-
-### Browser and JavaScript
-
-- [ ] **TEST.55 Map buttons do something**
-  Playwright clicks every map control (Sector Map, System Map,
-  phenomenon diagram, Galaxy Map) and asserts the view changes. Found
-  while planning: on the phenomenon diagram, any nebula or remnant about
-  half a light-year across or larger opens already at the 1 ly zoom-out
-  limit (`phenomenonmap.py` lines 53 and 127), so "-" does nothing; this
-  test pins the UX cleanup item. [MAP, UX]
-
-- [ ] **TEST.56 No overlapping controls**
-  Playwright compares the bounding boxes of every button and control on
-  every page at 390, 600, 820 and 1280 px, both themes; no two
-  intersect, none off-screen. [UX]
-
-- [ ] **TEST.57 Galaxy Map JavaScript logic**
-  Node tests for `galaxystageview.js` (zoom, pan and tilt clamps) and
-  `galaxymap3d.js` (`sectorDesignation` BigInt packing, address form,
-  history, control handlers); neither has any test today. [MAP]
-
-- [ ] **TEST.58 Other map JavaScript**
-  Node tests for `mapzoom.js` (`zoomedBox` and its clamp),
-  `sectormap.js` and `systemmap.js` zoom and selection logic,
-  `generatejobs.js` polling, `facilityform.js`. [MAP]
-
-- [ ] **TEST.59 Galaxy Map drill-down in a browser**
-  Playwright walks quarter, layer, arc, block and sector by clicks,
-  checks the URL and breadcrumb at each step, Back/Forward, and the free
-  camera from an arc down. [MAP]
 
 ### Scripts and ops
 
