@@ -295,6 +295,14 @@ def format_density(edge_ly, system_count):
     return text
 
 
+def inside_text(row):
+    """`"Inside <name>"` for a system or phenomenon that sits in a nebula
+    or supernova remnant (`queryDb.containing_cloud`, schema v39), else
+    `None`."""
+    inside = row.get("inside")
+    return f"Inside {inside['name']}" if inside else None
+
+
 def runaway_text(system):
     """`"Runaway star, 84 km/s"` / `"Hypervelocity star, 720 km/s"` for a
     system flagged fast (`star_systems.runaway_class`, schema v37), else

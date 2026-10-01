@@ -114,7 +114,9 @@ connectivity to that specific schema rather than the default one.
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
   `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
-  `runaway_speed_kms`, `wikijs_url`/`mediawiki_url`
+  `runaway_speed_kms`, `inside` (`{type, id, name, class}` of the nebula
+  or supernova remnant the system sits in, or `null`),
+  `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,

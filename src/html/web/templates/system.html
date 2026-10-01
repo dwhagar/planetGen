@@ -10,6 +10,7 @@
 <div class="page-subhead">
   <p class="badges">
     {%- for badge in badges %}<span class="badge">{{ badge }}</span>{% endfor -%}
+    {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
   {%- if nav_links %}
   <p class="page-actions">

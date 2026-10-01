@@ -2572,7 +2572,10 @@ BRIGHT_STAR_MIN_LUMINOSITY_SOL = 500.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `generate.py plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
-around it. Boss, 2026-09-30. The value a scatter used is stored in
-`galaxy_shape.bright_star_min_luminosity_sol`, and filling reads that, not
-this, so retuning it can't make a fill double-count or skip stars. See
+around it. Boss, 2026-09-30; kept at 500 on 2026-10-01 rather than 100,
+which would add ~35 GB. `--bright-star-min-luminosity` lowers it (down to
+the brightest white dwarf, `WD_LUMINOSITY_RANGE_SOL`'s top, 100). The value a
+scatter used is stored in `galaxy_shape.bright_star_min_luminosity_sol`, and
+filling reads that, not this, so retuning it can't make a fill
+double-count or skip stars. See
 /mnt/project-files/galaxy-studies/bright-star-preplacement-plan.md."""
