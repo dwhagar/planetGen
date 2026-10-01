@@ -482,12 +482,12 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, scatter, galaxy = _work_steps(job)
+    reset, plan, galaxy = _work_steps(job)
     assert reset["argv"][1] == jobs.RESET_SCRIPT and _argv(reset) == ["--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
-    assert scatter["label"] == generate_page.SCATTER_LABEL
-    assert _argv(scatter) == ["plan", "--bright-stars-only"]
-    assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0"]
+    # GEN.30: the scatter comes after the sectors, inside the galaxy step.
+    assert galaxy["label"] == generate_page.NEW_GALAXY_SCATTER_LABEL
+    assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0", "--then-scatter"]
 
 
 # --- Bright-star scatter ----------------------------------------------------------
@@ -507,15 +507,14 @@ def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     (job,) = no_spawn
     labels = [step["label"] for step in _work_steps(job)]
     assert generate_page.SCATTER_LABEL not in labels
+    assert all("--then-scatter" not in step["argv"] for step in job["steps"])
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[-1] == "--no-bright-stars"
 
 
 @pytest.mark.parametrize("form, argv", [
     ({}, ["plan", "--bright-stars-only"]),
-    ({"bright_force": "1"}, ["plan", "--bright-stars-only", "--force"]),
-    ({"bright_min_luminosity": "2500", "bright_force": "1"},
-     ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2500", "--force"]),
+    ({"bright_min_luminosity": "2500"}, ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2500"]),
 ])
 def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _post(client, action="bright_stars", **form).status_code == 303
@@ -552,13 +551,17 @@ def test_scatter_flags_exist_in_generate_py():
     assert args.bright_stars_only is True and args.force is True
     assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
     assert plan.parse_args(["--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
+    galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "2000",
+                                           "--backfill-from", "all"])
+    assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 2000.0
+    assert galaxy.backfill_from == "all"
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert html.count('name="skip_bright_stars"') == 2  # New galaxy and Plan
     assert "Skip the bright-star scatter" in html
-    assert 'name="bright_force"' in html
+    assert 'name="bright_force"' not in html  # GEN.30: filled sectors are always left out
 
 
 # --- GEN.30: the galaxy-wide threshold field -----------------------------------------
@@ -577,12 +580,39 @@ def test_backfill_text_follows_the_tiers():
         "and 750 out to 100 ly")
 
 
-@pytest.mark.parametrize("action", ["plan", "new_galaxy"])
-def test_scatter_uses_the_threshold_field(site, client, no_spawn, action):
-    assert _post(client, action=action, confirm=DB, bright_min_luminosity="2000").status_code == 303
+def test_scatter_uses_the_threshold_field(site, client, no_spawn):
+    assert _post(client, action="plan", bright_min_luminosity="2000").status_code == 303
     (job,) = no_spawn
     scatter = next(step for step in job["steps"] if step["label"] == generate_page.SCATTER_LABEL)
     assert _argv(scatter) == ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2000"]
+
+
+def test_new_galaxy_scatters_after_its_sectors_at_the_threshold(site, client, no_spawn):
+    assert _post(client, action="new_galaxy", confirm=DB, bright_min_luminosity="2000").status_code == 303
+    (job,) = no_spawn
+    galaxy = _work_steps(job)[-1]
+    assert _argv(galaxy) == ["galaxy", "--then-scatter", "--bright-star-min-luminosity", "2000"]
+
+
+@pytest.mark.parametrize("action", ["galaxy", "new_galaxy"])
+def test_backfill_from_every_generated_sector_is_a_checkbox(site, client, no_spawn, action):
+    assert _post(client, action=action, confirm=DB, estimate_ok="1", backfill_all="1").status_code == 303
+    (job,) = no_spawn
+    galaxy = _work_steps(job)[-1]
+    argv = _argv(galaxy)
+    assert argv[argv.index("--backfill-from") + 1] == "all"
+
+
+def test_backfill_defaults_to_the_requested_sector(site, client, no_spawn):
+    assert _post(client, action="galaxy", estimate_ok="1").status_code == 303
+    (job,) = no_spawn
+    assert "--backfill-from" not in _argv(_work_steps(job)[-1])
+
+
+def test_page_offers_the_backfill_checkbox(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert html.count('name="backfill_all"') == 2  # New galaxy and Generate sectors
+    assert "Backfill from every generated sector (farthest out)" in html
 
 
 @pytest.mark.parametrize("value", ["0.5", "abc", "inf"])
