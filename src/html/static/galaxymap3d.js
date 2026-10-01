@@ -55,6 +55,7 @@ const {
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -204,9 +205,9 @@ function showCellInfo(cell) {
       addField(dl, "Slots in ring " + ring, slots.first + "–" + slots.last);
     });
     var total = blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape);
-    addField(dl, "Sectors", total.toLocaleString());
+    addField(dl, "Sectors", formatNumber(total));
     if (cell.filled != null) {
-      addField(dl, "Generated", cell.filled.toLocaleString() + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : ""));
+      addField(dl, "Generated", formatNumber(cell.filled) + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : ""));
     }
   }
   if (cell.density != null) {
@@ -272,10 +273,10 @@ function showBlockInfo(info, edgePc) {
     addField(dl, "Slots in ring " + ring, slots.first + "–" + slots.last);
   });
   if (info.total != null) {
-    addField(dl, "Sectors", info.total.toLocaleString());
+    addField(dl, "Sectors", formatNumber(info.total));
   }
   if (info.generated != null) {
-    addField(dl, "Generated", info.generated.toLocaleString()
+    addField(dl, "Generated", formatNumber(info.generated)
       + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : ""));
   }
   var coords = cellCoordinates(b);
@@ -382,15 +383,12 @@ function starColor(temperatureK) {
   return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
 }
 
-// "12,300 L☉", "1.2 million L☉", "0.0031 L☉".
+// "9,300 L☉", "1.23 × 10⁴ L☉" (UX.20), "0.0031 L☉".
 function formatLuminosity(sol) {
-  if (sol >= 1e6) {
-    return (sol / 1e6).toFixed(sol >= 1e7 ? 0 : 1) + " million L☉";
-  }
   if (sol < 100) {
     return Number(sol.toPrecision(2)).toLocaleString("en-US", { maximumSignificantDigits: 2 }) + " L☉";
   }
-  return Math.round(sol).toLocaleString("en-US") + " L☉";
+  return formatNumber(sol) + " L☉";
 }
 
 function systemUrl(id) {
@@ -413,9 +411,9 @@ function showStarInfo(star) {
   var dl = document.createElement("dl");
   addField(dl, "Type", [star.star_type, star.yerkes_class].filter(Boolean).join(" "));
   addField(dl, "Luminosity", formatLuminosity(star.luminosity_sol));
-  addField(dl, "Temperature", Math.round(star.temperature_k).toLocaleString("en-US") + " K");
+  addField(dl, "Temperature", formatNumber(star.temperature_k) + " K");
   if (star.radius_sol != null) {
-    addField(dl, "Radius", Number(star.radius_sol.toPrecision(2)).toLocaleString("en-US") + " R☉");
+    addField(dl, "Radius", formatNumber(Number(star.radius_sol.toPrecision(2)), 6, 0) + " R☉");
   }
   addField(dl, "Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z)));
   addField(dl, "Sector", sectorDesignation(star.ring_index, star.layer_index, star.ring_slot_index));
@@ -1863,7 +1861,7 @@ function initGalaxyMap3d(canvasEl, data) {
       name.textContent = polity.name + (polity.government ? " · " + polity.government : "");
       var count = document.createElement("span");
       count.className = "galaxy-territory-count";
-      count.textContent = (polity.system_count || 0).toLocaleString()
+      count.textContent = formatNumber(polity.system_count || 0)
         + (polity.system_count === 1 ? " system" : " systems");
       item.appendChild(swatch);
       item.appendChild(name);
@@ -2157,7 +2155,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // Up to 3 significant figures, grouped: 0.0512, 3.4, 1,280.
   function formatCount(value) {
     if (!(value > 0)) return "0";
-    if (value >= 100) return Math.round(value).toLocaleString();
+    if (value >= 100) return formatNumber(value);
     return String(Number(value.toPrecision(value >= 1 ? 3 : 2)));
   }
 

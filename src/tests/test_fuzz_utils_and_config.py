@@ -142,8 +142,10 @@ def test_format_age_string_non_finite_does_not_raise(age):
 def test_format_length_km_never_raises_on_finite_values(value, threshold, digits, sci, markdown):
     out = utils.format_length_km(_config(markdown), value, threshold, digits, sci)
     assert out.endswith(" km")
-    if value <= threshold:
+    if value <= threshold and "\u00d7" not in out:
         assert float(out[:-3].replace(",", "")) == round(value, digits)
+    if value <= threshold and abs(round(value, digits)) >= 1e4:
+        assert "\u00d7 10" in out  # UX.20: 5+ whole digits go scientific
 
 
 @given(value=normal_float.filter(lambda v: v != 0), markdown=st.booleans(), low=st.integers(0, 8))
@@ -185,7 +187,7 @@ def _parse_time_string(text):
     return parts
 
 
-@given(years=st.floats(min_value=0, max_value=1e9))
+@given(years=st.floats(min_value=0, max_value=9999.99))
 def test_years_to_time_string_decomposes_exactly(years):
     text = utils.years_to_time_string(years)
     parts = _parse_time_string(text)
@@ -193,6 +195,12 @@ def test_years_to_time_string_decomposes_exactly(years):
     rebuilt = round(parts["year"] * _MINUTES_PER_YEAR) + parts["day"] * 1440 + parts["hour"] * 60 + parts["minute"]
     assert rebuilt == total, (years, text)
     assert parts["day"] <= 365 and parts["hour"] < 24 and parts["minute"] < 60
+
+
+@given(years=st.floats(min_value=1e4, max_value=1e12))
+def test_years_to_time_string_goes_scientific_past_four_digits(years):
+    assert utils.years_to_time_string(years).endswith(" years")
+    assert "\u00d7 10" in utils.years_to_time_string(years)
 
 
 @given(years=st.floats(min_value=-1e9, max_value=0))

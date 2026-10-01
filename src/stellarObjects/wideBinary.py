@@ -39,7 +39,7 @@ from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
+from .utils import (circular_orbital_speed_kms, format_distance_au, format_number, format_distance_km,
                     holman_wiegert_critical_semimajor_axis,
                     minimum_update_interval_years, orbital_position_au,
                     properties_to_string, sample_wide_binary_eccentricity,
@@ -258,7 +258,7 @@ class WideBinaryPair:
             f"to {format_distance_au(self.apoapsis_au)} at apoapsis"
         )
         mutual_orbit_string = (
-            f"{self.speed_kms:,.2f} km/s "
+            f"{format_number(self.speed_kms, ',.2f')} km/s "
             f"({years_to_time_string(self.period_years)} per orbit)"
         )
         primary_offset_km = math.sqrt(

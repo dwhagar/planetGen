@@ -13,7 +13,7 @@ redraws the same parts from /admin/generate/status. -#}
     {%- if job.progress_total %} value="{{ job.progress_completed or 0 }}"{% elif job.finished %} value="1"{% endif %}
     aria-labelledby="job-progress-text"></progress>
   <span id="job-progress-text" data-job-progress-text>
-    {%- if job.progress_description %}{{ job.progress_description }}: {{ "{:,}".format(job.progress_completed|int) }}{% if job.progress_total %} of {{ "{:,}".format(job.progress_total|int) }}{% endif %}{% endif -%}
+    {%- if job.progress_description %}{{ job.progress_description }}: {{ num(job.progress_completed|int) }}{% if job.progress_total %} of {{ num(job.progress_total|int) }}{% endif %}{% endif -%}
   </span>
   <span class="hint" data-job-elapsed>{{ job.elapsed_text }}</span>
 </p>

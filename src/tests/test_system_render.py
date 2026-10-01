@@ -202,18 +202,19 @@ def test_parity_check_sorts_differences():
 
 def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mysql_config):
     # The disk temperature is a float; loading it back must not truncate
-    # it (3,676,064.7 K renders as "3,676,065 K", not "3,676,064 K").
+    # it (9,064.7 K renders as "9,065 K", not "9,064 K"; kept under 5
+    # digits so it isn't shown in scientific notation, UX.20).
     cfg = SystemConfig()
     black_hole = BlackHole(cfg)
     black_hole.has_accretion_disk = True
-    black_hole.temperature = 3676064.7
+    black_hole.temperature = 9064.7
     system = StarSystem(system_config=cfg, compact_remnant=black_hole)
     system_id = _db.save_phenomenon(system, cfg, "black-hole", config=mysql_config)
     conn = _db.get_connection(mysql_config)
     try:
         for fmt in ("wikitext", "markdown"):
             text = render_system_text(conn, system_id, fmt)
-            assert "3,676,065 K" in text
+            assert "9,065 K" in text
             assert text == render_star_system(system, fmt)
     finally:
         conn.close()

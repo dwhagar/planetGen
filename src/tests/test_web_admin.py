@@ -647,15 +647,15 @@ def test_admin_stats_renders(client, fake):
 def test_admin_stats_counts_bright_stars(client, fake):
     _logged_in(client, fake)
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert re.search(r'<th scope="row">Bright stars</th><td>about 61,234 placed in all \(estimate\)</td>', html)
+    assert re.search(r'<th scope="row">Bright stars</th><td>about 6.12 × 10⁴ placed in all \(estimate\)</td>', html)
 
 
 def test_admin_stats_exact_bright_star_counts(client, fake):
     _logged_in(client, fake)
     fake.database_extra = {"bright_stars": {"placed": 61234, "filled": 1234, "unfilled": 60000}}
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert re.search(r'<th scope="row">Bright stars</th><td>61,234 placed: 1,234 built into systems, '
-                     r'60,000 waiting for their sectors</td>', html)
+    assert re.search(r'<th scope="row">Bright stars</th><td>6.12 × 10⁴ placed: 1,234 built into systems, '
+                     r'6.00 × 10⁴ waiting for their sectors</td>', html)
 
 
 @pytest.mark.parametrize("database, text", [

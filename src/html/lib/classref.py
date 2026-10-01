@@ -68,15 +68,15 @@ def number(value):
     """
     A number as readable plain text: thousands separators, at most three
     significant figures after the point, and "a × 10ⁿ" for anything at or
-    above a million or below a thousandth.
+    above ten thousand (UX.20: 5+ whole digits) or below a thousandth.
 
-    >>> number(150), number(0.08), number(2_000_000), number(1e-5)
-    ('150', '0.08', '2 × 10⁶', '1 × 10⁻⁵')
+    >>> number(150), number(0.08), number(20_000), number(1e-5)
+    ('150', '0.08', '2 × 10⁴', '1 × 10⁻⁵')
     """
     if value == 0:
         return "0"
     magnitude = abs(value)
-    if magnitude >= 1e6 or magnitude < 1e-3:
+    if magnitude >= 1e4 or magnitude < 1e-3:
         exponent = math.floor(math.log10(magnitude))
         mantissa = f"{value / 10 ** exponent:.2f}".rstrip("0").rstrip(".")
         if mantissa in ("10", "-10"):

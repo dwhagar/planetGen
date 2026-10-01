@@ -9,6 +9,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 
 const { LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 // The neighborhood dialog's radius in light years: the default, and the
 // bounds generationLimits allows (a sector's own edge up to
@@ -105,7 +106,7 @@ export function neighborhoodForm(target, ring, layer, slot, edgeLy) {
     radiusPc.value = lyToPc(ly).toFixed(3);
     reach.textContent = sectors == null
       ? "Reaches about " + Math.round(lyToPc(ly)) + " pc"
-      : "Up to about " + sectors.toLocaleString() + " sector" + (sectors === 1 ? "" : "s");
+      : "Up to about " + formatNumber(sectors) + " sector" + (sectors === 1 ? "" : "s");
   }
 
   input.addEventListener("input", update);
@@ -117,7 +118,7 @@ export function neighborhoodForm(target, ring, layer, slot, edgeLy) {
     var sectors = neighborhoodSectors(radiusLy(), edgeLy);
     if (sectors != null && sectors > NEIGHBORHOOD_CONFIRM_SECTORS
         && !window.confirm("A " + radiusLy() + " light year neighborhood covers up to about "
-          + sectors.toLocaleString() + " sectors, which can run for hours. Start it anyway?")) {
+          + formatNumber(sectors) + " sectors, which can run for hours. Start it anyway?")) {
       event.preventDefault();
     }
   });

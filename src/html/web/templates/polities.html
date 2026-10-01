@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% block subhead %}
 <p class="badges">
-  <span class="badge">{{ "{:,}".format(total) }} {{ "polity" if total == 1 else "polities" }}</span>
+  <span class="badge">{{ num(total) }} {{ "polity" if total == 1 else "polities" }}</span>
   {%- if territories %}<span class="badge"><a href="{{ page_url('galaxy') }}">Territories on the Galaxy Map</a></span>{% endif %}
 </p>
 {% endblock %}
@@ -21,7 +21,7 @@
         <td>{% if row.species_url %}<a href="{{ row.species_url }}">{{ row.species }}</a>{% else %}{{ row.species }}{% endif %}</td>
         <td>{{ row.government }}</td>
         <td>{% if row.capital_url %}<a href="{{ row.capital_url }}">{{ row.capital }}</a>{% else %}{{ row.capital }}{% endif %}</td>
-        <td>{{ "{:,}".format(row.systems) }}</td>
+        <td>{{ num(row.systems) }}</td>
         <td>{{ row.reach }}</td>
       </tr>
       {%- else %}

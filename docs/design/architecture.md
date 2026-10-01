@@ -339,6 +339,7 @@ the browser loads.
 | `generatejobs.js` | Live progress of the current Generate job (polls `/admin/generate/status`). |
 | `mapzoom.js`, `phenomenonmap.js` | Shared SVG viewBox zoom/pan, and its use on the phenomenon diagram. |
 | `distance.js` | The browser copy of the distance ladder (`utils.format_distance_m`). |
+| `numberformat.js` | The browser copy of `utils.format_number` (scientific notation past 4 whole digits). |
 | `localtime.js` | Rewrites UTC times into the viewer's time zone. |
 | `theme.js` | Light/dark/system theme switch and header menu closing. |
 | `copycode.js` | The system page's Copy button. |

@@ -18,6 +18,7 @@ has no Species section (`helpers.population_status`).
 from flask import abort, request
 
 import apiclient
+from fmt import format_number
 from pagination import fetch_page, parse_page
 
 from . import bp
@@ -38,7 +39,7 @@ def _label(value):
 
 
 def format_years(years):
-    """A civilization's age in words: `"about 340 years"`, `"about 12,000
+    """A civilization's age in words: `"about 340 years"`, `"about 1.20 × 10⁴
     years"`, `"about 3.4 million years"`; `""` when unknown."""
     if years is None:
         return ""
@@ -47,11 +48,11 @@ def format_years(years):
     if years >= 1e6:
         return f"about {years / 1e6:.1f} million years"
     rounded = round(years, -2) if years >= 1000 else round(years, -1)
-    return f"about {int(rounded):,} years"
+    return f"about {format_number(rounded)} years"
 
 
 def format_ly(value):
-    return f"{value:,.1f} ly" if value is not None else ""
+    return f"{format_number(value, ',.1f')} ly" if value is not None else ""
 
 
 def _require(kind):

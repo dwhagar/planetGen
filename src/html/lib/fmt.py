@@ -31,6 +31,7 @@ try:
         format_distance_km as _ladder_km,
         format_distance_ly as _ladder_ly,
         format_distance_pc as _ladder_pc,
+        format_number,
     )
 except ImportError:
     # Without the planetGen package there is no ladder; plain units still
@@ -46,6 +47,15 @@ except ImportError:
 
     def _ladder_pc(pc):
         return f"{pc:,.2f} pc"
+
+    def format_number(value, spec=",.0f"):
+        """`stellarObjects.utils.format_number`'s rule, without its module."""
+        text = format(value, spec)
+        if math.isfinite(value) and ("e" in text or len(text.lstrip("-+").split(".")[0].replace(",", "")) >= 5):
+            mantissa, exponent = f"{value:.2e}".split("e")
+            superscript = str.maketrans("-0123456789", "\u207b\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079")
+            return f"{mantissa} \u00d7 10{str(int(exponent)).translate(superscript)}"
+        return text
 
 
 def _read_package_version():
@@ -293,10 +303,10 @@ def format_density(edge_ly, system_count):
     density_ly3 = system_count / edge_ly / edge_ly / edge_ly
     if math.isinf(density_ly3):
         return "n/a"
-    text = f"{density_ly3:.5f} systems/ly&sup3;"
+    text = f"{format_number(density_ly3, '.5f')} systems/ly&sup3;"
     if LOCAL_STELLAR_DENSITY_LY3:
         relative_pct = (density_ly3 / LOCAL_STELLAR_DENSITY_LY3) * 100
-        text += f" ({relative_pct:,.0f}% of local average)"
+        text += f" ({format_number(relative_pct)}% of local average)"
     return text
 
 
@@ -317,4 +327,4 @@ def runaway_text(system):
         return None
     text = f"{kind.capitalize()} star"
     speed = system.get("runaway_speed_kms")
-    return f"{text}, {speed:,.0f} km/s" if speed is not None else text
+    return f"{text}, {format_number(speed)} km/s" if speed is not None else text

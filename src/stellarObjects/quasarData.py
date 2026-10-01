@@ -32,7 +32,7 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import format_distance_km, format_distance_ly, generate_phoneme_salad_name, reseed_rng
+from .utils import format_distance_km, format_distance_ly, format_number, generate_phoneme_salad_name, reseed_rng
 
 
 def _log_uniform(low, high):
@@ -173,13 +173,13 @@ class Quasar:
             f"{self.name} is the galaxy's active nucleus: a supermassive black hole of "
             f"{self.black_hole_mass_solar:.2e} solar masses, its event horizon "
             f"{format_distance_km(self.event_horizon_radius_km)} in radius, swallowing "
-            f"about {self.accretion_rate_solar_per_year:,.1f} solar masses of gas every year. Its accretion disk "
+            f"about {format_number(self.accretion_rate_solar_per_year, ',.1f')} solar masses of gas every year. Its accretion disk "
             f"radiates {self.luminosity_w:.2e} W ({self.eddington_ratio:.0%} of its Eddington limit), "
-            f"roughly {self.galaxy_luminosity_multiple:,.0f} times the combined light of every star in a "
+            f"roughly {format_number(self.galaxy_luminosity_multiple, ',.0f')} times the combined light of every star in a "
             f"galaxy like the Milky Way. Gas in its broad-line region, about "
-            f"{self.broad_line_region_light_days:,.0f} light-days out, orbits fast enough to smear its "
+            f"{format_number(self.broad_line_region_light_days, ',.0f')} light-days out, orbits fast enough to smear its "
             f"emission lines thousands of kilometers per second wide. This phase of activity began roughly "
-            f"{self.active_age_years:,.0f} years ago."
+            f"{format_number(self.active_age_years, ',.0f')} years ago."
         )
 
         paragraphs = [header, description]

@@ -58,7 +58,7 @@ import colorsys
 import json
 import math
 
-from fmt import esc, format_distance_ly
+from fmt import esc, format_distance_ly, format_number
 
 try:
     from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -523,7 +523,7 @@ def _neighbor_indicator_data(link_url, neighbor):
     if bright:
         data["brightStarCount"] = len(bright)
         data["brightStars"] = [
-            f'{star["star_type"]}, {star["luminosity_sol"]:,.0f} L\u2609' for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
+            f'{star["star_type"]}, {format_number(star["luminosity_sol"])} L\u2609' for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
         ]
     return data
 

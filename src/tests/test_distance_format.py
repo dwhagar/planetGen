@@ -31,8 +31,9 @@ CASES = [
     (0.0, "0 km"),
     (500.0, "0.5 km"),
     (12_000.0, "12 km"),
-    (384_400e3, "384,400 km"),
-    (pc.AU_M * 0.999, "149,448,273 km"),
+    (9_999e3, "9,999 km"),
+    (384_400e3, "3.84 × 10⁵ km"),
+    (pc.AU_M * 0.999, "1.49 × 10⁸ km"),
     (pc.AU_M, "1 AU"),
     (pc.AU_M * 5.2, "5.2 AU"),
     (pc.MILLIPARSEC_M * 0.999, "206 AU"),
@@ -45,9 +46,9 @@ CASES = [
     (pc.LIGHTYEAR_M * 2.5, "2.5 ly"),
     (pc.PARSEC_M, "1 pc (3.26 ly)"),
     (pc.PARSEC_M * 4.2, "4.2 pc (13.7 ly)"),
-    (pc.KILOPARSEC_M * 8, "8 kpc (26,093 ly)"),
-    (pc.MEGAPARSEC_M * 1.5, "1.5 Mpc (4,892,346 ly)"),
-    (pc.GIGAPARSEC_M * 2, "2 Gpc (6,523,127,554 ly)"),
+    (pc.KILOPARSEC_M * 8, "8 kpc (2.61 × 10⁴ ly)"),
+    (pc.MEGAPARSEC_M * 1.5, "1.5 Mpc (4.89 × 10⁶ ly)"),
+    (pc.GIGAPARSEC_M * 2, "2 Gpc (6.52 × 10⁹ ly)"),
 ]
 
 
@@ -67,7 +68,7 @@ def test_parsec_parenthetical_switches_from_ly_to_au_at_a_hundredth_ly():
 def test_parenthetical_switches_from_au_to_km_at_a_hundredth_au():
     # No parsec value is this small, so the rule is checked on its own.
     assert distance_parenthetical(pc.AU_M * 0.01) == "0.01 AU"
-    assert distance_parenthetical(pc.AU_M * 0.0099) == "1,481,019 km"
+    assert distance_parenthetical(pc.AU_M * 0.0099) == "1.48 × 10⁶ km"
 
 
 def test_unit_wrappers_agree():

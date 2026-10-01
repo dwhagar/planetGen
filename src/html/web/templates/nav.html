@@ -80,7 +80,7 @@
     <thead><tr><th scope="col">Warp Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
     <tbody>
       {%- for leg in warp_times %}
-      <tr><td>Warp {{ leg.warp_factor }}</td><td>{{ "{:,.1f}".format(leg.velocity_multiple_of_c) }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+      <tr><td>Warp {{ leg.warp_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
@@ -89,7 +89,7 @@
     <thead><tr><th scope="col">Fold Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
     <tbody>
       {%- for leg in fold_times %}
-      <tr><td>Fold {{ leg.fold_factor }}</td><td>{{ "{:,.1f}".format(leg.velocity_multiple_of_c) }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+      <tr><td>Fold {{ leg.fold_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>

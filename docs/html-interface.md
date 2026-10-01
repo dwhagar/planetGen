@@ -78,6 +78,7 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/static/phenomenonrender.js` | Draws `lib/phenomenonrender.py`'s "View" panel with three.js. Served directly, same as `style.css`. |
 | `../src/html/static/generatejobs.js` | Keeps the Generate page's "Current job" panel live by polling `/admin/generate/status`. Served directly, same as `style.css`. |
 | `../src/html/static/distance.js` | The maps' distance formatter, the browser mirror of `stellarObjects.utils.format_distance_m` (km, AU, mpc, ly, pc and up). Served directly, same as `style.css`. |
+| `../src/html/static/numberformat.js` | The browser mirror of `stellarObjects.utils.format_number`: numbers with 5 or more digits before the decimal point show as scientific notation ("1.23 × 10⁶"). Templates use the same rule through the `num()` global. |
 | `../src/html/static/localtime.js` | Rewrites every server-rendered UTC `<time data-local-time>` in the viewer's own time zone. Without script the times stay readable, labelled UTC. Served directly, same as `style.css`. |
 
 **Why the maps use three.js.** The Sector, System and Galaxy Maps all

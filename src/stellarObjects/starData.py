@@ -27,7 +27,7 @@ from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .stellarEvolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
-from .utils import (format_age_string, calculate_galactic_orbit,
+from .utils import (format_age_string, format_number, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
                     format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, get_star_evolutionary_profile,
@@ -893,7 +893,7 @@ class Star:
             "type": self.type,
             "radius": radius_string,
             "mass": mass_string,
-            "temp": f"{self.temperature} K",
+            "temp": f"{format_number(self.temperature)} K",
             "lum": lum_string,
             "hab": f"Between {format_distance_au(self.habitable_zone[0])} and {format_distance_au(self.habitable_zone[1])}",
             "orbit": orbit_string,

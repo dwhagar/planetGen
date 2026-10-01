@@ -192,6 +192,49 @@ DISTANCE_PAREN_MIN_LY = 0.01
 DISTANCE_PAREN_MIN_AU = 0.01
 
 
+SCIENTIFIC_MIN_INTEGER_DIGITS = 5
+"""int: A number shown with this many digits before the decimal point or
+more is shown in scientific notation instead (UX.20, Boss 2026-10-01:
+"anything over 4 digits to the left of the decimal point")."""
+
+SCIENTIFIC_SIGNIFICANT_FIGURES = 3
+"""int: Significant figures in `scientific_text`'s mantissa."""
+
+_SUPERSCRIPT_DIGITS = str.maketrans("-0123456789", "\u207b\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079")
+
+
+def scientific_text(value, significant=SCIENTIFIC_SIGNIFICANT_FIGURES):
+    """
+    `value` in scientific notation as plain text with Unicode superscripts,
+    "1.23 × 10⁶", which reads right in HTML, in a `data-*` attribute read
+    back with `.textContent`, in Markdown and in wikitext alike.
+    """
+    mantissa, exponent = f"{value:.{significant - 1}e}".split("e")
+    return f"{mantissa} \u00d7 10{str(int(exponent)).translate(_SUPERSCRIPT_DIGITS)}"
+
+
+def format_number(value, spec=",.0f"):
+    """
+    The site's one number formatter (UX.20): `value` formatted with `spec`
+    (a `format()` spec, default whole and comma-grouped), unless that shows
+    `SCIENTIFIC_MIN_INTEGER_DIGITS` or more digits before the decimal point,
+    when it is `scientific_text(value)` instead. Counts and measurements
+    alike go through it; IDs, years in dates, designations, page numbers
+    and coordinates don't. `static/numberformat.js` mirrors it.
+
+    Returns:
+        str: e.g. "9,999", "1.5", "1.23 × 10⁴". NaN and infinities are
+             formatted as-is.
+    """
+    text = format(value, spec)
+    if not math.isfinite(value):
+        return text
+    whole = text.lstrip("-+").split(".")[0].replace(",", "")
+    if "e" in text or len(whole) >= SCIENTIFIC_MIN_INTEGER_DIGITS:
+        return scientific_text(value)
+    return text
+
+
 def _three_figures(value):
     """`value` to three significant figures, comma-grouped, trailing zeros
     dropped: 4.2, 13.7, 0.499, 495, 12,300."""
@@ -200,6 +243,8 @@ def _three_figures(value):
     magnitude = math.floor(math.log10(abs(value)))
     decimals = max(0, 2 - magnitude)
     text = f"{round(value, decimals):,.{decimals}f}"
+    if len(text.lstrip("-").split(".")[0].replace(",", "")) >= SCIENTIFIC_MIN_INTEGER_DIGITS:
+        return scientific_text(value)
     if "." in text:
         text = text.rstrip("0").rstrip(".")
     return text
@@ -208,7 +253,7 @@ def _three_figures(value):
 def _format_in_unit(meters, label, unit_m):
     if label == "km" and abs(meters) >= 1e6:
         # Whole kilometers read better than three figures ("384,400 km").
-        return f"{round(meters / unit_m):,} km"
+        return f"{format_number(round(meters / unit_m))} km"
     return f"{_three_figures(meters / unit_m)} {label}"
 
 
@@ -325,7 +370,7 @@ def format_length_km(system_config: SystemConfig, value_km, threshold, round_dig
         str: The formatted length string, including the " km" unit.
     """
     if value_km <= threshold:
-        return f"{round(value_km, round_digits):,} km"
+        return f"{format_number(round(value_km, round_digits), ',')} km"
     precision = scientific_precision if scientific_precision is not None else round_digits
     return f"{to_scientific_notation(system_config, value_km, precision)} km"
 
@@ -357,7 +402,7 @@ def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, uni
     elif sol_val < program_constants.PERCENT_SOL_THRESHOLD_HIGH:
         return f"{sci_notation} {unit} ({sol_val * program_constants.PERCENT_MULTIPLIER:.1f}% of Sol)"
     else:
-        return f"{sci_notation} {unit} ({sol_val:.1f}× Sol)"
+        return f"{sci_notation} {unit} ({format_number(sol_val, ',.1f')}× Sol)"
 
 
 def ly_to_milliparsecs(ly):
@@ -561,6 +606,9 @@ def years_to_time_string(years):
     # years back out with a plain 365-day divisor (an earlier bug) leaked
     # that quarter-day/year discrepancy into "days" instead, e.g.
     # years_to_time_string(1.0) wrongly returned "1 year and 6 hours".
+    if years >= 10 ** (SCIENTIFIC_MIN_INTEGER_DIGITS - 1):
+        # 5+ digits of years: scientific notation, and days are noise.
+        return f"{scientific_text(years)} years"
     minutes_per_year = 365.25 * 24 * 60
     total_minutes = round(years * minutes_per_year)
     years = int(total_minutes // minutes_per_year)
@@ -1121,7 +1169,7 @@ def format_galactic_orbit(speed_kms, period_gy):
     Returns:
         str: e.g. `"205.7 km/s (236.26 Million Years per orbit)"`.
     """
-    return f"{speed_kms:,.1f} km/s ({format_age_string(period_gy)} per orbit)"
+    return f"{format_number(speed_kms, ',.1f')} km/s ({format_age_string(period_gy)} per orbit)"
 
 
 @finite_domain()

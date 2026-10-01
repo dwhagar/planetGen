@@ -22,7 +22,7 @@ from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
+from .utils import (finite_domain, format_age_string, format_number, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
                     format_distance_au, format_distance_km, format_galactic_orbit, format_relative_to_sol,
                     minimum_update_interval_years, orbital_position_au,
@@ -353,7 +353,7 @@ class BinaryStarProxy(Star):
 
         orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
         mutual_orbit_string = (
-            f"{self.binary_mutual_orbital_speed_kms:,.2f} km/s "
+            f"{format_number(self.binary_mutual_orbital_speed_kms, ',.2f')} km/s "
             f"({years_to_time_string(self.binary_mutual_orbital_period_years)} per orbit)"
         )
 
