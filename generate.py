@@ -77,8 +77,9 @@ from collections import Counter
 
 import pymysql
 from rich.progress import (
-    BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn, TimeRemainingColumn,
+    BarColumn, MofNCompleteColumn, Progress, ProgressColumn, TextColumn, TimeElapsedColumn,
 )
+from rich.text import Text
 
 # stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
 # import path so this keeps working without requiring `pip install .` first.
@@ -86,6 +87,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src
 
 from stellarObjects import (
     _db, activitylog, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
+    progressRate, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -118,32 +120,81 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 class _ReportingProgress(Progress):
-    """`rich.progress.Progress` that also mirrors its most recently
-    changed task to `stellarObjects.progressFile` (a no-op unless the web
-    interface started this run)."""
-
-    def _report(self, task_id, force=False):
-        task = self._tasks.get(task_id)
-        if task is not None:
-            progressFile.report(task.completed, task.total, task.description, force=force)
+    """
+    `rich.progress.Progress` that keeps a `progressRate.DecayingRate` per
+    task (the rate behind `_DecayingRemainingColumn`'s ETA, PERF.7) and
+    mirrors its most recently changed task, with that rate and ETA, to
+    `stellarObjects.progressFile` (a no-op unless the web interface
+    started this run).
+    """
 
     def add_task(self, description, *args, **kwargs):
-        task_id = super().add_task(description, *args, **kwargs)
+        task_id = super().add_task(description, *args, rate=progressRate.DecayingRate(), **kwargs)
         self._report(task_id, force=True)
         return task_id
 
+    def _rate(self, task_id):
+        task = self._tasks.get(task_id)
+        return task.fields.get("rate") if task is not None else None
+
+    def _report(self, task_id, force=False):
+        task = self._tasks.get(task_id)
+        if task is None:
+            return
+        rate = task.fields.get("rate")
+        remaining = None if task.total is None else task.total - task.completed
+        progressFile.report(task.completed, task.total, task.description, force=force,
+                            rate=rate.rate if rate is not None else None,
+                            eta_s=rate.eta(remaining) if rate is not None else None)
+
     def update(self, task_id, **kwargs):
+        before = self._completed(task_id)
         super().update(task_id, **kwargs)
+        self._record(task_id, before)
         self._report(task_id, force=kwargs.get("total") is not None)
 
     def advance(self, task_id, advance=1):
+        before = self._completed(task_id)
         super().advance(task_id, advance)
+        self._record(task_id, before)
         self._report(task_id)
+
+    def _completed(self, task_id):
+        task = self._tasks.get(task_id)
+        return task.completed if task is not None else 0
+
+    def _record(self, task_id, before):
+        rate = self._rate(task_id)
+        if rate is not None:
+            rate.add(self._completed(task_id) - before)
 
     def stop(self):
         for task_id in list(self._tasks):
             self._report(task_id, force=True)
         super().stop()
+
+
+class _DecayingRemainingColumn(ProgressColumn):
+    """
+    Time left for a task at its decaying-average rate (PERF.7,
+    `progressRate.DecayingRate`), rather than rich's own estimate from
+    its last few updates, which jumps about when many workers finish
+    together. Blank until the first unit is done; 0:00:00 once finished.
+    """
+
+    max_refresh = 0.5
+
+    def render(self, task):
+        rate = task.fields.get("rate")
+        remaining = None if task.total is None else task.total - task.completed
+        seconds = rate.eta(remaining) if rate is not None else None
+        if task.finished:
+            seconds = 0
+        if seconds is None:
+            return Text("-:--:--", style="progress.remaining")
+        hours, rest = divmod(int(round(seconds)), 3600)
+        minutes, secs = divmod(rest, 60)
+        return Text(f"{hours}:{minutes:02d}:{secs:02d}", style="progress.remaining")
 
 
 def _generation_progress():
@@ -163,10 +214,12 @@ def _generation_progress():
     again within a single frame for nearly every sector was pure noise,
     not something worth reviving alongside this one.
 
-    Every task shows both elapsed time and an estimated time remaining
-    (`TimeElapsedColumn`/`TimeRemainingColumn`) -- the remaining estimate
-    only becomes accurate once a task has advanced enough for rich's own
-    rate estimate to settle, same as any ETA.
+    Every task shows both elapsed time and an estimated time remaining,
+    for as long as it runs (`TimeElapsedColumn`/`_DecayingRemainingColumn`)
+    -- the estimate comes from a decaying average of units finished per
+    second (`progressRate.DecayingRate`, a 60 s time constant), counted
+    in the bar's own unit (sectors, or layers of bright stars), so it
+    stays steady while several workers report at once.
 
     Callers use this as a context manager (`with _generation_progress() as
     progress:`); `rich.progress.Progress` is a `Live` display under the
@@ -203,7 +256,7 @@ def _generation_progress():
         TextColumn("[dim]elapsed"),
         TimeElapsedColumn(),
         TextColumn("[dim]remaining"),
-        TimeRemainingColumn(),
+        _DecayingRemainingColumn(),
     )
 
 
@@ -704,6 +757,11 @@ def add_shared_generation_options(parser):
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
+    parser.add_argument('--workers', type=int, default=None,
+                        help="How many sectors to generate at once, each in its own low-priority worker "
+                             "process. Default: 80%% of this machine's cores (one fewer when MySQL runs "
+                             "here too), or PLANETGEN_WORKERS; 1 generates one sector at a time in this "
+                             "process.")
     parser.add_argument('--population', action='store_true',
                         help="Also run the population pass (species, civilizations, territories) "
                              "after the sectors are saved. Off by default; 'generate.py population' "
@@ -727,6 +785,8 @@ def validate_shared_generation_args(args, parser):
     """
     if args.density is not None and args.num_systems is not None:
         parser.error("--density cannot be combined with --num-systems.")
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
 
     if args.density is not None and args.density <= 0:
         parser.error("--density must be a positive number.")
@@ -1370,25 +1430,40 @@ def run_sector(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "sector"`).
     """
-    for _i in range(args.num_sectors):
-        _sector_name, sector = generate_sector(args)
-        systems = [entry.star_system for entry in sector.entries]
+    mysql_config = _db.mysql_config_from_args(args)
 
-        mysql_config = _db.mysql_config_from_args(args)
-        sector_id = _db.save_sector(sector, config=mysql_config)
-        _count_sector(sector)
-
-        phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
+    def saved(result, _seconds, _weight):
+        if queue.parallel:
+            RUN_COUNTS["sectors"] += 1
+            RUN_COUNTS["systems"] += result["systems"]
+            RUN_COUNTS["phenomena"] += result["phenomena"]
+        phenomena_note = f", {result['phenomena']} phenomena" if result["phenomena"] else ""
         log.normal(
-            f"Saved sector '{sector.name}' to the database (sector_id={sector_id}, "
-            f"{len(systems)} systems{phenomena_note}, "
+            f"Saved sector '{result['name']}' to the database (sector_id={result['sector_id']}, "
+            f"{result['systems']} systems{phenomena_note}, "
             f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
         )
-        log.normal(sector_generation_summary_lines(sector, args))
+        log.normal(result["summary"])
+
+    with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
+        for index in range(args.num_sectors):
+            queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
     run_population_after(args)
+
+
+def _unplaced_sector_task(args):
+    """One `sector` subcommand sector, generated and saved -- a work queue
+    task (see `_fill_sector_task`)."""
+    _sector_name, sector = generate_sector(args)
+    sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args))
+    _count_sector(sector)
+    return {
+        "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
+        "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, args),
+    }
 
 
 # ===========================================================================
@@ -1879,13 +1954,86 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
 
 
-def _log_saved(sector_id, sector_name, sector, sector_args, address, suffix=""):
+def _log_saved(saved, address, suffix=""):
     designation = provisional_sector_designation(*address)
     log.normal(
-        f"Saved sector '{sector_name}' [{designation}] at {_format_address(address)}{suffix} "
-        f"(sector_id={sector_id})."
+        f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)}{suffix} "
+        f"(sector_id={saved['sector_id']})."
     )
-    log.normal(sector_generation_summary_lines(sector, sector_args))
+    log.normal(saved["summary"])
+
+
+def _log_level(args):
+    """The console severity `main` configured from `--quiet`/`--debug`,
+    for the work queue's workers."""
+    if getattr(args, "quiet", False):
+        return log.SILENT
+    if getattr(args, "debug", None) is not None:
+        return log.DEBUG
+    return log.NORMAL
+
+
+def _work_queue(args, title):
+    """
+    The `workQueue.WorkQueue` a run hands its sectors to (PERF.8):
+    `--workers` (or `PLANETGEN_WORKERS`) worker processes, by default 80%
+    of the cores less one when MySQL runs on this machine, with the
+    control database's lease so only one run's workers use the machine
+    at a time. One worker generates every sector right here, in order.
+    """
+    mysql_config = _db.mysql_config_from_args(args)
+    workers = workQueue.worker_count(getattr(args, "workers", None), mysql_config.host)
+    log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
+    return workQueue.WorkQueue(
+        title, workers=workers,
+        control_config=_db.control_mysql_config(mysql_config) if workers > 1 else None,
+        log_level=_log_level(args), debug_file=getattr(args, "debug", None) or None,
+    )
+
+
+def _settle_total(progress, task_id):
+    """Ends a bar whose `--limit` stopped the run early at what was done,
+    so it shows finished rather than stuck part way."""
+    task = next((t for t in progress.tasks if t.id == task_id), None)
+    if task is not None and task.total is not None and task.completed < task.total:
+        progress.update(task_id, total=task.completed)
+
+
+def _fill_sector_task(payload):
+    """
+    One galaxy sector, start to finish -- a work queue task (PERF.8): runs
+    in a worker process (or in this one, with one worker), generates the
+    sector in its grid cell and saves it in one transaction, and returns
+    what the run reports for it.
+
+    Returns:
+        dict: `sector_id`, `name` (as saved), `systems`, `phenomena` and
+            `summary` (`sector_generation_summary_lines`).
+    """
+    sector_args = payload["args"]
+    sector_id, sector_name, sector = generate_and_save_sector_at(
+        sector_args, payload["address"], payload["position_pc"], payload["edge_pc"],
+    )
+    return {
+        "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
+        "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, sector_args),
+    }
+
+
+def _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=""):
+    """Queues one galaxy sector (`_fill_sector_task`); when it's saved,
+    advances `task` and logs it."""
+    def saved(result, _seconds, _weight):
+        if queue.parallel:
+            # A worker's own RUN_COUNTS die with it; the run's are here.
+            RUN_COUNTS["sectors"] += 1
+            RUN_COUNTS["systems"] += result["systems"]
+            RUN_COUNTS["phenomena"] += result["phenomena"]
+        progress.update(task, advance=1)
+        _log_saved(result, address, suffix=suffix)
+
+    payload = {"args": sector_args, "address": address, "position_pc": position_pc, "edge_pc": edge_pc}
+    queue.submit("sector", ",".join(str(part) for part in address), _fill_sector_task, payload, on_done=saved)
 
 
 def _require_inside(bounds, ring_index, layer_index, what):
@@ -1947,28 +2095,28 @@ def run_ring_batch(args, edge_pc, progress):
 
     generated = 0
     skipped = 0
-    for slot_index in range(total_slots):
-        if args.limit is not None and generated >= args.limit:
-            break
-        address = (ring_index, layer_index, slot_index)
-        if address in occupied:
-            continue
+    with _work_queue(args, f"Sectors (ring {ring_index} layer {layer_index})") as queue:
+        for slot_index in range(total_slots):
+            if args.limit is not None and generated >= args.limit:
+                break
+            address = (ring_index, layer_index, slot_index)
+            if address in occupied:
+                continue
 
-        position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
-        if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside its layer's stored extent)")
-            skipped += 1
-            progress.update(outer_task, advance=1)
-            continue
+            position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
+            sector_args = batch_density.resolve(args, address, position_pc)
+            if sector_args is None:
+                log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
+                          f"outside its layer's stored extent)")
+                skipped += 1
+                progress.update(outer_task, advance=1)
+                continue
 
-        log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-        generated += 1
-        progress.update(outer_task, advance=1)
-        _log_saved(sector_id, sector_name, sector, sector_args, address)
+            log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
+            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, outer_task)
+            generated += 1
 
+    _settle_total(progress, outer_task)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in ring {ring_index} layer {layer_index} "
@@ -2061,26 +2209,25 @@ def run_local_neighborhood(args, edge_pc, progress):
     generated = 0
     skipped = 0
     already_existed = 0
-    for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
-        address = (ring_index, layer_index, slot_index)
-        if address in occupied:
-            already_existed += 1
-            continue
+    with _work_queue(args, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})") as queue:
+        for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
+            address = (ring_index, layer_index, slot_index)
+            if address in occupied:
+                already_existed += 1
+                continue
 
-        sector_args = batch_density.resolve(args, address, (x, y, z))
-        if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside its layer's stored extent)")
-            skipped += 1
-            progress.update(outer_task, advance=1)
-            continue
+            sector_args = batch_density.resolve(args, address, (x, y, z))
+            if sector_args is None:
+                log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
+                          f"outside its layer's stored extent)")
+                skipped += 1
+                progress.update(outer_task, advance=1)
+                continue
 
-        log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, (x, y, z), edge_pc)
-        generated += 1
-        progress.update(outer_task, advance=1)
-        _log_saved(sector_id, sector_name, sector, sector_args, address,
-                   suffix=f", {distance_pc:.2f} pc from sector_id={args.center_sector}")
+            log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
+            _submit_sector(queue, sector_args, address, (x, y, z), edge_pc, progress, outer_task,
+                           suffix=f", {distance_pc:.2f} pc from sector_id={args.center_sector}")
+            generated += 1
 
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
@@ -2327,19 +2474,20 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
     limit = getattr(args, "limit", None)
     task = progress.add_task(f"Sectors ({what})", total=len(pending))
     generated = skipped = 0
-    for address in pending:
-        if limit is not None and generated >= limit:
-            break
-        position_pc = sector_position_pc(*address, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
-        progress.update(task, advance=1)
-        if sector_args is None:
-            skipped += 1
-            continue
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-        generated += 1
-        _log_saved(sector_id, sector_name, sector, sector_args, address)
+    with _work_queue(args, f"Sectors ({what})") as queue:
+        for address in pending:
+            if limit is not None and generated >= limit:
+                break
+            position_pc = sector_position_pc(*address, edge_pc)
+            sector_args = batch_density.resolve(args, address, position_pc)
+            if sector_args is None:
+                skipped += 1
+                progress.update(task, advance=1)
+                continue
+            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task)
+            generated += 1
 
+    _settle_total(progress, task)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in {what} ({len(addresses)} total, "
@@ -2570,6 +2718,10 @@ def add_plan_arguments(parser):
                               help="Re-scatter the bright stars on the stored plan without rebuilding it.")
     bright_group.add_argument('--force', action='store_true',
                               help="Scatter even when sectors are already filled, leaving those sectors out.")
+    bright_group.add_argument('--workers', type=int, default=None,
+                              help="How many layers of bright stars to draw at once, each in its own "
+                                   "low-priority worker process. Default: 80%% of this machine's cores "
+                                   "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
     _db.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -2585,6 +2737,8 @@ def validate_plan_args(args, parser):
     """
     if args.arm_amplitude < 0 or args.arm_amplitude >= 1:
         parser.error("--arm-amplitude must be in [0, 1).")
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
     if args.max_ring < 1:
         parser.error("--max-ring must be a positive integer.")
     for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):
@@ -2730,24 +2884,30 @@ def scatter_bright_stars(args):
 
         counts = {population: 0 for population in brightStars.POPULATIONS}
         t0 = time.perf_counter()
+        # Densest layers (nearest the plane) first, so no worker is left
+        # with a big one at the end while the others sit idle.
+        layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
         with _generation_progress() as progress:
             log.set_console(progress.console)
             try:
                 task = progress.add_task("Bright stars (layers)", total=len(extents))
-                batch = []
-                for row in brightStars.scatter(
-                    skeleton.shape, extents, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
-                    min_luminosity_sol, seed, skip_addresses=filled,
-                    on_layer=lambda done, _total: progress.update(task, completed=done),
-                ):
-                    counts[row[6]] += 1
-                    batch.append(row)
-                    if len(batch) >= 10000:
-                        _db.insert_bright_stars(conn, batch)
-                        conn.commit()
-                        batch = []
-                if batch:
-                    _db.insert_bright_stars(conn, batch)
+
+                def layer_done(layer_counts, _seconds, _weight):
+                    for population, count in layer_counts.items():
+                        counts[population] += count
+                    progress.update(task, advance=1)
+
+                with _work_queue(args, "Bright stars (layers)") as queue:
+                    for layer_index, outer_ring in layers:
+                        payload = {
+                            "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                            "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
+                            "expected": skeleton.expected_system_count_at_density_1,
+                            "min_luminosity_sol": min_luminosity_sol, "seed": seed,
+                            "skip": {address for address in filled if address[1] == layer_index},
+                        }
+                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
+                                     on_done=layer_done)
                 _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
                 conn.commit()
             finally:
@@ -2762,6 +2922,37 @@ def scatter_bright_stars(args):
     )
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _scatter_layer_task(payload):
+    """
+    One layer of the bright-star scatter -- a work queue task (PERF.7):
+    draws the layer (`brightStars.scatter_layer`, its own random stream)
+    and writes its stars, committing every 10,000.
+
+    Returns:
+        dict: Stars written per population.
+    """
+    counts = {population: 0 for population in brightStars.POPULATIONS}
+    conn = _db.get_connection(payload["mysql_config"])
+    try:
+        batch = []
+        for row in brightStars.scatter_layer(
+            payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
+            payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+        ):
+            counts[row[6]] += 1
+            batch.append(row)
+            if len(batch) >= 10000:
+                _db.insert_bright_stars(conn, batch)
+                conn.commit()
+                batch = []
+        if batch:
+            _db.insert_bright_stars(conn, batch)
+        conn.commit()
+    finally:
+        conn.close()
+    return counts
 
 
 def run_plan(args):

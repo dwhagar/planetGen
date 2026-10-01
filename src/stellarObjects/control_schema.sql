@@ -196,3 +196,58 @@ CREATE TABLE IF NOT EXISTS admin_recovery_codes (
     UNIQUE (code_hash),
     KEY idx_admin_recovery_codes_admin_user_id (admin_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v5 (PERF.8): the generation work queue (`stellarObjects/workQueue.py`).
+-- `work_jobs` is one row per run that queued work (a `generate.py`
+-- galaxy, sector or plan run, from the command line or the Generate
+-- page); `work_tasks` is one row per unit it handed to the worker pool
+-- (a sector to fill, a layer of bright stars to scatter), with its
+-- timings and result; `work_lease` is the single row saying which run's
+-- pool is using the machine's CPUs right now. The run holding the lease
+-- refreshes `heartbeat_at` every few seconds and clears `holder` when it
+-- finishes; a lease or job whose heartbeat is older than 30 s belongs to
+-- a run that died, and the next run takes the lease over and marks that
+-- run's unfinished tasks `cancelled`. Old jobs and their tasks are
+-- deleted after a week.
+CREATE TABLE IF NOT EXISTS work_jobs (
+    id               VARCHAR(32) NOT NULL PRIMARY KEY,
+    title            VARCHAR(255) NOT NULL,
+    holder           VARCHAR(255) NOT NULL,   -- host:pid:token of the run
+    state            VARCHAR(16) NOT NULL,    -- waiting, running, done, failed, cancelled
+    workers          INT UNSIGNED NOT NULL,
+    tasks_queued     INT UNSIGNED NOT NULL DEFAULT 0,
+    tasks_done       INT UNSIGNED NOT NULL DEFAULT 0,
+    tasks_failed     INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at       DATETIME(6) NOT NULL,
+    started_at       DATETIME(6) NULL,
+    finished_at      DATETIME(6) NULL,
+    heartbeat_at     DATETIME(6) NOT NULL,
+
+    KEY idx_work_jobs_state (state),
+    KEY idx_work_jobs_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS work_tasks (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    job_id           VARCHAR(32) NOT NULL,
+    kind             VARCHAR(32) NOT NULL,    -- e.g. "sector"
+    task_key         VARCHAR(255) NOT NULL,   -- e.g. "12,0,345" (ring, layer, slot)
+    weight           DOUBLE NOT NULL DEFAULT 1,
+    state            VARCHAR(16) NOT NULL,    -- queued, running, done, failed, cancelled
+    created_at       DATETIME(6) NOT NULL,
+    started_at       DATETIME(6) NULL,
+    finished_at      DATETIME(6) NULL,
+    seconds          DOUBLE NULL,             -- time the worker spent on it
+    result           TEXT NULL,               -- short JSON summary
+    error            TEXT NULL,
+
+    CONSTRAINT fk_work_tasks_job FOREIGN KEY (job_id) REFERENCES work_jobs(id) ON DELETE CASCADE,
+    KEY idx_work_tasks_job_state (job_id, state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS work_lease (
+    id               TINYINT UNSIGNED NOT NULL PRIMARY KEY,   -- always 1
+    holder           VARCHAR(255) NULL,       -- NULL: free
+    job_id           VARCHAR(32) NULL,
+    heartbeat_at     DATETIME(6) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

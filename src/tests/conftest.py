@@ -42,6 +42,12 @@ from stellarObjects._db import MySQLConfig
 # PLANETGEN_LOG_DIR at their own tmp_path and call activitylog.reset().
 os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-test-logs-"))
 
+# Generation runs one sector at a time, in-process, unless a test asks for
+# workers itself (tests/test_work_queue.py): many tests patch generate.py's
+# functions, which a worker process would never see, and pytest-xdist
+# already uses the cores.
+os.environ.setdefault("PLANETGEN_WORKERS", "1")
+
 
 def _test_server_kwargs():
     """Connection kwargs (host/port/user/password -- no database) for the
