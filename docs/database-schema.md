@@ -492,6 +492,20 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Bright-star pre-placement (v43).** `bright_stars` holds every star at
+least `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
+placed galaxy-wide by `generate.py plan` before any sector is filled: its
+cell (`ring_index`, `layer_index`, `ring_slot_index`), galaxy-frame
+position in milliparsecs, population (young, intermediate, old or
+bulge), the finished star's properties (including `initial_mass_sol`,
+which a companion's mass is drawn from, and `phase_end_age_gy`) and a
+seed for its later system. Rows carry no name until their sector is
+filled, which builds a system around each and sets `star_system_id`
+(`ON DELETE SET NULL`). `galaxy_shape.bright_star_seed` and the threshold
+record the scatter; a fill reads them, not the constant. A plan re-run
+truncates the table (`_db.clear_bright_stars`). `_migrate_v42_to_v43`
+adds both, empty.
+
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,
 each on one host named by `host_type`: a star, planet, moon, asteroid belt,
 asteroid field, or open space in a sector (`sector_id` plus a galaxy-frame

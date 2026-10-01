@@ -213,6 +213,22 @@ the galaxy: an address outside it is refused with the reason, and a
 neighborhood near the edge simply leaves out the sectors past it.
 `generate.py galaxy` refuses to run until `generate.py plan` has been run.
 
+After the outline, `generate.py plan` also places every star of 500 solar
+luminosities or more across the whole galaxy, before any sector is
+filled (about 60 million in a Milky Way, roughly 20 minutes of drawing
+plus the database load). Each one is a finished star at a fixed point in
+its sector, stored in `bright_stars`, so the Galaxy Map can show the
+bright stars tracing the spiral arms right away. Filling a sector later
+builds a full system around each of its bright stars first, then draws
+the rest of its systems from dimmer stars only, so its expected total is
+unchanged. Every system's age comes from the stellar population mix where
+its sector sits (young stars crowd the arms near the plane; the bulge is
+old). `--bright-star-min-luminosity` changes the threshold,
+`--no-bright-stars` skips the step, and `--bright-stars-only` re-scatters
+on the stored outline. The scatter refuses a galaxy whose sectors are
+already filled (they would never get their bright stars) unless `--force`
+is given, which leaves those sectors out.
+
 ## Exotic Phenomena Generation
 
 `generate.py phenomenon` generates a single exotic stellar phenomenon on demand,
