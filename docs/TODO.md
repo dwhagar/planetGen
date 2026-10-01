@@ -803,25 +803,25 @@ clears each one.
 ### Infrastructure and CI
 
 - [ ] **TEST.1 Test category and suite markers**
-  add TEST to `test_todo_tags.py`; register `db`, `slow`, `browser`
+  Add TEST to `test_todo_tags.py`; register `db`, `slow`, `browser`
   markers in `pytest.ini` so fast/no-DB, DB and browser runs can be
   picked separately. [infra]
 
 - [ ] **TEST.2 Parallel test runs**
-  add pytest-xdist, give each worker its own control database name
+  Add pytest-xdist, give each worker its own control database name
   (today `configured_control_database()` defaults to one fixed name),
   and a session-scoped template schema so each test doesn't rebuild
   `schema.sql` from scratch; goal: the 17-22 minute suite well under 10.
   [infra]
 
 - [ ] **TEST.3 MariaDB in CI**
-  add MariaDB 10.11 and 11.x legs (and MySQL 8.4) to `ci.yml`; today CI
+  Add MariaDB 10.11 and 11.x legs (and MySQL 8.4) to `ci.yml`; today CI
   is MySQL 8.0 only, so the engine-specific paths in `_db.py` (statement
   timeout via `max_statement_time`, the ALGORITHM fallbacks, the
   CTE-in-UPDATE workaround) only run on Boss's server. [infra, DB]
 
 - [ ] **TEST.4 Revive and widen the known-bug tests**
-  the "Real bugs (strict xfail)" block in
+  The "Real bugs (strict xfail)" block in
   `test_fuzz_system_generation.py` (about line 562) now passes on 5-200
   seeds; widen the seed counts and fix the stale docstring; promote the
   three Tier-2 "tracked-not-fixed" reports (NaN radius in the system
@@ -835,80 +835,80 @@ clears each one.
 ### Database and migrations
 
 - [ ] **TEST.6 SQL portability lint**
-  parse `schema.sql`, `control_schema.sql` and the SQL strings in
+  Parse `schema.sql`, `control_schema.sql` and the SQL strings in
   `_db.py`/`queryDb.py` against the reserved-word lists of MySQL 8.0,
   8.4 and MariaDB 10.x/11.x; flag deprecated `VALUES()` in ON DUPLICATE
   KEY. [DB]
 
 - [ ] **TEST.7 Strict sql_mode on both engines**
-  run the DB tests with `ONLY_FULL_GROUP_BY` and `STRICT_TRANS_TABLES`
+  Run the DB tests with `ONLY_FULL_GROUP_BY` and `STRICT_TRANS_TABLES`
   forced on (MySQL 8's default, not MariaDB's), so a GROUP BY or
   truncation that MariaDB forgives fails locally too. [DB]
 
 - [ ] **TEST.8 Migrate from real old schemas**
-  checked-in historic schema dumps (for example v8, v20, v33, v44) each
+  Checked-in historic schema dumps (for example v8, v20, v33, v44) each
   migrated to the latest and compared with a fresh `schema.sql` database
   (tables, columns, types, indexes, FKs). Steps with no test today:
   14-15, 15-16, 18-19, 22-23, 23-24, 24-25, 25-26, 30-31, 43-44, 44-45.
   [DB]
 
 - [ ] **TEST.9 Migration crash and re-run**
-  fail at step N (DDL has already auto-committed), re-run, and get a
+  Fail at step N (DDL has already auto-committed), re-run, and get a
   correct database; every step idempotent when applied twice; empty or
   gapped `schema_migrations`. [DB]
 
 - [ ] **TEST.10 Database newer than the code**
-  a galaxy or control database with a version above the code's is
+  A galaxy or control database with a version above the code's is
   refused with a clear message (suspected bug: `migrateDb.py` says "no
   migration path available yet" and the app uses it anyway). [DB]
 
 - [ ] **TEST.11 Every column round-trips**
-  walk `INFORMATION_SCHEMA.COLUMNS` and prove each column is written by
+  Walk `INFORMATION_SCHEMA.COLUMNS` and prove each column is written by
   an insert and read back by a loader, so a new column left NULL or
   never loaded fails. [DB]
 
 - [ ] **TEST.12 Boundary values round-trip**
-  float extremes, NaN/inf refused, DECIMAL precision, VARCHAR length
+  Float extremes, NaN/inf refused, DECIMAL precision, VARCHAR length
   limits under strict mode, 4-byte UTF-8 names, NULL tristates. [DB]
 
 - [ ] **TEST.13 Collation collisions**
-  names equal under `utf8mb4_unicode_ci` but not byte-equal (case,
+  Names equal under `utf8mb4_unicode_ci` but not byte-equal (case,
   accents) against the unique name registries; a database created with
   the server's default collation joined to pinned tables (error 1267).
   [DB]
 
 - [ ] **TEST.14 CHECK constraints enforced**
-  each CHECK in the schema rejects a bad row on both engines. [DB]
+  Each CHECK in the schema rejects a bad row on both engines. [DB]
 
 - [ ] **TEST.15 Sector save fails halfway**
-  inject an error after the systems are written and before phenomena or
+  Inject an error after the systems are written and before phenomena or
   neighbours; nothing persists, no orphan rows, no stale name
   reservations or `GET_LOCK`; retry exhaustion at
   `SECTOR_SAVE_ATTEMPTS`; lock-wait timeout (1205). [DB]
 
 - [ ] **TEST.16 Id blocks after reset and rollback**
-  id block cache across `resetDb`, a manual insert, two processes
+  Id block cache across `resetDb`, a manual insert, two processes
   exhausting blocks; no duplicate primary key. [DB]
 
 - [ ] **TEST.17 Batched writes at the limits**
-  multi-row inserts near `max_allowed_packet`; FK ordering for
+  Multi-row inserts near `max_allowed_packet`; FK ordering for
   self-referencing tables. [DB]
 
 - [ ] **TEST.18 Full-text search edge cases**
-  names with `+ - " * '`, words shorter than `innodb_ft_min_token_size`,
+  Names with `+ - " * '`, words shorter than `innodb_ft_min_token_size`,
   stopwords that differ between engines, `%`, `_` and backslash in
   `/search` fields; results checked, not just "no 500". [DB, UX]
 
 ### Generation and the work queue
 
 - [ ] **TEST.19 Same galaxy at any worker count**
-  one seed generates identical sectors with `--workers 1`, 2 and N
+  One seed generates identical sectors with `--workers 1`, 2 and N
   (suspected bug: the one-worker path in `workQueue.submit` never calls
   `random.seed(task_seed(...))`; the parallel path does, and the only
   test compares 2 with 3). [GEN, PERF]
 
 - [ ] **TEST.20 Work queue failure paths**
-  a worker dies (BrokenProcessPool), `on_done` raises, a payload won't
+  A worker dies (BrokenProcessPool), `on_done` raises, a payload won't
   pickle, a result isn't JSON, two tasks share a key, heartbeat fails,
   the control database drops mid-run, lease expiry under clock skew.
   [PERF]
@@ -923,7 +923,7 @@ clears each one.
   that no sector is filled twice. [PERF, GEN]
 
 - [ ] **TEST.23 Resume after an interrupted fill**
-  stop a ring, shell or block run partway, run it again, and get the
+  Stop a ring, shell or block run partway, run it again, and get the
   same result as one uninterrupted run with no duplicates. [GEN]
 
 - [ ] **TEST.24 Bright-star scatter edge cases**
@@ -932,12 +932,12 @@ clears each one.
   extents, a threshold below every white dwarf. [GEN, PERF]
 
 - [ ] **TEST.25 Interrupted bright-star scatter**
-  a worker fails mid-scatter after some 10,000-row commits (the seed is
+  A worker fails mid-scatter after some 10,000-row commits (the seed is
   written only at the end); a re-plan or later fill handles the partial
   table. [GEN, PERF]
 
 - [ ] **TEST.26 `--force` scatter then fill**
-  sectors skipped by a forced scatter fill correctly afterwards. [GEN]
+  Sectors skipped by a forced scatter fill correctly afterwards. [GEN]
 
 - [ ] **TEST.27 Progress and ETA under bad clocks**
   `DecayingRate` with time going backwards, NaN or infinite amounts,
@@ -945,7 +945,7 @@ clears each one.
   progress file. [PERF]
 
 - [ ] **TEST.28 CLI errors by message**
-  every `parser.error` in `generate.py` (block, column, shell,
+  Every `parser.error` in `generate.py` (block, column, shell,
   center-sector, limit, plan shape, workers, population, phenomenon,
   mysql-port) asserted by its text, and each limit tested at exactly its
   maximum (`MAX_GENERATE_RING`, `MAX_GENERATE_LIMIT`, first and last
@@ -956,7 +956,7 @@ clears each one.
   whatever `DEFAULT_MAX_RING` is. [GEN]
 
 - [ ] **TEST.30 Grid seams and the nucleus**
-  points at θ just under 2π and at -0.0 on the 4 pc grid; the outermost
+  Points at θ just under 2π and at -0.0 on the 4 pc grid; the outermost
   planned ring and layer against `galaxy_bounds`; the nucleus sector
   (ring 0, slot 0) across layers 0 and -1. [GEN]
 
@@ -965,7 +965,7 @@ clears each one.
   the cell boundary, `nearest_neighbors` with a bad count. [GEN]
 
 - [ ] **TEST.32 System builder internals**
-  direct tests for `generate_slot_object`,
+  Direct tests for `generate_slot_object`,
   `calculate_distance_for_class`, `_forced_habitable_distance`,
   `_trim_to_orbit_ceiling`, `_reconcile_moved_planet`,
   `_clear_circumbinary_floor` and the `from_dict` error; these are what
@@ -976,7 +976,7 @@ clears each one.
   and the "no valid planet class" errors, tested directly. [GEN]
 
 - [ ] **TEST.34 Kepler solver extremes**
-  eccentricity above 0.99, negative mean anomaly and above 2π,
+  Eccentricity above 0.99, negative mean anomaly and above 2π,
   non-convergence detected rather than silently returned,
   `_real_cube_root` at 0 and negative. [GEN]
 
@@ -986,12 +986,12 @@ clears each one.
   their raise messages. [GEN]
 
 - [ ] **TEST.36 Phenomenon class helpers**
-  direct tests for nebula, remnant, black hole, rogue planet, comet and
+  Direct tests for nebula, remnant, black hole, rogue planet, comet and
   asteroid-field class and designation helpers, and every
   `get_table_properties`. [GEN]
 
 - [ ] **TEST.37 Names under parallel saves**
-  two workers saving systems and sectors with the same base name at
+  Two workers saving systems and sectors with the same base name at
   once; the diminutive tier filling under parallel saves; the species
   name race and "could not find a free species name". [GEN, DB]
 
@@ -1001,47 +1001,47 @@ clears each one.
   [POP]
 
 - [ ] **TEST.39 Navigation graph**
-  k-d tree neighbours checked against brute force, duplicate
+  K-d tree neighbours checked against brute force, duplicate
   coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
 
 ### Web, API and jobs
 
 - [ ] **TEST.40 Two admins start a job at once**
-  exactly one job runs (suspected bug: `_take_lock` creates an empty
+  Exactly one job runs (suspected bug: `_take_lock` creates an empty
   lock before writing the job id, so a second caller can read it as
   stale, delete it and start its own job). [ADM]
 
 - [ ] **TEST.41 Job files damaged**
-  corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
+  Corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
   holding garbage; job id collision; unwritable jobs directory; prune
   never removes the running job; cancel with unknown, malformed or
   finished job ids. [ADM]
 
 - [ ] **TEST.42 Pages fresh after a CLI write**
-  after `generate.py` writes straight to the database, `/galaxy`,
+  After `generate.py` writes straight to the database, `/galaxy`,
   `/sector`, tiles and lists show the new data (only API writes are
   tested today). [UX, PERF]
 
 - [ ] **TEST.43 Auth sweep over every route**
-  generated from `app.url_map`: every API write route gives 401 to
+  Generated from `app.url_map`: every API write route gives 401 to
   anonymous, garbage Bearer and revoked keys; every admin route gives
   403 to an admin who must still change credentials. [SEC, API]
 
 - [ ] **TEST.44 What an API key may do**
-  whether a Bearer key can change credentials, set up or turn off TOTP,
+  Whether a Bearer key can change credentials, set up or turn off TOTP,
   make keys, or log out, pinned to the intended answer. [SEC, API]
 
 - [ ] **TEST.45 More than one admin**
-  admin B can't revoke admin A's key, lifting another admin's lockout is
+  Admin B can't revoke admin A's key, lifting another admin's lockout is
   audited, two admins editing the same system. [SEC, ADM]
 
 - [ ] **TEST.46 Trusted device and TOTP edge cases**
-  expired, tampered and other-user device cookies; turning TOTP off
+  Expired, tampered and other-user device cookies; turning TOTP off
   voids trust; a code reused across the API and `/login/code`; a pending
   login that expires. [SEC]
 
 - [ ] **TEST.47 Oversized requests**
-  multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
+  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
   the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
   today). [SEC]
 
@@ -1050,7 +1050,7 @@ clears each one.
   redirects, not only pages. [SEC]
 
 - [ ] **TEST.49 Thin API routes**
-  unknown ids, empty galaxy, paging limits and wrong-system ids for
+  Unknown ids, empty galaxy, paging limits and wrong-system ids for
   `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
   star/planet/moon PATCH, facilities POST/PATCH/DELETE,
   `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
@@ -1067,15 +1067,15 @@ clears each one.
   page-clamping sweep. [UX]
 
 - [ ] **TEST.52 Old URLs and error codes**
-  unknown `/<name>.py`, case variants, redirect chains; 400 for
+  Unknown `/<name>.py`, case variants, redirect chains; 400 for
   malformed form encoding; HEAD and OPTIONS on pages. [UX]
 
 - [ ] **TEST.53 Formatters with bad numbers**
-  every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
+  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
   and None; empty tables; huge values. [UX]
 
 - [ ] **TEST.54 Caches under threads**
-  page cache fill and clear from real threads; two writers to the same
+  Page cache fill and clear from real threads; two writers to the same
   tile file. [PERF]
 
 ### Browser and JavaScript
@@ -1094,12 +1094,12 @@ clears each one.
   intersect, none off-screen. [UX]
 
 - [ ] **TEST.57 Galaxy Map JavaScript logic**
-  node tests for `galaxystageview.js` (zoom, pan and tilt clamps) and
+  Node tests for `galaxystageview.js` (zoom, pan and tilt clamps) and
   `galaxymap3d.js` (`sectorDesignation` BigInt packing, address form,
   history, control handlers); neither has any test today. [MAP]
 
 - [ ] **TEST.58 Other map JavaScript**
-  node tests for `mapzoom.js` (`zoomedBox` and its clamp),
+  Node tests for `mapzoom.js` (`zoomedBox` and its clamp),
   `sectormap.js` and `systemmap.js` zoom and selection logic,
   `generatejobs.js` polling, `facilityform.js`. [MAP]
 
@@ -1124,7 +1124,7 @@ clears each one.
   the script. [OPS, DB]
 
 - [ ] **TEST.62 update.sh against a real database**
-  a CI job runs `update.sh` (and `install.sh`'s database step) on Linux
+  A CI job runs `update.sh` (and `install.sh`'s database step) on Linux
   against a live database: up to date, needs migrating, newer than the
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
