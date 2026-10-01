@@ -79,7 +79,7 @@ CHANGELOG_TOP_RE = re.compile(r"^## \[(?P<version>[^\]]+)\]", re.M)
 # The TODO categories (docs/TODO.md's table) and the ID forms they use.
 TODO_CATEGORIES = (
     "UX", "MAP", "NAV", "GEN", "PERF", "DB", "API",
-    "ADM", "SEC", "USR", "OPS", "DOC", "VIEW", "POP",
+    "ADM", "SEC", "USR", "OPS", "DOC", "VIEW", "POP", "TEST",
 )
 NEXT_FREE_RE = re.compile(
     r"^\|\s*(?P<cat>[A-Z]+)\s*\|\s*(?P=cat)\.(?P<next>\d+)\s*\|\s*$", re.M)

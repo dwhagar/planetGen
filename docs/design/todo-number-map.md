@@ -13,15 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.21 |
+| UX | UX.23 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
-| GEN | GEN.25 |
+| GEN | GEN.27 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
 | ADM | ADM.10 |
 | SEC | SEC.29 |
+| TEST | TEST.63 |
 | USR | USR.8 |
 | OPS | OPS.5 |
 | DOC | DOC.4 |
@@ -303,7 +304,7 @@ Sorted by old number, then date.
 | 56 | 2026-09-30 23:48Z to 2026-10-01 02:41Z | GEN.22 | Pre-place bright stars at plan time | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | 56 | 2026-10-01 01:19Z to 04:37Z | UX.1 | Class reference pages | done in 7.46.0, PR #167 |
 | 57 | 2026-09-30 19:02Z to 20:27Z | GEN.19 | A binary's secondary outweighs its primary (bug) | done in 7.9.1, PR #123 |
-| 57 | 2026-10-01 01:15Z to 05:29Z | ADM.5 | Central validate module | open |
+| 57 | 2026-10-01 01:15Z to 05:29Z | ADM.5 | Central validate module | done, PR #235 |
 | 58 | 2026-09-30 19:02Z to 20:27Z | GEN.20 | Sector growth ignores black holes and neutron stars (bug) | done in 7.6.1, PR #116 |
 | 58 | 2026-10-01 01:15Z to 05:29Z | ADM.6 | Override a planet's or moon's class | open |
 | 59 | 2026-09-30 19:02Z to 19:17Z | POP.1 | Government ownership of systems | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
@@ -392,7 +393,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.2 | Generate a column and a shell | 23 (2026-09-30 18:14Z to 2026-10-01 00:34Z) | done in 7.27.0, PR #143 |
 | ADM.3 | Generate buttons on unfilled sectors (Sector Map, Galaxy Map) | 24 (2026-09-30 18:14Z to 2026-10-01 01:58Z) | done in 7.27.0 (PR #143) and 7.34.0 (PR #151) |
 | ADM.4 | Collapsible Generate page sections; pick the center sector | none | open |
-| ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | open |
+| ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | done, PR #235 |
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | open |
@@ -427,6 +428,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | done (schema v47, PR #226) |
 | GEN.24 | Generate the galactic core on layer 0 | none | open |
+| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | open |
+| GEN.26 | Rogue planet surface conditions | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -563,6 +566,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
+| UX.21 | Clean up the web interface: overlapping buttons and dead controls | none | open |
+| UX.22 | Meaningful units for every measurement | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -654,6 +659,68 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.2.14.1 | SEC.17 |
 | SEC.2.14.2 | SEC.18 |
 | SEC.2.14.3 | SEC.19 |
+| TEST.1 | Test category and suite markers | none | open |
+| TEST.2 | Parallel test runs | none | open |
+| TEST.3 | MariaDB in CI | none | open |
+| TEST.4 | Revive and widen the known-bug tests | none | open |
+| TEST.5 | Real 4 pc in boundary tests | none | open |
+| TEST.6 | SQL portability lint | none | open |
+| TEST.7 | Strict sql_mode on both engines | none | open |
+| TEST.8 | Migrate from real old schemas | none | open |
+| TEST.9 | Migration crash and re-run | none | open |
+| TEST.10 | Database newer than the code | none | open |
+| TEST.11 | Every column round-trips | none | open |
+| TEST.12 | Boundary values round-trip | none | open |
+| TEST.13 | Collation collisions | none | open |
+| TEST.14 | CHECK constraints enforced | none | open |
+| TEST.15 | Sector save fails halfway | none | open |
+| TEST.16 | Id blocks after reset and rollback | none | open |
+| TEST.17 | Batched writes at the limits | none | open |
+| TEST.18 | Full-text search edge cases | none | open |
+| TEST.19 | Same galaxy at any worker count | none | open |
+| TEST.20 | Work queue failure paths | none | open |
+| TEST.21 | Cancelling a run | none | open |
+| TEST.22 | Every bulk mode in parallel | none | open |
+| TEST.23 | Resume after an interrupted fill | none | open |
+| TEST.24 | Bright-star scatter edge cases | none | open |
+| TEST.25 | Interrupted bright-star scatter | none | open |
+| TEST.26 | `--force` scatter then fill | none | open |
+| TEST.27 | Progress and ETA under bad clocks | none | open |
+| TEST.28 | CLI errors by message | none | open |
+| TEST.29 | Limits stay consistent | none | open |
+| TEST.30 | Grid seams and the nucleus | none | open |
+| TEST.31 | Sector placement exhaustion | none | open |
+| TEST.32 | System builder internals | none | open |
+| TEST.33 | Moon stability helpers | none | open |
+| TEST.34 | Kepler solver extremes | none | open |
+| TEST.35 | Star and evolution helpers | none | open |
+| TEST.36 | Phenomenon class helpers | none | open |
+| TEST.37 | Names under parallel saves | none | open |
+| TEST.38 | Population incremental rescans | none | open |
+| TEST.39 | Navigation graph | none | open |
+| TEST.40 | Two admins start a job at once | none | open |
+| TEST.41 | Job files damaged | none | open |
+| TEST.42 | Pages fresh after a CLI write | none | open |
+| TEST.43 | Auth sweep over every route | none | open |
+| TEST.44 | What an API key may do | none | open |
+| TEST.45 | More than one admin | none | open |
+| TEST.46 | Trusted device and TOTP edge cases | none | open |
+| TEST.47 | Oversized requests | none | open |
+| TEST.48 | Security headers everywhere | none | open |
+| TEST.49 | Thin API routes | none | open |
+| TEST.50 | Galaxy URLs combined | none | open |
+| TEST.51 | Page-number sweep gaps | none | open |
+| TEST.52 | Old URLs and error codes | none | open |
+| TEST.53 | Formatters with bad numbers | none | open |
+| TEST.54 | Caches under threads | none | open |
+| TEST.55 | Map buttons do something | none | open |
+| TEST.56 | No overlapping controls | none | open |
+| TEST.57 | Galaxy Map JavaScript logic | none | open |
+| TEST.58 | Other map JavaScript | none | open |
+| TEST.59 | Galaxy Map drill-down in a browser | none | open |
+| TEST.60 | Admin script command lines | none | open |
+| TEST.61 | SQLite import script | none | open |
+| TEST.62 | update.sh against a real database | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
