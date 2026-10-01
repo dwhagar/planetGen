@@ -41,8 +41,9 @@ import re
 import pymysql
 
 from stellarObjects._db import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
-                                mysql_config_from_args)
-from stellarObjects import program_constants
+                                mysql_config_from_args, surrounding_cloud)
+from stellarObjects import physical_constants, program_constants
+from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import (
     galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, sector_position_pc,
@@ -994,7 +995,7 @@ def colonized_body_ids(conn, system_id):
 def containing_cloud(conn, row):
     """
     The nebula or supernova remnant a row sits inside (schema v39), from
-    its `inside_nebula_id`/`inside_remnant_id`.
+    its `inside_nebula_id`/`inside_remnant_id`: `_db.surrounding_cloud`.
 
     Args:
         conn (Connection): An open connection.
@@ -1004,21 +1005,10 @@ def containing_cloud(conn, row):
 
     Returns:
         dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class"}`, or `None` in open space.
+            "name", "class", "density_cm3", "temperature_k"}`, or `None`
+            in open space.
     """
-    if row["inside_nebula_id"] is not None:
-        found = conn.execute("SELECT id, name, nebula_class AS class FROM nebulae WHERE id = ?",
-                             (row["inside_nebula_id"],)).fetchone()
-        kind = "nebula"
-    elif row["inside_remnant_id"] is not None:
-        found = conn.execute("SELECT id, name, remnant_class AS class FROM supernova_remnants WHERE id = ?",
-                             (row["inside_remnant_id"],)).fetchone()
-        kind = "supernova_remnant"
-    else:
-        return None
-    if found is None:
-        return None
-    return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"]}
+    return surrounding_cloud(conn, row)
 
 
 def sector_detail(conn, sector_id):
@@ -1612,6 +1602,27 @@ def phenomena_near_sector(conn, sector_id):
     return matches
 
 
+def _heliopause_au(conn, system, cloud):
+    """
+    `(open-space heliopause, heliopause inside `cloud`)` in AU for a
+    `star_systems` row: a close pair's shared bubble, otherwise the
+    primary (or single) star's. `(None, None)` when nothing stores one.
+    """
+    if system["binary_configuration"] == "close" and system["binary_heliosphere_radius_km"] is not None:
+        radius_km = system["binary_heliosphere_radius_km"]
+    else:
+        star = conn.execute(
+            "SELECT heliosphere_radius_km FROM stars WHERE star_system_id = ? AND role IN ('primary', 'single')"
+            " ORDER BY id LIMIT 1", (system["id"],)).fetchone()
+        radius_km = star["heliosphere_radius_km"] if star else None
+    if radius_km is None:
+        return None, None
+    open_space_au = radius_km / physical_constants.AU_TO_KM
+    if cloud is None:
+        return open_space_au, open_space_au
+    return open_space_au, compressed_heliosphere_radius(open_space_au, cloud["density_cm3"], cloud["temperature_k"])
+
+
 def system_detail(conn, system_id):
     """
     Returns one system's full web-display detail: stars, planets (each
@@ -1649,7 +1660,11 @@ def system_detail(conn, system_id):
             `location`'s "nearest: ..." names without a second round
             trip), and `nearest_neighbors` (`{id, name, distance_ly}` for
             the closest same-sector systems, nearest first -- see
-            `_nearest_sector_siblings`).
+            `_nearest_sector_siblings`), `inside` (`containing_cloud`), and
+            `heliopause_au` (the system's heliopause, pressed in by the
+            cloud it sits inside, if any -- the System Local Frame's edge for
+            navigation) with `heliopause_open_space_au` (the same without
+            the cloud); both `None` when no star row has one.
 
     Raises:
         ValueError: If no such system exists.
@@ -1702,6 +1717,9 @@ def system_detail(conn, system_id):
         sector_siblings = [{"id": r["id"], "name": r["name"]} for r in sibling_rows]
         nearest_neighbors = _nearest_sector_siblings(system, sibling_rows)
 
+    cloud = containing_cloud(conn, system)
+    open_space_au, heliopause_au = _heliopause_au(conn, system, cloud)
+
     return {
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
         "quadrant": system["quadrant"], "location": system["location"],
@@ -1718,6 +1736,9 @@ def system_detail(conn, system_id):
         "comets": [dict(c) for c in comets],
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,
+        "inside": cloud,
+        "heliopause_au": heliopause_au,
+        "heliopause_open_space_au": open_space_au,
     }
 
 

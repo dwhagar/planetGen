@@ -106,6 +106,47 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     )
 
 
+def cloud_pressure_pa(density_cm3, temperature_k):
+    """
+    The pressure a nebula or supernova remnant's gas puts on a star's
+    heliopause: ram pressure from the star moving through it at
+    `physical_constants.STAR_CLOUD_RELATIVE_SPEED_MS` plus thermal pressure.
+
+    Args:
+        density_cm3 (float): The cloud's hydrogen density (nH), per cm^3.
+        temperature_k (float): The cloud's gas temperature in kelvin.
+
+    Returns:
+        float: The pressure in pascals.
+    """
+    n_m3 = max(density_cm3 or 0.0, 0.0) * physical_constants.CM3_TO_M3
+    rho = n_m3 * physical_constants.ISM_MASS_PER_HYDROGEN * physical_constants.HYDROGEN_ATOM_MASS_KG
+    ram = rho * physical_constants.STAR_CLOUD_RELATIVE_SPEED_MS ** 2
+    thermal = n_m3 * physical_constants.BOLTZMANN * max(temperature_k or 0.0, 0.0)
+    return ram + thermal
+
+
+def compressed_heliosphere_radius(radius_au, density_cm3, temperature_k):
+    """
+    A heliopause radius (computed against the open interstellar medium,
+    `physical_constants.ISM_PRESSURE`) pressed in by the cloud the star sits
+    inside. The heliopause sits where the wind's momentum flux balances the
+    outside pressure, so R scales as P^-1/2: a dense cold cloud (nH ~3,000
+    cm^-3) shrinks the Sun's from ~85 AU to well under 1 AU. A cloud thinner
+    than the open medium leaves it as it is.
+
+    Args:
+        radius_au (float): The open-space heliopause radius, AU.
+        density_cm3 (float): The cloud's hydrogen density (nH), per cm^3.
+        temperature_k (float): The cloud's gas temperature in kelvin.
+
+    Returns:
+        float: The compressed radius, AU.
+    """
+    pressure = max(cloud_pressure_pa(density_cm3, temperature_k), physical_constants.ISM_PRESSURE)
+    return radius_au * math.sqrt(physical_constants.ISM_PRESSURE / pressure)
+
+
 class Star:
     """
     Represents a single star, encapsulating its physical and orbital properties.
