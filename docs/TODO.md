@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-MAP, NAV, DB, API, SEC, DOC and POP have no open items today.
+MAP, NAV, DB, SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -364,6 +364,37 @@ MAP.30) shipped in PR #234.
     figure); whether existing sectors are backfilled by a migration;
     and what happens to the stats when a sector is regenerated
     (ADM.8) or the galaxy is reset.
+
+## API: The JSON API
+
+- [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
+  Boss (2026-10-01 19:22Z): "using an API key add a remote-generate
+  option where I can use generate.py with the right command lines to
+  have my local system (much faster than the server-side) generate
+  whatever I want and use the API to add it into the system once it's
+  generated. Do not implement yet." Today `generate.py` writes straight
+  to a MySQL/MariaDB database it can reach, and the API's write routes
+  (`api/edits.py`, API.1's create-a-system route from PR #170) take one
+  system or body at a time with an admin's API key. Done: `generate.py`
+  gets a remote mode (for example `--remote URL --api-key KEY`) for the
+  same commands and options as a local run (`sector`, `galaxy` modes,
+  `plan`, the bright-star scatter and backfill, `population`); it asks
+  the server for what it needs first (the galaxy's seed and skeleton,
+  which sectors are already filled, the id and name state), generates
+  on the local machine with all its workers, then uploads the results
+  in batches to new API routes that check the key, validate each batch
+  (ADM.5's validator), refuse sectors that were filled meanwhile, save
+  them the same way a server-side run does (names, ids, bright-star
+  levels, caches and tiles invalidated), and report what was added. A
+  remote run appears in the job tree and job page (ADM.10, ADM.12) like
+  a server-side one. Open questions: does the local machine need its own
+  database, or does it generate in memory and upload as it goes? How
+  are ids and names kept unique when the server and a remote machine
+  generate at the same time (the server hands out id blocks and claims
+  sectors before the remote run starts)? Upload size and rate limits,
+  and resuming an upload that broke halfway. Must the local code be the
+  same version as the server's (refuse a mismatch)? Which API key role
+  may do this (TEST.44, USR.2)?
 
 ## ADM: Admin tools
 
