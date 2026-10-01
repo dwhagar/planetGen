@@ -47,7 +47,8 @@ from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects.brightStars import MPC_PER_PC
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import (
-    galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, ring_sector_count, sector_position_pc,
+    galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, ring_sector_count, sector_cell_vertices_pc,
+    sector_position_pc,
 )
 from stellarObjects.spaceSector import classify_octant
 from stellarObjects.galaxyViewport import (
@@ -1501,30 +1502,54 @@ _PHENOMENON_TYPE_TABLES = {type_label: table for table, type_label, _descriptor,
 """dict: `_PHENOMENON_TABLES`' type label -> table."""
 
 
+def _sector_reach_pc(sector, edge_pc):
+    """
+    The radius of a sphere around `sector`'s center that holds its whole
+    cell: the farthest cell corner, or the cube's half diagonal for a
+    sector with no grid address (or when that is bigger). A small ring's
+    cell reaches past the cube's half diagonal (a ring-0 pie wedge's outer
+    corners sit a whole edge from its center), so sizing this from the
+    cube alone could miss a cloud that reaches into the real cell.
+    """
+    reach = edge_pc * math.sqrt(3) / 2
+    if sector["ring_index"] is None or sector["layer_index"] is None or sector["ring_slot_index"] is None:
+        return reach
+    center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
+    for vertex in sector_cell_vertices_pc(
+            sector["ring_index"], sector["layer_index"], sector["ring_slot_index"], edge_pc):
+        reach = max(reach, math.dist(vertex, center))
+    return reach
+
+
 def phenomena_near_sector(conn, sector_id):
     """
     Every galaxy-placed standalone phenomenon (any `_PHENOMENON_TABLES`
-    type) whose sphere could plausibly reach into `sector_id`'s own cube,
-    plus every placed one generated as part of this sector (its own
-    `sector_id`) wherever it sits -- the data `html/lib/starmap.py`'s
-    Sector Map draws (translucent clouds for nebulae/asteroid fields/
-    supernova remnants, point markers for the point-like types, whose own
-    `radius_ly` is always 0 -- see `_PHENOMENON_TABLES`) and
-    `html/sector.py` lists alongside the sector's systems.
+    type) generated as part of `sector_id` (its own `sector_id`), wherever
+    it sits, plus every cloud from elsewhere (a phenomenon with a nonzero
+    `radius_ly`) whose sphere could plausibly reach into this sector -- the
+    data `html/lib/starmap.py`'s Sector Map draws (translucent clouds for
+    nebulae/asteroid fields/supernova remnants, point markers for the
+    point-like types, whose own `radius_ly` is always 0 -- see
+    `_PHENOMENON_TABLES`) and `html/web/sector_page.py` lists alongside
+    the sector's systems.
 
-    An exact cube-vs-sphere overlap test isn't worth the complexity here,
-    so this compares against each cube's own *bounding* sphere (radius =
-    half its space diagonal, `edge_pc * sqrt(3) / 2`) instead: a safe,
-    exact upper bound that can only ever include a few extra phenomena
-    whose sphere clips the bounding sphere but not the cube itself (out
-    near a corner), never silently miss a real overlap -- consistent with
-    this project's existing "sector cubes already accept small real-world
-    gaps/overlaps" tolerance (`docs/design/galaxy-coordinate-system.md`
-    section 3) rather than a false-negative risk.
+    A point-like object from another sector (a rogue planet, comet, black
+    hole or neutron star) is never included: it sits in its own sector's
+    cell, so on this sector's map it could only ever be drawn outside the
+    wireframe (MAP.45, where neighbors' rogue planets were a third of what
+    a sector drew).
+
+    An exact cell-vs-sphere overlap test isn't worth the complexity here,
+    so a cloud from elsewhere is compared against a sphere that holds the
+    whole cell (`_sector_reach_pc`) instead: a safe upper bound that can
+    only ever include a few extra clouds whose sphere clips that sphere
+    but not the cell itself (out near a corner), never silently miss a
+    real overlap. Each entry's `home` says which kind it is, so the map
+    can draw a neighbor's cloud as one.
 
     Reads via `_placed_phenomenon_rows`'s own `bbox` argument -- a SQL
     bounding-box prefilter, not the whole-galaxy scan that function's
-    default (`bbox=None`) runs -- sized to `half_diagonal_pc` plus
+    default (`bbox=None`) runs -- sized to that reach plus
     whatever the widest currently-placed `radius_ly` actually is
     (`_widest_placed_phenomenon_radius_ly`), so it stays exactly as
     correct as scanning every row (a phenomenon of any size, however
@@ -1548,15 +1573,18 @@ def phenomena_near_sector(conn, sector_id):
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
             stars in), `octant` (the sector octant its center sits in,
-            `star_systems.quadrant`'s labels) and `nearest` (its stored
-            nearest star systems, `nearest_systems`). Empty if this sector
-            has no galaxy placement of its own.
+            `star_systems.quadrant`'s labels), `home` (generated as part
+            of this sector, rather than a neighbor's cloud reaching in) and
+            `nearest` (its stored nearest star systems,
+            `nearest_systems`). Empty if this sector has no galaxy
+            placement of its own.
 
     Raises:
         ValueError: If no such sector exists.
     """
     sector = conn.execute(
-        "SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors WHERE id = ?",
+        "SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc, ring_index, layer_index, ring_slot_index"
+        " FROM sectors WHERE id = ?",
         (sector_id,),
     ).fetchone()
     if sector is None:
@@ -1564,16 +1592,17 @@ def phenomena_near_sector(conn, sector_id):
     if sector["center_x_pc"] is None:
         return []
 
-    half_diagonal_pc = mpc_to_pc(sector["edge_mpc"]) * math.sqrt(3) / 2
-    margin_pc = half_diagonal_pc + ly_to_pc(_widest_placed_phenomenon_radius_ly(conn))
+    reach_pc = _sector_reach_pc(sector, mpc_to_pc(sector["edge_mpc"]))
+    margin_pc = reach_pc + ly_to_pc(_widest_placed_phenomenon_radius_ly(conn))
     bbox = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"], margin_pc)
 
     # A phenomenon generated as part of this sector always belongs in its
-    # listing, even if an older placement put its center outside the cube.
+    # listing, even if an older placement put its center outside the cell.
     home_rows = _placed_phenomenon_rows(conn, sector_id=sector_id)
     home_keys = {(row["type"], row["id"]) for row in home_rows}
     nearby_rows = [
-        row for row in _placed_phenomenon_rows(conn, bbox=bbox) if (row["type"], row["id"]) not in home_keys
+        row for row in _placed_phenomenon_rows(conn, bbox=bbox)
+        if (row["type"], row["id"]) not in home_keys and row["radius_ly"]
     ]
 
     matches = []
@@ -1583,7 +1612,7 @@ def phenomena_near_sector(conn, sector_id):
         dz = phenomenon["z"] - sector["center_z_pc"]
         distance_pc = math.sqrt(dx * dx + dy * dy + dz * dz)
         is_home = (phenomenon["type"], phenomenon["id"]) in home_keys
-        if not is_home and distance_pc > half_diagonal_pc + ly_to_pc(phenomenon["radius_ly"]):
+        if not is_home and distance_pc > reach_pc + ly_to_pc(phenomenon["radius_ly"]):
             continue
         center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
         octant, _magnitudes = classify_octant(
@@ -1595,6 +1624,7 @@ def phenomena_near_sector(conn, sector_id):
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
             "octant": octant,
+            "home": is_home,
         })
     by_type = {}
     for match in matches:

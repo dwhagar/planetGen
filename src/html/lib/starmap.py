@@ -831,7 +831,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
         link_url (callable): Builds `href` (see the module docstring).
         phenomenon (dict): One entry from `queryDb.phenomena_near_sector`
                            (`id`, `type`, `name`, `descriptor`, `radius_ly`,
-                           `distance_ly`).
+                           `distance_ly`, and `home`: `False` marks the
+                           entry `neighbor`).
         x_px, y_px, z_px (float): Already-normalized scene-space position.
         radius_px (float): This cloud's drawn radius (`_phenomenon_cloud_radius_px`).
 
@@ -847,7 +848,14 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
         "radiusText": format_distance_ly(phenomenon["radius_ly"]) if phenomenon["radius_ly"] else None,
         "distanceText": f'{format_distance_ly(phenomenon["distance_ly"])} from sector center',
         "href": link_url("phenomenon", phenomenon_type=phenomenon["type"], phenomenon_id=phenomenon["id"]),
+        # What the sector page's Contents "Show on map" buttons name.
+        "key": f'{phenomenon["type"]}:{phenomenon["id"]}',
     }
+    if not phenomenon.get("home", True):
+        # A neighboring sector's cloud reaching into this one (MAP.45):
+        # sectormap.js draws it fainter, and the info panel says so.
+        data["neighbor"] = True
+        data["distanceText"] += " (from a neighboring sector)"
 
     if phenomenon_type == "nebula":
         color = _NEBULA_TYPE_COLORS.get(descriptor, _DEFAULT_NEBULA_COLOR)
@@ -998,8 +1006,9 @@ def render_map_panel(
                               `luminosity_w`, `temp_display`.
         phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
                               return shape -- every standalone phenomenon
-                              whose sphere could plausibly reach into this
-                              sector's cube. Its
+                              generated in this sector, plus every
+                              neighbor's cloud whose sphere could
+                              plausibly reach into this sector's cell. Its
                               `offset_x/y/z_ly` are already galaxy-frame
                               (computed directly from two galaxy-frame
                               centers -- see `schema.sql`'s "v18" note), so
@@ -1085,9 +1094,10 @@ def render_map_panel(
         # docstring) -- no `_rotate_to_galaxy_frame` step, unlike a
         # system's sector-local x/y/z above. Position is intentionally
         # NOT clamped the way a star system's normalized position is
-        # (+-1.05): a cloud is allowed to sit mostly outside this sector's
-        # own cube (that's the whole point of `phenomena_near_sector`'s
-        # bounding-sphere overlap test) and/or be far larger than it.
+        # (+-1.05): a neighbor's cloud is allowed to sit mostly outside
+        # this sector's own cell (that's the whole point of
+        # `phenomena_near_sector`'s bounding-sphere overlap test) and/or
+        # be far larger than it.
         nx = ly_to_milliparsecs(phenomenon["offset_x_ly"]) / half_edge
         ny = ly_to_milliparsecs(phenomenon["offset_y_ly"]) / half_edge
         nz = ly_to_milliparsecs(phenomenon["offset_z_ly"]) / half_edge
@@ -1159,11 +1169,20 @@ def render_map_panel(
 
     noscript_html = _noscript_list_html(link_url, systems, phenomena, neighbors)
 
+    # MAP.46: rogue planets are dark and easy to lose, so sectormap.js
+    # rings each one with a marker that keeps its size on screen; this
+    # button turns the markers off and on.
+    rogue_toggle_html = (
+        '\n  <button type="button" class="starmap-btn" data-action="toggle-rogue-markers" aria-pressed="true">'
+        "Mark rogue planets</button>"
+        if any(cloud["kind"] == "roguePlanet" for cloud in clouds_data) else ""
+    )
+
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; small dot &asymp; star &middot; glow size &asymp; brightness &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants, glowing points &asymp; black holes/neutron stars/rogue planets/interstellar comets, near this sector &middot; small markers at the edge &asymp; neighboring sectors</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; small dot &asymp; star &middot; glow size &asymp; brightness &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants, glowing points &asymp; black holes/neutron stars/rogue planets (ringed)/interstellar comets &middot; faint clouds &asymp; reaching in from a neighboring sector &middot; small markers at the edge &asymp; neighboring sectors</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">
@@ -1176,7 +1195,7 @@ def render_map_panel(
 <div class="starmap-controls" id="starmap-controls">
   <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
-  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
+  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>{rogue_toggle_html}
 </div>
 {info_panel}
 </div>

@@ -96,18 +96,21 @@ research behind the security order is the design doc linked at the top
 of the SEC section.
 
 1. **Bugs, in this order:**
-   1. MAP.45 (objects drawn outside the sector's wireframe), then
-      MAP.46. MAP.45 goes first because it may mean stored positions
-      are wrong; find out before the next full regenerate.
+   1. Done: MAP.45 (objects drawn outside the sector's wireframe; the
+      stored positions were right, so no regenerate is needed for it)
+      and MAP.46.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
-   3. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   3. UX.19 (belt rows and no Zone column in the object list), UX.20
+      (scientific notation past 4 digits) and ADM.9 (the "place a
+      facility" form).
+   4. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
-      and Forward). It needs Boss's answers to MAP.17's and MAP.19's
-      open questions (what a slice and a region are) before it starts.
+      and Forward). Boss chose "Layer + arc" (2026-10-01): a slice is a
+      layer of the disk, a region an arc of the ring band in view.
 2. **Security, in this order** (login blocking first):
    1. SEC.20: log every failed and locked login with its address.
    2. SEC.1: the per-IP lockout in the control database, with SEC.21
@@ -159,6 +162,39 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
+
+- [ ] **UX.19 (bug) Asteroid belt rows in a system's object list: density, range and top minerals; no Zone column**
+  Boss (2026-10-01): "asteroid belts in the system object list should
+  just list their range, right now it says "Sparse" and "Distance" then
+  "Distance to Distance", only the "Sparse" (or whatever density) and
+  distance along with the top minerals found too should also be in the
+  row. Zone need not be in the rows for planets or moons or anything."
+  Today `html/lib/systempage.py` builds a belt's row from its density,
+  its nominal distance (`distance_km`) and then its range
+  (`lower_limit_km` to `upper_limit_km`), so the distance shows twice,
+  and every planet and moon row has a zone cell (`body.get("zone")`).
+  Done: a belt's row shows its density, its range ("2.1 AU to 3.3 AU")
+  and its top minerals (from `asteroid_belt_composition`, through the
+  existing `format_composition_summary`), and nothing else; no row in
+  the list (planets, moons, belts, comets, facilities) shows the zone;
+  the zone stays on each object's own page. Settled by Boss
+  (2026-10-01): "top" means the three largest minerals by share.
+
+- [ ] **UX.20 (bug) Scientific notation for numbers with more than 4 digits before the decimal point**
+  Boss (2026-10-01): "anything over 4 digits to the left of the decimal
+  point and it should use scientific notation." Today each page formats
+  its own numbers (`html/lib/fmt.py`'s distance formatters use `{:,}`
+  separators, `tabledisplay.py` and the templates do their own), so a
+  value like 1,234,567 km shows in full. Done: one shared number
+  formatter in Python with a JavaScript mirror (next to UX.13's and
+  UX.14's ladders, which pick units so most values stay short anyway)
+  shows any number with 5 or more digits before the decimal point as
+  scientific notation (for example 1.23 × 10⁶), on every page, map
+  panel and API text field that shows a number, with the existing call
+  sites converted. Settled by Boss (2026-10-01): it covers counts
+  (systems, stars) as well as measurements, with 3 significant figures;
+  IDs, years in dates, designations and raw JSON numbers in the API are
+  exempt (only display text changes).
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
@@ -506,57 +542,26 @@ MAP.48 and MAP.37, all fixed.
 - [x] **MAP.11 Every kind of phenomenon on the Sector Map, clickable**
   Done in 5.51.0 (PR #81); kept as the parent of its bugs. The Sector Map
   is `html/lib/starmap.py` and `static/sectormap.js`.
-  - [ ] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
-    First in the bug order (see the plan at the top): if stored
-    positions are wrong, that needs to be known before the next full
-    regenerate.
-    Boss (2026-10-01): "rogue planets (and
-    probably other objects) are shown outside the wireframe of the
-    sector, so one of them is wrong. when you tackle this one, do a test
-    where the rogue planets are a bright color and the background a dark
-    color so you can see the distance. This is at the sector level".
-    On the Sector Map (`html/lib/starmap.py`, `static/sectormap.js`) the
-    wireframe is the sector's cylindrical grid cell (`_outline_data`),
-    and the phenomena come from `queryDb.phenomena_near_sector`. Leads
-    to check, not yet confirmed: that query takes every phenomenon whose
-    sphere reaches the sector's bounding sphere (sized for the old cube,
-    `edge_pc * sqrt(3) / 2`) plus every one generated with this
-    sector "wherever it sits", so some outside points may be expected
-    neighbors; or the phenomena's positions and the wireframe use
-    different frames (the cell is rotated to the galaxy frame, and
-    phenomena positions are galaxy-placed). Done: find which side is
-    wrong (the wireframe, the object positions, or which objects are
-    picked) and fix it, so every object generated in a sector is drawn
-    inside its wireframe and anything shown from a neighboring sector
-    reads as outside on purpose; check every phenomenon type and the
-    star systems, not just rogue planets. As Boss asks, the fix includes
-    a visual test that draws the rogue planets in a bright color on a
-    dark background so the distance past the boundary is easy to see,
-    plus an automated check that a sector's own objects fall inside its
-    cell (`galaxyGeometry`'s `sector_address_at` giving back the
-    sector's own address). Open questions: should nearby phenomena from
-    other sectors still be drawn (they are on purpose today, per the
-    map's hint "near this sector"), and if so, how are they told apart
-    from the sector's own (dimmer, outside-only, or a toggle)? If the
-    stored positions turn out wrong, do existing galaxies need a
-    migration or a regenerate?
-  - [ ] **MAP.46 (bug) Rogue planets are hard to find on the Sector Map**
-    Boss (2026-10-01): "in sector view make sure rogue planets can be
-    easily located." Today `static/sectormap.js` draws a rogue planet as
-    a dim, dark-purple textured sphere (`roguePlanet`: core `#6b5a8a`
-    fading to `#2a2438`, glow `#7d6aa8` at strength 0.8), "a dim,
-    starless world lit only by its own internal heat", which nearly
-    vanishes against the dark scene. Done: every rogue planet in a
-    sector is easy to spot at the default zoom and when zoomed out, in
-    both themes, without looking like a star; the sector page's list of
-    its contents can point at each one on the map. Goes with MAP.45
-    (rogue planets drawn outside the wireframe), whose bright-color test
-    makes the same objects visible, and MAP.15's point-of-light style.
-    Open questions: what makes them findable (a marker or ring around
-    each, a brighter but still cool color, a label, a "highlight rogue
-    planets" toggle, or a list that flies the camera to each)? Does the
-    same apply to other dark objects (quiescent black holes, interstellar
-    comets)?
+  - [x] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
+    Done (2026-10-01). The stored positions were right: every star
+    system and every phenomenon a sector generates sits inside its own
+    cell (checked in `test_stars_and_phenomena_fit_within_their_sectors_real_cells`).
+    The objects outside were the neighboring sectors' rogue planets,
+    pulled in by `queryDb.phenomena_near_sector`'s sphere sized for the
+    old cube. Now a point-like object (rogue planet, comet, black hole,
+    neutron star) shows only in its own sector; a neighbor's cloud that
+    reaches in is still drawn, fainter, and says it is from a neighboring
+    sector; the reach sphere holds the whole cell. Still drawn outside on
+    purpose: a supernova's core kicked out of its sector and the galactic
+    nucleus on the axis. `test_sector_map_draws_no_point_object_outside_its_own_sector`
+    checks what the map draws.
+  - [x] **MAP.46 (bug) Rogue planets are hard to find on the Sector Map**
+    Done (2026-10-01). Rogue planets are a brighter cool violet (no star
+    color), each ringed by a marker that keeps its size on screen when
+    zoomed out, with a "Mark rogue planets" button to turn the rings off;
+    every rogue planet in the sector page's Contents has a "Show on map"
+    button. Other dark objects (quiescent black holes, comets) left as
+    they are.
 
 - [x] **MAP.14 Bright stars on the Galaxy Map**
   Done in 7.42.0 (PR #160; it never had a number); kept as the parent of
@@ -1099,6 +1104,39 @@ MAP.48 and MAP.37, all fixed.
     placed facilities (DB.1), or replace everything? Does regenerating
     keep the object's name? Does deleting a sector leave its slot
     unfilled (so it can be filled again) or mark it empty?
+
+- [ ] **ADM.9 (bug) "Place a facility": host by placement, a log-scale orbit slider, and belt facilities that move**
+  Boss (2026-10-01): "Bugfix also in the "place a facility" Name,
+  Placement, Placement determine what is listed in Host. Orbital radii
+  is hard to understand, make this a logaritmic slider for distance
+  form the object to the edge of the sphere of influence. This control
+  should only appear if relevant, i.e. if it's in orbit aroudn
+  something, if it's on a planet, moon, asteroid,e tc... we don't need
+  that. If it's in an asteroid belt then we should pick a location in
+  the asteroid belt, assign an orbital velocity, and add it to what
+  gets updated during a position updagte." Today the system page's form
+  (`html/web/system_facilities.py`, `PLACEMENT_OPTIONS`,
+  `host_options`) lists every host whatever the placement and takes the
+  orbit as a typed distance in km or AU. Done:
+  - The form asks in this order: name, placement, then host, and the
+    host list holds only hosts that fit the placement (stars, planets
+    and moons for in orbit; planets and moons for on the surface;
+    belts for in the belt), following `facility_rules`.
+  - In orbit: the distance is a logarithmic slider from just above the
+    host's surface (or the star's) out to the edge of the host's
+    sphere of influence (Hill sphere for a planet or moon), showing the
+    distance, period and speed as it moves; the typed field goes.
+  - On a surface: no distance control.
+  - In a belt: no distance control; the facility gets a position inside
+    the belt (a random radius between its inner and outer edge and a
+    random angle) and an orbital velocity around the star from that
+    radius, stored on the facility, and `updateOrbits.py`'s
+    `advance_facility_orbits` moves it along with orbital facilities.
+  Settled by Boss (2026-10-01): a belt facility's place in the belt is
+  random, with the chosen radius shown; for a star, the slider runs out
+  to the heliopause. Still to find out while building: whether a belt
+  facility needs a migration for its position columns (if so, it takes
+  the next schema version).
 
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
   Boss (2026-10-01): "In generation screen each section should be

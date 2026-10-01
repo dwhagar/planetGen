@@ -97,11 +97,12 @@
           <details class="contents-group"><summary>{{ row.name }}</summary>
             <ul class="contents-group-list">
               {%- for member in row.members %}
-              <li><a href="{{ member.url }}">{{ member.name }}</a>{% if member.details %} <span class="hint">{{ member.details }}, {{ member.distance }}</span>{% endif %}</li>
+              <li><a href="{{ member.url }}">{{ member.name }}</a>{% if member.details %} <span class="hint">{{ member.details }}, {{ member.distance }}</span>{% endif %}{% if member.map_target %} <button type="button" class="btn-small" data-map-target="{{ member.map_target }}" hidden>Show on map</button>{% endif %}</li>
               {%- endfor %}
             </ul>
           </details>
-          {%- elif row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}</td>
+          {%- elif row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}
+          {%- if row.map_target %} <button type="button" class="btn-small" data-map-target="{{ row.map_target }}" hidden>Show on map</button>{% endif %}</td>
         <td>{{ row.type }}</td>
         <td>{{ row.details }}</td>
         <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>

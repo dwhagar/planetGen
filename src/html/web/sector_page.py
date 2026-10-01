@@ -123,6 +123,7 @@ def _rogue_group_row(rogues):
             "url": page_url("phenomenon", phenomenon_type="rogue_planet", phenomenon_id=row["id"]),
             "details": (row["descriptor"] or "").capitalize(),
             "distance": trusted_html(format_distance_ly(row["distance_ly"])),
+            "map_target": f"rogue_planet:{row['id']}",
         }
         for row in rogues
     ]
@@ -238,6 +239,8 @@ def _contents(sector, facilities=()):
             "details": ", ".join(bit for bit in details if bit),
             "octant": row.get("octant"),
             "location": _nearest_html(row.get("nearest"), system_url),
+            # MAP.46: a rogue planet's row can point at it on the Sector Map.
+            "map_target": f"rogue_planet:{row['id']}" if row["type"] == "rogue_planet" else None,
         })
 
     rows.extend(_facility_rows(sector, facilities))

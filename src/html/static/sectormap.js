@@ -335,10 +335,11 @@ var CLOUD_KIND_RECIPES = {
       [0, "#ffb07a20"], [0.45, "#ffb07a30"], [0.62, "#ff8a5cb0"], [0.7, "#8fd6ffa0"], [0.8, "rgba(0,0,0,0)"],
     ]);
   },
-  // A dim, starless world lit only by its own internal heat.
+  // A starless world lit only by its own internal heat: a cool violet,
+  // bright enough to find on the dark scene (MAP.46) but no star color.
   roguePlanet: function () {
     return makeSimpleRadialTexture(96, [
-      [0, "#6b5a8a"], [0.45, "#3d3350f0"], [0.62, "#2a2438c0"], [0.8, "rgba(0,0,0,0)"],
+      [0, "#e4dcff"], [0.45, "#a993f0f0"], [0.62, "#7a62c8c0"], [0.8, "rgba(0,0,0,0)"],
     ]);
   },
   // An icy nucleus inside a pale cyan coma.
@@ -378,7 +379,7 @@ var CLOUD_GLOW_RECIPES = {
   blackHoleQuiescent: { color: "#4b2f66", power: 2.5, strength: 0.7, scale: 1.2 },
   neutronStar: { color: "#8fc7ff", power: 1.2, strength: 2.4, scale: 1.45 },
   supernovaRemnant: { color: "#ff8a5c", power: 2.0, strength: 1.2, scale: 1.2 },
-  roguePlanet: { color: "#7d6aa8", power: 2.5, strength: 0.8, scale: 1.25 },
+  roguePlanet: { color: "#b59cff", power: 2.0, strength: 1.6, scale: 1.3 },
   interstellarComet: { color: "#8ff0e0", power: 1.4, strength: 1.8, scale: 1.4 },
   quasar: { color: "#c9d8ff", power: 1.0, strength: 3.0, scale: 1.7 },
 };
@@ -395,6 +396,18 @@ function glowRecipeForCloud(cloud) {
   }
   return CLOUD_GLOW_RECIPES[cloud.kind] || CLOUD_GLOW_RECIPES.asteroidField;
 }
+
+// How much fainter a neighboring sector's cloud reaching into this one
+// is drawn (lib/starmap.py marks it `neighbor`, MAP.45), so it reads as
+// coming from outside rather than belonging to this sector.
+var NEIGHBOR_CLOUD_DIM = 0.4;
+
+// MAP.46: every rogue planet gets a ring that keeps one size on screen
+// (a fraction of the canvas height) however far out the camera is, so a
+// small dark world stays easy to spot zoomed out. A violet that reads on
+// the light and the dark theme's map background.
+var ROGUE_MARKER_COLOR = "#8f6df2";
+var ROGUE_MARKER_SCREEN_SIZE = 0.03;
 
 // A real 3D body: a textured core sphere plus a fresnel glow shell
 // (./bodyRendering.js), replacing the flat always-facing-camera Sprite
@@ -480,6 +493,9 @@ function makeCloudVolume(cloud, volume) {
     // coreColor's last two hex digits are its alpha (lib/starmap.py).
     var baked = parseInt((cloud.coreColor || "#c9a8e090").slice(7, 9), 16);
     alpha = Math.min(0.45, (isNaN(baked) ? 0x90 : baked) / 255);
+  }
+  if (cloud.neighbor) {
+    alpha *= NEIGHBOR_CLOUD_DIM;
   }
   var material = new THREE.ShaderMaterial({
     uniforms: {
@@ -669,6 +685,12 @@ function initStarmap(canvasEl, data) {
     entryByObject.set(hit, star);
   });
 
+  // Not in interactiveGroup: a click on a marker's empty middle should
+  // still reach whatever is behind it.
+  var rogueMarkers = new THREE.Group();
+  scene.add(rogueMarkers);
+  var rogueMarkerMaterial = null;
+
   (data.clouds || []).forEach(function (cloud) {
     var volume = CLOUD_VOLUMES[cloud.kind];
     if (volume) {
@@ -677,12 +699,31 @@ function initStarmap(canvasEl, data) {
       entryByObject.set(mesh, cloud);
       return;
     }
-    var bodies = makeBodySpheres(cloud.r, textureForCloud(cloud), 0xffffff, glowRecipeForCloud(cloud));
+    var glow = glowRecipeForCloud(cloud);
+    if (cloud.neighbor) {
+      glow = Object.assign({}, glow, { strength: glow.strength * NEIGHBOR_CLOUD_DIM });
+    }
+    var bodies = makeBodySpheres(cloud.r, textureForCloud(cloud), 0xffffff, glow);
+    if (cloud.neighbor) {
+      bodies.core.material.opacity = NEIGHBOR_CLOUD_DIM;
+    }
     bodies.core.position.set(cloud.x, cloud.y, cloud.z);
     bodies.glow.position.set(cloud.x, cloud.y, cloud.z);
     interactiveGroup.add(bodies.core);
     scene.add(bodies.glow);
     entryByObject.set(bodies.core, cloud);
+    if (cloud.kind === "roguePlanet") {
+      if (!rogueMarkerMaterial) {
+        rogueMarkerMaterial = new THREE.SpriteMaterial({
+          map: makeRingTexture(ROGUE_MARKER_COLOR), transparent: true, opacity: 0.75, depthWrite: false,
+          sizeAttenuation: false,
+        });
+      }
+      var marker = new THREE.Sprite(rogueMarkerMaterial);
+      marker.position.set(cloud.x, cloud.y, cloud.z);
+      marker.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
+      rogueMarkers.add(marker);
+    }
   });
 
   // Neighboring-sector indicators: a small flat dot at the scene's own
@@ -896,9 +937,38 @@ function initStarmap(canvasEl, data) {
         if (action === "zoom-in") setZoom(currentZoom() + ZOOM_STEP);
         else if (action === "zoom-out") setZoom(currentZoom() - ZOOM_STEP);
         else if (action === "reset") resetView();
+        else if (action === "toggle-rogue-markers") {
+          rogueMarkers.visible = !rogueMarkers.visible;
+          button.setAttribute("aria-pressed", rogueMarkers.visible ? "true" : "false");
+        }
       });
     });
   }
+
+  // The sector page's Contents "Show on map" buttons (MAP.46) name a
+  // cloud by its `key`; selecting it shows its details and its ring, and
+  // brings the map into view.
+  var entryByKey = new Map();
+  (data.clouds || []).forEach(function (cloud) {
+    if (cloud.key) {
+      entryByKey.set(cloud.key, cloud);
+    }
+  });
+  document.querySelectorAll("[data-map-target]").forEach(function (button) {
+    var entry = entryByKey.get(button.dataset.mapTarget);
+    if (!entry) {
+      button.hidden = true;
+      return;
+    }
+    button.hidden = false;
+    button.addEventListener("click", function () {
+      selectEntry(entry);
+      if (viewport) {
+        viewport.scrollIntoView({ block: "center" });
+      }
+      canvasEl.focus({ preventScroll: true });
+    });
+  });
 
   // --- Scale bar -----------------------------------------------------------
 

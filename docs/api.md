@@ -92,15 +92,17 @@ connectivity to that specific schema rather than the default one.
   to store as rows), `neighbors` (every grid cell sharing a face with a
   placed sector: its address, `designation`, `direction_pc`, `exists`
   and `sector_id`/`sector_name`, empty for an unplaced sector), and
-  `phenomena` (every galaxy-placed standalone phenomenon whose sphere
-  could plausibly reach into this sector's cube, plus every placed one
-  generated as part of this sector, nearest its center first — `id`,
+  `phenomena` (every placed standalone phenomenon generated as part of
+  this sector, plus every cloud from elsewhere whose sphere could
+  plausibly reach into this sector's cell, nearest its center first; a
+  point-like object from another sector is left out — `id`,
   `type` (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
   `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`/`"quasar"`), `name`,
   `descriptor`, `radius_ly` (always 0 for a black hole/neutron star/rogue
   planet/interstellar comet/quasar — point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
-  relative to this sector's own — `queryDb.phenomena_near_sector`, empty
+  relative to this sector's own, and `home` (`true` when generated as
+  part of this sector, `false` for a neighbor's cloud) — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
   notes),
   and `wiki_url` (`null` until this sector has a wiki page — see "Wiki
