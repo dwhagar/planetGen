@@ -98,7 +98,7 @@ def _plan_args(mysql_config, *extra):
     args = parser.parse_args([
         "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
         "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
-        "--mysql-database", mysql_config.database, *extra,
+        "--mysql-database", mysql_config.database, "--bright-star-min-luminosity", str(THRESHOLD), *extra,
     ])
     generate.validate_plan_args(args, parser)
     return args
