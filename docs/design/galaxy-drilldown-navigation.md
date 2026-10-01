@@ -264,7 +264,8 @@ Two shortcuts (Boss, 2026-10-01):
   level-3 child that holds any.
 - **The last cube is picked in 3D.** Once the view is the sectors of a
   level-3 block across several layers (27 at most), it is shown from a
-  fixed 55° slant with its layers pulled two sector-heights apart, so
+  fixed 55° slant with its layers touching (no space between blocks or
+  layers anywhere on the map, Boss 2026-10-01), so
   every sector can be hovered (the others fade) and clicked on the map.
   The strip still offers the layers. Clicking a sector moves on to its
   own layer with it selected, or opens it when it is generated. The cube
