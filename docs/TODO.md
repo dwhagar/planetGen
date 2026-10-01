@@ -69,6 +69,7 @@ that default.
 | API | The JSON API |
 | ADM | Admin tools: editing, overrides, Generate page |
 | SEC | Security |
+| TEST | The test suite itself: new tests, test infrastructure, CI test jobs |
 | USR | User accounts |
 | OPS | Installers, hosting, CI, releases |
 | DOC | Documentation and project process |
@@ -206,6 +207,52 @@ with `clamp()`.
   year length it uses (Julian 365.25 days, as `years_to_time_string`
   does); and whether elapsed-time and ETA displays for jobs (PERF.3,
   UX.3 and PERF.4) and the admin pages use the same function.
+
+- [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls**
+  Boss (2026-10-01 14:58Z): "clean up the web interface, still have
+  buttons overlapping, we have +/- buttons that don't do anything
+  anymore, etc. Don't start it yet, but it needs to be done." UX.16
+  (PR #195) added space between buttons, but some still overlap, and
+  some controls survived the map rewrites without anything wired to
+  them. Done: a pass over every page (public, admin, and the Galaxy,
+  Sector, System and phenomenon maps) at each size class (compact,
+  medium, expanded, desktop) in light and dark: no buttons or labels
+  overlap or run off their panel; every button, toggle and link does
+  something, and dead ones (such as the +/- zoom buttons Boss saw) are
+  wired up or removed, along with any hint text that names them;
+  controls follow the section's rules above (touch targets, spacing).
+  Before/after screenshots of each fixed spot go with the PR. Known
+  dead control (found while planning the TEST items): on the nebula and
+  supernova remnant diagrams, anything about half a light-year across
+  or larger opens already at the 1 ly zoom-out limit
+  (`lib/phenomenonmap.py` lines 53 and 127, the clamp in
+  `static/mapzoom.js`), so "-" has nowhere to go. The Galaxy Map has no
+  +/- buttons, and the Sector Map's buttons work. TEST.55 (every map button
+  changes the view) and TEST.56 (no overlapping controls at 390 to
+  1280 px) pin this item.
+
+- [ ] **UX.22 Meaningful units for every measurement**
+  Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
+  like we have so that we always have meaningful units. From mass, to
+  distance, to time, to speed, just everything that can have units.
+  Atmospheric pressure and surface conditions should show customary
+  units as well as a secondary to help contextualize the metric values
+  given." Today only distance has a ladder (`format_distance_m` and
+  friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
+  by `static/distance.js`), with speed (UX.13) and time periods (UX.14)
+  being built. Done: one ladder per quantity, in Python with a JavaScript
+  mirror, picking a meaningful unit the same way, and every page, map
+  panel and form converted to it: mass (kg, Earth, Jupiter and solar
+  masses), distance, time, speed, temperature, pressure, gravity,
+  density, luminosity, power and any other quantity shown with a unit.
+  Surface conditions show temperature in K, °C and °F; atmospheric
+  pressure and the other surface conditions show a customary unit
+  (such as atm, psi or g) beside the metric value. The UX thread was
+  asked (2026-10-01 15:10Z) to add the K/°C/°F temperature display now;
+  this item covers the rest. Open questions: the ladder and switch
+  points for each quantity; which customary unit goes with each surface
+  condition; whether the secondary unit shows in tables or only in
+  detail panels.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -451,19 +498,17 @@ with `clamp()`.
   Generate page generates every not-yet-generated sector of the core on
   layer 0, nucleus sector included, with the same size warning,
   confirmation, `--limit` and progress as the other bulk modes (PERF.3
-  estimates). Open questions:
-  - How big is "the core": a fixed radius (the bulge scale radius,
-    200 pc by default, which is about 50 rings and roughly 7,900
-    sectors on layer 0), a radius the admin types, or a number of
-    rings?
-  - Only layer 0, or every layer the bulge reaches (a cylinder or a
-    sphere around the center)? Boss said layer 0, so that is the
-    default.
-  - Does it run with the plan's bright stars already in place, and
-    does GEN.23's smaller sphere and bright-star backfill apply around
-    it?
-  - Order of generation: ring 0 outward, so a partial run (or
-    `--limit`) leaves a filled disc around the nucleus?
+  estimates). Boss's answers (2026-10-01 14:55Z):
+  - Size: the admin chooses. The Generate page offers "core" as one
+    more mode alongside the others, where Boss types the size he
+    wants, as a radius or a number of rings (the CLI takes the same).
+    Suggested default: the bulge scale radius, 200 pc, about 50 rings
+    and roughly 7,900 sectors on layer 0.
+  - Layer 0 only, not every layer the bulge reaches.
+  - GEN.23's smaller generate-around sphere and bright-star backfill
+    run around the core too, as they do around any generated sector.
+  - Fill from ring 0 outward, so a run that stops early (or hits
+    `--limit`) still leaves a solid disc around the nucleus.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -769,6 +814,343 @@ and #221.
 
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
 
+## TEST: The test suite
+
+From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
+items (TEST.x) to build our testing suite to cover all edge cases, and
+prepare to do another solid full on bug hunt. Don't implement just plan
+for it"). Each item ends with its areas in brackets. "Suspected bug"
+means read from the code, not reproduced yet; the bug hunt confirms or
+clears each one.
+
+### Infrastructure and CI
+
+- [ ] **TEST.1 Test category and suite markers**
+  Add TEST to `test_todo_tags.py`; register `db`, `slow`, `browser`
+  markers in `pytest.ini` so fast/no-DB, DB and browser runs can be
+  picked separately. [infra]
+
+- [ ] **TEST.2 Parallel test runs**
+  Add pytest-xdist, give each worker its own control database name
+  (today `configured_control_database()` defaults to one fixed name),
+  and a session-scoped template schema so each test doesn't rebuild
+  `schema.sql` from scratch; goal: the 17-22 minute suite well under 10.
+  [infra]
+
+- [ ] **TEST.3 MariaDB in CI**
+  Add MariaDB 10.11 and 11.x legs (and MySQL 8.4) to `ci.yml`; today CI
+  is MySQL 8.0 only, so the engine-specific paths in `_db.py` (statement
+  timeout via `max_statement_time`, the ALGORITHM fallbacks, the
+  CTE-in-UPDATE workaround) only run on Boss's server. [infra, DB]
+
+- [ ] **TEST.4 Revive and widen the known-bug tests**
+  The "Real bugs (strict xfail)" block in
+  `test_fuzz_system_generation.py` (about line 562) now passes on 5-200
+  seeds; widen the seed counts and fix the stale docstring; promote the
+  three Tier-2 "tracked-not-fixed" reports (NaN radius in the system
+  map, `SERIALIZABLE_FIELDS` drift, galaxy-boundary report) to hard
+  asserts or strict xfails. [infra, GEN]
+
+- [ ] **TEST.5 Real 4 pc in boundary tests**
+  `test_bughunt_galaxy_boundaries.py` uses `EDGE_PC = 10.0`; run it at
+  the real 4 pc sector edge too. [infra, GEN]
+
+### Database and migrations
+
+- [ ] **TEST.6 SQL portability lint**
+  Parse `schema.sql`, `control_schema.sql` and the SQL strings in
+  `_db.py`/`queryDb.py` against the reserved-word lists of MySQL 8.0,
+  8.4 and MariaDB 10.x/11.x; flag deprecated `VALUES()` in ON DUPLICATE
+  KEY. [DB]
+
+- [ ] **TEST.7 Strict sql_mode on both engines**
+  Run the DB tests with `ONLY_FULL_GROUP_BY` and `STRICT_TRANS_TABLES`
+  forced on (MySQL 8's default, not MariaDB's), so a GROUP BY or
+  truncation that MariaDB forgives fails locally too. [DB]
+
+- [ ] **TEST.8 Migrate from real old schemas**
+  Checked-in historic schema dumps (for example v8, v20, v33, v44) each
+  migrated to the latest and compared with a fresh `schema.sql` database
+  (tables, columns, types, indexes, FKs). Steps with no test today:
+  14-15, 15-16, 18-19, 22-23, 23-24, 24-25, 25-26, 30-31, 43-44, 44-45.
+  [DB]
+
+- [ ] **TEST.9 Migration crash and re-run**
+  Fail at step N (DDL has already auto-committed), re-run, and get a
+  correct database; every step idempotent when applied twice; empty or
+  gapped `schema_migrations`. [DB]
+
+- [ ] **TEST.10 Database newer than the code**
+  A galaxy or control database with a version above the code's is
+  refused with a clear message (suspected bug: `migrateDb.py` says "no
+  migration path available yet" and the app uses it anyway). [DB]
+
+- [ ] **TEST.11 Every column round-trips**
+  Walk `INFORMATION_SCHEMA.COLUMNS` and prove each column is written by
+  an insert and read back by a loader, so a new column left NULL or
+  never loaded fails. [DB]
+
+- [ ] **TEST.12 Boundary values round-trip**
+  Float extremes, NaN/inf refused, DECIMAL precision, VARCHAR length
+  limits under strict mode, 4-byte UTF-8 names, NULL tristates. [DB]
+
+- [ ] **TEST.13 Collation collisions**
+  Names equal under `utf8mb4_unicode_ci` but not byte-equal (case,
+  accents) against the unique name registries; a database created with
+  the server's default collation joined to pinned tables (error 1267).
+  [DB]
+
+- [ ] **TEST.14 CHECK constraints enforced**
+  Each CHECK in the schema rejects a bad row on both engines. [DB]
+
+- [ ] **TEST.15 Sector save fails halfway**
+  Inject an error after the systems are written and before phenomena or
+  neighbours; nothing persists, no orphan rows, no stale name
+  reservations or `GET_LOCK`; retry exhaustion at
+  `SECTOR_SAVE_ATTEMPTS`; lock-wait timeout (1205). [DB]
+
+- [ ] **TEST.16 Id blocks after reset and rollback**
+  Id block cache across `resetDb`, a manual insert, two processes
+  exhausting blocks; no duplicate primary key. [DB]
+
+- [ ] **TEST.17 Batched writes at the limits**
+  Multi-row inserts near `max_allowed_packet`; FK ordering for
+  self-referencing tables. [DB]
+
+- [ ] **TEST.18 Full-text search edge cases**
+  Names with `+ - " * '`, words shorter than `innodb_ft_min_token_size`,
+  stopwords that differ between engines, `%`, `_` and backslash in
+  `/search` fields; results checked, not just "no 500". [DB, UX]
+
+### Generation and the work queue
+
+- [ ] **TEST.19 Same galaxy at any worker count**
+  One seed generates identical sectors with `--workers 1`, 2 and N
+  (suspected bug: the one-worker path in `workQueue.submit` never calls
+  `random.seed(task_seed(...))`; the parallel path does, and the only
+  test compares 2 with 3). [GEN, PERF]
+
+- [ ] **TEST.20 Work queue failure paths**
+  A worker dies (BrokenProcessPool), `on_done` raises, a payload won't
+  pickle, a result isn't JSON, two tasks share a key, heartbeat fails,
+  the control database drops mid-run, lease expiry under clock skew.
+  [PERF]
+
+- [ ] **TEST.21 Cancelling a run**
+  SIGTERM, Ctrl+C and SystemExit during a parallel run end the job as
+  cancelled, free the lease and leave no half-written sector. [PERF]
+
+- [ ] **TEST.22 Every bulk mode in parallel**
+  `--shell`, `--block`, `--column`, `--center-sector`, random start and
+  `sector --num-sectors N` with `--workers 2`, checking run counts and
+  that no sector is filled twice. [PERF, GEN]
+
+- [ ] **TEST.23 Resume after an interrupted fill**
+  Stop a ring, shell or block run partway, run it again, and get the
+  same result as one uninterrupted run with no duplicates. [GEN]
+
+- [ ] **TEST.24 Bright-star scatter edge cases**
+  `_place_one` running out of redraws, a zero-weight bin picked by float
+  rounding, a layer where nothing qualifies, `outer_ring=0`, empty
+  extents, a threshold below every white dwarf. [GEN, PERF]
+
+- [ ] **TEST.25 Interrupted bright-star scatter**
+  A worker fails mid-scatter after some 10,000-row commits (the seed is
+  written only at the end); a re-plan or later fill handles the partial
+  table. [GEN, PERF]
+
+- [ ] **TEST.26 `--force` scatter then fill**
+  Sectors skipped by a forced scatter fill correctly afterwards. [GEN]
+
+- [ ] **TEST.27 Progress and ETA under bad clocks**
+  `DecayingRate` with time going backwards, NaN or infinite amounts,
+  many adds at one instant, a tiny rate; workers never write the
+  progress file. [PERF]
+
+- [ ] **TEST.28 CLI errors by message**
+  Every `parser.error` in `generate.py` (block, column, shell,
+  center-sector, limit, plan shape, workers, population, phenomenon,
+  mysql-port) asserted by its text, and each limit tested at exactly its
+  maximum (`MAX_GENERATE_RING`, `MAX_GENERATE_LIMIT`, first and last
+  `--block-layer`). [GEN, OPS]
+
+- [ ] **TEST.29 Limits stay consistent**
+  `MAX_GENERATE_LIMIT` matches `ring_sector_count(MAX_GENERATE_RING)`
+  whatever `DEFAULT_MAX_RING` is. [GEN]
+
+- [ ] **TEST.30 Grid seams and the nucleus**
+  Points at θ just under 2π and at -0.0 on the 4 pc grid; the outermost
+  planned ring and layer against `galaxy_bounds`; the nucleus sector
+  (ring 0, slot 0) across layers 0 and -1. [GEN]
+
+- [ ] **TEST.31 Sector placement exhaustion**
+  "could not place a new object", the Poisson cap, explicit positions on
+  the cell boundary, `nearest_neighbors` with a bad count. [GEN]
+
+- [ ] **TEST.32 System builder internals**
+  Direct tests for `generate_slot_object`,
+  `calculate_distance_for_class`, `_forced_habitable_distance`,
+  `_trim_to_orbit_ceiling`, `_reconcile_moved_planet`,
+  `_clear_circumbinary_floor` and the `from_dict` error; these are what
+  ADM.5's validate module will wrap. [GEN]
+
+- [ ] **TEST.33 Moon stability helpers**
+  `moon_orbit_bounds_km`, `drop_unstable_moons`, `update_hill_sphere`
+  and the "no valid planet class" errors, tested directly. [GEN]
+
+- [ ] **TEST.34 Kepler solver extremes**
+  Eccentricity above 0.99, negative mean anomaly and above 2π,
+  non-convergence detected rather than silently returned,
+  `_real_cube_root` at 0 and negative. [GEN]
+
+- [ ] **TEST.35 Star and evolution helpers**
+  `calculate_heliosphere`, the population-model star path, age windows,
+  radius and temperature helpers, white dwarf radius, Yerkes class, and
+  their raise messages. [GEN]
+
+- [ ] **TEST.36 Phenomenon class helpers**
+  Direct tests for nebula, remnant, black hole, rogue planet, comet and
+  asteroid-field class and designation helpers, and every
+  `get_table_properties`. [GEN]
+
+- [ ] **TEST.37 Names under parallel saves**
+  Two workers saving systems and sectors with the same base name at
+  once; the diminutive tier filling under parallel saves; the species
+  name race and "could not find a free species name". [GEN, DB]
+
+- [ ] **TEST.38 Population incremental rescans**
+  `scan_life_worlds`, `refresh_civilizations`, `refresh_territories` and
+  the watermark path; a rescan after new fills adds only the new worlds.
+  [POP]
+
+- [ ] **TEST.39 Navigation graph**
+  K-d tree neighbours checked against brute force, duplicate
+  coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
+
+### Web, API and jobs
+
+- [ ] **TEST.40 Two admins start a job at once**
+  Exactly one job runs (suspected bug: `_take_lock` creates an empty
+  lock before writing the job id, so a second caller can read it as
+  stale, delete it and start its own job). [ADM]
+
+- [ ] **TEST.41 Job files damaged**
+  Corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
+  holding garbage; job id collision; unwritable jobs directory; prune
+  never removes the running job; cancel with unknown, malformed or
+  finished job ids. [ADM]
+
+- [ ] **TEST.42 Pages fresh after a CLI write**
+  After `generate.py` writes straight to the database, `/galaxy`,
+  `/sector`, tiles and lists show the new data (only API writes are
+  tested today). [UX, PERF]
+
+- [ ] **TEST.43 Auth sweep over every route**
+  Generated from `app.url_map`: every API write route gives 401 to
+  anonymous, garbage Bearer and revoked keys; every admin route gives
+  403 to an admin who must still change credentials. [SEC, API]
+
+- [ ] **TEST.44 What an API key may do**
+  Whether a Bearer key can change credentials, set up or turn off TOTP,
+  make keys, or log out, pinned to the intended answer. [SEC, API]
+
+- [ ] **TEST.45 More than one admin**
+  Admin B can't revoke admin A's key, lifting another admin's lockout is
+  audited, two admins editing the same system. [SEC, ADM]
+
+- [ ] **TEST.46 Trusted device and TOTP edge cases**
+  Expired, tampered and other-user device cookies; turning TOTP off
+  voids trust; a code reused across the API and `/login/code`; a pending
+  login that expires. [SEC]
+
+- [ ] **TEST.47 Oversized requests**
+  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
+  the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
+  today). [SEC]
+
+- [ ] **TEST.48 Security headers everywhere**
+  CSP and the other headers on JSON responses, 404/405/500 pages and
+  redirects, not only pages. [SEC]
+
+- [ ] **TEST.49 Thin API routes**
+  Unknown ids, empty galaxy, paging limits and wrong-system ids for
+  `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
+  star/planet/moon PATCH, facilities POST/PATCH/DELETE,
+  `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
+  `/api/systems/<id>/owner`; deleting a sector that has facilities or
+  wiki pages. [API]
+
+- [ ] **TEST.50 Galaxy URLs combined**
+  `?at=` with `?p=` and `?sector=` together; `?course=` to deleted
+  objects; `/galaxy/locate` with unicode, very long input, NaN/inf and
+  out-of-range coordinates, ambiguous names. [MAP]
+
+- [ ] **TEST.51 Page-number sweep gaps**
+  `/species?species_page=` and `/polities?polities_page=` join the
+  page-clamping sweep. [UX]
+
+- [ ] **TEST.52 Old URLs and error codes**
+  Unknown `/<name>.py`, case variants, redirect chains; 400 for
+  malformed form encoding; HEAD and OPTIONS on pages. [UX]
+
+- [ ] **TEST.53 Formatters with bad numbers**
+  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
+  and None; empty tables; huge values. [UX]
+
+- [ ] **TEST.54 Caches under threads**
+  Page cache fill and clear from real threads; two writers to the same
+  tile file. [PERF]
+
+### Browser and JavaScript
+
+- [ ] **TEST.55 Map buttons do something**
+  Playwright clicks every map control (Sector Map, System Map,
+  phenomenon diagram, Galaxy Map) and asserts the view changes. Found
+  while planning: on the phenomenon diagram, any nebula or remnant about
+  half a light-year across or larger opens already at the 1 ly zoom-out
+  limit (`phenomenonmap.py` lines 53 and 127), so "-" does nothing; this
+  test pins the UX cleanup item. [MAP, UX]
+
+- [ ] **TEST.56 No overlapping controls**
+  Playwright compares the bounding boxes of every button and control on
+  every page at 390, 600, 820 and 1280 px, both themes; no two
+  intersect, none off-screen. [UX]
+
+- [ ] **TEST.57 Galaxy Map JavaScript logic**
+  Node tests for `galaxystageview.js` (zoom, pan and tilt clamps) and
+  `galaxymap3d.js` (`sectorDesignation` BigInt packing, address form,
+  history, control handlers); neither has any test today. [MAP]
+
+- [ ] **TEST.58 Other map JavaScript**
+  Node tests for `mapzoom.js` (`zoomedBox` and its clamp),
+  `sectormap.js` and `systemmap.js` zoom and selection logic,
+  `generatejobs.js` polling, `facilityform.js`. [MAP]
+
+- [ ] **TEST.59 Galaxy Map drill-down in a browser**
+  Playwright walks quarter, layer, arc, block and sector by clicks,
+  checks the URL and breadcrumb at each step, Back/Forward, and the free
+  camera from an arc down. [MAP]
+
+### Scripts and ops
+
+- [ ] **TEST.60 Admin script command lines**
+  `main()` tests for `queryDb`, `adminStats`, `checkRenderParity`,
+  `dedupeNames`; bad port, unknown database, empty password vs
+  environment for every script; `resetDb --yes --dry-run`;
+  `updateOrbits` with the clock moved back; `loginLockouts` with bad
+  IPv6. [OPS]
+
+- [ ] **TEST.61 SQLite import script**
+  `migrateSqliteToMysql.py` has no tests and (suspected bug) can't run:
+  it requires the SQLite file to be at today's schema version (46),
+  which no SQLite database ever was. Test it from a v12 file, or retire
+  the script. [OPS, DB]
+
+- [ ] **TEST.62 update.sh against a real database**
+  A CI job runs `update.sh` (and `install.sh`'s database step) on Linux
+  against a live database: up to date, needs migrating, newer than the
+  code, unreachable, failed migration. Today they're only
+  syntax-checked. [OPS]
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
