@@ -18,6 +18,7 @@ from .admin import bp as admin_bp
 from .auth import bp as auth_bp
 from .common import ApiError, close_control_db
 from .config import Config
+from .edits import bp as edits_bp
 from .limiter import limiter
 from .population import bp as population_bp
 from .routes import bp, close_db
@@ -45,6 +46,7 @@ def create_app(config_object=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(population_bp)
+    app.register_blueprint(edits_bp)
     web.init_app(app, limiter=limiter)
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)

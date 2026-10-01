@@ -113,6 +113,9 @@ subhead (badges or actions under the <h1>). -#}
   <h1 class="page-title">{{ title }}</h1>
   {%- endblock %}
   {%- block subhead %}{% endblock %}
+  {%- for is_error, text in edit_flashes() %}
+  <p class="{{ 'error' if is_error else 'hint' }} edit-message" role="{{ 'alert' if is_error else 'status' }}">{{ text }}</p>
+  {%- endfor %}
   {%- block content %}{% endblock %}
 </main>
 <footer class="site-footer">

@@ -1013,3 +1013,25 @@ def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None):
         timeout=_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS,
     )
     return body
+
+
+_EDIT_TIMEOUT_SECONDS = 600
+"""float: An admin edit (`admin_edit`) can regenerate a whole sector, which
+takes longer than a quick CRUD call."""
+
+
+def admin_edit(cookie_header, db, method, path, body=None):
+    """
+    One admin editing call (TODO ADM.1, `api/edits.py`, and the system
+    `PATCH`/`DELETE`): `method` and `path` under `/api` (for example
+    `"POST", "/planets/12/regenerate"`), with an optional JSON `body`.
+    Returns the parsed answer (`summary`, `warnings`, ...). A refusal is an
+    `ApiError` (409 when facilities would be lost or the edit can't be
+    made); a missing target a `NotFoundError`.
+    """
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        method, f"{path}?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+        timeout=_EDIT_TIMEOUT_SECONDS,
+    )
+    return result or {}

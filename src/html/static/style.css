@@ -505,6 +505,42 @@ tbody tr:last-child td {
   margin-bottom: 0.4rem;
 }
 
+/* The admin Delete and Regenerate buttons (ADM.8): a <details> confirm
+   step each (templates/partials/edit_controls.html). */
+.edit-buttons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.edit-confirm > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.edit-confirm > summary::-webkit-details-marker {
+  display: none;
+}
+
+.edit-confirm[open] > summary {
+  margin-bottom: 0.4rem;
+}
+
+.edit-confirm .hint {
+  max-width: 45ch;
+  margin: 0 0 0.4rem;
+}
+
+.edit-indent {
+  padding-left: 1.5rem;
+}
+
+.edit-drop {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
 /* The facility form's orbit slider (ADM.9): the full row, hidden unless
    the placement is "in orbit" (static/facilityform.js toggles `hidden`;
    `.search-field`'s own display would otherwise override it). */

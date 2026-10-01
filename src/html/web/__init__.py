@@ -105,6 +105,12 @@ def static_url(filename):
     return f"{request.script_root}/{fmt_static_url(filename)}"
 
 
+def edit_flashes():
+    """What the last admin Delete or Regenerate flashed (`edit_actions`)."""
+    from .edit_actions import messages
+    return messages()
+
+
 @bp.app_context_processor
 def _template_globals():
     return {
@@ -115,6 +121,7 @@ def _template_globals():
         "page_url": page_url,
         "current_admin": current_admin,
         "csrf_field": csrf.csrf_field,
+        "edit_flashes": edit_flashes,
         "utc_time": lambda value: Markup(utc_time_html(value)),
         # UX.20: every count or measurement a template shows, `num(x)` or
         # `num(x, ",.2f")` -- scientific past 4 whole digits.

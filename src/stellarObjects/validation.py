@@ -713,7 +713,7 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
     """
     Brings an edited star system back to a stable layout, from the inside
     out: every lunar system first (`stabilize_lunar_system`), then each
-    star's planets and belts, sorted by orbit and re-spaced outward
+    star's planets and belts, in their stored order, re-spaced outward
     (`space_orbits`; a moved planet whose class no longer fits its new
     zone is reclassified unless it is `pinned`), then the orbit ceiling
     and, for a wide binary, the clearance between the two stars.
@@ -746,7 +746,6 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
         for body in planets:
             if body.body_type != 'a':
                 stabilize_lunar_system(body)
-        planets.sort(key=inner_edge_au)
         space_orbits(planets, pinned=pinned)
         if allow_removal:
             removed.extend(trim_to_orbit_ceiling(planets, orbit_ceiling_au(star)))
