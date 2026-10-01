@@ -99,14 +99,13 @@ of the SEC section.
    1. MAP.45 (objects drawn outside the sector's wireframe), then
       MAP.46. MAP.45 goes first because it may mean stored positions
       are wrong; find out before the next full regenerate.
-   2. The bright stars on the Galaxy Map: MAP.47 (vanish when zoomed
-      out), then MAP.48 (pop in after a zoom).
-   3. MAP.43 (wedge lines past the galaxy's edge) and MAP.37
-      (generated systems hard to find).
-   4. MAP.49: planet orbits drawn inside an asteroid belt on the System
+   2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
+      wedge lines past the galaxy's edge (MAP.43) and the generated
+      systems that were hard to find (MAP.37).
+   3. MAP.49: planet orbits drawn inside an asteroid belt on the System
       Map.
-   5. MAP.50: names running off the edge of the map.
-   6. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   4. MAP.50: names running off the edge of the map.
+   5. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
@@ -255,8 +254,8 @@ do not display past 500 seconds scale (1 block = 81 sectors across). bug
 fix zooming reveals stars are being drawn but it takes a while to load,
 another bugfix, it's really hard to find the generated star system on
 the map, so everything not yet filled should be more transparent by a
-lot with a much higher contrast." They are MAP.43, MAP.47,
-MAP.48 and MAP.37 below.
+lot with a much higher contrast." They were MAP.43, MAP.47,
+MAP.48 and MAP.37, all fixed.
 
 - [ ] **MAP.2 Drill-down navigation**
 
@@ -330,11 +329,11 @@ MAP.48 and MAP.37 below.
         (MAP.23), the address bar (MAP.24) and the NAV course (MAP.27)
         keep working with the new steps.
 
-      Ties in with the map bugs MAP.43, MAP.47, MAP.48 and
-      MAP.37 (wedge lines stopping at the galaxy's edge matter more
-      once wedges are what the user picks, and MAP.37's contrast
-      applies to the slices and blocks). Open questions: how the "wedge
-      (quarter)" maps onto the design's nested ladder (243 -> 27 -> 3 ->
+      Builds on the fixed map bugs (wedge lines stop at the galaxy's
+      edge, which matters more once wedges are what the user picks, and
+      the filled blocks' contrast applies to the slices and blocks).
+      Open questions: how the "wedge (quarter)" maps onto the design's
+      nested ladder (243 -> 27 -> 3 ->
       1, section 3): is the first pick always one of four quarters, or
       one of the master wedges at that ring? What a "slice" is: a ring
       band, a layer (the current 3D stages pick a slab, a layer), or a
@@ -357,8 +356,8 @@ MAP.48 and MAP.37 below.
       with the same look for a first tap on touch screens and for
       keyboard focus; the dimming clears when the pointer leaves the map.
       Goes with MAP.17 (the wedge, slice and block picks all need this
-      highlight) and MAP.37 (unfilled blocks drawn much more
-      transparent, which the dimming must still read against). Open
+      highlight); unfilled blocks are now drawn much more transparent,
+      which the dimming must still read against. Open
       questions: how dim the rest goes (say 25-40% opacity)? Does the
       hovered block also brighten or get a thicker outline? Does it
       animate (a short fade) or switch instantly, and does
@@ -486,35 +485,8 @@ MAP.48 and MAP.37 below.
   `lib/galaxymap3d.py` and `stellarObjects/galaxyGeometry.py`.
   - [x] **MAP.36 One solid of blocks for filled and unfilled sectors**
     Done in 7.25.0 (PR #142).
-    - [ ] **MAP.37 (bug) Generated systems are hard to find on the map**
-      Boss:
-      "it's really hard to find the generated star system on the map, so
-      everything not yet filled should be more transparent by a lot with
-      a much higher contrast." Done: blocks and sectors not yet filled
-      draw much more transparent, and filled sectors stand out with much
-      higher contrast against them, on the 3D map and on the drill-down
-      stages (MAP.2). Open questions: how transparent the unfilled
-      blocks go (and whether the density shape still reads at the galaxy
-      scale); what "higher contrast" uses (a bright color, an outline, a
-      glow like the bright stars); whether a block holding only a few
-      filled sectors gets the filled look; and whether it follows the
-      light and dark themes and keeps enough contrast in both.
   - [x] **MAP.42 Wedge lines from the center**
     Done in 7.9.0 (PR #120).
-    - [ ] **MAP.43 (bug) Wedge lines run past the galaxy's edge**
-      Boss: "wedge
-      lines should not extend past the boundary of the galaxy." Today
-      `galaxymap3d.js` (`buildWedgeLines`) draws every master line of
-      `galaxyprisms.wedgeLines` as a straight radial line out to
-      `GALAXY_RADIUS * 1.02`, a fixed circle, so the lines carry on past
-      the galaxy's real outline (which is not a circle at every bearing)
-      and slightly past the radius itself. Done: each wedge line stops at
-      the galaxy's boundary along its bearing, in the 3D view and the
-      drill-down stages (MAP.2) alike. Open questions: which
-      boundary counts (the outermost generated ring at that bearing, the
-      density model's cutoff from `densityShape`, or the outermost layer
-      extent from `galaxySkeleton.build_layer_extents`); and whether the
-      bearing labels move in to the new line ends.
 
     - [ ] **MAP.44 (bug) Wedge lines and ring circles run far past a zoomed-in block**
       Boss (2026-10-01): "when zoomed in to a sector block it the radial
@@ -527,7 +499,7 @@ MAP.48 and MAP.37 below.
       (ring) boundaries do the same. Done: zoomed in to a block, the
       wedge lines and the ring boundaries are drawn only across that
       block and a small margin past its edges, at every drill-down stage;
-      zoomed out, MAP.43's rule (stop at the galaxy's edge) applies.
+      zoomed out, they stop at the galaxy's edge as now.
       Open questions: how big "a little beyond" is (a fixed fraction of
       the block, such as 10-20%, or a few pixels on screen)? Do the lines
       fade out across the margin or stop sharply? Does the same apply to
@@ -592,33 +564,6 @@ MAP.48 and MAP.37 below.
 - [x] **MAP.14 Bright stars on the Galaxy Map**
   Done in 7.42.0 (PR #160; it never had a number); kept as the parent of
   its bugs.
-  - [ ] **MAP.47 (bug) Bright stars vanish when zoomed out**
-    Boss: "bright
-    stars do not display past 500 seconds scale (1 block = 81 sectors
-    across)." Past that zoom the pre-placed bright stars (v43,
-    `bright_stars`, drawn as points with a glow) stop showing; they
-    should show at every zoom. Leads to check, not yet confirmed: each
-    tile carries at most `queryDb.GALAXY_TILE_MAX_BRIGHT_STARS` (400)
-    stars, and zoomed out the view may switch to tiles or a view
-    radius that leaves stars out. Done: bright stars draw at every zoom
-    out to the whole galaxy, thinned by luminosity if there are too many
-    rather than disappearing. Open questions: "500 seconds" is taken as
-    the scale readout at the zoom where blocks are 81 sectors a side;
-    Boss to confirm which readout he meant. How many stars should the
-    whole-galaxy view draw (the brightest N overall, or the brightest
-    per tile)?
-  - [ ] **MAP.48 (bug) Stars take a while to appear after a zoom**
-    Boss:
-    "zooming reveals stars are being drawn but it takes a while to
-    load." After a zoom the bright stars (and the tiles they come in,
-    `renderFromCache` in `galaxymap3d.js`) arrive late, so the view
-    shows them popping in. Done: stars already loaded stay on screen
-    through a zoom, the tiles for the new view load faster or ahead of
-    time, and nothing visibly pops in. Open questions: where the time
-    goes (the tile request, `galaxy_bright_stars_in_box`'s query, or
-    rebuilding the points); whether to prefetch the next zoom level's
-    tiles; and whether a separate, lighter star endpoint would help
-    (ties in with PERF.6's fewer, bigger database calls).
 
 - [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
   Boss (2026-10-01): "make the stars in a sector more realistic

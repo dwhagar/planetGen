@@ -506,9 +506,9 @@ def test_block_scene_packs_every_listed_block_once():
         assert len(part["alphas"]) == len(part["fills"]) == len(part["owners"]) == count
         assert all(0 <= owner < len(part["cells"]) // stride for owner in part["owners"])
         assert all(0 <= index < count for index in part["indices"])
-    # Nothing is filled, so everything is translucent glass, 50-80% opaque.
+    # Nothing is filled, so everything is translucent glass, 10-30% opaque (MAP.37).
     assert out["solid"]["vertexCount"] == 0
-    assert all(127 <= a <= 205 for a in out["glass"]["alphas"])
+    assert all(25 <= a <= 77 for a in out["glass"]["alphas"])
     assert set(out["glass"]["fills"]) == {0}
 
 

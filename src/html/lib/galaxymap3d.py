@@ -187,9 +187,28 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
     Returns:
         float: The padded outer radius, parsecs.
     """
+    return galaxy_edge_pc(edge_pc, galaxy_shape) * MAX_VIEW_RADIUS_MARGIN
+
+
+def galaxy_edge_pc(edge_pc, galaxy_shape):
+    """
+    The galaxy's own outer edge, parsecs, unpadded: the outside of its
+    stored skeleton's outermost ring (`outer_ring_index`), or
+    `GALAXY_RADIUS_PC` when no skeleton has been built yet. Every ring is
+    a full circle, so this is the edge at every bearing; the wedge lines
+    stop here (`galaxyEdgePc`, MAP.43).
+
+    Args:
+        edge_pc (float): The sector edge length, parsecs.
+        galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
+            return shape, or `None`.
+
+    Returns:
+        float: The outer radius, parsecs.
+    """
     if galaxy_shape and galaxy_shape.get("outer_ring_index") is not None:
-        return (galaxy_shape["outer_ring_index"] + 1) * edge_pc * MAX_VIEW_RADIUS_MARGIN
-    return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
+        return (galaxy_shape["outer_ring_index"] + 1) * edge_pc
+    return GALAXY_RADIUS_PC
 
 
 FETCH_RADIUS_FACTOR = 1.6
@@ -413,6 +432,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "edgeLy": edge_ly,
         "fovDeg": CAMERA_FOV_DEG,
         "galaxyRadiusPc": galaxy_extent_pc(edge_pc, galaxy_shape),
+        "galaxyEdgePc": galaxy_edge_pc(edge_pc, galaxy_shape),
         "minViewRadiusPc": min_radius,
         "maxViewRadiusPc": max_radius,
         "clickZoomFactorMin": CLICK_ZOOM_FACTOR_MIN,

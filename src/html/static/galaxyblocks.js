@@ -37,15 +37,19 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // Unfilled space: this opaque at the sparsest drawn density, rising to
-// BLOCK_OPACITY_DENSE at the densest (50% to 20% see-through).
-export const BLOCK_OPACITY_SPARSE = 0.5;
-export const BLOCK_OPACITY_DENSE = 0.8;
+// BLOCK_OPACITY_DENSE at the densest (90% to 70% see-through). Boss
+// (MAP.37): "everything not yet filled should be more transparent by a
+// lot", so generated systems stand out; the density shape still reads,
+// only faintly.
+export const BLOCK_OPACITY_SPARSE = 0.1;
+export const BLOCK_OPACITY_DENSE = 0.3;
 // Any filled sector lifts a block at least this far from its unfilled
 // opacity toward solid, however tiny its share: at large m one filled
-// sector among 531,441 must still show. The rest of the way follows the
+// sector among 531,441 must still show, and well clear of the unfilled
+// blocks around it (MAP.37). The rest of the way follows the
 // log of the filled count against the log of the block's total, so a
 // block turns solid only when every sector in it is filled.
-export const FILLED_MIN_STEP = 0.3;
+export const FILLED_MIN_STEP = 0.6;
 // Block shading runs over a wide density range: the drawing floor
 // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
 // through a dim-to-accent-to-white ramp.

@@ -137,6 +137,9 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["initialRadiusPc"] == data["maxViewRadiusPc"]
     assert data["fovDeg"] == CAMERA_FOV_DEG
     assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 50}))
+    # The wedge lines stop at the outermost ring's outside, not the padded view radius (MAP.43).
+    assert data["galaxyEdgePc"] == pytest.approx(51 * EDGE_PC)
+    assert data["galaxyEdgePc"] < data["galaxyRadiusPc"]
     assert data["initial"] == view
     assert data["generate"] is None
     assert data["phenomenonUrl"] is None
