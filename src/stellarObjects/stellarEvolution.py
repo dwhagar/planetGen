@@ -275,8 +275,8 @@ def sample_living_star(age_bias=None, large_star=False, rng=random, habitable_ho
 
     `population` draws the age from that population's range instead of the
     whole disk's (see `population_age_range_gy`), and `max_luminosity_sol`
-    redraws any star at or above that luminosity (a sector's dim stars,
-    once its bright ones were pre-placed).
+    redraws any star but a white dwarf at or above that luminosity (a
+    sector's dim stars, once its bright ones were pre-placed).
     """
     pc = program_constants
     if large_star and population is not None:
@@ -304,7 +304,10 @@ def sample_living_star(age_bias=None, large_star=False, rng=random, habitable_ho
         state = evolve_star(mass, age, rng)
         if state is None or (habitable_host and state["yerkes_class"] == "VII"):
             continue
-        if max_luminosity_sol is not None and state["luminosity_sol"] >= max_luminosity_sol:
+        # A white dwarf is never pre-placed, so the cap never removes one
+        # (the hottest are clamped to exactly the lowest allowed cap).
+        if (max_luminosity_sol is not None and state["yerkes_class"] != "VII"
+                and state["luminosity_sol"] >= max_luminosity_sol):
             continue
         return mass, age, state
     raise ValueError(f"no living star in {pc.STAR_MODEL_MAX_REDRAWS} draws")

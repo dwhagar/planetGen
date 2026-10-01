@@ -2568,11 +2568,14 @@ given orbits at this many of its host's radii."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 500.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 100.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `generate.py plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
-around it. Boss, 2026-09-30. The value a scatter used is stored in
-`galaxy_shape.bright_star_min_luminosity_sol`, and filling reads that, not
-this, so retuning it can't make a fill double-count or skip stars. See
+around it. Boss, 2026-09-30 (500), lowered to 100 on 2026-10-01;
+`--bright-star-min-luminosity` raises it for a quick test galaxy. It can't
+go below the brightest white dwarf (`WD_LUMINOSITY_RANGE_SOL`). The value a
+scatter used is stored in `galaxy_shape.bright_star_min_luminosity_sol`, and
+filling reads that, not this, so retuning it can't make a fill
+double-count or skip stars. See
 /mnt/project-files/galaxy-studies/bright-star-preplacement-plan.md."""
