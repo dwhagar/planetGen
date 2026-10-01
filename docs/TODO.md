@@ -409,13 +409,18 @@ MAP.30) shipped in PR #234.
   selected node (a whole job, a subtree, or one task) and each
   confirmed and written to the admin activity log: cancel, retry
   (failed or cancelled nodes), pause (stop handing out that subtree's
-  tasks, finish the ones running, keep the lease) and resume; plus
-  clearing a stale lease whose holder is gone and deleting finished
-  jobs. Open questions: does the page also show CLI runs started by
-  hand in a terminal, and may the web pause or cancel those? Does a
-  paused job keep the lease, so nothing else can start, or give it up?
-  On Windows, where there is no load average, what does the load line
-  show (CPU percent over the same windows)?
+  tasks, finish the ones running) and resume; plus clearing a stale
+  lease whose holder is gone and deleting finished jobs. Boss
+  (2026-10-01 19:07Z): "Paused jobs go into standby and don't block
+  the queue but there is the option to pause the entire queue which
+  would lock the queue." So a paused job goes into standby and gives
+  up the lease, and other jobs can run; resuming puts it back in line.
+  Separately, "Pause the queue" holds the lease so no job starts or
+  takes tasks until the queue is resumed. Open questions: does the
+  page also show CLI runs started by hand in a terminal, and may the
+  web pause or cancel those? On Windows, where there is no load
+  average, what does the load line show (CPU percent over the same
+  windows)?
 
 - [ ] **ADM.11 Jobs keep running after the browser closes**
   Boss (2026-10-01 19:03Z): "we need to make sure that generate or
