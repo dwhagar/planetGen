@@ -1,5 +1,36 @@
 # Changelog
 
+## [7.39.0] - 2026-10-01
+
+### Added
+
+- **A nebula squeezes the heliosphere of every system inside it.** The
+  gas of a nebula or supernova remnant pushes on a star's wind bubble
+  much harder than open space does, so a system inside a dense cloud
+  now reports a much smaller heliosphere (a Sun-like star's drops from
+  about 85 AU to well under 1 AU in a dense cold cloud). The system
+  page text says so, and the system API returns `inside`,
+  `heliopause_au` and `heliopause_open_space_au`; navigation uses the
+  squeezed heliopause as the edge of a system's local frame.
+
+## [7.38.0] - 2026-10-01
+
+### Added
+
+- **Every bright star is placed before its sector is filled (schema
+  v43).** `generate.py plan` now ends by drawing every star of 500 solar
+  luminosities or more across the whole galaxy and storing each at a
+  fixed point in its sector, in a new `bright_stars` table, while the
+  sectors themselves stay unfilled. Filling a sector builds a full system
+  around each of its bright stars first and draws the rest from dimmer
+  stars, so a sector's expected count is unchanged. New plan options:
+  `--bright-star-min-luminosity`, `--no-bright-stars`,
+  `--bright-stars-only` and `--force`.
+- **Star ages follow where a sector sits.** Each system in a galaxy
+  sector draws its star from the young, intermediate, old or bulge
+  population in proportion to their density there, so O and B stars and
+  supergiants gather in the spiral arms near the plane.
+
 ## [7.37.0] - 2026-10-01
 
 ### Changed

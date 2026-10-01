@@ -93,6 +93,14 @@ GALACTIC_ROTATION_CORE_RADIUS_PC = 3000  # Turnover radius of the rotation curve
 LY_TO_M = LIGHTYEAR_M  # Light-year to meters conversion factor
 AU_TO_M = AU_M  # Astronomical Unit to meters conversion factor
 ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (N/m^2)
+# Inside a nebula or supernova remnant the cloud's own pressure replaces
+# ISM_PRESSURE at the heliopause: its ram pressure (rho * v^2, with the
+# star moving through the cloud) plus its thermal pressure (n k T). See
+# starData.compressed_heliosphere_radius.
+HYDROGEN_ATOM_MASS_KG = 1.6735575e-27  # Mass of a hydrogen atom in kg
+ISM_MASS_PER_HYDROGEN = 1.4  # Gas mass per hydrogen atom, in hydrogen masses (helium adds ~40%)
+STAR_CLOUD_RELATIVE_SPEED_MS = 26.0 * 1000  # A star's typical speed through its surrounding gas, m/s (the Sun's through the local cloud)
+CM3_TO_M3 = 1e6  # Particles per cm^3 to particles per m^3
 SOLAR_RADIUS_M = 6.957e8  # Radius of the Sun in meters
 SOLAR_ESCAPE_VELOCITY = 617.7 * 1000  # Sun's escape velocity in m/s
 SOLAR_WIND_VELOCITY = 400 * 1000  # Average solar wind velocity in m/s
