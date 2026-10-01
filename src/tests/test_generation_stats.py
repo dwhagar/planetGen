@@ -287,6 +287,9 @@ def test_yes_skips_the_question(mysql_config, monkeypatch):
 def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypatch):
     monkeypatch.setenv(generationStats.STATS_ENV_VAR, "1")
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", control_config.database)
+    # Without the GEN.23 bright-star backfill each sector holds exactly
+    # its --num-systems, so the per-task counts below are exact.
+    monkeypatch.setattr(generate, "backfill_bright_stars", lambda *args, **kwargs: {"blocks": 0, "stars": 0})
     _plan_wide_galaxy(control_config)
     _run_cli(RING_0 + _mysql_argv(control_config))
     stats = GenerationStats(control_config)

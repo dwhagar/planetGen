@@ -888,6 +888,11 @@
 --   stored rogue, seeded by its name, and resets `has_internal_heat` to
 --   the computed answer.
 --
+-- v49: bright-star backfill per sector block (GEN.23) -- the
+--   `bright_star_blocks` table below: for each 3x3x3 sector block a
+--   backfill has reached, the dimmest luminosity its stars have been
+--   drawn down to. `_migrate_v48_to_v49` creates it empty.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2431,6 +2436,28 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- bright_star_blocks (v49, GEN.23): one row per sector block (a level-3
+-- block of `galaxyDrill`: 3 rings by 3 layers by its wedge's slots, keyed
+-- by block ring, wedge and slab) the bright-star backfill around a
+-- generated sector has reached. `min_luminosity_sol` is the dimmest
+-- luminosity the block's unfilled sectors hold every star down to; NULL
+-- while a backfill holds the row locked, before it finishes. A block
+-- with no row is at `galaxy_shape.bright_star_min_luminosity_sol` (or
+-- has no bright stars at all, before any scatter). A plan re-run or
+-- reset empties the table along with `bright_stars`.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS bright_star_blocks (
+    block_ring           INT NOT NULL,
+    block_wedge          INT NOT NULL,
+    block_slab           SMALLINT NOT NULL,
+    min_luminosity_sol   DOUBLE,
+    updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (block_ring, block_wedge, block_slab)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

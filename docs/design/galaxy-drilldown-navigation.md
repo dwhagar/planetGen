@@ -438,7 +438,8 @@ centered on the selected sector, generated or not.
 
 **As built (7.53.0):** the buttons and the radius dialog work as above
 (default 100 ly, 13 to 652 ly, the estimate, and the confirmation past
-5,000 sectors); the radius goes as `slot_radius_pc`. Generate this layer
+5,000 sectors); the radius goes as `slot_radius_pc`. Since GEN.23 the dialog's default
+is 39 ly (about 12 pc, `DEFAULT_GENERATE_RADIUS_PC`). Generate this layer
 or slab is not built: it waits for the `--block` mode. The progress line
 below is not built either; the form still posts and follows the redirect
 to the job page.
@@ -660,7 +661,9 @@ Each has a default, and work can start on it.
    everywhere, as over the whole galaxy. *(Built as the default, without
    the compass arrow.)*
 7. **Neighborhood radius default.** Default: 100 ly, the same as today's
-   button. *(Built with this default in 7.53.0.)*
+   button. *(Built with this default in 7.53.0. Lowered to 39 ly, about
+   12 pc, by GEN.23: the 100 ly around every generated sector now gets
+   only its bright stars.)*
 8. **What a slice and a region are** (MAP.17, MAP.19). *(Decided by
    Boss, 2026-10-01: "Layer + arc". A slice is a layer of the disk,
    picked from a side strip or list since nothing rotates; a region is

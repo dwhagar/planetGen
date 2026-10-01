@@ -766,7 +766,7 @@ def test_sectors_table_rejects_duplicate_address(mysql_config):
 # ---------------------------------------------------------------------------
 # Random-start mode (no --ring/--center-sector given) -- the galaxy subcommand's
 # zero-argument default: pick a random, not-yet-occupied address, generate
-# it, then generate every sector within --radius-pc (default 100 ly) of it.
+# it, then generate every sector within --radius-pc (default 12 pc) of it.
 # ---------------------------------------------------------------------------
 
 def _plan_only_ring_0_of_the_plane(mysql_config):
@@ -1096,7 +1096,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     The standard workflow this project's own docs describe -- 'plan' once,
     then 'galaxy' with no flags: pick a random location, generate every
     not-yet-generated sector out to `--radius-pc` (the real default is
-    `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY`, 100 ly;
+    `program_constants.DEFAULT_GENERATE_RADIUS_PC`, 12 pc;
     trimmed to 25 ly here so this test runs in a reasonable time) -- run
     for real, against a real skeleton, with neither `--density` nor
     `--num-systems` given so every sector's own system count is driven

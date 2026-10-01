@@ -161,10 +161,15 @@ all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-
 occupied sector address inside the galaxy's planned outline (every layer
 out to its stored edge, from the top of the galaxy to the bottom),
 generates it, and then generates every not-yet-generated sector within
-100 ly of it too, in every direction — a whole small starmap around a
-fresh, randomly chosen starting point in one run. `--max-ring` bounds how
+12 pc (about 39 ly) of it too, in every direction — a whole small starmap
+around a fresh, randomly chosen starting point in one run. Every sector
+any `galaxy` mode generates (and every sector the map generates on a
+visit) first gets the bright stars around it: each sector block (3x3x3
+sectors) within 100 ly is given every star from 100 L_sun up to what was
+already placed there, once per block, leaving filled sectors alone
+(GEN.23). `--max-ring` bounds how
 far out the random starting address can land (defaults to the galaxy's
-own edge from `generate.py plan`), `--radius-pc` overrides the default 100 ly
+own edge from `generate.py plan`), `--radius-pc` overrides the default 12 pc
 neighborhood radius, and `--min-start-density` requires the randomly
 chosen starting sector's own real density to be at least that many times
 local (e.g. `--min-start-density 1.0` for at least as dense as the

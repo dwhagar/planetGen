@@ -157,7 +157,7 @@ def test_stored_and_backfilled_by_the_v48_migration(mysql_config):
         assert row["has_liquid_water"] == int(planet.has_liquid_water)
         name = row["name"]
         conn.execute("ALTER TABLE rogue_planets DROP COLUMN surface_regime, DROP COLUMN age_gy")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (48)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (48, 49)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
         conn.commit()
     finally:

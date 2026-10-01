@@ -99,7 +99,8 @@ from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
 from stellarObjects.galaxyDrill import (
-    DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key, parse_drill_key,
+    DRILL_LEVELS, DrillBlock, drill_block_sectors, drill_children, drill_parent, drill_slabs, format_drill_key,
+    parse_drill_key,
 )
 from stellarObjects.galaxyGeometry import (
     SectorCell, enumerate_sectors_within_radius, galactic_radius_pc,
@@ -247,7 +248,7 @@ def _generation_progress(disable=False):
     `--num-sectors` loop: that command's own run is normally short enough
     (and its sector count small enough) that a bar added more visual noise
     than it was worth, whereas a `galaxy` run (a whole ring, a
-    neighborhood, or a random start's default 100 ly one) can mean
+    neighborhood, or a random start's default 12 pc one) can mean
     thousands of sectors and legitimately benefit from a progress display.
     There also used to be a second, nested bar for "systems in the current
     sector," added/removed once per sector; that one is gone for good --
@@ -1604,8 +1605,9 @@ def add_galaxy_arguments(parser):
                              "--ring --slot: after generating that address, also generate its "
                              "neighborhood within this radius. With "
                              "neither --ring nor --center-sector (random-start mode): overrides the "
-                             "default 100 ly neighborhood radius around the randomly chosen starting "
-                             "sector.")
+                             "default 12 pc neighborhood radius around the randomly chosen starting "
+                             "sector. Every generated sector also gets the bright stars "
+                             "(100 L_sun and up) within 100 ly of it.")
     parser.add_argument('--max-ring', type=int,
                         help="With neither --ring nor --center-sector (random-start mode): the highest "
                              "ring the randomly chosen starting sector may land in. Default: anywhere "
@@ -1852,27 +1854,131 @@ def _edge_pc():
 
 def _fill_context(args, address, position_pc):
     """The `brightStars.FillContext` for one galaxy sector: its population
-    mix, and its unfilled pre-placed bright stars when a scatter ran.
-    `None` without a stored skeleton (nothing to take the mix from)."""
+    mix, and its unfilled pre-placed bright stars down to its block's
+    level (`_db.bright_star_fill_level`: the backfill's, else the galaxy
+    scatter's). `None` without a stored skeleton (nothing to take the mix
+    from)."""
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
         skeleton = _db.get_galaxy_shape(conn)
         if skeleton is None:
             return None
-        settings = _db.bright_star_scatter_settings(conn)
-        if settings is None:
+        level = _db.bright_star_fill_level(conn, *address)
+        if level is None:
             return brightStars.FillContext(position_pc, skeleton.shape)
         rows = _db.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
-    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=settings[0])
+    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level)
+
+
+def _block_addresses(block):
+    """Every sector `(ring, layer, slot)` of level-3 block `block`."""
+    return [(sector.ring, sector.slab, sector.wedge)
+            for layer in drill_slabs(block) for sector in drill_block_sectors(block, layer)]
+
+
+def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=None):
+    """
+    The bright-star backfill around a generated sector (GEN.23): every
+    sector block (`galaxyDrill`'s level-3 blocks, 3x3x3 sectors) with a
+    sector within `radius_ly` of `center_pc` gets every star from
+    `min_luminosity_sol` up to the level it already holds (its own
+    `bright_star_blocks` level, else the galaxy scatter's threshold, else
+    no ceiling when no scatter ran), in its sectors that aren't filled
+    yet. Each block is drawn whole, under a row lock, and then records
+    its new level, so a block already that deep is skipped (one query
+    for the whole sphere) and no star is ever drawn twice. A block's draw
+    is seeded from the galaxy's scatter seed, the block and the band, so
+    it is the same whichever sector reached it first.
+
+    Args:
+        config (MySQLConfig): Connection parameters.
+        center_pc (tuple): The generated sector's center, galaxy-frame
+            parsecs.
+        radius_ly (float, optional): Defaults to
+            `program_constants.BRIGHT_STAR_BACKFILL_RADIUS_LY` (100 ly).
+        min_luminosity_sol (float, optional): Defaults to
+            `program_constants.BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL`
+            (100 L_sun).
+
+    Returns:
+        dict: `blocks` (drawn now) and `stars` (placed now), both int;
+            zeros without a stored skeleton or when the galaxy scatter
+            already went that deep.
+    """
+    radius_pc = ly_to_pc(program_constants.BRIGHT_STAR_BACKFILL_RADIUS_LY if radius_ly is None else radius_ly)
+    floor = float(program_constants.BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL
+                  if min_luminosity_sol is None else min_luminosity_sol)
+    summary = {"blocks": 0, "stars": 0}
+    conn = _db.get_connection(config)
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+        if skeleton is None:
+            return summary
+        settings = _db.bright_star_scatter_settings(conn)
+        galaxy_level, seed = settings if settings else (None, 0)
+        if galaxy_level is not None and galaxy_level <= floor:
+            return summary
+        bounds = _db.get_galaxy_bounds(conn)
+        blocks = {
+            drill_parent(DrillBlock(1, ring, slot, layer))
+            for ring, layer, slot, *_rest in enumerate_sectors_within_radius(center_pc, radius_pc, skeleton.edge_pc)
+            if bounds.contains(ring, layer)
+        }
+        levels = _db.bright_star_block_levels(conn, blocks)
+        todo = sorted(block for block in blocks
+                      if levels.get((block.ring, block.wedge, block.slab), math.inf) > floor)
+        for block in todo:
+            level = _db.lock_bright_star_block(conn, block)
+            if level is not None and level <= floor:
+                conn.commit()
+                continue
+            ceiling = level if level is not None else galaxy_level
+            rows = _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed)
+            conn.commit()
+            summary["blocks"] += 1
+            summary["stars"] += len(rows)
+    except BaseException:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+    if summary["blocks"]:
+        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['blocks']} block(s) down to "
+                  f"{floor:g} L_sun")
+    return summary
+
+
+def _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed):
+    """
+    Draws one sector block's band of bright stars, `floor` up to (not
+    including) `ceiling` (`None`: no ceiling), into its sectors that aren't
+    filled, and records `floor` as the block's level. The caller holds the
+    block's row lock (`_db.lock_bright_star_block`) and commits.
+
+    Returns:
+        list: The rows written, in `_db.BRIGHT_STAR_COLUMNS` order.
+    """
+    addresses = [address for address in _block_addresses(block) if bounds.contains(address[0], address[1])]
+    filled = _db.get_occupied_addresses(conn, {address[0] for address in addresses})
+    rng = random.Random(f"{seed}:{block.ring}:{block.wedge}:{block.slab}:{floor:g}:{ceiling}")
+    rows = list(brightStars.backfill_cells(
+        skeleton.shape, [address for address in addresses if address not in filled], skeleton.edge_pc,
+        skeleton.expected_system_count_at_density_1, floor, ceiling, rng,
+    ))
+    _db.insert_bright_stars(conn, rows)
+    _db.set_bright_star_block_level(conn, block, floor)
+    return rows
 
 
 def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     """
     Generates one sector via `generate_sector` inside its real grid cell
     and saves it -- the per-sector unit of work every `galaxy` mode
-    repeats.
+    repeats. First backfills the bright stars within 100 ly of it
+    (`backfill_bright_stars`, GEN.23), so this sector's own fill already
+    builds its systems around them.
 
     Args:
         args (argparse.Namespace): Parsed arguments (see `add_galaxy_arguments`).
@@ -1890,6 +1996,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     radius_pc = galactic_radius_pc(position_pc)
     cell = SectorCell.for_ring(ring_index, pc_to_ly(edge_pc))
 
+    backfill_bright_stars(_db.mysql_config_from_args(args), position_pc)
     fill = _fill_context(args, address, position_pc)
     _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill)
     if address == NUCLEUS_ADDRESS:
@@ -2494,15 +2601,17 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     work, a plain result dict instead of prints, and a catchable
     `ValueError` instead of `SystemExit` for an invalid/unplaced sector.
 
-    The default 100 ly radius is large relative to one 4 pc sector: its
-    sphere holds roughly 1,500-2,000 candidate addresses, so this can take
-    minutes to hours depending on the server and how many already exist.
+    The default radius is `program_constants.DEFAULT_GENERATE_RADIUS_PC`
+    (12 pc, about 100 candidate addresses; GEN.23). The 100 ly around each
+    generated sector gets only its bright stars (`backfill_bright_stars`).
+    A larger `radius_ly` (100 ly holds roughly 1,500-2,000 addresses) can
+    take minutes to hours.
 
     Args:
         center_sector_id (int): The already galaxy-placed sector to
             generate a neighborhood around.
         radius_ly (float, optional): Defaults to
-            `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY` (100 ly).
+            `program_constants.DEFAULT_GENERATE_RADIUS_PC` (12 pc).
         config (MySQLConfig, optional): Connection parameters.
         estimate_only (bool): Only work out the size and time (PERF.3);
             nothing is written.
@@ -2523,7 +2632,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     edge_pc = _edge_pc()
     radius_pc = (
         ly_to_pc(radius_ly) if radius_ly is not None
-        else ly_to_pc(program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY)
+        else program_constants.DEFAULT_GENERATE_RADIUS_PC
     )
     config = config or _db.DEFAULT_MYSQL_CONFIG
 
@@ -2597,7 +2706,7 @@ def run_random_start(args, edge_pc, progress):
     retried up to `program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS`
     times, generates it, then generates every not-yet-generated sector
     within `args.radius_pc` of it (default
-    `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY`, 100 ly) via
+    `program_constants.DEFAULT_GENERATE_RADIUS_PC`, 12 pc) via
     `run_local_neighborhood`. `--min-start-density` tightens the retry:
     a qualifying address below it is retried too.
 
@@ -2607,7 +2716,7 @@ def run_random_start(args, edge_pc, progress):
     """
     radius_pc = (
         args.radius_pc if args.radius_pc is not None
-        else ly_to_pc(program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY)
+        else program_constants.DEFAULT_GENERATE_RADIUS_PC
     )
 
     mysql_config = _db.mysql_config_from_args(args)
@@ -3454,12 +3563,30 @@ def add_bright_star_band(args):
             return None
         extents = _db.get_galaxy_layers(conn)
         filled = _db.filled_sector_addresses(conn)
+        # Sector blocks a GEN.23 backfill reached already hold part of the
+        # band (down to their own level): the layer scatter leaves them out
+        # and each gets only what it lacks below, one block at a time.
+        blocks = [DrillBlock(3, ring, wedge, slab) for ring, wedge, slab in _db.bright_star_block_keys(conn)]
+        skip = set(filled)
+        for block in blocks:
+            skip.update(_block_addresses(block))
         seed = random.SystemRandom().getrandbits(63)
         log.normal(f"Adding the bright stars from {target:g} up to {current:g} L_sun"
-                   + (f", leaving out {len(filled):,} filled sectors." if filled else "."))
+                   + (f", leaving out {len(filled):,} filled sectors" if filled else "")
+                   + (f" and {len(blocks):,} backfilled sector blocks" if blocks else "") + ".")
         t0 = time.perf_counter()
-        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, target, seed,
+        counts = _scatter_layers(args, mysql_config, skeleton, extents, skip, target, seed,
                                  f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current)
+        bounds = _db.get_galaxy_bounds(conn)
+        for block in blocks:
+            level = _db.lock_bright_star_block(conn, block)
+            if level is not None and level <= target:
+                conn.commit()
+                continue
+            for row in _backfill_block(conn, skeleton, bounds, block, target, current if level is None else min(level, current),
+                                       first_seed):
+                counts[row[6]] += 1
+            conn.commit()
         # The first scatter's seed stays: it names the galaxy's scatter.
         _db.record_bright_star_scatter(conn, target, first_seed)
         conn.commit()

@@ -316,6 +316,8 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=random, max_
               class, mass, radius, temperature, luminosity, age, lifespan,
               initial mass and phase end age), each for `Star.from_params`.
     """
+    if max_luminosity_sol is not None and max_luminosity_sol <= min_luminosity_sol:
+        raise ValueError(f"empty luminosity band [{min_luminosity_sol:g}, {max_luminosity_sol:g}) Lsun")
     table = _bright_table(float(min_luminosity_sol), population)
     if max_luminosity_sol is None:
         return [_sample_one_bright(table, min_luminosity_sol, rng) for _ in range(n)]
