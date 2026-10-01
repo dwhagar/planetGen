@@ -451,6 +451,14 @@ def get_galaxy_stage(db, at=None):
     return _request("/galaxy/stage", {"db": db, "at": at})
 
 
+def get_galaxy_locate(db, q):
+    """Returns `GET /api/galaxy/locate`'s `matches` (sectors and systems
+    named like `q`, each with its sector address -- see
+    `queryDb.galaxy_locate`)."""
+    _require_db(db)
+    return _request("/galaxy/locate", {"db": db, "q": q})["matches"]
+
+
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
     `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's

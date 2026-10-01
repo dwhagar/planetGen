@@ -952,6 +952,43 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
         format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:3]}
 
 
+def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
+    """`/api/galaxy/locate` finds sectors and systems whose name contains
+    the term, each with its sector address, exact matches first; sectors
+    with no address are left out."""
+    from stellarObjects.galaxyGeometry import sector_position_pc
+
+    address = (12, 1, 30)
+    sector_id = _place_sector(mysql_config, "Belcana", sector_position_pc(*address, 4.0), address=address)
+    other = (13, 0, 40)
+    _place_sector(mysql_config, "Belcana Reach", sector_position_pc(*other, 4.0), address=other)
+    # No address: never offered, since the map cannot fly to it.
+    _place_sector(mysql_config, "Belcana Lost", (50.0, 0.0, 0.0))
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE star_systems SET name = 'Belcana' WHERE sector_id = ?", (sector_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    matches = client.get("/api/galaxy/locate?q=belcana").get_json()["matches"]
+    assert [(m["kind"], m["name"]) for m in matches[:2]] == [("sector", "Belcana"), ("system", "Belcana")]
+    assert all(m["name"] != "Belcana Lost" for m in matches)
+    assert {m["name"] for m in matches} == {"Belcana", "Belcana Reach"}
+    first = matches[0]
+    assert (first["ring"], first["layer"], first["slot"]) == address
+    assert first["sector_id"] == sector_id
+    system = matches[1]
+    assert (system["ring"], system["layer"], system["slot"]) == address
+    assert system["sector_name"] == "Belcana"
+
+    assert client.get("/api/galaxy/locate?q=  ").get_json()["matches"] == []
+    assert client.get("/api/galaxy/locate?q=nothing-like-this").get_json()["matches"] == []
+    # A term with LIKE wildcards in it is a plain substring, not a pattern.
+    assert client.get("/api/galaxy/locate?q=%25").get_json()["matches"] == []
+
+
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
     """A box holding more than `limit` placed sectors returns every Nth by
     id, not the lowest ids -- a neighborhood is generated outward from the core,

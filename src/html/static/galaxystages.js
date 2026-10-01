@@ -24,7 +24,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 
 const {
   drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlabs, drillSlotRange, drillWedgeCount,
-  formatDrillKey, parseDrillKey, ringSectorCount, sectorDrawable,
+  formatDrillKey, parseDrillKey, ringSectorCount, sectorAddressAt, sectorDrawable,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // The flight's zoom/pan trade-off (van Wijk and Nuij's rho), and its
@@ -182,6 +182,45 @@ export function parseSectorDesignation(text) {
   const slot = Number(packed & 0xFFFFFn);
   if (slot >= ringSectorCount(ring)) return null;
   return { ring: ring, layer: layer, slot: slot };
+}
+
+// --- The address bar (section 9.3) -------------------------------------------
+
+// What the address bar's text asks for:
+// - {sector: {ring, layer, slot}} for a designation ("1AA5FDEC0C99"),
+//   "312/-3/1042" or "ring 312 layer -3 slot 1042";
+// - {sector, point: [x, y, z]} for "x, y, z" in pc (with or without
+//   "pc"), the sector holding that point;
+// - {name} for anything else (looked up by the server);
+// - {problem} for an address that can't be a sector (a slot past its
+//   ring's end, say), or empty text.
+// Designations are 9 to 16 hex digits (the layer field alone puts one
+// past 8), so a short name made of hex letters ("Bead") stays a name.
+export function parseAddress(text, edgePc) {
+  const raw = String(text == null ? "" : text).trim();
+  if (!raw) return { problem: "Type a designation, ring/layer/slot, x, y, z in pc, or a name." };
+  const number = "(-?\\d+)";
+  let match = raw.match(new RegExp("^" + number + "\\s*/\\s*" + number + "\\s*/\\s*" + number + "$"))
+    || raw.match(new RegExp("^ring\\s+" + number + "[\\s,]+layer\\s+" + number + "[\\s,]+slot\\s+" + number + "$", "i"));
+  if (match) {
+    const sector = { ring: Number(match[1]), layer: Number(match[2]), slot: Number(match[3]) };
+    if (sector.ring < 0 || sector.slot < 0 || sector.slot >= ringSectorCount(sector.ring)) {
+      return { problem: "Ring " + sector.ring + " has no slot " + sector.slot + "." };
+    }
+    return { sector: sector };
+  }
+  const real = "(-?\\d+(?:\\.\\d+)?)";
+  match = raw.match(new RegExp("^\\(?\\s*" + real + "\\s*[,\\s]\\s*" + real + "\\s*[,\\s]\\s*" + real + "\\s*\\)?\\s*(?:pc)?$", "i"));
+  if (match) {
+    const point = [Number(match[1]), Number(match[2]), Number(match[3])];
+    return { sector: sectorAddressAt(point[0], point[1], point[2], edgePc), point: point };
+  }
+  if (/^[0-9A-Fa-f]{9,16}$/.test(raw)) {
+    const sector = parseSectorDesignation(raw);
+    if (!sector) return { problem: "There is no sector " + raw.toUpperCase() + "." };
+    return { sector: sector };
+  }
+  return { name: raw };
 }
 
 // --- URLs ---------------------------------------------------------------------

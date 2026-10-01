@@ -26,7 +26,10 @@
 //   the stage shows);
 // - canGenerate: whether the visitor gets Generate buttons;
 // - sectorUrl(id): a generated sector's page;
-// - els: {crumbs, slabs, tooltip, notice} (any may be missing).
+// - locate(name): a Promise of GET /galaxy/locate's matches for a name
+//   (the address bar);
+// - els: {crumbs, slabs, tooltip, notice, address, matches} (any may be
+//   missing).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
@@ -356,8 +359,9 @@ export function createStageView(host) {
     if (!options.keepSector) selectedSector = null;
     const previous = stage;
     const token = ++goToken;
-    if (options.push !== false && !S.sameStage(previous, next)) {
-      history.pushState({ galaxyStage: true }, "", location.pathname + S.stageQuery(next) + location.hash);
+    const query = options.query || S.stageQuery(next);
+    if (options.push !== false && (!S.sameStage(previous, next) || query !== location.search)) {
+      history.pushState({ galaxyStage: true }, "", location.pathname + query + location.hash);
     }
     loadData(next.at).then(function () {
       if (!active || token !== goToken) return;
@@ -1035,12 +1039,95 @@ export function createStageView(host) {
     });
   }
 
+  // --- The address bar (section 9.3) -----------------------------------------
+
+  // Flies to sector {ring, layer, slot}'s stage 8 and selects it.
+  function locate(sector) {
+    const next = S.sectorStage(sector.ring, sector.layer, sector.slot);
+    const problem = S.validStage(next, getOutline(), edgePc);
+    if (problem) {
+      notice("Sector " + S.blockLabel({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer })
+        + " is outside the galaxy.");
+      return false;
+    }
+    selectedSector = sector;
+    go(next, { keepSector: true, query: "?sector=" + S.sectorDesignation(sector.ring, sector.layer, sector.slot) });
+    return true;
+  }
+
+  function clearMatches() {
+    if (els.matches) {
+      els.matches.textContent = "";
+      els.matches.hidden = true;
+    }
+  }
+
+  // The name lookup's matches, as buttons that fly to each one's sector.
+  function showMatches(matches) {
+    const box = els.matches;
+    if (!box) return;
+    box.textContent = "";
+    const list = document.createElement("ul");
+    matches.forEach(function (match) {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = match.kind === "system"
+        ? match.name + " (system in " + (match.sector_name || "sector " + match.sector_id) + ")"
+        : match.name + " (sector)";
+      button.addEventListener("click", function () {
+        clearMatches();
+        locate(match);
+      });
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+    box.appendChild(list);
+    box.hidden = false;
+  }
+
+  function onAddress(event) {
+    event.preventDefault();
+    const input = els.address.querySelector("input");
+    clearMatches();
+    const asked = S.parseAddress(input.value, edgePc);
+    if (asked.problem) {
+      notice(asked.problem);
+      return;
+    }
+    if (asked.sector) {
+      locate(asked.sector);
+      return;
+    }
+    notice("Looking up " + asked.name + "…");
+    host.locate(asked.name).then(function (matches) {
+      if (!matches.length) {
+        notice("Nothing is named like " + asked.name + ".");
+        return;
+      }
+      const exact = matches.filter(function (m) { return (m.name || "").toLowerCase() === asked.name.toLowerCase(); });
+      const sectors = new Set((exact.length ? exact : matches).map(function (m) { return m.sector_id; }));
+      if (matches.length === 1 || (exact.length && sectors.size === 1)) {
+        notice("");
+        locate(exact[0] || matches[0]);
+        return;
+      }
+      notice(matches.length + " names match; pick one.");
+      showMatches(matches);
+    }, function () {
+      notice("The lookup failed. Please try again shortly.");
+    });
+  }
+
+  if (els.address) els.address.addEventListener("submit", onAddress);
+
   // --- Turning on and off ------------------------------------------------------
 
   function setActive(on) {
     if (on === active) return;
     active = on;
-    [els.crumbs, els.slabs].forEach(function (el) { if (el) el.hidden = !on; });
+    [els.crumbs, els.slabs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
+    if (!on) clearMatches();
     if (!on) {
       if (animation) finishAnimation();
       disposeDisplay(display);
@@ -1109,5 +1196,6 @@ export function createStageView(host) {
     setGeneratedOnly: setGeneratedOnly,
     stage: function () { return stage; },
     go: go,
+    locate: locate,
   };
 }

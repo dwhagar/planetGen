@@ -235,6 +235,12 @@ connectivity to that specific schema rather than the default one.
   and `sectors` lists each one as `{ring, layer, slot, id, name,
   system_count}`; otherwise `sectors` is `null`. A malformed or impossible
   key is a 400.
+- `GET /api/galaxy/locate?q=<part of a name>` — the Galaxy Map address
+  bar's name lookup (`queryDb.galaxy_locate`): `{"matches": [{"kind"
+  (`"sector"` or `"system"`), "id", "name", "sector_id", "sector_name",
+  "ring", "layer", "slot"}]}`, at most 8, exact names first, then names
+  that start with the term. Sectors with no address and systems outside a
+  sector are left out, since the map can't fly to them.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
   "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
   tile contents could: sectors placed, edited or removed (their
