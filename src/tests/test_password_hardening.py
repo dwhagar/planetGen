@@ -55,6 +55,7 @@ def test_missing_blocklist_file_does_not_break_the_policy(monkeypatch):
 # --- SEC.25: hashing ------------------------------------------------------------
 
 
+@pytest.mark.real_password_hashing
 def test_new_hashes_use_pbkdf2_600000():
     hashed = adminAuth.hash_password("violet-orbit-ledger-91")
     assert hashed.startswith("pbkdf2:sha256:600000$")
@@ -72,6 +73,7 @@ def control_conn(mysql_config):
         conn.close()
 
 
+@pytest.mark.real_password_hashing
 def test_login_rehashes_an_older_hash(control_conn):
     from werkzeug.security import generate_password_hash
     old = generate_password_hash("violet-orbit-ledger-91", method="scrypt")
@@ -90,6 +92,7 @@ def test_login_rehashes_an_older_hash(control_conn):
     assert adminAuth.authenticate(control_conn, "oldhash", "violet-orbit-ledger-91")["username"] == "oldhash"
 
 
+@pytest.mark.real_password_hashing
 def test_dummy_hash_uses_the_same_method():
     assert adminAuth._get_dummy_password_hash().startswith(adminAuth.PASSWORD_HASH_METHOD + "$")
 

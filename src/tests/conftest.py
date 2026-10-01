@@ -233,6 +233,30 @@ def mediawiki_config():
 from tests import fuzz_support  # noqa: E402,F401
 
 
+FAST_PASSWORD_HASH_METHOD = "pbkdf2:sha256:1000"
+
+
+@pytest.fixture(autouse=True)
+def _fast_password_hashing(request, monkeypatch):
+    """Every login, credential change and seeded admin user runs PBKDF2 at
+    600,000 rounds in production (`adminAuth.PASSWORD_HASH_METHOD`, SEC.25),
+    about a third of a second per check -- thousands of fuzzed logins
+    spend minutes on it without testing anything the round count changes.
+    Tests use 1,000 rounds instead (same algorithm, same code path, same
+    rehash-on-login logic), except those marked `real_password_hashing`
+    (test_password_hardening.py), which check the production setting
+    itself."""
+    if request.node.get_closest_marker("real_password_hashing"):
+        yield
+        return
+    from stellarObjects import adminAuth
+    monkeypatch.setattr(adminAuth, "PASSWORD_HASH_METHOD", FAST_PASSWORD_HASH_METHOD)
+    # The unknown-username dummy hash is cached; make the next one cheap
+    # too (monkeypatch puts the production one back afterwards).
+    monkeypatch.setattr(adminAuth, "_dummy_password_hash", None)
+    yield
+
+
 @pytest.fixture(autouse=True)
 def _reset_login_backoff():
     """The login lockouts' in-memory fallback (`api/loginguard.py`) is one
