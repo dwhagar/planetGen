@@ -140,10 +140,14 @@ def _register_security_headers(app):
     the pages' CSP and the rest). Everything else
     (API JSON, static files under the dev server) gets the same three
     basic headers with `Content-Security-Policy: default-src 'none'` --
-    a JSON body never needs to load anything. Either way a request that
-    came in over HTTPS also gets `web.STRICT_TRANSPORT_SECURITY`.
+    a JSON body never needs to load anything -- except JavaScript, which
+    gets the pages' own CSP: a script started as a Web Worker (the Galaxy
+    Map's `static/galaxyblocks.js`) runs under its own response's policy,
+    and `'none'` would stop it importing its sibling modules. Either way a
+    request that came in over HTTPS also gets
+    `web.STRICT_TRANSPORT_SECURITY`.
     """
-    from web import SECURITY_HEADERS, STRICT_TRANSPORT_SECURITY
+    from web import CONTENT_SECURITY_POLICY, SECURITY_HEADERS, STRICT_TRANSPORT_SECURITY
 
     @app.after_request
     def _add_headers(response):
@@ -156,7 +160,8 @@ def _register_security_headers(app):
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
-        response.headers.setdefault("Content-Security-Policy", "default-src 'none'")
+        script = response.mimetype in ("text/javascript", "application/javascript")
+        response.headers.setdefault("Content-Security-Policy", CONTENT_SECURITY_POLICY if script else "default-src 'none'")
         return response
 
 

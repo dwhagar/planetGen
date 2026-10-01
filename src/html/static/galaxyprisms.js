@@ -24,10 +24,8 @@
 //
 // No three.js import: this module only does the arithmetic and hands
 // back plain typed arrays, so it runs under plain node for tests
-// (src/tests/test_galaxyprisms.py).
-
-// TODO(galaxy-map #17): everything here must stay free of three.js, so it
-// can run in a Web Worker.
+// (src/tests/test_galaxyprisms.py) and in the page's Web Worker
+// (galaxyblocks.js).
 
 // Prisms thinner than this relative density are skipped entirely -- only
 // when the shape doesn't carry the galaxy's own sector threshold
@@ -563,8 +561,7 @@ function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
 // wound counter-clockwise seen from outside, so front-face culling shows
 // each prism's outside only.
 
-// TODO(galaxy-map #17): build this in a Web Worker, returning the typed
-// arrays as transferables. Full-size blocks share faces with their
+// TODO(galaxy-map #19): full-size blocks share faces with their
 // neighbours, so skip any face whose neighbour exists: the surface
 // listing only removes whole blocks, not hidden faces. If the vertex
 // count still hurts on phones, move to one InstancedMesh per wedge-arc
