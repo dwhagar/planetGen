@@ -228,7 +228,6 @@ def real_app(mysql_config, log_dir):
         CONTROL_MYSQL_CONFIG = mysql_config
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "test-secret"
-        RATELIMIT_ENABLED = False
 
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
     adminAuth._db.get_connection(mysql_config).close()  # the content schema
