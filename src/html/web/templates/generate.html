@@ -23,7 +23,11 @@
 {%- macro skip_scatter(id) -%}
 <label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
   {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
-  <span class="field-hint">Every star of {{ num(bright_min_luminosity, ",.0f") }} solar luminosities or more is normally placed across the whole galaxy right after the plan; its sector is filled later, around it.</span></label>
+  <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy right after the plan; its sector is filled later, around it.</span></label>
+{%- endmacro -%}
+{%- macro scatter_threshold() -%}
+{{ field("bright_min_luminosity", bright_threshold_label, placeholder=num(bright_min_luminosity, ",.0f"), min=1,
+         hint="Every star this bright or brighter is placed galaxy-wide. Blank means " ~ num(bright_min_luminosity, ",.0f") ~ ". Around each generated sector, dimmer ones are added later, " ~ backfill_text ~ ".") }}
 {%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
@@ -121,6 +125,7 @@
       {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
       {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
                hint="1.0 is as dense as the Sun's neighborhood.") }}
+      {{ scatter_threshold() }}
       {{ skip_scatter("new-galaxy-skip-bright") }}
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
@@ -191,6 +196,7 @@
     <input type="hidden" name="action" value="plan">
     {{ plan_inputs() }}
     <div class="search-fields">
+      {{ scatter_threshold() }}
       {{ skip_scatter("plan-skip-bright") }}
     </div>
     <div class="search-actions">
@@ -212,6 +218,7 @@
     {{ csrf_field() }}
     <input type="hidden" name="action" value="bright_stars">
     <div class="search-fields">
+      {{ scatter_threshold() }}
       <label class="search-field generate-check"><span><input type="checkbox" id="bright-force" name="bright_force" value="1"> Leave filled sectors out</span>
         <span class="field-hint">Without this, the rebuild is refused once any sector has been generated.</span></label>
     </div>

@@ -413,6 +413,8 @@ def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
 @pytest.mark.parametrize("form, argv", [
     ({}, ["plan", "--bright-stars-only"]),
     ({"bright_force": "1"}, ["plan", "--bright-stars-only", "--force"]),
+    ({"bright_min_luminosity": "2500", "bright_force": "1"},
+     ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2500", "--force"]),
 ])
 def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _post(client, action="bright_stars", **form).status_code == 303
@@ -448,6 +450,7 @@ def test_scatter_flags_exist_in_generate_py():
     args = plan.parse_args(["--bright-stars-only", "--force"])
     assert args.bright_stars_only is True and args.force is True
     assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
+    assert plan.parse_args(["--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
@@ -455,6 +458,38 @@ def test_page_offers_the_scatter_checkbox(site, client):
     assert html.count('name="skip_bright_stars"') == 2  # New galaxy and Plan
     assert "Skip the bright-star scatter" in html
     assert 'name="bright_force"' in html
+
+
+# --- GEN.30: the galaxy-wide threshold field -----------------------------------------
+
+def test_page_offers_the_scatter_threshold(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert html.count('name="bright_min_luminosity"') == 3  # New galaxy, Plan, Rebuild
+    assert generate_page.BRIGHT_THRESHOLD_LABEL in html
+    assert 'placeholder="1,000"' in html
+    assert generate_page.BACKFILL_TEXT in html
+
+
+def test_backfill_text_follows_the_tiers():
+    assert generate_page.BACKFILL_TEXT == (
+        "down to 100 solar luminosities within 10 ly, 250 within 25 ly, 500 within 50 ly "
+        "and 750 out to 100 ly")
+
+
+@pytest.mark.parametrize("action", ["plan", "new_galaxy"])
+def test_scatter_uses_the_threshold_field(site, client, no_spawn, action):
+    assert _post(client, action=action, confirm=DB, bright_min_luminosity="2000").status_code == 303
+    (job,) = no_spawn
+    scatter = next(step for step in job["steps"] if step["label"] == generate_page.SCATTER_LABEL)
+    assert _argv(scatter) == ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2000"]
+
+
+@pytest.mark.parametrize("value", ["0.5", "abc", "inf"])
+def test_scatter_threshold_must_be_at_least_one(site, client, no_spawn, value):
+    resp = _post(client, action="plan", bright_min_luminosity=value)
+    assert resp.status_code == 400
+    assert no_spawn == []
+    assert generate_page.BRIGHT_THRESHOLD_LABEL in resp.get_data(as_text=True)
 
 
 def test_one_job_at_a_time(site, client, no_spawn, jobs_root):

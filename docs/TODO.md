@@ -435,31 +435,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
 
-- [ ] **GEN.30 Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors**
-  Boss (2026-10-01 19:53Z): "let's have the default star luminosity for
-  the main star scatter by 1000 solar luminosities ... let's tier it ...
-  So initial scatter 1000, from a sector that has been generated: 50 ly
-  <= x <= 100 ly is 750 solar lum, 25 <= x < 50 is 500 solar lum, 10 <=
-  x < 25 is 250, < 10 ly is 100." Today the galaxy-wide scatter
-  (`generate.py plan`) defaults to `BRIGHT_STAR_MIN_LUMINOSITY_SOL` =
-  500, and GEN.23's backfill (PR #226) fills every block within
-  `BRIGHT_STAR_BACKFILL_RADIUS_LY` = 100 ly of a generated sector down
-  to one floor, `BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL` = 100
-  (`program_constants.py`). Done: the galaxy-wide default is 1000
-  L_sun; the backfill floor depends on distance from the generated
-  sector: under 10 ly, 100 L_sun; 10 to under 25 ly, 250; 25 to under
-  50 ly, 500; 50 to 100 ly, 750. The tiers are one table in
-  `program_constants`, and the Generate page's text and estimates
-  (PERF.3) use the new numbers. Open questions: how a block that
-  straddles two tiers is filled (by its nearest point, its center, or
-  per star); what the per-block dimmest-luminosity table of GEN.23
-  (schema v48/v49) records for a tiered block, and whether a block
-  later reached by a nearer sector is topped up to the lower floor;
-  whether existing galaxies keep their 500 L_sun scatter (new default
-  only for new galaxies) or need a migration or regeneration; and
-  whether the Generate page still lets the admin change the
-  galaxy-wide threshold.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**

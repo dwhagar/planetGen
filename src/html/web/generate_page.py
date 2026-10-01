@@ -71,11 +71,27 @@ PLAN_FIELDS = (
 """tuple: The `plan` options the page offers, with `generate.py`'s own
 defaults (a test checks they still match `generate.py plan`'s parser)."""
 
+def _backfill_text():
+    """The backfill tiers in words ("down to 100 solar luminosities within
+    10 ly, 250 within 25 ly, ... and 750 out to 100 ly")."""
+    tiers = program_constants.BRIGHT_STAR_BACKFILL_TIERS
+    parts = [f"{floor:,.0f} within {out_to:g} ly" for out_to, floor in tiers[:-1]]
+    last = f"{tiers[-1][1]:,.0f} out to {tiers[-1][0]:g} ly"
+    if parts:
+        parts[0] = parts[0].replace(" within", " solar luminosities within", 1)
+        return "down to " + ", ".join(parts) + " and " + last
+    return f"down to {tiers[-1][1]:,.0f} solar luminosities out to {tiers[-1][0]:g} ly"
+
+
+BACKFILL_TEXT = _backfill_text()
+"""str: How far down the bright-star backfill around a generated sector
+goes, by distance (GEN.30, `program_constants.BRIGHT_STAR_BACKFILL_TIERS`)."""
+
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
      "(12 pc, about 39 ly, when the radius is left blank; the 100 ly around every generated "
-     "sector gets its bright stars either way)."),
+     f"sector gets its bright stars either way, {BACKFILL_TEXT})."),
     ("ring", "A whole ring",
      "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
      "or only the first few with a limit."),
@@ -100,6 +116,10 @@ CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 BAND_LABEL = "Add a dimmer layer of bright stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
+
+BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
+"""str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
+Plan and Rebuild the bright stars."""
 
 MATH_CHECK_LABEL = "Check the math"
 """str: Every generating job's first step (TEST.68): `generate.py
@@ -300,18 +320,35 @@ def galaxy_argv(form):
     raise FormError("Choose what to generate.")
 
 
+def scatter_argv(form):
+    """
+    `generate.py plan --bright-stars-only` plus the form's galaxy-wide
+    threshold (GEN.30: `--bright-star-min-luminosity`; blank means
+    `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`).
+
+    Raises:
+        FormError: A threshold that isn't a number of at least 1.
+    """
+    argv = ["plan", "--bright-stars-only"]
+    threshold = _number(form, "bright_min_luminosity", BRIGHT_THRESHOLD_LABEL, float, minimum=1.0)
+    if threshold is not None:
+        argv += ["--bright-star-min-luminosity", f"{threshold:g}"]
+    return argv
+
+
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "skip the bright-star scatter"
     box is ticked, the scatter as a second step (`generate.py plan` would
-    otherwise run both in one command, with no separate label).
+    otherwise run both in one command, with no separate label), at the
+    form's threshold (`scatter_argv`).
 
     Returns:
         list[dict]: Job steps.
     """
     steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}]
     if not form.get("skip_bright_stars"):
-        steps.append({"label": SCATTER_LABEL, "argv": generate + ["plan", "--bright-stars-only"]})
+        steps.append({"label": SCATTER_LABEL, "argv": generate + scatter_argv(form)})
     return steps
 
 
@@ -351,7 +388,7 @@ def _build_job_steps(action, form):
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
     if action == "bright_stars":
-        argv = generate + ["plan", "--bright-stars-only"]
+        argv = generate + scatter_argv(form)
         if form.get("bright_force"):
             argv.append("--force")
         return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
@@ -503,6 +540,8 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
         bright_min_luminosity=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+        bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
+        backfill_text=BACKFILL_TEXT,
         galaxy_modes=GALAXY_MODES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
         min_radius_ly=MIN_NEIGHBORHOOD_RADIUS_LY,
