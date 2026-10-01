@@ -1045,40 +1045,6 @@ clears each one.
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
 
-- [ ] **TEST.63 Math check that runs first**
-  Boss (2026-10-01 15:29Z): "I want a specific way that runs first
-  before other tests that basically validates the math works, before
-  batch generation, we need to verify the actual math works." One
-  module, `src/stellarObjects/mathCheck.py`: pure functions, no
-  database, network or files, fixed seeds, under 5 seconds. Each check
-  has a name, the function it calls, the expected value, a tolerance and
-  the source of the expected value (a textbook figure, a paper's table,
-  or an exact identity). The same module is used three ways: pytest runs
-  it first, `generate.py` and the Generate page run it before bulk
-  generation, and `update.sh` runs it after an update. The coverage
-  tests in TEST.4 and TEST.32 to TEST.36 stay as they are; this item is
-  the reference-value gate in front of them, and TEST.34's Kepler
-  reference values move here.
-
-  TEST.64 to TEST.67 (reference values, identities, distributions, and
-  running first in the suite and in CI) shipped in PR #281; TEST.68,
-  the gate before bulk generation, is what remains.
-
-  Default taken: no skip switch for the bulk gate, since it costs under
-  5 seconds. Open questions for Boss: should there be an emergency skip
-  flag anyway? Should the web app also run it at startup and show admins
-  a warning if it fails? Should the one-off system generator run it too,
-  or only bulk paths?
-
-  - [ ] **TEST.68 Gate before bulk generation**
-    `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
-    `sector` over many sectors, `plan`, `population`, the Generate
-    page's jobs and the map's block and neighbourhood generation) runs
-    it first and refuses to start if a check fails, naming the failed
-    check and writing nothing; the Generate page shows the result as the
-    job's first step; `update.sh` runs it after updating and warns on
-    failure.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

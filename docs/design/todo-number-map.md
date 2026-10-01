@@ -740,12 +740,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.60 | Admin script command lines | none | open |
 | TEST.61 | SQLite import script | none | open |
 | TEST.62 | update.sh against a real database | none | open |
-| TEST.63 | Math check that runs first (new parent) | none | open |
+| TEST.63 | Math check that runs first (new parent) | none | done, PRs #281 and #290 |
 | TEST.64 | Reference values | none | done, PR #281 |
 | TEST.65 | Identities and invariants | none | done, PR #281 |
 | TEST.66 | Distributions match their targets | none | done, PR #281 |
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
-| TEST.68 | Gate before bulk generation | none | open |
+| TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
