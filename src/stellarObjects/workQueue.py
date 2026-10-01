@@ -84,6 +84,13 @@ HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
 WAIT_POLL_SECONDS = 2
 KEEP_DAYS = 7
+CONTROL_POLL_SECONDS = 1.0
+"""float: How often a run reads its nodes' pause and cancel requests
+(ADM.10) between tasks."""
+
+CANCELLED_EXIT_CODE = 130
+"""int: The exit status of a run cancelled from the admin queue page
+(`Cancelled`); the job runner reads it as "cancelled"."""
 
 _BELOW_NORMAL_PRIORITY_CLASS = 0x4000
 
@@ -171,6 +178,20 @@ def task_seed(run_seed, key):
     return int.from_bytes(digest[:16], "big")
 
 
+class Cancelled(SystemExit):
+    """Raised in a run when an admin cancelled a node above its work
+    queue (ADM.10): the tasks already running finish, nothing more is
+    handed out, and the run ends as cancelled with
+    `CANCELLED_EXIT_CODE`."""
+
+    def __init__(self, title):
+        super().__init__(CANCELLED_EXIT_CODE)
+        self.title = title
+
+    def __str__(self):
+        return f"{self.title} was cancelled from the admin queue page."
+
+
 def _worker_init(log_level, debug_file):
     lower_priority()
     os.environ.pop("PLANETGEN_PROGRESS_FILE", None)
@@ -216,6 +237,15 @@ class _NoStore:
         pass
 
     def finish_node(self, node_id, state):
+        pass
+
+    def controls(self, chain):
+        return None
+
+    def set_state(self, job_id, state):
+        pass
+
+    def release_lease(self, holder):
         pass
 
     def take_lease(self, job_id, holder):
@@ -337,19 +367,58 @@ class _ControlStore:
         finally:
             conn.close()
 
+    def controls(self, chain):
+        """
+        What an admin asked of the nodes in `chain` (ADM.10): `{"cancel":
+        [ids asked to cancel], "pause": bool}`, `pause` also when the
+        whole queue is paused.
+        """
+        conn = self._connect()
+        try:
+            rows = conn.execute(
+                f"SELECT id, control FROM work_jobs WHERE id IN ({', '.join('?' * len(chain))})"
+                " AND control IS NOT NULL",
+                list(chain),
+            ).fetchall()
+            lease = conn.execute("SELECT paused FROM work_lease WHERE id = 1").fetchone()
+            conn.rollback()
+        finally:
+            conn.close()
+        return {
+            "cancel": [row["id"] for row in rows if row["control"] == "cancel"],
+            "pause": any(row["control"] == "pause" for row in rows) or bool(lease and lease["paused"]),
+        }
+
+    def set_state(self, job_id, state):
+        conn = self._connect()
+        try:
+            with conn:
+                conn.execute("UPDATE work_jobs SET state = ?, heartbeat_at = NOW(6) WHERE id = ?", (state, job_id))
+        finally:
+            conn.close()
+
+    def release_lease(self, holder):
+        conn = self._connect()
+        try:
+            with conn:
+                conn.execute("UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL"
+                             " WHERE id = 1 AND holder = ?", (holder,))
+        finally:
+            conn.close()
+
     def take_lease(self, job_id, holder):
-        """Takes the lease when it's free, already this run's, or stale.
-        Returns `(taken, current_holder_row)`."""
+        """Takes the lease when it's free, already this run's, or stale,
+        and the queue isn't paused. Returns `(taken, lease_row)`."""
         conn = self._connect()
         try:
             with conn:
                 conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
                 row = conn.execute(
-                    "SELECT holder, job_id, heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale"
+                    "SELECT holder, job_id, paused, paused_by, heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale"
                     " FROM work_lease WHERE id = 1 FOR UPDATE",
                     (STALE_SECONDS,),
                 ).fetchone()
-                if row["holder"] not in (None, holder) and not row["stale"]:
+                if row["paused"] or (row["holder"] not in (None, holder) and not row["stale"]):
                     conn.execute("UPDATE work_jobs SET heartbeat_at = NOW(6) WHERE id = ?", (job_id,))
                     return False, dict(row)
                 conn.execute(
@@ -376,8 +445,8 @@ class _ControlStore:
                         (dead_id,),
                     )
                 conn.execute(
-                    "UPDATE work_jobs SET state = 'running', started_at = NOW(6), heartbeat_at = NOW(6)"
-                    " WHERE id = ?",
+                    "UPDATE work_jobs SET state = 'running', started_at = COALESCE(started_at, NOW(6)),"
+                    " heartbeat_at = NOW(6) WHERE id = ?",
                     (job_id,),
                 )
                 return True, None
@@ -607,6 +676,16 @@ def open_node(kind, title, control_config=None, state="running", workers=0, hold
         Node: The open node.
     """
     parent = current_node()
+    if parent is not None and parent.store.available:
+        # A run whose node was cancelled from the admin page (ADM.10)
+        # starts nothing more.
+        try:
+            controls = parent.store.controls(parent.chain) or {}
+        except Exception as exc:  # noqa: BLE001 -- carry on
+            log.debug(f"Job tree: can't read the admin's requests ({exc}).")
+            controls = {}
+        if controls.get("cancel"):
+            raise Cancelled(title)
     if parent is not None:
         node = Node(kind, title, parent.store, parent.id, parent.root_id, parent.chain, holder, workers,
                     web_job_id or parent.web_job_id, database or parent.database, argv)
@@ -681,14 +760,23 @@ def job_node(kind, title, control_config=None, **options):
 
 _TASK_STATES = ("queued", "running", "done", "failed", "cancelled")
 
+# Times come back as Unix times (floats), whatever the server's zone.
 _NODE_COLUMNS = ("id, parent_id, root_id, kind, title, holder, state, workers, tasks_total, web_job_id,"
-                 " database_name, argv, control, created_at, started_at, finished_at, seconds, heartbeat_at,"
+                 " database_name, argv, control, UNIX_TIMESTAMP(created_at) AS created_at,"
+                 " UNIX_TIMESTAMP(started_at) AS started_at, UNIX_TIMESTAMP(finished_at) AS finished_at, seconds,"
+                 " UNIX_TIMESTAMP(heartbeat_at) AS heartbeat_at,"
                  " heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale,"
                  " TIMESTAMPDIFF(MICROSECOND, COALESCE(started_at, created_at), NOW(6)) / 1e6 AS age_seconds")
 
 
+def _float_or_none(value):
+    return None if value is None else float(value)
+
+
 def _node_dict(row):
     node = dict(row)
+    for key in ("created_at", "started_at", "finished_at", "heartbeat_at", "seconds", "age_seconds"):
+        node[key] = _float_or_none(node.get(key))
     node["stale"] = bool(node["stale"])
     node["live"] = node["state"] in LIVE_STATES and not node["stale"]
     # A run that died without finishing shows as interrupted.
@@ -763,12 +851,16 @@ def load_tree(conn, root_id, max_tasks=200):
         counts.setdefault(row["job_id"], {})[row["state"]] = (int(row["n"]), float(row["seconds"]))
     for node_id, node in nodes.items():
         node["own_counts"] = counts.get(node_id, {})
-        if node["own_counts"]:
+        if node["own_counts"] and max_tasks:
             node["tasks"] = [dict(task) for task in conn.execute(
-                "SELECT id, kind, task_key, state, started_at, finished_at, seconds, error FROM work_tasks"
+                "SELECT id, kind, task_key, state, UNIX_TIMESTAMP(started_at) AS started_at,"
+                " UNIX_TIMESTAMP(finished_at) AS finished_at, seconds, error FROM work_tasks"
                 " WHERE job_id = ? ORDER BY state = 'failed' DESC, id LIMIT ?",
                 (node_id, int(max_tasks)),
             ).fetchall()]
+            for task in node["tasks"]:
+                for key in ("started_at", "finished_at", "seconds"):
+                    task[key] = _float_or_none(task[key])
     conn.rollback()
     _roll_up(root)
     return root
@@ -844,6 +936,172 @@ def timing_by_kind(conn):
     return result
 
 
+# ---------------------------------------------------------------------
+# Managing the queue from the admin page (ADM.10)
+# ---------------------------------------------------------------------
+
+ACTIONS = ("pause", "resume", "cancel")
+
+
+def queue_status(conn):
+    """
+    The queue's state for the admin page.
+
+    Returns:
+        dict: `paused`, `paused_by`, `paused_at`; `holder`, `job_id`,
+            `heartbeat_age_s` and `stale` of the lease (holder `None`
+            when free); `workers_active` (worker processes of every live,
+            running work queue, 1 for a one-worker run) and `runs_active`
+            (live root runs).
+    """
+    conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
+    conn.commit()
+    lease = conn.execute(
+        "SELECT holder, job_id, paused, paused_by, UNIX_TIMESTAMP(paused_at) AS paused_at,"
+        " TIMESTAMPDIFF(MICROSECOND, heartbeat_at, NOW(6)) / 1e6 AS age FROM work_lease WHERE id = 1"
+    ).fetchone()
+    live = conn.execute(
+        "SELECT kind, parent_id, state, workers FROM work_jobs"
+        " WHERE state IN ('waiting', 'running', 'paused') AND heartbeat_at >= NOW(6) - INTERVAL ? SECOND",
+        (STALE_SECONDS,),
+    ).fetchall()
+    conn.rollback()
+    age = float(lease["age"]) if lease["age"] is not None else None
+    return {
+        "paused": bool(lease["paused"]),
+        "paused_by": lease["paused_by"],
+        "paused_at": _float_or_none(lease["paused_at"]),
+        "holder": lease["holder"],
+        "job_id": lease["job_id"],
+        "heartbeat_age_s": age,
+        "stale": lease["holder"] is not None and (age is None or age > STALE_SECONDS),
+        "workers_active": sum(max(int(row["workers"]), 1) for row in live
+                              if row["kind"] == "queue" and row["state"] == "running"),
+        "runs_active": sum(1 for row in live if row["parent_id"] is None),
+    }
+
+
+def get_node(conn, node_id):
+    """One node's row (`_node_dict`, without children), or `None`."""
+    row = conn.execute(f"SELECT {_NODE_COLUMNS} FROM work_jobs WHERE id = ?", (STALE_SECONDS, node_id)).fetchone()
+    conn.rollback()
+    return _node_dict(row) if row else None
+
+
+def request_control(conn, node_id, action):
+    """
+    Asks a live node and its subtree to pause, resume or cancel (ADM.10);
+    the run reads it between tasks (`WorkQueue._obey`). Resume clears a
+    pause; a cancel stays.
+
+    Returns:
+        bool: Whether a live node took the request.
+    """
+    if action not in ACTIONS:
+        raise ValueError(f"unknown action {action!r}")
+    value = {"pause": "pause", "resume": None, "cancel": "cancel"}[action]
+    with conn:
+        if action == "resume":
+            cur = conn.execute(
+                "UPDATE work_jobs SET control = NULL WHERE id = ? AND control = 'pause'"
+                " AND state IN ('waiting', 'running', 'paused')",
+                (node_id,),
+            )
+            # A paused descendant resumes with it.
+            node = conn.execute("SELECT root_id FROM work_jobs WHERE id = ?", (node_id,)).fetchone()
+            if node is not None:
+                ids = _subtree_ids(conn, node["root_id"] or node_id, node_id)
+                if len(ids) > 1:
+                    conn.execute(
+                        f"UPDATE work_jobs SET control = NULL WHERE control = 'pause'"
+                        f" AND id IN ({', '.join('?' * len(ids))})",
+                        ids,
+                    )
+                    return True
+        else:
+            cur = conn.execute(
+                "UPDATE work_jobs SET control = ? WHERE id = ? AND state IN ('waiting', 'running', 'paused')"
+                " AND heartbeat_at >= NOW(6) - INTERVAL ? SECOND AND (control IS NULL OR control <> 'cancel')",
+                (value, node_id, STALE_SECONDS),
+            )
+        return cur.rowcount > 0
+
+
+def _subtree_ids(conn, root_id, node_id):
+    """`node_id` and every node below it in its tree."""
+    rows = conn.execute("SELECT id, parent_id FROM work_jobs WHERE id = ? OR root_id = ?",
+                        (root_id, root_id)).fetchall()
+    children = {}
+    for row in rows:
+        children.setdefault(row["parent_id"], []).append(row["id"])
+    found, todo = [], [node_id]
+    while todo:
+        current = todo.pop()
+        found.append(current)
+        todo.extend(children.get(current, []))
+    return found
+
+
+def pause_queue(conn, who):
+    """"Pause the queue": no run takes the lease or hands out a task
+    until `resume_queue`. Returns whether it wasn't paused already."""
+    with conn:
+        conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
+        cur = conn.execute("UPDATE work_lease SET paused = 1, paused_by = ?, paused_at = NOW(6)"
+                           " WHERE id = 1 AND paused = 0", (str(who or "")[:64] or None,))
+        return cur.rowcount > 0
+
+
+def resume_queue(conn):
+    """Lets runs take the lease and tasks again. Returns whether it was
+    paused."""
+    with conn:
+        cur = conn.execute("UPDATE work_lease SET paused = 0, paused_by = NULL, paused_at = NULL"
+                           " WHERE id = 1 AND paused = 1")
+        return cur.rowcount > 0
+
+
+def clear_stale_lease(conn):
+    """Frees the lease when its holder stopped refreshing it
+    (`STALE_SECONDS`), and marks that run's live nodes cancelled. Returns
+    the holder it cleared, or `None` (free, or still live)."""
+    with conn:
+        row = conn.execute(
+            "SELECT holder, job_id FROM work_lease WHERE id = 1 AND holder IS NOT NULL"
+            " AND (heartbeat_at IS NULL OR heartbeat_at < NOW(6) - INTERVAL ? SECOND) FOR UPDATE",
+            (STALE_SECONDS,),
+        ).fetchone()
+        if row is None:
+            return None
+        conn.execute("UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL WHERE id = 1")
+        if row["job_id"]:
+            conn.execute(
+                "UPDATE work_tasks SET state = 'cancelled', finished_at = NOW(6)"
+                " WHERE job_id = ? AND state IN ('queued', 'running')",
+                (row["job_id"],),
+            )
+            conn.execute(
+                "UPDATE work_jobs SET state = 'cancelled', finished_at = NOW(6),"
+                " seconds = TIMESTAMPDIFF(MICROSECOND, COALESCE(started_at, created_at), heartbeat_at) / 1e6"
+                " WHERE id = ? AND state IN ('waiting', 'running', 'paused')"
+                " AND heartbeat_at < NOW(6) - INTERVAL ? SECOND",
+                (row["job_id"], STALE_SECONDS),
+            )
+        return row["holder"]
+
+
+def delete_tree(conn, root_id):
+    """Deletes a finished (or dead) job tree with its tasks. Returns
+    whether it did: a live tree, or a node that isn't a root, stays."""
+    with conn:
+        cur = conn.execute(
+            "DELETE FROM work_jobs WHERE id = ? AND parent_id IS NULL"
+            " AND (state NOT IN ('waiting', 'running', 'paused') OR heartbeat_at < NOW(6) - INTERVAL ? SECOND)",
+            (root_id, STALE_SECONDS),
+        )
+        return cur.rowcount > 0
+
+
 class WorkQueue:
     """
     One run's tasks and the worker pool that runs them; see this module's
@@ -885,6 +1143,8 @@ class WorkQueue:
         self._waiting = []
         self._running = set()
         self._stop = threading.Event()
+        self._controls_read = float("-inf")
+        self._cancelled = False
         self._beat = None
         self._failure = None
         self._old_sigterm = None
@@ -902,19 +1162,17 @@ class WorkQueue:
         self._store = self.node.store
         self.job_id = self.node.id
         if not self.parallel:
+            try:
+                self._obey(force=True)
+            except BaseException as exc:
+                self._close(end_state(type(exc)))
+                raise
             return self
-        waited = False
-        while True:
-            taken, current = self._store.take_lease(self.job_id, self.holder)
-            if taken:
-                break
-            if not waited:
-                waited = True
-                log.normal(f"Waiting for another generation run to finish ({current['holder']}, job "
-                           f"{current['job_id']}): only one run's workers use the machine at a time.")
-                if self.on_wait:
-                    self.on_wait(current)
-            time.sleep(WAIT_POLL_SECONDS)
+        try:
+            self._take_lease()
+        except BaseException as exc:
+            self._close(end_state(type(exc)))
+            raise
         self._catch_sigterm()
         self._beat = threading.Thread(target=self._heartbeat, name="work-queue-heartbeat", daemon=True)
         self._beat.start()
@@ -925,6 +1183,98 @@ class WorkQueue:
             initargs=(self.log_level, self.debug_file),
         )
         return self
+
+    def _take_lease(self):
+        """Waits for the lease (another run's pool, or the queue paused
+        from the admin page), then holds it."""
+        waited = False
+        while True:
+            taken, current = self._store.take_lease(self.job_id, self.holder)
+            if taken:
+                return
+            if not waited:
+                waited = True
+                if current.get("paused"):
+                    log.normal(f"{self.title}: the work queue is paused"
+                               + (f" (by {current['paused_by']})" if current.get("paused_by") else "")
+                               + "; waiting until an admin resumes it.")
+                else:
+                    log.normal(f"Waiting for another generation run to finish ({current['holder']}, job "
+                               f"{current['job_id']}): only one run's workers use the machine at a time.")
+                if self.on_wait:
+                    self.on_wait(current)
+            time.sleep(WAIT_POLL_SECONDS)
+            cancel = self._read_controls(force=True).get("cancel")
+            if cancel:
+                if set(cancel) == {self.job_id}:
+                    self._cancelled = True
+                    return
+                raise Cancelled(self.title)
+
+    def _read_controls(self, force=False):
+        """The admin's requests for this queue's node and those above it
+        (`_ControlStore.controls`), read at most every
+        `CONTROL_POLL_SECONDS` unless `force`; `{}` between reads or
+        without a control database."""
+        if self.node is None or not self._store.available:
+            return {}
+        now = time.monotonic()
+        if not force and now - self._controls_read < CONTROL_POLL_SECONDS:
+            return {}
+        self._controls_read = now
+        try:
+            return self._store.controls(self.node.chain) or {}
+        except Exception as exc:  # noqa: BLE001 -- carry on; read again next time
+            log.debug(f"Work queue: could not read the admin's requests for job {self.job_id}: {exc}")
+            return {}
+
+    def _obey(self, force=False):
+        """
+        Acts on a pause or cancel asked from the admin queue page
+        (ADM.10), between tasks. Cancel lets the tasks already running
+        finish and hands out nothing more: when only this queue's own
+        node was cancelled the run goes on past it, otherwise `Cancelled`
+        ends the run. Pause (this node, one above it, or the whole queue)
+        lets the running tasks finish, then waits in standby, with the
+        lease given up so other runs can go, until it's resumed.
+        """
+        controls = self._read_controls(force)
+        if controls.get("cancel"):
+            self._cancel(controls["cancel"])
+        elif controls.get("pause"):
+            self._standby()
+
+    def _cancel(self, cancelled_ids):
+        self._waiting.clear()
+        while self._running:
+            self._collect(block=True)
+        if set(cancelled_ids) == {self.job_id}:
+            log.normal(f"{self.title}: cancelled from the admin queue page; going on without its other tasks.")
+            self._cancelled = True
+            return
+        raise Cancelled(self.title)
+
+    def _standby(self):
+        while self._running:
+            self._collect(block=True)
+        self._store.set_state(self.job_id, "paused")
+        if self.parallel:
+            self._store.release_lease(self.holder)
+        log.normal(f"{self.title}: paused from the admin queue page; waiting until it is resumed.")
+        while True:
+            time.sleep(WAIT_POLL_SECONDS)
+            controls = self._read_controls(force=True)
+            if controls.get("cancel"):
+                self._store.set_state(self.job_id, "running")
+                self._cancel(controls["cancel"])
+                return
+            if not controls.get("pause"):
+                break
+        if self.parallel:
+            self._take_lease()
+        else:
+            self._store.set_state(self.job_id, "running")
+        log.normal(f"{self.title}: resumed.")
 
     def expect(self, count):
         """Says `count` more tasks are coming, so the job tree can show
@@ -978,12 +1328,19 @@ class WorkQueue:
             Exception: The first task's own exception, once every task
                 already running has finished (the rest are cancelled).
         """
+        if self._cancelled:
+            return
         task = _Task(kind, key, fn, payload, weight, on_done)
         self.submitted += 1
         if not self.parallel:
-            self._run_here(task)
+            self._obey()
+            if not self._cancelled:
+                self._run_here(task)
             return
         self._raise_failure()
+        self._obey()
+        if self._cancelled:
+            return
         task.seed = task_seed(self.run_seed, key)
         self._waiting.append(task)
         # Keep every worker busy with one more task ready behind it;
@@ -991,6 +1348,7 @@ class WorkQueue:
         while len(self._waiting) + len(self._running) > 2 * self.workers:
             self._dispatch()
             self._collect(block=True)
+            self._obey()
         self._dispatch()
         self._collect(block=False)
 
@@ -1069,18 +1427,21 @@ class WorkQueue:
             return
         while self._waiting or self._running:
             self._raise_failure()
+            self._obey()
             self._dispatch()
             self._collect(block=True)
         self._raise_failure()
 
     def __exit__(self, exc_type, exc, tb):
         if not self.parallel:
-            self._close(end_state(exc_type))
+            self._close("cancelled" if self._cancelled and exc_type is None else end_state(exc_type))
             return False
         state = "done"
         try:
             if exc_type is None:
                 self.drain()
+                if self._cancelled:
+                    state = "cancelled"
             else:
                 state = end_state(exc_type)
                 self._waiting.clear()

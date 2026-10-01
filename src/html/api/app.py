@@ -22,6 +22,7 @@ from .edits import bp as edits_bp
 from .limiter import limiter
 from .population import bp as population_bp
 from .routes import bp, close_db
+from .workqueue import bp as workqueue_bp
 
 
 def _is_api_request():
@@ -48,6 +49,7 @@ def create_app(config_object=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(population_bp)
     app.register_blueprint(edits_bp)
+    app.register_blueprint(workqueue_bp)
     web.init_app(app, limiter=limiter)
     app.teardown_appcontext(close_db)
     app.teardown_appcontext(close_control_db)
