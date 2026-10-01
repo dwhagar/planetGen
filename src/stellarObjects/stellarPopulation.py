@@ -38,8 +38,9 @@ result is exact, not a grid approximation), then picks a phase by its
 share of the measure, an age inside that phase's bright window and a
 luminosity from the part of the phase's range above the threshold.
 
-White dwarfs are never this bright (`WD_LUMINOSITY_RANGE_SOL`), so the
-threshold must be above that range's top.
+White dwarfs are never pre-placed (`WD_LUMINOSITY_RANGE_SOL` tops out at
+100 Lsun), so the threshold must be at least that range's top, and a
+sector's dim draw keeps every white dwarf whatever the cap.
 """
 
 import bisect
@@ -185,8 +186,8 @@ def _mass_grid():
 def _check_threshold(min_luminosity_sol):
     if not (isinstance(min_luminosity_sol, (int, float)) and math.isfinite(min_luminosity_sol)):
         raise ValueError(f"luminosity threshold must be a finite number, got {min_luminosity_sol!r}")
-    if min_luminosity_sol <= program_constants.WD_LUMINOSITY_RANGE_SOL[1]:
-        raise ValueError(f"luminosity threshold {min_luminosity_sol} Lsun must be above the brightest white dwarf "
+    if min_luminosity_sol < program_constants.WD_LUMINOSITY_RANGE_SOL[1]:
+        raise ValueError(f"luminosity threshold {min_luminosity_sol} Lsun must be at least the brightest white dwarf "
                          f"({program_constants.WD_LUMINOSITY_RANGE_SOL[1]} Lsun)")
 
 
