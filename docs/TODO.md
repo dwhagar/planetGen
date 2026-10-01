@@ -96,9 +96,9 @@ research behind the security order is the design doc linked at the top
 of the SEC section.
 
 1. **Bugs, in this order:**
-   1. MAP.45 (objects drawn outside the sector's wireframe), then
-      MAP.46. MAP.45 goes first because it may mean stored positions
-      are wrong; find out before the next full regenerate.
+   1. Done: MAP.45 (objects drawn outside the sector's wireframe; the
+      stored positions were right, so no regenerate is needed for it)
+      and MAP.46.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
@@ -509,57 +509,26 @@ MAP.48 and MAP.37, all fixed.
 - [x] **MAP.11 Every kind of phenomenon on the Sector Map, clickable**
   Done in 5.51.0 (PR #81); kept as the parent of its bugs. The Sector Map
   is `html/lib/starmap.py` and `static/sectormap.js`.
-  - [ ] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
-    First in the bug order (see the plan at the top): if stored
-    positions are wrong, that needs to be known before the next full
-    regenerate.
-    Boss (2026-10-01): "rogue planets (and
-    probably other objects) are shown outside the wireframe of the
-    sector, so one of them is wrong. when you tackle this one, do a test
-    where the rogue planets are a bright color and the background a dark
-    color so you can see the distance. This is at the sector level".
-    On the Sector Map (`html/lib/starmap.py`, `static/sectormap.js`) the
-    wireframe is the sector's cylindrical grid cell (`_outline_data`),
-    and the phenomena come from `queryDb.phenomena_near_sector`. Leads
-    to check, not yet confirmed: that query takes every phenomenon whose
-    sphere reaches the sector's bounding sphere (sized for the old cube,
-    `edge_pc * sqrt(3) / 2`) plus every one generated with this
-    sector "wherever it sits", so some outside points may be expected
-    neighbors; or the phenomena's positions and the wireframe use
-    different frames (the cell is rotated to the galaxy frame, and
-    phenomena positions are galaxy-placed). Done: find which side is
-    wrong (the wireframe, the object positions, or which objects are
-    picked) and fix it, so every object generated in a sector is drawn
-    inside its wireframe and anything shown from a neighboring sector
-    reads as outside on purpose; check every phenomenon type and the
-    star systems, not just rogue planets. As Boss asks, the fix includes
-    a visual test that draws the rogue planets in a bright color on a
-    dark background so the distance past the boundary is easy to see,
-    plus an automated check that a sector's own objects fall inside its
-    cell (`galaxyGeometry`'s `sector_address_at` giving back the
-    sector's own address). Open questions: should nearby phenomena from
-    other sectors still be drawn (they are on purpose today, per the
-    map's hint "near this sector"), and if so, how are they told apart
-    from the sector's own (dimmer, outside-only, or a toggle)? If the
-    stored positions turn out wrong, do existing galaxies need a
-    migration or a regenerate?
-  - [ ] **MAP.46 (bug) Rogue planets are hard to find on the Sector Map**
-    Boss (2026-10-01): "in sector view make sure rogue planets can be
-    easily located." Today `static/sectormap.js` draws a rogue planet as
-    a dim, dark-purple textured sphere (`roguePlanet`: core `#6b5a8a`
-    fading to `#2a2438`, glow `#7d6aa8` at strength 0.8), "a dim,
-    starless world lit only by its own internal heat", which nearly
-    vanishes against the dark scene. Done: every rogue planet in a
-    sector is easy to spot at the default zoom and when zoomed out, in
-    both themes, without looking like a star; the sector page's list of
-    its contents can point at each one on the map. Goes with MAP.45
-    (rogue planets drawn outside the wireframe), whose bright-color test
-    makes the same objects visible, and MAP.15's point-of-light style.
-    Open questions: what makes them findable (a marker or ring around
-    each, a brighter but still cool color, a label, a "highlight rogue
-    planets" toggle, or a list that flies the camera to each)? Does the
-    same apply to other dark objects (quiescent black holes, interstellar
-    comets)?
+  - [x] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
+    Done (2026-10-01). The stored positions were right: every star
+    system and every phenomenon a sector generates sits inside its own
+    cell (checked in `test_stars_and_phenomena_fit_within_their_sectors_real_cells`).
+    The objects outside were the neighboring sectors' rogue planets,
+    pulled in by `queryDb.phenomena_near_sector`'s sphere sized for the
+    old cube. Now a point-like object (rogue planet, comet, black hole,
+    neutron star) shows only in its own sector; a neighbor's cloud that
+    reaches in is still drawn, fainter, and says it is from a neighboring
+    sector; the reach sphere holds the whole cell. Still drawn outside on
+    purpose: a supernova's core kicked out of its sector and the galactic
+    nucleus on the axis. `test_sector_map_draws_no_point_object_outside_its_own_sector`
+    checks what the map draws.
+  - [x] **MAP.46 (bug) Rogue planets are hard to find on the Sector Map**
+    Done (2026-10-01). Rogue planets are a brighter cool violet (no star
+    color), each ringed by a marker that keeps its size on screen when
+    zoomed out, with a "Mark rogue planets" button to turn the rings off;
+    every rogue planet in the sector page's Contents has a "Show on map"
+    button. Other dark objects (quiescent black holes, comets) left as
+    they are.
 
 - [x] **MAP.14 Bright stars on the Galaxy Map**
   Done in 7.42.0 (PR #160; it never had a number); kept as the parent of
