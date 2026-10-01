@@ -70,6 +70,9 @@ DEFAULT_CONFIG = {
         "password": "",
         "database": "planetgen",
         "database_prefix": "planetgen",
+        # PERF.17: the web's read-only connections stop any statement
+        # that runs longer than this many seconds (0 turns it off).
+        "statement_timeout_seconds": 10,
     },
     "control_database": "planetgen_control",
     "ratelimit": {

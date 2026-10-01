@@ -77,6 +77,7 @@ from queryDb import (
 from stellarObjects import _db, brightStars, generationLimits, program_constants
 from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
+from stellarObjects.appconfig import load_config
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
 from stellarObjects.systemData import StarSystem
@@ -156,6 +157,15 @@ def _resolve_database_param(base_config):
         raise ApiError(DATABASE_UNAVAILABLE, status_code=503)
 
 
+def _statement_timeout_s():
+    """`config.json`'s `mysql.statement_timeout_seconds` (PERF.17), or
+    `None` when it's 0 or unset."""
+    seconds = current_app.config.get("STATEMENT_TIMEOUT_S")
+    if seconds is None:
+        seconds = load_config()["mysql"].get("statement_timeout_seconds") or 0
+    return float(seconds) if seconds and float(seconds) > 0 else None
+
+
 def get_db():
     """
     Returns the request-scoped read-only connection, opening one on first
@@ -184,7 +194,7 @@ def get_db():
     """
     if "db" not in g:
         try:
-            g.db = open_readonly(_resolve_requested_db_config())
+            g.db = open_readonly(_resolve_requested_db_config(), statement_timeout_s=_statement_timeout_s())
         except SystemExit as exc:
             _log_database_error(exc)
             raise ApiError(DATABASE_UNAVAILABLE, status_code=503)

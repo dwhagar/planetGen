@@ -65,7 +65,7 @@
 {%- else %}
 {%- for p in panels %}
 <section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">
-  <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ num(p.total) }})</span></h2>
+  <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ num(p.total) }}{% if p.total_capped %}+{% endif %})</span></h2>
   <div class="table-scroll"><table>
     {%- if p.panel == "sectors" %}
     <thead><tr><th scope="col">Name</th><th scope="col">Cube Edge</th><th scope="col">Galaxy Map</th></tr></thead>

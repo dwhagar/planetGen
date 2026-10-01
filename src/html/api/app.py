@@ -9,9 +9,10 @@ behind the project's existing Apache2 vhost (`examples/apache/`).
 
 import time
 
+import pymysql
 from flask import Flask, abort, g, jsonify, request
 
-from stellarObjects import activitylog, log
+from stellarObjects import _db, activitylog, log
 
 from .admin import bp as admin_bp
 from .auth import bp as auth_bp
@@ -210,7 +211,19 @@ def _register_error_handlers(app):
         log.debug(f"API error {exc.status_code} on {request.method} {request.path}: {exc.message}")
         return jsonify({"error": exc.message}), exc.status_code
 
-    from web.errors import render_error, unexpected_error_message
+    from web.errors import TIMEOUT_MESSAGE, render_error, unexpected_error_message
+
+    @app.errorhandler(pymysql.err.OperationalError)
+    def _handle_statement_timeout(exc):
+        # PERF.17: a read that ran past `mysql.statement_timeout_seconds`
+        # is a 504 with a plain message; any other database error is
+        # still the generic 500.
+        if not (exc.args and exc.args[0] in _db.STATEMENT_TIMEOUT_ERRORS):
+            return _handle_internal_error(exc)
+        log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")
+        if _is_api_request():
+            return jsonify({"error": "QUERY_TIMEOUT: the database took too long to answer"}), 504
+        return render_error(504, TIMEOUT_MESSAGE)
 
     @app.errorhandler(400)
     def _handle_bad_request(exc):

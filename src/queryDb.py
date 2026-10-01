@@ -37,6 +37,8 @@ import hashlib
 import json
 import math
 import re
+import threading
+import time
 
 import pymysql
 
@@ -74,7 +76,7 @@ from stellarObjects.program_constants import (
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
 
-def open_readonly(config=None):
+def open_readonly(config=None, statement_timeout_s=None):
     """
     Opens a connection for this read-only tool -- see the module
     docstring for why "read-only" is enforced by the configured account's
@@ -83,6 +85,9 @@ def open_readonly(config=None):
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
+        statement_timeout_s (float, optional): Stop any statement that
+            runs longer (PERF.17) -- the web API passes `config.json`'s
+            `mysql.statement_timeout_seconds`. `None`: no limit.
 
     Returns:
         stellarObjects._db.Connection: An open connection.
@@ -91,7 +96,7 @@ def open_readonly(config=None):
         SystemExit: If the database can't be reached.
     """
     try:
-        return get_connection(config, ensure_schema=False)
+        return get_connection(config, ensure_schema=False, statement_timeout_s=statement_timeout_s)
     except pymysql.MySQLError as exc:
         raise SystemExit(f"Error: could not open the database ({exc}).")
 
@@ -242,22 +247,15 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
     query = f"""
         SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
-               ss.binary_type,
-               (SELECT sec.name FROM sectors sec WHERE sec.id = ss.sector_id) AS sector_name,
-               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
-                   AS single_star_type,
-               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'primary' LIMIT 1)
-                   AS primary_star_type,
-               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
-                   AS secondary_star_type
-        FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name
+               ss.binary_type
+        FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name, ss.id
         """
 
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params = params + [limit, offset or 0]
 
-    rows = conn.execute(query, params).fetchall()
+    rows = _with_star_types(conn, conn.execute(query, params).fetchall(), with_sector_name=True)
     return [
         {
             "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "sector_name": r["sector_name"],
@@ -265,6 +263,43 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         }
         for r in rows
     ]
+
+
+_STAR_TYPE_COLUMNS = {"single": "single_star_type", "primary": "primary_star_type",
+                      "secondary": "secondary_star_type"}
+
+
+def _with_star_types(conn, rows, with_sector_name=False):
+    """
+    `rows` (`star_systems` rows) as dicts carrying `single_star_type`/
+    `primary_star_type`/`secondary_star_type` (and `sector_name`, if
+    asked), read for the whole page in one query each (PERF.15) instead of
+    three correlated subqueries per row.
+    """
+    rows = [dict(row) for row in rows]
+    if not rows:
+        return rows
+    ids = [row["id"] for row in rows]
+    marks = ", ".join("?" * len(ids))
+    types = {}
+    for star in conn.execute(
+        f"SELECT star_system_id, role, star_type FROM stars WHERE star_system_id IN ({marks}) ORDER BY id",
+        ids,
+    ).fetchall():
+        types.setdefault((star["star_system_id"], star["role"]), star["star_type"])
+    sector_names = {}
+    if with_sector_name:
+        sector_ids = sorted({row["sector_id"] for row in rows if row["sector_id"] is not None})
+        if sector_ids:
+            sector_names = {r["id"]: r["name"] for r in conn.execute(
+                f"SELECT id, name FROM sectors WHERE id IN ({', '.join('?' * len(sector_ids))})", sector_ids,
+            ).fetchall()}
+    for row in rows:
+        for role, column in _STAR_TYPE_COLUMNS.items():
+            row[column] = types.get((row["id"], role))
+        if with_sector_name:
+            row["sector_name"] = sector_names.get(row["sector_id"])
+    return rows
 
 
 def _star_summary(row):
@@ -1075,14 +1110,18 @@ def sector_detail(conn, sector_id):
     ).fetchall()
 
     nearest = nearest_systems(conn, "star_systems", [row["id"] for row in system_rows])
+    stars_by_system = {}
+    for star in conn.execute(
+        "SELECT st.star_system_id, st.role, st.name, st.star_type, st.temperature_k, st.radius_km, st.luminosity_w"
+        " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?"
+        " ORDER BY st.star_system_id, CASE st.role WHEN 'secondary' THEN 1 ELSE 0 END, st.id",
+        (sector_id,),
+    ).fetchall():
+        star = dict(star)
+        stars_by_system.setdefault(star.pop("star_system_id"), []).append(star)
     systems = []
     for row in system_rows:
-        star_rows = conn.execute(
-            "SELECT role, name, star_type, temperature_k, radius_km, luminosity_w"
-            " FROM stars WHERE star_system_id = ?"
-            " ORDER BY CASE role WHEN 'secondary' THEN 1 ELSE 0 END",
-            (row["id"],),
-        ).fetchall()
+        star_rows = stars_by_system.get(row["id"], [])
         systems.append({
             "id": row["id"], "name": row["name"], "quadrant": row["quadrant"], "location": row["location"],
             "is_binary": row["is_binary"], "binary_type": row["binary_type"],
@@ -1732,13 +1771,16 @@ def system_detail(conn, system_id):
     planet_stages = _life_stages(conn, "planet_evolutionary_paragraphs", "planet_id", "planets", system_id)
     moon_stages = _life_stages(conn, "moon_evolutionary_paragraphs", "moon_id", "moons", system_id)
     colonized = colonized_body_ids(conn, system_id)
+    moons_by_planet = {}
+    for moon in conn.execute(
+        "SELECT * FROM moons WHERE star_system_id = ? ORDER BY planet_id, orbital_index", (system_id,)
+    ).fetchall():
+        moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     for planet in planet_rows:
-        moon_rows = conn.execute(
-            "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],)
-        ).fetchall()
         planet_dict = _with_life_fields(dict(planet), planet_stages, colonized["planets"])
-        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"]) for m in moon_rows]
+        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"])
+                                for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
     belts = [dict(b) for b in conn.execute(
@@ -1897,9 +1939,10 @@ def galaxy_placed_sectors(conn):
     rows = conn.execute(
         """
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index,
-               (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
+               sec.galactic_radius_pc, sec.ring_index, COALESCE(counts.n, 0) AS system_count
         FROM sectors sec
+        LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems
+                   WHERE sector_id IS NOT NULL GROUP BY sector_id) counts ON counts.sector_id = sec.id
         WHERE sec.center_x_pc IS NOT NULL
         ORDER BY sec.galactic_radius_pc
         """,
@@ -2940,6 +2983,17 @@ GALAXY_LOCATE_LIMIT = 8
 """int: Most matches `galaxy_locate` returns."""
 
 
+def _locate_match(conn, column, term):
+    """`galaxy_locate`'s name test: whole words, the last one as typed so
+    far (`_name_match`). A lone word too short for the FULLTEXT index
+    matches the start of the name through its ordinary index instead of
+    scanning every row with REGEXP."""
+    words = re.findall(r"\w+", term)
+    if len(words) == 1 and len(words[0]) < _fulltext_min_word(conn):
+        return f"{column} LIKE ? ESCAPE '\\\\'", [_search_like_pattern(term)[1:]]
+    return _name_match(conn, column, term, prefix_last=True)
+
+
 def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     """
     Sectors and star systems whose name contains `term`, with each one's
@@ -2961,22 +3015,23 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     term = (term or "").strip()
     if not term:
         return []
-    pattern = _search_like_pattern(term)
     order = "CASE WHEN {col} = ? THEN 0 WHEN {col} LIKE ? ESCAPE '\\\\' THEN 1 ELSE 2 END, {col}, id"
     prefix = _search_like_pattern(term)[1:]
+    sector_match, sector_params = _locate_match(conn, "name", term)
     sectors = conn.execute(
         "SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors "
-        "WHERE ring_index IS NOT NULL AND name LIKE ? ESCAPE '\\\\' "
+        f"WHERE ring_index IS NOT NULL AND {sector_match} "
         f"ORDER BY {order.format(col='name')} LIMIT ?",
-        (pattern, term, prefix, limit),
+        (*sector_params, term, prefix, limit),
     ).fetchall()
+    system_match, system_params = _locate_match(conn, "ss.name", term)
     systems = conn.execute(
         "SELECT ss.id, ss.name, s.id AS sector_id, s.name AS sector_name, "
         "s.ring_index, s.layer_index, s.ring_slot_index "
         "FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id "
-        "WHERE s.ring_index IS NOT NULL AND ss.name LIKE ? ESCAPE '\\\\' "
+        f"WHERE s.ring_index IS NOT NULL AND {system_match} "
         f"ORDER BY {order.format(col='ss.name').replace(', id', ', ss.id')} LIMIT ?",
-        (pattern, term, prefix, limit),
+        (*system_params, term, prefix, limit),
     ).fetchall()
     found = [{
         "kind": "sector", "id": r["id"], "name": r["name"], "sector_id": r["id"], "sector_name": r["name"],
@@ -3248,6 +3303,76 @@ _SEARCH_YERKES_ORDER = ["0", "IA", "IAB", "IB", "II", "III", "IV", "V", "VII", "
 _SEARCH_BODY_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
 
 
+FULLTEXT_STOPWORDS = frozenset((
+    "a", "about", "an", "are", "as", "at", "be", "by", "com", "de", "en", "for", "from", "how", "i", "in",
+    "is", "it", "la", "of", "on", "or", "that", "the", "this", "to", "was", "what", "when", "where", "who",
+    "will", "with", "und", "www",
+))
+"""frozenset: InnoDB's default full-text stopwords, which its index
+leaves out -- `_name_match` checks these words with REGEXP instead."""
+
+_min_token_sizes = {}
+
+
+def _fulltext_min_word(conn):
+    """The server's `innodb_ft_min_token_size` (3 unless changed), cached
+    per database: shorter words aren't in a FULLTEXT index."""
+    config = getattr(conn, "_config", None)
+    key = config._key() if config is not None else None
+    if key not in _min_token_sizes:
+        try:
+            row = conn.execute("SELECT @@innodb_ft_min_token_size AS n").fetchone()
+            _min_token_sizes[key] = int(row["n"])
+        except pymysql.MySQLError:
+            _min_token_sizes[key] = 3
+    return _min_token_sizes[key]
+
+
+def _word_pattern(word, prefix=False):
+    """A REGEXP matching `word` as a whole word (or, with `prefix`, the
+    start of one) -- `word` is `\\w` characters only, so needs no escaping."""
+    end = "" if prefix else "([^[:alnum:]_]|$)"
+    return f"(^|[^[:alnum:]_]){word}{end}"
+
+
+def _name_match(conn, column, term, prefix_last=False):
+    """
+    A WHERE fragment matching names that contain every word of `term` as
+    a whole word (PERF.16, Boss 2026-10-01: "full text index, to match
+    whole words"), so "ara" no longer finds "Kemaral". Words long enough
+    for the FULLTEXT index (v46) go through `MATCH ... AGAINST` in boolean
+    mode; shorter words and stopwords (Greek letters like "Mu", numerals
+    like "IV") are checked with a word-boundary REGEXP on the rows the
+    index found -- or on every row, when no word is long enough.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open connection.
+        column (str): The (aliased) `name` column, a literal.
+        term (str): What was typed.
+        prefix_last (bool): Let the last word match the start of a word,
+            for the Galaxy Map's address bar, which searches as you type.
+
+    Returns:
+        tuple: `(sql, params)`; `("1 = 0", [])` when `term` has no words.
+    """
+    words = re.findall(r"\w+", term or "")
+    if not words:
+        return "1 = 0", []
+    min_word = _fulltext_min_word(conn)
+    against, clauses, params = [], [], []
+    for index, word in enumerate(words):
+        prefix = prefix_last and index == len(words) - 1
+        if len(word) >= min_word and word.lower() not in FULLTEXT_STOPWORDS:
+            against.append(f"+{word}*" if prefix else f"+{word}")
+        else:
+            clauses.append(f"{column} REGEXP ?")
+            params.append(_word_pattern(word, prefix))
+    if against:
+        clauses.insert(0, f"MATCH({column}) AGAINST (? IN BOOLEAN MODE)")
+        params.insert(0, " ".join(against))
+    return " AND ".join(clauses), params
+
+
 def _search_like_pattern(term):
     """Escapes `%`/`_`/`\\` in a user-supplied substring so it's safe to
     use as a SQL LIKE pattern (paired with `ESCAPE '\\\\'` in the query)."""
@@ -3473,51 +3598,60 @@ def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
 SEARCH_RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")
 
 
+SEARCH_COUNT_CAP = 300
+"""int: Most matches a result panel counts (PERF.16): past it the panel
+says "300+" (`total_capped`) instead of counting every row of a large
+galaxy. Paging further raises the cap to two pages past the current one."""
+
+
 def _search_page(conn, select_sql, from_sql, order_sql, params, limit, offset):
     """
-    Runs one result panel's query a page at a time: a `COUNT(*)` over
-    `from_sql` (its FROM/JOIN/WHERE, sharing `params`) for the panel's
-    total, then `limit` rows from `offset` in `order_sql` order. An
-    `offset` past the last match (a stale page link) is pulled back to
-    the last page's first row.
+    Runs one result panel's query a page at a time: a count over
+    `from_sql` (its FROM/JOIN/WHERE, sharing `params`) that stops at
+    `SEARCH_COUNT_CAP` (or two pages past `offset`, if further), then
+    `limit` rows from `offset` in `order_sql` order. An `offset` past the
+    last match (a stale page link) is pulled back to the last page's
+    first row.
 
     Returns:
         tuple[list, dict]: `(rows, page)` -- `page` is the panel's
-            `{"total", "limit", "offset", "truncated"}` (`truncated`:
-            `rows` holds fewer than `total`, i.e. there are more pages).
+            `{"total", "total_capped", "limit", "offset", "truncated"}`
+            (`total_capped`: there are more than `total` matches;
+            `truncated`: `rows` holds fewer than `total`, i.e. there are
+            more pages).
     """
-    total = conn.execute(f"SELECT COUNT(*) AS n {from_sql}", list(params)).fetchone()["n"]
+    cap = max(SEARCH_COUNT_CAP, offset + 2 * limit)
+    total = conn.execute(
+        f"SELECT COUNT(*) AS n FROM (SELECT 1 AS one {from_sql} LIMIT ?) capped", list(params) + [cap + 1]
+    ).fetchone()["n"]
+    capped = total > cap
+    if capped:
+        total = cap
     if total and offset >= total:
         offset = ((total - 1) // limit) * limit
     rows = conn.execute(
         f"{select_sql} {from_sql} ORDER BY {order_sql} LIMIT ? OFFSET ?", list(params) + [limit, offset]
     ).fetchall()
-    return rows, {"total": total, "limit": limit, "offset": offset, "truncated": len(rows) < total}
+    return rows, {"total": total, "total_capped": capped, "limit": limit, "offset": offset,
+                  "truncated": len(rows) < total}
 
 
 def _search_result_sectors(conn, term, limit, offset):
+    match, params = _name_match(conn, "name", term)
     rows, page = _search_page(
-        conn, "SELECT id, name, edge_mpc", "FROM sectors WHERE name LIKE ? ESCAPE '\\\\'", "name, id",
-        [_search_like_pattern(term)], limit, offset,
+        conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
     )
     return {"rows": [dict(r) for r in rows], **page}
 
 
 def _search_result_systems(conn, term, limit, offset):
+    match, params = _name_match(conn, "ss.name", term)
     rows, page = _search_page(
         conn,
-        """
-        SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
-               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
-                   AS single_star_type,
-               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'primary' LIMIT 1)
-                   AS primary_star_type,
-               (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'secondary' LIMIT 1)
-                   AS secondary_star_type
-        """,
-        "FROM star_systems ss WHERE ss.name LIKE ? ESCAPE '\\\\'",
+        "SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type",
+        f"FROM star_systems ss WHERE {match}",
         "ss.name, ss.id",
-        [_search_like_pattern(term)], limit, offset,
+        params, limit, offset,
     )
     return {
         "rows": [
@@ -3525,7 +3659,7 @@ def _search_result_systems(conn, term, limit, offset):
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
                 "star_summary": _star_summary(r),
             }
-            for r in rows
+            for r in _with_star_types(conn, rows)
         ],
         **page,
     }
@@ -3541,8 +3675,9 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         params.extend(sorted(luminosity_tags))
     _append_size_clause(clauses, params, "s.radius_km", size_range)
     if term:
-        clauses.append("s.name LIKE ? ESCAPE '\\\\'")
-        params.append(_search_like_pattern(term))
+        match, match_params = _name_match(conn, "s.name", term)
+        clauses.append(match)
+        params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
@@ -3567,8 +3702,9 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
         params.extend(sorted(life_tags))
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
-        clauses.append("p.name LIKE ? ESCAPE '\\\\'")
-        params.append(_search_like_pattern(term))
+        match, match_params = _name_match(conn, "p.name", term)
+        clauses.append(match)
+        params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
@@ -3596,8 +3732,9 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         params.extend(sorted(life_tags))
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
-        clauses.append("m.name LIKE ? ESCAPE '\\\\'")
-        params.append(_search_like_pattern(term))
+        match, match_params = _name_match(conn, "m.name", term)
+        clauses.append(match)
+        params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
@@ -3631,6 +3768,75 @@ def _search_result_belts(conn, density_tags, limit, offset):
         params, limit, offset,
     )
     return {"rows": [dict(r) for r in rows], **page}
+
+
+SEARCH_FACET_CACHE_SECONDS = 600
+"""int: Longest the search page's facet counts and name lists are reused
+(PERF.15) even when nothing they depend on looks changed -- a backstop
+for edits `_search_content_key` can't see."""
+
+_facet_cache = {}
+_facet_cache_lock = threading.Lock()
+
+
+def _search_content_key(conn):
+    """One cheap row (index-only maxima and one count) that changes
+    whenever a sector or system is added, edited or deleted -- what the
+    facet counts depend on."""
+    row = conn.execute(
+        "SELECT (SELECT COUNT(*) FROM sectors) AS sectors, "
+        "(SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
+        "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
+        "(SELECT COALESCE(MAX(id), 0) FROM star_systems) AS system_max_id, "
+        "(SELECT MAX(modified_at) FROM star_systems) AS system_modified"
+    ).fetchone()
+    return tuple(str(row[column]) for column in
+                 ("sectors", "sector_max_id", "sector_modified", "system_max_id", "system_modified"))
+
+
+def _search_facets_cached(conn):
+    """
+    `(facet_defs, autocomplete)` for `search` -- the 12 facet queries
+    (counts over every star, planet, moon, belt and phenomenon) and 5
+    name lists, cached per database until `_search_content_key` changes
+    or `SEARCH_FACET_CACHE_SECONDS` pass (PERF.15), so a search request
+    runs one cheap query for them instead of 17 scans.
+    """
+    config = getattr(conn, "_config", None)
+    database = config._key() if config is not None else None
+    key = _search_content_key(conn)
+    now = time.monotonic()
+    with _facet_cache_lock:
+        cached = _facet_cache.get(database)
+    if cached is not None and cached[0] == key and now - cached[1] < SEARCH_FACET_CACHE_SECONDS:
+        return cached[2]
+    facet_defs = (
+        ("type", _search_facet_type(conn)),
+        ("spectral", _search_facet_spectral(conn)),
+        ("luminosity", _search_facet_luminosity(conn)),
+        ("class", _search_facet_class(conn)),
+        ("body", _search_facet_body(conn)),
+        ("life", _search_facet_life(conn)),
+        ("moon_class", _search_facet_moon_class(conn)),
+        ("moon_body", _search_facet_moon_body(conn)),
+        ("moon_life", _search_facet_moon_life(conn)),
+        ("density", _search_facet_density(conn)),
+        ("phenomenon", _search_facet_phenomenon(conn)),
+        ("phenomenon_class", _search_facet_phenomenon_class(conn)),
+    )
+    autocomplete = {
+        "sectors": _search_name_list(conn, "sectors"),
+        "systems": _search_name_list(conn, "star_systems"),
+        "stars": _search_name_list(conn, "stars"),
+        "planets": _search_name_list(conn, "planets"),
+        "moons": _search_name_list(conn, "moons"),
+    }
+
+    value = (facet_defs, autocomplete)
+    if database is not None:
+        with _facet_cache_lock:
+            _facet_cache[database] = (key, now, value)
+    return value
 
 
 def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None):
@@ -3685,32 +3891,11 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     density_tags = tags.get("density", set())
     type_tags = tags.get("type", set())
 
-    facet_defs = (
-        ("type", _search_facet_type(conn)),
-        ("spectral", _search_facet_spectral(conn)),
-        ("luminosity", _search_facet_luminosity(conn)),
-        ("class", _search_facet_class(conn)),
-        ("body", _search_facet_body(conn)),
-        ("life", _search_facet_life(conn)),
-        ("moon_class", _search_facet_moon_class(conn)),
-        ("moon_body", _search_facet_moon_body(conn)),
-        ("moon_life", _search_facet_moon_life(conn)),
-        ("density", _search_facet_density(conn)),
-        ("phenomenon", _search_facet_phenomenon(conn)),
-        ("phenomenon_class", _search_facet_phenomenon_class(conn)),
-    )
+    facet_defs, autocomplete = _search_facets_cached(conn)
     facets = {name: options for name, options in facet_defs}
     facet_labels = {
         f"{name}:{opt['value']}": opt["label"]
         for name, options in facet_defs for opt in options
-    }
-
-    autocomplete = {
-        "sectors": _search_name_list(conn, "sectors"),
-        "systems": _search_name_list(conn, "star_systems"),
-        "stars": _search_name_list(conn, "stars"),
-        "planets": _search_name_list(conn, "planets"),
-        "moons": _search_name_list(conn, "moons"),
     }
 
     star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q") or star_size)

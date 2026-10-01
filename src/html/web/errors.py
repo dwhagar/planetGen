@@ -33,7 +33,12 @@ _TITLES = {
     429: "Too many requests",
     500: "Something went wrong",
     502: "Data unavailable",
+    504: "Took too long",
 }
+
+TIMEOUT_MESSAGE = ("This page asked the database for more than it could answer in time, so it was stopped. "
+                   "Try a narrower search or a smaller page.")
+"""str: What a page whose query hit the statement time limit (PERF.17) says."""
 
 
 def render_error(status, message):
@@ -62,6 +67,9 @@ def register(bp):
 
     @bp.app_errorhandler(apiclient.ApiError)
     def _api_error(exc):
+        if exc.status_code == 504:
+            log.debug(f"Query time limit on {request.path}: {exc}")
+            return render_error(504, TIMEOUT_MESSAGE)
         current_app.logger.error(f"API error while building {request.path}: {exc}")
         log.exception(f"API error while building the page: {exc}")
         return render_error(502, "The data for this page could not be loaded. Please try again shortly.")

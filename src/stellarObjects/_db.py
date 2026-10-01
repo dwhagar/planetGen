@@ -88,7 +88,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 45
+SCHEMA_VERSION = 46
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -232,9 +232,39 @@ within the same process without the two stomping on each other's pooled
 connections."""
 
 
-def _get_pool(config):
-    key = config._key()
+STATEMENT_TIMEOUT_ERRORS = (1969, 3024)
+"""tuple: The errors a statement stopped by `statement_timeout_s` raises:
+MariaDB's `max_statement_time` and MySQL's `MAX_EXECUTION_TIME`."""
+
+_mariadb_servers = {}
+
+
+def _is_mariadb(config):
+    """Whether `config`'s server is MariaDB (cached per host and port) --
+    the two name their statement time limit differently."""
+    server = (config.host, config.port)
+    if server not in _mariadb_servers:
+        probe = pymysql.connect(host=config.host, port=config.port, user=config.user,
+                                password=config.password, connect_timeout=10)
+        try:
+            _mariadb_servers[server] = "mariadb" in probe.get_server_info().lower()
+        finally:
+            probe.close()
+    return _mariadb_servers[server]
+
+
+def _statement_timeout_sql(config, seconds):
+    if _is_mariadb(config):
+        return f"SESSION max_statement_time = {float(seconds):g}"
+    return f"SESSION MAX_EXECUTION_TIME = {int(float(seconds) * 1000)}"
+
+
+def _get_pool(config, statement_timeout_s=None):
+    key = config._key() if not statement_timeout_s else (config._key(), float(statement_timeout_s))
     if key not in _pools:
+        init = "SET time_zone = '+00:00'"
+        if statement_timeout_s:
+            init += ", " + _statement_timeout_sql(config, statement_timeout_s)
         _pools[key] = PooledDB(
             creator=pymysql,
             mincached=1,
@@ -253,7 +283,9 @@ def _get_pool(config):
             # session's zone; pinning it to UTC makes every time read the
             # same whatever the server's own zone is (the pages convert to
             # each viewer's zone in the browser).
-            init_command="SET time_zone = '+00:00'",
+            # PERF.17: a web pool also stops any statement that runs
+            # past `statement_timeout_s`.
+            init_command=init,
             # Never fail over to a fresh connection mid-use. DBUtils
             # otherwise re-runs a statement that hit any OperationalError
             # -- a deadlock included -- on a new cursor or connection, and
@@ -284,9 +316,8 @@ def close_pool(config):
     Call this once such a database is being dropped for good.
     """
     key = config._key()
-    pool = _pools.pop(key, None)
-    if pool is not None:
-        pool.close()
+    for pool_key in [k for k in _pools if k == key or (isinstance(k, tuple) and k and k[0] == key)]:
+        _pools.pop(pool_key).close()
     _schema_ensured.discard(key)
     forget_id_blocks(key)
 
@@ -756,7 +787,7 @@ class _InsertedCursor:
         return getattr(self._cursor, name)
 
 
-def get_connection(config=None, ensure_schema=True):
+def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
     """
     Opens a pooled MySQL connection (creating the pool for `config` on
     first use), applying the schema if needed.
@@ -771,6 +802,11 @@ def get_connection(config=None, ensure_schema=True):
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
+        statement_timeout_s (float, optional): Stop any statement on this
+            connection that runs longer than this many seconds (PERF.17;
+            the web's read-only connections), raising an `OperationalError`
+            whose code is in `STATEMENT_TIMEOUT_ERRORS`. Such connections
+            come from their own pool. `None` (the default): no limit.
         ensure_schema (bool): Whether to run `_ensure_schema` (DDL) on
             this connection. `True` (the default) suits every read-write
             caller (`save_sector`/`save_system`/the generation CLIs) --
@@ -797,7 +833,7 @@ def get_connection(config=None, ensure_schema=True):
                     truly closing a socket).
     """
     config = config or DEFAULT_MYSQL_CONFIG
-    conn = Connection(_get_pool(config).connection(), config)
+    conn = Connection(_get_pool(config, statement_timeout_s).connection(), config)
     if ensure_schema and config._key() not in _schema_ensured:
         _ensure_schema(conn)
         _schema_ensured.add(config._key())
@@ -7416,6 +7452,29 @@ def _migrate_v44_to_v45(conn):
         forget_id_blocks(conn._config._key())
 
 
+FULLTEXT_NAME_TABLES = ("sectors", "star_systems", "stars", "planets", "moons")
+"""tuple: Tables with a FULLTEXT index on `name` (v46, PERF.16)."""
+
+
+def _migrate_v45_to_v46(conn):
+    """
+    Adds a FULLTEXT index on `name` to each of `FULLTEXT_NAME_TABLES`
+    (PERF.16) -- see `schema.sql`'s "v46" header note. InnoDB rebuilds a
+    table for its first FULLTEXT index and blocks writes (not reads)
+    meanwhile, so on a large galaxy this step takes a while. Guarded on
+    `_has_index`, so a database `_ensure_schema` created fresh just
+    records the version.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for table in FULLTEXT_NAME_TABLES:
+        if not _has_index(conn, table, f"ft_{table}_name"):
+            _alter_table_online(conn, table, f"ADD FULLTEXT KEY ft_{table}_name (name)",
+                                ("ALGORITHM=INPLACE, LOCK=SHARED",))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (46)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -7520,6 +7579,7 @@ def _migration_steps():
         (43, _migrate_v42_to_v43),
         (44, _migrate_v43_to_v44),
         (45, _migrate_v44_to_v45),
+        (46, _migrate_v45_to_v46),
     ]
 
 

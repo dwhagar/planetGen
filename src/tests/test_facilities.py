@@ -197,7 +197,7 @@ def test_migrate_v41_to_v42_creates_facilities(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
         conn.execute("DROP TABLE facilities")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (42, 43, 44, 45)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (42, 43, 44, 45, 46)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (41)")
         conn.commit()
     finally:
