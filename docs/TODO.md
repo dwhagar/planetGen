@@ -1073,8 +1073,7 @@ SEC.26, SEC.27.
     environment variable) can move it. The installers (`install.sh`,
     `install.ps1`, the macOS path) create the directory with the web
     server's user able to write and others unable to read (0750 / 0640),
-    and rotate it (logrotate on Linux, the existing hourly cron;
-    a size-based rotating handler on Windows and macOS).
+    and rotate it (samples below).
   - What it records, one line per event, each with the time (UTC), the
     process, the client address, the user (or API key label) and the
     outcome; never a password, token or key:
@@ -1099,6 +1098,54 @@ SEC.26, SEC.27.
     filter matches this format.
   - The debug log keeps working as it does; with debug on it also gets
     every always-on line.
+
+  Log rotation. Boss (2026-10-01): "provide a sample log rotation
+  configuration for Linux and macOS too if possible but I don't think
+  the user has access to that. I know Windows users don't have access to
+  that." The installers already run as root and install rotation for the
+  debug log (`examples/apache/setup-debug-log.sh` writes
+  `/etc/logrotate.d/planetgen` on Linux and
+  `/etc/newsyslog.d/planetgen.conf` on macOS), so they install these too
+  and the user never edits them; the samples also go in
+  `docs/deployment/` for anyone setting up by hand. Where no system
+  rotation can be installed (Windows, or a run without root), the app
+  rotates its own file (Python's `RotatingFileHandler`, 100 MB, 30
+  copies) instead; with system rotation installed it uses
+  `WatchedFileHandler`, which reopens the file after logrotate or
+  newsyslog moves it, so no restart or `copytruncate` is needed.
+
+  Sample for Linux, `/etc/logrotate.d/planetgen-log` (the user and group
+  are the web server's: `www-data` on Debian and Ubuntu, `apache` on
+  RHEL and Fedora):
+
+  ```conf
+  /var/log/planetgen/*.log {
+      daily
+      maxsize 100M
+      rotate 30
+      missingok
+      notifempty
+      compress
+      delaycompress
+      dateext
+      su www-data www-data
+      create 0640 www-data www-data
+  }
+  ```
+
+  Sample for macOS, `/etc/newsyslog.d/planetgen.conf` (newsyslog runs
+  every hour by itself; `$D0` rotates at midnight, the size column in
+  KB rotates sooner past 100 MB, `J` compresses with bzip2, `N` means no
+  process to signal):
+
+  ```conf
+  # logfilename                              [owner:group]  mode count size(KB) when flags
+  /Library/Logs/planetgen/planetgen.log      _www:_www      640  30    102400   $D0  JN
+  ```
+
+  On Windows there is no system rotation to configure; the app's own
+  rotation above keeps `logs\planetgen.log` and up to 30 numbered
+  copies under the install's root folder.
 
   Open questions: is the Linux location `/var/log/planetgen/` (a
   directory, so the web user can own it) acceptable, or should it stay
