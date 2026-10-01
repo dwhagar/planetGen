@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.22 |
+| UX | UX.23 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
 | GEN | GEN.25 |
@@ -565,6 +565,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls | none | open |
+| UX.22 | Meaningful units for every measurement | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

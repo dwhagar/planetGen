@@ -231,6 +231,29 @@ with `clamp()`.
   changes the view) and TEST.56 (no overlapping controls at 390 to
   1280 px) pin this item.
 
+- [ ] **UX.22 Meaningful units for every measurement**
+  Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
+  like we have so that we always have meaningful units. From mass, to
+  distance, to time, to speed, just everything that can have units.
+  Atmospheric pressure and surface conditions should show customary
+  units as well as a secondary to help contextualize the metric values
+  given." Today only distance has a ladder (`format_distance_m` and
+  friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
+  by `static/distance.js`), with speed (UX.13) and time periods (UX.14)
+  being built. Done: one ladder per quantity, in Python with a JavaScript
+  mirror, picking a meaningful unit the same way, and every page, map
+  panel and form converted to it: mass (kg, Earth, Jupiter and solar
+  masses), distance, time, speed, temperature, pressure, gravity,
+  density, luminosity, power and any other quantity shown with a unit.
+  Surface conditions show temperature in K, °C and °F; atmospheric
+  pressure and the other surface conditions show a customary unit
+  (such as atm, psi or g) beside the metric value. The UX thread was
+  asked (2026-10-01 15:10Z) to add the K/°C/°F temperature display now;
+  this item covers the rest. Open questions: the ladder and switch
+  points for each quantity; which customary unit goes with each surface
+  condition; whether the secondary unit shows in tables or only in
+  detail panels.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 - [ ] **MAP.2 Drill-down navigation**
