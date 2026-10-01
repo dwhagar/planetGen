@@ -1061,7 +1061,7 @@ MAP.14.2 and MAP.5.6.1 below.
   slot address, or galaxy-frame x, y, z). Open questions: which
   sections start open (only Current job, or the last one used,
   remembered per browser)? Which coordinates: a sector address, a
-  position in pc or ly, or both? Does "locate" reuse the Galaxy Map's pick
+  position in pc or ly, or both? Does "locate" reuse the Sector Map pick
   mode (MAP.2.3) or the address bar's `/galaxy/locate` (MAP.2.6)?
 
 ## SEC: Security
