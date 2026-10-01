@@ -248,6 +248,23 @@ on the stored outline. The scatter refuses a galaxy whose sectors are
 already filled (they would never get their bright stars) unless `--force`
 is given, which leaves those sectors out.
 
+The scatter can go down in stages. `--bright-stars-down-to N` keeps every
+bright star already placed and adds only those from `N` up to (not
+including) the galaxy's star-fill level, the threshold already scattered
+(500 by default), then lowers that level to `N`. So a quick test galaxy
+scattered at 500 can later go down to 100 without redrawing anything
+brighter:
+
+```bash
+generate.py plan --bright-stars-down-to 100
+```
+
+Sectors already filled get none of the new stars: their own systems were
+drawn below the old level, so they already hold stars that bright. Asking
+for a level at or above the current one does nothing and says so. The
+Generate page shows the current level and offers the same step as "Add a
+dimmer layer of bright stars".
+
 ## Exotic Phenomena Generation
 
 `generate.py phenomenon` generates a single exotic stellar phenomenon on demand,

@@ -80,6 +80,22 @@ def test_the_count_matches_the_expected_bright_share():
     assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 5
 
 
+def test_a_band_scatter_draws_only_stars_between_its_limits():
+    low = 100.0
+    assert _scatter(seed=5, max_luminosity_sol=THRESHOLD) == []
+    rows_low = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, low, 5, max_luminosity_sol=THRESHOLD))
+    assert len(rows_low) > len(_scatter(seed=5)) > 0
+    for row in map(_row_dict, rows_low):
+        assert low * physical_constants.SOLAR_LUMINOSITY * 0.99 <= row["luminosity_w"]
+        assert row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY
+    # The band's expected share is the difference of the two fractions.
+    for population in brightStars.POPULATIONS:
+        band = brightStars.bright_band_fraction(low, THRESHOLD, population)
+        assert band == pytest.approx(brightStars.bright_star_fraction(low, population)
+                                     - brightStars.bright_star_fraction(THRESHOLD, population))
+        assert band > 0
+
+
 def test_fill_context_caps_dim_stars_and_sets_their_population():
     fill = brightStars.FillContext(sector_position_pc(2, 0, 3, EDGE_PC), SHAPE, min_luminosity_sol=THRESHOLD)
     assert 0.0 < fill.bright_share() < 0.05
@@ -165,6 +181,56 @@ def test_scatter_refuses_a_galaxy_with_filled_sectors_unless_forced(mysql_config
         conn.close()
 
 
+def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_config):
+    _seed_galaxy(mysql_config)
+    first = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    args = generate._default_generation_args(config=mysql_config)
+    args.num_systems = 1
+    address = (0, 0, 0)
+    generate.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    conn = _db.get_connection(mysql_config)
+    try:
+        before = {row["id"]: row["luminosity_w"] for row in conn.execute("SELECT id, luminosity_w FROM bright_stars").fetchall()}
+        seed = _db.bright_star_scatter_settings(conn)[1]
+    finally:
+        conn.close()
+    assert len(before) == first["total"]
+
+    band = generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100"))
+    assert band["total"] > first["total"]
+    assert (band["from_luminosity_sol"], band["to_luminosity_sol"]) == (THRESHOLD, 100.0)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert _db.bright_star_scatter_settings(conn) == (100.0, seed)
+        rows = conn.execute("SELECT id, luminosity_w, ring_index, layer_index, ring_slot_index"
+                            " FROM bright_stars").fetchall()
+    finally:
+        conn.close()
+    after = {row["id"]: row["luminosity_w"] for row in rows}
+    assert {key: after[key] for key in before} == before
+    added = [row for row in rows if row["id"] not in before]
+    assert len(added) == band["total"]
+    for row in added:
+        assert row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY
+        assert row["luminosity_w"] >= 100.0 * physical_constants.SOLAR_LUMINOSITY * 0.99
+        assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) != address
+
+    # At or above the stored level there is nothing to add.
+    assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
+    assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "300")) is None
+
+
+def test_going_down_a_layer_needs_a_scatter_first(mysql_config):
+    _seed_galaxy(mysql_config)
+    assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
 def test_plan_options_conflict():
     parser = argparse.ArgumentParser(prefix_chars='-+')
     generate.add_plan_arguments(parser)
@@ -172,5 +238,12 @@ def test_plan_options_conflict():
     with pytest.raises(SystemExit):
         generate.validate_plan_args(args, parser)
     args = parser.parse_args(["--bright-star-min-luminosity", "50"])
+    with pytest.raises(SystemExit):
+        generate.validate_plan_args(args, parser)
+    for extra in (["--bright-stars-only"], ["--no-bright-stars"]):
+        args = parser.parse_args(["--bright-stars-down-to", "100", *extra])
+        with pytest.raises(SystemExit):
+            generate.validate_plan_args(args, parser)
+    args = parser.parse_args(["--bright-stars-down-to", "50"])
     with pytest.raises(SystemExit):
         generate.validate_plan_args(args, parser)

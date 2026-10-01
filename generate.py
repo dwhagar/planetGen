@@ -2722,6 +2722,11 @@ def add_plan_arguments(parser):
                               help="How many layers of bright stars to draw at once, each in its own "
                                    "low-priority worker process. Default: 80%% of this machine's cores "
                                    "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+    bright_group.add_argument('--bright-stars-down-to', type=finite_float, default=None, metavar='L_SUN',
+                              help="Go one layer dimmer on the stored plan: keep the bright stars already "
+                                   "placed and add only those from L_SUN up to the level already scattered. "
+                                   "Sectors already filled are left out (their own systems already reach "
+                                   "that bright). Does nothing when L_SUN is not below the current level.")
     _db.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -2769,6 +2774,13 @@ def validate_plan_args(args, parser):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
     if args.no_bright_stars and args.bright_stars_only:
         parser.error("--no-bright-stars and --bright-stars-only can't be combined.")
+    if args.bright_stars_down_to is not None:
+        if args.no_bright_stars or args.bright_stars_only:
+            parser.error("--bright-stars-down-to can't be combined with --no-bright-stars or --bright-stars-only.")
+        try:
+            bright_star_fraction(args.bright_stars_down_to)
+        except ValueError as exc:
+            parser.error(f"--bright-stars-down-to: {exc}")
     if not args.no_bright_stars:
         try:
             bright_star_fraction(args.bright_star_min_luminosity)
@@ -2882,36 +2894,11 @@ def scatter_bright_stars(args):
         seed = random.SystemRandom().getrandbits(63)
         _db.clear_bright_stars(conn)
 
-        counts = {population: 0 for population in brightStars.POPULATIONS}
         t0 = time.perf_counter()
-        # Densest layers (nearest the plane) first, so no worker is left
-        # with a big one at the end while the others sit idle.
-        layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
-        with _generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                task = progress.add_task("Bright stars (layers)", total=len(extents))
-
-                def layer_done(layer_counts, _seconds, _weight):
-                    for population, count in layer_counts.items():
-                        counts[population] += count
-                    progress.update(task, advance=1)
-
-                with _work_queue(args, "Bright stars (layers)") as queue:
-                    for layer_index, outer_ring in layers:
-                        payload = {
-                            "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
-                            "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
-                            "expected": skeleton.expected_system_count_at_density_1,
-                            "min_luminosity_sol": min_luminosity_sol, "seed": seed,
-                            "skip": {address for address in filled if address[1] == layer_index},
-                        }
-                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
-                                     on_done=layer_done)
-                _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
-                conn.commit()
-            finally:
-                log.reset_console()
+        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed,
+                                 "Bright stars (layers)")
+        _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
+        conn.commit()
     finally:
         conn.close()
     elapsed = time.perf_counter() - t0
@@ -2922,6 +2909,103 @@ def scatter_bright_stars(args):
     )
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
+                    max_luminosity_sol=None):
+    """
+    Draws and writes the bright stars of every layer through the work
+    queue, one task per layer, with a progress bar: every star at or
+    above `min_luminosity_sol`, or only those below `max_luminosity_sol`
+    too (one band of a staged scatter). Cells in `filled` are left out.
+
+    Returns:
+        dict: Stars written per population.
+    """
+    counts = {population: 0 for population in brightStars.POPULATIONS}
+    # Densest layers (nearest the plane) first, so no worker is left
+    # with a big one at the end while the others sit idle.
+    layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
+    with _generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            task = progress.add_task(label, total=len(extents))
+
+            def layer_done(layer_counts, _seconds, _weight):
+                for population, count in layer_counts.items():
+                    counts[population] += count
+                progress.update(task, advance=1)
+
+            with _work_queue(args, label) as queue:
+                for layer_index, outer_ring in layers:
+                    payload = {
+                        "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                        "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
+                        "expected": skeleton.expected_system_count_at_density_1,
+                        "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
+                        "seed": seed, "skip": {address for address in filled if address[1] == layer_index},
+                    }
+                    queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
+                                 on_done=layer_done)
+        finally:
+            log.reset_console()
+    return counts
+
+
+def add_bright_star_band(args):
+    """
+    Lowers the galaxy's star-fill level to `--bright-stars-down-to`:
+    keeps every bright star already placed and scatters only the band from
+    the new level up to (not including) the stored one, then stores the new
+    level. Sectors already filled are left out: their own systems were
+    drawn below the old level, so they already hold stars that bright.
+
+    Returns:
+        dict or None: `counts` (per population), `total`, `elapsed_s`,
+            `from_luminosity_sol` and `to_luminosity_sol`; `None` when there
+            was nothing to do (no scatter yet, or the level asked for is not
+            below the current one).
+    """
+    mysql_config = _db.mysql_config_from_args(args)
+    target = float(args.bright_stars_down_to)
+    conn = _db.get_connection(mysql_config)
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError("The galaxy's skeleton has never been built -- run 'generate.py plan' first.")
+        settings = _db.bright_star_scatter_settings(conn)
+        if settings is None:
+            log.normal("No bright stars are scattered yet, so there is no layer to go below. Run "
+                       f"'generate.py plan --bright-stars-only --bright-star-min-luminosity {target:g}' instead.")
+            return None
+        current, first_seed = float(settings[0]), settings[1]
+        if target >= current:
+            log.normal(f"Nothing to add: every star of {current:g} L_sun or more is already placed, "
+                       f"and {target:g} is not below that.")
+            return None
+        extents = _db.get_galaxy_layers(conn)
+        filled = _db.filled_sector_addresses(conn)
+        seed = random.SystemRandom().getrandbits(63)
+        log.normal(f"Adding the bright stars from {target:g} up to {current:g} L_sun"
+                   + (f", leaving out {len(filled):,} filled sectors." if filled else "."))
+        t0 = time.perf_counter()
+        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, target, seed,
+                                 f"Bright stars {target:g}-{current:g} L_sun (layers)", max_luminosity_sol=current)
+        # The first scatter's seed stays: it names the galaxy's scatter.
+        _db.record_bright_star_scatter(conn, target, first_seed)
+        conn.commit()
+    finally:
+        conn.close()
+    elapsed = time.perf_counter() - t0
+    total = sum(counts.values())
+    log.normal(
+        f"Added {total:,} bright stars ({target:g} to {current:g} L_sun) in {elapsed:.1f}s: "
+        + ", ".join(f"{count:,} {population}" for population, count in counts.items())
+        + f". The star-fill level is now {target:g} L_sun."
+    )
+    log.debug(f"bright-star band: {total} stars, seed {seed}, {target:g} to {current:g} L_sun")
+    return {"counts": counts, "total": total, "elapsed_s": elapsed,
+            "from_luminosity_sol": current, "to_luminosity_sol": target}
 
 
 def _scatter_layer_task(payload):
@@ -2940,6 +3024,7 @@ def _scatter_layer_task(payload):
         for row in brightStars.scatter_layer(
             payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+            max_luminosity_sol=payload.get("max_luminosity_sol"),
         ):
             counts[row[6]] += 1
             batch.append(row)
@@ -2959,12 +3044,16 @@ def run_plan(args):
     """
     Builds and persists the galaxy's density skeleton, then scatters its
     bright stars (unless `--no-bright-stars`; `--bright-stars-only` skips
-    the rebuild).
+    the rebuild, and `--bright-stars-down-to` adds one dimmer band to the
+    stored scatter instead).
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
+    if getattr(args, "bright_stars_down_to", None) is not None:
+        add_bright_star_band(args)
+        return
     if getattr(args, "bright_stars_only", False):
         scatter_bright_stars(args)
         return

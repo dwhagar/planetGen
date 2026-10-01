@@ -359,6 +359,21 @@ def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _argv(step) == argv
 
 
+def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
+    assert _post(client, action="bright_band", down_to="100").status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "bright_band"
+    (step,) = job["steps"]
+    assert step["label"] == generate_page.BAND_LABEL
+    assert _argv(step) == ["plan", "--bright-stars-down-to", "100"]
+
+
+def test_dimmer_layer_needs_a_level(site, client, no_spawn):
+    resp = _post(client, action="bright_band", down_to="")
+    assert resp.status_code == 400
+    assert no_spawn == []
+
+
 def test_scatter_flags_exist_in_generate_py():
     """Every flag the page passes is one `generate.py plan` accepts."""
     sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
@@ -369,6 +384,7 @@ def test_scatter_flags_exist_in_generate_py():
     assert plan.parse_args(["--no-bright-stars"]).no_bright_stars is True
     args = plan.parse_args(["--bright-stars-only", "--force"])
     assert args.bright_stars_only is True and args.force is True
+    assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
 
 
 def test_page_offers_the_scatter_checkbox(site, client):

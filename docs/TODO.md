@@ -499,37 +499,19 @@ MAP.30) shipped in PR #234.
     to sector fill (`Sectors (ring … layer …)`), where PERF.3's rate is
     measured.
 
-  - [ ] **PERF.5 Scatter bright stars in stages, one luminosity band at a time**
-    Boss (2026-10-01): "let's do a default of 100 solar
-    luminosities for the star map, but then add to the TODO.md to allow
-    us to add another layer down (i.e. so when I generate I do say 500
-    solar luminosities because I want to be quick and do testing but then
-    after I want to generate down to 100 solar luminosities, so we have
-    to make sure when I do that, it only generates between the limits
-    (i.e. doesn't generate more brighter stars). Probably add a value for
-    the star-fill level." Boss then kept the default at 500 (2026-10-01):
-    "OMG, no, so let's make the default 500 then, sorry, I am now down
-    with adding 35 gigs to the database." So the default threshold
-    (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`) is 500, and going
-    down to 100 later is the kind of extra layer this item adds. Today
-    the plan's scatter (`generate.py`, `--bright-star-min-luminosity`)
-    clears `bright_stars` and redraws everything at or above the
-    threshold, and refuses when any sector is already filled unless
-    `--force` leaves those sectors out. Done: the galaxy stores its
-    current star-fill level (the lowest luminosity already scattered); a
-    scatter to a lower threshold keeps the existing bright stars and adds
-    only stars from the new threshold up to (not including) the stored
-    level, then lowers the stored level; asking for a level at or above
-    the stored one does nothing (or says so); the Generate page and the
-    CLI show the current level and offer "go down to N"; and PERF.3's
-    size and time estimates cover just the new band. Open questions:
-    where the level is stored (the control database, a `galaxy` row next
-    to the skeleton, or derived from `MIN(luminosity_w)` in
-    `bright_stars`)? What happens to sectors already filled when new,
-    dimmer bright stars land in them: add the stars and build their
-    systems in place, skip those sectors, or mark them for ADM.8's
-    regenerate? Must the new band draw from the same random stream, so a
-    500-then-100 galaxy matches a straight-to-100 one?
+  - [x] **PERF.5 Scatter bright stars in stages, one luminosity band at a time**
+    Done: `generate.py plan --bright-stars-down-to N` (and "Add a dimmer
+    layer of bright stars" on the Generate page) keeps every bright star
+    already placed and adds only those from N up to (not including) the
+    galaxy's star-fill level, `galaxy_shape.bright_star_min_luminosity_sol`,
+    then lowers that level; at or above the level it does nothing and says
+    so. Decided defaults: the level stays in `galaxy_shape` (no schema
+    change); sectors already filled get none of the new band, since their
+    own systems were drawn below the old level and already hold stars that
+    bright; each band draws from its own random seed, so a 500-then-100
+    galaxy matches a straight-to-100 one statistically, not star for star.
+    PERF.3's estimates should count only the new band
+    (`stellarPopulation.bright_band_fraction`).
 
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
