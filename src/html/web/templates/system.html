@@ -5,6 +5,7 @@
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
 <script type="module" src="{{ static_url('copycode.js') }}"></script>
+<script type="module" src="{{ static_url('facilityform.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <div class="page-subhead">
@@ -128,26 +129,30 @@
   <div class="facility-preview" role="status">
     <p><strong>Allowed by the placement rules.</strong>
     {%- if form.preview.distance %} Orbit: {{ form.preview.distance }} from its host, one orbit every {{ form.preview.period }}, at {{ form.preview.speed }}.{% endif %}
+    {%- if form.preview.belt %} It will get a random spot in the belt, between {{ form.preview.belt }} from its star, and circle the star from there.{% endif %}
     Nothing is saved until you press Save.</p>
   </div>
   {%- endif %}
-  <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form" aria-labelledby="facility-form-heading">
+  {%- set placement = form.fields.placement or facility_placements[0][0] %}
+  <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form facility-form" aria-labelledby="facility-form-heading">
     {{ csrf_field() }}
     <div class="search-fields">
       <label class="search-field">Name
         <input type="text" name="name" maxlength="255" value="{{ form.fields.name or '' }}">
       </label>
-      <label class="search-field">Host
-        <select name="host">
-          {%- for option in facility_hosts %}
-          <option value="{{ option.value }}"{% if option.value == form.fields.host %} selected{% endif %}>{{ option.label }}</option>
+      <label class="search-field">Placement
+        <select name="placement" data-facility-placement>
+          {%- for value, label in facility_placements %}
+          <option value="{{ value }}"{% if value == placement %} selected{% endif %}>{{ label }}</option>
           {%- endfor %}
         </select>
       </label>
-      <label class="search-field">Placement
-        <select name="placement">
-          {%- for value, label in facility_placements %}
-          <option value="{{ value }}"{% if value == form.fields.placement %} selected{% endif %}>{{ label }}</option>
+      <label class="search-field">Host
+        <select name="host" data-facility-host>
+          {%- for option in facility_hosts %}
+          <option value="{{ option.value }}" data-placements="{{ option.placements | join(' ') }}"
+            {%- if option.min_km %} data-min-km="{{ option.min_km }}" data-max-km="{{ option.max_km }}" data-mass-kg="{{ option.mass_kg }}"{% endif %}
+            {%- if option.value == form.fields.host %} selected{% endif %}>{{ option.label }}</option>
           {%- endfor %}
         </select>
       </label>
@@ -158,22 +163,18 @@
           {%- endfor %}
         </select>
       </label>
-      <label class="search-field">Orbital distance (in orbit only; blank for 3 host radii)
-        <input type="text" name="distance" inputmode="decimal" value="{{ form.fields.distance or '' }}">
-      </label>
-      <label class="search-field">Unit
-        <select name="distance_unit">
-          {%- for unit in facility_units %}
-          <option value="{{ unit }}"{% if unit == form.fields.distance_unit %} selected{% endif %}>{{ "AU" if unit == "au" else unit }}</option>
-          {%- endfor %}
-        </select>
-      </label>
+      <div class="search-field facility-orbit" data-facility-orbit{% if placement != 'orbital' %} hidden{% endif %}>
+        <label for="facility-orbit-step">Orbit distance (log scale, from just above the host's surface to the edge of its sphere of influence)</label>
+        <input type="range" id="facility-orbit-step" name="orbit_step" min="0" max="{{ facility_orbit_steps }}" step="1"
+          value="{{ form.fields.orbit_step if form.fields.orbit_step is defined else facility_orbit_default }}">
+        <output for="facility-orbit-step" data-facility-orbit-readout aria-live="polite"></output>
+      </div>
       <label class="search-field">Description (optional)
         <input type="text" name="description" maxlength="4000" value="{{ form.fields.description or '' }}">
       </label>
     </div>
     <div class="search-actions">
-      <button type="submit" class="btn" name="facility_action" value="preview">Preview orbit</button>
+      <button type="submit" class="btn" name="facility_action" value="preview">Preview</button>
       <button type="submit" class="btn" name="facility_action" value="save">Save</button>
     </div>
   </form>

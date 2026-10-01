@@ -67,11 +67,28 @@ def test_habitable_moon_chip_and_moon_group():
     assert "Habitable moon" not in no_moon
 
 
-def test_belt_row_shows_its_distance():
+def test_belt_row_shows_density_range_and_top_minerals():
+    composition = [{"component": c, "concentration": k} for c, k in
+                   (("iron", "high"), ("nickel", "moderate"), ("olivine", "small"), ("gold", "trace"))]
     belt = {"id": 5, "density": "sparse", "distance_km": 2.7 * AU_KM, "lower_limit_km": 2.1 * AU_KM,
-            "upper_limit_km": 3.3 * AU_KM, "orbital_index": 0, "star_id": 1}
+            "upper_limit_km": 3.3 * AU_KM, "orbital_index": 0, "star_id": 1, "composition": composition}
     html = system_list_html(_system(belts=[belt]), _SECTIONS)
-    assert "2.7 AU" in html and "2.1 AU to 3.3 AU" in html
+    assert "Sparse" in html and "2.1 AU to 3.3 AU" in html
+    assert "2.7 AU" not in html  # the nominal distance isn't repeated next to the range
+    assert "Iron, nickel, olivine" in html and "gold" not in html
+
+
+def test_belt_row_without_range_falls_back_to_distance():
+    belt = {"id": 5, "density": "dense", "distance_km": 2.7 * AU_KM, "lower_limit_km": None,
+            "upper_limit_km": None, "orbital_index": 0, "star_id": 1}
+    html = system_list_html(_system(belts=[belt]), _SECTIONS)
+    assert "2.7 AU" in html
+
+
+def test_rows_show_no_zone():
+    moon = _body(9, "Rock", 0.002)
+    html = system_list_html(_system([_body(1, "World", 1.0, moons=[moon])]), _SECTIONS)
+    assert "Inner Zone" not in html
 
 
 def test_comets_sort_in_by_semi_major_axis():

@@ -1678,20 +1678,24 @@ def system_detail(conn, system_id):
         dict: `id`, `name`, `sector_id`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `binary_configuration` (`'close'`,
             `'wide'`, or `None` -- see `schema.sql`'s "v15" note),
+            `binary_separation_km` and `binary_heliosphere_radius_km` (a
+            close pair's, for orbits around it),
             `binary_mutual_position_x/y/z_km` (the secondary's position
             relative to the primary -- NULL for a single star; see
             `schema.sql`'s "v14"/"v15" notes), `wikijs_url`/`mediawiki_url`
             (`star_systems.wikijs_url`/`mediawiki_url` -- `None` for
             whichever wiki (or both) this system hasn't been uploaded to
             yet; see `schema.sql`'s "v22" header note), `stars` (id/role/name/
-            star_type/mass_kg/radius_km/temperature_k/luminosity_w --
+            star_type/mass_kg/radius_km/temperature_k/luminosity_w/
+            heliosphere_radius_km --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `planets`
             (each a `planets` row, including its own `star_id`, plus its
             own `moons` list; every planet and moon also carries
             `habitable`, `life_stage` and `inhabited` (a colony counts --
             see `_with_life_fields`), `belts` (`asteroid_belts` rows, including
-            `star_id`), `comets` (`comets` rows, including `star_id` --
+            `star_id`, plus `composition`: its `asteroid_belt_composition`
+            rows as `{component, concentration}`, largest share first), `comets` (`comets` rows, including `star_id` --
             no `orbital_index`, see `insert_comet`'s docstring), and
             `sector_siblings` (`{id, name}` for every other system in the
             same sector, empty if standalone -- for linkifying
@@ -1712,7 +1716,7 @@ def system_detail(conn, system_id):
         raise ValueError(f"no star_systems row with id {system_id}")
 
     stars = conn.execute(
-        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w"
+        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
         (system_id,),
@@ -1737,9 +1741,20 @@ def system_detail(conn, system_id):
         planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"]) for m in moon_rows]
         planets.append(planet_dict)
 
-    belts = conn.execute(
+    belts = [dict(b) for b in conn.execute(
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
-    ).fetchall()
+    ).fetchall()]
+    belt_composition = {}
+    for row in conn.execute(
+        "SELECT c.belt_id, c.component, c.concentration FROM asteroid_belt_composition c"
+        " JOIN asteroid_belts b ON b.id = c.belt_id WHERE b.star_system_id = ?"
+        " ORDER BY c.belt_id, c.position",
+        (system_id,),
+    ).fetchall():
+        belt_composition.setdefault(row["belt_id"], []).append(
+            {"component": row["component"], "concentration": row["concentration"]})
+    for belt in belts:
+        belt["composition"] = belt_composition.get(belt["id"], [])
 
     comets = conn.execute(
         "SELECT * FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)
@@ -1768,6 +1783,8 @@ def system_detail(conn, system_id):
         "quadrant": system["quadrant"], "location": system["location"],
         "is_binary": system["is_binary"], "binary_type": system["binary_type"],
         "binary_configuration": system["binary_configuration"],
+        "binary_separation_km": system["binary_separation_km"],
+        "binary_heliosphere_radius_km": system["binary_heliosphere_radius_km"],
         "binary_mutual_position_x_km": system["binary_mutual_position_x_km"],
         "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
@@ -1775,7 +1792,7 @@ def system_detail(conn, system_id):
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
         "planets": planets,
-        "belts": [dict(b) for b in belts],
+        "belts": belts,
         "comets": [dict(c) for c in comets],
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,

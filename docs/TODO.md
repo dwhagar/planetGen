@@ -102,9 +102,9 @@ of the SEC section.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
-   3. UX.19 (belt rows and no Zone column in the object list), UX.20
-      (scientific notation past 4 digits) and ADM.9 (the "place a
-      facility" form).
+   3. Done: UX.19 (belt rows and no Zone column in the object list) and
+      ADM.9 (the "place a facility" form). Next: UX.20 (scientific
+      notation past 4 digits).
    4. Done: the drill-down rework (MAP.17, MAP.19, MAP.18, MAP.44,
       MAP.26), built as Boss's "Layer + arc".
 2. **Security, in this order** (login blocking first):
@@ -161,23 +161,6 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
-
-- [ ] **UX.19 (bug) Asteroid belt rows in a system's object list: density, range and top minerals; no Zone column**
-  Boss (2026-10-01): "asteroid belts in the system object list should
-  just list their range, right now it says "Sparse" and "Distance" then
-  "Distance to Distance", only the "Sparse" (or whatever density) and
-  distance along with the top minerals found too should also be in the
-  row. Zone need not be in the rows for planets or moons or anything."
-  Today `html/lib/systempage.py` builds a belt's row from its density,
-  its nominal distance (`distance_km`) and then its range
-  (`lower_limit_km` to `upper_limit_km`), so the distance shows twice,
-  and every planet and moon row has a zone cell (`body.get("zone")`).
-  Done: a belt's row shows its density, its range ("2.1 AU to 3.3 AU")
-  and its top minerals (from `asteroid_belt_composition`, through the
-  existing `format_composition_summary`), and nothing else; no row in
-  the list (planets, moons, belts, comets, facilities) shows the zone;
-  the zone stays on each object's own page. Settled by Boss
-  (2026-10-01): "top" means the three largest minerals by share.
 
 - [ ] **UX.20 (bug) Scientific notation for numbers with more than 4 digits before the decimal point**
   Boss (2026-10-01): "anything over 4 digits to the left of the decimal
@@ -502,6 +485,81 @@ MAP.48 and MAP.37, all fixed.
   catalogued galaxies) or generated? Does every row get a galaxy id, or
   only the top-level ones (sectors, the skeleton)? Is a second galaxy
   in the same database or a second database chosen at login?
+
+- [ ] **GEN.23 Generate a smaller sphere, then backfill bright stars around it per sector block**
+  Boss (2026-10-01): "right now the way it's set up, the default is
+  about 100 light-years around a new sector. When the galaxy is
+  generated I want to reduce that and make the default sector
+  generation sphere about 10 pc, rounded up. Then use the
+  100-light-year default to rerun the large star generation on the
+  100-light-year area around the generated sector, skipping over
+  sectors that already have stars of the required brightness or lower.
+  When this happens we're going to generate all the stars that are 100
+  luminosities or larger, up to what has already been generated. Again
+  it's going to be bound by the lower and upper limit. This means we're
+  going to have to extend the star generation storage for the lowest
+  level of stars generated for a region. For the sector blocks we'll
+  group to make the calculations easier and such. We won't do this per
+  sector; we'll do this per sector block, each containing a 3x3 cube.
+  For that block we will store the star minimum and maximum generated.
+  We'll store it, say, if all stars 100 solar luminosities or higher
+  have been generated. I guess we only need to store the data
+  pertaining to the dimmest luminosity already generated. It will skip
+  over any sectors that have already been filled. This is only for the
+  logic for unfilled sectors surrounding the filled sector space."
+  Today `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY` (100 ly,
+  about 30.7 pc) is the sphere filled by `generate.py galaxy`'s random
+  start, and the default of `POST /api/sectors/<id>/generate-neighborhood`
+  (the Generate page and the map's neighborhood generation, MAP.20);
+  `--center-sector` has no default and requires `--radius-pc`. The
+  plan's bright-star scatter (`brightStars.scatter`) draws every star at
+  or above one galaxy-wide threshold
+  (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, default 500 L_sun, stored in
+  `galaxy_shape.bright_star_min_luminosity_sol`) into `bright_stars`.
+  Done: the default generation sphere is about 10 pc, rounded up; after
+  that sphere is filled, a bright-star backfill runs over the 100 ly
+  sphere around the same center, adding only the stars from 100 L_sun up
+  to (not including) the luminosity already scattered there, so no
+  brighter star is drawn twice; the backfill works per sector block (a
+  3x3x3 cube of sectors) and stores, for each block, the dimmest
+  luminosity already generated in it, so a block already down to 100
+  L_sun is skipped; filled sectors are skipped, since this is only for
+  the unfilled sectors around the filled space; and the new stars show
+  on the Galaxy Map like the existing bright stars. Open questions:
+  - "10 pc, rounded up": to the next whole sector (sectors are 4 pc, so
+    12 pc), to whole sector blocks, or to a round number of light-years?
+    Does the smaller default apply to every generate-around entry point
+    (random start, the API and the Generate page, `--center-sector`
+    gaining a default) or only to the random start?
+  - Where the per-block dimmest luminosity is stored: a new table keyed
+    by block (ring/layer/slot of the block's corner or center, and a
+    schema version bump), a column on an existing block table if there
+    is one, or derived from `MIN(luminosity)` of `bright_stars` in the
+    block (which can't tell "no star that dim landed here" from "not
+    generated yet")? Boss asked for the minimum and maximum, then only
+    the dimmest; is the maximum needed at all, since the upper bound is
+    the galaxy-wide scatter level?
+  - How this fits PERF.5 (staged bright-star layers, a galaxy-wide
+    star-fill level): is the per-block level PERF.5's level stored per
+    block instead of per galaxy, so a galaxy-wide "go down to N" and
+    this local backfill share one mechanism? A block's level could then
+    be lower than the galaxy's, and the galaxy-wide pass skips it.
+  - "Up to what has already been generated": the upper limit is the
+    galaxy's current scatter level (500 by default), or the block's own
+    level when it has one? And "the lower and upper limit" means the
+    100 L_sun floor and that level?
+  - Is 100 L_sun fixed, a constant in `program_constants`, or a config
+    or Generate page option? Is the 100 ly backfill radius the existing
+    `RANDOM_START_NEIGHBORHOOD_RADIUS_LY` reused, or its own constant?
+  - Must the backfilled stars come from the same random stream as a
+    galaxy-wide scatter (PERF.5's question), so a block backfilled now
+    matches the stars a later galaxy-wide pass to 100 L_sun would draw?
+  - A block that is partly filled: backfill only its unfilled sectors
+    and record the block's level anyway, or leave its level unset so a
+    later pass knows the filled sectors never got the dimmer stars?
+  - Does the backfill run inside the same job and progress bars as the
+    sphere's generation (PERF.4, the Generate page), and do PERF.3's
+    size and time estimates include it?
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -967,39 +1025,6 @@ MAP.48 and MAP.37, all fixed.
     keep the object's name? Does deleting a sector leave its slot
     unfilled (so it can be filled again) or mark it empty?
 
-- [ ] **ADM.9 (bug) "Place a facility": host by placement, a log-scale orbit slider, and belt facilities that move**
-  Boss (2026-10-01): "Bugfix also in the "place a facility" Name,
-  Placement, Placement determine what is listed in Host. Orbital radii
-  is hard to understand, make this a logaritmic slider for distance
-  form the object to the edge of the sphere of influence. This control
-  should only appear if relevant, i.e. if it's in orbit aroudn
-  something, if it's on a planet, moon, asteroid,e tc... we don't need
-  that. If it's in an asteroid belt then we should pick a location in
-  the asteroid belt, assign an orbital velocity, and add it to what
-  gets updated during a position updagte." Today the system page's form
-  (`html/web/system_facilities.py`, `PLACEMENT_OPTIONS`,
-  `host_options`) lists every host whatever the placement and takes the
-  orbit as a typed distance in km or AU. Done:
-  - The form asks in this order: name, placement, then host, and the
-    host list holds only hosts that fit the placement (stars, planets
-    and moons for in orbit; planets and moons for on the surface;
-    belts for in the belt), following `facility_rules`.
-  - In orbit: the distance is a logarithmic slider from just above the
-    host's surface (or the star's) out to the edge of the host's
-    sphere of influence (Hill sphere for a planet or moon), showing the
-    distance, period and speed as it moves; the typed field goes.
-  - On a surface: no distance control.
-  - In a belt: no distance control; the facility gets a position inside
-    the belt (a random radius between its inner and outer edge and a
-    random angle) and an orbital velocity around the star from that
-    radius, stored on the facility, and `updateOrbits.py`'s
-    `advance_facility_orbits` moves it along with orbital facilities.
-  Settled by Boss (2026-10-01): a belt facility's place in the belt is
-  random, with the chosen radius shown; for a star, the slider runs out
-  to the heliopause. Still to find out while building: whether a belt
-  facility needs a migration for its position columns (if so, it takes
-  the next schema version).
-
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
   Boss (2026-10-01): "In generation screen each section should be
   collapsible and generate around a sector should have the option to
@@ -1051,8 +1076,7 @@ SEC.26, SEC.27.
     environment variable) can move it. The installers (`install.sh`,
     `install.ps1`, the macOS path) create the directory with the web
     server's user able to write and others unable to read (0750 / 0640),
-    and rotate it (logrotate on Linux, the existing hourly cron;
-    a size-based rotating handler on Windows and macOS).
+    and rotate it (samples below).
   - What it records, one line per event, each with the time (UTC), the
     process, the client address, the user (or API key label) and the
     outcome; never a password, token or key:
@@ -1077,6 +1101,54 @@ SEC.26, SEC.27.
     filter matches this format.
   - The debug log keeps working as it does; with debug on it also gets
     every always-on line.
+
+  Log rotation. Boss (2026-10-01): "provide a sample log rotation
+  configuration for Linux and macOS too if possible but I don't think
+  the user has access to that. I know Windows users don't have access to
+  that." The installers already run as root and install rotation for the
+  debug log (`examples/apache/setup-debug-log.sh` writes
+  `/etc/logrotate.d/planetgen` on Linux and
+  `/etc/newsyslog.d/planetgen.conf` on macOS), so they install these too
+  and the user never edits them; the samples also go in
+  `docs/deployment/` for anyone setting up by hand. Where no system
+  rotation can be installed (Windows, or a run without root), the app
+  rotates its own file (Python's `RotatingFileHandler`, 100 MB, 30
+  copies) instead; with system rotation installed it uses
+  `WatchedFileHandler`, which reopens the file after logrotate or
+  newsyslog moves it, so no restart or `copytruncate` is needed.
+
+  Sample for Linux, `/etc/logrotate.d/planetgen-log` (the user and group
+  are the web server's: `www-data` on Debian and Ubuntu, `apache` on
+  RHEL and Fedora):
+
+  ```conf
+  /var/log/planetgen/*.log {
+      daily
+      maxsize 100M
+      rotate 30
+      missingok
+      notifempty
+      compress
+      delaycompress
+      dateext
+      su www-data www-data
+      create 0640 www-data www-data
+  }
+  ```
+
+  Sample for macOS, `/etc/newsyslog.d/planetgen.conf` (newsyslog runs
+  every hour by itself; `$D0` rotates at midnight, the size column in
+  KB rotates sooner past 100 MB, `J` compresses with bzip2, `N` means no
+  process to signal):
+
+  ```conf
+  # logfilename                              [owner:group]  mode count size(KB) when flags
+  /Library/Logs/planetgen/planetgen.log      _www:_www      640  30    102400   $D0  JN
+  ```
+
+  On Windows there is no system rotation to configure; the app's own
+  rotation above keeps `logs\planetgen.log` and up to 30 numbered
+  copies under the install's root folder.
 
   Open questions: is the Linux location `/var/log/planetgen/` (a
   directory, so the web user can own it) acceptable, or should it stay

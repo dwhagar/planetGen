@@ -620,6 +620,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // (updateWedgeLevels). Drawn over everything (no depth test) and never
   // picked. The Wedges button hides them.
   var wedgeColor = new THREE.Color(cssVar("--text", "#e6e8f0"));
+  // Guide lines only: mostly see-through, just visible enough to follow
+  // (Boss, 2026-10-01). The bearing labels stay fully readable.
+  var WEDGE_LINE_OPACITY = 0.22;
   var wedgeGroup = new THREE.Group();
   wedgeGroup.renderOrder = 2;
   scene.add(wedgeGroup);
@@ -644,7 +647,7 @@ function initGalaxyMap3d(canvasEl, data) {
       byMasters.get(line.masters).push(line);
     });
     var material = new THREE.LineBasicMaterial({
-      color: wedgeColor, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false,
+      color: wedgeColor, transparent: true, opacity: WEDGE_LINE_OPACITY, depthTest: false, depthWrite: false,
     });
     byMasters.forEach(function (lines, masters) {
       var level = { masters: masters, r0: lines[0].r0, lines: lines, objects: [], segments: null };
@@ -768,6 +771,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // pale background.
   var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
   var FILLED_FACE_MIX = 0.85;
+  // How far an unfilled block's edges brighten toward white: the ring,
+  // wedge and layer boundaries of the grid, kept faint like the wedge
+  // lines (a filled block's amber edges add up to 0.7 more).
+  var GRID_EDGE_MIX = 0.1;
 
   function makeBlockMaterial(translucent) {
     return new THREE.ShaderMaterial({
@@ -812,7 +819,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
         "  vec3 face = mix(vColor, filledTint, step(0.001, vFill) * " + FILLED_FACE_MIX.toFixed(3) + ");",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
-        "  gl_FragColor = vec4(mix(face, edgeColor, (0.18 + 0.7 * vFill) * edge), vAlpha * fade);",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade);",
         "  #include <colorspace_fragment>",
         "}",
       ].join("\n"),

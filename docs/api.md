@@ -132,7 +132,8 @@ connectivity to that specific schema rather than the default one.
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
   `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`), `belts`, `comets`, `sector_siblings`
+  or `null` — and `inhabited`), `belts` (each with its `composition`,
+  `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
   systems, nearest first, from the stored `nearest_systems` rows (schema
@@ -356,9 +357,16 @@ connectivity to that specific schema rather than the default one.
   fields.
 - `GET /api/facilities/orbit?host_type=star|planet|moon&host_id=<id>[&distance_km=<km>]`
   — the orbit an orbital facility would get there, without saving:
-  `{"distance_km", "period_years", "orbital_speed_kms"}`. Without
-  `distance_km` it orbits at 3 host radii. `400` for a distance inside the
-  host, `404` for an unknown host.
+  `{"distance_km", "period_years", "orbital_speed_kms", "min_distance_km",
+  "max_distance_km"}`; the last two are the orbits the host allows, from
+  just above its surface to the edge of its sphere of influence (a
+  planet's or moon's Hill sphere, a star's heliosphere). Without
+  `distance_km` it orbits at 3 host radii (or the sphere's edge, if
+  nearer). `400` for a distance inside the host or outside its sphere,
+  `404` for an unknown host. `POST /api/facilities` refuses the same
+  distances; an asteroid facility in a belt takes no distance and gets a
+  random spot in the belt, with the circular orbit around its star from
+  there, which `updateOrbits.py` advances like an orbital facility's.
 - `GET /api/galaxy/bright-stars?ring=<i>&layer=<j>&slot=<k>[&all=1]` —
   `{"items": [...]}`: the bright stars the plan pre-placed in one sector
   cell, brightest first (`queryDb.bright_stars_in_sector`), only those not

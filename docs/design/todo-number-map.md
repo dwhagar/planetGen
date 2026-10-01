@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.21 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
-| GEN | GEN.23 |
+| GEN | GEN.24 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
@@ -395,7 +395,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | open |
-| ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | open |
+| ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | done, PR #211 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
@@ -423,6 +423,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.20 | Sector growth ignores black holes and neutron stars (bug) | 58 (2026-09-30 19:02Z to 20:27Z); 45 (2026-09-30 20:07Z to 21:53Z) | done in 7.6.1, PR #116 |
 | GEN.21 | Star population model: population ages at sector fill | 55 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.23.0 (PR #141) and 7.38.0 (PR #159) |
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
+| GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

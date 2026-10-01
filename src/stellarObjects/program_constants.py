@@ -2566,6 +2566,19 @@ FACILITY_DEFAULT_ORBIT_RADII = 3.0
 """float: An orbital facility around a planet or moon with no distance
 given orbits at this many of its host's radii."""
 
+FACILITY_ORBIT_FLOOR = 1.01
+"""float: The lowest orbit the facility form offers, in host radii: just
+above the surface (`facilities.orbit_limits`)."""
+
+FACILITY_ORBIT_FALLBACK_RADII = 1000.0
+"""float: The highest orbit the facility form offers, in host radii, for
+a host with no stored sphere of influence (a planet or moon without a
+`hill_radius_km`, a star without a heliosphere)."""
+
+FACILITY_ORBIT_STEPS = 1000
+"""int: The facility form's orbit slider runs from 0 to this; each step
+is the same factor of distance (`facilities.distance_from_step`)."""
+
 # --- Galaxy pre-placement (schema v43) ---
 
 BRIGHT_STAR_MIN_LUMINOSITY_SOL = 500.0
